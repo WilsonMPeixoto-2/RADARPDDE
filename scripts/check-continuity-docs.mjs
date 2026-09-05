@@ -145,6 +145,56 @@ function validateTraceability(source, errors) {
     }
 }
 
+function validateSemanticContinuity(root, errors) {
+    const projectContext = read(root, 'docs/PROJECT_CONTEXT.md');
+    if (projectContext != null) {
+        if (!projectContext.includes('START_HERE.md') || !projectContext.includes('MASTER_PLAN_CURRENT.md')) {
+            errors.push('docs/PROJECT_CONTEXT.md: deve apontar para START_HERE.md e MASTER_PLAN_CURRENT.md como continuidade corrente.');
+        }
+        if (/porta de entrada executável canônica é[^\n]*2026-09-03-plano-remanescente-source-first/i.test(projectContext)) {
+            errors.push('docs/PROJECT_CONTEXT.md: ainda apresenta o plano source-first de 03/09 como porta executável corrente.');
+        }
+        if (/novo envio exige Pendência `Aberta`/i.test(projectContext)) {
+            errors.push('docs/PROJECT_CONTEXT.md: ainda contém a pré-condição de novo envio anterior ao PR #254.');
+        }
+    }
+
+    const statusDocs = read(root, 'docs/reference/STATUS_DOCUMENTOS.md');
+    if (statusDocs != null) {
+        if (!statusDocs.includes('START_HERE.md') || !statusDocs.includes('MASTER_PLAN_CURRENT.md')) {
+            errors.push('docs/reference/STATUS_DOCUMENTOS.md: deve apontar para a cadeia corrente de continuidade.');
+        }
+        if (/plano source-first de 03\/09 é \*\*Canônico — plano executável corrente\*\*/i.test(statusDocs)
+            || /fila atual é exclusivamente R1[–-]R9 no plano source-first/i.test(statusDocs)) {
+            errors.push('docs/reference/STATUS_DOCUMENTOS.md: ainda contém uma fila executável superada.');
+        }
+    }
+
+    const adr050 = read(root, 'docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md');
+    if (adr050 != null) {
+        if (/novo envio exige Pendência `Aberta` e cria/i.test(adr050)) {
+            errors.push('ADR-050: a regra de novo envio deve refletir a ampliação do PR #254 para Aberta ou Aguardando reanálise.');
+        }
+        if (/Plano corrente:\s*`docs\/superpowers\/plans\/2026-09-03-plano-remanescente-source-first\.md`/i.test(adr050)) {
+            errors.push('ADR-050: ainda aponta o plano de 03/09 como plano corrente.');
+        }
+    }
+
+    const decisionLog = read(root, 'docs/DECISION_LOG.md');
+    if (decisionLog != null && !decisionLog.includes('MASTER_PLAN_CURRENT.md')) {
+        errors.push('docs/DECISION_LOG.md: falta registrar a sucessão pós-PR #260 para MASTER_PLAN_CURRENT.md.');
+    }
+
+    const loadOrder = read(root, 'docs/architecture/product-extensions-load-order.md');
+    const bootstrap = read(root, 'src/integration/product-extensions-bootstrap.js');
+    if (loadOrder != null && bootstrap?.includes('/src/integration/critical-action-guard.js')) {
+        if (!loadOrder.includes('14. src/integration/critical-action-guard.js')
+            || !loadOrder.includes('18. src/integration/operational-write-feedback.js')) {
+            errors.push('docs/architecture/product-extensions-load-order.md: ordem documentada não reflete o bootstrap pós-PR #260.');
+        }
+    }
+}
+
 export function validateContinuityDocuments(root = process.cwd()) {
     const errors = [];
 
@@ -168,6 +218,7 @@ export function validateContinuityDocuments(root = process.cwd()) {
     validateCurrentPlanUniqueness(root, errors);
     validateHistoricalPlans(root, errors);
     validateTraceability(read(root, 'docs/PLAN_TRACEABILITY.md'), errors);
+    validateSemanticContinuity(root, errors);
 
     return errors;
 }
@@ -204,7 +255,7 @@ function changedFilesFromGit(baseSha) {
 
 function printAndExit(errors) {
     if (errors.length === 0) {
-        console.log('Continuidade documental válida: START_HERE único, plano corrente único e rastreabilidade íntegra.');
+        console.log('Continuidade documental válida: START_HERE único, plano corrente único, rastreabilidade e regras sensíveis alinhadas.');
         return;
     }
     console.error('Falhas de continuidade documental:');
