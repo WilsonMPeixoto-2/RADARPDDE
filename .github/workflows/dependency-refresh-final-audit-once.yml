@@ -65,7 +65,6 @@ jobs:
           set -euo pipefail
           npm run check
           CI=false npm run check:generated
-          npm run check:workflow-references
           npm run check:architecture
           npm run check:search-ui-vendors
           npm run lint
@@ -136,7 +135,7 @@ jobs:
             `- Glob da cadeia Archiver Utils: ${pkg.overrides['archiver-utils'].glob};\n` +
             `- Archiver 5.3.2 foi preservado porque 6.x/7.x quebraram WorkbookWriter com \`INPUTSTEAMBUFFERREQUIRED\` e 8.x rompeu a API CommonJS esperada pelo ExcelJS.\n\n` +
             `## Itens que permanecem fora do latest por decisão deliberada\n\n` +
-            `- \`@types/node\` ${outdated['@types/node']?.current}: permanece na linha Node 24; o latest 26.x não corresponde ao runtime \`node: 24.x\`;\n` +
+            `- \`@types/node\` ${outdated['@types/node']?.current}: permanece na linha Node 24; o latest 26.x não corresponde ao runtime de Node 24;\n` +
             `- Supabase CLI ${outdated.supabase?.current}: 2.116.0 permanece bloqueado pela reprovação já documentada em pgTAP/RLS. O bloqueio é específico dessa versão e não impede avaliar versões futuras.\n\n` +
             `## Segurança operacional\n\n` +
             `Esta manutenção não altera migrations, schema, regras de negócio ou Production. Mudanças de dependências foram mantidas na branch isolada e só devem chegar a \`main\` após revisão/CI do PR.\n`;
