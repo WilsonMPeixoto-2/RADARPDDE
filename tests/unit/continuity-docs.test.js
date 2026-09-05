@@ -41,7 +41,9 @@ function fixtureRoot() {
         'R6 — GATE FUTURO',
         'R7 — AINDA PENDENTE',
         'R8 — CONDICIONAL',
-        'R9 — GATE FUTURO'
+        'R9 — GATE FUTURO',
+        '#254 #256 #257 #258 #260 #261',
+        'PR #262 abortado sem merge'
     ].join('\n'));
     write(root, 'docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md', '# Antigo\n\nHISTÓRICO — NÃO EXECUTAR COMO FILA ATUAL\n');
     write(root, 'docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md', '# Mais antigo\n\nHISTÓRICO — NÃO EXECUTAR COMO FILA ATUAL\n');
@@ -117,4 +119,31 @@ test('PR funcional fica estruturalmente reconciliado quando atualiza estado e ra
     ]);
 
     assert.deepEqual(errors, []);
+});
+
+test('documentos correntes não ressuscitam a fila source-first nem a regra antiga de novo envio', () => {
+    const root = path.resolve(__dirname, '../..');
+    const projectContext = fs.readFileSync(path.join(root, 'docs/PROJECT_CONTEXT.md'), 'utf8');
+    const decisionLog = fs.readFileSync(path.join(root, 'docs/DECISION_LOG.md'), 'utf8');
+    const statusDocs = fs.readFileSync(path.join(root, 'docs/reference/STATUS_DOCUMENTOS.md'), 'utf8');
+    const adr050 = fs.readFileSync(path.join(root, 'docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md'), 'utf8');
+
+    assert.match(projectContext, /START_HERE\.md/);
+    assert.match(projectContext, /MASTER_PLAN_CURRENT\.md/);
+    assert.doesNotMatch(projectContext, /porta de entrada executável canônica é .*2026-09-03-plano-remanescente-source-first/i);
+
+    assert.match(decisionLog, /MASTER_PLAN_CURRENT\.md/);
+    assert.doesNotMatch(statusDocs, /plano source-first de 03\/09 é \*\*Canônico — plano executável corrente\*\*/i);
+    assert.doesNotMatch(statusDocs, /fila atual é exclusivamente R1[–-]R9 no plano source-first/i);
+    assert.doesNotMatch(adr050, /novo envio exige Pendência `Aberta` e cria/i);
+});
+
+test('documentação de bootstrap contém a extensão crítica efetivamente carregada pelo código', () => {
+    const root = path.resolve(__dirname, '../..');
+    const documentation = fs.readFileSync(path.join(root, 'docs/architecture/product-extensions-load-order.md'), 'utf8');
+    const bootstrap = fs.readFileSync(path.join(root, 'src/integration/product-extensions-bootstrap.js'), 'utf8');
+
+    assert.match(bootstrap, /\/src\/integration\/critical-action-guard\.js/);
+    assert.match(documentation, /14\. src\/integration\/critical-action-guard\.js/);
+    assert.match(documentation, /18\. src\/integration\/operational-write-feedback\.js/);
 });
