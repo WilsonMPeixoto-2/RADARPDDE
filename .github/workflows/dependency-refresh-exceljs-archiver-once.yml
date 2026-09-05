@@ -1,0 +1,210 @@
+name: Atualização única Archiver transitivo do ExcelJS
+
+on:
+  push:
+    branches:
+      - maintenance/dependency-refresh-adversarial-2026-09-05
+
+permissions:
+  contents: write
+
+jobs:
+  choose-and-refresh-archiver:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: Node 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+
+      - name: Baseline limpa
+        run: npm ci
+
+      - name: Testar Archiver 8 isoladamente
+        id: archiver8
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp package.json /tmp/package.before-archiver.json
+          cp package-lock.json /tmp/package-lock.before-archiver.json
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          pkg.overrides ||= {};
+          pkg.overrides.exceljs = { ...(pkg.overrides.exceljs || {}), archiver: '8.0.0' };
+          fs.writeFileSync('package.json', `${JSON.stringify(pkg, null, 2)}\n`);
+          NODE
+          npm install --package-lock-only --ignore-scripts
+          npm ci
+          set +e
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const os = require('node:os');
+          const ExcelJS = require('exceljs');
+          (async () => {
+            const wb = new ExcelJS.Workbook();
+            const ws = wb.addWorksheet('Archiver8');
+            ws.addRows([['A','B'], [1,2], [3,4]]);
+            const bytes = await wb.xlsx.writeBuffer();
+            const copy = new ExcelJS.Workbook();
+            await copy.xlsx.load(bytes);
+            if (copy.getWorksheet('Archiver8').getCell('B3').value !== 4) throw new Error('round-trip em memória divergiu');
+            const target = path.join(os.tmpdir(), `radar-archiver8-${Date.now()}.xlsx`);
+            await wb.xlsx.writeFile(target);
+            if (!fs.existsSync(target) || fs.statSync(target).size < 1000) throw new Error('writeFile não gerou XLSX');
+            fs.unlinkSync(target);
+            const streamTarget = path.join(os.tmpdir(), `radar-archiver8-stream-${Date.now()}.xlsx`);
+            const streamWb = new ExcelJS.stream.xlsx.WorkbookWriter({ filename: streamTarget, useStyles: true, useSharedStrings: true });
+            const streamWs = streamWb.addWorksheet('Stream');
+            streamWs.addRow(['x','y']).commit();
+            streamWs.addRow([10,20]).commit();
+            streamWs.commit();
+            await streamWb.commit();
+            const readBack = new ExcelJS.Workbook();
+            await readBack.xlsx.readFile(streamTarget);
+            if (readBack.getWorksheet('Stream').getCell('B2').value !== 20) throw new Error('WorkbookWriter divergiu');
+            fs.unlinkSync(streamTarget);
+          })().catch(error => { console.error(error); process.exit(1); });
+          NODE
+          status=$?
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo 'compatible=true' >> "$GITHUB_OUTPUT"
+            echo 'Archiver 8 passou no smoke estrutural do ExcelJS.'
+          else
+            echo 'compatible=false' >> "$GITHUB_OUTPUT"
+            echo 'Archiver 8 é incompatível com o contrato atual do ExcelJS 4.4.0; será usado o último major compatível.'
+          fi
+          cp /tmp/package.before-archiver.json package.json
+          cp /tmp/package-lock.before-archiver.json package-lock.json
+          npm ci
+
+      - name: Aplicar maior versão compatível do Archiver
+        shell: bash
+        env:
+          ARCHIVER8_COMPATIBLE: ${{ steps.archiver8.outputs.compatible }}
+        run: |
+          set -euo pipefail
+          if [ "$ARCHIVER8_COMPATIBLE" = 'true' ]; then chosen='8.0.0'; else chosen='7.0.1'; fi
+          echo "$chosen" > /tmp/chosen-archiver-version
+          node - "$chosen" <<'NODE'
+          const fs = require('node:fs');
+          const chosen = process.argv[2];
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          pkg.overrides ||= {};
+          pkg.overrides.exceljs = { ...(pkg.overrides.exceljs || {}), archiver: chosen };
+          fs.writeFileSync('package.json', `${JSON.stringify(pkg, null, 2)}\n`);
+          NODE
+          npm install --package-lock-only --ignore-scripts
+          npm ci
+          npm ls exceljs archiver archiver-utils glob inflight zip-stream
+          if npm ls inflight >/dev/null 2>&1; then echo 'inflight ainda presente' >&2; exit 1; fi
+          if npm ls glob@7.2.3 >/dev/null 2>&1; then echo 'glob 7.2.3 ainda presente' >&2; exit 1; fi
+
+      - name: Validar geração XLSX por memória arquivo e stream
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const os = require('node:os');
+          const ExcelJS = require('exceljs');
+          (async () => {
+            for (let i = 0; i < 20; i += 1) {
+              const wb = new ExcelJS.Workbook();
+              const ws = wb.addWorksheet(`R${i}`);
+              ws.addRows([['A','B'], [i, i + 1], [i + 2, i + 3]]);
+              const bytes = await wb.xlsx.writeBuffer();
+              const copy = new ExcelJS.Workbook();
+              await copy.xlsx.load(bytes);
+              if (copy.getWorksheet(`R${i}`).getCell('B3').value !== i + 3) throw new Error(`writeBuffer divergiu em ${i}`);
+            }
+            const wb = new ExcelJS.Workbook();
+            wb.addWorksheet('Arquivo').addRows([['A','B'], ['teste', 42]]);
+            const target = path.join(os.tmpdir(), `radar-archiver-${Date.now()}.xlsx`);
+            await wb.xlsx.writeFile(target);
+            const copy = new ExcelJS.Workbook();
+            await copy.xlsx.readFile(target);
+            if (copy.getWorksheet('Arquivo').getCell('B2').value !== 42) throw new Error('writeFile divergiu');
+            fs.unlinkSync(target);
+            const streamTarget = path.join(os.tmpdir(), `radar-archiver-stream-${Date.now()}.xlsx`);
+            const streamWb = new ExcelJS.stream.xlsx.WorkbookWriter({ filename: streamTarget, useStyles: true, useSharedStrings: true });
+            const streamWs = streamWb.addWorksheet('Stream');
+            streamWs.addRow(['x','y']).commit();
+            streamWs.addRow([10,20]).commit();
+            streamWs.commit();
+            await streamWb.commit();
+            const readBack = new ExcelJS.Workbook();
+            await readBack.xlsx.readFile(streamTarget);
+            if (readBack.getWorksheet('Stream').getCell('B2').value !== 20) throw new Error('WorkbookWriter divergiu');
+            fs.unlinkSync(streamTarget);
+          })().catch(error => { console.error(error); process.exit(1); });
+          NODE
+
+      - name: Certificações do Excel e gates locais
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run build:exceljs
+          npm run check
+          CI=false npm run check:generated
+          npm run certify:excel:fixture
+          node --test \
+            tests/unit/excel-export-audit.test.js \
+            tests/unit/excel-integral-certification.test.js \
+            tests/unit/excel-sme-export-integration.test.js \
+            tests/unit/excel-sme-monthly.test.js \
+            tests/unit/excel-sme-renderer.test.js \
+            tests/unit/excel-sme-template-loader.test.js \
+            tests/unit/excel-sme-template-renderer.test.js \
+            tests/unit/exceljs-audit-policy.test.js
+          npm run test:unit
+          npm run test:integration
+          npm run typecheck:database
+          npm run analyze:unused
+          npm audit --audit-level=low
+
+      - name: E2E do Excel
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx playwright install --with-deps chromium
+          npx playwright test tests/e2e/assistant-dashboard-excel-actions.spec.js --project=desktop-chromium
+
+      - name: Registrar saúde final da cadeia ExcelJS
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dependency-health
+          npm outdated --json > dependency-health/npm-outdated-after-exceljs-archiver-2026-09-05.json 2>&1 || true
+          npm audit --json > dependency-health/npm-audit-after-exceljs-archiver-2026-09-05.json 2>&1 || true
+          npm ls exceljs uuid archiver archiver-utils glob inflight fast-csv lodash.isequal unzipper fstream rimraf zip-stream > dependency-health/deprecated-chain-after-exceljs-archiver-2026-09-05.txt || true
+          printf 'archiver escolhido: %s\n' "$(cat /tmp/chosen-archiver-version)" > dependency-health/exceljs-archiver-selection-2026-09-05.txt
+          printf 'archiver 8 compatível no smoke inicial: %s\n' '${{ steps.archiver8.outputs.compatible }}' >> dependency-health/exceljs-archiver-selection-2026-09-05.txt
+          cat dependency-health/deprecated-chain-after-exceljs-archiver-2026-09-05.txt
+          cat dependency-health/exceljs-archiver-selection-2026-09-05.txt
+
+      - name: Commit e publicar atualização validada
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package.json package-lock.json vendor/exceljs.min.js \
+            dependency-health/npm-outdated-after-exceljs-archiver-2026-09-05.json \
+            dependency-health/npm-audit-after-exceljs-archiver-2026-09-05.json \
+            dependency-health/deprecated-chain-after-exceljs-archiver-2026-09-05.txt \
+            dependency-health/exceljs-archiver-selection-2026-09-05.txt
+          git commit -m 'chore(deps): modernizar Archiver transitivo do ExcelJS'
+          npm ci
+          npm audit --audit-level=low
+          git diff --exit-code
+          git push origin HEAD:maintenance/dependency-refresh-adversarial-2026-09-05
