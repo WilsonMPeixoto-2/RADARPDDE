@@ -151,7 +151,7 @@ test('falha em extensão opcional não impede Assessoria nem guard crítico e o 
 
     const firstReady = await harness.executeBootstrap();
 
-    assert.equal(firstReady, true, 'falha opcional não deve derrubar capacidades críticas posteriores');
+    assert.equal(firstReady, false, 'readiness global deve refletir que uma extensão continua ausente');
     assert.ok(harness.requested.includes('/src/integration/service-advisory-pendency.js'));
     assert.ok(harness.requested.includes('/src/integration/service-advisory-corrective-submission.js'));
     assert.ok(harness.requested.includes('/src/integration/critical-action-guard.js'));
