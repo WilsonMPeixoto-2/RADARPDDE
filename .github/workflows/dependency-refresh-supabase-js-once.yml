@@ -39,7 +39,9 @@ jobs:
           ];
           for (const file of files) {
             const source = fs.readFileSync(file, 'utf8');
-            const next = source.replaceAll('2.112.4', '2.115.0');
+            const next = source
+              .replaceAll('2.112.4', '2.115.0')
+              .replaceAll('2\\.112\\.4', '2\\.115\\.0');
             if (next === source) throw new Error(`Versão 2.112.4 não encontrada em ${file}`);
             fs.writeFileSync(file, next);
           }
