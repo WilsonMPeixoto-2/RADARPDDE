@@ -67,6 +67,10 @@
     class UnitOfWork {
         constructor(options = {}) {
             this.statePort = options.statePort;
+            // Uma UnitOfWork opera sobre uma única porta de estado mutável. As execuções
+            // precisam ser isoladas para que o rollback de uma operação não restaure um
+            // snapshot anterior a outra escrita já confirmada na mesma instância.
+            this.executionTail = Promise.resolve();
             if (!this.statePort
                 || typeof this.statePort.capture !== 'function'
                 || typeof this.statePort.exportCanonical !== 'function'
@@ -92,6 +96,12 @@
             changedEntities.forEach(assertKnownEntity);
             const operation = String(command.name || 'data-command');
             const incidentId = createIncidentId(command);
+            const previousExecution = this.executionTail;
+            let releaseExecution;
+            this.executionTail = new Promise(resolve => {
+                releaseExecution = resolve;
+            });
+            await previousExecution;
             let phase = 'capture';
             let capture = null;
             let remoteWriteStarted = false;
@@ -191,6 +201,8 @@
                     remoteCommitConfirmed: remoteCommitConfirmed || error?.details?.remoteCommitConfirmed === true,
                     remoteWriteStarted
                 });
+            } finally {
+                releaseExecution();
             }
         }
     }
