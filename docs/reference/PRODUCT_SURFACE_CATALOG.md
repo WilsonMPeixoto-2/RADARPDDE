@@ -1,246 +1,166 @@
 # Catálogo de superfícies do RADAR PDDE
 
-**Estado:** referência operacional vigente  
-**Atualizado em:** 9 de agosto de 2026
+**Estado:** referência operacional vigente da baseline funcional do PR #260  
+**Atualizado em:** 5 de setembro de 2026
 
-## 1. Regra de leitura
+> Para retomar o projeto, comece em [`../../START_HERE.md`](../../START_HERE.md). Este catálogo descreve superfícies, usuários e relações. A autorização efetiva continua cumulativa entre UI, `access-policy`, serviços, Auth, RLS, RPCs e Edge Functions.
 
-Este catálogo descreve finalidade, perfis, dados, ações e integração. A autorização efetiva é cumulativa entre interface, capacidades, serviços, Auth, RLS, RPCs e Edge Functions.
-
-`technical_admin` é papel autenticado técnico transversal. A escolha de um perfil funcional para simulação altera a apresentação da interface, mas não reduz a autoridade real do administrador técnico nem troca sua identidade/JWT.
+## 1. Regras gerais
 
 Toda superfície deve:
 
-- consumir entidades canônicas;
-- respeitar competência e exercício;
+- consumir o mesmo universo canônico de dados;
+- respeitar competência, exercício, escola, programa e perfil;
 - preservar autoria e escopo;
-- indicar próxima ação;
-- manter conteúdo e capacidade no mobile;
-- usar serviços de aplicação e repositório;
-- atualizar a interface após o backend;
-- preservar o resultado após recarregar quando houver persistência;
-- tratar falha e conflito de forma compreensível;
-- tornar ações e contexto encontráveis e legíveis.
+- indicar próxima ação sem inventar estado;
+- preservar conteúdo/capacidade essencial no mobile;
+- persistir por serviço/repositório apropriado;
+- manter coerência depois de reload quando houver escrita;
+- não transformar um resumo visual em nova fonte de verdade.
+
+`technical_admin` é papel técnico real. Simular outro perfil muda a apresentação, não o JWT nem a identidade.
 
 ## S-01 — Dashboard
 
-| Campo | Contrato |
-|---|---|
-| Rota | `dashboard` |
-| Perfis | Controlador, Assistente, SME e Inventário conforme recorte; administrador técnico por simulação autorizada |
-| Finalidade | sintetizar estado, prioridade e próximos passos |
-| Dados | escolas, verificações, pendências, bens e projeções |
-| Ações | filtros, cartões, navegação e exportações autorizadas |
-| Assistente | grupo com Relatório RADAR PDDE e Excel SME, além de Redistribuir Escolas |
-| Restrições | universos não sobrepostos e ações somente por capacidade |
+**Finalidade:** síntese gerencial/operacional de estado, prioridade e próximos passos.  
+**Perfis:** Controlador, Assistente, SME e Inventário conforme recorte; `technical_admin` sob política técnica.  
+**Dados:** escolas, verificações, Pendências, bens e projeções.  
+**Regra:** cartões/filtros/navegação não reescrevem estado; ações aparecem por capacidade.
 
 ## S-02 — Carteira de Escolas
 
-| Campo | Contrato |
-|---|---|
-| Rota | `escolas` |
-| Finalidade | pesquisar, comparar e abrir unidade |
-| Perfis | Controlador, Assistente e SME em leitura autorizada; administrador técnico mantém autoridade autenticada |
-| Responsabilidade | `controller_id` define responsável principal |
-| Colaboração | Controladores da mesma CRE podem atuar sem transferência automática |
-| Ações | abrir prontuário e editar quando autorizado |
-| Mobile | mesmos dados e ações em organização responsiva |
+**Finalidade:** localizar, comparar e abrir unidade.  
+**Regra:** `controller_id` define responsável principal. Colaboração autorizada na mesma CRE não transfere carteira automaticamente. Controlador não redistribui a escola pelo cadastro comum.
 
-## S-03 — Competências Mensais
+## S-03 — Competências
 
-| Campo | Contrato |
-|---|---|
-| Rota | `competencias` |
-| Contexto | competência global única `YYYY-MM` via `RadarCompetenceContext` |
-| Finalidade | acompanhar bonificação, análise e pendências por mês |
-| Perfis | Controlador e Assistente operam; SME consulta recorte gerencial; administrador técnico preserva autoridade real sob simulação |
-| Dados | competências, programas, verificações, pendências e prazos |
-| Restrições | nenhum seletor concorrente; nenhuma análise técnica para SME real |
+**Contexto:** competência global única `YYYY-MM` via `RadarCompetenceContext`.  
+**Perfis:** Controlador/Assistente operam; SME acompanha o recorte permitido.  
+**Regra:** competência futura pode ser consultada, mas não editada nas operações mensais protegidas. Não criar seletor global concorrente.
 
 ## S-04 — Pendências Operacionais
 
-| Campo | Contrato |
-|---|---|
-| Rota | `pendencias` |
-| Estados | Aberta, Aguardando reanálise, Resolvida e Cancelada |
-| Perfis | Controlador e Assistente operam; SME consulta; Inventário vê recorte autorizado; administrador técnico mantém autoridade integral |
-| Ações | abrir, registrar envio, reanalisar, contatar, cancelar e reabrir conforme capacidade |
-| Reanálise | Controlador, Assistente e `technical_admin`; SME e Inventário não executam a mutação |
-| Contexto | competência global e filtro de unidade devem permanecer visíveis e coerentes |
-| Regra | novo envio não resolve; reanálise decide a transição |
-| Persistência | pendência, tentativa, contato, verificação e log |
+**Estados:** `Aberta`, `Aguardando reanálise`, `Resolvida`, `Cancelada`.  
+**Ativas:** `Aberta` e `Aguardando reanálise`.  
+**Perfis de mutação:** Controlador/Assistente e `technical_admin` conforme capacidade; SME e Inventário não recebem mutações documentais só por visualizar.
+
+Regras pós-#254/#256:
+
+- novo envio não resolve;
+- primeiro envio corretivo pode partir de `Aberta`;
+- substituição mais recente pode ser registrada enquanto já está `Aguardando reanálise`;
+- a nova tentativa fica aguardando análise e a Pendência permanece `Aguardando reanálise`;
+- reanálise correta resolve; incorreta/arquivo indisponível volta a `Aberta`;
+- `Resolvida` ou `Cancelada` pode ser reaberta quando autorizado;
+- próximo ator: `Aberta → Escola`, `Aguardando reanálise → Controlador`, terminal → nenhum;
+- a página pode operar em **Todas as competências** como passivo transversal.
 
 ## S-05 — Prontuário
 
-| Campo | Contrato |
-|---|---|
-| Rota | `prontuario` + escola |
-| Finalidade | concentrar contexto da unidade |
-| Conteúdo | identificação, programas, verificações, pendências, notas, bens e timeline |
-| Perfis | todos conforme capacidade e escopo; administrador técnico mantém autoridade autenticada |
-| SME | identificação e bonificação, sem análise técnica ou controles operacionais quando o papel real é SME |
-| Navegação | retorno contextual com competência, filtros, rolagem e foco |
+**Finalidade:** concentrar identificação, programas, avaliação, Pendências, NFs, patrimônio e timeline da escola.  
+**Regra:** bonificação, análise e Pendência são dimensões distintas. SME real não recebe controles de análise/mutação apenas por acessar o Prontuário.
+
+Notas Fiscais e Consulta Assessoria mantêm individualização por invoice onde aplicável. O tópico de inventário mostra a NF/bem vinculados por identidade técnica.
 
 ## S-06 — Capital e Inventário
 
-| Campo | Contrato |
-|---|---|
-| Rota | `inventario` |
-| Perfis | Inventário e Assistente; leitura/operação adicional conforme política para Controlador e administrador técnico |
-| Dados | bens, notas permanentes, processos, responsável e tombamento |
-| Ações | cadastrar, encaminhar, atualizar e concluir inventariação conforme capacidade |
-| Backend | `InventoryService`, `assets` e RPCs compostas |
-| Restrições | perfil Inventário não recebe módulos não patrimoniais; SME não ganha mutação patrimonial por simples acesso visual |
+**Dados:** bens, NFs permanentes vinculadas, processo, status, responsável e conclusão da inventariação.  
+**Backend:** `InventoryService`, `assets` e RPCs compostas.
+
+Existem **dois ramos legítimos**, que não podem ser confundidos:
+
+```text
+NF permanente + número + processo já cadastrado
+→ bem nasce Encaminhada
+→ UI mostra Aguardando Inventariação
+→ ação seguinte: Inventariar
+
+NF permanente sem processo
+→ bem nasce Não encaminhada
+→ quando o processo existir: Encaminhar
+→ depois: Inventariar
+```
+
+Portanto, o botão/ação **Encaminhar** aplica-se ao bem que realmente está `Não encaminhada`; não é etapa obrigatória de toda NF permanente.
+
+Outras regras:
+
+- `Não encaminhada` não pode pular direto para `Inventariada`;
+- `encampInventario`: nenhuma permanente = N/A; alguma não encaminhada = Não; todas encaminhadas/inventariadas = Sim;
+- encaminhamento posterior de bem vinculado sincroniza bem + verificação + log atomicamente;
+- bem derivado de NF não aceita edição isolada do número fiscal;
+- concluir inventariação exige `Encaminhada` e responsável.
 
 ## S-07 — Registros Internos
 
-| Campo | Contrato |
-|---|---|
-| Rota | `auditoria` |
-| Dados | `administrative_logs` e contexto funcional |
-| Controlador/Assistente | leitura conforme capacidade e escopo |
-| SME | somente `actor_user_id = auth.uid()` quando o papel autenticado real é SME |
-| Admin técnico | leitura ampla independentemente do perfil visual simulado |
-| Restrições | registros antigos sem UUID não aparecem no recorte de um usuário SME real |
+**Dados:** `administrative_logs` e contexto funcional.  
+**Regra:** leitura respeita papel/escopo. `technical_admin` possui autoridade técnica própria; SME real não ganha visão ampla de logs apenas por ser perfil gerencial.
 
 ## S-08 — Configurações SME
 
-| Campo | Contrato |
-|---|---|
-| Rota | `sme-config` |
-| Perfis | Gestão SME e administrador técnico |
-| Dados | exercício, competência, prazo, programas e configuração global |
-| Backend | `ConfigurationService`, tabelas de configuração e RPCs |
-| Estado atual | funções de exercício, calendário e programas existem no frontend e no Supabase |
-| Regra | acesso visual não substitui serviço, RLS, auditoria e concorrência |
+**Perfis:** Gestão SME e `technical_admin`.  
+**Dados/ações:** exercício, competências, calendário/prazo, programas e configurações autorizadas.  
+**Regra:** UI não substitui serviço/RPC/RLS/concorrência.
 
 ## S-09 — Gestão de Equipe
 
-| Campo | Contrato |
-|---|---|
-| Rota | `equipe` |
-| Responsável funcional | Assistente de Verbas Federais |
-| Autoridade técnica | `technical_admin` também pode executar as operações autorizadas, sem perder identidade ao simular perfil |
-| Dados | Controladores, Inventário, perfis Auth e carteiras |
-| Ações | cadastrar, editar, redistribuir e desativar |
-| Frontend | `DirectoryService` e `TeamAccountGateway` |
-| Backend | `team-account-management` + Auth Admin + RPC |
-| Proteções | CORS, JWT, papel, idempotência, vínculo histórico e compensação |
-| Releitura | resultado deve permanecer após recarregar |
+**Responsável funcional:** Assistente de Verbas Federais; `technical_admin` conforme autoridade técnica.  
+**Fluxo:**
+
+```text
+DirectoryService
+→ TeamAccountGateway
+→ team-account-management
+→ Auth Admin + RPC transacional
+```
+
+**Proteções:** CORS fail-closed, JWT/papel, lookup Auth exato, reutilização segura, conflito de vínculo, desativação lógica e compensação.
 
 ## S-10 — Exercícios
 
-| Campo | Contrato |
-|---|---|
-| Finalidade | selecionar ou criar contexto anual autorizado |
-| Dados | exercícios, competências, prazos e configuração |
-| Criação | operação composta com competências correspondentes |
-| Perfil | capacidade administrativa expressa |
-| Regra | exercício e competência permanecem sincronizados |
+Criação de exercício é operação composta: configuração + doze competências + log. Competência inicial precisa pertencer ao novo exercício e o contrato preserva optimistic concurrency.
 
 ## S-11 — Programas
 
-| Campo | Contrato |
-|---|---|
-| Dados | `programs` e `school_programs` |
-| Finalidade | catálogo global e vínculos escolares |
-| Histórico | desativação preserva registros anteriores |
-| Perfil | SME e administrador conforme políticas atuais; leitura para perfis operacionais |
-| Regra | qualquer retirada ou expansão de capacidade exige decisão funcional nova; documentação histórica não a altera |
-| Restrições | não alterar junto com polimento ou outra frente não relacionada |
+Gestão SME/`technical_admin` mantêm catálogo conforme políticas atuais. Desativação lógica preserva histórico. Alteração de autorização exige decisão expressa e mudança coordenada de UI, serviço e banco.
 
 ## S-12 — Alertas
 
-| Campo | Contrato |
-|---|---|
-| Local | sino e dropdown do cabeçalho |
-| Finalidade | localizar itens que exigem atenção |
-| Contexto | competência, escola, pendência, bem e prazo |
-| Ação | transportar filtros e origem para a superfície correta |
-| Persistência | nenhuma mutação de negócio |
-| Acessibilidade | foco, teclado, estado e fechamento seguro |
+Localiza itens que exigem atenção e transporta o contexto adequado. Não cria mutação de negócio por si só.
 
 ## S-13 — Busca global
 
-| Campo | Contrato |
-|---|---|
-| Local | cabeçalho |
-| Motor | Fuse.js carregado sob demanda, com fallback |
-| Conteúdo | escolas autorizadas, módulos, programas, competências e pendências consultáveis |
-| Ação | navegação contextual para o destino |
-| Segurança | não revela recurso fora do escopo |
-| Acessibilidade | clique, setas, Enter e Escape |
+Pesquisa apenas recursos autorizados e navega para o destino contextual. Não deve revelar entidade fora do escopo.
 
 ## S-14 — Exportações
 
-| Campo | Contrato |
-|---|---|
-| Contexto temporal | exportações operacionais usam a competência global canônica aplicável |
-| Institucional | XLSX de quatro abas limitado ao contexto mensal vigente conforme integração atual |
-| SME | uma competência, uma aba e **27 colunas A:AA** |
-| Template SME | 30 colunas apenas como base visual; K, R e Y removidas na projeção |
-| CSV | secundário e fallback institucional |
-| Assets | manifesto, tamanho e SHA do ExcelJS e template |
-| Certificação | modelo, workbook, reabertura, OOXML, células e hashes |
-| Persistência | nenhuma escrita de dados de negócio; auditoria administrativa do download permanece obrigatória |
-| Homologação | Excel SME aprovado no Microsoft Excel desktop |
+- relatório institucional: XLSX, com fallback secundário onde previsto;
+- Excel SME: uma competência, uma aba, **27 colunas A:AA**;
+- XLSX de Pendências: respeita busca/filtros e não expõe IDs técnicos;
+- download auditável quando o contrato exige `AuditService`;
+- alteração material do Excel SME exige gate específico.
 
 ## S-15 — Autenticação
 
-| Campo | Contrato |
-|---|---|
-| Backend | Supabase Auth |
-| Estado pré-auth | aplicação inerte |
-| Sessão | restauração, renovação e logout controlados |
-| Perfil | `user_profiles`, perfil ativo, papel efetivo e escopos |
-| Admin | simulação visual não troca JWT nem reduz a autoridade de `technical_admin` |
-| RLS | autorização obrigatória adicional |
-| Anônimo | nenhum dado institucional |
-| Monitor | shell, gate e bloqueio anônimo verificados continuamente |
+Backend: Supabase Auth. Aplicação permanece inerte antes da sessão/autorização necessárias. `user_profiles`, papel, CRE/escopos e RLS compõem a fronteira real. Anônimo não recebe dados institucionais.
 
 ## S-16 — Modais e confirmações
 
-| Campo | Contrato |
-|---|---|
-| Finalidade | editar ou confirmar ação contextual |
-| Acessibilidade | foco inicial, Escape, retorno e anúncio |
-| Escrita | somente após validação e confirmação aplicável |
-| Mobile | conteúdo integral no viewport |
-| Estado | salvando, sucesso e erro sem duplicação de clique |
-| Usabilidade | cabeçalho/contexto e ações essenciais permanecem acessíveis; conteúdo extenso rola internamente quando necessário |
+Devem preservar foco, Escape, retorno, contexto, estados de salvando/sucesso/erro e impedir repetição indevida do gesto quando a ação estiver em andamento.
 
 ## S-17 — Formulários
 
-| Campo | Contrato |
-|---|---|
-| Estados | intocado, alterado, inválido, salvando, erro e sucesso |
-| Persistência | serviço de aplicação e unidade de trabalho |
-| Erro | preservar valores, foco e mensagem funcional |
-| Escrita | sem repetição automática silenciosa |
-| Auditoria | autoria e contexto |
-| Releitura | salvar, recarregar e confirmar o mesmo resultado quando material |
+Validação, erro, conflito e persistência devem preservar os valores e o contexto do usuário. Escrita não é repetida silenciosamente. Quando material, salvar deve sobreviver a reload.
 
-## S-18 — Estados vazios, loading e erro
+## S-18 — Estados vazios/loading/erro
 
-| Campo | Contrato |
-|---|---|
-| Tipos | vazio, carregando, sessão, rede, CORS, RLS, conflito, validação e asset |
-| Finalidade | explicar o estado e oferecer próxima ação segura |
-| Retry | somente quando idempotente ou explicitamente protegido |
-| Escrita | nunca repetida silenciosamente |
-| Consistência | mesmo código de falha produz orientação equivalente |
+Devem explicar o estado e oferecer próxima ação segura. Retry automático só é aceitável quando o contrato é idempotente/protegido.
 
 ## S-19 — Monitoramento de Production
 
-| Campo | Contrato |
-|---|---|
-| Superfície | GitHub Actions e Issues |
-| Finalidade | detectar falha do ambiente publicado |
-| Verificações | SHA, manifesto, assets, Auth gate, bloqueio anônimo e preflight conforme workflow vigente |
-| Incidente | issue automática única, atualizada e encerrada após recuperação |
-| Limite | monitor técnico não substitui teste funcional quando houver risco funcional concreto |
+GitHub Actions/monitoramento verificam componentes técnicos do sistema publicado. Um monitor verde não substitui teste funcional quando houver risco real; uma falha isolada também não redefine regra sem diagnóstico do componente.
 
-## 3. Relações obrigatórias
+## 2. Relações obrigatórias
 
 ```text
 Dashboard
@@ -254,23 +174,19 @@ Dashboard
 ↔ Exportações
 ```
 
-Gestão de Equipe, Inventário, Registros Internos e Configurações conectam-se ao núcleo por capacidades específicas.
+Gestão de Equipe, Capital/Inventário, Registros Internos e Configurações conectam-se ao núcleo por capacidades específicas.
 
-## 4. Gate para alteração de superfície
+## 3. Gate de mudança de superfície
 
-O gate é proporcional ao impacto. Ver `TEST_GOVERNANCE.md`.
+Para a superfície alterada, verificar proporcionalmente:
 
-Para a superfície efetivamente alterada, verificar o conjunto materialmente necessário entre:
+1. perfis positivos/negativos;
+2. dados lidos/escritos;
+3. handler → serviço → repositório → backend;
+4. persistência/reload quando houver escrita;
+5. erro/conflito/compensação;
+6. desktop/mobile se a apresentação mudou;
+7. acessibilidade/teclado/foco quando a interação mudou;
+8. documentação corrente e rastreabilidade quando a regra/continuidade mudou.
 
-1. perfis autorizados e negados;
-2. dados lidos e escritos;
-3. handler, serviço, repositório e backend;
-4. autorização positiva e, quando relevante, negativa;
-5. atualização da interface e releitura quando houver persistência;
-6. erro, conflito e compensação quando aplicáveis;
-7. desktop/mobile quando o layout ou a interação forem afetados;
-8. foco, teclado, semântica, encontrabilidade e legibilidade quando houver impacto de UX;
-9. documentação vigente afetada;
-10. ambiente e SHA da evidência quando houver publicação.
-
-Não executar todos os itens por ritual quando a alteração não os alcança.
+Não executar todos os gates por ritual quando a alteração não os alcança, e não declarar um fluxo defeituoso apenas porque uma descrição histórica mais curta omitiu suas pré-condições.
