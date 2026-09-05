@@ -82,3 +82,39 @@ test('rollback de operação concorrente não pode apagar operação posterior j
         'successful-persist'
     ]);
 });
+
+test('falha na captura libera a fila para a próxima execução', async () => {
+    const statePort = createMemoryStatePort();
+    const originalCapture = statePort.capture;
+    let captureCalls = 0;
+    statePort.capture = async () => {
+        captureCalls += 1;
+        if (captureCalls === 1) throw new Error('falha de captura induzida');
+        return originalCapture();
+    };
+    const uow = new UnitOfWork({ statePort });
+
+    await assert.rejects(
+        uow.run({
+            name: 'captura-falha',
+            changedEntities: ['appConfig'],
+            mutate: () => ({ ok: false }),
+            persist: async () => ({ ok: false })
+        }),
+        /falha de captura induzida/
+    );
+
+    const result = await uow.run({
+        name: 'apos-captura-falha',
+        changedEntities: ['appConfig'],
+        mutate: () => {
+            statePort.mutate({ successfulWrite: 'confirmada' });
+            return { ok: true };
+        },
+        persist: async () => ({ ok: true })
+    });
+
+    assert.equal(result.value.ok, true);
+    assert.equal(statePort.read().successfulWrite, 'confirmada');
+    assert.equal(captureCalls, 2);
+});
