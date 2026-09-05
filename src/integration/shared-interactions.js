@@ -165,11 +165,14 @@
 
     function formatControllerDeactivationSuccess(input = {}) {
         const controllerName = text(input.controllerName) || 'A controladora';
-        const recipientName = text(input.recipientName);
         const schoolCount = count(input.schoolCount);
-        if (schoolCount === 0) return `${controllerName} foi desativada sem escolas vinculadas.`;
-        const verb = schoolCount === 1 ? 'foi transferida' : 'foram transferidas';
-        return `${controllerName} foi desativada. ${pluralSchools(schoolCount)} ${verb} para ${recipientName}.`;
+        if (schoolCount > 0) {
+            throw new InteractionError(
+                'SCHOOLS_ASSIGNED',
+                `A desativação só pode ser confirmada após transferir ${pluralSchools(schoolCount)}.`
+            );
+        }
+        return `${controllerName} foi desativada sem escolas vinculadas.`;
     }
 
     function ensureFeedbackRegion(documentRef) {
