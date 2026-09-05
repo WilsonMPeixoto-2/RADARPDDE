@@ -1,71 +1,41 @@
 # Runbook — conexão e operação controlada do Supabase
 
 **Estado:** vigente; Production conectada  
-**Atualizado em:** 4 de setembro de 2026
+**Atualizado em:** 5 de setembro de 2026
 
-## 1. Objetivo
+> Antes de qualquer operação dependente do ambiente, comece em [`../../START_HERE.md`](../../START_HERE.md), leia [`../CURRENT_STATE.md`](../CURRENT_STATE.md) e revalide o remoto. Este runbook não autoriza migration, importação, alteração de Auth/RLS, deploy de Edge Function ou release por si só.
 
-Orientar validação, diagnóstico, contingência e recuperação da conexão entre RADAR PDDE e Supabase autorizado.
+## 1. Baseline
 
-Este runbook não autoriza, por si só, migration, importação, alteração de Auth/RLS, deployment de Edge Function ou release. Cada operação remota depende do escopo aprovado.
-
-## 2. Baseline
-
-Consultar [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md) e revalidar remotamente antes de operação dependente do ambiente.
-
-Por compatibilidade com o verificador de readiness, este runbook mantém um único espelho machine-readable da contagem versionada: O conjunto versionado contém atualmente **46** migrations. A lista e a ordem continuam sendo obtidas do diretório `supabase/migrations/` e do histórico do CLI, nunca de uma segunda lista manual.
+A baseline funcional do PR #260 contém **46 migrations**. A lista e a ordem reais vêm de `supabase/migrations/` e do histórico do CLI, não de uma lista manual paralela.
 
 Contratos estáveis:
 
 ```text
 Production data mode: supabase-production
-repositório Production: SupabaseRepository
-fallback local em Production: proibido (fail-closed)
-Supabase JS: versão fixada em package.json
-Supabase CLI: versão fixada em package.json
-Node.js: 24.x
+Production repository: SupabaseRepository
+fallback local em Production: proibido / fail-closed
+Supabase JS e CLI: versões fixadas em package.json/lockfile
+Node.js CI: versão definida nos workflows do projeto
 ```
 
-## 3. Regras permanentes
+Valores mutáveis de deployment, projeto e ambiente devem ser consultados novamente quando forem necessários.
+
+## 2. Regras permanentes
 
 - não reutilizar projeto de outra aplicação;
 - não inserir chave administrativa no frontend, GitHub, logs ou artefatos;
-- usar somente chave publicável no navegador;
-- não confundir Preview com Production;
-- manter um perfil institucional ativo por usuário;
-- preservar perfis históricos inativos em troca autorizada de função;
+- navegador usa somente credencial publicável;
+- Preview e Production são ambientes distintos;
 - não aplicar seed implicitamente em banco remoto;
 - não alterar schema com histórico divergente;
-- não permitir que falha de configuração de Production seja convertida em repositório local;
-- não publicar dumps SQL como evidência;
+- não transformar falha de configuração de Production em fallback local;
+- não publicar dump SQL como evidência;
 - não executar operação remota apenas porque teste local passou;
-- não reutilizar contas pessoais/operacionais como identidades técnicas de monitoramento.
+- não reutilizar contas pessoais/operacionais como identidades técnicas automatizadas;
+- não editar migration histórica para corrigir comportamento posterior.
 
-## 4. Configuração por ambiente
-
-### Preview
-
-```text
-RADAR_DATA_MODE=supabase-preview
-RADAR_ENVIRONMENT=preview
-RADAR_SUPABASE_REPOSITORY_ENABLED=true
-RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED=false
-```
-
-Preview também pode usar modo local explicitamente isolado quando não houver projeto Supabase de desenvolvimento.
-
-### Production
-
-```text
-RADAR_DATA_MODE=supabase-production
-RADAR_ENVIRONMENT=production
-RADAR_SUPABASE_REPOSITORY_ENABLED=true
-RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED=true
-```
-
-O build público pode conter URL e chave publicável. São proibidos credenciais administrativas, senha de banco e tokens administrativos no artefato. Se a configuração Production não puder ser validada, a aplicação operacional deve permanecer indisponível em vez de cair para dados locais.
-
-## 5. Validação estática/local
+## 3. Validação local
 
 ```bash
 npm ci
@@ -79,114 +49,120 @@ npm run supabase:lint:db
 npm run typecheck:database
 ```
 
-Confirmar scripts e bundles reproduzíveis, migrations em ordem, pgTAP, tipos, Auth local, RLS positiva/negativa e Edge Function quando aplicável.
-
-Para fluxos operacionais críticos, teste de serviço ou de interface isolado não é evidência suficiente. A certificação funcional deve atravessar, quando aplicável:
+Para escrita crítica, a evidência preferida atravessa:
 
 ```text
-comando real da aplicação
+ação real da aplicação
 → persistência no Supabase descartável
-→ leitura direta do repositório
-→ reload da página
+→ leitura direta
+→ reload
 → nova leitura/renderização
 ```
 
-Os workflows `functional-reliability-supabase.yml` e `functional-lifecycle-supabase.yml` exercitam essas jornadas para Nota Fiscal, patrimônio e ciclos correlatos.
+Os workflows funcionais do PR #260 usam esse padrão em jornadas de NF, patrimônio, avaliação mensal e fluxos correlatos.
 
-## 6. Validação remota somente leitura
+## 4. Readiness Supabase
 
-Antes de diagnosticar falha funcional, confirmar:
+O gate local de Supabase executa, conforme o workflow corrente:
 
-1. projeto correto e estado saudável;
-2. deployment de Production e SHA;
+```text
+start/reset
+→ preflight de contratos
+→ pgTAP
+→ lint PL/pgSQL
+→ regeneração de tipos/cliente
+→ reprodutibilidade
+→ Auth das fixtures
+→ Gestão de Equipe
+→ frontend + Auth + RLS
+→ cleanup
+```
+
+### Regra para falha do CI
+
+Classificar o primeiro componente que divergiu e tentar reproduzir antes de alterar código. Falha transitória de runner não autoriza “correção” funcional.
+
+No PR #263, a primeira execução do SHA `617355e1...` falhou em **Regenerar tipos e cliente fixado**. O mesmo job foi reexecutado no mesmo SHA, sem mudança de código, e passou integralmente, inclusive regeneração, reprodutibilidade, Auth, Edge Function e frontend/RLS. A falha foi classificada como transitória.
+
+## 5. Validação remota somente leitura
+
+Antes de diagnosticar Production, confirmar:
+
+1. projeto correto e saúde do serviço;
+2. deployment e SHA publicados;
 3. `radar-build-manifest.json`;
-4. `dataMode = supabase-production`;
-5. sessão e papel efetivo;
-6. `cre_scope` e escopos escolares;
+4. modo de dados Production;
+5. sessão/papel efetivo;
+6. `cre_scope`/escopos;
 7. histórico de migrations;
-8. Edge Functions ativas e JWT;
-9. logs de Auth/API/Postgres/Edge Function;
-10. resultado da auditoria de integridade;
-11. incidentes automáticos abertos.
+8. Edge Functions necessárias;
+9. logs sanitizados do componente afetado;
+10. integridade agregada quando pertinente.
 
-Não imprimir chaves ou payloads pessoais.
+Não imprimir chaves, tokens ou payloads pessoais.
 
-## 7. Migrations
+## 6. Migrations
 
-### Consulta/dry-run
+Consulta/dry-run, quando o ambiente estiver vinculado:
 
 ```bash
 supabase migration list --linked
 supabase db push --linked --dry-run
 ```
 
-### Aplicação real
+Aplicação real:
 
 ```bash
 supabase db push --linked
 ```
 
-A presença do comando não constitui autorização. Aplicação real exige branch/PR, histórico alinhado, reset, pgTAP, lint, tipos, backup/restauração, análise do SQL, reversão e escopo autorizado.
+O comando disponível não é autorização. Antes de aplicar: branch/PR, histórico alinhado, reset, pgTAP, lint, tipos, backup/restauração quando aplicável, revisão do SQL/grants/RLS e plano de reversão.
 
 Seguir [`SUPABASE_MIGRATION_AND_ROLLBACK.md`](SUPABASE_MIGRATION_AND_ROLLBACK.md).
 
-## 8. Remediações recentes incorporadas
+## 7. Baseline técnica recente
 
-As migrations correntes incluem, conforme `CURRENT_STAGE.md` e a branch de estabilização vigente:
+A linha recente já incorporada inclui:
 
-- reparo de Auth legado e lookup seguro da equipe;
-- remediação funcional de exercício, nota/bem e tentativa de pendência;
-- integridade da identidade institucional das escolas;
-- avaliação da consulta à Assessoria Contábil individualizada no payload de cada NF de serviço, com resumo mensal derivado;
-- suporte à despesa provisória `a_identificar` e persistência atômica de análise/pendência;
-- individualização de análise/Pendência de `notaFiscal` por `registered_invoice_id`;
-- integridade transacional na mudança de Nota Fiscal permanente para natureza não patrimonial, com remoção versionada do bem derivado;
-- preservação de `pendency_attempts.available_at` separada de `submitted_at`;
-- vínculo de pendência de Assessoria Contábil com `registered_invoice_id`, permitindo individualização por NF;
-- operações compostas de Assessoria Contábil para persistir análise, pendência, verificação e log de forma coerente;
-- sincronização do próximo ator das Pendências nas transições do fluxo;
-- migration candidata `20260904040000_functional_reliability_inventory_sync`, que sincroniza atomicamente o encaminhamento de bem derivado com `encampInventario` no Prontuário e remove aliases internos de versão do payload das verificações.
+- Gestão de Equipe com lookup Auth exato e compensação;
+- identidade institucional de escola;
+- criação transacional de exercício/competências;
+- individualização fiscal/Assessoria por `registered_invoice_id`;
+- `a_identificar` atômico;
+- novo envio/substituição/reabertura e sincronização do próximo ator;
+- vínculo Nota Fiscal ↔ bem patrimonial;
+- derivação `encampInventario` do conjunto de permanentes;
+- PR #260 com `save_asset_with_verification_and_log` e limpeza/proteção de aliases técnicos no payload de verificação.
 
-Não reaplicar SQL já aplicado para “corrigir” histórico.
+`20260904040000_functional_reliability_inventory_sync.sql` **não é candidata**: integra a baseline funcional publicada do PR #260.
 
-## 9. Monitor geral de Production
+## 8. Auth e perfis
 
-Workflows principais:
+Papéis correntes:
 
 ```text
-.github/workflows/production-system-smoke.yml
-.github/workflows/production-data-integrity.yml
+controller
+federal_assistant
+sme_management
+inventory
+technical_admin
 ```
-
-O monitor geral verifica publicação, manifesto, ambiente, shell, Auth gate, assets, bloqueio anônimo, preflight e incidentes.
-
-A auditoria de dados chama `production_integrity_check()` e falha se contrato/status/contagens agregadas forem inválidos.
-
-Falha de monitor deve ser classificada pelo componente exato antes de assumir indisponibilidade geral.
-
-## 10. Auth e perfis
-
-Papéis:
-
-- `controller`;
-- `federal_assistant`;
-- `sme_management`;
-- `inventory`;
-- `technical_admin`.
 
 Diagnóstico de login:
 
-1. sessão;
-2. `user_profiles.active`;
-3. `profiles.active`;
-4. `current_app_role()`;
-5. `cre_scope`, vínculos e `user_school_scopes`;
-6. gate da aplicação;
-7. leitura de dados autorizada.
+```text
+sessão
+→ user_profiles ativo
+→ profile ativo
+→ current_app_role()
+→ escopos/vínculos
+→ gate da aplicação
+→ leitura autorizada
+```
 
-Simulação visual do administrador técnico não altera JWT.
+A simulação visual de `technical_admin` não muda o JWT real.
 
-## 11. Gestão de Equipe
+## 9. Gestão de Equipe
 
 ```text
 DirectoryService
@@ -195,103 +171,73 @@ DirectoryService
 → Auth Admin + RPC transacional
 ```
 
-### Preflight
+### Contratos
 
-- origem oficial deve passar;
-- origem indevida deve ser rejeitada;
-- `OPTIONS` não depende de autenticação do usuário;
-- requisição funcional exige JWT.
+- origem oficial passa; origem não autorizada falha;
+- `OPTIONS` não depende da autenticação do usuário;
+- requisição funcional exige JWT e papel autorizado;
+- e-mail normalizado é resolvido por `resolve_team_auth_user_id_by_email`;
+- conta existente pode ser reutilizada somente sem vínculo ativo conflitante;
+- mais de uma conta/associação ambígua gera conflito, não escolha arbitrária;
+- desativação preserva histórico;
+- falha de banco depois de alteração em Auth exige compensação.
 
-### Lookup Auth
+## 10. Escolas e carteira
 
-A função não deve percorrer o catálogo inteiro com `listUsers`.
+Nova escola exige identidade institucional real, competência inicial válida e demais campos definidos no serviço/schema. Duplicidades protegidas de INEP/CNPJ/SICI são rejeitadas.
 
-Percurso vigente:
+`controller_id` é responsabilidade principal. Controlador não redistribui carteira pelo cadastro comum; redistribuição usa fluxo autorizado próprio.
 
-```text
-e-mail normalizado
-→ resolve_team_auth_user_id_by_email
-→ getUserById
-→ validação de vínculos ativos
-→ reutilização ou convite conforme contrato
-```
+## 11. Notas Fiscais, Pendências e Assessoria
 
-Mais de uma conta para o mesmo e-mail deve resultar em conflito, não escolha arbitrária.
+- análise fiscal e Consulta Assessoria são individualizadas por invoice onde aplicável;
+- `a_identificar` novo nasce `Incorreto + Pendência` atomicamente;
+- novo envio não resolve a Pendência;
+- substituição enquanto `Aguardando reanálise` é suportada conforme PR #254;
+- próximo ator segue o estado conforme PR #256;
+- reanálise atua sobre a tentativa real e preserva o conteúdo histórico do envio;
+- nenhuma regra de legado é criada por pareamento heurístico.
 
-### Cadastro/edição/desativação
+## 12. Patrimônio
 
-1. confirmar papel autorizado;
-2. validar diretório/e-mail;
-3. verificar conta e vínculo histórico;
-4. resolver conta por e-mail quando necessário;
-5. rejeitar perfil ativo conflitante;
-6. executar operação administrativa de Auth;
-7. executar RPC transacional;
-8. compensar etapa anterior se a posterior falhar;
-9. preservar `code`, `message` e `details` até o frontend;
-10. recarregar e confirmar persistência/log.
-
-### Transição entre perfis
-
-- perfil de origem inativo antes da ativação do destino;
-- mesma conta pode ser reutilizada sem novo convite;
-- máximo de um perfil institucional ativo;
-- histórico inativo preservado;
-- metadados e bloqueio coerentes;
-- falha de RPC restaura estado anterior da conta;
-- vínculo ativo conflitante retorna `ACCOUNT_CONFLICT`.
-
-### Carteira escolar
-
-- redistribuição ocorre pela Gestão de Equipe;
-- Controlador pode editar cadastro autorizado, mas não `controller_id`;
-- seletor deve permanecer imutável para Controlador;
-- serviço e banco devem rejeitar tentativa indevida.
-
-## 12. Escolas
-
-Nova escola exige identidade institucional real. Verificar código institucional, designação, denominação, INEP, CNPJ, SICI, competência inicial e Controlador ativo.
-
-Não aceitar geradores artificiais como identidade definitiva. Duplicidades normalizadas de INEP/CNPJ/SICI devem ser bloqueadas.
-
-## 13. Patrimônio, notas e pendências
-
-- bem derivado de NF permanente mantém vínculo por `registered_invoice.linked_asset_id` / `bemId`;
-- número da NF de bem derivado não pode ser editado isoladamente pelo Inventário; a NF de origem é a fonte funcional;
-- fluxo patrimonial válido é `Não encaminhada → Encaminhada → Inventariada`; inventariar antes do encaminhamento é inválido;
-- ao encaminhar posteriormente um bem derivado, bem + `encampInventario` da verificação + log são persistidos pela mesma operação atômica;
-- `encampInventario` é projetado pela realidade patrimonial do contexto: sem permanente = `Não se aplica`; algum permanente não encaminhado = `Não`; todos encaminhados/inventariados = `Sim`;
-- análise técnica continua dimensão separada da situação de encaminhamento;
-- alteração do vínculo de bem derivado em nota não pode deixar órfão;
-- `pendency_attempts` deve acompanhar o agregado canônico da pendência e preservar separadamente `available_at` e `submitted_at`;
-- pendência de Assessoria vinculada a NF deve manter `registered_invoice_id` coerente e a reanálise não pode alterar NFs irmãs;
-- qualquer divergência observada após reload deve ser investigada no RPC/trigger/persistência antes de culpar a interface;
-- operações críticas devem ser revalidadas após reload, e cliques repetidos não podem gerar duas gravações concorrentes da mesma intenção.
-
-## 14. Exportações
-
-A exportação deve passar por auditoria inicial via `AuditService` antes do download. Falha dessa auditoria bloqueia o arquivo. O filtro de compatibilidade impede duplicação do log legado.
-
-## 15. Smoke autenticado de leitura
-
-A infraestrutura de smoke autenticado usa identidades técnicas/fixtures conforme o ambiente de validação. Não reutilizar contas reais em testes automatizados e não expor credenciais, screenshots, traces ou vídeos contendo sessão.
-
-A cobertura de Preview/Supabase descartável não deve ser apresentada como prova de Production. Production requer verificação própria após publicação.
-
-## 16. Backup e recuperação
+Regra atual, sem a simplificação que causou a confusão de regressão:
 
 ```text
-.github/workflows/backup-restore-disposable.yml
-scripts/verify-supabase-backup-restore.mjs
+NF permanente + número + processo de inventário já existente
+→ bem nasce Encaminhada
+→ UI: Aguardando Inventariação
+→ pode concluir inventariação
+
+NF permanente sem processo
+→ bem nasce Não encaminhada
+→ quando processo existir: Encaminhar
+→ depois: Inventariar
 ```
 
-```bash
-RADAR_ALLOW_DISPOSABLE_BACKUP_RESTORE=true npm run test:backup-restore
-```
+Logo, `Não encaminhada → Encaminhada → Inventariada` é a sequência do **ramo que realmente está Não encaminhada**, não o estado inicial obrigatório de toda NF permanente.
 
-O gate usa pilhas descartáveis e não substitui política institucional de retenção/DR.
+Outros contratos:
 
-## 17. Diagnóstico funcional por camadas
+- `encampInventario`: sem permanente = N/A; algum não encaminhado = Não; todos encaminhados/inventariados = Sim;
+- Prontuário vincula NF ↔ bem por identidade técnica;
+- encaminhamento posterior de bem vinculado persiste bem + verificação + log pela mesma RPC;
+- bem derivado não aceita edição isolada do número fiscal;
+- conclusão da inventariação exige estado `Encaminhada` e responsável;
+- guards de ação crítica evitam duplicação imediata enquanto a chamada está em andamento.
+
+## 13. Backup e recuperação
+
+O gate de backup/restauração usa pilhas descartáveis e comprova equivalência técnica. Não substitui política institucional de retenção/DR.
+
+## 14. Importação
+
+Operação remota de importação exige pacote, janela e autorização próprios. A existência de staging/RPCs não constitui autorização de uso.
+
+## 15. Exportações
+
+Quando o contrato exige auditoria inicial, falha em registrar a auditoria bloqueia o download. Alteração material do Excel SME exige seu gate específico.
+
+## 16. Diagnóstico por fronteira
 
 ```text
 controle visível/habilitado
@@ -303,56 +249,16 @@ controle visível/habilitado
 → RLS/RPC/trigger
 → banco
 → resposta
-→ renderização
+→ estado/renderização
 → releitura
 ```
 
-Classificar a primeira fronteira divergente antes de propor correção.
+Corrigir a primeira fronteira comprovadamente divergente. Não redesenhar regra de negócio para fazer um teste antigo passar.
 
-## 18. Falhas comuns
+## 17. Referências
 
-| Sintoma | Verificação inicial |
-|---|---|
-| login não avança | sessão, perfil, papel e bootstrap |
-| tela sem dados | escopo, RLS, entidade e PostgREST |
-| botão não faz nada | handler, capacidade e erro JS |
-| CORS | preflight, origem e função publicada |
-| conta já existe | lookup exato, perfis ativos e histórico |
-| troca de função recusada | vínculo anterior ativo/conflitante |
-| conflito aparece como indisponibilidade | payload do erro no gateway |
-| Controlador troca carteira | interface, serviço e trigger |
-| grava e volta | persistência, conflito e releitura |
-| Inventário e Prontuário divergem | vínculo NF↔bem, status patrimonial, RPC composta e verificação |
-| inventariação pula etapa | estado anterior do bem e comando `inventory:complete` |
-| Excel não gera | competência, manifesto, motor, template e auditoria |
-| monitor abre incidente | componente exato do job |
-| integridade acusa problema | invariante/contagem antes de consultar registros |
-
-## 19. Contingência e falha de configuração
-
-Production opera em **fail-closed**. Não existe mais sinal de rollback que transforme um deployment Production em `LocalStorageRepository`.
-
-Em caso de indisponibilidade da configuração ou conexão institucional:
-
-1. manter o ambiente Production bloqueado para operação;
-2. diagnosticar Vercel, runtime config, Auth e Supabase;
-3. usar ambiente local/Preview isolado apenas para diagnóstico;
-4. publicar novo artefato Production somente após correção e validação.
-
-O modo local continua existindo para desenvolvimento e testes, mas não é contingência operacional de Production e nunca sincroniza seu estado de volta ao banco institucional.
-
-## 20. Encerramento de investigação
-
-A investigação termina quando causa/fronteira foi identificada, percurso funcional funciona, dado persiste e reaparece após reload, falha parcial não deixa resíduo, existe regressão automatizada e a evidência corresponde ao SHA/ambiente correto.
-
-## Reversão das migrations de individualização e estabilização
-
-Migrations que alteram identidade individual de NF/Pendência ou sincronização patrimonial não devem receber `down` automático após escritas reais.
-
-Procedimento:
-
-1. **Antes da migration:** rollback é não publicar / reverter o deployment candidato.
-2. **Depois da migration e antes de qualquer escrita nova:** compensação de banco só pode ser considerada após consulta comprovar ausência de dados escritos sob o novo contrato.
-3. **Depois de qualquer escrita nova:** não fazer downgrade destrutivo. Preservar banco e histórico e corrigir por avanço (`fail-forward`).
-
-Na publicação, registrar SHA da `main`, deployment Vercel, migration aplicada e resultado do preflight/pós-apply.
+- [`../CURRENT_STATE.md`](../CURRENT_STATE.md)
+- [`../reference/SUPABASE_DATA_DICTIONARY.md`](../reference/SUPABASE_DATA_DICTIONARY.md)
+- [`../reference/SUPABASE_FUNCTIONAL_COVERAGE.md`](../reference/SUPABASE_FUNCTIONAL_COVERAGE.md)
+- [`../reference/SUPABASE_PERMISSIONS_MATRIX.md`](../reference/SUPABASE_PERMISSIONS_MATRIX.md)
+- [`../architecture/supabase-readiness.md`](../architecture/supabase-readiness.md)
