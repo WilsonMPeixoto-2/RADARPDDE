@@ -1,0 +1,49 @@
+name: Hotfix temporário inventário preservado
+
+on:
+  push:
+    branches:
+      - fix/inventory-preserve-inventoried-2026-09-05
+
+permissions:
+  contents: write
+
+jobs:
+  apply-fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+      - name: Aplicar correção mínima
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const path = 'src/domain/invoice-effects.js';
+          const source = fs.readFileSync(path, 'utf8');
+          const before = `        desiredAsset.processoInventario = process;\n        desiredAsset.status = request.invoiceNumber && process\n            ? 'Encaminhada'\n            : 'Não encaminhada';\n        desiredInvoice.bemId = assetId || null;`;
+          const after = `        desiredAsset.processoInventario = process;\n        // Inventariada é estado patrimonial terminal. Salvar/editar a NF vinculada\n        // pode atualizar os dados derivados do bem, mas nunca reexecutar a regra de\n        // nascimento e rebaixar uma inventariação já concluída.\n        desiredAsset.status = text(currentAsset?.status) === 'Inventariada'\n            ? 'Inventariada'\n            : request.invoiceNumber && process\n                ? 'Encaminhada'\n                : 'Não encaminhada';\n        desiredInvoice.bemId = assetId || null;`;
+          const count = source.split(before).length - 1;
+          if (count !== 1) throw new Error(`Bloco alvo esperado 1x; encontrado ${count}x`);
+          fs.writeFileSync(path, source.replace(before, after));
+          NODE
+      - name: Instalar e provar regressão focal
+        run: |
+          npm ci
+          node --test tests/unit/invoice-inventoried-preservation.test.js
+          npm run test:unit
+      - name: Commit e push
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/domain/invoice-effects.js
+          git commit -m 'fix: preservar bem Inventariado ao salvar NF'
+          git push origin HEAD:fix/inventory-preserve-inventoried-2026-09-05
