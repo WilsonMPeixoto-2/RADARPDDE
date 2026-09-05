@@ -68,3 +68,16 @@ test('editar descrição/valor da NF inventariada preserva o estado patrimonial 
     assert.equal(result.asset.item, 'PDDE Básico - Notebook atualizado');
     assert.equal(result.asset.valor, 5200);
 });
+
+test('alteração posterior do processo da escola não reatribui processo histórico de bem já Inventariado', () => {
+    const input = inputForInventoriedAsset();
+    input.school = { ...input.school, processoInventario: 'PROC-2026/999' };
+
+    const result = planInvoiceEffects(input);
+
+    assert.equal(result.asset.status, 'Inventariada');
+    assert.equal(result.asset.processoInventario, 'PROC-2026/001');
+    assert.equal(result.asset.inventariadorId, 'MEMBRO-1');
+    assert.equal(result.asset.dataInventariacao, '2026-09-04T12:00:00.000Z');
+    assert.equal(result.unchanged, true);
+});
