@@ -1,312 +1,127 @@
 # Cadeia de carregamento das extensões de produto
 
-> **CONFRONTAR COM O BOOTSTRAP ATUAL.** A ordem de extensões evoluiu posteriormente, inclusive com `critical-action-guard.js` no PR #260. Este documento é referência arquitetural, não substitui a leitura de `src/integration/product-extensions-bootstrap.js` no SHA corrente.
+**Estado:** vigente para a baseline funcional do PR #260  
+**Atualizado em:** 5 de setembro de 2026
 
-**Estado:** vigente  
-**Atualizado em:** 3 de setembro de 2026
+> Para continuidade do projeto, comece em [`../../START_HERE.md`](../../START_HERE.md). Para a ordem física efetiva, `src/integration/product-extensions-bootstrap.js` do SHA corrente continua sendo a fonte executável; este documento deve acompanhá-lo.
 
 ## 1. Finalidade
 
-Registrar a cadeia que executa depois de `app.js`, quando funções e coleções do núcleo estão disponíveis. Complementa [`frontend-load-order.md`](frontend-load-order.md).
+Registrar a composição que executa depois de `app.js` e explicar quais partes da ordem são funcionais, quais são de diagnóstico e quais dívidas ainda pertencem ao plano atual.
 
-Este documento descreve a ordem efetiva de `product-extensions-bootstrap.js` no baseline reauditorado em 03/09 (`main` em `18150cc9`). A ordem é contrato porque várias extensões envolvem funções globais já existentes e dependem da composição anterior. A reauditoria source-first também identificou que `operational-write-performance.js` ainda carrega autoridade funcional de consistência; isso é dívida corrente de R1, não comportamento a perpetuar.
+## 2. Entrada pela navegação
 
-As integrações estáticas `view-transitions.js`, `global-search.js` e `floating-ui-bootstrap.js` também são carregadas após `app.js`, mas não pertencem ao bootstrap descrito aqui.
+`auth-gate.js` carrega os módulos de navegação na ordem prevista pelo contrato atual. `navigation-routes.js` instala dinamicamente `product-extensions-bootstrap.js`; portanto, as extensões não são um segundo aplicativo nem um carregador concorrente.
 
-## 2. Pré-requisitos
+A rota pendente só é aplicada quando os pré-requisitos funcionais de dados, autorização, competência e histórico de navegação estão disponíveis.
 
-As extensões de produto dependem de:
+## 3. Estilos carregados pelo bootstrap
 
-- `app.js`;
-- Auth gate e perfil aplicado;
-- política e histórico de rotas;
-- renderizadores de Prontuário, Carteira e Pendências;
-- competência global;
-- serviços de aplicação publicados em `RadarApplicationServices` quando a extensão atua sobre escritas.
-
-Não podem ser antecipadas para a fase de domínio inicial nem criar carregador concorrente.
-
-## 3. Cadeia efetiva
-
-O `auth-gate.js` carrega os módulos de navegação serialmente nesta ordem:
+A baseline atual carrega:
 
 ```text
-navigation-routes.js
-→ navigation-policy.js
-→ navigation-bootstrap.js
-→ navigation-history.js
+school-timeline.css
+controller-guide.css
+controller-guide-theme.css
+unidentified-expense-ux.css
+prontuario-operational-ux.css
+desktop-basic-monitors.css
+pendency-passive-queue.css
+operational-write-feedback.css
 ```
 
-Ao executar, `navigation-routes.js` instala dinamicamente `product-extensions-bootstrap.js`. Portanto, a cadeia de extensões é iniciada pela rota e não deve ser descrita como se aguardasse toda a sequência de navegação terminar. A aplicação da rota pendente, por sua vez, só ocorre quando dados, autorização, competência e histórico de navegação estão prontos.
+## 4. Ordem efetiva dos scripts no PR #260
 
-Dentro de `product-extensions-bootstrap.js`, a ordem corrente é:
+A sequência atual em `product-extensions-bootstrap.js` é:
 
 ```text
-product-extensions-bootstrap.js
-   ├─ styles
-   │  ├─ school-timeline.css
-   │  ├─ controller-guide.css
-   │  ├─ controller-guide-theme.css
-   │  ├─ unidentified-expense-ux.css
-   │  ├─ prontuario-operational-ux.css
-   │  ├─ desktop-basic-monitors.css
-   │  ├─ pendency-passive-queue.css
-   │  └─ operational-write-feedback.css
-   └─ scripts, sequencialmente
-      01. src/integration/atomic-analysis-pendency.js
-      02. src/domain/school-timeline.js
-      03. src/integration/school-timeline.js
-      04. src/integration/navigation-context-bootstrap.js
-      05. src/integration/controller-guide.js
-      06. src/integration/controller-guide-ready.js
-      07. src/integration/unidentified-expense-ux.js
-      08. src/integration/prontuario-operational-ux.js
-      09. src/integration/operational-readiness-bridge.js
-      10. src/integration/pendency-passive-queue-ux.js
-      11. src/integration/invoice-history-lock.js
-      12. src/integration/service-advisory-pendency.js
-      13. src/integration/service-advisory-corrective-submission.js
-      14. src/integration/operational-write-diagnostics.js
-      15. src/integration/operational-write-performance.js
-      16. src/integration/prontuario-conditional-reconciler.js
-      17. src/integration/operational-write-feedback.js
+01. src/integration/atomic-analysis-pendency.js
+02. src/domain/school-timeline.js
+03. src/integration/school-timeline.js
+04. src/integration/navigation-context-bootstrap.js
+05. src/integration/controller-guide.js
+06. src/integration/controller-guide-ready.js
+07. src/integration/unidentified-expense-ux.js
+08. src/integration/prontuario-operational-ux.js
+09. src/integration/operational-readiness-bridge.js
+10. src/integration/pendency-passive-queue-ux.js
+11. src/integration/invoice-history-lock.js
+12. src/integration/service-advisory-pendency.js
+13. src/integration/service-advisory-corrective-submission.js
+14. src/integration/critical-action-guard.js
+15. src/integration/operational-write-diagnostics.js
+16. src/integration/operational-write-performance.js
+17. src/integration/prontuario-conditional-reconciler.js
+18. src/integration/operational-write-feedback.js
 ```
 
-`atomic-analysis-pendency.js` é deliberadamente o primeiro script funcional: uma falha em extensão opcional posterior não pode deixar o handler-base aceitar `Incorreto` sem a proteção atômica.
+`critical-action-guard.js` foi incorporado pelo PR #260 e é parte da baseline atual. Qualquer documento ou teste que apresente a cadeia sem esse módulo descreve um checkpoint anterior.
 
-Os scripts são criados com `async = false` e aguardados em sequência pela cadeia de Promises do bootstrap. A cadeia corrente ainda falha em cascata quando um transporte anterior rejeita; R2A trata especificamente essa dívida sem desfazer a ordem crítica existente.
+## 5. Motivos funcionais da ordem
 
-## 4. Motivos da ordem
+### Proteção atômica primeiro
 
-### Timeline e navegação
+`atomic-analysis-pendency.js` permanece o primeiro script funcional porque `Incorreto` não pode cair no handler-base sem a proteção que exige análise + Pendência quando o contrato assim determina.
 
-`school-timeline.js`, `navigation-context-bootstrap.js`, Guia do Controlador e refinamentos de UX precisam encontrar o núcleo já inicializado. `controller-guide-ready.js` reaplica de forma idempotente a integração do guia depois de `RadarNavigationContextReady`.
+### UX e navegação antes dos fluxos especializados
 
-### Extensões operacionais anteriores à escrita incremental
+Timeline, contexto de navegação, Guia do Controlador e refinamentos do Prontuário dependem do núcleo já carregado. Eles não criam uma segunda fonte de dados.
 
-`atomic-analysis-pendency.js`, `invoice-history-lock.js`, `service-advisory-pendency.js` e `service-advisory-corrective-submission.js` definem/refinam contratos funcionais que devem existir antes de os wrappers de desempenho envolverem os handlers finais.
-
-A separação de Assessoria é deliberada e agora protegida pela ADR-052:
-
-- `service-advisory-pendency.js`: abertura `Incorreto + Pendência` e reanálise;
-- `service-advisory-corrective-submission.js`: `registerAttempt()` / novo envio corretivo;
-- nenhum dos dois deve reassumir silenciosamente a responsabilidade do outro;
-- `navigation-routes.js` deve continuar instalando `product-extensions-bootstrap.js`;
-- o E2E `critical-product-extensions.spec.js` comprova que a cadeia foi realmente instalada no navegador.
-
-A ordem preserva:
+### Assessoria mantém autoridades separadas
 
 ```text
-regra funcional final
-→ instrumentação/política de escrita
-→ reconciliação
-→ feedback da interação
+service-advisory-pendency.js
+→ abertura Incorreto + Pendência e reanálise
+
+service-advisory-corrective-submission.js
+→ novo envio/substituição corretiva
 ```
 
+Nenhum desses módulos deve absorver silenciosamente a responsabilidade do outro.
 
+### Guard de ação crítica antes do diagnóstico/performance
 
-### Cadeias de wrappers que exigem ordem estável
+`critical-action-guard.js` protege as operações críticas adicionadas pelo PR #260 contra repetição do mesmo gesto enquanto a primeira chamada está em andamento. Ele precisa estar instalado antes das camadas de diagnóstico/performance que observam a escrita.
 
-A revisão pós-PR #215 confirmou que a ordem não é apenas otimização. Existem cadeias reais de substituição de handlers:
-
-```text
-closeModal
-app.js
-→ atomic-analysis-pendency
-→ service-advisory-pendency
-
-registerAttempt
-PendencyService
-→ service-advisory-corrective-submission
-
-renderProntuario
-app.js
-→ unidentified-expense-ux
-→ prontuario-operational-ux
-→ operational-write-performance
-→ prontuario-conditional-reconciler
-```
-
-Essas cadeias devem ser tratadas como composição deliberada. Inserir novo wrapper entre elas exige justificar a autoridade e atualizar a regressão `critical-product-extension-authority.test.js`. Um wrapper novo não pode substituir silenciosamente uma responsabilidade funcional já existente.
+Na baseline atual, a proteção cobre novo envio, reanálise, encaminhamento e inventariação; o submit de Nota Fiscal preserva seu guard próprio já existente.
 
 ### Diagnóstico antes de performance
 
-`operational-write-diagnostics.js` precisa carregar antes de `operational-write-performance.js` porque a camada de performance consulta a API global de diagnóstico no momento em que envolve DataServices e handlers.
+`operational-write-diagnostics.js` fornece correlação local/fail-open. Sua ausência não deve bloquear regra de negócio.
 
-O diagnóstico cria uma única probe por `window`, limitada em memória e fail-open. A interface pública é somente leitura:
+### Performance antes do reconciliador
 
-```javascript
-window.RadarOperationalWriteMetrics.snapshot()
-window.RadarOperationalWriteMetrics.summary()
-```
+Na baseline atual, `operational-write-performance.js` ainda injeta parte da política funcional de consistência e participa do caminho incremental. Isso é **dívida conhecida da Frente 1 do `MASTER_PLAN_CURRENT.md`**, não uma arquitetura a ser perpetuada apenas porque aparece aqui.
 
-A interface interna de correlação permanece em `RadarOperationalWriteDiagnostics` e não deve ser usada como estado de negócio.
+`prontuario-conditional-reconciler.js` é carregado depois e hoje ainda depende dessa composição. A Frente 1 deve retirar a autoridade funcional do módulo de performance preservando o comportamento atual.
 
-### Performance antes do reconciliador e feedback
+### Feedback por último
 
-`operational-write-performance.js` **ainda** instala, no baseline atual, a política de retorno/commit autoritativo, envolve persistência quando há trace e preserva o caminho incremental das escritas inline. A reauditoria de 03/09 classificou a primeira e a terceira responsabilidades como autoridade funcional indevidamente alojada em um módulo de performance. R1 deve movê-las para o núcleo/integração funcional, deixando performance apenas como observador.
+`operational-write-feedback.js` fecha a cadeia. O listener em capture phase permite feedback imediato sem transformar feedback visual em autoridade de persistência.
 
-`prontuario-conditional-reconciler.js` hoje é carregado depois desse wrapper. R1 deve preservar a composição visual sem manter dependência funcional de `RadarOperationalWritePerformance`; a ordem futura será documentada apenas depois do código correspondente ser integrado.
+## 6. Readiness corrente
 
-`operational-write-feedback.js` é carregado por último. Seu listener usa capture phase, por isso abre a amostra e aplica feedback visual antes de o handler inline executar, mesmo sendo o último script da cadeia. Em seguida o wrapper de performance consome o trace enfileirado para medir RPC, aplicação local e estabilização.
+`window.RadarProductExtensionsReady` representa a conclusão/degradação da cadeia atual.
 
-## 5. Caminho de uma escrita inline instrumentada
+Depois de carregar os scripts, o bootstrap também confirma a instalação das extensões críticas de Assessoria. Se a cadeia falhar, registra `RADAR_LAST_PRODUCT_EXTENSION_ERROR` e retorna degradação segura conforme o contrato vigente.
 
-Para handlers suportados:
+A baseline ainda carrega scripts sequencialmente por uma Promise encadeada; uma falha de transporte anterior pode impedir módulos independentes posteriores. **Essa é a dívida real da Frente 2 do plano vigente.** O plano não autoriza remover timers indiscriminadamente, apenas substituir readiness essencial baseado em polling/ordem frágil por um contrato determinístico.
 
-- `toggleBonif`;
-- `changeAnaliseTecnica`;
-- `toggleInvoiceAdvisorySent`;
-- `changeInvoiceAdvisoryAnalysis`;
-- `toggleConsEnviada`.
+## 7. Idempotência de instalação
 
-O fluxo normal é:
+O bootstrap e as integrações usam marcadores para evitar estilos, scripts, listeners, wrappers e observadores duplicados. Repetir a instalação não pode duplicar controles ou autoridade funcional.
 
-```text
-capture click/change
-→ diagnostics: click
-→ feedback pendente imediato
-→ diagnostics: feedback
-→ wrapper inline consome trace
-→ DataService persist
-   ├─ diagnostics: rpcStart
-   └─ diagnostics: rpcEnd
-→ retorno autoritativo / estado local
-→ diagnostics: applyStart
-→ reconciliação escola + competência + programa
-→ diagnostics: applyEnd
-→ requestAnimationFrame/microtask
-→ diagnostics: stable
-```
+Isso é diferente da idempotência durável de uma operação de negócio após resposta ambígua. O PR #260 resolveu repetição imediata em ações críticas; a dívida durável da NF normal continua na Frente 3.
 
-Falha da instrumentação não bloqueia nenhuma dessas etapas. Se não existir probe, trace ou Performance API, a operação funcional segue normalmente.
+## 8. Regra para alterações futuras
 
-## 6. Segurança e privacidade das métricas
+Mudança nesta cadeia exige:
 
-A instrumentação operacional é exclusivamente local e efêmera.
+1. conferir o bootstrap do SHA atual;
+2. declarar dependências e criticidade do novo módulo;
+3. preservar a autoridade única dos fluxos críticos;
+4. testar ordem e instalação real no navegador;
+5. atualizar este documento no mesmo PR se a ordem efetiva mudar;
+6. atualizar `CURRENT_STATE.md` e `PLAN_TRACEABILITY.md` se a mudança alterar continuidade, regra ou plano.
 
-Ela pode registrar apenas:
-
-- id sequencial efêmero da amostra;
-- nome técnico do handler;
-- timestamps monotônicos das fases;
-- durações calculadas.
-
-Não registrar em métrica:
-
-- escola;
-- usuário/e-mail;
-- competência;
-- programa;
-- NF;
-- pendência;
-- UUID de entidade;
-- texto ou valor de negócio.
-
-Não há envio para Supabase, Vercel ou terceiros, nem persistência em LocalStorage/IndexedDB.
-
-`performance.mark()`/`performance.measure()` são usados quando disponíveis. Marcas usam apenas id efêmero e fase técnica, e são limpas ao encerrar a amostra. `PerformanceObserver`, quando suportado, serve apenas para consumir/limpar medidas locais.
-
-## 7. Readiness
-
-### Extensões de produto
-
-```javascript
-window.RadarProductExtensionsReady
-```
-
-Resolve `true` quando a cadeia carrega e `false` em degradação segura. A falha fica em:
-
-```javascript
-window.RADAR_LAST_PRODUCT_EXTENSION_ERROR
-```
-
-### Navegação contextual
-
-```javascript
-window.RadarNavigationContextReady
-```
-
-Aguarda `RadarNavigationHistory`, carrega a integração e registra falha em:
-
-```javascript
-window.RADAR_LAST_CONTEXTUAL_NAVIGATION_ERROR
-```
-
-### Diagnóstico operacional
-
-```javascript
-window.RadarOperationalWriteMetrics
-```
-
-É diagnóstico técnico somente leitura. A ausência dessa interface não torna o produto indisponível e não altera persistência.
-
-## 8. Idempotência
-
-Marcadores/contratos relevantes incluem:
-
-- `data-radar-product-style`;
-- `data-radar-product-script`;
-- `__radarSchoolTimelineIntegrationInstalled`;
-- `__radarTimelineWrapped`;
-- `__radarNavigationContextInstalled`;
-- `__radarControllerGuideWrapped`;
-- `window.RadarProntuarioOperationalUx`;
-- `__radarOperationalWritePerformance` nos DataServices;
-- `__radarIncrementalInlineHandler` nos handlers;
-- `__radarOperationalWriteFeedbackInstalled` no documento;
-- singleton de `operational-write-diagnostics.js` por root;
-- promessas únicas de readiness.
-
-Repetição não pode duplicar estilos, scripts, observadores, probes, listeners, wrappers, botões nem controles de negócio.
-
-A própria operação funcional também respeita idempotência semântica quando o contrato correspondente prevê que repetir o mesmo valor não gere nova persistência, `row_version` ou log.
-
-## 9. Wrappers
-
-Cada integração deve:
-
-1. capturar a função anterior;
-2. instalar uma única camada;
-3. preservar argumentos, retorno e efeitos;
-4. atualizar a referência global quando esse for o contrato da extensão;
-5. impedir recursão/duplicação;
-6. não criar estado de negócio paralelo;
-7. degradar sem bloquear o núcleo quando sua responsabilidade for complementar.
-
-A camada incremental não pode converter sucesso normal em `renderProntuario()` completo. O render integral é fallback para bootstrap, navegação, erro, retorno incompleto ou inconsistência não reconciliável.
-
-## 10. Degradação
-
-Se uma extensão apenas visual falhar, o núcleo deve permanecer utilizável sempre que o contrato permitir.
-
-Se o diagnóstico operacional falhar:
-
-- a escrita continua;
-- nenhum erro de métrica substitui o erro/retorno funcional;
-- nenhuma requisição remota adicional é criada para compensar;
-- a ausência de amostra é preferível a bloquear a operação.
-
-Se o retorno da persistência for insuficiente ou ocorrer erro real da operação, os fallbacks do fluxo funcional permanecem responsáveis pela recuperação/reconciliação. A instrumentação não inventa um caminho alternativo de consistência.
-
-## 11. Verificação proporcional
-
-Mudanças nessa cadeia devem validar pelo menos:
-
-- ordem exata entre scripts dependentes;
-- ausência de carregamento duplicado;
-- sintaxe;
-- testes unitários dos wrappers afetados;
-- política incremental de escrita;
-- arquitetura via `dependency-cruiser` quando aplicável;
-- falhas/retornos remotos via MSW quando a persistência for alterada;
-- invariantes via fast-check quando regras de domínio forem alteradas;
-- ausência de regressão material nos gates do repositório.
-
-Quando não houver mudança de schema, Auth, RLS, RPC ou dados, não é necessário criar migration nem executar escrita destrutiva em Production apenas para validar uma extensão de frontend.
-
-## 12. Evolução
-
-Nova extensão pós-`app.js` deve declarar pré-requisitos, posição na cadeia, marcador de conclusão, idempotência, degradação, interação com wrappers e testes de ordem.
-
-Novo carregador concorrente, telemetria remota, state library ou mudança estrutural de framework exige motivação e decisão próprias. Não são consequência automática da instrumentação atual.
+Não criar outro carregador ou wrapper funcional apenas porque uma responsabilidade parece ausente sem antes procurar a autoridade atual.
