@@ -2,28 +2,32 @@
 
 **Esta é a única porta de entrada operacional do projeto.**
 
-**Baseline documental conhecida:** `main` `876c5976124815d2848f7d2d9e8a82b7cd3a43c5`  
-**Baseline funcional publicada:** PR #260 / merge `8fc58926565a72465980143f253f0a2fee4b8fc2`  
-**Atualizado em:** 4 de setembro de 2026
+**Última baseline funcional reconciliada:** PR #260 / merge `8fc58926565a72465980143f253f0a2fee4b8fc2`  
+**Checkpoint documental de entrada da reconciliação:** PR #261 / `876c5976124815d2848f7d2d9e8a82b7cd3a43c5`  
+**Consolidação de continuidade:** PR #263, exclusivamente documental/governança  
+**Atualizado em:** 5 de setembro de 2026
 
-> Se você é um novo chat, agente ou sessão retomando o RADAR PDDE, **não escolha um plano, handoff ou ADR por conta própria antes de seguir este arquivo**.
+> Se você é um novo chat, agente ou sessão retomando o RADAR PDDE, **não escolha um plano, handoff, ADR ou SHA antigo por conta própria antes de seguir este arquivo**.
 
-## 1. Primeiro: verifique se a baseline mudou
+## 1. Primeiro: consulte a `main` atual
+
+Não existe mais um SHA documental fixo que deva ser tratado como “a main eterna”. Isso ficaria desatualizado no instante em que a própria documentação fosse integrada, uma pequena armadilha burocrática que não precisamos recriar.
 
 Antes de analisar, planejar ou alterar o produto:
 
-1. consulte a `main` remota;
-2. compare o SHA atual com `876c5976124815d2848f7d2d9e8a82b7cd3a43c5`;
-3. se o SHA for o mesmo, siga a ordem de leitura abaixo;
-4. se a `main` avançou, identifique **todos os PRs integrados depois desta baseline** e reconcilie seus efeitos antes de executar o plano corrente.
+1. consulte a `main` remota atual;
+2. confirme quais PRs funcionais foram integrados **depois da última baseline funcional reconciliada**;
+3. PRs exclusivamente documentais, como #261 e #263, não mudam regra de negócio por si só;
+4. se existir PR funcional posterior que ainda não esteja refletido em `CURRENT_STATE.md` e `PLAN_TRACEABILITY.md`, reconcilie-o antes de executar o plano;
+5. se não existir mudança funcional não reconciliada, siga a ordem de leitura abaixo.
 
-**Não continue automaticamente com documentação de 03/09 se a baseline tiver avançado.** Um hotfix posterior pode ter concluído, alterado ou substituído parte do plano.
+A referência funcional atual continua sendo o PR #260 até que um novo PR funcional, acompanhado da atualização documental obrigatória, estabeleça uma baseline sucessora.
 
 ## 2. Ordem obrigatória de leitura
 
-Depois de verificar a baseline, leia nesta ordem:
+Depois de verificar a `main`, leia nesta ordem:
 
-1. [`docs/CURRENT_STATE.md`](docs/CURRENT_STATE.md) — o que existe hoje e quais regras recentes são sensíveis a regressão;
+1. [`docs/CURRENT_STATE.md`](docs/CURRENT_STATE.md) — o que existe hoje e quais regras são sensíveis a regressão;
 2. [`docs/MASTER_PLAN_CURRENT.md`](docs/MASTER_PLAN_CURRENT.md) — **ÚNICO PLANO EXECUTÁVEL VIGENTE**;
 3. [`docs/PLAN_TRACEABILITY.md`](docs/PLAN_TRACEABILITY.md) — somente quando precisar saber de onde veio uma tarefa, por que mudou ou qual hotfix a absorveu;
 4. [`AGENTS.md`](AGENTS.md) — regras permanentes de trabalho, domínio e segurança contra regressão;
@@ -49,9 +53,11 @@ Quando houver conflito não resolvível entre fontes atuais, classifique como d�
 
 ## 4. Linha recente de continuidade
 
-O último plano corretamente reconciliado antes da nova sequência de hotfixes foi o PR #253, em 03/09. Depois dele foram integrados:
+O último plano corretamente reconciliado antes da sequência urgente foi o PR #253, em 03/09. Depois foram integrados:
 
-`#254 → #256 → #257 → #258 → #260 → #261`.
+```text
+#254 → #256 → #257 → #258 → #260 → #261
+```
 
 Esses PRs foram reconciliados em [`docs/PLAN_TRACEABILITY.md`](docs/PLAN_TRACEABILITY.md) e originaram o plano sucessor atual.
 
@@ -59,11 +65,15 @@ Esses PRs foram reconciliados em [`docs/PLAN_TRACEABILITY.md`](docs/PLAN_TRACEAB
 
 O PR #262 foi **ABORTADO E FECHADO SEM MERGE**. Não integra `main`, Production ou a linha de decisão vigente. Testes/documentos exclusivos daquela branch não podem ser usados como contrato atual.
 
+### PR #263
+
+O PR #263 consolida documentação, rastreabilidade e proteções de continuidade. **Não altera runtime, banco, migration ou regra funcional do produto.** Seu próprio merge não exige “reconciliar o #263 contra o #263”; a reconciliação que ele contém já é seu conteúdo.
+
 ## 5. Planos históricos
 
 Os seguintes planos são históricos e **não devem ser executados como fila atual**:
 
-- `docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md` — foi o plano correto de seu checkpoint, depois superado pelos hotfixes #254/#256/#257/#258/#260 e pela reconciliação atual;
+- `docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md` — foi o plano correto do checkpoint de 03/09 e depois foi emendado pelos hotfixes #254/#256/#257/#258/#260;
 - `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md` — plano anterior já substituído em 03/09;
 - demais planos/handoffs datados explicam seus checkpoints e são usados apenas quando a rastreabilidade da tarefa exigir.
 
@@ -74,11 +84,12 @@ Os seguintes planos são históricos e **não devem ser executados como fila atu
 Se um problema urgente interromper novamente o plano:
 
 1. faça o hotfix a partir do código atual e preserve decisões vigentes;
-2. no mesmo PR, ou imediatamente antes do próximo trabalho planejado, registre o impacto em `docs/CURRENT_STATE.md` e `docs/PLAN_TRACEABILITY.md`;
+2. no mesmo PR funcional, atualize `docs/CURRENT_STATE.md` e `docs/PLAN_TRACEABILITY.md`;
 3. se o hotfix concluir, alterar ou substituir parte do plano, atualize `docs/MASTER_PLAN_CURRENT.md`;
-4. não retome automaticamente a próxima etapa do plano enquanto essa reconciliação não estiver feita.
+4. atualize documentos correntes diretamente afetados pela nova regra;
+5. não retome automaticamente a próxima etapa planejada enquanto essa reconciliação não estiver feita.
 
-Um hotfix posterior é uma emenda ao plano. **O plano é que deve se adaptar ao hotfix deliberadamente aprovado, não o contrário.**
+Um hotfix posterior é uma emenda ao plano. **O plano deve se adaptar ao hotfix deliberadamente aprovado, não o contrário.**
 
 ## 7. Regra para auditorias
 
@@ -87,9 +98,10 @@ Auditoria e mudança funcional são etapas separadas.
 Durante uma auditoria:
 
 - identificar comportamento atual;
-- confrontar regra vigente, código e evidência;
-- classificar achados;
-- não alterar regra apenas para satisfazer teste/plano histórico.
+- confrontar decisão vigente, código, banco e evidência;
+- classificar divergências;
+- não alterar regra apenas para satisfazer teste, matriz ou plano histórico;
+- quando uma frase resumida tiver mais de uma interpretação, recuperar suas pré-condições antes de classificá-la como defeito.
 
 Somente depois de um defeito atual estar comprovado deve existir correção funcional.
 
@@ -97,13 +109,14 @@ Somente depois de um defeito atual estar comprovado deve existir correção func
 
 ```text
 START_HERE.md
-→ conferir SHA atual da main
+→ consultar main atual
+→ verificar se há PR funcional posterior ainda não reconciliado
 → CURRENT_STATE.md
 → MASTER_PLAN_CURRENT.md
 → PLAN_TRACEABILITY.md somente se precisar da origem
 → código/testes/ADRs específicos da tarefa
 → executar
-→ atualizar estado/rastreabilidade/plano quando o resultado mudar a continuidade
+→ atualizar estado/rastreabilidade/plano no mesmo PR quando o resultado mudar a continuidade
 ```
 
-Se uma sessão nova seguir esse fluxo, ela não precisa recuperar a memória de chats anteriores para descobrir qual plano é o atual.
+Assim, uma sessão nova não precisa recuperar memória de chats anteriores para descobrir qual é a regra e qual é a próxima tarefa.
