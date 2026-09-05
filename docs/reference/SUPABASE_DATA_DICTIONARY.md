@@ -1,31 +1,34 @@
 # Dicionário de dados — Supabase
 
-**Estado:** referência vigente em Preview e Production  
-**Atualizado em:** 7 de agosto de 2026
+**Estado:** referência vigente da baseline funcional do PR #260  
+**Atualizado em:** 5 de setembro de 2026
+
+> Para a baseline corrente, comece em [`../../START_HERE.md`](../../START_HERE.md) e [`../CURRENT_STATE.md`](../CURRENT_STATE.md). Tipos gerados, migrations do SHA analisado e schema remoto verificado prevalecem sobre este resumo.
 
 ## 1. Fontes exatas
 
 ```text
 src/types/database.types.ts
 supabase/migrations/
+supabase/functions/
 schema remoto verificado
 ```
 
-Tipos gerados, migrations aplicadas e schema remoto prevalecem sobre este resumo. O baseline mutável fica em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md).
+A baseline funcional do PR #260 contém **46 migrations**. A mais recente desse checkpoint é `20260904040000_functional_reliability_inventory_sync.sql`.
 
 ## 2. Convenções
 
 - SQL em `snake_case`;
-- IDs funcionais legados podem permanecer `text`;
-- `row_version` controla concorrência otimista;
-- `created_at` e `updated_at` são técnicos;
-- JSONB é usado para estruturas variáveis, não para substituir relacionamentos essenciais;
+- `row_version` controla concorrência otimista onde o contrato exige versão;
+- `created_at`/`updated_at` são metadados técnicos;
+- payload JSONB não substitui relacionamentos estruturais;
+- `rowVersion`/`row_version` não devem permanecer dentro do payload funcional de `verifications`;
 - Auth identifica o usuário;
 - `user_profiles` define papel e escopo;
-- RLS é obrigatória nas tabelas expostas;
-- `administrative_logs` é histórico funcional;
+- RLS protege recursos expostos;
+- `administrative_logs` preserva histórico funcional;
 - `audit_events` é trilha técnica;
-- operação composta deve preservar atomicidade ou compensação explícita.
+- operação composta usa transação/RPC ou compensação explícita conforme o domínio.
 
 ## 3. Tabelas principais
 
@@ -33,9 +36,9 @@ Tipos gerados, migrations aplicadas e schema remoto prevalecem sobre este resumo
 |---|---|
 | configuração | `app_config`, `competences`, `programs` |
 | escolas | `schools`, `school_programs` |
-| equipe e acesso | `controllers`, `inventory_team_members`, `profiles`, `user_profiles`, `user_school_scopes` |
+| equipe/acesso | `controllers`, `inventory_team_members`, `profiles`, `user_profiles`, `user_school_scopes` |
 | acompanhamento | `verifications`, `pendencies`, `pendency_attempts`, `pendency_contacts` |
-| financeiro e patrimônio | `registered_invoices`, `assets` |
+| fiscal/patrimônio | `registered_invoices`, `assets` |
 | logs | `administrative_logs`, `audit_events` |
 | importação | `data_import_runs`, `data_import_staging` |
 
@@ -43,149 +46,71 @@ Tipos gerados, migrations aplicadas e schema remoto prevalecem sobre este resumo
 
 ### `app_config`
 
-Campos centrais:
-
-- `id` — registro global;
-- `exercises` — exercícios;
-- `closing_competence` — competência de fechamento;
-- `bonus_deadline_extended` — prazo excepcional opcional;
-- `settings` — parâmetros adicionais;
-- `row_version` — concorrência;
-- timestamps.
-
-`row_version` é mutável e deve ser relido antes de operação concorrente.
+Contém exercícios, competência de fechamento, extensão excepcional de prazo/configurações adicionais e `row_version`.
 
 ### `competences`
 
-- `id` em `YYYY-MM`;
-- rótulo e exercício;
-- início, fim e prazo;
-- fechamento formal opcional;
-- `row_version`.
-
-`save_exercise_with_competences` exige:
-
-- papel `sme_management` ou `technical_admin`;
-- `row_version` positivo da configuração;
-- exatamente doze competências;
-- um único exercício;
-- IDs de janeiro a dezembro;
-- exercício contido em `app_config.exercises`;
-- competência inicial pertencente ao novo exercício;
-- log global obrigatório;
-- conflito otimista se a versão divergir.
+Identidade mensal em `YYYY-MM`, com exercício, datas/prazo e versão. A criação de exercício vigente persiste configuração + doze competências + log na operação protegida correspondente.
 
 ### `programs`
 
-- identificador;
-- nome e descrição;
-- `active` para vigência lógica;
-- `row_version`.
-
-O contrato atualmente implementado permite manutenção pela Gestão SME e administrador técnico. Futuras restrições exigem decisão funcional e atualização coordenada das camadas.
+Identificador, nome/descrição, vigência lógica e versão. O contrato atual permite manutenção pela Gestão SME e `technical_admin`.
 
 ## 5. Escolas
 
 ### `schools`
 
-Campos principais:
+Campos estruturais incluem:
 
-- `id`, `designation`, `denomination`;
-- contatos institucionais;
-- direção geral e adjunta;
+- `id` institucional;
+- designação e denominação;
 - INEP, CNPJ e SICI;
-- `cre` e `ra`;
+- CRE/RA;
+- contatos e direção;
 - `controller_id` como responsável principal;
-- processo patrimonial;
+- processo de inventário;
 - competência inicial;
-- `active` e `row_version`.
+- vigência e `row_version`.
 
-### Integridade institucional
+Nova escola exige identidade institucional real. O serviço rejeita dados obrigatórios ausentes e duplicidades; o banco mantém constraints/índices correspondentes para os identificadores protegidos.
 
-A migration `202608060003_school_institutional_identity` estabelece:
-
-- `designation`, `denomination`, `inep`, `cnpj` e `sici` não vazios;
-- índice único normalizado de INEP;
-- índice único normalizado de CNPJ;
-- índice único normalizado de SICI.
-
-O serviço também exige, para nova escola, código institucional, designação, denominação, INEP, CNPJ e SICI e bloqueia duplicidades antes da persistência.
-
-Identidade institucional não pode ser preenchida por geradores artificiais.
+`controller_id` não deve ser redistribuído por edição comum do Controlador.
 
 ### `school_programs`
 
-Relação entre escola e programa:
+Relaciona escola/programa e preserva vigência lógica/temporal e versão conforme schema.
 
-- `school_id`;
-- `program_id`;
-- vigência lógica e temporal;
-- `row_version`;
-- unicidade conforme constraints do schema.
+## 6. Perfis e equipe
 
-### Carteira
+### `controllers` e `inventory_team_members`
 
-`schools.controller_id` representa responsável principal. A alteração é protegida por autorização também no banco; Controlador não redistribui carteira pela edição cadastral.
-
-## 6. Equipe, Auth e escopos
-
-### `controllers`
-
-- `id`, `name`, `email`;
-- `user_id` para `auth.users`;
-- `active`;
-- `row_version`.
-
-### `inventory_team_members`
-
-Estrutura equivalente para integrantes do Inventário.
+Mantêm identidade do integrante, e-mail, vínculo opcional/efetivo com `auth.users`, atividade e versão.
 
 ### `profiles`
 
-Papéis:
+Papéis correntes:
 
-- `controller`;
-- `federal_assistant`;
-- `sme_management`;
-- `inventory`;
-- `technical_admin`.
+```text
+controller
+federal_assistant
+sme_management
+inventory
+technical_admin
+```
 
 ### `user_profiles`
 
-- `user_id`;
-- `profile_id`;
-- `controller_id` opcional;
-- `inventory_member_id` opcional;
-- `cre_scope`;
-- `active`;
-- `row_version`.
-
-Regra funcional: um perfil institucional ativo por usuário.
+Liga usuário Auth a perfil/entidade/CRE e atividade. Um perfil institucional ativo por usuário permanece a regra funcional corrente.
 
 ### `user_school_scopes`
 
-Exceções por escola:
+Registra exceções explícitas por escola e capacidade de escrita quando aplicável.
 
-- usuário;
-- escola;
-- `can_write`.
+### Gestão de Equipe
 
-Complementa o escopo por CRE.
+A Edge Function `team-account-management` usa Auth Admin somente no backend e RPCs transacionais para coordenar conta, diretório, perfil e log. O lookup de e-mail é feito pela RPC restrita `resolve_team_auth_user_id_by_email` e não por varredura global de usuários.
 
-### Lookup Auth da equipe
-
-`public.resolve_team_auth_user_id_by_email(text)`:
-
-- normaliza o e-mail;
-- retorna uma conta única quando existente;
-- rejeita múltiplas contas para o mesmo e-mail;
-- é `SECURITY DEFINER` com `search_path` restrito;
-- não concede `EXECUTE` a `anon` nem `authenticated`;
-- concede execução somente a `service_role`.
-
-A Edge Function usa essa RPC e depois `getUserById`, evitando varredura global do catálogo Auth.
-
-## 7. Acompanhamento mensal
+## 7. Avaliação mensal
 
 ### `verifications`
 
@@ -195,180 +120,161 @@ Identidade lógica:
 school_id + competence_id + program_id
 ```
 
-Campos centrais:
+Armazena bonificação, análise técnica, `bonus_result`, payload de compatibilidade e versão.
 
-- bonificação;
-- análise técnica;
-- `bonus_result`;
-- payload de compatibilidade;
-- `row_version`.
+Bonificação, análise e Pendência permanecem dimensões distintas. Projeções agregadas de Nota Fiscal, Assessoria e Inventário são derivadas de seus registros específicos quando o contrato assim determina.
+
+### Limpeza de metadado técnico
+
+A migration #46 remove e impede `rowVersion`/`row_version` dentro do payload de verificação, mantendo versão apenas na fronteira técnica adequada.
+
+## 8. Pendências
 
 ### `pendencies`
 
-- escola e competência de origem;
-- programa/documento;
-- estados Aberta, Aguardando reanálise, Resolvida e Cancelada;
-- responsável e próximo ator;
-- motivo e observações;
-- datas de abertura, resolução e cancelamento;
-- payload e versão.
+Campos estruturais incluem escola, competência de origem, programa, documento, `registered_invoice_id` quando individual, status, responsável/próximo ator, motivo, datas, payload e versão.
+
+Estados correntes:
+
+```text
+Aberta
+Aguardando reanálise
+Resolvida
+Cancelada
+```
+
+`Aberta` e `Aguardando reanálise` são ativas.
 
 ### `pendency_attempts`
 
-- pendência e número da tentativa;
-- envio e análise;
-- resultado;
-- referência documental;
-- observação, erros e autoria;
-- payload e versão.
+Registra número da tentativa, conteúdo/arquivo disponibilizado, datas, resultado/análise, observação, erros, autoria, payload e versão.
 
-O trigger `pendencies_sync_attempt_statuses`, instalado pela remediação funcional, sincroniza `payload.status` da tentativa com o agregado canônico em `pendencies.payload.tentativas`. A mesma migration executou reconciliação idempotente dos registros existentes.
+Novo envio/substituição cria uma nova tentativa e preserva a anterior. Reanálise altera o estado analítico da tentativa real correspondente, não reescreve o documento enviado.
 
 ### `pendency_contacts`
 
-- escola e pendência opcional;
-- data, canal e descrição;
-- cobrança oficial;
-- autoria;
-- `operation_id` para idempotência;
-- versão.
+Registra contato/cobrança associado à escola/Pendência, data, canal, descrição, autoria e `operation_id` para a idempotência definida no contrato.
 
-## 8. Financeiro e patrimônio
+## 9. Notas Fiscais
 
 ### `registered_invoices`
 
+Campos estruturais incluem:
+
 - escola, competência, programa e verificação;
-- número, descrição, natureza e valor;
-- data de registro;
-- bem vinculado opcional;
-- chave de contexto;
-- para NFs de serviço, `payload.consultaAssessoriaEnviada` e `payload.analiseConsultaAssessoria` mantêm a avaliação individual da consulta contábil;
-- versão.
+- número/referência, descrição, natureza e valor;
+- data;
+- `linked_asset_id` opcional;
+- contexto de origem;
+- payload de análise individual/Assessoria quando aplicável;
+- `row_version`.
 
-O trigger `registered_invoices_delete_unlinked_asset` executa `delete_unlinked_invoice_asset()` quando `linked_asset_id` muda. A função remove apenas o bem anteriormente vinculado à mesma escola e bloqueia conflito quando outro documento ainda o referencia.
+Tipos de gasto reconhecidos pelo serviço atual:
 
-Para `expense_type = 'servico'`, `consultaAssessoriaEnviada` é booleano e `analiseConsultaAssessoria` admite `Não analisado`, `Correto`, `Correto (Atrasado)` ou `Incorreto`. `verifications.bonification.consAssessoria`, `consEnviada` e `verifications.analysis.consAssessoria` são projeções mensais derivadas de todas as NFs de serviço do contexto; não constituem avaliação compartilhada entre notas.
+```text
+consumo
+permanente
+servico
+a_identificar
+boleto_internet
+```
+
+`boleto_internet` é exclusivo de Educação Conectada e continua dentro de Notas Fiscais.
+
+Análise fiscal individual e Pendência usam `registered_invoice_id`. Consulta Assessoria de serviço também é individual por invoice.
+
+O histórico individual bloqueia exclusão/alteração que destruiria rastreabilidade conforme os serviços/triggers vigentes.
+
+## 10. Patrimônio
 
 ### `assets`
 
-- escola e competência;
-- descrição, natureza, valor e nota;
-- processo e status;
-- data e responsável pela inventariação;
-- observações e payload;
-- versão.
+Contém escola, competência, descrição, natureza, valor, número fiscal, processo, status, data/responsável da inventariação, observações, payload e versão.
 
-Nota permanente e bem vinculado devem manter contexto coerente.
+Para bem derivado de NF permanente:
 
-Edição rápida patrimonial não usa mais persistência genérica: `InventoryService.updateAsset` admite somente o campo expressamente autorizado e persiste pelo contrato `saveAssetWithLog` com `expectedVersion` e `administrativeLog`.
+- a invoice aponta para o bem por `linked_asset_id`/vínculo correspondente;
+- com número da NF + processo de inventário já disponível, o bem novo nasce `Encaminhada`;
+- sem processo, nasce `Não encaminhada`;
+- `Inventariada` só pode ser alcançada a partir de `Encaminhada`;
+- o número fiscal do bem derivado não é editado isoladamente no cadastro patrimonial.
 
-## 9. Logs
+### RPC patrimonial do PR #260
+
+`save_asset_with_verification_and_log` persiste atomicamente, quando necessário:
+
+```text
+asset
++ verification sincronizada
++ administrative_log
+```
+
+Ela é usada no encaminhamento posterior de bem permanente vinculado para manter Capital/Inventário e `encampInventario` coerentes na mesma gravação.
+
+## 11. Logs
 
 ### `administrative_logs`
 
-- ação de domínio;
-- instante;
-- escola opcional;
-- `actor_user_id`;
-- identificador, perfil e detalhes.
+Histórico funcional com ação, instante, escola opcional, ator/perfil e detalhes.
 
 ### `audit_events`
 
-- tabela, registro e ação;
-- ator;
-- estado anterior e posterior;
-- campos alterados;
-- correlação e instante.
+Trilha técnica de tabela/registro/ação e alterações. Usuário operacional não escreve diretamente nessa tabela.
 
-Usuários operacionais não escrevem diretamente nessa tabela.
+## 12. Importação
 
-Exportações usam `AuditService.record` como trilha administrativa. O início deve ser confirmado antes do download.
+`data_import_runs` acompanha execução, hash/formato, contagens, reconciliação, rollback, estado e autoria.
 
-## 10. Importação
+`data_import_staging` guarda registros antes da promoção. Operação real continua condicionada ao procedimento/autorização aplicável e não faz parte da fila funcional atual apenas porque as tabelas existem.
 
-### `data_import_runs`
+## 13. RPCs/funções relevantes
 
-Controla identificador, hash/formato da fonte, contagens, lotes, reconciliação, snapshot de rollback, estado, datas, autor e erro.
+O schema inclui contratos para:
 
-### `data_import_staging`
-
-Identidade prática:
-
-```text
-import_id + entity + record_id
-```
-
-Armazena lotes idempotentes antes da promoção.
-
-## 11. Funções/RPCs relevantes
-
-O schema contém funções para:
-
-- papel atual e acesso escolar;
-- verificação e log;
-- pendências, tentativas, contatos e reanálise;
-- notas e bens com efeitos compostos;
-- exercício, competências e configurações;
-- programas e log;
+- papel e acesso escolar;
+- verificação mensal + log;
+- Pendências/tentativas/contatos/reanálise;
+- análise fiscal/Assessoria individual;
+- Nota Fiscal e efeitos derivados;
+- bem + verificação + log;
+- exercício/competências/configuração;
+- programas;
 - atribuição de Controlador;
 - Gestão de Equipe;
-- resolução segura de conta Auth por e-mail;
-- importação, promoção, reconciliação e rollback;
-- contratos JSON e snapshots;
-- auditoria agregada de integridade.
+- lookup Auth restrito;
+- importação/rollback;
+- auditoria de integridade.
 
-Assinaturas exatas devem ser consultadas nos tipos e migrations da versão analisada.
+Assinaturas exatas devem ser lidas nas migrations/tipos do SHA analisado. Não copiar assinatura deste resumo para implementação sem conferência.
 
-## 12. Edge Function
+## 14. Edge Function
 
-`team-account-management` administra contas Auth da equipe e chama RPCs server-side. Não substitui RLS.
+`team-account-management` exige sessão/JWT, papel autorizado e CORS fail-closed, usa credencial administrativa somente no servidor e possui compensação quando uma alteração em Auth precede falha no banco.
 
-A versão efetiva fica em `CURRENT_STAGE.md` e deve ser confirmada remotamente.
+A versão efetivamente publicada deve ser reconsultada quando a tarefa depender de Production.
 
-Contratos:
+## 15. Concorrência e atomicidade
 
-- JWT obrigatório;
-- papel autorizado;
-- CORS fail-closed;
-- lookup exato de conta;
-- reutilização controlada;
-- compensação;
-- resposta funcional sanitizada.
-
-## 13. Concorrência
-
-- escrita usa versão esperada quando o contrato exigir;
-- divergência gera conflito;
-- interface não sobrescreve silenciosamente;
+- versão esperada é verificada onde o contrato usa optimistic concurrency;
+- conflito não é sobrescrito silenciosamente;
 - operação composta usa RPC/transação;
-- repetição automática de escrita é proibida;
-- compensação é obrigatória quando Auth e banco participam de etapas diferentes.
+- falha parcial entre Auth e banco exige compensação;
+- repetir conteúdo não é motivo para deduplicar uma NF legítima;
+- guard contra clique repetido durante chamada em andamento não equivale a idempotência durável para retry ambíguo.
 
-## 14. RLS
+## 16. RLS
 
-A autorização combina:
+A autorização combina papel ativo, `auth.uid()`, escopo de CRE, carteira/escopos escolares e políticas específicas da entidade. Consulte [`SUPABASE_PERMISSIONS_MATRIX.md`](SUPABASE_PERMISSIONS_MATRIX.md) e o SQL do SHA corrente.
 
-- `auth.uid()`;
-- papel ativo;
-- `cre_scope`;
-- carteira principal;
-- exceção escolar;
-- leitura versus escrita;
-- políticas específicas de Inventário e SME;
-- privilégios técnicos.
+## 17. Manutenção
 
-Consultar [`SUPABASE_PERMISSIONS_MATRIX.md`](SUPABASE_PERMISSIONS_MATRIX.md).
+Após mudança real de schema/contrato:
 
-## 15. Atualização do dicionário
-
-Após mudança de schema ou contrato de persistência:
-
-1. aplicar/testar em ambiente isolado;
-2. executar pgTAP e lint;
-3. regenerar tipos;
-4. atualizar este documento quando o contrato estável mudar;
-5. atualizar permissões e matriz funcional;
-6. executar backup/restauração;
-7. validar dry-run remoto;
-8. registrar evidência no mesmo SHA;
-9. aplicar em Production somente dentro do escopo autorizado.
+1. migration nova, sem editar histórico;
+2. reset/pgTAP/lint em ambiente isolado;
+3. regeneração de tipos;
+4. confirmação de artefatos reproduzíveis;
+5. atualização deste dicionário e da matriz de permissões/funcional quando afetadas;
+6. backup/restauração e gates proporcionais;
+7. atualização de `CURRENT_STATE.md` e `PLAN_TRACEABILITY.md` quando a mudança impactar continuidade;
+8. Production somente dentro da autorização correspondente.
