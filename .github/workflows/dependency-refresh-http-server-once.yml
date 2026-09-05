@@ -90,9 +90,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npm start >/tmp/radar-spa-server.log 2>&1 &
+          setsid npm start >/tmp/radar-spa-server.log 2>&1 &
           server_pid=$!
-          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          trap 'kill -- -"$server_pid" 2>/dev/null || true' EXIT
           ready=0
           for attempt in {1..30}; do
             if curl --fail --silent --show-error http://127.0.0.1:4175/ >/dev/null; then ready=1; break; fi
@@ -103,9 +103,18 @@ jobs:
           curl --fail --silent --show-error http://127.0.0.1:4175/pendencias >/dev/null
           curl --fail --silent --show-error http://127.0.0.1:4175/escolas/04.31.001 >/dev/null
           curl --fail --silent --show-error http://127.0.0.1:4175/styles.css >/dev/null
-          kill "$server_pid"
+          kill -- -"$server_pid" 2>/dev/null || true
           wait "$server_pid" 2>/dev/null || true
           trap - EXIT
+          port_free=0
+          for attempt in {1..20}; do
+            if ! curl --silent --max-time 1 http://127.0.0.1:4175/ >/dev/null 2>&1; then port_free=1; break; fi
+            sleep 0.25
+          done
+          if [ "$port_free" -ne 1 ]; then
+            echo 'porta 4175 permaneceu ocupada após encerrar npm start' >&2
+            exit 1
+          fi
 
       - name: E2E das rotas canônicas
         shell: bash
