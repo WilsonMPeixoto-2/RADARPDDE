@@ -1,64 +1,97 @@
 # Documentação do RADAR PDDE
 
 > **Primeira leitura obrigatória:** [`../START_HERE.md`](../START_HERE.md).  
-> Este índice ajuda a localizar documentação técnica, mas **não define uma segunda ordem de retomada**.
+> Este índice localiza documentação técnica; **não define uma segunda ordem de retomada**.
 
-## 1. Continuidade corrente
+## 1. Continuidade e método corrente
 
-A retomada operacional usa somente esta cadeia:
+A rota operacional é:
 
-1. [`../START_HERE.md`](../START_HERE.md) — única porta de entrada;
-2. [`CURRENT_STATE.md`](CURRENT_STATE.md) — estado factual corrente;
-3. [`MASTER_PLAN_CURRENT.md`](MASTER_PLAN_CURRENT.md) — **único plano executável vigente**;
-4. [`PLAN_TRACEABILITY.md`](PLAN_TRACEABILITY.md) — reconciliação do plano do PR #253 com os PRs #254/#256/#257/#258/#260/#261;
-5. [`../AGENTS.md`](../AGENTS.md) — regras permanentes de trabalho.
+1. [`../START_HERE.md`](../START_HERE.md) — baseline e porta única;
+2. [`CURRENT_STATE.md`](CURRENT_STATE.md) — estado factual, regras e achados abertos;
+3. [`architecture/adversarial-analysis-and-implementation-method.md`](architecture/adversarial-analysis-and-implementation-method.md) — princípios obrigatórios;
+4. [`architecture/adversarial-analysis-replication-playbook.md`](architecture/adversarial-analysis-replication-playbook.md) — procedimento técnico reproduzível baseado nos artefatos Astra;
+5. [`audits/2026-09-05-astra-adversarial-findings.md`](audits/2026-09-05-astra-adversarial-findings.md) — ledger corrente de bugs/ambiguidades/riscos;
+6. [`audits/2026-09-05-astra-artifact-package-review.md`](audits/2026-09-05-astra-artifact-package-review.md) — estudo do pacote de evidências;
+7. [`MASTER_PLAN_CURRENT.md`](MASTER_PLAN_CURRENT.md) — **único plano executável vigente**;
+8. [`PLAN_TRACEABILITY.md`](PLAN_TRACEABILITY.md) — origem e absorção quando necessário;
+9. [`../AGENTS.md`](../AGENTS.md) — regras permanentes de agentes.
 
-Se a `main` avançou além da baseline descrita em `START_HERE.md`, primeiro reconciliar os PRs posteriores. Não escolher automaticamente um plano datado.
+Se a `main` avançar além da baseline, primeiro reconciliar os PRs funcionais posteriores.
 
 ## 2. Estado e rastreabilidade
 
-- [`CURRENT_STATE.md`](CURRENT_STATE.md) — baseline, ambiente, regras sensíveis e trabalho realmente remanescente;
-- [`PLAN_TRACEABILITY.md`](PLAN_TRACEABILITY.md) — por que R1–R9 mudou depois dos hotfixes;
-- [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — histórico detalhado dos checkpoints do projeto; útil para investigação, mas não é fila executável;
-- [`DECISION_LOG.md`](DECISION_LOG.md) — decisões duradouras/históricas;
-- [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — contratos funcionais e arquiteturais amplos.
+- [`CURRENT_STATE.md`](CURRENT_STATE.md) — estado funcional e P1/decisões abertas;
+- [`PLAN_TRACEABILITY.md`](PLAN_TRACEABILITY.md) — impacto dos hotfixes e da auditoria Astra sobre o plano;
+- [`DECISION_LOG.md`](DECISION_LOG.md) — ledger de decisões;
+- [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — contexto funcional amplo;
+- [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — histórico detalhado de checkpoints, não fila executável.
 
-## 3. Plano vigente e planos históricos
+A auditoria de continuidade anterior, [`audits/2026-09-05-continuity-semantic-traceability-complete.md`](audits/2026-09-05-continuity-semantic-traceability-complete.md), continua útil para reconstruir #253→#261, mas **não é prova de ausência de bugs desconhecidos**.
+
+## 3. Plano
 
 ### Vigente
 
-- [`MASTER_PLAN_CURRENT.md`](MASTER_PLAN_CURRENT.md) — única fila executável atual.
+- [`MASTER_PLAN_CURRENT.md`](MASTER_PLAN_CURRENT.md) — única fila executável, iniciada pela Frente 0 adversarial.
 
 ### Históricos
 
-- [`superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](superpowers/plans/2026-09-03-plano-remanescente-source-first.md) — plano correto do checkpoint de 03/09, posteriormente alterado pelos hotfixes #254/#256/#257/#258/#260;
-- [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md) — plano anterior, já substituído em 03/09;
-- demais arquivos datados em `superpowers/plans/` — evidência de seus checkpoints.
+- [`superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](superpowers/plans/2026-09-03-plano-remanescente-source-first.md);
+- [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md);
+- demais planos/handoffs datados.
 
-Documentos históricos preservam intenção, REDs, riscos e decisões de sua época. Seus “próximos passos” não controlam a execução atual.
+Seus “próximos passos” não controlam a execução atual.
 
-## 4. Decisões e contratos funcionais
+## 4. Testes e método adversarial
 
-- [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md) — individualização fiscal/Pendências; ler em conjunto com os hotfixes posteriores registrados em `PLAN_TRACEABILITY.md`;
-- [`decisions/ADR-052-autoridade-unica-fluxos-criticos.md`](decisions/ADR-052-autoridade-unica-fluxos-criticos.md) — autoridade/composição de fluxos críticos;
-- [`decisions/ADR-051-adiamento-hardening-registered-invoices.md`](decisions/ADR-051-adiamento-hardening-registered-invoices.md) — hardening adiado para frente separada;
-- [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md) — visão gerada da matriz funcional;
-- [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md) — governança dos testes;
-- [`reference/CHANGE_CLASSIFICATION.md`](reference/CHANGE_CLASSIFICATION.md) — classes de achado.
+- [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md) — testes como regressão conhecida + descoberta adversarial;
+- [`architecture/adversarial-analysis-and-implementation-method.md`](architecture/adversarial-analysis-and-implementation-method.md) — mapa de autoridade, contraexemplos, estado avançado, composição real, SQL sucessor e fechamento;
+- [`architecture/adversarial-analysis-replication-playbook.md`](architecture/adversarial-analysis-replication-playbook.md) — inventário, varredura, mapa AST/SQL, probes, normalização do ambiente e preservação progressiva de artefatos.
 
-**Atenção:** um ADR pode conter trechos que foram especializados por hotfix posterior. Quando isso ocorrer, a decisão posterior registrada na rastreabilidade prevalece na superfície modificada; não marcar o documento inteiro como inválido por causa de uma cláusula superada.
+Regra central:
 
-## 5. Arquitetura
+```text
+gates conhecidos passaram
+≠ produto provado sem defeitos desconhecidos
+```
 
-- [`architecture/competencias.md`](architecture/competencias.md)
-- [`architecture/avaliacao-mensal.md`](architecture/avaliacao-mensal.md)
-- [`architecture/modelo-operacional.md`](architecture/modelo-operacional.md)
-- [`architecture/product-extensions-load-order.md`](architecture/product-extensions-load-order.md)
-- [`architecture/testing.md`](architecture/testing.md)
+## 5. Arquitetura corrente
 
-Documentação arquitetural datada deve ser confrontada com o bootstrap/código atual quando a tarefa depender de ordem real de extensões.
+- [`architecture/competencias.md`](architecture/competencias.md) — contexto global + exceção transversal de Pendências;
+- [`architecture/avaliacao-mensal.md`](architecture/avaliacao-mensal.md);
+- [`architecture/modelo-operacional.md`](architecture/modelo-operacional.md);
+- [`architecture/product-extensions-load-order.md`](architecture/product-extensions-load-order.md);
+- [`architecture/testing.md`](architecture/testing.md);
+- [`architecture/excel-export.md`](architecture/excel-export.md);
+- [`architecture/excel-sme-mensal.md`](architecture/excel-sme-mensal.md);
+- [`architecture/excel-xlsx-runtime.md`](architecture/excel-xlsx-runtime.md);
+- [`architecture/excel-integral-certification.md`](architecture/excel-integral-certification.md).
 
-## 6. Supabase
+A família Excel foi reconciliada em 05/09 para distinguir:
+
+- workbook correto;
+- ponto de entrada real correto;
+- política temporal de XLSX institucional;
+- contrato ainda aberto do CSV.
+
+## 6. Achados adversariais abertos
+
+Resumo:
+
+- P1 `Inventariada → Encaminhada` ao salvar novamente NF vinculada;
+- P1 auditoria pré-download do Excel SME;
+- decisão idade total da Pendência × tempo do ator;
+- decisão/investigação CSV × XLSX;
+- renderer legado de Pendências;
+- projeções duplicadas;
+- readiness por Promise/capability;
+- módulo de performance com autoridade funcional;
+- testes/documentos históricos perigosos.
+
+Usar o ledger, não reproduzir esta lista como fonte autônoma.
+
+## 7. Supabase
 
 - [`reference/SUPABASE_DATA_DICTIONARY.md`](reference/SUPABASE_DATA_DICTIONARY.md)
 - [`reference/SUPABASE_FUNCTIONAL_COVERAGE.md`](reference/SUPABASE_FUNCTIONAL_COVERAGE.md)
@@ -66,39 +99,28 @@ Documentação arquitetural datada deve ser confrontada com o bootstrap/código 
 - [`runbooks/SUPABASE_CONNECTION.md`](runbooks/SUPABASE_CONNECTION.md)
 - [`runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`](runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md)
 
-A baseline do PR #260 contém 46 migrations. Para quantidade/estado corrente além desse checkpoint, conferir o remoto.
+Baseline #260: 46 migrations. Para RPC, usar a última definição efetiva da assinatura.
 
-## 7. Handoffs, auditorias e evidências
+## 8. Handoffs, auditorias e evidências
 
-Diretórios:
-
-- `handoff/` — checkpoints de transferência;
+- `handoff/` — checkpoints;
 - `audits/` — auditorias datadas;
-- `evidence/` — evidências de execução;
+- `evidence/` — evidências;
 - `reports/` — relatórios;
-- `superpowers/specs/` e `superpowers/plans/` — especificações e planos de seus ciclos.
+- `superpowers/specs/` / `plans/` — desenhos e planos de seus ciclos.
 
-Esses arquivos são fundamentais para rastreabilidade, mas não devem ser percorridos aleatoriamente por um novo agente. `START_HERE.md` determina quando uma fonte histórica é necessária.
+São essenciais para rastreabilidade, mas novas sessões não devem percorrê-los aleatoriamente. `START_HERE.md` determina quando são necessários.
 
-## 8. Exportações
+## 9. Manutenção após hotfix
 
-Contratos vigentes incluem:
+Todo hotfix funcional deve:
 
-- relatório institucional XLSX;
-- Excel SME mensal de 27 colunas A:AA;
-- CSV secundário/fallback quando previsto;
-- XLSX editorial de Pendências com filtros atuais e sem IDs técnicos.
+1. reproduzir/classificar;
+2. aplicar método adversarial;
+3. atualizar [`CURRENT_STATE.md`](CURRENT_STATE.md);
+4. atualizar [`PLAN_TRACEABILITY.md`](PLAN_TRACEABILITY.md);
+5. atualizar [`MASTER_PLAN_CURRENT.md`](MASTER_PLAN_CURRENT.md) se necessário;
+6. atualizar documentos correntes afetados;
+7. registrar o que foi tentado para provar que a correção ainda estava errada.
 
-Alteração material de exportação exige a certificação correspondente; mudança sem relação com exportação não justifica recertificação indiscriminada.
-
-## 9. Regra de manutenção documental
-
-Quando um novo hotfix funcional for integrado:
-
-1. atualizar [`CURRENT_STATE.md`](CURRENT_STATE.md);
-2. registrar o impacto em [`PLAN_TRACEABILITY.md`](PLAN_TRACEABILITY.md);
-3. atualizar [`MASTER_PLAN_CURRENT.md`](MASTER_PLAN_CURRENT.md) quando o trabalho remanescente mudar;
-4. manter [`../START_HERE.md`](../START_HERE.md) apontando para a baseline correta;
-5. só então retomar a fila planejada.
-
-Não criar outro “plano corrente” paralelo. Não adicionar nova ordem de leitura a README, handoff ou ADR.
+Não criar outro plano corrente paralelo.
