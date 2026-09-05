@@ -136,3 +136,31 @@ test('gera metadados de convite sem credenciais e com perfil correto', async () 
     assert.equal(JSON.stringify(metadata).includes('password'), false);
     assert.equal(JSON.stringify(metadata).includes('token'), false);
 });
+
+test('marca convite com identidade da operação para compensar resposta Auth ambígua sem apagar conta alheia', async () => {
+    const {
+        normalizeTeamCommand,
+        buildInviteMetadata,
+        canCompensateAmbiguousInvite
+    } = await loadDomain();
+    const command = normalizeTeamCommand({
+        operation: 'save_controller',
+        controller: {
+            id: 'CTRL-AMB',
+            name: 'Conta Ambígua',
+            email: 'conta.ambigua@rioeduca.net'
+        },
+        administrativeLog: { id: 'LOG-AUTH-AMB-001', action: 'Gestão de Equipe' }
+    });
+    const metadata = buildInviteMetadata(command);
+
+    assert.equal(metadata.radar_account_operation_id, 'LOG-AUTH-AMB-001');
+    assert.equal(typeof canCompensateAmbiguousInvite, 'function');
+    assert.equal(canCompensateAmbiguousInvite({ user_metadata: metadata }, command), true);
+    assert.equal(canCompensateAmbiguousInvite({
+        user_metadata: { ...metadata, radar_account_operation_id: 'OUTRA-OPERACAO' }
+    }, command), false);
+    assert.equal(canCompensateAmbiguousInvite({
+        user_metadata: { ...metadata, radar_entity_id: 'CTRL-OUTRO' }
+    }, command), false);
+});
