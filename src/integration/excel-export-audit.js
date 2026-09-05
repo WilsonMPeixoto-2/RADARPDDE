@@ -202,9 +202,10 @@
         try { exportDataExcelSme = sme; } catch (_error) { /* global lexical fallback */ }
 
         root.document?.addEventListener?.('click', event => {
-            const button = event.target?.closest?.('[data-radar-assistant-export]');
+            const button = event.target?.closest?.('[data-radar-assistant-export], [data-radar-sme-export="true"]');
             if (!button) return;
-            const kind = button.dataset?.radarAssistantExport;
+            const kind = button.dataset?.radarAssistantExport
+                || (button.dataset?.radarSmeExport === 'true' ? 'sme' : '');
             if (!['institutional', 'sme'].includes(kind)) return;
             event.preventDefault();
             event.stopImmediatePropagation();
