@@ -189,7 +189,8 @@ Preservar:
 - rejeição de ambiguidade e vínculo ativo conflitante;
 - transição autorizada entre perfis reutilizando a conta existente;
 - desativação lógica, redistribuição e histórico;
-- compensação quando Auth ou banco falhar.
+- compensação somente após rejeição comprovada do banco; erro retornado ou Promise rejeitada após RPC exige reconciliação por diretório, perfil e identidade do log antes de tocar novamente no Auth;
+- edição de integrante existente exige a versão anterior e CAS na RPC; conflito não pode restaurar Auth a partir de um snapshot obsoleto.
 
 ## 9. Escolas, pendências e patrimônio
 

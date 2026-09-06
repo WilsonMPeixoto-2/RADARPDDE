@@ -75,6 +75,12 @@ function createHarness(options = {}) {
         log: null
     };
     const rpcMode = options.rpcMode || 'commit-loss';
+    function transportFailure() {
+        const error = new Error('synthetic transport failure');
+        if (options.errorCode) error.code = options.errorCode;
+        if (options.throwTransport) throw error;
+        return { data: null, error };
+    }
 
     function rows(table) {
         if (table === 'controllers') return state.directory ? [state.directory] : [];
@@ -191,10 +197,10 @@ function createHarness(options = {}) {
                 events.push(`rpc-save:${rpcMode}`);
                 if (rpcMode === 'commit-loss') {
                     saveCommit(args);
-                    return { data: null, error: new Error('synthetic transport failure after committed transaction') };
+                    return transportFailure();
                 }
                 if (rpcMode === 'transport-no-proof') {
-                    return { data: null, error: new Error('synthetic transport failure before proof') };
+                    return transportFailure();
                 }
                 if (rpcMode === 'definitive-reject') {
                     return {
@@ -207,10 +213,10 @@ function createHarness(options = {}) {
                 events.push(`rpc-deactivate:${rpcMode}`);
                 if (rpcMode === 'commit-loss') {
                     deactivateCommit(args);
-                    return { data: null, error: new Error('synthetic transport failure after committed deactivation') };
+                    return transportFailure();
                 }
                 if (rpcMode === 'transport-no-proof') {
-                    return { data: null, error: new Error('synthetic transport failure before deactivation proof') };
+                    return transportFailure();
                 }
                 if (rpcMode === 'definitive-reject') {
                     return {
@@ -227,6 +233,36 @@ function createHarness(options = {}) {
 }
 
 const actor = { id: '00000000-0000-4000-8000-000000000001' };
+
+for (const operation of ['save', 'deactivate']) {
+    for (const rpcMode of ['commit-loss', 'transport-no-proof']) {
+        test(`${operation}: Promise rejeitada pela RPC (${rpcMode}) passa pela reconciliação antes de qualquer compensação`, async () => {
+            const { domain, saveMember, deactivateMember } = await loadEdgeProbe();
+            const deactivation = operation === 'deactivate';
+            const harness = createHarness({ rpcMode, throwTransport: true, ...(deactivation ? activeControllerState() : {}) });
+            const command = deactivation ? deactivateCommandFor(domain) : commandFor(domain);
+            const pending = (deactivation ? deactivateMember : saveMember)(harness.admin, actor, command);
+            if (rpcMode === 'commit-loss') {
+                assert.equal((await pending).ok, true);
+                assert.equal(harness.state.directory.active, !deactivation);
+                assert.equal(harness.state.log.id, command.administrativeLog.id);
+            } else {
+                await assert.rejects(pending, /REMOTE_COMMIT_UNKNOWN/);
+            }
+            assert.ok(harness.state.auth);
+            assert.equal(harness.events.includes('auth-delete-compensation'), false);
+            assert.equal(harness.events.includes('auth-restore-access'), false);
+        });
+    }
+}
+
+test('SQLSTATE de conexão perdida sem prova durável não comprova rollback', async () => {
+    const { domain, saveMember } = await loadEdgeProbe();
+    const harness = createHarness({ rpcMode: 'transport-no-proof', errorCode: '08006' });
+    await assert.rejects(saveMember(harness.admin, actor, commandFor(domain)), /REMOTE_COMMIT_UNKNOWN/);
+    assert.ok(harness.state.auth);
+    assert.equal(harness.events.includes('auth-delete-compensation'), false);
+});
 
 function activeControllerState() {
     const userId = '00000000-0000-4000-8000-000000000022';

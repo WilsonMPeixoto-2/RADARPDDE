@@ -251,7 +251,21 @@ function isOptimisticConflict(error: unknown): boolean {
 
 function isDefinitiveDatabaseRejection(error: unknown): boolean {
   const code = String((error as { code?: string })?.code || "").trim().toUpperCase();
-  return /^[0-9A-Z]{5}$/.test(code) || /^PGRST\d{3}$/.test(code);
+  // Connection/proxy failures and statement_completion_unknown do not prove rollback.
+  return code !== "40003" && /^(22|23|25|28|2D|40|42|P0)[0-9A-Z]{3}$/.test(code);
+}
+
+async function writeTeamRpc(
+  admin: ReturnType<typeof createClient>,
+  name: string,
+  args: Record<string, unknown>,
+) {
+  try {
+    return await admin.rpc(name, args);
+  } catch (error) {
+    // A rejected transport Promise has the same ambiguous outcome as a returned error.
+    return { data: null, error };
+  }
 }
 
 async function operationLogExists(
@@ -538,7 +552,7 @@ async function saveMember(
       createdUser = true;
     }
 
-    const { data, error } = await admin.rpc("upsert_team_member_account", {
+    const { data, error } = await writeTeamRpc(admin, "upsert_team_member_account", {
       p_member: entity,
       p_user_id: userId,
       p_profile_id: command.profileId,
@@ -644,7 +658,7 @@ async function deactivateMember(
         p_actor_user_id: actor.id,
         p_administrative_log: command.administrativeLog,
       };
-    const { data, error } = await admin.rpc(rpc, args);
+    const { data, error } = await writeTeamRpc(admin, rpc, args);
     if (error) {
       let committedResult = null;
       try {
