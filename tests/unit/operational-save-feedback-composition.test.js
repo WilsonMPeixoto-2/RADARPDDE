@@ -142,6 +142,39 @@ test('timer de sucesso não oculta uma mensagem mais nova na região compartilha
     assert.equal(notice.dataset.variant, 'danger');
 });
 
+test('sucesso transitório posterior restaura advertência persistente de sincronização', () => {
+    let timer = null;
+    const notice = {
+        textContent: '',
+        dataset: {},
+        hidden: true
+    };
+    const root = {
+        document: { getElementById: id => id === 'pendency-notice' ? notice : null },
+        setTimeout(fn) { timer = fn; return 1; },
+        clearTimeout() {}
+    };
+
+    feedback.showSaveNotice(root, {
+        kind: 'warning',
+        message: feedback.SYNC_WARNING_MESSAGE,
+        persistent: true
+    });
+    feedback.showSaveNotice(root, {
+        kind: 'success',
+        message: 'Encaminhamento para inventariação salvo com sucesso.',
+        persistent: false
+    });
+
+    assert.equal(notice.hidden, false);
+    assert.equal(notice.dataset.radarSaveFeedback, 'success');
+    timer();
+
+    assert.equal(notice.hidden, false, 'o alerta de divergência anterior deve voltar após o sucesso transitório');
+    assert.equal(notice.textContent, feedback.SYNC_WARNING_MESSAGE);
+    assert.equal(notice.dataset.radarSaveFeedback, 'warning');
+});
+
 test('limpar mensagem de Pendência restaura advertência persistente de sincronização', () => {
     const notice = {
         textContent: '',
