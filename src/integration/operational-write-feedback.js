@@ -203,9 +203,14 @@
                     || notice.dataset.radarSaveFeedback !== feedback.kind) {
                     return;
                 }
+                const persistent = notice.__radarPersistentSaveFeedback || null;
+                notice.__radarSaveNoticeOwner = null;
+                if (persistent) {
+                    showSaveNotice(root, persistent);
+                    return;
+                }
                 notice.hidden = true;
                 delete notice.dataset.radarSaveFeedback;
-                notice.__radarSaveNoticeOwner = null;
             }, 4500);
             notice.__radarSaveNoticeTimer = timerId;
         }
