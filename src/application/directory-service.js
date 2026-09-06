@@ -111,6 +111,7 @@
             return this.dataService.execute({
                 name: 'directory:save-program',
                 changedEntities: ['programs', 'administrativeLogs'],
+                remoteResultIsAuthoritative: true,
                 mutate: () => {
                     const { programs } = this.getState();
                     const existing = input.id ? programs.find(item => item.id === input.id) : null;
@@ -142,6 +143,7 @@
             return this.dataService.execute({
                 name: 'directory:deactivate-program',
                 changedEntities: ['programs', 'administrativeLogs'],
+                remoteResultIsAuthoritative: true,
                 mutate: () => {
                     const { programs } = this.getState();
                     const program = programs.find(item => item.id === programId);
