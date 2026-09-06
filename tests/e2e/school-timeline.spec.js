@@ -137,7 +137,7 @@ test('prontuário apresenta eventos unificados em ordem cronológica e sem dupli
   page.on('pageerror', error => pageErrors.push(error.message));
 
   await page.goto('/');
-  await page.evaluate(() => window.RadarProductExtensionsReady);
+  expect(await page.evaluate(() => window.RadarProductExtensionsReady)).toBe(true);
   await openTimeline(page, 'controlador');
 
   const items = page.locator('.school-timeline-item');
@@ -154,7 +154,7 @@ test('Gestão SME mantém eventos gerenciais e oculta detalhe técnico restrito'
   test.skip(testInfo.project.name !== 'desktop-chromium', 'Recorte gerencial validado no desktop.');
 
   await page.goto('/');
-  await page.evaluate(() => window.RadarProductExtensionsReady);
+  expect(await page.evaluate(() => window.RadarProductExtensionsReady)).toBe(true);
   await openTimeline(page, 'sme');
 
   const consolidations = page.locator('[data-timeline-event-type="verification_consolidated"]');
