@@ -9,17 +9,18 @@ Revisão source-first da main pós-#267, do candidato #272 e da ambiguidade de c
 
 ## 1. Onde começar
 
-O estado mutável fica em [CURRENT_STAGE.md](CURRENT_STAGE.md). A rota candidata do #263 não substitui os arquivos da main enquanto não integrada. O plano de 03/09 e seus R1–R9 são históricos, sem execução automática.
+O estado mutável fica em [CURRENT_STAGE.md](CURRENT_STAGE.md). O método duradouro de investigação, implementação e revisão está em [ENGINEERING_METHOD.md](reference/ENGINEERING_METHOD.md) e deve ser aplicado a todas as frentes futuras, independentemente do agente ou chat. A rota candidata do #263 não substitui os arquivos da main enquanto não integrada. O plano de 03/09 e seus R1–R9 são históricos, sem execução automática.
 
 ## 2. Ordem de leitura recomendada
 
 1. [AGENTS.md](../AGENTS.md).
 2. [CURRENT_STAGE.md](CURRENT_STAGE.md).
-3. [Revisão de 06/09](audits/2026-09-06-pr272-inventory-auth-review.md).
-4. [STATUS_DOCUMENTOS.md](reference/STATUS_DOCUMENTOS.md).
-5. [ADR-050](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md), [ADR-052](decisions/ADR-052-autoridade-unica-fluxos-criticos.md) e [matriz funcional](reference/FUNCTIONAL_CONTRACT_MATRIX.md).
-6. [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md), [DECISION_LOG.md](DECISION_LOG.md) e [TEST_GOVERNANCE.md](reference/TEST_GOVERNANCE.md).
-7. Handoffs e planos datados, somente como evidência dos respectivos checkpoints.
+3. [ENGINEERING_METHOD.md](reference/ENGINEERING_METHOD.md).
+4. [Revisão de 06/09](audits/2026-09-06-pr272-inventory-auth-review.md).
+5. [STATUS_DOCUMENTOS.md](reference/STATUS_DOCUMENTOS.md).
+6. [ADR-050](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md), [ADR-052](decisions/ADR-052-autoridade-unica-fluxos-criticos.md) e [matriz funcional](reference/FUNCTIONAL_CONTRACT_MATRIX.md).
+7. [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md), [DECISION_LOG.md](DECISION_LOG.md) e [TEST_GOVERNANCE.md](reference/TEST_GOVERNANCE.md).
+8. Handoffs e planos datados, somente como evidência dos respectivos checkpoints.
 
 ## 3. Decisões atuais que não podem ser perdidas
 
@@ -65,6 +66,8 @@ Além dos gates históricos, o ciclo #193 incorporou:
 - `dependency-cruiser` → `npm run check:architecture` e `test:readiness`;
 - Performance API/diagnóstico operacional local → integração runtime no PR #194.
 
+O [método de engenharia](reference/ENGINEERING_METHOD.md) complementa essas ferramentas: para mudanças materiais, RED/GREEN do caso original deve ser seguido por revisão adversarial proporcional das fronteiras realmente tocadas, com preferência por código real, fronteiras controladas, interleavings determinísticos e verificação do estado final.
+
 A integração do PR #194 permanece na `main`; o baseline pós-PR #200 é `0965ba8`. A consulta local de métricas é somente leitura:
 
 ```javascript
@@ -94,8 +97,11 @@ Não há telemetria externa, persistência das métricas ou coleta de dados de n
 - validação é proporcional ao risco;
 - evidência válida pode ser reaproveitada quando a superfície correspondente não mudou.
 
+`TEST_GOVERNANCE.md` governa a interpretação dos testes e falhas; `ENGINEERING_METHOD.md` governa como investigar, implementar, tentar refutar a própria correção e escolher a prova adequada.
+
 ## 6. Documentos canônicos e referências
 
+- [`reference/ENGINEERING_METHOD.md`](reference/ENGINEERING_METHOD.md) — método permanente de engenharia e revisão adversarial, com exemplos históricos e adaptação por risco;
 - [`superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](superpowers/plans/2026-09-03-plano-remanescente-source-first.md) — plano histórico R1–R9, sujeito à revalidação após os hotfixes;
 - [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — estado corrente;
 - [`audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`](audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md) — evidência do escopo remanescente;
@@ -145,12 +151,16 @@ Fluxo recomendado:
 ```text
 verificar remoto
 → classificar demanda
+→ mapear autoridade, consumidores e fronteiras
 → branch isolada
+→ reproduzir e tentar refutar a hipótese
 → mudança mínima
-→ validação proporcional
+→ RED/GREEN
+→ revisão adversarial proporcional da própria correção
+→ validação/gates proporcionais
 → classificar falhas
 → confirmar Production quando aplicável
 → atualizar documentação afetada
 ```
 
-A reauditoria source-first foi concluída em 03/09. O próximo ponto real é **R1: retirar a autoridade funcional de consistência ainda alojada em wrappers de performance**. Depois seguem R2A–R2C, R3, R4, R5, o gate R6, R7/R8 e o fechamento R9.
+A metodologia permanente fica em `reference/ENGINEERING_METHOD.md`; exemplos históricos devem ser lidos por SHA e usados para aprender o método, não para definir automaticamente o estado presente.
