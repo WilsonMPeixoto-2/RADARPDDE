@@ -1304,6 +1304,19 @@ export type Database = {
         }
         Returns: Json
       }
+      save_invoice_with_effects_v2: {
+        Args: {
+          p_administrative_log?: Json
+          p_asset?: Json
+          p_expected_asset_version?: number
+          p_expected_invoice_version?: number
+          p_expected_verification_version?: number
+          p_invoice: Json
+          p_operation_key: string
+          p_verification_patch?: Json
+        }
+        Returns: Json
+      }
       save_pendency_command: {
         Args: {
           p_administrative_log: Json
