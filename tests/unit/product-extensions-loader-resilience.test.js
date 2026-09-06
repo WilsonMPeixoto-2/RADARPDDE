@@ -181,3 +181,28 @@ test('falha em extensão crítica mantém readiness falso sem bloquear tentativa
     assert.equal(secondReady, true);
     assert.equal(harness.requested.filter(src => src === advisory).length, 2);
 });
+
+test('reexecução concorrente durante a carga não pode mascarar falha crítica ainda não observada', async () => {
+    const atomic = '/src/integration/atomic-analysis-pendency.js';
+    const harness = createHarness({ failOnce: [atomic] });
+
+    const firstAttempt = harness.executeBootstrap();
+    const concurrentAttempt = harness.executeBootstrap();
+    const [firstReady, concurrentReady] = await Promise.all([firstAttempt, concurrentAttempt]);
+
+    assert.equal(firstReady, false, 'a primeira carga deve registrar a falha crítica');
+    assert.equal(
+        concurrentReady,
+        false,
+        'uma reexecução antes do término da carga deve compartilhar o mesmo resultado fail-closed'
+    );
+    assert.equal(
+        harness.requested.filter(src => src === atomic).length,
+        1,
+        'a tentativa concorrente não deve iniciar um segundo carregamento enquanto o primeiro está em curso'
+    );
+
+    const retryReady = await harness.executeBootstrap();
+    assert.equal(retryReady, true, 'após a falha estar estabelecida, uma nova execução pode retentar');
+    assert.equal(harness.requested.filter(src => src === atomic).length, 2);
+});
