@@ -7,6 +7,11 @@ function text(value) {
     return value == null ? '' : String(value).trim();
 }
 
+function rowVersionOf(value) {
+    const candidate = Number(value?.rowVersion ?? value?.row_version);
+    return Number.isInteger(candidate) && candidate > 0 ? candidate : null;
+}
+
 export function normalizeEmail(value) {
     const email = text(value).toLowerCase();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
@@ -43,45 +48,51 @@ function normalizeEntity(value, profileId) {
     };
 }
 
+function normalizeSaveCommand(input, operation, profileId, entityKey, previousKey) {
+    const entity = normalizeEntity(input[entityKey], profileId);
+    const previousEntity = input[previousKey] ? structuredClone(input[previousKey]) : null;
+    const expectedVersion = previousEntity
+        ? (rowVersionOf(previousEntity) || rowVersionOf(input[entityKey]))
+        : null;
+    if (previousEntity && expectedVersion == null) {
+        throw new Error('Versão anterior do integrante é obrigatória para edição concorrente segura.');
+    }
+    if (expectedVersion != null) entity.row_version = expectedVersion;
+    return {
+        operation,
+        profileId,
+        entity,
+        previousEntity,
+        expectedVersion,
+        administrativeLog: administrativeLog(input.administrativeLog)
+    };
+}
+
 export function normalizeTeamCommand(input = {}) {
     const operation = text(input.operation);
     if (!OPERATIONS.has(operation)) throw new Error('Operação de Gestão de Equipe não reconhecida.');
-    const log = administrativeLog(input.administrativeLog);
 
     if (operation === 'save_controller') {
-        const entity = normalizeEntity(input.controller, 'controller');
-        return {
+        return normalizeSaveCommand(
+            input,
             operation,
-            profileId: 'controller',
-            entity: {
-                id: entity.id,
-                name: entity.name,
-                email: entity.email,
-                active: entity.active,
-                cre_scope: entity.cre_scope
-            },
-            previousEntity: input.previousController ? structuredClone(input.previousController) : null,
-            administrativeLog: log
-        };
+            'controller',
+            'controller',
+            'previousController'
+        );
     }
 
     if (operation === 'save_inventory_member') {
-        const entity = normalizeEntity(input.member, 'inventory');
-        return {
+        return normalizeSaveCommand(
+            input,
             operation,
-            profileId: 'inventory',
-            entity: {
-                id: entity.id,
-                name: entity.name,
-                email: entity.email,
-                active: entity.active,
-                cre_scope: entity.cre_scope
-            },
-            previousEntity: input.previousMember ? structuredClone(input.previousMember) : null,
-            administrativeLog: log
-        };
+            'inventory',
+            'member',
+            'previousMember'
+        );
     }
 
+    const log = administrativeLog(input.administrativeLog);
     if (operation === 'deactivate_controller') {
         const entityId = text(input.controllerId);
         const fallbackControllerId = text(input.fallbackControllerId) || null;
