@@ -31,7 +31,7 @@ function administrativeLog(value) {
     return structuredClone(value);
 }
 
-function normalizeEntity(value, profileId) {
+function normalizeEntity(value) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
         throw new Error('Integrante da equipe inválido.');
     }
@@ -43,13 +43,12 @@ function normalizeEntity(value, profileId) {
         name,
         email: normalizeEmail(value.email),
         active: value.active !== false,
-        cre_scope: text(value.cre_scope || value.creScope) || '4ª CRE',
-        profile_id: profileId
+        cre_scope: text(value.cre_scope || value.creScope) || '4ª CRE'
     };
 }
 
 function normalizeSaveCommand(input, operation, profileId, entityKey, previousKey) {
-    const entity = normalizeEntity(input[entityKey], profileId);
+    const entity = normalizeEntity(input[entityKey]);
     const previousEntity = input[previousKey] ? structuredClone(input[previousKey]) : null;
     const expectedVersion = previousEntity
         ? (rowVersionOf(previousEntity) || rowVersionOf(input[entityKey]))
