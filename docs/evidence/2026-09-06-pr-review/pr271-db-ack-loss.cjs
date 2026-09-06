@@ -34,4 +34,3 @@ const esbuild = require(path.join(path.resolve(process.argv[3] || repo), 'node_m
   assert.equal(state.auth,null);assert.equal(state.directory.active,true);assert.equal(state.directory.user_id,null);assert.equal(state.log,true);
   console.log(JSON.stringify({scope:'Real Edge functions; simulated RPC acknowledgement loss and FK deletion behavior; no live database', normalizedEntity:normal.entity, events, finalState:state},null,2));
 })().catch(e=>{console.error(e);process.exitCode=1;});
-
