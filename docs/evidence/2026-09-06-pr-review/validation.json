@@ -1,0 +1,32 @@
+{
+  "mainSha": "3135d4c66bb5020507bd54d2fe202a79884680c7",
+  "pr272Sha": "32055e2bec7242433d79a41e359244de4e39692c",
+  "pr271Sha": "309abfdfc3717a6b78a3d01ff2bc3e18814960a3",
+  "localRuntime": "Node 24.19.0, Windows, Chromium/Playwright from repository lockfile",
+  "checks": [
+    { "at": "pr272", "command": "node --test tests/unit/*.test.js", "exit": 0, "passed": 886 },
+    { "at": "pr272 and main, separately", "command": "node --test tests/integration/*.test.js tests/*.test.js", "exit": 0, "passedPerRun": 148 },
+    { "at": "main", "command": "node --test tests/unit/inventory-service.test.js tests/unit/invoice-inventoried-preservation.test.js", "exit": 0, "passed": 13 },
+    { "at": "pr271", "command": "node --test tests/unit/team-account-domain.test.js", "exit": 0, "passed": 8 },
+    { "at": "main using pr272 tests", "command": "node pr272-red-main.cjs <pr272> <main>", "expectedExit": 1, "failed": 2, "meaning": "RED, original defect reproduced" },
+    { "at": "documentation worktree", "command": "npm run check:functional-matrix", "exit": 0, "operations": 44 },
+    { "at": "documentation worktree", "command": "node --test tests/unit/functional-contract-matrix.test.js", "exit": 0, "passed": 6 },
+    { "at": "documentation diff", "command": "git -c core.whitespace=-blank-at-eol diff --check", "exit": 0, "note": "Default diff check reports two existing-generator Markdown hard-break spaces in updated metadata. Generator retained unchanged." }
+  ],
+  "remoteEvidence": {
+    "origin": "Existing GitHub Actions runs inspected; no new runs dispatched for this review",
+    "pr272ReadinessRun": 34002135480,
+    "pgtap": { "files": 27, "tests": 401, "result": "PASS" },
+    "pr272AggregateRun": 34002135492,
+    "aggregateResult": "FAILURE",
+    "failureClassification": ["Supabase image registry rate limit while generating types", "Desktop Lighthouse LCP over 3500 ms"],
+    "production": "Read-only migration/trigger metadata; no destructive tests and no Vercel deployment revalidation"
+  },
+  "limitations": [
+    "Regression probes intentionally assert the observed bug; invert their oracle before adopting as permanent tests.",
+    "Auth and reconciliation failure probes simulate external boundaries; they do not prove an incident occurred in Production.",
+    "Inventory concurrency reviewed structurally with existing remote pgTAP evidence; no new two-connection database race test.",
+    "Chromium probe uses local demo runtime and real bootstrap with a synthetic persistence command; not remote persistence or human visual acceptance.",
+    "No production code, migration, package, workflow or functional test changed in the documentation delivery."
+  ]
+}

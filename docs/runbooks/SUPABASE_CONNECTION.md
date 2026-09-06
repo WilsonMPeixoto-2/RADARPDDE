@@ -1,7 +1,7 @@
 # Runbook — conexão e operação controlada do Supabase
 
 **Estado:** vigente; Production conectada  
-**Atualizado em:** 4 de setembro de 2026
+**Atualizado em:** 5 de setembro de 2026
 
 ## 1. Objetivo
 
@@ -13,7 +13,7 @@ Este runbook não autoriza, por si só, migration, importação, alteração de 
 
 Consultar [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md) e revalidar remotamente antes de operação dependente do ambiente.
 
-Por compatibilidade com o verificador de readiness, este runbook mantém um único espelho machine-readable da contagem versionada: O conjunto versionado contém atualmente **46** migrations. A lista e a ordem continuam sendo obtidas do diretório `supabase/migrations/` e do histórico do CLI, nunca de uma segunda lista manual.
+Por compatibilidade com o verificador de readiness, este runbook mantém um único espelho machine-readable da contagem versionada: O conjunto versionado contém atualmente **47** migrations. A lista e a ordem continuam sendo obtidas do diretório `supabase/migrations/` e do histórico do CLI, nunca de uma segunda lista manual.
 
 Contratos estáveis:
 
@@ -145,7 +145,8 @@ As migrations correntes incluem, conforme `CURRENT_STAGE.md` e a branch de estab
 - vínculo de pendência de Assessoria Contábil com `registered_invoice_id`, permitindo individualização por NF;
 - operações compostas de Assessoria Contábil para persistir análise, pendência, verificação e log de forma coerente;
 - sincronização do próximo ator das Pendências nas transições do fluxo;
-- migration candidata `20260904040000_functional_reliability_inventory_sync`, que sincroniza atomicamente o encaminhamento de bem derivado com `encampInventario` no Prontuário e remove aliases internos de versão do payload das verificações.
+- migration integrada `20260904040000_functional_reliability_inventory_sync`, que sincroniza atomicamente o encaminhamento de bem derivado com `encampInventario` no Prontuário e remove aliases internos de versão do payload das verificações;
+- migration integrada `20260905231000_inventory_terminal_state`, que impede no banco qualquer regressão de um bem já `Inventariada` para estado patrimonial anterior. Sua presença e o trigger habilitado foram confirmados por consulta de metadados em 06/09/2026; revalidar no ambiente antes de outra publicação.
 
 Não reaplicar SQL já aplicado para “corrigir” histórico.
 
@@ -259,6 +260,7 @@ Não aceitar geradores artificiais como identidade definitiva. Duplicidades norm
 - bem derivado de NF permanente mantém vínculo por `registered_invoice.linked_asset_id` / `bemId`;
 - número da NF de bem derivado não pode ser editado isoladamente pelo Inventário; a NF de origem é a fonte funcional;
 - fluxo patrimonial válido é `Não encaminhada → Encaminhada → Inventariada`; inventariar antes do encaminhamento é inválido;
+- `Inventariada` é estado patrimonial terminal: salvamento/edição da NF, reencaminhamento ou outra escrita operacional não pode rebaixar o bem para `Encaminhada` ou `Não encaminhada`;
 - ao encaminhar posteriormente um bem derivado, bem + `encampInventario` da verificação + log são persistidos pela mesma operação atômica;
 - `encampInventario` é projetado pela realidade patrimonial do contexto: sem permanente = `Não se aplica`; algum permanente não encaminhado = `Não`; todos encaminhados/inventariados = `Sim`;
 - análise técnica continua dimensão separada da situação de encaminhamento;

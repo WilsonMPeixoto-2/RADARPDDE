@@ -1,0 +1,404 @@
+{
+  "baseRefOid": "3135d4c66bb5020507bd54d2fe202a79884680c7",
+  "body": "Corrige o defeito reproduzido em que o Supabase confirma a gravação, a aplicação local falha e o DataService ainda retorna sucesso limpo. O mesmo PR adiciona feedback visual não bloqueante para salvamentos explícitos de Nota Fiscal e Inventário, distinguindo sucesso completo de \"salvo no servidor, tela precisa ser atualizada\". Primeiro commit contém apenas o teste RED do contrato de sincronização. Sem merge ou deploy automático.",
+  "commits": [
+    {
+      "authoredDate": "2026-09-06T00:22:37Z",
+      "authors": [
+        {
+          "email": "wilsonmp2@gmail.com",
+          "id": "U_kgDODnbBUA",
+          "login": "WilsonMPeixoto-2",
+          "name": "Wilson Malafaia Peixoto"
+        }
+      ],
+      "committedDate": "2026-09-06T00:22:37Z",
+      "messageBody": "",
+      "messageHeadline": "test: reproduzir commit remoto com sincronização local falha",
+      "oid": "56366ad587a3a2f3ae714f369ed434163acd008f"
+    },
+    {
+      "authoredDate": "2026-09-06T00:25:31Z",
+      "authors": [
+        {
+          "email": "wilsonmp2@gmail.com",
+          "id": "U_kgDODnbBUA",
+          "login": "WilsonMPeixoto-2",
+          "name": "Wilson Malafaia Peixoto"
+        }
+      ],
+      "committedDate": "2026-09-06T00:25:31Z",
+      "messageBody": "",
+      "messageHeadline": "test: definir feedback de salvamento e sincronização",
+      "oid": "ca2226ea283464d37daf95f719b19e9ad8af67e7"
+    },
+    {
+      "authoredDate": "2026-09-06T00:27:58Z",
+      "authors": [
+        {
+          "email": "wilsonmp2@gmail.com",
+          "id": "U_kgDODnbBUA",
+          "login": "WilsonMPeixoto-2",
+          "name": "Wilson Malafaia Peixoto"
+        }
+      ],
+      "committedDate": "2026-09-06T00:27:58Z",
+      "messageBody": "",
+      "messageHeadline": "feat: informar salvamento e sincronização de NF e inventário",
+      "oid": "0af235b1d49f01164d620fe617ce30e314bb6513"
+    },
+    {
+      "authoredDate": "2026-09-06T00:28:11Z",
+      "authors": [
+        {
+          "email": "wilsonmp2@gmail.com",
+          "id": "U_kgDODnbBUA",
+          "login": "WilsonMPeixoto-2",
+          "name": "Wilson Malafaia Peixoto"
+        }
+      ],
+      "committedDate": "2026-09-06T00:28:11Z",
+      "messageBody": "",
+      "messageHeadline": "style: adicionar aviso não bloqueante de salvamento",
+      "oid": "13b8bd149ab6e7434c3b16aeec7b840d8f4835c1"
+    },
+    {
+      "authoredDate": "2026-09-06T00:29:28Z",
+      "authors": [
+        {
+          "email": "wilsonmp2@gmail.com",
+          "id": "U_kgDODnbBUA",
+          "login": "WilsonMPeixoto-2",
+          "name": "Wilson Malafaia Peixoto"
+        }
+      ],
+      "committedDate": "2026-09-06T00:29:28Z",
+      "messageBody": "",
+      "messageHeadline": "fix: distinguir commit remoto de sincronização local",
+      "oid": "25de247cc08c3f4347caf18887104d0c0a54142e"
+    },
+    {
+      "authoredDate": "2026-09-06T00:30:46Z",
+      "authors": [
+        {
+          "email": "wilsonmp2@gmail.com",
+          "id": "U_kgDODnbBUA",
+          "login": "WilsonMPeixoto-2",
+          "name": "Wilson Malafaia Peixoto"
+        }
+      ],
+      "committedDate": "2026-09-06T00:30:46Z",
+      "messageBody": "",
+      "messageHeadline": "test: cobrir reconciliação segura após falha local transitória",
+      "oid": "05675c57d4419b1703445e194a1d506890e55c17"
+    },
+    {
+      "authoredDate": "2026-09-06T00:45:40Z",
+      "authors": [
+        {
+          "email": "wilsonmp2@gmail.com",
+          "id": "U_kgDODnbBUA",
+          "login": "WilsonMPeixoto-2",
+          "name": "Wilson Malafaia Peixoto"
+        }
+      ],
+      "committedDate": "2026-09-06T00:45:40Z",
+      "messageBody": "",
+      "messageHeadline": "perf: reutilizar aviso existente para feedback de salvamento",
+      "oid": "32055e2bec7242433d79a41e359244de4e39692c"
+    }
+  ],
+  "files": [
+    {
+      "path": "src/application/data-service.js",
+      "additions": 51,
+      "deletions": 15,
+      "changeType": "MODIFIED"
+    },
+    {
+      "path": "src/integration/operational-write-feedback.js",
+      "additions": 72,
+      "deletions": 0,
+      "changeType": "MODIFIED"
+    },
+    {
+      "path": "src/styles/operational-write-feedback.css",
+      "additions": 67,
+      "deletions": 0,
+      "changeType": "MODIFIED"
+    },
+    {
+      "path": "tests/unit/data-service-state-sync-status.test.js",
+      "additions": 107,
+      "deletions": 0,
+      "changeType": "ADDED"
+    },
+    {
+      "path": "tests/unit/operational-save-feedback.test.js",
+      "additions": 103,
+      "deletions": 0,
+      "changeType": "ADDED"
+    }
+  ],
+  "headRefOid": "32055e2bec7242433d79a41e359244de4e39692c",
+  "number": 272,
+  "state": "OPEN",
+  "statusCheckRollup": [
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-06T00:48:38Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/34002135477/job/101402770478",
+      "name": "Criar editar converter excluir avaliar e reanalisar",
+      "startedAt": "2026-09-06T00:45:49Z",
+      "status": "COMPLETED",
+      "workflowName": "Ciclos funcionais reais com Supabase"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-06T00:47:16Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/34002135505/job/101402770516",
+      "name": "CodeQL — javascript-typescript",
+      "startedAt": "2026-09-06T00:45:49Z",
+      "status": "COMPLETED",
+      "workflowName": "CodeQL"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-06T00:48:32Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/34002136423/job/101402773716",
+      "name": "Salvar, recarregar e reler fluxos críticos",
+      "startedAt": "2026-09-06T00:46:11Z",
+      "status": "COMPLETED",
+      "workflowName": "Confiabilidade funcional com Supabase real"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-06T00:50:54Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/34002135550/job/101402770904",
+      "name": "Perfis × Desktop, Android e iPhone",
+      "startedAt": "2026-09-06T00:45:49Z",
+      "status": "COMPLETED",
+      "workflowName": "Gate remoto de perfis e viewports"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-06T00:46:24Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/34002135492/job/101402770575",
+      "name": "Prontidão completa",
+      "startedAt": "2026-09-06T00:45:48Z",
+      "status": "COMPLETED",
+      "workflowName": "Homologação integral pré-production"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-06T00:47:49Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/34002135474/job/101402770541",
+      "name": "Baseline mobile e desktop",
+      "startedAt": "2026-09-06T00:45:48Z",
+      "status": "COMPLETED",
+      "workflowName": "Lighthouse CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-06T00:46:19Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/34002135480/job/101402770445",
+      "name": "readiness",
+      "startedAt": "2026-09-06T00:45:48Z",
+      "status": "COMPLETED",
+      "workflowName": "Supabase readiness"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-06T00:53:08Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/34002135651/job/101402771196",
+      "name": "Desktop, Android e iPhone",
+      "startedAt": "2026-09-06T00:46:09Z",
+      "status": "COMPLETED",
+      "workflowName": "Testes E2E Playwright"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-06T00:46:30Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/34002135473/job/101402770366",
+      "name": "Sintaxe, auditoria e testes de domínio",
+      "startedAt": "2026-09-06T00:45:49Z",
+      "status": "COMPLETED",
+      "workflowName": "Validar RADAR PDDE"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-06T00:46:30Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/34002135505/job/101402770558",
+      "name": "CodeQL — actions",
+      "startedAt": "2026-09-06T00:45:48Z",
+      "status": "COMPLETED",
+      "workflowName": "CodeQL"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-06T00:45:46Z",
+      "conclusion": "SKIPPED",
+      "detailsUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/34002135473/job/101402770971",
+      "name": "Auth, perfis, RLS e persistência no Preview",
+      "startedAt": "2026-09-06T00:45:47Z",
+      "status": "COMPLETED",
+      "workflowName": "Validar RADAR PDDE"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-06T00:46:18Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/34002135492/job/101402770652",
+      "name": "Migrations em PostgreSQL limpo",
+      "startedAt": "2026-09-06T00:45:48Z",
+      "status": "COMPLETED",
+      "workflowName": "Homologação integral pré-production"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-06T00:46:25Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/34002135480/job/101402770383",
+      "name": "migration-smoke",
+      "startedAt": "2026-09-06T00:45:49Z",
+      "status": "COMPLETED",
+      "workflowName": "Supabase readiness"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-06T00:48:16Z",
+      "conclusion": "FAILURE",
+      "detailsUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/34002135492/job/101402770585",
+      "name": "Supabase local, Auth, RLS e pgTAP",
+      "startedAt": "2026-09-06T00:45:49Z",
+      "status": "COMPLETED",
+      "workflowName": "Homologação integral pré-production"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-06T00:48:49Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/34002135480/job/101402770483",
+      "name": "supabase-local",
+      "startedAt": "2026-09-06T00:45:49Z",
+      "status": "COMPLETED",
+      "workflowName": "Supabase readiness"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-06T00:53:03Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/34002135492/job/101402770642",
+      "name": "Playwright completo",
+      "startedAt": "2026-09-06T00:45:48Z",
+      "status": "COMPLETED",
+      "workflowName": "Homologação integral pré-production"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-06T00:46:05Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/34002135492/job/101402770540",
+      "name": "Excel SME, OOXML e rota pública local",
+      "startedAt": "2026-09-06T00:45:48Z",
+      "status": "COMPLETED",
+      "workflowName": "Homologação integral pré-production"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-06T00:46:09Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/34002135492/job/101402770618",
+      "name": "Dependências e segurança",
+      "startedAt": "2026-09-06T00:45:48Z",
+      "status": "COMPLETED",
+      "workflowName": "Homologação integral pré-production"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-06T00:47:48Z",
+      "conclusion": "FAILURE",
+      "detailsUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/34002135492/job/101402770594",
+      "name": "Lighthouse CI móvel e desktop",
+      "startedAt": "2026-09-06T00:45:48Z",
+      "status": "COMPLETED",
+      "workflowName": "Homologação integral pré-production"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-06T00:48:44Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/34002135492/job/101402770624",
+      "name": "Backup e restauração descartáveis",
+      "startedAt": "2026-09-06T00:45:49Z",
+      "status": "COMPLETED",
+      "workflowName": "Homologação integral pré-production"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-06T00:53:09Z",
+      "conclusion": "FAILURE",
+      "detailsUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/34002135492/job/101403609104",
+      "name": "Gate final pré-production",
+      "startedAt": "2026-09-06T00:53:05Z",
+      "status": "COMPLETED",
+      "workflowName": "Homologação integral pré-production"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-06T00:45:42Z",
+      "conclusion": "SKIPPED",
+      "detailsUrl": "https://supabase.com/dashboard/project/scnryinorqeucbfkioxo/branches",
+      "name": "Supabase Preview",
+      "startedAt": "2026-09-06T00:45:42Z",
+      "status": "COMPLETED",
+      "workflowName": ""
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-06T00:46:24Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/runs/101402837691",
+      "name": "CodeQL",
+      "startedAt": "2026-09-06T00:46:22Z",
+      "status": "COMPLETED",
+      "workflowName": ""
+    },
+    {
+      "__typename": "StatusContext",
+      "context": "Vercel",
+      "startedAt": "2026-09-06T00:46:12Z",
+      "state": "SUCCESS",
+      "targetUrl": "https://vercel.com/wilson-m-peixotos-projects/radarpdde-fix/8Y2g3FtcCsKW1fZ26niGmiYAtsU9"
+    },
+    {
+      "__typename": "StatusContext",
+      "context": "Vercel Deployments – Wilson M Peixoto's projects",
+      "startedAt": "2026-09-06T00:46:14Z",
+      "state": "SUCCESS",
+      "targetUrl": "https://vercel.com/wilson-m-peixotos-projects/~/deployments?repo=github%2FWilsonMPeixoto-2%2FRADARPDDE&filterBranch=fix%2Fremote-commit-local-sync-feedback-2026-09-06&sha=32055e2bec7242433d79a41e359244de4e39692c"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-06T00:46:15Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://vercel.com/github",
+      "name": "Vercel Preview Comments",
+      "startedAt": "2026-09-06T00:46:15Z",
+      "status": "COMPLETED",
+      "workflowName": ""
+    }
+  ],
+  "title": "Hotfix: distinguir commit remoto de sincronização local e informar salvamento",
+  "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/272"
+}

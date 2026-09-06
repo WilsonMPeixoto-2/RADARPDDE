@@ -1,0 +1,85 @@
+{
+  "actualOrder": {
+    "order": [
+      "performance",
+      "feedback"
+    ],
+    "executions": 1,
+    "notices": []
+  },
+  "inverseOrder": {
+    "order": [
+      "feedback",
+      "performance"
+    ],
+    "executions": 1,
+    "notices": [
+      {
+        "kind": "warning",
+        "message": "A alteração foi salva, mas a tela não conseguiu atualizar os dados. Atualize a página antes de continuar.",
+        "persistent": true
+      }
+    ]
+  },
+  "sharedNoticeTimer": {
+    "before": {
+      "hidden": false,
+      "dataset": {
+        "radarSaveFeedback": "success",
+        "variant": "error"
+      },
+      "textContent": "Informe as observações da pendência.",
+      "__radarSaveNoticeTimer": 1
+    },
+    "after": {
+      "hidden": true,
+      "dataset": {
+        "variant": "error"
+      },
+      "textContent": "Informe as observações da pendência.",
+      "__radarSaveNoticeTimer": null
+    }
+  },
+  "failureInsideRefresh": {
+    "writes": 1,
+    "reads": 1,
+    "applies": 2,
+    "result": {
+      "ok": true,
+      "incidentId": "RADAR-MTP5OTXC-SO8WNZ",
+      "value": {},
+      "snapshot": {
+        "format": "radar-pdde-snapshot",
+        "version": "1",
+        "importId": "import-1788659508863",
+        "exportedAt": "2026-09-06T01:51:48.863Z",
+        "entities": {
+          "schools": [
+            {
+              "id": "s1",
+              "name": "new",
+              "row_version": 2
+            }
+          ]
+        }
+      },
+      "persisted": {
+        "schools": [
+          {
+            "id": "s1",
+            "name": "new",
+            "row_version": 2
+          }
+        ]
+      },
+      "refreshPending": true,
+      "stateApplyErrorCode": null,
+      "stateSync": {
+        "status": "pending",
+        "remoteCommitConfirmed": true,
+        "localStateApplied": true,
+        "refreshRequired": true
+      }
+    }
+  }
+}

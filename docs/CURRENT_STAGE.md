@@ -1,10 +1,37 @@
 # RADAR PDDE — Estado atual do projeto
 
-**Atualizado em:** 4 de setembro de 2026
-
+**Atualizado em:** 6 de setembro de 2026 (checkpoint UTC; revalidar valores voláteis)
 **Classe documental:** Canônico — estado corrente e retomada futura
 
-**Situação:** estabilização funcional concluída. PR #260 integrado em `8fc58926565a72465980143f253f0a2fee4b8fc2`, Supabase Production com 46 migrations e Vercel Production `dpl_EmgxYkMpprpY2wLTRFk4bJQA4L2e` READY no mesmo merge. As regras e provas posteriores aos hotfixes prevalecem sobre planos históricos.
+## Checkpoint corrente — main pós-PR #267
+
+- main consultada: `3135d4c66bb5020507bd54d2fe202a79884680c7`.
+- #265 integrado: preservação de Inventariada no save da NF, rejeição em InventoryService.forward e trigger terminal no banco. A premissa de que faltam essas duas proteções foi superada pela versão final integrada do PR.
+- #266 integrado: fila por UnitOfWork para impedir rollback sobre outra execução. Isso não prova isolamento da reconciliação que ocorre depois que UnitOfWork.run libera a fila.
+- #267 integrado: autoridade de auditoria no gesto de exportação SME.
+- Supabase: 47 migrations; migration `20260905231000_inventory_terminal_state` e trigger habilitado confirmados por consulta somente de metadados. Nenhum ensaio de escrita em Production nesta revisão.
+- Vercel Production não foi revalidada nesta frente. Os deployments abaixo pertencem aos checkpoints históricos e não provam o SHA servido hoje.
+
+## Frente corrente e limites
+
+A [revisão independente por SHA](audits/2026-09-06-pr272-inventory-auth-review.md) registra os resultados e as reproduções transportáveis:
+
+| Frente | Estado comprovado |
+|---|---|
+| Inventário terminal | Já implementado e coberto na main; não criar outra proteção ou migration |
+| #272, head 32055e2b | Corrige o caso isolado de commit confirmado + falha da primeira aplicação local; revisão encontrou feedback contornado pela ordem dos wrappers e corrida na releitura corretiva. Não aprovado pela revisão |
+| #271, head 309abfdf | Protege ambiguidade do convite; continua permitindo compensação Auth indevida quando o banco comita e perde a resposta |
+| #273 | Controle de Lighthouse com comportamento equivalente à main; não é hotfix funcional e não transforma gate falho do #272 em sucesso |
+| #263 | Rota documental candidata ainda aberta; START_HERE.md não existe na main deste checkpoint |
+| #262 | Abortado, nunca baseline |
+
+Os demais PRs abertos estão inventariados na revisão. PR aberto não altera regra vigente. R1–R9 permanece referência histórica, sem fila automática. ADR-051 continua adiada por decisão do responsável pelo produto.
+
+Validação #272: 886 unitários e 148 testes de raiz/integração passaram localmente. No remoto, E2E e readiness isolado passaram; o agregado falhou em infraestrutura Supabase e Lighthouse desktop. O Lighthouse isolado ficou verde com violação móvel explicitamente não bloqueante. Não declarar todos os gates aprovados.
+
+## Checkpoints históricos preservados
+
+Os blocos datados abaixo preservam a sequência de 04/09 e anterior. SHAs, deployments, contagens e próximos passos nesses blocos são históricos. A retomada atual é a tabela acima, não a antiga ordem R1–R9.
 
 ## Atualização de 04/09 — estabilização funcional e prova ponta a ponta
 
@@ -184,20 +211,7 @@ Essa regra existe para impedir que PRs futuros repitam a sequência “corrigir 
 
 ## 1. Porta de entrada atual
 
-Ler nesta ordem:
-
-1. [`../AGENTS.md`](../AGENTS.md);
-2. [`handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md);
-3. [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md);
-4. [`decisions/ADR-052-autoridade-unica-fluxos-criticos.md`](decisions/ADR-052-autoridade-unica-fluxos-criticos.md);
-5. [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md);
-6. [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md);
-7. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) e [`DECISION_LOG.md`](DECISION_LOG.md);
-8. [`handoff/2026-09-02-dependency-governance.md`](handoff/2026-09-02-dependency-governance.md) quando a frente tocar dependências/tooling;
-9. [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md), lido pela reconciliação de 03/09;
-10. somente depois, os checkpoints PR #211/#215/#237 e demais históricos.
-
-O Markdown reconciliado é a fonte operacional para busca, diff e execução. O Word de 26/08 permanece referência integral daquele plano, mas não incorpora decisões posteriores.
+Ler AGENTS.md, este checkpoint, a [revisão corrente](audits/2026-09-06-pr272-inventory-auth-review.md), STATUS_DOCUMENTOS.md, decisões vigentes e matriz funcional. Consultar PROJECT_CONTEXT.md e DECISION_LOG.md para contratos duradouros. Planos e handoffs datados de 03/09 e anteriores vêm depois e não definem a próxima implementação.
 
 ## 2. Fonte de verdade
 
@@ -292,7 +306,7 @@ PR2, naquele momento, não executou migration, reparo de dados, deduplicação p
 
 
 
-## 5. Decisões source-first incorporadas
+## 5. Decisões do planejamento histórico de 03/09
 
 1. A duplicidade atual de NF não é atribuída ao fallback de `InvoiceService`; **R3** inventaria somente IDs persistentes de negócio, preserva o guard/no-op e elimina fallbacks fracos onde realmente persistem identidade.
 2. **R1 precede R2** porque `operational-write-performance.js` ainda contém autoridade de consistência que precisa sair antes de performance/readiness poder degradar sem efeito funcional.
@@ -332,7 +346,7 @@ Não transformar qualquer exclusão ou adiamento em dependência, gate oculto ou
 - Abrir o Prontuário a partir de uma Pendência pode mudar a competência explicitamente.
 - `Ver detalhes` permanece durante este programa.
 
-## 8. Ordem vigente após a reauditoria source-first de 03/09
+## 8. Ordem histórica proposta na reauditoria de 03/09
 
 ```text
 R1 — retirar autoridade funcional dos wrappers de performance
@@ -371,16 +385,7 @@ Planos são hipóteses técnicas, não autoridade superior ao código e aos ambi
 
 ## 10. Próxima ação
 
-A próxima fase real é **R1 — retirar autoridade funcional dos wrappers de performance**.
-
-Antes de tocar readiness:
-
-1. escrever REDs que executem comandos representativos sem `RadarOperationalWritePerformance`;
-2. mover resultado/commit autoritativo, entidades incrementais e refresh exemptions para serviços/DataService/StatePort ou contrato funcional explícito;
-3. remover a dependência artificial de `prontuario-conditional-reconciler.js` em `RadarOperationalWritePerformance`;
-4. preservar somente tracing/medição no módulo de performance;
-5. provar que Consulta Assessoria, NF individual, Pendências e Inventário mantêm comportamento com o módulo ausente;
-6. só então iniciar R2A.
+Usar os achados reproduzidos da [revisão corrente](audits/2026-09-06-pr272-inventory-auth-review.md) para a próxima correção autorizada: composição e concorrência do #272, e confirmação do commit do banco no fluxo Auth do #271. Revalidar seus heads antes de editar. A correção terminal de Inventário já está integrada. Nenhum merge, deploy ou ensaio destrutivo decorre deste checkpoint.
 
 ## 11. Documentos históricos preservados
 

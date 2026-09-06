@@ -321,6 +321,24 @@ test('mantém Encaminhado para Inventariação como Não até todas as NFs perma
     assert.equal(harness.persisted[1].args.p_verification.bonification.encampInventario, 'Sim');
 });
 
+test('não permite reencaminhar bem já Inventariado', async () => {
+    const harness = createHarness();
+    harness.state.assets[0].status = 'Inventariada';
+    harness.state.assets[0].processoInventario = 'PROC-2026/001';
+    harness.state.assets[0].inventariadoPor = 'Aylane';
+    harness.state.assets[0].inventariadorId = 'INV-1';
+    harness.state.assets[0].dataInventariacao = '2026-07-14T14:30:00.000Z';
+
+    await assert.rejects(
+        harness.service.forward({ assetId: 'bem-1', profile: 'controlador' }),
+        error => error && error.code === 'ASSET_ALREADY_INVENTORIED'
+    );
+
+    assert.equal(harness.state.assets[0].status, 'Inventariada');
+    assert.equal(harness.state.assets[0].inventariadorId, 'INV-1');
+    assert.equal(harness.persisted.length, 0);
+});
+
 test('não permite concluir inventariação antes de o bem estar encaminhado', async () => {
     const harness = createHarness();
 

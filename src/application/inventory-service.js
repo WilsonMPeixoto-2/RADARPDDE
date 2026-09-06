@@ -305,6 +305,14 @@
                 mutate: () => {
                     const state = this.getState();
                     const asset = this.findAsset(state, input.assetId, 'inventory:forward');
+                    if (text(asset.status) === 'Inventariada') {
+                        fail(
+                            'ASSET_ALREADY_INVENTORIED',
+                            'O bem já foi inventariado e não pode ser encaminhado novamente.',
+                            'inventory:forward',
+                            { assetId: asset.id, status: text(asset.status) }
+                        );
+                    }
                     const school = this.findSchool(state, asset.escolaId, 'inventory:forward');
                     persistence.assetId = asset.id;
                     persistence.expectedVersion = rowVersionOf(asset);

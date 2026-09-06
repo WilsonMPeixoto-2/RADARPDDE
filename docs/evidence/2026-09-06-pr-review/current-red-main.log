@@ -1,0 +1,46 @@
+✖ commit remoto confirmado com falha local sem code retorna sincronização pendente sem repetir a escrita (3.1972ms)
+✖ falha local transitória é reconciliada por leitura segura sem repetir a escrita remota (0.4867ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 183.8518
+
+✖ failing tests:
+
+test at ..\current-red-main.cjs:43:1
+✖ commit remoto confirmado com falha local sem code retorna sincronização pendente sem repetir a escrita (3.1972ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (C:\Users\Wilson\Documents\Codex\2026-09-05\re\work\current-red-main.cjs:62:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at ..\current-red-main.cjs:70:1
+✖ falha local transitória é reconciliada por leitura segura sem repetir a escrita remota (0.4867ms)
+  AssertionError [ERR_ASSERTION]: deve tentar apenas uma leitura/aplicação corretiva
+  
+  1 !== 2
+  
+      at TestContext.<anonymous> (C:\Users\Wilson\Documents\Codex\2026-09-05\re\work\current-red-main.cjs:100:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

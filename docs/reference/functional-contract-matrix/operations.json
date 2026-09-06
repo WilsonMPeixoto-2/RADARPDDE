@@ -773,6 +773,14 @@
       [
         "supabase/migrations/20260904040000_functional_reliability_inventory_sync.sql",
         "save_asset_with_verification_and_log"
+      ],
+      [
+        "src/application/inventory-service.js",
+        "ASSET_ALREADY_INVENTORIED"
+      ],
+      [
+        "supabase/migrations/20260905231000_inventory_terminal_state.sql",
+        "assets_protect_inventoried_terminal_state"
       ]
     ],
     "service": "InventoryService.forward",

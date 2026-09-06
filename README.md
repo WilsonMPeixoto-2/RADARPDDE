@@ -2,7 +2,7 @@
 
 Sistema institucional de acompanhamento operacional do PDDE da 4ª CRE/SME-Rio. O produto organiza competência mensal, carteira de unidades, prontuário, análise documental, pendências, contatos, notas fiscais, patrimônio, Gestão de Equipe, acompanhamento gerencial e exportações.
 
-> **Estado reauditorado em 3 de setembro de 2026:** o último **baseline funcional auditado** é o PR #249 (`75237c6ec5c22e8f7be9eb39fd21481f6d608010`); a `main` reaberta para a reauditoria source-first estava em `18150cc9ef7e15e2e777041fce541b847af517e1`, com alterações posteriores apenas documentais. Para SHA/deployment correntes, consulte o remoto; para a fila executável use [`docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md) e [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md).
+> **Checkpoint de 06/09/2026:** main revalidada em `3135d4c6`, após #265–#267. Comece por [AGENTS.md](AGENTS.md), [CURRENT_STAGE.md](docs/CURRENT_STAGE.md) e pela [revisão de #272 / Inventário / #271](docs/audits/2026-09-06-pr272-inventory-auth-review.md). O plano R1–R9 é histórico. SHAs/deployments devem ser revalidados; candidatos abertos não redefinem a main.
 
 ## Fontes de verdade
 
@@ -65,7 +65,7 @@ A reconciliação de 03/09 reclassificou o diagnóstico de 24/08:
 - readiness sistêmico ainda é lacuna real porque o registry planejado não existe e há polling residual em integrações;
 - Pendências já possui fila, filtros, detalhe, mobile, exportação e layout aprovados; o trabalho remanescente é remover duplicidade semântica e provar apenas gaps funcionais atuais, sem restaurar o redesign histórico.
 
-O plano executável corrente está em [`docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md), sustentado pela [`reauditoria direta do código-fonte`](docs/audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md). O plano de 26/08 permanece referência histórica/técnica, não fila de implementação. O antigo item 20, a proteção de senhas vazadas, o PR #195 e a deduplicação de NF por conteúdo permanecem fora desta frente.
+A retomada corrente está em [CURRENT_STAGE.md](docs/CURRENT_STAGE.md), sustentada pela revisão por SHA nele indicada. Os planos de 03/09 e 26/08 são referências históricas/técnicas, não filas automáticas de implementação. O antigo item 20, a proteção de senhas vazadas, o PR #195 e a deduplicação de NF por conteúdo permanecem fora desta frente.
 
 ## Garantia operacional
 
@@ -141,7 +141,7 @@ npm run check:functional-matrix
 Ordem de leitura:
 
 1. [`AGENTS.md`](AGENTS.md);
-2. [`docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md);
+2. [Revisão independente corrente](docs/audits/2026-09-06-pr272-inventory-auth-review.md);
 3. [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md);
 4. [`docs/audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`](docs/audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md);
 5. [`docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md);
@@ -151,9 +151,9 @@ Ordem de leitura:
 9. [`docs/handoff/2026-09-02-dependency-governance.md`](docs/handoff/2026-09-02-dependency-governance.md);
 10. somente depois, planos/handoffs históricos de 26/08–31/08.
 
-A porta de entrada executável vigente é o plano source-first de 03/09.
+A porta de entrada corrente é CURRENT_STAGE.md; o plano de 03/09 é histórico.
 
-## Próxima sequência
+## Sequência histórica de 03/09
 
 ```text
 R1 — retirar autoridade funcional dos wrappers de performance
@@ -170,4 +170,4 @@ R1 — retirar autoridade funcional dos wrappers de performance
 → reavaliar ADR-051 em frente separada
 ```
 
-Os identificadores R1–R9 são fases do programa, não números de Pull Request do GitHub.
+R1–R9 são fases do planejamento histórico, não números de PR nem fila automática. Revalidar cada premissa após os hotfixes.

@@ -1,0 +1,21 @@
+{
+  "capabilities": {
+    "mode": "local",
+    "remote": false,
+    "writable": true,
+    "canImportLegacy": true,
+    "atomicTransactions": true,
+    "optimisticConcurrency": false,
+    "capacityDiagnostics": true
+  },
+  "persistCalls": 1,
+  "resultOk": true,
+  "ownExecute": true,
+  "performanceInstalled": true,
+  "feedbackPrototypeInstalled": true,
+  "executeName": "executeWithOperationalWritePolicy",
+  "notice": {
+    "hidden": true,
+    "text": ""
+  }
+}

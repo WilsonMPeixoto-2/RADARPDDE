@@ -72,15 +72,22 @@ test('corrige apenas o nome legado de Érika Reis e preserva os demais registros
     assert.equal(original[0].name, 'Érica');
 });
 
-test('produz feedback de sucesso com pessoa e quantidade transferida', () => {
+test('feedback de desativação só admite carteira previamente zerada', () => {
     const api = loadApi();
 
     assert.equal(
         api.formatControllerDeactivationSuccess({
             controllerName: 'Alzira de Souza',
+            schoolCount: 0
+        }),
+        'Alzira de Souza foi desativada sem escolas vinculadas.'
+    );
+    assert.throws(
+        () => api.formatControllerDeactivationSuccess({
+            controllerName: 'Alzira de Souza',
             recipientName: 'Érika Reis',
             schoolCount: 13
         }),
-        'Alzira de Souza foi desativada. 13 escolas foram transferidas para Érika Reis.'
+        error => error?.code === 'SCHOOLS_ASSIGNED'
     );
 });

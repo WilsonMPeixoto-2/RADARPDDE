@@ -23,6 +23,11 @@ input.radar-write-pending {
     cursor: progress;
 }
 
+#pendency-notice[data-radar-save-feedback="success"] {
+    border-color: var(--success);
+    background: var(--success-bg);
+}
+
 @keyframes radar-write-pulse {
     from { opacity: 0.25; transform: scale(0.86); }
     to { opacity: 0.7; transform: scale(1); }

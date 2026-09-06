@@ -2,7 +2,13 @@
     'use strict';
 
     if (!root?.document) return;
-    if (root.RadarProductExtensionsReady) return;
+    if (root.RadarProductExtensionsReady) {
+        if (root.RadarProductExtensionsLoading === true) return;
+        if (typeof root.RadarProductExtensionsRetry === 'function') {
+            root.RadarProductExtensionsReady = root.RadarProductExtensionsRetry();
+        }
+        return;
+    }
 
     const document = root.document;
     const styles = Object.freeze([
@@ -37,6 +43,13 @@
         '/src/integration/prontuario-conditional-reconciler.js',
         '/src/integration/operational-write-feedback.js'
     ]);
+    const criticalScripts = new Set([
+        '/src/integration/atomic-analysis-pendency.js',
+        '/src/integration/service-advisory-pendency.js',
+        '/src/integration/service-advisory-corrective-submission.js',
+        '/src/integration/critical-action-guard.js'
+    ]);
+    const failedScripts = new Map();
 
     function installCriticalExtensions() {
         const advisoryInstalled = root.RadarServiceAdvisoryPendency?.install?.(root) === true;
@@ -57,6 +70,17 @@
         });
     }
 
+    function publishFailures() {
+        const failures = [...failedScripts.entries()].map(([src, error]) => Object.freeze({
+            src,
+            message: String(error?.message || error || `Falha ao carregar ${src}.`)
+        }));
+        root.RADAR_PRODUCT_EXTENSION_FAILURES = Object.freeze(failures);
+        root.RADAR_LAST_PRODUCT_EXTENSION_ERROR = failures.length > 0
+            ? failedScripts.get(failures[failures.length - 1].src)
+            : null;
+    }
+
     function loadStyleOnce(href) {
         const existing = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).find(link => (
             link.getAttribute('href') === href
@@ -72,15 +96,26 @@
     }
 
     function loadScriptOnce(src) {
-        const existing = Array.from(document.scripts || []).find(script => (
+        let existing = Array.from(document.scripts || []).find(script => (
             script.getAttribute('src') === src
             || script.dataset?.radarProductScript === src
         ));
         if (existing?.dataset?.radarLoaded === 'true') return Promise.resolve(existing);
+        if (existing?.dataset?.radarLoadFailed === 'true') {
+            existing.remove?.();
+            existing = null;
+        }
         if (existing) {
             return new Promise((resolve, reject) => {
-                existing.addEventListener('load', () => resolve(existing), { once: true });
-                existing.addEventListener('error', () => reject(new Error(`Falha ao carregar ${src}.`)), { once: true });
+                existing.addEventListener('load', () => {
+                    existing.dataset.radarLoaded = 'true';
+                    delete existing.dataset.radarLoadFailed;
+                    resolve(existing);
+                }, { once: true });
+                existing.addEventListener('error', () => {
+                    existing.dataset.radarLoadFailed = 'true';
+                    reject(new Error(`Falha ao carregar ${src}.`));
+                }, { once: true });
             });
         }
         return new Promise((resolve, reject) => {
@@ -90,20 +125,72 @@
             script.dataset.radarProductScript = src;
             script.addEventListener('load', () => {
                 script.dataset.radarLoaded = 'true';
+                delete script.dataset.radarLoadFailed;
                 resolve(script);
             }, { once: true });
-            script.addEventListener('error', () => reject(new Error(`Falha ao carregar ${src}.`)), { once: true });
+            script.addEventListener('error', () => {
+                script.dataset.radarLoadFailed = 'true';
+                reject(new Error(`Falha ao carregar ${src}.`));
+            }, { once: true });
             document.head.appendChild(script);
         });
     }
 
+    async function loadScripts(targets) {
+        for (const src of targets) {
+            try {
+                await loadScriptOnce(src);
+                failedScripts.delete(src);
+            } catch (error) {
+                failedScripts.set(src, error);
+                root.console?.error?.(`Não foi possível carregar a extensão ${src}.`, error);
+            }
+        }
+        publishFailures();
+
+        const failedCritical = [...failedScripts.keys()].find(src => criticalScripts.has(src));
+        if (failedCritical) {
+            throw failedScripts.get(failedCritical)
+                || new Error(`Falha ao carregar extensão crítica ${failedCritical}.`);
+        }
+        return true;
+    }
+
+    function completeLoad(targets) {
+        return loadScripts(targets)
+            .then(() => waitForCriticalExtensions())
+            .then(() => failedScripts.size === 0)
+            .catch(error => {
+                root.RADAR_LAST_PRODUCT_EXTENSION_ERROR = error;
+                root.console?.error?.('Não foi possível inicializar as extensões críticas do RADAR.', error);
+                return false;
+            });
+    }
+
+    function startLoad(targets) {
+        if (root.RadarProductExtensionsLoading === true && root.RadarProductExtensionsReady) {
+            return root.RadarProductExtensionsReady;
+        }
+        root.RadarProductExtensionsLoading = true;
+        let run = null;
+        run = completeLoad(targets).finally(() => {
+            if (root.RadarProductExtensionsReady === run) {
+                root.RadarProductExtensionsLoading = false;
+            }
+        });
+        root.RadarProductExtensionsReady = run;
+        return run;
+    }
+
+    root.RadarProductExtensionsRetry = function retryProductExtensions() {
+        if (root.RadarProductExtensionsLoading === true) {
+            return root.RadarProductExtensionsReady;
+        }
+        const retryTargets = scripts.filter(src => failedScripts.has(src));
+        if (retryTargets.length === 0) return root.RadarProductExtensionsReady;
+        return startLoad(retryTargets);
+    };
+
     styles.forEach(loadStyleOnce);
-    root.RadarProductExtensionsReady = scripts.reduce(
-        (promise, src) => promise.then(() => loadScriptOnce(src)),
-        Promise.resolve()
-    ).then(() => waitForCriticalExtensions()).catch(error => {
-        root.RADAR_LAST_PRODUCT_EXTENSION_ERROR = error;
-        console.error('Não foi possível inicializar as extensões de produto do RADAR.', error);
-        return false;
-    });
+    startLoad(scripts);
 }(typeof window !== 'undefined' ? window : globalThis));

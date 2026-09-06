@@ -1,44 +1,26 @@
 # Documentação do RADAR PDDE
 
-**Estado de referência:** 3 de setembro de 2026
+**Estado de referência:** 6 de setembro de 2026
 **Classe documental:** Canônico — índice
 
 ## 0. Frente ativa
 
-A frente ativa é a **execução do plano remanescente source-first**. Depois da reconciliação pós-hotfix, o código-fonte foi reaberto em 03/09 no SHA `18150cc9` para reduzir a fila ao que ainda existe e preservar soluções posteriores mais avançadas.
-
-Ler primeiro:
-
-- [`superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](superpowers/plans/2026-09-03-plano-remanescente-source-first.md) — plano executável corrente;
-- [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — estado corrente e próxima fase;
-- [`audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`](audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md) — evidência source-first;
-- [`handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md) — checkpoint antecedente;
-- [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md);
-- [`decisions/ADR-052-autoridade-unica-fluxos-criticos.md`](decisions/ADR-052-autoridade-unica-fluxos-criticos.md);
-- [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md).
-
-**Atenção:** o plano de 26/08 e a estabilização de 31/08 permanecem referências históricas/técnicas, mas não constituem uma segunda fila de implementação.
+Revisão source-first da main pós-#267, do candidato #272 e da ambiguidade de commit do banco no #271. Inventário terminal já está protegido pelo #265. O [relatório corrente](audits/2026-09-06-pr272-inventory-auth-review.md) separa integrado, candidato, achados e limites de validação.
 
 ## 1. Onde começar
 
-O plano executável canônico atual é [`superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](superpowers/plans/2026-09-03-plano-remanescente-source-first.md), produzido depois de nova leitura direta dos serviços, integrações, loaders, StatePort/DataService, RPCs e testes.
-
-A auditoria-fonte está em [`audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`](audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md).
-
-O handoff [`2026-09-03-reconciliacao-documental-e-plano-mestre.md`](handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md) permanece como checkpoint imediatamente anterior. Os planos de 26/08–31/08 continuam preservados como histórico técnico, mas seus “próximos passos” não controlam mais a execução.
+O estado mutável fica em [CURRENT_STAGE.md](CURRENT_STAGE.md). O método duradouro de investigação, implementação e revisão está em [ENGINEERING_METHOD.md](reference/ENGINEERING_METHOD.md) e deve ser aplicado a todas as frentes futuras, independentemente do agente ou chat. A rota candidata do #263 não substitui os arquivos da main enquanto não integrada. O plano de 03/09 e seus R1–R9 são históricos, sem execução automática.
 
 ## 2. Ordem de leitura recomendada
 
-1. [`../AGENTS.md`](../AGENTS.md);
-2. [`superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](superpowers/plans/2026-09-03-plano-remanescente-source-first.md);
-3. [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
-4. [`audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`](audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md);
-5. [`handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md);
-6. [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md) e [`ADR-052`](decisions/ADR-052-autoridade-unica-fluxos-criticos.md);
-7. [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md) e [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md);
-8. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) e [`DECISION_LOG.md`](DECISION_LOG.md);
-9. [`handoff/2026-09-02-dependency-governance.md`](handoff/2026-09-02-dependency-governance.md) quando aplicável;
-10. somente depois, planos/handoffs históricos de 26/08–31/08.
+1. [AGENTS.md](../AGENTS.md).
+2. [CURRENT_STAGE.md](CURRENT_STAGE.md).
+3. [ENGINEERING_METHOD.md](reference/ENGINEERING_METHOD.md).
+4. [Revisão de 06/09](audits/2026-09-06-pr272-inventory-auth-review.md).
+5. [STATUS_DOCUMENTOS.md](reference/STATUS_DOCUMENTOS.md).
+6. [ADR-050](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md), [ADR-052](decisions/ADR-052-autoridade-unica-fluxos-criticos.md) e [matriz funcional](reference/FUNCTIONAL_CONTRACT_MATRIX.md).
+7. [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md), [DECISION_LOG.md](DECISION_LOG.md) e [TEST_GOVERNANCE.md](reference/TEST_GOVERNANCE.md).
+8. Handoffs e planos datados, somente como evidência dos respectivos checkpoints.
 
 ## 3. Decisões atuais que não podem ser perdidas
 
@@ -84,6 +66,8 @@ Além dos gates históricos, o ciclo #193 incorporou:
 - `dependency-cruiser` → `npm run check:architecture` e `test:readiness`;
 - Performance API/diagnóstico operacional local → integração runtime no PR #194.
 
+O [método de engenharia](reference/ENGINEERING_METHOD.md) complementa essas ferramentas: para mudanças materiais, RED/GREEN do caso original deve ser seguido por revisão adversarial proporcional das fronteiras realmente tocadas, com preferência por código real, fronteiras controladas, interleavings determinísticos e verificação do estado final.
+
 A integração do PR #194 permanece na `main`; o baseline pós-PR #200 é `0965ba8`. A consulta local de métricas é somente leitura:
 
 ```javascript
@@ -113,9 +97,12 @@ Não há telemetria externa, persistência das métricas ou coleta de dados de n
 - validação é proporcional ao risco;
 - evidência válida pode ser reaproveitada quando a superfície correspondente não mudou.
 
+`TEST_GOVERNANCE.md` governa a interpretação dos testes e falhas; `ENGINEERING_METHOD.md` governa como investigar, implementar, tentar refutar a própria correção e escolher a prova adequada.
+
 ## 6. Documentos canônicos e referências
 
-- [`superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](superpowers/plans/2026-09-03-plano-remanescente-source-first.md) — plano executável corrente;
+- [`reference/ENGINEERING_METHOD.md`](reference/ENGINEERING_METHOD.md) — método permanente de engenharia e revisão adversarial, com exemplos históricos e adaptação por risco;
+- [`superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](superpowers/plans/2026-09-03-plano-remanescente-source-first.md) — plano histórico R1–R9, sujeito à revalidação após os hotfixes;
 - [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — estado corrente;
 - [`audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`](audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md) — evidência do escopo remanescente;
 - [`handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md) — checkpoint canônico antecedente;
@@ -155,7 +142,7 @@ Não há telemetria externa, persistência das métricas ou coleta de dados de n
 
 Arquivos datados em `docs/audits/`, `docs/evidence/`, `docs/superpowers/`, `docs/handoff/` e `docs/reports/` preservam o momento em que foram produzidos. Eles não devem ser reescritos para coincidir com o presente e não prevalecem sobre o código/ambiente atual.
 
-O handoff pós-PR #215, o handoff de 26/08 e a reconciliação pós-hotfix são checkpoints históricos/canônicos de suas etapas. A porta de entrada executável corrente é o plano source-first de 03/09; documentos anteriores permanecem disponíveis para rastreabilidade, mas seus “próximos passos” não controlam mais a execução.
+O handoff pós-PR #215, o handoff de 26/08 e a reconciliação pós-hotfix são checkpoints históricos/canônicos de suas etapas. O checkpoint corrente fica em CURRENT_STAGE.md; inclusive o plano de 03/09 permanece disponível como histórico, sem controlar automaticamente os próximos passos.
 
 ## 9. Continuidade
 
@@ -164,12 +151,16 @@ Fluxo recomendado:
 ```text
 verificar remoto
 → classificar demanda
+→ mapear autoridade, consumidores e fronteiras
 → branch isolada
+→ reproduzir e tentar refutar a hipótese
 → mudança mínima
-→ validação proporcional
+→ RED/GREEN
+→ revisão adversarial proporcional da própria correção
+→ validação/gates proporcionais
 → classificar falhas
 → confirmar Production quando aplicável
 → atualizar documentação afetada
 ```
 
-A reauditoria source-first foi concluída em 03/09. O próximo ponto real é **R1: retirar a autoridade funcional de consistência ainda alojada em wrappers de performance**. Depois seguem R2A–R2C, R3, R4, R5, o gate R6, R7/R8 e o fechamento R9.
+A metodologia permanente fica em `reference/ENGINEERING_METHOD.md`; exemplos históricos devem ser lidos por SHA e usados para aprender o método, não para definir automaticamente o estado presente.
