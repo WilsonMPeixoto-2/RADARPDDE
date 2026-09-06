@@ -1,0 +1,59 @@
+{
+  "events": [
+    "s1 remote commit",
+    "A first apply fails",
+    "A refresh response captured before B commit",
+    "s2 remote commit",
+    "apply remote-result",
+    "apply remote-refresh"
+  ],
+  "writes": 2,
+  "afterB": [
+    {
+      "id": "s1",
+      "name": "new A",
+      "row_version": 1
+    },
+    {
+      "id": "s2",
+      "name": "new B",
+      "row_version": 2
+    }
+  ],
+  "finalLocal": [
+    {
+      "id": "s1",
+      "name": "new A",
+      "row_version": 2
+    },
+    {
+      "id": "s2",
+      "name": "old B",
+      "row_version": 1
+    }
+  ],
+  "remote": [
+    {
+      "id": "s1",
+      "name": "new A",
+      "row_version": 2
+    },
+    {
+      "id": "s2",
+      "name": "new B",
+      "row_version": 2
+    }
+  ],
+  "stateSyncA": {
+    "status": "applied",
+    "remoteCommitConfirmed": true,
+    "localStateApplied": true,
+    "refreshRequired": false
+  },
+  "stateSyncB": {
+    "status": "applied",
+    "remoteCommitConfirmed": true,
+    "localStateApplied": true,
+    "refreshRequired": false
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "scope": "Read-only catalog query. No business rows or writes.",
+  "projectId": "scnryinorqeucbfkioxo",
+  "observedOn": "2026-09-06",
+  "migration": [
+    {
+      "name": "inventory_terminal_state",
+      "version": "20260905231000"
+    }
+  ],
+  "trigger": {
+    "name": "assets_protect_inventoried_terminal_state",
+    "enabled": "O",
+    "function": "CREATE OR REPLACE FUNCTION radar_private.protect_inventoried_asset_terminal_state()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog', 'public', 'radar_private'\nAS $function$\nbegin\n    if old.status = 'Inventariada'\n        and new.status is distinct from old.status then\n        raise exception 'ASSET_ALREADY_INVENTORIED: assets/%', old.id;\n    end if;\n    return new;\nend\n$function$\n",
+    "definition": "CREATE TRIGGER assets_protect_inventoried_terminal_state BEFORE UPDATE OF status ON public.assets FOR EACH ROW WHEN (((old.status = 'Inventariada'::text) AND (new.status IS DISTINCT FROM old.status))) EXECUTE FUNCTION radar_private.protect_inventoried_asset_terminal_state()"
+  },
+  "versionTrigger": {
+    "name": "assets_touch_updated_at",
+    "enabled": "O",
+    "function": "CREATE OR REPLACE FUNCTION public.touch_updated_at()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\nbegin\n    new.updated_at = now();\n    if to_jsonb(new) ? 'row_version' then\n        new := jsonb_populate_record(\n            new,\n            jsonb_build_object(\n                'row_version',\n                coalesce((to_jsonb(old)->>'row_version')::integer, 0) + 1\n            )\n        );\n    end if;\n    return new;\nend\n$function$\n",
+    "definition": "CREATE TRIGGER assets_touch_updated_at BEFORE UPDATE ON public.assets FOR EACH ROW EXECUTE FUNCTION touch_updated_at()"
+  }
+}

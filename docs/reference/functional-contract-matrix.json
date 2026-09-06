@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-09-04",
-  "sourceCommit": "c3d6fc2374476a4884cfebc2f4236e346ccf2700",
+  "updatedAt": "2026-09-06",
+  "sourceCommit": "3135d4c66bb5020507bd54d2fe202a79884680c7",
   "profiles": [
     {
       "id": "anonymous",
@@ -330,7 +330,8 @@
       "unit": [
         "tests/unit/remote-operational-commands.test.js",
         "tests/unit/inventory-service.test.js",
-        "tests/unit/critical-action-guard.test.js"
+        "tests/unit/critical-action-guard.test.js",
+        "tests/unit/invoice-inventoried-preservation.test.js"
       ],
       "e2e": [
         "tests/e2e/application-services.spec.js",
@@ -341,7 +342,8 @@
       "database": [
         "supabase/tests/database/inventory-capital-rls.test.sql",
         "supabase/tests/database/rls.test.sql",
-        "supabase/tests/database/functional-integrity-remediation.test.sql"
+        "supabase/tests/database/functional-integrity-remediation.test.sql",
+        "supabase/tests/database/inventory-terminal-state.test.sql"
       ],
       "production": []
     },

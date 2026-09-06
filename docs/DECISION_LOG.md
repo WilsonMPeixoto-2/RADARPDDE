@@ -1,8 +1,14 @@
 # RADAR PDDE — Registro de decisões
 
-**Atualizado em:** 3 de setembro de 2026
+**Atualizado em:** 6 de setembro de 2026
 
 Este documento registra decisões duradouras. Não é diário de commits. Uma decisão somente é substituída por decisão expressa com impacto e status documentados.
+
+## Reconciliação das decisões após os hotfixes
+
+O contrato terminal de Inventário está vigente e implementado pelo #265: salvar/editar NF preserva Inventariada e metadados históricos; forward rejeita esse estado; o banco impede UPDATE que o rebaixe. As transições legítimas anteriores e row_version permanecem. Não criar uma segunda correção para as mesmas rotas.
+
+As menções seguintes ao plano R1–R9 registram o planejamento de 03/09. A fila atual depende do código e de CURRENT_STAGE.md. PRs #271/#272 continuam candidatos e seus testes isolados não comprovam todas as fronteiras de commit/sincronização/compensação. Ver [evidências e lacunas](audits/2026-09-06-pr272-inventory-auth-review.md); não converter intenção de um PR aberto em regra implementada.
 
 ## Convenções
 

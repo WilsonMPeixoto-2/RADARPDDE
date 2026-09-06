@@ -1,0 +1,28 @@
+{
+  "scope": "Real Edge functions; simulated RPC acknowledgement loss and FK deletion behavior; no live database",
+  "normalizedEntity": {
+    "id": "ctrl-a",
+    "name": "Novo",
+    "email": "novo@example.test",
+    "active": true,
+    "cre_scope": "4ª CRE"
+  },
+  "events": [
+    "auth-invite",
+    "database-commit-response-lost",
+    "auth-delete-compensation"
+  ],
+  "finalState": {
+    "auth": null,
+    "directory": {
+      "id": "ctrl-a",
+      "name": "Novo",
+      "email": "novo@example.test",
+      "active": true,
+      "cre_scope": "4ª CRE",
+      "user_id": null
+    },
+    "profiles": null,
+    "log": true
+  }
+}

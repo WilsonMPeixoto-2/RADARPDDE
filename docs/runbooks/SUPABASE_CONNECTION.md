@@ -145,8 +145,8 @@ As migrations correntes incluem, conforme `CURRENT_STAGE.md` e a branch de estab
 - vínculo de pendência de Assessoria Contábil com `registered_invoice_id`, permitindo individualização por NF;
 - operações compostas de Assessoria Contábil para persistir análise, pendência, verificação e log de forma coerente;
 - sincronização do próximo ator das Pendências nas transições do fluxo;
-- migration candidata `20260904040000_functional_reliability_inventory_sync`, que sincroniza atomicamente o encaminhamento de bem derivado com `encampInventario` no Prontuário e remove aliases internos de versão do payload das verificações;
-- migration candidata `20260905231000_inventory_terminal_state`, que impede no banco qualquer regressão de um bem já `Inventariada` para estado patrimonial anterior.
+- migration integrada `20260904040000_functional_reliability_inventory_sync`, que sincroniza atomicamente o encaminhamento de bem derivado com `encampInventario` no Prontuário e remove aliases internos de versão do payload das verificações;
+- migration integrada `20260905231000_inventory_terminal_state`, que impede no banco qualquer regressão de um bem já `Inventariada` para estado patrimonial anterior. Sua presença e o trigger habilitado foram confirmados por consulta de metadados em 06/09/2026; revalidar no ambiente antes de outra publicação.
 
 Não reaplicar SQL já aplicado para “corrigir” histórico.
 
