@@ -501,6 +501,7 @@
                 let committedSnapshot = result.snapshot;
                 let refreshPending = false;
                 let stateApplyError = null;
+                let localStateApplied = !remote;
                 if (remote) {
                     const merged = mergePersistedResult(result.snapshot, result.persisted);
                     committedSnapshot = merged.snapshot;
@@ -535,28 +536,62 @@
                                     source: authoritativeCommitConfirmed ? 'remote-commit' : 'remote-result'
                                 });
                             }
+                            localStateApplied = true;
                         } catch (applyError) {
                             stateApplyError = applyError;
                         }
                     }
-                    if (!canCommitWithoutRefresh) {
-                        try {
-                            committedSnapshot = await this.refreshRemoteEntities(committedSnapshot, refreshEntities);
-                        } catch (refreshError) {
-                            refreshPending = true;
-                            if (merged.appliedEntities.length === 0) {
-                                try {
-                                    await this.statePort.applyCanonical(result.snapshot, {
-                                        persistStorage: false,
-                                        source: 'remote-fallback'
-                                    });
-                                } catch (applyError) {
-                                    stateApplyError = stateApplyError || applyError;
+
+                    const needsCorrectiveRefresh = !canCommitWithoutRefresh || Boolean(stateApplyError);
+                    if (needsCorrectiveRefresh) {
+                        if (refreshEntities.length > 0) {
+                            try {
+                                committedSnapshot = await this.refreshRemoteEntities(committedSnapshot, refreshEntities);
+                                localStateApplied = true;
+                                stateApplyError = null;
+                            } catch (refreshError) {
+                                refreshPending = true;
+                                if (stateApplyError) {
+                                    localStateApplied = false;
+                                } else if (merged.appliedEntities.length === 0) {
+                                    try {
+                                        await this.statePort.applyCanonical(result.snapshot, {
+                                            persistStorage: false,
+                                            source: 'remote-fallback'
+                                        });
+                                        localStateApplied = true;
+                                    } catch (applyError) {
+                                        stateApplyError = applyError;
+                                        localStateApplied = false;
+                                    }
                                 }
                             }
+                        } else {
+                            refreshPending = true;
+                            if (stateApplyError) localStateApplied = false;
                         }
                     }
                 }
+
+                const stateApplyErrorCode = stateApplyError
+                    ? (stateApplyError.code || 'LOCAL_STATE_APPLY_FAILED')
+                    : null;
+                const remoteCommitConfirmed = remote ? result.remoteCommitConfirmed === true : false;
+                const stateSync = remote
+                    ? {
+                        status: stateApplyError
+                            ? 'failed'
+                            : (refreshPending ? 'pending' : 'applied'),
+                        remoteCommitConfirmed,
+                        localStateApplied,
+                        refreshRequired: Boolean(refreshPending || stateApplyError)
+                    }
+                    : {
+                        status: 'applied',
+                        remoteCommitConfirmed: false,
+                        localStateApplied: true,
+                        refreshRequired: false
+                    };
 
                 return {
                     ok: true,
@@ -564,8 +599,9 @@
                     value: cloneValue(result.value),
                     snapshot: cloneValue(committedSnapshot),
                     persisted: cloneValue(result.persisted),
-                    refreshPending,
-                    stateApplyErrorCode: stateApplyError?.code || null
+                    refreshPending: stateSync.refreshRequired,
+                    stateApplyErrorCode,
+                    stateSync
                 };
             } catch (error) {
                 if (remote) {
