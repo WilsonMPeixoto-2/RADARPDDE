@@ -3,6 +3,7 @@
 
     if (!root?.document) return;
     if (root.RadarProductExtensionsReady) {
+        if (root.RadarProductExtensionsLoading === true) return;
         if (typeof root.RadarProductExtensionsRetry === 'function') {
             root.RadarProductExtensionsReady = root.RadarProductExtensionsRetry();
         }
@@ -166,15 +167,30 @@
             });
     }
 
+    function startLoad(targets) {
+        if (root.RadarProductExtensionsLoading === true && root.RadarProductExtensionsReady) {
+            return root.RadarProductExtensionsReady;
+        }
+        root.RadarProductExtensionsLoading = true;
+        let run = null;
+        run = completeLoad(targets).finally(() => {
+            if (root.RadarProductExtensionsReady === run) {
+                root.RadarProductExtensionsLoading = false;
+            }
+        });
+        root.RadarProductExtensionsReady = run;
+        return run;
+    }
+
     root.RadarProductExtensionsRetry = function retryProductExtensions() {
+        if (root.RadarProductExtensionsLoading === true) {
+            return root.RadarProductExtensionsReady;
+        }
         const retryTargets = scripts.filter(src => failedScripts.has(src));
-        const retry = retryTargets.length > 0
-            ? completeLoad(retryTargets)
-            : waitForCriticalExtensions();
-        root.RadarProductExtensionsReady = retry;
-        return retry;
+        if (retryTargets.length === 0) return root.RadarProductExtensionsReady;
+        return startLoad(retryTargets);
     };
 
     styles.forEach(loadStyleOnce);
-    root.RadarProductExtensionsReady = completeLoad(scripts);
+    startLoad(scripts);
 }(typeof window !== 'undefined' ? window : globalThis));
