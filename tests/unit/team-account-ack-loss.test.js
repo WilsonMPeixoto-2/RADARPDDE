@@ -399,3 +399,29 @@ test('desativação ambígua sem prova mantém bloqueio Auth e não inventa roll
     assert.equal(harness.state.auth?.banned_until, '2126-01-01T00:00:00.000Z');
     assert.equal(harness.events.includes('auth-restore-access'), false);
 });
+
+test('desativação legada sem Auth reconcilia commit após ACK perdido pelo diretório e log atômico', async () => {
+    const { domain, deactivateMember } = await loadEdgeProbe();
+    const command = deactivateCommandFor(domain, { logId: 'log-deactivate-legacy' });
+    const harness = createHarness({
+        rpcMode: 'commit-loss',
+        directory: {
+            id: 'ctrl-a',
+            name: 'Legado',
+            email: 'legado@example.test',
+            active: true,
+            user_id: null
+        },
+        profiles: [],
+        auth: null
+    });
+
+    const result = await deactivateMember(harness.admin, actor, command);
+
+    assert.equal(result.ok, true);
+    assert.equal(result.accessDisabled, false);
+    assert.equal(result.reconciledAfterAmbiguousCommit, true);
+    assert.equal(harness.state.directory?.active, false);
+    assert.equal(harness.state.log?.id, 'log-deactivate-legacy');
+    assert.equal(harness.state.auth, null);
+});
