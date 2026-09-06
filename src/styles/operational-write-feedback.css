@@ -23,9 +23,76 @@ input.radar-write-pending {
     cursor: progress;
 }
 
+.radar-save-notice {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 2400;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    max-width: min(440px, calc(100vw - 32px));
+    padding: 14px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--surface, var(--card-bg, #fff));
+    color: var(--text-primary, #1f2937);
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.18);
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
+.radar-save-notice[hidden] {
+    display: none;
+}
+
+.radar-save-notice.is-success {
+    border-left: 4px solid var(--success, #16803c);
+}
+
+.radar-save-notice.is-warning {
+    border-left: 4px solid var(--warning, #b7791f);
+}
+
+.radar-save-notice-message {
+    flex: 1;
+    min-width: 0;
+}
+
+.radar-save-notice-close {
+    flex: 0 0 auto;
+    border: 0;
+    padding: 0 2px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.radar-save-notice-close[hidden] {
+    display: none;
+}
+
+.radar-save-notice-close:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+
 @keyframes radar-write-pulse {
     from { opacity: 0.25; transform: scale(0.86); }
     to { opacity: 0.7; transform: scale(1); }
+}
+
+@media (max-width: 700px) {
+    .radar-save-notice {
+        right: 16px;
+        bottom: 16px;
+        left: 16px;
+        max-width: none;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
