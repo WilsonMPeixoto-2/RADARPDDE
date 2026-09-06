@@ -59,6 +59,13 @@ function publicError(error: unknown): { code: string; message: string; status: n
       status: 503,
     };
   }
+  if (message.includes("OPTIMISTIC_CONFLICT")) {
+    return {
+      code: "OPTIMISTIC_CONFLICT",
+      message: "Este cadastro foi alterado por outra sessão. Atualize os dados antes de editar novamente.",
+      status: 409,
+    };
+  }
   if (message.includes("NOT_FOUND")) {
     return { code: "NOT_FOUND", message: message.replace(/^.*NOT_FOUND:\s*/i, ""), status: 404 };
   }
@@ -123,15 +130,24 @@ function adminClient(url: string) {
   });
 }
 
+type TeamDirectoryEntity = {
+  id: string;
+  user_id: string | null;
+  name: string;
+  email: string;
+  active: boolean;
+  row_version: number;
+};
+
 async function currentEntity(admin: ReturnType<typeof createClient>, profileId: string, id: string) {
   const table = profileId === "controller" ? "controllers" : "inventory_team_members";
   const { data, error } = await admin
     .from(table)
-    .select("id,user_id,name,email,active")
+    .select("id,user_id,name,email,active,row_version")
     .eq("id", id)
     .maybeSingle();
   if (error) throw error;
-  return data as { id: string; user_id: string | null; name: string; email: string; active: boolean } | null;
+  return data as TeamDirectoryEntity | null;
 }
 
 async function linkedProfileUserId(
@@ -223,6 +239,10 @@ async function assertReusableAccount(
 
 function remoteCommitUnknown(): Error {
   return new Error("REMOTE_COMMIT_UNKNOWN: o resultado durável da operação não pôde ser confirmado");
+}
+
+function optimisticConflict(): Error {
+  return new Error("OPTIMISTIC_CONFLICT: o cadastro foi alterado por outra sessão");
 }
 
 function isDefinitiveDatabaseRejection(error: unknown): boolean {
@@ -426,6 +446,10 @@ async function saveMember(
 ) {
   const entity = command.entity!;
   const existing = await currentEntity(admin, command.profileId, entity.id);
+  const expectedVersion = Number(command.expectedVersion || 0) || null;
+  if (expectedVersion != null) {
+    if (!existing || existing.row_version !== expectedVersion) throw optimisticConflict();
+  }
   const metadata = buildInviteMetadata(command);
   let userId = await resolveMemberUserId(
     admin,
