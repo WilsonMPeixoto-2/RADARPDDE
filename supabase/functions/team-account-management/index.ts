@@ -318,22 +318,32 @@ async function proveDeactivationCommit(
   userId: string,
 ) {
   const entityId = command.entityId!;
-  const [directory, profileMatches, logMatches] = await Promise.all([
+  const [directory, logMatches] = await Promise.all([
     currentEntity(admin, command.profileId, entityId),
-    inactiveProfileMatches(admin, command.profileId, entityId, userId),
     operationLogExists(admin, String(command.administrativeLog?.id || ""), actor.id),
   ]);
-  if (!directory || directory.active !== false || !profileMatches || !logMatches) return null;
+  if (!directory || directory.active !== false || !logMatches) return null;
+  if (userId) {
+    const profileMatches = await inactiveProfileMatches(
+      admin,
+      command.profileId,
+      entityId,
+      userId,
+    );
+    if (!profileMatches || String(directory.user_id || "") !== userId) return null;
+  } else if (String(directory.user_id || "").trim()) {
+    return null;
+  }
   return command.profileId === "controller"
     ? {
       controller_id: entityId,
       fallback_controller_id: null,
       reassigned_count: 0,
-      user_id: userId,
+      user_id: userId || null,
     }
     : {
       member_id: entityId,
-      user_id: userId,
+      user_id: userId || null,
     };
 }
 
@@ -554,10 +564,6 @@ async function deactivateMember(
       };
     const { data, error } = await admin.rpc(rpc, args);
     if (error) {
-      if (!userId) {
-        if (!isDefinitiveDatabaseRejection(error)) throw remoteCommitUnknown();
-        throw error;
-      }
       let committedResult = null;
       try {
         committedResult = await proveDeactivationCommit(admin, actor, command, userId);
@@ -568,7 +574,7 @@ async function deactivateMember(
         return {
           ok: true,
           userId,
-          accessDisabled: true,
+          accessDisabled: Boolean(userId),
           recoveredLink: Boolean(!existing.user_id && userId),
           reconciledAfterAmbiguousCommit: true,
           result: committedResult,
