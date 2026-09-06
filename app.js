@@ -4651,7 +4651,6 @@ function initializeRadarApplicationServices() {
     radarVerificationService = new window.RadarVerificationService.VerificationService({
         ...transactionalDependencies,
         ensureVerification: ensureProgramVerification,
-        reopenConsolidation: reopenConsolidationForAssistant,
         pendencyService: radarPendencyService
     });
     radarAuditService = new window.RadarAuditService.AuditService(transactionalDependencies);
@@ -5207,20 +5206,6 @@ function ensureProgramVerification(escolaId, compProgKey) {
     );
     verificacoes[escolaId][compProgKey] = verification;
     return verification;
-}
-
-function reopenConsolidationForAssistant(escolaId, compProgKey, verification, hasChanged) {
-    if (!hasChanged || getRadarAccessProfile() !== 'assistente' || !verification.resultadoBonif) {
-        return;
-    }
-
-    const previousResult = verification.resultadoBonif;
-    verification.resultadoBonif = '';
-    const esc = escolas.find(item => item.id === escolaId);
-    appendRadarLog(
-        'Consolidação Reaberta',
-        `A consolidação ${previousResult.toUpperCase()} da escola ${esc ? esc.denominação : escolaId} para ${compProgKey} foi reaberta após alteração da bonificação.`
-    );
 }
 
 function hasBonificationChanged(before, after) {

@@ -132,7 +132,6 @@
             this.competence = options.competencia || defaultCompetence;
             this.flow = options.fluxo || defaultFlow;
             this.retifications = options.retificacoes || defaultRetifications;
-            this.reopenConsolidation = options.reopenConsolidation || (() => {});
             this.pendencyService = options.pendencyService || null;
             this.verificationWriteQueues = new Map();
             if (!this.dataService || typeof this.dataService.execute !== 'function'
@@ -376,11 +375,14 @@
                         }
                         const changed = JSON.stringify(beforeBonification) !== JSON.stringify(verification.bonificacao)
                             || JSON.stringify(beforeAnalysis) !== JSON.stringify(verification.analise);
-                        this.reopenConsolidation(schoolId, compKey, verification, changed);
+                        const previousConsolidation = text(verification.resultadoBonif);
+                        const reopened = changed && profile === 'assistente' && Boolean(previousConsolidation);
+                        if (reopened) verification.resultadoBonif = '';
                         const log = this.appendSchoolLog(
                             schoolId,
                             'Bonificação Alterada',
                             `Bonificação de ${DOCUMENT_LABELS[documentKey] || documentKey} em ${compKey} da escola ${schoolId} alterada para "${value}".`
+                                + (reopened ? ` Consolidação ${previousConsolidation.toUpperCase()} reaberta após esta alteração.` : '')
                         );
                         persistence.logId = text(log?.id);
                         return { verification: cloneValue(verification) };
