@@ -40,4 +40,64 @@ test.describe('Contrato de extensões críticas', () => {
       inventoryGuarded: true
     });
   });
+
+  test('feedback pós-save alcança o DataService real na ordem real do bootstrap', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Composição real validada uma vez no desktop.');
+
+    await page.goto('/');
+    const state = await page.evaluate(async () => {
+      await window.RadarProductExtensionsReady;
+      const dataService = window.RadarApplicationServices?.invoices?.dataService;
+      const notice = document.getElementById('pendency-notice');
+      if (!dataService || !notice) throw new Error('DataService ou região de feedback indisponível.');
+      const capabilities = dataService.repository.capabilities();
+      if (capabilities.remote) throw new Error('Regressão de composição exige runtime local sem escrita remota.');
+
+      notice.hidden = true;
+      notice.textContent = '';
+      delete notice.dataset.radarSaveFeedback;
+      let persistCalls = 0;
+      const result = await dataService.execute({
+        name: 'invoice:save',
+        changedEntities: ['schools'],
+        mutate: () => ({ auditOnly: true }),
+        persist: async () => {
+          persistCalls += 1;
+          return {};
+        }
+      });
+
+      return {
+        remote: capabilities.remote === true,
+        persistCalls,
+        resultOk: result.ok,
+        ownExecute: Object.hasOwn(dataService, 'execute'),
+        performanceInstalled: dataService.__radarOperationalWritePerformance === true,
+        feedbackPrototypeInstalled:
+          Object.getPrototypeOf(dataService).__radarOperationalSaveFeedbackWrapped === true,
+        feedbackInstanceInstalled:
+          dataService.__radarOperationalSaveFeedbackInstanceWrapped === true,
+        notice: {
+          hidden: notice.hidden,
+          text: notice.textContent,
+          kind: notice.dataset.radarSaveFeedback || null
+        }
+      };
+    });
+
+    expect(state).toEqual({
+      remote: false,
+      persistCalls: 1,
+      resultOk: true,
+      ownExecute: true,
+      performanceInstalled: true,
+      feedbackPrototypeInstalled: true,
+      feedbackInstanceInstalled: true,
+      notice: {
+        hidden: false,
+        text: 'Nota fiscal salva com sucesso.',
+        kind: 'success'
+      }
+    });
+  });
 });
