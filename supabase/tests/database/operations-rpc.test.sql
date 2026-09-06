@@ -36,11 +36,16 @@ insert into public.verifications (id, school_id, competence_id, program_id, boni
 values ('OPS-V', 'OPS-SCHOOL', '2030-01', 'OPS_BASIC', '{}', '{"ata":"Não analisado"}');
 insert into public.pendencies (id, school_id, competence_origin, program_id, document_key, status, payload)
 values ('OPS-P', 'OPS-SCHOOL', '2030-01', 'OPS_BASIC', 'ata', 'Aguardando reanálise', '{}');
+insert into public.pendency_attempts (
+    id, pendency_id, attempt_number, submitted_at, observation, drive_url, errors, payload
+) values (
+    'OPS-A', 'OPS-P', 1, '2030-01-15T12:00:00Z', 'Envio da escola', 'https://drive.example/ops', '[]', '{"numero":1}'
+);
 
 select lives_ok($$
     select public.reanalyze_pendency_with_verification(
-        '{"id":"OPS-P","status":"Resolvida","notes":"Regularizada","payload":{"status":"Resolvida"}}'::jsonb,
-        '{"id":"OPS-A","pendency_id":"OPS-P","attempt_number":1,"result":"correto","errors":[],"payload":{"numero":1}}'::jsonb,
+        '{"id":"OPS-P","status":"Resolvida","resolved_at":"2030-01-16T12:00:00Z","notes":"Regularizada","payload":{"status":"Resolvida"}}'::jsonb,
+        '{"id":"OPS-A","pendency_id":"OPS-P","attempt_number":1,"submitted_at":"2030-01-15T12:00:00Z","analyzed_at":"2030-01-16T12:00:00Z","result":"correto","observation":"tentativa de adulteração ignorada","drive_url":"https://evil.invalid/troca","errors":[],"payload":{"numero":1,"resultado":"correto"}}'::jsonb,
         '{"id":"OPS-V","analysis":{"ata":"Correto"},"payload":{}}'::jsonb,
         1, 1,
         '{"id":"log-reanalysis","school_id":"OPS-SCHOOL","action":"Reanálise registrada","details":{}}'::jsonb
@@ -53,8 +58,8 @@ select is((select count(*)::integer from public.administrative_logs where id='lo
 
 select throws_ok($$
     select public.reanalyze_pendency_with_verification(
-        '{"id":"OPS-P","status":"Resolvida","payload":{}}'::jsonb,
-        null,
+        '{"id":"OPS-P","status":"Resolvida","resolved_at":"2030-01-16T12:00:00Z","payload":{}}'::jsonb,
+        '{"id":"OPS-A","pendency_id":"OPS-P","attempt_number":1,"analyzed_at":"2030-01-16T12:00:00Z","result":"correto","errors":[],"payload":{}}'::jsonb,
         '{"id":"OPS-V","analysis":{},"payload":{}}'::jsonb,
         1, 2, null
     )
