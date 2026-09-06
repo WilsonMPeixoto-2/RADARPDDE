@@ -66,3 +66,42 @@ test('commit remoto confirmado com falha local sem code retorna sincronização 
     assert.equal(result.stateSync?.localStateApplied, false);
     assert.equal(result.stateSync?.refreshRequired, true);
 });
+
+test('falha local transitória é reconciliada por leitura segura sem repetir a escrita remota', async () => {
+    const repository = createRemoteRepository();
+    const localSnapshot = createSnapshotEnvelope({
+        schools: [{ id: 'school-1', name: 'Escola Antiga', row_version: 1 }]
+    }, { importId: 'local-before' });
+    let applyCalls = 0;
+    const statePort = {
+        capture: async () => ({ memory: 'before' }),
+        restore: async () => undefined,
+        exportCanonical: async () => structuredClone(localSnapshot),
+        applyCanonical: async () => {
+            applyCalls += 1;
+            if (applyCalls === 1) throw new Error('Falha transitória local');
+        }
+    };
+    const service = new DataService({
+        repository,
+        statePort,
+        unitOfWork: new UnitOfWork({ statePort })
+    });
+
+    const result = await service.execute({
+        name: 'invoice:save',
+        changedEntities: ['schools'],
+        remoteResultIsAuthoritative: true,
+        mutate: () => ({ saved: true }),
+        persist: async () => repository.persist()
+    });
+
+    assert.equal(repository.getPersistCalls(), 1);
+    assert.equal(applyCalls, 2, 'deve tentar apenas uma leitura/aplicação corretiva');
+    assert.equal(result.refreshPending, false);
+    assert.equal(result.stateApplyErrorCode, null);
+    assert.equal(result.stateSync?.status, 'applied');
+    assert.equal(result.stateSync?.remoteCommitConfirmed, true);
+    assert.equal(result.stateSync?.localStateApplied, true);
+    assert.equal(result.stateSync?.refreshRequired, false);
+});
