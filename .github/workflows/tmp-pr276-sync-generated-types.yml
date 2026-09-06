@@ -1,0 +1,44 @@
+name: TMP PR276 sync generated types
+
+on:
+  push:
+    branches:
+      - fix/invoice-intent-idempotency-2026-09-06
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  sync-generated-types:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: fix/invoice-intent-idempotency-2026-09-06
+          fetch-depth: 0
+      - name: Download generated artifacts from verified run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf .tmp-generated
+          mkdir .tmp-generated
+          gh run download 34024996445 --repo "${GITHUB_REPOSITORY}" --name generated-supabase-artifacts --dir .tmp-generated
+          test -s .tmp-generated/src/types/database.types.ts
+      - name: Commit exact generated database types
+        run: |
+          set -euo pipefail
+          cp .tmp-generated/src/types/database.types.ts src/types/database.types.ts
+          rm -rf .tmp-generated
+          if git diff --quiet -- src/types/database.types.ts; then
+            echo 'database.types.ts já está alinhado.'
+            exit 0
+          fi
+          git config user.name 'radar-ci'
+          git config user.email 'radar-ci@users.noreply.github.com'
+          git add src/types/database.types.ts
+          git commit -m 'chore: align generated database types [skip ci]'
+          git push origin HEAD:fix/invoice-intent-idempotency-2026-09-06
