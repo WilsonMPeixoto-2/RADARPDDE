@@ -105,3 +105,58 @@ test('falha local transitória é reconciliada por leitura segura sem repetir a 
     assert.equal(result.stateSync?.localStateApplied, true);
     assert.equal(result.stateSync?.refreshRequired, false);
 });
+
+test('falha somente na releitura remota mantém aplicação local distinta de erro de StatePort', async () => {
+    const localSnapshot = createSnapshotEnvelope({
+        schools: [{ id: 'school-1', name: 'Escola Antiga', row_version: 1 }]
+    }, { importId: 'local-before' });
+    const persistedSchools = [{ id: 'school-1', name: 'Escola Atualizada', row_version: 2 }];
+    let persistCalls = 0;
+    let loadCalls = 0;
+    let applyCalls = 0;
+    const repository = {
+        capabilities: () => ({ mode: 'supabase', remote: true, canImportLegacy: false }),
+        load: async () => {
+            loadCalls += 1;
+            throw new Error('Falha sintética de leitura remota');
+        },
+        save: async () => [],
+        remove: async () => ({ removed: 0 }),
+        exportSnapshot: async () => structuredClone(localSnapshot),
+        restoreSnapshot: async () => undefined,
+        healthCheck: async () => ({ ok: true, mode: 'supabase' })
+    };
+    const statePort = {
+        capture: async () => ({ memory: 'before' }),
+        restore: async () => undefined,
+        exportCanonical: async () => structuredClone(localSnapshot),
+        applyCanonical: async () => {
+            applyCalls += 1;
+        }
+    };
+    const service = new DataService({
+        repository,
+        statePort,
+        unitOfWork: new UnitOfWork({ statePort })
+    });
+
+    const result = await service.execute({
+        name: 'probe:non-authoritative',
+        changedEntities: ['schools'],
+        mutate: () => ({ saved: true }),
+        persist: async () => {
+            persistCalls += 1;
+            return { schools: structuredClone(persistedSchools) };
+        }
+    });
+
+    assert.equal(persistCalls, 1, 'a escrita confirmada não pode ser repetida por falha da releitura');
+    assert.equal(loadCalls, 1, 'deve haver uma única tentativa corretiva de leitura');
+    assert.equal(applyCalls, 1, 'o retorno persistido foi aplicado antes da releitura falhar');
+    assert.equal(result.refreshPending, true);
+    assert.equal(result.stateApplyErrorCode, null, 'falha de rede não pode ser rotulada como falha local');
+    assert.equal(result.stateSync?.status, 'pending');
+    assert.equal(result.stateSync?.remoteCommitConfirmed, true);
+    assert.equal(result.stateSync?.localStateApplied, true);
+    assert.equal(result.stateSync?.refreshRequired, true);
+});
