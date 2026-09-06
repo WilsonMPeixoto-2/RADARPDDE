@@ -651,7 +651,10 @@
                     { operation: 'saveInvoiceWithEffects' }
                 );
             }
-            return this.executeRpc('save_invoice_with_effects', {
+            const operationKey = input.operationKey == null ? '' : String(input.operationKey).trim();
+            const rpcName = operationKey ? 'save_invoice_with_effects_v2' : 'save_invoice_with_effects';
+            const args = {
+                ...(operationKey ? { p_operation_key: operationKey } : {}),
                 p_invoice: cloneValue(input.invoice),
                 p_asset: input.asset ? cloneValue(input.asset) : null,
                 p_verification_patch: input.verificationPatch ? cloneValue(input.verificationPatch) : null,
@@ -659,7 +662,8 @@
                 p_expected_asset_version: input.expectedAssetVersion ?? null,
                 p_expected_verification_version: input.expectedVerificationVersion ?? null,
                 p_administrative_log: input.administrativeLog ? cloneValue(input.administrativeLog) : null
-            }, 'saveInvoiceWithEffects');
+            };
+            return this.executeRpc(rpcName, args, 'saveInvoiceWithEffects');
         }
 
         async deleteInvoiceWithEffects(input = {}) {
