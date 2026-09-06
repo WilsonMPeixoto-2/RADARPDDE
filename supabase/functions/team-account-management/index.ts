@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient, type User } from "npm:@supabase/supabase-js@2.112.4";
 import {
   buildInviteMetadata,
+  canCompensateAmbiguousInvite,
   isTeamManagerRole,
   normalizeEmail,
   normalizeTeamCommand,
@@ -49,6 +50,20 @@ function publicError(error: unknown): { code: string; message: string; status: n
       code: "COMPENSATION_FAILED",
       message: "A operação falhou e a restauração automática não foi concluída. Acione a administração técnica.",
       status: 500,
+    };
+  }
+  if (message.includes("REMOTE_COMMIT_UNKNOWN")) {
+    return {
+      code: "REMOTE_COMMIT_UNKNOWN",
+      message: "A conclusão da operação não pôde ser confirmada. Atualize os dados antes de tentar novamente.",
+      status: 503,
+    };
+  }
+  if (message.includes("OPTIMISTIC_CONFLICT")) {
+    return {
+      code: "OPTIMISTIC_CONFLICT",
+      message: "Este cadastro foi alterado por outra sessão. Atualize os dados antes de editar novamente.",
+      status: 409,
     };
   }
   if (message.includes("NOT_FOUND")) {
@@ -115,15 +130,24 @@ function adminClient(url: string) {
   });
 }
 
+type TeamDirectoryEntity = {
+  id: string;
+  user_id: string | null;
+  name: string;
+  email: string;
+  active: boolean;
+  row_version: number;
+};
+
 async function currentEntity(admin: ReturnType<typeof createClient>, profileId: string, id: string) {
   const table = profileId === "controller" ? "controllers" : "inventory_team_members";
   const { data, error } = await admin
     .from(table)
-    .select("id,user_id,name,email,active")
+    .select("id,user_id,name,email,active,row_version")
     .eq("id", id)
     .maybeSingle();
   if (error) throw error;
-  return data as { id: string; user_id: string | null; name: string; email: string; active: boolean } | null;
+  return data as TeamDirectoryEntity | null;
 }
 
 async function linkedProfileUserId(
@@ -213,6 +237,154 @@ async function assertReusableAccount(
   }
 }
 
+function remoteCommitUnknown(): Error {
+  return new Error("REMOTE_COMMIT_UNKNOWN: o resultado durável da operação não pôde ser confirmado");
+}
+
+function optimisticConflict(): Error {
+  return new Error("OPTIMISTIC_CONFLICT: o cadastro foi alterado por outra sessão");
+}
+
+function isOptimisticConflict(error: unknown): boolean {
+  return String((error as { message?: string })?.message || error || "").includes("OPTIMISTIC_CONFLICT");
+}
+
+function isDefinitiveDatabaseRejection(error: unknown): boolean {
+  const code = String((error as { code?: string })?.code || "").trim().toUpperCase();
+  // Connection/proxy failures and statement_completion_unknown do not prove rollback.
+  return code !== "40003" && /^(22|23|25|28|2D|40|42|P0)[0-9A-Z]{3}$/.test(code);
+}
+
+async function writeTeamRpc(
+  admin: ReturnType<typeof createClient>,
+  name: string,
+  args: Record<string, unknown>,
+) {
+  try {
+    return await admin.rpc(name, args);
+  } catch (error) {
+    // A rejected transport Promise has the same ambiguous outcome as a returned error.
+    return { data: null, error };
+  }
+}
+
+async function operationLogExists(
+  admin: ReturnType<typeof createClient>,
+  operationId: string,
+  actorUserId: string,
+): Promise<boolean> {
+  if (!operationId) return false;
+  const { data, error } = await admin
+    .from("administrative_logs")
+    .select("id,actor_user_id")
+    .eq("id", operationId)
+    .eq("actor_user_id", actorUserId)
+    .maybeSingle();
+  if (error) throw error;
+  return Boolean(data?.id);
+}
+
+async function activeProfileMatches(
+  admin: ReturnType<typeof createClient>,
+  profileId: string,
+  entityId: string,
+  userId: string,
+): Promise<boolean> {
+  const linkColumn = profileId === "controller" ? "controller_id" : "inventory_member_id";
+  const { data, error } = await admin
+    .from("user_profiles")
+    .select("user_id,profile_id,controller_id,inventory_member_id,active")
+    .eq("user_id", userId)
+    .eq("profile_id", profileId)
+    .eq(linkColumn, entityId)
+    .eq("active", true)
+    .maybeSingle();
+  if (error) throw error;
+  return Boolean(data?.user_id);
+}
+
+async function inactiveProfileMatches(
+  admin: ReturnType<typeof createClient>,
+  profileId: string,
+  entityId: string,
+  userId: string,
+): Promise<boolean> {
+  const linkColumn = profileId === "controller" ? "controller_id" : "inventory_member_id";
+  const { data, error } = await admin
+    .from("user_profiles")
+    .select("user_id,profile_id,controller_id,inventory_member_id,active")
+    .eq("user_id", userId)
+    .eq("profile_id", profileId)
+    .eq(linkColumn, entityId)
+    .eq("active", false)
+    .maybeSingle();
+  if (error) throw error;
+  return Boolean(data?.user_id);
+}
+
+async function proveSaveCommit(
+  admin: ReturnType<typeof createClient>,
+  actor: User,
+  command: ReturnType<typeof normalizeTeamCommand>,
+  userId: string,
+) {
+  const entity = command.entity!;
+  const [directory, profileMatches, logMatches] = await Promise.all([
+    currentEntity(admin, command.profileId, entity.id),
+    activeProfileMatches(admin, command.profileId, entity.id, userId),
+    operationLogExists(admin, String(command.administrativeLog?.id || ""), actor.id),
+  ]);
+  const directoryMatches = Boolean(
+    directory
+      && directory.active === true
+      && String(directory.user_id || "") === userId
+      && String(directory.name || "") === String(entity.name || "")
+      && normalizeEmail(directory.email) === normalizeEmail(entity.email),
+  );
+  if (!directoryMatches || !profileMatches || !logMatches) return null;
+  return {
+    profile_id: command.profileId,
+    entity: directory,
+    user_id: userId,
+  };
+}
+
+async function proveDeactivationCommit(
+  admin: ReturnType<typeof createClient>,
+  actor: User,
+  command: ReturnType<typeof normalizeTeamCommand>,
+  userId: string,
+) {
+  const entityId = command.entityId!;
+  const [directory, logMatches] = await Promise.all([
+    currentEntity(admin, command.profileId, entityId),
+    operationLogExists(admin, String(command.administrativeLog?.id || ""), actor.id),
+  ]);
+  if (!directory || directory.active !== false || !logMatches) return null;
+  if (userId) {
+    const profileMatches = await inactiveProfileMatches(
+      admin,
+      command.profileId,
+      entityId,
+      userId,
+    );
+    if (!profileMatches || String(directory.user_id || "") !== userId) return null;
+  } else if (String(directory.user_id || "").trim()) {
+    return null;
+  }
+  return command.profileId === "controller"
+    ? {
+      controller_id: entityId,
+      fallback_controller_id: null,
+      reassigned_count: 0,
+      user_id: userId || null,
+    }
+    : {
+      member_id: entityId,
+      user_id: userId || null,
+    };
+}
+
 function compensationFailure(action: string, cause: unknown): Error {
   const reason = String((cause as { message?: string })?.message || "erro não informado");
   return new Error(`COMPENSATION_FAILED: ${action}: ${reason}`);
@@ -224,6 +396,25 @@ async function removeInvitedUser(admin: ReturnType<typeof createClient>, userId:
     if (error) throw error;
   } catch (error) {
     throw compensationFailure("não foi possível remover a conta recém-criada", error);
+  }
+}
+
+async function compensateAmbiguousInvite(
+  admin: ReturnType<typeof createClient>,
+  command: ReturnType<typeof normalizeTeamCommand>,
+): Promise<boolean> {
+  try {
+    const candidateId = await authUserIdByEmail(admin, command.entity!.email);
+    if (!candidateId) return false;
+    const candidate = await authUser(admin, candidateId);
+    if (!candidate || !canCompensateAmbiguousInvite(candidate, command)) return false;
+    await removeInvitedUser(admin, candidateId);
+    return true;
+  } catch (error) {
+    if (String((error as { message?: string })?.message || "").includes("COMPENSATION_FAILED")) {
+      throw error;
+    }
+    throw compensationFailure("não foi possível verificar o resultado ambíguo do convite", error);
   }
 }
 
@@ -266,6 +457,45 @@ async function restoreAccess(
   }
 }
 
+async function reconcileAuthAfterOptimisticConflict(
+  admin: ReturnType<typeof createClient>,
+  command: ReturnType<typeof normalizeTeamCommand>,
+  attemptedUserId: string,
+  createdUser: boolean,
+  previousUser: User | null,
+) {
+  try {
+    const directory = await currentEntity(admin, command.profileId, command.entity!.id);
+    const winnerUserId = String(directory?.user_id || "").trim();
+    if (!directory || directory.active !== true || !winnerUserId) {
+      throw new Error("estado vencedor do diretório não pôde ser determinado");
+    }
+    const winnerUser = await authUser(admin, winnerUserId);
+    if (!winnerUser) throw new Error("conta Auth do estado vencedor não foi localizada");
+    const winnerMetadata = {
+      ...(winnerUser.user_metadata || {}),
+      display_name: directory.name,
+      radar_profile: command.profileId,
+      radar_entity_id: directory.id,
+      radar_cre_scope: String(winnerUser.user_metadata?.radar_cre_scope || "4ª CRE"),
+    };
+    const { error } = await admin.auth.admin.updateUserById(winnerUserId, {
+      email: directory.email,
+      user_metadata: winnerMetadata,
+      ban_duration: "none",
+    });
+    if (error) throw error;
+
+    if (attemptedUserId && attemptedUserId !== winnerUserId) {
+      if (createdUser) await removeInvitedUser(admin, attemptedUserId);
+      else if (previousUser) await restoreUser(admin, attemptedUserId, previousUser);
+    }
+  } catch (error) {
+    if (String((error as { message?: string })?.message || "").includes("COMPENSATION_FAILED")) throw error;
+    throw compensationFailure("não foi possível reconciliar o Auth com a edição concorrente vencedora", error);
+  }
+}
+
 async function saveMember(
   admin: ReturnType<typeof createClient>,
   actor: User,
@@ -273,6 +503,10 @@ async function saveMember(
 ) {
   const entity = command.entity!;
   const existing = await currentEntity(admin, command.profileId, entity.id);
+  const expectedVersion = Number(command.expectedVersion || 0) || null;
+  if (expectedVersion != null) {
+    if (!existing || existing.row_version !== expectedVersion) throw optimisticConflict();
+  }
   const metadata = buildInviteMetadata(command);
   let userId = await resolveMemberUserId(
     admin,
@@ -281,8 +515,10 @@ async function saveMember(
     existing?.user_id,
   );
   let createdUser = false;
+  let inviteAttempted = false;
   let reusedExistingAccount = false;
   let previousUser: User | null = null;
+  let conflictReconciliationAttempted = false;
 
   try {
     if (!userId) {
@@ -309,20 +545,52 @@ async function saveMember(
       const options: { data: Record<string, string>; redirectTo?: string } = { data: metadata };
       const redirectTo = Deno.env.get("RADAR_INVITE_REDIRECT_URL");
       if (redirectTo) options.redirectTo = redirectTo;
+      inviteAttempted = true;
       const { data, error } = await admin.auth.admin.inviteUserByEmail(entity.email, options);
       if (error || !data.user?.id) throw error || new Error("ACCOUNT_CONFLICT: convite sem usuário");
       userId = data.user.id;
       createdUser = true;
     }
 
-    const { data, error } = await admin.rpc("upsert_team_member_account", {
+    const { data, error } = await writeTeamRpc(admin, "upsert_team_member_account", {
       p_member: entity,
       p_user_id: userId,
       p_profile_id: command.profileId,
       p_actor_user_id: actor.id,
       p_administrative_log: command.administrativeLog,
     });
-    if (error) throw error;
+    if (error) {
+      if (isOptimisticConflict(error)) {
+        conflictReconciliationAttempted = true;
+        await reconcileAuthAfterOptimisticConflict(
+          admin,
+          command,
+          userId,
+          createdUser,
+          previousUser,
+        );
+        throw optimisticConflict();
+      }
+      let committedResult = null;
+      try {
+        committedResult = await proveSaveCommit(admin, actor, command, userId);
+      } catch (_reconciliationError) {
+        throw remoteCommitUnknown();
+      }
+      if (committedResult) {
+        return {
+          ok: true,
+          userId,
+          invited: createdUser,
+          reusedExistingAccount,
+          recoveredLink: Boolean(!existing?.user_id && !createdUser && userId),
+          reconciledAfterAmbiguousCommit: true,
+          result: committedResult,
+        };
+      }
+      if (!isDefinitiveDatabaseRejection(error)) throw remoteCommitUnknown();
+      throw error;
+    }
     return {
       ok: true,
       userId,
@@ -332,8 +600,16 @@ async function saveMember(
       result: data,
     };
   } catch (error) {
+    if (
+      String((error as { message?: string })?.message || "").includes("REMOTE_COMMIT_UNKNOWN")
+      || conflictReconciliationAttempted
+    ) {
+      throw error;
+    }
     if (createdUser && userId) {
       await removeInvitedUser(admin, userId);
+    } else if (inviteAttempted && !userId) {
+      await compensateAmbiguousInvite(admin, command);
     } else if (previousUser && userId) {
       await restoreUser(admin, userId, previousUser);
     }
@@ -382,10 +658,32 @@ async function deactivateMember(
         p_actor_user_id: actor.id,
         p_administrative_log: command.administrativeLog,
       };
-    const { data, error } = await admin.rpc(rpc, args);
-    if (error) throw error;
+    const { data, error } = await writeTeamRpc(admin, rpc, args);
+    if (error) {
+      let committedResult = null;
+      try {
+        committedResult = await proveDeactivationCommit(admin, actor, command, userId);
+      } catch (_reconciliationError) {
+        throw remoteCommitUnknown();
+      }
+      if (committedResult) {
+        return {
+          ok: true,
+          userId,
+          accessDisabled: Boolean(userId),
+          recoveredLink: Boolean(!existing.user_id && userId),
+          reconciledAfterAmbiguousCommit: true,
+          result: committedResult,
+        };
+      }
+      if (!isDefinitiveDatabaseRejection(error)) throw remoteCommitUnknown();
+      throw error;
+    }
     return { ok: true, userId, accessDisabled: Boolean(userId), recoveredLink: Boolean(!existing.user_id && userId), result: data };
   } catch (error) {
+    if (String((error as { message?: string })?.message || "").includes("REMOTE_COMMIT_UNKNOWN")) {
+      throw error;
+    }
     if (banned && userId && previousUser) {
       await restoreAccess(admin, userId, previousUser);
     }

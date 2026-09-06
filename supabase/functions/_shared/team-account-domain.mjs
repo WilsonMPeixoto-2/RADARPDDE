@@ -7,6 +7,11 @@ function text(value) {
     return value == null ? '' : String(value).trim();
 }
 
+function rowVersionOf(value) {
+    const candidate = Number(value?.rowVersion ?? value?.row_version);
+    return Number.isInteger(candidate) && candidate > 0 ? candidate : null;
+}
+
 export function normalizeEmail(value) {
     const email = text(value).toLowerCase();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
@@ -26,7 +31,7 @@ function administrativeLog(value) {
     return structuredClone(value);
 }
 
-function normalizeEntity(value, profileId) {
+function normalizeEntity(value) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
         throw new Error('Integrante da equipe inválido.');
     }
@@ -38,50 +43,55 @@ function normalizeEntity(value, profileId) {
         name,
         email: normalizeEmail(value.email),
         active: value.active !== false,
-        cre_scope: text(value.cre_scope || value.creScope) || '4ª CRE',
-        profile_id: profileId
+        cre_scope: text(value.cre_scope || value.creScope) || '4ª CRE'
+    };
+}
+
+function normalizeSaveCommand(input, operation, profileId, entityKey, previousKey) {
+    const entity = normalizeEntity(input[entityKey]);
+    const previousEntity = input[previousKey] ? structuredClone(input[previousKey]) : null;
+    const expectedVersion = previousEntity
+        ? (rowVersionOf(previousEntity) || rowVersionOf(input[entityKey]))
+        : null;
+    if (previousEntity && expectedVersion == null) {
+        throw new Error('Versão anterior do integrante é obrigatória para edição concorrente segura.');
+    }
+    if (expectedVersion != null) entity.row_version = expectedVersion;
+    return {
+        operation,
+        profileId,
+        entity,
+        previousEntity,
+        expectedVersion,
+        administrativeLog: administrativeLog(input.administrativeLog)
     };
 }
 
 export function normalizeTeamCommand(input = {}) {
     const operation = text(input.operation);
     if (!OPERATIONS.has(operation)) throw new Error('Operação de Gestão de Equipe não reconhecida.');
-    const log = administrativeLog(input.administrativeLog);
 
     if (operation === 'save_controller') {
-        const entity = normalizeEntity(input.controller, 'controller');
-        return {
+        return normalizeSaveCommand(
+            input,
             operation,
-            profileId: 'controller',
-            entity: {
-                id: entity.id,
-                name: entity.name,
-                email: entity.email,
-                active: entity.active,
-                cre_scope: entity.cre_scope
-            },
-            previousEntity: input.previousController ? structuredClone(input.previousController) : null,
-            administrativeLog: log
-        };
+            'controller',
+            'controller',
+            'previousController'
+        );
     }
 
     if (operation === 'save_inventory_member') {
-        const entity = normalizeEntity(input.member, 'inventory');
-        return {
+        return normalizeSaveCommand(
+            input,
             operation,
-            profileId: 'inventory',
-            entity: {
-                id: entity.id,
-                name: entity.name,
-                email: entity.email,
-                active: entity.active,
-                cre_scope: entity.cre_scope
-            },
-            previousEntity: input.previousMember ? structuredClone(input.previousMember) : null,
-            administrativeLog: log
-        };
+            'inventory',
+            'member',
+            'previousMember'
+        );
     }
 
+    const log = administrativeLog(input.administrativeLog);
     if (operation === 'deactivate_controller') {
         const entityId = text(input.controllerId);
         const fallbackControllerId = text(input.fallbackControllerId) || null;
@@ -116,12 +126,25 @@ export function buildInviteMetadata(command) {
     if (!['controller', 'inventory'].includes(profileId) || !text(entity.id) || !text(entity.name)) {
         throw new Error('Comando de convite inválido.');
     }
+    const operationId = text(command?.administrativeLog?.id);
     return {
         display_name: text(entity.name),
         radar_profile: profileId,
         radar_entity_id: text(entity.id),
-        radar_cre_scope: text(entity.cre_scope) || '4ª CRE'
+        radar_cre_scope: text(entity.cre_scope) || '4ª CRE',
+        ...(operationId ? { radar_account_operation_id: operationId } : {})
     };
+}
+
+export function canCompensateAmbiguousInvite(user, command) {
+    const operationId = text(command?.administrativeLog?.id);
+    const profileId = text(command?.profileId);
+    const entityId = text(command?.entity?.id);
+    const metadata = user?.user_metadata || {};
+    if (!operationId || !profileId || !entityId) return false;
+    return text(metadata.radar_account_operation_id) === operationId
+        && text(metadata.radar_profile) === profileId
+        && text(metadata.radar_entity_id) === entityId;
 }
 
 export const TEAM_ACCOUNT_OPERATIONS = Object.freeze([...OPERATIONS]);

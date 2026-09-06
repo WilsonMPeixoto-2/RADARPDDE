@@ -102,6 +102,11 @@ test('Assistente executa cadastro, edição, redistribuição e desativação re
       .update({ user_id: null })
       .eq('id', controllerId);
     if (controllerLinkGap.error) throw controllerLinkGap.error;
+    const controllerAfterGap = (await repository.load('controllers'))
+      .find(controller => controller.id === controllerId);
+    const localController = controladores.find(controller => controller.id === controllerId);
+    if (!controllerAfterGap || !localController) throw new Error('Controlador não pôde ser reconciliado após simular vínculo legado ausente.');
+    localController.rowVersion = controllerAfterGap.row_version;
 
     const controllerEdited = await services.directory.saveController({
       id: controllerId,
@@ -126,6 +131,11 @@ test('Assistente executa cadastro, edição, redistribuição e desativação re
       .update({ user_id: null })
       .eq('id', memberId);
     if (memberLinkGap.error) throw memberLinkGap.error;
+    const memberAfterGap = (await repository.load('inventoryTeamMembers'))
+      .find(member => member.id === memberId);
+    const localMember = equipeInventario.find(member => member.id === memberId);
+    if (!memberAfterGap || !localMember) throw new Error('Integrante não pôde ser reconciliado após simular vínculo legado ausente.');
+    localMember.rowVersion = memberAfterGap.row_version;
 
     const memberEdited = await services.directory.saveInventoryMember({
       id: memberId,
