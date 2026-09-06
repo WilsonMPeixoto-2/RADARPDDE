@@ -7,16 +7,17 @@
 Antes de analisar ou alterar o repositório, leia **nesta ordem**:
 
 1. `docs/CURRENT_STAGE.md` — checkpoint corrente; revalidar main e heads dos PRs antes de concluir estado atual;
-2. `docs/audits/2026-09-06-pr272-inventory-auth-review.md` — revisão por SHA de sincronização, Inventário terminal e compensação Auth;
-3. `docs/reference/STATUS_DOCUMENTOS.md` — validade documental e separação entre integrado, candidato e histórico;
-4. `docs/handoff/2026-09-04-estabilizacao-funcional-pr260.md` — histórico da estabilização anterior aos PRs #265–#267;
-5. `docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`;
-6. `docs/decisions/ADR-052-autoridade-unica-fluxos-criticos.md`;
-7. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` — consultar o JSON fonte antes de editar a visão gerada;
-8. `docs/PROJECT_CONTEXT.md` e `docs/DECISION_LOG.md`;
-9. `docs/handoff/2026-09-02-dependency-governance.md` quando a frente tocar dependências/tooling;
-10. somente depois, o plano R1–R9 de 03/09 e planos/handoffs históricos anteriores;
-11. código, GitHub, Vercel e Supabase correspondentes à frente, revalidados ao vivo quando houver dado volátil.
+2. `docs/reference/ENGINEERING_METHOD.md` — método permanente de investigação, implementação, teste e revisão adversarial; aplicar a todas as frentes futuras, usando os PRs históricos apenas como exemplos metodológicos;
+3. `docs/audits/2026-09-06-pr272-inventory-auth-review.md` — revisão por SHA de sincronização, Inventário terminal e compensação Auth;
+4. `docs/reference/STATUS_DOCUMENTOS.md` — validade documental e separação entre integrado, candidato e histórico;
+5. `docs/handoff/2026-09-04-estabilizacao-funcional-pr260.md` — histórico da estabilização anterior aos PRs #265–#267;
+6. `docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`;
+7. `docs/decisions/ADR-052-autoridade-unica-fluxos-criticos.md`;
+8. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` — consultar o JSON fonte antes de editar a visão gerada;
+9. `docs/PROJECT_CONTEXT.md` e `docs/DECISION_LOG.md`;
+10. `docs/handoff/2026-09-02-dependency-governance.md` quando a frente tocar dependências/tooling;
+11. somente depois, o plano R1–R9 de 03/09 e planos/handoffs históricos anteriores;
+12. código, GitHub, Vercel e Supabase correspondentes à frente, revalidados ao vivo quando houver dado volátil.
 
 **Regra de continuidade:** código atual e decisões vigentes prevalecem sobre planos históricos. Não restaurar tarefa, regra, wrapper ou layout antigo apenas porque aparece em plano histórico. O PR #262 foi abortado. PR aberto, inclusive #263 com sua rota documental candidata, não redefine a main. Se `START_HERE.md` ainda não existir no SHA consultado, seguir esta rota; não copiar automaticamente a de outro branch.
 
@@ -241,7 +242,7 @@ Se um teste, comentário antigo ou auditoria contrariar esses pontos, classifica
 
 ## 10. Testes: regra principal
 
-Aplicar `docs/reference/TEST_GOVERNANCE.md`.
+Aplicar conjuntamente `docs/reference/ENGINEERING_METHOD.md` e `docs/reference/TEST_GOVERNANCE.md`.
 
 Antes de corrigir qualquer falha de teste, classifique-a como:
 
@@ -252,6 +253,8 @@ Antes de corrigir qualquer falha de teste, classifique-a como:
 5. flaky não reproduzível.
 
 Só o primeiro caso autoriza alterar o produto por causa da falha.
+
+Para mudanças P0/P1, transversais ou que toquem concorrência, persistência, Auth, RPC, bootstrap, wrappers ou estado compartilhado, o RED/GREEN do caso original é apenas a primeira prova. Antes de declarar o PR pronto, executar revisão adversarial proporcional das interações atingidas, privilegiando código real com fronteiras controladas, interleavings determinísticos e verificação do estado final.
 
 ### Validação proporcional
 
@@ -316,6 +319,7 @@ As posições-fonte K, R e Y são removidas na projeção pública. Alteração 
 
 - código e ambientes efetivos são superiores à documentação;
 - `CURRENT_STAGE.md` descreve o presente;
+- `ENGINEERING_METHOD.md` define o método duradouro de investigação, implementação e revisão adversarial;
 - matriz JSON é a fonte da visão gerada `FUNCTIONAL_CONTRACT_MATRIX.md`;
 - `TEST_GOVERNANCE.md` controla a estratégia de validação;
 - auditorias e planos datados registram o passado e não são reescritos para parecer atuais;
@@ -332,13 +336,15 @@ Fluxo padrão:
 1. confirmar HEAD remoto;
 2. criar branch específica;
 3. inspecionar código antes de testes;
-4. implementar a menor mudança coerente;
-5. executar validação proporcional uma vez;
-6. classificar falhas encontradas;
-7. corrigir apenas defeitos reais ou testes comprovadamente superados;
-8. abrir PR com escopo, riscos e evidências;
-9. integrar quando objetivamente pronto;
-10. confirmar o SHA efetivamente publicado quando houver mudança de Production.
+4. confirmar a causa e refutar correção equivalente já existente;
+5. implementar a menor mudança coerente;
+6. executar RED/GREEN e validação proporcional;
+7. revisar adversarialmente as fronteiras materiais tocadas pela própria correção;
+8. classificar falhas encontradas;
+9. corrigir apenas defeitos reais ou testes comprovadamente superados;
+10. abrir PR com escopo, riscos e evidências;
+11. integrar quando objetivamente pronto;
+12. confirmar o SHA efetivamente publicado quando houver mudança de Production.
 
 Não aguardar indefinidamente todos os jobs nem reiniciar a mesma bateria sem nova evidência.
 
@@ -350,6 +356,7 @@ Uma frente pode ser encerrada quando:
 - o usuário consegue encontrar, compreender e executar as ações esperadas;
 - dados e informações permanecem coerentes após a operação;
 - não há defeito relevante conhecido no escopo;
+- a revisão adversarial proporcional não revelou interação material sem tratamento;
 - falhas de teste remanescentes foram classificadas e não representam regressão real.
 
 Cobertura parcial, teste histórico, Lighthouse não relacionado ou ausência de uma prova opcional não mantêm automaticamente o RADAR em estado de projeto inacabado.
