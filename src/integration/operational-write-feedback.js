@@ -147,82 +147,36 @@
     function feedbackForResult(operation, result = {}) {
         const successMessage = SAVE_SUCCESS_MESSAGES[text(operation)];
         if (!successMessage || result?.ok !== true) return null;
-
-        const stateSync = result.stateSync || {};
-        const remoteSavedButStale = stateSync.remoteCommitConfirmed === true
-            && (stateSync.status === 'failed'
-                || stateSync.status === 'pending'
-                || stateSync.localStateApplied === false
-                || stateSync.refreshRequired === true
+        const sync = result.stateSync || {};
+        if (sync.remoteCommitConfirmed === true
+            && (sync.status !== 'applied'
+                || sync.localStateApplied === false
+                || sync.refreshRequired === true
                 || result.refreshPending === true
-                || Boolean(result.stateApplyErrorCode));
-
-        if (remoteSavedButStale) {
-            return {
-                kind: 'warning',
-                message: SYNC_WARNING_MESSAGE,
-                persistent: true
-            };
+                || Boolean(result.stateApplyErrorCode))) {
+            return { kind: 'warning', message: SYNC_WARNING_MESSAGE, persistent: true };
         }
-
-        return {
-            kind: 'success',
-            message: successMessage,
-            persistent: false
-        };
+        return { kind: 'success', message: successMessage, persistent: false };
     }
 
     function ensureSaveNotice(root) {
-        const document = root?.document;
-        if (!document?.createElement || !document?.body?.appendChild) return null;
-        const existing = document.getElementById?.('radar-save-notice');
-        if (existing) return existing;
-
-        const notice = document.createElement('div');
-        notice.id = 'radar-save-notice';
-        notice.className = 'radar-save-notice';
-        notice.setAttribute('role', 'status');
-        notice.setAttribute('aria-live', 'polite');
-        notice.setAttribute('aria-atomic', 'true');
-        notice.hidden = true;
-
-        const message = document.createElement('span');
-        message.className = 'radar-save-notice-message';
-        notice.appendChild(message);
-
-        const close = document.createElement('button');
-        close.type = 'button';
-        close.className = 'radar-save-notice-close';
-        close.setAttribute('aria-label', 'Fechar aviso de salvamento');
-        close.textContent = '×';
-        close.addEventListener('click', () => {
-            notice.hidden = true;
-        });
-        notice.appendChild(close);
-
-        document.body.appendChild(notice);
-        return notice;
+        return root?.document?.getElementById?.('pendency-notice') || null;
     }
 
     function showSaveNotice(root, feedback) {
-        if (!feedback?.message) return false;
         const notice = ensureSaveNotice(root);
-        if (!notice) return false;
-        const message = notice.querySelector?.('.radar-save-notice-message');
-        const close = notice.querySelector?.('.radar-save-notice-close');
-        if (message) message.textContent = feedback.message;
-        notice.classList?.remove('is-success', 'is-warning');
-        notice.classList?.add(feedback.kind === 'warning' ? 'is-warning' : 'is-success');
+        if (!notice || !feedback?.message) return false;
+        notice.textContent = feedback.message;
+        notice.dataset.radarSaveFeedback = feedback.kind;
+        if (feedback.kind === 'warning') notice.dataset.variant = 'duplicate';
+        else delete notice.dataset.variant;
         notice.hidden = false;
-        if (close) close.hidden = feedback.persistent !== true;
-
-        if (notice.__radarSaveNoticeTimer) {
-            root.clearTimeout?.(notice.__radarSaveNoticeTimer);
-            notice.__radarSaveNoticeTimer = null;
-        }
-        if (feedback.persistent !== true && typeof root.setTimeout === 'function') {
+        if (notice.__radarSaveNoticeTimer) root.clearTimeout?.(notice.__radarSaveNoticeTimer);
+        notice.__radarSaveNoticeTimer = null;
+        if (!feedback.persistent && typeof root.setTimeout === 'function') {
             notice.__radarSaveNoticeTimer = root.setTimeout(() => {
                 notice.hidden = true;
+                delete notice.dataset.radarSaveFeedback;
                 notice.__radarSaveNoticeTimer = null;
             }, 4500);
         }
@@ -230,28 +184,18 @@
     }
 
     function installDataServiceFeedback(root, notify) {
-        const DataService = root?.RadarDataService?.DataService;
-        const prototype = DataService?.prototype;
+        const prototype = root?.RadarDataService?.DataService?.prototype;
         if (!prototype || typeof prototype.execute !== 'function') return false;
         if (prototype[DATA_SERVICE_FEEDBACK_MARKER] === true) return true;
-
         const originalExecute = prototype.execute;
-        const notifier = typeof notify === 'function'
-            ? notify
-            : feedback => showSaveNotice(root, feedback);
-
+        const notifier = typeof notify === 'function' ? notify : feedback => showSaveNotice(root, feedback);
         prototype.execute = async function executeWithOperationalSaveFeedback(command = {}) {
             const result = await originalExecute.call(this, command);
             const feedback = feedbackForResult(command?.name, result);
             if (feedback) notifier(feedback);
             return result;
         };
-        Object.defineProperty(prototype, DATA_SERVICE_FEEDBACK_MARKER, {
-            value: true,
-            configurable: false,
-            enumerable: false,
-            writable: false
-        });
+        Object.defineProperty(prototype, DATA_SERVICE_FEEDBACK_MARKER, { value: true });
         return true;
     }
 
