@@ -247,6 +247,7 @@
                 );
             }
             this.unitOfWork = options.unitOfWork || new UnitOfWork({ statePort: this.statePort });
+            this.remoteExecutionTail = Promise.resolve();
         }
 
         async bootstrap(options = {}) {
@@ -386,7 +387,7 @@
             return { entities: Object.fromEntries(entries) };
         }
 
-        async refreshRemoteEntities(snapshot, changedEntities) {
+        async loadRemoteEntities(snapshot, changedEntities) {
             const refreshed = cloneValue(snapshot);
             const entries = await Promise.all(
                 changedEntities.map(async entity => [entity, await this.repository.load(entity)])
@@ -395,6 +396,11 @@
                 refreshed.entities[entity] = records;
             });
             assertSnapshotJson(refreshed, 'refreshRemoteEntities');
+            return refreshed;
+        }
+
+        async refreshRemoteEntities(snapshot, changedEntities) {
+            const refreshed = await this.loadRemoteEntities(snapshot, changedEntities);
             await this.statePort.applyCanonical(refreshed, {
                 persistStorage: false,
                 source: 'remote-refresh'
@@ -402,7 +408,18 @@
             return refreshed;
         }
 
-        async execute(command = {}) {
+        execute(command = {}) {
+            const remote = this.repository.capabilities().remote === true;
+            if (!remote) return this.executeCommand(command);
+            const run = this.remoteExecutionTail.then(
+                () => this.executeCommand(command),
+                () => this.executeCommand(command)
+            );
+            this.remoteExecutionTail = run.catch(() => undefined);
+            return run;
+        }
+
+        async executeCommand(command = {}) {
             if (typeof command.mutate !== 'function') {
                 throw new RepositoryError(
                     'VALIDATION_FAILED',
@@ -545,11 +562,10 @@
                     const needsCorrectiveRefresh = !canCommitWithoutRefresh || Boolean(stateApplyError);
                     if (needsCorrectiveRefresh) {
                         if (refreshEntities.length > 0) {
+                            let refreshedSnapshot = null;
                             try {
-                                committedSnapshot = await this.refreshRemoteEntities(committedSnapshot, refreshEntities);
-                                localStateApplied = true;
-                                stateApplyError = null;
-                            } catch (refreshError) {
+                                refreshedSnapshot = await this.loadRemoteEntities(committedSnapshot, refreshEntities);
+                            } catch (refreshReadError) {
                                 refreshPending = true;
                                 if (stateApplyError) {
                                     localStateApplied = false;
@@ -564,6 +580,21 @@
                                         stateApplyError = applyError;
                                         localStateApplied = false;
                                     }
+                                }
+                            }
+                            if (refreshedSnapshot) {
+                                committedSnapshot = refreshedSnapshot;
+                                try {
+                                    await this.statePort.applyCanonical(refreshedSnapshot, {
+                                        persistStorage: false,
+                                        source: 'remote-refresh'
+                                    });
+                                    localStateApplied = true;
+                                    stateApplyError = null;
+                                } catch (applyError) {
+                                    refreshPending = true;
+                                    stateApplyError = applyError;
+                                    localStateApplied = false;
                                 }
                             }
                         } else {
