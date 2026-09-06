@@ -1,6 +1,6 @@
 # Matriz de validade documental
 
-**Atualizado em:** 4 de setembro de 2026
+**Atualizado em:** 6 de setembro de 2026
 **Classe documental:** Canônico
 
 ## 1. Finalidade
@@ -9,7 +9,7 @@ Este documento define quais arquivos podem orientar o estado presente e quais ex
 
 O estado mutável do projeto fica em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md). A estratégia vigente de validação fica em [`TEST_GOVERNANCE.md`](TEST_GOVERNANCE.md).
 
-O roteamento corrente começa em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md) e [`../handoff/2026-09-04-estabilizacao-funcional-pr260.md`](../handoff/2026-09-04-estabilizacao-funcional-pr260.md). O plano source-first de 03/09 e os planos anteriores permanecem referências históricas de arquitetura e contexto, mas não controlam automaticamente a fila executável após os hotfixes e a estabilização de 04/09.
+O roteamento corrente começa em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md) e na [revisão de 06/09 por SHA](../audits/2026-09-06-pr272-inventory-auth-review.md). O handoff da estabilização de 04/09 e o plano source-first de 03/09 preservam seus checkpoints; não controlam automaticamente a fila após os PRs #265–#267. A rota candidata do PR #263 não redefine a main enquanto não integrada.
 
 ## 2. Classes
 
@@ -47,7 +47,8 @@ Um teste histórico não prevalece sobre regra e código posteriores. PR aberto,
 | `AGENTS.md` | regras de trabalho e proteção do projeto |
 | `README.md` | entrada do repositório |
 | `docs/CURRENT_STAGE.md` | estado corrente, prioridades e gatilhos de nova validação |
-| `docs/handoff/2026-09-04-estabilizacao-funcional-pr260.md` | **checkpoint canônico da estabilização funcional**; sincronização, persistência, reload, repetição de gesto e regressões |
+| `docs/audits/2026-09-06-pr272-inventory-auth-review.md` | evidência por SHA: main pós-#267, revisão dos candidatos #272/#271 e confirmação do Inventário terminal já integrado |
+| `docs/handoff/2026-09-04-estabilizacao-funcional-pr260.md` | checkpoint histórico da estabilização #260; não incorpora os hotfixes #265–#267 |
 | `docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md` | referência histórica do plano R1–R9 anterior à estabilização de 04/09; não executar literalmente |
 | `docs/audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md` | auditoria source-first que fundamenta o escopo remanescente |
 | `docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md` | checkpoint canônico da reconciliação pós-hotfix; antecede o plano source-first |
@@ -189,11 +190,11 @@ As auditorias dos incidentes de Gestão de Equipe permanecem válidas como hist�
 
 Arquivos de `docs/superpowers/plans/`, `docs/superpowers/specs/`, `docs/handoff/` e `docs/reports/` são normalmente **Histórico executado**, **Evidência** ou **Trabalho em andamento** conforme sua branch/PR.
 
-**Exceções expressas atuais:** o plano source-first de 03/09 é **Canônico — plano executável corrente**; sua reauditoria é **Evidência técnica corrente**; o handoff de reconciliação é **Canônico — checkpoint antecedente**. Os handoffs de execução, o plano do hotfix, o plano de 26/08 e a estabilização de 31/08 permanecem históricos/canônicos para contexto, mas não formam fila concorrente.
+O plano source-first de 03/09 é **Histórico de planejamento**; sua reauditoria é **Evidência técnica daquele SHA**; o handoff de reconciliação é **Checkpoint histórico antecedente**. Os handoffs de execução, o plano do hotfix, o plano de 26/08 e a estabilização de 31/08 também preservam seus contextos, sem formar fila concorrente com CURRENT_STAGE.md.
 
 `docs/handoff/2026-08-27-hotfix-boleto-internet.md` é **Histórico executado** do PR #203. Suas afirmações sobre a categoria autônoma `boletoInternet` não prevalecem sobre os PRs #208/#209 e o ADR-050.
 
-O plano `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md` permanece **Canônico como contrato técnico histórico**, mas **não é executável como sequência**. A fila atual é exclusivamente R1–R9 no plano source-first. O Word de 26/08 permanece **Referência canônica versionada** da decisão daquela data e não incorpora as soluções posteriores.
+O plano `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md` permanece **Canônico como contrato técnico histórico**, mas **não é executável como sequência**. R1–R9 também exige revalidação de cada premissa após os hotfixes. O Word de 26/08 permanece **Referência canônica versionada** da decisão daquela data e não incorpora as soluções posteriores.
 
 O handoff, o plano e o Word de 24/08 são **Superados como orientação operacional** e permanecem **Evidência/Histórico** do primeiro diagnóstico anterior ao PR #200. Não apagar nem reescrever esses arquivos.
 

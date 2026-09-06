@@ -1,0 +1,11 @@
+{
+  "transitions": [
+    "Não encaminhada",
+    "Encaminhada",
+    "Encaminhada"
+  ],
+  "legitimatePersists": 2,
+  "terminalStatus": "Inventariada",
+  "terminalPersists": 0,
+  "terminalLogs": 0
+}

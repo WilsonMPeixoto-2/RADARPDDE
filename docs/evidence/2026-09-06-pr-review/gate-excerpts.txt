@@ -1,0 +1,24 @@
+SOURCE: ../current-pgtap-green.log
+supabase-local	UNKNOWN STEP	2026-09-06T00:46:26.0210699Z Error response from daemon: toomanyrequests: Rate exceeded
+supabase-local	UNKNOWN STEP	2026-09-06T00:46:26.0211890Z Error response from daemon: toomanyrequests: Rate exceeded
+supabase-local	UNKNOWN STEP	2026-09-06T00:46:26.0271336Z Error response from daemon: toomanyrequests: Rate exceeded
+supabase-local	UNKNOWN STEP	2026-09-06T00:46:26.0522376Z Error response from daemon: toomanyrequests: Rate exceeded
+supabase-local	UNKNOWN STEP	2026-09-06T00:46:30.8553108Z toomanyrequests: Rate exceeded
+supabase-local	UNKNOWN STEP	2026-09-06T00:46:30.8987166Z toomanyrequests: Rate exceeded
+supabase-local	UNKNOWN STEP	2026-09-06T00:47:43.9979412Z /home/runner/work/RADARPDDE/RADARPDDE/supabase/tests/database/inventory-terminal-state.test.sql ................ ok
+supabase-local	UNKNOWN STEP	2026-09-06T00:47:45.8125290Z Files=27, Tests=401,  2 wallclock secs ( 0.09 usr  0.04 sys +  0.25 cusr  0.10 csys =  0.48 CPU)
+supabase-local	UNKNOWN STEP	2026-09-06T00:47:45.8126061Z Result: PASS
+SOURCE: ../current-aggregate-supabase-failure.log
+Supabase local, Auth, RLS e pgTAP	Regenerar e conferir artefatos	2026-09-06T00:47:58.8037037Z docker: toomanyrequests: Rate exceeded
+SOURCE: ../current-lighthouse-isolated.log
+Baseline mobile e desktop	UNKNOWN STEP	2026-09-06T00:47:07.4445387Z - LCP: 16,62 s
+Baseline mobile e desktop	UNKNOWN STEP	2026-09-06T00:47:07.4451303Z [Lighthouse] Violação: {"type":"metric","auditId":"largest-contentful-paint","maximum":15000,"actual":16620.99938667629}
+Baseline mobile e desktop	UNKNOWN STEP	2026-09-06T00:47:46.1266275Z - LCP: 3,43 s
+SOURCE: ../current-lighthouse272.log
+Lighthouse CI móvel e desktop	Auditar perfil desktop	2026-09-06T00:47:45.1288170Z - LCP: 3,85 s
+Lighthouse CI móvel e desktop	Auditar perfil desktop	2026-09-06T00:47:45.1294321Z [Lighthouse] Violação: {"type":"metric","auditId":"largest-contentful-paint","maximum":3500,"actual":3850.099404436736}
+SOURCE: ../current-lighthouse273.log
+Lighthouse CI móvel e desktop	UNKNOWN STEP	2026-09-06T00:43:11.5098266Z [Lighthouse] Violação: {"type":"metric","auditId":"largest-contentful-paint","maximum":15000,"actual":16102.857000000009}
+Lighthouse CI móvel e desktop	UNKNOWN STEP	2026-09-06T00:43:11.5099821Z - LCP: 16,10 s
+Lighthouse CI móvel e desktop	UNKNOWN STEP	2026-09-06T00:43:52.6922374Z - LCP: 3,56 s
+Lighthouse CI móvel e desktop	UNKNOWN STEP	2026-09-06T00:43:52.6931774Z [Lighthouse] Violação: {"type":"metric","auditId":"largest-contentful-paint","maximum":3500,"actual":3559.594882904231}

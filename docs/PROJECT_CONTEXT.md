@@ -1,6 +1,6 @@
 # RADAR PDDE 2026 — Contexto funcional e arquitetural
 
-**Atualizado em:** 3 de setembro de 2026
+**Atualizado em:** 6 de setembro de 2026
 **Classe documental:** Canônico
 
 ## 1. Finalidade
@@ -24,7 +24,11 @@ Dashboard, Carteira, Competências, Prontuário, Pendências, Inventário, Regis
 
 O baseline mutável corrente fica em [`CURRENT_STAGE.md`](CURRENT_STAGE.md).
 
-A porta de entrada executável canônica é [`superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](superpowers/plans/2026-09-03-plano-remanescente-source-first.md), sustentada pela [`reauditoria direta do código-fonte`](audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md). O handoff de reconciliação de 03/09 permanece como checkpoint canônico imediatamente anterior.
+A porta de entrada corrente é [`CURRENT_STAGE.md`](CURRENT_STAGE.md), com a [revisão de 06/09 por SHA](audits/2026-09-06-pr272-inventory-auth-review.md). O plano R1–R9 e a reauditoria de 03/09 são históricos: seus próximos passos não autorizam implementação automática após os hotfixes.
+
+`Inventariada` é terminal nos fluxos operacionais ordinários. O PR #265 protege o salvamento da NF, o serviço de encaminhamento e os UPDATEs de status no banco, incluindo a RPC patrimonial. `Não encaminhada → Encaminhada` continua permitido com os requisitos e versões esperadas existentes. Nenhuma alteração fiscal posterior pode rebaixar um bem inventariado.
+
+Commit remoto confirmado, sincronização local e finalização da operação Auth + banco são fronteiras diferentes. Os PRs #272 e #271 ainda não integrados não representam garantia disponível na main; consultar as lacunas e reproduções da revisão corrente antes de trabalhar nessas áreas.
 
 O hotfix de Notas Fiscais permanece documentado em [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md) e [`handoff/2026-08-30-pr211-publicacao-concluida.md`](handoff/2026-08-30-pr211-publicacao-concluida.md), agora como histórico técnico protegido pelas decisões posteriores.
 
