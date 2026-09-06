@@ -40,6 +40,9 @@
     });
     const SYNC_WARNING_MESSAGE = 'A alteração foi salva, mas a tela não conseguiu atualizar os dados. Atualize a página antes de continuar.';
     const DATA_SERVICE_FEEDBACK_MARKER = '__radarOperationalSaveFeedbackWrapped';
+    const DATA_SERVICE_INSTANCE_FEEDBACK_MARKER = '__radarOperationalSaveFeedbackInstanceWrapped';
+    const PENDENCY_NOTICE_COORDINATION_MARKER = '__radarOperationalSavePendencyNoticeCoordinated';
+    const activeFeedbackExecutions = new WeakSet();
 
     function text(value) {
         return value == null ? '' : String(value).trim();
@@ -163,39 +166,134 @@
         return root?.document?.getElementById?.('pendency-notice') || null;
     }
 
+    function cancelSaveNoticeTimer(root, notice) {
+        if (!notice?.__radarSaveNoticeTimer) return false;
+        root?.clearTimeout?.(notice.__radarSaveNoticeTimer);
+        notice.__radarSaveNoticeTimer = null;
+        notice.__radarSaveNoticeOwner = null;
+        return true;
+    }
+
     function showSaveNotice(root, feedback) {
         const notice = ensureSaveNotice(root);
         if (!notice || !feedback?.message) return false;
+        cancelSaveNoticeTimer(root, notice);
+        const owner = {};
+        notice.__radarSaveNoticeOwner = owner;
         notice.textContent = feedback.message;
         notice.dataset.radarSaveFeedback = feedback.kind;
         if (feedback.kind === 'warning') notice.dataset.variant = 'duplicate';
         else delete notice.dataset.variant;
         notice.hidden = false;
-        if (notice.__radarSaveNoticeTimer) root.clearTimeout?.(notice.__radarSaveNoticeTimer);
-        notice.__radarSaveNoticeTimer = null;
+        if (feedback.persistent) {
+            notice.__radarPersistentSaveFeedback = {
+                kind: feedback.kind,
+                message: feedback.message,
+                persistent: true
+            };
+        }
         if (!feedback.persistent && typeof root.setTimeout === 'function') {
-            notice.__radarSaveNoticeTimer = root.setTimeout(() => {
+            let timerId = null;
+            timerId = root.setTimeout(() => {
+                if (notice.__radarSaveNoticeTimer === timerId) {
+                    notice.__radarSaveNoticeTimer = null;
+                }
+                if (notice.__radarSaveNoticeOwner !== owner
+                    || notice.textContent !== feedback.message
+                    || notice.dataset.radarSaveFeedback !== feedback.kind) {
+                    return;
+                }
                 notice.hidden = true;
                 delete notice.dataset.radarSaveFeedback;
-                notice.__radarSaveNoticeTimer = null;
+                notice.__radarSaveNoticeOwner = null;
             }, 4500);
+            notice.__radarSaveNoticeTimer = timerId;
         }
+        return true;
+    }
+
+    function collectDataServices(root) {
+        const services = root?.RadarApplicationServices;
+        if (!services || typeof services !== 'object') return [];
+        return [...new Set(
+            Object.values(services)
+                .map(service => service?.dataService)
+                .filter(service => service && typeof service.execute === 'function')
+        )];
+    }
+
+    function wrapDataServiceExecute(target, marker, notifier) {
+        if (!target || typeof target.execute !== 'function') return false;
+        if (Object.prototype.hasOwnProperty.call(target, marker)) return true;
+        const originalExecute = target.execute;
+        target.execute = async function executeWithOperationalSaveFeedback(command = {}) {
+            if (activeFeedbackExecutions.has(this)) {
+                return originalExecute.call(this, command);
+            }
+            activeFeedbackExecutions.add(this);
+            try {
+                const result = await originalExecute.call(this, command);
+                const feedback = feedbackForResult(command?.name, result);
+                if (feedback) notifier(feedback);
+                return result;
+            } finally {
+                activeFeedbackExecutions.delete(this);
+            }
+        };
+        Object.defineProperty(target, marker, {
+            value: true,
+            configurable: false,
+            enumerable: false,
+            writable: false
+        });
         return true;
     }
 
     function installDataServiceFeedback(root, notify) {
         const prototype = root?.RadarDataService?.DataService?.prototype;
         if (!prototype || typeof prototype.execute !== 'function') return false;
-        if (prototype[DATA_SERVICE_FEEDBACK_MARKER] === true) return true;
-        const originalExecute = prototype.execute;
         const notifier = typeof notify === 'function' ? notify : feedback => showSaveNotice(root, feedback);
-        prototype.execute = async function executeWithOperationalSaveFeedback(command = {}) {
-            const result = await originalExecute.call(this, command);
-            const feedback = feedbackForResult(command?.name, result);
-            if (feedback) notifier(feedback);
+        wrapDataServiceExecute(prototype, DATA_SERVICE_FEEDBACK_MARKER, notifier);
+        collectDataServices(root).forEach(service => {
+            if (Object.prototype.hasOwnProperty.call(service, 'execute')) {
+                wrapDataServiceExecute(service, DATA_SERVICE_INSTANCE_FEEDBACK_MARKER, notifier);
+            }
+        });
+        return true;
+    }
+
+    function installPendencyNoticeCoordination(root) {
+        if (!root
+            || typeof root.showPendencyNotice !== 'function'
+            || typeof root.clearPendencyNotice !== 'function') return false;
+        if (root[PENDENCY_NOTICE_COORDINATION_MARKER] === true) return true;
+
+        const originalShow = root.showPendencyNotice;
+        const originalClear = root.clearPendencyNotice;
+        root.showPendencyNotice = function coordinatedPendencyNotice(message, variant = 'info') {
+            const notice = ensureSaveNotice(root);
+            const persistent = notice?.__radarPersistentSaveFeedback || null;
+            if (notice && message) {
+                cancelSaveNoticeTimer(root, notice);
+                delete notice.dataset.radarSaveFeedback;
+            }
+            const result = originalShow.call(this, message, variant);
+            if (!message && persistent) showSaveNotice(root, persistent);
             return result;
         };
-        Object.defineProperty(prototype, DATA_SERVICE_FEEDBACK_MARKER, { value: true });
+        root.clearPendencyNotice = function coordinatedClearPendencyNotice() {
+            const notice = ensureSaveNotice(root);
+            const persistent = notice?.__radarPersistentSaveFeedback || null;
+            const result = originalClear.call(this);
+            if (persistent) showSaveNotice(root, persistent);
+            return result;
+        };
+        Object.defineProperty(root, PENDENCY_NOTICE_COORDINATION_MARKER, {
+            value: true,
+            configurable: false,
+            enumerable: false,
+            writable: false
+        });
         return true;
     }
 
@@ -215,6 +313,7 @@
         document.addEventListener('click', handle, true);
         document.addEventListener('change', handle, true);
         installDataServiceFeedback(root);
+        installPendencyNoticeCoordination(root);
         root.addEventListener?.('radar:application-services-ready', () => installDataServiceFeedback(root));
         Object.defineProperty(document, '__radarOperationalWriteFeedbackInstalled', {
             value: true,
@@ -243,7 +342,9 @@
         feedbackForResult,
         ensureSaveNotice,
         showSaveNotice,
+        collectDataServices,
         installDataServiceFeedback,
+        installPendencyNoticeCoordination,
         install
     });
 }));
