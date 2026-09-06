@@ -175,3 +175,4 @@
         install
     });
 }));
+// Controle Lighthouse: sem alteração de comportamento em runtime.
