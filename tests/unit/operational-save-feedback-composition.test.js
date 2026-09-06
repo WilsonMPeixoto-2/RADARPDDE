@@ -79,6 +79,44 @@ test('feedback antes de performance e reinstalação tardia mantêm uma execuç�
     assert.equal(notices.length, 1);
 });
 
+test('duas execuções concorrentes independentes mantêm um aviso para cada intenção', async () => {
+    let executions = 0;
+    const notices = [];
+    let releaseFirst;
+    let signalFirst;
+    const firstStarted = new Promise(resolve => { signalFirst = resolve; });
+
+    class FakeDataService {
+        async execute(command) {
+            executions += 1;
+            if (command.name === 'invoice:save') {
+                signalFirst();
+                await new Promise(resolve => { releaseFirst = resolve; });
+            }
+            return syncedResult();
+        }
+    }
+
+    const service = new FakeDataService();
+    const root = createRoot(service);
+    assert.equal(performance.patchDataService(service, root), true);
+    assert.equal(feedback.installDataServiceFeedback(root, notice => notices.push(notice)), true);
+
+    const first = service.execute({ name: 'invoice:save' });
+    await firstStarted;
+    const second = service.execute({ name: 'inventory:forward' });
+    await second;
+    releaseFirst();
+    await first;
+
+    assert.equal(executions, 2, 'cada intenção deve executar uma única vez');
+    assert.equal(notices.length, 2, 'execuções concorrentes não podem ser confundidas com wrappers aninhados');
+    assert.deepEqual(
+        notices.map(item => item.message).sort(),
+        ['Encaminhamento para inventariação salvo com sucesso.', 'Nota fiscal salva com sucesso.'].sort()
+    );
+});
+
 test('timer de sucesso não oculta uma mensagem mais nova na região compartilhada', () => {
     let timer = null;
     const notice = {
