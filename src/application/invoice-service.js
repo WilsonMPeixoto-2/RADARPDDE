@@ -16,7 +16,10 @@
     const pendencyDomain = typeof module !== 'undefined' && module.exports
         ? require('../domain/pendencias.js')
         : root.RadarPendencias;
-    const api = factory(contract, serviceAdvisory, invoiceEffects, invoiceDocumentAnalysis, pendencyDomain);
+    const operationKey = typeof module !== 'undefined' && module.exports
+        ? require('../domain/operation-key.js')
+        : root.RadarOperationKey;
+    const api = factory(contract, serviceAdvisory, invoiceEffects, invoiceDocumentAnalysis, pendencyDomain, operationKey);
 
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     if (root) root.RadarInvoiceService = Object.freeze(api);
@@ -25,12 +28,13 @@
     serviceAdvisory,
     invoiceEffects,
     invoiceDocumentAnalysis,
-    pendencyDomain
+    pendencyDomain,
+    operationKey
 ) {
     'use strict';
 
-    if (!contract || !serviceAdvisory || !invoiceEffects || !invoiceDocumentAnalysis || !pendencyDomain) {
-        throw new Error('Contrato de dados, regras canônicas de Assessoria/análise documental/Pendências e planner de efeitos são obrigatórios para notas fiscais.');
+    if (!contract || !serviceAdvisory || !invoiceEffects || !invoiceDocumentAnalysis || !pendencyDomain || !operationKey) {
+        throw new Error('Contrato de dados, regras canônicas de Assessoria/análise documental/Pendências, identidade de intenção e planner de efeitos são obrigatórios para notas fiscais.');
     }
     const { RepositoryError, cloneValue } = contract;
     const {
@@ -97,6 +101,22 @@
             : `Nota Fiscal ${number}`;
     }
 
+    function rowVersionOf(record) {
+        const candidate = Number(record?.rowVersion ?? record?.row_version);
+        return Number.isInteger(candidate) && candidate > 0 ? candidate : null;
+    }
+
+    function saveIntentFingerprint(input = {}) {
+        return JSON.stringify({
+            existingId: input.existingId || null,
+            request: input.request || null,
+            assetId: input.assetId || null,
+            expectedInvoiceVersion: input.expectedInvoiceVersion ?? null,
+            expectedAssetVersion: input.expectedAssetVersion ?? null,
+            expectedVerificationVersion: input.expectedVerificationVersion ?? null
+        });
+    }
+
 
 
     class InvoiceService {
@@ -107,6 +127,8 @@
             this.getCurrentProfile = options.getCurrentProfile || (() => '');
             this.createId = options.createId || (prefix => `${prefix}-${Date.now()}`);
             this.now = options.now || (() => new Date().toISOString());
+            this.pendingSaveIntents = new Map();
+            this.operationKeyFingerprints = new Map();
             if (!this.dataService || typeof this.dataService.execute !== 'function'
                 || typeof this.getState !== 'function'
                 || typeof this.appendLog !== 'function') {
@@ -248,15 +270,22 @@
                         asset,
                         verificationPatch,
                         administrativeLog,
-                        expectedInvoiceVersion: value.operation === 'update'
-                            ? (value.invoice.rowVersion || value.invoice.row_version || null)
-                            : null,
-                        expectedAssetVersion: value.asset
-                            ? (value.asset.rowVersion || value.asset.row_version || null)
-                            : (value.removedAsset?.rowVersion || value.removedAsset?.row_version || null),
-                        expectedVerificationVersion: value.verification
-                            ? (value.verification.rowVersion || value.verification.row_version || null)
-                            : null
+                        operationKey: value.operationKey,
+                        expectedInvoiceVersion: value.expectedVersions?.invoice ?? (
+                            value.operation === 'update'
+                                ? (value.invoice.rowVersion || value.invoice.row_version || null)
+                                : null
+                        ),
+                        expectedAssetVersion: value.expectedVersions?.asset ?? (
+                            value.asset
+                                ? (value.asset.rowVersion || value.asset.row_version || null)
+                                : (value.removedAsset?.rowVersion || value.removedAsset?.row_version || null)
+                        ),
+                        expectedVerificationVersion: value.expectedVersions?.verification ?? (
+                            value.verification
+                                ? (value.verification.rowVersion || value.verification.row_version || null)
+                                : null
+                        )
                     });
                 }
 
@@ -594,6 +623,45 @@
             );
         }
 
+        getOrCreateSaveIntent(input = {}) {
+            const fingerprint = saveIntentFingerprint(input);
+            const explicitKey = text(input.operationKey);
+            let intent = this.pendingSaveIntents.get(fingerprint) || null;
+            if (intent && explicitKey && intent.operationKey !== operationKey.normalize(explicitKey)) intent = null;
+            if (intent) return intent;
+
+            const key = explicitKey ? operationKey.normalize(explicitKey) : operationKey.create();
+            const knownFingerprint = this.operationKeyFingerprints.get(key);
+            if (knownFingerprint && knownFingerprint !== fingerprint) {
+                fail(
+                    'IDEMPOTENCY_CONFLICT',
+                    'A mesma chave de intenção não pode representar conteúdos diferentes.',
+                    'invoice:save',
+                    { operationKey: key }
+                );
+            }
+            this.operationKeyFingerprints.set(key, fingerprint);
+            intent = Object.freeze({
+                fingerprint,
+                operationKey: key,
+                invoiceId: input.existingId || operationKey.persistentId('nota', key),
+                assetId: input.assetId || (input.requiresAsset ? operationKey.persistentId('bem', key) : null),
+                administrativeLogId: operationKey.persistentId('log', key),
+                semanticTimestamp: input.semanticTimestamp || this.now(),
+                expectedInvoiceVersion: input.expectedInvoiceVersion ?? null,
+                expectedAssetVersion: input.expectedAssetVersion ?? null,
+                expectedVerificationVersion: input.expectedVerificationVersion ?? null
+            });
+            this.pendingSaveIntents.set(fingerprint, intent);
+            return intent;
+        }
+
+        completeSaveIntent(intent) {
+            if (!intent) return;
+            this.pendingSaveIntents.delete(intent.fingerprint);
+            this.operationKeyFingerprints.delete(intent.operationKey);
+        }
+
         async save(input = {}) {
             const profile = this.assertEditable(input.profile, 'invoice:save');
             const invoiceData = this.validateInvoice(input, 'invoice:save');
@@ -697,15 +765,21 @@
                 };
             }
 
-            const invoiceId = existing?.id || this.createId('nota');
-            const assetId = invoiceData.expenseType === 'permanente'
-                ? (
-                    currentAsset?.id
-                    || existing?.bemId
-                    || this.createId('bem')
-                )
-                : null;
-            const timestamp = existing?.dataRegistro || this.now();
+            const existingAssetId = currentAsset?.id || existing?.bemId || null;
+            const intent = this.getOrCreateSaveIntent({
+                operationKey: input.operationKey,
+                existingId: existing?.id || null,
+                request,
+                assetId: existingAssetId,
+                requiresAsset: invoiceData.expenseType === 'permanente',
+                semanticTimestamp: existing?.dataRegistro || null,
+                expectedInvoiceVersion: rowVersionOf(existing),
+                expectedAssetVersion: rowVersionOf(currentAsset),
+                expectedVerificationVersion: rowVersionOf(initialContext.verification)
+            });
+            const invoiceId = intent.invoiceId;
+            const assetId = invoiceData.expenseType === 'permanente' ? intent.assetId : null;
+            const timestamp = intent.semanticTimestamp;
             const plan = planInvoiceEffects({
                 ...basePlanInput,
                 invoiceId,
@@ -713,7 +787,7 @@
                 timestamp
             });
 
-            return this.dataService.execute({
+            const saveResult = await this.dataService.execute({
                 name: 'invoice:save',
                 remoteRefreshExemptEntities: ['administrativeLogs'],
                 changedEntities: [...plan.changedEntities],
@@ -774,6 +848,12 @@
                             plan.auditDescriptor.details
                         )
                         : null;
+                    if (auditLog) {
+                        auditLog.id = intent.administrativeLogId;
+                        if (Object.prototype.hasOwnProperty.call(auditLog, 'dataHora')) auditLog.dataHora = intent.semanticTimestamp;
+                        if (Object.prototype.hasOwnProperty.call(auditLog, 'eventAt')) auditLog.eventAt = intent.semanticTimestamp;
+                        if (Object.prototype.hasOwnProperty.call(auditLog, 'event_at')) auditLog.event_at = intent.semanticTimestamp;
+                    }
 
                     return {
                         operation: plan.operation,
@@ -787,13 +867,20 @@
                             : null,
                         verificationId,
                         auditLog: auditLog ? cloneValue(auditLog) : null,
+                        operationKey: intent.operationKey,
+                        expectedVersions: {
+                            invoice: intent.expectedInvoiceVersion,
+                            asset: intent.expectedAssetVersion,
+                            verification: intent.expectedVerificationVersion
+                        },
                         warnings: [...plan.warnings],
                         unchanged: false
                     };
                 }
             });
+            this.completeSaveIntent(intent);
+            return saveResult;
         }
-
         async updateDocumentAnalysis(input = {}) {
             const profile = this.assertEditable(input.profile, 'invoice:update-document-analysis');
             const analysis = text(input.analysis);
