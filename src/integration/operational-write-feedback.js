@@ -42,7 +42,7 @@
     const DATA_SERVICE_FEEDBACK_MARKER = '__radarOperationalSaveFeedbackWrapped';
     const DATA_SERVICE_INSTANCE_FEEDBACK_MARKER = '__radarOperationalSaveFeedbackInstanceWrapped';
     const PENDENCY_NOTICE_COORDINATION_MARKER = '__radarOperationalSavePendencyNoticeCoordinated';
-    const activeFeedbackExecutions = new WeakSet();
+    const FEEDBACK_INVOCATION_MARKER = Symbol('radarOperationalSaveFeedbackInvocation');
 
     function text(value) {
         return value == null ? '' : String(value).trim();
@@ -222,23 +222,27 @@
         )];
     }
 
+    function markFeedbackInvocation(command) {
+        if (!command || typeof command !== 'object' || Array.isArray(command)) return command;
+        return {
+            ...command,
+            [FEEDBACK_INVOCATION_MARKER]: true
+        };
+    }
+
     function wrapDataServiceExecute(target, marker, notifier) {
         if (!target || typeof target.execute !== 'function') return false;
         if (Object.prototype.hasOwnProperty.call(target, marker)) return true;
         const originalExecute = target.execute;
         target.execute = async function executeWithOperationalSaveFeedback(command = {}) {
-            if (activeFeedbackExecutions.has(this)) {
+            if (command?.[FEEDBACK_INVOCATION_MARKER] === true) {
                 return originalExecute.call(this, command);
             }
-            activeFeedbackExecutions.add(this);
-            try {
-                const result = await originalExecute.call(this, command);
-                const feedback = feedbackForResult(command?.name, result);
-                if (feedback) notifier(feedback);
-                return result;
-            } finally {
-                activeFeedbackExecutions.delete(this);
-            }
+            const forwardedCommand = markFeedbackInvocation(command);
+            const result = await originalExecute.call(this, forwardedCommand);
+            const feedback = feedbackForResult(command?.name, result);
+            if (feedback) notifier(feedback);
+            return result;
         };
         Object.defineProperty(target, marker, {
             value: true,
