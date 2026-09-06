@@ -105,10 +105,12 @@ function createHarness(options = {}) {
     }
 
     function saveCommit(args) {
+        const previousVersion = Number(state.directory?.row_version || 0);
         state.directory = {
             ...structuredClone(args.p_member),
             user_id: args.p_user_id,
-            active: true
+            active: true,
+            row_version: previousVersion > 0 ? previousVersion + 1 : 1
         };
         state.profiles = [{
             user_id: args.p_user_id,
@@ -240,7 +242,8 @@ function activeControllerState() {
             name: 'Ativo',
             email: 'ativo@example.test',
             active: true,
-            user_id: userId
+            user_id: userId,
+            row_version: 7
         },
         profiles: [{
             user_id: userId,
@@ -314,7 +317,8 @@ test('conta preexistente não restaura metadados antigos quando o commit já oco
         name: 'Antigo',
         email: 'antigo@example.test',
         active: true,
-        user_id: userId
+        user_id: userId,
+        row_version: 7
     };
     const previousProfiles = [{
         user_id: userId,
@@ -410,7 +414,8 @@ test('desativação legada sem Auth reconcilia commit após ACK perdido pelo dir
             name: 'Legado',
             email: 'legado@example.test',
             active: true,
-            user_id: null
+            user_id: null,
+            row_version: 7
         },
         profiles: [],
         auth: null
