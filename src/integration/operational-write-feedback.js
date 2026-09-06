@@ -31,6 +31,15 @@
         'changeInvoiceAdvisoryAnalysis',
         'toggleConsEnviada'
     ]);
+    const SAVE_SUCCESS_MESSAGES = Object.freeze({
+        'invoice:save': 'Nota fiscal salva com sucesso.',
+        'invoice:save-unidentified-with-pendency': 'Despesa e pendência salvas com sucesso.',
+        'inventory:update-asset': 'Alterações do bem salvas com sucesso.',
+        'inventory:forward': 'Encaminhamento para inventariação salvo com sucesso.',
+        'inventory:complete': 'Inventariação salva com sucesso.'
+    });
+    const SYNC_WARNING_MESSAGE = 'A alteração foi salva, mas a tela não conseguiu atualizar os dados. Atualize a página antes de continuar.';
+    const DATA_SERVICE_FEEDBACK_MARKER = '__radarOperationalSaveFeedbackWrapped';
 
     function text(value) {
         return value == null ? '' : String(value).trim();
@@ -135,6 +144,117 @@
         }
     }
 
+    function feedbackForResult(operation, result = {}) {
+        const successMessage = SAVE_SUCCESS_MESSAGES[text(operation)];
+        if (!successMessage || result?.ok !== true) return null;
+
+        const stateSync = result.stateSync || {};
+        const remoteSavedButStale = stateSync.remoteCommitConfirmed === true
+            && (stateSync.status === 'failed'
+                || stateSync.status === 'pending'
+                || stateSync.localStateApplied === false
+                || stateSync.refreshRequired === true
+                || result.refreshPending === true
+                || Boolean(result.stateApplyErrorCode));
+
+        if (remoteSavedButStale) {
+            return {
+                kind: 'warning',
+                message: SYNC_WARNING_MESSAGE,
+                persistent: true
+            };
+        }
+
+        return {
+            kind: 'success',
+            message: successMessage,
+            persistent: false
+        };
+    }
+
+    function ensureSaveNotice(root) {
+        const document = root?.document;
+        if (!document?.createElement || !document?.body?.appendChild) return null;
+        const existing = document.getElementById?.('radar-save-notice');
+        if (existing) return existing;
+
+        const notice = document.createElement('div');
+        notice.id = 'radar-save-notice';
+        notice.className = 'radar-save-notice';
+        notice.setAttribute('role', 'status');
+        notice.setAttribute('aria-live', 'polite');
+        notice.setAttribute('aria-atomic', 'true');
+        notice.hidden = true;
+
+        const message = document.createElement('span');
+        message.className = 'radar-save-notice-message';
+        notice.appendChild(message);
+
+        const close = document.createElement('button');
+        close.type = 'button';
+        close.className = 'radar-save-notice-close';
+        close.setAttribute('aria-label', 'Fechar aviso de salvamento');
+        close.textContent = '×';
+        close.addEventListener('click', () => {
+            notice.hidden = true;
+        });
+        notice.appendChild(close);
+
+        document.body.appendChild(notice);
+        return notice;
+    }
+
+    function showSaveNotice(root, feedback) {
+        if (!feedback?.message) return false;
+        const notice = ensureSaveNotice(root);
+        if (!notice) return false;
+        const message = notice.querySelector?.('.radar-save-notice-message');
+        const close = notice.querySelector?.('.radar-save-notice-close');
+        if (message) message.textContent = feedback.message;
+        notice.classList?.remove('is-success', 'is-warning');
+        notice.classList?.add(feedback.kind === 'warning' ? 'is-warning' : 'is-success');
+        notice.hidden = false;
+        if (close) close.hidden = feedback.persistent !== true;
+
+        if (notice.__radarSaveNoticeTimer) {
+            root.clearTimeout?.(notice.__radarSaveNoticeTimer);
+            notice.__radarSaveNoticeTimer = null;
+        }
+        if (feedback.persistent !== true && typeof root.setTimeout === 'function') {
+            notice.__radarSaveNoticeTimer = root.setTimeout(() => {
+                notice.hidden = true;
+                notice.__radarSaveNoticeTimer = null;
+            }, 4500);
+        }
+        return true;
+    }
+
+    function installDataServiceFeedback(root, notify) {
+        const DataService = root?.RadarDataService?.DataService;
+        const prototype = DataService?.prototype;
+        if (!prototype || typeof prototype.execute !== 'function') return false;
+        if (prototype[DATA_SERVICE_FEEDBACK_MARKER] === true) return true;
+
+        const originalExecute = prototype.execute;
+        const notifier = typeof notify === 'function'
+            ? notify
+            : feedback => showSaveNotice(root, feedback);
+
+        prototype.execute = async function executeWithOperationalSaveFeedback(command = {}) {
+            const result = await originalExecute.call(this, command);
+            const feedback = feedbackForResult(command?.name, result);
+            if (feedback) notifier(feedback);
+            return result;
+        };
+        Object.defineProperty(prototype, DATA_SERVICE_FEEDBACK_MARKER, {
+            value: true,
+            configurable: false,
+            enumerable: false,
+            writable: false
+        });
+        return true;
+    }
+
     function install(root) {
         const document = root?.document;
         if (!document || document.__radarOperationalWriteFeedbackInstalled === true) return Boolean(document);
@@ -150,6 +270,8 @@
 
         document.addEventListener('click', handle, true);
         document.addEventListener('change', handle, true);
+        installDataServiceFeedback(root);
+        root.addEventListener?.('radar:application-services-ready', () => installDataServiceFeedback(root));
         Object.defineProperty(document, '__radarOperationalWriteFeedbackInstalled', {
             value: true,
             configurable: false,
@@ -162,6 +284,8 @@
     return Object.freeze({
         ACTIVE_CLASSES,
         INLINE_HANDLER_NAMES,
+        SAVE_SUCCESS_MESSAGES,
+        SYNC_WARNING_MESSAGE,
         bonificationActiveClass,
         analysisStateClass,
         inlineHandlerName,
@@ -172,6 +296,10 @@
         findInlineControl,
         beginTrace,
         markTrace,
+        feedbackForResult,
+        ensureSaveNotice,
+        showSaveNotice,
+        installDataServiceFeedback,
         install
     });
 }));
