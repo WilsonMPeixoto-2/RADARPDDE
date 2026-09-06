@@ -126,8 +126,9 @@ test('limpar mensagem de Pendência restaura advertência persistente de sincron
     const end = appSource.indexOf('function createPendencyClientId(');
     assert.notEqual(start, -1);
     assert.notEqual(end, -1);
-    const context = vm.createContext({ document: root.document, clearTimeout });
+    const context = vm.createContext(root);
     vm.runInContext(appSource.slice(start, end), context);
+    assert.equal(feedback.installPendencyNoticeCoordination(context), true);
 
     context.showPendencyNotice('Informe as observações da pendência.', 'danger');
     assert.equal(notice.textContent, 'Informe as observações da pendência.');
