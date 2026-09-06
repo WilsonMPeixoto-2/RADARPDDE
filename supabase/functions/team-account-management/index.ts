@@ -245,6 +245,10 @@ function optimisticConflict(): Error {
   return new Error("OPTIMISTIC_CONFLICT: o cadastro foi alterado por outra sessão");
 }
 
+function isOptimisticConflict(error: unknown): boolean {
+  return String((error as { message?: string })?.message || error || "").includes("OPTIMISTIC_CONFLICT");
+}
+
 function isDefinitiveDatabaseRejection(error: unknown): boolean {
   const code = String((error as { code?: string })?.code || "").trim().toUpperCase();
   return /^[0-9A-Z]{5}$/.test(code) || /^PGRST\d{3}$/.test(code);
@@ -439,6 +443,45 @@ async function restoreAccess(
   }
 }
 
+async function reconcileAuthAfterOptimisticConflict(
+  admin: ReturnType<typeof createClient>,
+  command: ReturnType<typeof normalizeTeamCommand>,
+  attemptedUserId: string,
+  createdUser: boolean,
+  previousUser: User | null,
+) {
+  try {
+    const directory = await currentEntity(admin, command.profileId, command.entity!.id);
+    const winnerUserId = String(directory?.user_id || "").trim();
+    if (!directory || directory.active !== true || !winnerUserId) {
+      throw new Error("estado vencedor do diretório não pôde ser determinado");
+    }
+    const winnerUser = await authUser(admin, winnerUserId);
+    if (!winnerUser) throw new Error("conta Auth do estado vencedor não foi localizada");
+    const winnerMetadata = {
+      ...(winnerUser.user_metadata || {}),
+      display_name: directory.name,
+      radar_profile: command.profileId,
+      radar_entity_id: directory.id,
+      radar_cre_scope: String(winnerUser.user_metadata?.radar_cre_scope || "4ª CRE"),
+    };
+    const { error } = await admin.auth.admin.updateUserById(winnerUserId, {
+      email: directory.email,
+      user_metadata: winnerMetadata,
+      ban_duration: "none",
+    });
+    if (error) throw error;
+
+    if (attemptedUserId && attemptedUserId !== winnerUserId) {
+      if (createdUser) await removeInvitedUser(admin, attemptedUserId);
+      else if (previousUser) await restoreUser(admin, attemptedUserId, previousUser);
+    }
+  } catch (error) {
+    if (String((error as { message?: string })?.message || "").includes("COMPENSATION_FAILED")) throw error;
+    throw compensationFailure("não foi possível reconciliar o Auth com a edição concorrente vencedora", error);
+  }
+}
+
 async function saveMember(
   admin: ReturnType<typeof createClient>,
   actor: User,
@@ -461,6 +504,7 @@ async function saveMember(
   let inviteAttempted = false;
   let reusedExistingAccount = false;
   let previousUser: User | null = null;
+  let conflictReconciliationAttempted = false;
 
   try {
     if (!userId) {
@@ -502,6 +546,17 @@ async function saveMember(
       p_administrative_log: command.administrativeLog,
     });
     if (error) {
+      if (isOptimisticConflict(error)) {
+        conflictReconciliationAttempted = true;
+        await reconcileAuthAfterOptimisticConflict(
+          admin,
+          command,
+          userId,
+          createdUser,
+          previousUser,
+        );
+        throw optimisticConflict();
+      }
       let committedResult = null;
       try {
         committedResult = await proveSaveCommit(admin, actor, command, userId);
@@ -531,7 +586,10 @@ async function saveMember(
       result: data,
     };
   } catch (error) {
-    if (String((error as { message?: string })?.message || "").includes("REMOTE_COMMIT_UNKNOWN")) {
+    if (
+      String((error as { message?: string })?.message || "").includes("REMOTE_COMMIT_UNKNOWN")
+      || conflictReconciliationAttempted
+    ) {
       throw error;
     }
     if (createdUser && userId) {
