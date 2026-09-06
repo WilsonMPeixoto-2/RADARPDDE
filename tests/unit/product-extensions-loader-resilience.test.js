@@ -145,6 +145,13 @@ function createHarness({ failOnce = [] } = {}) {
     return { root, requested, executeBootstrap };
 }
 
+function settleWithin(promise, milliseconds = 50) {
+    return Promise.race([
+        promise,
+        new Promise(resolve => setTimeout(() => resolve('timeout'), milliseconds))
+    ]);
+}
+
 test('falha em extensão opcional não impede Assessoria nem guard crítico e o mesmo loader retoma o item falho', async () => {
     const controllerGuide = '/src/integration/controller-guide.js';
     const harness = createHarness({ failOnce: [controllerGuide] });
@@ -188,7 +195,8 @@ test('reexecução concorrente durante a carga não pode mascarar falha crítica
 
     const firstAttempt = harness.executeBootstrap();
     const concurrentAttempt = harness.executeBootstrap();
-    const [firstReady, concurrentReady] = await Promise.all([firstAttempt, concurrentAttempt]);
+    const firstReady = await settleWithin(firstAttempt);
+    const concurrentReady = await settleWithin(concurrentAttempt);
 
     assert.equal(firstReady, false, 'a primeira carga deve registrar a falha crítica');
     assert.equal(
