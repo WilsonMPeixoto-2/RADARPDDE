@@ -52,6 +52,13 @@ function publicError(error: unknown): { code: string; message: string; status: n
       status: 500,
     };
   }
+  if (message.includes("REMOTE_COMMIT_UNKNOWN")) {
+    return {
+      code: "REMOTE_COMMIT_UNKNOWN",
+      message: "A conclusão da operação não pôde ser confirmada. Atualize os dados antes de tentar novamente.",
+      status: 503,
+    };
+  }
   if (message.includes("NOT_FOUND")) {
     return { code: "NOT_FOUND", message: message.replace(/^.*NOT_FOUND:\s*/i, ""), status: 404 };
   }
@@ -214,6 +221,122 @@ async function assertReusableAccount(
   }
 }
 
+function remoteCommitUnknown(): Error {
+  return new Error("REMOTE_COMMIT_UNKNOWN: o resultado durável da operação não pôde ser confirmado");
+}
+
+function isDefinitiveDatabaseRejection(error: unknown): boolean {
+  const code = String((error as { code?: string })?.code || "").trim().toUpperCase();
+  return /^[0-9A-Z]{5}$/.test(code) || /^PGRST\d{3}$/.test(code);
+}
+
+async function operationLogExists(
+  admin: ReturnType<typeof createClient>,
+  operationId: string,
+  actorUserId: string,
+): Promise<boolean> {
+  if (!operationId) return false;
+  const { data, error } = await admin
+    .from("administrative_logs")
+    .select("id,actor_user_id")
+    .eq("id", operationId)
+    .eq("actor_user_id", actorUserId)
+    .maybeSingle();
+  if (error) throw error;
+  return Boolean(data?.id);
+}
+
+async function activeProfileMatches(
+  admin: ReturnType<typeof createClient>,
+  profileId: string,
+  entityId: string,
+  userId: string,
+): Promise<boolean> {
+  const linkColumn = profileId === "controller" ? "controller_id" : "inventory_member_id";
+  const { data, error } = await admin
+    .from("user_profiles")
+    .select("user_id,profile_id,controller_id,inventory_member_id,active")
+    .eq("user_id", userId)
+    .eq("profile_id", profileId)
+    .eq(linkColumn, entityId)
+    .eq("active", true)
+    .maybeSingle();
+  if (error) throw error;
+  return Boolean(data?.user_id);
+}
+
+async function inactiveProfileMatches(
+  admin: ReturnType<typeof createClient>,
+  profileId: string,
+  entityId: string,
+  userId: string,
+): Promise<boolean> {
+  const linkColumn = profileId === "controller" ? "controller_id" : "inventory_member_id";
+  const { data, error } = await admin
+    .from("user_profiles")
+    .select("user_id,profile_id,controller_id,inventory_member_id,active")
+    .eq("user_id", userId)
+    .eq("profile_id", profileId)
+    .eq(linkColumn, entityId)
+    .eq("active", false)
+    .maybeSingle();
+  if (error) throw error;
+  return Boolean(data?.user_id);
+}
+
+async function proveSaveCommit(
+  admin: ReturnType<typeof createClient>,
+  actor: User,
+  command: ReturnType<typeof normalizeTeamCommand>,
+  userId: string,
+) {
+  const entity = command.entity!;
+  const [directory, profileMatches, logMatches] = await Promise.all([
+    currentEntity(admin, command.profileId, entity.id),
+    activeProfileMatches(admin, command.profileId, entity.id, userId),
+    operationLogExists(admin, String(command.administrativeLog?.id || ""), actor.id),
+  ]);
+  const directoryMatches = Boolean(
+    directory
+      && directory.active === true
+      && String(directory.user_id || "") === userId
+      && String(directory.name || "") === String(entity.name || "")
+      && normalizeEmail(directory.email) === normalizeEmail(entity.email),
+  );
+  if (!directoryMatches || !profileMatches || !logMatches) return null;
+  return {
+    profile_id: command.profileId,
+    entity: directory,
+    user_id: userId,
+  };
+}
+
+async function proveDeactivationCommit(
+  admin: ReturnType<typeof createClient>,
+  actor: User,
+  command: ReturnType<typeof normalizeTeamCommand>,
+  userId: string,
+) {
+  const entityId = command.entityId!;
+  const [directory, profileMatches, logMatches] = await Promise.all([
+    currentEntity(admin, command.profileId, entityId),
+    inactiveProfileMatches(admin, command.profileId, entityId, userId),
+    operationLogExists(admin, String(command.administrativeLog?.id || ""), actor.id),
+  ]);
+  if (!directory || directory.active !== false || !profileMatches || !logMatches) return null;
+  return command.profileId === "controller"
+    ? {
+      controller_id: entityId,
+      fallback_controller_id: null,
+      reassigned_count: 0,
+      user_id: userId,
+    }
+    : {
+      member_id: entityId,
+      user_id: userId,
+    };
+}
+
 function compensationFailure(action: string, cause: unknown): Error {
   const reason = String((cause as { message?: string })?.message || "erro não informado");
   return new Error(`COMPENSATION_FAILED: ${action}: ${reason}`);
@@ -344,7 +467,27 @@ async function saveMember(
       p_actor_user_id: actor.id,
       p_administrative_log: command.administrativeLog,
     });
-    if (error) throw error;
+    if (error) {
+      let committedResult = null;
+      try {
+        committedResult = await proveSaveCommit(admin, actor, command, userId);
+      } catch (_reconciliationError) {
+        throw remoteCommitUnknown();
+      }
+      if (committedResult) {
+        return {
+          ok: true,
+          userId,
+          invited: createdUser,
+          reusedExistingAccount,
+          recoveredLink: Boolean(!existing?.user_id && !createdUser && userId),
+          reconciledAfterAmbiguousCommit: true,
+          result: committedResult,
+        };
+      }
+      if (!isDefinitiveDatabaseRejection(error)) throw remoteCommitUnknown();
+      throw error;
+    }
     return {
       ok: true,
       userId,
@@ -354,6 +497,9 @@ async function saveMember(
       result: data,
     };
   } catch (error) {
+    if (String((error as { message?: string })?.message || "").includes("REMOTE_COMMIT_UNKNOWN")) {
+      throw error;
+    }
     if (createdUser && userId) {
       await removeInvitedUser(admin, userId);
     } else if (inviteAttempted && !userId) {
@@ -407,9 +553,35 @@ async function deactivateMember(
         p_administrative_log: command.administrativeLog,
       };
     const { data, error } = await admin.rpc(rpc, args);
-    if (error) throw error;
+    if (error) {
+      if (!userId) {
+        if (!isDefinitiveDatabaseRejection(error)) throw remoteCommitUnknown();
+        throw error;
+      }
+      let committedResult = null;
+      try {
+        committedResult = await proveDeactivationCommit(admin, actor, command, userId);
+      } catch (_reconciliationError) {
+        throw remoteCommitUnknown();
+      }
+      if (committedResult) {
+        return {
+          ok: true,
+          userId,
+          accessDisabled: true,
+          recoveredLink: Boolean(!existing.user_id && userId),
+          reconciledAfterAmbiguousCommit: true,
+          result: committedResult,
+        };
+      }
+      if (!isDefinitiveDatabaseRejection(error)) throw remoteCommitUnknown();
+      throw error;
+    }
     return { ok: true, userId, accessDisabled: Boolean(userId), recoveredLink: Boolean(!existing.user_id && userId), result: data };
   } catch (error) {
+    if (String((error as { message?: string })?.message || "").includes("REMOTE_COMMIT_UNKNOWN")) {
+      throw error;
+    }
     if (banned && userId && previousUser) {
       await restoreAccess(admin, userId, previousUser);
     }
