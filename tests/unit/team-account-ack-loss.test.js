@@ -29,8 +29,12 @@ async function loadEdgeProbe() {
         Deno: { serve() {}, env: { get() { return undefined; } } }
     };
     vm.createContext(context);
-    vm.runInContext(`${code}\nglobalThis.__teamProbe={saveMember};`, context);
-    return { domain, saveMember: context.__teamProbe.saveMember };
+    vm.runInContext(`${code}\nglobalThis.__teamProbe={saveMember,deactivateMember};`, context);
+    return {
+        domain,
+        saveMember: context.__teamProbe.saveMember,
+        deactivateMember: context.__teamProbe.deactivateMember
+    };
 }
 
 function commandFor(domain, options = {}) {
@@ -44,6 +48,20 @@ function commandFor(domain, options = {}) {
             id: options.logId || 'log-op-a',
             action: 'Gestão de Equipe',
             details: { text: 'teste de fronteira' }
+        }
+    });
+}
+
+function deactivateCommandFor(domain, options = {}) {
+    return domain.normalizeTeamCommand({
+        operation: 'deactivate_controller',
+        controllerId: options.id || 'ctrl-a',
+        fallbackControllerId: null,
+        reassignedCount: 0,
+        administrativeLog: {
+            id: options.logId || 'log-deactivate',
+            action: 'Gestão de Equipe',
+            details: { text: 'desativação de fronteira' }
         }
     });
 }
@@ -86,7 +104,7 @@ function createHarness(options = {}) {
         return api;
     }
 
-    function commit(args) {
+    function saveCommit(args) {
         state.directory = {
             ...structuredClone(args.p_member),
             user_id: args.p_user_id,
@@ -100,6 +118,16 @@ function createHarness(options = {}) {
             cre_scope: args.p_member.cre_scope || '4ª CRE',
             active: true
         }];
+        state.log = {
+            id: args.p_administrative_log.id,
+            actor_user_id: args.p_actor_user_id,
+            action: args.p_administrative_log.action || 'Gestão de Equipe'
+        };
+    }
+
+    function deactivateCommit(args) {
+        if (state.directory) state.directory.active = false;
+        state.profiles = state.profiles.map(profile => ({ ...profile, active: false }));
         state.log = {
             id: args.p_administrative_log.id,
             actor_user_id: args.p_actor_user_id,
@@ -126,11 +154,20 @@ function createHarness(options = {}) {
                     return { data: { user }, error: null };
                 },
                 async updateUserById(userId, changes) {
-                    events.push('auth-update');
                     if (!state.auth || state.auth.id !== userId) return { error: new Error('user missing') };
-                    if (Object.prototype.hasOwnProperty.call(changes, 'email')) state.auth.email = changes.email;
+                    if (Object.prototype.hasOwnProperty.call(changes, 'email')) {
+                        events.push('auth-update-profile');
+                        state.auth.email = changes.email;
+                    }
                     if (Object.prototype.hasOwnProperty.call(changes, 'user_metadata')) {
                         state.auth.user_metadata = structuredClone(changes.user_metadata);
+                    }
+                    if (changes.ban_duration === '876000h') {
+                        events.push('auth-ban');
+                        state.auth.banned_until = '2126-01-01T00:00:00.000Z';
+                    } else if (changes.ban_duration === 'none') {
+                        events.push('auth-restore-access');
+                        state.auth.banned_until = null;
                     }
                     return { data: { user: structuredClone(state.auth) }, error: null };
                 },
@@ -148,22 +185,39 @@ function createHarness(options = {}) {
                 const match = state.auth && state.auth.email === args.p_email ? state.auth.id : null;
                 return { data: match, error: null };
             }
-            assert.equal(name, 'upsert_team_member_account');
-            events.push(`rpc:${rpcMode}`);
-            if (rpcMode === 'commit-loss') {
-                commit(args);
-                return { data: null, error: new Error('synthetic transport failure after committed transaction') };
+            if (name === 'upsert_team_member_account') {
+                events.push(`rpc-save:${rpcMode}`);
+                if (rpcMode === 'commit-loss') {
+                    saveCommit(args);
+                    return { data: null, error: new Error('synthetic transport failure after committed transaction') };
+                }
+                if (rpcMode === 'transport-no-proof') {
+                    return { data: null, error: new Error('synthetic transport failure before proof') };
+                }
+                if (rpcMode === 'definitive-reject') {
+                    return {
+                        data: null,
+                        error: { code: 'P0001', message: 'VALIDATION_ERROR: synthetic rejection' }
+                    };
+                }
             }
-            if (rpcMode === 'transport-no-proof') {
-                return { data: null, error: new Error('synthetic transport failure before proof') };
+            if (name === 'deactivate_controller_account') {
+                events.push(`rpc-deactivate:${rpcMode}`);
+                if (rpcMode === 'commit-loss') {
+                    deactivateCommit(args);
+                    return { data: null, error: new Error('synthetic transport failure after committed deactivation') };
+                }
+                if (rpcMode === 'transport-no-proof') {
+                    return { data: null, error: new Error('synthetic transport failure before deactivation proof') };
+                }
+                if (rpcMode === 'definitive-reject') {
+                    return {
+                        data: null,
+                        error: { code: 'P0001', message: 'VALIDATION_ERROR: synthetic deactivation rejection' }
+                    };
+                }
             }
-            if (rpcMode === 'definitive-reject') {
-                return {
-                    data: null,
-                    error: { code: 'P0001', message: 'VALIDATION_ERROR: synthetic rejection' }
-                };
-            }
-            throw new Error(`rpcMode não suportado: ${rpcMode}`);
+            throw new Error(`RPC/mode não suportado: ${name}/${rpcMode}`);
         }
     };
 
@@ -171,6 +225,33 @@ function createHarness(options = {}) {
 }
 
 const actor = { id: '00000000-0000-4000-8000-000000000001' };
+
+function activeControllerState() {
+    const userId = '00000000-0000-4000-8000-000000000022';
+    return {
+        auth: {
+            id: userId,
+            email: 'ativo@example.test',
+            user_metadata: { display_name: 'Ativo', radar_profile: 'controller', radar_entity_id: 'ctrl-a' },
+            banned_until: null
+        },
+        directory: {
+            id: 'ctrl-a',
+            name: 'Ativo',
+            email: 'ativo@example.test',
+            active: true,
+            user_id: userId
+        },
+        profiles: [{
+            user_id: userId,
+            profile_id: 'controller',
+            controller_id: 'ctrl-a',
+            inventory_member_id: null,
+            cre_scope: '4ª CRE',
+            active: true
+        }]
+    };
+}
 
 test('convite confirmado + commit + ACK perdido preserva Auth e reconcilia pelo estado durável', async () => {
     const { domain, saveMember } = await loadEdgeProbe();
@@ -264,4 +345,54 @@ test('conta preexistente não restaura metadados antigos quando o commit já oco
     assert.equal(harness.state.directory?.email, 'novo@example.test');
     assert.equal(harness.state.log?.id, 'log-existing');
     assert.equal(harness.events.includes('auth-delete-compensation'), false);
+});
+
+test('desativação commitada com ACK perdido mantém Auth bloqueado e reconcilia pelo banco', async () => {
+    const { domain, deactivateMember } = await loadEdgeProbe();
+    const initial = activeControllerState();
+    const command = deactivateCommandFor(domain, { logId: 'log-deactivate-commit' });
+    const harness = createHarness({ rpcMode: 'commit-loss', ...initial });
+
+    const result = await deactivateMember(harness.admin, actor, command);
+
+    assert.equal(result.ok, true);
+    assert.equal(harness.state.directory?.active, false);
+    assert.equal(harness.state.profiles[0]?.active, false);
+    assert.equal(harness.state.log?.id, 'log-deactivate-commit');
+    assert.equal(harness.state.auth?.banned_until, '2126-01-01T00:00:00.000Z');
+    assert.equal(harness.events.includes('auth-restore-access'), false);
+});
+
+test('desativação definitivamente rejeitada restaura o acesso anterior', async () => {
+    const { domain, deactivateMember } = await loadEdgeProbe();
+    const initial = activeControllerState();
+    const command = deactivateCommandFor(domain, { logId: 'log-deactivate-reject' });
+    const harness = createHarness({ rpcMode: 'definitive-reject', ...initial });
+
+    await assert.rejects(
+        () => deactivateMember(harness.admin, actor, command),
+        /synthetic deactivation rejection/i
+    );
+
+    assert.equal(harness.state.directory?.active, true);
+    assert.equal(harness.state.profiles[0]?.active, true);
+    assert.equal(harness.state.auth?.banned_until, null);
+    assert.equal(harness.events.filter(item => item === 'auth-restore-access').length, 1);
+});
+
+test('desativação ambígua sem prova mantém bloqueio Auth e não inventa rollback do banco', async () => {
+    const { domain, deactivateMember } = await loadEdgeProbe();
+    const initial = activeControllerState();
+    const command = deactivateCommandFor(domain, { logId: 'log-deactivate-unknown' });
+    const harness = createHarness({ rpcMode: 'transport-no-proof', ...initial });
+
+    await assert.rejects(
+        () => deactivateMember(harness.admin, actor, command),
+        /REMOTE_COMMIT_UNKNOWN/
+    );
+
+    assert.equal(harness.state.directory?.active, true);
+    assert.equal(harness.state.profiles[0]?.active, true);
+    assert.equal(harness.state.auth?.banned_until, '2126-01-01T00:00:00.000Z');
+    assert.equal(harness.events.includes('auth-restore-access'), false);
 });
