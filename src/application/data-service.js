@@ -38,6 +38,7 @@
         RepositoryError,
         assertKnownEntity,
         assertRepositoryContract,
+        assertLocalPersistenceFallback,
         cloneValue,
         isSnapshotEmpty
     } = contract;
@@ -482,6 +483,8 @@
 
             try {
                 const defaultPersist = async ({ snapshot }) => {
+                    // A specialized command cannot silently downgrade its remote transaction.
+                    if (hasCustomPersist) assertLocalPersistenceFallback(this.repository, command.name);
                     usedDefaultPersist = true;
                     assertSnapshotJson(snapshot, String(command.name || 'data-command'));
                     const baseline = await ensureBeforeRepository();

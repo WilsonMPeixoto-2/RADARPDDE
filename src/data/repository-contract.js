@@ -131,6 +131,16 @@
         return repository;
     }
 
+    function assertLocalPersistenceFallback(repository, operation) {
+        if (repository?.capabilities?.().remote === true) {
+            throw new RepositoryError(
+                'MISSING_REMOTE_CAPABILITY',
+                'Esta operação exige persistência atômica indisponível no serviço de dados. Nenhuma gravação alternativa será executada.',
+                { operation }
+            );
+        }
+    }
+
     function isSnapshotEmpty(snapshot) {
         if (!snapshot || !snapshot.entities || typeof snapshot.entities !== 'object') return true;
         return Object.values(snapshot.entities).every(
@@ -148,6 +158,7 @@
         normalizeCollection,
         createSnapshotEnvelope,
         assertRepositoryContract,
+        assertLocalPersistenceFallback,
         isSnapshotEmpty
     });
 }));

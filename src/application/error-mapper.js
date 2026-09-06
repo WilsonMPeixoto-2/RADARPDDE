@@ -22,11 +22,13 @@
         'VALIDATION_FAILED',
         'TRANSACTION_FAILED',
         'REMOTE_UNAVAILABLE',
+        'MISSING_REMOTE_CAPABILITY',
         'IMPORT_RECONCILIATION_FAILED'
     ]);
     const DATA_ERROR_SET = new Set(DATA_ERROR_CODES);
     const TRANSIENT_READ_CODES = new Set(['NETWORK_UNAVAILABLE', 'REMOTE_UNAVAILABLE']);
     const DATA_ERROR_MESSAGES = Object.freeze({
+        MISSING_REMOTE_CAPABILITY: 'Esta operação exige persistência atômica indisponível no serviço de dados. Contate o suporte.',
         NETWORK_UNAVAILABLE: 'A conexão foi interrompida. Seus dados foram preservados; verifique a rede e tente novamente.',
         SESSION_EXPIRED: 'Sua sessão expirou. O formulário foi preservado; autentique-se novamente para continuar.',
         PERMISSION_DENIED: 'Seu perfil não possui autorização para concluir esta operação.',
