@@ -371,7 +371,10 @@ test('desativação definitivamente rejeitada restaura o acesso anterior', async
 
     await assert.rejects(
         () => deactivateMember(harness.admin, actor, command),
-        /synthetic deactivation rejection/i
+        error => (
+            error?.code === 'P0001'
+            && /synthetic deactivation rejection/i.test(String(error?.message || ''))
+        )
     );
 
     assert.equal(harness.state.directory?.active, true);
