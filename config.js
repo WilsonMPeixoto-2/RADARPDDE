@@ -98,6 +98,7 @@
         loadStylesheet('src/styles/cycle-b-dashboard-final.css');
         loadStylesheet('src/styles/painel-controlador-expressiva.css');
 
+        loadScript('src/integration/application-readiness.js', false);
         loadScript('src/domain/pendencias-view-model.js', false);
         loadScript('src/domain/operational-projection.js', false);
         loadScript('src/domain/retificacoes.js', false);
