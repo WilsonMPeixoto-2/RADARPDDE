@@ -74,11 +74,12 @@ function createStatePort(events = []) {
   };
 }
 
-test('bootstrap remoto não bloqueia nem inicia administrativeLogs', async () => {
+test('bootstrap remoto libera a aplicação sem esperar administrativeLogs', async () => {
   assert.equal(REMOTE_BOOTSTRAP_ENTITIES.includes('administrativeLogs'), false);
 
   const events = [];
-  const repository = createRemoteRepository({ events });
+  const logRead = deferred();
+  const repository = createRemoteRepository({ events, logRead });
   const statePort = createStatePort(events);
   const service = new DataService({ repository, statePort });
 
@@ -88,7 +89,11 @@ test('bootstrap remoto não bloqueia nem inicia administrativeLogs', async () =>
   const bootstrapEvent = events.find(event => event.startsWith('bootstrap:'));
   assert.ok(bootstrapEvent);
   assert.equal(bootstrapEvent.includes('administrativeLogs'), false);
-  assert.equal(events.includes('load:administrativeLogs'), false);
+  assert.equal(events.includes('load:administrativeLogs'), true);
+
+  logRead.resolve([{ id: 'log-1', action: 'Teste', created_at: '2026-09-07T06:00:00.000Z' }]);
+  const hydrated = await service.hydrateRemoteEntities(['administrativeLogs']);
+  assert.equal(hydrated.ok, true);
 });
 
 test('hidratação tardia de administrativeLogs usa patch incremental e compartilha a fila das escritas remotas', async () => {
