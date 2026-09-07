@@ -890,6 +890,7 @@
                 changedEntities: changesVerification
                     ? ['pendencies', 'verifications', 'administrativeLogs']
                     : ['pendencies', 'administrativeLogs'],
+                remoteResultIsAuthoritative: true,
                 mutate: () => {
                     const state = this.getState();
                     const context = this.domain.buildPendencyLookupContext({
@@ -1026,6 +1027,7 @@
             return this.dataService.execute({
                 name: 'pendency:register-attempt',
                 changedEntities: ['pendencies', 'pendencyAttempts', 'verifications', 'administrativeLogs'],
+                remoteResultIsAuthoritative: true,
                 mutate: () => {
                     const state = this.getState();
                     const { index, pendency } = this.find(state, input.pendencyId, 'registerAttempt');
@@ -1084,6 +1086,7 @@
             return this.dataService.execute({
                 name: 'pendency:reanalyze',
                 changedEntities: ['pendencies', 'pendencyAttempts', 'verifications', 'administrativeLogs'],
+                remoteCommitIsAuthoritative: true,
                 mutate: () => {
                     const state = this.getState();
                     const { index, pendency } = this.find(state, input.pendencyId, 'reanalyze');
@@ -1281,6 +1284,7 @@
             return this.dataService.execute({
                 name: `pendency:${operation}`,
                 changedEntities: ['pendencies', 'administrativeLogs'],
+                remoteResultIsAuthoritative: true,
                 mutate: () => {
                     const state = this.getState();
                     const { index, pendency } = this.find(state, input.pendencyId, operation);
@@ -1309,6 +1313,7 @@
             return this.dataService.execute({
                 name: 'pendency:register-contact',
                 changedEntities: ['pendencyContacts', 'administrativeLogs'],
+                remoteResultIsAuthoritative: true,
                 mutate: () => {
                     const state = this.getState();
                     const pendencyId = text(input.pendencyId || input.pendenciaId);

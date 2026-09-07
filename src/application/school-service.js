@@ -218,6 +218,7 @@
             return this.dataService.execute({
                 name: 'school:save',
                 changedEntities: ['schools', 'schoolPrograms', 'administrativeLogs'],
+                remoteCommitIsAuthoritative: true,
                 mutate: () => {
                     const state = this.getState();
                     const controllerId = text(input.controllerId);
@@ -351,6 +352,7 @@
             return this.dataService.execute({
                 name: 'school:assign-controller',
                 changedEntities: ['schools', 'administrativeLogs'],
+                remoteResultIsAuthoritative: true,
                 mutate: () => {
                     const state = this.getState();
                     const school = state.schools.find(item => item.id === schoolId);
@@ -380,6 +382,7 @@
             return this.dataService.execute({
                 name: 'school:bulk-assign-controller',
                 changedEntities: ['schools', 'administrativeLogs'],
+                remoteResultIsAuthoritative: true,
                 mutate: () => {
                     const state = this.getState();
                     const controller = this.activeController(state, controllerId, 'bulkAssignController');

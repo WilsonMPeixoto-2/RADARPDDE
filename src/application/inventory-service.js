@@ -260,6 +260,7 @@
             return this.dataService.execute({
                 name: 'inventory:update-asset',
                 changedEntities: ['assets', 'administrativeLogs'],
+                remoteResultIsAuthoritative: true,
                 mutate: () => {
                     const state = this.getState();
                     const asset = this.findAsset(state, input.assetId, 'inventory:update-asset');
@@ -302,6 +303,7 @@
                 changedEntities: hasLinkedContext
                     ? ['assets', 'verifications', 'administrativeLogs']
                     : ['assets', 'administrativeLogs'],
+                remoteResultIsAuthoritative: true,
                 mutate: () => {
                     const state = this.getState();
                     const asset = this.findAsset(state, input.assetId, 'inventory:forward');
@@ -367,6 +369,7 @@
             return this.dataService.execute({
                 name: 'inventory:complete',
                 changedEntities: ['assets', 'administrativeLogs'],
+                remoteResultIsAuthoritative: true,
                 mutate: () => {
                     const state = this.getState();
                     const asset = this.findAsset(state, input.assetId, 'inventory:complete');
@@ -418,6 +421,7 @@
             return this.dataService.execute({
                 name: 'inventory:create',
                 changedEntities: ['assets', 'administrativeLogs'],
+                remoteResultIsAuthoritative: true,
                 mutate: () => {
                     const state = this.getState();
                     const school = this.findSchool(state, input.schoolId, 'inventory:create');

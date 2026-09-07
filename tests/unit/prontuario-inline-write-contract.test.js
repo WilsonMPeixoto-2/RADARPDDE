@@ -6,6 +6,10 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const appSource = fs.readFileSync(path.join(__dirname, '../../app.js'), 'utf8');
+const reconcilerSource = fs.readFileSync(
+    path.join(__dirname, '../../src/integration/prontuario-conditional-reconciler.js'),
+    'utf8'
+);
 const performanceSource = fs.readFileSync(
     path.join(__dirname, '../../src/integration/operational-write-performance.js'),
     'utf8'
@@ -22,7 +26,7 @@ function functionSource(name) {
         : appSource.slice(start, marker.lastIndex + next);
 }
 
-test('camada operacional intercepta os handlers inline e evita rerender integral no sucesso', () => {
+test('reconciliador funcional intercepta os handlers inline e evita rerender integral no sucesso', () => {
     [
         'toggleBonif',
         'changeAnaliseTecnica',
@@ -30,16 +34,17 @@ test('camada operacional intercepta os handlers inline e evita rerender integral
         'changeInvoiceAdvisoryAnalysis',
         'toggleConsEnviada'
     ].forEach(name => {
-        assert.match(performanceSource, new RegExp(`['\"]${name}['\"]`));
+        assert.match(reconcilerSource, new RegExp(`['\"]${name}['\"]`));
     });
-    assert.match(performanceSource, /patchInlineHandlers/);
-    assert.match(performanceSource, /syncProntuarioProgramUI/);
-    assert.match(performanceSource, /suppressProntuarioRender/);
+    assert.match(reconcilerSource, /function patchHandler/);
+    assert.match(reconcilerSource, /function reconcile/);
+    assert.match(reconcilerSource, /suppressProntuarioRender/);
     assert.match(
-        performanceSource,
+        reconcilerSource,
         /name === 'toggleBonif'[\s\S]*args\[2\][\s\S]*notaFiscal/,
-        'Notas Fiscais estruturadas devem escapar da atualização incremental legada.'
+        'Notas Fiscais estruturadas devem continuar escapando da atualização incremental localizada.'
     );
+    assert.doesNotMatch(performanceSource, /patchInlineHandlers|syncProntuarioProgramUI|suppressProntuarioRender/);
 });
 
 test('grade do prontuário expõe alvos estáveis para atualização incremental', () => {
@@ -50,15 +55,14 @@ test('grade do prontuário expõe alvos estáveis para atualização incremental
     assert.match(renderSource, /data-program-status-summary=/);
 });
 
-
-test('update incremental mantém o bloqueio visual da análise da Declaração BB Ágil em N/A', () => {
+test('reconciliação incremental mantém o bloqueio visual da análise da Declaração BB Ágil em N/A', () => {
     const renderSource = functionSource('renderProntuarioVerificacoes');
 
     assert.match(renderSource, /data-bb-agil-na-lock="true"/);
-    assert.match(performanceSource, /documentKey === 'declBBAgil'/);
-    assert.match(performanceSource, /bonificationValue === 'Não se aplica'/);
-    assert.match(performanceSource, /analysisControl\.disabled = true/);
-    assert.match(performanceSource, /analysisControl\.dataset\.bbAgilNaLock = 'true'/);
-    assert.match(performanceSource, /analysisControl\.disabled = false/);
-    assert.match(performanceSource, /delete analysisControl\.dataset\.bbAgilNaLock/);
+    assert.match(reconcilerSource, /documentKey === 'declBBAgil'/);
+    assert.match(reconcilerSource, /bonificationValue === 'Não se aplica'/);
+    assert.match(reconcilerSource, /analysisControl\.disabled = true/);
+    assert.match(reconcilerSource, /analysisControl\.dataset\.bbAgilNaLock = 'true'/);
+    assert.match(reconcilerSource, /analysisControl\.disabled = false/);
+    assert.match(reconcilerSource, /delete analysisControl\.dataset\.bbAgilNaLock/);
 });
