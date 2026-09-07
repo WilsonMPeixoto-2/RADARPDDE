@@ -6,15 +6,18 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const root = path.resolve(__dirname, '../..');
-const workflow = fs.readFileSync(path.join(root, '.github/workflows/validate.yml'), 'utf8');
+const workflow = fs.readFileSync(
+  path.join(root, '.github/workflows/desktop-bootstrap-observability.yml'),
+  'utf8'
+);
 const config = fs.readFileSync(
   path.join(root, 'playwright.desktop-bootstrap-observability.config.js'),
   'utf8'
 );
 
-test('gate HML aceita a branch fresca da auditoria sem mover a branch histórica divergente', () => {
+test('workflow dedicado só executa a auditoria na branch isolada atual', () => {
   assert.match(workflow, /audit\/desktop-bootstrap-observability-2026-09-07/);
-  assert.match(workflow, /qa\/supabase-preview-gate-run/);
+  assert.doesNotMatch(workflow, /qa\/supabase-preview-gate-run/);
 });
 
 test('diagnóstico autenticado roda somente no projeto desktop e publica apenas o JSON sanitizado', () => {
@@ -32,8 +35,12 @@ test('configuração do diagnóstico desliga trace, screenshot e vídeo e usa so
   assert.doesNotMatch(config, /Pixel|iPhone|mobile/i);
 });
 
-test('workflow serve o código da branch atual com a configuração pública validada do Preview', () => {
-  assert.match(workflow, /config\.runtime\.js/);
+test('workflow mede a branch atual contra Supabase local descartável sem credenciais de Production', () => {
+  assert.match(workflow, /supabase:start/);
+  assert.match(workflow, /supabase:reset/);
+  assert.match(workflow, /bootstrap:auth-fixtures/);
+  assert.match(workflow, /RADAR_AUTH_FIXTURE_PASSWORD/);
   assert.match(workflow, /playwright\.desktop-bootstrap-observability\.config\.js/);
-  assert.match(workflow, /current-branch|branch atual/i);
+  assert.doesNotMatch(workflow, /secrets\./);
+  assert.doesNotMatch(workflow, /RADAR_DEPLOYMENT_URL/);
 });
