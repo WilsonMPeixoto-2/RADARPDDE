@@ -2,67 +2,34 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 
-const policy = require('../../src/integration/operational-write-performance.js');
+const dataService = require('../../src/application/data-service.js');
 
-const persist = async () => ({});
+const root = path.join(__dirname, '../..');
+const dataServiceSource = fs.readFileSync(
+    path.join(root, 'src/application/data-service.js'),
+    'utf8'
+);
+const performanceSource = fs.readFileSync(
+    path.join(root, 'src/integration/operational-write-performance.js'),
+    'utf8'
+);
 
-test('extensão mantém somente a isenção de refresh que ainda lhe pertence', () => {
-    const decorated = policy.decorateCommand({
-        name: 'configuration:create-exercise',
-        changedEntities: ['administrativeLogs'],
-        persist
-    });
-
-    assert.deepEqual(decorated.remoteRefreshExemptEntities, ['administrativeLogs']);
-    assert.equal(decorated.remoteResultIsAuthoritative, undefined);
-    assert.equal(decorated.remoteCommitIsAuthoritative, undefined);
+test('DataService mantém uma única entidade append-only elegível à isenção de refresh', () => {
+    assert.deepEqual(dataService.REMOTE_REFRESH_EXEMPT_ENTITIES, ['administrativeLogs']);
+    assert.equal(Object.isFrozen(dataService.REMOTE_REFRESH_EXEMPT_ENTITIES), true);
 });
 
-test('extensão não sintetiza política de invoice e preserva declaração explícita do núcleo', () => {
-    for (const name of ['invoice:save', 'invoice:remove']) {
-        const implicit = policy.decorateCommand({
-            name,
-            changedEntities: ['registeredInvoices', 'administrativeLogs'],
-            persist
-        });
-        assert.equal(
-            implicit.remoteRefreshExemptEntities,
-            undefined,
-            `${name} não deve depender da extensão para declarar administrativeLogs`
-        );
-
-        const explicit = policy.decorateCommand({
-            name,
-            changedEntities: ['registeredInvoices', 'administrativeLogs'],
-            remoteRefreshExemptEntities: ['administrativeLogs'],
-            persist
-        });
-        assert.deepEqual(explicit.remoteRefreshExemptEntities, ['administrativeLogs'], name);
-    }
+test('DataService cruza a declaração do comando com a whitelist global antes de isentar refresh', () => {
+    assert.match(dataServiceSource, /allowedRefreshExemptEntities\.has\(entity\)/);
+    assert.match(dataServiceSource, /changedEntities\.includes\(entity\)/);
+    assert.match(dataServiceSource, /REMOTE_REFRESH_EXEMPT_ENTITIES/);
 });
 
-test('isenção de refresh aceita somente o histórico administrativo append-only', () => {
-    const decorated = policy.decorateCommand({
-        name: 'invoice:save',
-        changedEntities: ['registeredInvoices', 'administrativeLogs'],
-        remoteRefreshExemptEntities: ['registeredInvoices', 'administrativeLogs'],
-        persist
-    });
-    assert.deepEqual(decorated.remoteRefreshExemptEntities, ['administrativeLogs']);
-
-    const genericUnsafe = policy.decorateCommand({
-        name: 'audit:record',
-        changedEntities: ['registeredInvoices'],
-        remoteRefreshExemptEntities: ['registeredInvoices'],
-        persist
-    });
-    assert.equal(genericUnsafe.remoteRefreshExemptEntities, undefined);
-
-    const generic = policy.decorateCommand({
-        name: 'audit:record',
-        changedEntities: ['administrativeLogs'],
-        persist
-    });
-    assert.equal(generic.remoteRefreshExemptEntities, undefined);
+test('módulo de performance não possui mais autoridade sobre refresh', () => {
+    assert.doesNotMatch(performanceSource, /remoteRefreshExemptEntities/);
+    assert.doesNotMatch(performanceSource, /ALLOWED_REFRESH_EXEMPT_ENTITIES/);
+    assert.doesNotMatch(performanceSource, /REFRESH_EXEMPT_ENTITIES_BY_COMMAND/);
 });
