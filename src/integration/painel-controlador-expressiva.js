@@ -11,7 +11,6 @@
     }
 
     loadIntegration('src/integration/controller-session-context.js');
-    loadIntegration('src/integration/navigation-history.js');
 
     const CARD_KINDS = ['scope', 'bonus', 'open', 'review', 'assets'];
     let scheduled = false;
