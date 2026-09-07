@@ -1,125 +1,104 @@
-# Design — observabilidade segura do bootstrap desktop
+# Design final — bootstrap, readiness e pós-login desktop
 
 **Data:** 2026-09-07  
-**Base:** `b37df653676a0aa10dc286aad33e69ff13cccbf5`  
-**Escopo:** diagnóstico instrumental, sem alterar comportamento funcional do RADAR.
+**Base inicial:** `b37df653676a0aa10dc286aad33e69ff13cccbf5`  
+**Escopo:** desktop; correção estrutural mínima guiada por evidência autenticada.
 
-## Objetivo
+## Problema confirmado
 
-Medir e mapear o que realmente acontece entre a abertura do RADAR, a autenticação e a liberação do Dashboard no desktop antes de qualquer refatoração de carregamento.
+A investigação mostrou que a demora e a fragilidade do pós-login não pertenciam a um único componente. O frontend combinava carregadores estáticos e dinâmicos, instaladores que sondavam dependências por `setInterval`, mais de uma autoridade para carregar `navigation-history.js` e um bootstrap remoto que aguardava também `administrativeLogs` antes de liberar o Dashboard.
 
-Em linguagem operacional: nesta etapa o sistema continua carregando exatamente como carrega hoje. O trabalho apenas produz evidência confiável sobre **o que carregou, em que ordem, quanto demorou e quais partes esperaram outras partes**.
+O risco principal não era apenas tempo. A instalação de partes do frontend dependia de coincidência temporal: um módulo tentava repetidamente descobrir se outro já existia. Isso funcionava na maioria das execuções, mas tornava a ordem implícita e mais difícil de verificar.
 
-## Restrições aprovadas
+## Contrato adotado
 
-1. Desktop é o único alvo corretivo e de desempenho desta frente.
-2. Nenhum dado, módulo, CSS, serviço ou regra será adiado/removido nesta etapa.
-3. Nenhum fluxo de Production será alterado para coletar diagnóstico.
-4. O diagnóstico autenticado detalhado usa Preview/HML com identidades efêmeras e limpeza automática.
-5. Não publicar credenciais, payloads, nomes de escolas, documentos, notas fiscais ou outros dados institucionais nos artefatos.
-6. Coverage nunca será usado como prova isolada de que um recurso pode ser removido ou carregado depois.
-7. Medição de tempo e medição de coverage serão execuções separadas, porque coverage adiciona sobrecarga e contaminaria a comparação de desempenho.
+A correção preserva as autoridades já vigentes e adiciona um coordenador único de prontidão, `RadarApplicationReadiness`, sem criar um novo dono de regras de negócio.
 
-## Fontes independentes de evidência
+O coordenador representa capacidades, não componentes visuais. As capacidades centrais são:
 
-A conclusão desta etapa deverá cruzar cinco fontes:
+- `authentication`;
+- `data`;
+- `application-services`;
+- `ui-runtime`;
+- `competence`;
+- `navigation`.
 
-1. **Análise estática:** `dependency-cruiser` e o analisador existente de precedência do frontend.
-2. **Execução real do Chromium desktop:** Playwright em Preview/HML.
-3. **Rede:** início/fim e duração de requisições, registrando apenas caminho/família do endpoint.
-4. **Recursos do navegador:** scripts e folhas de estilo realmente carregados, inclusive carregamentos dinâmicos e duplicados.
-5. **Coverage:** uso de JavaScript/CSS por superfície em execução separada, apenas como evidência auxiliar.
+Capacidades restritas de uma superfície podem depender delas sem bloquear toda a aplicação. `audit-data`, por exemplo, depende de `data`, mas não pertence ao conjunto necessário para liberar o Dashboard.
 
-## Instrumentação test-side
+As autoridades permanecem separadas:
 
-A instrumentação ficará em `tests/support/desktop-bootstrap-observer.js` e será instalada por `page.addInitScript()` antes do código da aplicação.
+- autenticação: `SessionService` / `auth-bootstrap`;
+- dados: `DataService` / repositório / `StatePort`;
+- competência: `RadarCompetenceContext`;
+- navegação: módulos canônicos de navegação;
+- extensões de produto: `RadarProductExtensionsReady` e seu bootstrap sequencial;
+- prontidão: `RadarApplicationReadiness`, que apenas registra/aguarda estados.
 
-Ela poderá observar:
+## Correções executadas
 
-- eventos de autenticação e serviços;
-- inserção dinâmica de `<script>` e `<link>` por `MutationObserver`;
-- requisições `fetch` com duração e URL sanitizada;
-- `setInterval` criados, apenas em uma execução diagnóstica separada;
-- marcos de readiness consultados do próprio runtime;
-- recursos registrados em `performance.getEntriesByType('resource')`;
-- long tasks quando suportadas.
+### 1. Readiness determinístico
 
-A instrumentação deve delegar integralmente para APIs nativas. Ela não decide ordem, não resolve dependências e não altera o estado funcional.
+Foram removidos do caminho normal os pollings de prontidão que aguardavam autenticação/dados, competência, navegação, ponte operacional e instaladores finais do Prontuário.
 
-## Marcos do pós-login
+Os componentes agora tentam instalar imediatamente quando já possuem dependências e, quando necessário, aguardam um evento ou capacidade determinística. Não há timeout usado como substituto de contrato de instalação no caminho corrigido.
 
-A execução de tempo registrará, no mínimo:
+### 2. Autoridade única de navegação
 
-1. formulário de login enviado;
-2. `radar:auth-resolved`;
-3. `radar:application-services-ready`;
-4. `RadarDataContext.ready === true`;
-5. `RadarCompetenceContext.isInitialized() === true`;
-6. navegação canônica instalada;
-7. Auth Gate oculto;
-8. Dashboard visível e utilizável.
+`painel-controlador-expressiva.js` deixou de carregar `navigation-history.js`. A navegação passa pela cadeia canônica do `auth-gate`, eliminando a segunda autoridade de carregamento detectada na auditoria.
 
-Também serão resumidas as requisições Supabase ocorridas entre login e Dashboard, por endpoint/tabela e duração, sem conteúdo de resposta.
+### 3. Pós-login sem esperar histórico administrativo
 
-## Inventário de carregamento
+`administrativeLogs` saiu de `REMOTE_BOOTSTRAP_ENTITIES`. O Dashboard não precisa do histórico interno para funcionar e, portanto, não deve aguardar essa leitura.
 
-O relatório deverá separar:
+A hidratação tardia foi limitada explicitamente a entidades que possuem aplicação incremental segura. Nesta mudança, apenas `administrativeLogs` foi autorizado. Tentativas de hidratar arbitrariamente entidades como `schools` são rejeitadas.
 
-- scripts estáticos de `index.html`;
-- extensões de `config.js`;
-- extensões do bootstrap de produto;
-- carregadores aninhados;
-- scripts/estilos efetivamente observados no navegador;
-- duplicidades de URL observadas;
-- polling estático encontrado no código e timers efetivamente criados na sessão diagnóstica.
+A hidratação usa a mesma fila serial das escritas remotas para impedir que uma leitura atrasada sobrescreva um log recém-gravado.
 
-## Matriz de superfícies
+### 4. Registros Internos com dependência explícita
 
-Depois da coleta, o relatório final desta etapa deverá organizar as superfícies desktop:
+`audit-data-gate.js` controla somente a superfície Registros Internos. Enquanto os logs não estiverem disponíveis, a tela mostra estado de carregamento. Em falha, mostra indisponibilidade e permite nova tentativa. O restante da aplicação continua utilizável.
 
-- Dashboard;
-- Carteira de Escolas;
-- Competências;
-- Pendências;
-- Prontuário;
-- Capital e Inventário;
-- Registros Internos;
-- Gestão de Equipe;
-- Configurações SME.
+Isso evita o extremo oposto: nenhum dado necessário a uma tela é simplesmente omitido para acelerar o login.
 
-Para cada uma, distinguir:
+## Regra para carregamento tardio de dados
 
-- dependências obrigatórias para renderização correta;
-- dados consumidos;
-- serviços consumidos;
-- extensões críticas;
-- melhorias opcionais;
-- CSS necessário antes da primeira renderização correta.
+Nenhuma entidade pode ser retirada do bootstrap inicial apenas por parecer pesada ou pouco usada. Antes de qualquer nova postergação são obrigatórios:
 
-Nada será classificado como adiável apenas porque não apareceu em uma única navegação.
+1. consumidor/superfície identificados;
+2. prova de que a entidade não é necessária antes daquela superfície;
+3. aplicação incremental segura no `StatePort`;
+4. estado de loading/falha da superfície dependente;
+5. regressão autenticada.
 
-## Segurança de dados e artefatos
+Essa regra preserva o funcionamento completo das páginas e impede otimização por exclusão acidental de dependências.
 
-Os artefatos podem conter somente:
+## Evidência de execução
 
-- nomes de arquivos internos do repositório;
-- nomes de eventos/capacidades técnicas;
-- tempos em milissegundos;
-- contagens;
-- URLs reduzidas a origem/caminho ou tabela, sem query string sensível;
-- totais de coverage por arquivo.
+O gate autenticado desktop usa Chromium com Supabase real descartável e separa medição de tempo de coverage.
 
-Não serão publicados trace, vídeo ou screenshot do HML nesta auditoria. O JSON final deve passar por sanitização antes do upload.
+Na execução final da branch:
 
-## Critério de conclusão desta etapa
+- mediana de login enviado até Dashboard utilizável: **492,1 ms** em três execuções no ambiente local descartável com Supabase real;
+- `auth-resolved`: mediana 330,3 ms;
+- `application-services-ready`: 418,1 ms;
+- competência: aproximadamente 428–492 ms conforme o marco observado;
+- `product-extensions-ready`: 445,9 ms;
+- Dashboard utilizável: 492,1 ms;
+- 23 combinações perfil/superfície percorridas no mapa de carga;
+- nenhum polling de readiness de 10/20/25/50 ms permaneceu em execução;
+- foi observado um único intervalo de 30 s, compatível com o `autoRefreshToken` deliberadamente ativado pelo cliente Supabase Auth e não usado como contrato de readiness.
 
-A etapa de diagnóstico termina somente quando:
+Esses números são diagnóstico controlado do ambiente local autenticado, não telemetria de campo de Production.
 
-1. a instrumentação passa em testes unitários;
-2. o frontend atual passa nos testes existentes com a instrumentação ausente e presente;
-3. uma execução autenticada desktop em Preview/HML produz o relatório sanitizado;
-4. o relatório identifica a cadeia pós-login e os carregadores observados;
-5. a matriz de dependências é atualizada a partir de evidência estática + runtime;
-6. nenhuma alteração funcional foi introduzida.
+## Critérios de segurança
 
-Depois disso, a fila acordada continua com a unificação semântica de Pendências, convergência de Nota Fiscal e somente então a correção estrutural de readiness/bootstrap.
+- nenhum payload, credencial, e-mail, escola, NF ou identificador de fixture é publicado no artefato;
+- coverage não autoriza sozinho remoção ou postergação;
+- módulos críticos continuam fail-closed;
+- falha de dados de Auditoria restringe somente Auditoria;
+- nenhuma migration foi necessária;
+- regras de bonificação, Pendências, NF, inventário e perfis não foram redefinidas por esta frente.
+
+## Critério de conclusão
+
+A frente está pronta para encerramento quando a branch final passar pelos testes unitários/integrados, E2E, perfis/viewports, Supabase real, CodeQL, Lighthouse, observabilidade autenticada e homologação pré-Production; depois disso deve ser integrada e verificada em Production pelo SHA efetivamente servido.
