@@ -47,6 +47,7 @@
     const { assertCanonicalRecords } = jsonContracts;
     const GENERATED_INSERT_FIELDS = Object.freeze(['row_version', 'created_at', 'updated_at']);
     const VOLATILE_COMPARISON_FIELDS = Object.freeze(['row_version', 'created_at', 'updated_at']);
+    const REMOTE_REFRESH_EXEMPT_ENTITIES = Object.freeze(['administrativeLogs']);
     const REMOTE_BOOTSTRAP_ENTITIES = Object.freeze([
         'appConfig',
         'programs',
@@ -456,11 +457,15 @@
                     : [])
             ];
             declaredRefreshExemptEntities.forEach(assertKnownEntity);
+            const allowedRefreshExemptEntities = new Set(REMOTE_REFRESH_EXEMPT_ENTITIES);
             const capabilities = this.repository.capabilities();
             const remote = capabilities.remote === true;
             const remoteRefreshExemptEntities = new Set(
                 remote
-                    ? declaredRefreshExemptEntities.filter(entity => changedEntities.includes(entity))
+                    ? declaredRefreshExemptEntities.filter(entity => (
+                        changedEntities.includes(entity)
+                        && allowedRefreshExemptEntities.has(entity)
+                    ))
                     : []
             );
             const refreshEntities = changedEntities.filter(entity => !remoteRefreshExemptEntities.has(entity));
@@ -674,5 +679,9 @@
         }
     }
 
-    return Object.freeze({ DataService, REMOTE_BOOTSTRAP_ENTITIES });
+    return Object.freeze({
+        DataService,
+        REMOTE_BOOTSTRAP_ENTITIES,
+        REMOTE_REFRESH_EXEMPT_ENTITIES
+    });
 }));
