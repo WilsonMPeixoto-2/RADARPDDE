@@ -79,12 +79,17 @@
         }
 
         function loadScript(src, async) {
-            if (document.querySelector(`script[data-radar-extension="${src}"]`)) return;
-            const script = document.createElement('script');
-            script.src = src;
-            script.async = async;
-            script.dataset.radarExtension = src;
-            document.head.appendChild(script);
+            const existing = document.querySelector(`script[data-radar-extension="${src}"]`);
+            if (existing) return Promise.resolve(existing);
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.async = async;
+                script.dataset.radarExtension = src;
+                script.addEventListener('load', () => resolve(script), { once: true });
+                script.addEventListener('error', () => reject(new Error(`Falha ao carregar ${src}.`)), { once: true });
+                document.head.appendChild(script);
+            });
         }
 
         loadStylesheet('src/styles/mobile-responsive.css');
@@ -98,7 +103,14 @@
         loadStylesheet('src/styles/cycle-b-dashboard-final.css');
         loadStylesheet('src/styles/painel-controlador-expressiva.css');
 
-        loadScript('src/integration/application-readiness.js', false);
+        root.RadarApplicationReadinessReady = loadScript(
+            'src/integration/application-readiness.js',
+            false
+        ).then(() => root.RadarApplicationReadiness || null).catch(error => {
+            root.RADAR_LAST_READINESS_BOOTSTRAP_ERROR = error;
+            return null;
+        });
+
         loadScript('src/domain/pendencias-view-model.js', false);
         loadScript('src/domain/operational-projection.js', false);
         loadScript('src/domain/retificacoes.js', false);
