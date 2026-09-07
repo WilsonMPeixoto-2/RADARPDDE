@@ -11,13 +11,9 @@
         root.RadarInvoiceHistoryLock = Object.freeze(api);
         if (root.document) {
             const attemptInstall = () => api.install(root);
-            if (!attemptInstall() && root.document.readyState === 'loading') {
-                root.document.addEventListener('DOMContentLoaded', attemptInstall, { once: true });
+            if (!attemptInstall()) {
+                root.addEventListener?.('radar:application-services-ready', attemptInstall, { once: true });
             }
-            const interval = root.setInterval?.(() => {
-                if (attemptInstall()) root.clearInterval?.(interval);
-            }, 25);
-            root.setTimeout?.(() => root.clearInterval?.(interval), 10000);
         }
     }
 }(typeof window !== 'undefined' ? window : globalThis, function createInvoiceHistoryLockApi(contract) {
