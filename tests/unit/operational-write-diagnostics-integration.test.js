@@ -6,7 +6,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const diagnostics = require('../../src/integration/operational-write-diagnostics.js');
-const performancePolicy = require('../../src/integration/operational-write-performance.js');
+const performanceObserver = require('../../src/integration/operational-write-performance.js');
+const reconciler = require('../../src/integration/prontuario-conditional-reconciler.js');
 const feedback = require('../../src/integration/operational-write-feedback.js');
 
 const bootstrapSource = fs.readFileSync(
@@ -96,13 +97,13 @@ test('API segura de marcação falha aberta sem interromper a operação', () =>
     assert.doesNotThrow(() => diagnostics.mark(null, id, 'feedback'));
 });
 
-test('bootstrap carrega diagnóstico antes da política de escrita', () => {
+test('bootstrap carrega diagnóstico antes do observador de performance', () => {
     const diagnosticsIndex = bootstrapSource.indexOf('/src/integration/operational-write-diagnostics.js');
     const performanceIndex = bootstrapSource.indexOf('/src/integration/operational-write-performance.js');
 
     assert.notEqual(diagnosticsIndex, -1, 'diagnóstico operacional não está no bootstrap oficial');
-    assert.notEqual(performanceIndex, -1, 'política de escrita não está no bootstrap oficial');
-    assert.ok(diagnosticsIndex < performanceIndex, 'diagnóstico deve carregar antes da política de escrita');
+    assert.notEqual(performanceIndex, -1, 'observador de performance não está no bootstrap oficial');
+    assert.ok(diagnosticsIndex < performanceIndex, 'diagnóstico deve carregar antes do observador');
 });
 
 test('feedback identifica o handler técnico sem carregar argumentos do negócio para a métrica', () => {
@@ -131,7 +132,7 @@ test('DataService instrumentado mede apenas a persistência customizada como RPC
         }
     };
 
-    assert.equal(performancePolicy.patchDataService(dataService, root), true);
+    assert.equal(performanceObserver.patchDataService(dataService, root), true);
     const result = await diagnostics.withActive(root, id, () => dataService.execute({
         name: 'verification:set-bonification',
         changedEntities: ['verifications', 'administrativeLogs'],
@@ -149,12 +150,14 @@ test('DataService instrumentado mede apenas a persistência customizada como RPC
     assert.equal(entry.durations.rpc, 10);
 });
 
-test('escrita inline instrumentada fecha click, feedback, RPC, aplicação e estabilidade', async () => {
+test('tracing e reconciliador separados fecham click, feedback, RPC, aplicação e estabilidade', async () => {
     const { root, setNow } = clockRoot();
     root.document = {
-        querySelectorAll: () => []
+        querySelectorAll: () => [],
+        querySelector: () => null
     };
     root.renderProntuario = () => true;
+    root.RadarServiceAdvisoryPendency = {};
 
     const dataService = {
         execute: async command => {
@@ -164,7 +167,7 @@ test('escrita inline instrumentada fecha click, feedback, RPC, aplicação e est
             return persisted;
         }
     };
-    const state = { verifications: {}, registeredInvoices: [] };
+    const state = { verifications: {}, registeredInvoices: [], pendencies: [] };
     root.RadarApplicationServices = {
         verifications: {
             dataService,
@@ -186,7 +189,8 @@ test('escrita inline instrumentada fecha click, feedback, RPC, aplicação e est
     root.toggleConsEnviada = async () => true;
 
     diagnostics.install(root);
-    assert.equal(performancePolicy.install(root), true);
+    assert.equal(performanceObserver.install(root), true);
+    assert.equal(reconciler.install(root), true);
 
     setNow(0);
     const id = diagnostics.begin(root, 'toggleBonif');
