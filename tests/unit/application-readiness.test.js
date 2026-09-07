@@ -72,6 +72,6 @@ test('proteção atômica instala por sinal determinístico e publica readiness 
   assert.match(source, /RadarApplicationReadiness/);
   assert.match(source, /['"]atomic-analysis['"]/);
   assert.match(source, /['"]application-services['"]/);
-  assert.match(source, /markReady\(['"]atomic-analysis['"]\)/);
-  assert.match(source, /markFailed\(['"]atomic-analysis['"]/);
+  assert.match(source, /markReady(?:\?\.)?\(['"]atomic-analysis['"]\)/);
+  assert.match(source, /markFailed(?:\?\.)?\(['"]atomic-analysis['"]/);
 });
