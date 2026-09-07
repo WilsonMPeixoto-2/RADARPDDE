@@ -286,10 +286,45 @@
         return true;
     }
 
-    if (!install()) {
+    const readiness = root.RadarApplicationReadiness || null;
+    readiness?.define?.('atomic-analysis', {
+        dependencies: ['application-services'],
+        criticality: 'critical'
+    });
+
+    function completeInstall() {
+        if (!install()) return false;
+        readiness?.markReady?.('atomic-analysis');
+        return true;
+    }
+
+    function failClosed(reason) {
         root.RADAR_ATOMIC_ANALYSIS_READY = false;
-        const interval = root.setInterval(() => {
-            if (install()) root.clearInterval(interval);
-        }, 100);
+        readiness?.markFailed?.('atomic-analysis', reason);
+        root.console?.error?.('A proteção atômica de análise não pôde ser instalada.', reason);
+        return false;
+    }
+
+    if (completeInstall()) return;
+
+    root.RADAR_ATOMIC_ANALYSIS_READY = false;
+
+    if (readiness?.when) {
+        readiness.when('application-services').then(() => {
+            if (!completeInstall()) failClosed('ATOMIC_ANALYSIS_DEPENDENCIES_MISSING');
+        }).catch(() => {
+            failClosed('APPLICATION_SERVICES_UNAVAILABLE');
+        });
+        return;
+    }
+
+    const handleServicesReady = () => {
+        if (!completeInstall()) failClosed('ATOMIC_ANALYSIS_DEPENDENCIES_MISSING');
+    };
+
+    if (root.RadarApplicationServices) {
+        handleServicesReady();
+    } else {
+        root.addEventListener?.('radar:application-services-ready', handleServicesReady, { once: true });
     }
 }(typeof window !== 'undefined' ? window : globalThis));
