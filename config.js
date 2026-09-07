@@ -116,10 +116,37 @@
         loadScript('src/domain/retificacoes.js', false);
         loadScript('src/integration/mobile-navigation.js', false);
         loadScript('src/integration/modal-accessibility.js', false);
-        loadScript('src/integration/task-9-pendencias-page.js', false);
-        loadScript('src/integration/task-9-focus-bridge.js', false);
-        loadScript('src/integration/task-9-cross-view.js', false);
-        loadScript('src/integration/task-10-11-pendency-actions.js', false);
+
+        // Pendências depende das funções-base declaradas por app.js. Em vez de
+        // sondar o ambiente a cada 10 ms, o carregador canônico aguarda o marco
+        // determinístico de DOMContentLoaded, quando todos os scripts defer já
+        // foram executados, e só então instala a página e suas pontes dependentes.
+        root.RadarPendencyPageReady = root.RadarApplicationReadinessReady.then(async readiness => {
+            if (!readiness) throw new Error('Coordenador de prontidão indisponível para Pendências.');
+            readiness.define?.('pendency-page', {
+                dependencies: ['ui-runtime'],
+                criticality: 'critical'
+            });
+            await readiness.when('ui-runtime');
+            await loadScript('src/integration/task-9-pendencias-page.js', false);
+            if (!root.RadarTask9PendencyPage) {
+                readiness.markFailed?.('pendency-page', 'PENDENCY_PAGE_INSTALL_FAILED');
+                throw new Error('A página de Pendências não concluiu a instalação.');
+            }
+            readiness.markReady?.('pendency-page');
+            await loadScript('src/integration/task-9-focus-bridge.js', false);
+            await loadScript('src/integration/task-9-cross-view.js', false);
+            await loadScript('src/integration/task-10-11-pendency-actions.js', false);
+            return root.RadarTask9PendencyPage;
+        }).catch(error => {
+            root.RADAR_LAST_PENDENCY_PAGE_BOOTSTRAP_ERROR = error;
+            root.RadarApplicationReadiness?.markFailed?.(
+                'pendency-page',
+                'PENDENCY_PAGE_BOOTSTRAP_FAILED'
+            );
+            return null;
+        });
+
         loadScript('src/integration/task-12-13-retificacoes.js', false);
         loadScript('src/integration/cycle-b-carteira.js', false);
         loadScript('src/integration/cycle-b-dashboard.js', false);
