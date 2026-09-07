@@ -90,6 +90,19 @@ test('ignora heredoc, expressões dinâmicas e artefatos gerados em runtime', as
     assert.equal(result.violations.length, 0);
 });
 
+test('não confunde imports node: dentro de heredoc com execução do binário Node', async () => {
+    const checker = await import(CHECKER_URL);
+    const root = createRepository();
+
+    write(root, '.github/workflows/node-builtins.yml', `name: Builtins\non: workflow_dispatch\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - run: |\n          node --input-type=module <<'NODE'\n          import { writeFile } from 'node:fs/promises';\n          import path from 'node:path';\n          await writeFile(path.resolve('runtime.txt'), 'ok');\n          NODE\n`);
+
+    const result = checker.analyzeWorkflowReferences(root);
+
+    assert.equal(result.passed, true);
+    assert.equal(result.violations.length, 0);
+    assert.equal(result.references.some(item => item.reference.includes(':fs/promises')), false);
+});
+
 test('bloqueia caminhos YAML locais inexistentes ou action sem metadata', async () => {
     const checker = await import(CHECKER_URL);
     const root = createRepository();
