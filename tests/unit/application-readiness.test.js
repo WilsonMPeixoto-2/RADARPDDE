@@ -47,10 +47,12 @@ test('readiness rejeita dependência crítica falha com código sanitizado', asy
 
 test('config carrega o coordenador antes das extensões que dependem de readiness', () => {
   const config = fs.readFileSync(modulePath('config.js'), 'utf8');
-  const readinessIndex = config.indexOf("loadScript('src/integration/application-readiness.js', false)");
+  const readinessMatch = config.match(/loadScript\(\s*['"]src\/integration\/application-readiness\.js['"]\s*,\s*false\s*\)/);
+  const readinessIndex = readinessMatch?.index ?? -1;
   const firstConsumer = config.indexOf("loadScript('src/integration/exercise-management.js', false)");
   assert.ok(readinessIndex >= 0);
   assert.ok(firstConsumer > readinessIndex);
+  assert.match(config, /RadarApplicationReadinessReady/);
 });
 
 test('auth gate, competência global e histórico deixam de usar setInterval como contrato de prontidão', () => {
