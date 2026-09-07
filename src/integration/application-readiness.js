@@ -19,7 +19,6 @@
         'navigation'
     ];
     critical.forEach(name => coordinator.define(name, { criticality: 'critical' }));
-    coordinator.define('product-extensions', { criticality: 'critical' });
 
     const remoteEnabled = root.RADAR_PDDE_CONFIG?.supabase?.connectionEnabled === true;
     if (!remoteEnabled) coordinator.markReady('authentication');
