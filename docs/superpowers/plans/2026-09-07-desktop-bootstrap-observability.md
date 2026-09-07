@@ -1,112 +1,86 @@
-# Plano de implementação — diagnóstico instrumental do bootstrap desktop
+# Plano executado — bootstrap, readiness e pós-login desktop
 
-**Design:** `docs/superpowers/specs/2026-09-07-desktop-bootstrap-observability-design.md`
+**Design final:** `docs/superpowers/specs/2026-09-07-desktop-bootstrap-observability-design.md`
 
-## Resultado concreto esperado
+## Objetivo
 
-Produzir, sem alterar o comportamento do RADAR, uma evidência autenticada e sanitizada que mostre onde o tempo pós-login é gasto e como scripts, estilos, dados e readiness se encadeiam no desktop.
+Mapear causalmente o carregamento autenticado e corrigir, sem regressão funcional, os problemas confirmados de prontidão, autoridade de carregamento e espera desnecessária no pós-login desktop.
 
-## Task 1 — Contratos RED da instrumentação
+## Execução concluída na branch
 
-**Criar:**
-- `tests/unit/desktop-bootstrap-observer.test.js`
-- `tests/unit/desktop-bootstrap-observability-workflow.test.js`
+### 1. Observabilidade antes da mudança
 
-Os testes devem exigir:
-- sanitização de URLs e ausência de query string;
-- agregação de requisições por caminho/tabela;
-- resumo de recursos duplicados;
-- relatório sem payload de rede;
-- workflow HML executável a partir da branch atual da auditoria;
-- execução explicitamente desktop.
+Foram criados observer test-side, workflow dedicado e E2E autenticado com Supabase descartável. A coleta separa timing, mapa de carga e coverage e publica somente JSON sanitizado.
 
-Executar o RED no CI antes de criar a implementação.
+A análise confirmou:
 
-## Task 2 — Observer test-side
+- múltiplos instaladores sondando dependências por polling;
+- sobreposição de autoridade para `navigation-history.js`;
+- Dashboard bloqueado até o bootstrap remoto integral, inclusive `administrativeLogs`;
+- ausência de orçamento/medição causal do login até a tela utilizável.
 
-**Criar:** `tests/support/desktop-bootstrap-observer.js`
+### 2. Coordenador de readiness
 
-Responsabilidades:
-- instalar observação antes do código da aplicação;
-- marcar eventos de auth/readiness;
-- observar scripts e styles dinâmicos;
-- registrar fetch somente com método, caminho sanitizado, início, fim e duração;
-- opcionalmente registrar timers em execução diagnóstica separada;
-- coletar PerformanceResourceTiming e long tasks quando disponíveis;
-- gerar resumo determinístico e serializável.
+Foi criado `RadarApplicationReadiness` para representar capacidades explícitas de autenticação, dados, serviços, runtime de UI, competência e navegação.
 
-Não pode:
-- mudar ordem de scripts;
-- resolver Promise da aplicação;
-- cancelar ou repetir requisição;
-- escrever em dados operacionais;
-- alterar decisões de readiness.
+O `auth-gate`, a competência global, o histórico de navegação e a ponte operacional passaram a aguardar marcos determinísticos em vez de consultar repetidamente o ambiente por relógio.
 
-## Task 3 — E2E autenticado de diagnóstico
+### 3. Cadeia de carregamento
 
-**Criar:** `tests/e2e/desktop-bootstrap-observability.spec.js`
+A segunda carga de `navigation-history.js` foi retirada do painel do Controlador. A cadeia canônica de navegação permanece no `auth-gate`.
 
-Usar as identidades efêmeras já produzidas pelo gate HML.
+Pendências e extensões que dependem do runtime base passaram a ser iniciadas em ordem determinística pelo carregador correspondente. Os instaladores finais de histórico de NF, observação de escrita e reconciliação de Prontuário também deixaram de criar intervalos de readiness.
 
-Execuções separadas:
-1. **timing:** login → Dashboard, sem coverage/timer wrapping;
-2. **load graph:** recursos dinâmicos, readiness, requests e timers;
-3. **coverage por superfícies:** JavaScript/CSS, sem usar o tempo desta execução como benchmark.
+### 4. Pós-login e Auditoria
 
-O teste escreve apenas JSON sanitizado em `test-results/desktop-bootstrap-observability/`.
+`administrativeLogs` saiu do bootstrap remoto bloqueante. A entidade é hidratada depois, por patch incremental seguro e serializado com a fila de escritas remotas.
 
-## Task 4 — Integrar com o gate HML
+A tela Registros Internos ganhou dependência explícita `audit-data`: enquanto a leitura não termina, a tela informa carregamento; em falha, restringe apenas a própria tela e oferece retry.
 
-**Modificar:** `.github/workflows/validate.yml`
+Nenhuma outra entidade foi convertida em lazy loading. O `DataService` rejeita hidratação tardia de entidades ainda sem semântica incremental comprovada.
 
-- permitir o job Preview/HML para a branch fresca `audit/desktop-bootstrap-observability-2026-09-07`, sem mover a branch legada divergente `qa/supabase-preview-gate-run`;
-- manter criação/limpeza das identidades efêmeras;
-- executar o diagnóstico apenas no projeto desktop Chromium;
-- publicar somente o JSON sanitizado de observabilidade.
+### 5. Regressões adicionadas
 
-Não alterar o deploy Production.
+A suíte passou a exigir, entre outros pontos:
 
-## Task 5 — Evidência estática complementar
+- ausência dos pollings de readiness corrigidos;
+- instalação imediata quando dependências já existem;
+- reação ao evento `radar:application-services-ready` quando necessário;
+- Dashboard liberado antes de `administrativeLogs` em leitura atrasada;
+- Auditoria aguardando seus dados em vez de renderizar histórico incompleto;
+- hidratação tardia serializada com escritas;
+- rejeição de lazy loading inseguro de outras entidades;
+- ausência de autoridade duplicada de navegação;
+- artefato de observabilidade sem segredos ou identificadores de fixtures.
 
-Reutilizar:
-- `npm run audit:frontend-precedence:check`;
-- `npm run test:frontend-precedence`;
-- `npm run check:architecture`;
-- `dependency-cruiser`;
-- analisador de precedência já existente.
+## Evidência final da branch
 
-Gerar matriz atual de loaders, polling e relações globais sem criar um segundo analisador concorrente quando o existente puder ser estendido.
+No gate autenticado desktop com Supabase real descartável:
 
-## Task 6 — CI e leitura adversarial
+- mediana login → Dashboard utilizável: **492,1 ms** em três execuções;
+- 23 combinações perfil/superfície visitadas pelo mapa de carga;
+- nenhum intervalo de readiness de 10/20/25/50 ms permanece em execução;
+- um único intervalo de 30 s permanece observado, compatível com o auto-refresh deliberado da sessão Supabase Auth.
 
-No PR:
-- validar testes unitários/integrados existentes;
-- executar frontend precedence;
-- executar HML autenticado desktop;
-- verificar artefato sanitizado;
-- confirmar ausência de mudança em `src/`, `app.js`, `config.js`, `index.html` e banco durante esta etapa.
-
-## Task 7 — Relatório causal e contrato de dependências
-
-**Criar após a execução real:**
-- `docs/evidence/desktop-bootstrap-observability/2026-09-07-report.md`
-- `docs/evidence/desktop-bootstrap-observability/surface-dependency-matrix.json`
-
-O relatório deve responder objetivamente:
-- quanto tempo decorre do clique em Entrar até o Dashboard utilizável;
-- qual etapa domina esse tempo;
-- quantas leituras remotas ocorrem e quais grupos de dados concentram tempo;
-- quais scripts/styles carregam antes do Dashboard;
-- quais carregamentos são duplicados;
-- quais módulos realmente usam polling de readiness;
-- qual é a composição efetiva dos wrappers centrais;
-- quais dependências cada superfície desktop exige.
+O número de 492,1 ms é diagnóstico controlado local, não medição de usuário em Production.
 
 ## Gate de saída
 
-Nenhuma refatoração de readiness/lazy loading será iniciada neste PR. Após o diagnóstico ser fechado, seguir a fila aprovada:
+Antes do merge são obrigatórios:
 
-1. regra única de Pendências;
-2. convergência de salvar/excluir NF;
-3. reorganização estrutural de bootstrap/readiness mantendo os mesmos recursos;
-4. otimizações pós-login somente quando comprovadas.
+1. validação geral do repositório;
+2. E2E completo;
+3. perfis/viewports;
+4. ciclos e confiabilidade com Supabase real;
+5. readiness/Supabase;
+6. CodeQL e saúde das dependências;
+7. Lighthouse segundo a política vigente;
+8. observabilidade autenticada;
+9. homologação integral pré-Production;
+10. revisão adversarial da composição final.
+
+Após o merge, o SHA servido em Production, erros de runtime e `production_integrity_check()` devem ser revalidados antes de declarar esta frente concluída.
+
+## Fila posterior
+
+Esta frente não altera a classificação das duas correções funcionais seguintes já conhecidas: unificação semântica de Pendências e convergência autoritativa de salvar/excluir Nota Fiscal. Elas são trabalhos separados e não devem ser misturados ao fechamento deste bootstrap.
