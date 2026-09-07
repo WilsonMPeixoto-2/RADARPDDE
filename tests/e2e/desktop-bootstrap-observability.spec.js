@@ -13,21 +13,21 @@ const {
 } = require('../support/desktop-bootstrap-observer.js');
 
 const enabled = process.env.RADAR_E2E_DESKTOP_BOOTSTRAP_OBSERVABILITY === '1';
-test.skip(!enabled, 'Diagnóstico executado somente pelo gate HML protegido de observabilidade desktop.');
+test.skip(!enabled, 'Diagnóstico executado somente pelo gate isolado de observabilidade desktop.');
 
-const fixtureFile = process.env.RADAR_HML_FIXTURE_FILE;
-const password = process.env.RADAR_HML_PASSWORD || '';
-if (enabled && (!fixtureFile || !fs.existsSync(fixtureFile))) {
-  throw new Error('Fixture efêmera HML ausente para o diagnóstico desktop.');
-}
+const fixtures = JSON.parse(fs.readFileSync(
+  path.resolve(__dirname, '../../supabase/fixtures/auth-users.json'),
+  'utf8'
+));
+const password = process.env.RADAR_AUTH_FIXTURE_PASSWORD || '';
 if (enabled && password.length < 24) {
-  throw new Error('Credencial efêmera HML ausente para o diagnóstico desktop.');
+  throw new Error('Credencial efêmera local ausente para o diagnóstico desktop.');
 }
 
-const fixture = enabled
-  ? JSON.parse(fs.readFileSync(path.resolve(fixtureFile), 'utf8'))
-  : { users: [] };
-const users = Object.fromEntries((fixture.users || []).map(user => [user.key, user]));
+const users = {
+  controller: fixtures.find(item => item.profileId === 'controller' && item.active),
+  technicalAdmin: fixtures.find(item => item.profileId === 'technical_admin' && item.active)
+};
 const outputDir = path.resolve('test-results/desktop-bootstrap-observability');
 const outputFile = path.join(outputDir, 'desktop-bootstrap-observability.json');
 
@@ -129,18 +129,19 @@ function aggregateMilestoneMedians(runs) {
   }));
 }
 
+function assertNoSecrets(serialized) {
+  expect(serialized).not.toContain(password);
+  for (const user of fixtures) {
+    if (user?.email) expect(serialized).not.toContain(user.email);
+    if (user?.id) expect(serialized).not.toContain(user.id);
+    if (user?.profileRowId) expect(serialized).not.toContain(user.profileRowId);
+  }
+}
+
 function assertSanitized(serialized) {
   assertNoSecrets(serialized);
   expect(serialized).not.toMatch(/[?](?:select|school_id|grant_type|apikey|token|email)=/i);
-  expect(serialized).not.toMatch(/requestBody|responseBody|payload|password/i);
-}
-
-function assertNoSecrets(serialized) {
-  expect(serialized).not.toContain(password);
-  for (const user of Object.values(users)) {
-    if (user?.email) expect(serialized).not.toContain(user.email);
-    if (user?.userId) expect(serialized).not.toContain(user.userId);
-  }
+  expect(serialized).not.toMatch(/requestBody|responseBody|payload|password|service_role/i);
 }
 
 async function timingRun(browser, iteration) {
@@ -148,7 +149,7 @@ async function timingRun(browser, iteration) {
   const page = await context.newPage();
   const errors = errorCounter(page);
   await installBootstrapObserver(page, { observeTimers: false });
-  const user = users.controllerTuane;
+  const user = users.controller;
   await signInObserved(page, user);
   const raw = await readBootstrapObservation(page);
   expect(errors()).toBe(0);
@@ -211,9 +212,8 @@ async function coverageRun(browser) {
 }
 
 test('mede bootstrap autenticado desktop sem alterar o comportamento da aplicação', async ({ browser }) => {
-  for (const required of ['controllerTuane', 'technicalAdmin']) {
-    expect(users[required]?.email).toBeTruthy();
-  }
+  expect(users.controller?.email).toBeTruthy();
+  expect(users.technicalAdmin?.email).toBeTruthy();
 
   const timingRuns = [];
   for (let iteration = 1; iteration <= 3; iteration += 1) {
@@ -224,7 +224,7 @@ test('mede bootstrap autenticado desktop sem alterar o comportamento da aplicaç
 
   const result = {
     schemaVersion: 1,
-    target: 'current-branch-local-ui-with-protected-supabase-preview',
+    target: 'current-branch-local-ui-with-disposable-real-supabase',
     desktopOnly: true,
     timing: {
       iterations: timingRuns,
