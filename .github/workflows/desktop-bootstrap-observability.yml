@@ -40,6 +40,7 @@ jobs:
 
       - name: Validar análise estática atual antes da medição
         run: |
+          npm run audit:frontend-precedence
           npm run audit:frontend-precedence:check
           npm run check:architecture
 
