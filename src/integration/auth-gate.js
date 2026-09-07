@@ -5,7 +5,8 @@
         '/src/integration/navigation-routes.js',
         '/src/integration/navigation-policy.js',
         '/src/integration/navigation-bootstrap.js',
-        '/src/integration/navigation-history.js'
+        '/src/integration/navigation-history.js',
+        '/src/integration/audit-data-gate.js'
     ]);
 
     function loadScriptOnce(document, src) {
