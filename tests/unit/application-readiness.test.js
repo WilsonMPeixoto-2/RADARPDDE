@@ -76,21 +76,24 @@ test('proteção atômica instala por sinal determinístico e publica readiness 
   assert.match(source, /markFailed(?:\?\.)?\(['"]atomic-analysis['"]/);
 });
 
-test('app publica ui-runtime somente depois de declarar a superfície funcional base', () => {
-  const app = fs.readFileSync(modulePath('app.js'), 'utf8');
-  const switchViewIndex = app.indexOf('function switchView(');
-  const readinessIndex = app.indexOf("markReady?.('ui-runtime')");
-  assert.ok(switchViewIndex >= 0);
-  assert.ok(readinessIndex > switchViewIndex);
-  assert.match(app, /define\?\.\('ui-runtime'/);
+test('coordenador publica ui-runtime no marco determinístico do DOM', () => {
+  const source = fs.readFileSync(modulePath('src/integration/application-readiness.js'), 'utf8');
+  assert.match(source, /['"]ui-runtime['"]/);
+  assert.match(source, /DOMContentLoaded/);
+  assert.match(source, /markReady\(['"]ui-runtime['"]\)/);
 });
 
-test('página de Pendências espera ui-runtime e não usa polling para instalar', () => {
-  const source = fs.readFileSync(modulePath('src/integration/task-9-pendencias-page.js'), 'utf8');
-  assert.doesNotMatch(source, /setInterval\s*\(/, 'Pendências ainda depende de polling para instalar');
-  assert.match(source, /RadarApplicationReadiness/);
-  assert.match(source, /define\?\.\('pendency-page'/);
-  assert.match(source, /dependencies:\s*\['ui-runtime'\]/);
-  assert.match(source, /when\('ui-runtime'\)/);
-  assert.match(source, /markReady\?\.\('pendency-page'\)/);
+test('carregador canônico espera ui-runtime antes de instalar a página de Pendências', () => {
+  const config = fs.readFileSync(modulePath('config.js'), 'utf8');
+  const waitIndex = config.indexOf("await readiness.when('ui-runtime')");
+  const pageIndex = config.indexOf("await loadScript('src/integration/task-9-pendencias-page.js', false)");
+  const focusIndex = config.indexOf("await loadScript('src/integration/task-9-focus-bridge.js', false)");
+  assert.ok(waitIndex >= 0);
+  assert.ok(pageIndex > waitIndex);
+  assert.ok(focusIndex > pageIndex);
+  assert.match(config, /RadarPendencyPageReady/);
+  assert.match(config, /define\?\.\('pendency-page'/);
+  assert.match(config, /dependencies:\s*\['ui-runtime'\]/);
+  assert.match(config, /markReady\?\.\('pendency-page'\)/);
+  assert.match(config, /markFailed\?\.\(\s*'pendency-page'/);
 });
