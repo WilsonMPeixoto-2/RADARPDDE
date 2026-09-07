@@ -32,28 +32,45 @@
         };
     }
 
+    function createElement(tagName, className, textContent) {
+        const element = root.document.createElement(tagName);
+        if (className) element.className = className;
+        if (textContent != null) element.textContent = textContent;
+        return element;
+    }
+
     function renderUnavailableState(status) {
         const container = root.document.getElementById('main-container');
         if (!container) return false;
         const failed = status === 'failed' || status === 'restricted';
-        container.innerHTML = `
-            <div class="page-header">
-                <div class="page-title">
-                    <h1>Registros Internos</h1>
-                    <p>Histórico administrativo das operações registradas no sistema.</p>
-                </div>
-            </div>
-            <div class="panel-card">
-                <div class="empty-state compact" role="${failed ? 'alert' : 'status'}" aria-live="polite">
-                    <p>${failed
-                        ? 'Não foi possível carregar os registros internos com segurança.'
-                        : 'Carregando registros internos…'}</p>
-                    ${failed
-                        ? '<button type="button" class="btn btn-secondary btn-sm" onclick="retryRadarAuditData()">Tentar novamente</button>'
-                        : ''}
-                </div>
-            </div>
-        `;
+
+        const pageHeader = createElement('div', 'page-header');
+        const pageTitle = createElement('div', 'page-title');
+        pageTitle.append(
+            createElement('h1', '', 'Registros Internos'),
+            createElement('p', '', 'Histórico administrativo das operações registradas no sistema.')
+        );
+        pageHeader.appendChild(pageTitle);
+
+        const panel = createElement('div', 'panel-card');
+        const state = createElement('div', 'empty-state compact');
+        state.setAttribute('role', failed ? 'alert' : 'status');
+        state.setAttribute('aria-live', 'polite');
+        state.appendChild(createElement(
+            'p',
+            '',
+            failed
+                ? 'Não foi possível carregar os registros internos com segurança.'
+                : 'Carregando registros internos…'
+        ));
+        if (failed) {
+            const retry = createElement('button', 'btn btn-secondary btn-sm', 'Tentar novamente');
+            retry.type = 'button';
+            retry.addEventListener('click', () => retryAuditData());
+            state.appendChild(retry);
+        }
+        panel.appendChild(state);
+        container.replaceChildren(pageHeader, panel);
         return true;
     }
 
@@ -132,7 +149,7 @@
     }
 
     root.RadarAuditDataGate = Object.freeze({
-        VERSION: '1.0.0',
+        VERSION: '1.0.1',
         capability,
         startHydration,
         retry: retryAuditData,
