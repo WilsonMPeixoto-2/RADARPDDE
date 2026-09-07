@@ -65,3 +65,13 @@ test('auth gate, competência global e histórico deixam de usar setInterval com
     assert.doesNotMatch(source, /setInterval\s*\(/, `${relative} ainda usa polling de readiness`);
   }
 });
+
+test('proteção atômica instala por sinal determinístico e publica readiness crítico', () => {
+  const source = fs.readFileSync(modulePath('src/integration/atomic-analysis-pendency.js'), 'utf8');
+  assert.doesNotMatch(source, /setInterval\s*\(/, 'proteção atômica ainda depende de polling');
+  assert.match(source, /RadarApplicationReadiness/);
+  assert.match(source, /['"]atomic-analysis['"]/);
+  assert.match(source, /['"]application-services['"]/);
+  assert.match(source, /markReady\(['"]atomic-analysis['"]\)/);
+  assert.match(source, /markFailed\(['"]atomic-analysis['"]/);
+});
