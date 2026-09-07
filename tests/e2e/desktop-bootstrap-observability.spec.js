@@ -211,6 +211,45 @@ async function coverageRun(browser) {
   };
 }
 
+test('registros internos atrasados não bloqueiam Dashboard e a própria tela aguarda dados completos', async ({ browser }) => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  const errors = errorCounter(page);
+  await installBootstrapObserver(page, { observeTimers: false });
+
+  let releaseAdministrativeLogs;
+  const administrativeLogsReleased = new Promise(resolve => {
+    releaseAdministrativeLogs = resolve;
+  });
+  let administrativeLogReads = 0;
+  await page.route('**/rest/v1/administrative_logs**', async route => {
+    if (route.request().method() !== 'GET') {
+      await route.continue();
+      return;
+    }
+    administrativeLogReads += 1;
+    await administrativeLogsReleased;
+    await route.continue();
+  });
+
+  await signInObserved(page, users.controller);
+  expect(administrativeLogReads).toBeGreaterThan(0);
+  expect(await page.evaluate(() => window.RadarDataContext?.ready === true)).toBe(true);
+  expect(await page.evaluate(() => window.RadarApplicationReadiness?.isReady?.('audit-data') === true)).toBe(false);
+
+  await page.evaluate(() => window.switchView('auditoria'));
+  await expect(page.locator('#main-container')).toContainText('Carregando registros internos…');
+
+  releaseAdministrativeLogs();
+  await page.waitForFunction(() => window.RadarApplicationReadiness?.isReady?.('audit-data') === true, null, {
+    timeout: 15000
+  });
+  await expect(page.locator('#main-container')).toContainText('Registros Internos');
+  await expect(page.locator('#main-container')).not.toContainText('Carregando registros internos…');
+  expect(errors()).toBe(0);
+  await context.close();
+});
+
 test('mede bootstrap autenticado desktop sem alterar o comportamento da aplicação', async ({ browser }) => {
   expect(users.controller?.email).toBeTruthy();
   expect(users.technicalAdmin?.email).toBeTruthy();
