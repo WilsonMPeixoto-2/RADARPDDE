@@ -40,7 +40,6 @@ function createRemoteRepository(options = {}) {
     exportSnapshot: async exportOptions => {
       events.push(`bootstrap:${(exportOptions.entities || []).join(',')}`);
       const entities = Object.fromEntries((exportOptions.entities || []).map(entity => [entity, []]));
-      if (entities.schools) entities.schools = [{ id: 'school-1', name: 'Escola Teste' }];
       return createSnapshotEnvelope(entities, {
         importId: 'remote-bootstrap-test',
         exportedAt: '2026-09-07T06:00:00.000Z'
@@ -75,20 +74,26 @@ function createStatePort(events = []) {
   };
 }
 
-test('bootstrap remoto não bloqueia a aplicação esperando administrativeLogs', async () => {
+test('bootstrap remoto libera a aplicação sem esperar administrativeLogs', async () => {
   assert.equal(REMOTE_BOOTSTRAP_ENTITIES.includes('administrativeLogs'), false);
 
   const events = [];
-  const repository = createRemoteRepository({ events });
+  const logRead = deferred();
+  const repository = createRemoteRepository({ events, logRead });
   const statePort = createStatePort(events);
   const service = new DataService({ repository, statePort });
 
-  await service.bootstrap();
+  const result = await service.bootstrap();
 
+  assert.equal(result.importedLegacy, false);
   const bootstrapEvent = events.find(event => event.startsWith('bootstrap:'));
   assert.ok(bootstrapEvent);
   assert.equal(bootstrapEvent.includes('administrativeLogs'), false);
-  assert.equal(events.includes('load:administrativeLogs'), false);
+  assert.equal(events.includes('load:administrativeLogs'), true);
+
+  logRead.resolve([{ id: 'log-1', action: 'Teste', created_at: '2026-09-07T06:00:00.000Z' }]);
+  const hydrated = await service.hydrateRemoteEntities(['administrativeLogs']);
+  assert.equal(hydrated.ok, true);
 });
 
 test('hidratação tardia de administrativeLogs usa patch incremental e compartilha a fila das escritas remotas', async () => {
@@ -138,10 +143,20 @@ test('hidratação tardia rejeita entidades que ainda não têm aplicação incr
   );
 });
 
-test('aplicação bloqueia a tela de Registros Internos até audit-data ficar pronta', () => {
-  const app = fs.readFileSync(path.join(rootDir, 'app.js'), 'utf8');
-  assert.match(app, /['"]audit-data['"]/);
-  assert.match(app, /RadarAuditDataReady/);
-  assert.match(app, /administrativeLogs/);
-  assert.match(app, /renderAuditoria[\s\S]*audit-data/);
+test('gate de Registros Internos é instalado antes da liberação autenticada sem bloquear o Dashboard', () => {
+  const gate = fs.readFileSync(path.join(rootDir, 'src/integration/audit-data-gate.js'), 'utf8');
+  const authGate = fs.readFileSync(path.join(rootDir, 'src/integration/auth-gate.js'), 'utf8');
+
+  assert.match(gate, /['"]audit-data['"]/);
+  assert.match(gate, /RadarAuditDataReady/);
+  assert.match(gate, /administrativeLogs/);
+  assert.match(gate, /renderAuditoria/);
+  assert.match(gate, /markRestricted/);
+  assert.match(authGate, /\/src\/integration\/audit-data-gate\.js/);
+
+  const waitStart = authGate.indexOf('function waitForAuthorizedData');
+  const waitEnd = authGate.indexOf('function installNavigationModules');
+  assert.ok(waitStart >= 0 && waitEnd > waitStart);
+  const waitBody = authGate.slice(waitStart, waitEnd);
+  assert.doesNotMatch(waitBody, /['"]audit-data['"]/);
 });
