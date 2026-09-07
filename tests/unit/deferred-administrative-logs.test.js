@@ -89,11 +89,12 @@ test('bootstrap remoto libera a aplicação sem esperar administrativeLogs', asy
   const bootstrapEvent = events.find(event => event.startsWith('bootstrap:'));
   assert.ok(bootstrapEvent);
   assert.equal(bootstrapEvent.includes('administrativeLogs'), false);
-  assert.equal(events.includes('load:administrativeLogs'), true);
 
+  const hydration = service.hydrateRemoteEntities(['administrativeLogs']);
+  await Promise.resolve();
+  assert.equal(events.includes('load:administrativeLogs'), true);
   logRead.resolve([{ id: 'log-1', action: 'Teste', created_at: '2026-09-07T06:00:00.000Z' }]);
-  const hydrated = await service.hydrateRemoteEntities(['administrativeLogs']);
-  assert.equal(hydrated.ok, true);
+  assert.equal((await hydration).ok, true);
 });
 
 test('hidratação tardia de administrativeLogs usa patch incremental e compartilha a fila das escritas remotas', async () => {
@@ -128,7 +129,7 @@ test('hidratação tardia de administrativeLogs usa patch incremental e comparti
   assert.ok(events.includes('apply:administrativeLogs'));
   assert.equal(events.includes('apply:canonical'), false);
 
-  await assert.rejects(execution, error => error.code === 'EXPECTED_TEST_STOP');
+  await assert.rejects(execution, error => error.message === 'Fim controlado do teste.');
   assert.ok(events.indexOf('execute:start') > events.indexOf('apply:administrativeLogs'));
 });
 
