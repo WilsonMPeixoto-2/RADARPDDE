@@ -48,6 +48,7 @@
     const GENERATED_INSERT_FIELDS = Object.freeze(['row_version', 'created_at', 'updated_at']);
     const VOLATILE_COMPARISON_FIELDS = Object.freeze(['row_version', 'created_at', 'updated_at']);
     const REMOTE_REFRESH_EXEMPT_ENTITIES = Object.freeze(['administrativeLogs']);
+    const SAFE_REMOTE_HYDRATION_ENTITIES = Object.freeze(['administrativeLogs']);
     const REMOTE_BOOTSTRAP_ENTITIES = Object.freeze([
         'appConfig',
         'programs',
@@ -61,8 +62,7 @@
         'pendencyAttempts',
         'pendencyContacts',
         'assets',
-        'registeredInvoices',
-        'administrativeLogs'
+        'registeredInvoices'
     ]);
 
     function assertSnapshotJson(snapshot, operation) {
@@ -250,6 +250,7 @@
             }
             this.unitOfWork = options.unitOfWork || new UnitOfWork({ statePort: this.statePort });
             this.remoteExecutionTail = Promise.resolve();
+            this.remoteHydrationPromises = new Map();
         }
 
         async bootstrap(options = {}) {
@@ -265,6 +266,7 @@
             const empty = isSnapshotEmpty(current);
 
             if (empty && capabilities.remote === true) {
+                this.hydrateRemoteEntities(['administrativeLogs']).catch(() => undefined);
                 return {
                     importedLegacy: false,
                     empty: true,
@@ -288,6 +290,9 @@
             }
 
             if (!empty) await this.statePort.applyCanonical(current);
+            if (capabilities.remote === true) {
+                this.hydrateRemoteEntities(['administrativeLogs']).catch(() => undefined);
+            }
             return {
                 importedLegacy: false,
                 empty,
@@ -408,6 +413,63 @@
                 source: 'remote-refresh'
             });
             return refreshed;
+        }
+
+        hydrateRemoteEntities(entities = []) {
+            const requested = [...new Set(Array.isArray(entities) ? entities : [])];
+            if (requested.length === 0) return Promise.resolve({ ok: true, entities: [] });
+            requested.forEach(assertKnownEntity);
+            const safeEntities = new Set(SAFE_REMOTE_HYDRATION_ENTITIES);
+            const unsafeEntity = requested.find(entity => !safeEntities.has(entity));
+            if (unsafeEntity) {
+                return Promise.reject(new RepositoryError(
+                    'UNSAFE_REMOTE_HYDRATION_ENTITY',
+                    `A entidade ${unsafeEntity} ainda não possui hidratação incremental segura.`,
+                    { operation: 'hydrateRemoteEntities', entity: unsafeEntity }
+                ));
+            }
+            if (this.repository.capabilities().remote !== true) {
+                return Promise.resolve({ ok: true, entities: requested, skipped: true });
+            }
+            if (typeof this.statePort.applyEntities !== 'function') {
+                return Promise.reject(new RepositoryError(
+                    'INVALID_STATE_PORT',
+                    'A hidratação remota exige aplicação incremental de estado.',
+                    { operation: 'hydrateRemoteEntities' }
+                ));
+            }
+
+            const key = [...requested].sort().join(',');
+            const existing = this.remoteHydrationPromises.get(key);
+            if (existing) return existing;
+
+            const hydrate = async () => {
+                const current = await this.statePort.exportCanonical({
+                    version: '1',
+                    importId: `remote-hydration-${Date.now()}`,
+                    exportedAt: new Date().toISOString()
+                });
+                const hydrated = await this.loadRemoteEntities(current, requested);
+                await this.statePort.applyEntities(hydrated, requested, {
+                    persistStorage: false,
+                    source: 'remote-hydration'
+                });
+                return {
+                    ok: true,
+                    entities: [...requested],
+                    snapshot: cloneValue(hydrated)
+                };
+            };
+
+            const run = this.remoteExecutionTail.then(hydrate, hydrate);
+            this.remoteExecutionTail = run.catch(() => undefined);
+            this.remoteHydrationPromises.set(key, run);
+            run.catch(() => undefined).finally(() => {
+                if (this.remoteHydrationPromises.get(key) === run) {
+                    this.remoteHydrationPromises.delete(key);
+                }
+            });
+            return run;
         }
 
         execute(command = {}) {
@@ -682,6 +744,7 @@
     return Object.freeze({
         DataService,
         REMOTE_BOOTSTRAP_ENTITIES,
-        REMOTE_REFRESH_EXEMPT_ENTITIES
+        REMOTE_REFRESH_EXEMPT_ENTITIES,
+        SAFE_REMOTE_HYDRATION_ENTITIES
     });
 }));
