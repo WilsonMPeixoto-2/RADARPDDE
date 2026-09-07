@@ -118,9 +118,8 @@
         loadScript('src/integration/modal-accessibility.js', false);
 
         // Pendências depende das funções-base declaradas por app.js. Em vez de
-        // sondar o ambiente a cada 10 ms, o carregador canônico aguarda o marco
-        // determinístico de DOMContentLoaded, quando todos os scripts defer já
-        // foram executados, e só então instala a página e suas pontes dependentes.
+        // sondar o ambiente a cada poucos milissegundos, o carregador canônico
+        // aguarda os marcos determinísticos correspondentes a cada camada.
         root.RadarPendencyPageReady = root.RadarApplicationReadinessReady.then(async readiness => {
             if (!readiness) throw new Error('Coordenador de prontidão indisponível para Pendências.');
             readiness.define?.('pendency-page', {
@@ -136,6 +135,7 @@
             readiness.markReady?.('pendency-page');
             await loadScript('src/integration/task-9-focus-bridge.js', false);
             await loadScript('src/integration/task-9-cross-view.js', false);
+            await readiness.when('application-services');
             await loadScript('src/integration/task-10-11-pendency-actions.js', false);
             return root.RadarTask9PendencyPage;
         }).catch(error => {
@@ -147,7 +147,26 @@
             return null;
         });
 
-        loadScript('src/integration/task-12-13-retificacoes.js', false);
+        root.RadarRetificationsUiReady = root.RadarApplicationReadinessReady.then(async readiness => {
+            if (!readiness) throw new Error('Coordenador de prontidão indisponível para Retificações.');
+            await readiness.when(['ui-runtime', 'application-services']);
+            await loadScript('src/integration/task-12-13-retificacoes.js', false);
+            return root.RadarTask1213Retifications || null;
+        }).catch(error => {
+            root.RADAR_LAST_RETIFICATIONS_UI_ERROR = error;
+            return null;
+        });
+
+        root.RadarSchoolFormIntegrityReady = root.RadarApplicationReadinessReady.then(async readiness => {
+            if (!readiness) throw new Error('Coordenador de prontidão indisponível para o formulário de escola.');
+            await readiness.when(['ui-runtime', 'application-services']);
+            await loadScript('src/integration/school-form-integrity.js', false);
+            return root.RadarSchoolFormIntegrity || null;
+        }).catch(error => {
+            root.RADAR_LAST_SCHOOL_FORM_INTEGRITY_ERROR = error;
+            return null;
+        });
+
         loadScript('src/integration/cycle-b-carteira.js', false);
         loadScript('src/integration/cycle-b-dashboard.js', false);
         loadScript('src/integration/cycle-b-dashboard-result.js', false);
@@ -155,7 +174,6 @@
         loadScript('src/integration/exercise-management.js', false);
         loadScript('src/integration/exercise-early-init.js', false);
         loadScript('src/integration/painel-controlador-expressiva.js', false);
-        loadScript('src/integration/school-form-integrity.js', false);
         loadScript('src/integration/load-excel-export.js', true);
     }());
 }(typeof window !== 'undefined' ? window : globalThis, function createRadarRuntimeConfigApi() {
