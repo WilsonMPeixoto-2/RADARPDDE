@@ -189,7 +189,7 @@
             showAllPendencyCompetences();
         }
         root.RadarOperationalReadinessBridge = Object.freeze({
-            VERSION: '1.1.1',
+            VERSION: '1.2.0',
             currentCompetence,
             pendencyCompetence,
             showAllPendencyCompetences,
@@ -200,10 +200,48 @@
         return true;
     }
 
-    if (!install()) {
-        const interval = root.setInterval(() => {
-            if (install()) root.clearInterval(interval);
-        }, 20);
-        root.setTimeout(() => root.clearInterval(interval), 10000);
+    const readiness = root.RadarApplicationReadiness || null;
+    readiness?.define?.('operational-bridge', {
+        dependencies: ['competence', 'pendency-page'],
+        criticality: 'restricted'
+    });
+
+    function completeInstall() {
+        if (!install()) return false;
+        readiness?.markReady?.('operational-bridge');
+        return true;
     }
+
+    function restrict(reason) {
+        readiness?.markRestricted?.('operational-bridge', reason);
+        root.console?.error?.('A ponte de contexto operacional não pôde ser instalada.', reason);
+        return false;
+    }
+
+    if (completeInstall()) return;
+
+    if (readiness?.when) {
+        readiness.when(['competence', 'pendency-page']).then(() => {
+            if (!completeInstall()) restrict('OPERATIONAL_BRIDGE_DEPENDENCIES_MISSING');
+        }).catch(() => {
+            restrict('OPERATIONAL_BRIDGE_DEPENDENCY_FAILED');
+        });
+        return;
+    }
+
+    // Compatibilidade determinística para execução sem o coordenador central.
+    // Não usa relógio: espera a página canônica e, se necessário, a mudança de competência.
+    Promise.resolve(root.RadarPendencyPageReady).then(() => {
+        if (root.RadarCompetenceContext?.isInitialized?.()) {
+            completeInstall();
+            return;
+        }
+        root.addEventListener?.('radar:competence-change', () => {
+            if (!completeInstall()) {
+                root.console?.error?.(
+                    'A ponte de contexto operacional não pôde ser instalada após a competência ficar pronta.'
+                );
+            }
+        }, { once: true });
+    });
 }(typeof window !== 'undefined' ? window : globalThis));
