@@ -97,3 +97,13 @@ test('carregador canônico espera ui-runtime antes de instalar a página de Pend
   assert.match(config, /markReady\?\.\('pendency-page'\)/);
   assert.match(config, /markFailed\?\.\(\s*'pendency-page'/);
 });
+
+test('ponte operacional espera competência e página de Pendências sem polling', () => {
+  const source = fs.readFileSync(modulePath('src/integration/operational-readiness-bridge.js'), 'utf8');
+  assert.doesNotMatch(source, /setInterval\s*\(/, 'ponte operacional ainda depende de polling');
+  assert.match(source, /RadarApplicationReadiness/);
+  assert.match(source, /define\?\.\('operational-bridge'/);
+  assert.match(source, /dependencies:\s*\['competence',\s*'pendency-page'\]/);
+  assert.match(source, /when\(\['competence',\s*'pendency-page'\]\)/);
+  assert.match(source, /markReady\?\.\('operational-bridge'\)/);
+});
