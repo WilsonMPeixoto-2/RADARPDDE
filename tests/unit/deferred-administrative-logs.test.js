@@ -132,6 +132,21 @@ test('hidratação tardia de administrativeLogs usa patch incremental e comparti
   assert.ok(events.indexOf('execute:start') > events.indexOf('apply:administrativeLogs'));
 });
 
+test('hidratação concluída não relê administrativeLogs quando outro consumidor pede a mesma capacidade', async () => {
+  const events = [];
+  const repository = createRemoteRepository({ events });
+  const statePort = createStatePort(events);
+  const service = new DataService({ repository, statePort });
+
+  const first = await service.hydrateRemoteEntities(['administrativeLogs']);
+  const second = await service.hydrateRemoteEntities(['administrativeLogs']);
+
+  assert.equal(first.ok, true);
+  assert.equal(second.ok, true);
+  assert.equal(second.cached, true);
+  assert.equal(events.filter(event => event === 'load:administrativeLogs').length, 1);
+});
+
 test('hidratação tardia rejeita entidades que ainda não têm aplicação incremental segura', async () => {
   const repository = createRemoteRepository();
   const statePort = createStatePort();
