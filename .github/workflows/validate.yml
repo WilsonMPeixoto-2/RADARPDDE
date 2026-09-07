@@ -80,9 +80,9 @@ jobs:
 
   homologacao-supabase-preview:
     name: Auth, perfis, RLS e persistência no Preview
-    if: ${{ github.event_name == 'pull_request' && (github.head_ref == 'qa/supabase-preview-gate-run' || github.head_ref == 'audit/desktop-bootstrap-observability-2026-09-07') }}
+    if: ${{ github.event_name == 'pull_request' && github.head_ref == 'qa/supabase-preview-gate-run' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 30
     env:
       RADAR_DEPLOYMENT_URL: https://radarpdde-d5g8j0esm-wilson-m-peixotos-projects.vercel.app
       RADAR_SUPABASE_URL: ${{ secrets.RADAR_SUPABASE_URL }}
@@ -143,51 +143,9 @@ jobs:
           tests/e2e/supabase-preview-remote.spec.js
           --config=playwright.supabase-preview.config.js
 
-      - name: Auditar precedência e fronteiras estáticas do frontend atual
-        if: ${{ github.head_ref == 'audit/desktop-bootstrap-observability-2026-09-07' }}
-        run: |
-          npm run audit:frontend-precedence:check
-          npm run check:architecture
-
-      - name: Preparar configuração pública do Preview para a branch atual current-branch
-        if: ${{ github.head_ref == 'audit/desktop-bootstrap-observability-2026-09-07' }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          node --input-type=module <<'NODE'
-          import { writeFile } from 'node:fs/promises';
-          const response = await fetch(`${process.env.RADAR_DEPLOYMENT_URL}/config.runtime.js`);
-          if (!response.ok) throw new Error(`Configuração pública do Preview indisponível: ${response.status}`);
-          const source = await response.text();
-          if (!source.includes('"environment": "preview"')) throw new Error('Configuração copiada não é Preview.');
-          if (!source.includes('"dataMode": "supabase-preview"')) throw new Error('Configuração copiada não usa supabase-preview.');
-          if (!source.includes('"productionActivationApproved": false')) throw new Error('Configuração copiada não é segura para HML.');
-          await writeFile('config.runtime.js', source, 'utf8');
-          process.stdout.write('Configuração pública do Preview aplicada somente ao workspace efêmero da branch atual.\n');
-          NODE
-
-      - name: Medir bootstrap e pós-login somente no desktop da branch atual
-        if: ${{ github.head_ref == 'audit/desktop-bootstrap-observability-2026-09-07' }}
-        env:
-          RADAR_E2E_DESKTOP_BOOTSTRAP_OBSERVABILITY: '1'
-        run: >-
-          npx playwright test
-          tests/e2e/desktop-bootstrap-observability.spec.js
-          --config=playwright.desktop-bootstrap-observability.config.js
-          --project=supabase-preview-desktop-chromium
-
       - name: Remover identidades e registros temporários
         if: always()
         run: node scripts/ops/cleanup-remote-homologation-users.mjs
-
-      - name: Publicar diagnóstico sanitizado do bootstrap desktop
-        if: ${{ !cancelled() && github.head_ref == 'audit/desktop-bootstrap-observability-2026-09-07' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: desktop-bootstrap-observability-${{ github.run_id }}
-          path: test-results/desktop-bootstrap-observability/desktop-bootstrap-observability.json
-          if-no-files-found: warn
-          retention-days: 14
 
       - name: Publicar evidências da homologação
         if: ${{ !cancelled() }}
