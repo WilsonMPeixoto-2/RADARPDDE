@@ -298,6 +298,7 @@
                 return this.dataService.execute({
                     name: 'verification:set-bonification',
                     changedEntities: ['verifications', 'administrativeLogs'],
+                    incrementalStateEntities: ['verifications', 'administrativeLogs'],
                     remoteResultIsAuthoritative: true,
                     mutate: () => {
                         const state = this.getState();
@@ -454,6 +455,7 @@
                 return this.dataService.execute({
                     name: 'verification:set-technical-analysis',
                     changedEntities: ['verifications', 'administrativeLogs'],
+                    incrementalStateEntities: ['verifications', 'administrativeLogs'],
                     remoteResultIsAuthoritative: true,
                     mutate: () => {
                         const state = this.getState();
@@ -570,6 +572,7 @@
                 return this.dataService.execute({
                     name: 'verification:close-bonification',
                     changedEntities: ['verifications', 'administrativeLogs'],
+                    incrementalStateEntities: ['verifications', 'administrativeLogs'],
                     remoteResultIsAuthoritative: true,
                     mutate: () => {
                         const verification = this.getVerification(schoolId, compKey);
