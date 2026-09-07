@@ -39,13 +39,20 @@ test('serviços declaram autoridade que não pode depender do wrapper de perform
         ['src/application/inventory-service.js', "name: 'inventory:create'"],
         ['src/application/pendency-service.js', "name: changesVerification ? 'pendency:open-with-analysis' : 'pendency:open'"],
         ['src/application/pendency-service.js', "name: 'pendency:register-attempt'"],
-        ['src/application/pendency-service.js', "name: 'pendency:cancel'"],
-        ['src/application/pendency-service.js', "name: 'pendency:reopen'"],
         ['src/application/pendency-service.js', "name: 'pendency:register-contact'"]
     ];
     resultAuthoritative.forEach(([relative, needle]) => {
         assertMarkers(relative, needle, [/remoteResultIsAuthoritative:\s*true/]);
     });
+
+    const pendency = source('src/application/pendency-service.js');
+    assert.match(pendency, /return this\.updateStatus\('cancel'/);
+    assert.match(pendency, /return this\.updateStatus\('reopen'/);
+    assert.match(
+        commandWindow(pendency, 'name: `pendency:${operation}`', 450),
+        /remoteResultIsAuthoritative:\s*true/,
+        'cancelamento e reabertura devem compartilhar o comando autoritativo de updateStatus'
+    );
 
     const commitAuthoritative = [
         ['src/application/school-service.js', "name: 'school:save'"],
