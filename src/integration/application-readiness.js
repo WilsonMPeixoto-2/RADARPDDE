@@ -10,7 +10,14 @@
     const coordinator = api.createReadinessCoordinator({ root });
     root.RadarApplicationReadiness = Object.freeze(coordinator);
 
-    const critical = ['authentication', 'data', 'application-services', 'competence', 'navigation'];
+    const critical = [
+        'authentication',
+        'data',
+        'application-services',
+        'ui-runtime',
+        'competence',
+        'navigation'
+    ];
     critical.forEach(name => coordinator.define(name, { criticality: 'critical' }));
     coordinator.define('product-extensions', { criticality: 'critical' });
 
@@ -29,6 +36,16 @@
             coordinator.markReady('competence');
         }
     });
+
+    function markUiRuntimeReady() {
+        coordinator.markReady('ui-runtime');
+    }
+
+    if (root.document?.readyState === 'loading') {
+        root.document.addEventListener('DOMContentLoaded', markUiRuntimeReady, { once: true });
+    } else {
+        markUiRuntimeReady();
+    }
 
     const existingDataContext = root.RadarDataContext;
     if (existingDataContext?.ready === true) {
