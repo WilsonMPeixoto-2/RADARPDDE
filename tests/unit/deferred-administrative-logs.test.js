@@ -74,12 +74,11 @@ function createStatePort(events = []) {
   };
 }
 
-test('bootstrap remoto libera a aplicação sem esperar administrativeLogs', async () => {
+test('bootstrap remoto não bloqueia nem inicia administrativeLogs', async () => {
   assert.equal(REMOTE_BOOTSTRAP_ENTITIES.includes('administrativeLogs'), false);
 
   const events = [];
-  const logRead = deferred();
-  const repository = createRemoteRepository({ events, logRead });
+  const repository = createRemoteRepository({ events });
   const statePort = createStatePort(events);
   const service = new DataService({ repository, statePort });
 
@@ -89,11 +88,7 @@ test('bootstrap remoto libera a aplicação sem esperar administrativeLogs', asy
   const bootstrapEvent = events.find(event => event.startsWith('bootstrap:'));
   assert.ok(bootstrapEvent);
   assert.equal(bootstrapEvent.includes('administrativeLogs'), false);
-  assert.equal(events.includes('load:administrativeLogs'), true);
-
-  logRead.resolve([{ id: 'log-1', action: 'Teste', created_at: '2026-09-07T06:00:00.000Z' }]);
-  const hydrated = await service.hydrateRemoteEntities(['administrativeLogs']);
-  assert.equal(hydrated.ok, true);
+  assert.equal(events.includes('load:administrativeLogs'), false);
 });
 
 test('hidratação tardia de administrativeLogs usa patch incremental e compartilha a fila das escritas remotas', async () => {
@@ -130,21 +125,6 @@ test('hidratação tardia de administrativeLogs usa patch incremental e comparti
 
   await assert.rejects(execution, error => error.code === 'EXPECTED_TEST_STOP');
   assert.ok(events.indexOf('execute:start') > events.indexOf('apply:administrativeLogs'));
-});
-
-test('hidratação concluída não relê administrativeLogs quando outro consumidor pede a mesma capacidade', async () => {
-  const events = [];
-  const repository = createRemoteRepository({ events });
-  const statePort = createStatePort(events);
-  const service = new DataService({ repository, statePort });
-
-  const first = await service.hydrateRemoteEntities(['administrativeLogs']);
-  const second = await service.hydrateRemoteEntities(['administrativeLogs']);
-
-  assert.equal(first.ok, true);
-  assert.equal(second.ok, true);
-  assert.equal(second.cached, true);
-  assert.equal(events.filter(event => event === 'load:administrativeLogs').length, 1);
 });
 
 test('hidratação tardia rejeita entidades que ainda não têm aplicação incremental segura', async () => {
