@@ -1,7 +1,7 @@
 # Documentação do RADAR PDDE
 
 **Classe documental:** Canônico — índice e rota de leitura  
-**Atualizado em:** 7 de setembro de 2026
+**Atualizado em:** 8 de setembro de 2026
 
 ## 1. Rota obrigatória
 
@@ -11,20 +11,22 @@ Ordem:
 
 1. [`../AGENTS.md`](../AGENTS.md) — regras de trabalho e precedência;
 2. [`reference/SYSTEM_CANONICAL_MODEL.md`](reference/SYSTEM_CANONICAL_MODEL.md) — modelo integrado do produto: superfícies, perfis, entidades, fluxos, estados, autoridades, diferenças deliberadas e invariantes;
-3. [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — estado mutável, prioridade, PRs pausados/ativos e classificação corrente;
-4. [`reference/ENGINEERING_METHOD.md`](reference/ENGINEERING_METHOD.md) — método permanente de engenharia;
-5. [`reference/FRONTEND_USER_VALIDATION_GATE.md`](reference/FRONTEND_USER_VALIDATION_GATE.md) — gate permanente de jornada real pelo frontend;
-6. [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md) — validade documental e separação entre vigente, gerado, histórico e superado;
-7. [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md) e JSON fonte — operações ponta a ponta;
-8. ADRs e referências especializadas da área afetada;
-9. planos, auditorias, handoffs e evidências históricas apenas para compreender o seu momento/SHA.
+3. [`reference/PRODUCT_SURFACE_CATALOG.md`](reference/PRODUCT_SURFACE_CATALOG.md) — modelo mental do usuário: finalidade de cada tela, jornada, hierarquia visual, encontrabilidade e papel de cada superfície;
+4. [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — estado mutável, prioridade, PRs pausados/ativos e classificação corrente;
+5. [`reference/ENGINEERING_METHOD.md`](reference/ENGINEERING_METHOD.md) — método permanente de engenharia;
+6. [`reference/FRONTEND_USER_VALIDATION_GATE.md`](reference/FRONTEND_USER_VALIDATION_GATE.md) — gate permanente de jornada real pelo frontend;
+7. [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md) — validade documental e separação entre vigente, gerado, histórico e superado;
+8. [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md) e JSON fonte — operações ponta a ponta;
+9. ADRs e referências especializadas da área afetada;
+10. planos, auditorias, handoffs e evidências históricas apenas para compreender o seu momento/SHA.
 
-## 2. Função de cada documento canônico
+## 2. Função de cada documento canônico/vigente
 
 | Documento | Função |
 |---|---|
 | `AGENTS.md` | roteador obrigatório e regras de trabalho |
-| `reference/SYSTEM_CANONICAL_MODEL.md` | mapa único do sistema e seus contratos funcionais |
+| `reference/SYSTEM_CANONICAL_MODEL.md` | mapa integrado do sistema e seus contratos funcionais |
+| `reference/PRODUCT_SURFACE_CATALOG.md` | leitura do produto pelo usuário e contrato das superfícies |
 | `CURRENT_STAGE.md` | estado mutável e próxima prioridade |
 | `reference/ENGINEERING_METHOD.md` | método de investigação, implementação e revisão |
 | `reference/FRONTEND_USER_VALIDATION_GATE.md` | prova obrigatória pela interface real |
@@ -32,7 +34,7 @@ Ordem:
 | `DECISION_LOG.md` + ADRs | decisões duráveis e especializações |
 | matriz funcional JSON/MD | contrato operacional executável/gerado |
 
-O objetivo é impedir que o mesmo assunto volte a ser reconstruído a partir de documentos parcialmente sobrepostos.
+O objetivo é impedir que o mesmo assunto volte a ser reconstruído a partir de documentos parcialmente sobrepostos ou apenas pelo código de uma função isolada.
 
 ## 3. Fontes de verdade
 
@@ -43,14 +45,14 @@ Para saber o que existe de fato:
 3. artefato Vercel do ambiente analisado;
 4. decisões funcionais vigentes;
 5. testes atuais que representam o contrato vigente;
-6. documentação canônica;
+6. documentação canônica/vigente;
 7. históricos, planos e memória de conversa.
 
 Documentação antiga não redefine o código. Quando há divergência, investigar qual fonte está desatualizada antes de alterar o produto.
 
 ## 4. Princípios funcionais já consolidados
 
-O modelo detalhado está em `SYSTEM_CANONICAL_MODEL.md`. Em resumo:
+O modelo detalhado está em `SYSTEM_CANONICAL_MODEL.md`; a finalidade humana das telas está em `PRODUCT_SURFACE_CATALOG.md`. Em resumo:
 
 - Supabase é a persistência canônica de Production;
 - competência global usa `RadarCompetenceContext`;
@@ -64,6 +66,7 @@ O modelo detalhado está em `SYSTEM_CANONICAL_MODEL.md`. Em resumo:
 - `Inventariada` é terminal;
 - commit remoto confirmado e sincronização local são fronteiras diferentes;
 - performance não é autoridade de negócio;
+- diferença de projeção entre telas só é defeito quando contradiz a finalidade confirmada daquelas superfícies;
 - mudança que afeta usuário exige validação pela interface real.
 
 ## 5. Documentação especializada vigente
@@ -74,7 +77,6 @@ Consultar conforme a área materialmente afetada:
 - [`DECISION_LOG.md`](DECISION_LOG.md) — decisões duradouras;
 - [`architecture/`](architecture/) — contratos arquiteturais específicos;
 - [`decisions/`](decisions/) — ADRs;
-- [`reference/PRODUCT_SURFACE_CATALOG.md`](reference/PRODUCT_SURFACE_CATALOG.md) — catálogo detalhado de superfícies;
 - [`reference/SUPABASE_DATA_DICTIONARY.md`](reference/SUPABASE_DATA_DICTIONARY.md) — dicionário de dados;
 - [`reference/SUPABASE_PERMISSIONS_MATRIX.md`](reference/SUPABASE_PERMISSIONS_MATRIX.md) — matriz de permissões;
 - [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md) — interpretação dos testes.
@@ -85,7 +87,7 @@ Diretórios como `audits/`, `handoff/`, `superpowers/plans/`, `evidence/` e `his
 
 R1–R9 são identificadores históricos. A classificação atual pertence exclusivamente a `CURRENT_STAGE.md`.
 
-## 7. Regra de criação de documentação
+## 7. Regra de criação e manutenção da documentação
 
 Novo documento canônico não pode ficar solto no repositório.
 
@@ -95,6 +97,7 @@ Na mesma entrega que criar ou alterar fonte canônica, atualizar quando aplicáv
 2. este índice;
 3. `reference/STATUS_DOCUMENTOS.md`;
 4. `reference/SYSTEM_CANONICAL_MODEL.md` se regra, autoridade, fluxo ou invariante mudar;
-5. `CURRENT_STAGE.md` se a mudança alterar estado/prioridade.
+5. `reference/PRODUCT_SURFACE_CATALOG.md` se mudar finalidade, jornada, ação, encontrabilidade ou semântica visual de uma superfície;
+6. `CURRENT_STAGE.md` se a mudança alterar estado/prioridade.
 
 Documento histórico não deve ser reescrito para fingir atualidade. Deve ser preservado e, quando necessário, reclassificado por uma fonte canônica posterior.
