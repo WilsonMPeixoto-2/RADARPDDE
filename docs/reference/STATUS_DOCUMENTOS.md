@@ -1,13 +1,13 @@
 # Matriz de validade documental
 
-**Atualizado em:** 6 de setembro de 2026  
+**Atualizado em:** 7 de setembro de 2026  
 **Classe documental:** Canônico
 
 ## 1. Finalidade
 
 Este documento define quais arquivos podem orientar o estado presente e quais servem apenas como evidência/histórico.
 
-O estado mutável fica em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md). O método permanente fica em [`ENGINEERING_METHOD.md`](ENGINEERING_METHOD.md). O checkpoint source-first corrente é [`../handoff/2026-09-06-rebaseline-pos-pr279.md`](../handoff/2026-09-06-rebaseline-pos-pr279.md).
+O estado mutável fica em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md). O método permanente fica em [`ENGINEERING_METHOD.md`](ENGINEERING_METHOD.md). O gate permanente de validação pelo usuário fica em [`FRONTEND_USER_VALIDATION_GATE.md`](FRONTEND_USER_VALIDATION_GATE.md). O checkpoint source-first corrente é [`../handoff/2026-09-06-rebaseline-pos-pr279.md`](../handoff/2026-09-06-rebaseline-pos-pr279.md).
 
 ## 2. Precedência
 
@@ -44,6 +44,7 @@ PR aberto, Preview, documento histórico ou memória de conversa não altera a b
 | `AGENTS.md` | Canônico | regras de trabalho, precedência e guardrails |
 | `docs/CURRENT_STAGE.md` | Canônico | estado mutável, classificação R1–R9 e próxima etapa |
 | `docs/reference/ENGINEERING_METHOD.md` | Canônico | método permanente de investigação/implementação/revisão |
+| `docs/reference/FRONTEND_USER_VALIDATION_GATE.md` | Canônico | gate permanente de validação pela interface real, persistência/releitura e inspeção visual em todas as frentes afetadas |
 | `docs/handoff/2026-09-06-rebaseline-pos-pr279.md` | Canônico/checkpoint | evidência source-first e justificativa da fila pós-#279 |
 | `docs/reference/STATUS_DOCUMENTOS.md` | Canônico | esta matriz de validade |
 | `docs/reference/TEST_GOVERNANCE.md` | Canônico | interpretação proporcional de testes/falhas |
@@ -101,7 +102,8 @@ O warning de Auth sobre leaked password protection e demais hardenings de segura
 - contrato superado deve ser atualizado/removido, não imposto ao runtime;
 - arquivos gerados devem ser regenerados a partir da fonte canônica correspondente;
 - `sourceCommit` em matriz/evidência indica o SHA de geração, não necessariamente o HEAD atual;
-- prova anterior pode ser reaproveitada somente quando a superfície correspondente não mudou materialmente.
+- prova anterior pode ser reaproveitada somente quando a superfície correspondente não mudou materialmente;
+- alteração funcional, visual ou estrutural que possa afetar a experiência do usuário exige também a prova definida em `FRONTEND_USER_VALIDATION_GATE.md`; CI verde, serviço isolado verde ou gravação de banco isolada não encerram a tarefa por si sós.
 
 ## 10. Regra de preservação histórica
 
