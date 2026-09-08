@@ -1,149 +1,108 @@
 # AGENTS.md — RADAR PDDE 2026
 
-**Atualizado em:** 6 de setembro de 2026
+**Classe documental:** Canônico — roteador obrigatório para agentes e novos chats  
+**Atualizado em:** 7 de setembro de 2026
 
 ## 1. Leitura obrigatória
 
-Antes de analisar ou alterar o repositório, leia **nesta ordem**:
+Antes de analisar funcionalmente ou alterar o repositório, leia **nesta ordem**:
 
-1. `docs/CURRENT_STAGE.md` — checkpoint corrente; revalidar main e heads dos PRs antes de concluir estado atual;
-2. `docs/reference/ENGINEERING_METHOD.md` — método permanente de investigação, implementação, teste e revisão adversarial; aplicar a todas as frentes futuras, usando os PRs históricos apenas como exemplos metodológicos;
-3. `docs/audits/2026-09-06-pr272-inventory-auth-review.md` — revisão por SHA de sincronização, Inventário terminal e compensação Auth;
-4. `docs/reference/STATUS_DOCUMENTOS.md` — validade documental e separação entre integrado, candidato e histórico;
-5. `docs/handoff/2026-09-04-estabilizacao-funcional-pr260.md` — histórico da estabilização anterior aos PRs #265–#267;
-6. `docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`;
-7. `docs/decisions/ADR-052-autoridade-unica-fluxos-criticos.md`;
-8. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` — consultar o JSON fonte antes de editar a visão gerada;
-9. `docs/PROJECT_CONTEXT.md` e `docs/DECISION_LOG.md`;
-10. `docs/handoff/2026-09-02-dependency-governance.md` quando a frente tocar dependências/tooling;
-11. somente depois, o plano R1–R9 de 03/09 e planos/handoffs históricos anteriores;
-12. código, GitHub, Vercel e Supabase correspondentes à frente, revalidados ao vivo quando houver dado volátil.
+1. `docs/reference/SYSTEM_CANONICAL_MODEL.md` — o que é o RADAR, superfícies, perfis, entidades, fluxos, estados, autoridades, diferenças deliberadas e invariantes;
+2. `docs/CURRENT_STAGE.md` — estado mutável, prioridade corrente, PRs pausados/ativos e decisões temporais;
+3. `docs/reference/ENGINEERING_METHOD.md` — método permanente de investigação, implementação e revisão adversarial;
+4. `docs/reference/FRONTEND_USER_VALIDATION_GATE.md` — gate permanente de jornada real pelo frontend;
+5. `docs/reference/STATUS_DOCUMENTOS.md` — validade, precedência e classificação da documentação;
+6. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` e seu JSON fonte quando a frente tocar operação mapeada;
+7. ADRs e referências especializadas da área afetada;
+8. planos, auditorias, evidências e handoffs históricos apenas depois da leitura canônica e somente como contexto do seu SHA/momento.
 
-**Regra de continuidade:** código atual e decisões vigentes prevalecem sobre planos históricos. Não restaurar tarefa, regra, wrapper ou layout antigo apenas porque aparece em plano histórico. O PR #262 foi abortado. PR aberto, inclusive #263 com sua rota documental candidata, não redefine a main. Se `START_HERE.md` ainda não existir no SHA consultado, seguir esta rota; não copiar automaticamente a de outro branch.
+**Nenhuma análise funcional pode começar por um plano histórico, PR antigo, memória de conversa ou arquivo isolado.**
 
-**Regra específica do programa remanescente:** R1–R9 são identificadores de um plano histórico, não números de PR nem fila automática. Cada premissa exige revalidação após hotfixes. G0/PR1/PR2/PR6B/PR7B/PR9B não voltam; PR4 antigo é proibido como reparo automático; a antiga PR7A virou gate de equivalência sem diff obrigatório; preservar o adiamento explícito da ADR-051.
+## 2. Regra de reconstrução de contexto
 
-## 2. Identidade do produto
-
-O RADAR PDDE é sistema institucional de gestão, controle, acompanhamento e apoio à decisão para o PDDE da 4ª CRE/SME-Rio. Não é CRUD genérico.
-
-Toda entrega deve considerar, na medida do impacto:
-
-- correção técnica e funcional;
-- coerência entre perfis, telas e dados;
-- integridade, rastreabilidade e auditabilidade;
-- visualização e encontrabilidade da informação;
-- usabilidade, feedback e clareza da próxima ação;
-- acessibilidade e equivalência mobile;
-- confiabilidade de persistência e releitura.
-
-Uma função não está pronta apenas porque grava no banco. O usuário precisa encontrá-la, compreender o estado, executar a ação e reencontrar o resultado de forma coerente.
-
-## 3. Fontes de verdade
-
-Para determinar o estado implementado, usar nesta ordem:
-
-1. código-fonte remoto do SHA analisado;
-2. migrations, funções, políticas, Auth, RLS e dados do Supabase autorizado;
-3. artefato implantado na Vercel e seu SHA;
-4. contrato funcional e decisões vigentes;
-5. testes que representam o contrato atual;
-6. documentação canônica;
-7. auditorias históricas, planos antigos, testes superados e memória de conversa.
-
-Se um teste ou documento divergir do comportamento atual comprovado, investigar a divergência antes de alterar o produto. Nunca modificar código correto apenas para satisfazer uma expectativa histórica.
-
-## 4. Estado operacional estável
-
-O estado corrente completo está em `docs/CURRENT_STAGE.md`. Valores voláteis devem ser consultados diretamente no remoto.
-
-Contratos estáveis:
-
-- Supabase é a persistência canônica de Preview/Production;
-- Production usa `SupabaseRepository`;
-- Node.js permanece fixado em `24.x`;
-- competência mensal é contexto global único;
-- Excel SME público possui 27 colunas A:AA;
-- Gestão de Equipe usa backend protegido, Auth Admin e RPCs transacionais;
-- a suíte automatizada protege o produto, mas não define regra de negócio por conta própria.
-
-## 5. Perfis e autorização
-
-Perfis funcionais visíveis:
-
-- Controlador (`controller`);
-- Assistente de Verbas Federais (`federal_assistant`);
-- Gestão SME (`sme_management`);
-- Equipe de Inventário (`inventory`).
-
-`technical_admin` é papel autenticado técnico separado e não é quinto perfil funcional visual.
-
-### Controlador
-
-A carteira representa responsabilidade principal e filtro inicial. Controladores podem colaborar nas escolas da própria `cre_scope`, preservando responsável principal e autoria. Não redistribuem `schools.controller_id` pela edição cadastral e não alteram identidade institucional reservada.
-
-### Assistente de Verbas Federais
-
-Possui atuação transversal autorizada na CRE. Lidera Gestão de Equipe, redistribuição de carteira, reanálise de pendências, retificações e demais operações expressamente concedidas pelo contrato atual.
-
-### Gestão SME
-
-Realiza acompanhamento gerencial e utiliza configurações autorizadas. Pendências são consultáveis, sem mutações operacionais. Qualquer mudança futura de programas/configurações deve partir do código e da decisão funcional vigente, não de documentação histórica.
-
-### Inventário
-
-Opera o fluxo patrimonial autorizado segundo o escopo e as políticas específicas de bens.
-
-### Administrador técnico
-
-`technical_admin` preserva a identidade, o JWT e a autoridade autenticada independentemente do perfil visual simulado.
-
-A simulação de Controlador, Assistente, SME ou Inventário altera a apresentação da interface e o contexto visual, mas **não rebaixa a autoridade real do administrador técnico**. Auditoria deve registrar o usuário real, `authenticatedRole = technical_admin` e, quando houver, o perfil visual simulado.
-
-## 6. Competência global
-
-`RadarCompetenceContext` é a fonte canônica de competência mensal.
-
-Dashboard, Carteira, Competências, Prontuário, Pendências, alertas, timeline e exportações devem consumir o mesmo mês ativo.
-
-Não criar seletor concorrente nem alterar `activeCompetenciaKey` diretamente em implementação ou teste quando a intenção for mudar o contexto mensal. Usar o contexto canônico.
-
-## 7. Regra de impacto entre camadas
-
-Toda alteração deve verificar somente as camadas materialmente afetadas:
+Antes de propor mudança funcional, preencher mentalmente ou no trabalho da frente:
 
 ```text
-layout/frontend e encontrabilidade
-→ visibilidade/capacidade por perfil
-→ handler e serviço de aplicação
-→ contrato de persistência
-→ tabela, RPC ou Edge Function
-→ Auth/RLS
-→ autoria e auditoria
-→ atualização da interface
-→ releitura quando houver escrita
-→ erro, conflito e compensação quando aplicáveis
-→ testes proporcionais
-→ documentação afetada
-→ build/deployment quando houver publicação
+superfície afetada
+→ fato de negócio
+→ entidade canônica
+→ autoridade de domínio/aplicação
+→ persistência/backend
+→ projeções relacionadas
+→ diferenças deliberadas entre superfícies
+→ invariantes
+→ decisão vigente
+→ jornada real do usuário
 ```
 
-Não transformar essa lista em checklist obrigatório de todos os gates para toda alteração pequena.
+Se essa cadeia ainda não estiver clara, continue investigando. Não altere o produto para resolver uma suposta ausência encontrada em leitura parcial.
 
-## 7.1 Autoridade única e prevenção de correção duplicada
+## 3. Precedência de autoridade
 
-Para qualquer fluxo P0/P1, **antes de criar handler, wrapper, extensão, RPC ou nova rota de persistência**:
+Para determinar o comportamento atual:
 
-1. pesquisar a operação na matriz funcional e no `DECISION_LOG`;
-2. localizar todos os consumidores e produtores atuais, inclusive módulos carregados dinamicamente;
-3. inspecionar `product-extensions-bootstrap.js` e a cadeia que o instala quando houver extensão;
-4. identificar qual módulo é a autoridade vigente de cada etapa;
-5. confirmar se a suposta ausência é real ou apenas está em outro módulo;
+1. código do SHA analisado;
+2. Supabase/Auth/RLS/RPCs/Edge Functions e dados efetivos;
+3. artefato Vercel do ambiente analisado;
+4. decisões funcionais vigentes e ADRs supervenientes;
+5. testes atuais que representam o contrato vigente;
+6. `SYSTEM_CANONICAL_MODEL.md` e demais documentos canônicos;
+7. auditorias, evidências, planos, handoffs e memória de conversa históricos.
+
+Teste ou documento antigo não prevalece sobre regra posterior comprovada. Não modificar código correto apenas para satisfazer expectativa histórica.
+
+## 4. Identidade do produto
+
+O RADAR PDDE é sistema institucional de gestão, controle, acompanhamento e apoio à decisão para o PDDE da 4ª CRE/SME-Rio. Não é um CRUD genérico.
+
+O produto deve manter coerência entre:
+
+- escolas, competências e programas;
+- bonificação, análise técnica e Pendências;
+- Notas Fiscais e seus efeitos;
+- Consulta Assessoria;
+- Capital e Inventário;
+- perfis, escopos e autoria;
+- Dashboard, Carteira, Competências, Prontuário, Pendências, Inventário, Timeline, Registros Internos e exportações.
+
+O modelo completo está em `docs/reference/SYSTEM_CANONICAL_MODEL.md` e não deve ser duplicado aqui.
+
+## 5. Guardrails permanentes
+
+Preservar, entre outros, os invariantes do modelo canônico:
+
+- Supabase é a persistência canônica de Production;
+- `RadarCompetenceContext` é a autoridade da competência global;
+- Pendências é passivo transversal entre competências;
+- página de Pendências usa antiguidade histórica; Dashboard/Carteira podem usar tempo da ação corrente;
+- bonificação, análise técnica e Pendência são dimensões independentes;
+- NF usa análise/Pendência individual por `registered_invoice_id`, com bonificação agregada;
+- `a_identificar` novo nasce `Incorreto + Pendência` atomicamente;
+- legados legítimos não recebem backfill inventado;
+- `boleto_internet` é tipo de gasto dentro de Notas Fiscais, somente Educação Conectada;
+- Consulta Assessoria é individual por NF de serviço;
+- Pendência da NF A não bloqueia NF B;
+- novo envio não resolve Pendência;
+- reanálise exige tentativa/contexto/versionamento válidos;
+- `Inventariada` é terminal;
+- commit remoto confirmado e sincronização local são fronteiras diferentes;
+- wrapper de performance não é autoridade de negócio;
+- layout aprovado de Prontuário/Pendências não deve regredir por plano histórico;
+- comunicação externa não expõe o nome interno `RADAR PDDE`;
+- mudança que afeta o usuário só é concluída após o gate real de frontend.
+
+## 6. Autoridade única em fluxos críticos
+
+Para fluxo P0/P1, antes de criar handler, wrapper, extensão, RPC ou nova persistência:
+
+1. localizar a operação na matriz funcional;
+2. identificar todos os produtores e consumidores atuais;
+3. conferir módulos carregados dinamicamente e ordem de bootstrap;
+4. identificar a autoridade vigente de cada etapa;
+5. confirmar que a suposta ausência não está implementada em outro módulo;
 6. somente então alterar código.
 
-Não duplicar uma regra porque ela não aparece no primeiro arquivo inspecionado.
-
-Para Consulta Assessoria, a autoridade corrente é:
+Exemplo canônico de autoridade deliberadamente distribuída, Consulta Assessoria:
 
 ```text
 edição ordinária
@@ -159,205 +118,80 @@ persistência
 → RPC específica correspondente
 ```
 
-A ordem de bootstrap é parte do contrato. Um PR que tocar fluxo crítico deve manter ou atualizar regressões que provem:
+Não fundir responsabilidades apenas para tornar a arquitetura “mais simples” se isso violar o contrato vigente.
 
-- bootstrap instalado;
-- autoridade correta por operação;
-- delegação de rotas não aplicáveis;
-- composição real no navegador;
-- snapshot/adapter e RPC quando houver escrita remota.
+## 7. Escrita e convergência
 
-Se a investigação descobrir implementação equivalente já existente, **não criar uma segunda implementação**. Corrigir carregamento, roteamento ou autoridade, conforme a causa real.
-
-## 8. Gestão de Equipe
-
-Fluxo vigente:
+Para operação de escrita relevante, buscar:
 
 ```text
-DirectoryService
-→ TeamAccountGateway
-→ team-account-management
-→ Auth Admin + RPC transacional
+estado persistido remoto
+=
+estado local da aplicação
+=
+estado apresentado ao usuário
+=
+estado reencontrado após reload
 ```
 
-Preservar:
+Quando houver efeitos transversais, conferir as projeções relacionadas. Exemplos:
 
-- CORS fail-closed e allowlist canônica;
-- JWT e papel autorizados;
-- lookup Auth exato por e-mail;
-- recuperação segura de vínculos históricos;
-- rejeição de ambiguidade e vínculo ativo conflitante;
-- transição autorizada entre perfis reutilizando a conta existente;
-- desativação lógica, redistribuição e histórico;
-- compensação somente após rejeição comprovada do banco; erro retornado ou Promise rejeitada após RPC exige reconciliação por diretório, perfil e identidade do log antes de tocar novamente no Auth;
-- edição de integrante existente exige a versão anterior e CAS na RPC; conflito não pode restaurar Auth a partir de um snapshot obsoleto.
+- NF permanente ↔ bem patrimonial;
+- análise individual ↔ Pendência;
+- reanálise ↔ tentativa mais recente;
+- mudança de equipe ↔ carteira;
+- retificação ↔ histórico/auditoria.
 
-## 9. Escolas, pendências e patrimônio
+## 8. Método de trabalho
 
-- novas escolas exigem identidade institucional real; não sintetizar INEP, CNPJ, SICI, designação ou denominação;
-- Controlador não redistribui responsável de carteira pela edição cadastral;
-- novo envio de pendência não resolve automaticamente;
-- reanálise pode ser executada por Controlador, Assistente e `technical_admin`; SME e Inventário permanecem bloqueados para essa mutação;
-- tentativas permanecem sincronizadas com `pendency_attempts` e com a verificação relacionada;
-- nota permanente e bem derivado permanecem coerentes na mesma operação protegida;
-- quando uma operação inclui, identifica, converte ou remove despesa `permanente`, `encampInventario` deve ser derivado do conjunto de bens vinculados do mesmo contexto escola + competência + programa: nenhum permanente = `Não se aplica`; algum não encaminhado = `Não`; todos `Encaminhada`/`Inventariada` = `Sim`; a análise técnica não é aprovada por herança quando o conjunto patrimonial muda;
-- edição patrimonial usa serviço autorizado, versão esperada e log.
-
-Após o PR #265, `Inventariada` é terminal nos fluxos operacionais: `InventoryService.forward()` rejeita reencaminhamento e o trigger `assets_protect_inventoried_terminal_state` cobre a RPC e outros UPDATEs de status. Edição da NF preserva estado, processo e metadados da inventariação. Antes de propor outra proteção, verificar essas duas camadas, os testes e a migration `20260905231000_inventory_terminal_state`; não duplicar a correção.
-
-Para sincronização pós-commit e Gestão de Equipe, distinguir requisito de implementação comprovada: commit remoto confirmado não prova aplicação local; resposta perdida não prova rollback do banco. O #272 e o #271 são candidatos separados da main, com lacunas registradas na revisão corrente. Não repetir escrita confirmada como recuperação de tela nem presumir que compensação Auth é segura após resposta ambígua da RPC.
-
-No contrato vigente após PR #209 e no PR #211, **não existe documento autônomo `boletoInternet`**. `boleto_internet` existe somente como **Tipo de Gasto dentro de Notas Fiscais**, exclusivo de Educação Conectada. Não possui linha documental, bonificação, análise técnica ou Pendência independente e não participa de Consulta Assessoria.
-
-## 9.0 Guardrails supervenientes até PR #249
-
-- Declaração BB Ágil pode usar N/A sob o contrato vigente; Pendência ativa impede a transição até ser resolvida/cancelada.
-- `RADAR PDDE` é nome interno e não aparece em comunicação oficial externa gerada.
-- a exportação XLSX de Pendências é superfície vigente e deve preservar auditoria, filtros e ausência de IDs técnicos;
-- `PDDE Básico` aparece primeiro somente no layout da avaliação; não reordenar `programasIds` nem transformar isso em regra persistente;
-- a interface atual de Pendências e o polimento visual pós-PR #237/#249 estão aprovados; plano histórico não autoriza redesenho regressivo;
-- Supabase CLI 2.116.0 permanece rejeitado por regressão pgTAP/RLS; não atualizar por automatismo;
-- Lighthouse usa três rodadas e mediana; não relaxar thresholds para obter verde.
-## 9.1 Guardrails integrados pelo PR #211
-
-No baseline posterior ao PR #211, preservar estas decisões já fechadas:
-
-- novas `a_identificar` nascem `Incorreto + Pendência` atomicamente;
-- os **16 `a_identificar` legítimos de Controladores** são `Registro legado`: sem backfill, sem Pendência inventada e sem edição/exclusão comum;
-- **12 despesas/NFs + 3 Pendências fiscais genéricas** comprovadas como fixtures da conta técnica foram removidas pela limpeza fail-closed;
-- o antigo reparo do **Boleto 1234** está superado: boleto e Pendência foram classificados como fixtures e removidos pela limpeza condicionada, não vinculados;
-- Consulta Assessoria é individual por NF de serviço e a Pendência ativa deve ser buscada com `registered_invoice_id`; lookup genérico por escola + competência + programa + documento não pode bloquear outra NF;
-- selecionar `Incorreto` em Assessoria abre primeiro o fluxo atômico de Pendência; não gravar `Incorreto` solto;
-- o `InvoiceService` também bloqueia alterações comuns da Assessoria enquanto a mesma NF possui Pendência ativa; somente novo envio e reanálise podem avançar esse ciclo;
-- reanálise fiscal ou de Assessoria exige a tentativa real mais recente, em `Aguardando reanálise`, e não pode reescrever o conteúdo que a escola enviou;
-- o resumo mensal da Assessoria é `Sim` se **ao menos uma** consulta exigível foi enviada, `Não` se existem NFs de serviço e nenhuma foi enviada, e `Não se aplica` sem NF de serviço;
-- no Prontuário, item com Pendência ativa mostra **Visualizar pendência**; `Registrar novo envio` e `Reanalisar` permanecem na tela de Pendências;
-- Pendência fiscal agregada real anterior à individualização continua acessível como legado, sem associação inventada a uma NF;
-- o fluxo normal e as RPCs protegem identidade, contexto, concorrência e atomicidade; existe uma lacuna residual conhecida contra escrita **direta** em `registered_invoices` envolvendo `id`, `verification_id` e `source_context_key`, registrada na ADR-051;
-- por decisão explícita do responsável pelo produto, esse hardening adicional do Supabase está **adiado até a conclusão e validação de todas as frentes de correção funcional**; não antecipá-lo, não usá-lo como gate dos PRs funcionais e não marcá-lo como resolvido;
-- desktop foi o alvo do hotfix; a reconferência visual final foi concluída e o overflow em 1280 px foi corrigido pelo PR #214, com regressão E2E de largura/alinhamento; mobile permanece dívida separada não bloqueante;
-- o PR #215 corrigiu a fronteira `row_version`/payload; 44 migrations era a contagem daquele checkpoint, não a contagem atual; não reintroduzir `rowVersion`/`row_version` em payloads de negócio;
-- a ADR-052 exige autoridade única e prova executável do bootstrap/composição de fluxos críticos.
-
-Se um teste, comentário antigo ou auditoria contrariar esses pontos, classificar primeiro como possível contrato superado antes de alterar o produto.
-
-## 10. Testes: regra principal
-
-Aplicar conjuntamente `docs/reference/ENGINEERING_METHOD.md` e `docs/reference/TEST_GOVERNANCE.md`.
-
-Antes de corrigir qualquer falha de teste, classifique-a como:
-
-1. defeito real de produto;
-2. contrato de teste superado;
-3. defeito do próprio teste/fixture;
-4. falha de infraestrutura;
-5. flaky não reproduzível.
-
-Só o primeiro caso autoriza alterar o produto por causa da falha.
-
-Para mudanças P0/P1, transversais ou que toquem concorrência, persistência, Auth, RPC, bootstrap, wrappers ou estado compartilhado, o RED/GREEN do caso original é apenas a primeira prova. Antes de declarar o PR pronto, executar revisão adversarial proporcional das interações atingidas, privilegiando código real com fronteiras controladas, interleavings determinísticos e verificação do estado final.
-
-### Validação proporcional
-
-Para uma mudança comum:
-
-- reutilizar teste existente diretamente relacionado;
-- comprovar um fluxo positivo;
-- comprovar bloqueio negativo apenas quando a autorização for risco material;
-- para escrita, comprovar persistência/releitura quando isso acrescentar evidência real;
-- avaliar visualização, encontrabilidade, feedback e coerência do estado;
-- executar um gate base compatível com o escopo;
-- não repetir suites já aprovadas se o código coberto não mudou.
-
-Não criar infraestrutura de teste nova sem risco concreto. Não iniciar ciclos sucessivos de E2E, Lighthouse, backup, mobile e outros gates apenas para transformar todos os indicadores em verdes.
-
-Suite integral e gates especializados são apropriados para mudanças transversais, releases relevantes ou auditorias expressamente autorizadas.
-
-## 11. Testes superados
-
-Quando uma regra funcional mudar, registrar:
+Sequência padrão:
 
 ```text
-regra anterior → regra vigente → código afetado → teste afetado
+revalidar main/ambiente
+→ ler o modelo canônico
+→ localizar autoridade real
+→ tentar refutar a hipótese
+→ classificar causa atual
+→ branch isolada
+→ RED quando houver defeito/código
+→ menor mudança coerente
+→ revisão adversarial proporcional
+→ gates do SHA final
+→ jornada real pelo frontend quando aplicável
+→ atualizar documentação afetada
 ```
 
-Atualizar ou remover a expectativa antiga. Se um cenário histórico estiver embutido em uma suíte extensa e já houver proteção sucessora suficiente, ele pode ser excluído da execução por título exato, com razão documentada e referência ao teste atual.
+Performance nunca compra regressão funcional.
 
-Nunca reverter regra vigente para recuperar um teste antigo.
+## 9. Documentação: regra de manutenção
 
-## 12. Auditoria de testes
+A documentação não existe para decorar o repositório.
 
-Não assumir ordem cronológica de coleções sem `ORDER BY` temporal explícito. UUID não é relógio.
+### Papéis
 
-Testes de auditoria devem localizar eventos pelo ator autenticado, contexto, identificador da operação ou timestamp adequado. `reverse()` sobre uma coleção ordenada por ID não prova “último evento”.
+- `AGENTS.md`: roteador obrigatório e regras de trabalho;
+- `docs/reference/SYSTEM_CANONICAL_MODEL.md`: modelo integrado do produto;
+- `docs/CURRENT_STAGE.md`: estado mutável e prioridade;
+- `docs/reference/STATUS_DOCUMENTOS.md`: validade documental;
+- `docs/reference/ENGINEERING_METHOD.md`: método;
+- `docs/reference/FRONTEND_USER_VALIDATION_GATE.md`: aceitação pela interface real;
+- ADR: decisão durável/especializada;
+- plano/handoff/auditoria/evidência: contexto histórico do seu momento, não baseline automática.
 
-## 13. Migrations e Supabase
+### Obrigação de reconciliação
 
-Regras permanentes:
+Todo novo documento classificado como **canônico** deve, na mesma entrega:
 
-- migrations versionadas e aplicadas em ordem;
-- nenhum seed institucional implícito;
-- nenhuma chave administrativa no frontend;
-- operações compostas atômicas quando necessário;
-- conflitos com `row_version` não são sobrescritos silenciosamente;
-- histórico de migrations não é editado diretamente;
-- nova migration somente quando houver mudança real de schema/regra que não possa ser representada pelo contrato existente.
+1. atualizar a rota em `AGENTS.md` se introduzir leitura obrigatória;
+2. atualizar `docs/README.md`;
+3. atualizar `docs/reference/STATUS_DOCUMENTOS.md`;
+4. atualizar `SYSTEM_CANONICAL_MODEL.md` se mudar regra, autoridade, fluxo ou invariante;
+5. reclassificar explicitamente qualquer documento anterior que deixe de orientar o presente.
 
-## 14. Excel SME
+É proibido criar uma nova fonte canônica “solta” e esperar que um agente futuro a descubra.
 
-Contrato vigente:
+## 10. Estado mutável
 
-```text
-template-fonte: 30 colunas
-produto público: 27 colunas A:AA
-motor: ExcelJS 4.4.0
-competência: mensal e estrita
-```
+Não registrar aqui SHA corrente, deployment atual, fila de PRs ou conclusão temporal de fases, salvo quando indispensável à regra do roteador. Esses dados pertencem a `docs/CURRENT_STAGE.md` e devem ser revalidados ao vivo.
 
-As posições-fonte K, R e Y são removidas na projeção pública. Alteração material do gerador exige certificação correspondente; não reexecutar certificação Excel por mudanças sem relação com exportação.
-
-## 15. Documentação
-
-- código e ambientes efetivos são superiores à documentação;
-- `CURRENT_STAGE.md` descreve o presente;
-- `ENGINEERING_METHOD.md` define o método duradouro de investigação, implementação e revisão adversarial;
-- matriz JSON é a fonte da visão gerada `FUNCTIONAL_CONTRACT_MATRIX.md`;
-- `TEST_GOVERNANCE.md` controla a estratégia de validação;
-- auditorias e planos datados registram o passado e não são reescritos para parecer atuais;
-- branch/PR não integrado não altera o baseline.
-
-Ao concluir mudança material, atualizar somente os documentos vigentes realmente afetados.
-
-## 16. Git e integração
-
-Não trabalhar diretamente na `main`.
-
-Fluxo padrão:
-
-1. confirmar HEAD remoto;
-2. criar branch específica;
-3. inspecionar código antes de testes;
-4. confirmar a causa e refutar correção equivalente já existente;
-5. implementar a menor mudança coerente;
-6. executar RED/GREEN e validação proporcional;
-7. revisar adversarialmente as fronteiras materiais tocadas pela própria correção;
-8. classificar falhas encontradas;
-9. corrigir apenas defeitos reais ou testes comprovadamente superados;
-10. abrir PR com escopo, riscos e evidências;
-11. integrar quando objetivamente pronto;
-12. confirmar o SHA efetivamente publicado quando houver mudança de Production.
-
-Não aguardar indefinidamente todos os jobs nem reiniciar a mesma bateria sem nova evidência.
-
-## 17. Critério de conclusão
-
-Uma frente pode ser encerrada quando:
-
-- o comportamento afetado atende ao contrato atual;
-- o usuário consegue encontrar, compreender e executar as ações esperadas;
-- dados e informações permanecem coerentes após a operação;
-- não há defeito relevante conhecido no escopo;
-- a revisão adversarial proporcional não revelou interação material sem tratamento;
-- falhas de teste remanescentes foram classificadas e não representam regressão real.
-
-Cobertura parcial, teste histórico, Lighthouse não relacionado ou ausência de uma prova opcional não mantêm automaticamente o RADAR em estado de projeto inacabado.
+Essa separação é intencional: `AGENTS.md` deve envelhecer devagar; `CURRENT_STAGE.md` pode mudar com frequência.
