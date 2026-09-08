@@ -33,7 +33,7 @@ test('frontend inclui gate acessível, logout e scripts de autenticação em ord
     assert.ok(appIndex < gateIndex);
 });
 
-test('gate carrega os módulos de navegação em ordem após a aplicação principal', () => {
+test('gate carrega os módulos de navegação em ordem e aguarda capacidades determinísticas', () => {
     const gate = fs.readFileSync(path.join(root, 'src/integration/auth-gate.js'), 'utf8');
     const routesIndex = gate.indexOf('/src/integration/navigation-routes.js');
     const policyIndex = gate.indexOf('/src/integration/navigation-policy.js');
@@ -46,8 +46,11 @@ test('gate carrega os módulos de navegação em ordem após a aplicação princ
     assert.ok(bootstrapIndex < historyIndex);
     assert.match(gate, /RadarNavigationReady/);
     assert.match(gate, /RadarNavigationHistory\.applyPendingRoute/);
-    assert.match(gate, /RadarDataContext\?\.ready === true/);
-    assert.match(gate, /RadarAuthContext\?\.authorization/);
+    assert.match(gate, /RadarApplicationReadiness/);
+    for (const capability of ['authentication', 'application-services', 'data', 'competence', 'navigation']) {
+        assert.match(gate, new RegExp(`['"]${capability}['"]`));
+    }
+    assert.doesNotMatch(gate, /setInterval\s*\(/);
 });
 
 test('formulário de credenciais permanece invisível antes de o bootstrap autorizar o login', () => {

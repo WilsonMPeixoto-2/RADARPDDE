@@ -13,11 +13,22 @@
     if (root) {
         root.RadarNavigationHistory = Object.freeze(api);
         if (root.document) {
-            if (!api.install(root)) {
-                const interval = root.setInterval?.(() => {
-                    if (api.install(root)) root.clearInterval?.(interval);
-                }, 20);
-                root.setTimeout?.(() => root.clearInterval?.(interval), 10000);
+            const publish = () => {
+                if (root.__radarNavigationHistoryInstalled) {
+                    root.RadarApplicationReadiness?.markReady?.('navigation');
+                    return true;
+                }
+                if (api.install(root)) {
+                    root.RadarApplicationReadiness?.markReady?.('navigation');
+                    return true;
+                }
+                return false;
+            };
+            if (!publish()) {
+                root.RadarApplicationReadiness?.markFailed?.(
+                    'navigation',
+                    'NAVIGATION_INSTALL_FAILED'
+                );
             }
         }
     }

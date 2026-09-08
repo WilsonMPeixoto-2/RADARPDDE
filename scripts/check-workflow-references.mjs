@@ -159,7 +159,8 @@ function addReference(target, workflow, kind, value, options = {}) {
 
 function extractNodeReferences(workflow, content, references) {
     const normalized = content.replace(/\\\r?\n[ \t]*/g, ' ');
-    const pattern = /\bnode\b([^;&|\n]*)/g;
+    // `node:` é o namespace de módulos nativos em JavaScript, não uma execução do binário Node.
+    const pattern = /\bnode\b(?!:)([^;&|\n]*)/g;
     let match;
 
     while ((match = pattern.exec(normalized)) !== null) {

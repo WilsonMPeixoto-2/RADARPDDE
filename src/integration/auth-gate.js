@@ -5,7 +5,8 @@
         '/src/integration/navigation-routes.js',
         '/src/integration/navigation-policy.js',
         '/src/integration/navigation-bootstrap.js',
-        '/src/integration/navigation-history.js'
+        '/src/integration/navigation-history.js',
+        '/src/integration/audit-data-gate.js'
     ]);
 
     function loadScriptOnce(document, src) {
@@ -36,30 +37,21 @@
     }
 
     function waitForAuthorizedData(root) {
-        return new Promise(resolve => {
-            const tryApply = () => {
-                const remoteEnabled = root.RADAR_PDDE_CONFIG?.supabase?.connectionEnabled === true;
-                const dataReady = root.RadarDataContext?.ready === true;
-                const authReady = !remoteEnabled || Boolean(root.RadarAuthContext?.authorization);
-                const competenceReady = Boolean(
-                    root.RadarCompetenceContext?.isInitialized?.()
-                );
-                const navigationReady = Boolean(
-                    root.RadarNavigationHistory
-                    && root.__radarNavigationHistoryInstalled
-                );
-                if (dataReady && authReady && competenceReady && navigationReady) {
-                    resolve(root.RadarNavigationHistory.applyPendingRoute(root));
-                    return true;
-                }
-                return false;
-            };
-
-            if (tryApply()) return;
-            const interval = root.setInterval(() => {
-                if (tryApply()) root.clearInterval(interval);
-            }, 20);
-        });
+        const readiness = root.RadarApplicationReadiness;
+        if (!readiness || typeof readiness.when !== 'function') {
+            return Promise.reject(new Error('Coordenador de prontidão do RADAR indisponível.'));
+        }
+        const remoteEnabled = root.RADAR_PDDE_CONFIG?.supabase?.connectionEnabled === true;
+        const required = [
+            ...(remoteEnabled ? ['authentication'] : []),
+            'application-services',
+            'data',
+            'competence',
+            'navigation'
+        ];
+        return readiness.when(required).then(() => (
+            root.RadarNavigationHistory.applyPendingRoute(root)
+        ));
     }
 
     function installNavigationModules(root) {

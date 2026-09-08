@@ -1,247 +1,168 @@
 # Ordem de carregamento e precedência do frontend
 
 **Estado:** vigente  
-**Atualizado em:** 3 de setembro de 2026
+**Atualizado em:** 7 de setembro de 2026
 
 ## 1. Finalidade
 
-Registrar a ordem efetiva de scripts, estilos e bootstraps antes de mover, fundir, remover ou renomear recursos.
+Registrar a composição atual do frontend antes de mover, fundir, remover ou adiar recursos. A ordem de bootstrap é parte do contrato funcional quando módulos envolvem handlers, aguardam serviços ou controlam uma superfície.
 
 A aplicação combina:
 
-1. CSS e scripts estáticos do `index.html`;
+1. HTML/CSS e domínios estáticos;
 2. configuração pública e validação fail-closed;
-3. extensões ordenadas de `config.js`;
-4. domínio, persistência e serviços;
-5. núcleo `app.js`;
-6. integrações modernas pós-núcleo;
-7. Auth gate, navegação e extensões de produto;
-8. runtime Excel assíncrono, recuperável e com auditoria obrigatória.
+3. carregador de extensões de `config.js`;
+4. persistência e serviços;
+5. `app.js`;
+6. integrações pós-núcleo;
+7. Auth, navegação e extensões de produto;
+8. runtimes opcionais como Excel, busca e Floating UI.
 
-## 2. Verificação reproduzível
+## 2. Scripts estáticos principais
 
-```bash
-npm run audit:frontend-precedence
-npm run audit:frontend-precedence:check
-npm run test:frontend-precedence
-```
+A ordem declarada no final de `index.html` é, em blocos:
 
-O manifesto em `docs/evidence/frontend-precedence/manifest.json` é gerado. Não editar contagens manualmente.
+### Domínio
+
+- `competencia.js`;
+- `estatisticas.js`;
+- `fluxo-operacional.js`;
+- `service-advisory.js`;
+- `invoice-document-analysis.js`;
+- `invoice-effects.js`;
+- `pendencias.js`;
+- `access-policy.js`;
+- `global-search-index.js`;
+- `retificacoes.js`.
+
+### Configuração e dados
+
+- `config.runtime.js`;
+- `config.js`;
+- contrato de repositório e AJV;
+- contratos JSON e error mapper;
+- `session-service.js` e `auth-bootstrap.js`;
+- repositórios, snapshot/import/state bridge;
+- `StatePort`, `UnitOfWork` e `DataService`;
+- serviços de configuração, diretório, escola, Pendências, verificações, auditoria, NF e inventário.
+
+O bundle do cliente Supabase **não é estático no HTML**. `auth-bootstrap.js` o carrega sob demanda quando a conexão remota está habilitada.
+
+### Núcleo e integrações estáticas pós-núcleo
+
+- `shared-interactions.js`;
+- `app.js`;
+- `view-transitions.js`;
+- `global-search.js`;
+- `floating-ui-bootstrap.js`;
+- `auth-gate.js`.
 
 ## 3. CSS
 
-### Estático
+`styles.css` continua sendo a folha-base.
 
-1. `styles.css`;
-2. `src/styles/shared-interactions.css`.
+As folhas complementares de interações, busca, Floating UI e transições são carregadas de forma não bloqueante pelo HTML. `config.js` instala as folhas específicas de mobile, Pendências, Retificações, Carteira, Dashboard e painel do Controlador com deduplicação por `data-radar-extension`.
 
-### Inserido por `config.js`
+O bootstrap de extensões de produto adiciona seus próprios estilos com `data-radar-product-style`.
 
-1. `src/styles/mobile-responsive.css`;
-2. `src/styles/mobile-rendering-hotfix.css`;
-3. `src/styles/task-9-pendencias.css`;
-4. `src/styles/task-9-cross-view.css`;
-5. `src/styles/task-10-11-pendency-actions.css`;
-6. `src/styles/task-12-13-retificacoes.css`;
-7. `src/styles/cycle-b-carteira.css`;
-8. `src/styles/cycle-b-dashboard.css`;
-9. `src/styles/cycle-b-dashboard-final.css`;
-10. `src/styles/painel-controlador-expressiva.css`.
+Repetição textual de seletor não autoriza consolidação. Alteração de CSS exige computed styles/regressão visual nos breakpoints afetados.
 
-### Extensões de produto
+## 4. `config.js` e readiness
 
-`product-extensions-bootstrap.js` adiciona `src/styles/school-timeline.css`.
+`config.js` carrega `application-readiness.js` antes das extensões que dependem do estado do aplicativo.
 
-Repetição de seletor não prova conflito. Consolidação exige computed styles e regressão visual nos breakpoints.
-
-## 4. Scripts estáticos antes de `app.js`
-
-Ordem declarada em `index.html`:
-
-### Domínio inicial
-
-1. `src/domain/competencia.js`;
-2. `src/domain/estatisticas.js`;
-3. `src/domain/fluxo-operacional.js`;
-4. `src/domain/pendencias.js`;
-5. `src/domain/access-policy.js`;
-6. `src/domain/global-search-index.js`;
-7. `src/domain/retificacoes.js`, já marcado para deduplicação.
-
-### Configuração
-
-8. `config.runtime.js`;
-9. `config.js`.
-
-`config.js` valida ambiente, modo de dados, URL e chave publicável, bloqueia chave administrativa e registra extensões antes do bootstrap da aplicação.
-
-### Cliente e persistência
-
-10. `vendor/supabase-client.js`;
-11. `src/data/repository-contract.js`;
-12. `vendor/ajv.js`;
-13. `src/domain/json-contracts.js`;
-14. `src/application/error-mapper.js`;
-15. `src/auth/session-service.js`;
-16. `src/integration/auth-bootstrap.js`;
-17. `src/data/local-storage-repository.js`;
-18. `src/data/supabase-repository.js`;
-19. `src/data/repository-factory.js`;
-20. `src/data/snapshot-tools.js`;
-21. `src/data/import-coordinator.js`;
-22. `src/data/legacy-state-adapter.js`;
-23. `src/data/state-bridge.js`;
-24. `src/data/state-bridge-metadata.js`.
-
-### Aplicação
-
-25. `src/application/state-port.js`;
-26. `src/application/unit-of-work.js`;
-27. `src/application/data-service.js`;
-28. `src/application/configuration-service.js`;
-29. `src/application/directory-service.js`;
-30. `src/application/school-service.js`;
-31. `src/application/pendency-service.js`;
-32. `src/application/verification-service.js`;
-33. `src/application/audit-service.js`;
-34. `src/application/invoice-service.js`;
-35. `src/application/inventory-service.js`;
-36. `src/integration/shared-interactions.js`.
-
-### Núcleo
-
-37. `app.js`.
-
-## 5. Integrações estáticas pós-`app.js`
-
-38. `src/integration/view-transitions.js`;
-39. `src/integration/global-search.js`;
-40. `src/integration/floating-ui-bootstrap.js`;
-41. `src/integration/auth-gate.js`.
-
-### View Transitions
-
-- envolve navegação principal iniciada pelo usuário;
-- respeita `prefers-reduced-motion`;
-- não anima montagem inicial;
-- degrada para navegação normal.
-
-### Busca global
-
-- usa `global-search-index.js` já carregado;
-- carrega Fuse.js sob demanda;
-- mantém fallback funcional;
-- respeita o universo autorizado.
-
-### Floating UI
-
-- carrega o bundle local sob demanda;
-- posiciona menus e resultados com fallback;
-- fecha por Escape ou clique externo;
-- restaura foco.
-
-## 6. Extensões ordenadas por `config.js`
-
-Scripts inseridos com `async = false`:
-
-1. `src/domain/pendencias-view-model.js`;
-2. `src/domain/operational-projection.js`;
-3. `src/domain/retificacoes.js`;
-4. `src/integration/mobile-navigation.js`;
-5. `src/integration/modal-accessibility.js`;
-6. `src/integration/task-9-pendencias-page.js`;
-7. `src/integration/task-9-focus-bridge.js`;
-8. `src/integration/task-9-cross-view.js`;
-9. `src/integration/task-10-11-pendency-actions.js`;
-10. `src/integration/task-12-13-retificacoes.js`;
-11. `src/integration/cycle-b-carteira.js`;
-12. `src/integration/cycle-b-dashboard.js`;
-13. `src/integration/cycle-b-dashboard-result.js`;
-14. `src/integration/task-10-alerts-competence.js`;
-15. `src/integration/exercise-management.js`;
-16. `src/integration/exercise-early-init.js`;
-17. `src/integration/painel-controlador-expressiva.js`;
-18. `src/integration/school-form-integrity.js`.
-
-`school-form-integrity.js` completa o comando de cadastro com a identificação institucional informada no formulário e preserva a identidade existente durante a edição.
-
-A marca `data-radar-extension` impede duplicação de `retificacoes.js`.
-
-## 7. Runtime Excel
-
-`config.js` insere `src/integration/load-excel-export.js` com `async = true`.
-
-O bootstrap Excel versão 2.1.0 mantém estado `idle/loading/ready/failed`, timeout de 15 segundos, remoção de script fracassado e retry.
-
-Módulos sequenciais:
-
-1. `/src/domain/excel-export-model.js`;
-2. `/src/domain/excel-workbook-plan.js`;
-3. `/src/domain/excel-xlsx-renderer.js`;
-4. `/src/domain/excel-sme-export-model.js`;
-5. `/src/domain/excel-sme-template-renderer.js`;
-6. `/src/domain/excel-sme-monthly-renderer.js`;
-7. `/src/integration/excel-sme-runtime-loader.js`;
-8. `/src/domain/pendency-excel-export-model.js`;
-9. `/src/domain/pendency-excel-renderer.js`;
-10. `/src/integration/excel-export-integration.js`;
-11. `/src/integration/excel-export-audit.js`.
-
-A camada final mantém a auditoria obrigatória das exportações institucional e SME. A exportação de Pendências usa o mesmo `AuditService`, exige o registro inicial antes do download e registra a conclusão no próprio fluxo da tela.
-
-Um `<script>` existente somente é aceito se o contrato global esperado estiver pronto. Falha, timeout ou contrato inválido remove o elemento e permite nova tentativa.
-
-## 8. Auth, rotas e extensões de produto
-
-Após `auth-gate.js`, os módulos de navegação são solicitados serialmente como `navigation-routes.js → navigation-policy.js → navigation-bootstrap.js → navigation-history.js`. O próprio `navigation-routes.js` instala dinamicamente `product-extensions-bootstrap.js`, cuja cadeia interna é documentada em [`product-extensions-load-order.md`](product-extensions-load-order.md).
-
-Resumo de autoridade, sem fingir uma linearidade que o carregamento dinâmico não possui:
+`RadarApplicationReadiness` representa capacidades:
 
 ```text
-auth-gate
-├─ navigation-routes → instala product-extensions-bootstrap
-├─ navigation-policy
-├─ navigation-bootstrap
-└─ navigation-history
-
-product-extensions-bootstrap
-→ proteção atômica primeiro
-→ extensões funcionais
-→ diagnóstico/performance/reconciliação/feedback conforme a ordem corrente
+authentication
+data
+application-services
+ui-runtime
+competence
+navigation
 ```
 
-A rota pendente só é aplicada quando dados, autorização, competência e histórico de navegação estão prontos. O plano source-first R2 preserva esse contrato e elimina somente readiness residual baseado em polling/símbolos globais.
+O carregador de `config.js` não deve voltar a usar tempo como contrato de instalação.
 
-## 9. Composição de wrappers
+A cadeia de Pendências é iniciada depois de `ui-runtime`; as ações que dependem dos serviços aguardam também `application-services`. Retificações e integridade do formulário de escola seguem o mesmo princípio.
 
-Módulos podem envolver renderizadores globais. Cada wrapper deve:
+Outras extensões que já conseguem se instalar de forma idempotente continuam sendo solicitadas pelo carregador, mas não podem criar segunda autoridade para navegação ou serviço.
 
-- capturar a função anterior;
-- instalar uma única camada;
-- preservar argumentos, retorno e efeitos;
-- marcar idempotência;
-- evitar recursão;
-- não criar estado paralelo.
+## 5. Auth e navegação
 
-Ordem incorreta pode capturar `undefined`, perder comportamento ou duplicar observadores.
+`auth-gate.js` carrega serialmente:
 
-## 10. Polling e observadores
+```text
+navigation-routes.js
+→ navigation-policy.js
+→ navigation-bootstrap.js
+→ navigation-history.js
+→ audit-data-gate.js
+```
 
-`MutationObserver` e polling ainda aparecem por motivos distintos. A reauditoria source-first de 03/09 exige classificar cada ocorrência: readiness crítico/restrito, compatibilidade temporária ou runtime legítimo. Não remover timers mecanicamente. Polling usado como contrato de instalação só sai quando houver sinal determinístico equivalente; `MutationObserver` que observa DOM criado depois da instalação pode permanecer.
+A aplicação da rota pendente espera as capacidades críticas necessárias, não um `setInterval`.
 
-## 11. Regras para mudança
+`painel-controlador-expressiva.js` não carrega `navigation-history.js`. Essa remoção encerra a autoridade concorrente encontrada na auditoria de 07/09.
 
-1. não mover módulo antes de sua dependência;
-2. não remover marcador de deduplicação sem inventário de consumidores;
-3. não fundir CSS por repetição textual;
-4. não tornar o loader Excel síncrono sem medir bootstrap;
-5. não criar carregador concorrente sem ADR;
-6. atualizar manifesto e este documento quando a ordem mudar;
-7. executar readiness, precedência, E2E, mobile e Lighthouse;
-8. verificar `pageerror`, scripts duplicados, wrappers e observadores;
-9. confirmar assets no artefato Vercel;
-10. registrar evidência no mesmo SHA.
+`navigation-routes.js` inicia `product-extensions-bootstrap.js`. A ordem interna é documentada em [`product-extensions-load-order.md`](product-extensions-load-order.md).
 
-## 12. Limites
+## 6. Competência
 
-A auditoria estática não substitui execução. Especificidade, herança, ordem de resolução assíncrona e wrappers somente são comprovados por inspeção de runtime e testes das superfícies afetadas.
+`global-competence-selector.js` depende de dados e do contrato de competência. A instalação passou a aguardar readiness/eventos determinísticos. O seletor global não deve sondar continuamente `RadarDataContext`, `COMPETENCIAS` ou serviços para descobrir se já existem.
+
+## 7. Dados do pós-login
+
+O bootstrap remoto bloqueante carrega as entidades necessárias ao funcionamento geral. `administrativeLogs` é a única entidade retirada desse conjunto nesta frente.
+
+Motivo: o Dashboard e as superfícies operacionais não precisam do histórico administrativo para iniciar.
+
+A entidade é hidratada depois por `DataService.hydrateRemoteEntities()` com aplicação incremental segura e fila compartilhada com escritas remotas.
+
+A tela Registros Internos depende de `audit-data`. Enquanto a hidratação não termina, exibe loading; em falha, restringe apenas essa superfície e oferece retry.
+
+**Regra:** nenhum outro grupo de dados pode ser adiado sem consumidor mapeado, patch incremental seguro, semântica de falha da superfície e testes correspondentes.
+
+## 8. Extensões e instaladores
+
+Instaladores não devem criar polling para esperar `RadarApplicationServices` ou outras capacidades já representadas por eventos/Promises.
+
+Na execução autenticada final de 07/09, os intervalos de readiness de 10/20/25/50 ms deixaram de existir no runtime observado. O único intervalo persistente observado foi de 30 s, compatível com `autoRefreshToken` do Supabase Auth.
+
+`MutationObserver` pode permanecer quando observa DOM criado depois da instalação. Timer operacional real também pode permanecer. A regra é eliminar polling usado como substituto de contrato de prontidão, não proibir timers indiscriminadamente.
+
+## 9. Runtimes opcionais
+
+### Excel
+
+`load-excel-export.js` continua assíncrono, recuperável e separado do caminho crítico da interface. A cadeia Excel mantém validação de contrato, timeout/retry e auditoria das exportações.
+
+### Busca e Floating UI
+
+Bundles locais são carregados sob demanda pelas respectivas integrações e possuem fallback funcional. Não fazem parte da autoridade de dados ou navegação.
+
+## 10. Idempotência e precedência
+
+Cada wrapper/carregador deve:
+
+1. possuir uma autoridade clara;
+2. deduplicar recurso/instalação;
+3. preservar argumentos, retornos e efeitos da camada anterior;
+4. não inventar estado de negócio paralelo;
+5. reagir a readiness determinístico quando sua dependência ainda não existe;
+6. degradar de acordo com sua criticidade;
+7. possuir regressão que detecte inversão de ordem relevante.
+
+## 11. Verificação
+
+Mudança nesta arquitetura exige, conforme o alcance:
+
+- testes de precedência e arquitetura;
+- unitários dos loaders/wrappers;
+- E2E de rotas e primeiras ações;
+- perfis e viewports;
+- Supabase real se dados/Auth forem afetados;
+- inspeção de scripts/styles duplicados e timers de readiness;
+- Lighthouse segundo a política vigente;
+- revisão adversarial da composição final.
+
+A auditoria estática não substitui execução. Ordem assíncrona e composição de wrappers precisam de prova no navegador.

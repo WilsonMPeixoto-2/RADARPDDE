@@ -1,121 +1,77 @@
 # RADAR PDDE — Estado atual do projeto
 
-**Atualizado em:** 6 de setembro de 2026  
+**Atualizado em:** 7 de setembro de 2026  
 **Classe documental:** Canônico — estado corrente e retomada futura
 
-## 1. Checkpoint corrente — main pós-PR #279
+## 1. Checkpoint corrente
 
-Este arquivo é a porta de entrada para o estado mutável do projeto. Valores voláteis devem ser revalidados no remoto antes de operação que dependa deles.
+Este arquivo registra o estado lógico atual. SHA de `main`, deployment Vercel e integridade do Supabase são valores voláteis e devem ser revalidados no remoto antes de qualquer operação que dependa deles.
 
-Baseline revalidado em 06/09/2026:
+A cadeia funcional de hotfixes #265–#279 permanece encerrada. O PR #282 retirou a autoridade funcional do módulo de performance. A frente de 07/09, integrada pelo PR #284, corrige a arquitetura de bootstrap/readiness e o bloqueio desnecessário do pós-login desktop.
 
-- `main`: `b82e7c1ad9b7c5992508c99fbaff7a3498fa52d8`;
-- último merge: PR #279 — preservação da auditoria da reabertura de consolidação;
-- Vercel Production: `dpl_49x13gq72dNa71cQLL1AL5UgebyV`, `READY`, servindo o mesmo SHA da `main`;
-- Supabase Production `scnryinorqeucbfkioxo`: 50 migrations; última versão observada `20260906072000`;
-- `production_integrity_check()`: `healthy`, `totalIssues = 0`, 20 verificações sem ocorrência;
-- branch `main`: sem branch protection/ruleset obrigatório no checkpoint consultado.
+Nenhuma dessas frentes deve ser reaberta com base em planos históricos sem evidência nova no código ou em Production.
 
-O checkpoint detalhado e sua classificação source-first estão em [`handoff/2026-09-06-rebaseline-pos-pr279.md`](handoff/2026-09-06-rebaseline-pos-pr279.md).
+## 2. Correções arquiteturais já encerradas
 
-## 2. Situação funcional
+### R1 — autoridade funcional fora de performance
 
-A cadeia de correções #265–#279 foi integrada. Não há defeito funcional conhecido dessa cadeia aguardando implementação.
+**Concluída pelo PR #282.**
 
-Isso **não** significa que o plano arquitetural R1–R9 esteja encerrado. Hotfixes posteriores absorveram partes importantes do plano, mas a revalidação do código atual confirmou dívidas arquiteturais remanescentes.
+`operational-write-performance.js` é observador. Autoridade de resultado/commit remoto, entidades incrementais e reconciliação funcional pertencem aos serviços/DataService e às integrações funcionais correspondentes.
 
-Entregas que não devem ser reabertas automaticamente:
+### R2 — bootstrap e readiness
 
-- #265 — `Inventariada` terminal no serviço e no banco;
-- #266 — isolamento do rollback concorrente da UnitOfWork;
-- #267 — autoridade auditável da exportação Excel SME no gesto real;
-- #268 — desativação de Controlador exige carteira zerada;
-- #269 — testes usam contexto canônico de competência;
-- #270 — loader de extensões resiliente a falha isolada;
-- #271 — compensação Auth protegida para resposta ambígua;
-- #272 — commit remoto separado de sincronização local, reconciliação serializada e feedback composto;
-- #276 — Nota Fiscal idempotente por intenção e RPC v2;
-- #277 — invariantes server-side de reanálise;
-- #278 — fail-closed remoto para operações críticas sem RPC atômica;
-- #279 — auditoria preservada na reabertura de consolidação.
+**Concluída pelo PR #284.**
 
-PRs #274 e #275 consolidaram documentação/revisão e o método de engenharia. PR #273 foi controle temporário e não foi integrado.
+O frontend agora possui `RadarApplicationReadiness` para capacidades explícitas de autenticação, dados, serviços, runtime de UI, competência e navegação. Os pollings de readiness que participavam do caminho corrigido foram substituídos por eventos/Promises/capacidades determinísticas.
 
-## 3. Classificação vigente de R1–R9
+Também foram corrigidos:
 
-R1–R9 são identificadores históricos do plano de 03/09. A tabela abaixo é a classificação vigente após revalidação do código pós-#279; ela substitui qualquer interpretação de fila automática do plano antigo.
+- autoridade duplicada de carregamento de `navigation-history.js`;
+- espera do Dashboard por `administrativeLogs`;
+- ausência de dependência explícita da tela Registros Internos para seus próprios dados;
+- instaladores finais que criavam intervalos mesmo quando a instalação imediata já era possível.
 
-| Fase | Estado atual | Próxima decisão |
+A hidratação tardia continua fail-closed para entidades sem aplicação incremental comprovada. Nesta frente somente `administrativeLogs` foi autorizado.
+
+Na medição autenticada controlada da branch, a mediana login → Dashboard utilizável foi 492,1 ms em três execuções com Supabase descartável real. Esse valor é diagnóstico local, não telemetria de Production.
+
+## 3. Correções reais ainda conhecidas
+
+A fila funcional remanescente é curta e explícita:
+
+| Frente | Estado | Problema real |
 |---|---|---|
-| **R1** | **Pendente real** | Retirar autoridade funcional de `operational-write-performance.js`, preservando performance apenas como diagnóstico/observação. |
-| **R2A** | **Parcialmente absorvido** | #270 já resolveu resiliência do loader; preservar. |
-| **R2B/R2C** | **Pendente real** | Remover polling usado como contrato de instalação/readiness somente quando houver sinal determinístico equivalente. |
-| **R3** | **Materialmente atendido** | Revalidar os critérios finais; se não surgir lacuna concreta, encerrar formalmente como cumprido por #276 e mudanças posteriores. |
-| **R4** | **Pendente real** | Unificar semântica de Pendências entre `operational-projection.js` e `pendencias-view-model.js`, sem redesenho. |
-| **R5** | **Pendente real** | Completar convergência autoritativa/incremental de `invoice:save`/`invoice:remove`, inclusive remoções retornadas por ID. |
-| **R6** | **Gate posterior** | Executar equivalência depois de R4/R5; sem diff obrigatório se o comportamento já for equivalente. |
-| **R7** | **Pendente** | Instrumentar causalmente o bootstrap que restar após R1–R6. |
-| **R8** | **Condicional** | Otimizar apenas gargalos demonstrados por R7; caso contrário, no-op documentado. |
-| **R9** | **Pendente** | Fechamento final após R1–R8 estarem concluídos, absorvidos ou documentados como no-op. |
+| **Pendências** | Pendente | `operational-projection.js` e `pendencias-view-model.js` ainda podem calcular data-base/tempo de espera de modo diferente após reabertura ou reanálise incorreta. |
+| **Nota Fiscal** | Pendente | `invoice:save` e `invoice:remove` ainda precisam completar a convergência autoritativa/incremental para evitar releituras amplas e janelas residuais de estado pós-escrita. |
 
-## 4. Ordem das próximas ações
+Depois dessas duas correções, executar equivalência/revisão final e somente otimizar novos gargalos se medição demonstrar necessidade.
 
-```text
-1. concluir este rebaseline documental pós-#279
-2. fechar/superseder PR #263 e reavaliar PR #5
-3. tratar proteção/ruleset da main
-4. R1
-5. R2
-6. fechamento formal de R3
-7. R4
-8. R5
-9. R6
-10. R7
-11. R8 somente se medição justificar
-12. R9
-13. ADR-051 / hardening de registered_invoices e Auth
-14. rebase + revalidação do PR #264 de dependências
-```
+## 4. Itens que não são bugs funcionais atuais
 
-Nenhuma etapa pode ser implementada apenas porque existe no plano de 03/09. Aplicar [`reference/ENGINEERING_METHOD.md`](reference/ENGINEERING_METHOD.md): código/ambiente atuais → hipótese → tentativa de refutação → causa real → mudança mínima → regressão → revisão adversarial → gates proporcionais.
+### Dependências
 
-## 5. PRs abertos relevantes
-
-### PR #263 — continuidade documental antiga
-
-Draft, baseado em uma `main` anterior e com grande divergência em relação aos PRs #265–#279. Não define baseline e não deve ser mergeado. Extrair somente informação ainda válida quando necessário; depois fechar como superado por este rebaseline.
-
-### PR #264 — dependências
-
-Manutenção legítima, mas validada sobre uma `main` anterior. Não misturar com R1–R9. Rebasear/revalidar somente na etapa própria definida acima.
-
-### PR #5 — histórico
-
-Reavaliar objetivamente. Se não houver decisão atual de retomada, fechar como superado para evitar backlog ambíguo.
-
-## 6. Dívidas deliberadamente fora da frente funcional
+O PR #264 é manutenção separada. As vulnerabilidades npm moderadas conhecidas pertencem a essa frente e não devem ser misturadas a correções de produto.
 
 ### ADR-051
 
-Hardening adicional de `registered_invoices` continua separado da frente funcional. A ausência de proteção específica para imutabilidade de `id`, coerência de `verification_id` e proteção/canonicalização de `source_context_key` foi revalidada no banco. Não há evidência de corrupção atual.
-
-Retomar depois de R9 conforme [`decisions/ADR-051-adiamento-hardening-registered-invoices.md`](decisions/ADR-051-adiamento-hardening-registered-invoices.md).
+Hardening adicional de `registered_invoices` permanece separado. Não há evidência atual de corrupção causada por essa dívida.
 
 ### Auth
 
-O advisor de segurança do Supabase aponta `auth_leaked_password_protection` como `WARN`. Tratar junto da frente de hardening, não como bug funcional de R1–R9.
+O advisor de segurança do Supabase para proteção contra senhas vazadas é hardening de conta, não bug funcional do fluxo atual.
 
-### Performance do banco
+### Índices do banco
 
-Avisos `unused_index` do advisor são sinais de observação, não autorização para remover índice. Qualquer ação depende de medição e contraprova.
+Avisos `unused_index` são sinais de observação. Não autorizam remoção sem medição.
 
-## 7. Guardrails vigentes
+## 5. Guardrails vigentes
 
 Preservar:
 
 - bonificação de NF agregada, análise/Pendência individual por `registered_invoice_id`;
 - resumo técnico derivado com precedência vigente;
-- `a_identificar` novo nasce `Incorreto + Pendência` atomicamente e legados legítimos não recebem backfill;
+- `a_identificar` novo nasce `Incorreto + Pendência` atomicamente e legados legítimos não recebem backfill fabricado;
 - `boleto_internet` somente como tipo de gasto de Notas Fiscais em Educação Conectada;
 - Consulta Assessoria individual por NF de serviço;
 - Pendências transversais a competências;
@@ -127,28 +83,27 @@ Preservar:
 - layout aprovado de Prontuário/Pendências;
 - comunicação externa sem o nome interno `RADAR PDDE`;
 - Supabase CLI 2.116.0 rejeitado enquanto a regressão documentada não for superada por nova homologação;
-- Lighthouse com três rodadas, mediana e thresholds vigentes.
+- Lighthouse com três rodadas, mediana e thresholds vigentes;
+- novo lazy loading somente com consumidor mapeado, aplicação incremental segura, estado de loading/falha e regressão da superfície.
 
-## 8. Precedência e histórico
-
-Para determinar estado presente:
+## 6. Precedência para determinar o presente
 
 1. código do SHA atual;
 2. Supabase/Auth/RLS/RPCs/Edge Functions e Vercel efetivos;
 3. decisões vigentes;
 4. testes atuais que representam o contrato;
-5. documentação canônica corrente;
+5. este documento canônico;
 6. auditorias, planos e checkpoints históricos.
 
-Documentos históricos permanecem válidos como evidência do seu momento, mas não controlam a fila atual. O snapshot anterior deste arquivo foi preservado em [`history/rebaseline-pre-pr279/CURRENT_STAGE-pre-pr279.md`](history/rebaseline-pre-pr279/CURRENT_STAGE-pre-pr279.md).
+Documentos históricos permanecem como evidência do seu momento, não como fila automática de implementação.
 
-## 9. Retomada
+## 7. Retomada
 
-Para um novo chat/agente:
+Ao retomar o projeto:
 
-1. leia `AGENTS.md`;
-2. leia este arquivo;
-3. leia `reference/ENGINEERING_METHOD.md`;
-4. leia o checkpoint [`handoff/2026-09-06-rebaseline-pos-pr279.md`](handoff/2026-09-06-rebaseline-pos-pr279.md);
-5. revalide `main`, Production e Supabase antes de qualquer mudança;
-6. continue somente a primeira etapa ainda aberta da ordem da seção 4.
+1. ler `AGENTS.md`;
+2. ler este arquivo;
+3. ler `reference/ENGINEERING_METHOD.md`;
+4. revalidar `main`, Production e Supabase;
+5. continuar somente a primeira correção real ainda aberta da seção 3;
+6. não iniciar nova auditoria ampla antes de concluir a fila conhecida, salvo evidência concreta de regressão ou incidente.

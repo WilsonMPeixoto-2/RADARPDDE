@@ -79,12 +79,17 @@
         }
 
         function loadScript(src, async) {
-            if (document.querySelector(`script[data-radar-extension="${src}"]`)) return;
-            const script = document.createElement('script');
-            script.src = src;
-            script.async = async;
-            script.dataset.radarExtension = src;
-            document.head.appendChild(script);
+            const existing = document.querySelector(`script[data-radar-extension="${src}"]`);
+            if (existing) return Promise.resolve(existing);
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.async = async;
+                script.dataset.radarExtension = src;
+                script.addEventListener('load', () => resolve(script), { once: true });
+                script.addEventListener('error', () => reject(new Error(`Falha ao carregar ${src}.`)), { once: true });
+                document.head.appendChild(script);
+            });
         }
 
         loadStylesheet('src/styles/mobile-responsive.css');
@@ -98,16 +103,70 @@
         loadStylesheet('src/styles/cycle-b-dashboard-final.css');
         loadStylesheet('src/styles/painel-controlador-expressiva.css');
 
+        root.RadarApplicationReadinessReady = loadScript(
+            'src/integration/application-readiness.js',
+            false
+        ).then(() => root.RadarApplicationReadiness || null).catch(error => {
+            root.RADAR_LAST_READINESS_BOOTSTRAP_ERROR = error;
+            return null;
+        });
+
         loadScript('src/domain/pendencias-view-model.js', false);
         loadScript('src/domain/operational-projection.js', false);
         loadScript('src/domain/retificacoes.js', false);
         loadScript('src/integration/mobile-navigation.js', false);
         loadScript('src/integration/modal-accessibility.js', false);
-        loadScript('src/integration/task-9-pendencias-page.js', false);
-        loadScript('src/integration/task-9-focus-bridge.js', false);
-        loadScript('src/integration/task-9-cross-view.js', false);
-        loadScript('src/integration/task-10-11-pendency-actions.js', false);
-        loadScript('src/integration/task-12-13-retificacoes.js', false);
+
+        // Pendências depende das funções-base declaradas por app.js. Em vez de
+        // sondar o ambiente a cada poucos milissegundos, o carregador canônico
+        // aguarda os marcos determinísticos correspondentes a cada camada.
+        root.RadarPendencyPageReady = root.RadarApplicationReadinessReady.then(async readiness => {
+            if (!readiness) throw new Error('Coordenador de prontidão indisponível para Pendências.');
+            readiness.define?.('pendency-page', {
+                dependencies: ['ui-runtime'],
+                criticality: 'critical'
+            });
+            await readiness.when('ui-runtime');
+            await loadScript('src/integration/task-9-pendencias-page.js', false);
+            if (!root.RadarTask9PendencyPage) {
+                readiness.markFailed?.('pendency-page', 'PENDENCY_PAGE_INSTALL_FAILED');
+                throw new Error('A página de Pendências não concluiu a instalação.');
+            }
+            readiness.markReady?.('pendency-page');
+            await loadScript('src/integration/task-9-focus-bridge.js', false);
+            await loadScript('src/integration/task-9-cross-view.js', false);
+            await readiness.when('application-services');
+            await loadScript('src/integration/task-10-11-pendency-actions.js', false);
+            return root.RadarTask9PendencyPage;
+        }).catch(error => {
+            root.RADAR_LAST_PENDENCY_PAGE_BOOTSTRAP_ERROR = error;
+            root.RadarApplicationReadiness?.markFailed?.(
+                'pendency-page',
+                'PENDENCY_PAGE_BOOTSTRAP_FAILED'
+            );
+            return null;
+        });
+
+        root.RadarRetificationsUiReady = root.RadarApplicationReadinessReady.then(async readiness => {
+            if (!readiness) throw new Error('Coordenador de prontidão indisponível para Retificações.');
+            await readiness.when(['ui-runtime', 'application-services']);
+            await loadScript('src/integration/task-12-13-retificacoes.js', false);
+            return root.RadarTask1213Retifications || null;
+        }).catch(error => {
+            root.RADAR_LAST_RETIFICATIONS_UI_ERROR = error;
+            return null;
+        });
+
+        root.RadarSchoolFormIntegrityReady = root.RadarApplicationReadinessReady.then(async readiness => {
+            if (!readiness) throw new Error('Coordenador de prontidão indisponível para o formulário de escola.');
+            await readiness.when(['ui-runtime', 'application-services']);
+            await loadScript('src/integration/school-form-integrity.js', false);
+            return root.RadarSchoolFormIntegrity || null;
+        }).catch(error => {
+            root.RADAR_LAST_SCHOOL_FORM_INTEGRITY_ERROR = error;
+            return null;
+        });
+
         loadScript('src/integration/cycle-b-carteira.js', false);
         loadScript('src/integration/cycle-b-dashboard.js', false);
         loadScript('src/integration/cycle-b-dashboard-result.js', false);
@@ -115,7 +174,6 @@
         loadScript('src/integration/exercise-management.js', false);
         loadScript('src/integration/exercise-early-init.js', false);
         loadScript('src/integration/painel-controlador-expressiva.js', false);
-        loadScript('src/integration/school-form-integrity.js', false);
         loadScript('src/integration/load-excel-export.js', true);
     }());
 }(typeof window !== 'undefined' ? window : globalThis, function createRadarRuntimeConfigApi() {

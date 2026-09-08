@@ -11,7 +11,6 @@
 
     let installed = false;
     let contextUnsubscribe = null;
-    let retryTimer = null;
     let mainObserver = null;
 
     function text(value) {
@@ -225,6 +224,14 @@
         };
     }
 
+    function publishReady() {
+        root.RadarApplicationReadiness?.markReady?.('competence');
+    }
+
+    function publishFailure(reason) {
+        root.RadarApplicationReadiness?.markFailed?.('competence', reason);
+    }
+
     function initializeContext(meta = {}) {
         if (!runtimeReady()) return false;
         const runtimeState = readRuntimeState(meta);
@@ -238,6 +245,7 @@
         applyState(state, { initial: true, source: 'initialize' });
         installLegacyEntryPoints();
         observeMainContainer();
+        publishReady();
         return true;
     }
 
@@ -268,20 +276,35 @@
         renderSelector();
         installLegacyEntryPoints();
         observeMainContainer();
+        publishReady();
         return true;
     }
 
     function attemptInstall() {
         installSelectorListener();
         if (!runtimeReady()) return false;
-        const ready = root.RadarCompetenceContext.isInitialized()
+        return root.RadarCompetenceContext.isInitialized()
             ? refreshContext({ source: 'install-refresh' })
             : initializeContext();
-        if (ready && retryTimer) {
-            root.clearInterval(retryTimer);
-            retryTimer = null;
+    }
+
+    function waitForDeterministicDataReadiness() {
+        const readiness = root.RadarApplicationReadiness;
+        if (readiness?.when) {
+            readiness.when('data').then(() => {
+                if (!attemptInstall()) publishFailure('COMPETENCE_DEPENDENCIES_UNAVAILABLE');
+            }).catch(() => publishFailure('DATA_READINESS_FAILED'));
+            return;
         }
-        return ready;
+
+        const retry = () => {
+            if (!attemptInstall()) return;
+            root.removeEventListener?.('radar:application-services-ready', retry);
+        };
+        root.addEventListener?.('radar:application-services-ready', retry);
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', retry, { once: true });
+        }
     }
 
     function install() {
@@ -291,11 +314,7 @@
         }
         installed = true;
         installSelectorListener();
-        if (!attemptInstall()) {
-            retryTimer = root.setInterval(attemptInstall, 50);
-            document.addEventListener('DOMContentLoaded', attemptInstall, { once: true });
-            root.addEventListener('load', attemptInstall, { once: true });
-        }
+        if (!attemptInstall()) waitForDeterministicDataReadiness();
         return true;
     }
 

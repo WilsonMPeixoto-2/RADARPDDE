@@ -1,0 +1,115 @@
+name: Observabilidade do bootstrap desktop
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-bootstrap-observability-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  desktop-bootstrap-observability:
+    name: Medir carregamento e pós-login no desktop
+    if: ${{ github.head_ref == 'audit/desktop-bootstrap-observability-2026-09-07' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      SUPABASE_TELEMETRY_DISABLED: '1'
+      RADAR_E2E_DESKTOP_BOOTSTRAP_OBSERVABILITY: '1'
+
+    steps:
+      - name: Obter código da branch atual
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Instalar Chromium desktop
+        run: npx playwright install --with-deps chromium
+
+      - name: Validar análise estática atual antes da medição
+        run: |
+          npm run audit:frontend-precedence
+          npm run audit:frontend-precedence:check
+          npm run check:architecture
+
+      - name: Configurar origem local da Edge Function
+        run: |
+          mkdir -p supabase/functions
+          printf 'RADAR_ALLOWED_ORIGIN=%s\n' 'http://127.0.0.1:4175' > supabase/functions/.env
+          chmod 600 supabase/functions/.env
+
+      - name: Iniciar Supabase descartável e reproduzível
+        run: |
+          npm run supabase:start
+          npm run supabase:reset
+
+      - name: Preparar autenticação real e configuração runtime local
+        shell: bash
+        run: |
+          set -euo pipefail
+          eval "$(npx supabase status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
+          FIXTURE_PASSWORD="$(node --input-type=module -e "import { randomBytes } from 'node:crypto'; process.stdout.write(randomBytes(32).toString('base64url') + 'A1!')")"
+          echo "::add-mask::${FIXTURE_PASSWORD}"
+          echo "::add-mask::${SERVICE_ROLE_KEY}"
+          RADAR_ALLOW_LOCAL_AUTH_BOOTSTRAP=true \
+          RADAR_SUPABASE_URL="${API_URL}" \
+          RADAR_SUPABASE_ADMIN_KEY="${SERVICE_ROLE_KEY}" \
+          RADAR_AUTH_FIXTURE_PASSWORD="${FIXTURE_PASSWORD}" \
+          npm run bootstrap:auth-fixtures
+          RADAR_DATA_MODE=supabase-preview \
+          RADAR_ENVIRONMENT=test \
+          RADAR_SUPABASE_REPOSITORY_ENABLED=true \
+          RADAR_SUPABASE_URL="${API_URL}" \
+          RADAR_SUPABASE_PUBLISHABLE_KEY="${ANON_KEY}" \
+          npm run generate:runtime-config
+          {
+            printf 'RADAR_SUPABASE_URL=%s\n' "${API_URL}"
+            printf 'RADAR_SUPABASE_PUBLISHABLE_KEY=%s\n' "${ANON_KEY}"
+            printf 'RADAR_AUTH_FIXTURE_PASSWORD=%s\n' "${FIXTURE_PASSWORD}"
+          } >> "${GITHUB_ENV}"
+
+      - name: Medir bootstrap autenticado e superfícies somente no desktop
+        run: >-
+          npx playwright test
+          tests/e2e/desktop-bootstrap-observability.spec.js
+          --config=playwright.desktop-bootstrap-observability.config.js
+          --project=supabase-preview-desktop-chromium
+          --workers=1
+
+      - name: Validar que o artefato não contém segredos ou identificadores das fixtures
+        shell: bash
+        run: |
+          set -euo pipefail
+          report='test-results/desktop-bootstrap-observability/desktop-bootstrap-observability.json'
+          test -s "${report}"
+          ! grep -Fq "${RADAR_AUTH_FIXTURE_PASSWORD}" "${report}"
+          ! grep -Eq '@radar\.local|11111111-1111-4111-8111-111111111111|55555555-5555-4555-8555-555555555555' "${report}"
+          ! grep -Eiq 'requestBody|responseBody|payload|password|service_role' "${report}"
+
+      - name: Publicar somente o diagnóstico sanitizado
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: desktop-bootstrap-observability-${{ github.run_id }}
+          path: test-results/desktop-bootstrap-observability/desktop-bootstrap-observability.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Restaurar configuração e encerrar Supabase descartável
+        if: always()
+        run: |
+          npm run generate:runtime-config || true
+          rm -f supabase/functions/.env
+          npm run supabase:stop || true
