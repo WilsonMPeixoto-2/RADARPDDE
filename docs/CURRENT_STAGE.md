@@ -1,135 +1,107 @@
 # RADAR PDDE — Estado atual do projeto
 
-**Atualizado em:** 6 de setembro de 2026  
+**Atualizado em:** 7 de setembro de 2026  
 **Classe documental:** Canônico — estado corrente e retomada futura
 
-## 1. Checkpoint corrente — main pós-PR #279
+## 1. Estado corrente
 
-Este arquivo é a porta de entrada para o estado mutável do projeto. Valores voláteis devem ser revalidados no remoto antes de operação que dependa deles.
+Este arquivo é a porta de entrada para o estado mutável do projeto. Valores voláteis de GitHub, Vercel e Supabase devem ser revalidados ao vivo antes de qualquer operação que dependa deles.
 
-Baseline revalidado em 06/09/2026:
+A cadeia funcional #265–#279 permanece integrada e seus guardrails devem ser preservados. Depois dela:
 
-- `main`: `b82e7c1ad9b7c5992508c99fbaff7a3498fa52d8`;
-- último merge: PR #279 — preservação da auditoria da reabertura de consolidação;
-- Vercel Production: `dpl_49x13gq72dNa71cQLL1AL5UgebyV`, `READY`, servindo o mesmo SHA da `main`;
-- Supabase Production `scnryinorqeucbfkioxo`: 50 migrations; última versão observada `20260906072000`;
-- `production_integrity_check()`: `healthy`, `totalIssues = 0`, 20 verificações sem ocorrência;
-- branch `main`: sem branch protection/ruleset obrigatório no checkpoint consultado.
+- PR #281 consolidou o rebaseline documental pós-#279;
+- PR #282 retirou autoridade funcional do wrapper de performance, preservando performance como observação;
+- PR #287 tornou permanente o gate de validação real pelo frontend;
+- PR #284 investigou bootstrap/readiness e performance, mas está **Draft e PAUSADO**, sem autorização de merge/deploy no estado atual.
 
-O checkpoint detalhado e sua classificação source-first estão em [`handoff/2026-09-06-rebaseline-pos-pr279.md`](handoff/2026-09-06-rebaseline-pos-pr279.md).
+A decisão de pausa e a ordem vigente estão registradas em [`handoff/2026-09-07-pausa-pr284-prioridade-pendencias-nf.md`](handoff/2026-09-07-pausa-pr284-prioridade-pendencias-nf.md).
 
-## 2. Situação funcional
+## 2. Prioridade funcional vigente
 
-A cadeia de correções #265–#279 foi integrada. Não há defeito funcional conhecido dessa cadeia aguardando implementação.
+A prioridade do projeto passa a ser a estabilização das duas frentes funcionais conhecidas antes da retomada de mudanças estruturais de carregamento:
 
-Isso **não** significa que o plano arquitetural R1–R9 esteja encerrado. Hotfixes posteriores absorveram partes importantes do plano, mas a revalidação do código atual confirmou dívidas arquiteturais remanescentes.
+1. **R4 — Pendências:** analisar profundamente e unificar a semântica entre `operational-projection.js` e `pendencias-view-model.js`, preservando as regras de negócio vigentes e o layout aprovado;
+2. **R5 — Nota Fiscal:** completar a convergência autoritativa/incremental da interface após `invoice:save` e `invoice:remove`, inclusive remoções retornadas por ID;
+3. **retomar R2 / PR #284:** somente depois de R4 e R5 estabilizados, reconciliar o candidato com a nova `main`, corrigir por causa raiz as regressões desktop e provar equivalência funcional pelo frontend real;
+4. executar gate de equivalência e somente então avaliar otimizações adicionais de carregamento baseadas em evidência.
 
-Entregas que não devem ser reabertas automaticamente:
-
-- #265 — `Inventariada` terminal no serviço e no banco;
-- #266 — isolamento do rollback concorrente da UnitOfWork;
-- #267 — autoridade auditável da exportação Excel SME no gesto real;
-- #268 — desativação de Controlador exige carteira zerada;
-- #269 — testes usam contexto canônico de competência;
-- #270 — loader de extensões resiliente a falha isolada;
-- #271 — compensação Auth protegida para resposta ambígua;
-- #272 — commit remoto separado de sincronização local, reconciliação serializada e feedback composto;
-- #276 — Nota Fiscal idempotente por intenção e RPC v2;
-- #277 — invariantes server-side de reanálise;
-- #278 — fail-closed remoto para operações críticas sem RPC atômica;
-- #279 — auditoria preservada na reabertura de consolidação.
-
-PRs #274 e #275 consolidaram documentação/revisão e o método de engenharia. PR #273 foi controle temporário e não foi integrado.
+Esta ordem substitui a fila anterior registrada em 06/09. Não retomar R2 apenas porque o plano histórico o colocava antes de R4/R5.
 
 ## 3. Classificação vigente de R1–R9
 
-R1–R9 são identificadores históricos do plano de 03/09. A tabela abaixo é a classificação vigente após revalidação do código pós-#279; ela substitui qualquer interpretação de fila automática do plano antigo.
+R1–R9 são identificadores históricos; não constituem fila automática.
 
 | Fase | Estado atual | Próxima decisão |
 |---|---|---|
-| **R1** | **Pendente real** | Retirar autoridade funcional de `operational-write-performance.js`, preservando performance apenas como diagnóstico/observação. |
-| **R2A** | **Parcialmente absorvido** | #270 já resolveu resiliência do loader; preservar. |
-| **R2B/R2C** | **Pendente real** | Remover polling usado como contrato de instalação/readiness somente quando houver sinal determinístico equivalente. |
-| **R3** | **Materialmente atendido** | Revalidar os critérios finais; se não surgir lacuna concreta, encerrar formalmente como cumprido por #276 e mudanças posteriores. |
-| **R4** | **Pendente real** | Unificar semântica de Pendências entre `operational-projection.js` e `pendencias-view-model.js`, sem redesenho. |
-| **R5** | **Pendente real** | Completar convergência autoritativa/incremental de `invoice:save`/`invoice:remove`, inclusive remoções retornadas por ID. |
-| **R6** | **Gate posterior** | Executar equivalência depois de R4/R5; sem diff obrigatório se o comportamento já for equivalente. |
-| **R7** | **Pendente** | Instrumentar causalmente o bootstrap que restar após R1–R6. |
-| **R8** | **Condicional** | Otimizar apenas gargalos demonstrados por R7; caso contrário, no-op documentado. |
-| **R9** | **Pendente** | Fechamento final após R1–R8 estarem concluídos, absorvidos ou documentados como no-op. |
+| **R1** | **Concluída pelo PR #282** | Preservar performance como diagnóstico, sem autoridade funcional. |
+| **R2A** | **Absorvida parcialmente** | Resiliência do loader já preservada por #270. |
+| **R2B/R2C** | **Pausada / candidata no PR #284** | Não integrar agora. Retomar somente após R4/R5 e com equivalência funcional comprovada. |
+| **R3** | **Materialmente atendida** | Fechamento formal pode ser feito sem reabrir regra já coberta por #276 e posteriores. |
+| **R4** | **PRÓXIMA FRENTE ATIVA** | Diagnóstico source-first da semântica de Pendências e proposta de unificação mínima. |
+| **R5** | **Pendente real, segunda prioridade** | Convergência de `invoice:save`/`invoice:remove` após R4. |
+| **R6** | **Gate posterior** | Equivalência após R4/R5 e antes de aceitar mudança estrutural de readiness. |
+| **R7** | **Instrumentação parcialmente antecipada no #284** | Preservar evidência; não usar como autorização de otimização. |
+| **R8** | **Condicional e pausada** | Otimizar somente gargalo demonstrado, após equivalência funcional. |
+| **R9** | **Pendente** | Fechamento final depois das frentes anteriores estabilizadas. |
 
-## 4. Ordem das próximas ações
+## 4. PR #284 — estado de preservação
 
-```text
-1. concluir este rebaseline documental pós-#279
-2. fechar/superseder PR #263 e reavaliar PR #5
-3. tratar proteção/ruleset da main
-4. R1
-5. R2
-6. fechamento formal de R3
-7. R4
-8. R5
-9. R6
-10. R7
-11. R8 somente se medição justificar
-12. R9
-13. ADR-051 / hardening de registered_invoices e Auth
-14. rebase + revalidação do PR #264 de dependências
-```
+O PR #284 permanece aberto apenas para preservar trabalho e evidência. Está Draft e explicitamente pausado.
 
-Nenhuma etapa pode ser implementada apenas porque existe no plano de 03/09. Aplicar [`reference/ENGINEERING_METHOD.md`](reference/ENGINEERING_METHOD.md): código/ambiente atuais → hipótese → tentativa de refutação → causa real → mudança mínima → regressão → revisão adversarial → gates proporcionais.
+Preservar como candidato:
 
-## 5. PRs abertos relevantes
+- instrumentação de bootstrap;
+- análise causal dos pollings;
+- conceito de readiness determinístico;
+- artefatos e testes diagnósticos;
+- medição local controlada de performance.
 
-### PR #263 — continuidade documental antiga
+Não considerar comprovado:
 
-Draft, baseado em uma `main` anterior e com grande divergência em relação aos PRs #265–#279. Não define baseline e não deve ser mergeado. Extrair somente informação ainda válida quando necessário; depois fechar como superado por este rebaseline.
+- equivalência funcional do candidato;
+- encerramento de R2;
+- segurança de remover mais entidades do bootstrap;
+- aprovação de merge/deploy;
+- performance como compensação para falha funcional.
 
-### PR #264 — dependências
+A retomada exige aplicar [`reference/FRONTEND_USER_VALIDATION_GATE.md`](reference/FRONTEND_USER_VALIDATION_GATE.md) e provar as jornadas reais pelo frontend desktop.
 
-Manutenção legítima, mas validada sobre uma `main` anterior. Não misturar com R1–R9. Rebasear/revalidar somente na etapa própria definida acima.
+## 5. Guardrails funcionais que não podem regredir
 
-### PR #5 — histórico
-
-Reavaliar objetivamente. Se não houver decisão atual de retomada, fechar como superado para evitar backlog ambíguo.
-
-## 6. Dívidas deliberadamente fora da frente funcional
-
-### ADR-051
-
-Hardening adicional de `registered_invoices` continua separado da frente funcional. A ausência de proteção específica para imutabilidade de `id`, coerência de `verification_id` e proteção/canonicalização de `source_context_key` foi revalidada no banco. Não há evidência de corrupção atual.
-
-Retomar depois de R9 conforme [`decisions/ADR-051-adiamento-hardening-registered-invoices.md`](decisions/ADR-051-adiamento-hardening-registered-invoices.md).
-
-### Auth
-
-O advisor de segurança do Supabase aponta `auth_leaked_password_protection` como `WARN`. Tratar junto da frente de hardening, não como bug funcional de R1–R9.
-
-### Performance do banco
-
-Avisos `unused_index` do advisor são sinais de observação, não autorização para remover índice. Qualquer ação depende de medição e contraprova.
-
-## 7. Guardrails vigentes
-
-Preservar:
+Preservar, entre outros:
 
 - bonificação de NF agregada, análise/Pendência individual por `registered_invoice_id`;
 - resumo técnico derivado com precedência vigente;
-- `a_identificar` novo nasce `Incorreto + Pendência` atomicamente e legados legítimos não recebem backfill;
-- `boleto_internet` somente como tipo de gasto de Notas Fiscais em Educação Conectada;
-- Consulta Assessoria individual por NF de serviço;
-- Pendências transversais a competências;
-- bonificação, análise e Pendência como dimensões independentes;
-- `Inventariada` terminal;
+- `a_identificar` novo nasce `Incorreto + Pendência` atomicamente; legados legítimos não recebem backfill inventado;
+- `boleto_internet` existe somente como tipo de gasto de Notas Fiscais em Educação Conectada;
+- Consulta Assessoria é individual por NF de serviço;
+- Pendências são transversais a competências;
+- bonificação, análise e Pendência são dimensões independentes;
+- reanálise exige contexto/tentativa válidos segundo os invariantes server-side integrados;
+- `Inventariada` é terminal;
 - competência global canônica via `RadarCompetenceContext`;
-- Production fail-closed;
-- commit remoto confirmado não é repetido para recuperar falha local;
-- layout aprovado de Prontuário/Pendências;
-- comunicação externa sem o nome interno `RADAR PDDE`;
-- Supabase CLI 2.116.0 rejeitado enquanto a regressão documentada não for superada por nova homologação;
-- Lighthouse com três rodadas, mediana e thresholds vigentes.
+- Production é fail-closed para operações críticas;
+- commit remoto confirmado não deve ser repetido apenas para recuperar estado local;
+- layout aprovado de Prontuário/Pendências deve ser preservado;
+- comunicação externa não usa o nome interno `RADAR PDDE`;
+- Supabase CLI 2.116.0 permanece rejeitado enquanto a regressão documentada não for superada;
+- Lighthouse segue protocolo de três rodadas/mediana, mas performance nunca prevalece sobre equivalência funcional.
 
-## 8. Precedência e histórico
+## 6. Gate permanente de conclusão pelo frontend
+
+Para mudança que possa afetar o usuário, código/CI verde não basta.
+
+Aplicar [`reference/FRONTEND_USER_VALIDATION_GATE.md`](reference/FRONTEND_USER_VALIDATION_GATE.md):
+
+- navegar pela interface real;
+- usar controles visíveis e cliques reais;
+- executar as jornadas materialmente afetadas;
+- verificar persistência e releitura após refresh quando houver escrita;
+- inspecionar o resultado visual;
+- testar primeira navegação/ordens relevantes quando houver bootstrap/readiness;
+- comparar comportamento com a baseline estável.
+
+## 7. Precedência
 
 Para determinar estado presente:
 
@@ -140,15 +112,15 @@ Para determinar estado presente:
 5. documentação canônica corrente;
 6. auditorias, planos e checkpoints históricos.
 
-Documentos históricos permanecem válidos como evidência do seu momento, mas não controlam a fila atual. O snapshot anterior deste arquivo foi preservado em [`history/rebaseline-pre-pr279/CURRENT_STAGE-pre-pr279.md`](history/rebaseline-pre-pr279/CURRENT_STAGE-pre-pr279.md).
+Documentos históricos permanecem evidência do seu momento, mas não controlam a fila atual.
 
-## 9. Retomada
+## 8. Retomada por novo chat/agente
 
-Para um novo chat/agente:
-
-1. leia `AGENTS.md`;
-2. leia este arquivo;
-3. leia `reference/ENGINEERING_METHOD.md`;
-4. leia o checkpoint [`handoff/2026-09-06-rebaseline-pos-pr279.md`](handoff/2026-09-06-rebaseline-pos-pr279.md);
-5. revalide `main`, Production e Supabase antes de qualquer mudança;
-6. continue somente a primeira etapa ainda aberta da ordem da seção 4.
+1. ler `AGENTS.md`;
+2. ler este arquivo;
+3. ler `reference/ENGINEERING_METHOD.md`;
+4. ler `reference/FRONTEND_USER_VALIDATION_GATE.md`;
+5. ler [`handoff/2026-09-07-pausa-pr284-prioridade-pendencias-nf.md`](handoff/2026-09-07-pausa-pr284-prioridade-pendencias-nf.md);
+6. revalidar `main`, PR ativo, Production e Supabase antes de qualquer mudança;
+7. enquanto R4 estiver aberta, não retomar o #284;
+8. continuar somente a primeira frente ativa desta documentação.
