@@ -1,20 +1,21 @@
 # AGENTS.md — RADAR PDDE 2026
 
 **Classe documental:** Canônico — roteador obrigatório para agentes e novos chats  
-**Atualizado em:** 7 de setembro de 2026
+**Atualizado em:** 8 de setembro de 2026
 
 ## 1. Leitura obrigatória
 
 Antes de analisar funcionalmente ou alterar o repositório, leia **nesta ordem**:
 
 1. `docs/reference/SYSTEM_CANONICAL_MODEL.md` — o que é o RADAR, superfícies, perfis, entidades, fluxos, estados, autoridades, diferenças deliberadas e invariantes;
-2. `docs/CURRENT_STAGE.md` — estado mutável, prioridade corrente, PRs pausados/ativos e decisões temporais;
-3. `docs/reference/ENGINEERING_METHOD.md` — método permanente de investigação, implementação e revisão adversarial;
-4. `docs/reference/FRONTEND_USER_VALIDATION_GATE.md` — gate permanente de jornada real pelo frontend;
-5. `docs/reference/STATUS_DOCUMENTOS.md` — validade, precedência e classificação da documentação;
-6. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` e seu JSON fonte quando a frente tocar operação mapeada;
-7. ADRs e referências especializadas da área afetada;
-8. planos, auditorias, evidências e handoffs históricos apenas depois da leitura canônica e somente como contexto do seu SHA/momento.
+2. `docs/reference/PRODUCT_SURFACE_CATALOG.md` — modelo mental do usuário, finalidade humana de cada superfície, hierarquia visual, encontrabilidade e papel de cada tela na jornada;
+3. `docs/CURRENT_STAGE.md` — estado mutável, prioridade corrente, PRs pausados/ativos e decisões temporais;
+4. `docs/reference/ENGINEERING_METHOD.md` — método permanente de investigação, implementação e revisão adversarial;
+5. `docs/reference/FRONTEND_USER_VALIDATION_GATE.md` — gate permanente de jornada real pelo frontend;
+6. `docs/reference/STATUS_DOCUMENTOS.md` — validade, precedência e classificação da documentação;
+7. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` e seu JSON fonte quando a frente tocar operação mapeada;
+8. ADRs e referências especializadas da área afetada;
+9. planos, auditorias, evidências e handoffs históricos apenas depois da leitura canônica e somente como contexto do seu SHA/momento.
 
 **Nenhuma análise funcional pode começar por um plano histórico, PR antigo, memória de conversa ou arquivo isolado.**
 
@@ -23,7 +24,8 @@ Antes de analisar funcionalmente ou alterar o repositório, leia **nesta ordem**
 Antes de propor mudança funcional, preencher mentalmente ou no trabalho da frente:
 
 ```text
-superfície afetada
+objetivo humano da superfície
+→ o que o usuário vê e entende no layout
 → fato de negócio
 → entidade canônica
 → autoridade de domínio/aplicação
@@ -37,6 +39,22 @@ superfície afetada
 
 Se essa cadeia ainda não estiver clara, continue investigando. Não altere o produto para resolver uma suposta ausência encontrada em leitura parcial.
 
+### Regra contra análise apenas técnica
+
+Conhecer a função, serviço, tabela ou RPC não basta para afirmar que se compreendeu a funcionalidade.
+
+Antes de classificar um comportamento como defeito, verificar também:
+
+- para que a tela existe;
+- qual pergunta ela responde ao usuário;
+- qual contexto precisa estar visível antes da ação;
+- qual informação é histórica, gerencial, técnica ou operacional;
+- onde o usuário espera executar a ação;
+- como o resultado aparece depois do clique;
+- o que ele reencontra ao navegar, voltar ou recarregar.
+
+**Diferença entre duas projeções não é bug por si só.** Só existe inconsistência quando superfícies que deveriam responder à mesma pergunta apresentam fatos incompatíveis, ou quando uma projeção viola deliberadamente a finalidade confirmada da tela.
+
 ## 3. Precedência de autoridade
 
 Para determinar o comportamento atual:
@@ -46,7 +64,7 @@ Para determinar o comportamento atual:
 3. artefato Vercel do ambiente analisado;
 4. decisões funcionais vigentes e ADRs supervenientes;
 5. testes atuais que representam o contrato vigente;
-6. `SYSTEM_CANONICAL_MODEL.md` e demais documentos canônicos;
+6. `SYSTEM_CANONICAL_MODEL.md`, `PRODUCT_SURFACE_CATALOG.md` e demais documentos vigentes;
 7. auditorias, evidências, planos, handoffs e memória de conversa históricos.
 
 Teste ou documento antigo não prevalece sobre regra posterior comprovada. Não modificar código correto apenas para satisfazer expectativa histórica.
@@ -65,7 +83,7 @@ O produto deve manter coerência entre:
 - perfis, escopos e autoria;
 - Dashboard, Carteira, Competências, Prontuário, Pendências, Inventário, Timeline, Registros Internos e exportações.
 
-O modelo completo está em `docs/reference/SYSTEM_CANONICAL_MODEL.md` e não deve ser duplicado aqui.
+O modelo completo está em `docs/reference/SYSTEM_CANONICAL_MODEL.md`. A finalidade humana e a leitura de cada superfície estão em `docs/reference/PRODUCT_SURFACE_CATALOG.md`. Não duplicar esses mapas aqui.
 
 ## 5. Guardrails permanentes
 
@@ -148,7 +166,8 @@ Sequência padrão:
 
 ```text
 revalidar main/ambiente
-→ ler o modelo canônico
+→ ler modelo canônico + catálogo de superfícies
+→ reconstruir objetivo humano e jornada
 → localizar autoridade real
 → tentar refutar a hipótese
 → classificar causa atual
@@ -158,6 +177,7 @@ revalidar main/ambiente
 → revisão adversarial proporcional
 → gates do SHA final
 → jornada real pelo frontend quando aplicável
+→ inspeção visual da superfície afetada
 → atualizar documentação afetada
 ```
 
@@ -171,6 +191,7 @@ A documentação não existe para decorar o repositório.
 
 - `AGENTS.md`: roteador obrigatório e regras de trabalho;
 - `docs/reference/SYSTEM_CANONICAL_MODEL.md`: modelo integrado do produto;
+- `docs/reference/PRODUCT_SURFACE_CATALOG.md`: modelo mental do usuário e contrato das superfícies;
 - `docs/CURRENT_STAGE.md`: estado mutável e prioridade;
 - `docs/reference/STATUS_DOCUMENTOS.md`: validade documental;
 - `docs/reference/ENGINEERING_METHOD.md`: método;
@@ -186,7 +207,8 @@ Todo novo documento classificado como **canônico** deve, na mesma entrega:
 2. atualizar `docs/README.md`;
 3. atualizar `docs/reference/STATUS_DOCUMENTOS.md`;
 4. atualizar `SYSTEM_CANONICAL_MODEL.md` se mudar regra, autoridade, fluxo ou invariante;
-5. reclassificar explicitamente qualquer documento anterior que deixe de orientar o presente.
+5. atualizar `PRODUCT_SURFACE_CATALOG.md` se mudar finalidade, jornada, ação, encontrabilidade ou semântica visual de uma superfície;
+6. reclassificar explicitamente qualquer documento anterior que deixe de orientar o presente.
 
 É proibido criar uma nova fonte canônica “solta” e esperar que um agente futuro a descubra.
 
