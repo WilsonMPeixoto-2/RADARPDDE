@@ -1,70 +1,94 @@
 # RADAR PDDE — Estado atual do projeto
 
-**Atualizado em:** 7 de setembro de 2026  
-**Classe documental:** Canônico — estado corrente e retomada futura
+**Classe documental:** Canônico — estado mutável e retomada futura  
+**Atualizado em:** 7 de setembro de 2026
 
 ## 1. Estado corrente
 
-Este arquivo é a porta de entrada para o estado mutável do projeto. Valores voláteis de GitHub, Vercel e Supabase devem ser revalidados ao vivo antes de qualquer operação que dependa deles.
+Este arquivo contém somente estado mutável, prioridade e trabalho em andamento. O modelo funcional integrado do sistema fica em [`reference/SYSTEM_CANONICAL_MODEL.md`](reference/SYSTEM_CANONICAL_MODEL.md).
 
-A cadeia funcional #265–#279 permanece integrada e seus guardrails devem ser preservados. Depois dela:
+A reconstrução contextual source-first de 07/09 foi realizada antes de qualquer nova mudança funcional. Ela confrontou:
+
+- código da `main`;
+- Vercel Production;
+- schema/RPC/RLS/triggers do Supabase Production;
+- documentação versionada e decisões vigentes.
+
+Baseline funcional imediatamente anterior a esta reconstrução documental:
+
+- `main`: `cafef971b902fd206ce26208445e27aeacbc9a0f`;
+- Vercel Production: `READY` no mesmo SHA;
+- deployment observado: `dpl_DWSLXhgTktiphBs7CMbk18wM2UCL`.
+
+Esses valores são voláteis e devem ser revalidados ao vivo antes de qualquer operação que dependa deles. A reconstrução documental não altera comportamento funcional.
+
+## 2. Correção de governança documental
+
+A revisão confirmou que o problema recente de contexto não decorreu de falta de documentação. O repositório já possuía rota, classificação e fontes especializadas, mas:
+
+- a rota de leitura não foi seguida de forma consistente;
+- `AGENTS.md` acumulou estados temporais demais;
+- novos documentos entraram sem reconciliação suficiente dos roteadores;
+- algumas referências envelheceram após hotfixes e decisões posteriores.
+
+A correção adotada é estrutural:
+
+- `AGENTS.md` volta a ser um roteador estável;
+- `SYSTEM_CANONICAL_MODEL.md` integra o conhecimento funcional/arquitetural;
+- este arquivo permanece responsável pelo estado mutável;
+- `STATUS_DOCUMENTOS.md` classifica validade;
+- novo documento canônico passa a exigir atualização dos roteadores na mesma entrega.
+
+## 3. Estado funcional consolidado
+
+A cadeia funcional #265–#279 permanece integrada e seus guardrails devem ser preservados.
+
+Depois dela:
 
 - PR #281 consolidou o rebaseline documental pós-#279;
-- PR #282 retirou autoridade funcional do wrapper de performance, preservando performance como observação;
+- PR #282 retirou autoridade funcional do wrapper de performance, que hoje atua como diagnóstico/tracing;
 - PR #287 tornou permanente o gate de validação real pelo frontend;
-- PR #284 investigou bootstrap/readiness e performance, mas está **Draft e PAUSADO**, sem autorização de merge/deploy no estado atual;
-- a frente histórica R4/Pendências foi reavaliada em 07/09 e **não representa defeito funcional**: a página completa de Pendências mede a antiguidade total desde a abertura original, enquanto Dashboard/Carteira medem o tempo da ação operacional atual. São métricas diferentes, deliberadas e úteis; não devem ser unificadas.
+- PR #284 permanece **Draft e PAUSADO**, sem autorização de merge/deploy no estado atual;
+- R4/Pendências foi reavaliada e encerrada sem alteração funcional: antiguidade histórica na tela de Pendências e tempo da ação corrente em Dashboard/Carteira são métricas deliberadamente diferentes.
 
-A decisão de pausa do #284 e a ordem vigente estão registradas em [`handoff/2026-09-07-pausa-pr284-prioridade-pendencias-nf.md`](handoff/2026-09-07-pausa-pr284-prioridade-pendencias-nf.md).
+## 4. Prioridade funcional vigente
 
-## 2. Prioridade funcional vigente
+A ordem atual é:
 
-A prioridade do projeto é concluir a frente funcional real de Nota Fiscal antes da retomada de mudanças estruturais de carregamento:
-
-1. **R5 — Nota Fiscal:** analisar e completar a convergência autoritativa/incremental da interface após `invoice:save` e `invoice:remove`, inclusive remoções retornadas por ID;
+1. **R5 — Nota Fiscal:** analisar/completar convergência autoritativa e incremental da interface após `invoice:save` e `invoice:remove`, inclusive remoções retornadas por ID;
 2. **retomar R2 / PR #284:** somente depois de R5 estabilizado, reconciliar o candidato com a nova `main`, corrigir por causa raiz as regressões desktop e provar equivalência funcional pelo frontend real;
-3. executar gate de equivalência e somente então avaliar otimizações adicionais de carregamento baseadas em evidência.
+3. executar o gate de equivalência;
+4. avaliar otimizações adicionais apenas se medições justificarem.
 
-### R4 / Pendências — reavaliação encerrada
+Enquanto R5 estiver aberta, não retomar #284.
 
-Não existe correção funcional aprovada nessa frente.
+## 5. Classificação vigente de R1–R9
 
-A auditoria havia interpretado como divergência o fato de duas superfícies exibirem tempos diferentes. A revisão do fluxo completo confirmou que isso é intencional:
-
-- **página de Pendências:** preserva e usa a antiguidade total da Pendência desde a abertura original para acompanhamento histórico, organização e filtros;
-- **Dashboard/Carteira:** mostram o tempo da ação operacional corrente, isto é, há quanto tempo a providência atual está com a escola ou com o usuário responsável pela reanálise;
-- novos envios, reanálises e mudanças de responsabilidade permanecem registrados no histórico e nas tentativas;
-- uma reanálise incorreta devolve a ação à escola sem apagar ou reiniciar a idade histórica da Pendência na página completa.
-
-Portanto, **não unificar os cálculos, não alterar `dataAbertura`, não criar migration e não modificar a regra de Pendências por causa dessa diferença de métricas**. Qualquer mudança futura nessa área exige um defeito funcional novo e comprovado pelo frontend real.
-
-## 3. Classificação vigente de R1–R9
-
-R1–R9 são identificadores históricos; não constituem fila automática.
+R1–R9 são identificadores históricos, não fila automática.
 
 | Fase | Estado atual | Próxima decisão |
 |---|---|---|
-| **R1** | **Concluída pelo PR #282** | Preservar performance como diagnóstico, sem autoridade funcional. |
-| **R2A** | **Absorvida parcialmente** | Resiliência do loader já preservada por #270. |
-| **R2B/R2C** | **Pausada / candidata no PR #284** | Não integrar agora. Retomar somente após R5 e com equivalência funcional comprovada. |
-| **R3** | **Materialmente atendida** | Fechamento formal pode ser feito sem reabrir regra já coberta por #276 e posteriores. |
-| **R4** | **Encerrada sem alteração funcional** | Reavaliação concluiu que as métricas de tempo distintas são comportamento deliberado, não bug. Preservar. |
-| **R5** | **PRÓXIMA FRENTE ATIVA** | Convergência de `invoice:save`/`invoice:remove`. |
-| **R6** | **Gate posterior** | Equivalência após R5 e antes de aceitar mudança estrutural de readiness. |
-| **R7** | **Instrumentação parcialmente antecipada no #284** | Preservar evidência; não usar como autorização de otimização. |
-| **R8** | **Condicional e pausada** | Otimizar somente gargalo demonstrado, após equivalência funcional. |
-| **R9** | **Pendente** | Fechamento final depois das frentes anteriores estabilizadas. |
+| R1 | **Concluída pelo PR #282** | preservar performance como diagnóstico, sem autoridade funcional |
+| R2A | **Parcialmente absorvida** | resiliência do loader já preservada por trabalho posterior |
+| R2B/R2C | **Pausadas / candidatas no PR #284** | não integrar antes de R5 e equivalência funcional |
+| R3 | **Materialmente atendida** | não reabrir regra já coberta por #276 e posteriores sem evidência nova |
+| R4 | **Encerrada sem alteração funcional** | preservar métricas distintas e deliberadas de Pendências |
+| R5 | **PRÓXIMA FRENTE ATIVA** | convergência de `invoice:save`/`invoice:remove` |
+| R6 | **Gate posterior** | equivalência após R5 |
+| R7 | **Instrumentação parcialmente antecipada** | preservar evidência; não usar como autorização de otimização |
+| R8 | **Condicional e pausada** | otimizar somente gargalo demonstrado |
+| R9 | **Pendente** | fechamento/rebaseline final |
 
-## 4. PR #284 — estado de preservação
+## 6. PR #284 — estado de preservação
 
-O PR #284 permanece aberto apenas para preservar trabalho e evidência. Está Draft e explicitamente pausado.
+O PR #284 permanece aberto apenas para preservar trabalho e evidência.
 
 Preservar como candidato:
 
 - instrumentação de bootstrap;
 - análise causal dos pollings;
 - conceito de readiness determinístico;
-- artefatos e testes diagnósticos;
+- artefatos/testes diagnósticos;
 - medição local controlada de performance.
 
 Não considerar comprovado:
@@ -75,66 +99,43 @@ Não considerar comprovado:
 - aprovação de merge/deploy;
 - performance como compensação para falha funcional.
 
-A retomada exige aplicar [`reference/FRONTEND_USER_VALIDATION_GATE.md`](reference/FRONTEND_USER_VALIDATION_GATE.md) e provar as jornadas reais pelo frontend desktop.
+A retomada exige o gate de [`reference/FRONTEND_USER_VALIDATION_GATE.md`](reference/FRONTEND_USER_VALIDATION_GATE.md).
 
-## 5. Guardrails funcionais que não podem regredir
+## 7. Guardrails funcionais que não podem regredir
 
-Preservar, entre outros:
+O conjunto completo está no modelo canônico. Entre os mais sensíveis:
 
 - bonificação de NF agregada, análise/Pendência individual por `registered_invoice_id`;
-- resumo técnico derivado com precedência vigente;
-- `a_identificar` novo nasce `Incorreto + Pendência` atomicamente; legados legítimos não recebem backfill inventado;
-- `boleto_internet` existe somente como tipo de gasto de Notas Fiscais em Educação Conectada;
+- resumo técnico de NF derivado;
+- `a_identificar` novo nasce `Incorreto + Pendência` atomicamente;
+- `boleto_internet` existe somente como tipo de gasto de NF em Educação Conectada;
 - Consulta Assessoria é individual por NF de serviço;
-- Pendências são transversais a competências;
-- bonificação, análise e Pendência são dimensões independentes;
-- a página completa de Pendências preserva a antiguidade total desde a abertura original;
-- Dashboard/Carteira podem exibir o tempo da ação operacional atual sem substituir a antiguidade histórica da Pendência;
-- reanálise exige contexto/tentativa válidos segundo os invariantes server-side integrados;
+- Pendências é transversal entre competências;
+- página de Pendências preserva antiguidade histórica desde a abertura original;
+- Dashboard/Carteira podem mostrar tempo da ação operacional atual;
+- reanálise exige contexto/tentativa/versionamento válidos;
 - `Inventariada` é terminal;
-- competência global canônica via `RadarCompetenceContext`;
-- Production é fail-closed para operações críticas;
+- competência global usa `RadarCompetenceContext`;
+- Production é fail-closed em operações críticas;
 - commit remoto confirmado não deve ser repetido apenas para recuperar estado local;
+- performance não é autoridade funcional;
 - layout aprovado de Prontuário/Pendências deve ser preservado;
 - comunicação externa não usa o nome interno `RADAR PDDE`;
-- Supabase CLI 2.116.0 permanece rejeitado enquanto a regressão documentada não for superada;
-- Lighthouse segue protocolo de três rodadas/mediana, mas performance nunca prevalece sobre equivalência funcional.
+- alteração perceptível pelo usuário exige validação real pelo frontend.
 
-## 6. Gate permanente de conclusão pelo frontend
+## 8. Leitura obrigatória por novo chat/agente
 
-Para mudança que possa afetar o usuário, código/CI verde não basta.
+1. `AGENTS.md`;
+2. `reference/SYSTEM_CANONICAL_MODEL.md`;
+3. este arquivo;
+4. `reference/ENGINEERING_METHOD.md`;
+5. `reference/FRONTEND_USER_VALIDATION_GATE.md`;
+6. `reference/STATUS_DOCUMENTOS.md`;
+7. matriz funcional/ADR/referência especializada da frente;
+8. somente então históricos necessários.
 
-Aplicar [`reference/FRONTEND_USER_VALIDATION_GATE.md`](reference/FRONTEND_USER_VALIDATION_GATE.md):
+Nenhuma frente funcional deve ser retomada a partir de memória de chat sem passar por essa rota.
 
-- navegar pela interface real;
-- usar controles visíveis e cliques reais;
-- executar as jornadas materialmente afetadas;
-- verificar persistência e releitura após refresh quando houver escrita;
-- inspecionar o resultado visual;
-- testar primeira navegação/ordens relevantes quando houver bootstrap/readiness;
-- comparar comportamento com a baseline estável.
+## 9. Regra para a próxima execução funcional
 
-## 7. Precedência
-
-Para determinar estado presente:
-
-1. código do SHA atual;
-2. Supabase/Auth/RLS/RPCs/Edge Functions e Vercel efetivos;
-3. decisões vigentes;
-4. testes atuais que representam o contrato;
-5. documentação canônica corrente;
-6. auditorias, planos e checkpoints históricos.
-
-Documentos históricos permanecem evidência do seu momento, mas não controlam a fila atual.
-
-## 8. Retomada por novo chat/agente
-
-1. ler `AGENTS.md`;
-2. ler este arquivo;
-3. ler `reference/ENGINEERING_METHOD.md`;
-4. ler `reference/FRONTEND_USER_VALIDATION_GATE.md`;
-5. ler [`handoff/2026-09-07-pausa-pr284-prioridade-pendencias-nf.md`](handoff/2026-09-07-pausa-pr284-prioridade-pendencias-nf.md);
-6. revalidar `main`, PR ativo, Production e Supabase antes de qualquer mudança;
-7. não reabrir R4/Pendências com base apenas na diferença entre antiguidade total e tempo da ação corrente;
-8. enquanto R5 estiver aberta, não retomar o #284;
-9. continuar somente a primeira frente ativa desta documentação.
+A próxima frente continua sendo R5. Antes de tocar no código de Nota Fiscal, a análise deve confrontar a proposta com o `SYSTEM_CANONICAL_MODEL.md`, localizar a autoridade atual de `InvoiceService`/persistência/reconciliação e aplicar o gate de frontend real após qualquer mudança.
