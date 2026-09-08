@@ -1,9 +1,9 @@
 name: Auditoria humana autenticada do produto
 
 on:
-  pull_request:
+  push:
     branches:
-      - main
+      - 'audit/human-product-review-2026-09-08'
     paths:
       - '.github/workflows/human-product-audit.yml'
       - 'tests/e2e/production-human-product-audit.spec.js'
@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: human-product-audit-${{ github.event.pull_request.number }}
+  group: human-product-audit-${{ github.ref_name }}
   cancel-in-progress: true
 
 env:
@@ -24,7 +24,6 @@ env:
 jobs:
   audit:
     name: Cinco perfis × superfícies visíveis
-    if: ${{ startsWith(github.head_ref, 'audit/human-product-review-') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 25
 
