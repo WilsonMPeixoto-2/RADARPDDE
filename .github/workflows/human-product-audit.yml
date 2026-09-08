@@ -17,11 +17,14 @@ concurrency:
 
 env:
   RADAR_PRODUCTION_URL: https://radarpdde-fix.vercel.app
+  RADAR_SUPABASE_URL: ${{ secrets.RADAR_SUPABASE_URL }}
+  RADAR_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.RADAR_SUPABASE_SERVICE_ROLE_KEY }}
+  RADAR_ALLOW_REMOTE_HOMOLOGATION: 'true'
 
 jobs:
   audit:
     name: Cinco perfis × superfícies visíveis
-    if: ${{ startsWith(github.head_ref, 'audit/human-product-review-') && vars.RADAR_PRODUCTION_AUTH_READ_ENABLED == 'true' }}
+    if: ${{ startsWith(github.head_ref, 'audit/human-product-review-') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 25
 
@@ -45,19 +48,40 @@ jobs:
       - name: Instalar Chromium homologado
         run: npx playwright install --with-deps chromium
 
-      - name: Preparar contas técnicas protegidas
-        id: credentials
+      - name: Gerar credenciais efêmeras protegidas
         shell: bash
-        env:
-          ACCOUNTS_JSON: ${{ secrets.RADAR_PRODUCTION_READ_ACCOUNTS_JSON }}
         run: |
           set -euo pipefail
-          umask 077
-          test -n "${ACCOUNTS_JSON:-}"
-          ACCOUNTS_FILE="${RUNNER_TEMP}/radar-production-read-accounts.json"
-          printf '%s' "${ACCOUNTS_JSON}" > "${ACCOUNTS_FILE}"
-          chmod 600 "${ACCOUNTS_FILE}"
-          printf 'accounts_file=%s\n' "${ACCOUNTS_FILE}" >> "${GITHUB_OUTPUT}"
+          test -n "${RADAR_SUPABASE_URL:-}"
+          test -n "${RADAR_SUPABASE_SERVICE_ROLE_KEY:-}"
+          password="$(node --input-type=module -e "import { randomBytes } from 'node:crypto'; process.stdout.write(randomBytes(36).toString('base64url') + 'A1!')")"
+          echo "::add-mask::${password}"
+          echo "RADAR_HML_PASSWORD=${password}" >> "${GITHUB_ENV}"
+          echo "RADAR_HML_RUN_ID=human-audit-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "${GITHUB_ENV}"
+          echo "RADAR_HML_FIXTURE_FILE=${RUNNER_TEMP}/radar-human-audit-users.json" >> "${GITHUB_ENV}"
+          echo "RADAR_PRODUCTION_READ_ACCOUNTS_FILE=${RUNNER_TEMP}/radar-human-audit-accounts.json" >> "${GITHUB_ENV}"
+
+      - name: Criar identidades temporárias e perfis funcionais
+        run: node scripts/ops/prepare-remote-homologation-users.mjs
+
+      - name: Preparar cinco perfis para a auditoria
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const fixture = JSON.parse(fs.readFileSync(process.env.RADAR_HML_FIXTURE_FILE, 'utf8'));
+          const required = ['controller', 'federal_assistant', 'inventory', 'sme_management', 'technical_admin'];
+          const seen = new Set();
+          const accounts = [];
+          for (const user of fixture.users) {
+            if (!required.includes(user.profileId) || seen.has(user.profileId)) continue;
+            seen.add(user.profileId);
+            accounts.push({ profileId: user.profileId, email: user.email, password: process.env.RADAR_HML_PASSWORD });
+          }
+          if (accounts.length !== required.length) throw new Error('Não foi possível montar os cinco perfis efêmeros.');
+          fs.writeFileSync(process.env.RADAR_PRODUCTION_READ_ACCOUNTS_FILE, JSON.stringify({ accounts }, null, 2), { mode: 0o600 });
+          NODE
 
       - name: Validar sintaxe da auditoria
         run: node --check tests/e2e/production-human-product-audit.spec.js
@@ -65,17 +89,7 @@ jobs:
       - name: Navegar e capturar superfícies reais
         env:
           RADAR_E2E_PRODUCTION_HUMAN_AUDIT: '1'
-          RADAR_PRODUCTION_READ_ACCOUNTS_FILE: ${{ steps.credentials.outputs.accounts_file }}
         run: npx playwright test tests/e2e/production-human-product-audit.spec.js --config=playwright.production-authenticated-read.config.js
-
-      - name: Remover material de autenticação
-        if: always()
-        shell: bash
-        env:
-          ACCOUNTS_FILE: ${{ steps.credentials.outputs.accounts_file }}
-        run: |
-          set -euo pipefail
-          if [ -n "${ACCOUNTS_FILE:-}" ]; then rm -f -- "${ACCOUNTS_FILE}"; fi
 
       - name: Publicar evidências visuais temporárias
         if: ${{ !cancelled() }}
@@ -83,5 +97,14 @@ jobs:
         with:
           name: human-product-audit-${{ github.run_id }}
           path: artifacts/human-product-audit/
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 1
+
+      - name: Remover identidades temporárias e material de autenticação
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          node scripts/ops/cleanup-remote-homologation-users.mjs
+          rm -f -- "${RADAR_HML_FIXTURE_FILE:-}" "${RADAR_PRODUCTION_READ_ACCOUNTS_FILE:-}"
+          exit 0
