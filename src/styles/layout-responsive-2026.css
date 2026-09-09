@@ -267,17 +267,19 @@
 
     .search-bar-container .search-input,
     body.radar-expressiva-institucional .search-bar-container .search-input,
-    .global-competence-badge,
-    .exercise-selector,
-    .bell-button,
-    .profile-button,
-    .auth-logout-button {
+    .header-actions .global-competence-badge,
+    .header-actions .exercise-selector,
+    .header-actions .bell-button,
+    .header-actions .profile-button,
+    body.radar-expressiva-institucional .header-actions .profile-button,
+    .header-actions .auth-logout-button {
+        box-sizing: border-box;
         min-height: 44px;
+        height: 44px;
     }
 
     .search-bar-container .search-input,
     body.radar-expressiva-institucional .search-bar-container .search-input {
-        height: 44px;
         padding-block: 11px;
         font-size: 0.9rem;
     }
