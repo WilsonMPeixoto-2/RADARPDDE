@@ -40,7 +40,7 @@ async function prepareProjectionContext(page, kind) {
       analise: {
         extCC: 'Não analisado', extINV: 'Não analisado', notaFiscal: 'Incorreto',
         consAssessoria: 'Correto', declBBAgil: 'Não analisado',
-        encampInventario: targetKind === 'permanente' ? 'Correto' : 'Correto'
+        encampInventario: 'Correto'
       },
       resultadoBonif: ''
     };
@@ -50,9 +50,9 @@ async function prepareProjectionContext(page, kind) {
         notasRegistradas.splice(index, 1);
       }
     }
-    for (let index = bensPatrimoniais.length - 1; index >= 0; index -= 1) {
-      if (bensPatrimoniais[index].escolaId === escola.id && bensPatrimoniais[index].competencia === competencia) {
-        bensPatrimoniais.splice(index, 1);
+    for (let index = bens.length - 1; index >= 0; index -= 1) {
+      if (bens[index].escolaId === escola.id && bens[index].competencia === competencia) {
+        bens.splice(index, 1);
       }
     }
     for (let index = pendencias.length - 1; index >= 0; index -= 1) {
@@ -83,7 +83,7 @@ async function prepareProjectionContext(page, kind) {
     notasRegistradas.push(invoice);
 
     if (targetKind === 'permanente') {
-      bensPatrimoniais.push({
+      bens.push({
         id: assetId,
         escolaId: escola.id,
         competencia,
@@ -162,7 +162,7 @@ test.describe('Retificação auditável — projeções derivadas', () => {
 
     const state = await page.evaluate(({ invoiceId, assetId, pendencyId }) => {
       const invoice = notasRegistradas.find(item => item.id === invoiceId);
-      const asset = bensPatrimoniais.find(item => item.id === assetId);
+      const asset = bens.find(item => item.id === assetId);
       const pendency = pendencias.find(item => item.id === pendencyId);
       return {
         invoice: { id: invoice?.id, desc: invoice?.desc, numero: invoice?.numero, valor: invoice?.valor, bemId: invoice?.bemId },
