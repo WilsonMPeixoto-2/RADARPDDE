@@ -1,0 +1,36 @@
+name: Retificação auditável direcionada
+
+on:
+  pull_request:
+    paths:
+      - 'app.js'
+      - 'src/application/**'
+      - 'src/domain/**'
+      - 'src/integration/**'
+      - 'tests/e2e/invoice-auditable-retification.spec.js'
+      - 'tests/e2e/pendency-manual-auditable-retification.spec.js'
+      - '.github/workflows/retification-targeted.yml'
+  workflow_dispatch:
+
+jobs:
+  targeted-retification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Obter código
+        uses: actions/checkout@v4
+      - name: Configurar Node.js LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+      - name: Instalar Chromium Playwright
+        run: npx playwright install --with-deps chromium
+      - name: Executar regressões de retificação
+        run: >-
+          npx playwright test
+          tests/e2e/invoice-auditable-retification.spec.js
+          tests/e2e/pendency-manual-auditable-retification.spec.js
+          --project=desktop-chromium
