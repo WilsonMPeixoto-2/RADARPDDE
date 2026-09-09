@@ -261,10 +261,12 @@
         width: min(34vw, 640px);
         min-width: 360px;
         max-width: 640px;
-        height: auto;
+        height: 44px;
+        min-height: 44px;
     }
 
-    .search-input,
+    .search-bar-container .search-input,
+    body.radar-expressiva-institucional .search-bar-container .search-input,
     .global-competence-badge,
     .exercise-selector,
     .bell-button,
@@ -273,7 +275,9 @@
         min-height: 44px;
     }
 
-    .search-input {
+    .search-bar-container .search-input,
+    body.radar-expressiva-institucional .search-bar-container .search-input {
+        height: 44px;
         padding-block: 11px;
         font-size: 0.9rem;
     }
