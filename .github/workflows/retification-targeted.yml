@@ -7,10 +7,19 @@ on:
       - 'src/application/**'
       - 'src/domain/**'
       - 'src/integration/**'
+      - 'docs/decisions/**'
+      - 'docs/reference/**'
+      - 'docs/superpowers/**'
       - 'tests/unit/auditable-retification.test.js'
+      - 'tests/unit/invoice-effects.test.js'
       - 'tests/e2e/invoice-auditable-retification.spec.js'
       - 'tests/e2e/invoice-retification-projections.spec.js'
       - 'tests/e2e/pendency-manual-auditable-retification.spec.js'
+      - 'tests/e2e/pendency-cycle.spec.js'
+      - 'tests/e2e/functional-core.spec.js'
+      - 'tests/e2e/task-10-11-pendencias.spec.js'
+      - 'tests/e2e/task-9-cross-view.spec.js'
+      - 'tests/e2e/unidentified-expense.spec.js'
       - '.github/workflows/retification-targeted.yml'
   workflow_dispatch:
 
@@ -38,6 +47,8 @@ jobs:
         run: npm ci
       - name: Executar unitários afetados
         run: node --test tests/unit/invoice-effects.test.js tests/unit/auditable-retification.test.js
+      - name: Verificar matriz funcional regenerada
+        run: node scripts/check-functional-contract-matrix.mjs
       - name: Instalar Chromium Playwright
         run: npx playwright install --with-deps chromium
       - name: Executar regressões afetadas
@@ -46,8 +57,8 @@ jobs:
         run: |
           git config user.name 'RADAR PDDE Automation'
           git config user.email 'actions@users.noreply.github.com'
-          git show HEAD^:.github/workflows/retification-targeted.yml > .github/workflows/retification-targeted.yml
+          git show 918687299c95c9ad9ce160feeeb5fc5a93284823:.github/workflows/retification-targeted.yml > .github/workflows/retification-targeted.yml
           git rm .github/workflows/pr295-reconcile-self-patch.yml scripts/pr295-reconcile-self-patch.mjs
-          git add .github/workflows/retification-targeted.yml src/domain/invoice-effects.js tests/unit/invoice-effects.test.js tests/e2e/pendency-cycle.spec.js tests/e2e/functional-core.spec.js tests/e2e/task-10-11-pendencias.spec.js tests/e2e/task-9-cross-view.spec.js
-          git commit -m 'fix: preservar legado e reconciliar testes de drawer'
+          git add -A
+          git commit -m 'fix: concluir edição auditável e reconciliar documentação'
           git push origin HEAD:feat/edicao-lancamentos-auditavel
