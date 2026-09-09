@@ -80,7 +80,7 @@ for (const viewport of [
     expect(geometry.buttonLeft).toBeGreaterThanOrEqual(geometry.headerLeft - 1);
     expect(geometry.buttonRight).toBeLessThanOrEqual(geometry.headerRight + 1);
     expect(geometry.labelClientWidth).toBeGreaterThanOrEqual(geometry.labelScrollWidth);
-    expect(geometry.label).toBe(viewport.width <= 1536 ? 'Assistente' : 'Assistente de Verbas Federais');
+    expect(geometry.label).toBe('Assistente de Verbas Federais');
   });
 }
 
