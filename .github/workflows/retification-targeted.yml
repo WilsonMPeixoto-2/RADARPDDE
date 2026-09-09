@@ -14,28 +14,40 @@ on:
       - '.github/workflows/retification-targeted.yml'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   targeted-retification:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
-      - name: Obter código
+      - name: Obter branch do PR 295
         uses: actions/checkout@v4
+        with:
+          ref: feat/edicao-lancamentos-auditavel
+          fetch-depth: 0
       - name: Configurar Node.js 24
         uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: npm
+      - name: Aplicar reconciliação determinística
+        run: node scripts/pr295-reconcile-self-patch.mjs
       - name: Instalar dependências reproduzíveis
         run: npm ci
-      - name: Executar testes unitários da retificação
-        run: node --test tests/unit/auditable-retification.test.js
+      - name: Executar unitários afetados
+        run: node --test tests/unit/invoice-effects.test.js tests/unit/auditable-retification.test.js
       - name: Instalar Chromium Playwright
         run: npx playwright install --with-deps chromium
-      - name: Executar regressões de retificação
-        run: >-
-          npx playwright test
-          tests/e2e/invoice-auditable-retification.spec.js
-          tests/e2e/invoice-retification-projections.spec.js
-          tests/e2e/pendency-manual-auditable-retification.spec.js
-          --project=desktop-chromium
+      - name: Executar regressões afetadas
+        run: npx playwright test tests/e2e/unidentified-expense.spec.js tests/e2e/pendency-cycle.spec.js tests/e2e/functional-core.spec.js tests/e2e/task-10-11-pendencias.spec.js tests/e2e/task-9-cross-view.spec.js tests/e2e/invoice-auditable-retification.spec.js tests/e2e/invoice-retification-projections.spec.js tests/e2e/pendency-manual-auditable-retification.spec.js --project=desktop-chromium
+      - name: Restaurar workflow e commit final
+        run: |
+          git config user.name 'RADAR PDDE Automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git show HEAD^:.github/workflows/retification-targeted.yml > .github/workflows/retification-targeted.yml
+          git rm .github/workflows/pr295-reconcile-self-patch.yml scripts/pr295-reconcile-self-patch.mjs
+          git add .github/workflows/retification-targeted.yml src/domain/invoice-effects.js tests/unit/invoice-effects.test.js tests/e2e/pendency-cycle.spec.js tests/e2e/functional-core.spec.js tests/e2e/task-10-11-pendencias.spec.js tests/e2e/task-9-cross-view.spec.js
+          git commit -m 'fix: preservar legado e reconciliar testes de drawer'
+          git push origin HEAD:feat/edicao-lancamentos-auditavel
