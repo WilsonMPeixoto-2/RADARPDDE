@@ -1,0 +1,222 @@
+name: PR295 reconcile self patch
+
+on:
+  push:
+    branches:
+      - feat/edicao-lancamentos-auditavel
+    paths:
+      - '.github/workflows/pr295-reconcile-self-patch.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Obter branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/edicao-lancamentos-auditavel
+          fetch-depth: 0
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Aplicar correções determinísticas
+        shell: python
+        run: |
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              file = Path(path)
+              text = file.read_text(encoding='utf-8')
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: esperado 1 trecho, encontrado {count}')
+              file.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          # O a_identificar moderno possui análise explícita e continua Incorreto.
+          # O legado sem análise explícita deve permanecer sem análise ao sofrer mera retificação cadastral.
+          replace_once(
+              'src/domain/invoice-effects.js',
+              """        if (!existingInvoice) {
+            desiredInvoice.analiseDocumentoFiscal = request.expenseType === UNIDENTIFIED_EXPENSE_TYPE
+                ? 'Incorreto'
+                : 'Não analisado';
+        } else if (request.expenseType === UNIDENTIFIED_EXPENSE_TYPE
+            || previousType === UNIDENTIFIED_EXPENSE_TYPE) {
+            desiredInvoice.analiseDocumentoFiscal = 'Incorreto';
+        }
+""",
+              """        if (!existingInvoice) {
+            desiredInvoice.analiseDocumentoFiscal = request.expenseType === UNIDENTIFIED_EXPENSE_TYPE
+                ? 'Incorreto'
+                : 'Não analisado';
+        } else if (request.expenseType === UNIDENTIFIED_EXPENSE_TYPE) {
+            if (hasExplicitInvoiceDocumentAnalysis(existingInvoice)) {
+                desiredInvoice.analiseDocumentoFiscal = 'Incorreto';
+            } else {
+                delete desiredInvoice.analiseDocumentoFiscal;
+            }
+        } else if (previousType === UNIDENTIFIED_EXPENSE_TYPE) {
+            desiredInvoice.analiseDocumentoFiscal = 'Incorreto';
+        }
+"""
+          )
+
+          unit_path = Path('tests/unit/invoice-effects.test.js')
+          unit_text = unit_path.read_text(encoding='utf-8')
+          marker = "\n\ntest('remoção da última NF de serviço reconverge Assessoria e análise fiscal pelo mesmo planner', () => {"
+          if unit_text.count(marker) != 1:
+              raise SystemExit('invoice-effects.test.js: marcador unitário não encontrado de forma única')
+          regression = r'''
+
+test('retificação de a_identificar legado preserva ausência de análise individual explícita', () => {
+    const legacy = {
+        ...baseInput().existingInvoice,
+        tipo: 'a_identificar',
+        numero: '',
+        desc: 'Débito histórico sem documentação suficiente',
+        descricao: 'Débito histórico sem documentação suficiente',
+        valor: 321.45
+    };
+    delete legacy.analiseDocumentoFiscal;
+
+    const input = baseInput({
+        existingInvoice: legacy,
+        contextInvoices: [legacy],
+        request: {
+            schoolId: 'ESC-1',
+            compKey: '2026-05_BASIC',
+            competence: '2026-05',
+            programId: 'BASIC',
+            description: 'Débito histórico corrigido',
+            expenseType: 'a_identificar',
+            invoiceNumber: 'REF-LEGADO-CORRIGIDA',
+            amount: 350.25
+        }
+    });
+
+    const result = planInvoiceEffects(input);
+
+    assert.equal(result.unchanged, false);
+    assert.equal(result.invoice.id, legacy.id);
+    assert.equal(result.invoice.tipo, 'a_identificar');
+    assert.equal(result.invoice.numero, 'REF-LEGADO-CORRIGIDA');
+    assert.equal(result.invoice.valor, 350.25);
+    assert.equal(
+        Object.prototype.hasOwnProperty.call(result.invoice, 'analiseDocumentoFiscal'),
+        false
+    );
+});
+'''
+          unit_path.write_text(unit_text.replace(marker, regression + marker, 1), encoding='utf-8')
+
+          # PR #291 tornou o drawer desktop um overlay sem comprimir a página.
+          # Jornadas anteriores devem fechá-lo antes de clicar em controles fisicamente cobertos.
+          replace_once(
+              'tests/e2e/pendency-cycle.spec.js',
+              """    await expect(focusedReplacementTrigger)
+      .toHaveText('Registrar substituição mais recente');
+
+    await replacementTrigger.click();
+""",
+              """    await expect(focusedReplacementTrigger)
+      .toHaveText('Registrar substituição mais recente');
+
+    await page.evaluate(() => closePendencyDetail());
+    await replacementTrigger.click();
+"""
+          )
+          replace_once(
+              'tests/e2e/pendency-cycle.spec.js',
+              """    const selectedQuotedRow = page.locator('tr[data-pendency-ref].pendency-row-selected');
+    await expect(selectedQuotedRow).toContainText(context.documents[2]);
+    await selectedQuotedRow.getByRole('button', {
+""",
+              """    const selectedQuotedRow = page.locator('tr[data-pendency-ref].pendency-row-selected');
+    await expect(selectedQuotedRow).toContainText(context.documents[2]);
+    await page.evaluate(() => closePendencyDetail());
+    await selectedQuotedRow.getByRole('button', {
+"""
+          )
+          replace_once(
+              'tests/e2e/functional-core.spec.js',
+              """    const awaitingRow = page.locator(
+      `#p-aguardando tr[data-pendency-ref*=\"${createdPendency.id}\"]`
+    );
+    await awaitingRow.getByRole('button', { name: 'Reanalisar', exact: true }).click();
+""",
+              """    const awaitingRow = page.locator(
+      `#p-aguardando tr[data-pendency-ref*=\"${createdPendency.id}\"]`
+    );
+    await page.evaluate(() => closePendencyDetail());
+    await awaitingRow.getByRole('button', { name: 'Reanalisar', exact: true }).click();
+"""
+          )
+          replace_once(
+              'tests/e2e/task-10-11-pendencias.spec.js',
+              """    await dialog.getByLabel('Justificativa do cancelamento').fill('Registro indevido.');
+    await dialog.getByRole('button', { name: 'Confirmar cancelamento' }).click();
+
+    await page.getByRole('tab', { name: /^Canceladas\\b/ }).click();
+""",
+              """    await dialog.getByLabel('Justificativa do cancelamento').fill('Registro indevido.');
+    await dialog.getByRole('button', { name: 'Confirmar cancelamento' }).click();
+    await page.evaluate(() => closePendencyDetail());
+
+    await page.getByRole('tab', { name: /^Canceladas\\b/ }).click();
+"""
+          )
+          replace_once(
+              'tests/e2e/task-9-cross-view.spec.js',
+              """  test('mantém as ações da lista e o cabeçalho global acessíveis com o drawer aberto no desktop', async ({ page }, testInfo) => {
+""",
+              """  test('mantém o cabeçalho acessível e fecha o drawer antes de agir na lista no desktop', async ({ page }, testInfo) => {
+"""
+          )
+          replace_once(
+              'tests/e2e/task-9-cross-view.spec.js',
+              """    await page.locator('#alerts-bell-container > .bell-button').click();
+
+    const action = record.getByRole('button', { name: 'Registrar novo envio' });
+""",
+              """    await page.locator('#alerts-bell-container > .bell-button').click();
+
+    await page.evaluate(() => closePendencyDetail());
+    const action = record.getByRole('button', { name: 'Registrar novo envio' });
+"""
+          )
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Executar unitários afetados
+        run: node --test tests/unit/invoice-effects.test.js tests/unit/auditable-retification.test.js
+
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Executar E2E afetados
+        run: >-
+          npx playwright test
+          tests/e2e/unidentified-expense.spec.js
+          tests/e2e/pendency-cycle.spec.js
+          tests/e2e/functional-core.spec.js
+          tests/e2e/task-10-11-pendencias.spec.js
+          tests/e2e/task-9-cross-view.spec.js
+          --project=desktop-chromium
+
+      - name: Commitar somente após testes verdes
+        run: |
+          git config user.name 'RADAR PDDE Automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git rm .github/workflows/pr295-reconcile-self-patch.yml
+          git add src/domain/invoice-effects.js tests/unit/invoice-effects.test.js tests/e2e/pendency-cycle.spec.js tests/e2e/functional-core.spec.js tests/e2e/task-10-11-pendencias.spec.js tests/e2e/task-9-cross-view.spec.js
+          git commit -m 'fix: preservar legado e reconciliar testes de drawer'
+          git push origin HEAD:feat/edicao-lancamentos-auditavel
