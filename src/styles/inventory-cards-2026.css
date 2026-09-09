@@ -1,0 +1,307 @@
+/*
+ * RADAR PDDE — Capital e Inventário: cartões-resumo e iconografia 2026.
+ *
+ * Escopo estritamente visual:
+ * - preserva métricas, textos e regras de negócio existentes;
+ * - aplica o modelo visual aprovado aos quatro cartões do painel patrimonial;
+ * - substitui visualmente os ícones históricos por pictogramas vetoriais consistentes;
+ * - corrige o truncamento remanescente do perfil Assistente no rodapé da sidebar.
+ */
+
+/* O perfil funcional precisa permanecer integralmente legível no rodapé. */
+@media (min-width: 901px) {
+    .sidebar-footer .user-info {
+        min-width: 0;
+        overflow: visible;
+    }
+
+    .sidebar-footer #current-user-role,
+    .sidebar-footer .user-role {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        overflow-wrap: normal;
+        word-break: normal;
+        line-height: 1.22;
+    }
+}
+
+/*
+ * O seletor :has() limita o refinamento à superfície Capital e Inventário.
+ * As classes card-stat/grid-stats são compartilhadas por outras telas e não
+ * devem receber este tratamento globalmente.
+ */
+body:has(#nav-inventario.active) #main-container > .grid-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(18px, 2vw, 28px);
+    width: 100%;
+    margin-bottom: clamp(22px, 2.2vw, 32px);
+}
+
+body:has(#nav-inventario.active) #main-container > .grid-stats .card-stat {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    min-width: 0;
+    min-height: clamp(190px, 17vw, 226px);
+    padding: clamp(24px, 2.2vw, 34px);
+    border: 1px solid rgba(54, 46, 90, 0.075);
+    border-radius: 26px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.97);
+    box-shadow:
+        0 12px 34px rgba(45, 32, 92, 0.055),
+        0 2px 10px rgba(45, 32, 92, 0.035);
+    transition:
+        transform 160ms ease,
+        border-color 160ms ease,
+        box-shadow 160ms ease;
+}
+
+body:has(#nav-inventario.active) #main-container > .grid-stats .card-stat:hover {
+    transform: translateY(-1px);
+    border-color: rgba(93, 61, 168, 0.13);
+    box-shadow:
+        0 16px 38px rgba(45, 32, 92, 0.075),
+        0 3px 12px rgba(45, 32, 92, 0.04);
+}
+
+body:has(#nav-inventario.active) #main-container > .grid-stats .stat-icon {
+    flex: 0 0 auto;
+    width: 78px;
+    height: 78px;
+    margin: 0 0 22px;
+    padding: 0;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.34);
+}
+
+/* Os SVGs históricos continuam no DOM por compatibilidade; o desenho é substituído visualmente. */
+body:has(#nav-inventario.active) #main-container > .grid-stats .stat-icon > svg,
+body:has(#nav-inventario.active) #main-container > .grid-stats .stat-icon > i {
+    display: none !important;
+}
+
+body:has(#nav-inventario.active) #main-container > .grid-stats .stat-icon::before {
+    content: "";
+    display: block;
+    width: 40px;
+    height: 40px;
+    background-color: currentColor;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+}
+
+/* Documento / encarte pendente */
+body:has(#nav-inventario.active) #main-container > .grid-stats .card-stat:nth-child(1) .stat-icon {
+    background: linear-gradient(180deg, #fdf1f3 0%, #f9e7ec 100%) !important;
+    color: #c93657 !important;
+}
+
+body:has(#nav-inventario.active) #main-container > .grid-stats .card-stat:nth-child(1) .stat-icon::before {
+    -webkit-mask-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyLjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTcuNSAzLjc1aDUuN0wxOCA4LjU1VjE4LjVhMS43NSAxLjc1IDAgMCAxLTEuNzUgMS43NWgtOC41QTEuNzUgMS43NSAwIDAgMSA2IDE4LjV2LTEzQTEuNzUgMS43NSAwIDAgMSA3LjUgMy43NVpNMTMgMy43NVY4LjdoNU05LjI1IDEyLjJoNS41TTkuMjUgMTZoNC42Ii8+PC9zdmc+");
+    mask-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyLjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTcuNSAzLjc1aDUuN0wxOCA4LjU1VjE4LjVhMS43NSAxLjc1IDAgMCAxLTEuNzUgMS43NWgtOC41QTEuNzUgMS43NSAwIDAgMSA2IDE4LjV2LTEzQTEuNzUgMS43NSAwIDAgMSA3LjUgMy43NVpNMTMgMy43NVY4LjdoNU05LjI1IDEyLjJoNS41TTkuMjUgMTZoNC42Ii8+PC9zdmc+");
+}
+
+/* Caixa / bem aguardando inventariação */
+body:has(#nav-inventario.active) #main-container > .grid-stats .card-stat:nth-child(2) .stat-icon {
+    background: linear-gradient(180deg, #fdf6e8 0%, #f9efdc 100%) !important;
+    color: #d9860b !important;
+}
+
+body:has(#nav-inventario.active) #main-container > .grid-stats .card-stat:nth-child(2) .stat-icon::before {
+    -webkit-mask-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyLjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0ibTEyIDMuNSA3IDMuNzV2OS41TDEyIDIwLjUgNSAxNi43NXYtOS41TDEyIDMuNVpNNSA3LjI1IDEyIDExbDctMy43NU0xMiAxMXY5LjVNOSA1LjFsNyAzLjc1Ii8+PC9zdmc+");
+    mask-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyLjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0ibTEyIDMuNSA3IDMuNzV2OS41TDEyIDIwLjUgNSAxNi43NXYtOS41TDEyIDMuNVpNNSA3LjI1IDEyIDExbDctMy43NU0xMiAxMXY5LjVNOSA1LjFsNyAzLjc1Ii8+PC9zdmc+");
+}
+
+/* Concluído / já inventariado */
+body:has(#nav-inventario.active) #main-container > .grid-stats .card-stat:nth-child(3) .stat-icon {
+    background: linear-gradient(180deg, #eafaf5 0%, #dff5ee 100%) !important;
+    color: #099b69 !important;
+}
+
+body:has(#nav-inventario.active) #main-container > .grid-stats .card-stat:nth-child(3) .stat-icon::before {
+    -webkit-mask-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PGNpcmNsZSBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIuMSIgY3g9IjEyIiBjeT0iMTIiIHI9IjguMjUiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIuMSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBkPSJtOC42IDEyLjE1IDIuMzUgMi4zNSA0LjctNC43Ii8+PC9zdmc+");
+    mask-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PGNpcmNsZSBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIuMSIgY3g9IjEyIiBjeT0iMTIiIHI9IjguMjUiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIuMSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBkPSJtOC42IDEyLjE1IDIuMzUgMi4zNSA0LjctNC43Ii8+PC9zdmc+");
+}
+
+/* Pasta / processos patrimoniais */
+body:has(#nav-inventario.active) #main-container > .grid-stats .card-stat:nth-child(4) {
+    border: 2px solid rgba(123, 63, 242, 0.68);
+    background: linear-gradient(180deg, rgba(248, 246, 255, 0.99) 0%, rgba(244, 241, 255, 0.96) 100%);
+    box-shadow:
+        0 18px 38px rgba(95, 45, 214, 0.085),
+        0 3px 12px rgba(95, 45, 214, 0.045);
+}
+
+body:has(#nav-inventario.active) #main-container > .grid-stats .card-stat:nth-child(4)::before {
+    content: "";
+    position: absolute;
+    inset: 16px auto 16px 0;
+    width: 5px;
+    border-radius: 0 10px 10px 0;
+    background: linear-gradient(180deg, #7b3ff2 0%, #9d70ff 100%);
+}
+
+body:has(#nav-inventario.active) #main-container > .grid-stats .card-stat:nth-child(4) .stat-icon {
+    background: linear-gradient(180deg, #f3edff 0%, #ece5fc 100%) !important;
+    color: #7237df !important;
+}
+
+body:has(#nav-inventario.active) #main-container > .grid-stats .card-stat:nth-child(4) .stat-icon::before {
+    -webkit-mask-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyLjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTQuNSA4LjFBMS44NSAxLjg1IDAgMCAxIDYuMzUgNi4yNWg0LjFsMS43IDEuOWg1LjVBMS44NSAxLjg1IDAgMCAxIDE5LjUgMTB2Ni42NWExLjg1IDEuODUgMCAwIDEtMS44NSAxLjg1SDYuMzVhMS44NSAxLjg1IDAgMCAxLTEuODUtMS44NVY4LjFaIi8+PC9zdmc+");
+    mask-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyLjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTQuNSA4LjFBMS44NSAxLjg1IDAgMCAxIDYuMzUgNi4yNWg0LjFsMS43IDEuOWg1LjVBMS44NSAxLjg1IDAgMCAxIDE5LjUgMTB2Ni42NWExLjg1IDEuODUgMCAwIDEtMS44NSAxLjg1SDYuMzVhMS44NSAxLjg1IDAgMCAxLTEuODUtMS44NVY4LjFaIi8+PC9zdmc+");
+}
+
+body:has(#nav-inventario.active) #main-container > .grid-stats .stat-label {
+    width: 100%;
+    margin: 0 0 16px;
+    color: #606176;
+    font-size: clamp(0.92rem, 0.95vw, 1.06rem);
+    font-weight: 500;
+    line-height: 1.28;
+    letter-spacing: 0;
+    text-transform: uppercase;
+    white-space: normal;
+    overflow-wrap: normal;
+    word-break: normal;
+}
+
+body:has(#nav-inventario.active) #main-container > .grid-stats .stat-value {
+    width: 100%;
+    margin: 0;
+    color: #181539;
+    font-size: clamp(2.15rem, 3vw, 3.35rem);
+    font-weight: 800;
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+    white-space: normal;
+    overflow-wrap: normal;
+    word-break: normal;
+}
+
+/* Tema escuro: mantém a intenção OLED sem transformar o painel em neon. */
+body.dark-theme:has(#nav-inventario.active) #main-container > .grid-stats .card-stat {
+    background: linear-gradient(180deg, rgba(18, 18, 25, 0.98), rgba(13, 13, 19, 0.98));
+    border-color: rgba(255, 255, 255, 0.085);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.34);
+}
+
+body.dark-theme:has(#nav-inventario.active) #main-container > .grid-stats .card-stat:nth-child(4) {
+    background: linear-gradient(180deg, rgba(26, 20, 42, 0.98), rgba(18, 15, 30, 0.98));
+    border-color: rgba(177, 132, 255, 0.72);
+    box-shadow:
+        0 18px 42px rgba(0, 0, 0, 0.38),
+        0 0 24px rgba(177, 132, 255, 0.085);
+}
+
+body.dark-theme:has(#nav-inventario.active) #main-container > .grid-stats .stat-label {
+    color: #aaa7b8;
+}
+
+body.dark-theme:has(#nav-inventario.active) #main-container > .grid-stats .stat-value {
+    color: #fbfaff;
+}
+
+/* Notebook e monitor compacto: preserva o 2×2 sem transformar texto em miniatura. */
+@media (min-width: 901px) and (max-width: 1366px) {
+    body:has(#nav-inventario.active) #main-container > .grid-stats {
+        gap: 18px;
+    }
+
+    body:has(#nav-inventario.active) #main-container > .grid-stats .card-stat {
+        min-height: 170px;
+        padding: 22px;
+        border-radius: 22px;
+    }
+
+    body:has(#nav-inventario.active) #main-container > .grid-stats .stat-icon {
+        width: 64px;
+        height: 64px;
+        margin-bottom: 18px;
+        border-radius: 16px;
+    }
+
+    body:has(#nav-inventario.active) #main-container > .grid-stats .stat-icon::before {
+        width: 32px;
+        height: 32px;
+    }
+
+    body:has(#nav-inventario.active) #main-container > .grid-stats .stat-label {
+        margin-bottom: 12px;
+        font-size: 0.84rem;
+    }
+
+    body:has(#nav-inventario.active) #main-container > .grid-stats .stat-value {
+        font-size: clamp(1.9rem, 2.7vw, 2.55rem);
+    }
+}
+
+/* 4K/high-DPI: mais área e definição, sem simplesmente ampliar a interface inteira. */
+@media (min-width: 2560px) {
+    body:has(#nav-inventario.active) #main-container > .grid-stats {
+        gap: 30px;
+    }
+
+    body:has(#nav-inventario.active) #main-container > .grid-stats .card-stat {
+        min-height: 250px;
+        padding: 34px;
+        border-radius: 30px;
+    }
+
+    body:has(#nav-inventario.active) #main-container > .grid-stats .stat-icon {
+        width: 88px;
+        height: 88px;
+        margin-bottom: 24px;
+        border-radius: 22px;
+    }
+
+    body:has(#nav-inventario.active) #main-container > .grid-stats .stat-icon::before {
+        width: 44px;
+        height: 44px;
+    }
+
+    body:has(#nav-inventario.active) #main-container > .grid-stats .stat-label {
+        font-size: 1.08rem;
+    }
+
+    body:has(#nav-inventario.active) #main-container > .grid-stats .stat-value {
+        font-size: 3.55rem;
+    }
+}
+
+/* Segurança para viewports estreitos, sem alterar o desenho desktop aprovado. */
+@media (max-width: 900px) {
+    body:has(#nav-inventario.active) #main-container > .grid-stats {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    body:has(#nav-inventario.active) #main-container > .grid-stats .card-stat {
+        min-height: 154px;
+        padding: 20px;
+        border-radius: 20px;
+    }
+
+    body:has(#nav-inventario.active) #main-container > .grid-stats .stat-icon {
+        width: 58px;
+        height: 58px;
+        margin-bottom: 14px;
+        border-radius: 15px;
+    }
+
+    body:has(#nav-inventario.active) #main-container > .grid-stats .stat-icon::before {
+        width: 30px;
+        height: 30px;
+    }
+}
