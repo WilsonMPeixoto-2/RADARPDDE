@@ -1,7 +1,7 @@
 # Matriz funcional ponta a ponta
 
-**Atualizado em:** 2026-09-06  
-**Baseline de origem:** `3135d4c66bb5020507bd54d2fe202a79884680c7`  
+**Atualizado em:** 2026-09-09  
+**Baseline de origem:** `6b40922afcd2793ad685c27994dc405d5d5aa141`  
 **Fonte canônica:** `functional-contract-matrix.json` e arquivos JSON do diretório `functional-contract-matrix/`
 
 > Arquivo gerado por `scripts/check-functional-contract-matrix.mjs`. Não editar manualmente.
@@ -78,8 +78,8 @@ A matriz contém **44 operações** distribuídas entre 13 superfícies.
 | ID | Ação | Modo | Perfis autorizados | Serviço e persistência | Cobertura | Próxima prova |
 |---|---|---|---|---|---|---|
 | `READ-03` | Consultar prontuário e timeline da unidade | read / P0 | Controlador, Assistente de Verbas Federais, Gestão SME, Equipe de Inventário, Administrador técnico | RadarSchoolTimeline.project → SupabaseRepository.read (schools, verifications, pendencies, pendency_attempts, pendency_contacts, registered_invoices, assets, administrative_logs) | Parcial | Smoke autenticado de leitura |
-| `INV-01` | Cadastrar/editar Nota Fiscal ou despesa, incluindo criação atômica de A identificar | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.save + saveUnidentifiedExpenseWithPendency → saveInvoiceWithEffects + save_unidentified_expense_with_pendency (registered_invoices, assets, verifications, pendencies, administrative_logs) | Comprovada | Nenhuma; manter regressão |
-| `INV-02` | Excluir documento fiscal sem qualquer histórico de Pendência individual e reverter efeitos vinculados | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.remove + proteção histórica individual → deleteInvoiceWithEffects + advisory history trigger (registered_invoices, assets, verifications, pendencies, administrative_logs) | Comprovada | Nenhuma; manter regressão |
+| `INV-01` | Cadastrar Nota Fiscal/despesa e retificar dados editáveis do mesmo lançamento, inclusive com Pendência ativa; A identificar nasce atomicamente | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.save + saveUnidentifiedExpenseWithPendency + RadarAuditableRetification → saveInvoiceWithEffects + save_unidentified_expense_with_pendency (registered_invoices, assets, verifications, pendencies, administrative_logs) | Comprovada | Nenhuma; manter regressão |
+| `INV-02` | Excluir documento fiscal sem qualquer histórico de Pendência individual e reverter efeitos vinculados; operação separada da retificação | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.remove + proteção histórica individual → deleteInvoiceWithEffects + advisory history trigger (registered_invoices, assets, verifications, pendencies, administrative_logs) | Comprovada | Nenhuma; manter regressão |
 | `INV-03` | Registrar envio, análise, pendência, novo envio e reanálise da Assessoria por nota fiscal de serviço | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.updateServiceAdvisory + RadarServiceAdvisoryPendency → saveInvoiceWithEffects + save_service_advisory_with_pendency + register_service_advisory_attempt + reanalyze_service_advisory_pendency (registered_invoices, verifications, pendencies, pendency_attempts, administrative_logs) | Parcial | Escrita controlada e reversível |
 | `INV-04` | Analisar cada documento fiscal, abrir Pendência por invoice e manter resumo técnico derivado | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.updateDocumentAnalysis + PendencyService.open/registerAttempt/reanalyze → saveInvoiceWithEffects + save_invoice_document_with_pendency + register_invoice_document_attempt + reanalyze_invoice_document_pendency (registered_invoices, assets, verifications, pendencies, pendency_attempts, administrative_logs) | Parcial | Escrita controlada e reversível |
 

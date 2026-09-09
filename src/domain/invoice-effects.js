@@ -429,8 +429,13 @@
             desiredInvoice.analiseDocumentoFiscal = request.expenseType === UNIDENTIFIED_EXPENSE_TYPE
                 ? 'Incorreto'
                 : 'Não analisado';
-        } else if (request.expenseType === UNIDENTIFIED_EXPENSE_TYPE
-            || previousType === UNIDENTIFIED_EXPENSE_TYPE) {
+        } else if (request.expenseType === UNIDENTIFIED_EXPENSE_TYPE) {
+            if (hasExplicitInvoiceDocumentAnalysis(existingInvoice)) {
+                desiredInvoice.analiseDocumentoFiscal = 'Incorreto';
+            } else {
+                delete desiredInvoice.analiseDocumentoFiscal;
+            }
+        } else if (previousType === UNIDENTIFIED_EXPENSE_TYPE) {
             desiredInvoice.analiseDocumentoFiscal = 'Incorreto';
         }
 

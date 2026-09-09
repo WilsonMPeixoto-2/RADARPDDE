@@ -3,6 +3,7 @@
 **Data:** 09/09/2026  
 **Baseline funcional:** `main` em `6b40922afcd2793ad685c27994dc405d5d5aa141`  
 **Branch:** `feat/edicao-lancamentos-auditavel`
+**Escopo:** edição/retificação apenas; exclusão permanece com as regras vigentes e fica para PR separado.
 
 ## 1. Inventário de Nota Fiscal / despesa
 

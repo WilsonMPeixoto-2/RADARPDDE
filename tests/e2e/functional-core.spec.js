@@ -630,6 +630,7 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     const awaitingRow = page.locator(
       `#p-aguardando tr[data-pendency-ref*="${createdPendency.id}"]`
     );
+    await page.evaluate(() => closePendencyDetail());
     await awaitingRow.getByRole('button', { name: 'Reanalisar', exact: true }).click();
     const reanalysisModal = page.locator('#modal-reanalisar-pendencia');
     await reanalysisModal.getByLabel('Resultado da reanálise', { exact: true })

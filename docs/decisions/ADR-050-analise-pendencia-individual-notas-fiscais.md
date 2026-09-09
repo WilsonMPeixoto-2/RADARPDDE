@@ -31,8 +31,9 @@ O hotfix também precisa representar corretamente débitos do extrato cuja docum
 16. Resultado correto resolve a Pendência; resultado incorreto mantém o ciclo de regularização.
 17. Se a despesa for identificada como serviço, a dimensão de Consulta Assessoria é criada e tratada separadamente.
 18. Se for identificada como bem permanente, o registro patrimonial é criado e vinculado na mesma operação.
-19. Pendência ativa bloqueia edição estrutural comum da despesa no Prontuário.
+19. Pendência ativa não bloqueia a retificação cadastral auditável do mesmo lançamento; permanecem bloqueadas mudanças estruturais de identidade, contexto e ciclo operacional.
 20. Pendências históricas sem identidade individual não recebem associação automática por número, valor, descrição ou heurística.
+21. O PR #295 trata somente de edição/retificação. Exclusão de lançamentos com histórico protegido permanece fora do escopo e deverá ser discutida em PR próprio.
 
 ### Consulta Assessoria
 
@@ -82,7 +83,7 @@ Regras adicionais:
 - contador de Pendências só aparece quando maior que zero;
 - o cabeçalho não repete a situação técnica agregada; ela permanece derivada internamente e cada linha mostra seu próprio estado;
 - Pendência fiscal agregada real anterior à individualização continua acessível por ação legada explícita, sem associação inventada;
-- com Pendência ativa, controles normais de edição documental não competem com a ação operacional;
+- com Pendência ativa, **Editar lançamento** pode coexistir com **Visualizar pendência**; a edição corrige dados cadastrais e não substitui novo envio ou reanálise;
 - `Abrir pendência` não é etapa normal de um estado que deve nascer atomicamente;
 - `Registrar novo envio` e `Reanalisar` pertencem exclusivamente à tela de Pendências;
 - o drawer permite somente **Visualizar → Editar → Salvar**;

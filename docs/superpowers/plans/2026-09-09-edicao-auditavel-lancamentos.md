@@ -4,6 +4,8 @@
 
 **Goal:** Permitir retificação auditável de todos os campos cadastrais editáveis de lançamentos e Pendências, inclusive com Pendência ativa, preservando identidade, histórico e ciclo de regularização e propagando cada alteração para todas as projeções de estado atual.
 
+**Fora do escopo do PR #295:** exclusão de lançamentos. A remoção, sobretudo quando houver histórico protegido, será tratada em PR próprio e não terá suas regras ampliadas nesta entrega.
+
 **Architecture:** A edição será um comando canônico de retificação, distinto de novo envio/reanálise. O serviço valida campos permitidos, mantém IDs/contexto/status, persiste com controle de versão, registra diff antes/depois e reconcilia as entidades retornadas. Snapshots históricos permanecem imutáveis.
 
 **Spec:** `docs/superpowers/specs/2026-09-09-edicao-auditavel-lancamentos-design.md`

@@ -22,6 +22,8 @@ A capacidade deve funcionar de forma transversal para:
 
 A edição é uma **retificação auditável do mesmo registro**, e não um novo lançamento.
 
+**Escopo desta entrega:** somente edição/retificação. A exclusão de lançamentos, especialmente quando houver Pendência ou histórico protegido, não faz parte do PR #295 e será tratada separadamente em outro PR. As regras atuais de exclusão permanecem inalteradas nesta entrega.
+
 Portanto:
 
 - o identificador canônico permanece o mesmo;
