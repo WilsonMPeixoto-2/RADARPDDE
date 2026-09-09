@@ -209,7 +209,7 @@ test.describe('Prontuário — despesa a identificar', () => {
     });
   });
 
-  test('preserva despesa a identificar legítima anterior ao hotfix como registro legado sem inventar Pendência', async ({ page }, testInfo) => {
+  test('preserva a_identificar legado e permite retificação cadastral sem inventar Pendência ou análise', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
     page.on('dialog', dialog => dialog.accept());
 
@@ -293,9 +293,19 @@ test.describe('Prontuário — despesa a identificar', () => {
     await expect(row.getByText('Registro legado', { exact: true })).toBeVisible();
     await expect(row.locator('.invoice-document-status')).toHaveText('Não analisado');
     await expect(row.locator('select.invoice-document-analysis-select')).toHaveCount(0);
-    await expect(row.getByRole('button', { name: /Editar/ })).toHaveCount(0);
     await expect(row.getByRole('button', { name: /Excluir/ })).toHaveCount(0);
     await expect(row.getByRole('button', { name: 'Visualizar pendência' })).toHaveCount(0);
+
+    const editButton = row.getByRole('button', { name: 'Editar despesa a identificar' });
+    await expect(editButton).toHaveCount(1);
+    await editButton.click();
+    await expect(page.locator('#nota-tipo')).toHaveValue('a_identificar');
+    await expect(page.locator('#nota-tipo')).toBeDisabled();
+    await page.locator('#nota-desc').fill('Débito histórico corrigido');
+    await page.locator('#nota-numero').fill('REF-LEGADO-CORRIGIDA');
+    await page.locator('#nota-valor').fill('350.25');
+    await page.locator('#form-dados-nota button[type="submit"]').click();
+    await expect(page.locator('#modal-dados-nota')).not.toHaveClass(/show/);
 
     const state = await page.evaluate(({ escolaId, compKey }) => {
       const invoice = notasRegistradas.find(item => (
@@ -303,18 +313,31 @@ test.describe('Prontuário — despesa a identificar', () => {
         && item.escolaId === escolaId
         && item.compKey === compKey
       ));
+      const linkedPendencies = pendencias.filter(item => (
+        String(item.registeredInvoiceId || item.registered_invoice_id || '') === 'legacy-unidentified-e2e'
+      ));
       return {
+        id: invoice?.id,
         type: invoice?.tipo,
+        number: invoice?.numero,
+        description: invoice?.desc,
+        amount: invoice?.valor,
         hasIndividualAnalysis: Object.prototype.hasOwnProperty.call(
           invoice || {},
           'analiseDocumentoFiscal'
-        )
+        ),
+        linkedPendencyCount: linkedPendencies.length
       };
     }, context);
 
     expect(state).toEqual({
+      id: 'legacy-unidentified-e2e',
       type: 'a_identificar',
-      hasIndividualAnalysis: false
+      number: 'REF-LEGADO-CORRIGIDA',
+      description: 'Débito histórico corrigido',
+      amount: 350.25,
+      hasIndividualAnalysis: false,
+      linkedPendencyCount: 0
     });
   });
 
