@@ -104,7 +104,7 @@ async function prepareProjectionContext(page, kind) {
       escolaId: escola.id,
       competencia,
       programaId,
-      documentoKey,
+      documentoKey: documentKey,
       registeredInvoiceId: invoiceId,
       item: targetKind === 'servico' ? 'Consulta Assessoria' : 'Nota Fiscal',
       erros: ['Documento ausente'],
