@@ -1,0 +1,61 @@
+/*
+ * RADAR PDDE — refinamento exclusivo da iconografia dos quatro cards-resumo
+ * de Capital e Inventário.
+ *
+ * Escopo deliberadamente restrito: somente substitui o desenho visual dos
+ * ícones existentes quando a rota de Inventário está ativa. Não altera
+ * layout, textos, métricas, filtros, estados nem regras de negócio.
+ */
+
+body:has(#nav-inventario.active) #main-container .grid-stats > .card-stat .stat-icon {
+    position: relative;
+}
+
+body:has(#nav-inventario.active) #main-container .grid-stats > .card-stat .stat-icon > svg {
+    opacity: 0;
+}
+
+body:has(#nav-inventario.active) #main-container .grid-stats > .card-stat .stat-icon::after {
+    content: '';
+    display: block;
+    width: 27px;
+    height: 27px;
+    background: currentColor;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+}
+
+/* Documento — Sem Encarte / Pendente Verbas Federais */
+body:has(#nav-inventario.active) #main-container .grid-stats > .card-stat:nth-child(1) .stat-icon::after {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M6.5%203.5h7l4%204V20a1.5%201.5%200%200%201-1.5%201.5H6.5A1.5%201.5%200%200%201%205%2020V5a1.5%201.5%200%200%201%201.5-1.5Z'/%3E%3Cpath%20d='M13.5%203.5V8h4'/%3E%3Cpath%20d='M8.5%2012h6'/%3E%3Cpath%20d='M8.5%2016h6'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M6.5%203.5h7l4%204V20a1.5%201.5%200%200%201-1.5%201.5H6.5A1.5%201.5%200%200%201%205%2020V5a1.5%201.5%200%200%201%201.5-1.5Z'/%3E%3Cpath%20d='M13.5%203.5V8h4'/%3E%3Cpath%20d='M8.5%2012h6'/%3E%3Cpath%20d='M8.5%2016h6'/%3E%3C/svg%3E");
+}
+
+/* Caixa patrimonial — Aguardando Inventariação */
+body:has(#nav-inventario.active) #main-container .grid-stats > .card-stat:nth-child(2) .stat-icon::after {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='m12%203%208%204.5v9L12%2021l-8-4.5v-9L12%203Z'/%3E%3Cpath%20d='m4%207.5%208%204.5%208-4.5'/%3E%3Cpath%20d='M12%2012v9'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='m12%203%208%204.5v9L12%2021l-8-4.5v-9L12%203Z'/%3E%3Cpath%20d='m4%207.5%208%204.5%208-4.5'/%3E%3Cpath%20d='M12%2012v9'/%3E%3C/svg%3E");
+}
+
+/* Check circular — Já Inventariados */
+body:has(#nav-inventario.active) #main-container .grid-stats > .card-stat:nth-child(3) .stat-icon::after {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Ccircle%20cx='12'%20cy='12'%20r='9'/%3E%3Cpath%20d='m8%2012%202.8%202.8L16.5%209'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Ccircle%20cx='12'%20cy='12'%20r='9'/%3E%3Cpath%20d='m8%2012%202.8%202.8L16.5%209'/%3E%3C/svg%3E");
+}
+
+/* Pasta — Processos de Inventário */
+body:has(#nav-inventario.active) #main-container .grid-stats > .card-stat:nth-child(4) .stat-icon::after {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M3.5%207.5A1.5%201.5%200%200%201%205%206h5l2%202h7a1.5%201.5%200%200%201%201.5%201.5v8A1.5%201.5%200%200%201%2019%2019H5a1.5%201.5%200%200%201-1.5-1.5v-10Z'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M3.5%207.5A1.5%201.5%200%200%201%205%206h5l2%202h7a1.5%201.5%200%200%201%201.5%201.5v8A1.5%201.5%200%200%201%2019%2019H5a1.5%201.5%200%200%201-1.5-1.5v-10Z'/%3E%3C/svg%3E");
+}
+
+@media (min-width: 2200px) {
+    body:has(#nav-inventario.active) #main-container .grid-stats > .card-stat .stat-icon::after {
+        width: 30px;
+        height: 30px;
+    }
+}
