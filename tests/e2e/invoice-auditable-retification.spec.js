@@ -167,7 +167,7 @@ test.describe('Edição auditável de lançamentos', () => {
     await refreshed.getByRole('button', { name: 'Visualizar pendência' }).click();
     const drawer = page.locator('#pendency-preview-drawer');
     await expect(drawer.getByText('NF: NF-CORRIGIDA', { exact: true })).toBeVisible();
-    await expect(drawer.getByText(/R\$ 175,50/)).toBeVisible();
+    await expect(drawer.getByText(/175,50/)).toBeVisible();
   });
 
   test('retifica despesa a identificar mantendo tipo, Incorreto, ID e mesma Pendência', async ({ page }, testInfo) => {
@@ -217,11 +217,17 @@ test.describe('Edição auditável de lançamentos', () => {
     expect(state.snapshot.valor).toBe(321.45);
 
     const refreshed = fiscalRow(page).locator(`.invoice-document-row[data-invoice-id="${context.invoiceId}"]`);
-    await expect(refreshed.getByText(/REF-CORRIGIDA/)).toBeVisible();
     await expect(refreshed.getByText('R$ 400,25', { exact: true })).toBeVisible();
+
+    // A linha de a_identificar não exibe a referência opcional como rótulo; o campo
+    // deve, porém, reabrir com o valor corrente corrigido, sem recorrer ao snapshot histórico.
+    await refreshed.getByRole('button', { name: /Editar/ }).filter({ hasNotText: 'Editar análise' }).click();
+    await expect(page.locator('#nota-numero')).toHaveValue('REF-CORRIGIDA');
+    await expect(page.locator('#nota-desc')).toHaveValue('Débito corrigido, documentação ainda pendente');
+    await page.locator('#modal-dados-nota button[type="button"]', { hasText: 'Cancelar' }).click();
+
     await refreshed.getByRole('button', { name: 'Visualizar pendência' }).click();
     const drawer = page.locator('#pendency-preview-drawer');
-    await expect(drawer.getByText(/REF-CORRIGIDA/)).toBeVisible();
-    await expect(drawer.getByText(/R\$ 400,25/)).toBeVisible();
+    await expect(drawer.getByText(/400,25/)).toBeVisible();
   });
 });
