@@ -1,0 +1,353 @@
+/*
+ * RADAR PDDE — correções responsivas desktop e refinamento high-DPI/4K.
+ *
+ * Objetivos:
+ * - preservar o rótulo completo dos perfis sem cortar o cabeçalho;
+ * - manter as nove colunas reais de Pendências legíveis em desktops de escritório;
+ * - abrir o drawer de Pendências por sobreposição, sem reduzir #main-container;
+ * - oferecer escala e contraste mais adequados a monitores 4K/high-DPI.
+ *
+ * Esta folha é carregada após as camadas históricas para funcionar como
+ * reconciliação final de layout, sem alterar comportamento funcional.
+ */
+
+@media (min-width: 901px) {
+    #app-layout {
+        grid-template-columns: clamp(232px, 18vw, 260px) minmax(0, 1fr);
+    }
+
+    main.content-area,
+    #main-container,
+    .page-container,
+    .panel-card,
+    .panel-header,
+    .header-actions,
+    .search-bar-container,
+    .pendency-desktop-list,
+    .pendency-desktop-list.table-responsive {
+        min-width: 0;
+    }
+
+    /* A fila real possui nove colunas. A distribuição abaixo soma exatamente 100%. */
+    .pendency-desktop-list.table-responsive {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    .pendency-operations-table {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        table-layout: fixed;
+    }
+
+    .pendency-operations-table th:nth-child(1) { width: 16%; }
+    .pendency-operations-table th:nth-child(2) { width: 8%; }
+    .pendency-operations-table th:nth-child(3) { width: 13%; }
+    .pendency-operations-table th:nth-child(4) { width: 12%; }
+    .pendency-operations-table th:nth-child(5) { width: 9%; }
+    .pendency-operations-table th:nth-child(6) { width: 14%; }
+    .pendency-operations-table th:nth-child(7) { width: 10%; }
+    .pendency-operations-table th:nth-child(8) { width: 5%; }
+    .pendency-operations-table th:nth-child(9) { width: 13%; }
+
+    .pendency-operations-table th,
+    .pendency-operations-table td {
+        min-width: 0;
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        word-break: normal;
+        hyphens: auto;
+    }
+
+    .pendency-operations-table th {
+        white-space: normal;
+        text-wrap: balance;
+    }
+
+    .pendency-operations-table td {
+        vertical-align: top;
+    }
+}
+
+/*
+ * Notebooks e monitores de escritório compactos.
+ * O cabeçalho mantém todos os controles e o nome completo do perfil.
+ */
+@media (min-width: 901px) and (max-width: 1536px) {
+    header.top-header,
+    body.radar-expressiva-institucional header.top-header {
+        height: 66px;
+        padding: 8px 12px;
+        gap: 8px;
+        overflow: visible;
+    }
+
+    .search-bar-container,
+    body.radar-expressiva-institucional .search-bar-container {
+        flex: 1 1 180px;
+        width: auto;
+        min-width: 160px;
+        max-width: 320px;
+        height: 40px;
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex: 0 1 auto;
+        flex-wrap: nowrap;
+        min-width: 0;
+        gap: 6px;
+    }
+
+    .global-competence-badge {
+        flex: 0 1 auto;
+        min-width: 0;
+        padding: 7px 9px;
+        font-size: 0.78rem;
+        white-space: nowrap;
+    }
+
+    .exercise-selector {
+        flex: 0 1 auto;
+        max-width: 118px;
+        padding-inline: 8px;
+        font-size: 0.78rem;
+    }
+
+    .bell-button {
+        flex: 0 0 auto;
+        padding: 7px;
+    }
+
+    .auth-logout-button {
+        flex: 0 0 auto;
+        min-width: 0;
+        padding-inline: 8px;
+        gap: 4px;
+    }
+
+    .profile-switcher,
+    .profile-button {
+        flex: 0 0 auto;
+        min-width: 0;
+        max-width: none;
+    }
+
+    .profile-button {
+        width: auto;
+        padding-inline: 10px;
+        overflow: visible;
+    }
+
+    #profile-btn-label {
+        display: inline-block;
+        width: auto;
+        min-width: max-content;
+        overflow: visible;
+        text-overflow: clip;
+        white-space: nowrap;
+    }
+
+    .pendency-row-actions {
+        flex-direction: column;
+        align-items: stretch;
+        flex-wrap: nowrap;
+        gap: 5px;
+    }
+
+    .pendency-row-actions .btn {
+        width: 100%;
+        min-width: 0;
+        padding-inline: 8px;
+        white-space: normal;
+        line-height: 1.25;
+    }
+}
+
+/* Em 1366 px recupera espaço adicional sem esconder informação. */
+@media (min-width: 901px) and (max-width: 1366px) {
+    #app-layout {
+        grid-template-columns: 228px minmax(0, 1fr);
+    }
+
+    header.top-header,
+    body.radar-expressiva-institucional header.top-header {
+        padding-inline: 10px;
+        gap: 6px;
+    }
+
+    .search-bar-container,
+    body.radar-expressiva-institucional .search-bar-container {
+        min-width: 150px;
+        max-width: 286px;
+    }
+
+    .global-competence-badge {
+        padding-inline: 8px;
+        font-size: 0.75rem;
+    }
+
+    .exercise-selector {
+        max-width: 112px;
+        font-size: 0.75rem;
+    }
+
+    .profile-button {
+        padding-inline: 9px;
+        font-size: 0.8rem;
+    }
+}
+
+/*
+ * Drawer desktop em overlay: o contexto atrás permanece com a mesma geometria.
+ * A classe de estado continua útil, mas deixa de comprimir a página.
+ */
+@media (min-width: 1181px) {
+    body.pendency-drawer-open-desktop {
+        --pendency-docked-drawer-width: clamp(420px, 34vw, 520px);
+        --pendency-docked-drawer-top: 66px;
+    }
+
+    body.pendency-drawer-open-desktop #main-container {
+        width: auto;
+        max-width: none;
+        margin-right: 0;
+        flex-grow: 1;
+        transition: none;
+    }
+
+    body.pendency-drawer-open-desktop .pendency-detail-drawer {
+        position: fixed;
+        top: var(--pendency-docked-drawer-top);
+        right: 0;
+        width: var(--pendency-docked-drawer-width);
+        min-width: 0;
+        max-width: calc(100vw - 280px);
+        height: calc(100dvh - var(--pendency-docked-drawer-top));
+    }
+}
+
+/*
+ * High-DPI/4K: escala moderada e identidade escura de contraste profundo.
+ * Sem neon excessivo: a saturação fica concentrada em estados e foco.
+ */
+@media (min-width: 2200px) {
+    html {
+        font-size: 17px;
+    }
+
+    #app-layout {
+        grid-template-columns: clamp(280px, 15vw, 320px) minmax(0, 1fr);
+    }
+
+    aside.sidebar {
+        padding: 30px 22px;
+    }
+
+    header.top-header,
+    body.radar-expressiva-institucional header.top-header {
+        height: 84px;
+        padding: 0 40px;
+        gap: 18px;
+    }
+
+    .search-bar-container,
+    body.radar-expressiva-institucional .search-bar-container {
+        flex: 1 1 520px;
+        width: min(34vw, 640px);
+        min-width: 360px;
+        max-width: 640px;
+        height: auto;
+    }
+
+    .search-input,
+    .global-competence-badge,
+    .exercise-selector,
+    .bell-button,
+    .profile-button,
+    .auth-logout-button {
+        min-height: 44px;
+    }
+
+    .search-input {
+        padding-block: 11px;
+        font-size: 0.9rem;
+    }
+
+    .page-container,
+    body.radar-expressiva-institucional .page-container {
+        padding: 36px 42px 52px;
+    }
+
+    .panel-card {
+        border-radius: 12px;
+    }
+
+    body.dark-theme {
+        --bg-page: #050507;
+        --bg-sidebar: #0a0a0f;
+        --bg-card: rgba(16, 16, 23, 0.94);
+        --bg-card-hover: rgba(23, 22, 34, 0.98);
+        --bg-input: #111119;
+        --bg-header: rgba(8, 8, 12, 0.92);
+
+        --primary: #b184ff;
+        --primary-hover: #c29dff;
+        --primary-dark: #7f45eb;
+        --primary-glow: rgba(177, 132, 255, 0.20);
+        --accent-plum: #5f2ea0;
+        --accent-plum-light: #9460f5;
+        --accent-lavender: #d4baff;
+
+        --text-main: #fbfaff;
+        --text-muted: #aaa6b7;
+        --border-color: rgba(255, 255, 255, 0.09);
+        --border-hover: rgba(177, 132, 255, 0.34);
+        --border-focus: rgba(177, 132, 255, 0.62);
+
+        --success: #39e6a2;
+        --success-bg: rgba(57, 230, 162, 0.13);
+        --warning: #ffbc57;
+        --warning-bg: rgba(255, 188, 87, 0.13);
+        --danger: #ff7188;
+        --danger-bg: rgba(255, 113, 136, 0.13);
+        --info: #69aaff;
+        --info-bg: rgba(105, 170, 255, 0.13);
+
+        --shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.30);
+        --shadow-md: 0 16px 42px rgba(0, 0, 0, 0.42);
+        --shadow-glow: 0 0 22px var(--primary-glow);
+
+        background-image:
+            radial-gradient(circle at 12% 16%, rgba(127, 69, 235, 0.10) 0%, transparent 34%),
+            radial-gradient(circle at 88% 78%, rgba(177, 132, 255, 0.07) 0%, transparent 40%);
+    }
+
+    body.dark-theme .panel-card,
+    body.dark-theme .school-info-card,
+    body.dark-theme .pendency-mobile-card {
+        border-color: rgba(255, 255, 255, 0.08);
+        box-shadow: var(--shadow-md);
+    }
+
+    body.pendency-drawer-open-desktop {
+        --pendency-docked-drawer-width: clamp(500px, 24vw, 660px);
+        --pendency-docked-drawer-top: 84px;
+    }
+}
+
+/* Vetores e texto permanecem nítidos em painéis high-DPI. */
+@media (min-resolution: 1.5dppx) {
+    body {
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+    }
+
+    svg {
+        shape-rendering: geometricPrecision;
+    }
+}
