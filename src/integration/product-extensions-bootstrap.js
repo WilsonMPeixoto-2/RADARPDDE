@@ -20,7 +20,8 @@
         '/src/styles/desktop-basic-monitors.css',
         '/src/styles/pendency-passive-queue.css',
         '/src/styles/operational-write-feedback.css',
-        '/src/styles/layout-responsive-2026.css'
+        '/src/styles/layout-responsive-2026.css',
+        '/src/styles/inventory-icon-refinement.css'
     ]);
     const scripts = Object.freeze([
         // Regra crítica: "Incorreto" nunca pode cair no handler-base sem a pendência atômica.
