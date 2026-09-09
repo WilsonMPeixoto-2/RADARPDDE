@@ -47,7 +47,7 @@ Uma Pendência somente avança pelo fluxo próprio:
 4. o controlador reanalisa a tentativa;
 5. somente resultado aprovado/correto resolve a Pendência conforme as regras canônicas atuais.
 
-Corrigir valor, descrição, número, referência, observação cadastral ou outro dado do lançamento **não substitui** nenhuma dessas etapas.
+Corrigir valor, descrição, número, referência, observação cadastral ou qualquer outro dado editável do lançamento **não substitui** nenhuma dessas etapas.
 
 ## 4. Identidade e campos imutáveis
 
@@ -72,21 +72,41 @@ Mudanças de contexto estrutural, quando algum fluxo legítimo as exigir futuram
 
 A UI deverá expor somente campos que possam ser retificados sem destruir identidade histórica.
 
+### 5.0 Inventário obrigatório antes da implementação
+
+A lista abaixo é conceitual e **não é suficiente, por si só, para definir o escopo final de campos**.
+
+Antes de escrever a implementação, o executor deve reconstruir no código atual todos os formulários, serviços, schemas, mapeadores, projeções e componentes que leem ou escrevem cada tipo de lançamento e produzir uma **matriz completa de campos editáveis reais**.
+
+Para cada campo permitido, a matriz deve registrar no mínimo:
+
+- entidade canônica e nome do campo persistido;
+- rótulo apresentado ao usuário;
+- tipos de lançamento aos quais se aplica;
+- validações atuais;
+- campos derivados afetados;
+- superfícies que exibem o estado atual desse campo;
+- snapshots históricos que não devem ser reescritos;
+- necessidade ou não de reconciliação de efeitos secundários;
+- testes que comprovam persistência e propagação.
+
+Nenhum campo atualmente editável deve ficar de fora apenas porque não foi citado como exemplo nesta especificação.
+
 ### 5.1 Nota Fiscal / despesa identificada
 
-Podem ser corrigidos, conforme aplicabilidade do tipo:
+Podem ser corrigidos, conforme aplicabilidade do tipo e confirmação pelo inventário do código atual:
 
 - número/referência do documento;
 - descrição;
 - valor;
 - tipo de gasto quando a mudança não alterar contexto histórico de forma proibida e o serviço canônico puder reconciliar todos os efeitos derivados;
-- demais campos cadastrais já existentes no formulário do lançamento.
+- demais campos cadastrais já existentes no formulário do lançamento e que sejam semanticamente retificáveis.
 
 Se a alteração do tipo implicar efeito derivado relevante, o comando deve recalcular e reconciliar esse efeito de modo atômico ou rejeitar a operação quando não houver contrato seguro.
 
 ### 5.2 `a_identificar`
 
-Enquanto permanecer `a_identificar`, podem ser corrigidos:
+Enquanto permanecer `a_identificar`, podem ser corrigidos, conforme o inventário real do formulário e da persistência:
 
 - descrição;
 - referência eventualmente registrada;
@@ -106,7 +126,9 @@ O registro continua:
 
 ### 5.3 Pendência
 
-Dados cadastrais próprios da Pendência podem ser corrigidos quando semanticamente editáveis, por exemplo:
+Dados cadastrais próprios da Pendência podem ser corrigidos quando semanticamente editáveis e confirmados pelo inventário do código, incluindo os campos descritivos atualmente disponibilizados ao usuário.
+
+Exemplos podem incluir:
 
 - motivo/erro cadastrado;
 - observação;
@@ -129,13 +151,15 @@ Nova regra:
 
 > Pendência ativa bloqueia operações que alterem o ciclo operacional ou rompam identidade/vínculo, mas **não bloqueia a retificação auditável de dados cadastrais do mesmo lançamento**.
 
-Assim, uma Nota Fiscal marcada `Incorreto` com Pendência ativa poderá ter seu valor corrigido sem que a Pendência seja resolvida, removida ou recriada.
+Assim, uma Nota Fiscal marcada `Incorreto` com Pendência ativa poderá ter qualquer campo material permitido corrigido sem que a Pendência seja resolvida, removida ou recriada.
 
 ## 7. Propagação e consistência visual
 
 Toda retificação persistida deve aparecer corretamente em **todas as projeções que derivam do lançamento ou da Pendência**, sem depender de recarregar manualmente a aplicação.
 
-No mínimo, a implementação deve verificar e atualizar:
+A regra não se limita ao campo `valor`.
+
+Para **cada campo editável identificado na matriz do item 5.0**, a implementação deve localizar e validar todas as superfícies que exibem aquele dado atual. Isso inclui, conforme aplicabilidade:
 
 - Prontuário;
 - bloco de Notas Fiscais;
@@ -143,14 +167,27 @@ No mínimo, a implementação deve verificar e atualizar:
 - cartões/listas de Pendências;
 - detalhe da Pendência;
 - drawer/gaveta da Pendência;
-- modais que exibam os dados do lançamento;
+- modais que exibam dados do lançamento;
 - mensagens de cobrança quando consumirem esses dados;
 - resumos e cabeçalhos derivados;
 - timeline/histórico quando exibir snapshot atual do registro;
 - Capital e Inventário, quando houver bem derivado da despesa;
+- visualizações de Consulta Assessoria quando dependentes do lançamento;
 - demais projeções que referenciem a entidade por ID.
 
-### 7.1 Regra de fonte de verdade
+### 7.1 Matriz campo × projeção
+
+Antes da implementação ser considerada pronta, deve existir uma matriz verificável no repositório com a forma:
+
+| Campo editável | Entidade fonte | Prontuário | Pendências | Drawer | Modal | Resumo | Inventário/efeito derivado | Histórico atual | Snapshot histórico |
+|---|---|---|---|---|---|---|---|---|---|
+| campo X | entidade Y | atualizar | atualizar | atualizar | n/a | recalcular | n/a | refletir atual | preservar |
+
+A matriz deve ser preenchida com os **campos reais encontrados no código**. Linhas de exemplo não substituem o inventário definitivo.
+
+Se um campo aparecer em cinco superfícies, as cinco precisam ser atualizadas e testadas. Se aparecer em apenas uma, não se deve criar duplicação artificial.
+
+### 7.2 Regra de fonte de verdade
 
 Nenhuma projeção deve manter cópia textual independente como fonte principal quando o dado atualizado puder ser lido da entidade canônica pelo ID.
 
@@ -159,30 +196,29 @@ Quando for necessário preservar um snapshot histórico, esse snapshot permanece
 - **estado atual do lançamento**, que deve refletir a retificação;
 - **registro histórico do que ocorreu**, que deve permanecer imutável.
 
-### 7.2 Exemplo obrigatório
+### 7.3 Exemplos são apenas ilustrativos
 
-Estado inicial:
+Qualquer exemplo desta especificação, inclusive alteração de valor, existe apenas para demonstrar comportamento.
 
-- despesa `a_identificar` ID X;
-- valor R$ 1.250,00;
-- Pendência P vinculada ao ID X.
+A regra geral é:
 
-Retificação:
+> **todo campo que o usuário puder editar deve propagar seu novo valor para todas as projeções de estado atual que consomem esse campo, preservando apenas os registros históricos que por definição representam o estado pretérito.**
 
-- valor corrigido para R$ 1.520,00.
+Exemplo de valor:
 
-Resultado obrigatório:
+- valor anterior: R$ 1.250,00;
+- valor corrigido: R$ 1.520,00;
+- todas as projeções atuais que exibem valor passam a mostrar R$ 1.520,00;
+- histórico da retificação registra R$ 1.250,00 → R$ 1.520,00.
 
-- `registered_invoice_id` continua X;
-- Pendência continua P;
-- status da Pendência não muda;
-- análise continua `Incorreto` enquanto o fluxo de regularização não for concluído;
-- Prontuário mostra R$ 1.520,00;
-- tela de Pendências mostra R$ 1.520,00;
-- drawer da Pendência mostra R$ 1.520,00;
-- demais projeções atuais mostram R$ 1.520,00;
-- histórico registra a retificação de R$ 1.250,00 para R$ 1.520,00;
-- snapshots históricos anteriores, quando existentes, não são reescritos.
+Exemplo de descrição:
+
+- descrição anterior: `Aquisição de material`;
+- descrição corrigida: `Aquisição de material pedagógico`;
+- todas as projeções atuais que exibem descrição passam a mostrar o texto corrigido;
+- histórico registra a descrição anterior e a nova.
+
+O mesmo princípio vale para número/referência, tipo permitido, observação, motivo e qualquer outro campo que o inventário classifique como editável.
 
 ## 8. Auditoria
 
@@ -222,8 +258,9 @@ A retificação deve recalcular somente os efeitos realmente dependentes dos cam
 Exemplos:
 
 - alteração de valor deve atualizar todas as projeções atuais que mostram o valor;
-- alteração de descrição/número deve atualizar rótulos e detalhes atuais;
+- alteração de descrição/número/referência deve atualizar todos os rótulos, detalhes e composições atuais que dependam desses campos;
 - alteração segura de tipo pode exigir criar, atualizar ou remover efeito patrimonial, conforme as regras canônicas existentes;
+- alteração de observação/motivo deve atualizar todas as superfícies atuais que os exibam;
 - alteração de dados cadastrais não deve alterar bonificação, análise técnica ou status de Pendência sem uma regra funcional específica que determine isso.
 
 O planner/serviço canônico deve decidir os efeitos. A UI não deve executar correções paralelas independentes.
@@ -237,7 +274,7 @@ Requisitos:
 - disponível também quando houver Pendência ativa, desde que o usuário tenha permissão para editar aquele lançamento;
 - campos imutáveis aparecem bloqueados ou fora do formulário;
 - salvar mostra estado de progresso e impede duplo submit;
-- sucesso atualiza imediatamente as projeções afetadas;
+- sucesso atualiza imediatamente todas as projeções afetadas por cada campo alterado;
 - conflito de versão mostra mensagem específica;
 - erro de persistência não altera estado visual como se tivesse salvo;
 - edição da Pendência não deve ser confundida com `Registrar novo envio`, `Reanalisar`, `Resolver` ou `Cancelar`.
@@ -268,28 +305,57 @@ Se uma nova RPC for necessária, ela deve aceitar apenas os campos retificáveis
 
 ## 14. Testes de aceite
 
-A implementação não será considerada concluída sem testes para, no mínimo:
+A implementação não será considerada concluída sem três camadas de teste.
 
-1. editar valor de Nota Fiscal sem Pendência;
-2. editar valor de Nota Fiscal com Pendência ativa;
-3. editar descrição/número com Pendência ativa;
-4. editar valor de `a_identificar` com Pendência ativa;
-5. impedir conversão de `a_identificar` pelo editor comum;
-6. preservar `registered_invoice_id`;
-7. preservar ID/status da Pendência;
-8. não criar nova Pendência na edição;
-9. não resolver Pendência na edição;
-10. registrar trilha antes/depois;
-11. rejeitar alteração de escola/competência/programa;
-12. rejeitar conflito de versão;
-13. propagar valor atualizado ao Prontuário;
-14. propagar valor atualizado à fila/cartão de Pendências;
-15. propagar valor atualizado ao drawer/detalhe;
-16. manter snapshot histórico anterior imutável;
-17. reconciliar efeito patrimonial quando aplicável;
-18. manter novo envio e reanálise funcionando exatamente como antes;
-19. validar perfis autorizados e negar perfis não autorizados;
-20. validar recarga completa após edição contra o estado persistido.
+### 14.1 Contrato funcional
+
+No mínimo:
+
+1. editar lançamento sem Pendência;
+2. editar lançamento com Pendência ativa;
+3. editar `a_identificar` com Pendência ativa;
+4. impedir conversão de `a_identificar` pelo editor comum;
+5. preservar `registered_invoice_id`;
+6. preservar ID/status da Pendência;
+7. não criar nova Pendência na edição;
+8. não resolver Pendência na edição;
+9. registrar trilha antes/depois apenas dos campos alterados;
+10. rejeitar alteração de escola/competência/programa;
+11. rejeitar conflito de versão;
+12. manter novo envio e reanálise funcionando exatamente como antes;
+13. validar perfis autorizados e negar perfis não autorizados;
+14. validar recarga completa após edição contra o estado persistido.
+
+### 14.2 Cobertura por campo editável
+
+Para **cada campo real listado na matriz do item 5.0**, deve existir teste que comprove:
+
+1. o campo pode ser alterado quando permitido;
+2. o novo valor foi persistido na entidade canônica correta;
+3. IDs e vínculos históricos permaneceram inalterados;
+4. o histórico registrou antes/depois desse campo;
+5. efeitos derivados dependentes foram reconciliados;
+6. campos não relacionados não sofreram alteração colateral.
+
+Não é aceitável testar apenas `valor` e inferir que `descrição`, `número`, `referência`, `tipo`, `observação`, `motivo` ou outros campos seguirão o mesmo comportamento.
+
+### 14.3 Cobertura campo × projeção
+
+Para cada combinação relevante da matriz do item 7.1, deve existir evidência automatizada ou E2E de que a projeção mostra o novo valor após a retificação.
+
+Exemplos de categorias de validação:
+
+- Prontuário;
+- fila/cartão de Pendências;
+- drawer/detalhe;
+- modal;
+- mensagem de cobrança;
+- resumo/cabeçalho;
+- Consulta Assessoria, quando dependente;
+- Capital e Inventário, quando dependente;
+- recarga completa da aplicação.
+
+Snapshots históricos devem possuir teste inverso: continuam mostrando o estado pretérito quando essa for sua função semântica.
 
 ## 15. Não objetivos
 
@@ -308,6 +374,8 @@ Esta mudança não deve:
 
 ## 16. Critério final de sucesso
 
-O usuário deve poder corrigir um erro material em qualquer lançamento elegível sem perder histórico e sem quebrar o ciclo operacional.
+O usuário deve poder corrigir qualquer campo material elegível em qualquer lançamento abrangido pela feature sem perder histórico e sem quebrar o ciclo operacional.
 
-Após salvar, **todo lugar que mostra o estado atual daquele lançamento deve refletir imediatamente os novos dados**, enquanto o histórico continua mostrando fielmente o que existia antes e qual retificação foi realizada.
+Após salvar, **todo lugar que mostra o estado atual de qualquer campo alterado deve refletir imediatamente o novo dado**, enquanto o histórico continua mostrando fielmente o que existia antes e qual retificação foi realizada.
+
+A feature não será considerada concluída enquanto houver algum campo editável cuja propagação para uma projeção atual relevante não tenha sido mapeada e testada.
