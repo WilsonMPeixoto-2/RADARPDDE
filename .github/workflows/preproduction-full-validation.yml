@@ -5,6 +5,7 @@ on:
     branches:
       - fix/excel-sme-build-output-api-20260803
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     branches:
       - main
   workflow_dispatch:
@@ -21,6 +22,7 @@ concurrency:
 
 jobs:
   readiness:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: Prontidão completa
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -38,6 +40,7 @@ jobs:
         run: npm run test:readiness
 
   migration-smoke:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: Migrations em PostgreSQL limpo
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -82,6 +85,7 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f supabase/tests/smoke.sql
 
   supabase-local:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: Supabase local, Auth, RLS e pgTAP
     runs-on: ubuntu-24.04
     timeout-minutes: 35
@@ -161,6 +165,7 @@ jobs:
           npm run supabase:stop || true
 
   e2e:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: Playwright completo
     runs-on: ubuntu-24.04
     timeout-minutes: 45
@@ -190,6 +195,7 @@ jobs:
           retention-days: 7
 
   excel-sme:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: Excel SME, OOXML e rota pública local
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -224,6 +230,7 @@ jobs:
           unzip -t artifacts/excel-homologation/RADAR_PDDE_EXCEL_SME_HOMOLOGACAO_EXCELJS_12-2026.xlsx
 
   dependencies:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: Dependências e segurança
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -256,6 +263,7 @@ jobs:
           npm ls --all --json > dependency-health/npm-tree.json
 
   lighthouse:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: Lighthouse CI móvel e desktop
     runs-on: ubuntu-24.04
     timeout-minutes: 25
@@ -321,6 +329,7 @@ jobs:
           retention-days: 7
 
   backup-restore:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: Backup e restauração descartáveis
     runs-on: ubuntu-24.04
     timeout-minutes: 40
@@ -375,7 +384,7 @@ jobs:
 
   gate:
     name: Gate final pré-production
-    if: always()
+    if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
     needs:
       - readiness
       - migration-smoke
