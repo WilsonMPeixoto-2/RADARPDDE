@@ -7,10 +7,12 @@ on:
       - 'src/application/**'
       - 'src/domain/**'
       - 'src/integration/**'
+      - 'src/styles/evaluation-retification-ui.css'
       - 'tests/unit/auditable-retification.test.js'
       - 'tests/unit/evaluation-retification.test.js'
       - 'tests/unit/evaluation-retification-atomic.test.js'
       - 'tests/unit/manual-pendency-retification-audit.test.js'
+      - 'tests/e2e/evaluation-retification-ui.spec.js'
       - 'tests/e2e/invoice-auditable-retification.spec.js'
       - 'tests/e2e/invoice-retification-projections.spec.js'
       - 'tests/e2e/pendency-manual-auditable-retification.spec.js'
@@ -46,6 +48,7 @@ jobs:
       - name: Executar regressões de retificação
         run: >-
           npx playwright test
+          tests/e2e/evaluation-retification-ui.spec.js
           tests/e2e/invoice-auditable-retification.spec.js
           tests/e2e/invoice-retification-projections.spec.js
           tests/e2e/pendency-manual-auditable-retification.spec.js
