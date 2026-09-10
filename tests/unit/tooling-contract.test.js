@@ -138,12 +138,15 @@ test('não mantém workflows temporários de diagnóstico', () => {
 });
 
 
-test('Vercel não desperdiça Preview em branches automáticas do Dependabot', () => {
+test('Vercel limita deploy automático à main e preserva filtro do Dependabot', () => {
     const vercel = readJson('vercel.json');
 
     assert.match(vercel.ignoreCommand, /VERCEL_GIT_COMMIT_REF/);
     assert.match(vercel.ignoreCommand, /dependabot\/\*/);
-    assert.equal(vercel.git?.deploymentEnabled, true);
+    assert.deepEqual(vercel.git?.deploymentEnabled, {
+        '*': false,
+        main: true
+    });
 });
 
 
