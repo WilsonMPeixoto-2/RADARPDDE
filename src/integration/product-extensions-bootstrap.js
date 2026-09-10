@@ -21,7 +21,8 @@
         '/src/styles/pendency-passive-queue.css',
         '/src/styles/operational-write-feedback.css',
         '/src/styles/layout-responsive-2026.css',
-        '/src/styles/inventory-icon-refinement.css'
+        '/src/styles/inventory-icon-refinement.css',
+        '/src/styles/evaluation-retification-ui.css'
     ]);
     const scripts = Object.freeze([
         // Regra crítica: "Incorreto" nunca pode cair no handler-base sem a pendência atômica.
@@ -49,7 +50,10 @@
         '/src/integration/auditable-retification.js',
         // Retificação explícita de avaliações: desfazer bonificação e corrigir erro do operador
         // sem transformar a correção em atalho para novo envio ou reanálise.
-        '/src/integration/evaluation-retification.js'
+        '/src/integration/evaluation-retification.js',
+        // A UX vem por último para expor, com confirmação e feedback, apenas os comandos
+        // que já foram instalados e protegidos pelas camadas de domínio/aplicação.
+        '/src/integration/evaluation-retification-ui.js'
     ]);
     const criticalScripts = new Set([
         '/src/integration/atomic-analysis-pendency.js',
@@ -57,7 +61,8 @@
         '/src/integration/service-advisory-corrective-submission.js',
         '/src/integration/critical-action-guard.js',
         '/src/integration/auditable-retification.js',
-        '/src/integration/evaluation-retification.js'
+        '/src/integration/evaluation-retification.js',
+        '/src/integration/evaluation-retification-ui.js'
     ]);
     const failedScripts = new Map();
 
@@ -66,10 +71,12 @@
         const correctiveInstalled = root.RadarServiceAdvisoryCorrectiveSubmission?.install?.(root) === true;
         const retificationInstalled = root.RadarAuditableRetification?.install?.(root) === true;
         const evaluationRetificationInstalled = root.RadarEvaluationRetification?.install?.(root) === true;
+        const evaluationRetificationUiInstalled = root.RadarEvaluationRetificationUi?.install?.(root) === true;
         return advisoryInstalled
             && correctiveInstalled
             && retificationInstalled
-            && evaluationRetificationInstalled;
+            && evaluationRetificationInstalled
+            && evaluationRetificationUiInstalled;
     }
 
     function waitForCriticalExtensions() {
