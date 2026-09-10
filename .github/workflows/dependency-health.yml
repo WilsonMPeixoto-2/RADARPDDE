@@ -2,6 +2,7 @@ name: Saúde das dependências
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - package.json
       - package-lock.json
@@ -66,6 +67,7 @@ concurrency:
 
 jobs:
   audit:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: Vulnerabilidades, integridade e inventário
     runs-on: ubuntu-24.04
     timeout-minutes: 15
