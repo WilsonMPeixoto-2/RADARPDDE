@@ -7,15 +7,22 @@
     const serviceAdvisory = typeof module !== 'undefined' && module.exports
         ? require('../domain/service-advisory.js')
         : root.RadarServiceAdvisory;
-    const api = factory(contract, serviceAdvisory);
+    const pendencias = typeof module !== 'undefined' && module.exports
+        ? require('../domain/pendencias.js')
+        : root.RadarPendencias;
+    const api = factory(contract, serviceAdvisory, pendencias);
 
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     if (root) root.RadarEvaluationRetification = Object.freeze(api);
-}(typeof window !== 'undefined' ? window : globalThis, function createEvaluationRetificationApi(contract, serviceAdvisory) {
+}(typeof window !== 'undefined' ? window : globalThis, function createEvaluationRetificationApi(
+    contract,
+    serviceAdvisory,
+    pendencyDomain
+) {
     'use strict';
 
-    if (!contract || !serviceAdvisory) {
-        throw new Error('Contrato de dados e regra de Assessoria são obrigatórios para retificação de avaliações.');
+    if (!contract || !serviceAdvisory || !pendencyDomain) {
+        throw new Error('Contrato de dados e domínios de Assessoria/Pendências são obrigatórios para retificação de avaliações.');
     }
 
     const { RepositoryError, cloneValue } = contract;
@@ -24,6 +31,7 @@
     const ORIGINAL_SET_BONIFICATION = Symbol('radarOriginalSetBonification');
     const DERIVED_DOCUMENTS = new Set(['notaFiscal', 'boletoInternet', 'consAssessoria']);
     const DERIVED_BONIFICATION = new Set(['boletoInternet', 'consAssessoria', 'consEnviada']);
+    const RETIFICATION_CANCELLATION_REASON = 'cancelada por retificação da avaliação';
     const DOCUMENT_LABELS = Object.freeze({
         extCC: 'Extrato Conta Corrente',
         extINV: 'Extrato Investimento',
@@ -102,6 +110,107 @@
         verification.bonificacao.consAssessoria = advisory.delivery;
         verification.bonificacao.consEnviada = advisory.sent;
         verification.analise.consAssessoria = advisory.analysis;
+    }
+
+    function validateTechnicalCorrection(service, verification, documentKey, requestedValue) {
+        verification.analise = verification.analise || {};
+        verification.bonificacao = verification.bonificacao || {};
+
+        if (documentKey === 'declBBAgil'
+            && text(verification.bonificacao[documentKey]) === 'Não se aplica') {
+            fail(
+                'DOCUMENT_NOT_APPLICABLE',
+                'A Declaração BB Ágil marcada como N/A não possui análise técnica editável.',
+                'correctTechnicalAnalysis',
+                { documentKey }
+            );
+        }
+        if (requestedValue !== 'Não analisado'
+            && !text(verification.bonificacao[documentKey])) {
+            fail(
+                'DELIVERY_REQUIRED',
+                'Você não pode alterar a análise técnica sem antes preencher o status de entrega no Drive (Sim, Não ou N/A).',
+                'correctTechnicalAnalysis'
+            );
+        }
+        if (requestedValue === 'Correto' && service.flow.requiresLateCorrect({
+            bonusResult: verification.resultadoBonif,
+            deliveryStatus: verification.bonificacao[documentKey]
+        })) {
+            fail(
+                'LATE_ANALYSIS_REQUIRED',
+                'Este documento exige o estado “Correto (Atrasado)” conforme a regra vigente de entrega posterior.',
+                'correctTechnicalAnalysis',
+                { documentKey }
+            );
+        }
+    }
+
+    function retificationAudit(service) {
+        const user = service.getCurrentUser?.() || {};
+        return {
+            eventId: service.createId('evento-retificacao-avaliacao'),
+            at: service.now(),
+            usuario: text(user.name || user.nome || user.email || 'Sistema'),
+            perfil: text(service.getCurrentProfile?.() || user.role || user.perfil || 'sistema')
+        };
+    }
+
+    function findSnapshotVerification(entities, persistence) {
+        if (persistence.verificationId) {
+            const byId = list(entities.verifications)
+                .find(record => text(record.id) === text(persistence.verificationId));
+            if (byId) return byId;
+        }
+        const separator = text(persistence.compKey).indexOf('_');
+        const competence = separator < 0
+            ? text(persistence.compKey)
+            : text(persistence.compKey).slice(0, separator);
+        const programId = separator < 0
+            ? ''
+            : text(persistence.compKey).slice(separator + 1);
+        return list(entities.verifications).find(record => (
+            text(record.school_id) === text(persistence.schoolId)
+            && text(record.competence_id) === competence
+            && (!programId || text(record.program_id) === programId)
+        ));
+    }
+
+    async function persistCorrectionWithCancellation(service, context, persistence) {
+        const { snapshot, repository, defaultPersist } = context;
+        const entities = snapshot?.entities || {};
+        const verification = findSnapshotVerification(entities, persistence);
+        const pendency = list(entities.pendencies)
+            .find(record => text(record.id) === text(persistence.pendencyId));
+        const administrativeLog = list(entities.administrativeLogs)
+            .find(record => text(record.id) === text(persistence.logId));
+
+        if (!verification || !pendency || !administrativeLog) {
+            fail(
+                'PERSISTENCE_CONTEXT_MISSING',
+                'A verificação, a Pendência cancelada ou o histórico da retificação não foi produzido para persistência.',
+                'correctTechnicalAnalysis',
+                {
+                    schoolId: persistence.schoolId,
+                    compKey: persistence.compKey,
+                    pendencyId: persistence.pendencyId,
+                    logId: persistence.logId
+                }
+            );
+        }
+
+        const capabilities = repository.capabilities?.() || {};
+        if (capabilities.remote !== true || typeof repository.executeRpc !== 'function') {
+            return defaultPersist();
+        }
+
+        return repository.executeRpc('retify_verification_with_pendency_cancel', {
+            p_verification: verification,
+            p_expected_verification_version: persistence.expectedVerificationVersion,
+            p_pendency: pendency,
+            p_expected_pendency_version: persistence.expectedPendencyVersion,
+            p_administrative_log: administrativeLog
+        }, 'retifyVerificationWithPendencyCancel');
     }
 
     async function undoBonification(service, input = {}) {
@@ -208,21 +317,88 @@
             const currentVerification = service.getVerification(schoolId, compKey);
             const currentValue = text(currentVerification?.analise?.[documentKey]);
 
-            if (activePendency) {
-                if (currentValue === 'Incorreto' && input.confirmPendencyCancellation !== true) {
-                    fail(
-                        'RETIFICATION_CONFIRMATION_REQUIRED',
-                        'Esta avaliação possui Pendência ativa. Confirme a retificação para cancelar a Pendência preservando seu histórico.',
-                        'correctTechnicalAnalysis',
-                        { pendencyId: activePendency.id }
-                    );
-                }
+            if (activePendency && currentValue === 'Incorreto'
+                && input.confirmPendencyCancellation !== true) {
                 fail(
-                    'RETIFICATION_ATOMIC_CANCELLATION_REQUIRED',
-                    'A correção desta avaliação exige cancelamento atômico da Pendência vinculada.',
+                    'RETIFICATION_CONFIRMATION_REQUIRED',
+                    'Esta avaliação possui Pendência ativa. Confirme a retificação para cancelar a Pendência preservando seu histórico.',
                     'correctTechnicalAnalysis',
                     { pendencyId: activePendency.id }
                 );
+            }
+
+            if (activePendency) {
+                const persistence = {};
+                return service.dataService.execute({
+                    name: 'verification:correct-technical-analysis-with-pendency-cancel',
+                    changedEntities: ['verifications', 'pendencies', 'administrativeLogs'],
+                    incrementalStateEntities: ['verifications', 'pendencies', 'administrativeLogs'],
+                    remoteResultIsAuthoritative: true,
+                    mutate: () => {
+                        const liveState = service.getState();
+                        const verification = service.getVerification(schoolId, compKey);
+                        const livePendency = service.findActivePendency(
+                            liveState,
+                            schoolId,
+                            compKey,
+                            documentKey
+                        );
+                        if (!livePendency || text(livePendency.id) !== text(activePendency.id)) {
+                            fail(
+                                'OPTIMISTIC_CONFLICT',
+                                'A Pendência vinculada mudou enquanto a retificação estava sendo processada. Atualize os dados antes de tentar novamente.',
+                                'correctTechnicalAnalysis',
+                                { pendencyId: activePendency.id }
+                            );
+                        }
+                        const previousAnalysis = text(verification?.analise?.[documentKey]);
+                        if (previousAnalysis !== 'Incorreto') {
+                            fail(
+                                'OPTIMISTIC_CONFLICT',
+                                'A análise técnica mudou enquanto a retificação estava sendo processada. Atualize os dados antes de tentar novamente.',
+                                'correctTechnicalAnalysis',
+                                { documentKey, previousAnalysis }
+                            );
+                        }
+
+                        validateTechnicalCorrection(service, verification, documentKey, requestedValue);
+                        persistence.schoolId = schoolId;
+                        persistence.compKey = compKey;
+                        persistence.verificationId = text(verification.id || verification.verification_id);
+                        persistence.expectedVerificationVersion = rowVersionOf(verification);
+                        persistence.pendencyId = text(livePendency.id);
+                        persistence.expectedPendencyVersion = rowVersionOf(livePendency);
+
+                        const pendencyIndex = list(liveState.pendencies)
+                            .findIndex(item => text(item?.id) === text(livePendency.id));
+                        if (pendencyIndex < 0) {
+                            fail('NOT_FOUND', 'Pendência vinculada não localizada.', 'correctTechnicalAnalysis');
+                        }
+                        const cancelledPendency = pendencyDomain.cancelPendency(
+                            livePendency,
+                            { justificativa: RETIFICATION_CANCELLATION_REASON },
+                            retificationAudit(service)
+                        );
+                        liveState.pendencies[pendencyIndex] = cancelledPendency;
+
+                        verification.analise[documentKey] = requestedValue;
+                        const log = service.appendSchoolLog(
+                            schoolId,
+                            'Avaliação técnica retificada',
+                            `Análise técnica de ${DOCUMENT_LABELS[documentKey] || documentKey} em ${compKey} da escola ${schoolId} retificada de "${previousAnalysis}" para "${requestedValue}" por correção de lançamento. Pendência ${livePendency.id} cancelada por retificação da avaliação, com histórico preservado.`
+                        );
+                        persistence.logId = text(log?.id);
+                        return {
+                            verification: cloneValue(verification),
+                            pendency: cloneValue(cancelledPendency),
+                            previousValue: previousAnalysis,
+                            value: requestedValue,
+                            retified: true,
+                            pendencyCancelled: true
+                        };
+                    },
+                    persist: context => persistCorrectionWithCancellation(service, context, persistence)
+                });
             }
 
             if (currentValue === requestedValue) {
@@ -246,37 +422,7 @@
                     persistence.schoolId = schoolId;
                     persistence.compKey = compKey;
                     persistence.expectedVersion = rowVersionOf(verification);
-                    verification.analise = verification.analise || {};
-                    verification.bonificacao = verification.bonificacao || {};
-
-                    if (documentKey === 'declBBAgil'
-                        && text(verification.bonificacao[documentKey]) === 'Não se aplica') {
-                        fail(
-                            'DOCUMENT_NOT_APPLICABLE',
-                            'A Declaração BB Ágil marcada como N/A não possui análise técnica editável.',
-                            'correctTechnicalAnalysis',
-                            { documentKey }
-                        );
-                    }
-                    if (requestedValue !== 'Não analisado'
-                        && !text(verification.bonificacao[documentKey])) {
-                        fail(
-                            'DELIVERY_REQUIRED',
-                            'Você não pode alterar a análise técnica sem antes preencher o status de entrega no Drive (Sim, Não ou N/A).',
-                            'correctTechnicalAnalysis'
-                        );
-                    }
-                    if (requestedValue === 'Correto' && service.flow.requiresLateCorrect({
-                        bonusResult: verification.resultadoBonif,
-                        deliveryStatus: verification.bonificacao[documentKey]
-                    })) {
-                        fail(
-                            'LATE_ANALYSIS_REQUIRED',
-                            'Este documento exige o estado “Correto (Atrasado)” conforme a regra vigente de entrega posterior.',
-                            'correctTechnicalAnalysis',
-                            { documentKey }
-                        );
-                    }
+                    validateTechnicalCorrection(service, verification, documentKey, requestedValue);
 
                     const previousAnalysis = text(verification.analise[documentKey]);
                     verification.analise[documentKey] = requestedValue;
