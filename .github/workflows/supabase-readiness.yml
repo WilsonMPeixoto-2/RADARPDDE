@@ -70,6 +70,10 @@ on:
       - 'tsconfig.database-types.json'
       - '.github/workflows/supabase-readiness.yml'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -240,7 +244,7 @@ jobs:
           eval "$(npx supabase status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
           test -n "${API_URL:-}"
           test -n "${ANON_KEY:-}"
-          test -n "${SERVICE_ROLE_KEY:-}"
+          test -n "${SERVICE_ROLE_KEY_KEY:-${SERVICE_ROLE_KEY:-}}"
           FIXTURE_PASSWORD="$(node --input-type=module -e "import { randomBytes } from 'node:crypto'; process.stdout.write(randomBytes(32).toString('base64url') + 'A1!')")"
           echo "::add-mask::${FIXTURE_PASSWORD}"
           echo "::add-mask::${SERVICE_ROLE_KEY}"
