@@ -31,7 +31,9 @@
     const ORIGINAL_SET_BONIFICATION = Symbol('radarOriginalSetBonification');
     const DERIVED_DOCUMENTS = new Set(['notaFiscal', 'boletoInternet', 'consAssessoria']);
     const DERIVED_BONIFICATION = new Set(['boletoInternet', 'consAssessoria', 'consEnviada']);
-    const RETIFICATION_CANCELLATION_REASON = 'cancelada por retificação da avaliação';
+    const RETIFICATION_CANCELLATION_TYPE = 'retificacao_avaliacao';
+    const RETIFICATION_CANCELLATION_ORIGIN = 'avaliacao_tecnica';
+    const RETIFICATION_CANCELLATION_LABEL = 'Anulada por edição da avaliação';
     const DOCUMENT_LABELS = Object.freeze({
         extCC: 'Extrato Conta Corrente',
         extINV: 'Extrato Investimento',
@@ -156,6 +158,64 @@
         };
     }
 
+    function requireFormalRetificationConfirmation(input, activePendency, currentValue) {
+        if (!activePendency || currentValue !== 'Incorreto') return null;
+        if (input.confirmPendencyCancellation !== true) {
+            fail(
+                'RETIFICATION_CONFIRMATION_REQUIRED',
+                'Esta avaliação possui Pendência ativa. Confirme expressamente a retificação para anular a Pendência preservando seu histórico.',
+                'correctTechnicalAnalysis',
+                { pendencyId: activePendency.id }
+            );
+        }
+        const justification = text(input.retificationJustification);
+        if (!justification) {
+            fail(
+                'RETIFICATION_JUSTIFICATION_REQUIRED',
+                'Informe a justificativa da retificação antes de confirmar a anulação da Pendência.',
+                'correctTechnicalAnalysis',
+                { pendencyId: activePendency.id }
+            );
+        }
+        return Object.freeze({
+            type: RETIFICATION_CANCELLATION_TYPE,
+            origin: RETIFICATION_CANCELLATION_ORIGIN,
+            label: RETIFICATION_CANCELLATION_LABEL,
+            justification,
+            confirmed: true
+        });
+    }
+
+    function decorateFormalRetificationCancellation(cancelledPendency, details = {}) {
+        const next = cancelledPendency;
+        const previousValue = text(details.previousValue);
+        const requestedValue = text(details.requestedValue);
+        const justification = text(details.justification);
+        next.cancelamento = {
+            ...(next.cancelamento || {}),
+            tipo: RETIFICATION_CANCELLATION_TYPE,
+            origem: RETIFICATION_CANCELLATION_ORIGIN,
+            rotulo: RETIFICATION_CANCELLATION_LABEL,
+            avaliacaoAnterior: previousValue,
+            avaliacaoNova: requestedValue,
+            justificativa: justification,
+            confirmacaoExpressa: true
+        };
+        const event = list(next.historico).at(-1);
+        if (event) {
+            event.tipo = RETIFICATION_CANCELLATION_TYPE;
+            event.detalhe = `Avaliação técnica retificada de "${previousValue}" para "${requestedValue}". Pendência anulada por edição da avaliação. Justificativa: ${justification}`;
+            event.metadados = {
+                tipoEncerramento: RETIFICATION_CANCELLATION_TYPE,
+                origem: RETIFICATION_CANCELLATION_ORIGIN,
+                avaliacaoAnterior: previousValue,
+                avaliacaoNova: requestedValue,
+                confirmacaoExpressa: true
+            };
+        }
+        return next;
+    }
+
     function findSnapshotVerification(entities, persistence) {
         if (persistence.verificationId) {
             const byId = list(entities.verifications)
@@ -188,7 +248,7 @@
         if (!verification || !pendency || !administrativeLog) {
             fail(
                 'PERSISTENCE_CONTEXT_MISSING',
-                'A verificação, a Pendência cancelada ou o histórico da retificação não foi produzido para persistência.',
+                'A verificação, a Pendência anulada ou o histórico da retificação não foi produzido para persistência.',
                 'correctTechnicalAnalysis',
                 {
                     schoolId: persistence.schoolId,
@@ -209,7 +269,8 @@
             p_expected_verification_version: persistence.expectedVerificationVersion,
             p_pendency: pendency,
             p_expected_pendency_version: persistence.expectedPendencyVersion,
-            p_administrative_log: administrativeLog
+            p_administrative_log: administrativeLog,
+            p_retification: persistence.retification
         }, 'retifyVerificationWithPendencyCancel');
     }
 
@@ -316,16 +377,11 @@
                 || service.findActivePendency(state, schoolId, compKey, documentKey);
             const currentVerification = service.getVerification(schoolId, compKey);
             const currentValue = text(currentVerification?.analise?.[documentKey]);
-
-            if (activePendency && currentValue === 'Incorreto'
-                && input.confirmPendencyCancellation !== true) {
-                fail(
-                    'RETIFICATION_CONFIRMATION_REQUIRED',
-                    'Esta avaliação possui Pendência ativa. Confirme a retificação para cancelar a Pendência preservando seu histórico.',
-                    'correctTechnicalAnalysis',
-                    { pendencyId: activePendency.id }
-                );
-            }
+            const formalRetification = requireFormalRetificationConfirmation(
+                input,
+                activePendency,
+                currentValue
+            );
 
             if (activePendency) {
                 const persistence = {};
@@ -368,6 +424,14 @@
                         persistence.expectedVerificationVersion = rowVersionOf(verification);
                         persistence.pendencyId = text(livePendency.id);
                         persistence.expectedPendencyVersion = rowVersionOf(livePendency);
+                        persistence.retification = {
+                            kind: RETIFICATION_CANCELLATION_TYPE,
+                            origin: RETIFICATION_CANCELLATION_ORIGIN,
+                            previousAnalysis,
+                            newAnalysis: requestedValue,
+                            justification: formalRetification.justification,
+                            confirmed: true
+                        };
 
                         const pendencyIndex = list(liveState.pendencies)
                             .findIndex(item => text(item?.id) === text(livePendency.id));
@@ -376,16 +440,21 @@
                         }
                         const cancelledPendency = pendencyDomain.cancelPendency(
                             livePendency,
-                            { justificativa: RETIFICATION_CANCELLATION_REASON },
+                            { justificativa: formalRetification.justification },
                             retificationAudit(service)
                         );
+                        decorateFormalRetificationCancellation(cancelledPendency, {
+                            previousValue: previousAnalysis,
+                            requestedValue,
+                            justification: formalRetification.justification
+                        });
                         liveState.pendencies[pendencyIndex] = cancelledPendency;
 
                         verification.analise[documentKey] = requestedValue;
                         const log = service.appendSchoolLog(
                             schoolId,
                             'Avaliação técnica retificada',
-                            `Análise técnica de ${DOCUMENT_LABELS[documentKey] || documentKey} em ${compKey} da escola ${schoolId} retificada de "${previousAnalysis}" para "${requestedValue}" por correção de lançamento. Pendência ${livePendency.id} cancelada por retificação da avaliação, com histórico preservado.`
+                            `Análise técnica de ${DOCUMENT_LABELS[documentKey] || documentKey} em ${compKey} da escola ${schoolId} retificada de "${previousAnalysis}" para "${requestedValue}". Pendência ${livePendency.id} anulada por edição da avaliação, com histórico preservado. Justificativa: ${formalRetification.justification}`
                         );
                         persistence.logId = text(log?.id);
                         return {
@@ -394,7 +463,8 @@
                             previousValue: previousAnalysis,
                             value: requestedValue,
                             retified: true,
-                            pendencyCancelled: true
+                            pendencyCancelled: true,
+                            pendencyAnnulledByRetification: true
                         };
                     },
                     persist: context => persistCorrectionWithCancellation(service, context, persistence)
@@ -478,6 +548,9 @@
     }
 
     return Object.freeze({
+        RETIFICATION_CANCELLATION_TYPE,
+        RETIFICATION_CANCELLATION_ORIGIN,
+        RETIFICATION_CANCELLATION_LABEL,
         install,
         protectVerificationService,
         undoBonification,
