@@ -85,30 +85,80 @@ function createHarness() {
     return { state, calls, verification, activePendency, service };
 }
 
-test('retificar Incorreto confirmado cancela a Pendência no mesmo comando sem fabricar tentativa', async () => {
+test('retificação de Incorreto com Pendência ativa exige confirmação expressa', async () => {
+    const harness = createHarness();
+
+    await assert.rejects(
+        () => harness.service.correctTechnicalAnalysis({
+            schoolId: 'ESC-1',
+            compKey: '2026-05_BASIC',
+            documentKey: 'extCC',
+            value: 'Correto',
+            profile: 'controlador',
+            retificationJustification: 'A análise foi marcada como incorreta por erro de lançamento.'
+        }),
+        error => error?.code === 'RETIFICATION_CONFIRMATION_REQUIRED'
+    );
+
+    assert.equal(harness.verification.analise.extCC, 'Incorreto');
+    assert.equal(harness.activePendency.status, 'Aberta');
+    assert.deepEqual(harness.calls, []);
+});
+
+test('confirmação sem justificativa não pode anular Pendência por retificação', async () => {
+    const harness = createHarness();
+
+    await assert.rejects(
+        () => harness.service.correctTechnicalAnalysis({
+            schoolId: 'ESC-1',
+            compKey: '2026-05_BASIC',
+            documentKey: 'extCC',
+            value: 'Correto',
+            profile: 'controlador',
+            confirmPendencyCancellation: true,
+            retificationJustification: '   '
+        }),
+        error => error?.code === 'RETIFICATION_JUSTIFICATION_REQUIRED'
+    );
+
+    assert.equal(harness.verification.analise.extCC, 'Incorreto');
+    assert.equal(harness.activePendency.status, 'Aberta');
+    assert.deepEqual(harness.calls, []);
+});
+
+test('retificar Incorreto confirmado anula a Pendência como retificação formal e preserva tentativas e histórico', async () => {
     const harness = createHarness();
     const historyBefore = structuredClone(harness.activePendency.historico);
+    const justification = 'A avaliação foi marcada como Incorreto por engano após conferência do documento correto.';
 
     const result = await harness.service.correctTechnicalAnalysis({
         schoolId: 'ESC-1',
         compKey: '2026-05_BASIC',
         documentKey: 'extCC',
-        value: 'Não analisado',
+        value: 'Correto',
         profile: 'controlador',
-        confirmPendencyCancellation: true
+        confirmPendencyCancellation: true,
+        retificationJustification: justification
     });
 
-    assert.equal(result.value.verification.analise.extCC, 'Não analisado');
+    assert.equal(result.value.verification.analise.extCC, 'Correto');
     assert.equal(result.value.pendency.status, 'Cancelada');
-    assert.equal(
-        result.value.pendency.cancelamento.justificativa,
-        'cancelada por retificação da avaliação'
-    );
+    assert.equal(result.value.pendency.cancelamento.tipo, 'retificacao_avaliacao');
+    assert.equal(result.value.pendency.cancelamento.origem, 'avaliacao_tecnica');
+    assert.equal(result.value.pendency.cancelamento.avaliacaoAnterior, 'Incorreto');
+    assert.equal(result.value.pendency.cancelamento.avaliacaoNova, 'Correto');
+    assert.equal(result.value.pendency.cancelamento.justificativa, justification);
+    assert.equal(result.value.pendency.cancelamento.confirmacaoExpressa, true);
     assert.deepEqual(result.value.pendency.tentativas, []);
     assert.deepEqual(result.value.pendency.historico.slice(0, historyBefore.length), historyBefore);
-    assert.equal(result.value.pendency.historico.at(-1).tipo, 'cancelamento');
-    assert.match(result.value.pendency.historico.at(-1).detalhe, /retificação da avaliação/i);
+    assert.equal(result.value.pendency.historico.at(-1).tipo, 'retificacao_avaliacao');
+    assert.match(result.value.pendency.historico.at(-1).detalhe, /Incorreto.*Correto/i);
+    assert.match(result.value.pendency.historico.at(-1).detalhe, /anulada por edição da avaliação/i);
+    assert.match(result.value.pendency.historico.at(-1).detalhe, /marcada como Incorreto por engano/i);
     assert.equal(harness.state.pendencies[0].status, 'Cancelada');
-    assert.equal(harness.state.logs.at(-1)?.action || harness.state.logs[0]?.action, 'Avaliação técnica retificada');
+    assert.equal(harness.state.logs[0].action, 'Avaliação técnica retificada');
+    assert.match(harness.state.logs[0].details, /Incorreto.*Correto/i);
+    assert.match(harness.state.logs[0].details, /Justificativa:/i);
+    assert.match(harness.state.logs[0].details, /marcada como Incorreto por engano/i);
     assert.equal(harness.calls.length, 1);
 });
