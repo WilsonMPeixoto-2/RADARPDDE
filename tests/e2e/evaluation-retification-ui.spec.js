@@ -14,7 +14,7 @@ async function seedIncorrectEvaluationWithPendency(page) {
     verificacoes[school.id][compKey] = {
       bonificacao: {
         extCC: 'Sim',
-        extINV: '',
+        extINV: 'Sim',
         notaFiscal: '',
         consAssessoria: '',
         consEnviada: false,
@@ -23,7 +23,7 @@ async function seedIncorrectEvaluationWithPendency(page) {
       },
       analise: {
         extCC: 'Incorreto',
-        extINV: 'Não analisado',
+        extINV: 'Correto',
         notaFiscal: 'Não analisado',
         consAssessoria: 'Não analisado',
         declBBAgil: 'Não analisado',
@@ -59,7 +59,7 @@ async function seedIncorrectEvaluationWithPendency(page) {
   });
 }
 
-test.describe('retificação formal de avaliação com Pendência ativa', () => {
+test.describe('retificação formal de avaliações no Preview', () => {
   test('Controlador confirma, justifica e a Pendência fica identificada como anulada por edição da avaliação', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário desktop de homologação em Preview.');
 
@@ -142,5 +142,36 @@ test.describe('retificação formal de avaliação com Pendência ativa', () => 
     await expect(drawer).toContainText('Retificação da avaliação técnica');
     await expect(drawer).toContainText('Incorreto → Correto');
     await expect(drawer).toContainText('A avaliação foi marcada como Incorreto por engano após nova conferência do documento já correto.');
+  });
+
+  test('bonificação possui ação visível de edição e pode ser desfeita com confirmação de sucesso', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário desktop de homologação em Preview.');
+
+    await page.goto('/');
+    await page.evaluate(() => window.RadarProductExtensionsReady);
+    const context = await seedIncorrectEvaluationWithPendency(page);
+
+    const row = page.locator(
+      '#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="extINV"]'
+    );
+    await expect(row.getByRole('button', { name: 'Editar bonificação' })).toBeVisible();
+    await row.getByRole('button', { name: 'Editar bonificação' }).click();
+
+    const dialog = page.getByRole('dialog', { name: 'Editar bonificação' });
+    await expect(dialog.getByTestId('evaluation-current-value')).toHaveText('Sim');
+    await dialog.getByLabel('Nova bonificação').selectOption('');
+    const submit = dialog.getByRole('button', { name: 'Salvar edição' });
+    await expect(submit).toBeEnabled();
+    await submit.click();
+
+    await expect(dialog).toBeHidden();
+    await expect(page.locator('#pendency-notice')).toContainText('Bonificação desfeita com sucesso.');
+    const state = await page.evaluate(({ schoolId, compKey }) => ({
+      bonification: verificacoes[schoolId][compKey].bonificacao.extINV,
+      analysis: verificacoes[schoolId][compKey].analise.extINV
+    }), context);
+    expect(state.bonification).toBe('');
+    expect(state.analysis).toBe('Não analisado');
+    await expect(row.locator('select.select-analise')).toHaveValue('Não analisado');
   });
 });
