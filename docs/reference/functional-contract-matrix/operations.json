@@ -451,7 +451,7 @@
   {
     "id": "INV-01",
     "surface": "school-record",
-    "action": "Cadastrar/editar Nota Fiscal ou despesa, incluindo criação atômica de A identificar",
+    "action": "Cadastrar Nota Fiscal/despesa e retificar dados editáveis do mesmo lançamento, inclusive com Pendência ativa; A identificar nasce atomicamente",
     "mode": "write",
     "criticality": "P0",
     "allow": [
@@ -474,6 +474,10 @@
         "async saveUnidentifiedExpenseWithPendency"
       ],
       [
+        "src/integration/auditable-retification.js",
+        "protectInvoiceService"
+      ],
+      [
         "src/data/supabase-repository.js",
         "saveInvoiceWithEffects"
       ],
@@ -482,7 +486,7 @@
         "save_unidentified_expense_with_pendency"
       ]
     ],
-    "service": "InvoiceService.save + saveUnidentifiedExpenseWithPendency",
+    "service": "InvoiceService.save + saveUnidentifiedExpenseWithPendency + RadarAuditableRetification",
     "repository": "saveInvoiceWithEffects + save_unidentified_expense_with_pendency",
     "resources": [
       "registered_invoices",
@@ -502,7 +506,7 @@
   {
     "id": "INV-02",
     "surface": "school-record",
-    "action": "Excluir documento fiscal sem qualquer histórico de Pendência individual e reverter efeitos vinculados",
+    "action": "Excluir documento fiscal sem qualquer histórico de Pendência individual e reverter efeitos vinculados; operação separada da retificação",
     "mode": "write",
     "criticality": "P0",
     "allow": [

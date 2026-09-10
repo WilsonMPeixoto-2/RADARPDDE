@@ -697,6 +697,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     await expect(focusedReplacementTrigger)
       .toHaveText('Registrar substituição mais recente');
 
+    await page.evaluate(() => closePendencyDetail());
     await replacementTrigger.click();
     await expect(availabilityDate).toHaveValue('');
     await expect(observation).toHaveValue('');
@@ -1128,7 +1129,9 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
 
     const selectedQuotedRow = page.locator('tr[data-pendency-ref].pendency-row-selected');
     await expect(selectedQuotedRow).toContainText(context.documents[2]);
-    await selectedQuotedRow.getByRole('button', {
+    await page.evaluate(() => closePendencyDetail());
+    const quotedRowAfterClose = rowFor(context.documents[2]);
+    await quotedRowAfterClose.getByRole('button', {
       name: 'Registrar novo envio',
       exact: true
     }).click();

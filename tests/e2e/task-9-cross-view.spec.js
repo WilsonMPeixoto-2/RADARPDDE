@@ -88,7 +88,7 @@ test.describe('Task 9 — encontrabilidade entre Competências e Pendências', (
     await expect(passivo).toContainText('Aguardando reanálise');
   });
 
-  test('mantém as ações da lista e o cabeçalho global acessíveis com o drawer aberto no desktop', async ({ page }, testInfo) => {
+  test('mantém o cabeçalho acessível e fecha o drawer antes de agir na lista no desktop', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
     await page.goto('/');
@@ -104,6 +104,7 @@ test.describe('Task 9 — encontrabilidade entre Competências e Pendências', (
     await expect(page.locator('#alerts-dropdown')).toHaveClass(/show/);
     await page.locator('#alerts-bell-container > .bell-button').click();
 
+    await page.evaluate(() => closePendencyDetail());
     const action = record.getByRole('button', { name: 'Registrar novo envio' });
     await action.click();
     await expect(page.locator('#modal-registrar-envio')).toHaveClass(/show/);

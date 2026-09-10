@@ -193,6 +193,46 @@ test('A identificar não participa da regra da Assessoria', () => {
 });
 
 
+test('retificação de a_identificar legado preserva ausência de análise individual explícita', () => {
+    const legacy = {
+        ...baseInput().existingInvoice,
+        tipo: 'a_identificar',
+        numero: '',
+        desc: 'Débito histórico sem documentação suficiente',
+        descricao: 'Débito histórico sem documentação suficiente',
+        valor: 321.45
+    };
+    delete legacy.analiseDocumentoFiscal;
+
+    const input = baseInput({
+        existingInvoice: legacy,
+        contextInvoices: [legacy],
+        request: {
+            schoolId: 'ESC-1',
+            compKey: '2026-05_BASIC',
+            competence: '2026-05',
+            programId: 'BASIC',
+            description: 'Débito histórico corrigido',
+            expenseType: 'a_identificar',
+            invoiceNumber: 'REF-LEGADO-CORRIGIDA',
+            amount: 350.25
+        }
+    });
+
+    const result = planInvoiceEffects(input);
+
+    assert.equal(result.unchanged, false);
+    assert.equal(result.invoice.id, legacy.id);
+    assert.equal(result.invoice.tipo, 'a_identificar');
+    assert.equal(result.invoice.numero, 'REF-LEGADO-CORRIGIDA');
+    assert.equal(result.invoice.valor, 350.25);
+    assert.equal(
+        Object.prototype.hasOwnProperty.call(result.invoice, 'analiseDocumentoFiscal'),
+        false
+    );
+});
+
+
 test('remoção da última NF de serviço reconverge Assessoria e análise fiscal pelo mesmo planner', () => {
     const serviceInvoice = {
         ...baseInput().existingInvoice,

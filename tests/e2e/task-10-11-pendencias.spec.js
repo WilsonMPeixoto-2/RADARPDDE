@@ -110,6 +110,7 @@ test.describe('Tasks 10–11 — contatos, cancelamento e reabertura', () => {
     let dialog = page.getByRole('dialog', { name: 'Cancelar pendência' });
     await dialog.getByLabel('Justificativa do cancelamento').fill('Registro indevido.');
     await dialog.getByRole('button', { name: 'Confirmar cancelamento' }).click();
+    await page.evaluate(() => closePendencyDetail());
 
     await page.getByRole('tab', { name: /^Canceladas\b/ }).click();
     const cancelledRow = page.locator('[data-pendency-id="task10-open"]:visible').first();

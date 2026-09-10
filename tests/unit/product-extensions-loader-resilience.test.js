@@ -93,6 +93,9 @@ function createHarness({ failOnce = [] } = {}) {
                     if (node.src.endsWith('/critical-action-guard.js')) {
                         root.RadarCriticalActionGuard = { install: () => true };
                     }
+                    if (node.src.endsWith('/auditable-retification.js')) {
+                        root.RadarAuditableRetification = { install: () => true };
+                    }
                     node.dispatch('load');
                 });
                 return node;
