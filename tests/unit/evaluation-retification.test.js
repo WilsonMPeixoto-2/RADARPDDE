@@ -6,6 +6,7 @@ const assert = require('node:assert/strict');
 const fluxo = require('../../src/domain/fluxo-operacional.js');
 const retificacoes = require('../../src/domain/retificacoes.js');
 const { VerificationService } = require('../../src/application/verification-service.js');
+const evaluationRetification = require('../../src/integration/evaluation-retification.js');
 
 function createHarness(currentProfile = 'controlador') {
     const verification = {
@@ -61,6 +62,7 @@ function createHarness(currentProfile = 'controlador') {
         fluxo,
         retificacoes
     });
+    evaluationRetification.protectVerificationService(service);
     return { state, calls, verification, service };
 }
 
