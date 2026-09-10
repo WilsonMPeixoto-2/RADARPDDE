@@ -1,6 +1,6 @@
--- RADAR PDDE — retificação auditável de avaliação técnica com cancelamento atômico da Pendência.
+-- RADAR PDDE — retificação auditável de avaliação técnica com anulação formal e atômica da Pendência.
 -- A operação corrige exclusivamente um lançamento técnico marcado como Incorreto por erro do operador.
--- Não substitui o fluxo legítimo Registrar novo envio -> Reanalisar.
+-- Não cria uma rota genérica de cancelamento e não substitui Registrar novo envio -> Reanalisar.
 
 begin;
 
@@ -9,7 +9,8 @@ create or replace function public.retify_verification_with_pendency_cancel(
     p_expected_verification_version integer,
     p_pendency jsonb,
     p_expected_pendency_version integer,
-    p_administrative_log jsonb
+    p_administrative_log jsonb,
+    p_retification jsonb
 )
 returns jsonb
 language plpgsql
@@ -23,6 +24,8 @@ declare
     v_school_id text;
     v_document_key text;
     v_requested_analysis text;
+    v_previous_analysis text;
+    v_justification text;
     v_event_at timestamptz;
     v_user_identifier text;
     v_profile_name text;
@@ -49,6 +52,21 @@ begin
 
     if p_expected_verification_version is null or p_expected_pendency_version is null then
         raise exception 'VALIDATION_ERROR: retificação exige versões esperadas da verificação e da pendência';
+    end if;
+
+    if p_retification is null or jsonb_typeof(p_retification) <> 'object' then
+        raise exception 'VALIDATION_ERROR: confirmação formal da retificação é obrigatória';
+    end if;
+    if coalesce((p_retification ->> 'confirmed')::boolean, false) is distinct from true then
+        raise exception 'RETIFICATION_CONFIRMATION_REQUIRED: confirmação expressa é obrigatória';
+    end if;
+    if nullif(p_retification ->> 'kind', '') is distinct from 'retificacao_avaliacao'
+        or nullif(p_retification ->> 'origin', '') is distinct from 'avaliacao_tecnica' then
+        raise exception 'VALIDATION_ERROR: tipo ou origem da retificação inválidos';
+    end if;
+    v_justification := nullif(btrim(p_retification ->> 'justification'), '');
+    if v_justification is null then
+        raise exception 'RETIFICATION_JUSTIFICATION_REQUIRED: justificativa da retificação é obrigatória';
     end if;
 
     if p_administrative_log is null
@@ -106,6 +124,8 @@ begin
 
     v_school_id := v_existing_verification.school_id;
     v_document_key := v_existing_pendency.document_key;
+    v_previous_analysis := nullif(v_existing_verification.analysis ->> v_document_key, '');
+    v_requested_analysis := nullif(p_verification -> 'analysis' ->> v_document_key, '');
 
     if not public.can_write_school(v_school_id) then
         raise exception 'AUTHORIZATION_DENIED: usuário sem escrita para a escola %', v_school_id;
@@ -136,20 +156,24 @@ begin
     end if;
 
     if v_existing_pendency.status not in ('Aberta', 'Aguardando reanálise') then
-        raise exception 'INVALID_TRANSITION: somente pendência ativa pode ser cancelada por retificação';
+        raise exception 'INVALID_TRANSITION: somente pendência ativa pode ser anulada por retificação';
     end if;
 
-    if nullif(v_existing_verification.analysis ->> v_document_key, '') is distinct from 'Incorreto' then
-        raise exception 'INVALID_TRANSITION: análise atual precisa ser Incorreto para cancelar pendência por retificação';
+    if v_previous_analysis is distinct from 'Incorreto' then
+        raise exception 'INVALID_TRANSITION: análise atual precisa ser Incorreto para anular pendência por retificação';
     end if;
 
     if nullif(p_pendency ->> 'status', '') is distinct from 'Cancelada' then
-        raise exception 'INVALID_TRANSITION: retificação com pendência ativa deve resultar em Pendência Cancelada';
+        raise exception 'INVALID_TRANSITION: retificação com pendência ativa deve resultar em estado técnico Cancelada';
     end if;
 
-    v_requested_analysis := nullif(p_verification -> 'analysis' ->> v_document_key, '');
     if v_requested_analysis not in ('Não analisado', 'Correto', 'Correto (Atrasado)') then
         raise exception 'VALIDATION_ERROR: estado técnico de destino inválido para retificação';
+    end if;
+
+    if nullif(p_retification ->> 'previousAnalysis', '') is distinct from v_previous_analysis
+        or nullif(p_retification ->> 'newAnalysis', '') is distinct from v_requested_analysis then
+        raise exception 'VALIDATION_ERROR: confirmação não corresponde à alteração efetivamente solicitada';
     end if;
 
     if coalesce(p_verification -> 'bonification', '{}'::jsonb) is distinct from v_existing_verification.bonification
@@ -166,7 +190,7 @@ begin
     if coalesce(p_pendency ->> 'responsible_area', '') is distinct from v_existing_pendency.responsible_area
         or coalesce(p_pendency ->> 'reason', '') is distinct from v_existing_pendency.reason
         or coalesce(p_pendency ->> 'notes', '') is distinct from v_existing_pendency.notes then
-        raise exception 'VALIDATION_ERROR: cancelamento por retificação não pode editar dados cadastrais da pendência';
+        raise exception 'VALIDATION_ERROR: anulação por retificação não pode editar dados cadastrais da pendência';
     end if;
 
     if v_requested_analysis = 'Correto'
@@ -197,20 +221,38 @@ begin
     end;
     v_cancel_event := jsonb_build_object(
         'id', 'evento-retificacao-' || (p_administrative_log ->> 'id'),
-        'tipo', 'cancelamento',
+        'tipo', 'retificacao_avaliacao',
         'dataHora', v_event_at,
         'usuario', v_user_identifier,
         'perfil', v_profile_name,
-        'detalhe', 'Pendência cancelada: cancelada por retificação da avaliação',
+        'detalhe', format(
+            'Avaliação técnica retificada de "%s" para "%s". Pendência anulada por edição da avaliação. Justificativa: %s',
+            v_previous_analysis,
+            v_requested_analysis,
+            v_justification
+        ),
         'erros', case
             when jsonb_typeof(v_existing_pendency.payload -> 'errosAtuais') = 'array'
                 then v_existing_pendency.payload -> 'errosAtuais'
             else '[]'::jsonb
         end,
-        'tentativaId', null
+        'tentativaId', null,
+        'metadados', jsonb_build_object(
+            'tipoEncerramento', 'retificacao_avaliacao',
+            'origem', 'avaliacao_tecnica',
+            'avaliacaoAnterior', v_previous_analysis,
+            'avaliacaoNova', v_requested_analysis,
+            'confirmacaoExpressa', true
+        )
     );
     v_cancellation := jsonb_build_object(
-        'justificativa', 'cancelada por retificação da avaliação',
+        'tipo', 'retificacao_avaliacao',
+        'origem', 'avaliacao_tecnica',
+        'rotulo', 'Anulada por edição da avaliação',
+        'avaliacaoAnterior', v_previous_analysis,
+        'avaliacaoNova', v_requested_analysis,
+        'justificativa', v_justification,
+        'confirmacaoExpressa', true,
         'dataHora', v_event_at,
         'usuario', v_user_identifier,
         'perfil', v_profile_name
@@ -287,7 +329,7 @@ begin
 end
 $$;
 
-revoke all on function public.retify_verification_with_pendency_cancel(jsonb, integer, jsonb, integer, jsonb) from public;
-grant execute on function public.retify_verification_with_pendency_cancel(jsonb, integer, jsonb, integer, jsonb) to authenticated;
+revoke all on function public.retify_verification_with_pendency_cancel(jsonb, integer, jsonb, integer, jsonb, jsonb) from public;
+grant execute on function public.retify_verification_with_pendency_cancel(jsonb, integer, jsonb, integer, jsonb, jsonb) to authenticated;
 
 commit;
