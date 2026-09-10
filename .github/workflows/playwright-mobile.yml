@@ -2,6 +2,7 @@ name: Testes E2E Playwright
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - '**/*.js'
       - '**/*.html'
@@ -21,6 +22,7 @@ concurrency:
 
 jobs:
   mobile:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: Desktop, Android e iPhone
     runs-on: ubuntu-latest
     timeout-minutes: 35
