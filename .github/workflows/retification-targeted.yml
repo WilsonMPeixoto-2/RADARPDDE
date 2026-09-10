@@ -8,6 +8,8 @@ on:
       - 'src/domain/**'
       - 'src/integration/**'
       - 'tests/unit/auditable-retification.test.js'
+      - 'tests/unit/evaluation-retification.test.js'
+      - 'tests/unit/evaluation-retification-atomic.test.js'
       - 'tests/e2e/invoice-auditable-retification.spec.js'
       - 'tests/e2e/invoice-retification-projections.spec.js'
       - 'tests/e2e/pendency-manual-auditable-retification.spec.js'
@@ -32,7 +34,11 @@ jobs:
       - name: Instalar dependências reproduzíveis
         run: npm ci
       - name: Executar testes unitários da retificação
-        run: node --test tests/unit/auditable-retification.test.js
+        run: >-
+          node --test
+          tests/unit/auditable-retification.test.js
+          tests/unit/evaluation-retification.test.js
+          tests/unit/evaluation-retification-atomic.test.js
       - name: Instalar Chromium Playwright
         run: npx playwright install --with-deps chromium
       - name: Executar regressões de retificação
