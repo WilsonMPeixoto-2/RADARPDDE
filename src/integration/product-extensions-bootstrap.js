@@ -46,14 +46,18 @@
         '/src/integration/operational-write-feedback.js',
         // Retificação é o wrapper funcional externo final: reutiliza os serviços canônicos
         // já protegidos por idempotência, histórico, diagnóstico e feedback operacional.
-        '/src/integration/auditable-retification.js'
+        '/src/integration/auditable-retification.js',
+        // Retificação explícita de avaliações: desfazer bonificação e corrigir erro do operador
+        // sem transformar a correção em atalho para novo envio ou reanálise.
+        '/src/integration/evaluation-retification.js'
     ]);
     const criticalScripts = new Set([
         '/src/integration/atomic-analysis-pendency.js',
         '/src/integration/service-advisory-pendency.js',
         '/src/integration/service-advisory-corrective-submission.js',
         '/src/integration/critical-action-guard.js',
-        '/src/integration/auditable-retification.js'
+        '/src/integration/auditable-retification.js',
+        '/src/integration/evaluation-retification.js'
     ]);
     const failedScripts = new Map();
 
@@ -61,7 +65,11 @@
         const advisoryInstalled = root.RadarServiceAdvisoryPendency?.install?.(root) === true;
         const correctiveInstalled = root.RadarServiceAdvisoryCorrectiveSubmission?.install?.(root) === true;
         const retificationInstalled = root.RadarAuditableRetification?.install?.(root) === true;
-        return advisoryInstalled && correctiveInstalled && retificationInstalled;
+        const evaluationRetificationInstalled = root.RadarEvaluationRetification?.install?.(root) === true;
+        return advisoryInstalled
+            && correctiveInstalled
+            && retificationInstalled
+            && evaluationRetificationInstalled;
     }
 
     function waitForCriticalExtensions() {
