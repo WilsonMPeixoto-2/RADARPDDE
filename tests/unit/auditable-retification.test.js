@@ -188,8 +188,8 @@ test('retificação manual preserva ID, status e histórico e registra auditoria
             id: 'pend-manual',
             escolaId: 'ESC-1',
             competencia: '2026-05',
-            item: 'Lançamento antigo',
-            documentoKey: 'Lançamento antigo',
+            item: 'Extrato Conta Corrente',
+            documentoKey: 'Extrato Conta Corrente',
             motivo: 'Documento ausente',
             responsavel: 'Escola',
             status: 'Aberta',
@@ -219,21 +219,57 @@ test('retificação manual preserva ID, status e histórico e registra auditoria
 
     const result = await service.retifyManualDetails({
         pendencyId: 'pend-manual',
-        item: 'Lançamento corrigido',
+        item: 'Extrato Investimento',
         reason: 'Documento ausente',
-        responsible: 'Equipe CRE',
+        responsible: 'Verbas Federais',
         observation: 'Observação corrigida'
     });
 
     const pendency = state.pendencies[0];
     assert.equal(result.ok, true);
     assert.equal(pendency.id, 'pend-manual');
-    assert.equal(pendency.item, 'Lançamento corrigido');
-    assert.equal(pendency.documentoKey, 'Lançamento antigo');
-    assert.equal(pendency.responsavel, 'Equipe CRE');
+    assert.equal(pendency.item, 'Extrato Investimento');
+    assert.equal(pendency.documentoKey, 'Extrato Conta Corrente');
+    assert.equal(pendency.responsavel, 'Verbas Federais');
     assert.equal(pendency.observacao, 'Observação corrigida');
     assert.equal(pendency.status, 'Aberta');
     assert.equal(pendency.historico.length, 1);
     assert.equal(state.logs[0].action, 'Pendência Retificada');
     assert.deepEqual(calls[0].changedEntities, ['pendencies', 'administrativeLogs']);
+});
+
+test('retificação manual rejeita opções novas fora do cadastro canônico', async () => {
+    const state = {
+        pendencies: [{
+            id: 'pend-manual',
+            escolaId: 'ESC-1',
+            competencia: '2026-05',
+            item: 'Extrato Conta Corrente',
+            documentoKey: 'Extrato Conta Corrente',
+            motivo: 'Documento ausente',
+            responsavel: 'Escola',
+            status: 'Aberta',
+            observacao: 'Observação antiga',
+            rowVersion: 1
+        }]
+    };
+    const service = new PendencyService({
+        dataService: createDataService([]),
+        getState: () => state,
+        appendLog: () => ({ id: 'log-1' }),
+        getCurrentProfile: () => 'controlador',
+        getAuthenticatedRole: () => 'controller'
+    });
+    retification.protectPendencyService(service);
+
+    await assert.rejects(
+        () => service.retifyManualDetails({
+            pendencyId: 'pend-manual',
+            item: 'Item inventado',
+            reason: 'Documento ausente',
+            responsible: 'Equipe CRE',
+            observation: 'Observação corrigida'
+        }),
+        error => error?.code === 'VALIDATION_FAILED'
+    );
 });

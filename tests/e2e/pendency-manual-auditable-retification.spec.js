@@ -25,7 +25,7 @@ test.describe('Edição auditável de Pendência manual', () => {
         id,
         escolaId: escola.id,
         competencia: activeCompetenciaKey,
-        item: 'Lançamento manual antigo',
+        item: 'Extrato Conta Corrente',
         motivo: 'Documento ausente',
         responsavel: 'Escola',
         status: 'Aberta',
@@ -50,9 +50,9 @@ test.describe('Edição auditável de Pendência manual', () => {
 
     await expect(drawer.locator('#pendency-preview-item')).toBeVisible();
     await expect(drawer.locator('#pendency-preview-responsible')).toBeVisible();
-    await drawer.locator('#pendency-preview-item').fill('Lançamento manual corrigido');
+    await drawer.locator('#pendency-preview-item').selectOption('Extrato Investimento');
     await drawer.locator('#pendency-preview-reason').selectOption('Documento ausente');
-    await drawer.locator('#pendency-preview-responsible').selectOption('Equipe CRE');
+    await drawer.locator('#pendency-preview-responsible').selectOption('Verbas Federais');
     await drawer.locator('#pendency-preview-observation').fill('Observação manual corrigida.');
     await drawer.getByRole('button', { name: 'Salvar', exact: true }).click();
 
@@ -72,16 +72,16 @@ test.describe('Edição auditável de Pendência manual', () => {
 
     expect(state).toMatchObject({
       id: pendencyId,
-      item: 'Lançamento manual corrigido',
+      item: 'Extrato Investimento',
       motivo: 'Documento ausente',
-      responsavel: 'Equipe CRE',
+      responsavel: 'Verbas Federais',
       observacao: 'Observação manual corrigida.',
       status: 'Aberta',
       dataAbertura: '2026-09-01',
       historyLength: 1
     });
 
-    await expect(drawer.getByText('Lançamento manual corrigido', { exact: true })).toBeVisible();
+    await expect(drawer.getByText('Extrato Investimento', { exact: true })).toBeVisible();
     await expect(drawer.getByText('Observação manual corrigida.', { exact: true })).toBeVisible();
   });
 });

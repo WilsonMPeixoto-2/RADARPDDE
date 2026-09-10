@@ -38,11 +38,19 @@
     const { RepositoryError, cloneValue } = contract;
     const UNIDENTIFIED_EXPENSE_TYPE = 'a_identificar';
     const INDIVIDUAL_HISTORY_KEYS = new Set(['notaFiscal', 'consAssessoria']);
+    const MANUAL_ITEMS = Object.freeze([
+        'Extrato Conta Corrente',
+        'Extrato Investimento',
+        'Notas Fiscais',
+        'Consulta Assessoria',
+        'Declaração BB Ágil',
+        'Encaminhado para Inventariação',
+        'Outro'
+    ]);
     const MANUAL_RESPONSIBLES = Object.freeze([
         'Escola',
         'Verbas Federais',
-        'Inventário',
-        'Equipe CRE'
+        'Inventário'
     ]);
 
     function text(value) {
@@ -218,9 +226,21 @@
                 );
             }
 
-            const unchanged = text(initialPendency.item) === item
+            const currentItem = text(initialPendency.item);
+            const currentResponsible = text(initialPendency.responsavel);
+            if ((!MANUAL_ITEMS.includes(item) && item !== currentItem)
+                || (!MANUAL_RESPONSIBLES.includes(responsible) && responsible !== currentResponsible)) {
+                fail(
+                    'VALIDATION_FAILED',
+                    'Item e responsável devem usar opções já previstas no cadastro da Pendência.',
+                    'retifyManualDetails',
+                    { pendencyId }
+                );
+            }
+
+            const unchanged = currentItem === item
                 && text(initialPendency.motivo) === reason
-                && text(initialPendency.responsavel) === responsible
+                && currentResponsible === responsible
                 && text(initialPendency.observacao) === observation;
             if (unchanged) {
                 return {
@@ -402,6 +422,16 @@
         return (state?.pendencies || []).find(item => text(item.id) === id) || null;
     }
 
+    function appendSelectOptions(root, select, values, current) {
+        values.forEach(value => {
+            const option = root.document.createElement('option');
+            option.value = value;
+            option.textContent = value;
+            option.selected = value === current;
+            select.appendChild(option);
+        });
+    }
+
     function ensureManualPendencyFields(root) {
         const drawer = root?.document?.getElementById('pendency-preview-drawer');
         if (!drawer || drawer.dataset.mode !== 'edit') return false;
@@ -417,12 +447,14 @@
             const itemLabel = root.document.createElement('label');
             itemLabel.htmlFor = 'pendency-preview-item';
             itemLabel.textContent = 'Item';
-            const itemInput = root.document.createElement('input');
-            itemInput.id = 'pendency-preview-item';
-            itemInput.type = 'text';
-            itemInput.value = text(pendency.item);
-            itemInput.required = true;
-            itemField.append(itemLabel, itemInput);
+            const itemSelect = root.document.createElement('select');
+            itemSelect.id = 'pendency-preview-item';
+            itemSelect.required = true;
+            const current = text(pendency.item);
+            const values = [...MANUAL_ITEMS];
+            if (current && !values.includes(current)) values.unshift(current);
+            appendSelectOptions(root, itemSelect, values, current);
+            itemField.append(itemLabel, itemSelect);
             reasonField.before(itemField);
         }
 
@@ -437,13 +469,7 @@
             const current = text(pendency.responsavel);
             const values = [...MANUAL_RESPONSIBLES];
             if (current && !values.includes(current)) values.unshift(current);
-            values.forEach(value => {
-                const option = root.document.createElement('option');
-                option.value = value;
-                option.textContent = value;
-                option.selected = value === current;
-                responsibleSelect.appendChild(option);
-            });
+            appendSelectOptions(root, responsibleSelect, values, current);
             responsibleField.append(responsibleLabel, responsibleSelect);
             reasonField.after(responsibleField);
         }
@@ -552,6 +578,7 @@
 
     return Object.freeze({
         UNIDENTIFIED_EXPENSE_TYPE,
+        MANUAL_ITEMS,
         MANUAL_RESPONSIBLES,
         invoiceHistory,
         isRetifiableInvoice,
