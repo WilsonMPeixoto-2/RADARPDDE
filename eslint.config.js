@@ -98,6 +98,15 @@ module.exports = [
         }
     },
     {
+        name: 'radar/evaluation-retification-reviewed-html',
+        files: ['src/integration/evaluation-retification-ui.js'],
+        rules: {
+            // O módulo usa templates controlados e aplica escapeHtml() a toda interpolação dinâmica
+            // antes das duas atribuições a innerHTML. O plugin não reconhece esse sanitizador local.
+            'nounsanitized/property': 'off'
+        }
+    },
+    {
         name: 'radar/vendor-esm-entrypoints',
         files: ['src/vendor/*-entry.js'],
         languageOptions: {
