@@ -51,8 +51,7 @@ declare
         '20260905231000',
         '20260906062000',
         '20260906065000',
-        '20260906072000',
-        '20260910201500'
+        '20260906072000'
     ];
     v_actual text[];
     v_missing_extensions text[];
@@ -93,8 +92,7 @@ begin
        or to_regprocedure('public.save_invoice_document_with_pendency(jsonb,integer,jsonb,integer,jsonb,jsonb)') is null
        or to_regprocedure('public.register_invoice_document_attempt(jsonb,integer,jsonb,integer,jsonb,integer,jsonb,jsonb,integer,jsonb)') is null
        or to_regprocedure('public.reanalyze_invoice_document_pendency(jsonb,integer,jsonb,jsonb,jsonb,integer,integer,jsonb)') is null
-       or to_regprocedure('public.save_unidentified_expense_with_pendency(jsonb,jsonb,integer,jsonb,jsonb)') is null
-       or to_regprocedure('public.retify_verification_with_pendency_cancel(jsonb,integer,jsonb,integer,jsonb,jsonb)') is null then
+       or to_regprocedure('public.save_unidentified_expense_with_pendency(jsonb,jsonb,integer,jsonb,jsonb)') is null then
         raise exception 'ATOMIC_OPERATIONAL_RPC_MISSING';
     end if;
 

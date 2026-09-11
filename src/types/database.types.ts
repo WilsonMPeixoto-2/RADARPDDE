@@ -1246,17 +1246,6 @@ export type Database = {
         Args: { p_email: string }
         Returns: string
       }
-      retify_verification_with_pendency_cancel: {
-        Args: {
-          p_administrative_log: Json
-          p_expected_pendency_version: number
-          p_expected_verification_version: number
-          p_pendency: Json
-          p_retification: Json
-          p_verification: Json
-        }
-        Returns: Json
-      }
       rollback_data_import: { Args: { p_import_id: string }; Returns: Json }
       save_asset_with_log: {
         Args: {

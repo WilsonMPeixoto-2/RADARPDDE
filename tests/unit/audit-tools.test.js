@@ -26,11 +26,7 @@ test('inventário técnico é determinístico e reconhece a arquitetura vigente'
   assert.ok(first.files.some(file => file.path.startsWith('tests/e2e/') && file.category === 'e2e-tests'));
   assert.equal(first.runtimeExtensions.styles[0], 'src/styles/mobile-responsive.css');
   assert.ok(first.runtimeExtensions.scripts.includes('src/integration/cycle-b-dashboard.js'));
-  assert.ok(first.files.some(file => (
-    file.path === 'supabase/migrations/20260910201500_evaluation_retification_atomic_cancel.sql'
-    && file.category === 'migrations'
-  )));
-  assert.equal(first.supabase.migrationCount, 51);
+  assert.equal(first.supabase.migrationCount, 50);
 });
 
 test('nome de captura visual é determinístico', () => {

@@ -2,7 +2,6 @@ name: Ciclos funcionais reais com Supabase
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
     branches:
       - main
   workflow_dispatch:
@@ -16,7 +15,6 @@ concurrency:
 
 jobs:
   lifecycle:
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: Criar editar converter excluir avaliar e reanalisar
     runs-on: ubuntu-24.04
     timeout-minutes: 45

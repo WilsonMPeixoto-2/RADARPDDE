@@ -36,11 +36,7 @@
         'invoice:save-unidentified-with-pendency': 'Despesa e pendência salvas com sucesso.',
         'inventory:update-asset': 'Alterações do bem salvas com sucesso.',
         'inventory:forward': 'Encaminhamento para inventariação salvo com sucesso.',
-        'inventory:complete': 'Inventariação salva com sucesso.',
-        'pendency:retify-manual-details': 'Pendência editada com sucesso.',
-        'verification:undo-bonification': 'Bonificação desfeita com sucesso.',
-        'verification:correct-technical-analysis': 'Análise técnica editada com sucesso.',
-        'verification:correct-technical-analysis-with-pendency-cancel': 'Avaliação retificada e Pendência anulada com sucesso.'
+        'inventory:complete': 'Inventariação salva com sucesso.'
     });
     const SYNC_WARNING_MESSAGE = 'A alteração foi salva, mas a tela não conseguiu atualizar os dados. Atualize a página antes de continuar.';
     const DATA_SERVICE_FEEDBACK_MARKER = '__radarOperationalSaveFeedbackWrapped';
