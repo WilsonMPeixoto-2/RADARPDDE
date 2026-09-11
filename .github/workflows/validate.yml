@@ -6,6 +6,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -13,6 +17,7 @@ jobs:
   validate:
     name: Sintaxe, auditoria e testes de domínio
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Obter código
@@ -46,6 +51,7 @@ jobs:
       - name: Executar testes unitários com relatório estruturado
         id: unit_tests
         shell: bash
+        timeout-minutes: 15
         run: |
           set +e
           node --test --test-reporter=junit tests/unit/*.test.js > unit-tests.xml
