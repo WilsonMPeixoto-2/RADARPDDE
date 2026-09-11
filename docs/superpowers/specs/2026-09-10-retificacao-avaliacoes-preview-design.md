@@ -139,6 +139,8 @@ A frente precisa cobrir, no mínimo:
 
 ## 9. Preview e limites
 
-Esta entrega será validada em branch e PR Draft. O Preview é deliberado, porque o projeto passou a impedir Preview automático de branches. A exceção usada para homologação não poderá ser integrada à `main` se modificar a política `main-only` da Vercel.
+A entrega foi validada inicialmente em branch e PR Draft, com Preview isolado. O Preview permanece separado de Production e não pode apontar para o Supabase Production do RADAR.
 
-Nenhum merge, migration em Supabase Production ou deploy em Production integra esta etapa de implementação/homologação. A publicação em Production dependerá de aprovação posterior e explícita após homologação do Preview.
+Em 11/09/2026, após os gates direcionados e o Preview ficarem verdes, o PR #299 foi marcado **Ready for Review** apenas para executar a matriz integral de pré-production. No head `4ee5ef5d485f14f31d413a3cf138548b4d994b6e`, concluíram com sucesso: validação geral, CodeQL, saúde de dependências, ciclos funcionais com Supabase, confiabilidade funcional, Playwright completo, gate de perfis/viewports, Lighthouse, backup/restauração e homologação integral pré-production. O Preview Vercel permaneceu isolado e Production não foi publicada por essa transição.
+
+Nenhum merge, migration em Supabase Production ou deploy em Production integra esta etapa de homologação. A publicação em Production continua dependendo de aprovação posterior e explícita.
