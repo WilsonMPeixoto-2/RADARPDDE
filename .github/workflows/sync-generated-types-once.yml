@@ -1,0 +1,74 @@
+name: Sincronizar tipos gerados uma vez
+
+on:
+  pull_request:
+    types: [synchronize]
+    paths:
+      - '.github/workflows/sync-generated-types-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  sync-types:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Obter branch do PR
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+
+      - name: Inserir assinatura gerada da RPC de retificação
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/types/database.types.ts')
+          source = path.read_text()
+          if 'retify_verification_with_pendency_cancel:' in source:
+              raise SystemExit(0)
+
+          needle = '''      resolve_team_auth_user_id_by_email: {
+                  Args: { p_email: string }
+                  Returns: string
+                }
+          '''
+          replacement = needle + '''      retify_verification_with_pendency_cancel: {
+                  Args: {
+                    p_administrative_log: Json
+                    p_expected_pendency_version: number
+                    p_expected_verification_version: number
+                    p_pendency: Json
+                    p_retification: Json
+                    p_verification: Json
+                  }
+                  Returns: Json
+                }
+          '''
+          if source.count(needle) != 1:
+              raise SystemExit('Assinatura âncora não encontrada exatamente uma vez.')
+          path.write_text(source.replace(needle, replacement, 1))
+          PY
+
+      - name: Confirmar alteração exata
+        shell: bash
+        run: |
+          git diff --check
+          test "$(git diff --numstat -- src/types/database.types.ts | awk '{print $1 ":" $2}')" = '11:0'
+          grep -q 'retify_verification_with_pendency_cancel' src/types/database.types.ts
+
+      - name: Publicar tipos atualizados na própria branch
+        shell: bash
+        run: |
+          if git diff --quiet -- src/types/database.types.ts; then
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/types/database.types.ts
+          git commit -m 'chore: atualizar tipos gerados da retificação'
+          git push origin "HEAD:${GITHUB_HEAD_REF}"
