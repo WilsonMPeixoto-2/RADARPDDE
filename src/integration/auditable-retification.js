@@ -278,6 +278,12 @@
                         || current.document_key
                         || current.item
                     );
+                    const differences = [
+                        ['Item', text(current.item), item],
+                        ['Motivo', text(current.motivo), reason],
+                        ['Responsável', text(current.responsavel), responsible],
+                        ['Observação', text(current.observacao), observation]
+                    ].filter(([, before, after]) => before !== after);
                     const next = cloneValue(current);
                     next.item = item;
                     next.documentoKey = structuralDocumentKey;
@@ -286,10 +292,13 @@
                     next.observacao = observation;
                     state.pendencies[index] = next;
 
+                    const changeSummary = differences
+                        .map(([label, before, after]) => `${label}: "${before}" → "${after}"`)
+                        .join('; ');
                     const log = this.appendSchoolLog(
                         next.escolaId,
                         'Pendência Retificada',
-                        `Dados cadastrais da pendência ${next.id} foram retificados sem alterar status, competência ou histórico.`
+                        `Pendência ${next.id} retificada. ${changeSummary}. Status, competência, contexto e histórico preservados.`
                     );
                     persistence.logId = text(log?.id);
                     return { pendency: cloneValue(next), unchanged: false };

@@ -29,6 +29,7 @@ on:
       - '.node-version'
       - '.github/workflows/gate-remoto-perfis-viewports.yml'
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     branches:
       - main
     paths:
@@ -68,6 +69,7 @@ env:
 
 jobs:
   homologar:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: Perfis × Desktop, Android e iPhone
     runs-on: ubuntu-latest
     timeout-minutes: 45

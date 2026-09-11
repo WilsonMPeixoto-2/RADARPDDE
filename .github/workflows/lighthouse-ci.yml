@@ -2,6 +2,7 @@ name: Lighthouse CI
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - 'app.js'
       - 'config.js'
@@ -42,6 +43,7 @@ concurrency:
 
 jobs:
   baseline:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: Baseline mobile e desktop
     runs-on: ubuntu-24.04
     timeout-minutes: 20

@@ -7,12 +7,22 @@ on:
       - 'src/application/**'
       - 'src/domain/**'
       - 'src/integration/**'
+      - 'src/styles/evaluation-retification-ui.css'
       - 'tests/unit/auditable-retification.test.js'
+      - 'tests/unit/evaluation-retification.test.js'
+      - 'tests/unit/evaluation-retification-atomic.test.js'
+      - 'tests/unit/manual-pendency-retification-audit.test.js'
+      - 'tests/unit/product-extensions-loader-resilience.test.js'
+      - 'tests/e2e/evaluation-retification-ui.spec.js'
       - 'tests/e2e/invoice-auditable-retification.spec.js'
       - 'tests/e2e/invoice-retification-projections.spec.js'
       - 'tests/e2e/pendency-manual-auditable-retification.spec.js'
       - '.github/workflows/retification-targeted.yml'
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -31,13 +41,21 @@ jobs:
           cache: npm
       - name: Instalar dependências reproduzíveis
         run: npm ci
-      - name: Executar testes unitários da retificação
-        run: node --test tests/unit/auditable-retification.test.js
+      - name: Executar testes unitários da retificação e bootstrap
+        timeout-minutes: 5
+        run: >-
+          node --test
+          tests/unit/auditable-retification.test.js
+          tests/unit/evaluation-retification.test.js
+          tests/unit/evaluation-retification-atomic.test.js
+          tests/unit/manual-pendency-retification-audit.test.js
+          tests/unit/product-extensions-loader-resilience.test.js
       - name: Instalar Chromium Playwright
         run: npx playwright install --with-deps chromium
       - name: Executar regressões de retificação
         run: >-
           npx playwright test
+          tests/e2e/evaluation-retification-ui.spec.js
           tests/e2e/invoice-auditable-retification.spec.js
           tests/e2e/invoice-retification-projections.spec.js
           tests/e2e/pendency-manual-auditable-retification.spec.js
