@@ -12,6 +12,7 @@ on:
       - 'tests/unit/evaluation-retification.test.js'
       - 'tests/unit/evaluation-retification-atomic.test.js'
       - 'tests/unit/manual-pendency-retification-audit.test.js'
+      - 'tests/unit/product-extensions-loader-resilience.test.js'
       - 'tests/e2e/evaluation-retification-ui.spec.js'
       - 'tests/e2e/invoice-auditable-retification.spec.js'
       - 'tests/e2e/invoice-retification-projections.spec.js'
@@ -40,13 +41,15 @@ jobs:
           cache: npm
       - name: Instalar dependências reproduzíveis
         run: npm ci
-      - name: Executar testes unitários da retificação
+      - name: Executar testes unitários da retificação e bootstrap
+        timeout-minutes: 5
         run: >-
           node --test
           tests/unit/auditable-retification.test.js
           tests/unit/evaluation-retification.test.js
           tests/unit/evaluation-retification-atomic.test.js
           tests/unit/manual-pendency-retification-audit.test.js
+          tests/unit/product-extensions-loader-resilience.test.js
       - name: Instalar Chromium Playwright
         run: npx playwright install --with-deps chromium
       - name: Executar regressões de retificação
