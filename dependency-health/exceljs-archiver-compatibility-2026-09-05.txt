@@ -1,0 +1,5 @@
+ExcelJS 4.4.0 mantém Archiver 5.3.2 intencionalmente.
+Archiver 8.0.0 foi rejeitado: WorkbookWriter falha com "TypeError: Archiver is not a function".
+Archiver 7.0.1 foi rejeitado: WorkbookWriter falha com INPUTSTEAMBUFFERREQUIRED.
+Archiver 6.0.2 foi rejeitado: WorkbookWriter falha com INPUTSTEAMBUFFERREQUIRED.
+archiver-utils aparece somente na cadeia do ExcelJS; por isso o override de Glob é restrito a esse pacote, preservando Archiver 5.3.2 e sua semântica de streaming.

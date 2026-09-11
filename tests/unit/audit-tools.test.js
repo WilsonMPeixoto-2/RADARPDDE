@@ -19,7 +19,7 @@ test('inventário técnico é determinístico e reconhece a arquitetura vigente'
   assert.deepEqual(first, second);
   assert.equal(first.schemaVersion, 1);
   assert.equal(first.package.name, 'radar-pdde');
-  assert.equal(first.package.scripts.start, 'http-server . -p 4175 -c-1');
+  assert.equal(first.package.scripts.start, 'node tests/support/spa-server.mjs');
   assert.ok(first.files.some(file => file.path === 'app.js' && file.category === 'frontend-core'));
   assert.ok(first.files.some(file => file.path === 'config.js' && file.category === 'configuration'));
   assert.ok(first.files.some(file => file.path.startsWith('src/styles/') && file.category === 'styles'));
