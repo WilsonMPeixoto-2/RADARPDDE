@@ -66,6 +66,8 @@ jobs:
           tests/unit/remote-operational-storage-hygiene.test.js
           tests/unit/data-service-authoritative-commit.test.js
           tests/unit/operational-write-refresh-policy.test.js
+          tests/unit/product-extensions-loader-resilience.test.js
+          tests/unit/remote-operational-persistence.test.js
 
       - name: Executar checagem estrutural existente
         run: npm run check
