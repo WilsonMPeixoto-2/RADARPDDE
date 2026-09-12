@@ -21,6 +21,19 @@ function minimalClient() {
     };
 }
 
+function memoryStorage(initialKeys = []) {
+    const keys = [...initialKeys];
+    return {
+        get length() { return keys.length; },
+        key(index) { return keys[index] ?? null; },
+        removeItem(key) {
+            const index = keys.indexOf(key);
+            if (index >= 0) keys.splice(index, 1);
+        },
+        keys: () => [...keys]
+    };
+}
+
 function queryClient(rows) {
     const calls = [];
     const builder = {
@@ -98,6 +111,27 @@ test('bootstrap operacional exclui somente administrativeLogs da carga inicial',
 test('consulta explícita de administrativeLogs não é confundida com bootstrap', () => {
     const explicit = ['administrativeLogs'];
     assert.deepEqual(factory.filterOperationalBootstrapEntities(explicit), explicit);
+});
+
+test('modo Supabase remove apenas cópias antigas radar_pdde_repository antes do bootstrap', () => {
+    const storage = memoryStorage([
+        'radar_pdde_repository:administrativeLogs',
+        'radar_pdde_repository:verifications',
+        'radar_pdde_logs',
+        'radar_pdde_verificacoes',
+        'preferencia_visual'
+    ]);
+
+    factory.createRepository(remoteRuntime(), {
+        supabaseClient: minimalClient(),
+        storage
+    });
+
+    assert.deepEqual(storage.keys().sort(), [
+        'preferencia_visual',
+        'radar_pdde_logs',
+        'radar_pdde_verificacoes'
+    ].sort());
 });
 
 test('exportSnapshot do bootstrap não lê administrativeLogs e snapshots explícitos continuam lendo', async () => {
