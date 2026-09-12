@@ -259,6 +259,8 @@
             return this.dataService.execute({
                 name: 'pendency:retify-manual-details',
                 changedEntities: ['pendencies', 'administrativeLogs'],
+                incrementalStateEntities: ['pendencies', 'administrativeLogs'],
+                remoteResultIsAuthoritative: true,
                 mutate: () => {
                     const state = this.getState();
                     const index = (state.pendencies || []).findIndex(entry => text(entry.id) === pendencyId);
