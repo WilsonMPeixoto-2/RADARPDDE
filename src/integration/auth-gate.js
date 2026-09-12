@@ -107,6 +107,8 @@
     const AUTH_DESCRIPTION = 'Entre com sua conta autorizada para acessar os dados do RADAR PDDE.';
     const AUTH_RESOLVING_DESCRIPTION = 'Verificando a sessão existente antes de liberar o acesso…';
     const AUTH_LOADING_DATA_DESCRIPTION = 'Sessão reconhecida. Carregando os dados autorizados…';
+    const WORKSPACE_ERROR_DESCRIPTION = 'Sua autenticação foi confirmada, mas o ambiente de trabalho não pôde ser preparado.';
+    const WORKSPACE_ERROR_STATUS = 'Não foi possível carregar o ambiente de trabalho. Recarregue para tentar novamente.';
 
     function isTechnicalRole(role) {
         return TECHNICAL_ROLES.has(String(role || ''));
@@ -131,6 +133,11 @@
         else element.style.removeProperty?.('display');
     }
 
+    function errorCode(error) {
+        const code = String(error?.code || '').trim();
+        return code || 'WORKSPACE_STARTUP_FAILED';
+    }
+
     class AuthGate {
         constructor(options = {}) {
             this.root = options.root;
@@ -147,6 +154,16 @@
             });
             this.root.addEventListener('radar:auth-resolved', event => {
                 this.showLoadingData(event?.detail?.authentication || null);
+            });
+            this.root.addEventListener('unhandledrejection', event => {
+                if (this.phase !== 'loading_data') return;
+                event?.preventDefault?.();
+                this.showWorkspaceError(event?.reason, { stage: 'post-auth-workspace' });
+            });
+            this.root.addEventListener('error', event => {
+                if (this.phase !== 'loading_data') return;
+                event?.preventDefault?.();
+                this.showWorkspaceError(event?.error, { stage: 'post-auth-workspace' });
             });
             if (!this.enabled) {
                 this.document.documentElement.classList.remove('radar-auth-required');
@@ -180,6 +197,24 @@
             form.setAttribute?.('aria-hidden', visible ? 'false' : 'true');
         }
 
+        setWorkspaceErrorMode(active) {
+            const form = this.document.getElementById('radar-auth-form');
+            if (!form) return;
+            Array.from(form.querySelectorAll?.('.form-group') || []).forEach(field => {
+                field.hidden = active;
+            });
+            const submit = form.querySelector?.('[type="submit"]');
+            if (submit) {
+                submit.hidden = false;
+                submit.disabled = false;
+                submit.textContent = active ? 'Recarregar ambiente' : 'Entrar';
+            }
+            if (form.dataset) {
+                if (active) form.dataset.mode = 'workspace-error';
+                else delete form.dataset.mode;
+            }
+        }
+
         setDescription(message) {
             const description = this.document.getElementById('radar-auth-description');
             if (description) description.textContent = message || AUTH_DESCRIPTION;
@@ -190,6 +225,7 @@
             this.document.documentElement.classList.add('radar-auth-required');
             const app = this.document.getElementById('app-layout');
             if (app) app.inert = true;
+            this.setWorkspaceErrorMode(false);
             this.setDescription(AUTH_RESOLVING_DESCRIPTION);
             this.setFormVisible(false);
         }
@@ -200,9 +236,32 @@
             const app = this.document.getElementById('app-layout');
             if (app) app.inert = true;
             if (authentication?.authorization) this.setAuthenticationContext(authentication);
+            this.setWorkspaceErrorMode(false);
             this.setDescription(AUTH_LOADING_DATA_DESCRIPTION);
             this.setFormVisible(false);
             this.setStatus('Acesso confirmado. Preparando o ambiente de trabalho…', 'success');
+        }
+
+        showWorkspaceError(error, options = {}) {
+            this.phase = 'workspace_error';
+            this.document.documentElement.classList.add('radar-auth-required');
+            const app = this.document.getElementById('app-layout');
+            if (app) app.inert = true;
+            const stage = String(options.stage || 'post-auth-workspace');
+            const code = errorCode(error);
+            this.root.RADAR_STARTUP_DIAGNOSTICS = Object.freeze({
+                stage,
+                code,
+                occurredAt: new Date().toISOString()
+            });
+            this.root.console?.error?.(
+                `Falha ao preparar o ambiente do RADAR (${stage}/${code}).`,
+                error
+            );
+            this.setWorkspaceErrorMode(true);
+            this.setDescription(WORKSPACE_ERROR_DESCRIPTION);
+            this.setFormVisible(true);
+            this.setStatus(WORKSPACE_ERROR_STATUS, 'error');
         }
 
         show(message) {
@@ -210,6 +269,7 @@
             this.document.documentElement.classList.add('radar-auth-required');
             const app = this.document.getElementById('app-layout');
             if (app) app.inert = true;
+            this.setWorkspaceErrorMode(false);
             this.setDescription(AUTH_DESCRIPTION);
             this.setFormVisible(true);
             this.setStatus(message || 'Entre para acessar o RADAR PDDE.', 'info');
@@ -223,6 +283,7 @@
             this.document.documentElement.classList.remove('radar-auth-required');
             const app = this.document.getElementById('app-layout');
             if (app) app.inert = false;
+            this.setWorkspaceErrorMode(false);
             this.setFormVisible(false);
             this.setDescription(AUTH_DESCRIPTION);
             this.setStatus('', 'info');
@@ -237,6 +298,10 @@
 
         async handleSubmit(event) {
             event.preventDefault();
+            if (this.phase === 'workspace_error') {
+                this.root.location?.reload?.();
+                return;
+            }
             if (this.enabled && this.phase !== 'required') {
                 this.setStatus('A autenticação ainda está inicializando. Aguarde.', 'info');
                 return;
