@@ -34,6 +34,7 @@ jobs:
       - name: Validar sintaxe dos arquivos alterados
         run: |
           node --check src/data/repository-contract.js
+          node --check src/data/supabase-repository.js
           node --check src/data/repository-factory.js
           node --check src/data/state-bridge-metadata.js
           node --check src/integration/auth-gate.js
@@ -49,6 +50,8 @@ jobs:
           node --test
           tests/unit/data-lifecycle-policy.test.js
           tests/unit/append-only-refresh-policy.test.js
+          tests/unit/append-only-command-contract.test.js
+          tests/unit/supabase-keyset-pagination.test.js
           tests/unit/r1-service-command-authority.test.js
           tests/unit/auth-gate-workspace-failure.test.js
           tests/unit/administrative-log-read-architecture.test.js
