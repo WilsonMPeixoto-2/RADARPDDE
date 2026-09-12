@@ -33,6 +33,7 @@ jobs:
 
       - name: Validar sintaxe dos arquivos alterados
         run: |
+          node --check src/data/repository-contract.js
           node --check src/data/repository-factory.js
           node --check src/data/state-bridge-metadata.js
           node --check src/integration/auth-gate.js
@@ -45,6 +46,7 @@ jobs:
       - name: Executar regressões direcionadas
         run: >-
           node --test
+          tests/unit/data-lifecycle-policy.test.js
           tests/unit/auth-gate-workspace-failure.test.js
           tests/unit/administrative-log-read-architecture.test.js
           tests/unit/administrative-log-read-model.test.js
