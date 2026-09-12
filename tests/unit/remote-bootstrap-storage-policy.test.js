@@ -43,6 +43,7 @@ function statePortHarness() {
     return {
         applications,
         port: {
+            capture: async () => ({ memory: {}, storage: {} }),
             exportCanonical: async () => snapshotWithProgram(),
             applyCanonical: async (snapshot, options) => {
                 applications.push({
@@ -50,7 +51,8 @@ function statePortHarness() {
                     options: options === undefined ? undefined : structuredClone(options)
                 });
                 return {};
-            }
+            },
+            restore: async () => undefined
         }
     };
 }
