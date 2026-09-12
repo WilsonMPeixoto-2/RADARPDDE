@@ -100,6 +100,27 @@ test('consulta explícita de administrativeLogs não é confundida com bootstrap
     assert.deepEqual(factory.filterOperationalBootstrapEntities(explicit), explicit);
 });
 
+test('exportSnapshot do bootstrap não lê administrativeLogs e snapshots explícitos continuam lendo', async () => {
+    const repository = factory.createRepository(remoteRuntime(), {
+        supabaseClient: minimalClient()
+    });
+    const loaded = [];
+    repository.load = async entity => {
+        loaded.push(entity);
+        return [];
+    };
+
+    await repository.exportSnapshot({ includeEmpty: true, entities: BOOTSTRAP_ENTITIES });
+
+    assert.equal(loaded.includes('administrativeLogs'), false);
+    assert.equal(loaded.includes('verifications'), true);
+    assert.equal(loaded.includes('registeredInvoices'), true);
+
+    loaded.length = 0;
+    await repository.exportSnapshot({ includeEmpty: true, entities: ['administrativeLogs'] });
+    assert.deepEqual(loaded, ['administrativeLogs']);
+});
+
 test('queryAdministrativeLogs usa limite, filtro por escola e cursor no servidor', async () => {
     const rows = [
         { id: 'LOG-3', school_id: '04.10.001', event_at: '2026-09-11T15:00:00Z' },
