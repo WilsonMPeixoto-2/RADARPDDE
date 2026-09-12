@@ -38,6 +38,7 @@ jobs:
           node --check src/integration/product-extensions-bootstrap.js
           node --check src/integration/school-timeline.js
           node --check src/application/audit-service.js
+          node --check src/application/data-service.js
 
       - name: Executar regressões direcionadas
         run: >-
@@ -48,6 +49,7 @@ jobs:
           tests/unit/school-timeline-lazy-logs.test.js
           tests/unit/audit-service-incremental-persistence.test.js
           tests/unit/audit-service.test.js
+          tests/unit/remote-bootstrap-storage-policy.test.js
 
       - name: Executar checagem estrutural existente
         run: npm run check
