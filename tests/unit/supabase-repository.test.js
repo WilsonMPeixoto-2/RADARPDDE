@@ -24,6 +24,8 @@ function createSupabaseClient(seed = {}) {
             filters: [],
             range: null,
             order: null,
+            afterId: null,
+            limit: null,
             returning: false
         };
         const query = {
@@ -34,6 +36,15 @@ function createSupabaseClient(seed = {}) {
             },
             order(column, options = {}) {
                 state.order = { column, ascending: options.ascending !== false };
+                return query;
+            },
+            gt(column, value) {
+                assert.equal(column, 'id');
+                state.afterId = String(value);
+                return query;
+            },
+            limit(value) {
+                state.limit = value;
                 return query;
             },
             range(from, to) {
@@ -98,6 +109,9 @@ function createSupabaseClient(seed = {}) {
                 }
 
                 data = data.filter(matches);
+                if (state.afterId !== null) {
+                    data = data.filter(row => String(row.id) > state.afterId);
+                }
                 if (state.order) {
                     const { column, ascending } = state.order;
                     data = data.slice().sort((left, right) => {
@@ -107,6 +121,9 @@ function createSupabaseClient(seed = {}) {
                 }
                 if (state.range) {
                     data = data.slice(state.range[0], state.range[1] + 1);
+                }
+                if (Number.isInteger(state.limit)) {
+                    data = data.slice(0, state.limit);
                 }
                 resolve({ data: structuredClone(data), error: null });
             }
@@ -146,7 +163,9 @@ test('pagina todas as linhas em ordem determinística sem truncar coleções gra
 
     assert.deepEqual(loaded.map(row => row.id), ['1', '2', '3', '4', '5']);
     const selectCalls = client.calls.filter(call => call.table === 'schools' && call.operation === 'select');
-    assert.deepEqual(selectCalls.map(call => call.range), [[0, 1], [2, 3], [4, 5]]);
+    assert.deepEqual(selectCalls.map(call => call.afterId), [null, '2', '4']);
+    assert.deepEqual(selectCalls.map(call => call.limit), [2, 2, 2]);
+    assert.equal(selectCalls.some(call => call.range !== null), false);
 });
 
 test('grava coleções em lotes controlados', async () => {
@@ -371,6 +390,8 @@ test('repete somente leitura transitória e não repete gravações', async () =
             return {
                 select() { return this; },
                 order() { return this; },
+                gt() { return this; },
+                limit() { return this; },
                 range() { return this; },
                 upsert() {
                     return Promise.resolve({ data: null, error: new TypeError('network write failed') });
