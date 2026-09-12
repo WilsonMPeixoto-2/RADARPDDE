@@ -84,6 +84,9 @@ function createHarness({ failOnce = [] } = {}) {
                         node.dispatch('error');
                         return;
                     }
+                    if (node.src.endsWith('/administrative-log-read-model.js')) {
+                        root.RadarAdministrativeLogReadModel = { install: () => true };
+                    }
                     if (node.src.endsWith('/service-advisory-pendency.js')) {
                         root.RadarServiceAdvisoryPendency = { install: () => true };
                     }
