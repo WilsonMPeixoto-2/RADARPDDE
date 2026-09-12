@@ -34,6 +34,7 @@ jobs:
       - name: Validar sintaxe dos arquivos alterados
         run: |
           node --check src/data/repository-factory.js
+          node --check src/data/state-bridge-metadata.js
           node --check src/integration/administrative-log-read-model.js
           node --check src/integration/product-extensions-bootstrap.js
           node --check src/integration/school-timeline.js
@@ -50,6 +51,7 @@ jobs:
           tests/unit/audit-service-incremental-persistence.test.js
           tests/unit/audit-service.test.js
           tests/unit/remote-bootstrap-storage-policy.test.js
+          tests/unit/remote-operational-storage-hygiene.test.js
 
       - name: Executar checagem estrutural existente
         run: npm run check
