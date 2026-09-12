@@ -17,8 +17,12 @@ const performanceSource = fs.readFileSync(
     'utf8'
 );
 
-test('DataService mantém uma única entidade append-only elegível à isenção de refresh', () => {
-    assert.deepEqual(dataService.REMOTE_REFRESH_EXEMPT_ENTITIES, ['administrativeLogs']);
+test('DataService limita isenção de refresh às entidades declaradas append-only', () => {
+    assert.deepEqual(dataService.REMOTE_REFRESH_EXEMPT_ENTITIES, [
+        'administrativeLogs',
+        'dataImportRuns',
+        'auditEvents'
+    ]);
     assert.equal(Object.isFrozen(dataService.REMOTE_REFRESH_EXEMPT_ENTITIES), true);
 });
 
