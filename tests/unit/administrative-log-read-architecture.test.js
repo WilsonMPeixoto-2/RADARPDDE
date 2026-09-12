@@ -3,6 +3,8 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const factory = require('../../src/data/repository-factory.js');
+const contract = require('../../src/data/repository-contract.js');
+const dataServiceApi = require('../../src/application/data-service.js');
 
 function remoteRuntime() {
     return {
@@ -72,23 +74,6 @@ function queryClient(rows) {
     };
 }
 
-const BOOTSTRAP_ENTITIES = Object.freeze([
-    'appConfig',
-    'programs',
-    'controllers',
-    'inventoryTeamMembers',
-    'schools',
-    'schoolPrograms',
-    'competences',
-    'verifications',
-    'pendencies',
-    'pendencyAttempts',
-    'pendencyContacts',
-    'assets',
-    'registeredInvoices',
-    'administrativeLogs'
-]);
-
 test('repositório Supabase expõe leitura paginada e contextual de logs administrativos', () => {
     const repository = factory.createRepository(remoteRuntime(), {
         supabaseClient: minimalClient()
@@ -97,20 +82,26 @@ test('repositório Supabase expõe leitura paginada e contextual de logs adminis
     assert.equal(typeof repository.queryAdministrativeLogs, 'function');
 });
 
-test('bootstrap operacional exclui somente administrativeLogs da carga inicial', () => {
-    assert.equal(typeof factory.filterOperationalBootstrapEntities, 'function');
-
-    const filtered = factory.filterOperationalBootstrapEntities(BOOTSTRAP_ENTITIES);
-
-    assert.deepEqual(filtered, BOOTSTRAP_ENTITIES.filter(entity => entity !== 'administrativeLogs'));
-    assert.equal(filtered.includes('verifications'), true);
-    assert.equal(filtered.includes('registeredInvoices'), true);
-    assert.equal(filtered.includes('pendencies'), true);
+test('bootstrap remoto exclui administrativeLogs pela política central, não por filtro oculto do repositório', () => {
+    assert.equal(contract.ENTITY_LIFECYCLE.administrativeLogs.remoteLoad, 'on-demand');
+    assert.equal(contract.REMOTE_BOOTSTRAP_ENTITIES.includes('administrativeLogs'), false);
+    assert.equal(dataServiceApi.REMOTE_BOOTSTRAP_ENTITIES.includes('administrativeLogs'), false);
+    assert.equal(Object.prototype.hasOwnProperty.call(factory, 'filterOperationalBootstrapEntities'), false);
 });
 
-test('consulta explícita de administrativeLogs não é confundida com bootstrap', () => {
-    const explicit = ['administrativeLogs'];
-    assert.deepEqual(factory.filterOperationalBootstrapEntities(explicit), explicit);
+test('snapshots explícitos de administrativeLogs continuam disponíveis para manutenção e auditoria', async () => {
+    const repository = factory.createRepository(remoteRuntime(), {
+        supabaseClient: minimalClient()
+    });
+    const loaded = [];
+    repository.load = async entity => {
+        loaded.push(entity);
+        return [];
+    };
+
+    await repository.exportSnapshot({ includeEmpty: true, entities: ['administrativeLogs'] });
+
+    assert.deepEqual(loaded, ['administrativeLogs']);
 });
 
 test('modo Supabase remove apenas cópias antigas radar_pdde_repository antes do bootstrap', () => {
@@ -132,27 +123,6 @@ test('modo Supabase remove apenas cópias antigas radar_pdde_repository antes do
         'radar_pdde_logs',
         'radar_pdde_verificacoes'
     ].sort());
-});
-
-test('exportSnapshot do bootstrap não lê administrativeLogs e snapshots explícitos continuam lendo', async () => {
-    const repository = factory.createRepository(remoteRuntime(), {
-        supabaseClient: minimalClient()
-    });
-    const loaded = [];
-    repository.load = async entity => {
-        loaded.push(entity);
-        return [];
-    };
-
-    await repository.exportSnapshot({ includeEmpty: true, entities: BOOTSTRAP_ENTITIES });
-
-    assert.equal(loaded.includes('administrativeLogs'), false);
-    assert.equal(loaded.includes('verifications'), true);
-    assert.equal(loaded.includes('registeredInvoices'), true);
-
-    loaded.length = 0;
-    await repository.exportSnapshot({ includeEmpty: true, entities: ['administrativeLogs'] });
-    assert.deepEqual(loaded, ['administrativeLogs']);
 });
 
 test('queryAdministrativeLogs usa limite, filtro por escola e cursor no servidor', async () => {
