@@ -126,6 +126,7 @@ jobs:
           tests/e2e/data-error-ux.spec.js
           --project=desktop-chromium
           --workers=1
+          --max-failures=1
 
       - name: Preservar evidências da interface
         if: always()
