@@ -26,10 +26,19 @@
     const ADMINISTRATIVE_LOG_ENTITY = 'administrativeLogs';
     const DEFAULT_ADMINISTRATIVE_LOG_PAGE_SIZE = 100;
     const MAX_ADMINISTRATIVE_LOG_PAGE_SIZE = 200;
-    const OPERATIONAL_BOOTSTRAP_SENTINELS = Object.freeze([
+    const OPERATIONAL_BOOTSTRAP_ENTITIES = Object.freeze([
         'appConfig',
+        'programs',
+        'controllers',
+        'inventoryTeamMembers',
         'schools',
+        'schoolPrograms',
+        'competences',
         'verifications',
+        'pendencies',
+        'pendencyAttempts',
+        'pendencyContacts',
+        'assets',
         'registeredInvoices',
         ADMINISTRATIVE_LOG_ENTITY
     ]);
@@ -67,9 +76,11 @@
     }
 
     function isOperationalBootstrapEntitySet(entities) {
-        if (!Array.isArray(entities)) return false;
+        if (!Array.isArray(entities) || entities.length !== OPERATIONAL_BOOTSTRAP_ENTITIES.length) {
+            return false;
+        }
         const selected = new Set(entities.map(String));
-        return OPERATIONAL_BOOTSTRAP_SENTINELS.every(entity => selected.has(entity));
+        return OPERATIONAL_BOOTSTRAP_ENTITIES.every(entity => selected.has(entity));
     }
 
     function filterOperationalBootstrapEntities(entities) {
@@ -103,6 +114,14 @@
     }
 
     class OperationalSupabaseRepository extends supabaseApi.SupabaseRepository {
+        async exportSnapshot(options = {}) {
+            const entities = filterOperationalBootstrapEntities(options.entities);
+            return super.exportSnapshot({
+                ...options,
+                ...(Array.isArray(entities) ? { entities } : {})
+            });
+        }
+
         async queryAdministrativeLogs(options = {}) {
             const pageSize = administrativeLogPageSize(options.limit);
             const cursor = administrativeLogCursor(options.cursor);
