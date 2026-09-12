@@ -28,6 +28,9 @@
         // Regra crítica: "Incorreto" nunca pode cair no handler-base sem a pendência atômica.
         // Carregar primeiro impede que falhas em extensões opcionais anteriores desativem essa proteção.
         '/src/integration/atomic-analysis-pendency.js',
+        // Registros administrativos permanecem no Supabase e só entram em memória quando uma
+        // superfície de histórico realmente é aberta. A timeline depende desta leitura contextual.
+        '/src/integration/administrative-log-read-model.js',
         '/src/domain/school-timeline.js',
         '/src/integration/school-timeline.js',
         '/src/integration/navigation-context-bootstrap.js',
@@ -57,6 +60,7 @@
     ]);
     const criticalScripts = new Set([
         '/src/integration/atomic-analysis-pendency.js',
+        '/src/integration/administrative-log-read-model.js',
         '/src/integration/service-advisory-pendency.js',
         '/src/integration/service-advisory-corrective-submission.js',
         '/src/integration/critical-action-guard.js',
@@ -67,12 +71,14 @@
     const failedScripts = new Map();
 
     function installCriticalExtensions() {
+        const administrativeLogReadInstalled = root.RadarAdministrativeLogReadModel?.install?.(root) === true;
         const advisoryInstalled = root.RadarServiceAdvisoryPendency?.install?.(root) === true;
         const correctiveInstalled = root.RadarServiceAdvisoryCorrectiveSubmission?.install?.(root) === true;
         const retificationInstalled = root.RadarAuditableRetification?.install?.(root) === true;
         const evaluationRetificationInstalled = root.RadarEvaluationRetification?.install?.(root) === true;
         const evaluationRetificationUiInstalled = root.RadarEvaluationRetificationUi?.install?.(root) === true;
-        return advisoryInstalled
+        return administrativeLogReadInstalled
+            && advisoryInstalled
             && correctiveInstalled
             && retificationInstalled
             && evaluationRetificationInstalled
