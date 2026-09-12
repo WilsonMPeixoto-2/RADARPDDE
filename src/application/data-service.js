@@ -40,30 +40,20 @@
         assertRepositoryContract,
         assertLocalPersistenceFallback,
         cloneValue,
-        isSnapshotEmpty
+        isSnapshotEmpty,
+        ENTITY_LIFECYCLE,
+        REMOTE_BOOTSTRAP_ENTITIES
     } = contract;
     const { toRepositoryError } = errorMapper;
     const { UnitOfWork } = unitOfWorkApi;
     const { assertCanonicalRecords } = jsonContracts;
     const GENERATED_INSERT_FIELDS = Object.freeze(['row_version', 'created_at', 'updated_at']);
     const VOLATILE_COMPARISON_FIELDS = Object.freeze(['row_version', 'created_at', 'updated_at']);
-    const REMOTE_REFRESH_EXEMPT_ENTITIES = Object.freeze(['administrativeLogs']);
-    const REMOTE_BOOTSTRAP_ENTITIES = Object.freeze([
-        'appConfig',
-        'programs',
-        'controllers',
-        'inventoryTeamMembers',
-        'schools',
-        'schoolPrograms',
-        'competences',
-        'verifications',
-        'pendencies',
-        'pendencyAttempts',
-        'pendencyContacts',
-        'assets',
-        'registeredInvoices',
-        'administrativeLogs'
-    ]);
+    const REMOTE_REFRESH_EXEMPT_ENTITIES = Object.freeze(
+        Object.entries(ENTITY_LIFECYCLE)
+            .filter(([, policy]) => policy.growth === 'append-only')
+            .map(([entity]) => entity)
+    );
 
     function assertSnapshotJson(snapshot, operation) {
         for (const [entity, records] of Object.entries(snapshot?.entities || {})) {
