@@ -295,14 +295,62 @@
             return normalizeCollection(data);
         }
 
+        async loadAfterId(entity, afterId = null, limit = this.pageSize) {
+            const table = this.tableFor(entity);
+            const pageSize = positiveInteger(limit, this.pageSize);
+            const cursor = afterId === undefined || afterId === null || afterId === ''
+                ? null
+                : String(afterId);
+            const data = await withSafeReadRetry(async () => {
+                let query = this.client.from(table).select('*');
+                if (typeof query.order === 'function') query = query.order('id', { ascending: true });
+                if (cursor !== null) {
+                    if (typeof query.gt !== 'function') {
+                        throw new RepositoryError(
+                            'MISSING_KEYSET_PAGINATION',
+                            'A leitura remota exige paginação por cursor de identificador.',
+                            { entity, operation: 'loadAfterId' }
+                        );
+                    }
+                    query = query.gt('id', cursor);
+                }
+                if (typeof query.limit !== 'function') {
+                    throw new RepositoryError(
+                        'MISSING_KEYSET_PAGINATION',
+                        'A leitura remota exige limite explícito por página.',
+                        { entity, operation: 'loadAfterId' }
+                    );
+                }
+                query = query.limit(pageSize);
+                return this.execute(entity, 'loadAfterId', query);
+            }, this.readRetry);
+            return normalizeCollection(data);
+        }
+
         async load(entity) {
             const rows = [];
-            let offset = 0;
+            let afterId = null;
             while (true) {
-                const page = await this.loadPage(entity, offset, this.pageSize);
+                const page = await this.loadAfterId(entity, afterId, this.pageSize);
                 rows.push(...page);
                 if (page.length < this.pageSize) break;
-                offset += page.length;
+                const nextCursorValue = page[page.length - 1]?.id;
+                if (nextCursorValue === undefined || nextCursorValue === null || nextCursorValue === '') {
+                    throw new RepositoryError(
+                        'INVALID_PAGINATION_CURSOR',
+                        `A entidade ${entity} retornou uma página sem identificador utilizável.`,
+                        { entity, operation: 'load' }
+                    );
+                }
+                const nextCursor = String(nextCursorValue);
+                if (afterId !== null && nextCursor === afterId) {
+                    throw new RepositoryError(
+                        'INVALID_PAGINATION_CURSOR',
+                        `A paginação da entidade ${entity} não avançou.`,
+                        { entity, operation: 'load', details: { cursor: afterId } }
+                    );
+                }
+                afterId = nextCursor;
             }
             return cloneValue(rows);
         }
