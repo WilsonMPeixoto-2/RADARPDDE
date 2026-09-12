@@ -97,10 +97,11 @@
 
         async function loadCollection(state, queryOptions, optionsForLoad = {}) {
             const append = optionsForLoad.append === true;
+            const refresh = optionsForLoad.refresh === true;
             const source = text(optionsForLoad.source) || 'administrative-log-read';
 
             if (state.loadingPromise) return state.loadingPromise;
-            if (state.loaded && !append) {
+            if (state.loaded && !append && !refresh) {
                 await applyRecords(state.records, `${source}:cache`);
                 return publicState(state);
             }
@@ -126,7 +127,7 @@
                     state.cursor = result?.cursor ? clone(result.cursor) : null;
                     state.hasMore = result?.hasMore === true;
                     state.loaded = true;
-                    await applyRecords(state.records, source);
+                    await applyRecords(state.records, refresh ? `${source}:refresh` : source);
                     return publicState(state);
                 })
                 .finally(() => {
@@ -179,13 +180,13 @@
         }
     }
 
-    function renderStatusRow(root, target, message, error = false) {
+    function renderStatusRow(root, target, message, error = false, colSpan = 5) {
         if (!target) return;
         const tbody = target.querySelector?.('tbody');
         if (!tbody) return;
         const row = root.document.createElement('tr');
         const cell = root.document.createElement('td');
-        cell.colSpan = 5;
+        cell.colSpan = colSpan;
         cell.style.textAlign = 'center';
         cell.style.padding = '28px';
         cell.style.color = error ? 'var(--danger)' : 'var(--text-muted)';
@@ -337,11 +338,8 @@
             const wrappedAudit = function renderAuditoriaOnDemand() {
                 originalRenderAuditoria.apply(this, arguments);
                 const main = root.document.getElementById('main-container');
-                const state = model.peekAudit();
-                if (!state.loaded) {
-                    renderStatusRow(root, main, 'Carregando registros internos...');
-                }
-                model.loadAudit()
+                renderStatusRow(root, main, 'Carregando registros internos...');
+                model.loadAudit({ refresh: true })
                     .then(next => {
                         if (!auditVisible()) return;
                         originalRenderAuditoria();
@@ -384,11 +382,8 @@
                 const schoolId = text(root.RadarCurrentProntuarioSchoolId);
                 if (!schoolId) return result;
                 const panel = root.document.querySelector('#tab-auditoria');
-                const state = model.peekSchool(schoolId);
-                if (!state.loaded) {
-                    renderStatusRow(root, panel, 'Carregando histórico interno da unidade...');
-                }
-                model.loadSchool(schoolId)
+                renderStatusRow(root, panel, 'Carregando histórico interno da unidade...', false, 4);
+                model.loadSchool(schoolId, { refresh: true })
                     .then(next => {
                         if (text(root.RadarCurrentProntuarioSchoolId) !== schoolId) return;
                         if (root.document.querySelector('#tab-auditoria.active') === null) return;
@@ -399,7 +394,8 @@
                             root,
                             root.document.querySelector('#tab-auditoria'),
                             'Não foi possível carregar o histórico interno da unidade.',
-                            true
+                            true,
+                            4
                         );
                         root.console?.error?.('Falha ao carregar histórico interno da unidade.', error);
                     });
