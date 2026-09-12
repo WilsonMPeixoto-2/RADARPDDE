@@ -154,6 +154,8 @@ test('exporta somente as entidades solicitadas e inicia leituras remotas concorr
             const query = {
                 select() { return query; },
                 order() { return query; },
+                gt() { return query; },
+                limit() { return query; },
                 range() { return query; },
                 then(resolve) {
                     calls.push(table);
