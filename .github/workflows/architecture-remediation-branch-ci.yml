@@ -14,9 +14,9 @@ concurrency:
 
 jobs:
   validate:
-    name: Sintaxe, regressões direcionadas e suíte unitária
+    name: Certificação estrutural e funcional
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 45
 
     steps:
       - name: Obter código da branch
@@ -68,3 +68,37 @@ jobs:
 
       - name: Executar suíte unitária completa
         run: npm run test:unit
+
+      - name: Executar testes de integração
+        run: npm run test:integration
+
+      - name: Validar fronteiras arquiteturais
+        run: npm run check:architecture
+
+      - name: Validar segurança e testes de interface
+        run: |
+          npm run lint:security
+          npm run lint:e2e
+
+      - name: Instalar navegador de validação
+        run: npx playwright install --with-deps chromium
+
+      - name: Validar fluxos operacionais prioritários no desktop
+        run: >-
+          npx playwright test
+          tests/e2e/application-services.spec.js
+          tests/e2e/monthly-evaluation-journey.spec.js
+          tests/e2e/atomic-analysis-pendency.spec.js
+          tests/e2e/evaluation-retification-ui.spec.js
+          tests/e2e/invoice-document-analysis.spec.js
+          tests/e2e/invoice-auditable-retification.spec.js
+          tests/e2e/invoice-submit-guard.spec.js
+          tests/e2e/unidentified-expense.spec.js
+          tests/e2e/pendency-cross-competence.spec.js
+          tests/e2e/pendency-manual-auditable-retification.spec.js
+          tests/e2e/pendency-reanalysis-auth.spec.js
+          tests/e2e/global-competence-selector.spec.js
+          tests/e2e/inventory-prontuario-link.spec.js
+          tests/e2e/data-error-ux.spec.js
+          --project=desktop-chromium
+          --workers=1
