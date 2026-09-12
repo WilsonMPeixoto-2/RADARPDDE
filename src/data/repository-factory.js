@@ -24,6 +24,7 @@
     }
 
     const ADMINISTRATIVE_LOG_ENTITY = 'administrativeLogs';
+    const OBSOLETE_LOCAL_REPOSITORY_PREFIX = 'radar_pdde_repository:';
     const DEFAULT_ADMINISTRATIVE_LOG_PAGE_SIZE = 100;
     const MAX_ADMINISTRATIVE_LOG_PAGE_SIZE = 200;
     const OPERATIONAL_BOOTSTRAP_ENTITIES = Object.freeze([
@@ -73,6 +74,24 @@
                 keyPrefix: dependencies.keyPrefix,
                 schemaVersion: dependencies.schemaVersion
             });
+    }
+
+    function cleanupObsoleteLocalRepositoryStorage(storage) {
+        if (!storage
+            || typeof storage.key !== 'function'
+            || typeof storage.removeItem !== 'function') {
+            return [];
+        }
+        const obsoleteKeys = [];
+        const length = Number.isInteger(storage.length) ? storage.length : Number(storage.length || 0);
+        for (let index = 0; index < length; index += 1) {
+            const key = storage.key(index);
+            if (typeof key === 'string' && key.startsWith(OBSOLETE_LOCAL_REPOSITORY_PREFIX)) {
+                obsoleteKeys.push(key);
+            }
+        }
+        obsoleteKeys.forEach(key => storage.removeItem(key));
+        return obsoleteKeys;
     }
 
     function isOperationalBootstrapEntitySet(entities) {
@@ -173,6 +192,7 @@
             return createLocalRepository(dependencies);
         }
 
+        cleanupObsoleteLocalRepositoryStorage(dependencies.storage);
         return new OperationalSupabaseRepository({
             client: dependencies.supabaseClient,
             tableMap: dependencies.tableMap
@@ -185,6 +205,7 @@
         isProductionEnvironment,
         isSupabaseExplicitlyEnabled,
         assertProductionRepository,
+        cleanupObsoleteLocalRepositoryStorage,
         filterOperationalBootstrapEntities,
         OperationalSupabaseRepository
     });
