@@ -32,6 +32,27 @@
             }
         }
 
+        async persistRemoteLog(context, logId) {
+            const { snapshot, repository, defaultPersist } = context;
+            if (repository?.capabilities?.().remote !== true) return defaultPersist();
+            if (typeof repository.insertOnly !== 'function') return defaultPersist();
+
+            const canonicalLog = (snapshot?.entities?.administrativeLogs || [])
+                .find(record => String(record?.id) === String(logId));
+            if (!canonicalLog) {
+                throw new RepositoryError(
+                    'PERSISTENCE_CONTEXT_MISSING',
+                    'O registro administrativo produzido pela operação não foi encontrado para persistência.',
+                    { operation: 'audit:record', details: { logId } }
+                );
+            }
+
+            const inserted = await repository.insertOnly('administrativeLogs', [canonicalLog]);
+            return {
+                administrative_log: cloneValue(inserted?.[0] || canonicalLog)
+            };
+        }
+
         async record(event = {}) {
             const action = text(event.action || event.acao);
             const details = text(event.details || event.detalhes);
@@ -42,12 +63,26 @@
                     { operation: 'audit:record' }
                 );
             }
+            const persistence = { logId: null };
             return this.dataService.execute({
                 name: 'audit:record',
                 changedEntities: ['administrativeLogs'],
-                mutate: () => ({
-                    log: cloneValue(this.appendLog(action, details, event))
-                })
+                incrementalStateEntities: ['administrativeLogs'],
+                remoteResultIsAuthoritative: true,
+                remoteRefreshExemptEntities: ['administrativeLogs'],
+                mutate: () => {
+                    const log = cloneValue(this.appendLog(action, details, event));
+                    persistence.logId = text(log?.id);
+                    if (!persistence.logId) {
+                        throw new RepositoryError(
+                            'PERSISTENCE_CONTEXT_MISSING',
+                            'O registro administrativo não recebeu identificador.',
+                            { operation: 'audit:record' }
+                        );
+                    }
+                    return { log };
+                },
+                persist: context => this.persistRemoteLog(context, persistence.logId)
             });
         }
     }
