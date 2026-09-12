@@ -287,7 +287,16 @@
                 };
             }
 
-            if (!empty) await this.statePort.applyCanonical(current);
+            if (!empty) {
+                if (capabilities.remote === true) {
+                    await this.statePort.applyCanonical(current, {
+                        persistStorage: false,
+                        source: 'remote-bootstrap'
+                    });
+                } else {
+                    await this.statePort.applyCanonical(current);
+                }
+            }
             return {
                 importedLegacy: false,
                 empty,
