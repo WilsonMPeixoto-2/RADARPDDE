@@ -37,6 +37,42 @@
         'auditEvents'
     ]);
 
+    function lifecycle(growth, remoteLoad, scope) {
+        return Object.freeze({
+            growth,
+            remoteLoad,
+            scope: String(scope || ''),
+            // Em modo Supabase o navegador nunca é fonte persistente de dados operacionais.
+            remoteBrowserPersistence: false
+        });
+    }
+
+    const ENTITY_LIFECYCLE = Object.freeze({
+        appConfig: lifecycle('bounded', 'bootstrap', 'configuração singleton da aplicação'),
+        programs: lifecycle('bounded', 'bootstrap', 'catálogo institucional de programas'),
+        profiles: lifecycle('bounded', 'auth-only', 'catálogo de perfis de autorização'),
+        userProfiles: lifecycle('bounded', 'auth-only', 'vínculo de perfil da conta autenticada'),
+        userSchoolScopes: lifecycle('scoped', 'auth-only', 'escopo escolar atribuído à conta autenticada'),
+        controllers: lifecycle('bounded', 'bootstrap', 'catálogo institucional de controladores'),
+        inventoryTeamMembers: lifecycle('bounded', 'bootstrap', 'equipe institucional de inventário'),
+        schools: lifecycle('bounded', 'bootstrap', 'carteira de unidades autorizada por RLS'),
+        schoolPrograms: lifecycle('scoped', 'bootstrap', 'vínculos programa × unidade autorizados por RLS'),
+        competences: lifecycle('scoped', 'bootstrap', 'calendário de competências dos exercícios configurados'),
+        verifications: lifecycle('scoped', 'bootstrap', 'estado operacional de verificações autorizado por RLS'),
+        pendencies: lifecycle('workflow', 'bootstrap', 'estado necessário aos fluxos operacionais de Pendências autorizados por RLS'),
+        pendencyAttempts: lifecycle('workflow', 'bootstrap', 'tentativas pertencentes às Pendências carregadas'),
+        pendencyContacts: lifecycle('workflow', 'bootstrap', 'contatos operacionais usados por Pendências, alertas e prontuário'),
+        assets: lifecycle('workflow', 'bootstrap', 'estado patrimonial operacional autorizado por RLS'),
+        registeredInvoices: lifecycle('scoped', 'bootstrap', 'despesas e documentos necessários aos fluxos operacionais autorizados por RLS'),
+        administrativeLogs: lifecycle('append-only', 'on-demand', 'histórico paginado e filtrado no servidor por superfície'),
+        dataImportRuns: lifecycle('append-only', 'maintenance', 'histórico técnico de importações'),
+        auditEvents: lifecycle('append-only', 'maintenance', 'trilha técnica de auditoria de dados')
+    });
+
+    const REMOTE_BOOTSTRAP_ENTITIES = Object.freeze(
+        RADAR_ENTITIES.filter(entity => ENTITY_LIFECYCLE[entity]?.remoteLoad === 'bootstrap')
+    );
+
     const ENTITY_SET = new Set(RADAR_ENTITIES);
     const REQUIRED_REPOSITORY_METHODS = Object.freeze([
         'load',
@@ -151,6 +187,8 @@
     return Object.freeze({
         SNAPSHOT_FORMAT,
         RADAR_ENTITIES,
+        ENTITY_LIFECYCLE,
+        REMOTE_BOOTSTRAP_ENTITIES,
         REQUIRED_REPOSITORY_METHODS,
         RepositoryError,
         assertKnownEntity,
