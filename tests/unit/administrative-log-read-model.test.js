@@ -108,7 +108,36 @@ test('carregar mais usa cursor e combina páginas sem duplicar registros', async
     );
 });
 
-test('reabrir uma coleção já carregada reutiliza cache sem nova consulta remota', async () => {
+test('refresh da coleção busca novamente apenas a primeira página e substitui cache antigo', async () => {
+    const harness = createHarness([
+        {
+            records: [{ id: 'L1', event_at: '2026-09-11T17:00:00Z' }],
+            hasMore: false,
+            cursor: null
+        },
+        {
+            records: [
+                { id: 'L2', event_at: '2026-09-11T18:00:00Z' },
+                { id: 'L1', event_at: '2026-09-11T17:00:00Z' }
+            ],
+            hasMore: false,
+            cursor: null
+        }
+    ]);
+    const model = createAdministrativeLogReadModel({ dataService: harness.dataService, pageSize: 100 });
+
+    await model.loadAudit();
+    const refreshed = await model.loadAudit({ refresh: true });
+
+    assert.deepEqual(harness.queries, [
+        { limit: 100 },
+        { limit: 100 }
+    ]);
+    assert.deepEqual(refreshed.records.map(item => item.id), ['L2', 'L1']);
+    assert.equal(refreshed.hasMore, false);
+});
+
+test('reabrir sem refresh ainda pode reutilizar cache dentro da mesma superfície', async () => {
     const harness = createHarness([{
         records: [{ id: 'L1', event_at: '2026-09-11T17:00:00Z' }],
         hasMore: false,
