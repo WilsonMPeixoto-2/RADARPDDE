@@ -69,6 +69,7 @@ jobs:
           tests/unit/product-extensions-loader-resilience.test.js
           tests/unit/remote-operational-persistence.test.js
           tests/unit/remote-success-local-commit.test.js
+          tests/unit/repository-contract-equivalence.test.js
 
       - name: Executar checagem estrutural existente
         run: npm run check
