@@ -89,6 +89,43 @@ test('históricos append-only são isentos de releitura corretiva mesmo quando o
     assert.equal(applied.entities.pendencies[0].row_version, 2);
 });
 
+test('comando remoto genérico não pode usar histórico append-only sem estratégia de persistência explícita', async () => {
+    const current = snapshot();
+    const loadCalls = [];
+    const repository = {
+        capabilities: () => ({ mode: 'supabase', remote: true }),
+        load: async entity => {
+            loadCalls.push(entity);
+            return [];
+        },
+        save: async () => [],
+        remove: async () => ({}),
+        exportSnapshot: async () => structuredClone(current),
+        restoreSnapshot: async () => {},
+        healthCheck: async () => ({ ok: true })
+    };
+    const statePort = {
+        exportCanonical: async () => structuredClone(current),
+        applyCanonical: async () => {}
+    };
+    const unitOfWork = {
+        run: async () => {
+            throw new Error('O comando inseguro deve ser rejeitado antes da unidade de trabalho.');
+        }
+    };
+    const service = new DataService({ repository, statePort, unitOfWork });
+
+    await assert.rejects(
+        service.execute({
+            name: 'unsafe:append-only-default-persist',
+            changedEntities: ['administrativeLogs'],
+            mutate: () => ({})
+        }),
+        error => error?.code === 'APPEND_ONLY_PERSISTENCE_STRATEGY_REQUIRED'
+    );
+    assert.deepEqual(loadCalls, []);
+});
+
 test('entidade mutável continua sujeita à reconciliação remota quando o retorno não é autoritativo', async () => {
     const current = snapshot();
     const loadCalls = [];
