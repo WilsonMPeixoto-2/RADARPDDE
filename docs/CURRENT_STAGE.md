@@ -1,7 +1,80 @@
 # RADAR PDDE — Estado atual do projeto
 
 **Classe documental:** Canônico — estado mutável e retomada futura  
-**Atualizado em:** 7 de setembro de 2026
+**Atualizado em:** 12 de setembro de 2026
+
+## Frente vigente — arquitetura de consultas Supabase, isolada de Production
+
+Esta seção substitui a prioridade temporal das seções de 07/09 preservadas abaixo. Elas explicam o histórico, mas **não autorizam retomar R5 ou o PR #284 como próxima tarefa automática**.
+
+### Alvo e limites
+
+- Repositório: `WilsonMPeixoto-2/RADARPDDE`.
+- Branch autorizada: `fix/supabase-query-architecture-2026-09-11`.
+- Base desta retomada: `4c10fdd17ae24633de0260b200f6e9ebf5dcee58`.
+- O merge do PR #299, `d2663f1ae7554516caf315f53b2509fbcd295e01`, é ancestral comprovado da branch. Preservar suas retificações auditáveis.
+- `main` observada somente por leitura em `2eff1321a8abaccd46d9627ee2eed060741ce3b7`. Isso não certifica o deployment ou o banco de Production.
+- Não alterar `main`, fazer merge, executar migrations, alterar banco/secrets/configurações ou publicar em Production sem autorização explícita separada de Wilson.
+
+### Contexto causal e decisão aprovada
+
+O Supabase é a persistência oficial. O problema relatado no handoff foi o frontend carregar coleções históricas inteiras durante a entrada e reconstruir cópias operacionais persistentes no navegador. O caso mais grave era `administrativeLogs`, que não é necessário às telas operacionais iniciais. O handoff informa cerca de 3.562 logs e 46 segundos de processamento para sua leitura pelo perfil Controlador; esses números são evidência histórica recebida, não medição repetida nesta retomada.
+
+A decisão é **não buscar histórico sem solicitação da superfície**. A missão não é acelerar o download de todos os logs. Registrar uma nova ação também não deve reler a coleção inteira. O banco preserva o histórico; Auditoria e histórico escolar consultam páginas delimitadas e contextualizadas.
+
+O handoff registra que um rollback anterior do frontend, não autorizado, associou indevidamente a falha de acesso ao PR #299 e não resolveu o problema. Registra também que a migration daquele PR permaneceu aplicada. Nesta retomada, sua aplicação em Production não foi revalidada; a ancestralidade funcional do candidato foi comprovada no Git. Não reconstruir a correção a partir do rollback.
+
+Autenticação aprovada e preparação do ambiente operacional são etapas diferentes. Falha na segunda deve ser apresentada como falha de carregamento do ambiente, sem sugerir senha incorreta.
+
+### Preservação funcional
+
+Análise, Bonificação, Pendências, reanálises, notas, documentos, inventário e navegação por escola/programa/competência têm prioridade. Preservar opções, subopções, estados anteriores, confirmações visuais, persistência e releitura. Escritas confirmadas usam retorno autoritativo e atualização incremental.
+
+Não fazer reescrita geral, não remover estruturas sem mapear dependentes e não tornar todas as coleções sob demanda indiscriminadamente. Dados operacionais ainda necessários ao bootstrap permanecem carregados conforme a política central. Não apagar histórico, não enfraquecer RLS e não tratar o volume atual como sobrecarga comprovada do PostgreSQL.
+
+### Implementação presente no candidato
+
+- `ENTITY_LIFECYCLE` e `REMOTE_BOOTSTRAP_ENTITIES`, em `src/data/repository-contract.js`, distinguem bootstrap, Auth, histórico sob demanda e manutenção.
+- `administrativeLogs` sai do bootstrap; Auditoria consulta páginas de 100 registros, com limite máximo de 200 no modelo de leitura. Histórico escolar filtra pela escola.
+- `SupabaseRepository.loadAfterId()` usa limite explícito e continuação por ID para as coleções percorridas; logs possuem consulta contextual específica.
+- `AuditService` e a política de atualização evitam releitura integral de coleções append-only após escrita confirmada.
+- O bootstrap remoto não reconstrói cópia operacional persistente; a limpeza seletiva de caches antigos preserva outras chaves do navegador.
+- `auth-gate.js` distingue falha posterior à autenticação.
+
+Esses itens descrevem **a branch candidata**, não uma publicação certificada em Production.
+
+### Causa exata das três falhas de integração
+
+Reproduzidas em `tests/integration/remote-bootstrap-flow.test.js`: 1 teste passou e 3 falharam com `MISSING_KEYSET_PAGINATION`, primeiro em `appConfig`.
+
+A investigação refinou a hipótese do handoff: `exportSnapshot → load → loadAfterId` já fornece `this.pageSize`. O erro é lançado porque o cliente Supabase **simulado pelo teste** não possui `.limit()`; também lhe falta `.gt()` para continuar páginas. Não era necessário mudar o código do produto para fornecer o limite.
+
+Correção nesta retomada: atualizar esse simulador para aplicar limite e filtro por cursor, mantendo a proteção de produção intacta. Uma regressão com cinco escolas fora de ordem e páginas de dois registros verifica reconciliação completa, cursores, limites e reexecução sem inserção/duplicação/sobrescrita. Duas regressões unitárias confirmam bloqueio quando limite ou continuação não estão disponíveis.
+
+O `bootstrapRemoteSnapshot` desse teste é a ferramenta administrativa de importação/reconciliação de snapshot. Não confundir sua inspeção explícita do destino com o bootstrap de entrada do frontend: a exclusão dos logs neste último continua obrigatória.
+
+### Certificação desta retomada
+
+| Prova local, Node 24.19.0 | Resultado |
+|---|---|
+| Regressão de integração + paginação | 9/9 passaram |
+| `npm run test:integration` | 8/8 passaram |
+| `npm run test:unit` | 984/984 passaram |
+| `npm run check` | passou |
+| `npm run check:architecture` | passou: 180 módulos, 254 dependências, nenhuma violação |
+| `npm run lint:security` | passou: zero erros e 42 avisos dentro do limite existente |
+| `npm run lint:e2e` | passou |
+| E2E desktop da branch | pendente de execução; download local do Chromium encontrou timeout |
+
+Os resultados acima correspondem à base informada mais as alterações desta retomada. Nenhum resultado de Supabase real ou homologação visual pode ser inferido desses testes locais. O workflow isolado `architecture-remediation-branch-ci.yml` define a suíte desktop prioritária; sua execução remota ainda deve ser conferida no commit resultante.
+
+### Próximo passo
+
+Concluir a execução desktop prevista no workflow da branch, classificar qualquer falha pela causa e inspecionar evidência visual das superfícies afetadas. Não declarar certificação integral antes disso. Continuar na branch isolada, sem intervenções em Production.
+
+---
+
+## Registro histórico de 07/09/2026 — não controla a prioridade atual
 
 ## 1. Estado corrente
 

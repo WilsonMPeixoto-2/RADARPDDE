@@ -92,3 +92,30 @@ test('cursor progride de forma estritamente crescente entre páginas', async () 
         ['B', 'D']
     );
 });
+
+test('leitura sem suporte a limite explícito é bloqueada antes de consultar a rede', async () => {
+    let executed = false;
+    const query = {
+        select() { return this; },
+        order() { return this; },
+        then(resolve) { executed = true; resolve({ data: [], error: null }); }
+    };
+    const repository = new SupabaseRepository({ client: { from: () => query } });
+
+    await assert.rejects(repository.load('appConfig'), error => error.code === 'MISSING_KEYSET_PAGINATION');
+    assert.equal(executed, false);
+});
+
+test('continuação sem suporte a filtro por cursor é bloqueada sem repetir a primeira página', async () => {
+    let reads = 0;
+    const query = {
+        select() { return this; },
+        order() { return this; },
+        limit() { return this; },
+        then(resolve) { reads += 1; resolve({ data: [{ id: 'A' }, { id: 'B' }], error: null }); }
+    };
+    const repository = new SupabaseRepository({ client: { from: () => query }, pageSize: 2 });
+
+    await assert.rejects(repository.load('schools'), error => error.code === 'MISSING_KEYSET_PAGINATION');
+    assert.equal(reads, 1);
+});

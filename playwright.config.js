@@ -20,7 +20,7 @@ module.exports = defineConfig({
   use: {
     baseURL: 'http://127.0.0.1:4175',
     trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
+    screenshot: process.env.RADAR_E2E_CAPTURE === '1' ? 'on' : 'only-on-failure',
     video: 'retain-on-failure'
   },
   webServer: {
