@@ -221,7 +221,7 @@
                 'Carregando histórico da unidade...'
             ));
             try {
-                await readModel.loadSchool(schoolId);
+                await readModel.loadSchool(schoolId, { refresh: true });
             } catch (error) {
                 root.console?.error?.('Não foi possível carregar os registros administrativos da unidade.', error);
             }
