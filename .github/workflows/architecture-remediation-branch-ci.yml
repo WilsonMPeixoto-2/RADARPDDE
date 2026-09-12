@@ -52,6 +52,8 @@ jobs:
           tests/unit/append-only-refresh-policy.test.js
           tests/unit/append-only-command-contract.test.js
           tests/unit/supabase-keyset-pagination.test.js
+          tests/unit/supabase-repository.test.js
+          tests/unit/auth-startup-performance.test.js
           tests/unit/r1-service-command-authority.test.js
           tests/unit/auth-gate-workspace-failure.test.js
           tests/unit/administrative-log-read-architecture.test.js
