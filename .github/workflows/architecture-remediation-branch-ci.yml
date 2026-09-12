@@ -35,6 +35,7 @@ jobs:
         run: |
           node --check src/data/repository-factory.js
           node --check src/data/state-bridge-metadata.js
+          node --check src/integration/auth-gate.js
           node --check src/integration/administrative-log-read-model.js
           node --check src/integration/product-extensions-bootstrap.js
           node --check src/integration/school-timeline.js
@@ -44,6 +45,7 @@ jobs:
       - name: Executar regressões direcionadas
         run: >-
           node --test
+          tests/unit/auth-gate-workspace-failure.test.js
           tests/unit/administrative-log-read-architecture.test.js
           tests/unit/administrative-log-read-model.test.js
           tests/unit/administrative-log-extension-load-order.test.js
