@@ -18,6 +18,7 @@ test('audit:record persiste somente o novo log e declara retorno remoto autorita
         event_at: '2026-09-11T20:00:00Z'
     };
     const repository = {
+        capabilities: () => ({ mode: 'supabase', remote: true }),
         async load() {
             throw new Error('Não deve reler administrativeLogs para inserir um novo registro.');
         },
