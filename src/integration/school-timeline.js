@@ -202,7 +202,7 @@
         return true;
     }
 
-    function activateTimeline(event, panel, schoolId) {
+    async function activateTimeline(event, panel, schoolId) {
         let activated = false;
         try {
             if (typeof activateProntuarioTab === 'function') {
@@ -212,6 +212,20 @@
             activated = false;
         }
         if (!activated) activateExtendedTab(event, panel);
+
+        const readModel = root.RadarAdministrativeLogReadContext?.model;
+        if (typeof readModel?.loadSchool === 'function') {
+            panel.replaceChildren(textElement(
+                'div',
+                'school-timeline-empty',
+                'Carregando histórico da unidade...'
+            ));
+            try {
+                await readModel.loadSchool(schoolId);
+            } catch (error) {
+                root.console?.error?.('Não foi possível carregar os registros administrativos da unidade.', error);
+            }
+        }
         renderTimeline(panel, schoolId);
     }
 
