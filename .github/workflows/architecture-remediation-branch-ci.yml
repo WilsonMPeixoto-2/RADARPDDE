@@ -64,12 +64,21 @@ jobs:
           tests/unit/audit-service.test.js
           tests/unit/remote-bootstrap-storage-policy.test.js
           tests/unit/remote-operational-storage-hygiene.test.js
+          tests/unit/data-service-authoritative-commit.test.js
+          tests/unit/operational-write-refresh-policy.test.js
 
       - name: Executar checagem estrutural existente
         run: npm run check
 
-      - name: Executar suíte unitária completa
-        run: npm run test:unit
+      - name: Executar suíte unitária completa isoladamente
+        shell: bash
+        run: |
+          set -euo pipefail
+          for test_file in tests/unit/*.test.js; do
+            echo "::group::$test_file"
+            timeout --signal=TERM 120s node --test "$test_file"
+            echo "::endgroup::"
+          done
 
       - name: Executar testes de integração
         run: npm run test:integration
