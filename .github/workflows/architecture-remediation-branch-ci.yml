@@ -84,8 +84,15 @@ jobs:
             echo "::endgroup::"
           done
 
-      - name: Executar testes de integração
-        run: npm run test:integration
+      - name: Executar testes de integração isoladamente
+        shell: bash
+        run: |
+          set -euo pipefail
+          for test_file in tests/integration/*.test.js; do
+            echo "::group::$test_file"
+            timeout --signal=TERM 120s node --test "$test_file"
+            echo "::endgroup::"
+          done
 
       - name: Validar fronteiras arquiteturais
         run: npm run check:architecture
