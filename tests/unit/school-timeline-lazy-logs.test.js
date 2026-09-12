@@ -13,7 +13,11 @@ const source = fs.readFileSync(
 test('timeline solicita registros administrativos somente na ativação do histórico', () => {
     assert.match(
         source,
-        /activateTimeline[\s\S]*RadarAdministrativeLogReadContext\?\.model\?\.loadSchool/
+        /activateTimeline[\s\S]*RadarAdministrativeLogReadContext\?\.model/
+    );
+    assert.match(
+        source,
+        /activateTimeline[\s\S]*loadSchool\(schoolId,\s*\{\s*refresh:\s*true\s*\}\)/
     );
     const installBlock = source.slice(
         source.indexOf('function installTimelineTab'),
