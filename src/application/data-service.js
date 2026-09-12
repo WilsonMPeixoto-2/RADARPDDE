@@ -459,18 +459,34 @@
             const allowedRefreshExemptEntities = new Set(REMOTE_REFRESH_EXEMPT_ENTITIES);
             const capabilities = this.repository.capabilities();
             const remote = capabilities.remote === true;
-            const remoteRefreshExemptEntities = new Set(
-                remote
-                    ? declaredRefreshExemptEntities.filter(entity => (
-                        changedEntities.includes(entity)
-                        && allowedRefreshExemptEntities.has(entity)
-                    ))
-                    : []
-            );
-            const refreshEntities = changedEntities.filter(entity => !remoteRefreshExemptEntities.has(entity));
             const hasCustomPersist = typeof command.persist === 'function';
             const authoritativeRemoteResult = remote && command.remoteResultIsAuthoritative === true;
             const authoritativeRemoteCommit = remote && command.remoteCommitIsAuthoritative === true;
+            const appendOnlyChangedEntities = changedEntities.filter(entity => (
+                allowedRefreshExemptEntities.has(entity)
+            ));
+            if (remote && appendOnlyChangedEntities.length > 0 && !hasCustomPersist) {
+                throw new RepositoryError(
+                    'APPEND_ONLY_PERSISTENCE_STRATEGY_REQUIRED',
+                    'Entidades históricas append-only exigem uma estratégia remota incremental explícita.',
+                    {
+                        operation: String(command.name || 'data-command'),
+                        details: { entities: appendOnlyChangedEntities }
+                    }
+                );
+            }
+            const remoteRefreshExemptEntities = new Set(
+                remote
+                    ? [
+                        ...appendOnlyChangedEntities,
+                        ...declaredRefreshExemptEntities.filter(entity => (
+                            changedEntities.includes(entity)
+                            && allowedRefreshExemptEntities.has(entity)
+                        ))
+                    ]
+                    : []
+            );
+            const refreshEntities = changedEntities.filter(entity => !remoteRefreshExemptEntities.has(entity));
             let beforeRepository = remote
                 ? ((authoritativeRemoteResult || authoritativeRemoteCommit || hasCustomPersist)
                     ? null
