@@ -40,6 +40,7 @@ jobs:
           node --check src/integration/administrative-log-read-model.js
           node --check src/integration/product-extensions-bootstrap.js
           node --check src/integration/school-timeline.js
+          node --check src/integration/auditable-retification.js
           node --check src/application/audit-service.js
           node --check src/application/data-service.js
 
@@ -48,6 +49,7 @@ jobs:
           node --test
           tests/unit/data-lifecycle-policy.test.js
           tests/unit/append-only-refresh-policy.test.js
+          tests/unit/r1-service-command-authority.test.js
           tests/unit/auth-gate-workspace-failure.test.js
           tests/unit/administrative-log-read-architecture.test.js
           tests/unit/administrative-log-read-model.test.js
