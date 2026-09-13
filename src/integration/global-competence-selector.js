@@ -1,308 +1,311 @@
 (function installGlobalCompetenceSelector(root, factory) {
     'use strict';
 
-    const api = factory(root);
+    const domain = typeof module !== 'undefined' && module.exports
+        ? require('../domain/competence-context.js')
+        : root.RadarCompetenceContextDomain;
+    const api = factory(domain);
+
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
-    if (!root) return;
-    root.RadarGlobalCompetenceSelector = Object.freeze(api);
-    if (typeof document !== 'undefined') api.install();
-}(typeof window !== 'undefined' ? window : globalThis, function createGlobalCompetenceSelectorApi(root) {
+    if (root) root.RadarGlobalCompetenceSelector = Object.freeze(api);
+    if (root?.document) api.install(root);
+}(typeof window !== 'undefined' ? window : globalThis, function createGlobalCompetenceSelectorApi(domain) {
     'use strict';
 
-    let installed = false;
-    let contextUnsubscribe = null;
-    let retryTimer = null;
-    let mainObserver = null;
+    if (!domain?.createCompetenceContext) {
+        throw new Error('RadarCompetenceContextDomain deve ser carregado antes do seletor global.');
+    }
+
+    const { createCompetenceContext } = domain;
+    const ROOT_ID = 'global-competence-control';
+    let hydrationSequence = 0;
+    let lastHydratedCompetence = '';
+    let suppressHydrationOnce = false;
+
+    function runtimeReady(root) {
+        return Boolean(
+            root?.document
+            && root.RadarDataContext?.ready === true
+            && Array.isArray(root.COMPETENCIAS)
+            && root.config
+        );
+    }
 
     function text(value) {
         return value == null ? '' : String(value).trim();
     }
 
-    function competenceExercise(value) {
-        const match = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(text(value));
-        return match ? match[1] : '';
+    function currentCalendarCompetence(competences = []) {
+        const now = new Date();
+        const key = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        return competences.some(item => text(item?.key) === key) ? key : '';
     }
 
-    function competenceExists(value) {
-        const key = text(value);
-        return COMPETENCIAS.some(item => text(item?.key || item?.id) === key);
-    }
-
-    function runtimeReady() {
-        return Boolean(
-            root.RadarCompetenceContext
-            && typeof root.RadarCompetenceContext.initialize === 'function'
-            && typeof COMPETENCIAS !== 'undefined'
-            && Array.isArray(COMPETENCIAS)
-            && typeof config !== 'undefined'
-            && config
-            && typeof currentExercise !== 'undefined'
-            && root.RadarDataContext?.ready === true
-        );
-    }
-
-    function readRuntimeState(meta = {}) {
-        const closingCompetence = text(config.competenciaFechamento);
-        const requestedCompetence = competenceExists(meta.initialCompetence)
-            ? text(meta.initialCompetence)
-            : '';
-        const calendarCompetence = root.RadarCompetencia?.competenceKeyFromDate
-            ? text(root.RadarCompetencia.competenceKeyFromDate())
-            : '';
-        const availableCalendarCompetence = competenceExists(calendarCompetence)
-            ? calendarCompetence
-            : '';
-        const storedCompetence = text(
-            root.localStorage?.getItem(root.RadarCompetenceContext.STORAGE_KEY)
-        );
-        const persistedCompetence = competenceExists(storedCompetence) ? storedCompetence : '';
-        const currentState = root.RadarCompetenceContext.isInitialized()
-            ? root.RadarCompetenceContext.getState()
-            : null;
-        const currentCompetence = competenceExists(currentState?.activeKey)
-            ? text(currentState.activeKey)
-            : '';
-        const availableExercises = [...new Set(
-            COMPETENCIAS.map(item => competenceExercise(item?.key || item?.id || item)).filter(Boolean)
-        )].sort();
-        const hasCompetences = exercise => availableExercises.includes(text(exercise));
-        const configuredExercise = (Array.isArray(config.exercicios) ? config.exercicios : [])
-            .map(text)
-            .find(hasCompetences);
-        const resolvedExercise = [
-            text(meta.currentExercise),
-            competenceExercise(requestedCompetence),
-            text(currentState?.exercise),
-            competenceExercise(availableCalendarCompetence),
-            competenceExercise(persistedCompetence),
-            competenceExercise(closingCompetence),
-            text(currentExercise),
-            configuredExercise,
-            availableExercises[0]
-        ].find(hasCompetences) || '';
+    function readRuntimeState(root) {
+        const competences = Array.isArray(root.COMPETENCIAS) ? root.COMPETENCIAS : [];
+        const exercises = Array.isArray(root.config?.exercicios)
+            ? root.config.exercicios.map(String).filter(Boolean)
+            : [];
+        const persistedCompetence = text(root.activeCompetenciaKey);
+        const activeExercise = text(root.currentExercise);
+        const calendarCompetence = currentCalendarCompetence(competences);
         const initialCompetence = [
-            requestedCompetence,
-            currentCompetence,
-            availableCalendarCompetence
-        ].find(key => competenceExists(key) && competenceExercise(key) === resolvedExercise) || '';
-
-        return {
-            competences: COMPETENCIAS,
-            currentExercise: resolvedExercise,
-            closingCompetence,
-            initialCompetence
-        };
+            calendarCompetence,
+            persistedCompetence,
+            text(root.config?.competenciaFechamento),
+            text(competences[0]?.key)
+        ].find(key => /^\d{4}-\d{2}$/.test(key) && competences.some(item => item.key === key)) || '';
+        const initialExercise = [
+            initialCompetence.slice(0, 4),
+            persistedCompetence.slice(0, 4),
+            activeExercise,
+            exercises[0]
+        ].find(year => exercises.includes(year)) || exercises[0] || '';
+        return { competences, exercises, initialCompetence, initialExercise };
     }
 
-    function formatLabel(key) {
-        const item = COMPETENCIAS.find(competence => text(competence?.key || competence?.id) === key);
-        if (item?.label) return text(item.label);
-        if (root.RadarCompetencia?.formatCompetencia) {
-            return root.RadarCompetencia.formatCompetencia(key, { format: 'display' });
+    function currentView(root) {
+        const active = root.document.querySelector('.nav-item.active[data-view]');
+        return text(active?.dataset?.view || root.currentView || 'dashboard') || 'dashboard';
+    }
+
+    function refreshCurrentView(root) {
+        const view = currentView(root);
+        const schoolId = text(root.activeProntuarioSchoolId || root.currentSchoolId);
+        if (typeof root.switchView === 'function') {
+            root.switchView(view, schoolId || undefined);
+            return true;
         }
-        return key;
+        return false;
     }
 
-    function createElement(tagName, properties = {}) {
-        const element = document.createElement(tagName);
-        Object.entries(properties).forEach(([key, value]) => {
-            if (key === 'textContent') element.textContent = value;
-            else if (key === 'className') element.className = value;
-            else element.setAttribute(key, value);
-        });
-        return element;
-    }
-
-    function ensureControlMarkup() {
-        const badge = document.getElementById('global-competence-badge');
-        if (!badge) return null;
-        if (badge.dataset.radarCompetenceControl === 'true') {
-            return document.getElementById('global-competence-select');
+    function remoteDataService(root) {
+        const service = root.RadarApplicationServices?.data;
+        if (!service || typeof service.loadOperationalContext !== 'function') return null;
+        try {
+            return service.repository?.capabilities?.().remote === true ? service : null;
+        } catch (_error) {
+            return null;
         }
-
-        badge.dataset.radarCompetenceControl = 'true';
-        badge.classList.add('global-competence-control');
-        badge.removeAttribute('title');
-        badge.replaceChildren();
-
-        const controlLabel = createElement('label', {
-            for: 'global-competence-select',
-            textContent: 'Competência'
-        });
-        const select = createElement('select', {
-            id: 'global-competence-select',
-            className: 'global-competence-select',
-            'aria-label': 'Competência global'
-        });
-        const currentLabel = createElement('span', {
-            id: 'global-competence-label',
-            className: 'global-competence-current',
-            'aria-hidden': 'true',
-            hidden: ''
-        });
-        badge.append(controlLabel, select, currentLabel);
-        return select;
     }
 
-    function renderSelector(state = root.RadarCompetenceContext.getState()) {
-        const select = ensureControlMarkup();
-        if (!select) return false;
-        const records = root.RadarCompetenceContext.getAvailableForExercise(state.exercise);
-        const previous = select.value;
-        const fragment = document.createDocumentFragment();
-        records.forEach(item => {
-            const option = document.createElement('option');
-            option.value = item.key;
-            option.textContent = item.label || formatLabel(item.key);
-            fragment.appendChild(option);
-        });
-        select.replaceChildren(fragment);
-        select.value = records.some(item => item.key === state.activeKey)
-            ? state.activeKey
-            : (previous || records[0]?.key || '');
-        const label = document.getElementById('global-competence-label');
-        if (label) label.textContent = formatLabel(state.activeKey);
-        return true;
-    }
-
-    function removeLocalCompetenceControl() {
-        const select = document.getElementById('comp-select-view');
-        if (!select) return;
-        const wrapper = select.parentElement;
-        if (wrapper) wrapper.remove();
-        else select.remove();
-    }
-
-    function observeMainContainer() {
-        if (mainObserver || typeof MutationObserver !== 'function') return;
-        const container = document.getElementById('main-container');
-        if (!container) return;
-        mainObserver = new MutationObserver(() => removeLocalCompetenceControl());
-        mainObserver.observe(container, { childList: true, subtree: true });
-        removeLocalCompetenceControl();
-    }
-
-    function refreshCurrentView() {
-        if (typeof updateGlobalCompetenceIndicator === 'function') {
-            updateGlobalCompetenceIndicator();
+    function setContextBusy(root, busy) {
+        const selector = root.document.getElementById('global-competence-select');
+        const main = root.document.getElementById('main-container');
+        if (selector) {
+            selector.disabled = busy === true;
+            selector.setAttribute('aria-busy', String(busy === true));
         }
-        if (typeof switchView === 'function' && typeof currentView !== 'undefined') {
-            switchView(currentView, typeof activeSchoolId !== 'undefined' ? activeSchoolId : null);
-        }
-        removeLocalCompetenceControl();
+        if (main) main.setAttribute('aria-busy', String(busy === true));
     }
 
-    function applyState(state, meta = {}) {
-        if (typeof activeCompetenciaKey !== 'undefined') activeCompetenciaKey = state.activeKey;
-        if (typeof currentExercise !== 'undefined') currentExercise = state.exercise;
-        if (typeof activeProntuarioCompetencia !== 'undefined') activeProntuarioCompetencia = state.activeKey;
-        renderSelector(state);
-        const exerciseSelect = document.getElementById('exercise-select');
-        if (exerciseSelect && exerciseSelect.value !== state.exercise) exerciseSelect.value = state.exercise;
-        if (meta.initial !== true) refreshCurrentView();
-        root.dispatchEvent?.(new CustomEvent('radar:competence-change', {
-            detail: { ...state, source: text(meta.source) || 'context' }
+    function emitOperationalContext(root, state, source) {
+        if (typeof root.dispatchEvent !== 'function' || typeof root.CustomEvent !== 'function') return;
+        root.dispatchEvent(new root.CustomEvent('radar:operational-context-refreshed', {
+            detail: {
+                competenceKey: state.activeKey,
+                source
+            }
         }));
     }
 
-    function installLegacyEntryPoints() {
-        root.changeExercise = function changeExerciseFromGlobalContext(value) {
-            try {
-                root.RadarCompetenceContext.selectExercise(value, { source: 'exercise-selector' });
-                return true;
-            } catch (error) {
-                return false;
-            }
-        };
-
-        root.changeCompetenciaView = function changeCompetenceFromLegacyControl(value) {
-            try {
-                root.RadarCompetenceContext.select(value, { source: 'legacy-competence-control' });
-                return true;
-            } catch (error) {
-                return false;
-            }
-        };
-    }
-
-    function initializeContext(meta = {}) {
-        if (!runtimeReady()) return false;
-        const runtimeState = readRuntimeState(meta);
-        root.RadarCompetenceContext.initialize({
-            ...runtimeState,
-            storage: root.localStorage
-        });
-        if (contextUnsubscribe) contextUnsubscribe();
-        contextUnsubscribe = root.RadarCompetenceContext.subscribe((state, meta) => applyState(state, meta));
-        const state = root.RadarCompetenceContext.getState();
-        applyState(state, { initial: true, source: 'initialize' });
-        installLegacyEntryPoints();
-        observeMainContainer();
-        return true;
-    }
-
-    function handleCompetenceChange(event) {
-        try {
-            root.RadarCompetenceContext.select(event.target.value, { source: 'global-selector' });
-        } catch (error) {
-            renderSelector();
-            root.alert?.(error?.message || 'Não foi possível alterar a competência.');
-        }
-    }
-
-    function installSelectorListener() {
-        const select = ensureControlMarkup();
-        if (!select || select.dataset.radarCompetenceBound === 'true') return;
-        select.dataset.radarCompetenceBound = 'true';
-        select.addEventListener('change', handleCompetenceChange);
-    }
-
-    function refreshContext(meta = {}) {
-        if (!runtimeReady()) return false;
-        if (!root.RadarCompetenceContext.isInitialized()) return initializeContext(meta);
-        const runtimeState = readRuntimeState(meta);
-        root.RadarCompetenceContext.replaceConfiguration({
-            ...runtimeState,
-            source: text(meta.source) || 'refresh'
-        });
-        renderSelector();
-        installLegacyEntryPoints();
-        observeMainContainer();
-        return true;
-    }
-
-    function attemptInstall() {
-        installSelectorListener();
-        if (!runtimeReady()) return false;
-        const ready = root.RadarCompetenceContext.isInitialized()
-            ? refreshContext({ source: 'install-refresh' })
-            : initializeContext();
-        if (ready && retryTimer) {
-            root.clearInterval(retryTimer);
-            retryTimer = null;
-        }
-        return ready;
-    }
-
-    function install() {
-        if (installed) {
-            attemptInstall();
+    async function hydrateRemoteState(root, context, state, meta = {}) {
+        const service = remoteDataService(root);
+        if (!service) {
+            refreshCurrentView(root);
             return true;
         }
-        installed = true;
-        installSelectorListener();
-        if (!attemptInstall()) {
-            retryTimer = root.setInterval(attemptInstall, 50);
-            document.addEventListener('DOMContentLoaded', attemptInstall, { once: true });
-            root.addEventListener('load', attemptInstall, { once: true });
+
+        const sequence = ++hydrationSequence;
+        setContextBusy(root, true);
+        try {
+            const loaded = await service.loadOperationalContext(state.activeKey, {
+                source: 'competence-change'
+            });
+            if (sequence !== hydrationSequence || loaded?.stale === true) return false;
+            if (context.getState()?.activeKey !== state.activeKey) return false;
+            lastHydratedCompetence = state.activeKey;
+            refreshCurrentView(root);
+            emitOperationalContext(root, state, meta.source || 'competence-change');
+            return true;
+        } catch (error) {
+            root.console?.error?.('Não foi possível carregar a competência selecionada no Supabase.', error);
+            if (sequence !== hydrationSequence) return false;
+            const fallback = text(lastHydratedCompetence);
+            if (fallback && fallback !== state.activeKey) {
+                suppressHydrationOnce = true;
+                try {
+                    context.select(fallback, { source: 'remote-hydration-rollback' });
+                } catch (_rollbackError) {
+                    suppressHydrationOnce = false;
+                }
+            }
+            if (typeof root.alert === 'function') {
+                root.alert('Não foi possível carregar os dados desta competência. A última competência confirmada foi mantida.');
+            }
+            return false;
+        } finally {
+            if (sequence === hydrationSequence) setContextBusy(root, false);
         }
+    }
+
+    function createControl(root) {
+        const document = root.document;
+        let container = document.getElementById(ROOT_ID);
+        if (container) return container;
+
+        const host = document.querySelector('.top-header-actions')
+            || document.querySelector('.top-header');
+        if (!host) return null;
+
+        container = document.createElement('div');
+        container.id = ROOT_ID;
+        container.className = 'global-competence-control';
+        container.innerHTML = `
+            <label for="global-competence-select">Competência</label>
+            <select id="global-competence-select" aria-label="Competência mensal ativa"></select>
+            <span id="global-competence-label" class="global-competence-label" aria-live="polite"></span>
+        `;
+        host.prepend(container);
+        return container;
+    }
+
+    function renderControl(root, context) {
+        const container = createControl(root);
+        if (!container) return false;
+        const select = container.querySelector('#global-competence-select');
+        const label = container.querySelector('#global-competence-label');
+        const state = context.getState();
+        const available = context.listAvailable().map(item => ({
+            key: item.key,
+            label: item.label || item.key
+        }));
+
+        const signature = available.map(item => `${item.key}:${item.label}`).join('|');
+        if (select.dataset.signature !== signature) {
+            select.replaceChildren(...available.map(item => {
+                const option = root.document.createElement('option');
+                option.value = item.key;
+                option.textContent = item.label;
+                return option;
+            }));
+            select.dataset.signature = signature;
+        }
+        if (select.value !== state.activeKey) select.value = state.activeKey;
+        const current = available.find(item => item.key === state.activeKey);
+        label.textContent = current?.label || state.activeKey;
         return true;
+    }
+
+    function applyState(root, context, state, meta = {}) {
+        root.activeCompetenciaKey = state.activeKey;
+        root.currentExercise = state.exercise;
+        root.activeProntuarioCompetencia = state.activeKey;
+        try {
+            activeCompetenciaKey = state.activeKey;
+            currentExercise = state.exercise;
+            activeProntuarioCompetencia = state.activeKey;
+        } catch (_error) {
+            // bindings globais opcionais
+        }
+        renderControl(root, context);
+        if (typeof root.syncExerciseSelectsFromState === 'function') {
+            root.syncExerciseSelectsFromState();
+        }
+
+        const service = remoteDataService(root);
+        if (meta.initial === true) {
+            lastHydratedCompetence = text(service?.currentOperationalCompetence) || state.activeKey;
+        } else if (suppressHydrationOnce) {
+            suppressHydrationOnce = false;
+            lastHydratedCompetence = state.activeKey;
+            refreshCurrentView(root);
+        } else if (service) {
+            void hydrateRemoteState(root, context, state, meta);
+        } else {
+            refreshCurrentView(root);
+        }
+
+        if (typeof root.dispatchEvent === 'function' && typeof root.CustomEvent === 'function') {
+            root.dispatchEvent(new root.CustomEvent('radar:competence-change', {
+                detail: {
+                    state,
+                    source: meta.source || 'context'
+                }
+            }));
+        }
+    }
+
+    function initializeContext(root) {
+        const runtime = readRuntimeState(root);
+        const context = createCompetenceContext({
+            competences: runtime.competences,
+            exercises: runtime.exercises,
+            closingKey: root.config?.competenciaFechamento,
+            initialCompetence: runtime.initialCompetence,
+            initialExercise: runtime.initialExercise,
+            storage: root.sessionStorage || null,
+            calendarDate: new Date()
+        });
+        root.RadarCompetenceContext = context;
+        const state = context.initialize();
+        applyState(root, context, state, { initial: true, source: 'bootstrap' });
+        context.subscribe((next, meta) => applyState(root, context, next, meta));
+        return context;
+    }
+
+    function install(root = globalThis) {
+        if (!root?.document) return false;
+        if (root.__radarGlobalCompetenceSelectorInstalled === true) return true;
+
+        const start = () => {
+            if (!runtimeReady(root)) return false;
+            const context = root.RadarCompetenceContext?.getState
+                ? root.RadarCompetenceContext
+                : initializeContext(root);
+            renderControl(root, context);
+
+            const select = root.document.getElementById('global-competence-select');
+            if (select && select.dataset.bound !== 'true') {
+                select.addEventListener('change', event => {
+                    const key = text(event.target.value);
+                    try {
+                        context.select(key, { source: 'global-selector' });
+                    } catch (error) {
+                        renderControl(root, context);
+                        root.console?.error?.('Não foi possível alterar a competência global.', error);
+                    }
+                });
+                select.dataset.bound = 'true';
+            }
+
+            root.handleCompetenceChange = event => {
+                const key = text(event?.target?.value);
+                if (!key) return false;
+                try {
+                    context.select(key, { source: 'legacy-selector-bridge' });
+                    return true;
+                } catch (error) {
+                    root.console?.error?.('Não foi possível alterar a competência global.', error);
+                    return false;
+                }
+            };
+            try { handleCompetenceChange = root.handleCompetenceChange; } catch (_error) { /* binding legado */ }
+            root.__radarGlobalCompetenceSelectorInstalled = true;
+            return true;
+        };
+
+        if (start()) return true;
+        root.addEventListener?.('radar:data-ready', start, { once: true });
+        return false;
     }
 
     return Object.freeze({
+        ROOT_ID,
         install,
-        refreshContext,
-        renderSelector,
-        removeLocalCompetenceControl
+        readRuntimeState,
+        currentCalendarCompetence,
+        remoteDataService,
+        hydrateRemoteState
     });
 }));
