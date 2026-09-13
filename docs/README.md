@@ -1,7 +1,7 @@
 # Documentação do RADAR PDDE
 
 **Classe documental:** Canônico — índice e rota de leitura  
-**Atualizado em:** 8 de setembro de 2026
+**Atualizado em:** 13 de setembro de 2026
 
 ## 1. Rota obrigatória
 
@@ -12,13 +12,16 @@ Ordem:
 1. [`../AGENTS.md`](../AGENTS.md) — regras de trabalho e precedência;
 2. [`reference/SYSTEM_CANONICAL_MODEL.md`](reference/SYSTEM_CANONICAL_MODEL.md) — modelo integrado do produto: superfícies, perfis, entidades, fluxos, estados, autoridades, diferenças deliberadas e invariantes;
 3. [`reference/PRODUCT_SURFACE_CATALOG.md`](reference/PRODUCT_SURFACE_CATALOG.md) — modelo mental do usuário: finalidade de cada tela, jornada, hierarquia visual, encontrabilidade e papel de cada superfície;
-4. [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — estado mutável, prioridade, PRs pausados/ativos e classificação corrente;
-5. [`reference/ENGINEERING_METHOD.md`](reference/ENGINEERING_METHOD.md) — método permanente de engenharia;
-6. [`reference/FRONTEND_USER_VALIDATION_GATE.md`](reference/FRONTEND_USER_VALIDATION_GATE.md) — gate permanente de jornada real pelo frontend;
-7. [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md) — validade documental e separação entre vigente, gerado, histórico e superado;
-8. [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md) e JSON fonte — operações ponta a ponta;
-9. ADRs e referências especializadas da área afetada;
-10. planos, auditorias, handoffs e evidências históricas apenas para compreender o seu momento/SHA.
+4. [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — estado mutável, Production, prioridade e PRs correntes;
+5. **handoff corrente explicitamente apontado em `CURRENT_STAGE.md`, quando houver** — contexto detalhado da frente ativa, sem ganhar autoridade funcional sobre o modelo canônico;
+6. [`reference/ENGINEERING_METHOD.md`](reference/ENGINEERING_METHOD.md) — método permanente de engenharia;
+7. [`reference/FRONTEND_USER_VALIDATION_GATE.md`](reference/FRONTEND_USER_VALIDATION_GATE.md) — gate permanente de jornada real pelo frontend;
+8. [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md) — validade documental e separação entre vigente, gerado, histórico e superado;
+9. [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md) e JSON fonte — operações ponta a ponta quando a frente tocar operação mapeada;
+10. ADRs e referências especializadas da área afetada;
+11. planos, auditorias, demais handoffs e evidências históricas apenas para compreender o seu momento/SHA.
+
+Enquanto a frente de UAT pós-PR #300 estiver vigente, `CURRENT_STAGE.md` aponta explicitamente para o relatório consolidado que deve ser lido no item 5. Não fixar aqui o nome do handoff para que este índice envelheça devagar.
 
 ## 2. Função de cada documento canônico/vigente
 
@@ -27,7 +30,8 @@ Ordem:
 | `AGENTS.md` | roteador obrigatório e regras de trabalho |
 | `reference/SYSTEM_CANONICAL_MODEL.md` | mapa integrado do sistema e seus contratos funcionais |
 | `reference/PRODUCT_SURFACE_CATALOG.md` | leitura do produto pelo usuário e contrato das superfícies |
-| `CURRENT_STAGE.md` | estado mutável e próxima prioridade |
+| `CURRENT_STAGE.md` | estado mutável, Production, frente ativa e handoff corrente |
+| handoff corrente indicado por `CURRENT_STAGE.md` | contexto detalhado temporário da frente ativa |
 | `reference/ENGINEERING_METHOD.md` | método de investigação, implementação e revisão |
 | `reference/FRONTEND_USER_VALIDATION_GATE.md` | prova obrigatória pela interface real |
 | `reference/STATUS_DOCUMENTOS.md` | validade e classificação da documentação |
@@ -50,11 +54,14 @@ Para saber o que existe de fato:
 
 Documentação antiga não redefine o código. Quando há divergência, investigar qual fonte está desatualizada antes de alterar o produto.
 
-## 4. Princípios funcionais já consolidados
+## 4. Princípios funcionais e arquiteturais consolidados
 
 O modelo detalhado está em `SYSTEM_CANONICAL_MODEL.md`; a finalidade humana das telas está em `PRODUCT_SURFACE_CATALOG.md`. Em resumo:
 
 - Supabase é a persistência canônica de Production;
+- memória/cache local pode acelerar o frontend quando funciona como projeção descartável e converge para o Supabase;
+- no modo remoto, `localStorage` não deve virar banco operacional concorrente nem mascarar falha de persistência;
+- coleções operacionais crescentes devem ser consultadas por contexto/limite, não reintroduzidas no bootstrap global;
 - competência global usa `RadarCompetenceContext`;
 - Pendências é passivo transversal;
 - página de Pendências mede antiguidade histórica e Dashboard/Carteira podem medir tempo da ação corrente;
@@ -73,7 +80,7 @@ O modelo detalhado está em `SYSTEM_CANONICAL_MODEL.md`; a finalidade humana das
 
 Consultar conforme a área materialmente afetada:
 
-- [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — contexto funcional/arquitetural detalhado;
+- [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — referência funcional/arquitetural detalhada; **afirmações temporais de PR, SHA, fila ou deployment nele não representam o estado corrente e cedem a `CURRENT_STAGE.md`**;
 - [`DECISION_LOG.md`](DECISION_LOG.md) — decisões duradouras;
 - [`architecture/`](architecture/) — contratos arquiteturais específicos;
 - [`decisions/`](decisions/) — ADRs;
@@ -85,7 +92,11 @@ Consultar conforme a área materialmente afetada:
 
 Diretórios como `audits/`, `handoff/`, `superpowers/plans/`, `evidence/` e `history/` preservam rastreabilidade. Eles não formam uma fila implícita de execução.
 
+A única exceção temporária é o **handoff corrente** explicitamente nomeado por `CURRENT_STAGE.md`. Quando a frente encerrar, ele volta a ser histórico sem reescrita retrospectiva.
+
 R1–R9 são identificadores históricos. A classificação atual pertence exclusivamente a `CURRENT_STAGE.md`.
+
+Auditorias de candidato pré-merge podem conter frases como “aguarda integração”. Depois do merge, essas frases permanecem como evidência histórica do momento em que o documento foi produzido e não devem competir com `CURRENT_STAGE.md`.
 
 ## 7. Regra de criação e manutenção da documentação
 
@@ -98,6 +109,7 @@ Na mesma entrega que criar ou alterar fonte canônica, atualizar quando aplicáv
 3. `reference/STATUS_DOCUMENTOS.md`;
 4. `reference/SYSTEM_CANONICAL_MODEL.md` se regra, autoridade, fluxo ou invariante mudar;
 5. `reference/PRODUCT_SURFACE_CATALOG.md` se mudar finalidade, jornada, ação, encontrabilidade ou semântica visual de uma superfície;
-6. `CURRENT_STAGE.md` se a mudança alterar estado/prioridade.
+6. `CURRENT_STAGE.md` se a mudança alterar estado/prioridade;
+7. o vínculo de handoff corrente quando a frente mudar.
 
 Documento histórico não deve ser reescrito para fingir atualidade. Deve ser preservado e, quando necessário, reclassificado por uma fonte canônica posterior.
