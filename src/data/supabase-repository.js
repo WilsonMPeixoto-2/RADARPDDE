@@ -303,7 +303,14 @@
                 : String(afterId);
             const data = await withSafeReadRetry(async () => {
                 let query = this.client.from(table).select('*');
-                if (typeof query.order === 'function') query = query.order('id', { ascending: true });
+                if (typeof query.order !== 'function') {
+                    throw new RepositoryError(
+                        'MISSING_KEYSET_PAGINATION',
+                        'A leitura remota exige ordenação determinística por identificador.',
+                        { entity, operation: 'loadAfterId' }
+                    );
+                }
+                query = query.order('id', { ascending: true });
                 if (cursor !== null) {
                     if (typeof query.gt !== 'function') {
                         throw new RepositoryError(
