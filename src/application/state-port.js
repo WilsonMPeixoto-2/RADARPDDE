@@ -29,7 +29,18 @@
     const { RepositoryError, cloneValue } = contract;
     const RADAR_PREFIX = 'radar_pdde_';
     const INCREMENTAL_MEMORY_ENTITY_MAP = Object.freeze({
+        appConfig: 'config',
+        programs: 'programs',
+        controllers: 'controllers',
+        inventoryTeamMembers: 'inventoryTeamMembers',
+        schools: 'schools',
+        schoolPrograms: 'schools',
+        competences: 'config',
         verifications: 'verifications',
+        pendencies: 'pendencies',
+        pendencyAttempts: 'pendencies',
+        pendencyContacts: 'contacts',
+        assets: 'assets',
         registeredInvoices: 'registeredInvoices',
         administrativeLogs: 'logs'
     });
@@ -37,9 +48,41 @@
     function createBrowserMemoryPatch() {
         if (typeof document === 'undefined') return null;
         return function patchBrowserMemory(patch = {}) {
+            if (Object.prototype.hasOwnProperty.call(patch, 'config')
+                && typeof config !== 'undefined') {
+                config = cloneValue(patch.config || {});
+            }
+            if (Object.prototype.hasOwnProperty.call(patch, 'programs')
+                && typeof programas !== 'undefined') {
+                programas = cloneValue(patch.programs || []);
+            }
+            if (Object.prototype.hasOwnProperty.call(patch, 'controllers')
+                && typeof controladores !== 'undefined') {
+                controladores = cloneValue(patch.controllers || []);
+            }
+            if (Object.prototype.hasOwnProperty.call(patch, 'inventoryTeamMembers')
+                && typeof equipeInventario !== 'undefined') {
+                equipeInventario = cloneValue(patch.inventoryTeamMembers || []);
+            }
+            if (Object.prototype.hasOwnProperty.call(patch, 'schools')
+                && typeof escolas !== 'undefined') {
+                escolas = cloneValue(patch.schools || []);
+            }
             if (Object.prototype.hasOwnProperty.call(patch, 'verifications')
                 && typeof verificacoes !== 'undefined') {
                 verificacoes = cloneValue(patch.verifications || {});
+            }
+            if (Object.prototype.hasOwnProperty.call(patch, 'pendencies')
+                && typeof pendencias !== 'undefined') {
+                pendencias = cloneValue(patch.pendencies || []);
+            }
+            if (Object.prototype.hasOwnProperty.call(patch, 'contacts')
+                && typeof contatos !== 'undefined') {
+                contatos = cloneValue(patch.contacts || []);
+            }
+            if (Object.prototype.hasOwnProperty.call(patch, 'assets')
+                && typeof bens !== 'undefined') {
+                bens = cloneValue(patch.assets || []);
             }
             if (Object.prototype.hasOwnProperty.call(patch, 'registeredInvoices')
                 && typeof notasRegistradas !== 'undefined') {
@@ -273,19 +316,20 @@
                 && requested.every(entity => INCREMENTAL_MEMORY_ENTITY_MAP[entity]);
             if (!canPatch) return applyCanonical(snapshot, applyOptions);
 
-            const partialEntities = {};
-            requested.forEach(entity => {
-                partialEntities[entity] = cloneValue(snapshot?.entities?.[entity] || []);
-            });
-            const partialState = bridge.canonicalEntitiesToLegacyState(partialEntities, {
+            // Converte o snapshot completo para preservar dependências entre projeções legadas.
+            // Ex.: atualizar uma Pendência não pode apagar suas tentativas; alterar schoolPrograms
+            // precisa recalcular programasIds da escola. Depois aplicamos somente as chaves pedidas.
+            const projectedState = bridge.canonicalEntitiesToLegacyState(snapshot?.entities || {}, {
                 dataVersion: applyOptions.dataVersion || configuredDataVersion,
                 pendencySchemaVersion: applyOptions.pendencySchemaVersion
                     || configuredPendencyVersion
             });
+            const memoryKeys = [...new Set(requested.map(entity => (
+                INCREMENTAL_MEMORY_ENTITY_MAP[entity]
+            )))];
             const memoryPatch = {};
-            requested.forEach(entity => {
-                const memoryKey = INCREMENTAL_MEMORY_ENTITY_MAP[entity];
-                memoryPatch[memoryKey] = cloneValue(partialState[memoryKey]);
+            memoryKeys.forEach(memoryKey => {
+                memoryPatch[memoryKey] = cloneValue(projectedState[memoryKey]);
             });
             await patchMemory(cloneValue(memoryPatch));
             return cloneValue(memoryPatch);
