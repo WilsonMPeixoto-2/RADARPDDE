@@ -6,10 +6,10 @@
 
 ## Estado atual da auditoria
 
-- Último bloco concluído: 8 — concorrência e atualização entre sessões.
+- Último bloco concluído: 9 — crescimento e experimento sintético de custo.
 - Descobertas: logs excluídos do bootstrap, mas 13 outras coleções continuam integralmente carregadas; confirmado bloqueio de readiness no modo local por extensão exclusiva do remoto. Integração corrigida; desktop incompleto.
-- Investigação seguinte: crescimento, primeiro gargalo e custo de snapshots.
-- Pendentes: blocos 9–12; situação efetiva de Production não revalidada; nenhuma medição atual do banco; nenhuma prova de equivalência integral.
+- Investigação seguinte: revisão completa do diff da branch.
+- Pendentes: blocos 10–12; situação efetiva de Production não revalidada; nenhuma medição atual do banco; nenhuma prova de equivalência integral.
 - Restrições: somente a branch isolada; nenhuma alteração de main, banco, migrations, secrets, configuração ou deployment de Production.
 
 ## Método e escala de evidência
@@ -182,3 +182,28 @@ Todas as coleções da tabela permanecem em memória até recarga/encerramento d
 **Recomendação prática:** começar com atualização contextual ao abrir/reabrir detalhes, ao retornar à aba após intervalo e após conflito; consultar apenas escola/competência/agregado necessário. Mostrar indicação de atualização disponível quando houver edição em andamento, sem substituir campos digitados. Preservar expectedVersion e oferecer comparação/reaplicação consciente após conflito. Para filas compartilhadas, avaliar notificação de invalidação por escola/entidade, agrupada e com atraso curto; buscar novamente o contexto ativo. Evitar subscrever/enviar todas as linhas históricas e evitar refresh global por evento. Logs não precisam de realtime permanente. Descartar respostas de geração anterior após logout/troca de identidade.
 
 **Cobertura:** testes de fila simulam uma instância; E2E supabase-verification-reliability usa uma página e é condicionado ao ambiente descartável. Não foi executado ensaio real com dois usuários nesta auditoria. **Descartado:** fila JS ou row_version por si só manterem duas telas sincronizadas. **Aberto:** medição de frequência de conflitos e contrato de atualização contextual de cada tela.
+
+## Bloco 9 — crescimento: atual, 10× e 100×
+
+**Examinado:** padrões load/exportSnapshot/filter/sort/JSON.stringify; índices por escola em app.js versus varreduras de alertas/contatos; UnitOfWork/StatePort/bridge reais; cache administrativo; plano de leitura de até seis entidades.
+
+**Experimento controlado, não Production:** Node 24.19.0, uma execução por tamanho, sem rede/DOM/banco. Estado sintético com 1.000/10.000/100.000 contatos (id, escola, canal, datas, descrição e pendenciaId null), demais coleções vazias, configuração de exercício 2026. `UnitOfWork.run` real com changedEntities programs, mutate mínimo, persist async vazio, remotePersistence true e deferLocalCommit true; StatePort/metadata bridge reais, Storage em memória. GC solicitado antes de cada tamanho. Medida inclui capture/export/clones, não aplicação final do DataService/render. Variação de heap é antes/depois, não pico nem retenção permanente.
+
+| Contatos sintéticos | JSON de entrada | Tempo da unidade de trabalho | Variação de heap |
+|---:|---:|---:|---:|
+| 1.000 | 0,19 MiB | 43,5 ms | 4,4 MiB |
+| 10.000 | 1,92 MiB | 402,9 ms | 46,6 MiB |
+| 100.000 | 19,25 MiB | 3.589,1 ms | 391,3 MiB |
+
+O ensaio confirma A-03 por execução: **uma operação que não altera contatos paga pelo total de contatos em memória**, sem qualquer lentidão de Supabase. Não é previsão numérica de tempo em navegadores reais; faltam aquecimento, repetição e distribuição real para benchmark de produção.
+
+| Cenário do RADAR | Gargalo provável primeiro | Evidência/limite |
+|---|---|---|
+| Volume atual | Leitura desnecessária dos logs na base antiga; na branch, A-01 bloqueia readiness local e A-08 conserva rota ampla | Medida histórica de 46 s recebida, não refeita; nenhuma classificação do hardware/banco atual |
+| 10× de histórico operacional | Bootstrap de avaliações/notas/Pendências/tentativas/contatos, cópias da ponte e refresh de notas/detalhes | O total transferido cresce com N; páginas não impõem teto global; experimento demonstra custo de estado |
+| 100× | Alocação/GC/serialização global e barreira do bootstrap; alertas e renders com filtros repetidos; exportação legada/rollback amplos | Possível indisponibilidade percebida antes de capacidade do PostgreSQL se esgotar; ordem precisa depende de distribuição/cliente/RLS |
+| Vários exercícios | Verificações escola×programa×mês e despesas/histórico acumulam; Pendências/bens ativos podem cruzar anos | Calendário pequeno pode continuar inteiro; acervo de cada competência precisa de consultas contextuais |
+
+Com página 500, uma entidade lida até esgotar custa aproximadamente `floor(N/500)+1` requisições (inclui página vazia em múltiplo exato). Cursor melhora acesso às páginas; não torna `load` constante. Em `getAlerts`, filtro de todos os contatos por cada Pendência ativa pode aproximar custo multiplicativo se ambos crescerem. Índices em memória existentes para Pendências/bens por escola são úteis e podem permanecer; devem ser reutilizados nos consumidores que ainda fazem varreduras globais.
+
+**Correção prioritária:** fechar A-08; ajustar A-01/A-07; completar retorno/remoções de A-05/A-06; instrumentar bootstrap por entidade; reduzir trabalho global de transação; depois recortar acervo por contexto mantendo passivos e navegação temporal. Aumentar paralelismo indefinidamente ou apagar histórico não trata a causa. **Risco SQL:** cursor de logs deve ser confrontado com EXPLAIN e índices adequados por filtro, sem supor que uma cláusula LIMIT garanta baixo custo de RLS. **Descartado:** toda lentidão remanescente precisa vir do banco. **Aberto:** cardinalidades reais, planos SQL, p50/p95 e limites de memória nos desktops da CRE. Prioridade alta para arquitetura de crescimento.
