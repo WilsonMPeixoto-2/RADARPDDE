@@ -7,10 +7,11 @@
 
 A refatoração da arquitetura Supabase foi integrada pelo PR #300.
 
-**`main` / Production:** `1a149174ed4a14d2fc9f92aff57d1957e8538e89`  
+**Baseline funcional de aplicação integrado:** `1a149174ed4a14d2fc9f92aff57d1957e8538e89`  
 **PR #300:** merged  
-**Vercel Production:** `READY` no mesmo SHA  
-**Data mode:** `supabase-production`
+**Data mode de Production:** `supabase-production`
+
+Depois do PR #300, a `main` recebeu merges **exclusivamente documentais** para reconciliar a rota de leitura e os handoffs. Portanto, o SHA de `main`/Vercel pode estar à frente de `1a149174...` sem que o código funcional de runtime tenha mudado. Revalidar o SHA exato ao vivo; o contrato funcional publicado permanece o do PR #300 até uma alteração funcional posterior ser integrada.
 
 O hotfix `2eff1321a8abaccd46d9627ee2eed060741ce3b7`, que reverteu a regressão global associada ao PR #299, foi preservado na reconciliação. A funcionalidade de retificação de avaliação removida pelo rollback do PR #299 não foi reintroduzida.
 
@@ -28,19 +29,25 @@ PR:
 
 `#301 — UAT operacional Supabase e observabilidade pós-refatoração`
 
-Estado do PR #301 no checkpoint:
+Estado observado mais recente nesta atualização:
 
 - aberto;
 - Draft;
-- HEAD observado: `920c7230a3ffdfade3df25dc0fc59eb2a9271a7d`;
-- alterações funcionais de produto no HEAD: nenhuma;
-- contém plano de UAT, novo teste Playwright e inclusão desse teste no workflow de ciclos Supabase.
+- HEAD observado: `4a7a41dc29ab87eb5b4f56f4d26558706409af50`;
+- a branch já contém uma correção funcional real de resolução dos assets do logo em `mobile-navigation.js`, além dos testes/workflow/plano de UAT;
+- `Ciclos funcionais reais com Supabase` passou no HEAD `4a7a41dc...`;
+- E2E completo, Supabase readiness, confiabilidade real, perfis/viewports, retificação, CodeQL e dependências também passaram naquele HEAD;
+- a homologação pré-production falhou somente por rate limit externo ao baixar `postgres-meta:v0.97.0` durante geração de tipos, depois de 426 testes pgTAP aprovados e schema lint limpo.
 
 ### Handoff corrente obrigatório depois deste arquivo
 
+[`handoff/2026-09-13-uat-operacional-checkpoint-4a7a41dc.md`](handoff/2026-09-13-uat-operacional-checkpoint-4a7a41dc.md)
+
+Esse arquivo é o **delta corrente**. Ele pressupõe a leitura do relatório consolidado anterior:
+
 [`handoff/2026-09-13-relatorio-tecnico-consolidado-pos-pr300-uat.md`](handoff/2026-09-13-relatorio-tecnico-consolidado-pos-pr300-uat.md)
 
-Ele concentra o panorama detalhado de GitHub, Vercel, Supabase, arquitetura, capacidade, observabilidade, dependências, primeiro UAT e próximos testes. Enquanto este `CURRENT_STAGE.md` o apontar como handoff corrente, deve ser lido antes de executar ou ampliar o PR #301.
+O relatório consolidado preserva a reconstrução completa do PR #300, Production, Supabase, capacidade, observabilidade e início da UAT. O checkpoint `4a7a41dc` registra o avanço posterior e substitui as instruções temporais daquele relatório que já foram superadas.
 
 ## 3. O que foi encerrado pelo PR #300
 
@@ -67,79 +74,48 @@ memória/cache local = projeção operacional descartável
 
 Estado local é útil quando melhora responsividade e não mascara falha, não substitui o Supabase e converge para a autoridade remota após escrita/reload.
 
-## 4. Certificação já concluída
+## 4. Certificação do PR #300
 
-O candidato funcional do PR #300 passou os gates de release, incluindo:
-
-- Playwright E2E;
-- homologação integral pré-production;
-- Supabase readiness;
-- confiabilidade funcional com Supabase real;
-- ciclos funcionais reais;
-- perfis/viewports;
-- CodeQL;
-- saúde de dependências;
-- Excel SME;
-- snapshot canônico;
-- Lighthouse.
+O candidato funcional do PR #300 passou os gates de release, incluindo Playwright E2E, homologação pré-production, Supabase readiness, confiabilidade funcional com Supabase real, ciclos funcionais, perfis/viewports, CodeQL, dependências, Excel SME, snapshot e Lighthouse.
 
 Suíte unitária: **1.018 aprovados, 0 falhas**.
 
-O LCP desktop certificado ficou em **3,46 s** no candidato, com TBT 0 ms, acessibilidade 100% e boas práticas 100%. Oscilações pequenas posteriores, sem mudança funcional, não justificam sacrificar correções arquiteturais. Mobile permanece dívida conhecida e não bloqueante para o alvo operacional desktop.
+O LCP desktop certificado ficou em **3,46 s** no candidato, com TBT 0 ms, acessibilidade 100% e boas práticas 100%. Oscilações pequenas posteriores, sem mudança funcional correlata, não justificam sacrificar correções arquiteturais. Mobile permanece dívida conhecida e não bloqueante para o alvo operacional desktop.
 
-## 5. Estado observado de Production
+## 5. UAT operacional já comprovada
 
-No checkpoint de 13/09:
-
-- Vercel deployment: `dpl_AgBZAFksL5g7X3qmoY4xdF65h1ti`;
-- target: Production;
-- state: `READY`;
-- manifesto oficial HTTP 200;
-- SHA: `1a149174...`;
-- `supabaseRepositoryEnabled: true`;
-- `productionActivationApproved: true`;
-- consulta de runtime logs nas últimas 24h filtrando error/warning/fatal: sem ocorrências.
-
-Revalidar ao vivo antes de depender desses valores, porque deployment e logs são voláteis.
-
-## 6. Primeira evidência da UAT operacional
-
-Novo teste:
+Arquivo principal:
 
 `tests/e2e/supabase-operational-uat.spec.js`
 
-O primeiro cenário já passou e comprovou pela interface real + Auth/RLS + Supabase descartável que:
+No HEAD `4a7a41dc...`, os dois primeiros cenários novos passaram com Auth/RLS/Supabase descartável reais:
 
-- o login chega ao dashboard;
+### Login → Dashboard → Registros Internos
+
+Comprovado:
+
+- login chega ao dashboard;
 - `administrative_logs` não participa do bootstrap;
 - não foi detectado GET operacional sem filtro contextual nesse fluxo;
-- Registros Internos solicita `administrative_logs` somente ao ser aberto;
-- a consulta chega limitada e ordenada.
+- logs são buscados somente ao abrir Registros Internos;
+- consulta limitada/ordenada.
 
-Isso é evidência direta de que o problema de origem foi corrigido nessa jornada.
+### Avaliação → Supabase → reload
 
-## 7. Falha corrente do novo UAT
+Comprovado no cenário `ESC-LOCAL / 2026-05 / PDDE Básico / Extrato Conta Corrente`:
 
-Workflow:
+- `Sim` e `Correto` acionados pela interface;
+- projeção visual correta;
+- convergência para `verifications` no Supabase;
+- `row_version` válido;
+- coleções operacionais verificadas ausentes do `localStorage` como banco paralelo;
+- reload reencontra o mesmo estado.
 
-`Ciclos funcionais reais com Supabase` — run `34771878379`.
+A antiga falha `/is-selected/` foi corrigida no teste para o contrato real `/active-sim/`; ela não é mais pendência.
 
-Resultado inicial:
+## 6. Próximas prioridades da homologação
 
-- 4 testes aprovados;
-- 1 teste reprovado.
-
-A falha ocorreu no segundo novo cenário antes da verificação remota. O teste esperava classe `/is-selected/`, mas o controle real usa:
-
-`btn-toggle active-sim`
-
-O retry repetiu o mesmo resultado.
-
-**Classificação corrente:** expectativa incorreta do teste até prova em contrário. Não alterar o produto para satisfazer essa asserção. O próximo passo imediato é corrigir o teste para o contrato visual vigente, preferindo estado semântico mais robusto se disponível, e rerodar até alcançar as verificações de Supabase, ausência de base operacional no `localStorage` e reload.
-
-## 8. Prioridades da homologação
-
-Depois de corrigir o teste inicial, executar pela interface real com Supabase descartável:
+Expandir a prova de ponta a ponta para:
 
 1. avaliação mensal completa: Sim/Não/N/A, análise técnica, atrasado, consolidação e derivados;
 2. NF/despesa de consumo;
@@ -152,7 +128,8 @@ Depois de corrigir o teste inicial, executar pela interface real com Supabase de
 9. mensagens de sucesso, erro, bloqueio e sincronização;
 10. primeira navegação, rota direta, reload e mudança rápida de competência;
 11. falha de persistência remota e falha de aplicação local pós-commit;
-12. reflexos cruzados entre Prontuário, Pendências, Inventário, Dashboard/Carteira e Registros Internos.
+12. reflexos cruzados entre Prontuário, Pendências, Inventário, Dashboard/Carteira e Registros Internos;
+13. baseline de capacidade e detector de regressão via `pg_stat_statements`.
 
 Critério de escrita:
 
@@ -168,9 +145,9 @@ estado reencontrado após reload
 
 com efeitos relacionados igualmente coerentes.
 
-## 9. Capacidade e observabilidade
+## 7. Capacidade e observabilidade
 
-Baseline de Supabase Production observado:
+Baseline de Supabase Production observado em 13/09:
 
 - banco total ~39 MB;
 - 163 escolas;
@@ -196,22 +173,21 @@ Observabilidade existente a preservar/integrar:
 - Supabase Advisors/Reports/Logs;
 - pgTAP/RLS/Auth/readiness.
 
-Evolução futura: resumo agregado de saúde + capacidade + regressão de consultas, sem duplicar workflows.
-
-## 10. Dependências
+## 8. Dependências
 
 Não misturar upgrades de dependência com a homologação funcional atual.
 
 Candidatos observados para avaliação posterior em branches próprias incluem `@supabase/supabase-js` e Playwright. A Supabase CLI 2.116.0 já havia sido rejeitada por regressão de garantias pgTAP/RLS; não atualizar automaticamente.
 
-## 11. Documentos temporais antigos
+## 9. Documentos temporais antigos
 
-- `audits/SUPABASE_ARCHITECTURE_FINAL_2026-09-13.md` é evidência do candidato pré-merge do PR #300. Não usar suas frases “aguarda integração” como estado corrente.
-- `audits/ASTRA_AUDITORIA_RADAR_2026.md` é diário investigativo e contém checkpoints intermediários já superados.
-- `PROJECT_CONTEXT.md` contém contexto funcional útil, mas também trechos temporais de 06/09; toda afirmação de PR/SHA/fila nele cede a este arquivo.
-- planos, auditorias e handoffs anteriores não formam fila automática de execução.
+- `audits/SUPABASE_ARCHITECTURE_FINAL_2026-09-13.md` é evidência do candidato pré-merge do PR #300;
+- `audits/ASTRA_AUDITORIA_RADAR_2026.md` é diário investigativo com checkpoints intermediários;
+- `PROJECT_CONTEXT.md` contém contexto funcional útil, mas também trechos temporais de 06/09;
+- o relatório consolidado de 13/09 preserva o checkpoint anterior ao avanço para `4a7a41dc...` e deve ser lido como predecessor, não como última instrução operacional;
+- planos, auditorias e handoffs não apontados aqui não formam fila automática.
 
-## 12. Rota obrigatória para retomada
+## 10. Rota obrigatória para retomada
 
 Ler nesta ordem:
 
@@ -219,12 +195,12 @@ Ler nesta ordem:
 2. `reference/SYSTEM_CANONICAL_MODEL.md`;
 3. `reference/PRODUCT_SURFACE_CATALOG.md`;
 4. este `CURRENT_STAGE.md`;
-5. o **handoff corrente** explicitamente apontado na seção 2;
-6. `reference/ENGINEERING_METHOD.md`;
-7. `reference/FRONTEND_USER_VALIDATION_GATE.md`;
-8. `reference/STATUS_DOCUMENTOS.md`;
-9. `reference/FUNCTIONAL_CONTRACT_MATRIX.md` + JSON quando a frente tocar operação mapeada;
-10. ADRs e referências especializadas da área afetada;
+5. `handoff/2026-09-13-uat-operacional-checkpoint-4a7a41dc.md`;
+6. o relatório consolidado predecessor quando precisar reconstruir o ciclo completo;
+7. `reference/ENGINEERING_METHOD.md`;
+8. `reference/FRONTEND_USER_VALIDATION_GATE.md`;
+9. `reference/STATUS_DOCUMENTOS.md`;
+10. matriz funcional/ADRs/referências especializadas conforme a frente;
 11. históricos apenas depois.
 
-Não começar por memória de chat, plano antigo ou auditoria isolada.
+Não começar por memória de chat, plano antigo ou auditoria isolada. Revalidar SHAs/ambientes ao vivo quando a decisão depender do estado atual.
