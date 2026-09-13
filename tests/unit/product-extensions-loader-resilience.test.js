@@ -108,12 +108,6 @@ function createHarness({
                     if (node.src.endsWith('/auditable-retification.js')) {
                         root.RadarAuditableRetification = { install: () => true };
                     }
-                    if (node.src.endsWith('/evaluation-retification.js')) {
-                        root.RadarEvaluationRetification = { install: () => true };
-                    }
-                    if (node.src.endsWith('/evaluation-retification-ui.js')) {
-                        root.RadarEvaluationRetificationUi = { install: () => true };
-                    }
                     node.dispatch('load');
                 });
                 return node;
