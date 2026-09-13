@@ -99,6 +99,21 @@ function documentRow(page, label, programId = 'BASIC') {
     .first();
 }
 
+async function readRemoteBasicVerification(page, schoolId = 'ESC-LOCAL') {
+  return page.evaluate(async targetSchoolId => {
+    const client = window.RadarSessionContext?.service?.client;
+    if (!client) throw new Error('Cliente Supabase autenticado ausente.');
+    const result = await client.from('verifications')
+      .select('id,school_id,competence_id,program_id,bonification,analysis,row_version')
+      .eq('school_id', targetSchoolId)
+      .eq('competence_id', '2026-05')
+      .eq('program_id', 'BASIC')
+      .single();
+    if (result.error) throw result.error;
+    return result.data;
+  }, schoolId);
+}
+
 test.describe.serial('UAT operacional com Supabase real descartável', () => {
   test('login chega ao dashboard sem carregar coleções operacionais globais e busca logs somente sob demanda', async ({ page }, testInfo) => {
     const observed = observeBrowser(page);
@@ -163,21 +178,18 @@ test.describe.serial('UAT operacional com Supabase real descartável', () => {
     await expect(row.getByRole('button', { name: 'Sim', exact: true })).toHaveClass(/active-sim/);
     await expect(row.locator('select.select-analise')).toHaveValue('Correto');
 
-    const remote = await page.evaluate(async () => {
-      const client = window.RadarSessionContext?.service?.client;
-      if (!client) throw new Error('Cliente Supabase autenticado ausente.');
-      const result = await client.from('verifications')
-        .select('id,school_id,competence_id,program_id,bonification,analysis,row_version')
-        .eq('school_id', 'ESC-LOCAL')
-        .eq('competence_id', '2026-05')
-        .eq('program_id', 'BASIC')
-        .single();
-      if (result.error) throw result.error;
-      return result.data;
-    });
+    await expect.poll(async () => {
+      const remote = await readRemoteBasicVerification(page);
+      return {
+        delivery: remote.bonification.extCC,
+        analysis: remote.analysis.extCC
+      };
+    }, {
+      message: 'A avaliação exibida na interface não convergiu para o Supabase.',
+      timeout: 10000
+    }).toEqual({ delivery: 'Sim', analysis: 'Correto' });
 
-    expect(remote.bonification.extCC).toBe('Sim');
-    expect(remote.analysis.extCC).toBe('Correto');
+    const remote = await readRemoteBasicVerification(page);
     expect(remote.row_version).toBeGreaterThan(0);
 
     const localOperationalStorage = await page.evaluate(() => ({
