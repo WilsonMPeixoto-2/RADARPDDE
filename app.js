@@ -9676,17 +9676,7 @@ function renderProntuario(escolaId) {
                             <h2>Histórico de Contatos e Cobranças</h2>
                         </div>
                         <div class="contact-timeline">
-                            ${contatos.filter(c => c.escolaId === esc.id).length === 0 ? `
-                                <div style="color:var(--text-muted); padding:24px; text-align:center;">Nenhum registro de contato lançado. Use o botão "Registrar Contato" para lançar.</div>
-                            ` : contatos.filter(c => c.escolaId === esc.id).sort((a,b) => b.dataRegistro.localeCompare(a.dataRegistro)).map(c => `
-                                <div class="contact-card">
-                                    <div class="contact-meta">
-                                        <span class="contact-type-tag">${escapeHtml(c.tipo)}</span>
-                                        <span>Atendimento: ${new Date(c.dataAtendimento).toLocaleDateString('pt-BR')} (Registro: ${new Date(c.dataRegistro).toLocaleString('pt-BR')})</span>
-                                    </div>
-                                    <div class="contact-desc">${escapeHtml(c.desc)}</div>
-                                </div>
-                            `).join('')}
+                            ${schoolContactHistoryHTML(contatos.filter(c => c.escolaId === esc.id))}
                         </div>
                     </div>
                 </div>
@@ -9797,6 +9787,69 @@ function renderProntuario(escolaId) {
     renderProntuarioVerificacoes(esc);
 }
 
+function schoolContactHistoryHTML(records) {
+    return records.length === 0 ? `
+                                <div style="color:var(--text-muted); padding:24px; text-align:center;">Nenhum registro de contato lançado. Use o botão "Registrar Contato" para lançar.</div>
+                            ` : records.sort((a,b) => String(b.dataRegistro || '').localeCompare(String(a.dataRegistro || ''))).map(c => `
+                                <div class="contact-card">
+                                    <div class="contact-meta">
+                                        <span class="contact-type-tag">${escapeHtml(c.tipo)}</span>
+                                        <span>Atendimento: ${new Date(c.dataAtendimento).toLocaleDateString('pt-BR')} (Registro: ${new Date(c.dataRegistro).toLocaleString('pt-BR')})</span>
+                                    </div>
+                                    <div class="contact-desc">${escapeHtml(c.desc)}</div>
+                                </div>
+                            `).join('');
+}
+
+async function loadProntuarioContactHistory(panel) {
+    const service = window.RadarApplicationServices?.data;
+    if (service?.repository?.capabilities?.().remote !== true) return;
+    const schoolId = activeSchoolId;
+    const timeline = panel.querySelector('.contact-timeline');
+    if (!timeline || timeline.dataset.loading === 'true') return;
+    timeline.dataset.loading = 'true';
+    timeline.textContent = 'Carregando histórico de contatos da unidade...';
+    try {
+        const records = await service.readSchoolContacts(schoolId);
+        if (!timeline.isConnected || activeSchoolId !== schoolId) return;
+        const legacy = records.map(record => ({
+            tipo: record.contact_type,
+            dataAtendimento: record.contact_date,
+            dataRegistro: record.created_at || record.payload?.dataRegistro || record.contact_date,
+            desc: record.description || record.payload?.desc || ''
+        }));
+        const fragment = document.createDocumentFragment();
+        if (!legacy.length) {
+            const empty = document.createElement('p');
+            empty.textContent = 'Nenhum registro de contato lançado. Use o botão "Registrar Contato" para lançar.';
+            fragment.appendChild(empty);
+        }
+        legacy.sort((a, b) => String(b.dataRegistro || '').localeCompare(String(a.dataRegistro || ''))).forEach(contact => {
+            const card = document.createElement('div');
+            card.className = 'contact-card';
+            const meta = document.createElement('div');
+            meta.className = 'contact-meta';
+            const type = document.createElement('span');
+            type.className = 'contact-type-tag';
+            type.textContent = contact.tipo;
+            const date = document.createElement('span');
+            date.textContent = `Atendimento: ${new Date(contact.dataAtendimento).toLocaleDateString('pt-BR')} (Registro: ${new Date(contact.dataRegistro).toLocaleString('pt-BR')})`;
+            meta.append(type, date);
+            const description = document.createElement('div');
+            description.className = 'contact-desc';
+            description.textContent = contact.desc;
+            card.append(meta, description);
+            fragment.appendChild(card);
+        });
+        timeline.replaceChildren(fragment);
+    } catch (error) {
+        if (timeline.isConnected) timeline.textContent = 'Não foi possível carregar o histórico de contatos. Abra a aba novamente para tentar.';
+        console.error('Falha ao consultar contatos da escola.', error);
+    } finally {
+        timeline.dataset.loading = 'false';
+    }
+}
+
 function activateProntuarioTab(tabId) {
     const allowedTabIds = new Set([
         'tab-verificacoes',
@@ -9838,6 +9891,7 @@ function activateProntuarioTab(tabId) {
         element.setAttribute('role', 'tabpanel');
         if (tabName) element.setAttribute('aria-labelledby', `prontuario-tab-${tabName}`);
     });
+    if (tabId === 'tab-contatos') void loadProntuarioContactHistory(targetPanel);
     return true;
 }
 
@@ -10541,6 +10595,10 @@ function renderProntuarioVerificacoes(esc) {
 }
 
 function changeProntuarioCompetencia(escolaId, compKey) {
+    if (window.RadarApplicationServices?.data?.repository?.capabilities?.().remote === true) {
+        window.RadarCompetenceContext.select(compKey, { source: 'prontuario-competence' });
+        return window.RadarGlobalCompetenceSelector.whenHydrated();
+    }
     activeProntuarioCompetencia = compKey;
     renderProntuario(escolaId);
 }

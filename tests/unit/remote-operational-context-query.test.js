@@ -158,3 +158,48 @@ test('consulta operacional rejeita competência inválida antes de ler tabelas',
     );
     assert.deepEqual(fake.calls, []);
 });
+
+test('passivo de inventário conserva NF, avaliação e bens irmãos terminais necessários ao agregado', async () => {
+    const data = structuredClone(seed);
+    data.registered_invoices.push(
+        { id: 'i-feb-active', school_id: 'school-old', competence_id: '2026-02', program_id: 'BASIC', linked_asset_id: 'b-old-active' },
+        { id: 'i-feb-done', school_id: 'school-old', competence_id: '2026-02', program_id: 'BASIC', linked_asset_id: 'b-old-done' },
+        { id: 'i-feb-other-school', school_id: 'unrelated', competence_id: '2026-02', program_id: 'BASIC' }
+    );
+    data.verifications.push({ id: 'v-feb-inventory', school_id: 'school-old', competence_id: '2026-02', program_id: 'BASIC' });
+    const fake = createClient(data);
+    const repo = new OperationalSupabaseRepository({ client: fake.client, pageSize: 2 });
+    const { entities } = await repo.queryOperationalContext({ competenceId: '2026-09' });
+    assert.ok(entities.registeredInvoices.some(row => row.id === 'i-feb-done'));
+    assert.ok(entities.verifications.some(row => row.id === 'v-feb-inventory'));
+    assert.ok(entities.assets.some(row => row.id === 'b-old-done'));
+    assert.equal(entities.registeredInvoices.some(row => row.id === 'i-feb-other-school'), false);
+});
+
+test('reanálise histórica dispõe das demais notas do mesmo contexto para preservar resultado agregado', async () => {
+    const data = structuredClone(seed);
+    data.registered_invoices.push(
+        { id: 'i-mar-sibling', school_id: '04.31.001', competence_id: '2026-03', program_id: 'BASIC' },
+        { id: 'i-mar-other-program', school_id: '04.31.001', competence_id: '2026-03', program_id: 'OTHER' }
+    );
+    const fake = createClient(data);
+    const repo = new OperationalSupabaseRepository({ client: fake.client, pageSize: 2 });
+    const { entities } = await repo.queryOperationalContext({ competenceId: '2026-09' });
+    assert.ok(entities.registeredInvoices.some(row => row.id === 'i-mar-sibling'));
+    assert.equal(entities.registeredInvoices.some(row => row.id === 'i-mar-other-program'), false);
+});
+
+test('histórico explícito da escola inclui contatos sem pendência e históricos sem atravessar outra escola', async () => {
+    const data = structuredClone(seed);
+    data.pendency_contacts.push(
+        { id: 'c-standalone', school_id: 'school-contact', pendency_id: null },
+        { id: 'c-historical', school_id: 'school-contact', pendency_id: 'p-old-resolved' },
+        { id: 'c-another', school_id: 'another-school', pendency_id: null }
+    );
+    const fake = createClient(data);
+    const repo = new OperationalSupabaseRepository({ client: fake.client, pageSize: 1 });
+    const contacts = await repo.querySchoolContacts('school-contact');
+    assert.deepEqual(contacts.map(record => record.id).sort(), ['c-historical', 'c-standalone']);
+    assert.ok(fake.calls.some(call => call[0] === 'gt'));
+    await assert.rejects(repo.querySchoolContacts(''), error => error.code === 'INVALID_OPERATIONAL_CONTEXT');
+});

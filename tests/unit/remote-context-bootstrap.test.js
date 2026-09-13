@@ -96,3 +96,36 @@ test('troca de competência recarrega apenas as projeções operacionais do novo
     );
     assert.equal(harness.applied[0].options.persistStorage, false);
 });
+
+test('leitura contextual aguarda gravação anterior e resposta obsoleta não substitui memória', async () => {
+    const harness = createHarness();
+    const service = new DataService({ repository: harness.repository, statePort: harness.statePort });
+    let finishWrite, finishRead;
+    const events = [];
+    service.executeCommand = async () => {
+        events.push('writing');
+        await new Promise(resolve => { finishWrite = resolve; });
+        events.push('saved');
+    };
+    harness.repository.queryOperationalContext = async ({ competenceId }) => {
+        events.push(competenceId);
+        await new Promise(resolve => { finishRead = resolve; });
+        return { entities: {} };
+    };
+    const write = service.execute({});
+    await Promise.resolve();
+    const old = service.loadOperationalContext('2026-08');
+    assert.deepEqual(events, ['writing']);
+    finishWrite();
+    await write;
+    await new Promise(resolve => setImmediate(resolve));
+    assert.deepEqual(events, ['writing', 'saved', '2026-08']);
+    const latest = service.loadOperationalContext('2026-09');
+    finishRead();
+    assert.equal((await old).stale, true);
+    await new Promise(resolve => setImmediate(resolve));
+    finishRead();
+    assert.equal((await latest).stale, false);
+    assert.equal(harness.applied.length, 1);
+    assert.equal(service.currentOperationalCompetence, '2026-09');
+});

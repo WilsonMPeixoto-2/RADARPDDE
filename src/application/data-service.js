@@ -362,6 +362,15 @@
             };
         }
 
+        async readSchoolContacts(schoolId) {
+            if (this.repository.capabilities().remote !== true
+                || typeof this.repository.querySchoolContacts !== 'function') {
+                throw new RepositoryError('MISSING_REMOTE_CAPABILITY',
+                    'O histórico de contatos exige consulta contextual à escola.', { operation: 'readSchoolContacts' });
+            }
+            return cloneValue(await this.repository.querySchoolContacts(schoolId));
+        }
+
         async loadOperationalContext(competenceId, options = {}) {
             const capabilities = this.repository.capabilities();
             const target = normalizedCompetence(competenceId);
@@ -388,12 +397,23 @@
             }
 
             const sequence = ++this.operationalContextSequence;
+            const run = this.remoteExecutionTail.then(() => (
+                this.readOperationalContext(target, options, sequence)
+            ));
+            this.remoteExecutionTail = run.catch(() => undefined);
+            return run;
+        }
+
+        async readOperationalContext(target, options, sequence) {
+            const canApply = () => sequence === this.operationalContextSequence
+                && (typeof options.shouldApply !== 'function' || options.shouldApply());
+            if (!canApply()) return { competenceId: target, stale: true };
             const context = await this.repository.queryOperationalContext({ competenceId: target });
             const snapshot = assertSnapshotJson(
                 operationalSnapshot(context, options),
                 'loadOperationalContext'
             );
-            if (sequence !== this.operationalContextSequence) {
+            if (!canApply()) {
                 return {
                     competenceId: target,
                     stale: true,

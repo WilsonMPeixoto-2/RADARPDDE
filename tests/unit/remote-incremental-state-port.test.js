@@ -162,3 +162,25 @@ test('alteração de vínculo de programa recalcula somente a projeção escolar
     assert.deepEqual(patch.schools[0].programasIds, ['BASIC']);
     assert.deepEqual(Object.keys(patch), ['schools']);
 });
+
+test('patch real do navegador reconstrói índices usados na Carteira após substituir pendências e bens', async () => {
+    const fs = require('node:fs');
+    const path = require('node:path');
+    const vm = require('node:vm');
+    const root = vm.createContext({ document: {}, structuredClone,
+        RadarRepositoryContract: require('../../src/data/repository-contract.js'),
+        RadarStateBridge: require('../../src/data/state-bridge-metadata.js'),
+        storage: memoryStorage()
+    });
+    root.window = root;
+    vm.runInContext('let pendencias = []; let bens = []; let _pendenciasByEscolaId = new Map(); let _bensByEscolaId = new Map();', root);
+    const app = fs.readFileSync(path.join(__dirname, '../../app.js'), 'utf8');
+    vm.runInContext(app.slice(app.indexOf('function rebuildOperationalIndexes()'), app.indexOf('let verificacoes =')), root);
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '../../src/application/state-port.js'), 'utf8'), root);
+    const port = root.RadarStatePort.createStatePort({ storage: root.storage, readMemory: () => ({}), writeMemory() {} });
+    await port.applyEntities(snapshot(), ['pendencies', 'assets'], { persistStorage: false });
+    assert.equal(vm.runInContext('_pendenciasByEscolaId.get("04.31.001")[0].id', root), 'pend-1');
+    assert.equal(vm.runInContext('_bensByEscolaId.get("04.31.001")[0].id', root), 'asset-1');
+    await port.applyEntities({ ...snapshot(), entities: { pendencies: [], pendencyAttempts: [], assets: [] } }, ['pendencies', 'assets'], { persistStorage: false });
+    assert.equal(vm.runInContext('_pendenciasByEscolaId.size + _bensByEscolaId.size', root), 0);
+});

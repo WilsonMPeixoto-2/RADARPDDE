@@ -56,12 +56,23 @@
     }
 
     function refreshCurrentView(root) {
+        if (typeof root.RadarGlobalCompetenceSelector?.refreshCurrentView === 'function') {
+            root.RadarGlobalCompetenceSelector.refreshCurrentView();
+            return true;
+        }
         if (typeof root.switchView !== 'function') return false;
         const active = root.document?.querySelector?.('.nav-item.active[data-view]');
         const view = text(active?.dataset?.view || root.currentView || 'dashboard') || 'dashboard';
         const schoolId = text(root.activeProntuarioSchoolId || root.currentSchoolId);
         root.switchView(view, schoolId || undefined);
         return true;
+    }
+
+    function editing(root) {
+        const document = root.document;
+        return Boolean(document?.querySelector?.('.modal-overlay.show, dialog[open], [role="dialog"][aria-modal="true"]')
+            || document?.activeElement?.matches?.('input, textarea, select, [contenteditable="true"]')
+            || document?.getElementById?.('main-container')?.inert);
     }
 
     function createController(root, service, options = {}) {
@@ -74,6 +85,7 @@
         async function refresh(reason = 'resume') {
             if (refreshPromise) return refreshPromise;
             if (!authenticated(root)) return { skipped: true, reason: 'unauthenticated' };
+            if (editing(root)) return { skipped: true, reason: 'editing' };
             const competenceKey = activeCompetence(root);
             if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(competenceKey)) {
                 return { skipped: true, reason: 'invalid-competence' };
@@ -87,9 +99,12 @@
             let run = null;
             run = Promise.resolve().then(async () => {
                 const result = await service.loadOperationalContext(competenceKey, {
-                    source: `session-${reason}-refresh`
+                    source: `session-${reason}-refresh`,
+                    shouldApply: () => authenticated(root) && !editing(root)
+                        && activeCompetence(root) === competenceKey
                 });
                 if (result?.stale === true) return result;
+                if (!authenticated(root) || editing(root)) return { ...result, stale: true };
                 if (activeCompetence(root) !== competenceKey) return { ...result, stale: true };
                 refreshCurrentView(root);
                 if (typeof root.dispatchEvent === 'function' && typeof root.CustomEvent === 'function') {

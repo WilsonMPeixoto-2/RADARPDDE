@@ -149,6 +149,7 @@ jobs:
           tests/e2e/pendency-manual-auditable-retification.spec.js
           tests/e2e/pendency-reanalysis-auth.spec.js
           tests/e2e/global-competence-selector.spec.js
+          tests/e2e/remote-context-ui.spec.js
           tests/e2e/inventory-prontuario-link.spec.js
           tests/e2e/data-error-ux.spec.js
           --project=desktop-chromium

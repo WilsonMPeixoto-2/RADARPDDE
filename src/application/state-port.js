@@ -142,6 +142,19 @@
                 logs = cloneValue(patch.logs || [])
                     .sort((left, right) => (right.dataHora || '').localeCompare(left.dataHora || ''));
             }
+            if ((Object.prototype.hasOwnProperty.call(patch, 'pendencies')
+                || Object.prototype.hasOwnProperty.call(patch, 'assets'))
+                && typeof rebuildOperationalIndexes === 'function') {
+                rebuildOperationalIndexes();
+            }
+            if (Object.prototype.hasOwnProperty.call(patch, 'config')
+                && typeof COMPETENCIAS !== 'undefined') {
+                const restored = (patch.config?.competencias || []).filter(item => (
+                    /^\d{4}-(0[1-9]|1[0-2])$/.test(String(item?.key || ''))
+                ));
+                if (restored.length) COMPETENCIAS.splice(0, COMPETENCIAS.length, ...cloneValue(restored));
+                globalThis.RadarGlobalCompetenceSelector?.refreshContext?.({ source: 'remote-config' });
+            }
             return true;
         };
     }

@@ -147,16 +147,13 @@
         return result;
     }
 
-    function verificationDependencyKey(record = {}) {
-        const schoolId = String(record.school_id || '').trim();
-        const competenceId = String(record.competence_id || record.competence_origin || '').trim();
-        const programId = String(record.program_id || '').trim();
-        return schoolId && competenceId && programId
-            ? `${schoolId}::${competenceId}::${programId}`
-            : '';
-    }
-
     class OperationalSupabaseRepository extends supabaseApi.SupabaseRepository {
+        async querySchoolContacts(schoolId) {
+            const id = String(schoolId || '').trim();
+            if (!id) throw operationalContextError('Informe a escola para consultar o histórico de contatos.');
+            return this.queryByEquality('pendencyContacts', 'school_id', id, 'querySchoolContacts');
+        }
+
         async queryAdministrativeLogs(options = {}) {
             const pageSize = administrativeLogPageSize(options.limit);
             const cursor = administrativeLogCursor(options.cursor);
@@ -250,27 +247,29 @@
             return uniqueById(...pages);
         }
 
-        async queryVerificationDependencies(pendencies, currentCompetence) {
-            const targets = (pendencies || []).filter(record => (
-                String(record?.competence_origin || '').trim() !== currentCompetence
-                && verificationDependencyKey(record)
-            ));
-            if (targets.length === 0) return [];
-
-            const targetKeys = new Set(targets.map(verificationDependencyKey));
-            const schoolIds = [...new Set(targets.map(record => String(record.school_id || '').trim()).filter(Boolean))];
-            const competenceIds = [...new Set(targets.map(record => String(record.competence_origin || '').trim()).filter(Boolean))];
-            const programIds = [...new Set(targets.map(record => String(record.program_id || '').trim()).filter(Boolean))];
-            const pages = await Promise.all(chunks(schoolIds).map((schoolBatch, index) => (
-                this.queryFilteredCollection('verifications', query => {
-                    requireQueryMethod(query, 'in', 'queryOperationalContext:verificationDependencies');
-                    query = query.in('school_id', schoolBatch);
-                    query = query.in('competence_id', competenceIds);
-                    query = query.in('program_id', programIds);
-                    return query;
-                }, `queryOperationalContext:verificationDependencies:chunk-${index + 1}`)
-            )));
-            return uniqueById(...pages).filter(record => targetKeys.has(verificationDependencyKey(record)));
+        async queryContextDependencies(entity, records, currentCompetence) {
+            const contexts = new Map();
+            (records || []).forEach(record => {
+                const schoolId = String(record.school_id || '').trim();
+                const competenceId = String(record.competence_id || record.competence_origin || '').trim();
+                const programId = String(record.program_id || '').trim();
+                if (!schoolId || !OPERATIONAL_COMPETENCE_PATTERN.test(competenceId)
+                    || competenceId === currentCompetence) return;
+                contexts.set(`${schoolId}::${competenceId}::${programId}`, { schoolId, competenceId, programId });
+            });
+            const result = [];
+            // Limite de concorrência também para passivos distribuídos por muitos meses.
+            for (const batch of chunks([...contexts.values()], 6)) {
+                const pages = await Promise.all(batch.map(context => (
+                    this.queryFilteredCollection(entity, query => {
+                        requireQueryMethod(query, 'eq', 'queryOperationalContext:dependencies');
+                        query = query.eq('school_id', context.schoolId).eq('competence_id', context.competenceId);
+                        return context.programId ? query.eq('program_id', context.programId) : query;
+                    }, `queryOperationalContext:${entity}Dependencies`)
+                )));
+                result.push(...pages);
+            }
+            return uniqueById(...result);
         }
 
         async queryOperationalContext(options = {}) {
@@ -350,7 +349,7 @@
                     pendencyIds,
                     'queryOperationalContext:pendencyContacts'
                 ),
-                this.queryVerificationDependencies(pendencies, competenceId),
+                this.queryContextDependencies('verifications', pendencies, competenceId),
                 this.queryByIn(
                     'registeredInvoices',
                     'id',
@@ -359,15 +358,33 @@
                 )
             ]);
 
+            // Uma ação sobre passivo histórico pode recalcular o agregado de todas as NFs
+            // do mesmo contexto, inclusive seus bens já inventariados.
+            const assetInvoices = await this.queryByIn(
+                'registeredInvoices', 'linked_asset_id', activeAssets.map(record => record.id),
+                'queryOperationalContext:assetInvoices'
+            );
+            const dependencyInvoices = await this.queryContextDependencies(
+                'registeredInvoices', [...pendencies, ...assetInvoices], competenceId
+            );
+            const registeredInvoices = uniqueById(
+                monthlyRegisteredInvoices, linkedHistoricalInvoices, assetInvoices, dependencyInvoices
+            );
+            const [assetVerifications, linkedAssets] = await Promise.all([
+                this.queryContextDependencies('verifications', registeredInvoices, competenceId),
+                this.queryByIn('assets', 'id', registeredInvoices.map(record => record.linked_asset_id).filter(Boolean),
+                    'queryOperationalContext:linkedAssets')
+            ]);
+
             return {
                 competenceId,
                 entities: {
-                    verifications: uniqueById(monthlyVerifications, verificationDependencies),
+                    verifications: uniqueById(monthlyVerifications, verificationDependencies, assetVerifications),
                     pendencies,
                     pendencyAttempts,
                     pendencyContacts,
-                    assets,
-                    registeredInvoices: uniqueById(monthlyRegisteredInvoices, linkedHistoricalInvoices)
+                    assets: uniqueById(assets, linkedAssets),
+                    registeredInvoices
                 }
             };
         }
