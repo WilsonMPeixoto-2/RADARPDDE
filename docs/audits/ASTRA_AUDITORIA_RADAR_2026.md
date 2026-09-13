@@ -6,10 +6,10 @@
 
 ## Estado atual da auditoria
 
-- Último bloco concluído: 9 — crescimento e experimento sintético de custo.
+- Último bloco concluído: 10 — avaliação das correções da branch.
 - Descobertas: logs excluídos do bootstrap, mas 13 outras coleções continuam integralmente carregadas; confirmado bloqueio de readiness no modo local por extensão exclusiva do remoto. Integração corrigida; desktop incompleto.
-- Investigação seguinte: revisão completa do diff da branch.
-- Pendentes: blocos 10–12; situação efetiva de Production não revalidada; nenhuma medição atual do banco; nenhuma prova de equivalência integral.
+- Investigação seguinte: PR #299 e alinhamento de migrations/RPCs/código.
+- Pendentes: blocos 11–12; situação efetiva de Production não revalidada; nenhuma medição atual do banco; nenhuma prova de equivalência integral.
 - Restrições: somente a branch isolada; nenhuma alteração de main, banco, migrations, secrets, configuração ou deployment de Production.
 
 ## Método e escala de evidência
@@ -207,3 +207,33 @@ O ensaio confirma A-03 por execução: **uma operação que não altera contatos
 Com página 500, uma entidade lida até esgotar custa aproximadamente `floor(N/500)+1` requisições (inclui página vazia em múltiplo exato). Cursor melhora acesso às páginas; não torna `load` constante. Em `getAlerts`, filtro de todos os contatos por cada Pendência ativa pode aproximar custo multiplicativo se ambos crescerem. Índices em memória existentes para Pendências/bens por escola são úteis e podem permanecer; devem ser reutilizados nos consumidores que ainda fazem varreduras globais.
 
 **Correção prioritária:** fechar A-08; ajustar A-01/A-07; completar retorno/remoções de A-05/A-06; instrumentar bootstrap por entidade; reduzir trabalho global de transação; depois recortar acervo por contexto mantendo passivos e navegação temporal. Aumentar paralelismo indefinidamente ou apagar histórico não trata a causa. **Risco SQL:** cursor de logs deve ser confrontado com EXPLAIN e índices adequados por filtro, sem supor que uma cláusula LIMIT garanta baixo custo de RLS. **Descartado:** toda lentidão remanescente precisa vir do banco. **Aberto:** cardinalidades reais, planos SQL, p50/p95 e limites de memória nos desktops da CRE. Prioridade alta para arquitetura de crescimento.
+
+## Bloco 10 — avaliação do diff
+
+**Escopo:** `git diff d2663f1..8409297`: 37 arquivos, 2.428 adições/96 remoções; 11 fontes do produto, 22 testes e quatro arquivos de documentação/configuração/workflow. Diff dos pontos centrais lido; módulos novos lidos por função e consumidores; alterações dos testes confrontadas com seus simuladores. Nenhuma migration nova neste diff.
+
+| Correção/arquivo | Classificação | Fundamentação |
+|---|---|---|
+| Retirar logs do bootstrap — DataService/contract | **Correta mas incompleta** | Elimina consulta no caminho padrão; outras entidades crescem e compatibilidade contorna política (A-02/A-08) |
+| Leitura contextual — repository-factory | **Correta, precisa ajuste/teste** | Filtros e cursor adequados com SDK completo; métodos obrigatórios tratados como opcionais; plano SQL não medido |
+| `loadAfterId` — supabase-repository | **Correta, precisa teste adicional** | Limite/gt exigidos, continuidade testada; order opcional e leitura multiconsulta não é snapshot isolado |
+| Read model administrativo | **Correta mas incompleta** | Consulta no pedido; caches/respostas compartilham logs globais; sem invalidação por identidade |
+| Loader torna leitor crítico | **Potencialmente regressiva, regressão confirmada** | Modo local jamais satisfaz readiness (A-01) |
+| Timeline usa página escolar | **Precisa ajuste** | Consulta primeira página e filtra mês depois; ignora hasMore/falha (A-07) |
+| AuditService insere log individual | **Correta** | custom persist/insertOnly e retorno sem reread; consumidor de exportação legado ainda deve migrar |
+| Bootstrap com persistStorage false | **Correta mas incompleta** | Testa/aplica fronteira correta; stageCompatibility contorna (A-08) |
+| Limpeza seletiva — metadata bridge/factory | **Correta** | Chaves operacionais selecionadas; preservar preferências/tokens é apropriado; faltam observar falhas e impedir recriação |
+| Política central append-only | **Correta mas incompleta** | Protege defaults/executeCommand, não persistSnapshot; escopos são textos, não filtros de consulta |
+| Retificação manual declara resultado e incremental | **Correta no retorno, incompleta na aplicação** | Suprime refresh com retorno completo; StatePort não suporta patch de pendencies, então usa snapshot integral |
+| Erro pós-login — auth-gate | **Correta mas incompleta** | Mensagem separa autenticação/preparo; não trata espera que nunca resolve; capture global pode atribuir qualquer erro durante loading ao ambiente |
+| Testes de integração/fakes limit e gt | **Correta** | Compatibiliza simulador e acrescenta travessia multipágina; não remove proteção do produto |
+| Testes de contrato/lifecycle/append-only | **Úteis, insuficientes para composição** | Verificam marcadores e comandos execute; perderam consumidor persist e exigência real do loader |
+| Teste sucesso remoto/falha local | **Melhoria correta** | Agora falha em applyCanonical real da fronteira, afirma commit confirmado e sync falho sem repetir escrita |
+| Workflow desktop, screenshots/trace e max-failures | **Correto para diagnóstico** | Mantém seleção total para aprovação; parada precoce não é certificação dos 19 não executados; CI atual vermelho |
+| CURRENT_STAGE/STATUS_DOCUMENTOS | **Correto** | Preserva contexto causal/PR299 e evita orientar nova intervenção pela etapa antiga |
+
+**A-03b — Incremental declarado sem suporte no state port.** Evidência: mapa de patch contém somente verifications, registeredInvoices e administrativeLogs; retificação manual declara pendencies. `applyEntities` cai em applyCanonical para o conjunto todo. Situação **confirmada**, prioridade **média**, sem perda funcional provada. Recomendação: ou documentar fallback real ou implementar patch completo da Pendência/índices/tentativas, com teste de comportamento; não considerar o marcador sozinho evidência de incremento.
+
+**Inconsistência da política:** `dataImportRuns` é rotulado append-only, mas migrations de importação atualizam status/checkpoints do mesmo registro. É histórico de execuções com linhas mutáveis, não append-only puro. Hoje fora do bootstrap e usado por manutenção, portanto não foi provada regressão operacional decorrente; prioridade baixa/média para separar natureza de crescimento da política de refresh. `remoteBrowserPersistence:false` é metadado declarativo sem consumo nos escritores genéricos.
+
+**Conclusão:** nenhuma necessidade de reescrita geral foi demonstrada. O núcleo da solução é correto, mas as afirmações “não há mais snapshot persistido” e “logs nunca voltam por caminho operacional” ainda são falsas, e duas adaptações novas regressam o contrato local/temporal. **Descartado:** tratar flags/testes de texto como comprovação de comportamento integral. **Aberto:** banco efetivo e certificação fim a fim após corrigir achados.
