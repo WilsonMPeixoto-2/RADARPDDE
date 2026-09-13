@@ -3,196 +3,228 @@
 **Classe documental:** Canônico — estado mutável e retomada futura  
 **Atualizado em:** 13 de setembro de 2026
 
-## Frente vigente
+## 1. Baseline vigente
 
-A correção da arquitetura de dados baseada em Supabase foi concluída e certificada na branch:
+A refatoração da arquitetura Supabase foi integrada pelo PR #300.
 
-`fix/supabase-query-architecture-2026-09-11`
+**`main` / Production:** `1a149174ed4a14d2fc9f92aff57d1957e8538e89`  
+**PR #300:** merged  
+**Vercel Production:** `READY` no mesmo SHA  
+**Data mode:** `supabase-production`
 
-**Candidato funcional certificado:** `054aeb26f6f0ad12bf66b3965b9adcb59bca1a8a`  
-**Base reconciliada da `main`:** `2eff1321a8abaccd46d9627ee2eed060741ce3b7`  
-**Merge sintético do PR #300 validado:** `1c0750a3543af8b681a20a4a8fb0d0a35074c42e`
+O hotfix `2eff1321a8abaccd46d9627ee2eed060741ce3b7`, que reverteu a regressão global associada ao PR #299, foi preservado na reconciliação. A funcionalidade de retificação de avaliação removida pelo rollback do PR #299 não foi reintroduzida.
 
-O relatório técnico de fechamento é:
+O PR #300 não alterou migrations do Supabase nem exigiu mudança manual de dados em Production.
 
-[`audits/SUPABASE_ARCHITECTURE_FINAL_2026-09-13.md`](audits/SUPABASE_ARCHITECTURE_FINAL_2026-09-13.md)
+## 2. Frente ativa
 
-O arquivo [`audits/ASTRA_AUDITORIA_RADAR_2026.md`](audits/ASTRA_AUDITORIA_RADAR_2026.md) permanece como diário investigativo incremental. Seus checkpoints intermediários podem descrever defeitos que foram corrigidos depois. Para o estado vigente, este arquivo e o relatório final acima têm precedência temporal.
+A frente corrente é **homologação operacional ponta a ponta e observabilidade pós-refatoração**, não nova refatoração arquitetural.
 
-## Estado de Production e governança
+Branch:
 
-- A `main` ainda está em `2eff1321a8abaccd46d9627ee2eed060741ce3b7` enquanto o PR #300 aguarda a integração controlada.
-- O candidato funcional `054aeb26...` passou os gates de release contra a `main`, inclusive o merge sintético `1c0750a...`.
-- O PR #300 não adiciona, remove nem altera migrations do Supabase.
-- Nenhuma alteração manual de dados, secret ou configuração do Supabase é necessária para esta integração.
-- O rollback de acesso introduzido em `2eff1321...` foi reconciliado e permanece preservado; a funcionalidade de retificação de avaliação removida com o rollback do PR #299 não foi reintroduzida.
-- A próxima mudança de estado autorizada é a integração do PR #300 e a validação do deployment de Production.
+`test/operational-uat-supabase-2026-09-13`
 
-## Causa raiz encerrada
+PR:
 
-O Supabase já era a fonte oficial, mas o frontend ainda conservava partes do modelo anterior baseado em snapshots amplos no navegador. Isso fazia dados históricos ou operacionais serem carregados, copiados ou reconciliados em situações onde a superfície ativa não precisava deles.
+`#301 — UAT operacional Supabase e observabilidade pós-refatoração`
 
-O caso mais evidente era `administrativeLogs` no login. A auditoria mostrou que o problema era sistêmico: a fronteira entre dados estruturais, contexto operacional e histórico não estava concluída.
+Estado do PR #301 no checkpoint:
 
-A correção adotada foi estrutural, preservando as regras de negócio:
+- aberto;
+- Draft;
+- HEAD observado: `920c7230a3ffdfade3df25dc0fc59eb2a9271a7d`;
+- alterações funcionais de produto no HEAD: nenhuma;
+- contém plano de UAT, novo teste Playwright e inclusão desse teste no workflow de ciclos Supabase.
 
-- bootstrap remoto somente com dados estruturais necessários à entrada;
-- dados operacionais carregados pela competência/contexto ativo;
-- Pendências e bens antigos ainda ativos incorporados seletivamente ao contexto corrente;
-- dependências necessárias de reanálise, Inventário e cálculos agregados carregadas sem recuperar todo o histórico;
-- históricos administrativos e escolares somente sob demanda;
-- gravações remotas autoritativas/incrementais por entidades afetadas;
-- navegador sem função de segundo banco operacional no modo Supabase;
-- invalidação real da sessão operacional no logout;
-- atualização contextual segura ao retomar/focar a aplicação;
-- troca de competência com hidratação remota, preservação da escola aberta e rollback visual em caso de falha;
-- consultas remotas genéricas fail-closed quando faltam ordenação determinística ou limites explícitos;
-- acesso direto às tabelas operacionais do Supabase restrito à camada de dados, com exceções de autenticação limitadas a `user_profiles` e `user_school_scopes`.
+### Handoff corrente obrigatório depois deste arquivo
 
-## Prioridade funcional preservada
+[`handoff/2026-09-13-relatorio-tecnico-consolidado-pos-pr300-uat.md`](handoff/2026-09-13-relatorio-tecnico-consolidado-pos-pr300-uat.md)
 
-Continuam sendo superfícies prioritárias e protegidas por testes:
+Ele concentra o panorama detalhado de GitHub, Vercel, Supabase, arquitetura, capacidade, observabilidade, dependências, primeiro UAT e próximos testes. Enquanto este `CURRENT_STAGE.md` o apontar como handoff corrente, deve ser lido antes de executar ou ampliar o PR #301.
 
-- Análise e Bonificação;
-- Pendências, contatos, tentativas e reanálise;
-- Notas, documentos, edição/retificação e despesa a identificar;
-- Inventário e efeitos derivados de despesas permanentes;
-- navegação entre escolas, programas e competências;
-- confirmações e estados visuais das operações;
-- histórico escolar e Auditoria quando solicitados.
+## 3. O que foi encerrado pelo PR #300
 
-O histórico administrativo não participa do login nem da navegação operacional comum.
+A causa raiz arquitetural foi tratada estruturalmente:
 
-## Estado arquitetural por classe de dados
+- bootstrap remoto restrito a dados estruturais necessários;
+- dados operacionais carregados por competência/contexto;
+- dependências históricas ainda ativas incorporadas seletivamente;
+- histórico administrativo e escolar carregado sob demanda;
+- consultas genéricas fail-closed quando faltam ordenação determinística ou limites;
+- gravações remotas autoritativas/incrementais;
+- releitura corretiva apenas quando necessária;
+- `localStorage` fora do papel de segundo banco operacional no modo Supabase;
+- aplicação de estado remoto à projeção em memória com `persistStorage:false`;
+- proteção contra resposta stale na troca de contexto;
+- acesso direto às tabelas operacionais do Supabase restrito à camada de dados, com exceções de Auth previstas.
 
-### Bootstrap remoto
+A arquitetura não proíbe memória/cache local. O contrato vigente é:
 
-- configuração da aplicação;
-- programas;
-- controladores;
-- equipe de inventário;
-- escolas autorizadas;
-- vínculos escola/programa;
-- competências.
+```text
+Supabase = fonte canônica persistente
+memória/cache local = projeção operacional descartável
+```
 
-### Autorização
+Estado local é útil quando melhora responsividade e não mascara falha, não substitui o Supabase e converge para a autoridade remota após escrita/reload.
 
-- perfis;
-- vínculos usuário/perfil;
-- escopos escolares do usuário.
+## 4. Certificação já concluída
 
-### Contexto operacional
+O candidato funcional do PR #300 passou os gates de release, incluindo:
 
-- verificações/avaliações;
-- Pendências;
-- tentativas;
-- contatos necessários ao contexto;
-- bens;
-- notas/despesas.
+- Playwright E2E;
+- homologação integral pré-production;
+- Supabase readiness;
+- confiabilidade funcional com Supabase real;
+- ciclos funcionais reais;
+- perfis/viewports;
+- CodeQL;
+- saúde de dependências;
+- Excel SME;
+- snapshot canônico;
+- Lighthouse.
 
-### Sob demanda
+Suíte unitária: **1.018 aprovados, 0 falhas**.
 
-- logs administrativos;
-- histórico completo da escola;
-- histórico de contatos escolares quando a superfície correspondente é aberta.
+O LCP desktop certificado ficou em **3,46 s** no candidato, com TBT 0 ms, acessibilidade 100% e boas práticas 100%. Oscilações pequenas posteriores, sem mudança funcional, não justificam sacrificar correções arquiteturais. Mobile permanece dívida conhecida e não bloqueante para o alvo operacional desktop.
 
-### Manutenção
+## 5. Estado observado de Production
 
-- execuções de importação;
-- auditoria técnica.
+No checkpoint de 13/09:
 
-## PR #299 e reconciliação com a `main`
+- Vercel deployment: `dpl_AgBZAFksL5g7X3qmoY4xdF65h1ti`;
+- target: Production;
+- state: `READY`;
+- manifesto oficial HTTP 200;
+- SHA: `1a149174...`;
+- `supabaseRepositoryEnabled: true`;
+- `productionActivationApproved: true`;
+- consulta de runtime logs nas últimas 24h filtrando error/warning/fatal: sem ocorrências.
 
-A `main` foi restaurada em `2eff1321a8abaccd46d9627ee2eed060741ce3b7` após a regressão global de acesso associada ao PR #299. A branch arquitetural havia divergido antes desse hotfix.
+Revalidar ao vivo antes de depender desses valores, porque deployment e logs são voláteis.
 
-A reconciliação foi feita por merge formal em `f064c189ff26a4f22357f61dda6e16d218599900`, preservando o hotfix da `main` e a nova arquitetura Supabase. Em seguida, `7fac373ec4481b5ca5140f923312b9fb7a5f5fee` restaurou apenas os contratos arquiteturais necessários da retificação manual (`incrementalStateEntities` e `remoteResultIsAuthoritative`), sem restaurar a funcionalidade de retificação de avaliação removida pelo rollback.
+## 6. Primeira evidência da UAT operacional
 
-Os artefatos centrais removidos pelo rollback continuam ausentes no merge sintético validado, inclusive a migration `20260910201500_evaluation_retification_atomic_cancel.sql` e os módulos/UI/testes correspondentes. O PR #300 não contém mudança de migration.
+Novo teste:
 
-## Certificação objetiva do candidato
+`tests/e2e/supabase-operational-uat.spec.js`
 
-No candidato funcional `054aeb26f6f0ad12bf66b3965b9adcb59bca1a8a`, todos os workflows acionados pelo PR concluíram com sucesso:
+O primeiro cenário já passou e comprovou pela interface real + Auth/RLS + Supabase descartável que:
 
-- `Validar RADAR PDDE`;
-- `Testes E2E Playwright`;
-- `Homologação integral pré-production`;
-- `Supabase readiness`;
-- `Confiabilidade funcional com Supabase real`;
-- `Ciclos funcionais reais com Supabase`;
-- `Gate remoto de perfis e viewports`;
-- `Retificação auditável direcionada`;
-- `CodeQL`;
-- `Saúde das dependências`;
-- `Contratos-fonte do Excel SME`;
-- `Homologação do Excel SME`;
-- `Validar snapshot canônico do RADAR`;
-- `Lighthouse CI`.
+- o login chega ao dashboard;
+- `administrative_logs` não participa do bootstrap;
+- não foi detectado GET operacional sem filtro contextual nesse fluxo;
+- Registros Internos solicita `administrative_logs` somente ao ser aberto;
+- a consulta chega limitada e ordenada.
 
-A suíte unitária alcançou **1.018 testes aprovados, 0 falhas**, além das baterias de domínio, integração e jornadas reais autenticadas contra Supabase descartável.
+Isso é evidência direta de que o problema de origem foi corrigido nessa jornada.
 
-### Lighthouse
+## 7. Falha corrente do novo UAT
 
-A otimização `054aeb26...` apenas antecipou a descoberta das fontes principais, sem alterar regras de negócio, layout funcional ou arquitetura de dados.
+Workflow:
 
-Resultado desktop final, mediana de três execuções:
+`Ciclos funcionais reais com Supabase` — run `34771878379`.
 
-- Performance: **78%**;
-- Acessibilidade: **100%**;
-- Boas práticas: **100%**;
-- FCP: **737 ms**;
-- LCP: **3,46 s**;
-- Speed Index: **1,29 s**;
-- TBT: **0 ms**;
-- CLS: **0,082**;
-- TTI: **3,46 s**.
+Resultado inicial:
 
-O piso desktop de LCP de 3,5 s foi atendido. O perfil mobile permanece como dívida de performance conhecida e não bloqueante para o alvo operacional desktop; a evidência foi preservada em vez de mascarada.
+- 4 testes aprovados;
+- 1 teste reprovado.
 
-## Situação dos achados principais
+A falha ocorreu no segundo novo cenário antes da verificação remota. O teste esperava classe `/is-selected/`, mas o controle real usa:
 
-Corrigidos e cobertos por regressão:
+`btn-toggle active-sim`
 
-- logs administrativos no bootstrap;
-- readiness remoto/local;
-- coleções operacionais crescentes no login;
-- snapshots completos em pequenas escritas remotas;
-- persistência operacional legada em `localStorage` no modo Supabase;
-- caminho legado de logs na exportação Excel;
-- histórico escolar truncado pelos registros mais recentes;
-- seletor global de competência e hidratação remota;
-- dependências de obrigações antigas ativas;
-- notas irmãs necessárias a reanálise/inventário;
-- histórico de contatos sem vínculo com Pendência;
-- índices derivados após patch remoto;
-- atualização contextual durante edição/gravação;
-- invalidação de sessão no logout;
-- classificação de `dataImportRuns`;
-- simuladores de integração incompatíveis com paginação por cursor;
-- releitura corretiva integral após falha de sincronização;
-- duplicidade de logout e expectativas E2E obsoletas;
-- consultas administrativas e paginação genérica sem contrato determinístico explícito.
+O retry repetiu o mesmo resultado.
 
-Uma possível micro-otimização futura é substituir alguns filtros locais repetidos em cálculos de interface por índices auxiliares. Com o novo recorte contextual, isso não opera sobre o histórico global e não constitui pendência desta correção arquitetural.
+**Classificação corrente:** expectativa incorreta do teste até prova em contrário. Não alterar o produto para satisfazer essa asserção. O próximo passo imediato é corrigir o teste para o contrato visual vigente, preferindo estado semântico mais robusto se disponível, e rerodar até alcançar as verificações de Supabase, ausência de base operacional no `localStorage` e reload.
 
-## Próximo passo autorizado
+## 8. Prioridades da homologação
 
-O candidato foi certificado para integração. A sequência de release é:
+Depois de corrigir o teste inicial, executar pela interface real com Supabase descartável:
 
-1. integrar o PR #300 na `main` preservando o SHA esperado da branch;
-2. confirmar a `main` integrada;
-3. aguardar o deployment automático da Vercel em Production;
-4. confirmar que Production está `READY` no SHA integrado;
-5. executar smoke check não destrutivo no endereço oficial;
-6. registrar o estado final de release.
+1. avaliação mensal completa: Sim/Não/N/A, análise técnica, atrasado, consolidação e derivados;
+2. NF/despesa de consumo;
+3. serviço + Consulta Assessoria individualizada;
+4. permanente + bem + Capital/Inventário + encaminhamento;
+5. Boleto de Internet em Educação Conectada;
+6. `a_identificar` com `Incorreto + Pendência` atômicos e identificação no novo envio;
+7. ciclo integral de Pendência, tentativa, contato, novo envio, reanálise, resolução/manutenção, cancelamento/reabertura autorizados;
+8. novas retificações/edições e bloqueios por histórico;
+9. mensagens de sucesso, erro, bloqueio e sincronização;
+10. primeira navegação, rota direta, reload e mudança rápida de competência;
+11. falha de persistência remota e falha de aplicação local pós-commit;
+12. reflexos cruzados entre Prontuário, Pendências, Inventário, Dashboard/Carteira e Registros Internos.
 
-## Rota obrigatória para retomada futura
+Critério de escrita:
 
-1. `AGENTS.md`;
+```text
+estado persistido remoto
+=
+projeção local da aplicação
+=
+estado mostrado ao usuário
+=
+estado reencontrado após reload
+```
+
+com efeitos relacionados igualmente coerentes.
+
+## 9. Capacidade e observabilidade
+
+Baseline de Supabase Production observado:
+
+- banco total ~39 MB;
+- 163 escolas;
+- 430 vínculos escola-programa;
+- `administrative_logs` ~3.563 linhas / ~1,7 MB;
+- `verifications` 339;
+- `registered_invoices` 84;
+- `pendencies` 94;
+- `assets` 14.
+
+O problema anterior era padrão de acesso, não volume absoluto.
+
+`pg_stat_statements` preserva fingerprints históricos das consultas globais antigas. Não resetar. Registrar linha de corte pós-refatoração e monitorar somente o delta futuro para detectar reintrodução de consultas globais.
+
+Observabilidade existente a preservar/integrar:
+
+- smoke de Production horário com incidente automático;
+- integridade de Production a cada 6h;
+- CodeQL;
+- Dependabot;
+- saúde semanal de dependências;
+- Vercel deployments/logs;
+- Supabase Advisors/Reports/Logs;
+- pgTAP/RLS/Auth/readiness.
+
+Evolução futura: resumo agregado de saúde + capacidade + regressão de consultas, sem duplicar workflows.
+
+## 10. Dependências
+
+Não misturar upgrades de dependência com a homologação funcional atual.
+
+Candidatos observados para avaliação posterior em branches próprias incluem `@supabase/supabase-js` e Playwright. A Supabase CLI 2.116.0 já havia sido rejeitada por regressão de garantias pgTAP/RLS; não atualizar automaticamente.
+
+## 11. Documentos temporais antigos
+
+- `audits/SUPABASE_ARCHITECTURE_FINAL_2026-09-13.md` é evidência do candidato pré-merge do PR #300. Não usar suas frases “aguarda integração” como estado corrente.
+- `audits/ASTRA_AUDITORIA_RADAR_2026.md` é diário investigativo e contém checkpoints intermediários já superados.
+- `PROJECT_CONTEXT.md` contém contexto funcional útil, mas também trechos temporais de 06/09; toda afirmação de PR/SHA/fila nele cede a este arquivo.
+- planos, auditorias e handoffs anteriores não formam fila automática de execução.
+
+## 12. Rota obrigatória para retomada
+
+Ler nesta ordem:
+
+1. `../AGENTS.md`;
 2. `reference/SYSTEM_CANONICAL_MODEL.md`;
-3. este arquivo;
-4. `audits/SUPABASE_ARCHITECTURE_FINAL_2026-09-13.md`;
-5. `reference/ENGINEERING_METHOD.md`;
-6. `reference/FRONTEND_USER_VALIDATION_GATE.md`;
-7. referências especializadas da frente pretendida.
+3. `reference/PRODUCT_SURFACE_CATALOG.md`;
+4. este `CURRENT_STAGE.md`;
+5. o **handoff corrente** explicitamente apontado na seção 2;
+6. `reference/ENGINEERING_METHOD.md`;
+7. `reference/FRONTEND_USER_VALIDATION_GATE.md`;
+8. `reference/STATUS_DOCUMENTOS.md`;
+9. `reference/FUNCTIONAL_CONTRACT_MATRIX.md` + JSON quando a frente tocar operação mapeada;
+10. ADRs e referências especializadas da área afetada;
+11. históricos apenas depois.
 
-A retomada não deve partir de memória de chat ou de checkpoints intermediários da auditoria sem reconciliá-los com este estado canônico.
+Não começar por memória de chat, plano antigo ou auditoria isolada.

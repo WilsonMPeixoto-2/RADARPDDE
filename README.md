@@ -10,14 +10,16 @@ A leitura do repositório possui uma rota obrigatória. Não começar por plano 
 
 1. [`AGENTS.md`](AGENTS.md)
 2. [`docs/reference/SYSTEM_CANONICAL_MODEL.md`](docs/reference/SYSTEM_CANONICAL_MODEL.md)
-3. [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md)
-4. [`docs/reference/ENGINEERING_METHOD.md`](docs/reference/ENGINEERING_METHOD.md)
-5. [`docs/reference/FRONTEND_USER_VALIDATION_GATE.md`](docs/reference/FRONTEND_USER_VALIDATION_GATE.md)
-6. [`docs/reference/STATUS_DOCUMENTOS.md`](docs/reference/STATUS_DOCUMENTOS.md)
-7. matriz funcional, ADRs e referências especializadas da frente afetada
-8. históricos somente depois
+3. [`docs/reference/PRODUCT_SURFACE_CATALOG.md`](docs/reference/PRODUCT_SURFACE_CATALOG.md)
+4. [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md)
+5. handoff corrente que `CURRENT_STAGE.md` apontar, quando houver
+6. [`docs/reference/ENGINEERING_METHOD.md`](docs/reference/ENGINEERING_METHOD.md)
+7. [`docs/reference/FRONTEND_USER_VALIDATION_GATE.md`](docs/reference/FRONTEND_USER_VALIDATION_GATE.md)
+8. [`docs/reference/STATUS_DOCUMENTOS.md`](docs/reference/STATUS_DOCUMENTOS.md)
+9. matriz funcional, ADRs e referências especializadas da frente afetada
+10. históricos somente depois
 
-O modelo canônico integrado descreve **o que é o sistema**. `CURRENT_STAGE.md` descreve **em que ponto o trabalho está**.
+O modelo canônico integrado descreve **o que é o sistema**. `CURRENT_STAGE.md` descreve **em que ponto o trabalho está** e pode nomear um handoff temporário com o detalhe necessário para retomar a frente ativa.
 
 ## Fontes de verdade
 
@@ -38,6 +40,9 @@ Documentação antiga não redefine o produto. Quando houver divergência, inves
 O detalhamento completo está no [modelo canônico](docs/reference/SYSTEM_CANONICAL_MODEL.md). Entre os guardrails principais:
 
 - Supabase é a persistência canônica de Production;
+- memória/cache do navegador pode acelerar a UI como projeção descartável, mas não pode virar segunda fonte de verdade no modo Supabase;
+- falha remota não pode ser mascarada por estado local, e reload deve convergir para o Supabase;
+- coleções operacionais crescentes devem ser carregadas por contexto/limite em vez de retornar ao bootstrap global;
 - competência global usa `RadarCompetenceContext`;
 - Pendências é passivo transversal entre competências;
 - a página de Pendências mede antiguidade histórica, enquanto Dashboard/Carteira podem medir tempo da ação corrente;
@@ -77,7 +82,7 @@ O detalhamento completo está no [modelo canônico](docs/reference/SYSTEM_CANONI
 
 ## Estado atual
 
-A prioridade e os PRs correntes ficam exclusivamente em [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md). Não manter fila temporal duplicada neste README.
+A prioridade, Production, PRs correntes e eventual handoff corrente ficam exclusivamente em [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md). Não manter fila temporal duplicada neste README.
 
 ## Desenvolvimento e verificação
 
@@ -114,4 +119,4 @@ Novo documento canônico deve, na mesma entrega, ser reconciliado com:
 - `docs/reference/SYSTEM_CANONICAL_MODEL.md` quando regra/fluxo/autoridade/invariante mudar;
 - `docs/CURRENT_STAGE.md` quando estado ou prioridade mudar.
 
-Plano, handoff, auditoria ou evidência não se torna baseline apenas por existir no repositório.
+Plano, handoff, auditoria ou evidência não se torna baseline apenas por existir no repositório. O único handoff com leitura antecipada é aquele explicitamente nomeado por `CURRENT_STAGE.md` enquanto a frente estiver ativa.
