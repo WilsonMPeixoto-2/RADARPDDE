@@ -344,7 +344,7 @@ async function submitPendencyUI(page, pendency, identify = false) {
 
 async function reanalyzePendencyUI(page, pendency, result = 'correto') {
   await page.getByRole('tab', { name: /^Aguardando/ }).click();
-  await closePreview(page);
+  await closePreview(page, { waitForAppearance: true });
   const row = page.locator(`[data-pendency-id="${pendency.id}"]`).filter({ visible: true }).first();
   await expect(row).toBeVisible();
   await row.getByRole('button', { name: 'Reanalisar', exact: true }).click();
