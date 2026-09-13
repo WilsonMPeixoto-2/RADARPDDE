@@ -6,14 +6,14 @@
 
     const MOBILE_QUERY = '(max-width: 900px)';
     const ORIGINAL_LOGO_DATA_FILES = [
-        'src/assets/logo-original/part-1.js',
-        'src/assets/logo-original/part-2.js',
-        'src/assets/logo-original/part-3.js',
-        'src/assets/logo-original/part-4.js',
-        'src/assets/logo-original/bundle-5-8.js',
-        'src/assets/logo-original/bundle-9-12.js',
-        'src/assets/logo-original/bundle-13-16.js',
-        'src/assets/logo-original/bundle-17-20.js'
+        '/src/assets/logo-original/part-1.js',
+        '/src/assets/logo-original/part-2.js',
+        '/src/assets/logo-original/part-3.js',
+        '/src/assets/logo-original/part-4.js',
+        '/src/assets/logo-original/bundle-5-8.js',
+        '/src/assets/logo-original/bundle-9-12.js',
+        '/src/assets/logo-original/bundle-13-16.js',
+        '/src/assets/logo-original/bundle-17-20.js'
     ];
     const ORIGINAL_LOGO_ALT = 'RADAR PDDE — Registro de Acompanhamento das Demandas, Análises e Regularizações do PDDE';
 
