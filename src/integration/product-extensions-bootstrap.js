@@ -70,8 +70,24 @@
     ]);
     const failedScripts = new Map();
 
+    function administrativeLogReadRequired() {
+        const repositoryFactory = root.RadarRepositoryFactory;
+        if (typeof repositoryFactory?.isSupabaseExplicitlyEnabled === 'function') {
+            return repositoryFactory.isSupabaseExplicitlyEnabled(root.RADAR_PDDE_CONFIG || {}) === true;
+        }
+        try {
+            const repository = root.RadarDataContext?.dataService?.repository
+                || root.RadarDataContext?.repository
+                || null;
+            return repository?.capabilities?.().remote === true;
+        } catch (_error) {
+            return false;
+        }
+    }
+
     function installCriticalExtensions() {
-        const administrativeLogReadInstalled = root.RadarAdministrativeLogReadModel?.install?.(root) === true;
+        const administrativeLogReadInstalled = !administrativeLogReadRequired()
+            || root.RadarAdministrativeLogReadModel?.install?.(root) === true;
         const advisoryInstalled = root.RadarServiceAdvisoryPendency?.install?.(root) === true;
         const correctiveInstalled = root.RadarServiceAdvisoryCorrectiveSubmission?.install?.(root) === true;
         const retificationInstalled = root.RadarAuditableRetification?.install?.(root) === true;
