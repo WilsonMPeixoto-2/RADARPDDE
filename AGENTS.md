@@ -1,7 +1,7 @@
 # AGENTS.md — RADAR PDDE 2026
 
 **Classe documental:** Canônico — roteador obrigatório para agentes e novos chats  
-**Atualizado em:** 8 de setembro de 2026
+**Atualizado em:** 13 de setembro de 2026
 
 ## 1. Leitura obrigatória
 
@@ -9,15 +9,18 @@ Antes de analisar funcionalmente ou alterar o repositório, leia **nesta ordem**
 
 1. `docs/reference/SYSTEM_CANONICAL_MODEL.md` — o que é o RADAR, superfícies, perfis, entidades, fluxos, estados, autoridades, diferenças deliberadas e invariantes;
 2. `docs/reference/PRODUCT_SURFACE_CATALOG.md` — modelo mental do usuário, finalidade humana de cada superfície, hierarquia visual, encontrabilidade e papel de cada tela na jornada;
-3. `docs/CURRENT_STAGE.md` — estado mutável, prioridade corrente, PRs pausados/ativos e decisões temporais;
-4. `docs/reference/ENGINEERING_METHOD.md` — método permanente de investigação, implementação e revisão adversarial;
-5. `docs/reference/FRONTEND_USER_VALIDATION_GATE.md` — gate permanente de jornada real pelo frontend;
-6. `docs/reference/STATUS_DOCUMENTOS.md` — validade, precedência e classificação da documentação;
-7. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` e seu JSON fonte quando a frente tocar operação mapeada;
-8. ADRs e referências especializadas da área afetada;
-9. planos, auditorias, evidências e handoffs históricos apenas depois da leitura canônica e somente como contexto do seu SHA/momento.
+3. `docs/CURRENT_STAGE.md` — estado mutável, prioridade corrente, Production e PRs ativos;
+4. **handoff corrente explicitamente apontado por `CURRENT_STAGE.md`, quando houver** — contexto detalhado da frente ativa; somente o arquivo apontado recebe esse papel temporário;
+5. `docs/reference/ENGINEERING_METHOD.md` — método permanente de investigação, implementação e revisão adversarial;
+6. `docs/reference/FRONTEND_USER_VALIDATION_GATE.md` — gate permanente de jornada real pelo frontend;
+7. `docs/reference/STATUS_DOCUMENTOS.md` — validade, precedência e classificação da documentação;
+8. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` e seu JSON fonte quando a frente tocar operação mapeada;
+9. ADRs e referências especializadas da área afetada;
+10. planos, auditorias, evidências e demais handoffs históricos apenas depois da leitura canônica e somente como contexto do seu SHA/momento.
 
 **Nenhuma análise funcional pode começar por um plano histórico, PR antigo, memória de conversa ou arquivo isolado.**
+
+O fato de `CURRENT_STAGE.md` apontar um handoff corrente não o transforma em regra funcional canônica: ele detalha o momento operacional. Regras duráveis continuam no modelo canônico/ADRs e fatos de ambiente devem ser revalidados ao vivo.
 
 ## 2. Regra de reconstrução de contexto
 
@@ -90,6 +93,8 @@ O modelo completo está em `docs/reference/SYSTEM_CANONICAL_MODEL.md`. A finalid
 Preservar, entre outros, os invariantes do modelo canônico:
 
 - Supabase é a persistência canônica de Production;
+- memória/cache do navegador pode ser usada como projeção operacional descartável para responsividade, mas não pode virar segunda fonte de verdade no modo Supabase;
+- no modo remoto, falha de persistência não pode ser mascarada por estado local e reload deve convergir para a autoridade Supabase;
 - `RadarCompetenceContext` é a autoridade da competência global;
 - Pendências é passivo transversal entre competências;
 - página de Pendências usa antiguidade histórica; Dashboard/Carteira podem usar tempo da ação corrente;
@@ -104,6 +109,7 @@ Preservar, entre outros, os invariantes do modelo canônico:
 - reanálise exige tentativa/contexto/versionamento válidos;
 - `Inventariada` é terminal;
 - commit remoto confirmado e sincronização local são fronteiras diferentes;
+- coleções operacionais crescentes não devem voltar ao bootstrap global quando o contexto pode ser limitado;
 - wrapper de performance não é autoridade de negócio;
 - layout aprovado de Prontuário/Pendências não deve regredir por plano histórico;
 - comunicação externa não expõe o nome interno `RADAR PDDE`;
@@ -160,6 +166,8 @@ Quando houver efeitos transversais, conferir as projeções relacionadas. Exempl
 - mudança de equipe ↔ carteira;
 - retificação ↔ histórico/auditoria.
 
+Uso de cache/memória local é positivo quando reduz trabalho e mantém essa convergência. É regressão quando exige leitura/reconstrução global, sobrevive como verdade concorrente ou deixa a UI afirmar estado que o Supabase não confirmou.
+
 ## 8. Método de trabalho
 
 Sequência padrão:
@@ -167,6 +175,7 @@ Sequência padrão:
 ```text
 revalidar main/ambiente
 → ler modelo canônico + catálogo de superfícies
+→ ler CURRENT_STAGE + handoff corrente apontado
 → reconstruir objetivo humano e jornada
 → localizar autoridade real
 → tentar refutar a hipótese
@@ -192,12 +201,13 @@ A documentação não existe para decorar o repositório.
 - `AGENTS.md`: roteador obrigatório e regras de trabalho;
 - `docs/reference/SYSTEM_CANONICAL_MODEL.md`: modelo integrado do produto;
 - `docs/reference/PRODUCT_SURFACE_CATALOG.md`: modelo mental do usuário e contrato das superfícies;
-- `docs/CURRENT_STAGE.md`: estado mutável e prioridade;
+- `docs/CURRENT_STAGE.md`: estado mutável, Production, frente ativa e ponte para o handoff corrente;
+- handoff corrente apontado por `CURRENT_STAGE.md`: contexto detalhado temporário da frente ativa;
 - `docs/reference/STATUS_DOCUMENTOS.md`: validade documental;
 - `docs/reference/ENGINEERING_METHOD.md`: método;
 - `docs/reference/FRONTEND_USER_VALIDATION_GATE.md`: aceitação pela interface real;
 - ADR: decisão durável/especializada;
-- plano/handoff/auditoria/evidência: contexto histórico do seu momento, não baseline automática.
+- plano/handoff/auditoria/evidência não apontado como corrente: contexto histórico do seu momento, não baseline automática.
 
 ### Obrigação de reconciliação
 
@@ -208,7 +218,10 @@ Todo novo documento classificado como **canônico** deve, na mesma entrega:
 3. atualizar `docs/reference/STATUS_DOCUMENTOS.md`;
 4. atualizar `SYSTEM_CANONICAL_MODEL.md` se mudar regra, autoridade, fluxo ou invariante;
 5. atualizar `PRODUCT_SURFACE_CATALOG.md` se mudar finalidade, jornada, ação, encontrabilidade ou semântica visual de uma superfície;
-6. reclassificar explicitamente qualquer documento anterior que deixe de orientar o presente.
+6. atualizar `CURRENT_STAGE.md` quando mudar estado/prioridade;
+7. reclassificar explicitamente qualquer documento anterior que deixe de orientar o presente.
+
+Se `CURRENT_STAGE.md` nomear um handoff corrente, esse vínculo deve ser removido/substituído quando a frente encerrar. É proibido deixar dois handoffs concorrentes como “correntes”.
 
 É proibido criar uma nova fonte canônica “solta” e esperar que um agente futuro a descubra.
 
