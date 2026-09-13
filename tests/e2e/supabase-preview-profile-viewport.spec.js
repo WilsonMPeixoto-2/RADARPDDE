@@ -167,7 +167,7 @@ for (const [key] of PROFILE_DEFINITIONS) {
 
     await page.locator('#auth-logout-button').click();
     await expect(page.locator('#radar-auth-gate')).toBeVisible();
-    await expect(page.locator('#radar-auth-status')).toContainText(/sessão/i);
+    await expect(page.locator('#radar-auth-status')).toHaveText('Entre para acessar o RADAR PDDE.');
     expect(errors).toEqual([]);
   });
 }

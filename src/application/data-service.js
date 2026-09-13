@@ -40,30 +40,23 @@
         assertRepositoryContract,
         assertLocalPersistenceFallback,
         cloneValue,
-        isSnapshotEmpty
+        createSnapshotEnvelope,
+        isSnapshotEmpty,
+        ENTITY_LIFECYCLE,
+        REMOTE_BOOTSTRAP_ENTITIES,
+        REMOTE_CONTEXT_ENTITIES
     } = contract;
     const { toRepositoryError } = errorMapper;
     const { UnitOfWork } = unitOfWorkApi;
     const { assertCanonicalRecords } = jsonContracts;
     const GENERATED_INSERT_FIELDS = Object.freeze(['row_version', 'created_at', 'updated_at']);
     const VOLATILE_COMPARISON_FIELDS = Object.freeze(['row_version', 'created_at', 'updated_at']);
-    const REMOTE_REFRESH_EXEMPT_ENTITIES = Object.freeze(['administrativeLogs']);
-    const REMOTE_BOOTSTRAP_ENTITIES = Object.freeze([
-        'appConfig',
-        'programs',
-        'controllers',
-        'inventoryTeamMembers',
-        'schools',
-        'schoolPrograms',
-        'competences',
-        'verifications',
-        'pendencies',
-        'pendencyAttempts',
-        'pendencyContacts',
-        'assets',
-        'registeredInvoices',
-        'administrativeLogs'
-    ]);
+    const COMPETENCE_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
+    const REMOTE_REFRESH_EXEMPT_ENTITIES = Object.freeze(
+        Object.entries(ENTITY_LIFECYCLE)
+            .filter(([, policy]) => policy.growth === 'append-only')
+            .map(([entity]) => entity)
+    );
 
     function assertSnapshotJson(snapshot, operation) {
         for (const [entity, records] of Object.entries(snapshot?.entities || {})) {
@@ -235,6 +228,50 @@
         return { snapshot: next, appliedEntities: [...appliedEntities] };
     }
 
+    function normalizedCompetence(value) {
+        const key = String(value || '').trim();
+        return COMPETENCE_PATTERN.test(key) ? key : '';
+    }
+
+    function resolveOperationalCompetence(snapshot, requested) {
+        const explicit = normalizedCompetence(requested);
+        const available = new Set(
+            normalizedRecords(snapshot?.entities?.competences)
+                .map(record => normalizedCompetence(record?.id))
+                .filter(Boolean)
+        );
+        if (explicit && (available.size === 0 || available.has(explicit))) return explicit;
+
+        const now = new Date();
+        const calendar = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        if (available.has(calendar)) return calendar;
+
+        const closing = normalizedCompetence(snapshot?.entities?.appConfig?.[0]?.closing_competence);
+        if (closing && available.has(closing)) return closing;
+
+        return [...available].sort().at(-1) || '';
+    }
+
+    function operationalSnapshot(context, options = {}) {
+        const entities = {};
+        REMOTE_CONTEXT_ENTITIES.forEach(entity => {
+            entities[entity] = cloneValue(context?.entities?.[entity] || []);
+        });
+        return createSnapshotEnvelope(entities, {
+            version: options.version || '1',
+            importId: options.importId || `operational-context-${Date.now()}`,
+            exportedAt: options.exportedAt || new Date().toISOString()
+        });
+    }
+
+    function mergeOperationalContext(structuralSnapshot, context) {
+        const next = cloneValue(structuralSnapshot);
+        REMOTE_CONTEXT_ENTITIES.forEach(entity => {
+            next.entities[entity] = cloneValue(context?.entities?.[entity] || []);
+        });
+        return assertSnapshotJson(next, 'mergeOperationalContext');
+    }
+
     class DataService {
         constructor(options = {}) {
             this.repository = assertRepositoryContract(options.repository);
@@ -250,6 +287,9 @@
             }
             this.unitOfWork = options.unitOfWork || new UnitOfWork({ statePort: this.statePort });
             this.remoteExecutionTail = Promise.resolve();
+            this.currentHistoricalStatuses = [];
+            this.operationalContextSequence = 0;
+            this.currentOperationalCompetence = '';
         }
 
         async bootstrap(options = {}) {
@@ -268,7 +308,8 @@
                 return {
                     importedLegacy: false,
                     empty: true,
-                    snapshot: cloneValue(current)
+                    snapshot: cloneValue(current),
+                    operationalCompetence: ''
                 };
             }
 
@@ -283,15 +324,119 @@
                 return {
                     importedLegacy: true,
                     empty: false,
-                    snapshot: cloneValue(legacySnapshot)
+                    snapshot: cloneValue(legacySnapshot),
+                    operationalCompetence: ''
                 };
             }
 
-            if (!empty) await this.statePort.applyCanonical(current);
+            let hydrated = current;
+            let operationalCompetence = '';
+            if (!empty
+                && capabilities.remote === true
+                && !Array.isArray(options.entities)
+                && typeof this.repository.queryOperationalContext === 'function') {
+                operationalCompetence = resolveOperationalCompetence(current, options.competenceId);
+                if (operationalCompetence) {
+                    const context = await this.repository.queryOperationalContext({
+                        competenceId: operationalCompetence
+                    });
+                    hydrated = mergeOperationalContext(current, context);
+                    this.currentOperationalCompetence = operationalCompetence;
+                }
+            }
+
+            if (!empty) {
+                if (capabilities.remote === true) {
+                    await this.statePort.applyCanonical(hydrated, {
+                        persistStorage: false,
+                        source: 'remote-bootstrap'
+                    });
+                } else {
+                    await this.statePort.applyCanonical(hydrated);
+                }
+            }
             return {
                 importedLegacy: false,
                 empty,
-                snapshot: cloneValue(current)
+                snapshot: cloneValue(hydrated),
+                operationalCompetence
+            };
+        }
+
+        async readSchoolContacts(schoolId) {
+            if (this.repository.capabilities().remote !== true
+                || typeof this.repository.querySchoolContacts !== 'function') {
+                throw new RepositoryError('MISSING_REMOTE_CAPABILITY',
+                    'O histórico de contatos exige consulta contextual à escola.', { operation: 'readSchoolContacts' });
+            }
+            return cloneValue(await this.repository.querySchoolContacts(schoolId));
+        }
+
+        async loadOperationalContext(competenceId, options = {}) {
+            const capabilities = this.repository.capabilities();
+            const target = normalizedCompetence(competenceId);
+            if (capabilities.remote !== true) {
+                throw new RepositoryError(
+                    'REMOTE_CONTEXT_UNAVAILABLE',
+                    'A leitura contextual é exclusiva do modo Supabase.',
+                    { operation: 'loadOperationalContext' }
+                );
+            }
+            if (!target) {
+                throw new RepositoryError(
+                    'INVALID_OPERATIONAL_CONTEXT',
+                    'Informe uma competência mensal válida.',
+                    { operation: 'loadOperationalContext' }
+                );
+            }
+            if (typeof this.repository.queryOperationalContext !== 'function') {
+                throw new RepositoryError(
+                    'MISSING_REMOTE_CAPABILITY',
+                    'O repositório remoto não oferece leitura operacional por competência.',
+                    { operation: 'loadOperationalContext' }
+                );
+            }
+
+            const sequence = ++this.operationalContextSequence;
+            const run = this.remoteExecutionTail.then(() => (
+                this.readOperationalContext(target, options, sequence)
+            ));
+            this.remoteExecutionTail = run.catch(() => undefined);
+            return run;
+        }
+
+        async readOperationalContext(target, options, sequence) {
+            const canApply = () => sequence === this.operationalContextSequence
+                && (typeof options.shouldApply !== 'function' || options.shouldApply());
+            if (!canApply()) return { competenceId: target, stale: true };
+            const historyStatuses = [...new Set(options.historyStatuses || [])];
+            const context = await this.repository.queryOperationalContext({
+                competenceId: target,
+                ...(historyStatuses.length ? { historyStatuses } : {})
+            });
+            const snapshot = assertSnapshotJson(
+                operationalSnapshot(context, options),
+                'loadOperationalContext'
+            );
+            if (!canApply()) {
+                return {
+                    competenceId: target,
+                    stale: true,
+                    snapshot: cloneValue(snapshot)
+                };
+            }
+
+            await this.applyRemoteState(
+                snapshot,
+                REMOTE_CONTEXT_ENTITIES,
+                options.source || 'remote-operational-context'
+            );
+            this.currentOperationalCompetence = target;
+            this.currentHistoricalStatuses = historyStatuses;
+            return {
+                competenceId: target,
+                stale: false,
+                snapshot: cloneValue(snapshot)
             };
         }
 
@@ -316,6 +461,7 @@
                 );
             }
 
+            const remote = this.repository.capabilities().remote === true;
             const capture = this.statePort.captureSync();
             try {
                 const snapshot = this.statePort.exportCanonicalSync({
@@ -324,7 +470,7 @@
                     exportedAt: options.exportedAt || new Date().toISOString()
                 });
                 assertSnapshotJson(snapshot, 'stageCompatibility');
-                this.statePort.commitCurrent(snapshot);
+                if (!remote) this.statePort.commitCurrent(snapshot);
                 return {
                     changedEntities,
                     snapshot: cloneValue(snapshot)
@@ -357,6 +503,16 @@
                 );
             }
             entities.forEach(assertKnownEntity);
+            if (this.repository.capabilities().remote === true) {
+                throw new RepositoryError(
+                    'REMOTE_SNAPSHOT_PERSISTENCE_FORBIDDEN',
+                    'O modo Supabase exige persistência explícita por operação e não aceita snapshots legados.',
+                    {
+                        operation: String(options.name || 'persistSnapshot'),
+                        details: { entities }
+                    }
+                );
+            }
             const beforeRepository = await this.repository.exportSnapshot({ includeEmpty: true });
             try {
                 assertSnapshotJson(snapshot, String(options.name || 'persistSnapshot'));
@@ -383,16 +539,27 @@
         }
 
         async captureRemoteEntities(changedEntities) {
-            const entries = await Promise.all(
-                changedEntities.map(async entity => [entity, await this.repository.load(entity)])
-            );
-            return { entities: Object.fromEntries(entries) };
+            return this.loadRemoteEntities({ entities: {} }, changedEntities);
         }
 
         async loadRemoteEntities(snapshot, changedEntities) {
             const refreshed = cloneValue(snapshot);
+            const contextual = changedEntities.filter(entity => REMOTE_CONTEXT_ENTITIES.includes(entity));
+            const canQueryContext = contextual.length > 0
+                && normalizedCompetence(this.currentOperationalCompetence)
+                && typeof this.repository.queryOperationalContext === 'function';
+            if (canQueryContext) {
+                const context = await this.repository.queryOperationalContext({
+                    competenceId: this.currentOperationalCompetence,
+                    ...(this.currentHistoricalStatuses.length ? { historyStatuses: this.currentHistoricalStatuses } : {})
+                });
+                contextual.forEach(entity => {
+                    refreshed.entities[entity] = cloneValue(context.entities?.[entity] || []);
+                });
+            }
             const entries = await Promise.all(
-                changedEntities.map(async entity => [entity, await this.repository.load(entity)])
+                changedEntities.filter(entity => !canQueryContext || !contextual.includes(entity))
+                    .map(async entity => [entity, await this.repository.load(entity)])
             );
             entries.forEach(([entity, records]) => {
                 refreshed.entities[entity] = records;
@@ -401,12 +568,23 @@
             return refreshed;
         }
 
+        async applyRemoteState(snapshot, entities, source) {
+            const targets = [...new Set(Array.isArray(entities) ? entities : [])];
+            if (targets.length > 0 && typeof this.statePort.applyEntities === 'function') {
+                return this.statePort.applyEntities(snapshot, targets, {
+                    persistStorage: false,
+                    source
+                });
+            }
+            return this.statePort.applyCanonical(snapshot, {
+                persistStorage: false,
+                source
+            });
+        }
+
         async refreshRemoteEntities(snapshot, changedEntities) {
             const refreshed = await this.loadRemoteEntities(snapshot, changedEntities);
-            await this.statePort.applyCanonical(refreshed, {
-                persistStorage: false,
-                source: 'remote-refresh'
-            });
+            await this.applyRemoteState(refreshed, changedEntities, 'remote-refresh');
             return refreshed;
         }
 
@@ -460,18 +638,34 @@
             const allowedRefreshExemptEntities = new Set(REMOTE_REFRESH_EXEMPT_ENTITIES);
             const capabilities = this.repository.capabilities();
             const remote = capabilities.remote === true;
-            const remoteRefreshExemptEntities = new Set(
-                remote
-                    ? declaredRefreshExemptEntities.filter(entity => (
-                        changedEntities.includes(entity)
-                        && allowedRefreshExemptEntities.has(entity)
-                    ))
-                    : []
-            );
-            const refreshEntities = changedEntities.filter(entity => !remoteRefreshExemptEntities.has(entity));
             const hasCustomPersist = typeof command.persist === 'function';
             const authoritativeRemoteResult = remote && command.remoteResultIsAuthoritative === true;
             const authoritativeRemoteCommit = remote && command.remoteCommitIsAuthoritative === true;
+            const appendOnlyChangedEntities = changedEntities.filter(entity => (
+                allowedRefreshExemptEntities.has(entity)
+            ));
+            if (remote && appendOnlyChangedEntities.length > 0 && !hasCustomPersist) {
+                throw new RepositoryError(
+                    'APPEND_ONLY_PERSISTENCE_STRATEGY_REQUIRED',
+                    'Entidades históricas append-only exigem uma estratégia remota incremental explícita.',
+                    {
+                        operation: String(command.name || 'data-command'),
+                        details: { entities: appendOnlyChangedEntities }
+                    }
+                );
+            }
+            const remoteRefreshExemptEntities = new Set(
+                remote
+                    ? [
+                        ...appendOnlyChangedEntities,
+                        ...declaredRefreshExemptEntities.filter(entity => (
+                            changedEntities.includes(entity)
+                            && allowedRefreshExemptEntities.has(entity)
+                        ))
+                    ]
+                    : []
+            );
+            const refreshEntities = changedEntities.filter(entity => !remoteRefreshExemptEntities.has(entity));
             let beforeRepository = remote
                 ? ((authoritativeRemoteResult || authoritativeRemoteCommit || hasCustomPersist)
                     ? null
@@ -537,30 +731,15 @@
                         ));
                     const authoritativeCommitConfirmed = authoritativeRemoteCommit && !usedDefaultPersist;
                     const canCommitWithoutRefresh = authoritativeEntitiesComplete || authoritativeCommitConfirmed;
-                    const canApplyIncrementally = authoritativeEntitiesComplete
-                        && incrementalStateEntities.length > 0
-                        && typeof this.statePort.applyEntities === 'function'
-                        && incrementalStateEntities.every(entity => (
-                            merged.appliedEntities.includes(entity)
-                            || remoteRefreshExemptEntities.has(entity)
-                        ));
                     if (merged.appliedEntities.length > 0 || authoritativeCommitConfirmed) {
                         try {
-                            if (canApplyIncrementally) {
-                                await this.statePort.applyEntities(
-                                    committedSnapshot,
-                                    incrementalStateEntities,
-                                    {
-                                        persistStorage: false,
-                                        source: 'remote-result-incremental'
-                                    }
-                                );
-                            } else {
-                                await this.statePort.applyCanonical(committedSnapshot, {
-                                    persistStorage: false,
-                                    source: authoritativeCommitConfirmed ? 'remote-commit' : 'remote-result'
-                                });
-                            }
+                            await this.applyRemoteState(
+                                committedSnapshot,
+                                changedEntities,
+                                authoritativeCommitConfirmed
+                                    ? 'remote-commit-incremental'
+                                    : 'remote-result-incremental'
+                            );
                             localStateApplied = true;
                         } catch (applyError) {
                             stateApplyError = applyError;
@@ -579,10 +758,11 @@
                                     localStateApplied = false;
                                 } else if (merged.appliedEntities.length === 0) {
                                     try {
-                                        await this.statePort.applyCanonical(result.snapshot, {
-                                            persistStorage: false,
-                                            source: 'remote-fallback'
-                                        });
+                                        await this.applyRemoteState(
+                                            result.snapshot,
+                                            changedEntities,
+                                            'remote-fallback-incremental'
+                                        );
                                         localStateApplied = true;
                                     } catch (applyError) {
                                         stateApplyError = applyError;
@@ -593,10 +773,11 @@
                             if (refreshedSnapshot) {
                                 committedSnapshot = refreshedSnapshot;
                                 try {
-                                    await this.statePort.applyCanonical(refreshedSnapshot, {
-                                        persistStorage: false,
-                                        source: 'remote-refresh'
-                                    });
+                                    await this.applyRemoteState(
+                                        refreshedSnapshot,
+                                        refreshEntities,
+                                        'remote-refresh-incremental'
+                                    );
                                     localStateApplied = true;
                                     stateApplyError = null;
                                 } catch (applyError) {
@@ -682,6 +863,7 @@
     return Object.freeze({
         DataService,
         REMOTE_BOOTSTRAP_ENTITIES,
+        REMOTE_CONTEXT_ENTITIES,
         REMOTE_REFRESH_EXEMPT_ENTITIES
     });
 }));

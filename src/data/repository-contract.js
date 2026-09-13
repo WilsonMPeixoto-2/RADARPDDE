@@ -37,6 +37,45 @@
         'auditEvents'
     ]);
 
+    function lifecycle(growth, remoteLoad, scope) {
+        return Object.freeze({
+            growth,
+            remoteLoad,
+            scope: String(scope || ''),
+            // Em modo Supabase o navegador nunca é fonte persistente de dados operacionais.
+            remoteBrowserPersistence: false
+        });
+    }
+
+    const ENTITY_LIFECYCLE = Object.freeze({
+        appConfig: lifecycle('bounded', 'bootstrap', 'configuração singleton da aplicação'),
+        programs: lifecycle('bounded', 'bootstrap', 'catálogo institucional de programas'),
+        profiles: lifecycle('bounded', 'auth-only', 'catálogo de perfis de autorização'),
+        userProfiles: lifecycle('bounded', 'auth-only', 'vínculo de perfil da conta autenticada'),
+        userSchoolScopes: lifecycle('scoped', 'auth-only', 'escopo escolar atribuído à conta autenticada'),
+        controllers: lifecycle('bounded', 'bootstrap', 'catálogo institucional de controladores'),
+        inventoryTeamMembers: lifecycle('bounded', 'bootstrap', 'equipe institucional de inventário'),
+        schools: lifecycle('bounded', 'bootstrap', 'carteira de unidades autorizada por RLS'),
+        schoolPrograms: lifecycle('scoped', 'bootstrap', 'vínculos programa × unidade autorizados por RLS'),
+        competences: lifecycle('scoped', 'bootstrap', 'calendário de competências dos exercícios configurados'),
+        verifications: lifecycle('scoped', 'context', 'somente a competência operacional selecionada'),
+        pendencies: lifecycle('workflow', 'context', 'competência selecionada mais pendências ainda ativas'),
+        pendencyAttempts: lifecycle('workflow', 'context', 'somente tentativas das pendências presentes no contexto operacional'),
+        pendencyContacts: lifecycle('workflow', 'context', 'somente contatos das pendências presentes no contexto operacional'),
+        assets: lifecycle('workflow', 'context', 'competência selecionada mais bens ainda não inventariados'),
+        registeredInvoices: lifecycle('scoped', 'context', 'somente despesas e documentos da competência operacional selecionada'),
+        administrativeLogs: lifecycle('append-only', 'on-demand', 'histórico paginado e filtrado no servidor por superfície'),
+        dataImportRuns: lifecycle('workflow', 'maintenance', 'execuções técnicas mutáveis enquanto a importação progride'),
+        auditEvents: lifecycle('append-only', 'maintenance', 'trilha técnica de auditoria de dados')
+    });
+
+    const REMOTE_BOOTSTRAP_ENTITIES = Object.freeze(
+        RADAR_ENTITIES.filter(entity => ENTITY_LIFECYCLE[entity]?.remoteLoad === 'bootstrap')
+    );
+    const REMOTE_CONTEXT_ENTITIES = Object.freeze(
+        RADAR_ENTITIES.filter(entity => ENTITY_LIFECYCLE[entity]?.remoteLoad === 'context')
+    );
+
     const ENTITY_SET = new Set(RADAR_ENTITIES);
     const REQUIRED_REPOSITORY_METHODS = Object.freeze([
         'load',
@@ -151,6 +190,9 @@
     return Object.freeze({
         SNAPSHOT_FORMAT,
         RADAR_ENTITIES,
+        ENTITY_LIFECYCLE,
+        REMOTE_BOOTSTRAP_ENTITIES,
+        REMOTE_CONTEXT_ENTITIES,
         REQUIRED_REPOSITORY_METHODS,
         RepositoryError,
         assertKnownEntity,

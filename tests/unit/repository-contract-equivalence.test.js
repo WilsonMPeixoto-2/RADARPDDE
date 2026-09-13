@@ -25,13 +25,30 @@ function createSupabaseClient(seed = {}) {
 
     function table(name) {
         if (!tables.has(name)) tables.set(name, []);
-        const state = { operation: 'select', payload: null, filters: [], range: null, returning: false };
+        const state = {
+            operation: 'select',
+            payload: null,
+            filters: [],
+            range: null,
+            afterId: null,
+            limit: null,
+            returning: false
+        };
         const query = {
             select() {
                 state.returning = true;
                 return query;
             },
             order() {
+                return query;
+            },
+            gt(column, value) {
+                assert.equal(column, 'id');
+                state.afterId = String(value);
+                return query;
+            },
+            limit(value) {
+                state.limit = value;
                 return query;
             },
             range(from, to) {
@@ -71,7 +88,9 @@ function createSupabaseClient(seed = {}) {
                     return;
                 }
                 rows = rows.filter(matches).sort((left, right) => String(left.id).localeCompare(String(right.id)));
+                if (state.afterId !== null) rows = rows.filter(row => String(row.id) > state.afterId);
                 if (state.range) rows = rows.slice(state.range[0], state.range[1] + 1);
+                if (Number.isInteger(state.limit)) rows = rows.slice(0, state.limit);
                 resolve({ data: structuredClone(rows), error: null });
             }
         };

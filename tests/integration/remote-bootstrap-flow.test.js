@@ -52,15 +52,21 @@ function createSupabaseClientWithMetadata(seed = {}, options = {}) {
     const calls = [];
     const table = name => {
         if (!tables.has(name)) tables.set(name, []);
-        const state = { operation: null, payload: null, range: null, order: null };
+        const state = { operation: null, payload: null, range: null, order: null, afterId: null, limit: null };
         const query = {
             select() { state.operation ||= 'select'; return query; },
             order(column) { state.order = column; return query; },
             range(from, to) { state.range = [from, to]; return query; },
+            gt(column, value) {
+                assert.equal(column, 'id');
+                state.afterId = String(value);
+                return query;
+            },
+            limit(value) { state.limit = value; return query; },
             insert(payload) { state.operation = 'insert'; state.payload = structuredClone(payload); return query; },
             upsert(payload) { state.operation = 'upsert'; state.payload = structuredClone(payload); return query; },
             then(resolve) {
-                calls.push({ table: name, operation: state.operation, payload: structuredClone(state.payload) });
+                calls.push({ table: name, ...structuredClone(state) });
                 let rows = tables.get(name);
                 if (state.operation === 'insert') {
                     const incoming = Array.isArray(state.payload) ? state.payload : [state.payload];
@@ -95,6 +101,8 @@ function createSupabaseClientWithMetadata(seed = {}, options = {}) {
                     return;
                 }
                 if (state.order) rows = rows.slice().sort((left, right) => String(left[state.order]).localeCompare(String(right[state.order])));
+                if (state.afterId !== null) rows = rows.filter(row => String(row.id) > state.afterId);
+                if (state.limit !== null) rows = rows.slice(0, state.limit);
                 if (state.range) rows = rows.slice(state.range[0], state.range[1] + 1);
                 resolve({ data: structuredClone(rows), error: null });
             }
@@ -159,6 +167,34 @@ test('normaliza user_id ausente e null somente nos defaults remotos permitidos',
     assert.equal(reconciled.ok, true);
     assert.equal(client.dump('controllers')[0].user_id, null);
     assert.equal(client.dump('inventory_team_members')[0].user_id, null);
+});
+
+test('bootstrap reconcilia todas as páginas por cursor e repete sem perder, duplicar ou sobrescrever escolas', async () => {
+    const schools = ['school-5', 'school-1', 'school-4', 'school-2', 'school-3']
+        .map(id => ({ id, denomination: `Escola ${id}` }));
+    const client = createSupabaseClientWithMetadata({ profiles: SQL_PROFILE_BASELINE });
+    const repository = new SupabaseRepository({ client, pageSize: 2 });
+    const source = snapshot({ schools });
+
+    const first = await bootstrapRemoteSnapshot({ repository, snapshot: source, mode: 'import', batchSize: 2 });
+    const writesAfterFirstRun = client.calls.filter(call => call.operation === 'insert').length;
+    client.calls.length = 0;
+    const second = await bootstrapRemoteSnapshot({ repository, snapshot: source, mode: 'import', batchSize: 2 });
+
+    assert.equal(first.reconciliation.ok, true);
+    assert.ok(writesAfterFirstRun > 0);
+    assert.equal(second.reconciliation.ok, true);
+    assert.equal(second.writtenRows, 0);
+    assert.equal(client.calls.some(call => call.operation === 'insert' || call.operation === 'upsert'), false);
+    assert.deepEqual(
+        client.dump('schools').map(({ id, denomination }) => ({ id, denomination })).sort((a, b) => a.id.localeCompare(b.id)),
+        schools.slice().sort((a, b) => a.id.localeCompare(b.id))
+    );
+    const reads = client.calls.filter(call => call.operation === 'select');
+    assert.ok(reads.some(call => call.table === 'app_config'));
+    assert.ok(reads.every(call => call.limit === 2 && call.range === null && call.order === 'id'));
+    const schoolReads = reads.filter(call => call.table === 'schools');
+    assert.deepEqual(schoolReads.map(call => call.afterId), [null, 'school-2', 'school-4', null, 'school-2', 'school-4']);
 });
 
 test('converte colisao insert-only do SupabaseRepository em conflito sem sobrescrever', async () => {

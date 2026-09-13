@@ -1,7 +1,7 @@
 # Matriz de validade documental
 
 **Classe documental:** Canônico  
-**Atualizado em:** 8 de setembro de 2026
+**Atualizado em:** 12 de setembro de 2026
 
 ## 1. Finalidade
 
@@ -76,14 +76,16 @@ Documentos de produto históricos, inclusive o Plano do Lote 2 e dossiês de jul
 
 ## 6. R1–R9 — classificação vigente
 
-A classificação corrente é a de `CURRENT_STAGE.md`:
+`CURRENT_STAGE.md`, na seção de 12/09, define a frente vigente: certificação da arquitetura de consultas Supabase na branch isolada. O quadro abaixo registra a classificação de 07/09 e não é fila automática de execução; especialmente, R5 não deve ser retomada por este registro histórico.
+
+A classificação histórica de 07/09 era:
 
 - **R1:** concluída pelo PR #282;
 - **R2A:** parcialmente absorvida; resiliência relevante já preservada;
 - **R2B/R2C:** pausadas/candidatas no PR #284, sem autorização de integração no estado atual;
 - **R3:** materialmente atendida, sem reabrir regra já coberta por hotfixes posteriores;
 - **R4:** encerrada sem mudança funcional; a diferença entre antiguidade histórica de Pendências e tempo da ação corrente é deliberada;
-- **R5:** frente funcional ativa, referente à convergência da interface de NF após save/remove;
+- **R5:** então frente funcional ativa, referente à convergência da interface de NF após save/remove;
 - **R6:** gate posterior de equivalência;
 - **R7:** instrumentação parcialmente antecipada, sem autorização de otimização;
 - **R8:** condicional e pausada;

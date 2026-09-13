@@ -96,7 +96,7 @@ test('commit remoto atômico usa snapshot local + linhas devolvidas sem reler co
     assert.equal(result.snapshot.entities.administrativeLogs[0].id, 'log-local-1');
 });
 
-test('persistência remota customizada adia baseline e faz no máximo o refresh posterior necessário', async () => {
+test('persistência remota customizada relê somente entidades operacionais que exigem reconciliação', async () => {
     const beforeVerification = {
         id: '04.10.001::2026-08::BASIC',
         school_id: '04.10.001',
@@ -133,7 +133,7 @@ test('persistência remota customizada adia baseline e faz no máximo o refresh 
         persist: async () => ({})
     });
 
-    assert.deepEqual(loads, ['verifications', 'administrativeLogs']);
+    assert.deepEqual(loads, ['verifications']);
 });
 
 test('refresh remoto dispara leituras independentes em paralelo', async () => {

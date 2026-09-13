@@ -27,6 +27,9 @@
         // Regra crítica: "Incorreto" nunca pode cair no handler-base sem a pendência atômica.
         // Carregar primeiro impede que falhas em extensões opcionais anteriores desativem essa proteção.
         '/src/integration/atomic-analysis-pendency.js',
+        // Registros administrativos permanecem no Supabase e só entram em memória quando uma
+        // superfície de histórico realmente é aberta. A timeline depende desta leitura contextual.
+        '/src/integration/administrative-log-read-model.js',
         '/src/domain/school-timeline.js',
         '/src/integration/school-timeline.js',
         '/src/integration/navigation-context-bootstrap.js',
@@ -35,6 +38,7 @@
         '/src/integration/unidentified-expense-ux.js',
         '/src/integration/prontuario-operational-ux.js',
         '/src/integration/operational-readiness-bridge.js',
+        '/src/integration/operational-context-refresh.js',
         '/src/integration/pendency-passive-queue-ux.js',
         '/src/integration/invoice-history-lock.js',
         '/src/integration/service-advisory-pendency.js',
@@ -44,12 +48,13 @@
         '/src/integration/operational-write-performance.js',
         '/src/integration/prontuario-conditional-reconciler.js',
         '/src/integration/operational-write-feedback.js',
-        // Retificação é o wrapper funcional externo final: reutiliza os serviços canônicos
-        // já protegidos por idempotência, histórico, diagnóstico e feedback operacional.
+        // Retificação auditável de dados documentais/manuais permanece como wrapper funcional externo.
         '/src/integration/auditable-retification.js'
     ]);
     const criticalScripts = new Set([
         '/src/integration/atomic-analysis-pendency.js',
+        '/src/integration/administrative-log-read-model.js',
+        '/src/integration/operational-context-refresh.js',
         '/src/integration/service-advisory-pendency.js',
         '/src/integration/service-advisory-corrective-submission.js',
         '/src/integration/critical-action-guard.js',
@@ -57,11 +62,33 @@
     ]);
     const failedScripts = new Map();
 
+    function administrativeLogReadRequired() {
+        const repositoryFactory = root.RadarRepositoryFactory;
+        if (typeof repositoryFactory?.isSupabaseExplicitlyEnabled === 'function') {
+            return repositoryFactory.isSupabaseExplicitlyEnabled(root.RADAR_PDDE_CONFIG || {}) === true;
+        }
+        try {
+            const repository = root.RadarDataContext?.dataService?.repository
+                || root.RadarDataContext?.repository
+                || null;
+            return repository?.capabilities?.().remote === true;
+        } catch (_error) {
+            return false;
+        }
+    }
+
     function installCriticalExtensions() {
+        const administrativeLogReadInstalled = !administrativeLogReadRequired()
+            || root.RadarAdministrativeLogReadModel?.install?.(root) === true;
+        const operationalContextRefreshInstalled = root.RadarOperationalContextRefresh?.install?.(root) === true;
         const advisoryInstalled = root.RadarServiceAdvisoryPendency?.install?.(root) === true;
         const correctiveInstalled = root.RadarServiceAdvisoryCorrectiveSubmission?.install?.(root) === true;
         const retificationInstalled = root.RadarAuditableRetification?.install?.(root) === true;
-        return advisoryInstalled && correctiveInstalled && retificationInstalled;
+        return administrativeLogReadInstalled
+            && operationalContextRefreshInstalled
+            && advisoryInstalled
+            && correctiveInstalled
+            && retificationInstalled;
     }
 
     function waitForCriticalExtensions() {

@@ -124,7 +124,7 @@ function baseEntities() {
     };
 }
 
-test('avaliação remota persiste somente a verificação alterada e o novo histórico', async () => {
+test('avaliação remota persiste somente a verificação alterada e o novo histórico por estratégia explícita', async () => {
     const harness = createHarness(baseEntities());
     const service = new DataService({ repository: harness.repository, statePort: harness.statePort });
 
@@ -145,6 +145,13 @@ test('avaliação remota persiste somente a verificação alterada e o novo hist
             });
             harness.setCurrent(next);
             return { verificationId: 'ver-1' };
+        },
+        persist: async ({ snapshot: next, repository }) => {
+            const verification = next.entities.verifications.find(record => record.id === 'ver-1');
+            const log = next.entities.administrativeLogs.find(record => record.id === 'log-new');
+            await repository.save('verifications', [verification]);
+            await repository.insertOnly('administrativeLogs', [log]);
+            return { verification, administrative_log: log };
         }
     });
 
@@ -163,7 +170,7 @@ test('contato remoto omite campos gerados vazios antes do INSERT', async () => {
 
     await service.execute({
         name: 'pendency:register-contact',
-        changedEntities: ['pendencyContacts', 'administrativeLogs'],
+        changedEntities: ['pendencyContacts'],
         mutate: () => {
             const next = harness.getCurrent();
             next.entities.pendencyContacts.push({
@@ -179,15 +186,6 @@ test('contato remoto omite campos gerados vazios antes do INSERT', async () => {
                 row_version: null,
                 created_at: '',
                 updated_at: null
-            });
-            next.entities.administrativeLogs.push({
-                id: 'log-contact',
-                school_id: '04.31.001',
-                user_identifier: 'controlador',
-                profile_name: 'Controlador',
-                action: 'Contato Registrado',
-                details: {},
-                event_at: '2026-07-22T16:02:00.000Z'
             });
             harness.setCurrent(next);
             return { contactId: 'cont-new' };
@@ -215,7 +213,7 @@ test('falha remota restaura somente o estado local e nunca tenta restaurar o ban
     await assert.rejects(
         service.execute({
             name: 'verification:set-bonification',
-            changedEntities: ['verifications', 'administrativeLogs'],
+            changedEntities: ['verifications'],
             mutate: () => {
                 const next = harness.getCurrent();
                 next.entities.verifications[0].bonification.extCC = 'Sim';

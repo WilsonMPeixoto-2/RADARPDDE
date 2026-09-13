@@ -63,7 +63,7 @@ for (const [email, role] of identities) {
 
         await page.locator('#auth-logout-button').click();
         await expect(page.locator('#radar-auth-gate')).toBeVisible();
-        await expect(page.locator('#radar-auth-status')).toContainText(/sessão/i);
+        await expect(page.locator('#radar-auth-status')).toHaveText('Entre para acessar o RADAR PDDE.');
         await context.close();
     });
 }

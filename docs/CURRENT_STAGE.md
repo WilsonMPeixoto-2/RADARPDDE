@@ -1,141 +1,198 @@
 # RADAR PDDE — Estado atual do projeto
 
 **Classe documental:** Canônico — estado mutável e retomada futura  
-**Atualizado em:** 7 de setembro de 2026
+**Atualizado em:** 13 de setembro de 2026
 
-## 1. Estado corrente
+## Frente vigente
 
-Este arquivo contém somente estado mutável, prioridade e trabalho em andamento. O modelo funcional integrado do sistema fica em [`reference/SYSTEM_CANONICAL_MODEL.md`](reference/SYSTEM_CANONICAL_MODEL.md).
+A correção da arquitetura de dados baseada em Supabase foi concluída e certificada na branch:
 
-A reconstrução contextual source-first de 07/09 foi realizada antes de qualquer nova mudança funcional. Ela confrontou:
+`fix/supabase-query-architecture-2026-09-11`
 
-- código da `main`;
-- Vercel Production;
-- schema/RPC/RLS/triggers do Supabase Production;
-- documentação versionada e decisões vigentes.
+**Candidato funcional certificado:** `054aeb26f6f0ad12bf66b3965b9adcb59bca1a8a`  
+**Base reconciliada da `main`:** `2eff1321a8abaccd46d9627ee2eed060741ce3b7`  
+**Merge sintético do PR #300 validado:** `1c0750a3543af8b681a20a4a8fb0d0a35074c42e`
 
-Baseline funcional imediatamente anterior a esta reconstrução documental:
+O relatório técnico de fechamento é:
 
-- `main`: `cafef971b902fd206ce26208445e27aeacbc9a0f`;
-- Vercel Production: `READY` no mesmo SHA;
-- deployment observado: `dpl_DWSLXhgTktiphBs7CMbk18wM2UCL`.
+[`audits/SUPABASE_ARCHITECTURE_FINAL_2026-09-13.md`](audits/SUPABASE_ARCHITECTURE_FINAL_2026-09-13.md)
 
-Esses valores são voláteis e devem ser revalidados ao vivo antes de qualquer operação que dependa deles. A reconstrução documental não altera comportamento funcional.
+O arquivo [`audits/ASTRA_AUDITORIA_RADAR_2026.md`](audits/ASTRA_AUDITORIA_RADAR_2026.md) permanece como diário investigativo incremental. Seus checkpoints intermediários podem descrever defeitos que foram corrigidos depois. Para o estado vigente, este arquivo e o relatório final acima têm precedência temporal.
 
-## 2. Correção de governança documental
+## Estado de Production e governança
 
-A revisão confirmou que o problema recente de contexto não decorreu de falta de documentação. O repositório já possuía rota, classificação e fontes especializadas, mas:
+- A `main` ainda está em `2eff1321a8abaccd46d9627ee2eed060741ce3b7` enquanto o PR #300 aguarda a integração controlada.
+- O candidato funcional `054aeb26...` passou os gates de release contra a `main`, inclusive o merge sintético `1c0750a...`.
+- O PR #300 não adiciona, remove nem altera migrations do Supabase.
+- Nenhuma alteração manual de dados, secret ou configuração do Supabase é necessária para esta integração.
+- O rollback de acesso introduzido em `2eff1321...` foi reconciliado e permanece preservado; a funcionalidade de retificação de avaliação removida com o rollback do PR #299 não foi reintroduzida.
+- A próxima mudança de estado autorizada é a integração do PR #300 e a validação do deployment de Production.
 
-- a rota de leitura não foi seguida de forma consistente;
-- `AGENTS.md` acumulou estados temporais demais;
-- novos documentos entraram sem reconciliação suficiente dos roteadores;
-- algumas referências envelheceram após hotfixes e decisões posteriores.
+## Causa raiz encerrada
 
-A correção adotada é estrutural:
+O Supabase já era a fonte oficial, mas o frontend ainda conservava partes do modelo anterior baseado em snapshots amplos no navegador. Isso fazia dados históricos ou operacionais serem carregados, copiados ou reconciliados em situações onde a superfície ativa não precisava deles.
 
-- `AGENTS.md` volta a ser um roteador estável;
-- `SYSTEM_CANONICAL_MODEL.md` integra o conhecimento funcional/arquitetural;
-- este arquivo permanece responsável pelo estado mutável;
-- `STATUS_DOCUMENTOS.md` classifica validade;
-- novo documento canônico passa a exigir atualização dos roteadores na mesma entrega.
+O caso mais evidente era `administrativeLogs` no login. A auditoria mostrou que o problema era sistêmico: a fronteira entre dados estruturais, contexto operacional e histórico não estava concluída.
 
-## 3. Estado funcional consolidado
+A correção adotada foi estrutural, preservando as regras de negócio:
 
-A cadeia funcional #265–#279 permanece integrada e seus guardrails devem ser preservados.
+- bootstrap remoto somente com dados estruturais necessários à entrada;
+- dados operacionais carregados pela competência/contexto ativo;
+- Pendências e bens antigos ainda ativos incorporados seletivamente ao contexto corrente;
+- dependências necessárias de reanálise, Inventário e cálculos agregados carregadas sem recuperar todo o histórico;
+- históricos administrativos e escolares somente sob demanda;
+- gravações remotas autoritativas/incrementais por entidades afetadas;
+- navegador sem função de segundo banco operacional no modo Supabase;
+- invalidação real da sessão operacional no logout;
+- atualização contextual segura ao retomar/focar a aplicação;
+- troca de competência com hidratação remota, preservação da escola aberta e rollback visual em caso de falha;
+- consultas remotas genéricas fail-closed quando faltam ordenação determinística ou limites explícitos;
+- acesso direto às tabelas operacionais do Supabase restrito à camada de dados, com exceções de autenticação limitadas a `user_profiles` e `user_school_scopes`.
 
-Depois dela:
+## Prioridade funcional preservada
 
-- PR #281 consolidou o rebaseline documental pós-#279;
-- PR #282 retirou autoridade funcional do wrapper de performance, que hoje atua como diagnóstico/tracing;
-- PR #287 tornou permanente o gate de validação real pelo frontend;
-- PR #284 permanece **Draft e PAUSADO**, sem autorização de merge/deploy no estado atual;
-- R4/Pendências foi reavaliada e encerrada sem alteração funcional: antiguidade histórica na tela de Pendências e tempo da ação corrente em Dashboard/Carteira são métricas deliberadamente diferentes.
+Continuam sendo superfícies prioritárias e protegidas por testes:
 
-## 4. Prioridade funcional vigente
+- Análise e Bonificação;
+- Pendências, contatos, tentativas e reanálise;
+- Notas, documentos, edição/retificação e despesa a identificar;
+- Inventário e efeitos derivados de despesas permanentes;
+- navegação entre escolas, programas e competências;
+- confirmações e estados visuais das operações;
+- histórico escolar e Auditoria quando solicitados.
 
-A ordem atual é:
+O histórico administrativo não participa do login nem da navegação operacional comum.
 
-1. **R5 — Nota Fiscal:** analisar/completar convergência autoritativa e incremental da interface após `invoice:save` e `invoice:remove`, inclusive remoções retornadas por ID;
-2. **retomar R2 / PR #284:** somente depois de R5 estabilizado, reconciliar o candidato com a nova `main`, corrigir por causa raiz as regressões desktop e provar equivalência funcional pelo frontend real;
-3. executar o gate de equivalência;
-4. avaliar otimizações adicionais apenas se medições justificarem.
+## Estado arquitetural por classe de dados
 
-Enquanto R5 estiver aberta, não retomar #284.
+### Bootstrap remoto
 
-## 5. Classificação vigente de R1–R9
+- configuração da aplicação;
+- programas;
+- controladores;
+- equipe de inventário;
+- escolas autorizadas;
+- vínculos escola/programa;
+- competências.
 
-R1–R9 são identificadores históricos, não fila automática.
+### Autorização
 
-| Fase | Estado atual | Próxima decisão |
-|---|---|---|
-| R1 | **Concluída pelo PR #282** | preservar performance como diagnóstico, sem autoridade funcional |
-| R2A | **Parcialmente absorvida** | resiliência do loader já preservada por trabalho posterior |
-| R2B/R2C | **Pausadas / candidatas no PR #284** | não integrar antes de R5 e equivalência funcional |
-| R3 | **Materialmente atendida** | não reabrir regra já coberta por #276 e posteriores sem evidência nova |
-| R4 | **Encerrada sem alteração funcional** | preservar métricas distintas e deliberadas de Pendências |
-| R5 | **PRÓXIMA FRENTE ATIVA** | convergência de `invoice:save`/`invoice:remove` |
-| R6 | **Gate posterior** | equivalência após R5 |
-| R7 | **Instrumentação parcialmente antecipada** | preservar evidência; não usar como autorização de otimização |
-| R8 | **Condicional e pausada** | otimizar somente gargalo demonstrado |
-| R9 | **Pendente** | fechamento/rebaseline final |
+- perfis;
+- vínculos usuário/perfil;
+- escopos escolares do usuário.
 
-## 6. PR #284 — estado de preservação
+### Contexto operacional
 
-O PR #284 permanece aberto apenas para preservar trabalho e evidência.
+- verificações/avaliações;
+- Pendências;
+- tentativas;
+- contatos necessários ao contexto;
+- bens;
+- notas/despesas.
 
-Preservar como candidato:
+### Sob demanda
 
-- instrumentação de bootstrap;
-- análise causal dos pollings;
-- conceito de readiness determinístico;
-- artefatos/testes diagnósticos;
-- medição local controlada de performance.
+- logs administrativos;
+- histórico completo da escola;
+- histórico de contatos escolares quando a superfície correspondente é aberta.
 
-Não considerar comprovado:
+### Manutenção
 
-- equivalência funcional do candidato;
-- encerramento de R2;
-- segurança de remover mais entidades do bootstrap;
-- aprovação de merge/deploy;
-- performance como compensação para falha funcional.
+- execuções de importação;
+- auditoria técnica.
 
-A retomada exige o gate de [`reference/FRONTEND_USER_VALIDATION_GATE.md`](reference/FRONTEND_USER_VALIDATION_GATE.md).
+## PR #299 e reconciliação com a `main`
 
-## 7. Guardrails funcionais que não podem regredir
+A `main` foi restaurada em `2eff1321a8abaccd46d9627ee2eed060741ce3b7` após a regressão global de acesso associada ao PR #299. A branch arquitetural havia divergido antes desse hotfix.
 
-O conjunto completo está no modelo canônico. Entre os mais sensíveis:
+A reconciliação foi feita por merge formal em `f064c189ff26a4f22357f61dda6e16d218599900`, preservando o hotfix da `main` e a nova arquitetura Supabase. Em seguida, `7fac373ec4481b5ca5140f923312b9fb7a5f5fee` restaurou apenas os contratos arquiteturais necessários da retificação manual (`incrementalStateEntities` e `remoteResultIsAuthoritative`), sem restaurar a funcionalidade de retificação de avaliação removida pelo rollback.
 
-- bonificação de NF agregada, análise/Pendência individual por `registered_invoice_id`;
-- resumo técnico de NF derivado;
-- `a_identificar` novo nasce `Incorreto + Pendência` atomicamente;
-- `boleto_internet` existe somente como tipo de gasto de NF em Educação Conectada;
-- Consulta Assessoria é individual por NF de serviço;
-- Pendências é transversal entre competências;
-- página de Pendências preserva antiguidade histórica desde a abertura original;
-- Dashboard/Carteira podem mostrar tempo da ação operacional atual;
-- reanálise exige contexto/tentativa/versionamento válidos;
-- `Inventariada` é terminal;
-- competência global usa `RadarCompetenceContext`;
-- Production é fail-closed em operações críticas;
-- commit remoto confirmado não deve ser repetido apenas para recuperar estado local;
-- performance não é autoridade funcional;
-- layout aprovado de Prontuário/Pendências deve ser preservado;
-- comunicação externa não usa o nome interno `RADAR PDDE`;
-- alteração perceptível pelo usuário exige validação real pelo frontend.
+Os artefatos centrais removidos pelo rollback continuam ausentes no merge sintético validado, inclusive a migration `20260910201500_evaluation_retification_atomic_cancel.sql` e os módulos/UI/testes correspondentes. O PR #300 não contém mudança de migration.
 
-## 8. Leitura obrigatória por novo chat/agente
+## Certificação objetiva do candidato
+
+No candidato funcional `054aeb26f6f0ad12bf66b3965b9adcb59bca1a8a`, todos os workflows acionados pelo PR concluíram com sucesso:
+
+- `Validar RADAR PDDE`;
+- `Testes E2E Playwright`;
+- `Homologação integral pré-production`;
+- `Supabase readiness`;
+- `Confiabilidade funcional com Supabase real`;
+- `Ciclos funcionais reais com Supabase`;
+- `Gate remoto de perfis e viewports`;
+- `Retificação auditável direcionada`;
+- `CodeQL`;
+- `Saúde das dependências`;
+- `Contratos-fonte do Excel SME`;
+- `Homologação do Excel SME`;
+- `Validar snapshot canônico do RADAR`;
+- `Lighthouse CI`.
+
+A suíte unitária alcançou **1.018 testes aprovados, 0 falhas**, além das baterias de domínio, integração e jornadas reais autenticadas contra Supabase descartável.
+
+### Lighthouse
+
+A otimização `054aeb26...` apenas antecipou a descoberta das fontes principais, sem alterar regras de negócio, layout funcional ou arquitetura de dados.
+
+Resultado desktop final, mediana de três execuções:
+
+- Performance: **78%**;
+- Acessibilidade: **100%**;
+- Boas práticas: **100%**;
+- FCP: **737 ms**;
+- LCP: **3,46 s**;
+- Speed Index: **1,29 s**;
+- TBT: **0 ms**;
+- CLS: **0,082**;
+- TTI: **3,46 s**.
+
+O piso desktop de LCP de 3,5 s foi atendido. O perfil mobile permanece como dívida de performance conhecida e não bloqueante para o alvo operacional desktop; a evidência foi preservada em vez de mascarada.
+
+## Situação dos achados principais
+
+Corrigidos e cobertos por regressão:
+
+- logs administrativos no bootstrap;
+- readiness remoto/local;
+- coleções operacionais crescentes no login;
+- snapshots completos em pequenas escritas remotas;
+- persistência operacional legada em `localStorage` no modo Supabase;
+- caminho legado de logs na exportação Excel;
+- histórico escolar truncado pelos registros mais recentes;
+- seletor global de competência e hidratação remota;
+- dependências de obrigações antigas ativas;
+- notas irmãs necessárias a reanálise/inventário;
+- histórico de contatos sem vínculo com Pendência;
+- índices derivados após patch remoto;
+- atualização contextual durante edição/gravação;
+- invalidação de sessão no logout;
+- classificação de `dataImportRuns`;
+- simuladores de integração incompatíveis com paginação por cursor;
+- releitura corretiva integral após falha de sincronização;
+- duplicidade de logout e expectativas E2E obsoletas;
+- consultas administrativas e paginação genérica sem contrato determinístico explícito.
+
+Uma possível micro-otimização futura é substituir alguns filtros locais repetidos em cálculos de interface por índices auxiliares. Com o novo recorte contextual, isso não opera sobre o histórico global e não constitui pendência desta correção arquitetural.
+
+## Próximo passo autorizado
+
+O candidato foi certificado para integração. A sequência de release é:
+
+1. integrar o PR #300 na `main` preservando o SHA esperado da branch;
+2. confirmar a `main` integrada;
+3. aguardar o deployment automático da Vercel em Production;
+4. confirmar que Production está `READY` no SHA integrado;
+5. executar smoke check não destrutivo no endereço oficial;
+6. registrar o estado final de release.
+
+## Rota obrigatória para retomada futura
 
 1. `AGENTS.md`;
 2. `reference/SYSTEM_CANONICAL_MODEL.md`;
 3. este arquivo;
-4. `reference/ENGINEERING_METHOD.md`;
-5. `reference/FRONTEND_USER_VALIDATION_GATE.md`;
-6. `reference/STATUS_DOCUMENTOS.md`;
-7. matriz funcional/ADR/referência especializada da frente;
-8. somente então históricos necessários.
+4. `audits/SUPABASE_ARCHITECTURE_FINAL_2026-09-13.md`;
+5. `reference/ENGINEERING_METHOD.md`;
+6. `reference/FRONTEND_USER_VALIDATION_GATE.md`;
+7. referências especializadas da frente pretendida.
 
-Nenhuma frente funcional deve ser retomada a partir de memória de chat sem passar por essa rota.
-
-## 9. Regra para a próxima execução funcional
-
-A próxima frente continua sendo R5. Antes de tocar no código de Nota Fiscal, a análise deve confrontar a proposta com o `SYSTEM_CANONICAL_MODEL.md`, localizar a autoridade atual de `InvoiceService`/persistência/reconciliação e aplicar o gate de frontend real após qualquer mudança.
+A retomada não deve partir de memória de chat ou de checkpoints intermediários da auditoria sem reconciliá-los com este estado canônico.

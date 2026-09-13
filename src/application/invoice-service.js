@@ -791,6 +791,7 @@
                 name: 'invoice:save',
                 remoteRefreshExemptEntities: ['administrativeLogs'],
                 changedEntities: [...plan.changedEntities],
+                remoteCommitIsAuthoritative: true,
                 persist: this.createPersistence('save'),
                 mutate: () => {
                     const state = this.getState();
@@ -1000,6 +1001,7 @@
             return this.dataService.execute({
                 name: 'invoice:update-document-analysis',
                 changedEntities: ['registeredInvoices', 'verifications', 'administrativeLogs'],
+                remoteCommitIsAuthoritative: true,
                 persist: this.createPersistence('save'),
                 mutate: () => {
                     const state = this.getState();
@@ -1326,6 +1328,7 @@
                 name: 'invoice:remove',
                 remoteRefreshExemptEntities: ['administrativeLogs'],
                 changedEntities: [...plan.changedEntities],
+                remoteCommitIsAuthoritative: true,
                 persist: this.createPersistence('remove'),
                 mutate: () => {
                     const state = this.getState();

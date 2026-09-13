@@ -19,6 +19,20 @@
     if (root) {
         root.RadarStateBridge = Object.freeze(api);
         root.RadarLegacyStateAdapter = Object.freeze(api);
+
+        const remoteOperationalState = root.RadarRepositoryFactory?.isSupabaseExplicitlyEnabled?.(
+            root.RADAR_PDDE_CONFIG || {}
+        ) === true;
+        if (remoteOperationalState) {
+            try {
+                api.clearPersistentOperationalCache?.(root.localStorage);
+            } catch (error) {
+                root.console?.warn?.(
+                    'Não foi possível limpar o cache operacional legado do RADAR.',
+                    error
+                );
+            }
+        }
     }
 }(typeof window !== 'undefined' ? window : globalThis, function createMetadataAwareBridge(
     contract,
@@ -34,6 +48,12 @@
     const { RepositoryError, cloneValue } = contract;
     const BRIDGE_METADATA_STORAGE_KEY = 'radar_pdde_bridge_metadata';
     const METADATA_VERSION = '1';
+    const OBSOLETE_LOCAL_REPOSITORY_PREFIX = 'radar_pdde_repository:';
+    const OPERATIONAL_VERSION_KEYS = Object.freeze([
+        'radar_pdde_data_version',
+        'radar_pdde_pendency_schema_version',
+        BRIDGE_METADATA_STORAGE_KEY
+    ]);
     const TRACKED_ENTITIES = Object.freeze([
         'pendencies',
         'pendencyAttempts',
@@ -61,6 +81,54 @@
                 { operation: 'metadataBridge' }
             );
         }
+    }
+
+    function persistentOperationalKeys(storage) {
+        const keys = new Set(
+            Object.values(baseBridge.LEGACY_STORAGE_MAP || {})
+                .map(descriptor => descriptor?.key)
+                .filter(Boolean)
+        );
+        OPERATIONAL_VERSION_KEYS.forEach(key => keys.add(key));
+
+        if (storage && Number.isInteger(storage.length) && typeof storage.key === 'function') {
+            for (let index = 0; index < storage.length; index += 1) {
+                const key = storage.key(index);
+                if (String(key || '').startsWith(OBSOLETE_LOCAL_REPOSITORY_PREFIX)) {
+                    keys.add(key);
+                }
+            }
+        } else if (storage && typeof storage.dump === 'function') {
+            Object.keys(storage.dump()).forEach(key => {
+                if (key.startsWith(OBSOLETE_LOCAL_REPOSITORY_PREFIX)) keys.add(key);
+            });
+        }
+
+        return [...keys];
+    }
+
+    function clearPersistentOperationalCache(storage) {
+        if (!storage || typeof storage.removeItem !== 'function') {
+            return { removed: [], failed: [] };
+        }
+
+        const removed = [];
+        const failed = [];
+        persistentOperationalKeys(storage).forEach(key => {
+            try {
+                const exists = typeof storage.getItem !== 'function' || storage.getItem(key) !== null;
+                if (!exists) return;
+                storage.removeItem(key);
+                removed.push(key);
+            } catch (error) {
+                failed.push({
+                    key,
+                    message: String(error?.message || error || 'Falha ao remover cache operacional.')
+                });
+            }
+        });
+
+        return { removed, failed };
     }
 
     function readMetadata(storage) {
@@ -349,6 +417,7 @@
         BRIDGE_METADATA_STORAGE_KEY,
         METADATA_VERSION,
         TRACKED_ENTITIES,
+        clearPersistentOperationalCache,
         readMetadata,
         buildMetadata,
         applyLiveLegacyFields,

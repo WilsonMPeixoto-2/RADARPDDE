@@ -11,7 +11,11 @@ const bootstrapSource = fs.readFileSync(
     'utf8'
 );
 
-function createHarness({ failOnce = [] } = {}) {
+function createHarness({
+    failOnce = [],
+    remoteMode = true,
+    administrativeLogInstallResult = true
+} = {}) {
     const requested = [];
     const failedOnce = new Set(failOnce);
     const scripts = [];
@@ -84,6 +88,14 @@ function createHarness({ failOnce = [] } = {}) {
                         node.dispatch('error');
                         return;
                     }
+                    if (node.src.endsWith('/administrative-log-read-model.js')) {
+                        root.RadarAdministrativeLogReadModel = {
+                            install: () => administrativeLogInstallResult
+                        };
+                    }
+                    if (node.src.endsWith('/operational-context-refresh.js')) {
+                        root.RadarOperationalContextRefresh = { install: () => true };
+                    }
                     if (node.src.endsWith('/service-advisory-pendency.js')) {
                         root.RadarServiceAdvisoryPendency = { install: () => true };
                     }
@@ -106,6 +118,16 @@ function createHarness({ failOnce = [] } = {}) {
     const root = {
         document,
         console: { error() {} },
+        RADAR_PDDE_CONFIG: {
+            dataMode: remoteMode ? 'supabase-production' : 'local',
+            features: { supabaseRepositoryEnabled: remoteMode },
+            supabase: { connectionEnabled: remoteMode }
+        },
+        RadarRepositoryFactory: {
+            isSupabaseExplicitlyEnabled() {
+                return remoteMode;
+            }
+        },
         addEventListener(type, callback) {
             const list = rootListeners.get(type) || [];
             list.push(callback);
@@ -216,4 +238,26 @@ test('reexecução concorrente durante a carga não pode mascarar falha crítica
     const retryReady = await harness.executeBootstrap();
     assert.equal(retryReady, true, 'após a falha estar estabelecida, uma nova execução pode retentar');
     assert.equal(harness.requested.filter(src => src === atomic).length, 2);
+});
+
+test('modo local não exige o leitor administrativo exclusivo do Supabase para ficar pronto', async () => {
+    const harness = createHarness({
+        remoteMode: false,
+        administrativeLogInstallResult: false
+    });
+
+    const ready = await harness.executeBootstrap();
+
+    assert.equal(ready, true);
+});
+
+test('modo Supabase exige e instala o leitor administrativo contextual', async () => {
+    const harness = createHarness({
+        remoteMode: true,
+        administrativeLogInstallResult: true
+    });
+
+    const ready = await harness.executeBootstrap();
+
+    assert.equal(ready, true);
 });

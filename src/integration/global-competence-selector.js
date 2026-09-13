@@ -13,6 +13,10 @@
     let contextUnsubscribe = null;
     let retryTimer = null;
     let mainObserver = null;
+    let hydrationSequence = 0;
+    let lastHydratedCompetence = '';
+    let suppressHydrationOnce = false;
+    let hydrationPromise = Promise.resolve(true);
 
     function text(value) {
         return value == null ? '' : String(value).trim();
@@ -62,6 +66,7 @@
         const currentCompetence = competenceExists(currentState?.activeKey)
             ? text(currentState.activeKey)
             : '';
+        const loadedCompetence = text(remoteDataService()?.currentOperationalCompetence);
         const availableExercises = [...new Set(
             COMPETENCIAS.map(item => competenceExercise(item?.key || item?.id || item)).filter(Boolean)
         )].sort();
@@ -73,6 +78,7 @@
             text(meta.currentExercise),
             competenceExercise(requestedCompetence),
             text(currentState?.exercise),
+            competenceExercise(loadedCompetence),
             competenceExercise(availableCalendarCompetence),
             competenceExercise(persistedCompetence),
             competenceExercise(closingCompetence),
@@ -83,6 +89,7 @@
         const initialCompetence = [
             requestedCompetence,
             currentCompetence,
+            loadedCompetence,
             availableCalendarCompetence
         ].find(key => competenceExists(key) && competenceExercise(key) === resolvedExercise) || '';
 
@@ -192,6 +199,65 @@
         removeLocalCompetenceControl();
     }
 
+    function remoteDataService() {
+        const service = root.RadarApplicationServices?.data;
+        return service?.repository?.capabilities?.().remote === true
+            && typeof service.loadOperationalContext === 'function' ? service : null;
+    }
+
+    function setContextBusy(busy) {
+        const select = document.getElementById('global-competence-select');
+        const exercise = document.getElementById('exercise-select');
+        const main = document.getElementById('main-container');
+        if (select) select.disabled = busy;
+        if (exercise) exercise.disabled = busy;
+        if (main) {
+            main.setAttribute('aria-busy', String(busy));
+            main.inert = busy;
+        }
+    }
+
+    function emitCompetenceChange(state, meta = {}) {
+        root.dispatchEvent?.(new CustomEvent('radar:competence-change', {
+            detail: { ...state, source: text(meta.source) || 'context' }
+        }));
+    }
+
+    async function hydrateRemoteState(state, meta) {
+        const service = remoteDataService();
+        const sequence = ++hydrationSequence;
+        setContextBusy(true);
+        try {
+            const loaded = await service.loadOperationalContext(state.activeKey, {
+                source: 'competence-change'
+            });
+            if (sequence !== hydrationSequence || loaded?.stale === true) return false;
+            if (root.RadarCompetenceContext.getState().activeKey !== state.activeKey) return false;
+            lastHydratedCompetence = state.activeKey;
+            refreshCurrentView();
+            emitCompetenceChange(state, meta);
+            root.dispatchEvent?.(new CustomEvent('radar:operational-context-refreshed', {
+                detail: { competenceKey: state.activeKey, source: 'competence-change' }
+            }));
+            return true;
+        } catch (error) {
+            if (sequence !== hydrationSequence) return false;
+            const fallback = lastHydratedCompetence;
+            if (fallback && fallback !== state.activeKey) {
+                suppressHydrationOnce = true;
+                root.RadarCompetenceContext.selectExercise(competenceExercise(fallback), {
+                    initialCompetence: fallback,
+                    source: 'remote-hydration-rollback'
+                });
+            }
+            root.console?.error?.('Falha ao carregar a competência.', error);
+            root.alert?.('Não foi possível carregar os dados desta competência. A última competência confirmada foi mantida.');
+            return false;
+        } finally {
+            if (sequence === hydrationSequence) setContextBusy(false);
+        }
+    }
+
     function applyState(state, meta = {}) {
         if (typeof activeCompetenciaKey !== 'undefined') activeCompetenciaKey = state.activeKey;
         if (typeof currentExercise !== 'undefined') currentExercise = state.exercise;
@@ -199,10 +265,18 @@
         renderSelector(state);
         const exerciseSelect = document.getElementById('exercise-select');
         if (exerciseSelect && exerciseSelect.value !== state.exercise) exerciseSelect.value = state.exercise;
-        if (meta.initial !== true) refreshCurrentView();
-        root.dispatchEvent?.(new CustomEvent('radar:competence-change', {
-            detail: { ...state, source: text(meta.source) || 'context' }
-        }));
+        if (meta.initial === true) {
+            lastHydratedCompetence = remoteDataService()?.currentOperationalCompetence || state.activeKey;
+        } else if (suppressHydrationOnce) {
+            suppressHydrationOnce = false;
+            refreshCurrentView();
+        } else if (remoteDataService()) {
+            hydrationPromise = hydrateRemoteState(state, meta);
+            return;
+        } else {
+            refreshCurrentView();
+        }
+        emitCompetenceChange(state, meta);
     }
 
     function installLegacyEntryPoints() {
@@ -303,6 +377,8 @@
         install,
         refreshContext,
         renderSelector,
-        removeLocalCompetenceControl
+        removeLocalCompetenceControl,
+        refreshCurrentView,
+        whenHydrated: () => hydrationPromise
     });
 }));

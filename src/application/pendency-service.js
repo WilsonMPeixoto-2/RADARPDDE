@@ -643,9 +643,6 @@
                 : cloneValue(verification);
             nextVerification.analise = nextVerification.analise || {};
             nextVerification.bonificacao = nextVerification.bonificacao || {};
-            // A correção documental não muda a bonificação de Notas Fiscais nem
-            // o resultado consolidado. Efeitos derivados de Assessoria/Inventário
-            // permanecem autorizados pelo planner canônico.
             nextVerification.bonificacao.notaFiscal = verification.bonificacao?.notaFiscal;
             nextVerification.resultadoBonif = verification.resultadoBonif;
             nextVerification.analise.notaFiscal = deriveInvoiceDocumentAnalysis(
@@ -1188,6 +1185,7 @@
             return this.dataService.execute({
                 name: 'pendency:update-details',
                 changedEntities: ['pendencies', 'administrativeLogs'],
+                remoteResultIsAuthoritative: true,
                 mutate: () => {
                     const state = this.getState();
                     const { index, pendency } = this.find(state, input.pendencyId, 'updateDetails');

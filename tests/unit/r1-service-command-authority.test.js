@@ -39,7 +39,9 @@ test('serviços declaram autoridade que não pode depender do wrapper de perform
         ['src/application/inventory-service.js', "name: 'inventory:create'"],
         ['src/application/pendency-service.js', "name: changesVerification ? 'pendency:open-with-analysis' : 'pendency:open'"],
         ['src/application/pendency-service.js', "name: 'pendency:register-attempt'"],
-        ['src/application/pendency-service.js', "name: 'pendency:register-contact'"]
+        ['src/application/pendency-service.js', "name: 'pendency:update-details'"],
+        ['src/application/pendency-service.js', "name: 'pendency:register-contact'"],
+        ['src/integration/auditable-retification.js', "name: 'pendency:retify-manual-details'"]
     ];
     resultAuthoritative.forEach(([relative, needle]) => {
         assertMarkers(relative, needle, [/remoteResultIsAuthoritative:\s*true/]);
@@ -57,7 +59,10 @@ test('serviços declaram autoridade que não pode depender do wrapper de perform
     const commitAuthoritative = [
         ['src/application/school-service.js', "name: 'school:save'"],
         ['src/application/pendency-service.js', "name: 'pendency:reanalyze'"],
-        ['src/application/invoice-service.js', "name: 'invoice:update-service-advisory'"]
+        ['src/application/invoice-service.js', "name: 'invoice:save'"],
+        ['src/application/invoice-service.js', "name: 'invoice:update-document-analysis'"],
+        ['src/application/invoice-service.js', "name: 'invoice:update-service-advisory'"],
+        ['src/application/invoice-service.js', "name: 'invoice:remove'"]
     ];
     commitAuthoritative.forEach(([relative, needle]) => {
         assertMarkers(relative, needle, [/remoteCommitIsAuthoritative:\s*true/]);
@@ -69,7 +74,8 @@ test('aplicação incremental fica declarada no núcleo que conhece as entidades
         ['src/application/verification-service.js', "name: 'verification:set-bonification'", ['verifications', 'administrativeLogs']],
         ['src/application/verification-service.js', "name: 'verification:set-technical-analysis'", ['verifications', 'administrativeLogs']],
         ['src/application/verification-service.js', "name: 'verification:close-bonification'", ['verifications', 'administrativeLogs']],
-        ['src/application/invoice-service.js', "name: 'invoice:update-service-advisory'", ['registeredInvoices', 'verifications', 'administrativeLogs']]
+        ['src/application/invoice-service.js', "name: 'invoice:update-service-advisory'", ['registeredInvoices', 'verifications', 'administrativeLogs']],
+        ['src/integration/auditable-retification.js', "name: 'pendency:retify-manual-details'", ['pendencies', 'administrativeLogs']]
     ].forEach(([relative, needle, entities]) => {
         const window = commandWindow(source(relative), needle, 900);
         assert.match(window, /incrementalStateEntities\s*:/, `${needle} deve declarar incrementalStateEntities`);

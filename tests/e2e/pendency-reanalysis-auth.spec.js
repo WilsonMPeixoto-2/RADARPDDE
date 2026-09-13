@@ -31,11 +31,10 @@ async function signInProfile(page, profileId) {
 }
 
 async function signOut(page) {
-  await page.evaluate(async () => {
-    await window.RadarSessionContext?.service?.signOut();
-    window.RadarAuthContext = null;
-  });
-  await page.reload();
+  await Promise.all([
+    page.waitForEvent('domcontentloaded'),
+    page.getByRole('button', { name: 'Sair', exact: true }).click()
+  ]);
   await page.waitForFunction(() => {
     const form = document.querySelector('#radar-auth-form');
     return form && form.hidden === false;

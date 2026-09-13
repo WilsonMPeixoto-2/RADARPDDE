@@ -8,6 +8,7 @@ const { install } = require('../../src/integration/excel-export-audit.js');
 function createRoot(options = {}) {
     const auditEvents = [];
     const legacyEvents = [];
+    const legacyPersists = [];
     let exportCalls = 0;
     const root = {
         escolas: [],
@@ -19,6 +20,9 @@ function createRoot(options = {}) {
         alert() {},
         registerLog(action, details) {
             legacyEvents.push({ action, details });
+        },
+        persist(entity) {
+            legacyPersists.push(entity);
         },
         radarAuditService: {
             async record(event) {
@@ -33,11 +37,13 @@ function createRoot(options = {}) {
             exportXlsx() {
                 exportCalls += 1;
                 root.registerLog('Relatório Excel Exportado', 'legado');
+                root.persist('logs');
                 return { ok: true, fileName: 'relatorio.xlsx' };
             },
             async exportSmeXlsx() {
                 exportCalls += 1;
                 root.registerLog('Relatório Excel SME Exportado', 'legado');
+                root.persist('logs');
                 return { ok: true, fileName: 'sme.xlsx' };
             }
         }
@@ -46,6 +52,7 @@ function createRoot(options = {}) {
         root,
         auditEvents,
         legacyEvents,
+        legacyPersists,
         exportCalls: () => exportCalls
     };
 }
@@ -64,9 +71,10 @@ test('registra início e conclusão antes de confirmar a exportação institucio
         ['Exportação Excel Iniciada', 'Relatório Excel Exportado']
     );
     assert.equal(harness.legacyEvents.length, 0);
+    assert.deepEqual(harness.legacyPersists, []);
 });
 
-test('aplica a mesma trilha obrigatória ao Excel SME', async () => {
+test('aplica a mesma trilha obrigatória ao Excel SME sem persistir snapshot legado', async () => {
     const harness = createRoot();
     install(harness.root);
 
@@ -79,6 +87,7 @@ test('aplica a mesma trilha obrigatória ao Excel SME', async () => {
         ['Exportação Excel Iniciada', 'Relatório Excel SME Exportado']
     );
     assert.equal(harness.legacyEvents.length, 0);
+    assert.deepEqual(harness.legacyPersists, []);
 });
 
 test('bloqueia o download quando o registro inicial não é persistido', async () => {
@@ -90,4 +99,5 @@ test('bloqueia o download quando o registro inicial não é persistido', async (
     assert.equal(result.ok, false);
     assert.equal(result.auditFailed, true);
     assert.equal(harness.exportCalls(), 0);
+    assert.deepEqual(harness.legacyPersists, []);
 });

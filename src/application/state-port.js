@@ -29,17 +29,109 @@
     const { RepositoryError, cloneValue } = contract;
     const RADAR_PREFIX = 'radar_pdde_';
     const INCREMENTAL_MEMORY_ENTITY_MAP = Object.freeze({
+        appConfig: 'config',
+        programs: 'programs',
+        controllers: 'controllers',
+        inventoryTeamMembers: 'inventoryTeamMembers',
+        schools: 'schools',
+        schoolPrograms: 'schools',
+        competences: 'config',
         verifications: 'verifications',
+        pendencies: 'pendencies',
+        pendencyAttempts: 'pendencies',
+        pendencyContacts: 'contacts',
+        assets: 'assets',
         registeredInvoices: 'registeredInvoices',
         administrativeLogs: 'logs'
     });
+    const MEMORY_ENTITY_BUNDLES = Object.freeze({
+        config: Object.freeze(['appConfig', 'competences']),
+        programs: Object.freeze(['programs']),
+        controllers: Object.freeze(['controllers']),
+        inventoryTeamMembers: Object.freeze(['inventoryTeamMembers']),
+        schools: Object.freeze(['schools', 'schoolPrograms']),
+        verifications: Object.freeze(['verifications']),
+        pendencies: Object.freeze(['pendencies', 'pendencyAttempts']),
+        contacts: Object.freeze(['pendencyContacts']),
+        assets: Object.freeze(['assets']),
+        registeredInvoices: Object.freeze(['registeredInvoices']),
+        logs: Object.freeze(['administrativeLogs'])
+    });
+
+    function memoryKeysForEntities(entities = []) {
+        return [...new Set((Array.isArray(entities) ? entities : [])
+            .map(entity => INCREMENTAL_MEMORY_ENTITY_MAP[entity])
+            .filter(Boolean))];
+    }
+
+    function canonicalBundleForMemoryKeys(memoryKeys = []) {
+        return [...new Set(memoryKeys.flatMap(key => MEMORY_ENTITY_BUNDLES[key] || []))];
+    }
+
+    function createBrowserMemoryRead() {
+        if (typeof document === 'undefined') return null;
+        return function readBrowserMemoryKeys(memoryKeys = []) {
+            const keys = new Set(memoryKeys);
+            const result = {};
+            if (keys.has('config') && typeof config !== 'undefined') result.config = cloneValue(config || {});
+            if (keys.has('programs') && typeof programas !== 'undefined') result.programs = cloneValue(programas || []);
+            if (keys.has('controllers') && typeof controladores !== 'undefined') result.controllers = cloneValue(controladores || []);
+            if (keys.has('inventoryTeamMembers') && typeof equipeInventario !== 'undefined') {
+                result.inventoryTeamMembers = cloneValue(equipeInventario || []);
+            }
+            if (keys.has('schools') && typeof escolas !== 'undefined') result.schools = cloneValue(escolas || []);
+            if (keys.has('verifications') && typeof verificacoes !== 'undefined') {
+                result.verifications = cloneValue(verificacoes || {});
+            }
+            if (keys.has('pendencies') && typeof pendencias !== 'undefined') result.pendencies = cloneValue(pendencias || []);
+            if (keys.has('contacts') && typeof contatos !== 'undefined') result.contacts = cloneValue(contatos || []);
+            if (keys.has('assets') && typeof bens !== 'undefined') result.assets = cloneValue(bens || []);
+            if (keys.has('registeredInvoices') && typeof notasRegistradas !== 'undefined') {
+                result.registeredInvoices = cloneValue(notasRegistradas || []);
+            }
+            if (keys.has('logs') && typeof logs !== 'undefined') result.logs = cloneValue(logs || []);
+            return result;
+        };
+    }
 
     function createBrowserMemoryPatch() {
         if (typeof document === 'undefined') return null;
         return function patchBrowserMemory(patch = {}) {
+            if (Object.prototype.hasOwnProperty.call(patch, 'config')
+                && typeof config !== 'undefined') {
+                config = cloneValue(patch.config || {});
+            }
+            if (Object.prototype.hasOwnProperty.call(patch, 'programs')
+                && typeof programas !== 'undefined') {
+                programas = cloneValue(patch.programs || []);
+            }
+            if (Object.prototype.hasOwnProperty.call(patch, 'controllers')
+                && typeof controladores !== 'undefined') {
+                controladores = cloneValue(patch.controllers || []);
+            }
+            if (Object.prototype.hasOwnProperty.call(patch, 'inventoryTeamMembers')
+                && typeof equipeInventario !== 'undefined') {
+                equipeInventario = cloneValue(patch.inventoryTeamMembers || []);
+            }
+            if (Object.prototype.hasOwnProperty.call(patch, 'schools')
+                && typeof escolas !== 'undefined') {
+                escolas = cloneValue(patch.schools || []);
+            }
             if (Object.prototype.hasOwnProperty.call(patch, 'verifications')
                 && typeof verificacoes !== 'undefined') {
                 verificacoes = cloneValue(patch.verifications || {});
+            }
+            if (Object.prototype.hasOwnProperty.call(patch, 'pendencies')
+                && typeof pendencias !== 'undefined') {
+                pendencias = cloneValue(patch.pendencies || []);
+            }
+            if (Object.prototype.hasOwnProperty.call(patch, 'contacts')
+                && typeof contatos !== 'undefined') {
+                contatos = cloneValue(patch.contacts || []);
+            }
+            if (Object.prototype.hasOwnProperty.call(patch, 'assets')
+                && typeof bens !== 'undefined') {
+                bens = cloneValue(patch.assets || []);
             }
             if (Object.prototype.hasOwnProperty.call(patch, 'registeredInvoices')
                 && typeof notasRegistradas !== 'undefined') {
@@ -49,6 +141,19 @@
                 && typeof logs !== 'undefined') {
                 logs = cloneValue(patch.logs || [])
                     .sort((left, right) => (right.dataHora || '').localeCompare(left.dataHora || ''));
+            }
+            if ((Object.prototype.hasOwnProperty.call(patch, 'pendencies')
+                || Object.prototype.hasOwnProperty.call(patch, 'assets'))
+                && typeof rebuildOperationalIndexes === 'function') {
+                rebuildOperationalIndexes();
+            }
+            if (Object.prototype.hasOwnProperty.call(patch, 'config')
+                && typeof COMPETENCIAS !== 'undefined') {
+                const restored = (patch.config?.competencias || []).filter(item => (
+                    /^\d{4}-(0[1-9]|1[0-2])$/.test(String(item?.key || ''))
+                ));
+                if (restored.length) COMPETENCIAS.splice(0, COMPETENCIAS.length, ...cloneValue(restored));
+                globalThis.RadarGlobalCompetenceSelector?.refreshContext?.({ source: 'remote-config' });
             }
             return true;
         };
@@ -145,6 +250,16 @@
         const writeMemory = typeof options.writeMemory === 'function'
             ? options.writeMemory
             : () => undefined;
+        const browserMemoryRead = createBrowserMemoryRead();
+        const readMemoryKeys = typeof options.readMemoryEntities === 'function'
+            ? options.readMemoryEntities
+            : (browserMemoryRead || (async memoryKeys => {
+                const memory = cloneValue(await readMemory()) || {};
+                return Object.fromEntries(memoryKeys
+                    .filter(key => Object.prototype.hasOwnProperty.call(memory, key))
+                    .map(key => [key, cloneValue(memory[key])])
+                );
+            }));
         const patchMemory = typeof options.patchMemory === 'function'
             ? options.patchMemory
             : createBrowserMemoryPatch();
@@ -174,6 +289,18 @@
                 memory: cloneValue(await readMemory()),
                 storage: captureStorage(storage, bridge)
             };
+        }
+
+        async function captureEntities(entities = []) {
+            const memoryKeys = memoryKeysForEntities(entities);
+            if (memoryKeys.length === 0 || !patchMemory) {
+                throw new RepositoryError(
+                    'SCOPED_STATE_UNAVAILABLE',
+                    'A porta de estado não consegue capturar projeções operacionais de forma isolada.',
+                    { operation: 'captureEntities' }
+                );
+            }
+            return cloneValue(await readMemoryKeys(memoryKeys));
         }
 
         function exportFromMemory(memoryValue, exportOptions = {}) {
@@ -208,6 +335,34 @@
             return bridge.exportLegacySnapshot(stage, exportOptions).snapshot;
         }
 
+        function exportScopedFromMemory(memoryValue, canonicalEntities, exportOptions = {}) {
+            const stage = createMemoryStorage();
+            const memory = cloneValue(memoryValue) || {};
+            Object.entries(bridge.LEGACY_STORAGE_MAP || {}).forEach(([stateKey, descriptor]) => {
+                if (Object.prototype.hasOwnProperty.call(memory, stateKey)) {
+                    stage.setItem(descriptor.key, JSON.stringify(memory[stateKey]));
+                }
+            });
+            const dataVersion = String(
+                exportOptions.dataVersion
+                || configuredDataVersion
+                || ''
+            );
+            const pendencySchemaVersion = String(
+                exportOptions.pendencySchemaVersion
+                || configuredPendencyVersion
+                || ''
+            );
+            if (dataVersion) stage.setItem('radar_pdde_data_version', dataVersion);
+            if (pendencySchemaVersion) stage.setItem('radar_pdde_pendency_schema_version', pendencySchemaVersion);
+            const full = bridge.exportLegacySnapshot(stage, exportOptions).snapshot;
+            full.entities = Object.fromEntries(canonicalEntities.map(entity => [
+                entity,
+                cloneValue(full.entities?.[entity] || [])
+            ]));
+            return full;
+        }
+
         function exportCanonicalSync(exportOptions = {}) {
             return exportFromMemory(
                 assertSynchronous(readMemory(), 'exportCanonicalSync'),
@@ -217,6 +372,20 @@
 
         async function exportCanonical(exportOptions = {}) {
             return exportFromMemory(await readMemory(), exportOptions);
+        }
+
+        async function exportCanonicalEntities(entities = [], exportOptions = {}) {
+            const memoryKeys = memoryKeysForEntities(entities);
+            if (memoryKeys.length === 0) {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'A exportação incremental exige entidades operacionais conhecidas.',
+                    { operation: 'exportCanonicalEntities' }
+                );
+            }
+            const canonicalEntities = canonicalBundleForMemoryKeys(memoryKeys);
+            const memory = await readMemoryKeys(memoryKeys);
+            return exportScopedFromMemory(memory, canonicalEntities, exportOptions);
         }
 
         function commitCurrent(snapshot, commitOptions = {}) {
@@ -273,19 +442,21 @@
                 && requested.every(entity => INCREMENTAL_MEMORY_ENTITY_MAP[entity]);
             if (!canPatch) return applyCanonical(snapshot, applyOptions);
 
-            const partialEntities = {};
-            requested.forEach(entity => {
-                partialEntities[entity] = cloneValue(snapshot?.entities?.[entity] || []);
+            const memoryKeys = memoryKeysForEntities(requested);
+            const canonicalBundle = canonicalBundleForMemoryKeys(memoryKeys);
+            const sourceEntities = snapshot?.entities || {};
+            const bundleEntities = {};
+            canonicalBundle.forEach(entity => {
+                bundleEntities[entity] = cloneValue(sourceEntities[entity] || []);
             });
-            const partialState = bridge.canonicalEntitiesToLegacyState(partialEntities, {
+            const projectedState = bridge.canonicalEntitiesToLegacyState(bundleEntities, {
                 dataVersion: applyOptions.dataVersion || configuredDataVersion,
                 pendencySchemaVersion: applyOptions.pendencySchemaVersion
                     || configuredPendencyVersion
             });
             const memoryPatch = {};
-            requested.forEach(entity => {
-                const memoryKey = INCREMENTAL_MEMORY_ENTITY_MAP[entity];
-                memoryPatch[memoryKey] = cloneValue(partialState[memoryKey]);
+            memoryKeys.forEach(memoryKey => {
+                memoryPatch[memoryKey] = cloneValue(projectedState[memoryKey]);
             });
             await patchMemory(cloneValue(memoryPatch));
             return cloneValue(memoryPatch);
@@ -319,21 +490,37 @@
             return cloneValue(captured.memory);
         }
 
+        async function restoreEntities(captured = {}) {
+            if (!patchMemory || !captured || typeof captured !== 'object' || Array.isArray(captured)) {
+                throw new RepositoryError(
+                    'INVALID_STATE_CAPTURE',
+                    'Captura incremental inválida para rollback.',
+                    { operation: 'restoreEntities' }
+                );
+            }
+            await patchMemory(cloneValue(captured));
+            return cloneValue(captured);
+        }
+
         return Object.freeze({
             capture,
             captureSync,
+            captureEntities,
             exportCanonical,
             exportCanonicalSync,
+            exportCanonicalEntities,
             applyCanonical,
             applyEntities,
             commitCurrent,
             restore,
-            restoreSync
+            restoreSync,
+            restoreEntities
         });
     }
 
     return Object.freeze({
         INCREMENTAL_MEMORY_ENTITY_MAP,
+        MEMORY_ENTITY_BUNDLES,
         createStatePort
     });
 }));
