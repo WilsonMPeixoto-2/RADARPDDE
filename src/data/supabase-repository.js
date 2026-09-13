@@ -288,8 +288,15 @@
             const start = Math.max(0, Number.isInteger(offset) ? offset : 0);
             const data = await withSafeReadRetry(async () => {
                 let query = this.client.from(table).select('*');
-                if (typeof query.order === 'function') query = query.order('id', { ascending: true });
-                if (typeof query.range === 'function') query = query.range(start, start + pageSize - 1);
+                if (typeof query.order !== 'function' || typeof query.range !== 'function') {
+                    throw new RepositoryError(
+                        'MISSING_BOUNDED_PAGE_QUERY',
+                        'A leitura remota paginada exige ordenação determinística e range explícito no servidor.',
+                        { entity, operation: 'loadPage' }
+                    );
+                }
+                query = query.order('id', { ascending: true });
+                query = query.range(start, start + pageSize - 1);
                 return this.execute(entity, 'loadPage', query);
             }, this.readRetry);
             return normalizeCollection(data);
@@ -496,7 +503,7 @@
                 orderedEntities,
                 skippedEntities,
                 version: String(snapshot.version || '1'),
-                importId: String(snapshot.importId || '')
+                importId: String(snapshot.importId || ''),
             };
         }
 
