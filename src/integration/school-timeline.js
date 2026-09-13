@@ -202,6 +202,16 @@
         return true;
     }
 
+    async function loadSchoolHistory(schoolId, options = {}) {
+        const readModel = root.RadarAdministrativeLogReadContext?.model;
+        if (typeof readModel?.loadSchool !== 'function') return null;
+        let state = await readModel.loadSchool(schoolId, { refresh: options.refresh === true });
+        while (state?.hasMore === true) {
+            state = await readModel.loadSchool(schoolId, { append: true });
+        }
+        return state;
+    }
+
     async function activateTimeline(event, panel, schoolId) {
         let activated = false;
         try {
@@ -221,9 +231,15 @@
                 'Carregando histórico da unidade...'
             ));
             try {
-                await readModel.loadSchool(schoolId, { refresh: true });
+                await loadSchoolHistory(schoolId, { refresh: true });
             } catch (error) {
+                panel.replaceChildren(textElement(
+                    'div',
+                    'school-timeline-empty',
+                    'Não foi possível carregar o histórico completo da unidade. Tente novamente.'
+                ));
                 root.console?.error?.('Não foi possível carregar os registros administrativos da unidade.', error);
+                return;
             }
         }
         renderTimeline(panel, schoolId);
