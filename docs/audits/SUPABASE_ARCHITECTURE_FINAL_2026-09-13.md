@@ -2,13 +2,11 @@
 
 **Data:** 13/09/2026  
 **Branch:** `fix/supabase-query-architecture-2026-09-11`  
-**Produto validado:** `93a9f24c2d4b24a274d7e071e96b65169a965bbe`  
-**Última certificação antes deste documento:** `e6a645d523c6883601689545ba16c8d36de71c54`  
-**Base funcional preservada:** merge do PR #299 `d2663f1ae7554516caf315f53b2509fbcd295e01`
+**Candidato funcional certificado:** `054aeb26f6f0ad12bf66b3965b9adcb59bca1a8a`  
+**Base reconciliada da `main`:** `2eff1321a8abaccd46d9627ee2eed060741ce3b7`  
+**Merge sintético do PR #300 validado:** `1c0750a3543af8b681a20a4a8fb0d0a35074c42e`
 
 ## 1. Conclusão causal
-
-**Atualização da revisão independente:** após a certificação citada acima, foi fechado um caminho adicional de releitura corretiva integral em `DataService`. O gate desktop anterior aprovou 26 testes e ignorou o teste com Auth/RLS reais por falta da pilha local. A validação ampliada com Supabase descartável está em execução; a conclusão final deve incorporar seu resultado. O diário incremental registra esse complemento no bloco 12.
 
 A causa arquitetural não era o Supabase nem o volume atual do PostgreSQL. O RADAR havia adotado o Supabase como fonte oficial, mas parte do frontend ainda conservava o modelo anterior de aplicação local baseada em snapshots amplos: coleções completas eram carregadas para o navegador, estruturas operacionais eram reconstruídas em memória e alguns caminhos ainda podiam persistir ou reler mais dados do que a operação solicitava.
 
@@ -40,9 +38,15 @@ No modo Supabase, o navegador não funciona como segundo banco operacional. A hi
 
 `administrativeLogs` não participa do login nem da navegação operacional comum. Auditoria solicita páginas delimitadas e filtradas no servidor quando a superfície é aberta. O histórico de uma escola é carregado somente quando explicitamente solicitado e pode percorrer as páginas necessárias para preservar meses antigos.
 
+`queryAdministrativeLogs()` passou a falhar de modo fechado quando o contrato de consulta não é suficientemente delimitado. A paginação genérica por identificador exige ordenação determinística, e `loadPage()` exige ordenação e faixa explícitas. O objetivo é impedir que um consumidor aparentemente inocente volte a transformar o Supabase em uma leitura global disfarçada.
+
 Registrar uma ação administrativa acrescenta o novo registro sem reler o histórico inteiro. A exportação Excel usa o serviço de auditoria e não reativa o antigo caminho `persist('logs')`.
 
 O histórico de contatos da escola possui consulta própria sob demanda, inclusive para contatos que não estejam vinculados a uma Pendência específica.
+
+### Fronteira de acesso ao Supabase
+
+Foi adicionado gate arquitetural semântico para impedir acesso direto indevido às tabelas operacionais do Supabase fora da camada de dados. As exceções de autenticação permanecem restritas a `user_profiles` e `user_school_scopes`.
 
 ### Sessão e atualização entre usuários
 
@@ -68,57 +72,117 @@ A solução deliberadamente evita transformar todas as tabelas em streaming perm
 | Índices derivados podiam ficar antigos após patch remoto | Corrigido: reconstrução seletiva quando entidades relevantes mudam |
 | Atualização contextual podia interferir em edição/gravação | Corrigido: guardas de atividade, serialização e descarte de resposta obsoleta |
 | Logout deixava contexto operacional da sessão anterior | Corrigido: invalidação de sessão e estado operacional |
+| Logout E2E esperava mensagem transitória anterior ao reload | Corrigido: testes passam a verificar o estado estável pós-reload |
 | `dataImportRuns` classificado como append-only apesar de checkpoints mutáveis | Corrigido: classificado como workflow de manutenção |
 | Testes de integração antigos não simulavam `.limit()`/`.gt()` da paginação | Corrigido no simulador; proteção real de paginação mantida |
+| Releitura corretiva após falha podia voltar a buscar coleções amplas | Corrigido: reconstrução por contexto, sem retorno ao snapshot global |
+| Consultas administrativas/paginação podiam aceitar contrato pouco determinístico | Corrigido: ordenação/limites explícitos e fail-closed |
+| Acesso direto a tabelas operacionais podia reaparecer fora da camada de dados | Corrigido: gate arquitetural semântico |
 
-O agrupamento de contatos usados em alertas também foi implementado na revisão complementar, eliminando o filtro de todos os contatos para cada Pendência. A releitura corretiva foi recortada por contexto para não reintroduzir o acervo integral após uma falha de sincronização.
+O agrupamento de contatos usados em alertas também foi implementado na revisão complementar, eliminando o filtro de todos os contatos para cada Pendência.
 
-## 4. PR #299, migrations e banco
+## 4. Reconciliação com a `main` e rollback do PR #299
 
-A branch preserva o merge funcional do PR #299. A auditoria somente leitura encontrou 51 migrations locais correspondentes às 51 registradas no projeto Supabase consultado, incluindo `20260910201500_evaluation_retification_atomic_cancel`.
+A `main` foi restaurada em `2eff1321a8abaccd46d9627ee2eed060741ce3b7` após a regressão global de acesso associada ao PR #299. A branch arquitetural havia divergido antes desse hotfix e, por isso, não podia ser integrada por mera confiança no histórico anterior.
 
-Foram confrontadas as assinaturas das RPCs operacionais `retify_verification_with_pendency_cancel`, `save_verification_with_log`, `save_invoice_with_effects`, `delete_invoice_with_effects`, `save_pendency_command`, `reanalyze_pendency_with_verification` e `save_asset_with_verification_and_log`. Os consumidores examinados estão alinhados às assinaturas verificadas; as funções observadas são `SECURITY INVOKER`, com execução negada a `anon` e permitida a `authenticated`. Seis corpos conferiram após normalização de espaços; a diferença observada na RPC de reanálise foi apenas de comentários.
+A reconciliação foi executada como merge formal em:
 
-Essa verificação não é apresentada como prova matemática de equivalência de todo o schema. Ela é evidência direcionada de que a correção arquitetural e o PR #299 não deixaram incompatibilidade nas RPCs operacionais examinadas.
+`f064c189ff26a4f22357f61dda6e16d218599900`
 
-## 5. Certificação final da branch isolada
+Esse merge preservou simultaneamente a nova arquitetura contextual e as exclusões introduzidas pelo hotfix da `main`.
 
-A execução GitHub Actions `34745166616`, no commit `e6a645d523c6883601689545ba16c8d36de71c54`, foi concluída com sucesso integral.
+Em seguida, o commit:
 
-Passaram na mesma execução:
+`7fac373ec4481b5ca5140f923312b9fb7a5f5fee`
 
-- validação de sintaxe dos componentes alterados;
-- regressões direcionadas da arquitetura Supabase;
-- `npm run check`;
-- toda a suíte unitária, executada arquivo por arquivo;
-- toda a suíte de integração, executada arquivo por arquivo;
-- fronteiras arquiteturais;
-- lint de segurança e de E2E;
-- matriz funcional, referências de workflows, fornecedores de UI de busca e certificação de fixture Excel;
-- verificações estáticas de readiness/alinhamento Supabase;
-- configuração de runtime e arquivos gerados;
-- typecheck de banco;
-- auditoria funcional;
-- suíte desktop prioritária em Chromium, incluindo Análise/Bonificação, Pendência atômica, retificação, Notas/Documentos, despesa a identificar, reanálise, troca de competência, contexto remoto, Inventário e UX de erro.
+restaurou somente dois contratos arquiteturais necessários da retificação manual:
 
-O artefato `architecture-desktop-e6a645d523c6883601689545ba16c8d36de71c54` foi preservado pelo workflow, digest `sha256:3ffcfe7895e51c786a457efcff4894f5b56ea52439bfa8cf1318f3352198a440`.
+- `incrementalStateEntities: ['pendencies', 'administrativeLogs']`;
+- `remoteResultIsAuthoritative: true`.
 
-## 6. Escalabilidade
+Isso não restaurou a funcionalidade de retificação de avaliação que havia sido removida pelo rollback.
+
+No merge sintético validado `1c0750a3543af8b681a20a4a8fb0d0a35074c42e`, os artefatos centrais do PR #299 removidos pelo hotfix continuam ausentes, inclusive:
+
+- `src/integration/evaluation-retification.js`;
+- `src/integration/evaluation-retification-ui.js`;
+- `src/styles/evaluation-retification-ui.css`;
+- `supabase/migrations/20260910201500_evaluation_retification_atomic_cancel.sql`;
+- testes e documentação diretamente vinculados a essa funcionalidade.
+
+**O PR #300 não altera migrations.** Portanto, esta integração não exige migration nova nem alteração manual de dados em Production.
+
+## 5. Certificação final do candidato funcional
+
+O candidato `054aeb26f6f0ad12bf66b3965b9adcb59bca1a8a` foi exercitado contra a `main` pelo merge sintético `1c0750a...`.
+
+Todos os workflows acionados pelo PR concluíram com sucesso:
+
+- `Testes E2E Playwright` — run `34765921584`;
+- `Homologação integral pré-production` — run `34765921540`;
+- `Validar RADAR PDDE` — run `34765921577`;
+- `Retificação auditável direcionada` — run `34765921493`;
+- `Homologação do Excel SME` — run `34765921653`;
+- `CodeQL` — run `34765921607`;
+- `Confiabilidade funcional com Supabase real` — run `34765921568`;
+- `Lighthouse CI` — run `34765921511`;
+- `Ciclos funcionais reais com Supabase` — run `34765921536`;
+- `Supabase readiness` — run `34765921527`;
+- `Gate remoto de perfis e viewports` — run `34765921507`;
+- `Contratos-fonte do Excel SME` — run `34765921574`;
+- `Validar snapshot canônico do RADAR` — run `34765921554`;
+- `Saúde das dependências` — run `34765921593`.
+
+A suíte unitária alcançou **1.018 testes aprovados, 0 falhas**, além das suítes de domínio, integração e jornadas reais autenticadas contra Supabase descartável.
+
+A homologação remota cobriu, entre outros, autenticação/RLS, escrita, reload e releitura, Análise/Bonificação, Pendências, reanálise, Notas/Documentos, retificação cadastral permitida, despesa a identificar, Inventário, contexto por competência, perfis e viewports.
+
+## 6. Lighthouse e decisão de performance
+
+Antes da última otimização, duas medições independentes colocaram o LCP desktop ligeiramente acima do piso interno de 3,5 s, aproximadamente entre 3,59 s e 3,63 s. A investigação mostrou que o maior elemento era textual e que a cadeia de descoberta das fontes/CSS contribuía para o atraso.
+
+O commit `054aeb26...` fez uma otimização conservadora: antecipou a descoberta das fontes principais sem alterar regras de negócio, arquitetura de dados ou comportamento funcional.
+
+No run `34765921511`, a mediana de três execuções desktop resultou em:
+
+- Performance: **78%**;
+- Acessibilidade: **100%**;
+- Boas práticas: **100%**;
+- FCP: **737 ms**;
+- LCP: **3,46 s**;
+- Speed Index: **1,29 s**;
+- TBT: **0 ms**;
+- CLS: **0,082**;
+- TTI: **3,46 s**.
+
+O piso desktop foi aprovado.
+
+No mobile, o LCP medido foi **16,48 s**, acima do piso de 15 s. O próprio gate preserva esse resultado como dívida conhecida e **não bloqueante**, porque o alvo operacional homologado do RADAR é desktop. A evidência não foi ocultada nem o limite foi artificialmente relaxado.
+
+A decisão de release é não introduzir mudança arquitetural ou regressão funcional para perseguir milissegundos depois de o desktop ter atendido o piso configurado. Otimizações adicionais de bundle/CSS podem ser tratadas em frente própria e mensurável.
+
+## 7. Escalabilidade
 
 A mudança principal de escalabilidade é qualitativa: crescimento histórico deixou de aumentar automaticamente o custo do login e das operações correntes. Histórico append-only é paginado/contextual; dados mensais são carregados por competência; obrigações antigas entram apenas quando continuam operacionalmente relevantes; e pequenas escritas não exigem copiar ou reler todo o acervo carregado.
 
-A paginação genérica de leituras completas legítimas usa continuação por identificador em vez de offsets crescentes. Assim, ferramentas de manutenção que realmente precisam percorrer coleções completas também deixam de repetir o custo de pular todas as páginas anteriores.
+A paginação genérica de leituras completas legítimas usa continuação por identificador em vez de offsets crescentes, com ordem determinística obrigatória. Ferramentas de manutenção que realmente precisam percorrer coleções completas deixam de repetir o custo de pular todas as páginas anteriores.
 
-## 7. Limites desta conclusão
+## 8. Limites desta conclusão
 
-Esta certificação prova a branch isolada pelos contratos, testes de integração e fluxos desktop executados. Ela não declara que o código já esteja em Production.
+Esta certificação comprova o candidato funcional e o merge sintético do PR contra a `main`; ela não equivale, por si só, à confirmação de que Production já foi atualizada.
 
-`main` permanece fora desta correção até autorização explícita. Nenhum merge, migration, alteração de dados, secret, configuração ou deployment de Production faz parte deste fechamento.
+A integração e o deployment ainda precisam ser observados até que:
+
+1. o PR #300 esteja efetivamente integrado;
+2. a `main` aponte para o merge resultante;
+3. a Vercel publique o SHA integrado em Production;
+4. o deployment esteja `READY`;
+5. um smoke check não destrutivo do endereço oficial seja concluído.
 
 A auditoria incremental `ASTRA_AUDITORIA_RADAR_2026.md` deve ser lida como registro investigativo histórico. Seus achados intermediários podem descrever defeitos que foram posteriormente corrigidos. Para o estado vigente desta frente, este documento e `docs/CURRENT_STAGE.md` têm precedência temporal.
 
-## 8. Estado de prontidão
+## 9. Estado de prontidão
 
-A correção arquitetural está **certificada na branch isolada** para a finalidade desta frente: o RADAR deixa de tratar o Supabase como depósito de snapshots completos e passa a operar com bootstrap estrutural, contexto operacional remoto, histórico sob demanda, persistência incremental e sessão invalidável, preservando os fluxos funcionais prioritários.
+A correção arquitetural está **certificada para integração**: o RADAR deixa de tratar o Supabase como depósito de snapshots completos e passa a operar com bootstrap estrutural, contexto operacional remoto, histórico sob demanda, persistência incremental e sessão invalidável, preservando os fluxos funcionais prioritários e o rollback de acesso da `main`.
 
-Próxima mudança de estado, se autorizada futuramente, é a integração controlada dessa branch. Isso é uma etapa de release/governança separada da correção técnica aqui concluída.
+Não existe bloqueio técnico remanescente identificado nesta frente para o merge controlado do PR #300.

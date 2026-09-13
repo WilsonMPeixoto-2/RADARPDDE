@@ -5,13 +5,15 @@
 
 ## Frente vigente
 
-A correção da arquitetura de dados baseada em Supabase passou nos gates de fixtures e está em certificação adicional de persistência/Auth/RLS reais, na branch isolada:
+A correção da arquitetura de dados baseada em Supabase foi concluída e certificada na branch:
 
 `fix/supabase-query-architecture-2026-09-11`
 
-Produto funcional validado: `93a9f24c2d4b24a274d7e071e96b65169a965bbe`.
+**Candidato funcional certificado:** `054aeb26f6f0ad12bf66b3965b9adcb59bca1a8a`  
+**Base reconciliada da `main`:** `2eff1321a8abaccd46d9627ee2eed060741ce3b7`  
+**Merge sintético do PR #300 validado:** `1c0750a3543af8b681a20a4a8fb0d0a35074c42e`
 
-Após esse SHA, a revisão identificou e corrigiu a releitura corretiva que ainda podia carregar coleções operacionais integrais. O teste desktop autenticado havia sido ignorado por exigir Supabase local; o workflow descartável agora o executa junto às jornadas de persistência. A certificação anterior não cobre essas alterações posteriores. O relatório de fechamento é:
+O relatório técnico de fechamento é:
 
 [`audits/SUPABASE_ARCHITECTURE_FINAL_2026-09-13.md`](audits/SUPABASE_ARCHITECTURE_FINAL_2026-09-13.md)
 
@@ -19,18 +21,20 @@ O arquivo [`audits/ASTRA_AUDITORIA_RADAR_2026.md`](audits/ASTRA_AUDITORIA_RADAR_
 
 ## Estado de Production e governança
 
-- `main` foi revalidada por leitura em `2eff1321a8abaccd46d9627ee2eed060741ce3b7`.
-- A branch de correção **não foi integrada à main**.
-- Nenhum merge, migration, alteração de dados, secret, configuração ou deployment de Production foi executado nesta frente.
-- Qualquer integração ou publicação futura é uma etapa de release separada e exige autorização explícita de Wilson.
+- A `main` ainda está em `2eff1321a8abaccd46d9627ee2eed060741ce3b7` enquanto o PR #300 aguarda a integração controlada.
+- O candidato funcional `054aeb26...` passou os gates de release contra a `main`, inclusive o merge sintético `1c0750a...`.
+- O PR #300 não adiciona, remove nem altera migrations do Supabase.
+- Nenhuma alteração manual de dados, secret ou configuração do Supabase é necessária para esta integração.
+- O rollback de acesso introduzido em `2eff1321...` foi reconciliado e permanece preservado; a funcionalidade de retificação de avaliação removida com o rollback do PR #299 não foi reintroduzida.
+- A próxima mudança de estado autorizada é a integração do PR #300 e a validação do deployment de Production.
 
 ## Causa raiz encerrada
 
 O Supabase já era a fonte oficial, mas o frontend ainda conservava partes do modelo anterior baseado em snapshots amplos no navegador. Isso fazia dados históricos ou operacionais serem carregados, copiados ou reconciliados em situações onde a superfície ativa não precisava deles.
 
-O caso mais grave era `administrativeLogs` no login. A auditoria mostrou que o problema era sistêmico: a fronteira entre dados estruturais, contexto operacional e histórico não estava concluída.
+O caso mais evidente era `administrativeLogs` no login. A auditoria mostrou que o problema era sistêmico: a fronteira entre dados estruturais, contexto operacional e histórico não estava concluída.
 
-A correção adotada foi estrutural, preservando regras de negócio:
+A correção adotada foi estrutural, preservando as regras de negócio:
 
 - bootstrap remoto somente com dados estruturais necessários à entrada;
 - dados operacionais carregados pela competência/contexto ativo;
@@ -41,7 +45,9 @@ A correção adotada foi estrutural, preservando regras de negócio:
 - navegador sem função de segundo banco operacional no modo Supabase;
 - invalidação real da sessão operacional no logout;
 - atualização contextual segura ao retomar/focar a aplicação;
-- troca de competência com hidratação remota, preservação da escola aberta e rollback visual em caso de falha.
+- troca de competência com hidratação remota, preservação da escola aberta e rollback visual em caso de falha;
+- consultas remotas genéricas fail-closed quando faltam ordenação determinística ou limites explícitos;
+- acesso direto às tabelas operacionais do Supabase restrito à camada de dados, com exceções de autenticação limitadas a `user_profiles` e `user_school_scopes`.
 
 ## Prioridade funcional preservada
 
@@ -95,40 +101,52 @@ O histórico administrativo não participa do login nem da navegação operacion
 - execuções de importação;
 - auditoria técnica.
 
-## PR #299 e alinhamento do banco
+## PR #299 e reconciliação com a `main`
 
-A branch preserva o merge funcional do PR #299, `d2663f1ae7554516caf315f53b2509fbcd295e01`.
+A `main` foi restaurada em `2eff1321a8abaccd46d9627ee2eed060741ce3b7` após a regressão global de acesso associada ao PR #299. A branch arquitetural havia divergido antes desse hotfix.
 
-A auditoria somente leitura encontrou 51 migrations locais correspondentes às 51 migrations registradas no projeto Supabase consultado, incluindo `20260910201500_evaluation_retification_atomic_cancel`.
+A reconciliação foi feita por merge formal em `f064c189ff26a4f22357f61dda6e16d218599900`, preservando o hotfix da `main` e a nova arquitetura Supabase. Em seguida, `7fac373ec4481b5ca5140f923312b9fb7a5f5fee` restaurou apenas os contratos arquiteturais necessários da retificação manual (`incrementalStateEntities` e `remoteResultIsAuthoritative`), sem restaurar a funcionalidade de retificação de avaliação removida pelo rollback.
 
-Também foram confrontadas as assinaturas das sete RPCs operacionais mais sensíveis às correções de avaliação, Nota, Pendência, reanálise e Inventário. Não foi identificada incompatibilidade executável entre esses consumidores e as funções examinadas.
+Os artefatos centrais removidos pelo rollback continuam ausentes no merge sintético validado, inclusive a migration `20260910201500_evaluation_retification_atomic_cancel.sql` e os módulos/UI/testes correspondentes. O PR #300 não contém mudança de migration.
 
-## Certificação objetiva
+## Certificação objetiva do candidato
 
-A execução GitHub Actions `34745166616`, no commit `e6a645d523c6883601689545ba16c8d36de71c54`, concluiu com sucesso integral:
+No candidato funcional `054aeb26f6f0ad12bf66b3965b9adcb59bca1a8a`, todos os workflows acionados pelo PR concluíram com sucesso:
 
-- sintaxe;
-- regressões direcionadas;
-- `npm run check`;
-- suíte unitária completa;
-- suíte de integração completa;
-- fronteiras arquiteturais;
-- segurança e lint E2E;
-- matriz funcional e referências de workflows;
-- certificação de fixture Excel;
-- checks estáticos de Supabase;
-- configuração de runtime e arquivos gerados;
-- typecheck de banco;
-- auditoria funcional;
-- E2E desktop dos fluxos operacionais prioritários.
+- `Validar RADAR PDDE`;
+- `Testes E2E Playwright`;
+- `Homologação integral pré-production`;
+- `Supabase readiness`;
+- `Confiabilidade funcional com Supabase real`;
+- `Ciclos funcionais reais com Supabase`;
+- `Gate remoto de perfis e viewports`;
+- `Retificação auditável direcionada`;
+- `CodeQL`;
+- `Saúde das dependências`;
+- `Contratos-fonte do Excel SME`;
+- `Homologação do Excel SME`;
+- `Validar snapshot canônico do RADAR`;
+- `Lighthouse CI`.
 
-Artefato visual preservado:
+A suíte unitária alcançou **1.018 testes aprovados, 0 falhas**, além das baterias de domínio, integração e jornadas reais autenticadas contra Supabase descartável.
 
-`architecture-desktop-e6a645d523c6883601689545ba16c8d36de71c54`
+### Lighthouse
 
-Digest:
+A otimização `054aeb26...` apenas antecipou a descoberta das fontes principais, sem alterar regras de negócio, layout funcional ou arquitetura de dados.
 
-`sha256:3ffcfe7895e51c786a457efcff4894f5b56ea52439bfa8cf1318f3352198a440`
+Resultado desktop final, mediana de três execuções:
+
+- Performance: **78%**;
+- Acessibilidade: **100%**;
+- Boas práticas: **100%**;
+- FCP: **737 ms**;
+- LCP: **3,46 s**;
+- Speed Index: **1,29 s**;
+- TBT: **0 ms**;
+- CLS: **0,082**;
+- TTI: **3,46 s**.
+
+O piso desktop de LCP de 3,5 s foi atendido. O perfil mobile permanece como dívida de performance conhecida e não bloqueante para o alvo operacional desktop; a evidência foi preservada em vez de mascarada.
 
 ## Situação dos achados principais
 
@@ -149,15 +167,23 @@ Corrigidos e cobertos por regressão:
 - atualização contextual durante edição/gravação;
 - invalidação de sessão no logout;
 - classificação de `dataImportRuns`;
-- simuladores de integração incompatíveis com paginação por cursor.
+- simuladores de integração incompatíveis com paginação por cursor;
+- releitura corretiva integral após falha de sincronização;
+- duplicidade de logout e expectativas E2E obsoletas;
+- consultas administrativas e paginação genérica sem contrato determinístico explícito.
 
 Uma possível micro-otimização futura é substituir alguns filtros locais repetidos em cálculos de interface por índices auxiliares. Com o novo recorte contextual, isso não opera sobre o histórico global e não constitui pendência desta correção arquitetural.
 
 ## Próximo passo autorizado
 
-Nenhum passo de integração ou Production está automaticamente autorizado.
+O candidato foi certificado para integração. A sequência de release é:
 
-A correção técnica está pronta na branch isolada. A próxima mudança de estado, quando explicitamente autorizada, é o processo controlado de integração/release, seguido pelos gates remotos apropriados antes de qualquer publicação em Production.
+1. integrar o PR #300 na `main` preservando o SHA esperado da branch;
+2. confirmar a `main` integrada;
+3. aguardar o deployment automático da Vercel em Production;
+4. confirmar que Production está `READY` no SHA integrado;
+5. executar smoke check não destrutivo no endereço oficial;
+6. registrar o estado final de release.
 
 ## Rota obrigatória para retomada futura
 
