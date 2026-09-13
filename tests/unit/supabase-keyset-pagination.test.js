@@ -93,6 +93,20 @@ test('cursor progride de forma estritamente crescente entre páginas', async () 
     );
 });
 
+test('leitura sem suporte a ordenação determinística é bloqueada antes de consultar a rede', async () => {
+    let executed = false;
+    const query = {
+        select() { return this; },
+        gt() { return this; },
+        limit() { return this; },
+        then(resolve) { executed = true; resolve({ data: [], error: null }); }
+    };
+    const repository = new SupabaseRepository({ client: { from: () => query } });
+
+    await assert.rejects(repository.load('schools'), error => error.code === 'MISSING_KEYSET_PAGINATION');
+    assert.equal(executed, false);
+});
+
 test('leitura sem suporte a limite explícito é bloqueada antes de consultar a rede', async () => {
     let executed = false;
     const query = {
