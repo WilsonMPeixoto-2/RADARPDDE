@@ -533,16 +533,26 @@
         }
 
         async captureRemoteEntities(changedEntities) {
-            const entries = await Promise.all(
-                changedEntities.map(async entity => [entity, await this.repository.load(entity)])
-            );
-            return { entities: Object.fromEntries(entries) };
+            return this.loadRemoteEntities({ entities: {} }, changedEntities);
         }
 
         async loadRemoteEntities(snapshot, changedEntities) {
             const refreshed = cloneValue(snapshot);
+            const contextual = changedEntities.filter(entity => REMOTE_CONTEXT_ENTITIES.includes(entity));
+            const canQueryContext = contextual.length > 0
+                && normalizedCompetence(this.currentOperationalCompetence)
+                && typeof this.repository.queryOperationalContext === 'function';
+            if (canQueryContext) {
+                const context = await this.repository.queryOperationalContext({
+                    competenceId: this.currentOperationalCompetence
+                });
+                contextual.forEach(entity => {
+                    refreshed.entities[entity] = cloneValue(context.entities?.[entity] || []);
+                });
+            }
             const entries = await Promise.all(
-                changedEntities.map(async entity => [entity, await this.repository.load(entity)])
+                changedEntities.filter(entity => !canQueryContext || !contextual.includes(entity))
+                    .map(async entity => [entity, await this.repository.load(entity)])
             );
             entries.forEach(([entity, records]) => {
                 refreshed.entities[entity] = records;

@@ -8,6 +8,8 @@
 
 ## 1. Conclusão causal
 
+**Atualização da revisão independente:** após a certificação citada acima, foi fechado um caminho adicional de releitura corretiva integral em `DataService`. O gate desktop anterior aprovou 26 testes e ignorou o teste com Auth/RLS reais por falta da pilha local. A validação ampliada com Supabase descartável está em execução; a conclusão final deve incorporar seu resultado. O diário incremental registra esse complemento no bloco 12.
+
 A causa arquitetural não era o Supabase nem o volume atual do PostgreSQL. O RADAR havia adotado o Supabase como fonte oficial, mas parte do frontend ainda conservava o modelo anterior de aplicação local baseada em snapshots amplos: coleções completas eram carregadas para o navegador, estruturas operacionais eram reconstruídas em memória e alguns caminhos ainda podiam persistir ou reler mais dados do que a operação solicitava.
 
 O caso mais evidente foi `administrativeLogs`: histórico secundário de auditoria era buscado na entrada do sistema, embora Login, Dashboard, Análise, Bonificação, Pendências e Notas não precisassem dele. A investigação mostrou que esse caso era um sintoma de uma fronteira de dados incompletamente migrada, e não um defeito isolado dos logs.
@@ -69,7 +71,7 @@ A solução deliberadamente evita transformar todas as tabelas em streaming perm
 | `dataImportRuns` classificado como append-only apesar de checkpoints mutáveis | Corrigido: classificado como workflow de manutenção |
 | Testes de integração antigos não simulavam `.limit()`/`.gt()` da paginação | Corrigido no simulador; proteção real de paginação mantida |
 
-O custo local de alguns cálculos de interface ainda pode ser micro-otimizado no futuro, por exemplo indexar previamente contatos usados em alertas. Com a nova fronteira contextual, isso deixou de operar sobre o histórico global e não constitui pendência arquitetural para a migração Supabase.
+O agrupamento de contatos usados em alertas também foi implementado na revisão complementar, eliminando o filtro de todos os contatos para cada Pendência. A releitura corretiva foi recortada por contexto para não reintroduzir o acervo integral após uma falha de sincronização.
 
 ## 4. PR #299, migrations e banco
 

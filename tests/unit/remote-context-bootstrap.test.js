@@ -129,3 +129,14 @@ test('leitura contextual aguarda gravação anterior e resposta obsoleta não su
     assert.equal(harness.applied.length, 1);
     assert.equal(service.currentOperationalCompetence, '2026-09');
 });
+
+test('releitura corretiva de entidade operacional conserva o recorte e nunca recarrega a coleção integral', async () => {
+    const harness = createHarness();
+    const service = new DataService({ repository: harness.repository, statePort: harness.statePort });
+    await service.bootstrap({ competenceId: '2026-09' });
+    harness.contextQueries.length = 0;
+    const refreshed = await service.loadRemoteEntities(snapshot({ verifications: [], administrativeLogs: [] }), ['verifications']);
+    assert.deepEqual(harness.contextQueries, [{ competenceId: '2026-09' }]);
+    assert.equal(refreshed.entities.verifications[0].id, 'v-sep');
+    assert.deepEqual(refreshed.entities.administrativeLogs, []);
+});

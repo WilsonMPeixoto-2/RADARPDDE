@@ -36,6 +36,8 @@ test('hidratação remota mantém escola e mostra o novo mês somente após a re
   await expect(page.locator('#main-container')).toHaveAttribute('aria-busy', 'false');
   await expect(page.locator('#global-competence-select')).toHaveValue('2026-08');
   await expect(page.locator('#prontuario-verif-rows')).toContainText('Agosto');
+  await expect(page.locator('#prontuario-verif-rows')).toBeVisible();
+  await page.locator('#prontuario-verif-rows').scrollIntoViewIfNeeded();
   expect(await page.evaluate(() => ({ view: currentView, school: activeSchoolId })))
     .toEqual({ view: 'prontuario', school: schoolId });
   expect(errors).toEqual([]);
@@ -57,6 +59,8 @@ test('histórico consulta contatos somente ao abrir e apresenta registro sem pen
   expect(await page.evaluate(() => window.__contactReads)).toEqual([]);
   await page.getByRole('tab', { name: 'Histórico de Contatos', exact: true }).click();
   await expect(page.locator('#tab-contatos .contact-desc')).toHaveText('Contato histórico <img src=x>');
+  await expect(page.locator('#tab-contatos .contact-desc')).toBeVisible();
+  await page.locator('#tab-contatos .contact-desc').scrollIntoViewIfNeeded();
   await expect(page.locator('#tab-contatos img')).toHaveCount(0);
   expect(await page.evaluate(() => window.__contactReads)).toEqual([schoolId]);
 });

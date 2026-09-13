@@ -5,13 +5,13 @@
 
 ## Frente vigente
 
-A correção da arquitetura de dados baseada em Supabase foi concluída e certificada na branch isolada:
+A correção da arquitetura de dados baseada em Supabase passou nos gates de fixtures e está em certificação adicional de persistência/Auth/RLS reais, na branch isolada:
 
 `fix/supabase-query-architecture-2026-09-11`
 
 Produto funcional validado: `93a9f24c2d4b24a274d7e071e96b65169a965bbe`.
 
-A documentação e a ampliação final do gate de certificação avançaram a branch para commits posteriores sem alterar o produto. O relatório de fechamento é:
+Após esse SHA, a revisão identificou e corrigiu a releitura corretiva que ainda podia carregar coleções operacionais integrais. O teste desktop autenticado havia sido ignorado por exigir Supabase local; o workflow descartável agora o executa junto às jornadas de persistência. A certificação anterior não cobre essas alterações posteriores. O relatório de fechamento é:
 
 [`audits/SUPABASE_ARCHITECTURE_FINAL_2026-09-13.md`](audits/SUPABASE_ARCHITECTURE_FINAL_2026-09-13.md)
 

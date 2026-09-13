@@ -4763,10 +4763,16 @@ function getAlerts() {
     const accessProfile = getRadarAccessProfile();
     
     // Alerta 1: Pendências ativas há mais de 10 dias
+    const contactsByPendency = new Map();
+    contatos.forEach(contact => {
+        const records = contactsByPendency.get(contact.pendenciaId) || [];
+        records.push(contact);
+        contactsByPendency.set(contact.pendenciaId, records);
+    });
     pendencias.forEach(p => {
         if (window.RadarPendencias.isActivePendency(p)) {
             // Achar último contato dessa pendência para exibição
-            const pContatos = contatos.filter(c => c.pendenciaId === p.id);
+            const pContatos = contactsByPendency.get(p.id) || [];
             let lastDate = new Date(p.dataAbertura);
             if (pContatos.length > 0) {
                 const dates = pContatos.map(c => new Date(c.dataAtendimento));
