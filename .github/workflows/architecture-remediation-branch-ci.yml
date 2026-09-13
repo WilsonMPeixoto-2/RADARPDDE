@@ -129,6 +129,19 @@ jobs:
           npm run lint:security
           npm run lint:e2e
 
+      - name: Validar prontidão estática ampliada
+        run: |
+          npm run check:functional-matrix
+          npm run check:workflow-references
+          npm run check:search-ui-vendors
+          npm run certify:excel:fixture
+          npm run check:supabase
+          npm run check:supabase-final
+          npm run check:runtime-config
+          npm run check:generated
+          npm run typecheck:database
+          npm run audit:functional
+
       - name: Instalar navegador de validação
         run: npx playwright install --with-deps chromium
 
