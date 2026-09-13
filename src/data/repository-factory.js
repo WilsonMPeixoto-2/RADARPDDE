@@ -147,6 +147,15 @@
         return result;
     }
 
+    function verificationDependencyKey(record = {}) {
+        const schoolId = String(record.school_id || '').trim();
+        const competenceId = String(record.competence_id || record.competence_origin || '').trim();
+        const programId = String(record.program_id || '').trim();
+        return schoolId && competenceId && programId
+            ? `${schoolId}::${competenceId}::${programId}`
+            : '';
+    }
+
     class OperationalSupabaseRepository extends supabaseApi.SupabaseRepository {
         async queryAdministrativeLogs(options = {}) {
             const pageSize = administrativeLogPageSize(options.limit);
@@ -241,6 +250,29 @@
             return uniqueById(...pages);
         }
 
+        async queryVerificationDependencies(pendencies, currentCompetence) {
+            const targets = (pendencies || []).filter(record => (
+                String(record?.competence_origin || '').trim() !== currentCompetence
+                && verificationDependencyKey(record)
+            ));
+            if (targets.length === 0) return [];
+
+            const targetKeys = new Set(targets.map(verificationDependencyKey));
+            const schoolIds = [...new Set(targets.map(record => String(record.school_id || '').trim()).filter(Boolean))];
+            const competenceIds = [...new Set(targets.map(record => String(record.competence_origin || '').trim()).filter(Boolean))];
+            const programIds = [...new Set(targets.map(record => String(record.program_id || '').trim()).filter(Boolean))];
+            const pages = await Promise.all(chunks(schoolIds).map((schoolBatch, index) => (
+                this.queryFilteredCollection('verifications', query => {
+                    requireQueryMethod(query, 'in', 'queryOperationalContext:verificationDependencies');
+                    query = query.in('school_id', schoolBatch);
+                    query = query.in('competence_id', competenceIds);
+                    query = query.in('program_id', programIds);
+                    return query;
+                }, `queryOperationalContext:verificationDependencies:chunk-${index + 1}`)
+            )));
+            return uniqueById(...pages).filter(record => targetKeys.has(verificationDependencyKey(record)));
+        }
+
         async queryOperationalContext(options = {}) {
             const competenceId = String(options.competenceId || '').trim();
             if (!OPERATIONAL_COMPETENCE_PATTERN.test(competenceId)) {
@@ -248,8 +280,8 @@
             }
 
             const [
-                verifications,
-                registeredInvoices,
+                monthlyVerifications,
+                monthlyRegisteredInvoices,
                 monthlyPendencies,
                 activePendencies,
                 monthlyAssets,
@@ -296,7 +328,16 @@
             const pendencies = uniqueById(monthlyPendencies, activePendencies);
             const assets = uniqueById(monthlyAssets, activeAssets);
             const pendencyIds = pendencies.map(record => String(record.id));
-            const [pendencyAttempts, pendencyContacts] = await Promise.all([
+            const historicalInvoiceIds = pendencies
+                .filter(record => String(record?.competence_origin || '').trim() !== competenceId)
+                .map(record => String(record?.registered_invoice_id || '').trim())
+                .filter(Boolean);
+            const [
+                pendencyAttempts,
+                pendencyContacts,
+                verificationDependencies,
+                linkedHistoricalInvoices
+            ] = await Promise.all([
                 this.queryByIn(
                     'pendencyAttempts',
                     'pendency_id',
@@ -308,18 +349,25 @@
                     'pendency_id',
                     pendencyIds,
                     'queryOperationalContext:pendencyContacts'
+                ),
+                this.queryVerificationDependencies(pendencies, competenceId),
+                this.queryByIn(
+                    'registeredInvoices',
+                    'id',
+                    historicalInvoiceIds,
+                    'queryOperationalContext:linkedHistoricalInvoices'
                 )
             ]);
 
             return {
                 competenceId,
                 entities: {
-                    verifications,
+                    verifications: uniqueById(monthlyVerifications, verificationDependencies),
                     pendencies,
                     pendencyAttempts,
                     pendencyContacts,
                     assets,
-                    registeredInvoices
+                    registeredInvoices: uniqueById(monthlyRegisteredInvoices, linkedHistoricalInvoices)
                 }
             };
         }
