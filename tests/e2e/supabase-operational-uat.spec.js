@@ -241,7 +241,7 @@ function invoiceCard(page, id) {
 }
 
 function invoiceEditButton(card) {
-  return card.getByRole('button', { name: /^Editar (?:NF:|Boleto Internet:|despesa a identificar$)/ });
+  return card.getByRole('button', { name: /^Editar (?:NF:|Boleto Internet:|Despesa a identificar$)/ });
 }
 
 async function remoteRows(page, table, filters) {
@@ -282,7 +282,10 @@ async function createInvoiceUI(page, { type, number, description, amount = '250'
 
 async function closePreview(page) {
   const drawer = page.locator('#pendency-preview-drawer');
-  if (await drawer.isVisible()) await drawer.locator('.pendency-preview-close').click();
+  if (await drawer.isVisible()) {
+    await drawer.locator('.pendency-preview-close').click();
+    await expect(drawer).toBeHidden();
+  }
 }
 
 async function assertStoredAfterReload(page, invoice) {
@@ -338,14 +341,10 @@ async function submitPendencyUI(page, pendency, identify = false) {
 
 async function reanalyzePendencyUI(page, pendency, result = 'correto') {
   await page.getByRole('tab', { name: /^Aguardando/ }).click();
-  const drawer = page.locator('#pendency-preview-drawer');
-  const drawerAction = drawer.getByRole('button', { name: 'Reanalisar', exact: true });
-  if (await drawer.isVisible() && await drawerAction.isVisible()) {
-    await drawerAction.click();
-  } else {
-    await page.locator(`[data-pendency-id="${pendency.id}"]`).filter({ visible: true }).first()
-      .getByRole('button', { name: 'Reanalisar', exact: true }).click();
-  }
+  await closePreview(page);
+  const row = page.locator(`[data-pendency-id="${pendency.id}"]`).filter({ visible: true }).first();
+  await expect(row).toBeVisible();
+  await row.getByRole('button', { name: 'Reanalisar', exact: true }).click();
   const modal = page.locator('#modal-reanalisar-pendencia');
   await expect(modal).toHaveClass(/show/);
   await modal.getByLabel('Resultado da reanálise', { exact: true }).selectOption(result);
@@ -389,7 +388,7 @@ test.describe('Formulários operacionais com banco real', () => {
     expect(edited).toMatchObject({ description: 'Material de consumo retificado', amount: 315.5 });
     expect(edited.row_version).toBeGreaterThan(invoice.row_version);
     await assertStoredAfterReload(page, edited);
-    await invoiceCard(page, invoice.id).getByRole('button', { name: /^Remover / }).click();
+    await invoiceCard(page, invoice.id).getByRole('button', { name: /^Excluir NF:/ }).click();
     await expect(invoiceCard(page, invoice.id)).toHaveCount(0);
     expect(await remoteRows(page, 'registered_invoices', { id: invoice.id })).toEqual([]);
     await page.reload();
