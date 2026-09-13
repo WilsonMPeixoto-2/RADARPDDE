@@ -37,6 +37,7 @@ jobs:
           node --check src/data/supabase-repository.js
           node --check src/data/repository-factory.js
           node --check src/data/state-bridge-metadata.js
+          node --check src/application/state-port.js
           node --check src/integration/auth-gate.js
           node --check src/integration/administrative-log-read-model.js
           node --check src/integration/product-extensions-bootstrap.js
@@ -45,6 +46,8 @@ jobs:
           node --check src/integration/excel-export-audit.js
           node --check src/application/audit-service.js
           node --check src/application/data-service.js
+          node --check src/application/pendency-service.js
+          node --check src/application/invoice-service.js
 
       - name: Executar regressões direcionadas
         run: >-
@@ -57,6 +60,7 @@ jobs:
           tests/unit/auth-startup-performance.test.js
           tests/unit/r1-service-command-authority.test.js
           tests/unit/auth-gate-workspace-failure.test.js
+          tests/unit/auth-gate-signout.test.js
           tests/unit/administrative-log-read-architecture.test.js
           tests/unit/administrative-log-read-model.test.js
           tests/unit/administrative-log-extension-load-order.test.js
@@ -67,6 +71,8 @@ jobs:
           tests/unit/remote-bootstrap-storage-policy.test.js
           tests/unit/remote-operational-storage-hygiene.test.js
           tests/unit/remote-compatibility-boundary.test.js
+          tests/unit/remote-incremental-state-port.test.js
+          tests/unit/remote-incremental-data-service.test.js
           tests/unit/data-service-authoritative-commit.test.js
           tests/unit/operational-write-refresh-policy.test.js
           tests/unit/product-extensions-loader-resilience.test.js
