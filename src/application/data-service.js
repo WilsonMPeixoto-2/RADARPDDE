@@ -40,15 +40,18 @@
         assertRepositoryContract,
         assertLocalPersistenceFallback,
         cloneValue,
+        createSnapshotEnvelope,
         isSnapshotEmpty,
         ENTITY_LIFECYCLE,
-        REMOTE_BOOTSTRAP_ENTITIES
+        REMOTE_BOOTSTRAP_ENTITIES,
+        REMOTE_CONTEXT_ENTITIES
     } = contract;
     const { toRepositoryError } = errorMapper;
     const { UnitOfWork } = unitOfWorkApi;
     const { assertCanonicalRecords } = jsonContracts;
     const GENERATED_INSERT_FIELDS = Object.freeze(['row_version', 'created_at', 'updated_at']);
     const VOLATILE_COMPARISON_FIELDS = Object.freeze(['row_version', 'created_at', 'updated_at']);
+    const COMPETENCE_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
     const REMOTE_REFRESH_EXEMPT_ENTITIES = Object.freeze(
         Object.entries(ENTITY_LIFECYCLE)
             .filter(([, policy]) => policy.growth === 'append-only')
@@ -225,6 +228,50 @@
         return { snapshot: next, appliedEntities: [...appliedEntities] };
     }
 
+    function normalizedCompetence(value) {
+        const key = String(value || '').trim();
+        return COMPETENCE_PATTERN.test(key) ? key : '';
+    }
+
+    function resolveOperationalCompetence(snapshot, requested) {
+        const explicit = normalizedCompetence(requested);
+        const available = new Set(
+            normalizedRecords(snapshot?.entities?.competences)
+                .map(record => normalizedCompetence(record?.id))
+                .filter(Boolean)
+        );
+        if (explicit && (available.size === 0 || available.has(explicit))) return explicit;
+
+        const now = new Date();
+        const calendar = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        if (available.has(calendar)) return calendar;
+
+        const closing = normalizedCompetence(snapshot?.entities?.appConfig?.[0]?.closing_competence);
+        if (closing && available.has(closing)) return closing;
+
+        return [...available].sort().at(-1) || '';
+    }
+
+    function operationalSnapshot(context, options = {}) {
+        const entities = {};
+        REMOTE_CONTEXT_ENTITIES.forEach(entity => {
+            entities[entity] = cloneValue(context?.entities?.[entity] || []);
+        });
+        return createSnapshotEnvelope(entities, {
+            version: options.version || '1',
+            importId: options.importId || `operational-context-${Date.now()}`,
+            exportedAt: options.exportedAt || new Date().toISOString()
+        });
+    }
+
+    function mergeOperationalContext(structuralSnapshot, context) {
+        const next = cloneValue(structuralSnapshot);
+        REMOTE_CONTEXT_ENTITIES.forEach(entity => {
+            next.entities[entity] = cloneValue(context?.entities?.[entity] || []);
+        });
+        return assertSnapshotJson(next, 'mergeOperationalContext');
+    }
+
     class DataService {
         constructor(options = {}) {
             this.repository = assertRepositoryContract(options.repository);
@@ -240,6 +287,8 @@
             }
             this.unitOfWork = options.unitOfWork || new UnitOfWork({ statePort: this.statePort });
             this.remoteExecutionTail = Promise.resolve();
+            this.operationalContextSequence = 0;
+            this.currentOperationalCompetence = '';
         }
 
         async bootstrap(options = {}) {
@@ -258,7 +307,8 @@
                 return {
                     importedLegacy: false,
                     empty: true,
-                    snapshot: cloneValue(current)
+                    snapshot: cloneValue(current),
+                    operationalCompetence: ''
                 };
             }
 
@@ -273,24 +323,94 @@
                 return {
                     importedLegacy: true,
                     empty: false,
-                    snapshot: cloneValue(legacySnapshot)
+                    snapshot: cloneValue(legacySnapshot),
+                    operationalCompetence: ''
                 };
+            }
+
+            let hydrated = current;
+            let operationalCompetence = '';
+            if (!empty
+                && capabilities.remote === true
+                && !Array.isArray(options.entities)
+                && typeof this.repository.queryOperationalContext === 'function') {
+                operationalCompetence = resolveOperationalCompetence(current, options.competenceId);
+                if (operationalCompetence) {
+                    const context = await this.repository.queryOperationalContext({
+                        competenceId: operationalCompetence
+                    });
+                    hydrated = mergeOperationalContext(current, context);
+                    this.currentOperationalCompetence = operationalCompetence;
+                }
             }
 
             if (!empty) {
                 if (capabilities.remote === true) {
-                    await this.statePort.applyCanonical(current, {
+                    await this.statePort.applyCanonical(hydrated, {
                         persistStorage: false,
                         source: 'remote-bootstrap'
                     });
                 } else {
-                    await this.statePort.applyCanonical(current);
+                    await this.statePort.applyCanonical(hydrated);
                 }
             }
             return {
                 importedLegacy: false,
                 empty,
-                snapshot: cloneValue(current)
+                snapshot: cloneValue(hydrated),
+                operationalCompetence
+            };
+        }
+
+        async loadOperationalContext(competenceId, options = {}) {
+            const capabilities = this.repository.capabilities();
+            const target = normalizedCompetence(competenceId);
+            if (capabilities.remote !== true) {
+                throw new RepositoryError(
+                    'REMOTE_CONTEXT_UNAVAILABLE',
+                    'A leitura contextual é exclusiva do modo Supabase.',
+                    { operation: 'loadOperationalContext' }
+                );
+            }
+            if (!target) {
+                throw new RepositoryError(
+                    'INVALID_OPERATIONAL_CONTEXT',
+                    'Informe uma competência mensal válida.',
+                    { operation: 'loadOperationalContext' }
+                );
+            }
+            if (typeof this.repository.queryOperationalContext !== 'function') {
+                throw new RepositoryError(
+                    'MISSING_REMOTE_CAPABILITY',
+                    'O repositório remoto não oferece leitura operacional por competência.',
+                    { operation: 'loadOperationalContext' }
+                );
+            }
+
+            const sequence = ++this.operationalContextSequence;
+            const context = await this.repository.queryOperationalContext({ competenceId: target });
+            const snapshot = assertSnapshotJson(
+                operationalSnapshot(context, options),
+                'loadOperationalContext'
+            );
+            if (sequence !== this.operationalContextSequence) {
+                return {
+                    competenceId: target,
+                    stale: true,
+                    snapshot: cloneValue(snapshot)
+                };
+            }
+
+            await this.applyRemoteState(
+                snapshot,
+                REMOTE_CONTEXT_ENTITIES,
+                options.source || 'remote-operational-context'
+            );
+            this.currentOperationalCompetence = target;
+            return {
+                competenceId: target,
+                stale: false,
+                snapshot: cloneValue(snapshot)
             };
         }
 
@@ -706,6 +826,7 @@
     return Object.freeze({
         DataService,
         REMOTE_BOOTSTRAP_ENTITIES,
+        REMOTE_CONTEXT_ENTITIES,
         REMOTE_REFRESH_EXEMPT_ENTITIES
     });
 }));
