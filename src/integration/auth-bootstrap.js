@@ -127,10 +127,19 @@
         );
         const sessionService = new root.RadarSessionService.SessionService({ client });
         root.RadarSessionContext = Object.freeze({ service: sessionService });
+        let authenticatedSessionObserved = false;
         sessionService.onChange(state => {
-            if (state.status !== 'signed_out') return;
+            if (state?.status === 'authenticated') {
+                authenticatedSessionObserved = true;
+                return;
+            }
+            if (state?.status !== 'signed_out') return;
             root.RadarAuthContext = null;
             emitAuthRequired(root, 'Sua sessão foi encerrada. Entre novamente para continuar.');
+            if (!authenticatedSessionObserved || typeof root.location?.reload !== 'function') return;
+            const reload = () => root.location.reload();
+            if (typeof root.setTimeout === 'function') root.setTimeout(reload, 0);
+            else reload();
         });
 
         let state;
@@ -147,6 +156,7 @@
             state = await sessionService.waitForAuthenticated();
         }
 
+        authenticatedSessionObserved = state?.status === 'authenticated';
         const authentication = publicAuthentication(state);
         emitAuthResolved(root, authentication);
         return {
