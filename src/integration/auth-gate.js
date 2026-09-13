@@ -400,7 +400,8 @@
                 try {
                     await service.signOut();
                 } catch (error) {
-                    this.setStatus(error?.message || 'Não foi possível encerrar a sessão remotamente.', 'error');
+                    this.root.console?.error?.('Não foi possível encerrar a sessão remota do RADAR.', error);
+                    this.setStatus('Não foi possível encerrar a sessão remotamente. Tente novamente.', 'error');
                     return false;
                 }
             }
