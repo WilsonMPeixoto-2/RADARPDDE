@@ -39,6 +39,7 @@
         '/src/integration/unidentified-expense-ux.js',
         '/src/integration/prontuario-operational-ux.js',
         '/src/integration/operational-readiness-bridge.js',
+        '/src/integration/operational-context-refresh.js',
         '/src/integration/pendency-passive-queue-ux.js',
         '/src/integration/invoice-history-lock.js',
         '/src/integration/service-advisory-pendency.js',
@@ -61,6 +62,7 @@
     const criticalScripts = new Set([
         '/src/integration/atomic-analysis-pendency.js',
         '/src/integration/administrative-log-read-model.js',
+        '/src/integration/operational-context-refresh.js',
         '/src/integration/service-advisory-pendency.js',
         '/src/integration/service-advisory-corrective-submission.js',
         '/src/integration/critical-action-guard.js',
@@ -88,12 +90,14 @@
     function installCriticalExtensions() {
         const administrativeLogReadInstalled = !administrativeLogReadRequired()
             || root.RadarAdministrativeLogReadModel?.install?.(root) === true;
+        const operationalContextRefreshInstalled = root.RadarOperationalContextRefresh?.install?.(root) === true;
         const advisoryInstalled = root.RadarServiceAdvisoryPendency?.install?.(root) === true;
         const correctiveInstalled = root.RadarServiceAdvisoryCorrectiveSubmission?.install?.(root) === true;
         const retificationInstalled = root.RadarAuditableRetification?.install?.(root) === true;
         const evaluationRetificationInstalled = root.RadarEvaluationRetification?.install?.(root) === true;
         const evaluationRetificationUiInstalled = root.RadarEvaluationRetificationUi?.install?.(root) === true;
         return administrativeLogReadInstalled
+            && operationalContextRefreshInstalled
             && advisoryInstalled
             && correctiveInstalled
             && retificationInstalled
