@@ -333,7 +333,7 @@
                     p_invoice: invoice,
                     p_expected_invoice_version: persistence.expectedInvoiceVersion,
                     p_asset: asset,
-                    p_expected_asset_version: persistence.expectedAssetVersion,
+                    p_expected_asset_version: persistence.expectedAssetVersion ?? null,
                     p_pendency: pendency,
                     p_expected_pendency_version: persistence.expectedPendencyVersion,
                     p_attempt: attempt,
