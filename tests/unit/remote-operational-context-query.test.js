@@ -60,18 +60,34 @@ function createClient(seed = {}) {
 
 const seed = {
     verifications: [
-        { id: 'v-aug', competence_id: '2026-08' },
-        { id: 'v-sep', competence_id: '2026-09' }
+        { id: 'v-mar-target', school_id: '04.31.001', competence_id: '2026-03', program_id: 'BASIC' },
+        { id: 'v-mar-unrelated', school_id: '04.31.002', competence_id: '2026-03', program_id: 'BASIC' },
+        { id: 'v-aug-target', school_id: '04.31.001', competence_id: '2026-08', program_id: 'BASIC' },
+        { id: 'v-sep', school_id: '04.31.001', competence_id: '2026-09', program_id: 'BASIC' }
     ],
     registered_invoices: [
-        { id: 'i-aug', competence_id: '2026-08' },
+        { id: 'i-mar-linked', competence_id: '2026-03' },
+        { id: 'i-mar-unrelated', competence_id: '2026-03' },
+        { id: 'i-aug-linked', competence_id: '2026-08' },
         { id: 'i-sep', competence_id: '2026-09' }
     ],
     pendencies: [
-        { id: 'p-old-open', competence_origin: '2026-03', status: 'Aberta' },
-        { id: 'p-old-resolved', competence_origin: '2026-03', status: 'Resolvida' },
-        { id: 'p-sep-resolved', competence_origin: '2026-09', status: 'Resolvida' },
-        { id: 'p-aug-awaiting', competence_origin: '2026-08', status: 'Aguardando reanálise' }
+        {
+            id: 'p-old-open', school_id: '04.31.001', competence_origin: '2026-03',
+            program_id: 'BASIC', registered_invoice_id: 'i-mar-linked', status: 'Aberta'
+        },
+        {
+            id: 'p-old-resolved', school_id: '04.31.001', competence_origin: '2026-03',
+            program_id: 'BASIC', registered_invoice_id: 'i-mar-unrelated', status: 'Resolvida'
+        },
+        {
+            id: 'p-sep-resolved', school_id: '04.31.001', competence_origin: '2026-09',
+            program_id: 'BASIC', registered_invoice_id: 'i-sep', status: 'Resolvida'
+        },
+        {
+            id: 'p-aug-awaiting', school_id: '04.31.001', competence_origin: '2026-08',
+            program_id: 'BASIC', registered_invoice_id: 'i-aug-linked', status: 'Aguardando reanálise'
+        }
     ],
     pendency_attempts: [
         { id: 'a-open', pendency_id: 'p-old-open' },
@@ -90,7 +106,7 @@ const seed = {
     ]
 };
 
-test('contexto mensal traz somente o mês selecionado mais obrigações ainda ativas', async () => {
+test('contexto mensal traz o mês selecionado e dependências mínimas das obrigações ainda ativas', async () => {
     const fake = createClient(seed);
     const repository = new OperationalSupabaseRepository({
         client: fake.client,
@@ -101,8 +117,14 @@ test('contexto mensal traz somente o mês selecionado mais obrigações ainda at
     const result = await repository.queryOperationalContext({ competenceId: '2026-09' });
 
     assert.equal(result.competenceId, '2026-09');
-    assert.deepEqual(result.entities.verifications.map(row => row.id), ['v-sep']);
-    assert.deepEqual(result.entities.registeredInvoices.map(row => row.id), ['i-sep']);
+    assert.deepEqual(
+        result.entities.verifications.map(row => row.id).sort(),
+        ['v-aug-target', 'v-mar-target', 'v-sep']
+    );
+    assert.deepEqual(
+        result.entities.registeredInvoices.map(row => row.id).sort(),
+        ['i-aug-linked', 'i-mar-linked', 'i-sep']
+    );
     assert.deepEqual(
         result.entities.pendencies.map(row => row.id).sort(),
         ['p-aug-awaiting', 'p-old-open', 'p-sep-resolved']
