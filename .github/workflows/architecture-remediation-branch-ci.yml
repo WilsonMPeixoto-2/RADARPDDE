@@ -39,6 +39,7 @@ jobs:
           node --check src/data/state-bridge-metadata.js
           node --check src/application/state-port.js
           node --check src/application/unit-of-work.js
+          node --check src/integration/auth-bootstrap.js
           node --check src/integration/auth-gate.js
           node --check src/integration/administrative-log-read-model.js
           node --check src/integration/product-extensions-bootstrap.js
@@ -68,6 +69,7 @@ jobs:
             tests/unit/supabase-keyset-pagination.test.js
             tests/unit/supabase-repository.test.js
             tests/unit/auth-startup-performance.test.js
+            tests/unit/auth-bootstrap-session-invalidation.test.js
             tests/unit/r1-service-command-authority.test.js
             tests/unit/auth-gate-workspace-failure.test.js
             tests/unit/auth-gate-signout.test.js
