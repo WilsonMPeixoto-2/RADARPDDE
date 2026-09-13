@@ -315,6 +315,7 @@
                 );
             }
 
+            const remote = this.repository.capabilities().remote === true;
             const capture = this.statePort.captureSync();
             try {
                 const snapshot = this.statePort.exportCanonicalSync({
@@ -323,7 +324,7 @@
                     exportedAt: options.exportedAt || new Date().toISOString()
                 });
                 assertSnapshotJson(snapshot, 'stageCompatibility');
-                this.statePort.commitCurrent(snapshot);
+                if (!remote) this.statePort.commitCurrent(snapshot);
                 return {
                     changedEntities,
                     snapshot: cloneValue(snapshot)
@@ -356,6 +357,16 @@
                 );
             }
             entities.forEach(assertKnownEntity);
+            if (this.repository.capabilities().remote === true) {
+                throw new RepositoryError(
+                    'REMOTE_SNAPSHOT_PERSISTENCE_FORBIDDEN',
+                    'O modo Supabase exige persistência explícita por operação e não aceita snapshots legados.',
+                    {
+                        operation: String(options.name || 'persistSnapshot'),
+                        details: { entities }
+                    }
+                );
+            }
             const beforeRepository = await this.repository.exportSnapshot({ includeEmpty: true });
             try {
                 assertSnapshotJson(snapshot, String(options.name || 'persistSnapshot'));
