@@ -93,6 +93,9 @@ function createHarness({
                             install: () => administrativeLogInstallResult
                         };
                     }
+                    if (node.src.endsWith('/operational-context-refresh.js')) {
+                        root.RadarOperationalContextRefresh = { install: () => true };
+                    }
                     if (node.src.endsWith('/service-advisory-pendency.js')) {
                         root.RadarServiceAdvisoryPendency = { install: () => true };
                     }
