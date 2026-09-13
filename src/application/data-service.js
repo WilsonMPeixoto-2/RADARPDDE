@@ -411,12 +411,23 @@
             return refreshed;
         }
 
+        async applyRemoteState(snapshot, entities, source) {
+            const targets = [...new Set(Array.isArray(entities) ? entities : [])];
+            if (targets.length > 0 && typeof this.statePort.applyEntities === 'function') {
+                return this.statePort.applyEntities(snapshot, targets, {
+                    persistStorage: false,
+                    source
+                });
+            }
+            return this.statePort.applyCanonical(snapshot, {
+                persistStorage: false,
+                source
+            });
+        }
+
         async refreshRemoteEntities(snapshot, changedEntities) {
             const refreshed = await this.loadRemoteEntities(snapshot, changedEntities);
-            await this.statePort.applyCanonical(refreshed, {
-                persistStorage: false,
-                source: 'remote-refresh'
-            });
+            await this.applyRemoteState(refreshed, changedEntities, 'remote-refresh');
             return refreshed;
         }
 
@@ -563,30 +574,15 @@
                         ));
                     const authoritativeCommitConfirmed = authoritativeRemoteCommit && !usedDefaultPersist;
                     const canCommitWithoutRefresh = authoritativeEntitiesComplete || authoritativeCommitConfirmed;
-                    const canApplyIncrementally = authoritativeEntitiesComplete
-                        && incrementalStateEntities.length > 0
-                        && typeof this.statePort.applyEntities === 'function'
-                        && incrementalStateEntities.every(entity => (
-                            merged.appliedEntities.includes(entity)
-                            || remoteRefreshExemptEntities.has(entity)
-                        ));
                     if (merged.appliedEntities.length > 0 || authoritativeCommitConfirmed) {
                         try {
-                            if (canApplyIncrementally) {
-                                await this.statePort.applyEntities(
-                                    committedSnapshot,
-                                    incrementalStateEntities,
-                                    {
-                                        persistStorage: false,
-                                        source: 'remote-result-incremental'
-                                    }
-                                );
-                            } else {
-                                await this.statePort.applyCanonical(committedSnapshot, {
-                                    persistStorage: false,
-                                    source: authoritativeCommitConfirmed ? 'remote-commit' : 'remote-result'
-                                });
-                            }
+                            await this.applyRemoteState(
+                                committedSnapshot,
+                                changedEntities,
+                                authoritativeCommitConfirmed
+                                    ? 'remote-commit-incremental'
+                                    : 'remote-result-incremental'
+                            );
                             localStateApplied = true;
                         } catch (applyError) {
                             stateApplyError = applyError;
@@ -605,10 +601,11 @@
                                     localStateApplied = false;
                                 } else if (merged.appliedEntities.length === 0) {
                                     try {
-                                        await this.statePort.applyCanonical(result.snapshot, {
-                                            persistStorage: false,
-                                            source: 'remote-fallback'
-                                        });
+                                        await this.applyRemoteState(
+                                            result.snapshot,
+                                            changedEntities,
+                                            'remote-fallback-incremental'
+                                        );
                                         localStateApplied = true;
                                     } catch (applyError) {
                                         stateApplyError = applyError;
@@ -619,10 +616,11 @@
                             if (refreshedSnapshot) {
                                 committedSnapshot = refreshedSnapshot;
                                 try {
-                                    await this.statePort.applyCanonical(refreshedSnapshot, {
-                                        persistStorage: false,
-                                        source: 'remote-refresh'
-                                    });
+                                    await this.applyRemoteState(
+                                        refreshedSnapshot,
+                                        refreshEntities,
+                                        'remote-refresh-incremental'
+                                    );
                                     localStateApplied = true;
                                     stateApplyError = null;
                                 } catch (applyError) {
