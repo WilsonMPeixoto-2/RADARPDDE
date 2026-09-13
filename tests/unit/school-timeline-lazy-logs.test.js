@@ -10,18 +10,23 @@ const source = fs.readFileSync(
     'utf8'
 );
 
-test('timeline solicita registros administrativos somente na ativação do histórico', () => {
+test('timeline solicita histórico completo da escola somente na ativação explícita', () => {
     assert.match(
         source,
         /activateTimeline[\s\S]*RadarAdministrativeLogReadContext\?\.model/
     );
     assert.match(
         source,
-        /activateTimeline[\s\S]*loadSchool\(schoolId,\s*\{\s*refresh:\s*true\s*\}\)/
+        /activateTimeline[\s\S]*loadSchoolHistory\(schoolId,\s*\{\s*refresh:\s*true\s*\}\)/
+    );
+    assert.doesNotMatch(
+        source,
+        /activateTimeline[\s\S]*loadSchool\(schoolId,\s*\{\s*refresh:\s*true\s*\}\)/,
+        'a timeline não pode ficar limitada à primeira página de registros recentes'
     );
     const installBlock = source.slice(
         source.indexOf('function installTimelineTab'),
         source.indexOf('function scheduleInstall')
     );
-    assert.doesNotMatch(installBlock, /loadSchool\(/);
+    assert.doesNotMatch(installBlock, /loadSchool(?:History)?\(/);
 });
