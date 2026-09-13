@@ -155,6 +155,7 @@
         }
 
         async queryAdministrativeLogs(options = {}) {
+            const operation = 'queryAdministrativeLogs';
             const pageSize = administrativeLogPageSize(options.limit);
             const cursor = administrativeLogCursor(options.cursor);
             const table = this.tableFor(ADMINISTRATIVE_LOG_ENTITY);
@@ -162,23 +163,25 @@
 
             const schoolId = String(options.schoolId || '').trim();
             const actorUserId = String(options.actorUserId || '').trim();
-            if (schoolId && typeof query.eq === 'function') query = query.eq('school_id', schoolId);
-            if (actorUserId && typeof query.eq === 'function') query = query.eq('actor_user_id', actorUserId);
+            if (schoolId || actorUserId) requireQueryMethod(query, 'eq', operation);
+            if (schoolId) query = query.eq('school_id', schoolId);
+            if (actorUserId) query = query.eq('actor_user_id', actorUserId);
 
-            if (cursor && typeof query.or === 'function') {
+            if (cursor) {
+                requireQueryMethod(query, 'or', operation);
                 query = query.or(
                     `event_at.lt.${cursor.eventAt},and(event_at.eq.${cursor.eventAt},id.lt.${cursor.id})`
                 );
             }
-            if (typeof query.order === 'function') {
-                query = query.order('event_at', { ascending: false });
-                query = query.order('id', { ascending: false });
-            }
-            if (typeof query.limit === 'function') query = query.limit(pageSize + 1);
+            requireQueryMethod(query, 'order', operation);
+            query = query.order('event_at', { ascending: false });
+            query = query.order('id', { ascending: false });
+            requireQueryMethod(query, 'limit', operation);
+            query = query.limit(pageSize + 1);
 
             const received = await this.execute(
                 ADMINISTRATIVE_LOG_ENTITY,
-                'queryAdministrativeLogs',
+                operation,
                 query
             );
             const hasMore = received.length > pageSize;
