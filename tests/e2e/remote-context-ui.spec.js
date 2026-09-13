@@ -71,7 +71,8 @@ test('aba Resolvidas consulta histórico de outras competências sem carregá-lo
     const schoolId = activeSchoolId;
     const make = (id, competence) => RadarPendencias.createDocumentPendency({
       id, escolaId: schoolId, competenciaOrigem: competence, programaId: 'BASIC', documentoKey: 'extCC',
-      item: 'Extrato Conta Corrente', errosAtuais: ['Sem assinatura'], dataAbertura: `${competence}-01`
+      item: 'Extrato Conta Corrente', errosAtuais: ['Sem assinatura'], observacao: 'Pendência de teste',
+      dataAbertura: `${competence}-01`
     }, { eventId: `${id}-open`, at: `${competence}-01T12:00:00Z`, usuario: 'Teste', perfil: 'Controlador' });
     const old = { ...make('resolved-old-context', '2026-04'), status: 'Resolvida', dataResolucao: '2026-05-01' };
     pendencias = [make('open-current-context', '2026-09')];
