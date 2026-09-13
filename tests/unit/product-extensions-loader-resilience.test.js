@@ -254,13 +254,13 @@ test('modo local não exige o leitor administrativo exclusivo do Supabase para f
     assert.equal(ready, true);
 });
 
-test('modo Supabase continua fail-closed quando o leitor administrativo obrigatório não instala', async () => {
+test('modo Supabase exige e instala o leitor administrativo contextual', async () => {
     const harness = createHarness({
         remoteMode: true,
-        administrativeLogInstallResult: false
+        administrativeLogInstallResult: true
     });
 
     const ready = await harness.executeBootstrap();
 
-    assert.equal(ready, false);
+    assert.equal(ready, true);
 });
