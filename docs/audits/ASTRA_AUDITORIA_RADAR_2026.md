@@ -6,10 +6,10 @@
 
 ## Estado atual da auditoria
 
-- Último bloco concluído: 2 — ciclo de vida das entidades e custo do estado.
+- Último bloco concluído: 3 — Análise e Bonificação.
 - Descobertas: logs excluídos do bootstrap, mas 13 outras coleções continuam integralmente carregadas; confirmado bloqueio de readiness no modo local por extensão exclusiva do remoto. Integração corrigida; desktop incompleto.
-- Investigação seguinte: Análise e Bonificação, da interação ao retorno confirmado.
-- Pendentes: blocos 3–12; situação efetiva de Production não revalidada; nenhuma medição atual do banco; nenhuma prova de equivalência integral.
+- Investigação seguinte: Pendências e operações documentais atômicas.
+- Pendentes: blocos 4–12; situação efetiva de Production não revalidada; nenhuma medição atual do banco; nenhuma prova de equivalência integral.
 - Restrições: somente a branch isolada; nenhuma alteração de main, banco, migrations, secrets, configuração ou deployment de Production.
 
 ## Método e escala de evidência
@@ -79,3 +79,15 @@ Todas as coleções da tabela permanecem em memória até recarga/encerramento d
 **A-04 — Alertas têm varredura multiplicativa de contatos.** Impacto: trabalho de primeira tela aumenta com Pendências ativas × total de contatos. Evidência: `app.js/getAlerts` percorre `pendencias` e executa `contatos.filter` dentro de cada ativa. Existem índices para outros consumidores (`rebuildOperationalIndexes`), mas esse trecho não os usa. Situação **confirmada**, prioridade **média**; recomendação: índice por Pendência/último contato construído uma vez, sem mudar regra do alerta. Cobertura: presente.
 
 **Conclusão:** a arquitetura tem política central útil, mas as classes `scoped/workflow` não estabelecem limite temporal ou quantitativo. A ponte legada e estruturas em memória possuem numerosos consumidores legítimos; remoção indiscriminada quebraria o produto. **Descartado:** pressupor que atualização incremental elimina serialização global. **Aberto:** custos medidos e quantidades reais; avaliação de caminhos específicos de releitura nos blocos seguintes.
+
+## Bloco 3 — Análise e Bonificação
+
+**Examinado:** `app.js/toggleBonif`, `updateAnalise` e `changeProntuarioCompetencia`; `VerificationService.runSerializedVerificationWrite/setBonification/setTechnicalAnalysis/closeBonification/retify/persistAtomicVerification`; `SupabaseRepository.saveVerificationWithLog`; `DataService.executeCommand`; extensões atomic-analysis-pendency e operational-write-feedback; testes verification-write-serialization, verification-authoritative-result-contract e supabase-verification-reliability.
+
+**Fluxo:** handler recebe escola/competência/documento → serviço valida papel, futuro, consolidação, Pendência e documentos aplicáveis → fila por escola/competência → fila remota da instância → mutação captura versão atual → RPC `save_verification_with_log` com registro, expectedVersion e log → resultado mesclado com snapshot → atualização incremental de verificações/logs → render e feedback. As filas esperam o retorno da operação anterior e evitam reutilizar sua versão antiga em cliques rápidos na mesma aba. `Incorreto` é recusado no setter simples; a extensão direciona abertura atômica de Pendência. Notas, boleto e Assessoria possuem guardas contra alteração mensal indevida de valores derivados.
+
+**Evidência favorável:** comandos de bonificação/análise/consolidação declaram resultado autoritativo e entidades incrementais; com resposta completa, não executam releitura remota das coleções. O feedback distingue salvamento, sucesso e commit confirmado com sincronização local pendente. O tratamento de erro restaura o valor do controle e renderiza estado restaurado. A navegação temporal usa `activeProntuarioCompetencia` e dados existentes; não foi removida pela correção de logs.
+
+**Conclusão:** o desenho de persistência dessas operações é coerente com o objetivo funcional e não há evidência de regressão de regra nessas mudanças. O custo global A-03 continua em cada escrita. A fila remota é global à instância: uma gravação lenta de outro domínio também pode atrasar a seguinte, escolha atualmente necessária ao estado mutável/rollback compartilhado.
+
+**Riscos, separados de defeitos:** troca de tela enquanto há RPC em trânsito precisa de E2E específico para garantir que o render tardio não perturbe o contexto atual; esta leitura não prova equivalência visual. O teste de escrita rápida simula o servidor e só prova a fila de uma instância. O E2E com Supabase real é explicitamente ignorado sem `RADAR_E2E_SUPABASE_LOCAL=1`. **Prioridade:** alta para completar certificação; média para instrumentar fila/CPU. **Recomendação:** preservar retorno autoritativo/fila/guardas; medir etapas; cobrir duas escritas rápidas e troca/retorno de competência com atraso de resposta. **Cobertura:** testes unitários verdes; jornada desktop integral ainda bloqueada por A-01. **Descartado:** necessidade de reler todo histórico para confirmar avaliação simples. **Aberto:** concorrência entre sessões (bloco 8) e prova visual do candidato completo.
