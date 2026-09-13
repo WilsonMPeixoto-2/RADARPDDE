@@ -38,6 +38,7 @@ jobs:
           node --check src/data/repository-factory.js
           node --check src/data/state-bridge-metadata.js
           node --check src/application/state-port.js
+          node --check src/application/unit-of-work.js
           node --check src/integration/auth-gate.js
           node --check src/integration/administrative-log-read-model.js
           node --check src/integration/product-extensions-bootstrap.js
@@ -53,6 +54,9 @@ jobs:
         run: >-
           node --test
           tests/unit/data-lifecycle-policy.test.js
+          tests/unit/remote-operational-context-query.test.js
+          tests/unit/remote-context-bootstrap.test.js
+          tests/unit/remote-scoped-unit-of-work.test.js
           tests/unit/append-only-refresh-policy.test.js
           tests/unit/append-only-command-contract.test.js
           tests/unit/supabase-keyset-pagination.test.js
