@@ -11,15 +11,11 @@ A refatoração da arquitetura Supabase foi integrada pelo PR #300.
 **PR #300:** merged  
 **Data mode de Production:** `supabase-production`
 
-Depois do PR #300, a `main` recebeu merges **exclusivamente documentais** para reconciliar a rota de leitura e os handoffs. Portanto, o SHA de `main`/Vercel pode estar à frente de `1a149174...` sem que o código funcional de runtime tenha mudado. Revalidar o SHA exato ao vivo; o contrato funcional publicado permanece o do PR #300 até uma alteração funcional posterior ser integrada.
-
-O hotfix `2eff1321a8abaccd46d9627ee2eed060741ce3b7`, que reverteu a regressão global associada ao PR #299, foi preservado na reconciliação. A funcionalidade de retificação de avaliação removida pelo rollback do PR #299 não foi reintroduzida.
-
-O PR #300 não alterou migrations do Supabase nem exigiu mudança manual de dados em Production.
+Depois do PR #300, a `main` recebeu merges documentais de roteamento/handoff. Revalidar sempre o SHA exato da `main` e do deployment antes de tomar decisão temporal. O rollback do PR #299 continua preservado; a funcionalidade de retificação de avaliação removida naquele rollback não foi reintroduzida.
 
 ## 2. Frente ativa
 
-A frente corrente é **homologação operacional ponta a ponta e observabilidade pós-refatoração**, não nova refatoração arquitetural.
+A frente corrente é **homologação operacional ponta a ponta e integração do PR #301**, não nova refatoração arquitetural.
 
 Branch:
 
@@ -29,123 +25,120 @@ PR:
 
 `#301 — UAT operacional Supabase e observabilidade pós-refatoração`
 
-Estado observado mais recente nesta atualização:
+Estado funcional certificado desta frente:
 
-- aberto;
-- Draft;
-- HEAD observado: `4a7a41dc29ab87eb5b4f56f4d26558706409af50`;
-- a branch já contém uma correção funcional real de resolução dos assets do logo em `mobile-navigation.js`, além dos testes/workflow/plano de UAT;
-- `Ciclos funcionais reais com Supabase` passou no HEAD `4a7a41dc...`;
-- E2E completo, Supabase readiness, confiabilidade real, perfis/viewports, retificação, CodeQL e dependências também passaram naquele HEAD;
-- a homologação pré-production falhou somente por rate limit externo ao baixar `postgres-meta:v0.97.0` durante geração de tipos, depois de 426 testes pgTAP aprovados e schema lint limpo.
+- candidato funcional: `452d97267348957f7155fc77bb139a4adafd766b`;
+- o branch pode estar alguns commits documentais à frente sem mudança de runtime;
+- PR #301 continua aberto/Draft até a integração final;
+- correção funcional real incluída: `PendencyService.registerInvoiceDocumentAttempt()` passa `p_expected_asset_version: null` quando não há bem vinculado, preservando a assinatura da RPC;
+- regressão específica adicionada em `tests/unit/pendency-rpc-argument-contract.test.js`;
+- correção anterior de assets do logo em `src/integration/mobile-navigation.js` continua dentro da PR.
 
 ### Handoff corrente obrigatório depois deste arquivo
 
-[`handoff/2026-09-13-uat-operacional-checkpoint-4a7a41dc.md`](handoff/2026-09-13-uat-operacional-checkpoint-4a7a41dc.md)
+[`handoff/2026-09-13-uat-operacional-certificacao-452d972.md`](handoff/2026-09-13-uat-operacional-certificacao-452d972.md)
 
-Esse arquivo é o **delta corrente**. Ele pressupõe a leitura do relatório consolidado anterior:
+Esse arquivo substitui temporalmente o checkpoint `4a7a41dc` como handoff corrente e pressupõe, quando necessário reconstruir toda a história da frente, a leitura do predecessor:
 
 [`handoff/2026-09-13-relatorio-tecnico-consolidado-pos-pr300-uat.md`](handoff/2026-09-13-relatorio-tecnico-consolidado-pos-pr300-uat.md)
 
-O relatório consolidado preserva a reconstrução completa do PR #300, Production, Supabase, capacidade, observabilidade e início da UAT. O checkpoint `4a7a41dc` registra o avanço posterior e substitui as instruções temporais daquele relatório que já foram superadas.
+## 3. Certificação funcional do candidato `452d972...`
 
-## 3. O que foi encerrado pelo PR #300
+No candidato funcional, os seguintes workflows passaram:
 
-A causa raiz arquitetural foi tratada estruturalmente:
+- `Ciclos funcionais reais com Supabase` — run `34783607506`;
+- `Testes E2E Playwright` — run `34783607552`;
+- `Confiabilidade funcional com Supabase real` — run `34783607532`;
+- `Supabase readiness` — run `34783607627`;
+- `Gate remoto de perfis e viewports` — run `34783607483`;
+- `Retificação auditável direcionada` — run `34783607632`;
+- `Validar RADAR PDDE` — run `34783607599`;
+- `CodeQL` — run `34783607516`;
+- `Saúde das dependências` — run `34783607562`.
 
-- bootstrap remoto restrito a dados estruturais necessários;
-- dados operacionais carregados por competência/contexto;
-- dependências históricas ainda ativas incorporadas seletivamente;
-- histórico administrativo e escolar carregado sob demanda;
-- consultas genéricas fail-closed quando faltam ordenação determinística ou limites;
-- gravações remotas autoritativas/incrementais;
-- releitura corretiva apenas quando necessária;
-- `localStorage` fora do papel de segundo banco operacional no modo Supabase;
-- aplicação de estado remoto à projeção em memória com `persistStorage:false`;
-- proteção contra resposta stale na troca de contexto;
-- acesso direto às tabelas operacionais do Supabase restrito à camada de dados, com exceções de Auth previstas.
+`Homologação integral pré-production` — run `34783607517` — passou migrations, Supabase/Auth/RLS/pgTAP, dependências/segurança, backup/restauração, prontidão, Playwright completo e Excel/OOXML/rota pública. O workflow ficou vermelho apenas porque o job Lighthouse desktop excedeu o piso interno de performance. Por decisão operacional expressa do responsável do projeto, essa oscilação de performance **não bloqueia** a reabertura funcional do RADAR.
 
-A arquitetura não proíbe memória/cache local. O contrato vigente é:
+## 4. Jornadas operacionais já comprovadas por UI + Supabase + reload
 
-```text
-Supabase = fonte canônica persistente
-memória/cache local = projeção operacional descartável
-```
-
-Estado local é útil quando melhora responsividade e não mascara falha, não substitui o Supabase e converge para a autoridade remota após escrita/reload.
-
-## 4. Certificação do PR #300
-
-O candidato funcional do PR #300 passou os gates de release, incluindo Playwright E2E, homologação pré-production, Supabase readiness, confiabilidade funcional com Supabase real, ciclos funcionais, perfis/viewports, CodeQL, dependências, Excel SME, snapshot e Lighthouse.
-
-Suíte unitária: **1.018 aprovados, 0 falhas**.
-
-O LCP desktop certificado ficou em **3,46 s** no candidato, com TBT 0 ms, acessibilidade 100% e boas práticas 100%. Oscilações pequenas posteriores, sem mudança funcional correlata, não justificam sacrificar correções arquiteturais. Mobile permanece dívida conhecida e não bloqueante para o alvo operacional desktop.
-
-## 5. UAT operacional já comprovada
-
-Arquivo principal:
-
-`tests/e2e/supabase-operational-uat.spec.js`
-
-No HEAD `4a7a41dc...`, os dois primeiros cenários novos passaram com Auth/RLS/Supabase descartável reais:
-
-### Login → Dashboard → Registros Internos
+A nova UAT exerce mutações pelos controles reais da interface e usa consultas diretas somente para verificar o resultado remoto.
 
 Comprovado:
 
-- login chega ao dashboard;
-- `administrative_logs` não participa do bootstrap;
-- não foi detectado GET operacional sem filtro contextual nesse fluxo;
-- logs são buscados somente ao abrir Registros Internos;
-- consulta limitada/ordenada.
+- login até dashboard e carregamento contextual;
+- Registros Internos fora do bootstrap e carregados sob demanda;
+- avaliação documental pela interface → `verifications` → reload;
+- ausência de coleções operacionais do Supabase persistidas em `localStorage` como segundo banco;
+- NF de consumo: criar, analisar, editar dados permitidos, reload, excluir e confirmar exclusão remota;
+- serviço/Consulta Assessoria individual por NF: Pendência, novo envio, reanálise incorreta, nova tentativa, resolução e isolamento entre notas;
+- `a_identificar`: abertura atômica Incorreto + Pendência, edição preservando identidade/vínculo, identificação no novo envio, reanálise e reload;
+- Boleto Internet em Educação Conectada: cadastro, Pendência, novo envio, reanálise e estado final `Correto` após reload;
+- ciclo administrativo de Pendência: contato, reload, cancelamento com justificativa, reload, reabertura com novo erro, reload e preservação de contato/histórico;
+- lifecycle remoto de notas, avaliações e reanálise autenticada já existente nos gates complementares.
 
-### Avaliação → Supabase → reload
-
-Comprovado no cenário `ESC-LOCAL / 2026-05 / PDDE Básico / Extrato Conta Corrente`:
-
-- `Sim` e `Correto` acionados pela interface;
-- projeção visual correta;
-- convergência para `verifications` no Supabase;
-- `row_version` válido;
-- coleções operacionais verificadas ausentes do `localStorage` como banco paralelo;
-- reload reencontra o mesmo estado.
-
-A antiga falha `/is-selected/` foi corrigida no teste para o contrato real `/active-sim/`; ela não é mais pendência.
-
-## 6. Próximas prioridades da homologação
-
-Expandir a prova de ponta a ponta para:
-
-1. avaliação mensal completa: Sim/Não/N/A, análise técnica, atrasado, consolidação e derivados;
-2. NF/despesa de consumo;
-3. serviço + Consulta Assessoria individualizada;
-4. permanente + bem + Capital/Inventário + encaminhamento;
-5. Boleto de Internet em Educação Conectada;
-6. `a_identificar` com `Incorreto + Pendência` atômicos e identificação no novo envio;
-7. ciclo integral de Pendência, tentativa, contato, novo envio, reanálise, resolução/manutenção, cancelamento/reabertura autorizados;
-8. novas retificações/edições e bloqueios por histórico;
-9. mensagens de sucesso, erro, bloqueio e sincronização;
-10. primeira navegação, rota direta, reload e mudança rápida de competência;
-11. falha de persistência remota e falha de aplicação local pós-commit;
-12. reflexos cruzados entre Prontuário, Pendências, Inventário, Dashboard/Carteira e Registros Internos;
-13. baseline de capacidade e detector de regressão via `pg_stat_statements`.
-
-Critério de escrita:
+Critério de mutação:
 
 ```text
-estado persistido remoto
-=
-projeção local da aplicação
-=
-estado mostrado ao usuário
-=
-estado reencontrado após reload
+UI real
+→ persistência Supabase
+→ relações/efeitos derivados
+→ UI coerente
+→ reload
+→ mesma verdade
 ```
 
-com efeitos relacionados igualmente coerentes.
+## 5. Defeito real corrigido durante a UAT
 
-## 7. Capacidade e observabilidade
+A UAT revelou que o novo envio de uma Pendência fiscal sem bem patrimonial podia chamar `register_invoice_document_attempt` sem `p_expected_asset_version`, porque `undefined` era omitido na serialização. O PostgREST então não encontrava a assinatura da RPC e respondia 404.
+
+Correção aplicada:
+
+```text
+p_expected_asset_version: persistence.expectedAssetVersion ?? null
+```
+
+O banco já aceitava `null`; não houve migration nem mudança de regra de negócio.
+
+## 6. Production observada nesta frente
+
+Durante execução em Work/Astra, o site oficial aceitou login real e permitiu abrir o Prontuário da Ary Barroso com avaliações reais.
+
+Foi observada antes disso a mensagem transitória `Não foi possível carregar os escopos de escolas`; a sessão se recuperou e a unidade abriu normalmente. Classificação atual: ocorrência transitória ainda sem causa determinada, não bloqueio permanente comprovado.
+
+Nenhuma escrita operacional de homologação foi autorizada em Production. Escritas de teste permanecem no Supabase descartável de CI.
+
+O monitor autenticado de Production para cinco perfis continua dependente de contas técnicas protegidas; um run verde com a etapa autenticada ignorada não deve ser usado como prova completa de todos os perfis.
+
+## 7. Matriz funcional e operações `partial`
+
+A matriz canônica possui operações classificadas como `partial`. Pela definição vigente, `partial` significa **contrato funcional com evidência adicional específica ainda não encerrada**, não defeito conhecido nem bloqueio automático.
+
+A UAT desta frente fortalece especialmente:
+
+- `PEND-01` — abertura de Pendência fiscal/Assessoria pela UI;
+- `PEND-04` — cancelamento com justificativa e releitura;
+- `PEND-05` — reabertura e releitura;
+- `PEND-06` — contato associado e releitura;
+- `INV-03` — fluxo individual de Assessoria;
+- `INV-04` — análise fiscal individual, Pendência e resumo derivado.
+
+Não reclassificar automaticamente itens que ainda exigem autoria explícita, idempotência, negativas completas por perfil, reversão controlada ou observação recorrente em Production.
+
+Ações administrativas menos frequentes de Configurações SME, programas, cadastro/redistribuição de escolas e algumas operações patrimoniais continuam com cobertura E2E/serviço/RLS, mas parte delas permanece `partial` na matriz por exigir ensaio controlado específico. Isso é dívida de evidência, não bug conhecido.
+
+## 8. Critério de release da frente atual
+
+Antes de comunicar reabertura aos usuários:
+
+1. integrar o PR #301 na `main`;
+2. confirmar o SHA integrado;
+3. confirmar deployment Vercel Production `READY` no SHA integrado;
+4. executar smoke não destrutivo do endereço oficial;
+5. verificar ausência de erro funcional novo em login/navegação/leitura real;
+6. registrar o fechamento documental da frente.
+
+Lighthouse não é critério bloqueante nesta decisão.
+
+## 9. Capacidade e observabilidade
 
 Baseline de Supabase Production observado em 13/09:
 
@@ -160,34 +153,32 @@ Baseline de Supabase Production observado em 13/09:
 
 O problema anterior era padrão de acesso, não volume absoluto.
 
-`pg_stat_statements` preserva fingerprints históricos das consultas globais antigas. Não resetar. Registrar linha de corte pós-refatoração e monitorar somente o delta futuro para detectar reintrodução de consultas globais.
+Preservar `pg_stat_statements` e monitorar delta pós-refatoração; não resetar histórico apenas para produzir gráfico mais bonito.
 
-Observabilidade existente a preservar/integrar:
+Observabilidade existente:
 
-- smoke de Production horário com incidente automático;
+- smoke de Production horário;
 - integridade de Production a cada 6h;
 - CodeQL;
 - Dependabot;
-- saúde semanal de dependências;
+- saúde de dependências;
 - Vercel deployments/logs;
 - Supabase Advisors/Reports/Logs;
 - pgTAP/RLS/Auth/readiness.
 
-## 8. Dependências
+## 10. Dependências
 
-Não misturar upgrades de dependência com a homologação funcional atual.
+Não misturar upgrades de dependência com esta homologação. `@supabase/supabase-js` e Playwright podem ser avaliados depois, em branches próprias. A Supabase CLI 2.116.0 havia sido rejeitada por regressão nas garantias pgTAP/RLS; não atualizar automaticamente.
 
-Candidatos observados para avaliação posterior em branches próprias incluem `@supabase/supabase-js` e Playwright. A Supabase CLI 2.116.0 já havia sido rejeitada por regressão de garantias pgTAP/RLS; não atualizar automaticamente.
+## 11. Documentos temporais antigos
 
-## 9. Documentos temporais antigos
-
-- `audits/SUPABASE_ARCHITECTURE_FINAL_2026-09-13.md` é evidência do candidato pré-merge do PR #300;
-- `audits/ASTRA_AUDITORIA_RADAR_2026.md` é diário investigativo com checkpoints intermediários;
-- `PROJECT_CONTEXT.md` contém contexto funcional útil, mas também trechos temporais de 06/09;
-- o relatório consolidado de 13/09 preserva o checkpoint anterior ao avanço para `4a7a41dc...` e deve ser lido como predecessor, não como última instrução operacional;
+- `handoff/2026-09-13-uat-operacional-checkpoint-4a7a41dc.md` é checkpoint histórico intermediário;
+- `audits/SUPABASE_ARCHITECTURE_FINAL_2026-09-13.md` é evidência pré-merge do PR #300;
+- `audits/ASTRA_AUDITORIA_RADAR_2026.md` é diário investigativo incremental;
+- `PROJECT_CONTEXT.md` contém contexto funcional útil, mas SHAs/PRs/deployments antigos cedem a este arquivo;
 - planos, auditorias e handoffs não apontados aqui não formam fila automática.
 
-## 10. Rota obrigatória para retomada
+## 12. Rota obrigatória para retomada
 
 Ler nesta ordem:
 
@@ -195,12 +186,12 @@ Ler nesta ordem:
 2. `reference/SYSTEM_CANONICAL_MODEL.md`;
 3. `reference/PRODUCT_SURFACE_CATALOG.md`;
 4. este `CURRENT_STAGE.md`;
-5. `handoff/2026-09-13-uat-operacional-checkpoint-4a7a41dc.md`;
-6. o relatório consolidado predecessor quando precisar reconstruir o ciclo completo;
+5. `handoff/2026-09-13-uat-operacional-certificacao-452d972.md`;
+6. o relatório consolidado predecessor se precisar reconstruir o ciclo completo;
 7. `reference/ENGINEERING_METHOD.md`;
 8. `reference/FRONTEND_USER_VALIDATION_GATE.md`;
 9. `reference/STATUS_DOCUMENTOS.md`;
 10. matriz funcional/ADRs/referências especializadas conforme a frente;
 11. históricos apenas depois.
 
-Não começar por memória de chat, plano antigo ou auditoria isolada. Revalidar SHAs/ambientes ao vivo quando a decisão depender do estado atual.
+Não começar por memória de chat, plano antigo ou auditoria isolada. Revalidar SHAs e ambientes ao vivo quando a decisão depender do estado atual.
