@@ -58,19 +58,22 @@
         schools: lifecycle('bounded', 'bootstrap', 'carteira de unidades autorizada por RLS'),
         schoolPrograms: lifecycle('scoped', 'bootstrap', 'vínculos programa × unidade autorizados por RLS'),
         competences: lifecycle('scoped', 'bootstrap', 'calendário de competências dos exercícios configurados'),
-        verifications: lifecycle('scoped', 'bootstrap', 'estado operacional de verificações autorizado por RLS'),
-        pendencies: lifecycle('workflow', 'bootstrap', 'estado necessário aos fluxos operacionais de Pendências autorizados por RLS'),
-        pendencyAttempts: lifecycle('workflow', 'bootstrap', 'tentativas pertencentes às Pendências carregadas'),
-        pendencyContacts: lifecycle('workflow', 'bootstrap', 'contatos operacionais usados por Pendências, alertas e prontuário'),
-        assets: lifecycle('workflow', 'bootstrap', 'estado patrimonial operacional autorizado por RLS'),
-        registeredInvoices: lifecycle('scoped', 'bootstrap', 'despesas e documentos necessários aos fluxos operacionais autorizados por RLS'),
+        verifications: lifecycle('scoped', 'context', 'somente a competência operacional selecionada'),
+        pendencies: lifecycle('workflow', 'context', 'competência selecionada mais pendências ainda ativas'),
+        pendencyAttempts: lifecycle('workflow', 'context', 'somente tentativas das pendências presentes no contexto operacional'),
+        pendencyContacts: lifecycle('workflow', 'context', 'somente contatos das pendências presentes no contexto operacional'),
+        assets: lifecycle('workflow', 'context', 'competência selecionada mais bens ainda não inventariados'),
+        registeredInvoices: lifecycle('scoped', 'context', 'somente despesas e documentos da competência operacional selecionada'),
         administrativeLogs: lifecycle('append-only', 'on-demand', 'histórico paginado e filtrado no servidor por superfície'),
-        dataImportRuns: lifecycle('append-only', 'maintenance', 'histórico técnico de importações'),
+        dataImportRuns: lifecycle('workflow', 'maintenance', 'execuções técnicas mutáveis enquanto a importação progride'),
         auditEvents: lifecycle('append-only', 'maintenance', 'trilha técnica de auditoria de dados')
     });
 
     const REMOTE_BOOTSTRAP_ENTITIES = Object.freeze(
         RADAR_ENTITIES.filter(entity => ENTITY_LIFECYCLE[entity]?.remoteLoad === 'bootstrap')
+    );
+    const REMOTE_CONTEXT_ENTITIES = Object.freeze(
+        RADAR_ENTITIES.filter(entity => ENTITY_LIFECYCLE[entity]?.remoteLoad === 'context')
     );
 
     const ENTITY_SET = new Set(RADAR_ENTITIES);
@@ -189,6 +192,7 @@
         RADAR_ENTITIES,
         ENTITY_LIFECYCLE,
         REMOTE_BOOTSTRAP_ENTITIES,
+        REMOTE_CONTEXT_ENTITIES,
         REQUIRED_REPOSITORY_METHODS,
         RepositoryError,
         assertKnownEntity,
