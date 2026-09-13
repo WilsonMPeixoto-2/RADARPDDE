@@ -160,7 +160,7 @@ test.describe.serial('UAT operacional com Supabase real descartável', () => {
     await row.getByRole('button', { name: 'Sim', exact: true }).click();
     await row.locator('select.select-analise').selectOption('Correto');
 
-    await expect(row.getByRole('button', { name: 'Sim', exact: true })).toHaveClass(/is-selected/);
+    await expect(row.getByRole('button', { name: 'Sim', exact: true })).toHaveClass(/active-sim/);
     await expect(row.locator('select.select-analise')).toHaveValue('Correto');
 
     const remote = await page.evaluate(async () => {
@@ -198,7 +198,7 @@ test.describe.serial('UAT operacional com Supabase real descartável', () => {
     await page.reload();
     await waitForControllerAfterReload(page);
     const restoredRow = documentRow(page, 'Extrato Conta Corrente');
-    await expect(restoredRow.getByRole('button', { name: 'Sim', exact: true })).toHaveClass(/is-selected/);
+    await expect(restoredRow.getByRole('button', { name: 'Sim', exact: true })).toHaveClass(/active-sim/);
     await expect(restoredRow.locator('select.select-analise')).toHaveValue('Correto');
 
     expect(observed.pageErrors).toEqual([]);
