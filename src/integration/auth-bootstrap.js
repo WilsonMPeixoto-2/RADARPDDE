@@ -136,7 +136,9 @@
             if (state?.status !== 'signed_out') return;
             root.RadarAuthContext = null;
             emitAuthRequired(root, 'Sua sessão foi encerrada. Entre novamente para continuar.');
-            if (!authenticatedSessionObserved || typeof root.location?.reload !== 'function') return;
+            if (!authenticatedSessionObserved || root.RadarSessionInvalidated === true
+                || typeof root.location?.reload !== 'function') return;
+            root.RadarSessionInvalidated = true;
             const reload = () => root.location.reload();
             if (typeof root.setTimeout === 'function') root.setTimeout(reload, 0);
             else reload();

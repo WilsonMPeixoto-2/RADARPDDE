@@ -100,6 +100,7 @@
             run = Promise.resolve().then(async () => {
                 const result = await service.loadOperationalContext(competenceKey, {
                     source: `session-${reason}-refresh`,
+                    historyStatuses: root.RadarTask9PendencyPage?.requestedHistoryStatuses?.() || [],
                     shouldApply: () => authenticated(root) && !editing(root)
                         && activeCompetence(root) === competenceKey
                 });

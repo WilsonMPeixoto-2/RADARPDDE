@@ -6,11 +6,12 @@
 
 ## Estado atual da auditoria
 
-- Último bloco concluído: 11 — PR #299 e catálogo remoto; revisão adicional da implementação `9a392c1` em andamento.
-- Descobertas atuais: houve avanço real para consultas por competência e transações por entidades. Contudo, o seletor novo falha ao carregar com o domínio real; a consulta contextual omite dependências de obrigações antigas ainda ativas. CI atual falhou antes do desktop.
-- Os blocos 0–10 registram a versão anterior. Seus estados de cobertura devem ser lidos junto com a reconciliação de `9a392c1` ao final; não representam automaticamente defeitos ainda presentes.
-- Investigação seguinte: integração efetiva do contexto mensal, atualização incremental, regressões e testes atuais.
-- Pendentes: conclusão do bloco 12 e síntese; nenhuma medição atual de latência em Production; nenhuma prova de equivalência funcional integral. Catálogo/migrations/RPCs de Production consultados somente para leitura.
+- Último bloco concluído: 12; releitura dos consumidores históricos e correções N-01 a N-08, com N-07 descartado por contraprova.
+- Descoberta causal: remover logs foi necessário, mas insuficiente. A branch agora recorta dados operacionais por competência e obrigações ativas, fecha suas dependências, limita o estado das transações e atualiza a interface com retornos confirmados. A revisão encontrou e corrigiu regressões reais nessa transição.
+- Os blocos 0–10 descrevem `8409297`; seus defeitos não devem ser interpretados como situação atual sem a reconciliação posterior. A síntese final identifica correções e riscos remanescentes.
+- Verificação mais recente: 1.018/1.018 unitários; segurança 0 erros/42 avisos existentes; lint E2E 0 erros/159 avisos existentes. Desktop em `bf7e13b` aprovado. Supabase descartável revelou corrida de navegação no logout, corrigida; nova execução pendente.
+- Investigação seguinte: validar a correção de logout em Auth/RLS reais e a consulta explícita de Pendências históricas no desktop; consolidar o relatório final.
+- Pendentes fora dessa prova: latência atual p50/p95 em Production, carga 100× e sessões humanas simultâneas. Catálogo/migrations/RPCs de Production foram consultados somente para leitura.
 - Restrições: somente a branch isolada; nenhuma alteração de main, banco, migrations, secrets, configuração ou deployment de Production.
 
 ## Método e escala de evidência
@@ -294,3 +295,18 @@ Wilson autorizou corrigir problemas comprovados durante a revisão. O outro chat
 **Verificação local adicional:** 1.016/1.016 unitários. Workflow existente de Supabase descartável habilitado para esta branch e ampliado para executar o teste autenticado antes ignorado, com fixtures geradas no runner e nenhuma conexão de escrita a Production. Certificação do SHA final em andamento.
 
 **Lacunas reconhecidas:** testes de regex foram identificados como segurança aparente no seletor; substituídos por scripts reais em VM e duas jornadas de navegador. Permanecem fora da prova: latência p50/p95 em Production, operação humana de duas pessoas simultâneas e carga 100× com distribuição real. Não extrapolar aprovação em fixtures para esses cenários. Os registros por etapa da CI e o diário fixado por SHA preservam a origem de cada conclusão.
+
+### Revisão dos consumidores que prometem abrangência histórica
+
+**N-07 — Exportação institucional poderia declarar todas as competências usando apenas memória parcial.** Hipótese inicial, descartada após rastrear o wrapper vigente. `excel-export-integration.createExportArtifacts` usa `state.verificacoes` e descreve o escopo como “Todas as competências consolidadas”; `getBrowserState` lê somente as verificações atualmente hidratadas. A consulta mensal corrigiu o bootstrap, mas não esse consumidor de acervo. A comparação com o CSV não detecta a omissão porque ambos usam a mesma memória parcial. Contraprova: `excel-export-audit.createAuditedExport` aplica `scopeStateToActiveCompetence`, substitui a descrição temporal por competência e intercepta também os botões de Assistente/SME. Logo, o fluxo vigente é mensal e recebe o contexto correto; não se deve introduzir leitura de todo o acervo para corrigir uma hipótese baseada somente no módulo interno. Nenhuma alteração funcional foi feita na exportação.
+
+**N-08 — Abas históricas de Pendências ainda usam coleção mensal como se fosse completa.** Confirmado, prioridade alta de preservação funcional. O catálogo S-04 e o modelo canônico exigem consulta transversal; `task-9-pendencias-page.getPageModel/activatePendencyTab` usam apenas a memória do contexto, que agora contém todos os passivos ativos mas apenas resolvidas/canceladas do mês. Os filtros locais são derivados dessa coleção incompleta. A correção exige leitura contextual explícita ao consultar estados históricos, preservando ativos transversais e evitando trazê-los ao login. O gate anterior com fixtures completas não detectava essa lacuna.
+
+
+**N-08 corrigido:** ao abrir Resolvidas/Canceladas, a página solicita explicitamente esses estados ao repositório, incluindo tentativas, contatos e dependências documentais. A inicialização permanece mensal mais obrigações ativas. Contadores históricos ficam ocultos até a consulta; carregamento e falha são visíveis, com nova tentativa pela aba. Exportar Pendências solicita ambos os estados fechados para preservar a abrangência prometida. Refresh de sessão e releitura corretiva preservam o escopo histórico solicitado. Unitário prova inclusão da resolvida antiga somente sob solicitação e recusa de estados inválidos; E2E incluído para a aba real.
+
+**Limite deliberado e risco de crescimento:** a leitura desse histórico usa páginas SQL limitadas, mas esgota os registros do estado solicitado para preservar filtros, contagem e exportação existentes. Portanto, o custo total da tela histórica ainda cresce com seu acervo; não se deve chamar essa consulta de paginação visual nem de certificação para 100×. Também há consultas completas restritas à escola quando se pede sua história. A próxima evolução, se o volume justificar, é paginação visível/contagem remota dessas telas, com preservação das ações e filtros. Não trazer esse acervo ao login.
+
+**N-09 — Logout podia iniciar duas recargas.** Confirmado por código e execução com Supabase descartável: `AuthBootstrap` e `AuthGate` reagiam ao mesmo encerramento; o teste ainda solicitava uma terceira navegação via `page.reload`, causando `net::ERR_ABORTED`. [Execução 34758651162](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/34758651162), código `bf7e13b`, iniciou/resetou Supabase local e preparou Auth corretamente, mas parou no logout antes de concluir a jornada. Ajustado o produto para uma invalidação por sessão, compartilhada entre os dois caminhos. O teste agora aciona Sair pela interface e aguarda a navegação iniciada pelo produto. Teste unitário adicional impede duplicidade. Prioridade média; nova prova autenticada pendente.
+
+**Checkpoint antes da nova CI:** suíte completa 1.018/1.018, lints sem erros. Nenhuma migration ou regra funcional alterada. A falha autenticada não foi escondida removendo testes nem reduzindo RLS/versões.

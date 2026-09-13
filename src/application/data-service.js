@@ -287,6 +287,7 @@
             }
             this.unitOfWork = options.unitOfWork || new UnitOfWork({ statePort: this.statePort });
             this.remoteExecutionTail = Promise.resolve();
+            this.currentHistoricalStatuses = [];
             this.operationalContextSequence = 0;
             this.currentOperationalCompetence = '';
         }
@@ -408,7 +409,11 @@
             const canApply = () => sequence === this.operationalContextSequence
                 && (typeof options.shouldApply !== 'function' || options.shouldApply());
             if (!canApply()) return { competenceId: target, stale: true };
-            const context = await this.repository.queryOperationalContext({ competenceId: target });
+            const historyStatuses = [...new Set(options.historyStatuses || [])];
+            const context = await this.repository.queryOperationalContext({
+                competenceId: target,
+                ...(historyStatuses.length ? { historyStatuses } : {})
+            });
             const snapshot = assertSnapshotJson(
                 operationalSnapshot(context, options),
                 'loadOperationalContext'
@@ -427,6 +432,7 @@
                 options.source || 'remote-operational-context'
             );
             this.currentOperationalCompetence = target;
+            this.currentHistoricalStatuses = historyStatuses;
             return {
                 competenceId: target,
                 stale: false,
@@ -544,7 +550,8 @@
                 && typeof this.repository.queryOperationalContext === 'function';
             if (canQueryContext) {
                 const context = await this.repository.queryOperationalContext({
-                    competenceId: this.currentOperationalCompetence
+                    competenceId: this.currentOperationalCompetence,
+                    ...(this.currentHistoricalStatuses.length ? { historyStatuses: this.currentHistoricalStatuses } : {})
                 });
                 contextual.forEach(entity => {
                     refreshed.entities[entity] = cloneValue(context.entities?.[entity] || []);

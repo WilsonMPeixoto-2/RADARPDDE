@@ -46,6 +46,39 @@
     let installed = false;
     let originalSwitchView = null;
     let drawerTriggerId = null;
+    let historyRequest = null;
+    let historyError = '';
+
+    function historyDataService() {
+        const service = root.RadarApplicationServices?.data;
+        return service?.repository?.capabilities?.().remote === true
+            && typeof service.loadOperationalContext === 'function' ? service : null;
+    }
+
+    function requestedHistoryStatuses() {
+        if (typeof currentView === 'undefined' || currentView !== 'pendencias') return [];
+        const status = TAB_DEFINITIONS.find(item => item.key === pageState.activeTab)?.status;
+        return ['Resolvida', 'Cancelada'].includes(status)
+            ? [...new Set([...(historyDataService()?.currentHistoricalStatuses || []), status])]
+            : [];
+    }
+
+    function ensureRequestedHistory() {
+        const service = historyDataService();
+        const requested = requestedHistoryStatuses();
+        if (!service || !requested.length || historyRequest || historyError
+            || requested.every(status => service.currentHistoricalStatuses?.includes(status))) return;
+        const competence = root.RadarCompetenceContext.getState().activeKey;
+        historyRequest = service.loadOperationalContext(competence, {
+            source: 'pendency-history', historyStatuses: requested
+        }).catch(error => {
+            historyError = 'Não foi possível consultar o histórico. Clique novamente na aba para tentar.';
+            root.console?.error?.('Falha ao consultar Pendências históricas.', error);
+        }).finally(() => {
+            historyRequest = null;
+            if (typeof currentView !== 'undefined' && currentView === 'pendencias') renderPendenciasTask9();
+        });
+    }
 
     function dependenciesReady() {
         return Boolean(
@@ -467,6 +500,12 @@
                 throw new Error('O motor Excel não está disponível para a planilha de pendências.');
             }
 
+            const service = historyDataService();
+            if (service) {
+                await service.loadOperationalContext(root.RadarCompetenceContext.getState().activeKey, {
+                    source: 'pendency-export', historyStatuses: ['Resolvida', 'Cancelada']
+                });
+            }
             const pageModel = getPageModel();
             if (!pageModel.filteredTotal) {
                 root.alert?.('Não há pendências para exportar com a busca e os filtros atuais.');
@@ -824,6 +863,7 @@
         pageState.activeTab = resolveInitialTab(model);
         pageState.activeTab = ensureUsefulActiveTab(model);
         if (!model.groups[pageState.activeTab]) pageState.activeTab = 'aberta';
+        ensureRequestedHistory();
         const selectedRecord = getSelectedRecord(model);
 
         container.innerHTML = `
@@ -861,6 +901,9 @@
                 ${TAB_DEFINITIONS.map(definition => {
                     const group = model.groups[definition.key];
                     const active = pageState.activeTab === definition.key;
+                    const historyUnloaded = ['Resolvida', 'Cancelada'].includes(definition.status)
+                        && historyDataService()
+                        && !historyDataService().currentHistoricalStatuses?.includes(definition.status);
                     return `
                         <button
                             type="button"
@@ -872,12 +915,14 @@
                             tabindex="${active ? '0' : '-1'}"
                             onclick="activatePendencyTab('${definition.key}', this)"
                             onkeydown="handlePendencyTabKeydown(event, '${definition.key}')"
-                        >${definition.label} ${renderTabCount(group)}</button>
+                        >${definition.label} ${historyUnloaded ? '' : renderTabCount(group)}</button>
                     `;
                 }).join('')}
             </div>
 
             <div class="pendency-page-content">
+                ${historyRequest ? '<p role="status">Carregando Pendências históricas...</p>' : ''}
+                ${historyError ? `<p role="alert">${escapeHtml(historyError)}</p>` : ''}
                 ${TAB_DEFINITIONS.map(definition => renderPanel(
                     definition,
                     model.groups[definition.key]
@@ -887,6 +932,7 @@
         `;
 
         if (selectedRecord) syncDrawerSemantics();
+        container.setAttribute('aria-busy', String(Boolean(historyRequest)));
         if (options.restoreSearchFocus) restoreSearchFocus(options.selectionStart, options.selectionEnd);
         return true;
     }
@@ -942,6 +988,7 @@
 
     function activatePendencyTab(key, trigger) {
         if (!TAB_DEFINITIONS.some(definition => definition.key === key)) return false;
+        historyError = '';
         const model = getPageModel();
         const selected = getSelectedRecord(model);
         if (selected && selected.statusKey !== key) activePendencyDetailId = null;
@@ -1186,6 +1233,7 @@
         root.returnToPendencias = returnToPendencias;
         root.RadarTask9PendencyPage = Object.freeze({
             VERSION: '1.2.0',
+            requestedHistoryStatuses,
             getFilterSummary: () => getFilterSummary(getPageModel()),
             getState: () => ({
                 activeTab: pageState.activeTab,

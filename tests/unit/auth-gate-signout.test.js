@@ -77,3 +77,10 @@ test('falha do logout remoto não finge encerramento nem libera troca de usuári
     assert.equal(harness.status.dataset.type, 'error');
     assert.match(harness.status.textContent, /encerrar.*sessão/i);
 });
+
+test('gate não inicia outra navegação quando a invalidação da sessão já agendou reload', async () => {
+    const harness = createHarness(async () => { harness.root.RadarSessionInvalidated = true; });
+    await harness.gate.handleSignOut();
+    assert.equal(harness.reloads(), 0);
+    assert.equal(harness.root.RadarAuthContext, null);
+});

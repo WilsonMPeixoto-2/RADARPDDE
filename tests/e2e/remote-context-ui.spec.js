@@ -64,3 +64,38 @@ test('histórico consulta contatos somente ao abrir e apresenta registro sem pen
   await expect(page.locator('#tab-contatos img')).toHaveCount(0);
   expect(await page.evaluate(() => window.__contactReads)).toEqual([schoolId]);
 });
+
+test('aba Resolvidas consulta histórico de outras competências sem carregá-lo ao abrir as ativas', async ({ page }) => {
+  await openSchool(page);
+  await page.evaluate(() => {
+    const schoolId = activeSchoolId;
+    const make = (id, competence) => RadarPendencias.createDocumentPendency({
+      id, escolaId: schoolId, competenciaOrigem: competence, programaId: 'BASIC', documentoKey: 'extCC',
+      item: 'Extrato Conta Corrente', errosAtuais: ['Sem assinatura'], dataAbertura: `${competence}-01`
+    }, { eventId: `${id}-open`, at: `${competence}-01T12:00:00Z`, usuario: 'Teste', perfil: 'Controlador' });
+    const old = { ...make('resolved-old-context', '2026-04'), status: 'Resolvida', dataResolucao: '2026-05-01' };
+    pendencias = [make('open-current-context', '2026-09')];
+    contatos = [];
+    activePendencyDetailId = null;
+    rebuildOperationalIndexes();
+    window.__historyReads = [];
+    window.RadarApplicationServices = { ...window.RadarApplicationServices, data: {
+      repository: { capabilities: () => ({ remote: true }) },
+      currentOperationalCompetence: '2026-09', currentHistoricalStatuses: [],
+      async loadOperationalContext(key, options) {
+        window.__historyReads.push({ key, statuses: options.historyStatuses });
+        this.currentHistoricalStatuses = options.historyStatuses;
+        pendencias.push(old);
+        rebuildOperationalIndexes();
+        return { stale: false };
+      }
+    } };
+    switchView('pendencias');
+    activatePendencyTab('aberta');
+  });
+  expect(await page.evaluate(() => window.__historyReads)).toEqual([]);
+  await page.getByRole('tab', { name: 'Resolvidas', exact: true }).click();
+  await expect(page.locator('[data-pendency-id="resolved-old-context"]:visible').first()).toBeVisible();
+  expect(await page.evaluate(() => window.__historyReads)).toEqual([{ key: '2026-09', statuses: ['Resolvida'] }]);
+  await expect(page.locator('#global-competence-select')).toHaveValue('2026-09');
+});

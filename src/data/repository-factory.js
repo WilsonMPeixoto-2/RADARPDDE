@@ -277,6 +277,10 @@
             if (!OPERATIONAL_COMPETENCE_PATTERN.test(competenceId)) {
                 throw operationalContextError('Informe uma competência mensal válida para carregar o contexto operacional.');
             }
+            const historyStatuses = [...new Set(options.historyStatuses || [])];
+            if (historyStatuses.some(status => !['Resolvida', 'Cancelada'].includes(status))) {
+                throw operationalContextError('Estado histórico de Pendência inválido.');
+            }
 
             const [
                 monthlyVerifications,
@@ -284,7 +288,8 @@
                 monthlyPendencies,
                 activePendencies,
                 monthlyAssets,
-                activeAssets
+                activeAssets,
+                historicalPendencies
             ] = await Promise.all([
                 this.queryByEquality(
                     'verifications',
@@ -321,10 +326,14 @@
                     'status',
                     ACTIVE_ASSET_STATUSES,
                     'queryOperationalContext:activeAssets'
+                ),
+                this.queryByIn(
+                    'pendencies', 'status', historyStatuses,
+                    'queryOperationalContext:requestedPendencyHistory'
                 )
             ]);
 
-            const pendencies = uniqueById(monthlyPendencies, activePendencies);
+            const pendencies = uniqueById(monthlyPendencies, activePendencies, historicalPendencies);
             const assets = uniqueById(monthlyAssets, activeAssets);
             const pendencyIds = pendencies.map(record => String(record.id));
             const historicalInvoiceIds = pendencies

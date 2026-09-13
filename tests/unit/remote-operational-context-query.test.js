@@ -203,3 +203,16 @@ test('histórico explícito da escola inclui contatos sem pendência e históric
     assert.ok(fake.calls.some(call => call[0] === 'gt'));
     await assert.rejects(repo.querySchoolContacts(''), error => error.code === 'INVALID_OPERATIONAL_CONTEXT');
 });
+
+test('estado encerrado de outra competência só é buscado quando o histórico é solicitado', async () => {
+    const fake = createClient(seed);
+    const repo = new OperationalSupabaseRepository({ client: fake.client, pageSize: 2 });
+    const regular = await repo.queryOperationalContext({ competenceId: '2026-09' });
+    assert.equal(regular.entities.pendencies.some(row => row.id === 'p-old-resolved'), false);
+    const historical = await repo.queryOperationalContext({ competenceId: '2026-09', historyStatuses: ['Resolvida'] });
+    assert.ok(historical.entities.pendencies.some(row => row.id === 'p-old-resolved'));
+    assert.ok(historical.entities.pendencyAttempts.some(row => row.id === 'a-old-resolved'));
+    assert.ok(historical.entities.pendencyContacts.some(row => row.id === 'c-old-resolved'));
+    assert.ok(historical.entities.registeredInvoices.some(row => row.id === 'i-mar-unrelated'));
+    await assert.rejects(repo.queryOperationalContext({ competenceId: '2026-09', historyStatuses: ['all'] }));
+});

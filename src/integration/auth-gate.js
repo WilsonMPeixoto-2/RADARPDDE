@@ -407,7 +407,10 @@
             }
             this.root.RadarAuthContext = null;
             if (this.enabled && typeof this.root.location?.reload === 'function') {
-                this.root.location.reload();
+                if (this.root.RadarSessionInvalidated !== true) {
+                    this.root.RadarSessionInvalidated = true;
+                    this.root.location.reload();
+                }
                 return true;
             }
             this.show('Sessão encerrada. Entre novamente para continuar.');
