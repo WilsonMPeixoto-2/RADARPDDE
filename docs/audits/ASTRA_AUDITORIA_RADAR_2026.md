@@ -6,10 +6,10 @@
 
 ## Estado atual da auditoria
 
-- Último bloco concluído: 3 — Análise e Bonificação.
+- Último bloco concluído: 4 — Pendências e confirmação das transições.
 - Descobertas: logs excluídos do bootstrap, mas 13 outras coleções continuam integralmente carregadas; confirmado bloqueio de readiness no modo local por extensão exclusiva do remoto. Integração corrigida; desktop incompleto.
-- Investigação seguinte: Pendências e operações documentais atômicas.
-- Pendentes: blocos 4–12; situação efetiva de Production não revalidada; nenhuma medição atual do banco; nenhuma prova de equivalência integral.
+- Investigação seguinte: Notas, documentos e Inventário.
+- Pendentes: blocos 5–12; situação efetiva de Production não revalidada; nenhuma medição atual do banco; nenhuma prova de equivalência integral.
 - Restrições: somente a branch isolada; nenhuma alteração de main, banco, migrations, secrets, configuração ou deployment de Production.
 
 ## Método e escala de evidência
@@ -91,3 +91,20 @@ Todas as coleções da tabela permanecem em memória até recarga/encerramento d
 **Conclusão:** o desenho de persistência dessas operações é coerente com o objetivo funcional e não há evidência de regressão de regra nessas mudanças. O custo global A-03 continua em cada escrita. A fila remota é global à instância: uma gravação lenta de outro domínio também pode atrasar a seguinte, escolha atualmente necessária ao estado mutável/rollback compartilhado.
 
 **Riscos, separados de defeitos:** troca de tela enquanto há RPC em trânsito precisa de E2E específico para garantir que o render tardio não perturbe o contexto atual; esta leitura não prova equivalência visual. O teste de escrita rápida simula o servidor e só prova a fila de uma instância. O E2E com Supabase real é explicitamente ignorado sem `RADAR_E2E_SUPABASE_LOCAL=1`. **Prioridade:** alta para completar certificação; média para instrumentar fila/CPU. **Recomendação:** preservar retorno autoritativo/fila/guardas; medir etapas; cobrir duas escritas rápidas e troca/retorno de competência com atraso de resposta. **Cobertura:** testes unitários verdes; jornada desktop integral ainda bloqueada por A-01. **Descartado:** necessidade de reler todo histórico para confirmar avaliação simples. **Aberto:** concorrência entre sessões (bloco 8) e prova visual do candidato completo.
+
+## Bloco 4 — Pendências
+
+**Examinado:** `PendencyService` (open, persistPendencyCommand, registerAttempt, registerInvoiceDocumentAttempt, reanalyze, reanalyzeInvoiceDocumentPendency, resolve, updateDetails, cancel/reopen/updateStatus, registerContact); `src/domain/pendencias.js`; handlers de novo envio, reanálise e drawer em `app.js`; RPCs em migrations `20260828023000_invoice_document_analysis_pendency.sql` e `20260906072000_pendency_reanalysis_server_invariants.sql`.
+
+**Fluxos e evidência:** abertura documental com análise incorreta usa agregado Pendência/verificação/log; fluxo individual de nota acrescenta `registered_invoice_id` e versão da nota. Novo envio produz tentativa, muda status e pode identificar despesa/criar bem; reanálise atualiza tentativa, Pendência e análise, preservando bonificação. `resolve` usa reanálise correta, não simples troca arbitrária de status. Cancelamento/reabertura usam validação de domínio e expectedPendencyVersion; contatos possuem operationId idempotente e log na mesma RPC. A reanálise SQL exige papel autorizado, Pendência aguardando reanálise, tentativa correspondente, contexto e versões e retorna registros persistidos. O serviço mescla esses retornos mesmo quando usa `remoteCommitIsAuthoritative`.
+
+| Operação | Confirmação/atualização observada | Leitura ampla normal |
+|---|---|---|
+| Abrir, novo envio, cancelar/reabrir, contato | Resultado autoritativo + mesclagem; render/índices após await | Evitada com retorno completo; fallback ainda possível |
+| Reanálise comum | RPC confirma agregado, merge e commit autoritativo | Evitada no sucesso normal |
+| Abrir/enviar/reanalisar nota individual | RPC documental, versões/contexto individual | Evitada quando todas as entidades declaradas aparecem no resultado |
+| Editar motivo/observação | RPC de status retorna Pendência; comando sem flag autoritativa | **Sempre relê todas as Pendências** após commit |
+
+**A-05 — Edição de detalhes ainda relê coleção integral.** Impacto: pequena edição aguarda consulta de todas as Pendências autorizadas e fica exposta a falha de leitura depois de uma gravação bem-sucedida. Evidência: `app.js/savePendencyDrawerEdits → PendencyService.updateDetails → persistPendencyCommand`; comando declara `pendencies/administrativeLogs`, mas nenhuma flag autoritativa; `DataService.needsCorrectiveRefresh` fica verdadeiro mesmo após merge válido; logs são isentos, Pendências não. Causa: adoção incompleta do contrato de retorno autoritativo. Situação **confirmada**, prioridade **média**, presente. Correção mínima: validar retorno da RPC e declarar resultado autoritativo com aplicação das entidades afetadas; teste deve contar consultas no fluxo real de comando.
+
+**Risco:** `remoteCommitIsAuthoritative` representa confirmação de persistência, não prova de completude de todo estado derivado. Preservar essa distinção quando expandir o uso da flag; não usá-la para ocultar retorno incompleto. Estados auxiliares/detalhes consultam coleções da sessão e podem estar antigos por outra sessão (bloco 8). **Cobertura:** testes de domínio/serviço amplos existem e passaram na suíte; E2E de abertura atômica passou, ciclos completos e retificações manuais ainda não estão certificados neste candidato. **Descartado:** toda ação de Pendência obrigatoriamente relê logs; não é o caminho atual. **Aberto:** equivalência visual de todas as subopções e conflitos em banco real descartável. Prioridade alta para a jornada de novo envio/reanálise, preservando contexto e bonificação.
