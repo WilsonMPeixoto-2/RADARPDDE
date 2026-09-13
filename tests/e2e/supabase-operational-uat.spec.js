@@ -344,25 +344,18 @@ async function submitPendencyUI(page, pendency, identify = false) {
 
 async function reanalyzePendencyUI(page, pendency, result = 'correto') {
   await page.getByRole('tab', { name: /^Aguardando/ }).click();
-  const drawer = page.locator('#pendency-preview-drawer');
+  const row = page.locator(`#p-aguardando [data-pendency-id="${pendency.id}"]`).filter({ visible: true }).first();
+  await expect(row).toBeVisible();
+
+  const drawer = page.locator('#pendency-detail-drawer');
   await drawer.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
-
-  let actionClicked = false;
-  if (await drawer.isVisible()) {
-    const drawerAction = drawer.getByRole('button', { name: 'Reanalisar', exact: true });
-    if (await drawerAction.isVisible().catch(() => false)) {
-      await drawerAction.click();
-      actionClicked = true;
-    } else {
-      await closePreview(page);
-    }
+  if (!(await drawer.isVisible().catch(() => false))) {
+    await row.getByRole('button', { name: 'Ver detalhes', exact: true }).click();
+    await expect(drawer).toBeVisible();
   }
-
-  if (!actionClicked) {
-    const row = page.locator(`[data-pendency-id="${pendency.id}"]`).filter({ visible: true }).first();
-    await expect(row).toBeVisible();
-    await row.getByRole('button', { name: 'Reanalisar', exact: true }).click();
-  }
+  const drawerAction = drawer.getByRole('button', { name: 'Reanalisar', exact: true });
+  await expect(drawerAction).toBeVisible();
+  await drawerAction.click();
 
   const modal = page.locator('#modal-reanalisar-pendencia');
   await expect(modal).toHaveClass(/show/);
