@@ -44,6 +44,7 @@ jobs:
           chmod 600 supabase/functions/.env
           npm run supabase:start
           npm run supabase:reset
+          psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -v ON_ERROR_STOP=1 -f tests/fixtures/operational-uat.sql
 
       - name: Preparar autenticação e configuração da aplicação
         shell: bash
@@ -72,6 +73,7 @@ jobs:
         env:
           RADAR_E2E_SUPABASE_LOCAL: '1'
           RADAR_E2E_OPERATIONAL_UAT: '1'
+          RADAR_E2E_CAPTURE: '1'
         run: >-
           npx playwright test
           tests/e2e/supabase-operational-uat.spec.js
@@ -81,8 +83,8 @@ jobs:
           --project=desktop-chromium
           --workers=1
 
-      - name: Publicar evidências em caso de falha
-        if: failure()
+      - name: Publicar evidências das jornadas
+        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: functional-lifecycle-${{ github.run_id }}
