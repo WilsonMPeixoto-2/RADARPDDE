@@ -280,12 +280,12 @@ async function createInvoiceUI(page, { type, number, description, amount = '250'
   return invoice;
 }
 
-async function closePreview(page) {
+async function closePreview(page, { waitForAppearance = false } = {}) {
   const drawer = page.locator('#pendency-preview-drawer');
-  const becameVisible = await drawer.waitFor({ state: 'visible', timeout: 1000 })
-    .then(() => true)
-    .catch(() => false);
-  if (!becameVisible) return;
+  if (waitForAppearance) {
+    await drawer.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+  }
+  if (!(await drawer.isVisible())) return;
   await drawer.locator('.pendency-preview-close').click();
   await expect(drawer).toBeHidden();
 }
@@ -310,7 +310,7 @@ async function openInvoicePendencyUI(page, invoiceId, advisory = false) {
   await modal.locator('button[type="submit"]').click();
   await expect(modal).not.toHaveClass(/show/);
   await settleWrites(page);
-  await closePreview(page);
+  await closePreview(page, { waitForAppearance: true });
   const rows = await remoteRows(page, 'pendencies', { registered_invoice_id: invoiceId, document_key: advisory ? 'consAssessoria' : 'notaFiscal' });
   expect(rows).toHaveLength(1);
   expect(rows[0].status).toBe('Aberta');
@@ -339,6 +339,7 @@ async function submitPendencyUI(page, pendency, identify = false) {
   expect(stored.status).toBe('Aguardando reanálise');
   expect((await remoteRows(page, 'pendency_attempts', { pendency_id: pendency.id })).length).toBeGreaterThan(0);
   await expect(page.locator(`[data-pendency-id="${pendency.id}"]`).filter({ visible: true }).first()).toContainText('Reanalisar');
+  await closePreview(page, { waitForAppearance: true });
 }
 
 async function reanalyzePendencyUI(page, pendency, result = 'correto') {
@@ -428,7 +429,7 @@ test.describe('Formulários operacionais com banco real', () => {
     expect(invoice.payload.analiseDocumentoFiscal).toBe('Incorreto');
     const pending = (await remoteRows(page, 'pendencies', { registered_invoice_id: invoice.id }))[0];
     expect(pending.status).toBe('Aberta');
-    await closePreview(page);
+    await closePreview(page, { waitForAppearance: true });
     await invoiceEditButton(invoiceCard(page, invoice.id)).click();
     await expect(page.locator('#nota-tipo')).toBeDisabled();
     await page.locator('#nota-desc').fill('Débito retificado, identificação pendente');
