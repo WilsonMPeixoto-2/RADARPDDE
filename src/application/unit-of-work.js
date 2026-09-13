@@ -84,6 +84,12 @@
             }
         }
 
+        supportsScopedRemoteState() {
+            return typeof this.statePort.captureEntities === 'function'
+                && typeof this.statePort.exportCanonicalEntities === 'function'
+                && typeof this.statePort.restoreEntities === 'function';
+        }
+
         async run(command = {}) {
             if (typeof command.mutate !== 'function' || typeof command.persist !== 'function') {
                 throw new RepositoryError(
@@ -96,6 +102,8 @@
             changedEntities.forEach(assertKnownEntity);
             const operation = String(command.name || 'data-command');
             const incidentId = createIncidentId(command);
+            const remotePersistence = command.remotePersistence === true;
+            const scopedRemoteState = remotePersistence && this.supportsScopedRemoteState();
             const previousExecution = this.executionTail;
             let releaseExecution;
             this.executionTail = new Promise(resolve => {
@@ -108,17 +116,22 @@
             let remoteCommitConfirmed = false;
 
             try {
-                capture = await this.statePort.capture();
+                capture = scopedRemoteState
+                    ? await this.statePort.captureEntities(changedEntities)
+                    : await this.statePort.capture();
                 phase = 'mutate';
                 const value = await command.mutate();
                 phase = 'export';
-                const snapshot = await this.statePort.exportCanonical({
+                const exportOptions = {
                     version: command.version || '1',
                     importId: command.importId || `command-${Date.now()}`,
                     exportedAt: command.exportedAt || new Date().toISOString()
-                });
+                };
+                const snapshot = scopedRemoteState
+                    ? await this.statePort.exportCanonicalEntities(changedEntities, exportOptions)
+                    : await this.statePort.exportCanonical(exportOptions);
                 phase = 'persist';
-                remoteWriteStarted = command.remotePersistence === true;
+                remoteWriteStarted = remotePersistence;
                 const persisted = await command.persist({
                     name: operation,
                     incidentId,
@@ -126,7 +139,7 @@
                     value: cloneValue(value),
                     snapshot: cloneValue(snapshot)
                 });
-                remoteCommitConfirmed = command.remotePersistence === true
+                remoteCommitConfirmed = remotePersistence
                     || persisted?.remoteCommitConfirmed === true;
                 phase = 'commit';
                 if (command.deferLocalCommit !== true) {
@@ -167,7 +180,11 @@
                 let localRestoreConfirmed = false;
                 if (capture !== null && phase !== 'capture') {
                     try {
-                        await this.statePort.restore(capture);
+                        if (scopedRemoteState) {
+                            await this.statePort.restoreEntities(capture);
+                        } else {
+                            await this.statePort.restore(capture);
+                        }
                         localRestoreConfirmed = true;
                     } catch (rollbackError) {
                         throw new RepositoryError(
