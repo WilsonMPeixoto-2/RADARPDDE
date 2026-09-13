@@ -401,11 +401,17 @@
                     await service.signOut();
                 } catch (error) {
                     this.setStatus(error?.message || 'Não foi possível encerrar a sessão remotamente.', 'error');
+                    return false;
                 }
             }
             this.root.RadarAuthContext = null;
+            if (this.enabled && typeof this.root.location?.reload === 'function') {
+                this.root.location.reload();
+                return true;
+            }
             this.show('Sessão encerrada. Entre novamente para continuar.');
             this.document.getElementById('radar-auth-email')?.focus();
+            return true;
         }
     }
 
