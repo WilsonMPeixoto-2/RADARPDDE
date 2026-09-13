@@ -78,31 +78,23 @@ Só pode existir **um handoff corrente por frente global** no roteamento princip
 
 Enquanto a frente do PR #301 estiver ativa, o handoff corrente é:
 
-`docs/handoff/2026-09-13-relatorio-tecnico-consolidado-pos-pr300-uat.md`
+`docs/handoff/2026-09-13-uat-operacional-checkpoint-4a7a41dc.md`
 
 Ele deve ser lido imediatamente após `CURRENT_STAGE.md`.
 
-Seu papel é registrar:
+O checkpoint corrente é incremental e pressupõe, para reconstrução completa do ciclo, o predecessor:
 
-- fechamento e Production do PR #300;
-- arquitetura Supabase contextual;
-- contrato de cache/projeção local;
-- baseline de capacidade;
-- `pg_stat_statements` e observabilidade;
-- Supabase Advisors;
-- dependências;
-- estado do PR #301;
-- primeira execução do novo UAT;
-- falha atual do teste e sua classificação;
-- matriz de testes ainda pendentes.
+`docs/handoff/2026-09-13-relatorio-tecnico-consolidado-pos-pr300-uat.md`
 
-Ele **não** substitui `SYSTEM_CANONICAL_MODEL.md`, `PRODUCT_SURFACE_CATALOG.md`, ADRs ou código vigente.
+O predecessor preserva o fechamento do PR #300, arquitetura, Production, capacidade, observabilidade, Advisors, dependências e o início do PR #301. O checkpoint `4a7a41dc` registra o que mudou depois: correção da asserção visual, espera de convergência Supabase, correção dos assets do logo, UAT verde e classificação correta da falha de infraestrutura da homologação.
+
+Nenhum handoff substitui `SYSTEM_CANONICAL_MODEL.md`, `PRODUCT_SURFACE_CATALOG.md`, ADRs ou código vigente.
 
 ## 6. Estado documental da frente atual
 
 ### PR #300
 
-O PR #300 foi integrado. `main`/Production no baseline registrado em `CURRENT_STAGE.md` está em `1a149174ed4a14d2fc9f92aff57d1957e8538e89`.
+O PR #300 foi integrado. O baseline funcional de aplicação é `1a149174ed4a14d2fc9f92aff57d1957e8538e89`. A `main` pode estar à frente por merges exclusivamente documentais sem mudança de runtime funcional.
 
 `docs/audits/SUPABASE_ARCHITECTURE_FINAL_2026-09-13.md` é **Evidência / histórico executado do candidato pré-merge**. Frases internas como “aguarda integração” pertencem ao momento em que o relatório foi produzido e não definem o presente.
 
@@ -110,18 +102,25 @@ O PR #300 foi integrado. `main`/Production no baseline registrado em `CURRENT_ST
 
 ### PR #301
 
-O PR #301 é **Trabalho em andamento / Draft**. Ele não redefine a baseline de Production.
+O PR #301 é **Trabalho em andamento / Draft**. Ele não redefine a baseline de Production enquanto não for integrado.
 
-Sua documentação operacional corrente é:
+Sua documentação operacional é:
 
-- `docs/superpowers/plans/2026-09-13-homologacao-operacional-observabilidade.md` — plano de execução, classe Trabalho em andamento;
-- `docs/handoff/2026-09-13-relatorio-tecnico-consolidado-pos-pr300-uat.md` — Handoff corrente enquanto apontado por `CURRENT_STAGE.md`.
+- `docs/superpowers/plans/2026-09-13-homologacao-operacional-observabilidade.md` — plano de execução, Trabalho em andamento;
+- `docs/handoff/2026-09-13-relatorio-tecnico-consolidado-pos-pr300-uat.md` — predecessor histórico detalhado;
+- `docs/handoff/2026-09-13-uat-operacional-checkpoint-4a7a41dc.md` — Handoff corrente enquanto apontado por `CURRENT_STAGE.md`.
 
-A primeira execução do novo UAT registrou 4/5 testes aprovados; a única falha observada no checkpoint é uma expectativa visual do teste (`is-selected`) incompatível com a classe real (`active-sim`) e deve ser investigada/corrigida no teste antes de imputar defeito ao produto.
+A antiga falha do UAT `is-selected` foi corrigida no commit `7a01f40f...`; o segundo cenário passou após a inclusão de espera explícita de convergência remota em `4a7a41dc...`.
+
+No mesmo HEAD, `Ciclos funcionais reais com Supabase`, E2E completo, Supabase readiness, confiabilidade real, perfis/viewports, retificação, CodeQL e dependências passaram.
+
+A homologação pré-production reprovou por **rate limit externo do registry** ao baixar `public.ecr.aws/supabase/postgres-meta:v0.97.0` durante geração de tipos. Antes dessa falha, migrations, lint e **426 testes pgTAP** haviam passado. Não classificar esse run como defeito funcional do RADAR.
+
+Há também alteração funcional em `src/integration/mobile-navigation.js` no commit `6e6fcf8f...`, resolvendo os assets do logo a partir da raiz. Ela deve permanecer sob validação da PR #301 e não pode ser esquecida como se a frente contivesse apenas testes.
 
 ## 7. Documentos históricos que não controlam a fila
 
-- `docs/superpowers/plans/*` — histórico de planejamento, exceto o plano explicitamente associado à frente ativa por `CURRENT_STAGE.md`/handoff corrente;
+- `docs/superpowers/plans/*` — histórico de planejamento, exceto o plano explicitamente associado à frente ativa;
 - `docs/audits/*` — evidência de auditoria e SHA correspondentes;
 - `docs/handoff/*` — checkpoints do seu momento, exceto o único handoff corrente apontado por `CURRENT_STAGE.md`;
 - `docs/evidence/*` — prova localizada;
@@ -143,8 +142,6 @@ Regra obrigatória:
 - **não** usar seus SHAs, estado de PR, contagens, deployment ou “próximo passo” como estado atual;
 - para qualquer informação temporal, consultar `CURRENT_STAGE.md` e o handoff corrente;
 - em conflito de regra funcional, aplicar a precedência da seção 2.
-
-Essa reclassificação evita reescrever um documento longo só para atualizar cronologia e evita que ele concorra com a fonte mutável correta.
 
 ## 9. ADR-051 e decisões especializadas
 
@@ -170,30 +167,21 @@ remoto persistido = projeção local = UI = estado após reload
 
 É regressão quando o estado local mascara falha remota, sobrevive como verdade concorrente, força carregamento global crescente ou impede que reload recupere a autoridade Supabase.
 
-Essa interpretação é coerente com o código atual e não reabre a antiga decisão de Production em LocalStorage, que permanece superada.
-
-## 11. Conflitos documentais reconciliados nesta atualização
-
-Foram corrigidas as seguintes fontes de confusão:
-
-- `CURRENT_STAGE.md` ainda dizia que PR #300 aguardava integração e que `main` estava em `2eff...`;
-- a rota do README raiz não incluía `PRODUCT_SURFACE_CATALOG.md` apesar de ele já ser leitura obrigatória no roteador;
-- não existia mecanismo explícito para promover temporariamente um único handoff de frente ativa sem transformá-lo em documento canônico permanente;
-- `PROJECT_CONTEXT.md` podia ser lido como estado temporal corrente apesar de carregar checkpoints de 06/09;
-- relatórios pré-merge podiam parecer contradizer o estado pós-merge se lidos fora da rota.
-
-A solução é manter uma única cadeia:
+## 11. Cadeia documental vigente
 
 ```text
 AGENTS
 → modelo canônico
 → catálogo de superfícies
 → CURRENT_STAGE
-→ handoff corrente (quando houver)
+→ handoff corrente
+→ predecessor do handoff, se o corrente o exigir
 → método/gates
 → matriz/ADRs/referências especializadas
 → históricos
 ```
+
+Essa cadeia elimina a necessidade de adivinhar qual dos muitos relatórios datados representa o presente.
 
 ## 12. Regra de manutenção obrigatória
 
