@@ -121,12 +121,23 @@
     function installLegacyFilter(root, controller) {
         if (root.__radarExcelLegacyAuditFilterInstalled === true) return true;
         if (typeof root.registerLog !== 'function') return false;
-        const original = root.registerLog.bind(root);
+
+        const originalRegisterLog = root.registerLog.bind(root);
         root.registerLog = function filteredRegisterLog(action, ...args) {
             if (controller.depth > 0 && EXPORT_ACTIONS.has(text(action))) return null;
-            return original(action, ...args);
+            return originalRegisterLog(action, ...args);
         };
         try { registerLog = root.registerLog; } catch (_error) { /* global lexical fallback */ }
+
+        if (typeof root.persist === 'function') {
+            const originalPersist = root.persist.bind(root);
+            root.persist = function filteredPersist(entity, ...args) {
+                if (controller.depth > 0 && text(entity) === 'logs') return null;
+                return originalPersist(entity, ...args);
+            };
+            try { persist = root.persist; } catch (_error) { /* global lexical fallback */ }
+        }
+
         root.__radarExcelLegacyAuditFilterInstalled = true;
         return true;
     }
