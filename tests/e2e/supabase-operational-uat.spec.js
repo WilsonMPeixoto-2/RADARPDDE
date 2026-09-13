@@ -240,6 +240,10 @@ function invoiceCard(page, id) {
   return page.locator(`.invoice-document-row[data-invoice-id="${id}"]`);
 }
 
+function invoiceEditButton(card) {
+  return card.getByRole('button', { name: /^Editar (?:NF:|Boleto Internet:|despesa a identificar$)/ });
+}
+
 async function remoteRows(page, table, filters) {
   return page.evaluate(async ({ entity, where }) => {
     let query = window.RadarSessionContext.service.client.from(entity).select('*');
@@ -334,8 +338,14 @@ async function submitPendencyUI(page, pendency, identify = false) {
 
 async function reanalyzePendencyUI(page, pendency, result = 'correto') {
   await page.getByRole('tab', { name: /^Aguardando/ }).click();
-  await page.locator(`[data-pendency-id="${pendency.id}"]`).filter({ visible: true }).first()
-    .getByRole('button', { name: 'Reanalisar', exact: true }).click();
+  const drawer = page.locator('#pendency-preview-drawer');
+  const drawerAction = drawer.getByRole('button', { name: 'Reanalisar', exact: true });
+  if (await drawer.isVisible() && await drawerAction.isVisible()) {
+    await drawerAction.click();
+  } else {
+    await page.locator(`[data-pendency-id="${pendency.id}"]`).filter({ visible: true }).first()
+      .getByRole('button', { name: 'Reanalisar', exact: true }).click();
+  }
   const modal = page.locator('#modal-reanalisar-pendencia');
   await expect(modal).toHaveClass(/show/);
   await modal.getByLabel('Resultado da reanálise', { exact: true }).selectOption(result);
@@ -369,7 +379,7 @@ test.describe('Formulários operacionais com banco real', () => {
     await invoiceCard(page, invoice.id).locator('select.invoice-document-analysis-select').selectOption('Correto');
     await settleWrites(page);
     expect((await remoteRows(page, 'registered_invoices', { id: invoice.id }))[0].payload.analiseDocumentoFiscal).toBe('Correto');
-    await invoiceCard(page, invoice.id).getByRole('button', { name: /^Editar / }).click();
+    await invoiceEditButton(invoiceCard(page, invoice.id)).click();
     await page.locator('#nota-desc').fill('Material de consumo retificado');
     await page.locator('#nota-numero').fill(`UAT-CONS-RET-${testInfo.retry}`);
     await page.locator('#nota-valor').fill('315.50');
@@ -418,7 +428,7 @@ test.describe('Formulários operacionais com banco real', () => {
     const pending = (await remoteRows(page, 'pendencies', { registered_invoice_id: invoice.id }))[0];
     expect(pending.status).toBe('Aberta');
     await closePreview(page);
-    await invoiceCard(page, invoice.id).getByRole('button', { name: /^Editar / }).click();
+    await invoiceEditButton(invoiceCard(page, invoice.id)).click();
     await expect(page.locator('#nota-tipo')).toBeDisabled();
     await page.locator('#nota-desc').fill('Débito retificado, identificação pendente');
     await page.locator('#nota-valor').fill('850');
