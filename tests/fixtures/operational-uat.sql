@@ -12,3 +12,11 @@ insert into public.school_programs (id, school_id, program_id, active, starts_on
 values ('ESC-UAT_BASIC', 'ESC-UAT', 'BASIC', true, '2026-01-01'),
        ('ESC-UAT_CONECTADA', 'ESC-UAT', 'CONECTADA', true, '2026-01-01')
 on conflict (id) do nothing;
+
+-- Contexto exclusivo da restauração de edição (banco local descartável).
+insert into public.schools (id, designation, denomination, controller_id, cre, initial_competence, inventory_process)
+select 'ESC-EDIT', '04.00.004', 'Escola de Edição Auditável', controller_id, cre, initial_competence, inventory_process
+from public.schools where id = 'ESC-UAT'
+on conflict (id) do nothing;
+insert into public.school_programs (id, school_id, program_id)
+values ('ESC-EDIT_BASIC', 'ESC-EDIT', 'BASIC') on conflict (id) do nothing;

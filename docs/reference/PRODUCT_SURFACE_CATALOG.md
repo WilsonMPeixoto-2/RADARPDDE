@@ -190,6 +190,10 @@ Se o comportamento estiver correto e o problema for apenas de compreensão, loca
 | Persistência | pendência, tentativa, contato, verificação e log |
 | Leitura humana | visão completa do passivo: origem, antiguidade, erros, tentativas, contatos, histórico, responsável atual e próxima ação |
 
+### Edição explícita no Prontuário (restauração autorizada em 13/09/2026)
+
+As ações **Editar bonificação** e **Editar análise** ficam junto dos valores documentais, conforme perfil e competência. O formulário mostra documento, escola, programa, mês, valor atual e mudança proposta. A orientação diferencia correção do lançamento de novo envio/reanálise. A anulação de Pendência exige justificativa e confirmação explícita; o histórico identifica **Anulada por edição da avaliação**. Durante a gravação os controles ficam bloqueados; falha permanece no formulário; commit confirmado com projeção pendente pede atualização da página sem anunciar sucesso completo. Edição individual das notas e Assessoria permanece nas próprias notas.
+
 ## S-05 — Prontuário
 
 | Campo | Contrato |

@@ -306,6 +306,10 @@
                         persistence.schoolId = schoolId;
                         persistence.compKey = compKey;
                         persistence.expectedVersion = rowVersionOf(verification);
+                        if (input.expectedVerificationVersion != null
+                            && input.expectedVerificationVersion !== rowVersionOf(verification)) {
+                            fail('OPTIMISTIC_CONFLICT', 'A avaliação mudou desde a abertura da edição. Confira o valor atual antes de salvar.', 'setBonification');
+                        }
                         if (verification.resultadoBonif && profile !== 'assistente') {
                             fail(
                                 'CONSOLIDATED_VERIFICATION',

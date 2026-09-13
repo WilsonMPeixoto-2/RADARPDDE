@@ -21,7 +21,8 @@
         '/src/styles/pendency-passive-queue.css',
         '/src/styles/operational-write-feedback.css',
         '/src/styles/layout-responsive-2026.css',
-        '/src/styles/inventory-icon-refinement.css'
+        '/src/styles/inventory-icon-refinement.css',
+        '/src/styles/evaluation-retification-ui.css'
     ]);
     const scripts = Object.freeze([
         // Regra crítica: "Incorreto" nunca pode cair no handler-base sem a pendência atômica.
@@ -49,7 +50,9 @@
         '/src/integration/prontuario-conditional-reconciler.js',
         '/src/integration/operational-write-feedback.js',
         // Retificação auditável de dados documentais/manuais permanece como wrapper funcional externo.
-        '/src/integration/auditable-retification.js'
+        '/src/integration/auditable-retification.js',
+        '/src/integration/evaluation-retification.js',
+        '/src/integration/evaluation-retification-ui.js'
     ]);
     const criticalScripts = new Set([
         '/src/integration/atomic-analysis-pendency.js',
@@ -58,7 +61,9 @@
         '/src/integration/service-advisory-pendency.js',
         '/src/integration/service-advisory-corrective-submission.js',
         '/src/integration/critical-action-guard.js',
-        '/src/integration/auditable-retification.js'
+        '/src/integration/auditable-retification.js',
+        '/src/integration/evaluation-retification.js',
+        '/src/integration/evaluation-retification-ui.js'
     ]);
     const failedScripts = new Map();
 
@@ -84,11 +89,15 @@
         const advisoryInstalled = root.RadarServiceAdvisoryPendency?.install?.(root) === true;
         const correctiveInstalled = root.RadarServiceAdvisoryCorrectiveSubmission?.install?.(root) === true;
         const retificationInstalled = root.RadarAuditableRetification?.install?.(root) === true;
+        const evaluationInstalled = root.RadarEvaluationRetification?.install?.(root) === true;
+        const evaluationUiInstalled = root.RadarEvaluationRetificationUi?.install?.(root) === true;
         return administrativeLogReadInstalled
             && operationalContextRefreshInstalled
             && advisoryInstalled
             && correctiveInstalled
-            && retificationInstalled;
+            && retificationInstalled
+            && evaluationInstalled
+            && evaluationUiInstalled;
     }
 
     function waitForCriticalExtensions() {

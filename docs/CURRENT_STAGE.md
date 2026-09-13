@@ -3,6 +3,12 @@
 **Classe documental:** Canônico — estado mutável e retomada futura  
 **Atualizado em:** 13 de setembro de 2026
 
+## Frente autorizada após a reabertura
+
+Wilson solicitou restaurar as opções de edição do PR #299, com melhor orientação e confirmação visual, sobre a arquitetura atual. Essa decisão explícita substitui a restrição anterior de não restaurar a funcionalidade. Trabalho isolado em `feat/restore-evaluation-editing-2026-09-13`; Production permanece na versão liberada. Não há autorização de merge, deploy ou aplicação de migration em Production nesta frente.
+
+Checkpoint incremental: [`audits/RESTAURACAO_EDICAO_AVALIACOES_2026-09-13.md`](audits/RESTAURACAO_EDICAO_AVALIACOES_2026-09-13.md). A homologação desta restauração ainda está em andamento.
+
 ## 1. Baseline vigente
 
 O PR #300 encerrou a refatoração arquitetural Supabase. O PR #301 encerrou a homologação operacional pós-refatoração e integrou a correção funcional encontrada durante a UAT.
