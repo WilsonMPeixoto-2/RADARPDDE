@@ -282,10 +282,12 @@ async function createInvoiceUI(page, { type, number, description, amount = '250'
 
 async function closePreview(page) {
   const drawer = page.locator('#pendency-preview-drawer');
-  if (await drawer.isVisible()) {
-    await drawer.locator('.pendency-preview-close').click();
-    await expect(drawer).toBeHidden();
-  }
+  const becameVisible = await drawer.waitFor({ state: 'visible', timeout: 1000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!becameVisible) return;
+  await drawer.locator('.pendency-preview-close').click();
+  await expect(drawer).toBeHidden();
 }
 
 async function assertStoredAfterReload(page, invoice) {
