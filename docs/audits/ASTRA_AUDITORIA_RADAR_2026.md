@@ -6,10 +6,10 @@
 
 ## Estado atual da auditoria
 
-- Último bloco concluído: 7 — estado do navegador e compatibilidade legada.
+- Último bloco concluído: 8 — concorrência e atualização entre sessões.
 - Descobertas: logs excluídos do bootstrap, mas 13 outras coleções continuam integralmente carregadas; confirmado bloqueio de readiness no modo local por extensão exclusiva do remoto. Integração corrigida; desktop incompleto.
-- Investigação seguinte: concorrência e atualização entre usuários.
-- Pendentes: blocos 8–12; situação efetiva de Production não revalidada; nenhuma medição atual do banco; nenhuma prova de equivalência integral.
+- Investigação seguinte: crescimento, primeiro gargalo e custo de snapshots.
+- Pendentes: blocos 9–12; situação efetiva de Production não revalidada; nenhuma medição atual do banco; nenhuma prova de equivalência integral.
 - Restrições: somente a branch isolada; nenhuma alteração de main, banco, migrations, secrets, configuração ou deployment de Production.
 
 ## Método e escala de evidência
@@ -160,3 +160,25 @@ Todas as coleções da tabela permanecem em memória até recarga/encerramento d
 **Limpeza avaliada:** seleção de chaves é correta e preserva tema/seleção/token; `clearPersistentOperationalCache` retorna falhas por chave, mas chamador não inspeciona esse retorno. Persistência remanescente em navegador que recusa remoção não é observável ao suporte; risco baixo/médio, sem prova de leitura indevida. O bootstrap normal remoto hidrata memória e não reconstrói storage; os testes correspondentes sustentam somente essa fronteira.
 
 **Conclusão:** cache persistente operacional não foi eliminado em todos os caminhos. Permanecer com objetos legados em memória como representação da UI é viável; persistir/transportar snapshots de todos os domínios em ações pequenas não é. **Descartado:** toda referência ao localStorage é defeito; preferências e sessão têm função legítima. **Aberto:** troca de contas em duas abas com RPC atrasada e ambientes com storage indisponível. Checkpoint gravado antes do bloco de concorrência.
+
+## Bloco 8 — dois ou mais usuários
+
+**Examinado:** busca de channel/postgres_changes/BroadcastChannel/storage/focus/visibilitychange no código de aplicação (excluídos bundles de terceiros); filas de VerificationService/DataService/UnitOfWork; mapper de conflitos; versões nos repositories e RPCs de avaliação, Pendência, nota, bem, calendário/programa; eventos de sessão.
+
+**A-10 — Estado operacional pode permanecer antigo indefinidamente entre sessões.** Impacto: usuário B continua vendo avaliação, Pendência ou nota anterior à alteração de A até recarga ou releitura incidental da entidade. Evidência: bootstrap é a leitura principal; navegação só renderiza memória; não há assinatura de mudanças do domínio, polling de domínio ou invalidação ao retornar à aba nos caminhos pesquisados. Mensagem de conflito orienta recarregar/comparar, mas catch remoto não busca o registro atual. Situação **confirmada como comportamento**, prioridade **alta** para colaboração operacional; não significa automaticamente perda de dados. Cobertura: não resolvido pela branch.
+
+| Cenário | O segundo usuário vê | Proteção de escrita/limite |
+|---|---|---|
+| Dois Controladores alteram a mesma avaliação | Versão do seu bootstrap | `save_verification_with_log` bloqueia linha e exige expectedVersion; segundo update antigo conflita |
+| Controlador/Assistente operam Pendência | Status/tentativa da memória até refresh | RPCs usam versões/contexto/status; reanálise exige tentativa mais recente; fila JS não coordena sessões |
+| Nota corrigida em outra sessão | Nota/derivados antigos | RPCs de nota verificam versões de nota, bem e avaliação; plano local deve ser refeito após conflito |
+| Bem encaminhado/concluído por outro | Fila patrimonial antiga | RPC versionada evita update com versão velha; não atualiza visualmente a outra sessão |
+| Novo contato/log | Ausente até leitura contextual/recarga | Inserção/operationId, sem conflito de update; histórico novo não se transmite sozinho |
+
+**Alcance das versões:** ponte conserva rowVersion/row_version; `save_verification_with_log` recusa versão nula em update, usa `FOR UPDATE` e `WHERE row_version`, retorna a nova linha e log. Nota/efeitos e bens também usam versões. Cadastro simultâneo de primeira avaliação pode encontrar conflito de unicidade: proteção contra duplicata não equivale à UX normalizada de conflito. Não se afirma que todas as RPCs e todas as operações de cadastro possuem a mesma cobertura; consultas e ensaios adversariais de banco são necessários para abrangência total.
+
+**Riscos adicionais:** snapshot de bootstrap faz várias consultas sem transação de leitura comum; uma mudança entre leitura de nota e avaliação pode montar estado temporariamente de momentos distintos. Fila local protege rollback entre comandos da mesma instância, mas o read model administrativo aplica estado diretamente, fora da fila; resposta atrasada pode competir com logs recém-produzidos antes de export/persist. Riscos **prováveis**, prioridade média, ainda sem reprodução de perda no banco. A compensação ampla de compatibilidade (A-08) exige atenção maior que operações atômicas normais.
+
+**Recomendação prática:** começar com atualização contextual ao abrir/reabrir detalhes, ao retornar à aba após intervalo e após conflito; consultar apenas escola/competência/agregado necessário. Mostrar indicação de atualização disponível quando houver edição em andamento, sem substituir campos digitados. Preservar expectedVersion e oferecer comparação/reaplicação consciente após conflito. Para filas compartilhadas, avaliar notificação de invalidação por escola/entidade, agrupada e com atraso curto; buscar novamente o contexto ativo. Evitar subscrever/enviar todas as linhas históricas e evitar refresh global por evento. Logs não precisam de realtime permanente. Descartar respostas de geração anterior após logout/troca de identidade.
+
+**Cobertura:** testes de fila simulam uma instância; E2E supabase-verification-reliability usa uma página e é condicionado ao ambiente descartável. Não foi executado ensaio real com dois usuários nesta auditoria. **Descartado:** fila JS ou row_version por si só manterem duas telas sincronizadas. **Aberto:** medição de frequência de conflitos e contrato de atualização contextual de cada tela.
