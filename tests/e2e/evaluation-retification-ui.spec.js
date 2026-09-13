@@ -175,3 +175,53 @@ test.describe('retificação formal de avaliações no Preview', () => {
     await expect(row.locator('select.select-analise')).toHaveValue('Não analisado');
   });
 });
+
+
+test('edição mantém erro visível e impede fechamento ou segundo envio enquanto salva', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => window.RadarProductExtensionsReady);
+  await seedIncorrectEvaluationWithPendency(page);
+  const row = page.locator('#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="extINV"]');
+  await row.getByRole('button', { name: 'Editar análise', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Editar análise técnica', exact: true });
+  await dialog.getByLabel('Nova análise técnica').selectOption('Não analisado');
+  await page.evaluate(() => {
+    window.__evaluationSaveCalls = 0;
+    RadarApplicationServices.verifications.correctTechnicalAnalysis = () => {
+      window.__evaluationSaveCalls++;
+      return new Promise((_resolve, reject) => { window.__rejectEvaluationSave = reject; });
+    };
+  });
+  await dialog.getByRole('button', { name: 'Salvar edição', exact: true }).click();
+  await expect(dialog.getByLabel('Nova análise técnica')).toBeDisabled();
+  await expect(dialog.getByRole('button', { name: 'Fechar edição', exact: true })).toBeDisabled();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeVisible();
+  await page.evaluate(() => window.__rejectEvaluationSave(new Error('Conexão interrompida; alteração não confirmada.')));
+  await expect(dialog.getByRole('alert')).toContainText('Conexão interrompida; alteração não confirmada.');
+  await expect(dialog.getByRole('button', { name: 'Salvar edição', exact: true })).toBeEnabled();
+  await expect(row.locator('select.select-analise')).toHaveValue('Correto');
+  expect(await page.evaluate(() => window.__evaluationSaveCalls)).toBe(1);
+});
+
+test('commit confirmado com projeção pendente exige atualização sem falsa confirmação de sucesso', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => window.RadarProductExtensionsReady);
+  await seedIncorrectEvaluationWithPendency(page);
+  const row = page.locator('#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="extINV"]');
+  await row.getByRole('button', { name: 'Editar análise', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Editar análise técnica', exact: true });
+  await dialog.getByLabel('Nova análise técnica').selectOption('Não analisado');
+  await page.evaluate(() => {
+    RadarApplicationServices.verifications.correctTechnicalAnalysis = async () => ({
+      ok: true,
+      stateSync: { remoteCommitConfirmed: true, localStateApplied: false, refreshRequired: true }
+    });
+  });
+  await dialog.getByRole('button', { name: 'Salvar edição', exact: true }).click();
+  await expect(dialog.getByRole('alert')).toContainText('A alteração foi salva no Supabase');
+  await expect(dialog.getByRole('alert')).toContainText('Não repita a gravação');
+  await expect(dialog.getByRole('button', { name: 'Atualizar página', exact: true })).toBeVisible();
+  await expect(dialog.getByLabel('Nova análise técnica')).toBeDisabled();
+  await expect(page.locator('#pendency-notice')).not.toContainText('Análise técnica editada com sucesso.');
+});

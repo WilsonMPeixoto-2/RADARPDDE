@@ -48,15 +48,6 @@
         return normalized;
     }
 
-    function escapeHtml(value) {
-        return text(value)
-            .replaceAll('&', '&amp;')
-            .replaceAll('<', '&lt;')
-            .replaceAll('>', '&gt;')
-            .replaceAll('"', '&quot;')
-            .replaceAll("'", '&#039;');
-    }
-
     function currentProfile(root) {
         try {
             return normalizeProfile(root.getRadarAccessProfile?.());
@@ -218,10 +209,6 @@
         return true;
     }
 
-    function createOption(value, label, selected = false, disabled = false) {
-        return `<option value="${escapeHtml(value)}"${selected ? ' selected' : ''}${disabled ? ' disabled' : ''}>${escapeHtml(label)}</option>`;
-    }
-
     function availableBonificationValues(row, currentValue) {
         const found = new Set();
         row.querySelectorAll('.btn-group-toggle button').forEach(button => {
@@ -266,29 +253,21 @@
                 <header class="evaluation-retification-header">
                     <div>
                         <span class="evaluation-retification-kicker">Correção auditável</span>
-                        <h2 id="evaluation-retification-title">${escapeHtml(title)}</h2>
-                        <p>${escapeHtml(context.documentLabel)} · ${escapeHtml(context.programId)} · ${escapeHtml(context.competence)} · Escola ${escapeHtml(context.schoolId)}</p>
+                        <h2 id="evaluation-retification-title"></h2>
+                        <p></p>
                     </div>
                     <button type="button" class="btn-close" aria-label="Fechar edição" data-evaluation-retification-close="true">×</button>
                 </header>
                 <form id="evaluation-retification-form" class="evaluation-retification-form">
-                    <p class="evaluation-retification-guidance" id="evaluation-retification-guidance">${isAnalysis
-                        ? 'Use esta edição para corrigir um erro de lançamento. Se a escola enviou um documento novo ou corrigido, use Registrar novo envio e depois Reanalisar na Pendência.'
-                        : 'Corrija a marcação de entrega. Escolher Não preenchido desfaz o lançamento e retorna a análise para Não analisado.'}</p>
+                    <p class="evaluation-retification-guidance" id="evaluation-retification-guidance"></p>
                     <div class="evaluation-retification-current">
                         <span>Valor atual</span>
-                        <strong data-testid="evaluation-current-value">${escapeHtml(currentDisplay)}</strong>
+                        <strong data-testid="evaluation-current-value"></strong>
                     </div>
                     <div class="form-group">
-                        <label for="${selectId}">${escapeHtml(selectLabel)}</label>
-                        <select id="${selectId}" class="form-control" aria-label="${escapeHtml(selectLabel)}">
-                            ${values.map(value => {
-                                const display = value || 'Não preenchido';
-                                const effectiveCurrent = currentValue === 'Não preenchido' ? '' : currentValue;
-                                const disabled = isAnalysis && value === 'Incorreto' && value === effectiveCurrent;
-                                return createOption(value, display, value === effectiveCurrent, disabled);
-                            }).join('')}
-                        </select>
+                        <label for="evaluation-retification-value"></label>
+                        <select id="evaluation-retification-value" class="form-control" aria-label="">
+                            </select>
                     </div>
                     <p class="evaluation-retification-preview" role="status" aria-live="polite"></p>
                     <div class="evaluation-retification-impact" data-testid="evaluation-retification-confirmation" hidden>
@@ -312,6 +291,23 @@
                 </form>
             </section>
         `;
+        layer.querySelector('#evaluation-retification-title').textContent = title;
+        layer.querySelector('.evaluation-retification-header p').textContent = `${context.documentLabel} · ${context.programId} · ${context.competence} · Escola ${context.schoolId}`;
+        layer.querySelector('#evaluation-retification-guidance').textContent = isAnalysis
+            ? 'Use esta edição para corrigir um erro de lançamento. Se a escola enviou um documento novo ou corrigido, use Registrar novo envio e depois Reanalisar na Pendência.'
+            : 'Corrija a marcação de entrega. Escolher Não preenchido desfaz o lançamento e retorna a análise para Não analisado.';
+        layer.querySelector('[data-testid="evaluation-current-value"]').textContent = currentDisplay;
+        layer.querySelector('label[for="evaluation-retification-value"]').textContent = selectLabel;
+        const inputSelect = layer.querySelector('#evaluation-retification-value');
+        inputSelect.setAttribute('aria-label', selectLabel);
+        values.forEach(value => {
+            const option = root.document.createElement('option');
+            option.value = value;
+            option.textContent = value || 'Não preenchido';
+            option.selected = value === (currentValue === 'Não preenchido' ? '' : currentValue);
+            option.disabled = isAnalysis && value === 'Incorreto';
+            inputSelect.appendChild(option);
+        });
         root.document.body.appendChild(layer);
         lastTrigger = trigger || null;
 
@@ -610,15 +606,21 @@
                 <h3 id="pendency-detail-cancel-title">Retificação da avaliação técnica</h3>
                 <span class="evaluation-retification-drawer-label">Anulada por edição da avaliação</span>
                 <dl class="evaluation-retification-drawer-grid">
-                    <div><dt>Alteração realizada</dt><dd>${escapeHtml(before)} → ${escapeHtml(after)}</dd></div>
-                    <div><dt>Responsável</dt><dd>${escapeHtml(user)}</dd></div>
-                    ${at ? `<div><dt>Data e hora</dt><dd>${escapeHtml(new Date(at).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }))}</dd></div>` : ''}
+                    <div><dt>Alteração realizada</dt><dd></dd></div>
+                    <div><dt>Responsável</dt><dd></dd></div>
+                    <div data-retification-time><dt>Data e hora</dt><dd></dd></div>
                 </dl>
                 <div class="evaluation-retification-justification">
                     <strong>Justificativa</strong>
-                    <p>${escapeHtml(justification)}</p>
+                    <p></p>
                 </div>
             `;
+            const values = cancelSection.querySelectorAll('dd');
+            values[0].textContent = `${before} → ${after}`;
+            values[1].textContent = user;
+            if (at) values[2].textContent = new Date(at).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+            else cancelSection.querySelector('[data-retification-time]').remove();
+            cancelSection.querySelector('.evaluation-retification-justification p').textContent = justification;
         }
 
         drawer.querySelectorAll('.pendency-timeline-heading strong').forEach(label => {

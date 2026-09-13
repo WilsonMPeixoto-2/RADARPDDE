@@ -39,3 +39,14 @@ Riscos identificados para correção durante a restauração: o modal anterior a
 - Guardas adicionais impedem desfazer entrega deixando Pendência ativa/análise neutra ou notas sem marcação de entrega. Formulário antigo não sobrescreve uma versão já alterada na projeção.
 - A instalação local do Chromium não conseguiu baixar o executável (timeout de rede); a execução real será feita na pilha de CI já usada pelo projeto.
 - Próxima prova: Playwright local de interface e jornada autenticada no Supabase descartável. Não considerar a restauração homologada antes desses resultados.
+
+## Bloco 3 — primeira prova de frontend
+
+PR de trabalho: #305, Draft. Candidato inicial `b43b2bc...`.
+
+- Gate direcionado `34790359033`: **7 jornadas de frontend aprovadas**, incluindo edição/anulação e desfazer, além das regressões de NF e Pendência manual; 17 testes de regras também aprovados.
+- Fronteiras arquiteturais e alinhamento Supabase aprovados localmente.
+- Comparação somente de leitura: hash MD5 do corpo da RPC em Production **idêntico** ao arquivo restaurado (`8fbc66fdf7781f8b408cd003926640ea`); security invoker, execução autenticada, migration histórica registrada. Não é necessária mudança dessa função em Production para restaurar o frontend.
+- A primeira UAT remota (`34790359071`) parou na preparação: a nova escola de teste não tinha INEP/CNPJ/SICI obrigatórios. Corrigida a fixture descartável. Nenhuma jornada foi executada nesse run; não é falha de login do produto.
+- O lint detectou dois templates HTML dinâmicos restaurados. Foram substituídos por templates estáticos + textContent/atributos/option do DOM, sem aumentar tolerância do lint ou desativar regra.
+- Acrescentadas jornadas de erro visível, bloqueio durante gravação e aviso de atualização após commit confirmado.
