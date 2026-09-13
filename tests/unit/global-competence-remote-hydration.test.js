@@ -13,7 +13,10 @@ const source = fs.readFileSync(
 test('troca remota de competência hidrata o contexto antes de renderizar a nova visão', () => {
     assert.match(source, /RadarApplicationServices\?\.data/);
     assert.match(source, /loadOperationalContext\(state\.activeKey/);
-    assert.match(source, /await\s+service\.loadOperationalContext[\s\S]*refreshCurrentView\(\)/);
+    assert.match(
+        source,
+        /await\s+service\.loadOperationalContext\([\s\S]*?\);[\s\S]*?refreshCurrentView\(root\)/
+    );
     assert.match(source, /aria-busy/);
 });
 
