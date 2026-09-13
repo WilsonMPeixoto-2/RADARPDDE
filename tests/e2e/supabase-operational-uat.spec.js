@@ -320,8 +320,19 @@ async function openInvoicePendencyUI(page, invoiceId, advisory = false) {
 async function submitPendencyUI(page, pendency, identify = false) {
   await page.locator('#nav-pendencias').click();
   await page.getByRole('tab', { name: /^Abertas/ }).click();
-  const row = page.locator(`#p-abertas [data-pendency-id="${pendency.id}"]`).filter({ visible: true });
-  await row.getByRole('button', { name: 'Registrar novo envio', exact: true }).click();
+  const row = page.locator(`#p-abertas [data-pendency-id="${pendency.id}"]`).filter({ visible: true }).first();
+  await expect(row).toBeVisible();
+
+  const drawer = page.locator('#pendency-detail-drawer');
+  await drawer.waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
+  if (!(await drawer.isVisible().catch(() => false))) {
+    await row.getByRole('button', { name: 'Ver detalhes', exact: true }).click();
+    await expect(drawer).toBeVisible();
+  }
+  const drawerAction = drawer.getByRole('button', { name: 'Registrar novo envio', exact: true });
+  await expect(drawerAction).toBeVisible();
+  await drawerAction.click();
+
   const modal = page.locator('#modal-registrar-envio');
   await expect(modal).toHaveClass(/show/);
   if (identify) {
@@ -453,7 +464,10 @@ test.describe('Formulários operacionais com banco real', () => {
     await reanalyzePendencyUI(page, pending);
     await page.goto('/escolas/ESC-UAT');
     await waitForControllerAfterReload(page);
-    await expect(invoiceCard(page, invoice.id).locator('select.invoice-document-analysis-select')).toHaveValue('Correto');
+    const restoredCard = invoiceCard(page, invoice.id);
+    await expect(restoredCard).toBeVisible();
+    await expect(restoredCard).toContainText('Correto');
+    expect((await remoteRows(page, 'registered_invoices', { id: invoice.id }))[0].payload.analiseDocumentoFiscal).toBe('Correto');
     expect((await remoteRows(page, 'pendencies', { id: pending.id }))[0].status).toBe('Resolvida');
     await assertOperationalReads(observed);
   });
@@ -468,7 +482,10 @@ test.describe('Formulários operacionais com banco real', () => {
     await reanalyzePendencyUI(page, pending);
     await page.goto('/escolas/ESC-UAT');
     await waitForControllerAfterReload(page);
-    await expect(invoiceCard(page, invoice.id).locator('select.invoice-document-analysis-select')).toHaveValue('Correto');
+    const restoredCard = invoiceCard(page, invoice.id);
+    await expect(restoredCard).toBeVisible();
+    await expect(restoredCard).toContainText('Correto');
+    expect((await remoteRows(page, 'registered_invoices', { id: invoice.id }))[0].payload.analiseDocumentoFiscal).toBe('Correto');
     await expect(page.locator('[data-document-key="boletoInternet"]')).toHaveCount(0);
     await assertOperationalReads(observed);
   });
