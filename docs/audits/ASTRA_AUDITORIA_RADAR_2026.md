@@ -6,10 +6,10 @@
 
 ## Estado atual da auditoria
 
-- Último bloco concluído: 6 — logs administrativos e consumidores residuais.
+- Último bloco concluído: 7 — estado do navegador e compatibilidade legada.
 - Descobertas: logs excluídos do bootstrap, mas 13 outras coleções continuam integralmente carregadas; confirmado bloqueio de readiness no modo local por extensão exclusiva do remoto. Integração corrigida; desktop incompleto.
-- Investigação seguinte: armazenamento do navegador e compatibilidade de exportação.
-- Pendentes: blocos 7–12; situação efetiva de Production não revalidada; nenhuma medição atual do banco; nenhuma prova de equivalência integral.
+- Investigação seguinte: concorrência e atualização entre usuários.
+- Pendentes: blocos 8–12; situação efetiva de Production não revalidada; nenhuma medição atual do banco; nenhuma prova de equivalência integral.
 - Restrições: somente a branch isolada; nenhuma alteração de main, banco, migrations, secrets, configuração ou deployment de Production.
 
 ## Método e escala de evidência
@@ -138,3 +138,25 @@ Todas as coleções da tabela permanecem em memória até recarga/encerramento d
 **Riscos adicionais:** o leitor contextual verifica `eq/or/order/limit` apenas opcionalmente; a ausência de método pode degradar silenciosamente filtro/limite/cursor, diferentemente de loadAfterId, que falha fechado. SDK atual oferece esses métodos, portanto não se afirma falha de Production; prioridade média para contrato/teste negativo. Cada escola consultada fica no Map de caches sem descarte; páginas acumuladas ficam no estado global e aumentam A-03. Respostas de escolas diferentes compartilham a mesma coleção global `logs`; renderers verificam contexto em alguns caminhos, mas aplicação da resposta não é cancelada por contexto/sessão.
 
 **Conclusão:** o caminho principal novo está alinhado; A-07 mostra perda funcional por adaptação incompleta de consumidor, A-08 é uma rota concreta de reincidência. **Descartado:** afirmar que não existe nenhum consumidor operacional do snapshot só porque setters principais usam serviços. **Aberto:** races de histórico/troca de identidade e plano SQL real; estes são riscos, não prova de vazamento ou perda permanente. **Cobertura:** testes de uma página/cursor/refresh existem; faltam testes de timeline antiga, coexistência de superfícies e exportação com repository remoto real ou fronteira que conte chamadas.
+
+## Bloco 7 — navegador, caches e legado
+
+**Examinado:** busca sistemática de localStorage/sessionStorage/setItem; `state-bridge-metadata.js/clearPersistentOperationalCache`, `state-bridge.js`, StatePort, `readInitialRadarMemoryState/captureRadarMemoryState/applyRadarMemoryState`, repository factory, contexto temporal/navegação, auth-gate e SessionService; composição real dos dois módulos de exportação.
+
+| Persistência no modo remoto | Conteúdo/justificativa | Situação |
+|---|---|---|
+| Sessão do SDK Supabase | Tokens de sessão/restauração, por persistSession | Intencional; não é snapshot institucional |
+| `radar_pdde_theme` | Preferência visual | Intencional, pequena |
+| `radar_pdde_active_competence` | Competência selecionada, validada contra disponíveis | Intencional, pequena |
+| sessionStorage `radar_pdde_navigation_return_context_v1` | Pilha limitada de contexto de retorno, IDs/seletores e posição | Intencional; convém limpar ao trocar identidade |
+| `radar_pdde_config/programas/controladores/equipe_inventario/escolas/verificacoes/pendencias/contatos/bens/notas_registradas/logs` | Coleções legadas | Bootstrap/escritas normais não deveriam gerar; **A-08 ainda gera** |
+| `radar_pdde_bridge_metadata`, data_version, pendency_schema_version | Reconciliação/versões do cache legado | Limpeza seletiva remove; compatibilidade pode recriar |
+| `radar_pdde_repository:*` | Antigo repository local | Removido no modo remoto |
+
+**A-08 reproduzido:** composição do `logExport` real extraído da integração com `excel-export-audit.install` real e fronteiras instrumentadas produziu `audit início → persist('logs') → audit conclusão`, resultado ok, nenhum registro legado adicional. Segundo ensaio executou DataService e StatePort/bridge reais com repository marcado remoto: stageCompatibility criou **12 chaves locais** (11 coleções + metadata); persistSnapshot chamou `exportSnapshot({includeEmpty:true})` sem seleção de entidades e `save(administrativeLogs,...)`. Nenhum banco real foi usado. O teste existente excel-export-audit substitui a exportação por fake que só chama registerLog, omitindo justamente persist; logo sua aprovação não cobre essa composição. Recomendação e prioridade alta mantidas. Adicionalmente, falha nesse persistSnapshot tenta `restoreSnapshot(beforeRepository,{replace:true})`: compensação de acervo global é inadequada a escrita operacional e potencialmente interfere em mudanças concorrentes, conforme permissões efetivas; nenhum overwrite real foi observado.
+
+**A-09 — Logout conserva estado operacional e pode anunciar sucesso após erro remoto.** Evidência: `handleSignOut` captura erro de signOut, em seguida zera RadarAuthContext e substitui mensagem por “Sessão encerrada”; não invalida DataContext/serviços/coleções/caches. Evento signed_out do bootstrap também só zera auth e mostra gate. Impacto: memória da sessão anterior permanece; falha real de encerramento é ocultada. Novo login explícito com DataContext pronto recarrega a página, o que reduz risco no fluxo normal, mas não demonstra descarte durante respostas em trânsito ou troca de sessão por outra aba. Situação: retenção/mensagem **confirmadas**, vazamento entre identidades **não provado**; prioridade **média**. Correção mínima: invalidar geração da sessão, descartar caches/contextos, neutralizar respostas antigas e manter erro honesto de logout, preservando RLS.
+
+**Limpeza avaliada:** seleção de chaves é correta e preserva tema/seleção/token; `clearPersistentOperationalCache` retorna falhas por chave, mas chamador não inspeciona esse retorno. Persistência remanescente em navegador que recusa remoção não é observável ao suporte; risco baixo/médio, sem prova de leitura indevida. O bootstrap normal remoto hidrata memória e não reconstrói storage; os testes correspondentes sustentam somente essa fronteira.
+
+**Conclusão:** cache persistente operacional não foi eliminado em todos os caminhos. Permanecer com objetos legados em memória como representação da UI é viável; persistir/transportar snapshots de todos os domínios em ações pequenas não é. **Descartado:** toda referência ao localStorage é defeito; preferências e sessão têm função legítima. **Aberto:** troca de contas em duas abas com RPC atrasada e ambientes com storage indisponível. Checkpoint gravado antes do bloco de concorrência.
