@@ -3,182 +3,99 @@
 **Classe documental:** Canônico  
 **Atualizado em:** 13 de setembro de 2026
 
-## 1. Finalidade
+## 1. Finalidade e precedência
 
-Este documento define quais arquivos orientam o presente, quais servem como contexto e como resolver conflitos entre documentação, código e ambientes.
+Este arquivo define quais documentos orientam o presente. Em conflito, aplicar:
 
-A documentação separa deliberadamente:
+1. código do SHA efetivamente analisado;
+2. Supabase/Auth/RLS/RPCs e dados efetivos;
+3. artefato Vercel publicado;
+4. decisões/ADRs vigentes;
+5. testes atuais do contrato;
+6. documentos canônicos;
+7. auditorias, handoffs, planos e memória histórica.
 
-- modelo durável do produto;
-- leitura humana das superfícies;
-- estado mutável do projeto;
-- handoff corrente da frente ativa;
-- método/gates permanentes;
-- decisões especializadas;
-- evidência e histórico.
+PR aberto, Preview ou documento antigo não altera Production.
 
-O objetivo é impedir que um chat ou ferramenta futura reconstrua o RADAR a partir de um PR antigo, auditoria intermediária ou memória isolada.
-
-## 2. Precedência
-
-Para determinar comportamento atual:
-
-1. código do SHA analisado;
-2. Supabase/Auth/RLS/RPCs/Edge Functions e dados efetivos;
-3. artefato Vercel correspondente;
-4. decisões funcionais vigentes/ADRs supervenientes;
-5. testes atuais que representam o contrato vigente;
-6. documentos canônicos e referências vigentes;
-7. auditorias, evidências, planos, handoffs e memória histórica.
-
-PR aberto, Preview, plano histórico ou documento antigo não altera a baseline da `main`/Production.
-
-O handoff corrente apontado por `CURRENT_STAGE.md` possui precedência apenas para reconstruir o detalhe temporal da frente ativa. Ele não redefine regra funcional durável nem prevalece sobre código/Supabase/Vercel revalidados.
-
-## 3. Classes
-
-| Classe | Significado |
-|---|---|
-| **Canônico** | controla leitura, estado, regra geral ou validade vigente |
-| **Contrato executável** | fonte versionada validada automaticamente |
-| **Gerado** | visão derivada; não editar manualmente |
-| **Referência vigente** | descreve contrato técnico/funcional durável |
-| **Runbook vigente** | procedimento operacional atual |
-| **Decisão vigente** | regra aprovada até substituição/revogação expressa |
-| **Handoff corrente** | contexto detalhado temporário da frente ativa, apontado por `CURRENT_STAGE.md` |
-| **Evidência** | comprova execução/achado em data, SHA e ambiente específicos |
-| **Trabalho em andamento** | branch/PR não integrado; não redefine Production |
-| **Histórico executado** | plano/handoff/auditoria preservado após sua etapa |
-| **Superado** | não orientar o presente salvo investigação histórica |
-
-Só pode existir um handoff corrente por frente global no roteamento principal.
-
-## 4. Rota canônica obrigatória
+## 2. Rota canônica vigente
 
 | Arquivo | Classe | Uso |
 |---|---|---|
-| `AGENTS.md` | Canônico | roteador obrigatório e regras de trabalho |
-| `docs/reference/SYSTEM_CANONICAL_MODEL.md` | Canônico | autoridades, fluxos, estados e invariantes |
-| `docs/reference/PRODUCT_SURFACE_CATALOG.md` | Referência vigente | modelo mental do usuário e superfícies |
-| `docs/CURRENT_STAGE.md` | Canônico | Production, estado mutável, prioridade e PRs correntes |
-| handoff apontado por `CURRENT_STAGE.md` | Handoff corrente | detalhe temporal da frente ativa |
-| `docs/reference/ENGINEERING_METHOD.md` | Canônico | método permanente de engenharia |
-| `docs/reference/FRONTEND_USER_VALIDATION_GATE.md` | Canônico | prova obrigatória pela interface real |
-| `docs/reference/STATUS_DOCUMENTOS.md` | Canônico | esta matriz de validade |
-| `docs/reference/TEST_GOVERNANCE.md` | Canônico | interpretação de falhas e testes |
-| `docs/PROJECT_CONTEXT.md` | Referência detalhada com trechos temporais históricos | contexto funcional; SHAs/PRs/deployment cedem ao CURRENT_STAGE |
-| `docs/DECISION_LOG.md` | Referência vigente | decisões duradouras |
-| `docs/decisions/*.md` | Decisão vigente conforme status | ADR especializada |
-| `docs/reference/functional-contract-matrix.json` e módulos | Contrato executável | operações/cobertura |
-| `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` | Gerado | visão da matriz JSON |
-| `docs/reference/SUPABASE_DATA_DICTIONARY.md` | Referência vigente | resumo do schema |
-| `docs/reference/SUPABASE_PERMISSIONS_MATRIX.md` | Referência vigente | autorização por perfil/camada |
+| `AGENTS.md` | Canônico | roteador obrigatório |
+| `docs/reference/SYSTEM_CANONICAL_MODEL.md` | Canônico | autoridades, fluxos e invariantes |
+| `docs/reference/PRODUCT_SURFACE_CATALOG.md` | Referência vigente | superfícies e jornadas |
+| `docs/CURRENT_STAGE.md` | Canônico | estado ao vivo e prioridade |
+| `docs/handoff/2026-09-13-pr301-production-release.md` | Handoff corrente | fechamento pós-PR301 e Production |
+| `docs/reference/ENGINEERING_METHOD.md` | Canônico | método de engenharia |
+| `docs/reference/FRONTEND_USER_VALIDATION_GATE.md` | Canônico | prova de interface real |
+| `docs/reference/TEST_GOVERNANCE.md` | Canônico | interpretação de testes |
+| `docs/reference/functional-contract-matrix.json` e módulos | Contrato executável | cobertura funcional |
+| `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` | Gerado | visão humana da matriz |
+| `docs/DECISION_LOG.md` e `docs/decisions/*.md` | Decisão vigente | regras especializadas |
 
-## 5. Handoff corrente em 13/09/2026
+## 3. PR #300 e PR #301
 
-Enquanto a frente do PR #301 estiver ativa, o handoff corrente é:
+PR #300 está integrado e encerrou a correção arquitetural Supabase.
 
-`docs/handoff/2026-09-13-uat-operacional-certificacao-452d972.md`
+PR #301 também está **integrado**. Não deve mais ser tratado como Draft/trabalho em andamento.
 
-Ele deve ser lido imediatamente após `CURRENT_STAGE.md`.
+Estado integrado:
 
-Para reconstrução completa do ciclo, usar como predecessor:
+- merge PR #301: `39cd984206b33c7d2a6d7084e23597f964235c9a`;
+- candidato funcional certificado: `452d97267348957f7155fc77bb139a4adafd766b`;
+- Production publicada sobre commit documental `de336d20f514818c42a3ad403720c6b606065868`, descendente direto do merge e sem mudança de runtime;
+- deployment certificado: `dpl_DKGa7PqP6KqiDrrWeevReEhyrKLS`, `READY`.
 
-`docs/handoff/2026-09-13-relatorio-tecnico-consolidado-pos-pr300-uat.md`
+## 4. Handoffs
 
-O antigo `docs/handoff/2026-09-13-uat-operacional-checkpoint-4a7a41dc.md` permanece como **Histórico executado / evidência intermediária**. Ele não é mais a instrução temporal corrente.
+Handoff corrente:
 
-Nenhum handoff substitui `SYSTEM_CANONICAL_MODEL.md`, `PRODUCT_SURFACE_CATALOG.md`, ADRs ou código vigente.
+`docs/handoff/2026-09-13-pr301-production-release.md`
 
-## 6. Estado documental da frente atual
+Classificação dos predecessores:
 
-### PR #300
+- `docs/handoff/2026-09-13-uat-operacional-certificacao-452d972.md` — **Histórico executado / evidência de certificação pré-merge**;
+- `docs/handoff/2026-09-13-uat-operacional-checkpoint-4a7a41dc.md` — **Histórico executado / checkpoint intermediário**;
+- `docs/handoff/2026-09-13-relatorio-tecnico-consolidado-pos-pr300-uat.md` — **Histórico executado / reconstrução detalhada da frente**.
 
-O PR #300 foi integrado. O baseline funcional de aplicação é `1a149174ed4a14d2fc9f92aff57d1957e8538e89`. Merges documentais posteriores podem deixar a `main` numericamente à frente sem mudar runtime.
+Nenhum deles redefine o modelo canônico ou ADRs.
 
-`docs/audits/SUPABASE_ARCHITECTURE_FINAL_2026-09-13.md` é evidência/histórico do candidato pré-merge.
+## 5. Auditorias
 
-`docs/audits/ASTRA_AUDITORIA_RADAR_2026.md` é evidência investigativa incremental; checkpoints internos podem descrever defeitos posteriormente corrigidos.
+`docs/audits/UAT_OPERACIONAL_POS_RELEASE_2026-09-13.md` é evidência incremental da homologação e do fechamento em Production.
 
-### PR #301
+`docs/audits/SUPABASE_ARCHITECTURE_FINAL_2026-09-13.md` é evidência pré-merge do PR #300.
 
-O PR #301 permanece **Trabalho em andamento / Draft** até integração. A certificação funcional corrente refere-se ao candidato `452d97267348957f7155fc77bb139a4adafd766b`; commits documentais posteriores não alteram essa conclusão funcional por si sós.
+`docs/audits/ASTRA_AUDITORIA_RADAR_2026.md` é diário investigativo; achados intermediários podem ter sido corrigidos depois.
 
-Arquivos operacionais da frente:
+## 6. Cobertura `partial`
 
-- `docs/superpowers/plans/2026-09-13-homologacao-operacional-observabilidade.md` — plano de execução;
-- `docs/audits/UAT_OPERACIONAL_POS_RELEASE_2026-09-13.md` — diário de evidências da UAT;
-- `docs/handoff/2026-09-13-relatorio-tecnico-consolidado-pos-pr300-uat.md` — predecessor detalhado;
-- `docs/handoff/2026-09-13-uat-operacional-certificacao-452d972.md` — handoff corrente.
+A classificação `partial` na matriz significa dívida de evidência específica, não defeito conhecido nem bloqueio automático.
 
-No candidato funcional `452d972...`, passaram:
+A UAT do PR #301 fortaleceu abertura e ciclo fiscal de Pendência, novo envio/reanálise, contato, cancelamento/reabertura, consumo, serviço/Assessoria, `a_identificar`, Boleto Internet e persistência/reload.
 
-- Ciclos funcionais reais com Supabase;
-- E2E Playwright completo;
-- Supabase readiness;
-- confiabilidade funcional com Supabase real;
-- perfis/viewports;
-- retificação auditável;
-- validação geral;
-- CodeQL;
-- saúde de dependências.
+Não promover artificialmente operações que ainda exigem autoria explícita, idempotência, negativas completas por perfil, reversão controlada ou observação recorrente em Production.
 
-A homologação integral pré-production passou migrations, Supabase/Auth/RLS/pgTAP, dependências/segurança, backup/restauração, prontidão, Playwright e Excel. Seu vermelho final decorre apenas do job Lighthouse desktop. Por decisão operacional desta frente, performance não bloqueia a reabertura funcional.
+## 7. Production e smoke
 
-A PR #301 também contém duas alterações funcionais reais que não devem ser tratadas como “só testes”:
+Production pós-PR301:
 
-1. resolução de assets do logo a partir da raiz em `src/integration/mobile-navigation.js`;
-2. preservação explícita de `p_expected_asset_version: null` em novo envio de Pendência fiscal sem bem vinculado, evitando quebra da assinatura RPC.
+- Vercel `READY`;
+- domínio oficial HTTP 200;
+- build `supabase-production` com 1020/1020 testes;
+- logs do novo deployment sem `error`/`fatal` no intervalo pós-publicação;
+- TinyFish confirmou tela de login e ausência de bloqueio público;
+- TinyFish não autenticou por ausência de sessão/credencial segura, portanto não serve como prova pós-deploy de todos os perfis;
+- Work/Astra havia comprovado login real e acesso ao Prontuário da Ary Barroso antes deste deploy.
 
-## 7. Cobertura funcional e operações `partial`
+Não confundir ausência de credencial técnica com falha do produto.
 
-A classificação `partial` da matriz significa que uma prova adicional específica ainda é desejável/necessária para aquele contrato; não significa bug conhecido ou bloqueio automático.
-
-A UAT do PR #301 adicionou evidência forte para:
-
-- abertura fiscal/Assessoria;
-- novo envio e reanálise;
-- cancelamento/reabertura de Pendência;
-- registro de contato;
-- consumo;
-- serviço/Assessoria individualizada;
-- `a_identificar`;
-- Boleto Internet;
-- persistência/reload.
-
-Não reclassificar automaticamente operações que ainda exigem autoria explícita, idempotência, negativas completas por perfil, reversão controlada ou monitor recorrente de Production.
-
-Ações administrativas raras de Configurações SME, programas e redistribuição de carteira continuam protegidas por E2E/serviços/RLS, mas algumas permanecem `partial` por falta do ensaio controlado específico descrito na própria matriz. Isso é dívida de evidência, não defeito funcional conhecido.
-
-## 8. Production e smoke autenticado
-
-O código de `tests/e2e/production-authenticated-read.spec.js` está preparado para cinco perfis e verifica login, leituras autorizadas, Dashboard, busca, Carteira, Prontuário, Pendências, reload, logout e ausência de mutações.
-
-Esse smoke depende de contas técnicas protegidas em Production. Run verde com a etapa autenticada ignorada por ausência dessas contas **não** prova todos os perfis.
-
-Nesta frente, Work/Astra comprovou pelo menos um login real no site oficial e acesso ao Prontuário da Ary Barroso. Houve mensagem transitória de falha de escopos antes da recuperação da sessão; classificar como ocorrência transitória, não como bloqueio permanente sem reprodução.
-
-## 9. Documentos históricos que não controlam a fila
-
-- `docs/superpowers/plans/*` — históricos, salvo plano explicitamente associado à frente ativa;
-- `docs/audits/*` — evidência de auditoria e SHA correspondente;
-- `docs/handoff/*` — checkpoints do seu momento, exceto o único handoff corrente apontado por `CURRENT_STAGE.md`;
-- `docs/evidence/*` — prova localizada;
-- `docs/history/*` — snapshots preservados;
-- roadmaps/backlogs antigos — não controlam a fila atual.
-
-Nenhum item histórico deve ser interpretado como tarefa ainda aberta sem confronto com `CURRENT_STAGE.md`, modelo canônico, código e ambiente atuais.
-
-## 10. PROJECT_CONTEXT e trechos temporais
-
-`docs/PROJECT_CONTEXT.md` contém contratos e contexto úteis, mas seus SHAs, estado de PR, contagens, deployment e “próximo passo” cedem a `CURRENT_STAGE.md` e ao handoff corrente.
-
-## 11. Contrato de persistência/cache
+## 8. Contrato de persistência
 
 ```text
-Supabase = fonte canônica persistente no modo remoto
-memória/cache do navegador = projeção operacional descartável permitida
-localStorage = não pode funcionar como segundo banco operacional em Production/Supabase
+Supabase = fonte canônica persistente
+memória/cache = projeção descartável permitida
+localStorage != banco operacional paralelo
 ```
 
 Convergência esperada:
@@ -187,34 +104,16 @@ Convergência esperada:
 remoto persistido = projeção local = UI = estado após reload
 ```
 
-É regressão quando o estado local mascara falha remota, sobrevive como verdade concorrente, força carregamento global crescente ou impede que reload recupere a autoridade Supabase.
+## 9. Documentos históricos
 
-## 12. Cadeia documental vigente
+Planos, audits, handoffs e backlogs não apontados por `CURRENT_STAGE.md` não formam fila automática. `PROJECT_CONTEXT.md` continua útil para contexto funcional, mas SHAs, PRs, deployments e próximos passos temporais cedem ao `CURRENT_STAGE.md`.
 
-```text
-AGENTS
-→ modelo canônico
-→ catálogo de superfícies
-→ CURRENT_STAGE
-→ handoff corrente
-→ predecessor, se necessário
-→ método/gates
-→ matriz/ADRs/referências especializadas
-→ históricos
-```
+## 10. Manutenção
 
-## 13. Regra de manutenção obrigatória
+Ao mudar baseline, Production ou frente ativa:
 
-Todo novo documento canônico deve atualizar, conforme aplicável, `AGENTS.md`, `docs/README.md`, este arquivo, `SYSTEM_CANONICAL_MODEL.md`, `PRODUCT_SURFACE_CATALOG.md` e `CURRENT_STAGE.md`.
-
-Quando uma frente precisar de contexto temporário detalhado:
-
-- preferir handoff/evidência datado;
-- nomeá-lo em `CURRENT_STAGE.md` como único handoff corrente;
-- não hardcodar seu nome em `AGENTS.md`;
-- retirar/substituir o vínculo ao encerrar a frente;
-- preservar arquivos anteriores sem reescrita retrospectiva.
-
-## 14. Preservação histórica
-
-Não reescrever auditoria, ADR, evidência ou handoff antigo para fazê-lo parecer atual. Quando o presente mudar, atualizar os documentos mutáveis/canônicos e registrar explicitamente a substituição.
+- atualizar `CURRENT_STAGE.md`;
+- atualizar este arquivo;
+- apontar um único handoff corrente;
+- preservar handoffs/auditorias antigos como histórico;
+- não reescrever evidência antiga para parecer atual.

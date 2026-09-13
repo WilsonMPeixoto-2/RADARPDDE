@@ -1,74 +1,53 @@
 # UAT operacional pós-release — RADAR PDDE
 
-Data: 13/09/2026. Registro incremental, não constitui nova regra canônica.
+**Data:** 13/09/2026  
+**Classe:** Evidência incremental; não redefine regra canônica.
 
-## Estado inicial da frente
+## 1. Objetivo
 
-- Prioridade: verificar acesso e jornadas reais, confirmação visual, gravação Supabase e recuperação após reload.
-- Base funcional publicada no início: PR #300 / `1a149174`.
-- PR #301 Draft, branch `test/operational-uat-supabase-2026-09-13`.
-- Escritas de homologação permanecem no Supabase descartável de CI; nenhuma mutação operacional em Production foi autorizada.
+Comprovar jornadas reais do usuário após a refatoração Supabase, cruzando interface, persistência remota, efeitos derivados e recuperação após reload, sem executar mutações de homologação em Production.
 
-## Bloco 1 — contraprova do checkpoint recebido
+## 2. Evolução da UAT
 
-O checkpoint inicial recebido estava em torno de `920c7230`. A branch avançou até `4a7a41dc...`, corrigindo expectativa visual obsoleta e adicionando espera explícita de convergência remota.
+A frente começou com login/contexto/auditoria e avaliação pela interface. Depois foram adicionadas jornadas reais para:
 
-No run `34772406774`, os ciclos funcionais existentes passaram, incluindo login/contexto/auditoria e avaliação pela interface com persistência/reload.
-
-A homologação integral daquele momento falhou ao baixar `public.ecr.aws/supabase/postgres-meta:v0.97.0` durante geração de tipos. A pilha já havia executado migrations, lint e **426 testes pgTAP**. Classificação: rate limit externo de infraestrutura, sem evidência de defeito funcional do RADAR.
-
-O monitor autenticado de Production também revelou uma falsa sensação de prontidão: um run verde podia ter a leitura autenticada ignorada quando as contas técnicas protegidas não estavam configuradas. Logo, monitor verde sem execução da etapa autenticada não prova login real por perfil.
-
-## Bloco 2 — ampliação das jornadas
-
-Foram adicionados cenários de UAT com mutação exclusivamente pelos controles reais da interface:
-
-- consumo: cadastro, análise, retificação, reload e exclusão;
-- serviço/Assessoria: duas NFs independentes, Pendência, novo envio, reanálise incorreta, nova tentativa e resolução;
-- `a_identificar`: abertura atômica, edição preservando vínculo, identificação no novo envio e resolução;
+- consumo;
+- serviço/Consulta Assessoria por NF;
+- `a_identificar`;
 - Boleto Internet em Educação Conectada;
 - contato, cancelamento e reabertura de Pendência.
 
-Uma escola UAT e Educação Conectada são provisionadas somente por fixture SQL no PostgreSQL local descartável do workflow. Não há migration nem escrita em Production.
+As escritas foram executadas em Supabase descartável de CI com Auth/RLS reais. Consultas diretas ao banco serviram apenas para verificar o resultado das ações realizadas pela interface.
 
-O workflow passou a preservar evidências de sucesso e falha.
+## 3. Defeito funcional real encontrado
 
-## Bloco 3 — defeito funcional real descoberto
+O novo envio de Pendência fiscal sem bem vinculado podia falhar com 404 em `register_invoice_document_attempt`.
 
-A jornada de novo envio de Pendência fiscal revelou um 404 real no RPC `register_invoice_document_attempt` quando a NF não possuía bem vinculado.
+Causa: `p_expected_asset_version` era `undefined`, desaparecia da serialização e alterava o conjunto de argumentos visível ao PostgREST.
 
-Causa raiz:
-
-- `p_expected_asset_version` recebia `undefined`;
-- a serialização removia o argumento;
-- a assinatura RPC esperava o parâmetro, mesmo que `null`;
-- o PostgREST não encontrava a função com o conjunto de argumentos enviado.
-
-Correção mínima em `src/application/pendency-service.js`:
+Correção:
 
 ```diff
 - p_expected_asset_version: persistence.expectedAssetVersion,
 + p_expected_asset_version: persistence.expectedAssetVersion ?? null,
 ```
 
-Foi criado `tests/unit/pendency-rpc-argument-contract.test.js` como regressão específica. Não houve alteração de schema, migration nem regra funcional.
+Regressão adicionada em `tests/unit/pendency-rpc-argument-contract.test.js`. Sem migration ou mudança de regra funcional.
 
-## Bloco 4 — falsos vermelhos da automação
+## 4. Falhas de automação classificadas
 
-Falhas subsequentes foram classificadas pelas evidências do Playwright:
+Vermelhos subsequentes foram rastreados a expectativas obsoletas do teste:
 
-1. seletor genérico de edição encontrava `Editar NF` e `Editar análise`;
-2. a automação tentava clicar em botões da linha enquanto um drawer operacional estava por cima;
-3. o helper observava `#pendency-preview-drawer` quando a tela de Pendências usa `#pendency-detail-drawer`;
-4. após resolução de `a_identificar` e Boleto Internet, a UAT esperava um `<select>` editável, mas a interface corretamente renderizava o estado final `Correto` em modo de leitura.
+- seletor `Editar` ambíguo;
+- clique em ação da linha enquanto drawer operacional estava aberto;
+- observação do drawer errado (`#pendency-preview-drawer` em vez de `#pendency-detail-drawer`);
+- expectativa de `<select>` editável depois de o estado final corretamente ser renderizado como leitura `Correto`.
 
-Os testes foram ajustados para usar o controle que o usuário realmente vê, sem `force: true` e sem sleeps arbitrários.
+As evidências confirmaram que `a_identificar` e Boleto Internet não perdiam dados após reload.
 
-As capturas confirmaram que `a_identificar` e Boleto Internet **não perdiam dados** após reload: o documento reaparecia com o mesmo registro remoto e estado `Correto`.
+## 5. Ciclo administrativo de Pendência
 
-## Bloco 5 — ciclo administrativo de Pendência
-
-Foi criada `tests/e2e/supabase-pendency-operations-uat.spec.js` para provar:
+A UAT comprovou:
 
 ```text
 criar Pendência pela UI
@@ -84,58 +63,78 @@ criar Pendência pela UI
 → confirmar contato e histórico preservados
 ```
 
-Essa prova fortalece diretamente `PEND-04`, `PEND-05` e `PEND-06`, mas a matriz não deve ser artificialmente marcada como totalmente coberta onde ainda exige autoria explícita ou idempotência específica.
+## 6. Certificação do candidato funcional
 
-## Bloco 6 — Production observada pelo Work/Astra
+Candidato: `452d97267348957f7155fc77bb139a4adafd766b`.
 
-O Astra conseguiu autenticar no site oficial e abrir o Prontuário da Ary Barroso com avaliações reais.
+Sucessos:
 
-Antes da navegação bem-sucedida apareceu a mensagem `Não foi possível carregar os escopos de escolas`. A sessão posteriormente se recuperou e o Prontuário abriu. Classificação: ocorrência transitória ainda sem causa determinada; não tratar como bloqueio permanente sem reprodução.
+- Ciclos funcionais reais com Supabase — `34783607506`;
+- Playwright completo — `34783607552`;
+- Confiabilidade Supabase real — `34783607532`;
+- Supabase readiness — `34783607627`;
+- perfis/viewports — `34783607483`;
+- retificação auditável — `34783607632`;
+- validação geral — `34783607599`;
+- CodeQL — `34783607516`;
+- dependências — `34783607562`.
 
-Nenhuma escrita de homologação foi feita em Production.
+A homologação integral passou banco, Auth/RLS/pgTAP, backup/restauração, segurança, prontidão, Playwright e Excel; ficou vermelha apenas por Lighthouse desktop. Performance foi retirada do critério bloqueante de reabertura pelo responsável do projeto.
 
-## Bloco 7 — certificação funcional do candidato `452d972...`
+## 7. Integração
 
-Candidato:
+PR #301 integrada em `main`:
 
-`452d97267348957f7155fc77bb139a4adafd766b`
+`39cd984206b33c7d2a6d7084e23597f964235c9a`
 
-Passaram:
+Commit documental pós-merge:
 
-- `Ciclos funcionais reais com Supabase` — run `34783607506`;
-- `Testes E2E Playwright` — run `34783607552`;
-- `Confiabilidade funcional com Supabase real` — run `34783607532`;
-- `Supabase readiness` — run `34783607627`;
-- `Gate remoto de perfis e viewports` — run `34783607483`;
-- `Retificação auditável direcionada` — run `34783607632`;
-- `Validar RADAR PDDE` — run `34783607599`;
-- `CodeQL` — run `34783607516`;
-- `Saúde das dependências` — run `34783607562`.
+`de336d20f514818c42a3ad403720c6b606065868`
 
-`Homologação integral pré-production` — run `34783607517`:
+O commit documental não altera runtime e disparou a publicação Production contendo o merge funcional.
 
-- migrations em PostgreSQL limpo: sucesso;
-- Supabase local/Auth/RLS/pgTAP: sucesso;
-- dependências/segurança: sucesso;
-- backup/restauração: sucesso;
-- prontidão completa: sucesso;
-- Playwright completo: sucesso;
-- Excel SME/OOXML/rota pública: sucesso;
-- Lighthouse desktop: falha de performance;
-- gate final herdou apenas esse vermelho.
+## 8. Production pós-merge
 
-Por decisão operacional expressa desta rodada, pequenas oscilações de Lighthouse não bloqueiam a reabertura funcional do sistema.
+Deployment:
 
-## Bloco 8 — interpretação de release
+`dpl_DKGa7PqP6KqiDrrWeevReEhyrKLS`
 
-A certificação comprova o núcleo operacional crítico com UI + Supabase + reload e toda a suíte E2E atual.
+Estado: `READY`.
 
-Operações `partial` na matriz continuam significando dívida de evidência específica, não bug conhecido. Não esconder essas lacunas nem transformá-las automaticamente em bloqueio quando o contrato da matriz não as define assim.
+Build:
 
-Antes de reabrir aos usuários ainda faltam passos de ambiente, não de implementação funcional conhecida:
+- 1020 testes;
+- 1020 aprovados;
+- 0 falhas;
+- artefato `supabase-production`;
+- deployment concluído.
 
-1. integrar o PR #301;
-2. confirmar `main` no merge resultante;
-3. confirmar Vercel Production `READY` no SHA integrado;
-4. executar smoke não destrutivo do endereço oficial;
-5. registrar o fechamento documental pós-merge.
+Smoke técnico no domínio oficial:
+
+- HTTP 200;
+- tela institucional correta;
+- runtime de Production;
+- sem logs `error` ou `fatal` no novo deployment no intervalo observado.
+
+TinyFish executou smoke independente e confirmou que o site e a tela de login estavam acessíveis sem bloqueios. A automação não pôde autenticar porque não havia sessão ativa no Browser Context Profile nem credencial segura no vault. A execução parou conforme instruído, sem mutação.
+
+Work/Astra havia comprovado anteriormente um login real em Production e abertura do Prontuário da Ary Barroso. Naquela ocasião surgiu uma mensagem transitória de falha de escopos antes da recuperação da sessão; não houve evidência de bloqueio persistente.
+
+## 9. Supabase pós-publicação
+
+Projeto `RADAR PDDE 2026` (`scnryinorqeucbfkioxo`) observado como `ACTIVE_HEALTHY`.
+
+Advisors:
+
+- segurança: aviso `Leaked Password Protection Disabled`, independente desta correção;
+- performance: oito índices ainda reportados como não utilizados, sem ação nesta frente.
+
+Não houve migration no PR #301.
+
+## 10. Conclusão
+
+A frente não identificou defeito funcional conhecido remanescente que bloqueie a reabertura dos usuários nas jornadas operacionais certificadas.
+
+A evidência pós-deploy não inclui um novo login automatizado autenticado por cinco perfis, por ausência de credenciais técnicas seguras. Essa limitação permanece documentada e não deve ser apresentada como teste executado.
+
+A recomendação operacional é **reabrir o RADAR aos usuários**, manter os monitores existentes e tratar qualquer novo relato a partir de reprodução concreta, sem reabrir preventivamente a arquitetura já certificada.
