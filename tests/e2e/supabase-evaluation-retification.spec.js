@@ -16,6 +16,10 @@ async function ready(page) {
   await page.evaluate(() => window.RadarProductExtensionsReady);
 }
 
+async function settleWrites(page) {
+  await page.evaluate(() => window.RadarApplicationServices.data.remoteExecutionTail);
+}
+
 async function verification(page) {
   return page.evaluate(async () => {
     const { data, error } = await window.RadarSessionContext.service.client.from('verifications')
@@ -43,9 +47,16 @@ test('edição explícita salva, desfaz e retifica Pendência atomicamente sem b
   await page.goto('/escolas/ESC-EDIT');
   await ready(page);
   const row = page.locator('#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="extCC"]');
-  await row.getByRole('button', { name: 'Sim', exact: true }).click();
+  const sim = row.getByRole('button', { name: 'Sim', exact: true });
+
+  await sim.click();
+  await settleWrites(page);
+  await expect(sim).toHaveClass(/active-sim/);
   await expect.poll(async () => (await verification(page)).bonification.extCC).toBe('Sim');
+
   await row.locator('select.select-analise').selectOption('Correto');
+  await settleWrites(page);
+  await expect(row.locator('select.select-analise')).toHaveValue('Correto');
   await expect.poll(async () => (await verification(page)).analysis.extCC).toBe('Correto');
 
   await row.getByRole('button', { name: 'Editar análise', exact: true }).click();
@@ -58,18 +69,21 @@ test('edição explícita salva, desfaz e retifica Pendência atomicamente sem b
   await expect(row.locator('select.select-analise')).toHaveValue('Não analisado');
   await expect.poll(async () => (await verification(page)).analysis.extCC).toBe('Não analisado');
 
-  await row.getByRole('button', { name: 'Editar bonificação', exact: true }).click();
-  dialog = page.getByRole('dialog', { name: 'Editar bonificação', exact: true });
-  await dialog.getByLabel('Nova bonificação').selectOption('');
-  await dialog.getByRole('button', { name: 'Salvar edição', exact: true }).click();
-  await expect(dialog).toBeHidden();
+  await expect(row.getByRole('button', { name: 'Editar bonificação', exact: true })).toBeHidden();
+  await sim.click();
+  await settleWrites(page);
+  await expect(page.locator('#pendency-notice')).toContainText('Bonificação desfeita com sucesso.');
+  await expect(sim).not.toHaveClass(/active-sim/);
   await expect.poll(async () => (await verification(page)).bonification.extCC).toBe('');
+  await expect.poll(async () => (await verification(page)).analysis.extCC).toBe('Não analisado');
   await page.reload();
   await ready(page);
-  await expect(row.getByRole('button', { name: 'Sim', exact: true })).not.toHaveClass(/active-sim/);
+  await expect(sim).not.toHaveClass(/active-sim/);
   await expect(row.locator('select.select-analise')).toHaveValue('Não analisado');
 
-  await row.getByRole('button', { name: 'Sim', exact: true }).click();
+  await sim.click();
+  await settleWrites(page);
+  await expect(sim).toHaveClass(/active-sim/);
   await expect.poll(async () => (await verification(page)).bonification.extCC).toBe('Sim');
   await row.locator('select.select-analise').selectOption('Incorreto');
   const pendencyForm = page.locator('#modal-nova-pendencia');
