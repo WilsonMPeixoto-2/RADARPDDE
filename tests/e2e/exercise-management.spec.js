@@ -21,7 +21,7 @@ test.describe('gestão de exercícios e competências', () => {
 
     await expect(page.locator('#new-exercise-competencia option')).toHaveCount(12);
     const current2026Competence = await page.evaluate(() => (
-      window.RadarCompetencia.competenceKeyFromDate(new Date())
+      window.RadarCompetencia.previousCompetenceKeyFromDate(new Date())
     ));
     expect(current2026Competence).toMatch(/^2026-/);
 

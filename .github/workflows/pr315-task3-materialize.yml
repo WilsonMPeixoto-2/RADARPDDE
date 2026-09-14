@@ -1,5 +1,6 @@
 name: PR315 materializar Prontuário recolhível
 
+# Reexecução final após reconciliar contratos de competência e Vercel.
 on:
   push:
     branches:
