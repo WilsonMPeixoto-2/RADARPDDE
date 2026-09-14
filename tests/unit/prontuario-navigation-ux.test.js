@@ -22,7 +22,33 @@ test('controle cadastral fica junto das ações da unidade e recebe maior destaq
     assert.match(cssSource, /\.prontuario-data-toggle\s*\{[\s\S]*background:/);
 });
 
-test('sidebar clara ganha tratamento escuro com contraste próprio', () => {
-    assert.match(cssSource, /body:not\(\.dark-theme\)\s+aside\.sidebar\s*\{[\s\S]*background:/);
-    assert.match(cssSource, /body:not\(\.dark-theme\)\s+aside\.sidebar\s+\.nav-item\s*\{[\s\S]*color:/);
+test('sidebar operacional escura não contamina o tema expressivo do Dashboard', () => {
+    assert.doesNotMatch(cssSource, /body:not\(\.dark-theme\)\s+aside\.sidebar\s*\{/);
+    assert.match(
+        cssSource,
+        /body:not\(\.dark-theme\):not\(\.radar-expressiva-institucional\)\s+aside\.sidebar\s*\{[\s\S]*background:/
+    );
+    assert.match(
+        cssSource,
+        /body:not\(\.dark-theme\):not\(\.radar-expressiva-institucional\)\s+aside\.sidebar::before\s*\{[\s\S]*background:/
+    );
+});
+
+test('cabeçalho do Prontuário mantém título central e ações simétricas', () => {
+    assert.match(
+        cssSource,
+        /\.prontuario-school-header\s*\{[\s\S]*display:\s*grid;[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+minmax\(0,\s*2\.4fr\)\s+minmax\(0,\s*1fr\)/
+    );
+    assert.match(
+        cssSource,
+        /\.prontuario-school-header\s+\.page-title\s*\{[\s\S]*grid-column:\s*2;[\s\S]*text-align:\s*center/
+    );
+    assert.match(
+        cssSource,
+        /\.prontuario-school-header\s+\.prontuario-actions\s*\{[\s\S]*grid-column:\s*1\s*\/\s*-1;[\s\S]*justify-content:\s*center/
+    );
+    assert.match(
+        cssSource,
+        /\.prontuario-school-header\s+\.prontuario-next-school\s*\{[\s\S]*grid-column:\s*3;[\s\S]*justify-self:\s*end/
+    );
 });
