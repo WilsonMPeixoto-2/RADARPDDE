@@ -87,6 +87,26 @@ test('desfazer bonificação volta ao neutro, invalida análise dependente e reg
     assert.equal(harness.calls.length, 1);
 });
 
+test('clicar novamente na bonificação já ativa equivale a desfazer a seleção', async () => {
+    const harness = createHarness();
+    harness.verification.bonificacao.declBBAgil = 'Não se aplica';
+    harness.verification.analise.declBBAgil = 'Correto';
+
+    const result = await harness.service.setBonification({
+        schoolId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        documentKey: 'declBBAgil',
+        value: 'Não se aplica',
+        profile: 'controlador'
+    });
+
+    assert.equal(result.value.verification.bonificacao.declBBAgil, '');
+    assert.equal(result.value.verification.analise.declBBAgil, 'Não analisado');
+    assert.equal(result.value.undone, true);
+    assert.equal(harness.state.logs[0].action, 'Avaliação desfeita');
+    assert.equal(harness.calls.length, 1);
+});
+
 test('corrigir análise técnica é comando explícito e não cria novo envio nem reanálise', async () => {
     const harness = createHarness();
     harness.verification.bonificacao.extCC = 'Sim';
