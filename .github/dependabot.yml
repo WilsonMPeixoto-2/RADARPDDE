@@ -33,12 +33,13 @@ updates:
       - dependency-name: "@types/node"
         update-types:
           - "version-update:semver-major"
-      # A 2.116.0 foi homologada e rejeitada por regressão em garantias pgTAP/RLS.
-      # O bloqueio é exato: versões futuras (por exemplo 2.116.1/2.117.x) devem voltar
-      # a ser propostas e avaliadas normalmente.
+      # As versões 2.116.0 e 2.117.0 foram homologadas e rejeitadas pela mesma
+      # regressão em duas garantias pgTAP/RLS de service_role. Os bloqueios são
+      # exatos para permitir que uma versão posterior volte a ser avaliada.
       - dependency-name: "supabase"
         versions:
           - "2.116.0"
+          - "2.117.0"
 
   - package-ecosystem: github-actions
     directory: /

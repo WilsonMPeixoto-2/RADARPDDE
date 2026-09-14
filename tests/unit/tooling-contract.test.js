@@ -150,14 +150,17 @@ test('Vercel limita deploy automático à main e preserva filtro do Dependabot',
 });
 
 
-test('Dependabot não reabre a versão do Supabase CLI já rejeitada por RLS', () => {
+test('Dependabot não reabre versões do Supabase CLI já rejeitadas por RLS', () => {
     const dependabot = read('.github/dependabot.yml');
 
-    assert.match(
-        dependabot,
-        /dependency-name:\s*"supabase"[\s\S]*?versions:\s*[\s\S]*?-\s*"2\.116\.0"/,
-        'Supabase CLI 2.116.0 deve permanecer bloqueado após reprovação pgTAP/RLS'
-    );
+    for (const version of ['2.116.0', '2.117.0']) {
+        const escaped = version.replaceAll('.', '\\.');
+        assert.match(
+            dependabot,
+            new RegExp(`dependency-name:\\s*"supabase"[\\s\\S]*?versions:\\s*[\\s\\S]*?-\\s*"${escaped}"`),
+            `Supabase CLI ${version} deve permanecer bloqueado após reprovação pgTAP/RLS`
+        );
+    }
     assert.doesNotMatch(
         dependabot,
         /dependency-name:\s*"supabase"[\s\S]*?version-update:semver-(?:minor|patch)/,
