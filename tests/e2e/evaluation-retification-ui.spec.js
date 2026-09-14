@@ -148,7 +148,7 @@ test.describe('retificação formal de avaliações no Preview', () => {
     await expect(drawer).toContainText('A avaliação foi marcada como Incorreto por engano após nova conferência do documento já correto.');
   });
 
-  test('bonificação possui ação visível de edição e pode ser desfeita com confirmação de sucesso', async ({ page }, testInfo) => {
+  test('bonificação é editada pelos próprios botões e clique repetido limpa a seleção', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário desktop de homologação em Preview.');
 
     await page.goto('/');
@@ -158,29 +158,40 @@ test.describe('retificação formal de avaliações no Preview', () => {
     const row = page.locator(
       '#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="extINV"]'
     );
-    await expect(row.getByRole('button', { name: 'Editar bonificação' })).toBeVisible();
-    await row.getByRole('button', { name: 'Editar bonificação' }).click();
-
-    const dialog = page.getByRole('dialog', { name: 'Editar bonificação' });
-    await expect(dialog).toBeVisible();
-    await expect(dialog.getByTestId('evaluation-current-value')).toHaveText('Sim');
-    await dialog.getByLabel('Nova bonificação').selectOption('');
-    await expect(dialog.locator('.evaluation-retification-preview')).toContainText('Sim → Não preenchido');
-    const submit = dialog.getByRole('button', { name: 'Salvar edição' });
-    await expect(submit).toBeEnabled();
-    await submit.click();
-
-    await expect(dialog).toBeHidden();
+    const sim = row.getByRole('button', { name: 'Sim', exact: true });
+    const nao = row.getByRole('button', { name: 'Não', exact: true });
+    const na = row.getByRole('button', { name: 'N/A', exact: true });
     const successNotice = page.locator('#pendency-notice');
+
+    await expect(row.getByRole('button', { name: 'Editar bonificação' })).toBeHidden();
+    await expect(sim).toHaveClass(/active-sim/);
+
+    await nao.click();
     await expect(successNotice).toBeVisible();
-    await expect(successNotice).toHaveAttribute('data-variant', 'success');
+    await expect(successNotice).toHaveAttribute('data-radar-save-feedback', 'success');
+    await expect(successNotice).toContainText('Bonificação atualizada com sucesso.');
+    await expect(nao).toHaveClass(/active-nao/);
+    await expect(sim).not.toHaveClass(/active-sim/);
+    let state = await page.evaluate(({ schoolId, compKey }) => ({
+      bonification: verificacoes[schoolId][compKey].bonificacao.extINV,
+      analysis: verificacoes[schoolId][compKey].analise.extINV
+    }), context);
+    expect(state.bonification).toBe('Não');
+    expect(state.analysis).toBe('Correto');
+
+    await nao.click();
+    await expect(successNotice).toBeVisible();
+    await expect(successNotice).toHaveAttribute('data-radar-save-feedback', 'success');
     await expect(successNotice).toContainText('Bonificação desfeita com sucesso.');
-    const state = await page.evaluate(({ schoolId, compKey }) => ({
+    state = await page.evaluate(({ schoolId, compKey }) => ({
       bonification: verificacoes[schoolId][compKey].bonificacao.extINV,
       analysis: verificacoes[schoolId][compKey].analise.extINV
     }), context);
     expect(state.bonification).toBe('');
     expect(state.analysis).toBe('Não analisado');
+    await expect(sim).not.toHaveClass(/active-sim/);
+    await expect(nao).not.toHaveClass(/active-nao/);
+    await expect(na).not.toHaveClass(/active-naoseaplica/);
     await expect(row.locator('select.select-analise')).toHaveValue('Não analisado');
   });
 });
