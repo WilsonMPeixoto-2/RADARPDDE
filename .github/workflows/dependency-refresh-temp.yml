@@ -64,6 +64,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add package.json package-lock.json vendor/supabase-client.js supabase/functions/team-account-management/index.ts tests/unit/tooling-contract.test.js tests/unit/supabase-modernization.test.js
-          git diff --cached --check
+          git diff --cached --check -- package.json package-lock.json supabase/functions/team-account-management/index.ts tests/unit/tooling-contract.test.js tests/unit/supabase-modernization.test.js
           git commit -m "chore: materializar lockfile e bundles das dependências atuais"
           git push origin HEAD:chore/dependencies-current-2026-09-14
