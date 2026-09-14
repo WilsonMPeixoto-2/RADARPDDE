@@ -100,7 +100,7 @@ test.describe('retificação formal de avaliações no Preview', () => {
     await expect(dialog).toBeHidden();
     const successNotice = page.locator('#pendency-notice');
     await expect(successNotice).toBeVisible();
-    await expect(successNotice).toHaveAttribute('data-radar-save-feedback', 'success');
+    await expect(successNotice).toHaveAttribute('data-variant', 'success');
     await expect(successNotice).toContainText(
       'Avaliação retificada e Pendência anulada com sucesso.'
     );
@@ -173,7 +173,7 @@ test.describe('retificação formal de avaliações no Preview', () => {
     await expect(dialog).toBeHidden();
     const successNotice = page.locator('#pendency-notice');
     await expect(successNotice).toBeVisible();
-    await expect(successNotice).toHaveAttribute('data-radar-save-feedback', 'success');
+    await expect(successNotice).toHaveAttribute('data-variant', 'success');
     await expect(successNotice).toContainText('Bonificação desfeita com sucesso.');
     const state = await page.evaluate(({ schoolId, compKey }) => ({
       bonification: verificacoes[schoolId][compKey].bonificacao.extINV,
