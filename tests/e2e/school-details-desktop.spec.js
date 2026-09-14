@@ -134,6 +134,43 @@ test.describe('Prontuário operacional no desktop', () => {
     expect(geometry.tabsInside).toBe(true);
   });
 
+  test('mantém dados cadastrais recolhidos e cabeçalho da escola visível durante rolagem', async ({ page }) => {
+    await openProfileSchool(page, 'controlador');
+
+    const toggle = page.locator('button[aria-controls="school-registration-details"]');
+    const panel = page.locator('#school-registration-details');
+    const header = page.locator('.prontuario-school-header');
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(panel).toBeHidden();
+
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(toggle).toHaveText('Ocultar dados da unidade');
+    await expect(panel).toBeVisible();
+    await expect(panel.locator('.school-data-item')).toHaveCount(14);
+    await expect(panel.locator('.school-program-list')).toBeVisible();
+
+    await toggle.click();
+    await expect(panel).toBeHidden();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+
+    const beforeTop = await header.evaluate(element => element.getBoundingClientRect().top);
+    await page.evaluate(() => {
+      const main = document.querySelector('main.content-area');
+      main.scrollTop = Math.min(main.scrollHeight, 700);
+      main.dispatchEvent(new Event('scroll'));
+    });
+    await page.waitForTimeout(50);
+    const after = await page.evaluate(() => {
+      const main = document.querySelector('main.content-area').getBoundingClientRect();
+      const sticky = document.querySelector('.prontuario-school-header').getBoundingClientRect();
+      return { mainTop: main.top, headerTop: sticky.top, headerBottom: sticky.bottom };
+    });
+    expect(Math.abs(after.headerTop - after.mainTop)).toBeLessThanOrEqual(2);
+    expect(after.headerBottom).toBeGreaterThan(after.headerTop);
+    expect(beforeTop).toBeGreaterThanOrEqual(after.mainTop - 2);
+  });
+
   test('expõe programas vinculados como informação estática', async ({ page }) => {
     await openProfileSchool(page, 'controlador');
 
@@ -145,6 +182,7 @@ test.describe('Prontuário operacional no desktop', () => {
 
   test('compõe o resumo da unidade sem título duplicado, compressão ou marcadores sobrepostos', async ({ page }) => {
     await openProfileSchool(page, 'controlador');
+    await page.getByRole('button', { name: 'Exibir dados da unidade', exact: true }).click();
 
     await expect(page.getByRole('heading', { name: 'Dados da unidade', exact: true })).toHaveCount(1);
     await expect(page.locator('.school-data-section')).toHaveCount(3);

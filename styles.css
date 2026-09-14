@@ -4901,3 +4901,38 @@ body.dark-theme .pendency-preview-drawer {
         padding: 16px;
     }
 }
+
+
+/* Prontuário: contexto persistente e dados cadastrais sob demanda */
+.prontuario-school-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: var(--bg-primary, #f7f8fb);
+    border-bottom: 1px solid rgba(99, 102, 241, 0.12);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+.prontuario-data-toggle {
+    flex: 0 0 auto;
+}
+
+.prontuario-school-grid {
+    display: block;
+}
+
+#school-registration-details[hidden] {
+    display: none !important;
+}
+
+.prontuario-school-grid #school-registration-details {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.prontuario-school-grid .school-workspace {
+    width: 100%;
+    min-width: 0;
+}

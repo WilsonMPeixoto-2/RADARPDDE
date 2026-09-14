@@ -243,6 +243,7 @@
         if (explicit && (available.size === 0 || available.has(explicit))) return explicit;
 
         const now = new Date();
+        now.setMonth(now.getMonth() - 1);
         const calendar = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
         if (available.has(calendar)) return calendar;
 
@@ -297,6 +298,17 @@
             const requestedEntities = Array.isArray(options.entities)
                 ? options.entities
                 : (capabilities.remote === true ? REMOTE_BOOTSTRAP_ENTITIES : null);
+            const requestedCompetence = normalizedCompetence(options.competenceId);
+            const canPrefetchOperationalContext = capabilities.remote === true
+                && !Array.isArray(options.entities)
+                && Boolean(requestedCompetence)
+                && typeof this.repository.queryOperationalContext === 'function';
+            const prefetchedContext = canPrefetchOperationalContext
+                ? this.repository.queryOperationalContext({ competenceId: requestedCompetence }).then(
+                    value => ({ ok: true, value }),
+                    error => ({ ok: false, error })
+                )
+                : null;
             const current = await this.repository.exportSnapshot({
                 includeEmpty: true,
                 ...(requestedEntities ? { entities: requestedEntities } : {})
@@ -337,9 +349,16 @@
                 && typeof this.repository.queryOperationalContext === 'function') {
                 operationalCompetence = resolveOperationalCompetence(current, options.competenceId);
                 if (operationalCompetence) {
-                    const context = await this.repository.queryOperationalContext({
-                        competenceId: operationalCompetence
-                    });
+                    let context;
+                    if (prefetchedContext && operationalCompetence === requestedCompetence) {
+                        const prefetched = await prefetchedContext;
+                        if (!prefetched.ok) throw prefetched.error;
+                        context = prefetched.value;
+                    } else {
+                        context = await this.repository.queryOperationalContext({
+                            competenceId: operationalCompetence
+                        });
+                    }
                     hydrated = mergeOperationalContext(current, context);
                     this.currentOperationalCompetence = operationalCompetence;
                 }

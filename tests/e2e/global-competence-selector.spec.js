@@ -8,7 +8,7 @@ const PROFILE_CASES = [
 ];
 
 test.describe('competência mensal global', () => {
-  test('abre no mês corrente e mantém a troca manual apenas durante a sessão atual', async ({ page }) => {
+  test('abre no mês anterior e mantém a troca manual apenas durante a sessão atual', async ({ page }) => {
     await page.addInitScript(() => {
       const NativeDate = Date;
       const fixedNow = new NativeDate('2026-08-31T12:00:00-03:00').getTime();
@@ -31,8 +31,8 @@ test.describe('competência mensal global', () => {
     const selector = page.locator('#global-competence-select');
     await expect(selector).toBeVisible();
     await expect(selector.locator('option')).toHaveCount(12);
-    await expect(selector).toHaveValue('2026-08');
-    await expect(page.locator('#global-competence-label')).toContainText('Agosto');
+    await expect(selector).toHaveValue('2026-07');
+    await expect(page.locator('#global-competence-label')).toContainText('Julho');
     await expect(page.locator('#global-competence-label')).toBeHidden();
 
     await selector.selectOption('2026-09');
@@ -51,8 +51,8 @@ test.describe('competência mensal global', () => {
 
     await page.reload();
     await page.waitForFunction(() => Boolean(window.RadarCompetenceContext));
-    await expect(page.locator('#global-competence-select')).toHaveValue('2026-08');
-    expect(await page.evaluate(() => activeCompetenciaKey)).toBe('2026-08');
+    await expect(page.locator('#global-competence-select')).toHaveValue('2026-07');
+    expect(await page.evaluate(() => activeCompetenciaKey)).toBe('2026-07');
   });
 
   test('mantém exercício e competência sincronizados sem seleção concorrente na página mensal', async ({ page }) => {

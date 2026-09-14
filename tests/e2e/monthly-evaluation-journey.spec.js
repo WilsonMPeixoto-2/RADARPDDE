@@ -131,7 +131,7 @@ test('controlador lança agosto, consolida APTA e recupera o estado após nova s
   await page.reload();
   await page.waitForFunction(() => Boolean(window.RadarCompetenceContext?.isInitialized?.()));
   const currentCompetenceAfterReload = await page.evaluate(() => (
-    window.RadarCompetencia.competenceKeyFromDate(new Date())
+    window.RadarCompetencia.previousCompetenceKeyFromDate(new Date())
   ));
   await expect(page.locator('#global-competence-select')).toHaveValue(currentCompetenceAfterReload);
   await page.locator('#global-competence-select').selectOption('2026-08');

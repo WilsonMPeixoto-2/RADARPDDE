@@ -4582,7 +4582,10 @@ async function initializeRadarData() {
         repository,
         statePort
     });
-    const bootstrap = await radarDataService.bootstrap();
+    const initialOperationalCompetence = window.RadarCompetencia?.previousCompetenceKeyFromDate?.() || '';
+    const bootstrap = await radarDataService.bootstrap(
+        initialOperationalCompetence ? { competenceId: initialOperationalCompetence } : {}
+    );
     initializeRadarApplicationServices();
     const capabilities = repository.capabilities();
 
@@ -9353,6 +9356,16 @@ function getCompMonthStatus(escolaId, compKey) {
 // 14. PRONTUÁRIO OPERACIONAL DA ESCOLA
 // ==========================================
 
+function toggleSchoolRegistrationDetails(button) {
+    const panel = document.getElementById('school-registration-details');
+    if (!panel || !button) return false;
+    const expand = panel.hidden;
+    panel.hidden = !expand;
+    button.setAttribute('aria-expanded', String(expand));
+    button.textContent = expand ? 'Ocultar dados da unidade' : 'Exibir dados da unidade';
+    return expand;
+}
+
 function renderProntuario(escolaId) {
     const container = document.getElementById('main-container');
     const esc = escolas.find(e => e.id === escolaId);
@@ -9384,7 +9397,7 @@ function renderProntuario(escolaId) {
     const showProntuarioActions = accessProfile === 'assistente' || accessProfile === 'controlador';
 
     container.innerHTML = `
-        <div class="page-header">
+        <div class="page-header prontuario-school-header">
             <div class="page-title">
                 <h1>Unidade Escolar: ${escapeHtml(esc.denominação)} (${escapeHtml(esc.designação)})</h1>
                 <p>${accessProfile === 'sme'
@@ -9404,11 +9417,12 @@ function renderProntuario(escolaId) {
                     <button type="button" class="btn btn-primary" onclick="openEscolaEditModal('${escapeHtml(esc.id)}')">Editar Dados</button>
             </div>
             ` : ''}
+            <button type="button" class="btn btn-secondary prontuario-data-toggle" aria-expanded="false" aria-controls="school-registration-details" onclick="toggleSchoolRegistrationDetails(this)">Exibir dados da unidade</button>
         </div>
 
-        <div class="school-grid">
+        <div class="school-grid prontuario-school-grid">
             <!-- Sidebar da Escola -->
-            <div class="school-sidebar">
+            <div class="school-sidebar" id="school-registration-details" hidden>
                 <section class="school-info-card school-data-card" aria-labelledby="school-data-heading">
                     <div class="school-card-heading">
                         <span class="school-card-heading-icon" aria-hidden="true">
