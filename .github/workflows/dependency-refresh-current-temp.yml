@@ -1,4 +1,4 @@
-name: Homologar últimas dependências atuais
+name: Materializar últimas dependências homologadas
 
 on:
   push:
@@ -10,9 +10,9 @@ permissions:
 
 jobs:
   refresh-current:
-    if: ${{ !contains(github.event.head_commit.message, 'materializar últimas dependências atuais') }}
+    if: ${{ !contains(github.event.head_commit.message, 'materializar dependências homologadas finais') }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 10
     steps:
       - name: Obter código
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -25,21 +25,19 @@ jobs:
           node-version: '24.x'
           cache: npm
 
-      - name: Materializar versões latest diretamente do npm
-        run: npm install --save-dev --save-exact --package-lock-only --ignore-scripts dependency-cruiser@18.3.0 eslint@10.10.0 supabase@2.117.0
+      - name: Materializar versões latest homologáveis diretamente do npm
+        run: npm install --save-dev --save-exact --package-lock-only --ignore-scripts dependency-cruiser@18.3.0 eslint@10.10.0
 
-      - name: Alinhar contratos versionados
+      - name: Alinhar contrato versionado do tooling
         shell: bash
         run: |
           node <<'NODE'
           const fs = require('node:fs');
-          function replace(path, from, to) {
-            const source = fs.readFileSync(path, 'utf8');
-            if (!source.includes(from)) throw new Error(`${path}: trecho não encontrado: ${from}`);
-            fs.writeFileSync(path, source.replaceAll(from, to));
-          }
-          replace('tests/unit/tooling-contract.test.js', "packageJson.devDependencies.eslint, '10.9.1'", "packageJson.devDependencies.eslint, '10.10.0'");
-          replace('tests/unit/supabase-modernization.test.js', "pkg.devDependencies.supabase, '2.114.0'", "pkg.devDependencies.supabase, '2.117.0'");
+          const path = 'tests/unit/tooling-contract.test.js';
+          const source = fs.readFileSync(path, 'utf8');
+          const from = "packageJson.devDependencies.eslint, '10.9.1'";
+          if (!source.includes(from)) throw new Error(`${path}: contrato antigo do ESLint não encontrado`);
+          fs.writeFileSync(path, source.replace(from, "packageJson.devDependencies.eslint, '10.10.0'"));
           NODE
 
       - name: Instalar árvore reproduzível
@@ -52,7 +50,7 @@ jobs:
           node --test tests/unit/tooling-contract.test.js tests/unit/supabase-modernization.test.js
           npm run analyze:unused
 
-      - name: Confirmar que não restam updates compatíveis
+      - name: Confirmar que só restam versões deliberadamente rejeitadas ou incompatíveis
         shell: bash
         run: |
           set +e
@@ -63,35 +61,24 @@ jobs:
           node <<'NODE'
           const fs = require('node:fs');
           const outdated = JSON.parse(fs.readFileSync('/tmp/outdated.json', 'utf8') || '{}');
-          const names = Object.keys(outdated);
-          if (names.some(name => name !== '@types/node')) {
-            throw new Error(`Ainda há dependências diretas desatualizadas: ${names.join(', ')}`);
+          const allowed = new Set(['@types/node', 'supabase']);
+          const unexpected = Object.keys(outdated).filter(name => !allowed.has(name));
+          if (unexpected.length) throw new Error(`Ainda há dependências homologáveis desatualizadas: ${unexpected.join(', ')}`);
+          if (outdated['@types/node']?.current !== '24.13.4' || outdated['@types/node']?.latest !== '26.5.1') {
+            throw new Error('Estado de @types/node divergiu da decisão Node 24.');
           }
-          if (outdated['@types/node']?.current !== '24.13.4') {
-            throw new Error('A linha Node 24 não está na versão homologável esperada.');
+          if (outdated.supabase?.current !== '2.114.0' || outdated.supabase?.latest !== '2.117.0') {
+            throw new Error('Estado do Supabase CLI divergiu da homologação atual.');
           }
           NODE
           test "$code" -eq 0 || test "$code" -eq 1
-
-      - name: Iniciar Supabase local com CLI 2.117.0
-        run: npm run supabase:start
-
-      - name: Executar pgTAP e garantias RLS
-        run: npm run supabase:test:db
-
-      - name: Validar lint do banco
-        run: npm run supabase:lint:db
 
       - name: Registrar lockfile e contratos
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json package-lock.json tests/unit/tooling-contract.test.js tests/unit/supabase-modernization.test.js
+          git add package.json package-lock.json tests/unit/tooling-contract.test.js
           git diff --cached --check
-          git commit -m "chore: materializar últimas dependências atuais"
+          git commit -m "chore: materializar dependências homologadas finais"
           git push origin HEAD:chore/dependencies-current-2026-09-14
-
-      - name: Parar Supabase local
-        if: always()
-        run: npm run supabase:stop
