@@ -78,7 +78,7 @@ test.describe('Desktop — notebooks e monitores básicos', () => {
     expect(geometry.documentWidth).toBeLessThanOrEqual(geometry.viewport + 1);
     expect(geometry.bodyWidth).toBeLessThanOrEqual(geometry.viewport + 1);
     expect(geometry.schoolDisplay).toBe('block');
-    expect(geometry.schoolSidebarDisplay).toBe('grid');
+    expect(geometry.schoolSidebarDisplay).toBe('none');
     expect(geometry.workspaceBelowSummary).toBe(true);
     expect(Number.parseFloat(geometry.appColumns)).toBeLessThanOrEqual(235);
     await expect(page.locator('.prontuario-actions')).toBeVisible();
@@ -90,6 +90,7 @@ test.describe('Desktop — notebooks e monitores básicos', () => {
     await page.goto('/');
     await waitForDesktopRefinements(page);
     await openControllerSchool(page);
+    await page.getByRole('button', { name: 'Exibir dados da unidade', exact: true }).click();
 
     const summaryGeometry = await page.evaluate(() => {
       const schoolGrid = document.querySelector('.school-grid');
