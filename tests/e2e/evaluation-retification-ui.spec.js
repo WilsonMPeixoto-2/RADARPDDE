@@ -79,6 +79,7 @@ test.describe('retificação formal de avaliações no Preview', () => {
     await expect(dialog).toBeVisible();
     await expect(dialog.getByTestId('evaluation-current-value')).toHaveText('Incorreto');
     await dialog.getByLabel('Nova análise técnica').selectOption('Correto');
+    await expect(dialog.locator('.evaluation-retification-preview')).toHaveText('Incorreto → Correto');
 
     const confirmation = dialog.getByTestId('evaluation-retification-confirmation');
     await expect(confirmation).toBeVisible();
@@ -97,7 +98,10 @@ test.describe('retificação formal de avaliações no Preview', () => {
     await submit.click();
 
     await expect(dialog).toBeHidden();
-    await expect(page.locator('#pendency-notice')).toContainText(
+    const successNotice = page.locator('#pendency-notice');
+    await expect(successNotice).toBeVisible();
+    await expect(successNotice).toHaveAttribute('data-radar-save-feedback', 'success');
+    await expect(successNotice).toContainText(
       'Avaliação retificada e Pendência anulada com sucesso.'
     );
     await expect(row.locator('select.select-analise')).toHaveValue('Correto');
@@ -158,14 +162,19 @@ test.describe('retificação formal de avaliações no Preview', () => {
     await row.getByRole('button', { name: 'Editar bonificação' }).click();
 
     const dialog = page.getByRole('dialog', { name: 'Editar bonificação' });
+    await expect(dialog).toBeVisible();
     await expect(dialog.getByTestId('evaluation-current-value')).toHaveText('Sim');
     await dialog.getByLabel('Nova bonificação').selectOption('');
+    await expect(dialog.locator('.evaluation-retification-preview')).toContainText('Sim → Não preenchido');
     const submit = dialog.getByRole('button', { name: 'Salvar edição' });
     await expect(submit).toBeEnabled();
     await submit.click();
 
     await expect(dialog).toBeHidden();
-    await expect(page.locator('#pendency-notice')).toContainText('Bonificação desfeita com sucesso.');
+    const successNotice = page.locator('#pendency-notice');
+    await expect(successNotice).toBeVisible();
+    await expect(successNotice).toHaveAttribute('data-radar-save-feedback', 'success');
+    await expect(successNotice).toContainText('Bonificação desfeita com sucesso.');
     const state = await page.evaluate(({ schoolId, compKey }) => ({
       bonification: verificacoes[schoolId][compKey].bonificacao.extINV,
       analysis: verificacoes[schoolId][compKey].analise.extINV
