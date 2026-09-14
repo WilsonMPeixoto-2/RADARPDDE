@@ -1,0 +1,126 @@
+name: Materializar pacote final de manutenção
+
+on:
+  push:
+    branches:
+      - chore/dependencies-current-2026-09-14
+    paths:
+      - .github/workflows/final-package-materialize.yml
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Obter código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: chore/dependencies-current-2026-09-14
+          fetch-depth: 0
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci --ignore-scripts
+
+      - name: Aplicar performance, acabamento e documentação
+        shell: python
+        run: |
+          from pathlib import Path
+
+          index = Path('index.html')
+          html = index.read_text(encoding='utf-8')
+          old_font = '    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap">'
+          new_font = '''    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap" data-radar-nonblocking-font="true" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap">
+    </noscript>'''
+          if old_font not in html:
+              raise SystemExit('link de fontes esperado não encontrado')
+          html = html.replace(old_font, new_font, 1)
+          index.write_text(html, encoding='utf-8')
+
+          styles_path = Path('styles.css')
+          styles = styles_path.read_text(encoding='utf-8')
+          import_line = "@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');\n\n"
+          if import_line not in styles:
+              raise SystemExit('import duplicado de fontes esperado não encontrado')
+          styles = styles.replace(import_line, '', 1)
+          replacements = {
+              "--font-heading: 'Outfit', sans-serif;": "--font-heading: 'Outfit', 'Segoe UI', Arial, sans-serif;",
+              "--font-body: 'Plus Jakarta Sans', sans-serif;": "--font-body: 'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif;",
+              "--shadow-md: 0 8px 24px rgba(124, 58, 237, 0.1);": "--shadow-md: 0 6px 18px rgba(124, 58, 237, 0.08);",
+              "--shadow-glow: 0 0 16px var(--primary-glow);": "--shadow-glow: 0 0 10px var(--primary-glow);",
+              "--shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);": "--shadow-md: 0 6px 18px rgba(0, 0, 0, 0.32);",
+          }
+          for old, new in replacements.items():
+              if old not in styles:
+                  raise SystemExit(f'estilo esperado não encontrado: {old}')
+              styles = styles.replace(old, new, 1)
+          styles_path.write_text(styles, encoding='utf-8')
+
+          current_stage = Path('docs/CURRENT_STAGE.md')
+          stage = current_stage.read_text(encoding='utf-8')
+          old_opening = '''## Frente autorizada após a reabertura
+
+Wilson solicitou restaurar as opções de edição do PR #299, com melhor orientação e confirmação visual, sobre a arquitetura atual. Essa decisão explícita substitui a restrição anterior de não restaurar a funcionalidade. Trabalho isolado em `feat/restore-evaluation-editing-2026-09-13`; Production permanece na versão liberada. Não há autorização de merge, deploy ou aplicação de migration em Production nesta frente.
+
+Checkpoint incremental: [`audits/RESTAURACAO_EDICAO_AVALIACOES_2026-09-13.md`](audits/RESTAURACAO_EDICAO_AVALIACOES_2026-09-13.md). A homologação desta restauração ainda está em andamento.
+'''
+          new_opening = '''## Pacote final de manutenção de 14/09/2026
+
+O PR #305 restaurou e publicou em Production a edição auditável de avaliações sobre a arquitetura Supabase já certificada. Bonificação permanece editável diretamente por Sim/Não/N/A; correção de análise técnica continua explícita e, quando há Pendência ativa associada a um `Incorreto`, exige confirmação, justificativa, cancelamento atômico da Pendência e preservação do histórico.
+
+A rodada final de manutenção está concentrada no PR #306. Seu escopo é deliberadamente limitado a dependências homologadas, desempenho de carregamento, acabamento visual discreto e reconciliação documental. Não altera regra de negócio, schema, migration, identidade de registros, RLS ou fluxos operacionais.
+'''
+          if old_opening not in stage:
+              raise SystemExit('abertura antiga do CURRENT_STAGE não encontrada')
+          stage = stage.replace(old_opening, new_opening, 1)
+          stage = stage.replace('**Atualizado em:** 13 de setembro de 2026', '**Atualizado em:** 14 de setembro de 2026', 1)
+          stage = stage.replace(
+              'O rollback do PR #299 permanece preservado; a funcionalidade de retificação de avaliação removida naquele rollback não foi reintroduzida.',
+              'O PR #305 superou o rollback funcional do PR #299 e reintroduziu a retificação de avaliação de forma auditável, com confirmação visual, preservação de histórico e reconciliação da suíte de testes com o contrato atual.',
+              1
+          )
+          stage = stage.replace(
+              '**PR #301:** merged  \n**Merge commit funcional:** `39cd984206b33c7d2a6d7084e23597f964235c9a`  \n**Candidato funcional certificado:** `452d97267348957f7155fc77bb139a4adafd766b`  \n**Data mode de Production:** `supabase-production`',
+              '**PR #305:** merged  \n**Merge commit funcional:** `b151f3f27cb28d5165916aa9be4086355742e839`  \n**Candidato funcional certificado:** `86db8651134616fe03d6506e7f9bd073e1e1eb3f`  \n**Data mode de Production:** `supabase-production`',
+              1
+          )
+          stage = stage.replace(
+              '`dpl_DKGa7PqP6KqiDrrWeevReEhyrKLS`',
+              '`dpl_c9Be1LfZocKVBVmrB5pDHaVB7w3X`',
+              1
+          )
+          stage = stage.replace(
+              '`1020` testes;\n- `1020` aprovados;',
+              '`1034` testes;\n- `1034` aprovados;',
+              1
+          )
+          current_stage.write_text(stage, encoding='utf-8')
+
+      - name: Validar contrato de carregamento e regressões de tooling
+        run: |
+          node --test tests/unit/index-script-loading-performance.test.js
+          node --test tests/unit/tooling-contract.test.js tests/unit/supabase-modernization.test.js
+          npm run check:architecture
+
+      - name: Verificar diff editorial
+        run: |
+          git diff --check -- . ':!vendor/supabase-client.js'
+          git status --short
+
+      - name: Registrar pacote final e remover workflow temporário
+        run: |
+          rm .github/workflows/final-package-materialize.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html styles.css docs/CURRENT_STAGE.md tests/unit/index-script-loading-performance.test.js .github/workflows/final-package-materialize.yml
+          git commit -m "perf: fechar pacote final de manutenção do RADAR"
+          git push origin HEAD:chore/dependencies-current-2026-09-14
