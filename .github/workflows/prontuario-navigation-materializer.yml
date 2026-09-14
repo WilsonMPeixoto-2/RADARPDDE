@@ -1,0 +1,199 @@
+name: PR Navegacao Prontuario Materializer
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/prontuario-navegacao-rapida
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci
+      - name: Aplicar mudanças mínimas
+        shell: python
+        run: |
+          from pathlib import Path
+
+          app = Path('app.js')
+          text = app.read_text(encoding='utf-8')
+
+          marker = "function renderProntuario(escolaId) {"
+          helper = r'''function getNextProntuarioSchool(escolaId) {
+    const orderedSchools = [...escolas].sort((a, b) => String(a.designação || a.id || '').localeCompare(
+        String(b.designação || b.id || ''),
+        'pt-BR',
+        { numeric: true, sensitivity: 'base' }
+    ));
+    const currentIndex = orderedSchools.findIndex(school => school.id === escolaId);
+    return currentIndex >= 0 && currentIndex < orderedSchools.length - 1
+        ? orderedSchools[currentIndex + 1]
+        : null;
+}
+
+function navigateToNextProntuarioSchool(escolaId) {
+    const nextSchool = getNextProntuarioSchool(escolaId);
+    if (!nextSchool) return false;
+    const preservedCompetence = activeProntuarioCompetencia;
+    activeSchoolId = nextSchool.id;
+    activeProntuarioCompetencia = preservedCompetence;
+    renderProntuario(nextSchool.id);
+    resetContentAreaScroll();
+    return true;
+}
+
+'''
+          if 'function getNextProntuarioSchool(' not in text:
+              if marker not in text:
+                  raise SystemExit('renderProntuario marker not found')
+              text = text.replace(marker, helper + marker, 1)
+
+          old = r'''            ${showProntuarioActions ? `
+            <div class=\"prontuario-actions\" role=\"group\" aria-label=\"Ações da unidade escolar\">
+                    <button type=\"button\" class=\"btn btn-secondary\" onclick=\"openContatoModal('${escapeHtml(esc.id)}')\">
+                        <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z\"></path></svg>
+                        Registrar Contato
+                    </button>
+                    <button type=\"button\" class=\"btn btn-secondary\" onclick=\"openCobrancaModal('${escapeHtml(esc.id)}')\">
+                        <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2\"></path><rect x=\"8\" y=\"2\" width=\"8\" height=\"4\" rx=\"1\" ry=\"1\"></rect></svg>
+                        Gerar Cobrança
+                    </button>
+                    <button type=\"button\" class=\"btn btn-primary\" onclick=\"openEscolaEditModal('${escapeHtml(esc.id)}')\">Editar Dados</button>
+            </div>
+            ` : ''}
+            <button type=\"button\" class=\"btn btn-secondary prontuario-data-toggle\" aria-expanded=\"false\" aria-controls=\"school-registration-details\" onclick=\"toggleSchoolRegistrationDetails(this)\">Exibir dados da unidade</button>'''
+
+          new = r'''            <div class=\"prontuario-actions\" role=\"group\" aria-label=\"Ações da unidade escolar\">
+                ${showProntuarioActions ? `
+                    <button type=\"button\" class=\"btn btn-secondary\" onclick=\"openContatoModal('${escapeHtml(esc.id)}')\">
+                        <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z\"></path></svg>
+                        Registrar Contato
+                    </button>
+                    <button type=\"button\" class=\"btn btn-secondary\" onclick=\"openCobrancaModal('${escapeHtml(esc.id)}')\">
+                        <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2\"></path><rect x=\"8\" y=\"2\" width=\"8\" height=\"4\" rx=\"1\" ry=\"1\"></rect></svg>
+                        Gerar Cobrança
+                    </button>
+                    <button type=\"button\" class=\"btn btn-primary\" onclick=\"openEscolaEditModal('${escapeHtml(esc.id)}')\">Editar Dados</button>
+                ` : ''}
+                <button type=\"button\" class=\"btn prontuario-data-toggle\" aria-expanded=\"false\" aria-controls=\"school-registration-details\" onclick=\"toggleSchoolRegistrationDetails(this)\">Exibir dados da unidade</button>
+            </div>
+            ${(() => {
+                const nextSchool = getNextProntuarioSchool(esc.id);
+                return `<button type=\"button\" class=\"btn btn-secondary prontuario-next-school\" onclick=\"navigateToNextProntuarioSchool('${escapeHtml(esc.id)}')\" ${nextSchool ? '' : 'disabled'} aria-label=\"${nextSchool ? `Ir para a próxima unidade: ${escapeHtml(nextSchool.designação || nextSchool.id)}` : 'Última unidade da sequência'}\">Próxima unidade →</button>`;
+            })()}'''
+
+          if old in text:
+              text = text.replace(old, new, 1)
+          elif 'prontuario-next-school' not in text:
+              raise SystemExit('header action block not found')
+          app.write_text(text, encoding='utf-8')
+
+          css = Path('styles.css')
+          c = css.read_text(encoding='utf-8')
+          block = r'''
+
+/* Prontuário — navegação rápida e hierarquia visual */
+.prontuario-data-toggle {
+    background: var(--accent-plum);
+    border-color: var(--accent-plum);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(74, 33, 125, 0.18);
+}
+
+.prontuario-data-toggle:hover {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+    color: #ffffff;
+}
+
+.prontuario-data-toggle[aria-expanded=\"true\"] {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+.prontuario-next-school {
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+
+body:not(.dark-theme) aside.sidebar {
+    background: linear-gradient(180deg, #2b1b43 0%, #20142f 100%);
+    border-right-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 8px 0 28px rgba(32, 20, 47, 0.10);
+}
+
+body:not(.dark-theme) aside.sidebar .logo-text,
+body:not(.dark-theme) aside.sidebar .user-name {
+    color: #ffffff;
+    -webkit-text-fill-color: #ffffff;
+}
+
+body:not(.dark-theme) aside.sidebar .logo-sub,
+body:not(.dark-theme) aside.sidebar .nav-label,
+body:not(.dark-theme) aside.sidebar .user-role {
+    color: #bdb3cc;
+}
+
+body:not(.dark-theme) aside.sidebar .nav-item {
+    color: #ddd6e8;
+}
+
+body:not(.dark-theme) aside.sidebar .nav-item:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+body:not(.dark-theme) aside.sidebar .nav-item.active {
+    color: #ffffff;
+    background: linear-gradient(90deg, rgba(167, 139, 250, 0.28), rgba(124, 58, 237, 0.14));
+    border-color: rgba(216, 180, 254, 0.28);
+}
+
+body:not(.dark-theme) aside.sidebar .sidebar-footer {
+    border-top-color: rgba(255, 255, 255, 0.10);
+}
+
+body:not(.dark-theme) aside.sidebar .user-badge {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 900px) {
+    .prontuario-school-header .prontuario-actions,
+    .prontuario-next-school {
+        width: 100%;
+    }
+
+    .prontuario-next-school {
+        margin-left: 0;
+    }
+}
+'''
+          if '/* Prontuário — navegação rápida e hierarquia visual */' not in c:
+              c += block
+          css.write_text(c, encoding='utf-8')
+      - run: node --test tests/unit/prontuario-navigation-ux.test.js tests/unit/prontuario-cadastral-toggle.test.js
+      - name: Limpar andaimes e validar
+        run: |
+          rm -f .github/workflows/pr316-red.yml
+          rm -f .github/workflows/prontuario-navigation-materializer.yml
+          rm -f docs/notes/prontuario-navigation-implementation.tmp.md
+          rm -f .deploy/prontuario-navigation-red
+          node --check app.js
+          node --test tests/unit/prontuario-navigation-ux.test.js tests/unit/prontuario-cadastral-toggle.test.js
+      - name: Publicar resultado
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.js styles.css tests/unit/prontuario-navigation-ux.test.js docs/handoff/2026-09-14-prontuario-navegacao-rapida.md docs/superpowers/plans/2026-09-14-prontuario-navegacao-rapida.md docs/superpowers/specs/2026-09-14-prontuario-navegacao-rapida.md
+          git add -u .github/workflows/pr316-red.yml .github/workflows/prontuario-navigation-materializer.yml docs/notes/prontuario-navigation-implementation.tmp.md .deploy/prontuario-navigation-red
+          git commit -m "feat: adicionar navegação rápida no prontuário"
+          git push origin HEAD:feat/prontuario-navegacao-rapida
