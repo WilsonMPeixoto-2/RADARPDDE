@@ -9366,6 +9366,29 @@ function toggleSchoolRegistrationDetails(button) {
     return expand;
 }
 
+function getNextProntuarioSchool(escolaId) {
+    const orderedSchools = [...escolas].sort((a, b) => String(a.designação || a.id || '').localeCompare(
+        String(b.designação || b.id || ''),
+        'pt-BR',
+        { numeric: true, sensitivity: 'base' }
+    ));
+    const currentIndex = orderedSchools.findIndex(school => school.id === escolaId);
+    return currentIndex >= 0 && currentIndex < orderedSchools.length - 1
+        ? orderedSchools[currentIndex + 1]
+        : null;
+}
+
+function navigateToNextProntuarioSchool(escolaId) {
+    const nextSchool = getNextProntuarioSchool(escolaId);
+    if (!nextSchool) return false;
+    const preservedCompetence = activeProntuarioCompetencia;
+    activeSchoolId = nextSchool.id;
+    activeProntuarioCompetencia = preservedCompetence;
+    renderProntuario(nextSchool.id);
+    resetContentAreaScroll();
+    return true;
+}
+
 function renderProntuario(escolaId) {
     const container = document.getElementById('main-container');
     const esc = escolas.find(e => e.id === escolaId);
@@ -9404,8 +9427,8 @@ function renderProntuario(escolaId) {
                     ? 'Consulta mensal das informações de bonificação da unidade escolar.'
                     : 'Acompanhamento e Histórico Unificado da Unidade Escolar'}</p>
             </div>
-            ${showProntuarioActions ? `
             <div class="prontuario-actions" role="group" aria-label="Ações da unidade escolar">
+        ${showProntuarioActions ? `
                     <button type="button" class="btn btn-secondary" onclick="openContatoModal('${escapeHtml(esc.id)}')">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                         Registrar Contato
@@ -9415,9 +9438,14 @@ function renderProntuario(escolaId) {
                         Gerar Cobrança
                     </button>
                     <button type="button" class="btn btn-primary" onclick="openEscolaEditModal('${escapeHtml(esc.id)}')">Editar Dados</button>
-            </div>
-            ` : ''}
-            <button type="button" class="btn btn-secondary prontuario-data-toggle" aria-expanded="false" aria-controls="school-registration-details" onclick="toggleSchoolRegistrationDetails(this)">Exibir dados da unidade</button>
+        ` : ''}
+        <button type="button" class="btn prontuario-data-toggle" aria-expanded="false" aria-controls="school-registration-details" onclick="toggleSchoolRegistrationDetails(this)">Exibir dados da unidade</button>
+    </div>
+    ${(() => {
+        const nextSchool = getNextProntuarioSchool(esc.id);
+        const nextLabel = nextSchool ? `Ir para a próxima unidade: ${escapeHtml(nextSchool.designação || nextSchool.id)}` : 'Última unidade da sequência';
+        return `<button type="button" class="btn btn-secondary prontuario-next-school" onclick="navigateToNextProntuarioSchool('${escapeHtml(esc.id)}')" ${nextSchool ? '' : 'disabled'} aria-label="${nextLabel}">Próxima unidade →</button>`;
+    })()}
         </div>
 
         <div class="school-grid prontuario-school-grid">
