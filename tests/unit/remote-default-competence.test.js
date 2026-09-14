@@ -42,9 +42,11 @@ test('bootstrap remoto inicia no mês anterior quando setembro está disponível
         restoreSnapshot: async () => undefined, healthCheck: async () => ({ ok: true })
     };
     const statePort = {
+        capture: async () => ({ memory: {}, storage: {} }),
         exportCanonical: async () => envelope({}),
         applyCanonical: async () => undefined,
-        applyEntities: async () => undefined
+        applyEntities: async () => undefined,
+        restore: async () => undefined
     };
     const service = new DataService({ repository, statePort });
 
