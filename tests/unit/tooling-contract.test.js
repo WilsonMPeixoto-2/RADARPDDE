@@ -110,7 +110,7 @@ test('configura Knip para analisar o projeto híbrido sem falsos positivos de ru
     }
 });
 
-test('Lighthouse mede métricas, oportunidades e bloqueia regressões graves', () => {
+test('Lighthouse desktop mede métricas, oportunidades e bloqueia regressões graves', () => {
     const lighthouseConfig = read('lighthouserc.cjs');
     const lighthouseRunner = read('scripts/run-lighthouse-baseline.mjs');
     const lighthouseWorkflow = read('.github/workflows/lighthouse-ci.yml');
@@ -123,11 +123,27 @@ test('Lighthouse mede métricas, oportunidades e bloqueia regressões graves', (
     assert.match(lighthouseRunner, /aggregation:\s*'median'/);
     assert.match(lighthouseRunner, /accessibilityFindings/);
     assert.match(lighthouseRunner, /opportunities/);
-    assert.match(lighthouseWorkflow, /Executar baseline mobile/);
     assert.match(lighthouseWorkflow, /Executar baseline desktop/);
-    assert.match(lighthouseWorkflow, /Validar pisos de qualidade Lighthouse/);
-    assert.match(lighthouseWorkflow, /mobile: dívida de performance conhecida e não bloqueante/);
+    assert.match(lighthouseWorkflow, /Validar piso de qualidade Lighthouse desktop/);
+    assert.doesNotMatch(lighthouseWorkflow, /Executar baseline mobile/);
+    assert.doesNotMatch(lighthouseWorkflow, /LHCI_PROFILE=mobile/);
     assert.match(lighthouseWorkflow, /summary\.md/);
+});
+
+test('CI homologado permanece restrito ao desktop', () => {
+    const playwrightWorkflow = read('.github/workflows/playwright-mobile.yml');
+    const preproductionWorkflow = read('.github/workflows/preproduction-full-validation.yml');
+
+    assert.match(playwrightWorkflow, /name: Desktop homologado/);
+    assert.match(playwrightWorkflow, /--project=desktop-chromium/);
+    assert.doesNotMatch(playwrightWorkflow, /--project=mobile-/);
+    assert.doesNotMatch(playwrightWorkflow, /install --with-deps chromium webkit/);
+
+    assert.match(preproductionWorkflow, /name: Playwright completo desktop/);
+    assert.match(preproductionWorkflow, /name: Lighthouse CI desktop/);
+    assert.match(preproductionWorkflow, /--project=desktop-chromium/);
+    assert.doesNotMatch(preproductionWorkflow, /Auditar perfil móvel/);
+    assert.doesNotMatch(preproductionWorkflow, /LHCI_PROFILE:\s*mobile/);
 });
 
 test('não mantém workflows temporários de diagnóstico', () => {
