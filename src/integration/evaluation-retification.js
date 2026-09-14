@@ -403,6 +403,16 @@
             const currentVerification = service.getVerification(schoolId, compKey);
             assertExpectedVersion(currentVerification, input);
             const currentValue = text(currentVerification?.analise?.[documentKey]);
+            if (activePendency && currentValue !== 'Incorreto') {
+                fail(
+                    'ACTIVE_PENDENCY',
+                    activePendency.status === 'Aguardando reanálise'
+                        ? 'Esta análise aguarda reanálise. Use Reanalisar para registrar o resultado.'
+                        : 'Esta análise possui Pendência aberta. Use Registrar novo envio para prosseguir.',
+                    'correctTechnicalAnalysis',
+                    { pendencyId: activePendency.id }
+                );
+            }
             const formalRetification = requireFormalRetificationConfirmation(
                 input,
                 activePendency,
