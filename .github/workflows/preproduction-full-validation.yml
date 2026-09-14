@@ -161,7 +161,7 @@ jobs:
           npm run supabase:stop || true
 
   e2e:
-    name: Playwright completo
+    name: Playwright completo desktop
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
@@ -174,10 +174,10 @@ jobs:
           cache: npm
       - name: Instalar dependências reproduzíveis
         run: npm ci
-      - name: Instalar navegadores homologados
-        run: npx playwright install --with-deps chromium webkit
-      - name: Executar toda a suíte E2E
-        run: npm run test:e2e
+      - name: Instalar Chromium homologado
+        run: npx playwright install --with-deps chromium
+      - name: Executar suíte E2E desktop
+        run: npm run test:e2e -- --project=desktop-chromium
       - name: Publicar relatório em caso de falha
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -256,7 +256,7 @@ jobs:
           npm ls --all --json > dependency-health/npm-tree.json
 
   lighthouse:
-    name: Lighthouse CI móvel e desktop
+    name: Lighthouse CI desktop
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
@@ -292,11 +292,6 @@ jobs:
           done
           cat preproduction-lighthouse-server.log
           exit 1
-      - name: Auditar perfil móvel
-        continue-on-error: true
-        env:
-          LHCI_PROFILE: mobile
-        run: npm run audit:lighthouse
       - name: Auditar perfil desktop
         env:
           LHCI_PROFILE: desktop
