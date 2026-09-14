@@ -1,10 +1,13 @@
 # Prontuário — navegação rápida e hierarquia visual
 
-Escopo mínimo aprovado em 14/09/2026:
+Implementado em 14/09/2026:
 
-- substituir o botão isolado de dados cadastrais por `Próxima unidade →`;
-- manter a competência corrente ao avançar para a próxima unidade;
-- mover `Exibir dados da unidade` para o grupo de ações, ao lado de `Editar Dados`;
-- reforçar visualmente o controle cadastral;
-- escurecer a barra lateral esquerda no tema claro;
-- não alterar banco, regras de avaliação, permissões ou persistência.
+- `Próxima unidade →` no canto superior direito do cabeçalho do Prontuário;
+- navegação pela ordem da designação da unidade, preservando a competência ativa;
+- botão desabilitado na última unidade da sequência;
+- `Exibir/Ocultar dados da unidade` junto das ações da escola, ao lado de `Editar Dados` para perfis com ações e ainda disponível para perfis de consulta;
+- maior contraste visual no botão cadastral;
+- sidebar do tema claro escurecida, preservando estados hover/ativo e contraste;
+- nenhuma alteração em banco, RLS, regras de avaliação, persistência ou permissões.
+
+Validação direcionada concluída: sintaxe de `app.js`, contrato cadastral existente e novo contrato de navegação/UX.
