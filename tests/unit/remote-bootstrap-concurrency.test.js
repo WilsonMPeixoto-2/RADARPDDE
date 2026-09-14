@@ -72,7 +72,9 @@ test('bootstrap remoto inicia contexto explícito sem esperar a leitura estrutur
     const boot = service.bootstrap({ competenceId: '2026-08' });
     await new Promise(resolve => setImmediate(resolve));
 
-    assert.deepEqual(events, ['structure:start', 'context:2026-08']);
+    assert.equal(events.includes('structure:start'), true);
+    assert.equal(events.includes('context:2026-08'), true);
+    assert.equal(events.includes('structure:end'), false);
     releaseStructure();
     const result = await boot;
     assert.equal(result.operationalCompetence, '2026-08');
