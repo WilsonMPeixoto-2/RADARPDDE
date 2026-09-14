@@ -254,13 +254,21 @@ async function remoteRows(page, table, filters) {
   }, { entity: table, where: filters });
 }
 
+async function ensureBonificationSim(page, row) {
+  const sim = row.getByRole('button', { name: 'Sim', exact: true });
+  const alreadySelected = await sim.evaluate(button => button.classList.contains('active-sim'));
+  if (alreadySelected) return;
+  await sim.click();
+  await settleWrites(page);
+  await expect(sim).toHaveClass(/active-sim/);
+}
+
 async function createInvoiceUI(page, { type, number, description, amount = '250', program = 'BASIC' }) {
   const row = fiscalRow(page, program);
   if (type === 'a_identificar') {
     await row.getByRole('button', { name: 'Registrar despesa a identificar', exact: true }).click();
   } else {
-    await row.getByRole('button', { name: 'Sim', exact: true }).click();
-    await settleWrites(page);
+    await ensureBonificationSim(page, row);
     await row.getByRole('button', { name: 'Adicionar Nota', exact: true }).click();
   }
   const modal = page.locator('#modal-dados-nota');
