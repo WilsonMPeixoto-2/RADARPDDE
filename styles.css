@@ -3,8 +3,6 @@
    Desenvolvido com foco em estética executiva, moderna e dinâmica.
 */
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
-
 :root {
     /* ==========================================
        TEMA CLARO (PADRÃO) - Lilás Profissional
@@ -51,13 +49,13 @@
                    radial-gradient(circle at 90% 80%, rgba(167, 139, 250, 0.03) 0%, transparent 45%);
 
     /* Tipografia e Efeitos */
-    --font-heading: 'Outfit', sans-serif;
-    --font-body: 'Plus Jakarta Sans', sans-serif;
+    --font-heading: 'Outfit', 'Segoe UI', Arial, sans-serif;
+    --font-body: 'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif;
     --transition-fast: 0.2s ease;
     --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --shadow-sm: 0 2px 8px rgba(124, 58, 237, 0.06);
-    --shadow-md: 0 8px 24px rgba(124, 58, 237, 0.1);
-    --shadow-glow: 0 0 16px var(--primary-glow);
+    --shadow-md: 0 6px 18px rgba(124, 58, 237, 0.08);
+    --shadow-glow: 0 0 10px var(--primary-glow);
 }
 
 body.dark-theme {
@@ -106,7 +104,7 @@ body.dark-theme {
                    radial-gradient(circle at 90% 80%, rgba(109, 62, 247, 0.12) 0%, transparent 45%);
 
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
-    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.32);
     --shadow-glow: 0 0 16px var(--primary-glow);
 }
 

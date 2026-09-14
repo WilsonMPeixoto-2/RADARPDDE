@@ -32,8 +32,8 @@ test('mantém o renderer institucional interno e fixa ExcelJS somente para o pro
     assert.equal(packageJson.scripts['format:check'], 'prettier . --check --ignore-unknown');
     const prettierIgnore = read('.prettierignore');
     assert.match(prettierIgnore, /^vendor\/$/m);
-    assert.equal(packageJson.devDependencies.eslint, '10.9.1');
-    assert.equal(packageJson.devDependencies.knip, '6.33.0');
+    assert.equal(packageJson.devDependencies.eslint, '10.10.0');
+    assert.equal(packageJson.devDependencies.knip, '6.35.1');
     assert.equal(packageJson.devDependencies['eslint-plugin-no-unsanitized'], '4.1.5');
     assert.equal(packageJson.devDependencies['eslint-plugin-playwright'], '2.11.0');
     assert.equal(packageJson.devDependencies.lighthouse, '13.4.1');
@@ -150,14 +150,17 @@ test('Vercel limita deploy automático à main e preserva filtro do Dependabot',
 });
 
 
-test('Dependabot não reabre a versão do Supabase CLI já rejeitada por RLS', () => {
+test('Dependabot não reabre versões do Supabase CLI já rejeitadas por RLS', () => {
     const dependabot = read('.github/dependabot.yml');
 
-    assert.match(
-        dependabot,
-        /dependency-name:\s*"supabase"[\s\S]*?versions:\s*[\s\S]*?-\s*"2\.116\.0"/,
-        'Supabase CLI 2.116.0 deve permanecer bloqueado após reprovação pgTAP/RLS'
-    );
+    for (const version of ['2.116.0', '2.117.0']) {
+        const escaped = version.replaceAll('.', '\\.');
+        assert.match(
+            dependabot,
+            new RegExp(`dependency-name:\\s*"supabase"[\\s\\S]*?versions:\\s*[\\s\\S]*?-\\s*"${escaped}"`),
+            `Supabase CLI ${version} deve permanecer bloqueado após reprovação pgTAP/RLS`
+        );
+    }
     assert.doesNotMatch(
         dependabot,
         /dependency-name:\s*"supabase"[\s\S]*?version-update:semver-(?:minor|patch)/,
