@@ -38,8 +38,8 @@ jobs:
           replace('tests/unit/tooling-contract.test.js', "packageJson.devDependencies.knip, '6.33.0'", "packageJson.devDependencies.knip, '6.35.1'");
           replace('tests/unit/supabase-modernization.test.js', "pkg.devDependencies['@supabase/supabase-js'], '2.112.4'", "pkg.devDependencies['@supabase/supabase-js'], '2.116.0'");
           replace('tests/unit/supabase-modernization.test.js', 'Supabase JS 2.112.4', 'Supabase JS 2.116.0');
-          replace('tests/unit/supabase-modernization.test.js', /@supabase\\/supabase-js 2\\.112\\.4/.source, /@supabase\\/supabase-js 2\\.116\\.0/.source);
-          replace('tests/unit/supabase-modernization.test.js', /@supabase\\/supabase-js@2\\.112\\.4/.source, /@supabase\\/supabase-js@2\\.116\\.0/.source);
+          replace('tests/unit/supabase-modernization.test.js', '@supabase\\/supabase-js 2\\.112\\.4', '@supabase\\/supabase-js 2\\.116\\.0');
+          replace('tests/unit/supabase-modernization.test.js', '@supabase\\/supabase-js@2\\.112\\.4', '@supabase\\/supabase-js@2\\.116\\.0');
           NODE
 
       - name: Resolver lockfile no npm atual
