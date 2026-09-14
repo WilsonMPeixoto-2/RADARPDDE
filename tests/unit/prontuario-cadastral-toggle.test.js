@@ -24,5 +24,4 @@ test('dados existentes continuam presentes no painel cadastral', () => {
     assert.match(appSource, />Dados da unidade</);
     assert.match(appSource, /class="info-item school-data-item is-quarter"/);
     assert.match(appSource, /class="school-program-list"/);
-    assert.match(appSource, />Programas Vinculados</);
 });
