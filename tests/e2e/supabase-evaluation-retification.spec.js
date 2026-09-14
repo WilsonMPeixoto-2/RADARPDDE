@@ -80,6 +80,9 @@ test('edição explícita salva, desfaz e retifica Pendência atomicamente sem b
   await expect(pendencyForm).not.toHaveClass(/show/);
   await expect(pendencyForm).toHaveAttribute('aria-hidden', 'true');
   await expect.poll(async () => (await verification(page)).analysis.extCC).toBe('Incorreto');
+  const viewPendency = row.getByRole('button', { name: 'Visualizar pendência', exact: true });
+  await expect(viewPendency).toBeVisible();
+  await viewPendency.click();
   const preview = page.locator('#pendency-preview-drawer');
   await expect(preview).toBeVisible();
   await preview.locator('.pendency-preview-close').click();
