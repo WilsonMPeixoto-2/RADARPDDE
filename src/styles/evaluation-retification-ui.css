@@ -8,11 +8,26 @@
 }
 
 .evaluation-retification-trigger {
-    min-height: 30px;
-    padding: 4px 9px;
-    font-size: 0.72rem;
-    font-weight: 650;
+    min-height: 32px;
+    padding: 5px 10px;
+    border-color: color-mix(in srgb, var(--primary-color, #2563eb) 34%, transparent);
+    background: color-mix(in srgb, var(--primary-color, #2563eb) 8%, var(--bg-card, #ffffff));
+    color: var(--primary-color, #2563eb);
+    font-size: 0.76rem;
+    font-weight: 700;
     white-space: nowrap;
+}
+
+.evaluation-retification-trigger::before {
+    content: '✎';
+    margin-right: 5px;
+    font-size: 0.82rem;
+    line-height: 1;
+}
+
+.evaluation-retification-trigger:hover {
+    border-color: color-mix(in srgb, var(--primary-color, #2563eb) 56%, transparent);
+    background: color-mix(in srgb, var(--primary-color, #2563eb) 13%, var(--bg-card, #ffffff));
 }
 
 .evaluation-retification-modal-layer {
@@ -338,3 +353,49 @@
 .evaluation-retification-feedback button { display: block; margin-top: 12px; }
 .evaluation-retification-form[aria-busy="true"] { cursor: progress; }
 .evaluation-retification-trigger:focus-visible { outline: 3px solid #2563eb; outline-offset: 3px; }
+
+/* Confirmação de gravação: precisa ser percebida, não apenas existir no DOM. */
+#pendency-notice[data-radar-save-feedback="success"] {
+    min-width: min(420px, calc(100vw - 32px));
+    max-width: min(560px, calc(100vw - 32px));
+    padding: 14px 18px 14px 48px;
+    border: 1px solid color-mix(in srgb, var(--success, #15803d) 55%, transparent);
+    border-inline-start-width: 4px;
+    border-radius: 12px;
+    background: var(--success-bg, #ecfdf3);
+    color: var(--text-primary, #0f172a);
+    box-shadow: 0 14px 36px rgba(15, 23, 42, 0.18);
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+#pendency-notice[data-radar-save-feedback="success"]::before {
+    content: '✓';
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    display: grid;
+    width: 23px;
+    height: 23px;
+    place-items: center;
+    border-radius: 999px;
+    transform: translateY(-50%);
+    background: var(--success, #15803d);
+    color: #fff;
+    font-size: 0.86rem;
+    font-weight: 850;
+}
+
+.dark-theme #pendency-notice[data-radar-save-feedback="success"] {
+    color: var(--text-primary, #f8fafc);
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
+}
+
+@media (max-width: 700px) {
+    #pendency-notice[data-radar-save-feedback="success"] {
+        min-width: 0;
+        width: calc(100vw - 24px);
+        max-width: none;
+        padding-right: 14px;
+    }
+}
