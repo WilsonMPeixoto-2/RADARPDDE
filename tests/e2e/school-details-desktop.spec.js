@@ -137,7 +137,7 @@ test.describe('Prontuário operacional no desktop', () => {
   test('mantém dados cadastrais recolhidos e cabeçalho da escola visível durante rolagem', async ({ page }) => {
     await openProfileSchool(page, 'controlador');
 
-    const toggle = page.getByRole('button', { name: 'Exibir dados da unidade', exact: true });
+    const toggle = page.locator('button[aria-controls="school-registration-details"]');
     const panel = page.locator('#school-registration-details');
     const header = page.locator('.prontuario-school-header');
     await expect(toggle).toHaveAttribute('aria-expanded', 'false');
