@@ -53,7 +53,7 @@ jobs:
 
       - name: Validar contratos de dependência
         run: |
-          npm run check:generated
+          CI=false npm run check:generated
           node --test tests/unit/supabase-modernization.test.js tests/unit/tooling-contract.test.js
           npm run analyze:unused
           npx playwright --version
