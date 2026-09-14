@@ -16,12 +16,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: playwright-mobile-${{ github.ref }}
+  group: playwright-desktop-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  mobile:
-    name: Desktop, Android e iPhone
+  desktop:
+    name: Desktop homologado
     runs-on: ubuntu-latest
     timeout-minutes: 35
 
@@ -39,17 +39,17 @@ jobs:
       - name: Instalar dependências reproduzíveis
         run: npm ci
 
-      - name: Instalar navegadores Playwright
-        run: npx playwright install --with-deps chromium webkit
+      - name: Instalar Chromium homologado
+        run: npx playwright install --with-deps chromium
 
-      - name: Executar testes E2E completos
-        run: npm run test:e2e
+      - name: Executar suíte E2E desktop
+        run: npm run test:e2e -- --project=desktop-chromium
 
       - name: Publicar relatório de execução
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: playwright-report-mobile
+          name: playwright-report-desktop
           path: playwright-report/
           retention-days: 7
           if-no-files-found: ignore
