@@ -7,6 +7,7 @@ on:
     paths:
       - '.automation/pr315-task2.mjs'
       - '.github/workflows/pr315-task2-materialize.yml'
+      - 'tests/unit/remote-bootstrap-concurrency.test.js'
 
 permissions:
   contents: write
