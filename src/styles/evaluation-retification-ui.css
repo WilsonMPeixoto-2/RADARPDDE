@@ -30,6 +30,11 @@
     background: color-mix(in srgb, var(--primary-color, #2563eb) 13%, var(--bg-card, #ffffff));
 }
 
+/* A própria tríade Sim/Não/N/A é a interface de edição da bonificação. */
+[data-evaluation-retification-actions="bonification"] {
+    display: none !important;
+}
+
 .evaluation-retification-modal-layer {
     position: fixed;
     inset: 0;
