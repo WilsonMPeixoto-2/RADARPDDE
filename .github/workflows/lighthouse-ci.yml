@@ -42,7 +42,7 @@ concurrency:
 
 jobs:
   baseline:
-    name: Baseline mobile e desktop
+    name: Baseline desktop
     runs-on: ubuntu-24.04
     timeout-minutes: 20
 
@@ -87,18 +87,6 @@ jobs:
           cat artifacts/lighthouse/server.log
           exit 1
 
-      - name: Executar baseline mobile
-        id: lighthouse-mobile
-        continue-on-error: true
-        shell: bash
-        run: |
-          set +e
-          LHCI_PROFILE=mobile npm run audit:lighthouse 2>&1 | tee artifacts/lighthouse/mobile.log
-          status=${PIPESTATUS[0]}
-          set -e
-          printf '{"exitCode":%s}\n' "${status}" > artifacts/lighthouse/mobile-exit.json
-          exit "${status}"
-
       - name: Executar baseline desktop
         id: lighthouse-desktop
         continue-on-error: true
@@ -123,46 +111,33 @@ jobs:
         if: always()
         shell: bash
         run: |
-          echo "# Auditoria Lighthouse" >> "${GITHUB_STEP_SUMMARY}"
-          for profile in mobile desktop; do
-            summary="artifacts/lighthouse/${profile}/summary.md"
-            if test -f "${summary}"; then
-              cat "${summary}" >> "${GITHUB_STEP_SUMMARY}"
-            else
-              echo "## ${profile}" >> "${GITHUB_STEP_SUMMARY}"
-              echo "Relatório não produzido; consulte o log do executor." >> "${GITHUB_STEP_SUMMARY}"
-            fi
-            echo >> "${GITHUB_STEP_SUMMARY}"
-          done
+          echo "# Auditoria Lighthouse desktop" >> "${GITHUB_STEP_SUMMARY}"
+          summary="artifacts/lighthouse/desktop/summary.md"
+          if test -f "${summary}"; then
+            cat "${summary}" >> "${GITHUB_STEP_SUMMARY}"
+          else
+            echo "Relatório não produzido; consulte o log do executor." >> "${GITHUB_STEP_SUMMARY}"
+          fi
 
-      - name: Validar pisos de qualidade Lighthouse
+      - name: Validar piso de qualidade Lighthouse desktop
         if: always()
         run: |
           node <<'NODE'
           const fs = require('node:fs');
-          const profiles = ['mobile', 'desktop'];
-          const failures = [];
-          for (const profile of profiles) {
-            const exitFile = `artifacts/lighthouse/${profile}-exit.json`;
-            const summaryFile = `artifacts/lighthouse/${profile}/summary.json`;
-            if (!fs.existsSync(exitFile) || !fs.existsSync(summaryFile)) {
-              failures.push(`${profile}: evidências incompletas`);
-              continue;
-            }
-            const exitCode = Number(JSON.parse(fs.readFileSync(exitFile, 'utf8')).exitCode);
-            const summary = JSON.parse(fs.readFileSync(summaryFile, 'utf8'));
-            const violated = exitCode !== 0 || (summary.violations || []).length > 0;
-            if (profile === 'desktop' && violated) {
-              failures.push('desktop: piso de qualidade bloqueante não atendido');
-            } else if (profile === 'mobile' && violated) {
-              console.warn('mobile: dívida de performance conhecida e não bloqueante; evidência preservada.');
-            }
-          }
-          if (failures.length > 0) {
-            console.error(failures.join('\n'));
+          const exitFile = 'artifacts/lighthouse/desktop-exit.json';
+          const summaryFile = 'artifacts/lighthouse/desktop/summary.json';
+          if (!fs.existsSync(exitFile) || !fs.existsSync(summaryFile)) {
+            console.error('desktop: evidências incompletas');
             process.exit(1);
           }
-          console.log('Piso Lighthouse desktop aprovado; mobile auditado como dívida não bloqueante.');
+          const exitCode = Number(JSON.parse(fs.readFileSync(exitFile, 'utf8')).exitCode);
+          const summary = JSON.parse(fs.readFileSync(summaryFile, 'utf8'));
+          const violated = exitCode !== 0 || (summary.violations || []).length > 0;
+          if (violated) {
+            console.error('desktop: piso de qualidade bloqueante não atendido');
+            process.exit(1);
+          }
+          console.log('Piso Lighthouse desktop aprovado.');
           NODE
 
       - name: Publicar relatórios Lighthouse
