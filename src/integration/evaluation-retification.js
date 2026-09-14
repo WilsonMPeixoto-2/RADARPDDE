@@ -589,8 +589,20 @@
             value: originalSetBonification
         });
         service.setBonification = function setBonificationWithUndo(input = {}) {
-            if (text(input.value)) return originalSetBonification(input);
-            return undoBonification(service, input);
+            const schoolId = text(input.schoolId);
+            const compKey = text(input.compKey);
+            const documentKey = text(input.documentKey);
+            const requestedValue = text(input.value);
+            const verification = service.getVerification(schoolId, compKey);
+            const currentValue = text(verification?.bonificacao?.[documentKey]);
+
+            if (requestedValue && requestedValue !== currentValue) {
+                return originalSetBonification(input);
+            }
+            return undoBonification(service, {
+                ...input,
+                value: ''
+            });
         };
         service.correctTechnicalAnalysis = function correctTechnicalAnalysisCommand(input = {}) {
             return correctTechnicalAnalysis(service, input);
