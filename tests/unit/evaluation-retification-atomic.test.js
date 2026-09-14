@@ -168,7 +168,28 @@ test('desfazer entrega não deixa Pendência ativa com análise neutra', async (
     const h = createHarness();
     await assert.rejects(() => h.service.setBonification({ schoolId: 'ESC-1', compKey: '2026-05_BASIC', documentKey: 'extCC', value: '' }), { code: 'ACTIVE_PENDENCY' });
     assert.equal(h.verification.bonificacao.extCC, 'Sim');
-    assert.equal(h.verification.analise.extCC, 'Incorreto');
+    assert.equal(h.verification.analise.extCC, 'Incorto');
     assert.equal(h.activePendency.status, 'Aberta');
     assert.equal(h.state.logs.length, 0);
+});
+
+test('Pendência ativa sem análise Incorreto permanece no fluxo normal e não vira retificação de avaliação', async () => {
+    const h = createHarness();
+    h.verification.analise.extCC = 'Não analisado';
+
+    await assert.rejects(
+        () => h.service.correctTechnicalAnalysis({
+            schoolId: 'ESC-1',
+            compKey: '2026-05_BASIC',
+            documentKey: 'extCC',
+            value: 'Correto',
+            profile: 'controlador'
+        }),
+        error => error?.code === 'ACTIVE_PENDENCY'
+    );
+
+    assert.equal(h.verification.analise.extCC, 'Não analisado');
+    assert.equal(h.activePendency.status, 'Aberta');
+    assert.equal(h.state.logs.length, 0);
+    assert.deepEqual(h.calls, []);
 });
