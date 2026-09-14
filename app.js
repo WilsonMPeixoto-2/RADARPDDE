@@ -4582,7 +4582,10 @@ async function initializeRadarData() {
         repository,
         statePort
     });
-    const bootstrap = await radarDataService.bootstrap();
+    const initialOperationalCompetence = window.RadarCompetencia?.previousCompetenceKeyFromDate?.() || '';
+    const bootstrap = await radarDataService.bootstrap(
+        initialOperationalCompetence ? { competenceId: initialOperationalCompetence } : {}
+    );
     initializeRadarApplicationServices();
     const capabilities = repository.capabilities();
 
