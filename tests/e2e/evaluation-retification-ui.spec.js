@@ -18,7 +18,7 @@ async function seedIncorrectEvaluationWithPendency(page) {
         notaFiscal: '',
         consAssessoria: '',
         consEnviada: false,
-        declBBAgil: '',
+        declBBAgil: 'Sim',
         encampInventario: ''
       },
       analise: {
@@ -26,7 +26,7 @@ async function seedIncorrectEvaluationWithPendency(page) {
         extINV: 'Correto',
         notaFiscal: 'Não analisado',
         consAssessoria: 'Não analisado',
-        declBBAgil: 'Não analisado',
+        declBBAgil: 'Correto',
         encampInventario: 'Não analisado'
       },
       resultadoBonif: ''
@@ -148,7 +148,7 @@ test.describe('retificação formal de avaliações no Preview', () => {
     await expect(drawer).toContainText('A avaliação foi marcada como Incorreto por engano após nova conferência do documento já correto.');
   });
 
-  test('bonificação é editada pelos próprios botões e clique repetido limpa a seleção', async ({ page }, testInfo) => {
+  test('bonificação é editada pelos próprios botões e clique repetido limpa Sim, Não ou N/A', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário desktop de homologação em Preview.');
 
     await page.goto('/');
@@ -156,7 +156,7 @@ test.describe('retificação formal de avaliações no Preview', () => {
     const context = await seedIncorrectEvaluationWithPendency(page);
 
     const row = page.locator(
-      '#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="extINV"]'
+      '#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="declBBAgil"]'
     );
     const sim = row.getByRole('button', { name: 'Sim', exact: true });
     const nao = row.getByRole('button', { name: 'Não', exact: true });
@@ -173,19 +173,32 @@ test.describe('retificação formal de avaliações no Preview', () => {
     await expect(nao).toHaveClass(/active-nao/);
     await expect(sim).not.toHaveClass(/active-sim/);
     let state = await page.evaluate(({ schoolId, compKey }) => ({
-      bonification: verificacoes[schoolId][compKey].bonificacao.extINV,
-      analysis: verificacoes[schoolId][compKey].analise.extINV
+      bonification: verificacoes[schoolId][compKey].bonificacao.declBBAgil,
+      analysis: verificacoes[schoolId][compKey].analise.declBBAgil
     }), context);
     expect(state.bonification).toBe('Não');
     expect(state.analysis).toBe('Correto');
 
-    await nao.click();
+    await na.click();
+    await expect(successNotice).toBeVisible();
+    await expect(successNotice).toHaveAttribute('data-radar-save-feedback', 'success');
+    await expect(successNotice).toContainText('Bonificação atualizada com sucesso.');
+    await expect(na).toHaveClass(/active-naoseaplica/);
+    await expect(nao).not.toHaveClass(/active-nao/);
+    state = await page.evaluate(({ schoolId, compKey }) => ({
+      bonification: verificacoes[schoolId][compKey].bonificacao.declBBAgil,
+      analysis: verificacoes[schoolId][compKey].analise.declBBAgil
+    }), context);
+    expect(state.bonification).toBe('Não se aplica');
+    expect(state.analysis).toBe('Correto');
+
+    await na.click();
     await expect(successNotice).toBeVisible();
     await expect(successNotice).toHaveAttribute('data-radar-save-feedback', 'success');
     await expect(successNotice).toContainText('Bonificação desfeita com sucesso.');
     state = await page.evaluate(({ schoolId, compKey }) => ({
-      bonification: verificacoes[schoolId][compKey].bonificacao.extINV,
-      analysis: verificacoes[schoolId][compKey].analise.extINV
+      bonification: verificacoes[schoolId][compKey].bonificacao.declBBAgil,
+      analysis: verificacoes[schoolId][compKey].analise.declBBAgil
     }), context);
     expect(state.bonification).toBe('');
     expect(state.analysis).toBe('Não analisado');
