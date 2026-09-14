@@ -32,6 +32,8 @@
         'toggleConsEnviada'
     ]);
     const SAVE_SUCCESS_MESSAGES = Object.freeze({
+        'verification:set-bonification': 'Bonificação atualizada com sucesso.',
+        'verification:undo-bonification': 'Bonificação desfeita com sucesso.',
         'invoice:save': 'Nota fiscal salva com sucesso.',
         'invoice:save-unidentified-with-pendency': 'Despesa e pendência salvas com sucesso.',
         'inventory:update-asset': 'Alterações do bem salvas com sucesso.',
