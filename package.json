@@ -108,7 +108,7 @@
     "lighthouse": "13.4.1",
     "msw": "2.15.0",
     "prettier": "3.9.6",
-    "supabase": "2.114.0",
+    "supabase": "2.115.0",
     "typescript": "7.0.2"
   },
   "dependencies": {
