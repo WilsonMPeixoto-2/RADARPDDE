@@ -30,10 +30,27 @@ O pacote:
 - remove a declaração duplicada de fontes no CSS;
 - transforma a folha externa de fontes em preload não bloqueante, com fallback `noscript`;
 - adiciona fallback imediato por `Segoe UI`/Arial enquanto a fonte institucional não chega;
-- reduz discretamente sombra e glow globais sem alterar identidade, cores semânticas, hierarquia ou layout funcional;
+- reduz discretamente sombra e glow sem alterar identidade, cores semânticas, hierarquia ou layout funcional;
 - mantém os scripts locais do bootstrap com `defer` e preserva o carregamento sob demanda do cliente Supabase.
 
 Um contrato unitário específico impede a volta da carga duplicada/bloqueante de fontes.
+
+### Resultado medido
+
+A correção reduziu de forma objetiva o custo bloqueante da renderização inicial, sem alterar artificialmente os limites do Lighthouse:
+
+| Métrica | Antes | Depois |
+|---|---:|---:|
+| FCP mobile | 3,17 s | 2,48 s |
+| Bloqueio de renderização mobile estimado | 1.680 ms | 470 ms |
+| FCP desktop | 736 ms | 566 ms |
+| Bloqueio de renderização desktop estimado | 390 ms | 60 ms |
+| LCP mobile | 16,66 s | 16,65 s |
+| LCP desktop | 4,12 s | 4,15 s |
+
+A leitura do relatório bruto identificou que o LCP residual não depende da fonte. No desktop, o elemento LCP é o cabeçalho dinâmico de **Escolas e Carteiras**; no mobile, é o texto dinâmico de contexto da **Carteira ativa**. O carregamento inicial envolve cerca de 114 scripts e 148 requisições no ensaio Lighthouse, e tarefas de bootstrap/autenticação/navegação ainda ocorrem tardiamente no perfil mobile simulado.
+
+Portanto, o LCP residual é tratado como dívida de arquitetura de carregamento. A correção adequada exige uma frente própria de modularização/lazy-loading ou bundle de produção; não será escondida neste PR nem contornada relaxando o piso do Lighthouse.
 
 ## Documentação corrente
 
@@ -44,9 +61,10 @@ Um contrato unitário específico impede a volta da carga duplicada/bloqueante d
 - candidato funcional certificado `86db8651134616fe03d6506e7f9bd073e1e1eb3f`;
 - deployment Production `dpl_c9Be1LfZocKVBVmrB5pDHaVB7w3X`;
 - build de Production com 1.034 testes aprovados;
-- restauração auditável de edição deixa de aparecer incorretamente como trabalho em andamento.
+- restauração auditável de edição deixa de aparecer incorretamente como trabalho em andamento;
+- certificação, handoffs e rota de retomada distinguem o baseline publicado do PR #305 da manutenção ainda aberta no PR #306.
 
-## Limite deliberado
+## Banco e regras preservados
 
 Este pacote não altera:
 
@@ -57,8 +75,28 @@ Este pacote não altera:
 - modelo de dados, competência, programa, escola ou perfis;
 - autoridade funcional das superfícies.
 
-O estado do banco Production foi conferido somente por leitura antes desta rodada e o monitor `production_integrity_check()` retornou `healthy`, com zero problemas nas verificações agregadas.
+O estado do banco Production foi conferido somente por leitura. `production_integrity_check()` retornou `healthy`, com zero problemas nas verificações agregadas. Verificações adicionais de vínculos entre Nota Fiscal, avaliação, Pendência e patrimônio também retornaram zero inconsistências.
+
+## Evidência de validação
+
+No candidato de runtime `5ffacebc5cce685d9ed41f15d1a60c5ac437a2a9`, ficaram verdes, entre outros:
+
+- validação geral;
+- saúde das dependências;
+- CodeQL;
+- confiabilidade funcional com Supabase real;
+- ciclos funcionais reais com Supabase;
+- gate remoto de perfis e viewports;
+- backup e restauração descartáveis;
+- homologação Excel SME;
+- Supabase readiness após retry de uma falha externa do registry ECR.
+
+No Supabase readiness, antes da falha externa, 31 arquivos pgTAP e 440 testes passaram, além de migrations e lint. A única interrupção foi `toomanyrequests: Rate exceeded` ao baixar `postgres-meta:v0.97.0`; o retry concluiu o gate com sucesso.
+
+O Lighthouse continua vermelho exclusivamente pelo LCP acima do piso definido. A melhoria aplicada é mensurável em FCP e bloqueio de renderização, mas não resolve a dívida estrutural de LCP.
+
+Os commits documentais posteriores ao candidato de runtime apenas reconciliam o estado canônico e este handoff; não alteram o código executável exercitado.
 
 ## Critério de encerramento
 
-O head final do PR #306 deve repetir os gates funcionais, Supabase/RLS, backup/restauração, E2E, perfis/viewports, segurança e Lighthouse. A comparação de Lighthouse deve usar como referência o baseline pré-pacote acima, sem relaxar limites para produzir resultado verde artificialmente.
+O PR #306 está preparado como pacote final de manutenção e deve permanecer aberto até decisão explícita de merge. O próximo trabalho de performance, caso venha a ser autorizado, deve ser uma frente independente de carregamento/modularização, sem misturar nova alteração funcional ou de banco.
