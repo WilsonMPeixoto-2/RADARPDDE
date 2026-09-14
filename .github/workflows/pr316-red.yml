@@ -1,0 +1,20 @@
+name: PR316 RED navegacao prontuario
+
+on:
+  push:
+    branches:
+      - feat/prontuario-navegacao-rapida
+
+permissions:
+  contents: read
+
+jobs:
+  red:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: node --test tests/unit/prontuario-navigation-ux.test.js
