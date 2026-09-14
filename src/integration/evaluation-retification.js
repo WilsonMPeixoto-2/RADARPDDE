@@ -227,6 +227,27 @@
         return next;
     }
 
+    function preservePendencyCadastroForRetification(pendency = {}, originalPendency = {}) {
+        return {
+            ...pendency,
+            responsible_area: text(
+                originalPendency.responsible_area
+                || originalPendency.responsavel
+                || pendency.responsible_area
+            ),
+            reason: text(
+                originalPendency.reason
+                || originalPendency.motivo
+                || pendency.reason
+            ),
+            notes: text(
+                originalPendency.notes
+                || originalPendency.observacao
+                || pendency.notes
+            )
+        };
+    }
+
     function findSnapshotVerification(entities, persistence) {
         if (persistence.verificationId) {
             const byId = list(entities.verifications)
@@ -275,10 +296,15 @@
             return defaultPersist();
         }
 
+        const pendencyForRpc = preservePendencyCadastroForRetification(
+            pendency,
+            persistence.originalPendency
+        );
+
         return repository.executeRpc('retify_verification_with_pendency_cancel', {
             p_verification: verification,
             p_expected_verification_version: persistence.expectedVerificationVersion,
-            p_pendency: pendency,
+            p_pendency: pendencyForRpc,
             p_expected_pendency_version: persistence.expectedPendencyVersion,
             p_administrative_log: administrativeLog,
             p_retification: persistence.retification
@@ -460,6 +486,7 @@
                         persistence.expectedVerificationVersion = rowVersionOf(verification);
                         persistence.pendencyId = text(livePendency.id);
                         persistence.expectedPendencyVersion = rowVersionOf(livePendency);
+                        persistence.originalPendency = cloneValue(livePendency);
                         persistence.retification = {
                             kind: RETIFICATION_CANCELLATION_TYPE,
                             origin: RETIFICATION_CANCELLATION_ORIGIN,
@@ -587,6 +614,7 @@
         RETIFICATION_CANCELLATION_TYPE,
         RETIFICATION_CANCELLATION_ORIGIN,
         RETIFICATION_CANCELLATION_LABEL,
+        preservePendencyCadastroForRetification,
         install,
         protectVerificationService,
         undoBonification,
