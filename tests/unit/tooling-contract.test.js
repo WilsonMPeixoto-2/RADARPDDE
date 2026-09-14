@@ -32,17 +32,17 @@ test('mantém o renderer institucional interno e fixa ExcelJS somente para o pro
     assert.equal(packageJson.scripts['format:check'], 'prettier . --check --ignore-unknown');
     const prettierIgnore = read('.prettierignore');
     assert.match(prettierIgnore, /^vendor\/$/m);
-    assert.equal(packageJson.devDependencies.eslint, '10.9.1');
-    assert.equal(packageJson.devDependencies.knip, '6.33.0');
+    assert.equal(packageJson.devDependencies.eslint, '10.10.0');
+    assert.equal(packageJson.devDependencies.knip, '6.34.0');
     assert.equal(packageJson.devDependencies['eslint-plugin-no-unsanitized'], '4.1.5');
     assert.equal(packageJson.devDependencies['eslint-plugin-playwright'], '2.11.0');
     assert.equal(packageJson.devDependencies.lighthouse, '13.4.1');
     assert.equal(packageJson.devDependencies['@lhci/cli'], undefined);
     assert.equal(packageJson.overrides['brace-expansion@5.0.8'], '5.0.9');
     assert.equal(packageJson.overrides['fast-uri'], '^3.1.6');
-    assert.equal(packageJson.overrides.qs, '^6.16.0');
+    assert.equal(packageJson.overrides.qs, undefined);
     assert.match(lockfile, /"node_modules\/fast-uri": \{\s+"version": "3\.1\.6"/);
-    assert.match(lockfile, /"node_modules\/qs": \{\s+"version": "6\.16\.0"/);
+    assert.doesNotMatch(lockfile, /"node_modules\/qs"/);
     assert.doesNotMatch(lockfile, /"node_modules\/fast-uri": \{\s+"version": "4\.1\.2"/);
     assert.equal(
         packageJson.allowScripts[`esbuild@${packageJson.devDependencies.esbuild}`],

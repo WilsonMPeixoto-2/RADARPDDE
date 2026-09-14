@@ -1,0 +1,16 @@
+{
+  "@types/node": {
+    "current": "24.13.3",
+    "wanted": "24.13.3",
+    "latest": "26.4.1",
+    "dependent": "RADARPDDE",
+    "location": "/home/runner/work/RADARPDDE/RADARPDDE/node_modules/@types/node"
+  },
+  "supabase": {
+    "current": "2.114.0",
+    "wanted": "2.114.0",
+    "latest": "2.116.0",
+    "dependent": "RADARPDDE",
+    "location": "/home/runner/work/RADARPDDE/RADARPDDE/node_modules/supabase"
+  }
+}
