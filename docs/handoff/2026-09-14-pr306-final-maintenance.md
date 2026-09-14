@@ -79,7 +79,7 @@ O estado do banco Production foi conferido somente por leitura. `production_inte
 
 ## Evidência de validação
 
-No candidato de runtime `5ffacebc5cce685d9ed41f15d1a60c5ac437a2a9`, ficaram verdes, entre outros:
+No candidato de runtime `5ffacebc5cce685d9ed41f15d1a60c5ac437a2a9`, ficaram verdes:
 
 - validação geral;
 - saúde das dependências;
@@ -89,9 +89,12 @@ No candidato de runtime `5ffacebc5cce685d9ed41f15d1a60c5ac437a2a9`, ficaram verd
 - gate remoto de perfis e viewports;
 - backup e restauração descartáveis;
 - homologação Excel SME;
-- Supabase readiness após retry de uma falha externa do registry ECR.
+- Supabase readiness após retry de uma falha externa do registry ECR;
+- Testes E2E Playwright completos.
 
 No Supabase readiness, antes da falha externa, 31 arquivos pgTAP e 440 testes passaram, além de migrations e lint. A única interrupção foi `toomanyrequests: Rate exceeded` ao baixar `postgres-meta:v0.97.0`; o retry concluiu o gate com sucesso.
+
+A homologação integral foi supersedida/cancelada pelos commits documentais seguintes depois de seus blocos de banco, Auth/RLS/pgTAP, migrations, backup/restauração, segurança, prontidão e Excel já terem passado. A prova funcional correspondente também está coberta pelos gates independentes verdes acima.
 
 O Lighthouse continua vermelho exclusivamente pelo LCP acima do piso definido. A melhoria aplicada é mensurável em FCP e bloqueio de renderização, mas não resolve a dívida estrutural de LCP.
 
