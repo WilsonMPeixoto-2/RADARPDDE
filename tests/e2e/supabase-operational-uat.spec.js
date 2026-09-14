@@ -254,13 +254,33 @@ async function remoteRows(page, table, filters) {
   }, { entity: table, where: filters });
 }
 
+async function isBonificationOptionSelected(button) {
+  return button.evaluate(element => (
+    element.getAttribute('aria-pressed') === 'true'
+    || element.classList.contains('is-selected')
+    || element.classList.contains('active-sim')
+    || element.classList.contains('active-nao')
+    || element.classList.contains('active-naoseaplica')
+  ));
+}
+
+async function ensureBonificationSim(page, row) {
+  const sim = row.getByRole('button', { name: 'Sim', exact: true });
+  if (await isBonificationOptionSelected(sim)) return;
+  await sim.click();
+  await settleWrites(page);
+  await expect.poll(
+    () => isBonificationOptionSelected(sim),
+    { message: 'A bonificação Sim não ficou selecionada após a gravação.', timeout: 10000 }
+  ).toBe(true);
+}
+
 async function createInvoiceUI(page, { type, number, description, amount = '250', program = 'BASIC' }) {
   const row = fiscalRow(page, program);
   if (type === 'a_identificar') {
     await row.getByRole('button', { name: 'Registrar despesa a identificar', exact: true }).click();
   } else {
-    await row.getByRole('button', { name: 'Sim', exact: true }).click();
-    await settleWrites(page);
+    await ensureBonificationSim(page, row);
     await row.getByRole('button', { name: 'Adicionar Nota', exact: true }).click();
   }
   const modal = page.locator('#modal-dados-nota');

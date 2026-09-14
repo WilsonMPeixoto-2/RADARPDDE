@@ -47,7 +47,7 @@ test('commit remoto confirmado sem sincronização local avisa para atualizar se
     assert.doesNotMatch(result.message, /salve novamente|tente novamente|repita/i);
 });
 
-test('feedback explícito cobre as operações patrimoniais aprovadas sem gerar mensagem para outras escritas', () => {
+test('feedback explícito cobre operações patrimoniais e edição direta da bonificação', () => {
     const synced = {
         ok: true,
         stateSync: { status: 'applied', remoteCommitConfirmed: true, localStateApplied: true, refreshRequired: false },
@@ -67,7 +67,22 @@ test('feedback explícito cobre as operações patrimoniais aprovadas sem gerar 
         feedback.feedbackForResult('inventory:complete', synced)?.message,
         'Inventariação salva com sucesso.'
     );
-    assert.equal(feedback.feedbackForResult('verification:set-bonification', synced), null);
+    assert.deepEqual(
+        feedback.feedbackForResult('verification:set-bonification', synced),
+        {
+            kind: 'success',
+            message: 'Bonificação atualizada com sucesso.',
+            persistent: false
+        }
+    );
+    assert.deepEqual(
+        feedback.feedbackForResult('verification:undo-bonification', synced),
+        {
+            kind: 'success',
+            message: 'Bonificação desfeita com sucesso.',
+            persistent: false
+        }
+    );
 });
 
 test('wrapper de feedback executa a gravação original uma única vez', async () => {

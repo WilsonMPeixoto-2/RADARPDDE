@@ -559,6 +559,9 @@ contexto consolidado
 
 Retificação de bonificação não resolve, cancela ou reabre Pendência automaticamente e não altera análise técnica por associação implícita.
 
+Na restauração autorizada em 13/09/2026, desfazer explicitamente uma marcação para **Não preenchido** retorna sua análise dependente para **Não analisado**, com log; é bloqueado enquanto houver Pendência ativa ou notas fiscais cadastradas naquele documento. Corrigir **Incorreto** lançado por engano é outra operação: `RadarEvaluationRetification.correctTechnicalAnalysis` exige confirmação e justificativa e usa `retify_verification_with_pendency_cancel` para atualizar avaliação, anular a Pendência e registrar auditoria atomicamente, preservando tentativas e histórico. Documento novo/corrigido continua exigindo novo envio e reanálise. Análises agregadas de NF/Assessoria não recebem esse comando.
+
+
 ## 9.12 Gestão de Equipe
 
 ```text

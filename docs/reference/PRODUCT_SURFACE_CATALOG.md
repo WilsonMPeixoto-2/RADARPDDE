@@ -1,7 +1,7 @@
 # Catálogo de superfícies do RADAR PDDE
 
 **Estado:** referência operacional vigente  
-**Atualizado em:** 8 de setembro de 2026
+**Atualizado em:** 14 de setembro de 2026
 
 ## 1. Regra de leitura
 
@@ -189,6 +189,10 @@ Se o comportamento estiver correto e o problema for apenas de compreensão, loca
 | Regra | novo envio não resolve; reanálise decide a transição |
 | Persistência | pendência, tentativa, contato, verificação e log |
 | Leitura humana | visão completa do passivo: origem, antiguidade, erros, tentativas, contatos, histórico, responsável atual e próxima ação |
+
+### Edição explícita no Prontuário (restauração autorizada em 13/09/2026)
+
+A **bonificação é editada diretamente pelos próprios controles Sim/Não/N/A**, sem botão ou modal separado: selecionar outra opção substitui o valor atual e clicar novamente na opção já selecionada volta ao estado não preenchido quando a regra do documento permitir. O resultado recebe feedback visual de sucesso. A ação **Editar análise** permanece explícita para correção da análise técnica. Quando a correção de um `Incorreto` possui Pendência ativa, o formulário mostra documento, escola, programa, mês e mudança proposta, exige confirmação e justificativa e diferencia a correção do operador do fluxo de novo envio/reanálise da escola. O histórico identifica **Anulada por edição da avaliação**. Durante a gravação os controles ficam bloqueados; falha permanece visível; commit confirmado com projeção pendente pede atualização da página sem anunciar sucesso completo. Edição individual das notas e Assessoria permanece nas próprias notas.
 
 ## S-05 — Prontuário
 
