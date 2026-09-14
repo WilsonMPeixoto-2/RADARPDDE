@@ -22,7 +22,8 @@
         '/src/styles/operational-write-feedback.css',
         '/src/styles/layout-responsive-2026.css',
         '/src/styles/inventory-icon-refinement.css',
-        '/src/styles/evaluation-retification-ui.css'
+        '/src/styles/evaluation-retification-ui.css',
+        '/src/styles/sidebar-prontuario-polish.css'
     ]);
     const scripts = Object.freeze([
         // Regra crítica: "Incorreto" nunca pode cair no handler-base sem a pendência atômica.
