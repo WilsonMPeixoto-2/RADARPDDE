@@ -1,0 +1,230 @@
+/*
+ * Correção visual pós-PR #316.
+ * Unifica a identidade da sidebar em tema claro e recompõe o cabeçalho do Prontuário
+ * sem alterar navegação, permissões, persistência ou regras de negócio.
+ */
+
+/* Sidebar institucional escura e viva */
+body:not(.dark-theme) aside.sidebar {
+    position: relative;
+    isolation: isolate;
+    overflow: clip;
+    background:
+        radial-gradient(circle at 18% 3%, rgba(167, 139, 250, 0.24), transparent 31%),
+        radial-gradient(circle at 112% 54%, rgba(124, 58, 237, 0.22), transparent 42%),
+        linear-gradient(180deg, #2a0f5f 0%, #201044 44%, #160b35 100%);
+    border-right-color: rgba(196, 181, 253, 0.13);
+    box-shadow: 10px 0 34px rgba(28, 12, 60, 0.16);
+}
+
+/* O Dashboard possui tema próprio. Esta regra deliberada evita a combinação híbrida
+   entre a antiga sidebar clara do tema expressivo e as cores claras da sidebar escura. */
+body.radar-expressiva-institucional:not(.dark-theme) aside.sidebar {
+    background:
+        radial-gradient(circle at 18% 3%, rgba(167, 139, 250, 0.24), transparent 31%),
+        radial-gradient(circle at 112% 54%, rgba(124, 58, 237, 0.22), transparent 42%),
+        linear-gradient(180deg, #2a0f5f 0%, #201044 44%, #160b35 100%);
+    border-right-color: rgba(196, 181, 253, 0.13);
+    box-shadow: 10px 0 34px rgba(28, 12, 60, 0.16);
+    backdrop-filter: none;
+}
+
+/* Faixas abstratas discretas inspiradas na identidade visual original. */
+body:not(.dark-theme) aside.sidebar::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    left: -42%;
+    right: -24%;
+    bottom: 12%;
+    height: 190px;
+    border-radius: 50%;
+    border-top: 24px solid rgba(139, 92, 246, 0.10);
+    box-shadow:
+        0 -28px 64px rgba(109, 40, 217, 0.09),
+        0 -64px 110px rgba(91, 33, 182, 0.07);
+    transform: rotate(-20deg);
+    pointer-events: none;
+}
+
+body:not(.dark-theme) aside.sidebar::after {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    left: -36%;
+    right: -34%;
+    bottom: 2%;
+    height: 245px;
+    border-radius: 50%;
+    border-top: 1px solid rgba(221, 214, 254, 0.16);
+    box-shadow: 0 -32px 90px rgba(124, 58, 237, 0.10);
+    transform: rotate(-18deg);
+    pointer-events: none;
+}
+
+body:not(.dark-theme) aside.sidebar > * {
+    position: relative;
+    z-index: 1;
+}
+
+body:not(.dark-theme) aside.sidebar .logo-text,
+body:not(.dark-theme) aside.sidebar .user-name,
+body.radar-expressiva-institucional:not(.dark-theme) aside.sidebar .logo-text,
+body.radar-expressiva-institucional:not(.dark-theme) aside.sidebar .user-name {
+    color: #ffffff;
+    -webkit-text-fill-color: #ffffff;
+}
+
+body:not(.dark-theme) aside.sidebar .logo-sub,
+body:not(.dark-theme) aside.sidebar .nav-label,
+body:not(.dark-theme) aside.sidebar .user-role,
+body.radar-expressiva-institucional:not(.dark-theme) aside.sidebar .logo-sub,
+body.radar-expressiva-institucional:not(.dark-theme) aside.sidebar .nav-label,
+body.radar-expressiva-institucional:not(.dark-theme) aside.sidebar .user-role {
+    color: #c4b5fd;
+}
+
+body:not(.dark-theme) aside.sidebar .nav-item,
+body.radar-expressiva-institucional:not(.dark-theme) aside.sidebar .nav-item {
+    color: #ede9fe;
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+}
+
+body:not(.dark-theme) aside.sidebar .nav-item svg,
+body.radar-expressiva-institucional:not(.dark-theme) aside.sidebar .nav-item svg {
+    color: currentColor;
+    background: rgba(255, 255, 255, 0.055);
+    box-shadow: none;
+}
+
+body:not(.dark-theme) aside.sidebar .nav-item:hover,
+body.radar-expressiva-institucional:not(.dark-theme) aside.sidebar .nav-item:hover {
+    color: #ffffff;
+    border-color: rgba(196, 181, 253, 0.15);
+    background: rgba(255, 255, 255, 0.075);
+}
+
+body:not(.dark-theme) aside.sidebar .nav-item.active,
+body.radar-expressiva-institucional:not(.dark-theme) aside.sidebar .nav-item.active {
+    color: #ffffff;
+    background: linear-gradient(90deg, rgba(124, 58, 237, 0.98) 0%, rgba(109, 40, 217, 0.82) 100%);
+    border-color: rgba(216, 180, 254, 0.34);
+    box-shadow:
+        inset 3px 0 0 #a78bfa,
+        0 9px 24px rgba(76, 29, 149, 0.30);
+}
+
+body:not(.dark-theme) aside.sidebar .nav-item.active svg,
+body.radar-expressiva-institucional:not(.dark-theme) aside.sidebar .nav-item.active svg {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.12);
+    filter: none;
+    box-shadow: none;
+}
+
+body:not(.dark-theme) aside.sidebar .sidebar-footer,
+body.radar-expressiva-institucional:not(.dark-theme) aside.sidebar .sidebar-footer {
+    border-top-color: rgba(221, 214, 254, 0.13);
+}
+
+body:not(.dark-theme) aside.sidebar .user-badge,
+body.radar-expressiva-institucional:not(.dark-theme) aside.sidebar .user-badge {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.075), rgba(167, 139, 250, 0.065));
+    border-color: rgba(221, 214, 254, 0.13);
+    box-shadow: 0 10px 26px rgba(13, 6, 31, 0.12);
+}
+
+body:not(.dark-theme) aside.sidebar .user-avatar,
+body.radar-expressiva-institucional:not(.dark-theme) aside.sidebar .user-avatar {
+    background: linear-gradient(145deg, #8b5cf6 0%, #6d28d9 100%);
+    color: #ffffff;
+    box-shadow: 0 7px 18px rgba(76, 29, 149, 0.30);
+}
+
+/* Prontuário: eixo central independente dos botões laterais. */
+.prontuario-school-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2.4fr) minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: center;
+    column-gap: 18px;
+    row-gap: 12px;
+}
+
+.prontuario-school-header > .radar-contextual-back {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+    align-self: center !important;
+    margin: 0;
+}
+
+.prontuario-school-header .page-title {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    text-align: center;
+}
+
+.prontuario-school-header .page-title h1,
+.prontuario-school-header .page-title p {
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+.prontuario-school-header .prontuario-next-school {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+    align-self: center;
+    margin-left: 0;
+}
+
+.prontuario-school-header .prontuario-actions {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.prontuario-school-header .prontuario-actions .btn {
+    min-height: 42px;
+}
+
+@media (max-width: 900px) {
+    .prontuario-school-header {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+        row-gap: 10px;
+    }
+
+    .prontuario-school-header > .radar-contextual-back,
+    .prontuario-school-header .page-title,
+    .prontuario-school-header .prontuario-next-school,
+    .prontuario-school-header .prontuario-actions {
+        grid-column: 1;
+        grid-row: auto;
+        width: 100%;
+    }
+
+    .prontuario-school-header .page-title,
+    .prontuario-school-header .page-title h1,
+    .prontuario-school-header .page-title p {
+        text-align: left;
+    }
+
+    .prontuario-school-header .prontuario-next-school {
+        justify-self: stretch;
+    }
+
+    .prontuario-school-header .prontuario-actions {
+        justify-content: flex-start;
+    }
+}
