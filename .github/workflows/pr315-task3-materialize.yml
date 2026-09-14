@@ -1,0 +1,48 @@
+name: PR315 materializar Prontuário recolhível
+
+on:
+  push:
+    branches:
+      - feat/post-login-prontuario-competencia-2026-09-14
+    paths:
+      - '.automation/pr315-task3.mjs'
+      - '.github/workflows/pr315-task3-materialize.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Obter branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: feat/post-login-prontuario-competencia-2026-09-14
+          fetch-depth: 0
+      - name: Configurar Node 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: npm
+      - name: Instalar dependências
+        run: npm ci
+      - name: Materializar implementação
+        run: node .automation/pr315-task3.mjs
+      - name: Verificar sintaxe
+        run: node --check app.js
+      - name: Executar contratos direcionados
+        run: node --test tests/unit/prontuario-cadastral-toggle.test.js tests/unit/prontuario-integridade-ui-contract.test.js tests/unit/prontuario-layout-polish.test.js
+      - name: Verificar suíte unitária completa
+        run: npm run test:unit
+      - name: Remover andaime e publicar
+        run: |
+          rm .automation/pr315-task3.mjs
+          rm .github/workflows/pr315-task3-materialize.yml
+          rmdir .automation 2>/dev/null || true
+          git config user.name 'Wilson Malafaia Peixoto'
+          git config user.email 'wilsonmp2@gmail.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'feat: priorizar avaliação no cabeçalho do prontuário'
+          git push origin HEAD:feat/post-login-prontuario-competencia-2026-09-14
