@@ -49,6 +49,7 @@
         '/src/integration/operational-write-performance.js',
         '/src/integration/prontuario-conditional-reconciler.js',
         '/src/integration/operational-write-feedback.js',
+        '/src/integration/prontuario-scroll-preservation.js',
         // Retificação auditável de dados documentais/manuais permanece como wrapper funcional externo.
         '/src/integration/auditable-retification.js',
         '/src/integration/evaluation-retification.js',
