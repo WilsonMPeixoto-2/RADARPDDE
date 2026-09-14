@@ -73,11 +73,12 @@ test('edição explícita salva, desfaz e retifica Pendência atomicamente sem b
   await expect.poll(async () => (await verification(page)).bonification.extCC).toBe('Sim');
   await row.locator('select.select-analise').selectOption('Incorreto');
   const pendencyForm = page.locator('#modal-nova-pendencia');
-  await expect(pendencyForm).toBeVisible();
+  await expect(pendencyForm).toHaveClass(/show/);
   await pendencyForm.locator('input[name="pend-erros"]').first().check();
   await pendencyForm.locator('#pend-obs').fill('Lançamento incorreto para homologar retificação auditável.');
   await pendencyForm.locator('button[type="submit"]').click();
-  await expect(pendencyForm).toBeHidden();
+  await expect(pendencyForm).not.toHaveClass(/show/);
+  await expect(pendencyForm).toHaveAttribute('aria-hidden', 'true');
   await expect.poll(async () => (await verification(page)).analysis.extCC).toBe('Incorreto');
   const preview = page.locator('#pendency-preview-drawer');
   await expect(preview).toBeVisible();
