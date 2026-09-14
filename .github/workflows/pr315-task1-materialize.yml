@@ -7,6 +7,7 @@ on:
     paths:
       - '.automation/pr315-task1.mjs'
       - '.github/workflows/pr315-task1-materialize.yml'
+      - 'tests/unit/remote-default-competence.test.js'
 
 permissions:
   contents: write
