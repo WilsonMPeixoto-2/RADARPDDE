@@ -7,6 +7,7 @@ on:
     paths:
       - '.automation/pr315-task3.mjs'
       - '.github/workflows/pr315-task3-materialize.yml'
+      - 'tests/unit/prontuario-cadastral-toggle.test.js'
 
 permissions:
   contents: write
