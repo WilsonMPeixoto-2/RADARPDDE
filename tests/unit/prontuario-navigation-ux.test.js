@@ -7,7 +7,7 @@ const path = require('node:path');
 
 const appSource = fs.readFileSync(path.resolve(__dirname, '../../app.js'), 'utf8');
 const cssSource = fs.readFileSync(path.resolve(__dirname, '../../styles.css'), 'utf8');
-const configSource = fs.readFileSync(path.resolve(__dirname, '../../config.js'), 'utf8');
+const extensionsSource = fs.readFileSync(path.resolve(__dirname, '../../src/integration/product-extensions-bootstrap.js'), 'utf8');
 const polishCssPath = path.resolve(__dirname, '../../src/styles/sidebar-prontuario-polish.css');
 
 test('Prontuário oferece navegação para a próxima unidade preservando a competência', () => {
@@ -24,10 +24,10 @@ test('controle cadastral fica junto das ações da unidade e recebe maior destaq
     assert.match(cssSource, /\.prontuario-data-toggle\s*\{[\s\S]*background:/);
 });
 
-test('camada corretiva é carregada depois do tema expressivo do Dashboard', () => {
+test('camada corretiva é carregada por último entre os estilos de produto', () => {
     assert.match(
-        configSource,
-        /loadStylesheet\('src\/styles\/painel-controlador-expressiva\.css'\);[\s\S]*loadStylesheet\('src\/styles\/sidebar-prontuario-polish\.css'\);/
+        extensionsSource,
+        /'\/src\/styles\/evaluation-retification-ui\.css',[\s\S]*'\/src\/styles\/sidebar-prontuario-polish\.css'/
     );
 });
 
@@ -48,7 +48,7 @@ test('sidebar ganha identidade escura viva sem contraste híbrido no Dashboard',
     );
     assert.match(
         polishCss,
-        /\.nav-item\.active\s*\{[\s\S]*background:\s*linear-gradient/[\s\S]*box-shadow:/
+        /\.nav-item\.active[\s\S]*\{[\s\S]*background:\s*linear-gradient[\s\S]*box-shadow:/
     );
 });
 
