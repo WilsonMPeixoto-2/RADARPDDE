@@ -1,37 +1,37 @@
 # RADAR PDDE — Estado atual do projeto
 
 **Classe documental:** Canônico — estado mutável e retomada futura  
-**Atualizado em:** 13 de setembro de 2026
+**Atualizado em:** 14 de setembro de 2026
 
-## Frente autorizada após a reabertura
+## Pacote final de manutenção de 14/09/2026
 
-Wilson solicitou restaurar as opções de edição do PR #299, com melhor orientação e confirmação visual, sobre a arquitetura atual. Essa decisão explícita substitui a restrição anterior de não restaurar a funcionalidade. Trabalho isolado em `feat/restore-evaluation-editing-2026-09-13`; Production permanece na versão liberada. Não há autorização de merge, deploy ou aplicação de migration em Production nesta frente.
+O PR #305 restaurou e publicou em Production a edição auditável de avaliações sobre a arquitetura Supabase já certificada. Bonificação permanece editável diretamente por Sim/Não/N/A; correção de análise técnica continua explícita e, quando há Pendência ativa associada a um `Incorreto`, exige confirmação, justificativa, cancelamento atômico da Pendência e preservação do histórico.
 
-Checkpoint incremental: [`audits/RESTAURACAO_EDICAO_AVALIACOES_2026-09-13.md`](audits/RESTAURACAO_EDICAO_AVALIACOES_2026-09-13.md). A homologação desta restauração ainda está em andamento.
+A rodada final de manutenção está concentrada no PR #306. Seu escopo é deliberadamente limitado a dependências homologadas, desempenho de carregamento, acabamento visual discreto e reconciliação documental. Não altera regra de negócio, schema, migration, identidade de registros, RLS ou fluxos operacionais.
 
 ## 1. Baseline vigente
 
 O PR #300 encerrou a refatoração arquitetural Supabase. O PR #301 encerrou a homologação operacional pós-refatoração e integrou a correção funcional encontrada durante a UAT.
 
-**PR #301:** merged  
-**Merge commit funcional:** `39cd984206b33c7d2a6d7084e23597f964235c9a`  
-**Candidato funcional certificado:** `452d97267348957f7155fc77bb139a4adafd766b`  
-**Data mode de Production:** `supabase-production`
+- **PR #305:** merged
+- **Merge commit funcional:** `b151f3f27cb28d5165916aa9be4086355742e839`
+- **Candidato funcional certificado:** `86db8651134616fe03d6506e7f9bd073e1e1eb3f`
+- **Data mode de Production:** `supabase-production`
 
-O rollback do PR #299 permanece preservado; a funcionalidade de retificação de avaliação removida naquele rollback não foi reintroduzida.
+O PR #305 superou o rollback funcional do PR #299 e reintroduziu a retificação de avaliação de forma auditável, com confirmação visual, preservação de histórico e reconciliação da suíte de testes com o contrato atual.
 
 ## 2. Estado de Production e decisão operacional
 
 A aplicação integrada foi publicada em Production pela Vercel em deployment:
 
-`dpl_DKGa7PqP6KqiDrrWeevReEhyrKLS`
+`dpl_c9Be1LfZocKVBVmrB5pDHaVB7w3X`
 
 O deployment ficou `READY`, com alias oficial `https://radarpdde-fix.vercel.app/`, a partir do commit documental `de336d20f514818c42a3ad403720c6b606065868`, que está diretamente sobre o merge funcional do PR #301 e não altera runtime.
 
 O build de Production registrou:
 
-- `1020` testes;
-- `1020` aprovados;
+- `1034` testes;
+- `1034` aprovados;
 - `0` falhas;
 - artefato `supabase-production`;
 - deployment concluído sem erro.
