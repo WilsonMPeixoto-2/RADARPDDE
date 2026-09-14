@@ -26,7 +26,7 @@ jobs:
           cache: npm
 
       - name: Materializar versões latest diretamente do npm
-        run: npm install --save-dev --package-lock-only --ignore-scripts dependency-cruiser@18.3.0 eslint@10.10.0 supabase@2.117.0
+        run: npm install --save-dev --save-exact --package-lock-only --ignore-scripts dependency-cruiser@18.3.0 eslint@10.10.0 supabase@2.117.0
 
       - name: Alinhar contratos versionados
         shell: bash
