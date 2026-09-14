@@ -243,6 +243,7 @@
         if (explicit && (available.size === 0 || available.has(explicit))) return explicit;
 
         const now = new Date();
+        now.setMonth(now.getMonth() - 1);
         const calendar = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
         if (available.has(calendar)) return calendar;
 

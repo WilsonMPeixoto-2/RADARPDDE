@@ -157,6 +157,17 @@
         return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
     }
 
+    function previousCompetenceKeyFromDate(referenceDate = new Date()) {
+        const date = referenceDate instanceof Date
+            ? new Date(referenceDate.getTime())
+            : new Date(referenceDate);
+        if (Number.isNaN(date.getTime())) {
+            throw new TypeError('A data de referência da competência é inválida.');
+        }
+        date.setMonth(date.getMonth() - 1);
+        return competenceKeyFromDate(date);
+    }
+
     function isFutureCompetence(value, referenceDate = new Date()) {
         const parsed = parseCompetencia(value);
         if (!parsed) {
@@ -196,6 +207,7 @@
         MONTH_NAMES_PT_BR,
         compareCompetencias,
         competenceKeyFromDate,
+        previousCompetenceKeyFromDate,
         formatCompetencia,
         formatCompetenciaContext,
         getBaseCompetenciaKey,

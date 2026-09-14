@@ -50,9 +50,11 @@
         const requestedCompetence = competenceExists(meta.initialCompetence)
             ? text(meta.initialCompetence)
             : '';
-        const calendarCompetence = root.RadarCompetencia?.competenceKeyFromDate
-            ? text(root.RadarCompetencia.competenceKeyFromDate())
-            : '';
+        const calendarCompetence = root.RadarCompetencia?.previousCompetenceKeyFromDate
+            ? text(root.RadarCompetencia.previousCompetenceKeyFromDate())
+            : (root.RadarCompetencia?.competenceKeyFromDate
+                ? text(root.RadarCompetencia.competenceKeyFromDate())
+                : '');
         const availableCalendarCompetence = competenceExists(calendarCompetence)
             ? calendarCompetence
             : '';
