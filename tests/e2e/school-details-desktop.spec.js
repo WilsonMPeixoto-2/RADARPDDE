@@ -127,7 +127,7 @@ test.describe('Prontuário operacional no desktop', () => {
     const actions = page.locator('.prontuario-actions');
     await expect(actions).toHaveAttribute('role', 'group');
     await expect(actions).toHaveAttribute('aria-label', 'Ações da unidade escolar');
-    await expect(actions.locator('.btn')).toHaveCount(3);
+    await expect(actions.locator('.btn')).toHaveCount(4);
     await expect(actions.locator('.btn:not([type="button"])')).toHaveCount(0);
     await expect(page.locator('.prontuario-tablist .tab-button')).toHaveCount(6);
     expect(geometry.actionsInside).toBe(true);
@@ -322,10 +322,10 @@ test.describe('Prontuário operacional no desktop', () => {
 
   test('preserva ações e abas autorizadas por perfil', async ({ page }) => {
     const scenarios = [
-      { profile: 'controlador', actions: 3, tabs: 6 },
-      { profile: 'assistente', actions: 3, tabs: 6 },
-      { profile: 'sme', actions: 0, tabs: 2 },
-      { profile: 'inventario', actions: 0, tabs: 2 }
+      { profile: 'controlador', actions: 4, tabs: 6 },
+      { profile: 'assistente', actions: 4, tabs: 6 },
+      { profile: 'sme', actions: 1, tabs: 2 },
+      { profile: 'inventario', actions: 1, tabs: 2 }
     ];
 
     for (const scenario of scenarios) {
