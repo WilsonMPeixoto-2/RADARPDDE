@@ -1,0 +1,5 @@
+Retry operacional de Production do PR #306.
+
+Motivo: o PR #306 foi merged em main no commit 254bfb694ef6a18d958de6b0326dda86c411af95 após homologação funcional do pacote final, porém o deployment automático de Production da Vercel foi bloqueado por build rate limit.
+
+Este arquivo não altera comportamento funcional, dependências, banco, regras, layout ou runtime. Existe apenas para redisparar a integração Git/Vercel em main e publicar o mesmo pacote homologado em Production.
