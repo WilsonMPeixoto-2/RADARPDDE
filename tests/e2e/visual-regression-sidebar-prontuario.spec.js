@@ -7,13 +7,24 @@ async function waitForApp(page) {
   });
 }
 
+async function attachVisualEvidence(page, testInfo, prefix) {
+  await testInfo.attach(`${prefix}-viewport`, {
+    body: await page.screenshot({ fullPage: false }),
+    contentType: 'image/png'
+  });
+  await testInfo.attach(`${prefix}-sidebar`, {
+    body: await page.locator('aside.sidebar').screenshot(),
+    contentType: 'image/png'
+  });
+}
+
 test.describe('Regressão visual da sidebar e do Prontuário', () => {
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Entrega homologada no desktop.');
     await page.setViewportSize({ width: 1440, height: 900 });
   });
 
-  test('Dashboard mantém sidebar escura, viva e coerente com o tema expressivo', async ({ page }) => {
+  test('Dashboard mantém sidebar escura, viva e coerente com o tema expressivo', async ({ page }, testInfo) => {
     await page.goto('/');
     await waitForApp(page);
     await page.evaluate(() => {
@@ -23,6 +34,7 @@ test.describe('Regressão visual da sidebar e do Prontuário', () => {
 
     await page.waitForFunction(() => document.body.classList.contains('radar-expressiva-institucional'));
     await expect(page.locator('link[data-radar-product-style="/src/styles/sidebar-prontuario-polish.css"]')).toHaveCount(1);
+    await attachVisualEvidence(page, testInfo, 'dashboard');
 
     const visual = await page.evaluate(() => {
       const sidebar = document.querySelector('aside.sidebar');
@@ -50,7 +62,7 @@ test.describe('Regressão visual da sidebar e do Prontuário', () => {
     expect(Number.parseFloat(visual.detailBorderTopWidth)).toBeGreaterThan(0);
   });
 
-  test('Prontuário mantém título no eixo central e ações centralizadas', async ({ page }) => {
+  test('Prontuário mantém título no eixo central e ações centralizadas', async ({ page }, testInfo) => {
     await page.goto('/');
     await waitForApp(page);
 
@@ -75,6 +87,7 @@ test.describe('Regressão visual da sidebar e do Prontuário', () => {
 
     await expect(page.locator('.prontuario-school-header .page-title h1')).toBeVisible();
     await expect(page.locator('.prontuario-next-school')).toBeVisible();
+    await attachVisualEvidence(page, testInfo, 'prontuario');
 
     const geometry = await page.evaluate(() => {
       const header = document.querySelector('.prontuario-school-header');
