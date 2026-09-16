@@ -4,7 +4,7 @@ const baseURL = String(process.env.RADAR_DEPLOYMENT_URL || 'http://127.0.0.1:417
 
 module.exports = defineConfig({
   testDir: './tests/e2e',
-  testMatch: /supabase-preview-profile-viewport\.spec\.js/,
+  testMatch: /supabase-preview-(?:profile-viewport|visual-post-pr291)\.spec\.js/,
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
