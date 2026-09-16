@@ -13,6 +13,8 @@ const TEMPLATE = path.resolve(
     __dirname,
     '../../assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx'
 );
+const DARK_EQUITY_FILL = 'FF595959';
+const LIGHT_EQUITY_FONT = 'FFFFFFFF';
 
 function input(overrides = {}) {
     const base = {
@@ -129,6 +131,62 @@ test('traduz os dados do RADAR sem preencher campos administrativos sem fonte', 
         ['X2', 'Y2', 'Z2', 'AA2'].map(address => worksheet.getCell(address).value || ''),
         ['', '', '', '']
     );
+});
+
+test('marca as seis células de Equidade como não aplicáveis quando a escola não possui o programa', async () => {
+    const { worksheet } = await generate();
+
+    for (let column = 17; column <= 22; column += 1) {
+        const cell = worksheet.getCell(2, column);
+        assert.equal(cell.value, 'NÃO SE APLICA');
+        assert.equal(cell.fill?.type, 'pattern');
+        assert.equal(cell.fill?.pattern, 'solid');
+        assert.equal(cell.fill?.fgColor?.argb, DARK_EQUITY_FILL);
+        assert.equal(cell.font?.color?.argb, LIGHT_EQUITY_FONT);
+    }
+
+    assert.equal(worksheet.getCell('W2').value, 'APTA');
+});
+
+test('mantém Equidade normal e avaliável quando a escola possui Sala de Recursos', async () => {
+    const fixture = input({
+        escolas: [{
+            id: 'school-1',
+            designação: '04.10.001',
+            denominação: 'Escola Municipal Com Equidade',
+            cre: '4ª CRE',
+            programasIds: ['BASIC', 'RECURSOS']
+        }],
+        programas: [
+            { id: 'BASIC', name: 'PDDE Básico' },
+            { id: 'RECURSOS', name: 'Sala de Recursos' }
+        ],
+        verificacoes: {
+            'school-1': {
+                '2026-12_BASIC': {
+                    bonificacao: {
+                        extCC: 'Sim', extINV: 'Sim', notaFiscal: 'Não se aplica',
+                        consAssessoria: 'Não se aplica', declBBAgil: 'Sim', encampInventario: 'Não se aplica'
+                    }
+                },
+                '2026-12_RECURSOS': {
+                    bonificacao: {
+                        extCC: 'Sim', extINV: 'Sim', notaFiscal: 'Não se aplica',
+                        consAssessoria: 'Não se aplica', declBBAgil: 'Sim', encampInventario: 'Não se aplica'
+                    }
+                }
+            }
+        }
+    });
+    const { worksheet } = await generate({ input: fixture });
+
+    assert.deepEqual(
+        ['Q2', 'R2', 'S2', 'T2', 'U2', 'V2'].map(address => worksheet.getCell(address).value),
+        ['SIM', 'SIM', 'NÃO SE APLICA', 'NÃO SE APLICA', 'SIM', 'NÃO SE APLICA']
+    );
+    for (let column = 17; column <= 22; column += 1) {
+        assert.notEqual(worksheet.getCell(2, column).fill?.fgColor?.argb, DARK_EQUITY_FILL);
+    }
 });
 
 test('remove valores cadastrais obsoletos e dimensiona navegação pela lista atual', async () => {

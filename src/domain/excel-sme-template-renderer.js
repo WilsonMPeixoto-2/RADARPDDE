@@ -5,7 +5,7 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function (root) {
     'use strict';
 
-    const VERSION = '3.3.0';
+    const VERSION = '3.4.0';
     const FIRST_DATA_ROW = 2;
     const FIRST_MONTHLY_COLUMN = 5;
     const LAST_COLUMN = 27;
@@ -14,6 +14,16 @@
     const TEMPLATE_SHEET_NAME = 'DEZEMBRO';
     const SOURCE_SYSTEMATIC_COLUMNS = Object.freeze([25, 18, 11]);
     const THIN_BORDER = Object.freeze({ style: 'thin' });
+    const EQUITY_FIRST_COLUMN = 17;
+    const EQUITY_LAST_COLUMN = 22;
+    const EQUITY_NOT_APPLICABLE_VALUE = 'NÃO SE APLICA';
+    const EQUITY_NOT_APPLICABLE_FILL = Object.freeze({
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: Object.freeze({ argb: 'FF595959' }),
+        bgColor: Object.freeze({ argb: 'FF595959' })
+    });
+    const EQUITY_NOT_APPLICABLE_FONT_COLOR = Object.freeze({ argb: 'FFFFFFFF' });
 
     function createRendererError(code, message, details = null, cause = null) {
         const error = new Error(message);
@@ -244,6 +254,21 @@
         return finalTemplateRow;
     }
 
+    function applyEquityNotApplicable(target, modelRow) {
+        const equitySources = modelRow?.sourcePrograms?.EQUIDADE;
+        if (!Array.isArray(equitySources) || equitySources.length > 0) return;
+
+        for (let column = EQUITY_FIRST_COLUMN; column <= EQUITY_LAST_COLUMN; column += 1) {
+            const cell = target.getCell(column);
+            cell.value = EQUITY_NOT_APPLICABLE_VALUE;
+            cell.fill = cloneValue(EQUITY_NOT_APPLICABLE_FILL);
+            cell.font = {
+                ...(cloneValue(cell.font) || {}),
+                color: cloneValue(EQUITY_NOT_APPLICABLE_FONT_COLOR)
+            };
+        }
+    }
+
     function writeModelRow(worksheet, rowNumber, model, modelRow, presentation) {
         const target = worksheet.getRow(rowNumber);
         applyRowPresentation(presentation, target);
@@ -258,6 +283,7 @@
             const value = modelRow[column.key];
             target.getCell(index + 1).value = value == null || value === '' ? null : value;
         }
+        applyEquityNotApplicable(target, modelRow);
         target.commit?.();
     }
 
@@ -446,6 +472,10 @@
     }
 
     return Object.freeze({
+        EQUITY_FIRST_COLUMN,
+        EQUITY_LAST_COLUMN,
+        EQUITY_NOT_APPLICABLE_FILL,
+        EQUITY_NOT_APPLICABLE_VALUE,
         FIRST_DATA_ROW,
         FIRST_MONTHLY_COLUMN,
         HEADER_ROW_HEIGHT,
@@ -453,6 +483,7 @@
         LAST_COLUMN_LETTER,
         SOURCE_SYSTEMATIC_COLUMNS,
         VERSION,
+        applyEquityNotApplicable,
         assertUniqueTemplateDesignations,
         buildWorkbook,
         clearDataValues,
