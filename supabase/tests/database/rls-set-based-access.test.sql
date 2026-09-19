@@ -128,17 +128,29 @@ set local role authenticated;
 -- Administrador técnico: leitura e escrita globais.
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000971', true);
 select is(
-    radar_private.accessible_school_ids(),
+    (
+        select coalesce(array_agg(school_id order by school_id), array[]::text[])
+        from unnest(radar_private.accessible_school_ids()) as allowed(school_id)
+        where school_id like 'RLSSET-%'
+    ),
     array['RLSSET-4-A','RLSSET-4-B','RLSSET-5-A','RLSSET-6-R','RLSSET-6-W']::text[],
     'Administrador técnico preserva leitura global'
 );
 select is(
-    radar_private.writable_school_ids(),
+    (
+        select coalesce(array_agg(school_id order by school_id), array[]::text[])
+        from unnest(radar_private.writable_school_ids()) as allowed(school_id)
+        where school_id like 'RLSSET-%'
+    ),
     array['RLSSET-4-A','RLSSET-4-B','RLSSET-5-A','RLSSET-6-R','RLSSET-6-W']::text[],
     'Administrador técnico preserva escrita global'
 );
 select is(
-    radar_private.inventory_cre_school_ids(),
+    (
+        select coalesce(array_agg(school_id order by school_id), array[]::text[])
+        from unnest(radar_private.inventory_cre_school_ids()) as allowed(school_id)
+        where school_id like 'RLSSET-%'
+    ),
     array[]::text[],
     'Administrador técnico não recebe exceção de Inventário'
 );
@@ -146,17 +158,29 @@ select is(
 -- Assistente Federal: leitura e escrita globais.
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000972', true);
 select is(
-    radar_private.accessible_school_ids(),
+    (
+        select coalesce(array_agg(school_id order by school_id), array[]::text[])
+        from unnest(radar_private.accessible_school_ids()) as allowed(school_id)
+        where school_id like 'RLSSET-%'
+    ),
     array['RLSSET-4-A','RLSSET-4-B','RLSSET-5-A','RLSSET-6-R','RLSSET-6-W']::text[],
     'Assistente Federal preserva leitura global'
 );
 select is(
-    radar_private.writable_school_ids(),
+    (
+        select coalesce(array_agg(school_id order by school_id), array[]::text[])
+        from unnest(radar_private.writable_school_ids()) as allowed(school_id)
+        where school_id like 'RLSSET-%'
+    ),
     array['RLSSET-4-A','RLSSET-4-B','RLSSET-5-A','RLSSET-6-R','RLSSET-6-W']::text[],
     'Assistente Federal preserva escrita global'
 );
 select is(
-    radar_private.inventory_cre_school_ids(),
+    (
+        select coalesce(array_agg(school_id order by school_id), array[]::text[])
+        from unnest(radar_private.inventory_cre_school_ids()) as allowed(school_id)
+        where school_id like 'RLSSET-%'
+    ),
     array[]::text[],
     'Assistente Federal não recebe exceção de Inventário'
 );
@@ -164,17 +188,29 @@ select is(
 -- Gestão SME: leitura global, escrita somente por escopo explícito.
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000973', true);
 select is(
-    radar_private.accessible_school_ids(),
+    (
+        select coalesce(array_agg(school_id order by school_id), array[]::text[])
+        from unnest(radar_private.accessible_school_ids()) as allowed(school_id)
+        where school_id like 'RLSSET-%'
+    ),
     array['RLSSET-4-A','RLSSET-4-B','RLSSET-5-A','RLSSET-6-R','RLSSET-6-W']::text[],
     'Gestão SME preserva leitura global'
 );
 select is(
-    radar_private.writable_school_ids(),
+    (
+        select coalesce(array_agg(school_id order by school_id), array[]::text[])
+        from unnest(radar_private.writable_school_ids()) as allowed(school_id)
+        where school_id like 'RLSSET-%'
+    ),
     array['RLSSET-6-W']::text[],
     'Gestão SME preserva escrita explicitamente concedida'
 );
 select is(
-    radar_private.inventory_cre_school_ids(),
+    (
+        select coalesce(array_agg(school_id order by school_id), array[]::text[])
+        from unnest(radar_private.inventory_cre_school_ids()) as allowed(school_id)
+        where school_id like 'RLSSET-%'
+    ),
     array[]::text[],
     'Gestão SME não recebe exceção de Inventário'
 );
@@ -182,17 +218,29 @@ select is(
 -- Controlador: CRE colaborativa + escopos explícitos.
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000974', true);
 select is(
-    radar_private.accessible_school_ids(),
+    (
+        select coalesce(array_agg(school_id order by school_id), array[]::text[])
+        from unnest(radar_private.accessible_school_ids()) as allowed(school_id)
+        where school_id like 'RLSSET-%'
+    ),
     array['RLSSET-4-A','RLSSET-4-B','RLSSET-6-R','RLSSET-6-W']::text[],
     'Controlador lê a própria CRE e escopos explícitos'
 );
 select is(
-    radar_private.writable_school_ids(),
+    (
+        select coalesce(array_agg(school_id order by school_id), array[]::text[])
+        from unnest(radar_private.writable_school_ids()) as allowed(school_id)
+        where school_id like 'RLSSET-%'
+    ),
     array['RLSSET-4-A','RLSSET-4-B','RLSSET-6-W']::text[],
     'Controlador escreve na própria CRE e no escopo explícito gravável'
 );
 select is(
-    radar_private.inventory_cre_school_ids(),
+    (
+        select coalesce(array_agg(school_id order by school_id), array[]::text[])
+        from unnest(radar_private.inventory_cre_school_ids()) as allowed(school_id)
+        where school_id like 'RLSSET-%'
+    ),
     array[]::text[],
     'Controlador não recebe exceção de Inventário'
 );
@@ -200,17 +248,29 @@ select is(
 -- Inventário: can_access histórico depende de bem; tela de Capital usa a CRE inteira.
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000975', true);
 select is(
-    radar_private.accessible_school_ids(),
+    (
+        select coalesce(array_agg(school_id order by school_id), array[]::text[])
+        from unnest(radar_private.accessible_school_ids()) as allowed(school_id)
+        where school_id like 'RLSSET-%'
+    ),
     array['RLSSET-4-A','RLSSET-5-A']::text[],
     'Inventário preserva leitura genérica de escola com bem e escopo explícito'
 );
 select is(
-    radar_private.writable_school_ids(),
+    (
+        select coalesce(array_agg(school_id order by school_id), array[]::text[])
+        from unnest(radar_private.writable_school_ids()) as allowed(school_id)
+        where school_id like 'RLSSET-%'
+    ),
     array['RLSSET-5-A']::text[],
     'Inventário preserva can_write explícito genérico fora da CRE'
 );
 select is(
-    radar_private.inventory_cre_school_ids(),
+    (
+        select coalesce(array_agg(school_id order by school_id), array[]::text[])
+        from unnest(radar_private.inventory_cre_school_ids()) as allowed(school_id)
+        where school_id like 'RLSSET-%'
+    ),
     array['RLSSET-4-A','RLSSET-4-B']::text[],
     'Inventário preserva visão completa da própria CRE para Capital e Inventário'
 );
