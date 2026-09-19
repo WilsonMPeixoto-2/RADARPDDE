@@ -25,7 +25,11 @@ test('atualização contextual é limitada por janela mínima e rerenderiza some
     assert.match(source, /durationMs/);
 });
 
-const { createController } = require('../../src/integration/operational-context-refresh.js');
+const {
+    createController,
+    dialogActuallyOpen,
+    editing: isEditing
+} = require('../../src/integration/operational-context-refresh.js');
 
 test('retomada usa a visão canônica, preserva formulários e descarta sessão encerrada durante a consulta', async () => {
     let editing = true, resolveQuery, shouldApply;
@@ -130,4 +134,138 @@ test('falha de refresh não avança lastRefreshAt nem apaga a necessidade de nov
     assert.equal(result.ok, false);
     assert.equal(controller.getLastRefreshAt(), 0);
     assert.equal(controller.hasPendingRefresh(), true);
+});
+
+
+function fakeDialog({
+    id = '',
+    hidden = false,
+    ariaHidden = null,
+    inert = false,
+    overlayVisible = true,
+    display = 'block',
+    visibility = 'visible'
+} = {}) {
+    const attributes = new Map();
+    if (ariaHidden != null) attributes.set('aria-hidden', String(ariaHidden));
+    if (inert) attributes.set('inert', '');
+    return {
+        id,
+        hidden,
+        getAttribute(name) { return attributes.has(name) ? attributes.get(name) : null; },
+        hasAttribute(name) { return attributes.has(name); },
+        matches(selector) {
+            if (selector === 'dialog') return false;
+            if (selector === '.modal-overlay') return false;
+            return false;
+        },
+        closest(selector) {
+            if (selector === '[hidden], [inert], [aria-hidden="true"]') {
+                return hidden || inert || ariaHidden === 'true' ? this : null;
+            }
+            if (selector === '.modal-overlay') {
+                return {
+                    classList: {
+                        contains(name) {
+                            return name === 'show' ? overlayVisible : false;
+                        }
+                    }
+                };
+            }
+            return null;
+        },
+        __style: { display, visibility }
+    };
+}
+
+test('diálogos fechados mantidos no DOM não bloqueiam refresh', () => {
+    const closedByAria = fakeDialog({ ariaHidden: 'true', inert: true });
+    const closedOverlay = fakeDialog({ overlayVisible: false });
+    const authGate = fakeDialog({ id: 'radar-auth-gate' });
+    const root = {
+        RadarAuthContext: { user: { id: 'user-1' } },
+        getComputedStyle(element) { return element.__style; }
+    };
+
+    assert.equal(dialogActuallyOpen(root, closedByAria), false);
+    assert.equal(dialogActuallyOpen(root, closedOverlay), false);
+    assert.equal(dialogActuallyOpen(root, authGate), false);
+});
+
+test('somente diálogo realmente aberto é tratado como edição', () => {
+    const closed = fakeDialog({ ariaHidden: 'true', inert: true });
+    const open = fakeDialog({ overlayVisible: true });
+    const root = {
+        RadarAuthContext: { user: { id: 'user-1' } },
+        getComputedStyle(element) { return element.__style; },
+        document: {
+            querySelector() { return null; },
+            querySelectorAll() { return [closed]; },
+            activeElement: null,
+            getElementById() { return null; }
+        }
+    };
+
+    assert.equal(isEditing(root), false);
+    root.document.querySelectorAll = () => [closed, open];
+    assert.equal(isEditing(root), true);
+});
+
+test('instalação observa fechamento assíncrono para liberar refresh pendente', async () => {
+    let modalOpen = true;
+    let observerCallback = null;
+    let calls = 0;
+    const modal = {
+        matches(selector) {
+            return selector.includes('.modal-overlay');
+        },
+        querySelector() { return null; }
+    };
+    const document = {
+        body: {},
+        visibilityState: 'visible',
+        addEventListener() {},
+        querySelector(selector) {
+            if (selector === '.modal-overlay.show, dialog[open]') return modalOpen ? modal : null;
+            return null;
+        },
+        querySelectorAll() { return []; },
+        getElementById() { return null; },
+        activeElement: null
+    };
+    const root = {
+        document,
+        RadarAuthContext: { user: { id: 'user-1' } },
+        RadarCompetenceContext: { getState: () => ({ activeKey: '2026-08' }) },
+        RadarApplicationServices: {
+            data: {
+                repository: { capabilities: () => ({ remote: true }) },
+                async loadOperationalContext() {
+                    calls += 1;
+                    return { stale: false };
+                }
+            }
+        },
+        RadarGlobalCompetenceSelector: { refreshCurrentView() {} },
+        MutationObserver: class {
+            constructor(callback) { observerCallback = callback; }
+            observe() {}
+        },
+        addEventListener() {},
+        setTimeout(callback) { callback(); return 1; },
+        console: { warn() {} }
+    };
+
+    const api = require('../../src/integration/operational-context-refresh.js');
+    assert.equal(api.install(root), true);
+    await root.RadarOperationalContextRefreshController.refresh('focus');
+    assert.equal(root.RadarOperationalContextRefreshController.hasPendingRefresh(), true);
+    assert.equal(calls, 0);
+
+    modalOpen = false;
+    observerCallback([{ target: modal }]);
+    await new Promise(resolve => setImmediate(resolve));
+
+    assert.equal(calls, 1);
+    assert.equal(root.RadarOperationalContextRefreshController.hasPendingRefresh(), false);
 });
