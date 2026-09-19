@@ -87,14 +87,29 @@ select is(public.can_access_school('04.31.001'), false, 'usuário sem perfil nã
 select is(public.can_write_school('04.31.001'), false, 'usuário sem perfil não escreve escola');
 
 select ok(
-    (select qual ilike '%SELECT current_app_role()%' and qual ilike '%SELECT auth.uid()%'
-       from pg_policies where schemaname='public' and tablename='schools' and policyname='schools_read'),
-    'schools_read usa init plans para identidade e papel'
+    (
+        select qual ilike '%accessible_school_ids%'
+           and qual ilike '%inventory_cre_school_ids%'
+           and qual not ilike '%can_access_school(%'
+        from pg_policies
+        where schemaname='public'
+          and tablename='schools'
+          and policyname='schools_read'
+    ),
+    'schools_read usa conjuntos set-based avaliados por initPlan'
 );
 select ok(
-    (select with_check ilike '%SELECT current_app_role()%' and with_check ilike '%SELECT auth.uid()%'
-       from pg_policies where schemaname='public' and tablename='assets' and policyname='assets_insert'),
-    'assets_insert usa init plans para identidade e papel'
+    (
+        select with_check ilike '%SELECT current_app_role()%'
+           and with_check ilike '%writable_school_ids%'
+           and with_check ilike '%inventory_cre_school_ids%'
+           and with_check not ilike '%can_write_school(%'
+        from pg_policies
+        where schemaname='public'
+          and tablename='assets'
+          and policyname='assets_insert'
+    ),
+    'assets_insert preserva papel e escopos set-based por initPlan'
 );
 
 select * from finish();

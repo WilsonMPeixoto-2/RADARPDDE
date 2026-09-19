@@ -53,7 +53,8 @@ declare
         '20260906065000',
         '20260906072000',
         '20260910201500',
-        '20260917011723'
+        '20260917011723',
+        '20260919234500'
     ];
     v_actual text[];
     v_missing_extensions text[];
@@ -164,6 +165,9 @@ begin
     if to_regprocedure('radar_private.current_app_role()') is null
        or to_regprocedure('radar_private.can_access_school(text)') is null
        or to_regprocedure('radar_private.can_write_school(text)') is null
+       or to_regprocedure('radar_private.accessible_school_ids()') is null
+       or to_regprocedure('radar_private.writable_school_ids()') is null
+       or to_regprocedure('radar_private.inventory_cre_school_ids()') is null
        or to_regprocedure('radar_private.save_invoice_with_effects_impl(jsonb,jsonb,jsonb,integer,integer,integer,jsonb)') is null
        or to_regprocedure('radar_private.delete_invoice_with_effects_impl(text,integer,boolean,integer,jsonb,integer,jsonb)') is null then
         raise exception 'PRIVATE_SECURITY_HELPER_MISSING';
@@ -178,8 +182,8 @@ begin
         where schemaname = 'public'
           and tablename = 'schools'
           and policyname = 'schools_read'
-          and qual ilike '%profile_id = ''inventory''%'
-          and qual ilike '%cre_scope%'
+          and coalesce(qual, '') ilike '%accessible_school_ids%'
+          and coalesce(qual, '') ilike '%inventory_cre_school_ids%'
     ) then
         raise exception 'INVENTORY_SCHOOL_READ_SCOPE_MISSING';
     end if;
@@ -190,8 +194,10 @@ begin
         where schemaname = 'public'
           and tablename = 'assets'
           and policyname = 'assets_update'
-          and coalesce(qual, '') ilike '%inventory%'
-          and coalesce(with_check, '') ilike '%inventory%'
+          and coalesce(qual, '') ilike '%writable_school_ids%'
+          and coalesce(qual, '') ilike '%inventory_cre_school_ids%'
+          and coalesce(with_check, '') ilike '%writable_school_ids%'
+          and coalesce(with_check, '') ilike '%inventory_cre_school_ids%'
     ) then
         raise exception 'INVENTORY_ASSET_UPDATE_SCOPE_MISSING';
     end if;
@@ -222,7 +228,21 @@ begin
         raise exception 'ADMINISTRATIVE_LOG_AUTHORSHIP_POLICY_MISSING';
     end if;
 
-    select pg_get_functiondef('radar_private.can_access_school(text)'::regprocedure)
+    if exists (
+        select 1
+        from pg_policies
+        where schemaname = 'public'
+          and (
+            coalesce(qual, '') ilike '%can_access_school(%'
+            or coalesce(qual, '') ilike '%can_write_school(%'
+            or coalesce(with_check, '') ilike '%can_access_school(%'
+            or coalesce(with_check, '') ilike '%can_write_school(%'
+          )
+    ) then
+        raise exception 'ROW_DEPENDENT_SCHOOL_AUTHORIZATION_STILL_IN_POLICY';
+    end if;
+
+    select pg_get_functiondef('radar_private.accessible_school_ids()'::regprocedure)
       into v_access_definition;
 
     if v_access_definition not ilike '%profile_id = ''inventory''%'
