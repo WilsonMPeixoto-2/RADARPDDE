@@ -48,6 +48,12 @@ test('gate carrega os módulos de navegação em ordem após a aplicação princ
     assert.match(gate, /RadarNavigationHistory\.applyPendingRoute/);
     assert.match(gate, /RadarDataContext\?\.ready === true/);
     assert.match(gate, /RadarAuthContext\?\.authorization/);
+    assert.match(gate, /PRODUCT_EXTENSIONS_BOOTSTRAP/);
+    assert.match(gate, /link\[rel="preload"\]\[as="script"\]/);
+    assert.ok(
+        gate.indexOf('.forEach(src => preloadScriptOnce') < gate.indexOf('NAVIGATION_SCRIPTS.reduce'),
+        'downloads devem ser antecipados antes da execução serial'
+    );
 });
 
 test('formulário de credenciais permanece invisível antes de o bootstrap autorizar o login', () => {
