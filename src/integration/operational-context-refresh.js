@@ -81,21 +81,33 @@
             : MIN_REFRESH_INTERVAL_MS;
         let lastRefreshAt = 0;
         let refreshPromise = null;
+        let pendingRefreshReason = '';
 
-        async function refresh(reason = 'resume') {
+        function markPending(reason) {
+            pendingRefreshReason = text(reason) || pendingRefreshReason || 'editing';
+            return pendingRefreshReason;
+        }
+
+        async function refresh(reason = 'resume', refreshOptions = {}) {
             if (refreshPromise) return refreshPromise;
-            if (!authenticated(root)) return { skipped: true, reason: 'unauthenticated' };
-            if (editing(root)) return { skipped: true, reason: 'editing' };
+            if (!authenticated(root)) {
+                pendingRefreshReason = '';
+                return { skipped: true, reason: 'unauthenticated' };
+            }
+            if (editing(root)) {
+                markPending(reason);
+                return { skipped: true, reason: 'editing', pending: true };
+            }
             const competenceKey = activeCompetence(root);
             if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(competenceKey)) {
                 return { skipped: true, reason: 'invalid-competence' };
             }
             const now = Date.now();
-            if ((now - lastRefreshAt) < minIntervalMs) {
+            if (refreshOptions.force !== true && (now - lastRefreshAt) < minIntervalMs) {
                 return { skipped: true, reason: 'throttled' };
             }
-            lastRefreshAt = now;
 
+            const startedAt = Date.now();
             let run = null;
             run = Promise.resolve().then(async () => {
                 const result = await service.loadOperationalContext(competenceKey, {
@@ -104,13 +116,30 @@
                     shouldApply: () => authenticated(root) && !editing(root)
                         && activeCompetence(root) === competenceKey
                 });
-                if (result?.stale === true) return result;
-                if (!authenticated(root) || editing(root)) return { ...result, stale: true };
+                if (result?.stale === true) {
+                    if (authenticated(root) && editing(root) && activeCompetence(root) === competenceKey) {
+                        markPending(reason);
+                    }
+                    return result;
+                }
+                if (!authenticated(root)) return { ...result, stale: true };
+                if (editing(root)) {
+                    markPending(reason);
+                    return { ...result, stale: true, pending: true };
+                }
                 if (activeCompetence(root) !== competenceKey) return { ...result, stale: true };
+
                 refreshCurrentView(root);
+                lastRefreshAt = Date.now();
+                pendingRefreshReason = '';
                 if (typeof root.dispatchEvent === 'function' && typeof root.CustomEvent === 'function') {
                     root.dispatchEvent(new root.CustomEvent('radar:operational-context-refreshed', {
-                        detail: { competenceKey, source: `session-${reason}-refresh` }
+                        detail: {
+                            competenceKey,
+                            source: `session-${reason}-refresh`,
+                            durationMs: Math.max(0, lastRefreshAt - startedAt),
+                            refreshedAt: new Date(lastRefreshAt).toISOString()
+                        }
                     }));
                 }
                 return result;
@@ -124,8 +153,27 @@
             return run;
         }
 
+        async function flushPending(reason = 'editing-ended') {
+            if (!pendingRefreshReason) return { skipped: true, reason: 'no-pending-refresh' };
+            if (!authenticated(root)) {
+                pendingRefreshReason = '';
+                return { skipped: true, reason: 'unauthenticated' };
+            }
+            if (editing(root)) return { skipped: true, reason: 'editing', pending: true };
+
+            const pendingReason = pendingRefreshReason;
+            pendingRefreshReason = '';
+            const result = await refresh(`${pendingReason}-${reason}`, { force: true });
+            if (result?.ok === false || (result?.skipped === true && result.reason === 'editing')) {
+                markPending(pendingReason);
+            }
+            return result;
+        }
+
         return Object.freeze({
             refresh,
+            flushPending,
+            hasPendingRefresh: () => Boolean(pendingRefreshReason),
             getLastRefreshAt: () => lastRefreshAt
         });
     }
@@ -139,13 +187,26 @@
         if (!isRemoteDataService(service)) {
             root.__radarOperationalContextRefreshInstalled = true;
             root.RadarOperationalContextRefreshController = Object.freeze({
-                refresh: async () => ({ skipped: true, reason: 'local-mode' })
+                refresh: async () => ({ skipped: true, reason: 'local-mode' }),
+                flushPending: async () => ({ skipped: true, reason: 'local-mode' }),
+                hasPendingRefresh: () => false
             });
             return true;
         }
 
         const controller = createController(root, service);
         root.RadarOperationalContextRefreshController = controller;
+
+        const flushPending = reason => {
+            if (!controller.hasPendingRefresh()) return;
+            const schedule = typeof root.setTimeout === 'function'
+                ? root.setTimeout.bind(root)
+                : setTimeout;
+            schedule(() => {
+                void controller.flushPending(reason);
+            }, 0);
+        };
+
         root.addEventListener?.('focus', () => {
             void controller.refresh('focus');
         });
@@ -153,6 +214,14 @@
             if (root.document.visibilityState !== 'visible') return;
             void controller.refresh('visibility');
         });
+        root.document.addEventListener?.('focusout', () => flushPending('focusout'));
+        root.document.addEventListener?.('click', () => flushPending('click'));
+        root.document.addEventListener?.('transitionend', event => {
+            const target = event?.target;
+            if (!target?.matches?.('.modal-overlay, dialog, [role="dialog"]')) return;
+            flushPending('dialog-transition');
+        });
+        root.document.addEventListener?.('close', () => flushPending('dialog-close'), true);
 
         root.__radarOperationalContextRefreshInstalled = true;
         return true;
