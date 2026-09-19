@@ -13,7 +13,7 @@ Este runbook não autoriza, por si só, migration, importação, alteração de 
 
 Consultar [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md) e revalidar remotamente antes de operação dependente do ambiente.
 
-Por compatibilidade com o verificador de readiness, este runbook mantém um único espelho machine-readable da contagem versionada: O conjunto versionado contém atualmente **52** migrations. A lista e a ordem continuam sendo obtidas do diretório `supabase/migrations/` e do histórico do CLI, nunca de uma segunda lista manual. A contagem versionada não comprova aplicação em Production; consultar o histórico remoto antes de publicar.
+Por compatibilidade com o verificador de readiness, este runbook mantém um único espelho machine-readable da contagem versionada: O conjunto versionado contém atualmente **53** migrations. A lista e a ordem continuam sendo obtidas do diretório `supabase/migrations/` e do histórico do CLI, nunca de uma segunda lista manual. A contagem versionada não comprova aplicação em Production; consultar o histórico remoto antes de publicar.
 
 Contratos estáveis:
 
@@ -146,7 +146,7 @@ As migrations correntes incluem, conforme `CURRENT_STAGE.md` e a branch de estab
 - operações compostas de Assessoria Contábil para persistir análise, pendência, verificação e log de forma coerente;
 - sincronização do próximo ator das Pendências nas transições do fluxo;
 - migration integrada `20260904040000_functional_reliability_inventory_sync`, que sincroniza atomicamente o encaminhamento de bem derivado com `encampInventario` no Prontuário e remove aliases internos de versão do payload das verificações;
-- migration integrada `20260905231000_inventory_terminal_state`, que impede no banco qualquer regressão de um bem já `Inventariada` para estado patrimonial anterior. Sua presença e o trigger habilitado foram confirmados por consulta de metadados em 06/09/2026; revalidar no ambiente antes de outra publicação.
+- migration integrada `20260905231000_inventory_terminal_state`, que impede no banco qualquer regressão de um bem já `Inventariada` para estado patrimonial anterior. Sua presença e o trigger habilitado foram confirmados por consulta de metadados em 06/09/2026; revalidar no ambiente antes de outra publicação.\n- migration `20260919234500_rls_set_based_access`, que preserva os mesmos escopos institucionais, mas calcula conjuntos de escolas autorizadas uma vez por statement para evitar reavaliação RLS linha a linha.
 
 Não reaplicar SQL já aplicado para “corrigir” histórico.
 
