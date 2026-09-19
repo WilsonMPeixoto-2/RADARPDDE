@@ -205,7 +205,7 @@ with check (
         actor_user_id = (select auth.uid())
         and (
             school_id is null
-            or school_id = any((select radar_private.accessible_school_ids()))
+            or school_id = any(((select radar_private.accessible_school_ids()))::text[])
         )
     )
 );
@@ -221,7 +221,7 @@ using (
         (select public.current_app_role()) <> all(array['technical_admin', 'sme_management']::text[])
         and (
             school_id is null
-            or school_id = any((select radar_private.accessible_school_ids()))
+            or school_id = any(((select radar_private.accessible_school_ids()))::text[])
         )
     )
 );
@@ -229,54 +229,54 @@ using (
 -- Patrimônio mantém a exceção de Inventário por CRE, separada da escrita cadastral genérica.
 alter policy assets_read on public.assets
 using (
-    school_id = any((select radar_private.accessible_school_ids()))
-    or school_id = any((select radar_private.inventory_cre_school_ids()))
+    school_id = any(((select radar_private.accessible_school_ids()))::text[])
+    or school_id = any(((select radar_private.inventory_cre_school_ids()))::text[])
 );
 
 alter policy assets_insert on public.assets
 with check (
     (
         (select public.current_app_role()) = any(array['technical_admin', 'federal_assistant', 'controller']::text[])
-        and school_id = any((select radar_private.writable_school_ids()))
+        and school_id = any(((select radar_private.writable_school_ids()))::text[])
     )
-    or school_id = any((select radar_private.inventory_cre_school_ids()))
+    or school_id = any(((select radar_private.inventory_cre_school_ids()))::text[])
 );
 
 alter policy assets_update on public.assets
 using (
     (
         (select public.current_app_role()) = any(array['technical_admin', 'federal_assistant', 'controller']::text[])
-        and school_id = any((select radar_private.writable_school_ids()))
+        and school_id = any(((select radar_private.writable_school_ids()))::text[])
     )
-    or school_id = any((select radar_private.inventory_cre_school_ids()))
+    or school_id = any(((select radar_private.inventory_cre_school_ids()))::text[])
 )
 with check (
     (
         (select public.current_app_role()) = any(array['technical_admin', 'federal_assistant', 'controller']::text[])
-        and school_id = any((select radar_private.writable_school_ids()))
+        and school_id = any(((select radar_private.writable_school_ids()))::text[])
     )
-    or school_id = any((select radar_private.inventory_cre_school_ids()))
+    or school_id = any(((select radar_private.inventory_cre_school_ids()))::text[])
 );
 
 alter policy pendencies_read on public.pendencies
-using (school_id = any((select radar_private.accessible_school_ids())));
+using (school_id = any(((select radar_private.accessible_school_ids()))::text[]));
 
 alter policy pendencies_insert on public.pendencies
-with check (school_id = any((select radar_private.writable_school_ids())));
+with check (school_id = any(((select radar_private.writable_school_ids()))::text[]));
 
 alter policy pendencies_update on public.pendencies
-using (school_id = any((select radar_private.writable_school_ids())))
-with check (school_id = any((select radar_private.writable_school_ids())));
+using (school_id = any(((select radar_private.writable_school_ids()))::text[]))
+with check (school_id = any(((select radar_private.writable_school_ids()))::text[]));
 
 alter policy pendency_contacts_read on public.pendency_contacts
-using (school_id = any((select radar_private.accessible_school_ids())));
+using (school_id = any(((select radar_private.accessible_school_ids()))::text[]));
 
 alter policy pendency_contacts_insert on public.pendency_contacts
-with check (school_id = any((select radar_private.writable_school_ids())));
+with check (school_id = any(((select radar_private.writable_school_ids()))::text[]));
 
 alter policy pendency_contacts_update on public.pendency_contacts
-using (school_id = any((select radar_private.writable_school_ids())))
-with check (school_id = any((select radar_private.writable_school_ids())));
+using (school_id = any(((select radar_private.writable_school_ids()))::text[]))
+with check (school_id = any(((select radar_private.writable_school_ids()))::text[]));
 
 alter policy pendency_attempts_read on public.pendency_attempts
 using (
@@ -284,7 +284,7 @@ using (
         select 1
         from public.pendencies p
         where p.id = pendency_attempts.pendency_id
-          and p.school_id = any((select radar_private.accessible_school_ids()))
+          and p.school_id = any(((select radar_private.accessible_school_ids()))::text[])
     )
 );
 
@@ -294,7 +294,7 @@ with check (
         select 1
         from public.pendencies p
         where p.id = pendency_attempts.pendency_id
-          and p.school_id = any((select radar_private.writable_school_ids()))
+          and p.school_id = any(((select radar_private.writable_school_ids()))::text[])
     )
 );
 
@@ -304,7 +304,7 @@ using (
         select 1
         from public.pendencies p
         where p.id = pendency_attempts.pendency_id
-          and p.school_id = any((select radar_private.writable_school_ids()))
+          and p.school_id = any(((select radar_private.writable_school_ids()))::text[])
     )
 )
 with check (
@@ -312,51 +312,51 @@ with check (
         select 1
         from public.pendencies p
         where p.id = pendency_attempts.pendency_id
-          and p.school_id = any((select radar_private.writable_school_ids()))
+          and p.school_id = any(((select radar_private.writable_school_ids()))::text[])
     )
 );
 
 alter policy registered_invoices_read on public.registered_invoices
-using (school_id = any((select radar_private.accessible_school_ids())));
+using (school_id = any(((select radar_private.accessible_school_ids()))::text[]));
 
 alter policy registered_invoices_insert on public.registered_invoices
-with check (school_id = any((select radar_private.writable_school_ids())));
+with check (school_id = any(((select radar_private.writable_school_ids()))::text[]));
 
 alter policy registered_invoices_update on public.registered_invoices
-using (school_id = any((select radar_private.writable_school_ids())))
-with check (school_id = any((select radar_private.writable_school_ids())));
+using (school_id = any(((select radar_private.writable_school_ids()))::text[]))
+with check (school_id = any(((select radar_private.writable_school_ids()))::text[]));
 
 alter policy school_programs_read on public.school_programs
 using (
-    school_id = any((select radar_private.accessible_school_ids()))
-    or school_id = any((select radar_private.inventory_cre_school_ids()))
+    school_id = any(((select radar_private.accessible_school_ids()))::text[])
+    or school_id = any(((select radar_private.inventory_cre_school_ids()))::text[])
 );
 
 alter policy school_programs_insert on public.school_programs
-with check (school_id = any((select radar_private.writable_school_ids())));
+with check (school_id = any(((select radar_private.writable_school_ids()))::text[]));
 
 alter policy school_programs_update on public.school_programs
-using (school_id = any((select radar_private.writable_school_ids())))
-with check (school_id = any((select radar_private.writable_school_ids())));
+using (school_id = any(((select radar_private.writable_school_ids()))::text[]))
+with check (school_id = any(((select radar_private.writable_school_ids()))::text[]));
 
 alter policy schools_read on public.schools
 using (
-    id = any((select radar_private.accessible_school_ids()))
-    or id = any((select radar_private.inventory_cre_school_ids()))
+    id = any(((select radar_private.accessible_school_ids()))::text[])
+    or id = any(((select radar_private.inventory_cre_school_ids()))::text[])
 );
 
 alter policy schools_update on public.schools
-using (id = any((select radar_private.writable_school_ids())))
-with check (id = any((select radar_private.writable_school_ids())));
+using (id = any(((select radar_private.writable_school_ids()))::text[]))
+with check (id = any(((select radar_private.writable_school_ids()))::text[]));
 
 alter policy verifications_read on public.verifications
-using (school_id = any((select radar_private.accessible_school_ids())));
+using (school_id = any(((select radar_private.accessible_school_ids()))::text[]));
 
 alter policy verifications_insert on public.verifications
-with check (school_id = any((select radar_private.writable_school_ids())));
+with check (school_id = any(((select radar_private.writable_school_ids()))::text[]));
 
 alter policy verifications_update on public.verifications
-using (school_id = any((select radar_private.writable_school_ids())))
-with check (school_id = any((select radar_private.writable_school_ids())));
+using (school_id = any(((select radar_private.writable_school_ids()))::text[]))
+with check (school_id = any(((select radar_private.writable_school_ids()))::text[]));
 
 commit;
