@@ -38,7 +38,7 @@ test('retomada usa a visão canônica, preserva formulários e descarta sessão 
         RadarAuthContext: { user: { id: 'user-1' } },
         RadarCompetenceContext: { getState: () => ({ activeKey: '2026-09' }) },
         RadarGlobalCompetenceSelector: { refreshCurrentView: () => renders.push('prontuario-school-1') },
-        document: { querySelector: () => editing ? {} : null },
+        document: { querySelectorAll: () => editing ? [{}] : [] },
         console: { warn() {} }
     };
     const service = { loadOperationalContext(key, options) {
@@ -78,7 +78,7 @@ test('refresh adiado é retomado após a edição e só atualiza o relógio depo
         RadarAuthContext: { user: { id: 'user-1' } },
         RadarCompetenceContext: { getState: () => ({ activeKey: '2026-08' }) },
         RadarGlobalCompetenceSelector: { refreshCurrentView: () => renders.push('dashboard') },
-        document: { querySelector: () => editing ? {} : null },
+        document: { querySelectorAll: () => editing ? [{}] : [] },
         CustomEvent: class {
             constructor(type, options) {
                 this.type = type;
@@ -117,7 +117,7 @@ test('falha de refresh não avança lastRefreshAt nem apaga a necessidade de nov
     const root = {
         RadarAuthContext: { user: { id: 'user-1' } },
         RadarCompetenceContext: { getState: () => ({ activeKey: '2026-08' }) },
-        document: { querySelector: () => editing ? {} : null },
+        document: { querySelectorAll: () => editing ? [{}] : [] },
         console: { warn() {} }
     };
     const service = {
