@@ -20,6 +20,7 @@ function createHarness({
     const failedOnce = new Set(failOnce);
     const scripts = [];
     const links = [];
+    const preloaded = [];
     const rootListeners = new Map();
 
     function eventTarget(base = {}) {
@@ -45,13 +46,19 @@ function createHarness({
     const document = {
         scripts,
         querySelectorAll(selector) {
-            if (selector === 'link[rel="stylesheet"]') return links;
+            if (selector === 'link[rel="stylesheet"]') {
+                return links.filter(link => link.rel === 'stylesheet');
+            }
+            if (selector === 'link[rel="preload"][as="script"]') {
+                return links.filter(link => link.rel === 'preload' && link.as === 'script');
+            }
             return [];
         },
         createElement(tagName) {
             if (tagName === 'link') {
                 return {
                     rel: '',
+                    as: '',
                     href: '',
                     dataset: {},
                     getAttribute(name) {
@@ -77,8 +84,9 @@ function createHarness({
         },
         head: {
             appendChild(node) {
-                if ('rel' in node && node.rel === 'stylesheet') {
+                if ('rel' in node && (node.rel === 'stylesheet' || node.rel === 'preload')) {
                     links.push(node);
+                    if (node.rel === 'preload' && node.as === 'script') preloaded.push(node.href);
                     return node;
                 }
                 scripts.push(node);
@@ -169,7 +177,7 @@ function createHarness({
         return root.RadarProductExtensionsReady;
     }
 
-    return { root, requested, executeBootstrap };
+    return { root, requested, preloaded, executeBootstrap };
 }
 
 function settleWithin(promise, milliseconds = 50) {
@@ -262,4 +270,30 @@ test('modo Supabase exige e instala o leitor administrativo contextual', async (
     const ready = await harness.executeBootstrap();
 
     assert.equal(ready, true);
+});
+
+
+test('preload antecipa a transferência sem alterar a ordem serial das extensões', async () => {
+    const harness = createHarness();
+
+    const ready = await harness.executeBootstrap();
+
+    assert.equal(ready, true);
+    assert.ok(harness.preloaded.length >= 20);
+    assert.ok(harness.preloaded.includes('/src/integration/atomic-analysis-pendency.js'));
+    assert.ok(harness.preloaded.includes('/src/integration/evaluation-retification-ui.js'));
+    assert.deepEqual(
+        harness.requested.slice(0, 3),
+        [
+            '/src/integration/atomic-analysis-pendency.js',
+            '/src/integration/administrative-log-read-model.js',
+            '/src/domain/school-timeline.js'
+        ],
+        'a execução continua seguindo a ordem funcional canônica'
+    );
+    assert.equal(
+        harness.preloaded.filter(src => src === '/src/integration/atomic-analysis-pendency.js').length,
+        1,
+        'cada recurso deve ser preloaded apenas uma vez'
+    );
 });

@@ -7,6 +7,24 @@
         '/src/integration/navigation-bootstrap.js',
         '/src/integration/navigation-history.js'
     ]);
+    const PRODUCT_EXTENSIONS_BOOTSTRAP = '/src/integration/product-extensions-bootstrap.js';
+
+    function preloadScriptOnce(document, src) {
+        const existing = Array.from(
+            document.querySelectorAll?.('link[rel="preload"][as="script"]') || []
+        ).find(link => (
+            link.getAttribute?.('href') === src
+            || link.dataset?.radarScriptPreload === src
+        ));
+        if (existing) return existing;
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'script';
+        link.href = src;
+        link.dataset.radarScriptPreload = src;
+        document.head.appendChild(link);
+        return link;
+    }
 
     function loadScriptOnce(document, src) {
         const existing = Array.from(document.scripts || []).find(script => (
@@ -64,6 +82,8 @@
 
     function installNavigationModules(root) {
         if (root.RadarNavigationReady) return root.RadarNavigationReady;
+        [...NAVIGATION_SCRIPTS, PRODUCT_EXTENSIONS_BOOTSTRAP]
+            .forEach(src => preloadScriptOnce(root.document, src));
         root.RadarNavigationReady = NAVIGATION_SCRIPTS.reduce(
             (promise, src) => promise.then(() => loadScriptOnce(root.document, src)),
             Promise.resolve()

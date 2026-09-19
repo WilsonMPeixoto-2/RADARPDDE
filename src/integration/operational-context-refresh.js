@@ -68,10 +68,42 @@
         return true;
     }
 
+    function hiddenByState(element) {
+        if (!element) return true;
+        if (element.hidden === true) return true;
+        if (element.getAttribute?.('aria-hidden') === 'true') return true;
+        if (element.hasAttribute?.('inert')) return true;
+        const hiddenAncestor = element.closest?.('[hidden], [inert], [aria-hidden="true"]');
+        if (hiddenAncestor) return true;
+        const overlay = element.matches?.('.modal-overlay')
+            ? element
+            : element.closest?.('.modal-overlay');
+        if (overlay && !overlay.classList?.contains?.('show')) return true;
+        return false;
+    }
+
+    function dialogActuallyOpen(root, element) {
+        if (!element || hiddenByState(element)) return false;
+        if (element.id === 'radar-auth-gate' && authenticated(root)) return false;
+        if (element.matches?.('dialog') && !element.hasAttribute?.('open')) return false;
+        try {
+            const style = root.getComputedStyle?.(element);
+            if (style && (style.display === 'none' || style.visibility === 'hidden')) return false;
+        } catch (_error) {
+            // A visibilidade estrutural acima continua sendo a autoridade em ambientes sem layout.
+        }
+        return true;
+    }
+
     function editing(root) {
         const document = root.document;
-        return Boolean(document?.querySelector?.('.modal-overlay.show, dialog[open], [role="dialog"][aria-modal="true"]')
-            || document?.activeElement?.matches?.('input, textarea, select, [contenteditable="true"]')
+        const modalDialogs = Array.from(
+            document?.querySelectorAll?.(
+                '.modal-overlay.show, dialog[open], [role="dialog"][aria-modal="true"]'
+            ) || []
+        );
+        if (modalDialogs.some(element => dialogActuallyOpen(root, element))) return true;
+        return Boolean(document?.activeElement?.matches?.('input, textarea, select, [contenteditable="true"]')
             || document?.getElementById?.('main-container')?.inert);
     }
 
@@ -81,21 +113,33 @@
             : MIN_REFRESH_INTERVAL_MS;
         let lastRefreshAt = 0;
         let refreshPromise = null;
+        let pendingRefreshReason = '';
 
-        async function refresh(reason = 'resume') {
+        function markPending(reason) {
+            pendingRefreshReason = text(reason) || pendingRefreshReason || 'editing';
+            return pendingRefreshReason;
+        }
+
+        async function refresh(reason = 'resume', refreshOptions = {}) {
             if (refreshPromise) return refreshPromise;
-            if (!authenticated(root)) return { skipped: true, reason: 'unauthenticated' };
-            if (editing(root)) return { skipped: true, reason: 'editing' };
+            if (!authenticated(root)) {
+                pendingRefreshReason = '';
+                return { skipped: true, reason: 'unauthenticated' };
+            }
+            if (editing(root)) {
+                markPending(reason);
+                return { skipped: true, reason: 'editing', pending: true };
+            }
             const competenceKey = activeCompetence(root);
             if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(competenceKey)) {
                 return { skipped: true, reason: 'invalid-competence' };
             }
             const now = Date.now();
-            if ((now - lastRefreshAt) < minIntervalMs) {
+            if (refreshOptions.force !== true && (now - lastRefreshAt) < minIntervalMs) {
                 return { skipped: true, reason: 'throttled' };
             }
-            lastRefreshAt = now;
 
+            const startedAt = Date.now();
             let run = null;
             run = Promise.resolve().then(async () => {
                 const result = await service.loadOperationalContext(competenceKey, {
@@ -104,13 +148,30 @@
                     shouldApply: () => authenticated(root) && !editing(root)
                         && activeCompetence(root) === competenceKey
                 });
-                if (result?.stale === true) return result;
-                if (!authenticated(root) || editing(root)) return { ...result, stale: true };
+                if (result?.stale === true) {
+                    if (authenticated(root) && editing(root) && activeCompetence(root) === competenceKey) {
+                        markPending(reason);
+                    }
+                    return result;
+                }
+                if (!authenticated(root)) return { ...result, stale: true };
+                if (editing(root)) {
+                    markPending(reason);
+                    return { ...result, stale: true, pending: true };
+                }
                 if (activeCompetence(root) !== competenceKey) return { ...result, stale: true };
+
                 refreshCurrentView(root);
+                lastRefreshAt = Date.now();
+                pendingRefreshReason = '';
                 if (typeof root.dispatchEvent === 'function' && typeof root.CustomEvent === 'function') {
                     root.dispatchEvent(new root.CustomEvent('radar:operational-context-refreshed', {
-                        detail: { competenceKey, source: `session-${reason}-refresh` }
+                        detail: {
+                            competenceKey,
+                            source: `session-${reason}-refresh`,
+                            durationMs: Math.max(0, lastRefreshAt - startedAt),
+                            refreshedAt: new Date(lastRefreshAt).toISOString()
+                        }
                     }));
                 }
                 return result;
@@ -124,8 +185,27 @@
             return run;
         }
 
+        async function flushPending(reason = 'editing-ended') {
+            if (!pendingRefreshReason) return { skipped: true, reason: 'no-pending-refresh' };
+            if (!authenticated(root)) {
+                pendingRefreshReason = '';
+                return { skipped: true, reason: 'unauthenticated' };
+            }
+            if (editing(root)) return { skipped: true, reason: 'editing', pending: true };
+
+            const pendingReason = pendingRefreshReason;
+            pendingRefreshReason = '';
+            const result = await refresh(`${pendingReason}-${reason}`, { force: true });
+            if (result?.ok === false || (result?.skipped === true && result.reason === 'editing')) {
+                markPending(pendingReason);
+            }
+            return result;
+        }
+
         return Object.freeze({
             refresh,
+            flushPending,
+            hasPendingRefresh: () => Boolean(pendingRefreshReason),
             getLastRefreshAt: () => lastRefreshAt
         });
     }
@@ -139,13 +219,26 @@
         if (!isRemoteDataService(service)) {
             root.__radarOperationalContextRefreshInstalled = true;
             root.RadarOperationalContextRefreshController = Object.freeze({
-                refresh: async () => ({ skipped: true, reason: 'local-mode' })
+                refresh: async () => ({ skipped: true, reason: 'local-mode' }),
+                flushPending: async () => ({ skipped: true, reason: 'local-mode' }),
+                hasPendingRefresh: () => false
             });
             return true;
         }
 
         const controller = createController(root, service);
         root.RadarOperationalContextRefreshController = controller;
+
+        const flushPending = reason => {
+            if (!controller.hasPendingRefresh()) return;
+            const schedule = typeof root.setTimeout === 'function'
+                ? root.setTimeout.bind(root)
+                : setTimeout;
+            schedule(() => {
+                void controller.flushPending(reason);
+            }, 0);
+        };
+
         root.addEventListener?.('focus', () => {
             void controller.refresh('focus');
         });
@@ -153,6 +246,43 @@
             if (root.document.visibilityState !== 'visible') return;
             void controller.refresh('visibility');
         });
+        root.document.addEventListener?.('focusout', () => flushPending('focusout'));
+        root.document.addEventListener?.('click', () => flushPending('click'));
+        root.document.addEventListener?.('transitionend', event => {
+            const target = event?.target;
+            if (!target?.matches?.('.modal-overlay, dialog, [role="dialog"]')) return;
+            flushPending('dialog-transition');
+        });
+        root.document.addEventListener?.('close', () => flushPending('dialog-close'), true);
+
+        if (typeof root.MutationObserver === 'function') {
+            const isDialogNode = node => Boolean(
+                node?.matches?.('.modal-overlay, dialog, [role="dialog"][aria-modal="true"]')
+                || node?.querySelector?.('.modal-overlay, dialog, [role="dialog"][aria-modal="true"]')
+            );
+            const observer = new root.MutationObserver(records => {
+                if (!controller.hasPendingRefresh()) return;
+                const relevant = records.some(record => {
+                    const target = record?.target;
+                    if (record?.type === 'childList') {
+                        return Array.from(record.removedNodes || []).some(isDialogNode)
+                            || Array.from(record.addedNodes || []).some(isDialogNode);
+                    }
+                    return Boolean(
+                        target?.matches?.('.modal-overlay, dialog, [role="dialog"][aria-modal="true"], #main-container')
+                        || target?.querySelector?.('[role="dialog"][aria-modal="true"]')
+                    );
+                });
+                if (relevant) flushPending('dialog-state-change');
+            });
+            observer.observe(root.document.body || root.document.documentElement, {
+                subtree: true,
+                attributes: true,
+                childList: true,
+                attributeFilter: ['class', 'hidden', 'aria-hidden', 'inert', 'open']
+            });
+            root.__radarOperationalContextRefreshObserver = observer;
+        }
 
         root.__radarOperationalContextRefreshInstalled = true;
         return true;
@@ -161,6 +291,9 @@
     return Object.freeze({
         MIN_REFRESH_INTERVAL_MS,
         activeCompetence,
+        hiddenByState,
+        dialogActuallyOpen,
+        editing,
         createController,
         install
     });

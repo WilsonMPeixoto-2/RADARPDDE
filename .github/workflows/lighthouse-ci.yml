@@ -11,6 +11,8 @@ on:
       - 'src/**'
       - 'vendor/**'
       - 'scripts/run-lighthouse-baseline.mjs'
+      - 'scripts/build-vercel.mjs'
+      - 'scripts/optimize-public-assets.mjs'
       - 'package.json'
       - 'package-lock.json'
       - 'lighthouserc.cjs'
@@ -27,6 +29,8 @@ on:
       - 'src/**'
       - 'vendor/**'
       - 'scripts/run-lighthouse-baseline.mjs'
+      - 'scripts/build-vercel.mjs'
+      - 'scripts/optimize-public-assets.mjs'
       - 'package.json'
       - 'package-lock.json'
       - 'lighthouserc.cjs'
@@ -70,12 +74,15 @@ jobs:
           test -x "${chrome_path}"
           printf 'CHROME_PATH=%s\n' "${chrome_path}" >> "${GITHUB_ENV}"
 
+      - name: Gerar artefato público otimizado
+        run: npm run build:vercel
+
       - name: Iniciar aplicação local para auditoria
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p artifacts/lighthouse
-          npm run start > artifacts/lighthouse/server.log 2>&1 &
+          npx --no-install http-server dist -p 4175 -c-1 > artifacts/lighthouse/server.log 2>&1 &
           server_pid=$!
           printf '%s\n' "${server_pid}" > artifacts/lighthouse/server.pid
           for attempt in $(seq 1 30); do

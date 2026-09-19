@@ -278,11 +278,14 @@ jobs:
           CHROME_PATH="$(node -e "const { chromium } = require('playwright'); process.stdout.write(chromium.executablePath())")"
           test -x "${CHROME_PATH}"
           echo "CHROME_PATH=${CHROME_PATH}" >> "${GITHUB_ENV}"
+      - name: Gerar artefato público otimizado
+        run: npm run build:vercel
+
       - name: Iniciar servidor local
         shell: bash
         run: |
           set -euo pipefail
-          npm run start > preproduction-lighthouse-server.log 2>&1 &
+          npx --no-install http-server dist -p 4175 -c-1 > preproduction-lighthouse-server.log 2>&1 &
           echo "$!" > preproduction-lighthouse-server.pid
           for attempt in $(seq 1 60); do
             if curl --fail --silent --show-error http://127.0.0.1:4175/ > /dev/null; then

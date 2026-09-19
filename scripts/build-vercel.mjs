@@ -14,6 +14,7 @@ import {
     MANIFEST_FILE_NAME as EXCEL_SME_ASSETS_MANIFEST_FILE,
     generateExcelSmeAssetsManifest
 } from './generate-excel-sme-assets-manifest.mjs';
+import { optimizePublicAssets } from './optimize-public-assets.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -360,12 +361,14 @@ async function buildVercelArtifact({
         rootDir: resolvedRoot,
         outputFile: path.join(resolvedOutput, EXCEL_SME_ASSETS_MANIFEST_FILE)
     });
+    const optimization = await optimizePublicAssets(resolvedOutput);
 
     return Object.freeze({
         outputDir: resolvedOutput,
         runtimeInput,
         manifest,
-        excelSmeAssets
+        excelSmeAssets,
+        optimization
     });
 }
 
@@ -393,7 +396,8 @@ async function main() {
         `Artefato Vercel gerado em ${relativeOutput}: `
         + `${result.manifest.dataMode} / repositório Supabase `
         + `${result.manifest.supabaseRepositoryEnabled ? 'habilitado' : 'desabilitado'}; `
-        + `Excel SME ${result.excelSmeAssets.template.sha256.slice(0, 12)}.`
+        + `Excel SME ${result.excelSmeAssets.template.sha256.slice(0, 12)}; `
+        + `otimização pública economizou ${Math.round(result.optimization.totals.savedBytes / 1024)} KiB.`
     );
 }
 

@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const os = require('node:os');
-const { mkdir, mkdtemp, writeFile } = require('node:fs/promises');
+const { mkdir, mkdtemp, readdir, writeFile } = require('node:fs/promises');
 const { pathToFileURL } = require('node:url');
 
 const rootDir = path.resolve(__dirname, '../..');
@@ -30,7 +30,11 @@ test('inventário técnico é determinístico e reconhece a arquitetura vigente'
     file.path === 'supabase/migrations/20260910201500_evaluation_retification_atomic_cancel.sql'
     && file.category === 'migrations'
   )));
-  assert.equal(first.supabase.migrationCount, 51);
+
+  const migrationFiles = (await readdir(path.join(rootDir, 'supabase/migrations')))
+    .filter(name => name.endsWith('.sql'));
+  assert.equal(first.supabase.migrationCount, migrationFiles.length);
+  assert.ok(first.supabase.migrationCount >= 51);
 });
 
 test('nome de captura visual é determinístico', () => {

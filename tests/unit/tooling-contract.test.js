@@ -142,6 +142,10 @@ test('CI homologado permanece restrito ao desktop', () => {
     assert.match(preproductionWorkflow, /name: Playwright completo desktop/);
     assert.match(preproductionWorkflow, /name: Lighthouse CI desktop/);
     assert.match(preproductionWorkflow, /--project=desktop-chromium/);
+    assert.match(preproductionWorkflow, /Gerar artefato público otimizado/);
+    assert.match(preproductionWorkflow, /npm run build:vercel/);
+    assert.match(preproductionWorkflow, /http-server dist -p 4175 -c-1/);
+    assert.doesNotMatch(preproductionWorkflow, /npm run start > preproduction-lighthouse-server/);
     assert.doesNotMatch(preproductionWorkflow, /Auditar perfil móvel/);
     assert.doesNotMatch(preproductionWorkflow, /LHCI_PROFILE:\s*mobile/);
 });
@@ -182,4 +186,18 @@ test('Dependabot não reabre versões do Supabase CLI já rejeitadas por RLS', (
         /dependency-name:\s*"supabase"[\s\S]*?version-update:semver-(?:minor|patch)/,
         'o bloqueio não deve impedir versões futuras do Supabase CLI de serem avaliadas'
     );
+});
+
+test('Supabase readiness repete geração de tipos apenas para falha transitória do registry', () => {
+    const readinessWorkflow = read('.github/workflows/supabase-readiness.yml');
+
+    assert.match(readinessWorkflow, /gen_types_with_registry_retry/);
+    assert.match(
+        readinessWorkflow,
+        /toomanyrequests\|rate exceeded\|postgres-meta\|error running container: exit 125/i
+    );
+    assert.match(readinessWorkflow, /max_attempts=3/);
+    assert.match(readinessWorkflow, /if ! grep -Eiq/);
+    assert.match(readinessWorkflow, /return "\$\{status\}"/);
+    assert.match(readinessWorkflow, /npm run supabase:gen:types/);
 });
