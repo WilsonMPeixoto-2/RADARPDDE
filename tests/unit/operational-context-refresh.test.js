@@ -218,6 +218,9 @@ test('instalação observa fechamento assíncrono para liberar refresh pendente'
         matches(selector) {
             return selector.includes('.modal-overlay');
         },
+        classList: {
+            contains(name) { return name === 'show'; }
+        },
         querySelector() { return null; }
     };
     const document = {
@@ -276,6 +279,9 @@ test('remoção assíncrona de camada modal também libera refresh pendente', as
     const modal = {
         matches(selector) {
             return selector.includes('[role="dialog"]') || selector.includes('.modal-overlay');
+        },
+        classList: {
+            contains(name) { return name === 'show'; }
         },
         querySelector() { return null; },
         getAttribute() { return null; },
