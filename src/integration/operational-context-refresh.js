@@ -68,10 +68,41 @@
         return true;
     }
 
+    function hiddenByState(element) {
+        if (!element) return true;
+        if (element.hidden === true) return true;
+        if (element.getAttribute?.('aria-hidden') === 'true') return true;
+        if (element.hasAttribute?.('inert')) return true;
+        const hiddenAncestor = element.closest?.('[hidden], [inert], [aria-hidden="true"]');
+        if (hiddenAncestor) return true;
+        const overlay = element.matches?.('.modal-overlay')
+            ? element
+            : element.closest?.('.modal-overlay');
+        if (overlay && !overlay.classList?.contains?.('show')) return true;
+        return false;
+    }
+
+    function dialogActuallyOpen(root, element) {
+        if (!element || hiddenByState(element)) return false;
+        if (element.id === 'radar-auth-gate' && authenticated(root)) return false;
+        if (element.matches?.('dialog') && !element.hasAttribute?.('open')) return false;
+        try {
+            const style = root.getComputedStyle?.(element);
+            if (style && (style.display === 'none' || style.visibility === 'hidden')) return false;
+        } catch (_error) {
+            // A visibilidade estrutural acima continua sendo a autoridade em ambientes sem layout.
+        }
+        return true;
+    }
+
     function editing(root) {
         const document = root.document;
-        return Boolean(document?.querySelector?.('.modal-overlay.show, dialog[open], [role="dialog"][aria-modal="true"]')
-            || document?.activeElement?.matches?.('input, textarea, select, [contenteditable="true"]')
+        if (document?.querySelector?.('.modal-overlay.show, dialog[open]')) return true;
+        const modalDialogs = Array.from(
+            document?.querySelectorAll?.('[role="dialog"][aria-modal="true"]') || []
+        );
+        if (modalDialogs.some(element => dialogActuallyOpen(root, element))) return true;
+        return Boolean(document?.activeElement?.matches?.('input, textarea, select, [contenteditable="true"]')
             || document?.getElementById?.('main-container')?.inert);
     }
 
@@ -223,6 +254,26 @@
         });
         root.document.addEventListener?.('close', () => flushPending('dialog-close'), true);
 
+        if (typeof root.MutationObserver === 'function') {
+            const observer = new root.MutationObserver(records => {
+                if (!controller.hasPendingRefresh()) return;
+                const relevant = records.some(record => {
+                    const target = record?.target;
+                    return Boolean(
+                        target?.matches?.('.modal-overlay, dialog, [role="dialog"][aria-modal="true"], #main-container')
+                        || target?.querySelector?.('[role="dialog"][aria-modal="true"]')
+                    );
+                });
+                if (relevant) flushPending('dialog-state-change');
+            });
+            observer.observe(root.document.body || root.document.documentElement, {
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['class', 'hidden', 'aria-hidden', 'inert', 'open']
+            });
+            root.__radarOperationalContextRefreshObserver = observer;
+        }
+
         root.__radarOperationalContextRefreshInstalled = true;
         return true;
     }
@@ -230,6 +281,9 @@
     return Object.freeze({
         MIN_REFRESH_INTERVAL_MS,
         activeCompetence,
+        hiddenByState,
+        dialogActuallyOpen,
+        editing,
         createController,
         install
     });
