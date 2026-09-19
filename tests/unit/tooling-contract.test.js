@@ -142,6 +142,10 @@ test('CI homologado permanece restrito ao desktop', () => {
     assert.match(preproductionWorkflow, /name: Playwright completo desktop/);
     assert.match(preproductionWorkflow, /name: Lighthouse CI desktop/);
     assert.match(preproductionWorkflow, /--project=desktop-chromium/);
+    assert.match(preproductionWorkflow, /Gerar artefato público otimizado/);
+    assert.match(preproductionWorkflow, /npm run build:vercel/);
+    assert.match(preproductionWorkflow, /http-server dist -p 4175 -c-1/);
+    assert.doesNotMatch(preproductionWorkflow, /npm run start > preproduction-lighthouse-server/);
     assert.doesNotMatch(preproductionWorkflow, /Auditar perfil móvel/);
     assert.doesNotMatch(preproductionWorkflow, /LHCI_PROFILE:\s*mobile/);
 });
