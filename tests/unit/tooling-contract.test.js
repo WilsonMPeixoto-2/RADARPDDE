@@ -187,3 +187,17 @@ test('Dependabot não reabre versões do Supabase CLI já rejeitadas por RLS', (
         'o bloqueio não deve impedir versões futuras do Supabase CLI de serem avaliadas'
     );
 });
+
+test('Supabase readiness repete geração de tipos apenas para falha transitória do registry', () => {
+    const readinessWorkflow = read('.github/workflows/supabase-readiness.yml');
+
+    assert.match(readinessWorkflow, /gen_types_with_registry_retry/);
+    assert.match(
+        readinessWorkflow,
+        /toomanyrequests\|rate exceeded\|postgres-meta\|error running container: exit 125/i
+    );
+    assert.match(readinessWorkflow, /max_attempts=3/);
+    assert.match(readinessWorkflow, /if ! grep -Eiq/);
+    assert.match(readinessWorkflow, /return "\$\{status\}"/);
+    assert.match(readinessWorkflow, /npm run supabase:gen:types/);
+});
