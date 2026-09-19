@@ -54,6 +54,19 @@ test('fontes institucionais não bloqueiam a primeira renderização nem são ca
         'o fallback sem JavaScript deve preservar as fontes institucionais'
     );
     assert.equal(fontLinks.length, 2, 'somente preload normal e fallback noscript devem referenciar a folha de fontes');
+
+    const criticalFontPreloads = [...html.matchAll(
+        /<link\s+([^>]*data-radar-critical-font=["'][^"']+["'][^>]*)>/gi
+    )];
+    assert.equal(criticalFontPreloads.length, 2, 'Outfit e Plus Jakarta Sans devem ter preload WOFF2 crítico');
+    criticalFontPreloads.forEach(match => {
+        const attrs = match[1];
+        assert.match(attrs, /\brel=["']preload["']/i);
+        assert.match(attrs, /\bas=["']font["']/i);
+        assert.match(attrs, /\btype=["']font\/woff2["']/i);
+        assert.match(attrs, /\bcrossorigin(?:\s|>|=)/i);
+        assert.match(attrs, /https:\/\/fonts\.gstatic\.com\//i);
+    });
 });
 
 test('index não contém escapes \\n literais entre scripts do bootstrap', () => {
