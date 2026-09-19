@@ -387,6 +387,7 @@
         if (typeof activeControladorSubFilter !== 'undefined') activeControladorSubFilter = 'all';
         const result = originalRenderDashboardControlador(container);
         enhanceDashboard();
+        root.RadarCycleBDashboardResult?.enhance?.();
         return result;
     }
 
