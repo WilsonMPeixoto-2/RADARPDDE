@@ -126,6 +126,23 @@
             : null;
     }
 
+    function preloadScriptOnce(src) {
+        const existing = Array.from(
+            document.querySelectorAll?.('link[rel="preload"][as="script"]') || []
+        ).find(link => (
+            link.getAttribute?.('href') === src
+            || link.dataset?.radarProductPreload === src
+        ));
+        if (existing) return existing;
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'script';
+        link.href = src;
+        link.dataset.radarProductPreload = src;
+        document.head.appendChild(link);
+        return link;
+    }
+
     function loadStyleOnce(href) {
         const existing = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).find(link => (
             link.getAttribute('href') === href
@@ -236,6 +253,7 @@
         return startLoad(retryTargets);
     };
 
+    scripts.forEach(preloadScriptOnce);
     styles.forEach(loadStyleOnce);
     startLoad(scripts);
 }(typeof window !== 'undefined' ? window : globalThis));
