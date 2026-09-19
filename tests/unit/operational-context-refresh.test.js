@@ -199,7 +199,6 @@ test('somente diálogo realmente aberto é tratado como edição', () => {
         RadarAuthContext: { user: { id: 'user-1' } },
         getComputedStyle(element) { return element.__style; },
         document: {
-            querySelector() { return null; },
             querySelectorAll() { return [closed]; },
             activeElement: null,
             getElementById() { return null; }
@@ -225,11 +224,10 @@ test('instalação observa fechamento assíncrono para liberar refresh pendente'
         body: {},
         visibilityState: 'visible',
         addEventListener() {},
-        querySelector(selector) {
-            if (selector === '.modal-overlay.show, dialog[open]') return modalOpen ? modal : null;
-            return null;
+        querySelectorAll(selector) {
+            if (selector.includes('.modal-overlay.show')) return modalOpen ? [modal] : [];
+            return [];
         },
-        querySelectorAll() { return []; },
         getElementById() { return null; },
         activeElement: null
     };
@@ -264,6 +262,78 @@ test('instalação observa fechamento assíncrono para liberar refresh pendente'
 
     modalOpen = false;
     observerCallback([{ target: modal }]);
+    await new Promise(resolve => setImmediate(resolve));
+
+    assert.equal(calls, 1);
+    assert.equal(root.RadarOperationalContextRefreshController.hasPendingRefresh(), false);
+});
+
+
+test('remoção assíncrona de camada modal também libera refresh pendente', async () => {
+    let modalPresent = true;
+    let observerCallback = null;
+    let calls = 0;
+    const modal = {
+        matches(selector) {
+            return selector.includes('[role="dialog"]') || selector.includes('.modal-overlay');
+        },
+        querySelector() { return null; },
+        getAttribute() { return null; },
+        hasAttribute() { return false; },
+        closest() { return null; }
+    };
+    const layer = {
+        matches() { return false; },
+        querySelector(selector) {
+            return selector.includes('[role="dialog"]') ? modal : null;
+        }
+    };
+    const document = {
+        body: {},
+        visibilityState: 'visible',
+        addEventListener() {},
+        querySelectorAll() { return modalPresent ? [modal] : []; },
+        getElementById() { return null; },
+        activeElement: null
+    };
+    const root = {
+        document,
+        RadarAuthContext: { user: { id: 'user-1' } },
+        RadarCompetenceContext: { getState: () => ({ activeKey: '2026-08' }) },
+        RadarApplicationServices: {
+            data: {
+                repository: { capabilities: () => ({ remote: true }) },
+                async loadOperationalContext() {
+                    calls += 1;
+                    return { stale: false };
+                }
+            }
+        },
+        RadarGlobalCompetenceSelector: { refreshCurrentView() {} },
+        getComputedStyle() { return { display: 'block', visibility: 'visible' }; },
+        MutationObserver: class {
+            constructor(callback) { observerCallback = callback; }
+            observe(_target, options) {
+                assert.equal(options.childList, true);
+            }
+        },
+        addEventListener() {},
+        setTimeout(callback) { callback(); return 1; },
+        console: { warn() {} }
+    };
+
+    const api = require('../../src/integration/operational-context-refresh.js');
+    assert.equal(api.install(root), true);
+    await root.RadarOperationalContextRefreshController.refresh('focus');
+    assert.equal(root.RadarOperationalContextRefreshController.hasPendingRefresh(), true);
+
+    modalPresent = false;
+    observerCallback([{
+        type: 'childList',
+        target: document.body,
+        removedNodes: [layer],
+        addedNodes: []
+    }]);
     await new Promise(resolve => setImmediate(resolve));
 
     assert.equal(calls, 1);
