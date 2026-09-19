@@ -59,8 +59,8 @@ test('Production ignora qualquer tentativa de fallback local e publica somente S
     assert.doesNotMatch(runtimeSource, /discarded/);
     assert.match(runtimeSource, /"deploymentTarget": "production"/);
     assert.match(publicIndex, /RADAR_PDDE_RUNTIME_INPUT=Object\.freeze\(\{deploymentTarget:["']production["']\}\)/);
-    assert.match(publicApp, /const INITIAL_CONTROLADORES = \[\];/);
-    assert.match(publicApp, /const INITIAL_ESCOLAS = \[\];/);
+    assert.match(publicApp, /const\s+INITIAL_CONTROLADORES\s*=\s*\[\]\s*;/);
+    assert.match(publicApp, /const\s+INITIAL_ESCOLAS\s*=\s*\[\]\s*;/);
     assert.doesNotMatch(publicApp, /Escola Municipal Ema Negrão de Lima|Érika Reis/);
     await fs.access(path.join(outputDir, 'src/data/supabase-repository.js'));
     await fs.access(path.join(outputDir, 'vendor/supabase-client.js'));
