@@ -97,9 +97,10 @@
 
     function editing(root) {
         const document = root.document;
-        if (document?.querySelector?.('.modal-overlay.show, dialog[open]')) return true;
         const modalDialogs = Array.from(
-            document?.querySelectorAll?.('[role="dialog"][aria-modal="true"]') || []
+            document?.querySelectorAll?.(
+                '.modal-overlay.show, dialog[open], [role="dialog"][aria-modal="true"]'
+            ) || []
         );
         if (modalDialogs.some(element => dialogActuallyOpen(root, element))) return true;
         return Boolean(document?.activeElement?.matches?.('input, textarea, select, [contenteditable="true"]')
@@ -255,10 +256,18 @@
         root.document.addEventListener?.('close', () => flushPending('dialog-close'), true);
 
         if (typeof root.MutationObserver === 'function') {
+            const isDialogNode = node => Boolean(
+                node?.matches?.('.modal-overlay, dialog, [role="dialog"][aria-modal="true"]')
+                || node?.querySelector?.('.modal-overlay, dialog, [role="dialog"][aria-modal="true"]')
+            );
             const observer = new root.MutationObserver(records => {
                 if (!controller.hasPendingRefresh()) return;
                 const relevant = records.some(record => {
                     const target = record?.target;
+                    if (record?.type === 'childList') {
+                        return Array.from(record.removedNodes || []).some(isDialogNode)
+                            || Array.from(record.addedNodes || []).some(isDialogNode);
+                    }
                     return Boolean(
                         target?.matches?.('.modal-overlay, dialog, [role="dialog"][aria-modal="true"], #main-container')
                         || target?.querySelector?.('[role="dialog"][aria-modal="true"]')
@@ -269,6 +278,7 @@
             observer.observe(root.document.body || root.document.documentElement, {
                 subtree: true,
                 attributes: true,
+                childList: true,
                 attributeFilter: ['class', 'hidden', 'aria-hidden', 'inert', 'open']
             });
             root.__radarOperationalContextRefreshObserver = observer;
