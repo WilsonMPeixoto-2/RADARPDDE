@@ -57,7 +57,7 @@ test('Production ignora qualquer tentativa de fallback local e publica somente S
     assert.equal(manifest.productionActivationApproved, true);
     assert.equal(manifest.commitSha, '0123456789abcdef0123456789abcdef01234567');
     assert.doesNotMatch(runtimeSource, /discarded/);
-    assert.match(runtimeSource, /"deploymentTarget": "production"/);
+    assert.match(runtimeSource, /"deploymentTarget"\s*:\s*"production"/);
     assert.match(publicIndex, /RADAR_PDDE_RUNTIME_INPUT=Object\.freeze\(\{deploymentTarget:["']production["']\}\)/);
     assert.match(publicApp, /const\s+INITIAL_CONTROLADORES\s*=\s*\[\]\s*;/);
     assert.match(publicApp, /const\s+INITIAL_ESCOLAS\s*=\s*\[\]\s*;/);
@@ -116,7 +116,7 @@ test('gera artefato de Preview com configuração pública, marcador e manifesto
     assert.equal(result.manifest.vercelEnvironment, 'preview');
     assert.equal(result.manifest.supabaseRepositoryEnabled, true);
     assert.match(runtimeSource, /supabase-preview/);
-    assert.match(runtimeSource, /"deploymentTarget": "preview"/);
+    assert.match(runtimeSource, /"deploymentTarget"\s*:\s*"preview"/);
     assert.match(runtimeSource, new RegExp(publishableKey));
     assert.match(publicIndex, /RADAR_PDDE_RUNTIME_INPUT=Object\.freeze\(\{deploymentTarget:["']preview["']\}\)/);
     assert.doesNotMatch(manifestSource, new RegExp(publishableKey));
