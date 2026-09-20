@@ -412,7 +412,7 @@
             const [assetVerifications, linkedAssets] = await Promise.all([
                 this.queryContextDependencies('verifications', registeredInvoices, competenceId, queryOptions),
                 this.queryByIn('assets', 'id', registeredInvoices.map(record => record.linked_asset_id).filter(Boolean),
-                    'queryOperationalContext:linkedAssets')
+                    'queryOperationalContext:linkedAssets', queryOptions)
             ]);
 
             return {
