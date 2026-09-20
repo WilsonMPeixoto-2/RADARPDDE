@@ -154,10 +154,16 @@ jobs:
           set -euo pipefail
           psql -v ON_ERROR_STOP=1 -f supabase/tests/bootstrap.sql
           for migration in supabase/migrations/*.sql; do
-            if [ "$(basename "${migration}")" = "202607230001_enable_pgtap_remote_validation.sql" ]; then
-              echo "Ignorando ${migration} no PostgreSQL genérico; a extensão pgTAP é validada no job Supabase local."
-              continue
-            fi
+            case "$(basename "${migration}")" in
+              202607230001_enable_pgtap_remote_validation.sql)
+                echo "Ignorando ${migration} no PostgreSQL genérico; a extensão pgTAP é validada no job Supabase local."
+                continue
+                ;;
+              20260920004000_realtime_operational_invalidation.sql)
+                echo "Ignorando ${migration} no PostgreSQL genérico; o schema realtime é gerenciado pelo Supabase e validado no job Supabase local."
+                continue
+                ;;
+            esac
             echo "Aplicando ${migration}"
             psql -v ON_ERROR_STOP=1 -f "${migration}"
           done
