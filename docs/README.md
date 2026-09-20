@@ -1,7 +1,7 @@
 # Documentação do RADAR PDDE
 
 **Classe documental:** Canônico — índice e rota de leitura  
-**Atualizado em:** 13 de setembro de 2026
+**Atualizado em:** 19 de setembro de 2026
 
 ## 1. Rota obrigatória
 
@@ -21,7 +21,7 @@ Ordem:
 10. ADRs e referências especializadas da área afetada;
 11. planos, auditorias, demais handoffs e evidências históricas apenas para compreender o seu momento/SHA.
 
-Enquanto a frente de UAT pós-PR #300 estiver vigente, `CURRENT_STAGE.md` aponta explicitamente para o relatório consolidado que deve ser lido no item 5. Não fixar aqui o nome do handoff para que este índice envelheça devagar.
+`CURRENT_STAGE.md` aponta explicitamente para o handoff corrente. Em 19/09/2026, a frente vigente é a modernização de performance e sincronização concluída até o PR #332; não usar handoffs antigos como fila de execução.
 
 ## 2. Função de cada documento canônico/vigente
 
@@ -81,6 +81,8 @@ O modelo detalhado está em `SYSTEM_CANONICAL_MODEL.md`; a finalidade humana das
 Consultar conforme a área materialmente afetada:
 
 - [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — referência funcional/arquitetural detalhada; **afirmações temporais de PR, SHA, fila ou deployment nele não representam o estado corrente e cedem a `CURRENT_STAGE.md`**;
+- [`handoff/2026-09-19-performance-sync-modernization.md`](handoff/2026-09-19-performance-sync-modernization.md) — handoff corrente da modernização de performance/sincronização;
+- [`decisions/ADR-054-sincronizacao-operacional-realtime.md`](decisions/ADR-054-sincronizacao-operacional-realtime.md) — decisão vigente sobre invalidação Realtime entre sessões;
 - [`DECISION_LOG.md`](DECISION_LOG.md) — decisões duradouras;
 - [`architecture/`](architecture/) — contratos arquiteturais específicos;
 - [`decisions/`](decisions/) — ADRs;
