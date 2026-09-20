@@ -12,6 +12,9 @@ const SKIPPED_TOP_LEVEL_DIRECTORIES = Object.freeze(new Set([
 
 function isOptimizable(relativePath) {
     const normalized = relativePath.split(path.sep).join('/');
+    // Configuração gerada também é lida como JSON pelo monitor de Production.
+    // Minificar sintaxe remove aspas das chaves e converte true em !0.
+    if (normalized === 'config.runtime.js') return false;
     const firstSegment = normalized.split('/')[0] || '';
     if (SKIPPED_TOP_LEVEL_DIRECTORIES.has(firstSegment)) return false;
     return normalized.endsWith('.js') || normalized.endsWith('.css');

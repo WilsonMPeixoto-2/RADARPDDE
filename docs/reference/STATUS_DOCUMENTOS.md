@@ -36,14 +36,15 @@ PR aberto, Preview ou documento antigo não altera Production.
 
 ## 3. Baseline de Production
 
-O baseline corrente inclui os PRs #327, #329, #330, #331, #332, #336, #338, #339, #340 e #341.
+O baseline corrente inclui os PRs #327, #329, #330, #331, #332, #336, #338, #339, #340 e #341, com prova E2E adicional no #342.
 
-- merge atual: 71b5a6e4967641c5dc8402ebadefbc22f9b5e5c6;
-- Vercel: dpl_4KcvK1edZm9ZvCYYPBt8gVP8JfPU, READY;
+- merge conferido às 22:00 UTC: ad4a97dc7f4eff3df51deb32dd3acdcd2383a23a;
+- Vercel: dpl_XiHbqtceCMiWpW4QDNKWxK1kzneL, READY;
 - Supabase: ACTIVE_HEALTHY;
 - migrations remotas: 54;
 - migration mais recente: 20260920013656_realtime_operational_invalidation;
-- erros de runtime Vercel na janela de 1 hora consultada após #341: nenhum.
+- logs Vercel error/fatal entre 16:57 e 22:00 UTC: nenhum;
+- monitor pós-merge #342: incompatibilidade de serialização reproduzida; correção e acompanhamento no CURRENT_STAGE/handoff.
 
 Esse baseline substitui como estado corrente os handoffs centrados em PR #301/#305/#306. Esses documentos continuam válidos como histórico do momento em que foram produzidos.
 

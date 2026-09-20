@@ -127,3 +127,4 @@ Os PRs #338–#341 ampliaram a evidência com testes RED → GREEN de interleavi
 - PR #339: retenção e retry controlada após falha de releitura;
 - PR #340: convergência quando gravação aborta leitura Realtime;
 - PR #341: drenagem pós-write de refresh pendente.
+O PR #342 acrescentou prova pela UI com duas identidades distintas: Broadcast → leitura real retida → escrita auditável → Abort → releitura → convergência antes de navegar, sem reload. HEAD `065f53013edb1626ac95b17d387716dfe65850cf` aprovado em 7 workflows; screenshots inspecionadas no run `35526578564`. A prova complementa #338–#341, sem nova mudança arquitetural.

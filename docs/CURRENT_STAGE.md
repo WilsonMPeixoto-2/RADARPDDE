@@ -5,11 +5,11 @@
 
 ## 1. Baseline vigente
 
-O baseline atualmente publicado incorpora a rodada de modernização de performance e sincronização concluída pelos PRs #327, #329, #330, #331, #332, #336, #338, #339, #340 e #341.
+O baseline atualmente publicado incorpora a rodada de modernização de performance e sincronização concluída pelos PRs #327, #329, #330, #331, #332, #336, #338, #339, #340 e #341, com prova frontend adicional no #342.
 
-- **PR #341:** merged
-- **merge atual de Production:** 71b5a6e4967641c5dc8402ebadefbc22f9b5e5c6
-- **Vercel Production:** dpl_4KcvK1edZm9ZvCYYPBt8gVP8JfPU
+- **PR #342:** merged (prova E2E, sem mudança de runtime)
+- **merge de Production conferido às 22:00 UTC:** ad4a97dc7f4eff3df51deb32dd3acdcd2383a23a
+- **Vercel Production:** dpl_XiHbqtceCMiWpW4QDNKWxK1kzneL
 - **deployment:** READY
 - **Supabase:** scnryinorqeucbfkioxo
 - **Supabase status:** ACTIVE_HEALTHY
@@ -51,6 +51,8 @@ A investigação separou as causas e tratou cada uma sem alterar regras de negó
 | #339 | 6c92b98b03f3621e8603ff951dadd0ffb4f67f8d | falha de rede preserva invalidação e recebe uma retry controlada |
 | #340 | 4061dd808ed526f3dfac089a84e0735a510ebed1 | escrita que aborta leitura Realtime não perde convergência |
 | #341 | 71b5a6e4967641c5dc8402ebadefbc22f9b5e5c6 | refresh pendente é drenado após término da gravação |
+| #337 | 24a2d1ca906aa771b37820b113caa20efb75d438 | checkpoint documental e snapshots pós-RLS |
+| #342 | ad4a97dc7f4eff3df51deb32dd3acdcd2383a23a | prova frontend de escrita auditável, Abort real e convergência sem F5 |
 
 ## 4. Estado arquitetural atual
 
@@ -135,9 +137,9 @@ Depois dos PRs #336 e #338–#341, a validação foi ampliada com testes RED →
 
 ## 6. Estado de Production
 
-O deployment atual `dpl_4KcvK1edZm9ZvCYYPBt8gVP8JfPU` está READY e corresponde ao merge `71b5a6e4967641c5dc8402ebadefbc22f9b5e5c6`. O projeto Supabase foi revalidado como ACTIVE_HEALTHY, com 54 migrations remotas.
+Às 22:00 UTC, o deployment `dpl_XiHbqtceCMiWpW4QDNKWxK1kzneL` estava READY e correspondia ao merge `ad4a97dc7f4eff3df51deb32dd3acdcd2383a23a`. O projeto Supabase foi revalidado como ACTIVE_HEALTHY, com 54 migrations remotas.
 
-A conferência pós-release de 20/09/2026 não encontrou erros de runtime Vercel na janela de 1 hora consultada.
+A consulta Vercel de 20/09/2026 entre 16:57 e 22:00 UTC não retornou logs error/fatal. Isso não cobre erros no navegador. O monitor pós-merge falhou em `PRODUCTION_RUNTIME_INVALID`: o otimizador convertia o JSON de `config.runtime.js` em sintaxe JS que o parser do monitor não aceita. Esta entrega preserva esse arquivo gerado, mantém a minificação restante e acrescenta teste do build final contra o parser real. A aprovação pós-publicação exige o monitor verde; READY isoladamente não comprova saúde funcional.
 
 A migration Realtime que ficou canônica em main e no remoto é:
 
@@ -149,7 +151,7 @@ Não reintroduzir timestamps intermediários usados durante a preparação da br
 
 ### P1 — medir ganho pós-RLS em janela representativa
 
-Coletas de 20/09 às 03:37:00 e 11:04:42 UTC tiveram **zero chamadas novas** nas 11 assinaturas autenticadas acompanhadas. Os contadores continuavam iguais às 16:47:38 UTC. A janela não permite calcular média pós-migração nem justificar RPC única. Snapshots e SQL reproduzível estão vinculados no handoff corrente.
+Coletas de 20/09 às 03:37:00 e 11:04:42 UTC tiveram **zero chamadas novas** nas 11 assinaturas autenticadas acompanhadas. A coleta bruta de 21:57:55 UTC confirmou os mesmos 11 queryids, 16.449 chamadas e deltas zero, com reset e início das estatísticas preservados. A janela não permite calcular média pós-migração nem justificar RPC única. Snapshots e SQL reproduzível estão vinculados no handoff corrente.
 
 Coletar deltas de pg_stat_statements depois de volume real suficiente e comparar especialmente:
 
@@ -192,7 +194,9 @@ Não são próximos passos automáticos:
 
 ## 9. Situação operacional
 
-O PR #342 acrescenta prova pela interface para a convergência após cancelamento de leitura por gravação auditável, sobre o baseline #341, sem nova mudança funcional. No checkpoint desta retomada a execução autenticada/visual ainda aguarda os gates do candidato; não confundir teste escrito com teste aprovado.
+O PR #342 foi integrado após 7/7 workflows SUCCESS no HEAD `065f53013edb1626ac95b17d387716dfe65850cf` e inspeção das imagens do run `35526578564`. A prova exige duas identidades autenticadas, Broadcast, leitura HTTP real cancelada por escrita auditável, releitura e convergência antes de navegação, zero reload e confirmação no Prontuário. O Lighthouse passou sem alterar budgets.
+
+A revisão integrada de 20/09 não encontrou nova regressão nos contratos de sincronização examinados. Encontrou a incompatibilidade de serialização no monitor descrita acima, reproduzida RED → GREEN. O handoff registra o escopo, as evidências e os limites dessa revisão. A medição real pós-RLS e a auditoria atual de integridade de Production continuam pendentes; não declarar encerramento integral.
 
 Não há defeito funcional conhecido bloqueando uso normal do RADAR no baseline atual.
 

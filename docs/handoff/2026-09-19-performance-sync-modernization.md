@@ -3,7 +3,7 @@
 **Data:** 19 de setembro de 2026
 **Atualizado em:** 20 de setembro de 2026
 **Classe documental:** Handoff corrente
-**Baseline publicado:** PR #341 / merge 71b5a6e4967641c5dc8402ebadefbc22f9b5e5c6
+**Baseline publicado conferido às 22:00 UTC:** PR #342 / merge ad4a97dc7f4eff3df51deb32dd3acdcd2383a23a
 
 ## 1. Objetivo da rodada
 
@@ -25,13 +25,14 @@ O objetivo não foi redesenhar regras de negócio. Avaliação, Nota Fiscal, Pen
 
 ## 2. Estado final já publicado
 
-- SHA Production: 71b5a6e4967641c5dc8402ebadefbc22f9b5e5c6;
-- Vercel: dpl_4KcvK1edZm9ZvCYYPBt8gVP8JfPU;
+- SHA Production conferido às 22:00 UTC: ad4a97dc7f4eff3df51deb32dd3acdcd2383a23a;
+- Vercel: dpl_XiHbqtceCMiWpW4QDNKWxK1kzneL;
 - deployment: READY;
 - Supabase: scnryinorqeucbfkioxo, ACTIVE_HEALTHY;
 - migrations remotas: 54;
 - migration mais recente: 20260920013656_realtime_operational_invalidation;
-- erros de runtime Vercel na janela de 1 hora pós-publicação consultada em 20/09/2026: nenhum.
+- logs Vercel error/fatal entre 16:57 e 22:00 UTC em 20/09: nenhum; não cobre console do navegador;
+- monitor pós-merge #342: falhou no parser da configuração minificada; correção nesta entrega, verificar monitor após publicação.
 
 A versão 20260920013656 é a versão canônica que ficou tanto na main quanto no histórico remoto. Não restaurar timestamps intermediários usados durante a preparação da branch.
 
@@ -285,7 +286,21 @@ A coleta inicial limitava a 100 entradas incluindo outros papéis; o arquivo pre
 
 **Limite de integridade:** o conector somente leitura recebeu permission denied em `production_integrity_check()`. Não houve tentativa de contornar privilégios; isso não equivale a auditoria atual de integridade concluída.
 
-**PR #342, prova complementar:** `test/realtime-write-abort-frontend-2026-09-20`, baseado em #341. Duas identidades institucionais; Controlador altera bonificação por botão e Assistente exporta relatório pela UI. A gravação auditável cancela uma resposta HTTP real retida do refresh. O teste exige releitura e convergência antes da navegação, confirmação visual do Prontuário e zero reload. `administrative_logs` evita falso positivo por segundo Broadcast ou reconciliação de verificações da própria escrita. Screenshot anexada para inspeção. Execução autenticada e visual pendente dos gates; validar SHA final antes de integrar. Este teste complementa a implementação existente e não a substitui.
+**PR #342, prova complementar:** `test/realtime-write-abort-frontend-2026-09-20`, baseado em #341. Duas identidades institucionais; Controlador altera bonificação por botão e Assistente exporta relatório pela UI. A gravação auditável cancela uma resposta HTTP real retida do refresh. O teste exige releitura e convergência antes da navegação, confirmação visual do Prontuário e zero reload. `administrative_logs` evita falso positivo por segundo Broadcast ou reconciliação de verificações da própria escrita. Screenshot anexada para inspeção. Integrado no merge `ad4a97dc7f4eff3df51deb32dd3acdcd2383a23a`. HEAD `065f53013edb1626ac95b17d387716dfe65850cf`: 7/7 workflows SUCCESS, incluindo [homologação 35526578564](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/35526578564). Artefato `10609603303`, retenção 7 dias, imagens da linha extCC e do Prontuário inspecionadas: Assistente Local, Maio/2026, BASIC, Sim selecionado. A fixture isolada ESC-OTHER habilita o relatório; o alvo continua ESC-LOCAL. Os erros intermediários de fixture, seletor e regex eram do teste. Lighthouse final verde sem relaxamento de budget. Este teste complementa a implementação existente e não a substitui.
+
+### Revisão integrada e continuidade — 20/09, após #342
+
+- **Leitura/escrita:** `DataService.loadOperationalContext()` captura somente a barreira de escritas já pendentes; `execute()` aborta a leitura, incrementa a sequência e serializa somente gravações. Contexto obsoleto não passa por `canApply()`.
+- **Refresh e UI:** `operational-context-refresh.js` preserva invalidação durante voo/edição/falha; aplica somente com autenticação e competência válidas e superfície segura. `lastRefreshAt` avança após aplicação/render. `operational-write-feedback.js` drena em `finally`, inclusive quando a escrita rejeita.
+- **Realtime:** `operational-realtime-invalidation.js` mantém canal privado de invalidação mínima, debounce e uma segunda tentativa controlada por disparo; falha da segunda tentativa não agenda a terceira. Pendência residual depende dos gatilhos de retomada previstos, sem polling contínuo. O E2E #342 confirma o caminho pós-write sem navegação/foco como resgate.
+- **Competência/projeção:** `global-competence-selector.js` protege a hidratação por sequência; `StatePort` recebe `persistStorage:false` no caminho remoto. `repository-factory.js` mantém filtros de competência/passivo ativo, dependências históricas por IDs e AbortSignal em paginação; não voltou a ler globalmente as coleções operacionais.
+- **Permissões:** código das policies continua set-based; catálogo remoto revalidado com policy única SELECT autenticada para Broadcast no tópico privado. Supabase ACTIVE_HEALTHY; 54 migrations, última `20260920013656`. Sem alteração de banco nesta retomada. A limitação da checagem de integridade descrita acima permanece.
+
+**Nova evidência pós-RLS:** [coleta de 21:57:55 UTC](evidence/2026-09-20-post-rls-closeout.json) comparada por chave com a coleta de 11:04:42: mesmos 11 registros, reset e stats_since; delta zero em calls, total_exec_time, rows e blocos. O handoff recebido também relata uma observação às 17:32 sem delta; ela é referência textual, não snapshot bruto recuperado. A nova coleta preservada evita reconstruir evidência inexistente. RPC única permanece adiada por falta de amostra representativa; médias acumuladas não medem ganho pós-RLS.
+
+**Achado no monitor publicado:** run [35540203679](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/35540203679) falhou em `PRODUCTION_RUNTIME_INVALID`, enquanto Vercel estava READY. GET público confirmou que a minificação removia aspas das chaves e convertia `true` para `!0`. O navegador aceita o JS; `parseRuntimeConfigScript()` exige JSON e rejeita. O teste de integração em `vercel-build.test.js` reproduziu o mesmo erro antes da correção. `optimize-public-assets.mjs` passa a preservar exclusivamente `config.runtime.js`; restante do JS/CSS continua otimizado. Não executar JS remoto nem relaxar validação do monitor. Após integrar, conferir o arquivo publicado e o monitor completo, incluindo bloqueio anônimo e preflight da Edge Function.
+
+**Próxima retomada:** revalidar main/Production e o monitor; coletar nova janela pós-RLS somente após uso real; concluir a checagem de integridade por um caminho autorizado. Indicador visual de sincronização continua P2 opcional. Não reaplicar patches antigos nem reabrir RPC/revision/compute por hipótese. Esta revisão não substitui uma nova auditoria completa de todos os dados de Production.
 
 ### Sequência
 
