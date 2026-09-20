@@ -116,3 +116,87 @@ test('wrapper de feedback executa a gravação original uma única vez', async (
     assert.equal(notices.length, 1);
     assert.equal(notices[0].kind, 'success');
 });
+
+
+test('gravação concluída agenda drenagem única do refresh operacional pendente', async () => {
+    let flushCalls = 0;
+    const scheduled = [];
+    class FakeDataService {
+        async execute() {
+            return {
+                ok: true,
+                stateSync: {
+                    status: 'applied',
+                    remoteCommitConfirmed: true,
+                    localStateApplied: true,
+                    refreshRequired: false
+                }
+            };
+        }
+    }
+
+    const root = {
+        RadarDataService: { DataService: FakeDataService },
+        RadarOperationalContextRefreshController: {
+            hasPendingRefresh() { return true; },
+            async flushPending(reason) {
+                flushCalls += 1;
+                assert.equal(reason, 'write-settled');
+                return { stale: false };
+            }
+        },
+        document: {},
+        setTimeout(callback) {
+            scheduled.push(callback);
+            return scheduled.length;
+        }
+    };
+
+    feedback.installDataServiceFeedback(root, () => {});
+    const service = new FakeDataService();
+
+    await service.execute({ name: 'invoice:save' });
+
+    assert.equal(scheduled.length, 1);
+    assert.equal(flushCalls, 0);
+    scheduled.shift()();
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(flushCalls, 1);
+});
+
+test('gravação rejeitada também agenda drenagem da invalidação que ela pode ter abortado', async () => {
+    let flushCalls = 0;
+    const scheduled = [];
+    class FakeDataService {
+        async execute() {
+            throw new Error('write rejected');
+        }
+    }
+
+    const root = {
+        RadarDataService: { DataService: FakeDataService },
+        RadarOperationalContextRefreshController: {
+            hasPendingRefresh() { return true; },
+            async flushPending(reason) {
+                flushCalls += 1;
+                assert.equal(reason, 'write-settled');
+                return { stale: false };
+            }
+        },
+        document: {},
+        setTimeout(callback) {
+            scheduled.push(callback);
+            return scheduled.length;
+        }
+    };
+
+    feedback.installDataServiceFeedback(root, () => {});
+    const service = new FakeDataService();
+
+    await assert.rejects(service.execute({ name: 'invoice:save' }), /write rejected/);
+
+    assert.equal(scheduled.length, 1);
+    scheduled.shift()();
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(flushCalls, 1);
+});
