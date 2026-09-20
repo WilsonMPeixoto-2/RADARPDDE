@@ -116,7 +116,7 @@ test('rajada de Broadcast é coalescida e força somente um refresh', async () =
     harness.emitBroadcast({ entity: 'pendencies' });
     harness.emitBroadcast({ entity: 'verifications' });
     harness.emitBroadcast({ entity: 'assets' });
-    await new Promise(resolve => setImmediate(resolve));
+    await new Promise(resolve => setTimeout(resolve, 5));
 
     assert.deepEqual(harness.refreshes, [{
         reason: 'realtime',
