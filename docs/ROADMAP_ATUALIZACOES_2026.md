@@ -201,11 +201,11 @@ Busca inteligente, Floating UI e View Transitions já fazem parte do produto. No
 
 ## 13. Sequência vigente
 
-A sequência corrente pós-PR #341 é:
+A sequência corrente pós-PR #342 é:
 
 ```text
 1. observar estabilidade de Production e medir deltas pós-RLS em janela representativa
-2. continuar a auditoria adversarial final; qualquer nova correção exige reprodução RED antes de mudança de produto
+2. certificar o monitor publicado após correção da serialização e concluir a checagem autorizada de integridade; a prova adversarial frontend #342 já passou
 3. decidir, por medição e prova de paridade, se o contexto operacional deve migrar para RPC única
 4. avaliar indicador discreto de sincronização e revisão de índices somente se os dados justificarem
 5. executar auditoria final código + Supabase + Vercel e encerrar formalmente a modernização

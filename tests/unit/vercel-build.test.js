@@ -57,6 +57,12 @@ test('Production ignora qualquer tentativa de fallback local e publica somente S
     assert.equal(manifest.productionActivationApproved, true);
     assert.equal(manifest.commitSha, '0123456789abcdef0123456789abcdef01234567');
     assert.doesNotMatch(runtimeSource, /discarded/);
+    // O monitor consome o artefato publicado, depois da otimização, sem executar JS remoto.
+    const { parseRuntimeConfigScript } = await import('../../scripts/lib/production-system-smoke.mjs');
+    assert.deepEqual(parseRuntimeConfigScript(runtimeSource), {
+        supabaseUrl: new URL('/', result.runtimeInput.supabase.url).toString(),
+        publishableKey: result.runtimeInput.supabase.publishableKey
+    });
     assert.match(runtimeSource, /["']?deploymentTarget["']?\s*:\s*["']production["']/);
     assert.match(publicIndex, /RADAR_PDDE_RUNTIME_INPUT=Object\.freeze\(\{deploymentTarget:["']production["']\}\)/);
     assert.match(publicApp, /INITIAL_CONTROLADORES\s*=\s*\[\]\s*[,;]/);
