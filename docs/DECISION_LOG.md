@@ -706,3 +706,31 @@ R1 → R2A → R2B → R2C → R3 → R4 → R5 → R6 → R7 → R8 → R9
 **Evidência:** `docs/audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`.
 
 O evento de reconciliação imediatamente anterior permanece válido como histórico da transição, mas sua antiga sequência PR3/PR5/PR6/PR8/PR9 deixou de ser a fila corrente.
+
+---
+
+## ADR-054 — Sincronização operacional usa invalidação Realtime e releitura canônica
+
+**Status:** Aprovada, implementada e publicada em Production pelo PR #332
+
+Sessões do RADAR não compartilham registros operacionais pelo WebSocket. O Supabase Realtime Broadcast é usado somente para sinalizar que o contexto mudou.
+
+Contrato vigente:
+
+    mudança persistida no PostgreSQL
+    → trigger emite Broadcast privado mínimo
+    → outra sessão recebe invalidação
+    → relê o contexto no Supabase
+    → RLS filtra o que aquela sessão pode acessar
+    → DataService/StatePort reconciliam
+    → UI converge
+
+O canal privado canônico é `radar:operational`, com evento `operational-change`. O payload não transporta escola, usuário, valor, documento ou conteúdo de negócio.
+
+A invalidação é emitida por alterações em `verifications`, `registered_invoices`, `pendencies`, `pendency_attempts`, `pendency_contacts` e `assets`.
+
+Se a sessão estiver editando, o refresh fica pendente e é aplicado quando a interface volta a ser segura. Reconexão força releitura para recuperar possíveis eventos perdidos.
+
+Postgres Changes, streaming de registros pelo Broadcast, polling frequente e cache agressivo não são a estratégia principal desta frente.
+
+**Documento integral:** `docs/decisions/ADR-054-sincronizacao-operacional-realtime.md`.
