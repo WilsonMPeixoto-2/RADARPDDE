@@ -122,6 +122,7 @@ const ARTIFACTS = [
     'tests/e2e/sme-access-governance.spec.js',
     'tests/e2e/supabase-auth-local.spec.js',
     'tests/e2e/supabase-full-contract.spec.js',
+    'tests/e2e/supabase-realtime-invalidation.spec.js',
     'tests/e2e/data-error-ux.spec.js',
     'tsconfig.database-types.json',
     'docs/reference/SUPABASE_FUNCTIONAL_COVERAGE.md',
