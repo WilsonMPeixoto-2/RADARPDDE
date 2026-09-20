@@ -1,6 +1,6 @@
 # RADAR PDDE — Roadmap canônico de atualizações 2026
 
-**Atualizado em:** 7 de agosto de 2026  
+**Atualizado em:** 19 de setembro de 2026  
 **Classe documental:** Canônico
 
 ## 1. Finalidade
@@ -15,6 +15,20 @@ O roadmap organiza:
 Integração na `main`, aplicação no Supabase, publicação na Vercel e comprovação funcional são estados distintos.
 
 O baseline mutável do ambiente fica exclusivamente em [`CURRENT_STAGE.md`](CURRENT_STAGE.md).
+
+### Atualização superveniente de 19/09/2026
+
+As sequências operacionais antigas preservadas abaixo documentam o estado de agosto e **não formam a fila corrente**.
+
+A frente mais recente concluiu:
+
+- otimização do artefato público e refresh pendente (#327);
+- RLS set-based (#329);
+- separação entre fila de leitura e gravação (#330);
+- cancelamento de leituras obsoletas (#331);
+- sincronização multiusuário por invalidação Realtime (#332).
+
+O estado corrente, objetivos restantes e ordem de execução pertencem a `CURRENT_STAGE.md` e ao handoff `docs/handoff/2026-09-19-performance-sync-modernization.md`.
 
 ## 2. Estado consolidado
 
@@ -185,17 +199,17 @@ Busca inteligente, Floating UI e View Transitions já fazem parte do produto. No
 
 ## 13. Sequência vigente
 
+A sequência corrente pós-PR #332 é:
+
 ```text
-1. concluir reconciliação documental pós-PR #162
-2. encerrar/substituir PR #156 sem merge cego
-3. continuar auditoria funcional a partir da main atual
-4. executar provas das operações parciais por risco
-5. decidir e, se aprovado, provisionar smoke autenticado
-6. verificar/corrigir tela de detalhes da escola
-7. avaliar dependências em PRs isolados
-8. UAT e correções finais
-9. decisão formal de liberação
+1. observar estabilidade de Production e medir deltas pós-RLS em janela representativa
+2. reconciliar retry próprio do RADAR com retry nativo do supabase-js
+3. decidir, por medição e prova de paridade, se o contexto operacional deve migrar para RPC única
+4. avaliar indicador discreto de sincronização e revisão de índices somente se os dados justificarem
+5. executar auditoria final código + Supabase + Vercel e encerrar formalmente a modernização
 ```
+
+Não reabrir automaticamente os itens históricos das seções anteriores. Qualquer item antigo só volta à fila se uma verificação source-first demonstrar que continua materialmente pendente e compatível com as decisões supervenientes.
 
 ## 14. Critério para nova frente
 
