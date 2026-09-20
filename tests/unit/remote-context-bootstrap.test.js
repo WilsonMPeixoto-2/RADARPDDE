@@ -130,6 +130,58 @@ test('leitura contextual aguarda gravação anterior e resposta obsoleta não su
     assert.equal(service.currentOperationalCompetence, '2026-09');
 });
 
+test('gravação não aguarda refresh já em andamento e invalida a resposta antiga', async () => {
+    const harness = createHarness();
+    const service = new DataService({ repository: harness.repository, statePort: harness.statePort });
+    let releaseRead;
+    let signalRead;
+    const readStarted = new Promise(resolve => { signalRead = resolve; });
+    const events = [];
+
+    harness.repository.queryOperationalContext = async ({ competenceId }) => {
+        events.push(`reading:${competenceId}`);
+        signalRead();
+        await new Promise(resolve => { releaseRead = resolve; });
+        events.push(`read-return:${competenceId}`);
+        return {
+            competenceId,
+            entities: {
+                verifications: [],
+                pendencies: [],
+                pendencyAttempts: [],
+                pendencyContacts: [],
+                assets: [],
+                registeredInvoices: []
+            }
+        };
+    };
+
+    service.executeCommand = async () => {
+        events.push('writing');
+        return { ok: true };
+    };
+
+    const oldRead = service.loadOperationalContext('2026-08');
+    await readStarted;
+
+    let writeSettled = false;
+    const write = service.execute({}).finally(() => {
+        writeSettled = true;
+    });
+
+    await new Promise(resolve => setImmediate(resolve));
+
+    assert.equal(writeSettled, true, 'Salvar não pode aguardar o refresh remoto em andamento');
+    assert.deepEqual(events, ['reading:2026-08', 'writing']);
+
+    await write;
+    releaseRead();
+
+    const result = await oldRead;
+    assert.equal(result.stale, true, 'refresh iniciado antes da gravação deve ser descartado');
+    assert.equal(harness.applied.length, 0, 'resposta obsoleta não pode alterar a projeção local');
+});
+
 test('releitura corretiva de entidade operacional conserva o recorte e nunca recarrega a coleção integral', async () => {
     const harness = createHarness();
     const service = new DataService({ repository: harness.repository, statePort: harness.statePort });

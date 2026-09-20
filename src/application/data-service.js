@@ -287,7 +287,10 @@
                 );
             }
             this.unitOfWork = options.unitOfWork || new UnitOfWork({ statePort: this.statePort });
-            this.remoteExecutionTail = Promise.resolve();
+            this.remoteWriteTail = Promise.resolve();
+            // Compatibilidade com testes e integrações que aguardam a fila de gravações.
+            // Leituras operacionais não entram mais nesta fila.
+            this.remoteExecutionTail = this.remoteWriteTail;
             this.currentHistoricalStatuses = [];
             this.operationalContextSequence = 0;
             this.currentOperationalCompetence = '';
@@ -417,11 +420,12 @@
             }
 
             const sequence = ++this.operationalContextSequence;
-            const run = this.remoteExecutionTail.then(() => (
+            // Leituras aguardam apenas gravações que já estavam pendentes quando foram solicitadas.
+            // Uma leitura em andamento nunca entra na fila de escrita e, portanto, não pode atrasar "Salvar".
+            const writeBarrier = this.remoteWriteTail;
+            return writeBarrier.then(() => (
                 this.readOperationalContext(target, options, sequence)
             ));
-            this.remoteExecutionTail = run.catch(() => undefined);
-            return run;
         }
 
         async readOperationalContext(target, options, sequence) {
@@ -610,11 +614,17 @@
         execute(command = {}) {
             const remote = this.repository.capabilities().remote === true;
             if (!remote) return this.executeCommand(command);
-            const run = this.remoteExecutionTail.then(
+
+            // Qualquer contexto iniciado antes desta intenção de escrita passa a ser obsoleto.
+            // Isso impede uma resposta lenta de sobrescrever o retorno autoritativo da gravação.
+            this.operationalContextSequence += 1;
+
+            const run = this.remoteWriteTail.then(
                 () => this.executeCommand(command),
                 () => this.executeCommand(command)
             );
-            this.remoteExecutionTail = run.catch(() => undefined);
+            this.remoteWriteTail = run.catch(() => undefined);
+            this.remoteExecutionTail = this.remoteWriteTail;
             return run;
         }
 
