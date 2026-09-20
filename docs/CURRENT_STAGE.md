@@ -1,177 +1,237 @@
 # RADAR PDDE — Estado atual do projeto
 
-**Classe documental:** Canônico — estado mutável e retomada futura  
-**Atualizado em:** 14 de setembro de 2026
-
-## Pacote final de manutenção de 14/09/2026
-
-O PR #305 restaurou e publicou em Production a edição auditável de avaliações sobre a arquitetura Supabase já certificada. Bonificação permanece editável diretamente por Sim/Não/N/A; correção de análise técnica continua explícita e, quando há Pendência ativa associada a um `Incorreto`, exige confirmação, justificativa, cancelamento atômico da Pendência e preservação do histórico.
-
-A rodada final de manutenção está concentrada no PR #306. Seu escopo é deliberadamente limitado a dependências homologadas, desempenho de carregamento, acabamento visual discreto e reconciliação documental. Não altera regra de negócio, schema, migration, identidade de registros, RLS ou fluxos operacionais.
+**Classe documental:** Canônico — estado mutável e retomada futura
+**Atualizado em:** 19 de setembro de 2026
 
 ## 1. Baseline vigente
 
-O PR #300 encerrou a refatoração arquitetural Supabase. O PR #301 encerrou a homologação operacional pós-refatoração e integrou a correção funcional encontrada durante a UAT. O PR #305, posteriormente, restaurou a edição auditável de avaliações sobre essa arquitetura e é o baseline funcional atualmente publicado.
+O baseline atualmente publicado incorpora a rodada de modernização de performance e sincronização concluída pelos PRs #327, #329, #330, #331 e #332.
 
-- **PR #305:** merged
-- **Merge commit funcional:** `b151f3f27cb28d5165916aa9be4086355742e839`
-- **Candidato funcional certificado:** `86db8651134616fe03d6506e7f9bd073e1e1eb3f`
-- **Data mode de Production:** `supabase-production`
+- **PR #332:** merged
+- **merge atual de Production:** ec6a22cac374d85907aca407a844748db1a20d4e
+- **Vercel Production:** dpl_Et72aPRynw6ZiCpDZ14J73K8SPW7
+- **deployment:** READY
+- **Supabase:** scnryinorqeucbfkioxo
+- **Supabase status:** ACTIVE_HEALTHY
+- **migrations remotas:** 54
+- **migration mais recente:** 20260920013656_realtime_operational_invalidation
+- **erros de runtime Vercel observados após publicação:** nenhum no intervalo consultado.
 
-O PR #305 superou o rollback funcional do PR #299 e reintroduziu a retificação de avaliação de forma auditável, com confirmação visual, preservação de histórico e reconciliação da suíte de testes com o contrato atual.
+Production continua em modo Supabase canônico. Não existe LocalStorage como banco operacional paralelo.
 
-## 2. Estado de Production e decisão operacional
+## 2. Objetivo da rodada concluída
 
-A aplicação integrada foi publicada em Production pela Vercel em deployment:
+A frente foi aberta por dois sintomas operacionais:
 
-`dpl_c9Be1LfZocKVBVmrB5pDHaVB7w3X`
+1. leituras/contextos mais lentos do que o esperado para o volume real do RADAR;
+2. usuários precisando pressionar F5 para perceber mudanças recentes, especialmente após alteração feita por outra sessão.
 
-O deployment ficou `READY`, com alias oficial `https://radarpdde-fix.vercel.app/`, ligado diretamente ao merge funcional `b151f3f27cb28d5165916aa9be4086355742e839` do PR #305.
+A investigação separou as causas e tratou cada uma sem alterar regras de negócio:
 
-O build de Production registrou:
+- RLS escolar calculada repetidamente por linha;
+- ausência de invalidação entre sessões;
+- refresh compartilhando fila com gravações;
+- leituras obsoletas continuando em voo;
+- refresh durante edição sem retomada suficientemente robusta;
+- peso desnecessário no artefato público e instabilidade de LCP/CLS.
 
-- `1034` testes;
-- `1034` aprovados;
-- `0` falhas;
-- artefato `supabase-production`;
-- deployment concluído sem erro.
+## 3. Entregas integradas
 
-Smoke técnico do endereço oficial:
+| PR | Merge | Resultado principal |
+|---:|---|---|
+| #327 | 61d2762ecb37daa30cefcafe32e06042aa689772 | refresh pendente confiável, build público otimizado, -725 KiB, Lighthouse ~81%, LCP ~3,0 s, CLS ~0,08 |
+| #329 | 83e2576548eca2c11bac0acb143cda7ad44cde4c | RLS set-based; 25 policies sem autorização escolar linha a linha |
+| #330 | ce42ace4b18be5a3326ee992d90cb0c4062a81a6 | fila de gravação independente de refresh |
+| #331 | cf9c22bc670461826cf89ca585313983c6a1cb78 | AbortController/AbortSignal para leituras operacionais obsoletas |
+| #332 | ec6a22cac374d85907aca407a844748db1a20d4e | Broadcast privado de invalidação e sincronização A → B sem F5 |
 
-- HTTP `200`;
-- runtime de Production carregado;
-- tela institucional de login presente;
-- nenhum erro/fatal encontrado nos logs do deployment no intervalo pós-publicação.
+## 4. Estado arquitetural atual
 
-Smoke independente com TinyFish:
+### 4.1 Persistência e autorização
 
-- endereço oficial abriu normalmente;
-- tela institucional de login reconhecida;
-- nenhum bloqueio técnico detectado antes da autenticação;
-- não houve login porque não existia sessão ativa no Browser Context Profile nem credencial segura no vault;
-- nenhuma credencial manual foi solicitada e nenhuma mutação foi executada.
+Supabase permanece a fonte canônica de persistência.
 
-Antes desta publicação, Work/Astra já havia comprovado login real em Production e abertura do Prontuário da Ary Barroso com avaliações reais. Naquela sessão ocorreu uma mensagem transitória de falha ao carregar escopos antes da recuperação; ela não se reproduziu no smoke público atual, mas também não foi reclassificada como inexistente.
+A autorização escolar foi convertida para conjuntos calculados por statement:
 
-**Decisão de release:** o RADAR está liberado funcionalmente para reabertura aos usuários. Não há defeito funcional conhecido bloqueando login, avaliações, notas/despesas, Pendências, novos envios, reanálises, edição auditável e persistência/reload nas jornadas certificadas.
+- accessible_school_ids();
+- writable_school_ids();
+- inventory_cre_school_ids().
 
-## 3. Certificação funcional de Production
+Os wrappers públicos históricos permanecem compatíveis. A mudança foi de execução, não de regra de acesso.
 
-No candidato `86db865...` do PR #305 passaram todos os gates de release relevantes:
+### 4.2 Prioridade de gravação
 
-- `Ciclos funcionais reais com Supabase` — `34804862031`;
-- `Testes E2E Playwright` — `34804862017`;
-- `Confiabilidade funcional com Supabase real` — `34804861945`;
-- `Supabase readiness` — `34804862065`;
-- `Gate remoto de perfis e viewports` — `34804861921`;
-- `Retificação auditável direcionada` — `34804861943`;
-- `Validar RADAR PDDE` — `34804861959`;
-- `CodeQL` — `34804861965`;
-- `Saúde das dependências` — `34804861920`;
-- `Backup e restauração descartáveis` — `34804862153`;
-- `Lighthouse CI` — `34804861971`;
-- `Homologação integral pré-production` — `34804861985`.
+Gravações remotas permanecem serializadas entre si, mas uma leitura operacional já em andamento não pode atrasar uma ação explícita de Salvar.
 
-A rodada do PR #306 é manutenção posterior sobre esse baseline. Enquanto o PR #306 permanecer aberto, seu resultado não substitui o baseline de Production e deve ser lido pelo handoff próprio da manutenção.
+Leitura iniciada depois de uma escrita pendente aguarda a escrita já conhecida; leitura mais antiga é marcada como obsoleta.
 
-## 4. Jornadas operacionais comprovadas
+### 4.3 Cancelamento de leitura obsoleta
 
-A prova de mutação segue:
+Nova competência ou início de gravação cancela fisicamente o request contextual anterior. Cancelamento esperado pelo próprio RADAR retorna stale/aborted e não vira erro funcional para o usuário.
 
-```text
-UI real
-→ persistência Supabase
-→ relações/efeitos derivados
-→ UI coerente
-→ reload
-→ mesma verdade
-```
+### 4.4 Sincronização entre sessões
 
-Foram comprovados, entre outros:
+Realtime usa Broadcast privado somente para invalidação.
 
-- login/contexto e auditoria sob demanda;
-- avaliação documental → Supabase → reload;
-- consumo: criar, analisar, editar, recarregar e excluir;
-- serviço/Consulta Assessoria individual por NF, com isolamento entre notas;
-- Pendência, novo envio, reanálise incorreta, nova tentativa e resolução;
-- `a_identificar` com abertura atômica, edição preservando vínculo, identificação posterior e resolução;
-- Boleto Internet em Educação Conectada;
-- contato, cancelamento e reabertura de Pendência com preservação do histórico após reload;
-- edição direta de bonificação e correção auditável da análise técnica;
-- ausência de `localStorage` como segundo banco operacional.
+Fluxo canônico:
 
-## 5. Defeito real corrigido na homologação pós-refatoração
+    mudança persistida
+    → trigger emite invalidação mínima
+    → sessão remota recebe o evento
+    → sessão relê Supabase
+    → RLS filtra o que pode ser visto
+    → DataService/StatePort reconciliam
+    → UI converge
 
-A UAT do PR #301 encontrou um 404 em `register_invoice_document_attempt` quando uma NF sem bem vinculado omitia `p_expected_asset_version` por serializar `undefined`.
+O Broadcast não transporta escola, usuário, valor, documento nem registro operacional.
 
-Correção integrada:
+### 4.5 Proteção durante edição
 
-```text
-p_expected_asset_version: persistence.expectedAssetVersion ?? null
-```
+Se uma invalidação chega enquanto formulário/modal/campo está ativo, o refresh fica pendente. Quando a edição termina, o contexto é relido e aplicado. A edição local não é atropelada.
 
-Foi criada regressão específica em `tests/unit/pendency-rpc-argument-contract.test.js`. Não houve migration nem mudança de regra de negócio.
+## 5. Evidência funcional e técnica
 
-## 6. Matriz funcional e limites honestos da conclusão
+No candidato final do PR #332 ficaram verdes:
 
-Operações ainda classificadas como `partial` na matriz continuam como dívida específica de evidência, não bug conhecido nem bloqueio automático. Não promover automaticamente itens que ainda exijam autoria explícita, idempotência, negativas completas por perfil, reversão controlada ou observação recorrente em Production.
+- Validar RADAR PDDE;
+- Testes E2E Playwright;
+- Supabase readiness;
+- Supabase local + Auth + RLS + pgTAP;
+- Confiabilidade funcional com Supabase real;
+- Ciclos funcionais reais com Supabase;
+- Gate remoto de perfis e viewports;
+- Backup e restauração descartáveis;
+- Homologação integral pré-production;
+- Lighthouse CI;
+- CodeQL;
+- Saúde das dependências;
+- Retificação auditável direcionada.
 
-A ausência de credenciais técnicas no TinyFish impediu um novo smoke autenticado pós-deploy por cinco perfis. Isso é uma limitação da evidência, não uma falha observada do produto. A autorização/RLS e os cinco perfis foram exercitados nos gates remotos descartáveis, e houve login real anterior em Production pelo Work/Astra.
+O cenário multiusuário passou em gate obrigatório:
 
-## 7. Supabase Production
+    A altera avaliação
+    → B recebe Broadcast
+    → B relê o estado canônico
+    → B atualiza a UI sem F5
 
-Projeto `RADAR PDDE 2026` (`scnryinorqeucbfkioxo`) observado como `ACTIVE_HEALTHY` após a publicação.
+e também:
 
-A conferência somente de leitura realizada em 14/09/2026 por `production_integrity_check()` retornou `healthy`, com `0` problemas agregados. Verificações adicionais de vínculos entre Nota Fiscal, avaliação, Pendência e patrimônio também não apontaram inconsistência.
+    B está editando
+    → A altera
+    → B marca refresh pendente
+    → B termina edição
+    → B converge sem perder o trabalho em andamento
 
-Advisors não mostraram problema novo relacionado ao release. Permanecem itens independentes:
+## 6. Estado de Production
 
-- `Leaked Password Protection Disabled` — melhoria de Auth a tratar em frente própria;
-- oito índices reportados como ainda não utilizados — informação de performance, sem ação durante esta reabertura.
+O deployment atual está READY e o projeto Supabase foi observado como ACTIVE_HEALTHY depois da publicação.
 
-Não remover índices nem alterar Auth como parte desta manutenção.
+A conferência pós-release não encontrou erros de runtime Vercel no intervalo observado.
 
-## 8. Documentação corrente
+A migration Realtime que ficou canônica em main e no remoto é:
 
-Handoff da manutenção em validação:
+20260920013656_realtime_operational_invalidation
 
-`docs/handoff/2026-09-14-pr306-final-maintenance.md`
+Não reintroduzir timestamps intermediários usados durante a preparação da branch.
 
-Baseline de Production imediatamente anterior:
+## 7. Pendências reais
 
-`docs/handoff/2026-09-13-pr301-production-release.md`
+### P1 — reconciliar retry de leitura
 
-Predecessores relevantes:
+O RADAR ainda possui withSafeReadRetry próprio. A versão atual do supabase-js também possui retry nativo para consultas PostgREST.
 
-- `docs/audits/RESTAURACAO_EDICAO_AVALIACOES_2026-09-13.md`;
-- `docs/handoff/2026-09-13-uat-operacional-certificacao-452d972.md`;
-- `docs/handoff/2026-09-13-relatorio-tecnico-consolidado-pos-pr300-uat.md`.
+Próxima frente deve:
 
-Os checkpoints anteriores permanecem históricos e não substituem a verificação do remoto vigente.
+1. mapear exatamente o retry nativo;
+2. comparar com a classificação própria do RADAR;
+3. remover duplicação sem perder fail-closed;
+4. preservar AbortError como fluxo esperado;
+5. testar 5xx, desconexão e timeout;
+6. não alterar retry de escrita sem contrato explícito.
 
-## 9. Próxima postura operacional
+### P1 — medir ganho pós-RLS em janela representativa
 
-A frente de correção funcional está encerrada. A partir deste ponto:
+Coletar deltas de pg_stat_statements depois de volume real suficiente e comparar especialmente:
 
-- usuários podem utilizar o RADAR sobre o baseline do PR #305;
-- novos relatos devem ser tratados como incidentes concretos, com reprodução e evidência;
-- não reabrir automaticamente a refatoração arquitetural ou o rollback do PR #299;
-- dependências, performance, índices e hardening de Auth devem permanecer frentes próprias, sem alterar silenciosamente regras funcionais já certificadas;
-- a dívida residual de LCP deve ser tratada por uma frente específica de carregamento/modularização, não por redução artificial dos limites do Lighthouse.
+- school_programs;
+- verifications;
+- registered_invoices;
+- pendencies;
+- user_profiles/profiles.
 
-## 10. Rota de retomada
+Não classificar uma única consulta rápida como prova definitiva.
+
+### P1/P2 — decidir RPC única de contexto operacional
+
+O contexto ainda é montado em ondas de consultas PostgREST.
+
+Candidato futuro: get_operational_context_v2(...).
+
+Somente implementar se a medição demonstrar benefício material. Antes da troca, provar paridade exata do contrato, manter fallback durante rollout e preservar RLS, AbortSignal e dependências históricas.
+
+### P2 — indicador discreto de sincronização
+
+O módulo Realtime já emite estado de conexão. Pode ser útil mostrar sincronizado/reconectando/atualização pendente, mas isso não é bloqueante.
+
+### P2 — índices ainda reportados como não utilizados
+
+Não remover índices apenas pelo advisor enquanto a janela pós-reset/upgrade de estatísticas não for representativa.
+
+## 8. Itens deliberadamente fora da sequência atual
+
+Não são próximos passos automáticos:
+
+- upgrade de compute do Supabase;
+- Redis;
+- cache agressivo de estado operacional;
+- Postgres Changes em todas as tabelas;
+- reescrita de framework;
+- remoção indiscriminada de índices;
+- relaxamento dos pisos Lighthouse;
+- hardening de senha vazada como condição desta frente.
+
+## 9. Situação operacional
+
+Não há defeito funcional conhecido bloqueando uso normal do RADAR no baseline atual.
+
+Novos relatos devem ser tratados como incidentes concretos, com reprodução e evidência. Não reabrir automaticamente planos históricos nem desfazer decisões posteriores já certificadas.
+
+## 10. Handoff corrente
+
+Checkpoint detalhado:
+
+docs/handoff/2026-09-19-performance-sync-modernization.md
+
+Decisão arquitetural associada:
+
+docs/decisions/ADR-054-sincronizacao-operacional-realtime.md
+
+## 11. Critério de encerramento da modernização
+
+A rodada pode ser classificada como integralmente encerrada quando:
+
+- Production permanecer estável após #332;
+- F5 não for requisito normal de uso;
+- gravação continuar independente de refresh lento;
+- sincronização A → B continuar coberta por gate obrigatório;
+- RLS continuar semanticamente equivalente;
+- retry duplicado estiver reconciliado;
+- decisão sobre RPC única for tomada com base em medição;
+- auditoria final de código + Supabase + Vercel não encontrar regressão material.
+
+## 12. Rota de retomada
 
 Ler nesta ordem:
 
-1. `../AGENTS.md`;
-2. `reference/SYSTEM_CANONICAL_MODEL.md`;
-3. `reference/PRODUCT_SURFACE_CATALOG.md`;
-4. este `CURRENT_STAGE.md`;
-5. `handoff/2026-09-14-pr306-final-maintenance.md` enquanto o PR #306 estiver aberto;
-6. `handoff/2026-09-13-pr301-production-release.md` para o baseline publicado;
-7. `reference/ENGINEERING_METHOD.md`;
-8. `reference/FRONTEND_USER_VALIDATION_GATE.md`;
-9. `reference/STATUS_DOCUMENTOS.md`;
-10. matriz funcional/ADRs conforme necessário.
+1. ../AGENTS.md;
+2. reference/SYSTEM_CANONICAL_MODEL.md;
+3. reference/PRODUCT_SURFACE_CATALOG.md;
+4. este CURRENT_STAGE.md;
+5. handoff/2026-09-19-performance-sync-modernization.md;
+6. decisions/ADR-054-sincronizacao-operacional-realtime.md;
+7. reference/ENGINEERING_METHOD.md;
+8. reference/FRONTEND_USER_VALIDATION_GATE.md;
+9. reference/STATUS_DOCUMENTOS.md;
+10. matriz funcional e ADRs especializados conforme a frente.
 
-Revalidar sempre `main`, Vercel e Supabase quando uma decisão depender do estado ao vivo.
+Revalidar sempre main, Vercel e Supabase quando a decisão depender do estado ao vivo.
