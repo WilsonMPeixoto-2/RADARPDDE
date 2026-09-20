@@ -50,8 +50,31 @@ async function waitRealtimeSubscribed(page) {
 
 async function currentExtCC(page) {
   return page.evaluate(() => (
-    window.verificacoes?.['ESC-LOCAL']?.['2026-05_BASIC']?.bonificacao?.extCC || ''
+    verificacoes?.['ESC-LOCAL']?.['2026-05_BASIC']?.bonificacao?.extCC || ''
   ));
+}
+
+function extCCRow(page) {
+  return page.locator(
+    '#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="extCC"]'
+  );
+}
+
+async function expectVisibleExtCC(page, value) {
+  const row = extCCRow(page);
+  await expect(row).toBeVisible();
+  const sim = row.getByRole('button', { name: 'Sim', exact: true });
+  const nao = row.getByRole('button', { name: 'Não', exact: true });
+  if (value === 'Sim') {
+    await expect(sim).toHaveClass(/active-sim/);
+    return;
+  }
+  if (value === 'Não') {
+    await expect(nao).toHaveClass(/active-nao/);
+    return;
+  }
+  await expect(sim).not.toHaveClass(/active-sim/);
+  await expect(nao).not.toHaveClass(/active-nao/);
 }
 
 async function setExtCC(page, value) {
@@ -82,6 +105,7 @@ test('Broadcast atualiza outra sessão sem F5 e respeita edição em andamento',
 
     const original = await currentExtCC(pageB);
     const changed = original === 'Sim' ? 'Não' : 'Sim';
+    await expectVisibleExtCC(pageB, original);
 
     await setExtCC(pageA, changed);
 
@@ -92,6 +116,7 @@ test('Broadcast atualiza outra sessão sem F5 e respeita edição em andamento',
         message: 'Sessão B não recebeu a alteração operacional sem recarregar a página.'
       }
     ).toBe(changed);
+    await expectVisibleExtCC(pageB, changed);
 
     const selector = pageB.locator('#global-competence-select');
     await selector.focus();
@@ -110,6 +135,7 @@ test('Broadcast atualiza outra sessão sem F5 e respeita edição em andamento',
     ).toBe(true);
 
     expect(await currentExtCC(pageB)).toBe(changed);
+    await expectVisibleExtCC(pageB, changed);
 
     await pageB.evaluate(() => document.activeElement?.blur?.());
 
@@ -120,6 +146,7 @@ test('Broadcast atualiza outra sessão sem F5 e respeita edição em andamento',
         message: 'Sessão B não aplicou a atualização pendente após encerrar a edição.'
       }
     ).toBe(original);
+    await expectVisibleExtCC(pageB, original);
 
     expect(await pageB.evaluate(() => (
       window.RadarOperationalContextRefreshController?.hasPendingRefresh?.()
