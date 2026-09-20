@@ -1,7 +1,7 @@
 # Matriz de validade documental
 
 **Classe documental:** Canônico
-**Atualizado em:** 19 de setembro de 2026
+**Atualizado em:** 20 de setembro de 2026
 
 ## 1. Finalidade e precedência
 
@@ -36,13 +36,14 @@ PR aberto, Preview ou documento antigo não altera Production.
 
 ## 3. Baseline de Production
 
-O baseline corrente inclui os PRs #327, #329, #330, #331 e #332.
+O baseline corrente inclui os PRs #327, #329, #330, #331, #332, #336, #338, #339, #340 e #341.
 
-- merge atual: ec6a22cac374d85907aca407a844748db1a20d4e;
-- Vercel: dpl_Et72aPRynw6ZiCpDZ14J73K8SPW7, READY;
+- merge atual: 71b5a6e4967641c5dc8402ebadefbc22f9b5e5c6;
+- Vercel: dpl_4KcvK1edZm9ZvCYYPBt8gVP8JfPU, READY;
 - Supabase: ACTIVE_HEALTHY;
 - migrations remotas: 54;
-- migration mais recente: 20260920013656_realtime_operational_invalidation.
+- migration mais recente: 20260920013656_realtime_operational_invalidation;
+- erros de runtime Vercel na janela de 1 hora consultada após #341: nenhum.
 
 Esse baseline substitui como estado corrente os handoffs centrados em PR #301/#305/#306. Esses documentos continuam válidos como histórico do momento em que foram produzidos.
 
@@ -85,6 +86,10 @@ A ADR-054 passa a ser referência vigente para sincronização operacional:
 - payload Realtime não transporta dados de negócio;
 - edição em andamento não é atropelada;
 - reconexão provoca releitura de recuperação;
+- invalidação que chega durante leitura em voo exige nova releitura;
+- falha transitória da releitura preserva pendência e recebe uma retry controlada;
+- escrita que aborta leitura Realtime não elimina a necessidade de convergência;
+- término da escrita drena refresh pendente quando necessário;
 - Postgres Changes não é a estratégia principal desta frente.
 
 ## 7. Contrato atual de persistência e convergência
@@ -104,6 +109,18 @@ Entre sessões:
     → sessão B recebe invalidação
     → sessão B relê pela própria RLS
     → sessão B converge sem F5
+
+Interleavings adicionais protegidos:
+
+    Broadcast durante leitura em voo
+    → nova releitura obrigatória
+
+    releitura falha
+    → pendência preservada + uma retry controlada
+
+    escrita aborta leitura Realtime
+    → stale/aborted preserva pendência
+    → retry e drenagem pós-write restauram convergência
 
 ## 8. Documentos históricos
 

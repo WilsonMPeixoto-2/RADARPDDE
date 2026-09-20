@@ -1,6 +1,6 @@
 # RADAR PDDE — Roadmap canônico de atualizações 2026
 
-**Atualizado em:** 19 de setembro de 2026  
+**Atualizado em:** 20 de setembro de 2026  
 **Classe documental:** Canônico
 
 ## 1. Finalidade
@@ -16,7 +16,7 @@ Integração na `main`, aplicação no Supabase, publicação na Vercel e compro
 
 O baseline mutável do ambiente fica exclusivamente em [`CURRENT_STAGE.md`](CURRENT_STAGE.md).
 
-### Atualização superveniente de 19/09/2026
+### Atualização superveniente de 20/09/2026
 
 As sequências operacionais antigas preservadas abaixo documentam o estado de agosto e **não formam a fila corrente**.
 
@@ -26,7 +26,9 @@ A frente mais recente concluiu:
 - RLS set-based (#329);
 - separação entre fila de leitura e gravação (#330);
 - cancelamento de leituras obsoletas (#331);
-- sincronização multiusuário por invalidação Realtime (#332).
+- sincronização multiusuário por invalidação Realtime (#332);
+- reconciliação do retry de leitura com o retry nativo do `supabase-js` (#336);
+- hardening adversarial da convergência Realtime em refresh em voo, falha de rede, Abort por escrita e drenagem pós-write (#338–#341).
 
 O estado corrente, objetivos restantes e ordem de execução pertencem a `CURRENT_STAGE.md` e ao handoff `docs/handoff/2026-09-19-performance-sync-modernization.md`.
 
@@ -199,11 +201,11 @@ Busca inteligente, Floating UI e View Transitions já fazem parte do produto. No
 
 ## 13. Sequência vigente
 
-A sequência corrente pós-PR #332 é:
+A sequência corrente pós-PR #341 é:
 
 ```text
 1. observar estabilidade de Production e medir deltas pós-RLS em janela representativa
-2. reconciliar retry próprio do RADAR com retry nativo do supabase-js
+2. continuar a auditoria adversarial final; qualquer nova correção exige reprodução RED antes de mudança de produto
 3. decidir, por medição e prova de paridade, se o contexto operacional deve migrar para RPC única
 4. avaliar indicador discreto de sincronização e revisão de índices somente se os dados justificarem
 5. executar auditoria final código + Supabase + Vercel e encerrar formalmente a modernização

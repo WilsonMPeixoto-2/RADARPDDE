@@ -1,15 +1,15 @@
 # RADAR PDDE — Estado atual do projeto
 
 **Classe documental:** Canônico — estado mutável e retomada futura
-**Atualizado em:** 19 de setembro de 2026
+**Atualizado em:** 20 de setembro de 2026
 
 ## 1. Baseline vigente
 
-O baseline atualmente publicado incorpora a rodada de modernização de performance e sincronização concluída pelos PRs #327, #329, #330, #331 e #332.
+O baseline atualmente publicado incorpora a rodada de modernização de performance e sincronização concluída pelos PRs #327, #329, #330, #331, #332, #336, #338, #339, #340 e #341.
 
-- **PR #332:** merged
-- **merge atual de Production:** ec6a22cac374d85907aca407a844748db1a20d4e
-- **Vercel Production:** dpl_Et72aPRynw6ZiCpDZ14J73K8SPW7
+- **PR #341:** merged
+- **merge atual de Production:** 71b5a6e4967641c5dc8402ebadefbc22f9b5e5c6
+- **Vercel Production:** dpl_4KcvK1edZm9ZvCYYPBt8gVP8JfPU
 - **deployment:** READY
 - **Supabase:** scnryinorqeucbfkioxo
 - **Supabase status:** ACTIVE_HEALTHY
@@ -33,6 +33,8 @@ A investigação separou as causas e tratou cada uma sem alterar regras de negó
 - refresh compartilhando fila com gravações;
 - leituras obsoletas continuando em voo;
 - refresh durante edição sem retomada suficientemente robusta;
+- duplicação entre retry próprio e retry nativo do cliente Supabase;
+- invalidações que podiam ser perdidas em interleavings entre refresh em voo, falha de rede e gravações concorrentes;
 - peso desnecessário no artefato público e instabilidade de LCP/CLS.
 
 ## 3. Entregas integradas
@@ -44,6 +46,11 @@ A investigação separou as causas e tratou cada uma sem alterar regras de negó
 | #330 | ce42ace4b18be5a3326ee992d90cb0c4062a81a6 | fila de gravação independente de refresh |
 | #331 | cf9c22bc670461826cf89ca585313983c6a1cb78 | AbortController/AbortSignal para leituras operacionais obsoletas |
 | #332 | ec6a22cac374d85907aca407a844748db1a20d4e | Broadcast privado de invalidação e sincronização A → B sem F5 |
+| #336 | 232626a6574963bdbf22dbed5ffefeb6518a4f48 | retry de leitura reconciliado com `supabase-js 2.116.0`; uma execução lógica no RADAR |
+| #338 | c404c618dfea494273ccf880d725009e82065c26 | invalidação durante refresh em voo força nova releitura |
+| #339 | 6c92b98b03f3621e8603ff951dadd0ffb4f67f8d | falha de rede preserva invalidação e recebe uma retry controlada |
+| #340 | 4061dd808ed526f3dfac089a84e0735a510ebed1 | escrita que aborta leitura Realtime não perde convergência |
+| #341 | 71b5a6e4967641c5dc8402ebadefbc22f9b5e5c6 | refresh pendente é drenado após término da gravação |
 
 ## 4. Estado arquitetural atual
 
@@ -89,6 +96,8 @@ O Broadcast não transporta escola, usuário, valor, documento nem registro oper
 
 Se uma invalidação chega enquanto formulário/modal/campo está ativo, o refresh fica pendente. Quando a edição termina, o contexto é relido e aplicado. A edição local não é atropelada.
 
+A auditoria adversarial posterior acrescentou garantias de convergência para interleavings antes não cobertos: invalidação durante leitura em voo, falha transitória da releitura, leitura Realtime abortada por uma gravação e pendência remanescente após a escrita. O desenho vigente usa no máximo uma retry Realtime controlada e uma drenagem pós-write; não existe polling contínuo nem retry automático de escrita.
+
 ## 5. Evidência funcional e técnica
 
 No candidato final do PR #332 ficaram verdes:
@@ -122,11 +131,13 @@ e também:
     → B termina edição
     → B converge sem perder o trabalho em andamento
 
+Depois dos PRs #336 e #338–#341, a validação foi ampliada com testes RED → GREEN de composição. Foram provados e corrigidos: retry duplicado de leitura; invalidação recebida durante refresh em voo; falha de rede na releitura Realtime; leitura Realtime abortada por gravação; e pendência que precisava ser drenada após a escrita. No #341, 10/10 workflows ficaram verdes, incluindo Supabase real, readiness, ciclos funcionais, perfis/viewports, Playwright, Lighthouse, CodeQL e homologação integral.
+
 ## 6. Estado de Production
 
-O deployment atual está READY e o projeto Supabase foi observado como ACTIVE_HEALTHY depois da publicação.
+O deployment atual `dpl_4KcvK1edZm9ZvCYYPBt8gVP8JfPU` está READY e corresponde ao merge `71b5a6e4967641c5dc8402ebadefbc22f9b5e5c6`. O projeto Supabase foi revalidado como ACTIVE_HEALTHY, com 54 migrations remotas.
 
-A conferência pós-release não encontrou erros de runtime Vercel no intervalo observado.
+A conferência pós-release de 20/09/2026 não encontrou erros de runtime Vercel na janela de 1 hora consultada.
 
 A migration Realtime que ficou canônica em main e no remoto é:
 
@@ -135,19 +146,6 @@ A migration Realtime que ficou canônica em main e no remoto é:
 Não reintroduzir timestamps intermediários usados durante a preparação da branch.
 
 ## 7. Pendências reais
-
-### P1 — reconciliar retry de leitura
-
-O RADAR ainda possui withSafeReadRetry próprio. A versão atual do supabase-js também possui retry nativo para consultas PostgREST.
-
-Próxima frente deve:
-
-1. mapear exatamente o retry nativo;
-2. comparar com a classificação própria do RADAR;
-3. remover duplicação sem perder fail-closed;
-4. preservar AbortError como fluxo esperado;
-5. testar 5xx, desconexão e timeout;
-6. não alterar retry de escrita sem contrato explícito.
 
 ### P1 — medir ganho pós-RLS em janela representativa
 
@@ -194,7 +192,9 @@ Não são próximos passos automáticos:
 
 Não há defeito funcional conhecido bloqueando uso normal do RADAR no baseline atual.
 
-Novos relatos devem ser tratados como incidentes concretos, com reprodução e evidência. Não reabrir automaticamente planos históricos nem desfazer decisões posteriores já certificadas.
+A auditoria adversarial encontrou quatro arestas reais de convergência nos PRs #338–#341, todas reproduzidas antes da correção e protegidas por regressão depois dela. Isso reforça que gates verdes demonstram os contratos cobertos, não ausência absoluta de interleavings não testados.
+
+Novos relatos e novas hipóteses devem ser tratados como incidentes concretos, preferencialmente com RED → GREEN e teste de composição. Não reabrir automaticamente planos históricos nem desfazer decisões posteriores já certificadas.
 
 ## 10. Handoff corrente
 
@@ -210,12 +210,11 @@ docs/decisions/ADR-054-sincronizacao-operacional-realtime.md
 
 A rodada pode ser classificada como integralmente encerrada quando:
 
-- Production permanecer estável após #332;
+- Production permanecer estável após #341;
 - F5 não for requisito normal de uso;
 - gravação continuar independente de refresh lento;
 - sincronização A → B continuar coberta por gate obrigatório;
 - RLS continuar semanticamente equivalente;
-- retry duplicado estiver reconciliado;
 - decisão sobre RPC única for tomada com base em medição;
 - auditoria final de código + Supabase + Vercel não encontrar regressão material.
 
