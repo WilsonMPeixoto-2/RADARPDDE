@@ -147,6 +147,13 @@
         return result;
     }
 
+    function throwIfAborted(signal) {
+        if (!signal?.aborted) return;
+        const error = new Error('Leitura operacional cancelada.');
+        error.name = 'AbortError';
+        throw error;
+    }
+
     class OperationalSupabaseRepository extends supabaseApi.SupabaseRepository {
         async querySchoolContacts(schoolId) {
             const id = String(schoolId || '').trim();
@@ -200,12 +207,14 @@
             };
         }
 
-        async queryFilteredCollection(entity, configure, operation) {
+        async queryFilteredCollection(entity, configure, operation, options = {}) {
             const table = this.tableFor(entity);
             const records = [];
             let cursor = null;
+            const signal = options.signal || null;
 
             while (true) {
+                throwIfAborted(signal);
                 let query = this.client.from(table).select('*');
                 query = configure(query) || query;
                 requireQueryMethod(query, 'order', operation);
@@ -216,6 +225,10 @@
                 }
                 requireQueryMethod(query, 'limit', operation);
                 query = query.limit(this.pageSize);
+                if (signal) {
+                    requireQueryMethod(query, 'abortSignal', operation);
+                    query = query.abortSignal(signal);
+                }
 
                 const page = await this.execute(entity, operation, query);
                 records.push(...page);
@@ -231,26 +244,26 @@
             return uniqueById(records);
         }
 
-        async queryByEquality(entity, column, value, operation) {
+        async queryByEquality(entity, column, value, operation, options = {}) {
             return this.queryFilteredCollection(entity, query => {
                 requireQueryMethod(query, 'eq', operation);
                 return query.eq(column, value);
-            }, operation);
+            }, operation, options);
         }
 
-        async queryByIn(entity, column, values, operation) {
+        async queryByIn(entity, column, values, operation, options = {}) {
             const requested = [...new Set((values || []).map(String).filter(Boolean))];
             if (requested.length === 0) return [];
             const pages = await Promise.all(chunks(requested).map((batch, index) => (
                 this.queryFilteredCollection(entity, query => {
                     requireQueryMethod(query, 'in', operation);
                     return query.in(column, batch);
-                }, `${operation}:chunk-${index + 1}`)
+                }, `${operation}:chunk-${index + 1}`, options)
             )));
             return uniqueById(...pages);
         }
 
-        async queryContextDependencies(entity, records, currentCompetence) {
+        async queryContextDependencies(entity, records, currentCompetence, options = {}) {
             const contexts = new Map();
             (records || []).forEach(record => {
                 const schoolId = String(record.school_id || '').trim();
@@ -263,12 +276,13 @@
             const result = [];
             // Limite de concorrência também para passivos distribuídos por muitos meses.
             for (const batch of chunks([...contexts.values()], 6)) {
+                throwIfAborted(options.signal);
                 const pages = await Promise.all(batch.map(context => (
                     this.queryFilteredCollection(entity, query => {
                         requireQueryMethod(query, 'eq', 'queryOperationalContext:dependencies');
                         query = query.eq('school_id', context.schoolId).eq('competence_id', context.competenceId);
                         return context.programId ? query.eq('program_id', context.programId) : query;
-                    }, `queryOperationalContext:${entity}Dependencies`)
+                    }, `queryOperationalContext:${entity}Dependencies`, options)
                 )));
                 result.push(...pages);
             }
@@ -281,6 +295,8 @@
                 throw operationalContextError('Informe uma competência mensal válida para carregar o contexto operacional.');
             }
             const historyStatuses = [...new Set(options.historyStatuses || [])];
+            const queryOptions = options.signal ? { signal: options.signal } : {};
+            throwIfAborted(options.signal);
             if (historyStatuses.some(status => !['Resolvida', 'Cancelada'].includes(status))) {
                 throw operationalContextError('Estado histórico de Pendência inválido.');
             }
@@ -298,41 +314,48 @@
                     'verifications',
                     'competence_id',
                     competenceId,
-                    'queryOperationalContext:verifications'
+                    'queryOperationalContext:verifications',
+                    queryOptions
                 ),
                 this.queryByEquality(
                     'registeredInvoices',
                     'competence_id',
                     competenceId,
-                    'queryOperationalContext:registeredInvoices'
+                    'queryOperationalContext:registeredInvoices',
+                    queryOptions
                 ),
                 this.queryByEquality(
                     'pendencies',
                     'competence_origin',
                     competenceId,
-                    'queryOperationalContext:monthlyPendencies'
+                    'queryOperationalContext:monthlyPendencies',
+                    queryOptions
                 ),
                 this.queryByIn(
                     'pendencies',
                     'status',
                     ACTIVE_PENDENCY_STATUSES,
-                    'queryOperationalContext:activePendencies'
+                    'queryOperationalContext:activePendencies',
+                    queryOptions
                 ),
                 this.queryByEquality(
                     'assets',
                     'competence_id',
                     competenceId,
-                    'queryOperationalContext:monthlyAssets'
+                    'queryOperationalContext:monthlyAssets',
+                    queryOptions
                 ),
                 this.queryByIn(
                     'assets',
                     'status',
                     ACTIVE_ASSET_STATUSES,
-                    'queryOperationalContext:activeAssets'
+                    'queryOperationalContext:activeAssets',
+                    queryOptions
                 ),
                 this.queryByIn(
                     'pendencies', 'status', historyStatuses,
-                    'queryOperationalContext:requestedPendencyHistory'
+                    'queryOperationalContext:requestedPendencyHistory',
+                    queryOptions
                 )
             ]);
 
@@ -353,20 +376,23 @@
                     'pendencyAttempts',
                     'pendency_id',
                     pendencyIds,
-                    'queryOperationalContext:pendencyAttempts'
+                    'queryOperationalContext:pendencyAttempts',
+                    queryOptions
                 ),
                 this.queryByIn(
                     'pendencyContacts',
                     'pendency_id',
                     pendencyIds,
-                    'queryOperationalContext:pendencyContacts'
+                    'queryOperationalContext:pendencyContacts',
+                    queryOptions
                 ),
-                this.queryContextDependencies('verifications', pendencies, competenceId),
+                this.queryContextDependencies('verifications', pendencies, competenceId, queryOptions),
                 this.queryByIn(
                     'registeredInvoices',
                     'id',
                     historicalInvoiceIds,
-                    'queryOperationalContext:linkedHistoricalInvoices'
+                    'queryOperationalContext:linkedHistoricalInvoices',
+                    queryOptions
                 )
             ]);
 
@@ -374,16 +400,17 @@
             // do mesmo contexto, inclusive seus bens já inventariados.
             const assetInvoices = await this.queryByIn(
                 'registeredInvoices', 'linked_asset_id', activeAssets.map(record => record.id),
-                'queryOperationalContext:assetInvoices'
+                'queryOperationalContext:assetInvoices',
+                queryOptions
             );
             const dependencyInvoices = await this.queryContextDependencies(
-                'registeredInvoices', [...pendencies, ...assetInvoices], competenceId
+                'registeredInvoices', [...pendencies, ...assetInvoices], competenceId, queryOptions
             );
             const registeredInvoices = uniqueById(
                 monthlyRegisteredInvoices, linkedHistoricalInvoices, assetInvoices, dependencyInvoices
             );
             const [assetVerifications, linkedAssets] = await Promise.all([
-                this.queryContextDependencies('verifications', registeredInvoices, competenceId),
+                this.queryContextDependencies('verifications', registeredInvoices, competenceId, queryOptions),
                 this.queryByIn('assets', 'id', registeredInvoices.map(record => record.linked_asset_id).filter(Boolean),
                     'queryOperationalContext:linkedAssets')
             ]);
