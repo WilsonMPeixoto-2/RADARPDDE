@@ -222,3 +222,32 @@ test('nova falha no retry Realtime não cria loop de tentativas', async () => {
     assert.equal(attempts, 2);
     await controller.stop();
 });
+
+
+test('resultado stale do refresh Realtime recebe uma única segunda tentativa controlada', async () => {
+    let attempts = 0;
+    const harness = createHarness();
+    const reasons = [];
+    const refreshController = {
+        async refresh(reason) {
+            reasons.push(reason);
+            attempts += 1;
+            if (attempts === 1) return { stale: true, aborted: true };
+            return { stale: false };
+        }
+    };
+    const controller = createController(harness.root, {
+        client: harness.client,
+        refreshController,
+        debounceMs: 0
+    });
+
+    assert.equal(await controller.start(), true);
+    harness.emitStatus('SUBSCRIBED');
+    harness.emitBroadcast({ entity: 'verifications' });
+    await new Promise(resolve => setTimeout(resolve, 20));
+
+    assert.equal(attempts, 2);
+    assert.deepEqual(reasons, ['realtime', 'realtime-retry']);
+    await controller.stop();
+});

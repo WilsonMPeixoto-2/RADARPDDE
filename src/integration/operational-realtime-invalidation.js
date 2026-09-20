@@ -66,7 +66,8 @@
                 void Promise.resolve()
                     .then(() => refreshController.refresh(reason, { force: true }))
                     .then(result => {
-                        if (result?.ok !== false || reason === 'realtime-retry') return;
+                        const needsRetry = result?.ok === false || result?.stale === true;
+                        if (!needsRetry || reason === 'realtime-retry') return;
                         scheduleRefresh('realtime-retry');
                     })
                     .catch(error => {

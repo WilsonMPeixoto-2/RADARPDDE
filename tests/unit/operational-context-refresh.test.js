@@ -506,3 +506,29 @@ test('falha de rede em refresh direto preserva a necessidade de nova tentativa',
     assert.equal(result.pending, true);
     assert.equal(controller.hasPendingRefresh(), true);
 });
+
+
+test('resultado stale abortado no mesmo contexto preserva refresh pendente mesmo sem edição', async () => {
+    const root = {
+        RadarAuthContext: { user: { id: 'user-1' } },
+        RadarCompetenceContext: { getState: () => ({ activeKey: '2026-08' }) },
+        document: {
+            querySelectorAll: () => [],
+            activeElement: null,
+            getElementById: () => null
+        },
+        console: { warn() {} }
+    };
+    const service = {
+        async loadOperationalContext() {
+            return { stale: true, aborted: true };
+        }
+    };
+    const controller = createController(root, service, { minIntervalMs: 0 });
+
+    const result = await controller.refresh('realtime', { force: true });
+
+    assert.equal(result.stale, true);
+    assert.equal(result.aborted, true);
+    assert.equal(controller.hasPendingRefresh(), true);
+});
