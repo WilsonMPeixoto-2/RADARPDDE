@@ -293,6 +293,7 @@
             this.remoteExecutionTail = this.remoteWriteTail;
             this.currentHistoricalStatuses = [];
             this.operationalContextSequence = 0;
+            this.operationalContextAbortController = null;
             this.currentOperationalCompetence = '';
         }
 
@@ -394,6 +395,14 @@
             return cloneValue(await this.repository.querySchoolContacts(schoolId));
         }
 
+        abortOperationalContextRead() {
+            const controller = this.operationalContextAbortController;
+            if (!controller) return false;
+            this.operationalContextAbortController = null;
+            if (!controller.signal?.aborted) controller.abort();
+            return true;
+        }
+
         async loadOperationalContext(competenceId, options = {}) {
             const capabilities = this.repository.capabilities();
             const target = normalizedCompetence(competenceId);
@@ -419,24 +428,55 @@
                 );
             }
 
+            this.abortOperationalContextRead();
+            const AbortControllerCtor = typeof AbortController === 'function' ? AbortController : null;
+            const controller = AbortControllerCtor ? new AbortControllerCtor() : null;
+            this.operationalContextAbortController = controller;
             const sequence = ++this.operationalContextSequence;
             // Leituras aguardam apenas gravações que já estavam pendentes quando foram solicitadas.
             // Uma leitura em andamento nunca entra na fila de escrita e, portanto, não pode atrasar "Salvar".
             const writeBarrier = this.remoteWriteTail;
-            return writeBarrier.then(() => (
-                this.readOperationalContext(target, options, sequence)
-            ));
+            const readOptions = controller
+                ? { ...options, signal: controller.signal }
+                : options;
+            const run = writeBarrier.then(() => {
+                if (controller?.signal?.aborted) {
+                    return { competenceId: target, stale: true, aborted: true };
+                }
+                return this.readOperationalContext(target, readOptions, sequence);
+            });
+            return run.finally(() => {
+                if (this.operationalContextAbortController === controller) {
+                    this.operationalContextAbortController = null;
+                }
+            });
         }
 
         async readOperationalContext(target, options, sequence) {
             const canApply = () => sequence === this.operationalContextSequence
+                && !options.signal?.aborted
                 && (typeof options.shouldApply !== 'function' || options.shouldApply());
-            if (!canApply()) return { competenceId: target, stale: true };
+            if (!canApply()) {
+                return {
+                    competenceId: target,
+                    stale: true,
+                    aborted: Boolean(options.signal?.aborted)
+                };
+            }
             const historyStatuses = [...new Set(options.historyStatuses || [])];
-            const context = await this.repository.queryOperationalContext({
-                competenceId: target,
-                ...(historyStatuses.length ? { historyStatuses } : {})
-            });
+            let context;
+            try {
+                context = await this.repository.queryOperationalContext({
+                    competenceId: target,
+                    ...(historyStatuses.length ? { historyStatuses } : {}),
+                    ...(options.signal ? { signal: options.signal } : {})
+                });
+            } catch (error) {
+                if (options.signal?.aborted) {
+                    return { competenceId: target, stale: true, aborted: true };
+                }
+                throw error;
+            }
             const snapshot = assertSnapshotJson(
                 operationalSnapshot(context, options),
                 'loadOperationalContext'
@@ -445,6 +485,7 @@
                 return {
                     competenceId: target,
                     stale: true,
+                    aborted: Boolean(options.signal?.aborted),
                     snapshot: cloneValue(snapshot)
                 };
             }
@@ -616,7 +657,8 @@
             if (!remote) return this.executeCommand(command);
 
             // Qualquer contexto iniciado antes desta intenção de escrita passa a ser obsoleto.
-            // Isso impede uma resposta lenta de sobrescrever o retorno autoritativo da gravação.
+            // Além de invalidar a resposta, cancela fisicamente a leitura PostgREST ainda em voo.
+            this.abortOperationalContextRead();
             this.operationalContextSequence += 1;
 
             const run = this.remoteWriteTail.then(
