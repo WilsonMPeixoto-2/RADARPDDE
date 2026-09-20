@@ -65,6 +65,7 @@ jobs:
             tests/unit/remote-scoped-unit-of-work.test.js
             tests/unit/global-competence-remote-hydration.test.js
             tests/unit/operational-context-refresh.test.js
+            tests/unit/operational-realtime-invalidation.test.js
             tests/unit/append-only-refresh-policy.test.js
             tests/unit/append-only-command-contract.test.js
             tests/unit/supabase-keyset-pagination.test.js
