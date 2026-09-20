@@ -147,6 +147,7 @@ As migrations correntes incluem, conforme `CURRENT_STAGE.md` e a branch de estab
 - sincronização do próximo ator das Pendências nas transições do fluxo;
 - migration integrada `20260904040000_functional_reliability_inventory_sync`, que sincroniza atomicamente o encaminhamento de bem derivado com `encampInventario` no Prontuário e remove aliases internos de versão do payload das verificações;
 - migration integrada `20260905231000_inventory_terminal_state`, que impede no banco qualquer regressão de um bem já `Inventariada` para estado patrimonial anterior. Sua presença e o trigger habilitado foram confirmados por consulta de metadados em 06/09/2026; revalidar no ambiente antes de outra publicação.\n- migration `20260919234500_rls_set_based_access`, que preserva os mesmos escopos institucionais, mas calcula conjuntos de escolas autorizadas uma vez por statement para evitar reavaliação RLS linha a linha.
+- migration `20260920004000_realtime_operational_invalidation`, que emite somente invalidações operacionais mínimas por Broadcast privado para sincronizar sessões sem transportar registros de negócio pelo canal.
 
 Não reaplicar SQL já aplicado para “corrigir” histórico.
 
