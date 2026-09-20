@@ -121,7 +121,11 @@
         }
 
         async function refresh(reason = 'resume', refreshOptions = {}) {
-            if (refreshPromise) return refreshPromise;
+            if (refreshPromise) {
+                markPending(reason);
+                const currentRefresh = refreshPromise;
+                return currentRefresh.then(() => flushPending('inflight-finished'));
+            }
             if (!authenticated(root)) {
                 pendingRefreshReason = '';
                 return { skipped: true, reason: 'unauthenticated' };
@@ -138,6 +142,11 @@
             if (refreshOptions.force !== true && (now - lastRefreshAt) < minIntervalMs) {
                 return { skipped: true, reason: 'throttled' };
             }
+
+            // Este refresh consome qualquer pendência já conhecida. Invalidações
+            // que chegarem depois deste ponto voltam a preencher pendingRefreshReason
+            // e serão relidas quando a consulta em voo terminar.
+            pendingRefreshReason = '';
 
             const startedAt = Date.now();
             let run = null;
@@ -163,7 +172,6 @@
 
                 refreshCurrentView(root);
                 lastRefreshAt = Date.now();
-                pendingRefreshReason = '';
                 if (typeof root.dispatchEvent === 'function' && typeof root.CustomEvent === 'function') {
                     root.dispatchEvent(new root.CustomEvent('radar:operational-context-refreshed', {
                         detail: {
@@ -196,7 +204,11 @@
             const pendingReason = pendingRefreshReason;
             pendingRefreshReason = '';
             const result = await refresh(`${pendingReason}-${reason}`, { force: true });
-            if (result?.ok === false || (result?.skipped === true && result.reason === 'editing')) {
+            if (
+                result?.ok === false
+                || result?.stale === true
+                || (result?.skipped === true && result.reason === 'editing')
+            ) {
                 markPending(pendingReason);
             }
             return result;

@@ -345,3 +345,138 @@ test('remoção assíncrona de camada modal também libera refresh pendente', as
     assert.equal(calls, 1);
     assert.equal(root.RadarOperationalContextRefreshController.hasPendingRefresh(), false);
 });
+
+
+test('invalidação recebida durante refresh em voo força releitura após a consulta antiga terminar', async () => {
+    let resolveFirst;
+    let calls = 0;
+    const renders = [];
+    const root = {
+        RadarAuthContext: { user: { id: 'user-1' } },
+        RadarCompetenceContext: { getState: () => ({ activeKey: '2026-08' }) },
+        document: {
+            querySelectorAll: () => [],
+            activeElement: null,
+            getElementById: () => null
+        },
+        RadarGlobalCompetenceSelector: {
+            refreshCurrentView() { renders.push('dashboard'); }
+        },
+        CustomEvent: class {
+            constructor(type, options) {
+                this.type = type;
+                this.detail = options?.detail;
+            }
+        },
+        dispatchEvent() {},
+        console: { warn() {} }
+    };
+    const service = {
+        async loadOperationalContext() {
+            calls += 1;
+            if (calls === 1) {
+                return new Promise(resolve => { resolveFirst = resolve; });
+            }
+            return { stale: false, revision: 'newer' };
+        }
+    };
+    const controller = createController(root, service, { minIntervalMs: 0 });
+
+    const first = controller.refresh('focus', { force: true });
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(calls, 1);
+
+    const realtime = controller.refresh('realtime', { force: true });
+    assert.equal(controller.hasPendingRefresh(), true);
+    assert.equal(calls, 1);
+
+    resolveFirst({ stale: false, revision: 'older' });
+    await first;
+    const result = await realtime;
+
+    assert.equal(result.stale, false);
+    assert.equal(result.revision, 'newer');
+    assert.equal(calls, 2);
+    assert.equal(controller.hasPendingRefresh(), false);
+    assert.equal(renders.length, 2);
+});
+
+test('invalidação em voo não é perdida quando a primeira consulta falha por rede', async () => {
+    let rejectFirst;
+    let calls = 0;
+    const root = {
+        RadarAuthContext: { user: { id: 'user-1' } },
+        RadarCompetenceContext: { getState: () => ({ activeKey: '2026-08' }) },
+        document: {
+            querySelectorAll: () => [],
+            activeElement: null,
+            getElementById: () => null
+        },
+        RadarGlobalCompetenceSelector: { refreshCurrentView() {} },
+        console: { warn() {} }
+    };
+    const service = {
+        async loadOperationalContext() {
+            calls += 1;
+            if (calls === 1) {
+                return new Promise((_resolve, reject) => { rejectFirst = reject; });
+            }
+            return { stale: false };
+        }
+    };
+    const controller = createController(root, service, { minIntervalMs: 0 });
+
+    const first = controller.refresh('focus', { force: true });
+    await new Promise(resolve => setImmediate(resolve));
+    const realtime = controller.refresh('realtime', { force: true });
+
+    rejectFirst(new Error('network'));
+    const firstResult = await first;
+    const realtimeResult = await realtime;
+
+    assert.equal(firstResult.ok, false);
+    assert.equal(realtimeResult.stale, false);
+    assert.equal(calls, 2);
+    assert.equal(controller.hasPendingRefresh(), false);
+});
+
+test('invalidação em voo força releitura também após consulta antiga cancelada como stale', async () => {
+    let resolveFirst;
+    let calls = 0;
+    const root = {
+        RadarAuthContext: { user: { id: 'user-1' } },
+        RadarCompetenceContext: { getState: () => ({ activeKey: '2026-08' }) },
+        document: {
+            querySelectorAll: () => [],
+            activeElement: null,
+            getElementById: () => null
+        },
+        RadarGlobalCompetenceSelector: { refreshCurrentView() {} },
+        console: { warn() {} }
+    };
+    const service = {
+        async loadOperationalContext() {
+            calls += 1;
+            if (calls === 1) {
+                return new Promise(resolve => { resolveFirst = resolve; });
+            }
+            return { stale: false, revision: 'fresh' };
+        }
+    };
+    const controller = createController(root, service, { minIntervalMs: 0 });
+
+    const first = controller.refresh('focus', { force: true });
+    await new Promise(resolve => setImmediate(resolve));
+    const realtime = controller.refresh('realtime', { force: true });
+
+    resolveFirst({ stale: true, aborted: true });
+    const firstResult = await first;
+    const realtimeResult = await realtime;
+
+    assert.equal(firstResult.stale, true);
+    assert.equal(firstResult.aborted, true);
+    assert.equal(realtimeResult.stale, false);
+    assert.equal(realtimeResult.revision, 'fresh');
+    assert.equal(calls, 2);
+    assert.equal(controller.hasPendingRefresh(), false);
+});
