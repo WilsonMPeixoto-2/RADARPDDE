@@ -77,7 +77,7 @@ jobs:
               202607230001_enable_pgtap_remote_validation.sql)
                 continue
                 ;;
-              20260920004000_realtime_operational_invalidation.sql)
+              20260920013656_realtime_operational_invalidation.sql)
                 echo "Ignorando ${migration} no PostgreSQL genérico; o schema realtime é gerenciado pelo Supabase e validado no job Supabase local."
                 continue
                 ;;
