@@ -45,6 +45,7 @@ jobs:
           node --check src/integration/product-extensions-bootstrap.js
           node --check src/integration/global-competence-selector.js
           node --check src/integration/operational-context-refresh.js
+          node --check src/integration/operational-realtime-invalidation.js
           node --check src/integration/school-timeline.js
           node --check src/integration/auditable-retification.js
           node --check src/integration/excel-export-audit.js
