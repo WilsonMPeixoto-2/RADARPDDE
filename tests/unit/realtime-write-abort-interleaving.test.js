@@ -67,8 +67,10 @@ test('Broadcast cuja leitura é abortada por gravação converge com nova releit
     };
 
     const statePort = {
+        capture: async () => snapshot({}),
         exportCanonical: async () => snapshot({}),
         applyCanonical: async () => undefined,
+        restore: async () => undefined,
         applyEntities: async () => { applyCalls += 1; }
     };
 
