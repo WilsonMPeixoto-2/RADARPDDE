@@ -41,6 +41,7 @@
         '/src/integration/prontuario-operational-ux.js',
         '/src/integration/operational-readiness-bridge.js',
         '/src/integration/operational-context-refresh.js',
+        '/src/integration/operational-realtime-invalidation.js',
         '/src/integration/pendency-passive-queue-ux.js',
         '/src/integration/invoice-history-lock.js',
         '/src/integration/service-advisory-pendency.js',
