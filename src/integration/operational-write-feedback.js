@@ -237,7 +237,25 @@
         };
     }
 
-    function wrapDataServiceExecute(target, marker, notifier) {
+    function schedulePendingRefreshAfterWrite(root) {
+        const controller = root?.RadarOperationalContextRefreshController;
+        if (!controller
+            || typeof controller.hasPendingRefresh !== 'function'
+            || typeof controller.flushPending !== 'function') return false;
+
+        const schedule = typeof root.setTimeout === 'function'
+            ? root.setTimeout.bind(root)
+            : setTimeout;
+        schedule(() => {
+            if (!controller.hasPendingRefresh()) return;
+            void Promise.resolve(controller.flushPending('write-settled')).catch(error => {
+                root.console?.warn?.('Não foi possível aplicar a atualização pendente após a gravação.', error);
+            });
+        }, 0);
+        return true;
+    }
+
+    function wrapDataServiceExecute(target, marker, notifier, afterSettled) {
         if (!target || typeof target.execute !== 'function') return false;
         if (Object.prototype.hasOwnProperty.call(target, marker)) return true;
         const originalExecute = target.execute;
@@ -246,10 +264,14 @@
                 return originalExecute.call(this, command);
             }
             const forwardedCommand = markFeedbackInvocation(command);
-            const result = await originalExecute.call(this, forwardedCommand);
-            const feedback = feedbackForResult(command?.name, result);
-            if (feedback) notifier(feedback);
-            return result;
+            try {
+                const result = await originalExecute.call(this, forwardedCommand);
+                const feedback = feedbackForResult(command?.name, result);
+                if (feedback) notifier(feedback);
+                return result;
+            } finally {
+                afterSettled?.();
+            }
         };
         Object.defineProperty(target, marker, {
             value: true,
@@ -264,10 +286,11 @@
         const prototype = root?.RadarDataService?.DataService?.prototype;
         if (!prototype || typeof prototype.execute !== 'function') return false;
         const notifier = typeof notify === 'function' ? notify : feedback => showSaveNotice(root, feedback);
-        wrapDataServiceExecute(prototype, DATA_SERVICE_FEEDBACK_MARKER, notifier);
+        const afterSettled = () => schedulePendingRefreshAfterWrite(root);
+        wrapDataServiceExecute(prototype, DATA_SERVICE_FEEDBACK_MARKER, notifier, afterSettled);
         collectDataServices(root).forEach(service => {
             if (Object.prototype.hasOwnProperty.call(service, 'execute')) {
-                wrapDataServiceExecute(service, DATA_SERVICE_INSTANCE_FEEDBACK_MARKER, notifier);
+                wrapDataServiceExecute(service, DATA_SERVICE_INSTANCE_FEEDBACK_MARKER, notifier, afterSettled);
             }
         });
         return true;
@@ -354,6 +377,7 @@
         ensureSaveNotice,
         showSaveNotice,
         collectDataServices,
+        schedulePendingRefreshAfterWrite,
         installDataServiceFeedback,
         installPendencyNoticeCoordination,
         install
