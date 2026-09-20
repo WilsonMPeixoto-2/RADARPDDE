@@ -47,9 +47,6 @@ async function waitApplicationReady(page) {
     document.getElementById('nav-dashboard')?.classList.contains('active') === true
     && document.getElementById('main-container')?.childElementCount > 0
   ));
-  await page.evaluate(async () => {
-    if (window.RadarProductExtensionsReady?.then) await window.RadarProductExtensionsReady;
-  });
   await twoFrames(page);
 }
 
@@ -128,22 +125,32 @@ test('mede jornadas críticas do baseline atual sem alterar runtime', async ({ b
   const page = await context.newPage();
   await installNetworkObserver(page);
   await signIn(page);
+  // As extensões são necessárias às jornadas seguintes, mas não fazem parte do
+  // critério "Dashboard utilizável". Aguardar aqui evita inflar artificialmente
+  // a métrica de login com módulos que carregam em background.
+  await page.evaluate(async () => {
+    if (window.RadarProductExtensionsReady?.then) await window.RadarProductExtensionsReady;
+  });
   await installRuntimeHooks(page);
 
-  // Quatro trocas reais de competência para mediana/p95.
-  const competenceSequence = ['2026-08', '2026-05', '2026-08', '2026-05'];
-  for (let index = 0; index < competenceSequence.length; index += 1) {
-    const target = competenceSequence[index];
+  // A fixture Supabase pode expor somente uma competência. Em vez de inventar
+  // uma segunda competência, medimos diretamente o refresh operacional real,
+  // que é a jornada relevante para decidir se uma RPC única ainda se justifica.
+  for (let iteration = 1; iteration <= 4; iteration += 1) {
     samples.push(await captureJourney(
       page,
-      'competence-change',
-      () => page.locator('#global-competence-select').selectOption(target),
+      'operational-context-refresh',
+      () => page.evaluate(() => (
+        window.RadarOperationalContextRefreshController.refresh(
+          'performance-baseline',
+          { force: true }
+        )
+      )),
       async () => {
-        await expect(page.locator('#global-competence-select')).toHaveValue(target);
-        await page.waitForFunction(expected => (
-          window.RadarCompetenceContext?.getState?.()?.activeKey === expected
-          && document.getElementById('main-container')?.getAttribute('aria-busy') !== 'true'
-        ), target);
+        await page.waitForFunction(() => (
+          document.getElementById('main-container')?.getAttribute('aria-busy') !== 'true'
+          && window.RadarOperationalContextRefreshController?.hasPendingRefresh?.() === false
+        ));
       }
     ));
   }
@@ -221,8 +228,16 @@ test('mede jornadas críticas do baseline atual sem alterar runtime', async ({ b
   }
 
   if (current !== original) {
-    await extCCRow(page).getByRole('button', { name: original || current, exact: true }).click();
-    await page.evaluate(() => window.RadarApplicationServices.data.remoteExecutionTail);
+    await page.evaluate(async originalValue => {
+      await window.RadarApplicationServices.verifications.setBonification({
+        schoolId: 'ESC-LOCAL',
+        compKey: '2026-05_BASIC',
+        documentKey: 'extCC',
+        value: originalValue,
+        profile: 'controlador'
+      });
+      await window.RadarApplicationServices.data.remoteExecutionTail;
+    }, original);
   }
 
   const report = {
@@ -238,8 +253,13 @@ test('mede jornadas críticas do baseline atual sem alterar runtime', async ({ b
   expect(serialized).not.toContain(password);
   expect(serialized).not.toContain(controller.email);
   expect(report.summary['login-dashboard-usable'].sampleCount).toBe(3);
-  expect(report.summary['competence-change'].sampleCount).toBe(4);
+  expect(report.summary['operational-context-refresh'].sampleCount).toBe(4);
   expect(report.summary['write-bonification-stable'].sampleCount).toBe(3);
+  expect(
+    samples
+      .filter(item => item.label === 'write-bonification-stable')
+      .some(item => Number.isFinite(item.writeRpcMs))
+  ).toBe(true);
 
   const outputDir = path.resolve('test-results/performance-journeys');
   fs.mkdirSync(outputDir, { recursive: true });
