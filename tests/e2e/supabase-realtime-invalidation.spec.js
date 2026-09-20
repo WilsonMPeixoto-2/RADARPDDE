@@ -319,7 +319,7 @@ test('gravação auditável pela UI aborta leitura do Broadcast sem perder a atu
     await pageB.locator('#nav-escolas').click();
     await pageB.getByRole('row').filter({ hasText: 'Escola Local Autorizada' })
       .getByRole('link', { name: 'Ver Unidade', exact: true }).click();
-    await expect(pageB).toHaveURL(/\\/escolas\\/ESC-LOCAL(?:[/?#]|$)/);
+    await expect(pageB).toHaveURL(/\/escolas\/ESC-LOCAL(?:[/?#]|$)/);
     await expect(pageB.getByRole('heading', {
       name: /Unidade Escolar: Escola Local Autorizada/
     })).toBeVisible();
