@@ -158,7 +158,7 @@
                         && activeCompetence(root) === competenceKey
                 });
                 if (result?.stale === true) {
-                    if (authenticated(root) && editing(root) && activeCompetence(root) === competenceKey) {
+                    if (authenticated(root) && activeCompetence(root) === competenceKey) {
                         markPending(reason);
                     }
                     return result;
