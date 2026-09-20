@@ -60,15 +60,11 @@ function createHarness({ debounceMs = 0 } = {}) {
             }
         },
         dispatchEvent(event) { statuses.push(event); },
-        setTimeout(callback) {
-            if (debounceMs === 0) {
-                queueMicrotask(callback);
-                return 1;
-            }
-            return setTimeout(callback, debounceMs);
+        setTimeout(callback, milliseconds) {
+            return setTimeout(callback, milliseconds);
         },
         clearTimeout(handle) {
-            if (debounceMs !== 0) clearTimeout(handle);
+            clearTimeout(handle);
         },
         console: { warn(...args) { warnings.push(args); } }
     };
