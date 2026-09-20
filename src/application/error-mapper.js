@@ -26,7 +26,6 @@
         'IMPORT_RECONCILIATION_FAILED'
     ]);
     const DATA_ERROR_SET = new Set(DATA_ERROR_CODES);
-    const TRANSIENT_READ_CODES = new Set(['NETWORK_UNAVAILABLE', 'REMOTE_UNAVAILABLE']);
     const DATA_ERROR_MESSAGES = Object.freeze({
         MISSING_REMOTE_CAPABILITY: 'Esta operação exige persistência atômica indisponível no serviço de dados. Contate o suporte.',
         NETWORK_UNAVAILABLE: 'A conexão foi interrompida. Seus dados foram preservados; verifique a rede e tente novamente.',
@@ -129,31 +128,6 @@
         return `${message} Código do incidente: ${incidentId}.`;
     }
 
-    function delay(milliseconds) {
-        return milliseconds > 0
-            ? new Promise(resolve => setTimeout(resolve, milliseconds))
-            : Promise.resolve();
-    }
-
-    async function withSafeReadRetry(operation, options = {}) {
-        if (typeof operation !== 'function') throw new TypeError('A leitura segura exige uma função.');
-        const maxAttempts = Number.isInteger(options.maxAttempts) && options.maxAttempts > 0
-            ? Math.min(options.maxAttempts, 4)
-            : 3;
-        const delayMs = Number.isFinite(options.delayMs) && options.delayMs >= 0 ? options.delayMs : 120;
-        let lastError;
-        for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-            try {
-                return await operation({ attempt, maxAttempts });
-            } catch (error) {
-                lastError = error;
-                const code = classifyError(error);
-                if (!TRANSIENT_READ_CODES.has(code) || attempt === maxAttempts) throw error;
-                await delay(delayMs * attempt);
-            }
-        }
-        throw lastError;
-    }
 
     function resolveElement(value) {
         if (!root?.document || !value) return null;
@@ -273,12 +247,10 @@
     return Object.freeze({
         DATA_ERROR_CODES,
         DATA_ERROR_MESSAGES,
-        TRANSIENT_READ_CODES,
         classifyError,
         toRepositoryError,
         incidentIdFor,
         publicMessageFor,
-        withSafeReadRetry,
         showDataOperationError
     });
 }));

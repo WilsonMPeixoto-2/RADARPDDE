@@ -77,7 +77,6 @@
     const DEFAULT_PAGE_SIZE = 500;
     const DEFAULT_WRITE_BATCH_SIZE = 250;
     const DEFAULT_READ_CONCURRENCY = 6;
-    const { withSafeReadRetry } = errorMapper;
 
     function positiveInteger(value, fallback) {
         return Number.isInteger(value) && value > 0 ? value : fallback;
@@ -230,12 +229,6 @@
             this.pageSize = positiveInteger(options.pageSize, DEFAULT_PAGE_SIZE);
             this.writeBatchSize = positiveInteger(options.writeBatchSize, DEFAULT_WRITE_BATCH_SIZE);
             this.readConcurrency = positiveInteger(options.readConcurrency, DEFAULT_READ_CONCURRENCY);
-            this.readRetry = Object.freeze({
-                maxAttempts: positiveInteger(options.readRetry?.maxAttempts, 3),
-                delayMs: Number.isFinite(options.readRetry?.delayMs) && options.readRetry.delayMs >= 0
-                    ? options.readRetry.delayMs
-                    : 120
-            });
         }
 
         tableFor(entity) {
@@ -267,38 +260,22 @@
             }
         }
 
-        isTransientError(error) {
-            if (!error) return false;
-            const status = Number(error.status || 0);
-            const message = String(error.message || '').toLowerCase();
-            return [408, 429, 502, 503, 504].includes(status)
-                || message.includes('fetch')
-                || message.includes('network')
-                || message.includes('timeout')
-                || message.includes('load failed');
-        }
-
-        getRetryDelay(attempt) {
-            return (250 * Math.pow(3, attempt)) + (Math.random() * 100);
-        }
 
         async loadPage(entity, offset = 0, limit = this.pageSize) {
             const table = this.tableFor(entity);
             const pageSize = positiveInteger(limit, this.pageSize);
             const start = Math.max(0, Number.isInteger(offset) ? offset : 0);
-            const data = await withSafeReadRetry(async () => {
-                let query = this.client.from(table).select('*');
-                if (typeof query.order !== 'function' || typeof query.range !== 'function') {
-                    throw new RepositoryError(
-                        'MISSING_BOUNDED_PAGE_QUERY',
-                        'A leitura remota paginada exige ordenação determinística e range explícito no servidor.',
-                        { entity, operation: 'loadPage' }
-                    );
-                }
-                query = query.order('id', { ascending: true });
-                query = query.range(start, start + pageSize - 1);
-                return this.execute(entity, 'loadPage', query);
-            }, this.readRetry);
+            let query = this.client.from(table).select('*');
+            if (typeof query.order !== 'function' || typeof query.range !== 'function') {
+                throw new RepositoryError(
+                    'MISSING_BOUNDED_PAGE_QUERY',
+                    'A leitura remota paginada exige ordenação determinística e range explícito no servidor.',
+                    { entity, operation: 'loadPage' }
+                );
+            }
+            query = query.order('id', { ascending: true });
+            query = query.range(start, start + pageSize - 1);
+            const data = await this.execute(entity, 'loadPage', query);
             return normalizeCollection(data);
         }
 
@@ -308,36 +285,34 @@
             const cursor = afterId === undefined || afterId === null || afterId === ''
                 ? null
                 : String(afterId);
-            const data = await withSafeReadRetry(async () => {
-                let query = this.client.from(table).select('*');
-                if (typeof query.order !== 'function') {
+            let query = this.client.from(table).select('*');
+            if (typeof query.order !== 'function') {
+                throw new RepositoryError(
+                    'MISSING_KEYSET_PAGINATION',
+                    'A leitura remota exige ordenação determinística por identificador.',
+                    { entity, operation: 'loadAfterId' }
+                );
+            }
+            query = query.order('id', { ascending: true });
+            if (cursor !== null) {
+                if (typeof query.gt !== 'function') {
                     throw new RepositoryError(
                         'MISSING_KEYSET_PAGINATION',
-                        'A leitura remota exige ordenação determinística por identificador.',
+                        'A leitura remota exige paginação por cursor de identificador.',
                         { entity, operation: 'loadAfterId' }
                     );
                 }
-                query = query.order('id', { ascending: true });
-                if (cursor !== null) {
-                    if (typeof query.gt !== 'function') {
-                        throw new RepositoryError(
-                            'MISSING_KEYSET_PAGINATION',
-                            'A leitura remota exige paginação por cursor de identificador.',
-                            { entity, operation: 'loadAfterId' }
-                        );
-                    }
-                    query = query.gt('id', cursor);
-                }
-                if (typeof query.limit !== 'function') {
-                    throw new RepositoryError(
-                        'MISSING_KEYSET_PAGINATION',
-                        'A leitura remota exige limite explícito por página.',
-                        { entity, operation: 'loadAfterId' }
-                    );
-                }
-                query = query.limit(pageSize);
-                return this.execute(entity, 'loadAfterId', query);
-            }, this.readRetry);
+                query = query.gt('id', cursor);
+            }
+            if (typeof query.limit !== 'function') {
+                throw new RepositoryError(
+                    'MISSING_KEYSET_PAGINATION',
+                    'A leitura remota exige limite explícito por página.',
+                    { entity, operation: 'loadAfterId' }
+                );
+            }
+            query = query.limit(pageSize);
+            const data = await this.execute(entity, 'loadAfterId', query);
             return normalizeCollection(data);
         }
 
