@@ -92,6 +92,39 @@ async function setExtCC(page, value) {
   }, value);
 }
 
+async function prepareInstitutionalExportFixture(page) {
+  return page.evaluate(async () => {
+    const client = window.RadarSessionContext?.service?.client;
+    if (!client) throw new Error('Cliente Supabase autenticado ausente para preparar exportação E2E.');
+
+    const schoolId = 'ESC-OTHER';
+    const competence = '2026-05';
+    const programId = 'BASIC';
+    const compKey = `${competence}_${programId}`;
+    const verificationId = `${schoolId}::${competence}::${programId}`;
+    const template = window.buildVerificationSnapshot({});
+
+    const write = await client.from('verifications').upsert({
+      id: verificationId,
+      school_id: schoolId,
+      competence_id: competence,
+      program_id: programId,
+      bonification: template.bonificacao,
+      analysis: template.analise,
+      bonus_result: 'apta',
+      payload: { e2e_institutional_export_fixture: true }
+    }).select('*').single();
+    if (write.error) throw write.error;
+
+    return {
+      schoolId,
+      compKey,
+      verificationId,
+      bonusResult: write.data?.bonus_result || ''
+    };
+  });
+}
+
 test('Broadcast atualiza outra sessão sem F5 e respeita edição em andamento', async ({ browser }) => {
   test.setTimeout(60000);
 
@@ -169,10 +202,22 @@ test('gravação auditável pela UI aborta leitura do Broadcast sem perder a atu
   let releaseRead = () => {};
 
   try {
-    await Promise.all([
-      signInInstitutional(pageA),
-      signInInstitutional(pageB, 'federal_assistant')
-    ]);
+    await signInInstitutional(pageA);
+    const exportFixture = await prepareInstitutionalExportFixture(pageA);
+    expect(exportFixture).toMatchObject({
+      schoolId: 'ESC-OTHER',
+      compKey: '2026-05_BASIC',
+      bonusResult: 'apta'
+    });
+
+    // A Assistente entra somente depois da fixture consolidada existir, para que
+    // o bootstrap remoto carregue a linha sem Broadcast/setup concorrendo com o
+    // interleaving que queremos provar.
+    await signInInstitutional(pageB, 'federal_assistant');
+    await pageB.waitForFunction(() => (
+      verificacoes?.['ESC-OTHER']?.['2026-05_BASIC']?.resultadoBonif === 'apta'
+    ));
+
     await openSchool(pageA);
     await pageB.locator('#nav-dashboard').click();
     await expect(pageB.locator('#global-competence-select')).toHaveValue('2026-05');
