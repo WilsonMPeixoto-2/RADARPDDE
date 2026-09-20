@@ -319,10 +319,23 @@ test('gravação auditável pela UI aborta leitura do Broadcast sem perder a atu
     await pageB.locator('#nav-escolas').click();
     await pageB.getByRole('row').filter({ hasText: 'Escola Local Autorizada' })
       .getByRole('link', { name: 'Ver Unidade', exact: true }).click();
+    await expect(pageB).toHaveURL(/\\/escolas\\/ESC-LOCAL(?:[/?#]|$)/);
+    await expect(pageB.getByRole('heading', {
+      name: /Unidade Escolar: Escola Local Autorizada/
+    })).toBeVisible();
     await expectVisibleExtCC(pageB, changed);
     expect(reloads).toBe(0);
-    await testInfo.attach('realtime-write-abort-converged', {
-      body: await pageB.screenshot(), contentType: 'image/png'
+
+    // A screenshot do próprio row é uma prova visual mais forte do que um
+    // frame de página inteira capturado durante uma reconstrução assíncrona:
+    // locator.screenshot() só conclui com o alvo visível e estável.
+    await testInfo.attach('realtime-write-abort-extcc-row', {
+      body: await extCCRow(pageB).screenshot(),
+      contentType: 'image/png'
+    });
+    await testInfo.attach('realtime-write-abort-prontuario', {
+      body: await pageB.screenshot(),
+      contentType: 'image/png'
     });
 
     await extCCRow(pageA).getByRole('button', {
