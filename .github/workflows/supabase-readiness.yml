@@ -159,7 +159,7 @@ jobs:
                 echo "Ignorando ${migration} no PostgreSQL genérico; a extensão pgTAP é validada no job Supabase local."
                 continue
                 ;;
-              20260920004000_realtime_operational_invalidation.sql)
+              20260920013656_realtime_operational_invalidation.sql)
                 echo "Ignorando ${migration} no PostgreSQL genérico; o schema realtime é gerenciado pelo Supabase e validado no job Supabase local."
                 continue
                 ;;
