@@ -383,8 +383,9 @@ test('factory cria Supabase sem instanciar armazenamento local desnecessário', 
     assert.ok(selected instanceof SupabaseRepository);
 });
 
-test('repete somente leitura transitória e não repete gravações', async () => {
+test('delega retry de leitura ao cliente Supabase e não repete a operação lógica no repositório', async () => {
     let readAttempts = 0;
+    let writeAttempts = 0;
     const client = {
         from() {
             return {
@@ -394,20 +395,23 @@ test('repete somente leitura transitória e não repete gravações', async () =
                 limit() { return this; },
                 range() { return this; },
                 upsert() {
+                    writeAttempts += 1;
                     return Promise.resolve({ data: null, error: new TypeError('network write failed') });
                 },
                 then(resolve) {
                     readAttempts += 1;
-                    if (readAttempts < 3) resolve({ data: null, error: new TypeError('network read failed') });
-                    else resolve({ data: [], error: null });
+                    resolve({ data: null, error: new TypeError('network read failed') });
                 }
             };
         }
     };
-    const repository = new SupabaseRepository({ client, readRetry: { maxAttempts: 3, delayMs: 0 } });
-    assert.deepEqual(await repository.load('schools'), []);
-    assert.equal(readAttempts, 3);
+    const repository = new SupabaseRepository({ client });
+
+    await assert.rejects(repository.load('schools'), /Falha na operação loadAfterId/);
+    assert.equal(readAttempts, 1);
+
     await assert.rejects(repository.save('schools', [{ id: 's1' }]), /Falha na operação save/);
+    assert.equal(writeAttempts, 1);
 });
 
 test('expõe RPCs compostas e operacionais de importação sem persistência paralela', async () => {

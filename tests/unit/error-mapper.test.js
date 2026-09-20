@@ -7,7 +7,6 @@ const {
     DATA_ERROR_MESSAGES,
     classifyError,
     toRepositoryError,
-    withSafeReadRetry,
     showDataOperationError
 } = require('../../src/application/error-mapper.js');
 const { RepositoryError } = require('../../src/data/repository-contract.js');
@@ -24,26 +23,6 @@ test('traduz falhas técnicas para as categorias e mensagens funcionais obrigat�
     assert.equal(error.message, DATA_ERROR_MESSAGES.SESSION_EXPIRED);
 });
 
-test('retry seletivo repete somente leituras seguras com falha transitória', async () => {
-    let attempts = 0;
-    const value = await withSafeReadRetry(async () => {
-        attempts += 1;
-        if (attempts < 3) throw new TypeError('network request failed');
-        return 'ok';
-    }, { maxAttempts: 3, delayMs: 0 });
-    assert.equal(value, 'ok');
-    assert.equal(attempts, 3);
-
-    let deniedAttempts = 0;
-    await assert.rejects(
-        withSafeReadRetry(async () => {
-            deniedAttempts += 1;
-            throw Object.assign(new Error('RLS'), { code: '42501' });
-        }, { maxAttempts: 3, delayMs: 0 }),
-        /RLS/
-    );
-    assert.equal(deniedAttempts, 1);
-});
 
 test('mensagem pública canoniza falha técnica e preserva orientação de validação de negócio', () => {
     const session = showDataOperationError(new RepositoryError(
