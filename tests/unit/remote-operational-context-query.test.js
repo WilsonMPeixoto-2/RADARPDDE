@@ -12,6 +12,7 @@ function createClient(seed = {}) {
             const filters = [];
             let afterId = null;
             let maxRows = Infinity;
+            let abortSignal = null;
             const builder = {
                 select(value) {
                     calls.push(['select', table, value]);
@@ -42,7 +43,17 @@ function createClient(seed = {}) {
                     calls.push(['limit', table, value]);
                     return this;
                 },
+                abortSignal(signal) {
+                    abortSignal = signal;
+                    calls.push(['abortSignal', table, signal]);
+                    return this;
+                },
                 then(resolve, reject) {
+                    if (abortSignal?.aborted) {
+                        const error = new Error('The operation was aborted.');
+                        error.name = 'AbortError';
+                        return Promise.reject(error).then(resolve, reject);
+                    }
                     let rows = structuredClone(seed[table] || []);
                     filters.forEach(filter => { rows = rows.filter(filter); });
                     rows.sort((a, b) => String(a.id).localeCompare(String(b.id)));
@@ -215,4 +226,50 @@ test('estado encerrado de outra competência só é buscado quando o histórico 
     assert.ok(historical.entities.pendencyContacts.some(row => row.id === 'c-old-resolved'));
     assert.ok(historical.entities.registeredInvoices.some(row => row.id === 'i-mar-unrelated'));
     await assert.rejects(repo.queryOperationalContext({ competenceId: '2026-09', historyStatuses: ['all'] }));
+});
+
+
+test('contexto operacional propaga o mesmo AbortSignal a todas as consultas PostgREST', async () => {
+    const fake = createClient(seed);
+    const repository = new OperationalSupabaseRepository({
+        client: fake.client,
+        pageSize: 2,
+        readRetry: { maxAttempts: 1, delayMs: 0 }
+    });
+    const controller = new AbortController();
+
+    await repository.queryOperationalContext({
+        competenceId: '2026-09',
+        signal: controller.signal
+    });
+
+    const fromCalls = fake.calls.filter(call => call[0] === 'from');
+    const abortCalls = fake.calls.filter(call => call[0] === 'abortSignal');
+    assert.ok(fromCalls.length > 0);
+    assert.equal(
+        abortCalls.length,
+        fromCalls.length,
+        'toda consulta contextual deve carregar AbortSignal'
+    );
+    assert.equal(
+        abortCalls.every(call => call[2] === controller.signal),
+        true,
+        'todas as ondas devem reutilizar o sinal do contexto'
+    );
+});
+
+test('contexto operacional já cancelado não inicia chamadas ao Supabase', async () => {
+    const fake = createClient(seed);
+    const repository = new OperationalSupabaseRepository({ client: fake.client });
+    const controller = new AbortController();
+    controller.abort();
+
+    await assert.rejects(
+        repository.queryOperationalContext({
+            competenceId: '2026-09',
+            signal: controller.signal
+        }),
+        error => error?.name === 'AbortError'
+    );
+    assert.deepEqual(fake.calls, []);
 });
