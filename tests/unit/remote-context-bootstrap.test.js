@@ -88,7 +88,10 @@ test('troca de competência recarrega apenas as projeções operacionais do novo
 
     await service.loadOperationalContext('2026-08');
 
-    assert.deepEqual(harness.contextQueries, [{ competenceId: '2026-08' }]);
+    assert.equal(harness.contextQueries.length, 1);
+    assert.equal(harness.contextQueries[0].competenceId, '2026-08');
+    assert.ok(harness.contextQueries[0].signal, 'leitura operacional deve receber AbortSignal');
+    assert.equal(harness.contextQueries[0].signal.aborted, false);
     assert.equal(harness.applied.length, 1);
     assert.deepEqual(
         [...harness.applied[0].entities].sort(),
