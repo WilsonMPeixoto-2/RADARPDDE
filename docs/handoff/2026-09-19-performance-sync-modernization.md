@@ -273,6 +273,22 @@ Não remover índices com base no advisor logo após reset/upgrade de estatísti
 
 ## 9. Rota de retomada
 
+### Evidências adicionais da auditoria em 20/09
+
+Production foi novamente conferida às 16h45 UTC: `71b5a6e4967641c5dc8402ebadefbc22f9b5e5c6`, deployment `dpl_4KcvK1edZm9ZvCYYPBt8gVP8JfPU`, READY. Preservar as soluções já mergeadas nos PRs #338–#341; não reaplicar os patches locais que partiram do baseline #336.
+
+**Medição pós-RLS:** [snapshot inicial](evidence/2026-09-20-post-rls-baseline.json), [snapshot final](evidence/2026-09-20-post-rls-second.json) e [SQL somente leitura](evidence/2026-09-20-post-rls-snapshot.sql). Janela 03:37:00–11:04:42 UTC: 11 assinaturas do papel `authenticated`, 16.449 chamadas acumuladas em ambas; delta de chamadas/tempo/blocos igual a zero, mesmos `stats_reset` e `stats_since`. Conferência agregada às 16:47:38 UTC ainda mostrou 16.449 chamadas e 226.531,836464 ms acumulados. Não há nova amostra para calcular desempenho pós-RLS. Não atribuir as médias acumuladas desde 17/09 à migration de 19/09.
+
+A coleta inicial limitava a 100 entradas incluindo outros papéis; o arquivo preserva apenas as 11 autenticadas. A segunda consulta, sem limite, confirmou o mesmo conjunto. Os arquivos contêm contadores e identificadores de consultas, sem registros de negócio ou textos SQL capturados. Em próxima janela de uso, repetir o SQL, comparar `(role, dbid, toplevel, queryid)`, exigir mesmos `stats_reset`/`stats_since` e contadores monotônicos, calcular `delta total_exec_time / delta calls` só com delta positivo. Assinaturas novas/removidas/reiniciadas devem ser separadas. Relações são classificadas por texto, sem atribuição exclusiva de custo por tabela. [Referência PostgreSQL 17](https://www.postgresql.org/docs/17/pgstatstatements.html).
+
+**Autorização:** revisão de código não encontrou ampliação indevida de escopo escolar. Catálogo remoto confirmou RLS ativa em `realtime.messages` e somente a policy SELECT autenticada do tópico privado `radar:operational`; nenhuma policy INSERT/ALL adicional. Trigger de invalidação possui EXECUTE somente postgres. Não há evidência para nova migration de permissões.
+
+**Limite de integridade:** o conector somente leitura recebeu permission denied em `production_integrity_check()`. Não houve tentativa de contornar privilégios; isso não equivale a auditoria atual de integridade concluída.
+
+**PR #342, prova complementar:** `test/realtime-write-abort-frontend-2026-09-20`, baseado em #341. Duas identidades institucionais; Controlador altera bonificação por botão e Assistente exporta relatório pela UI. A gravação auditável cancela uma resposta HTTP real retida do refresh. O teste exige releitura e convergência antes da navegação, confirmação visual do Prontuário e zero reload. `administrative_logs` evita falso positivo por segundo Broadcast ou reconciliação de verificações da própria escrita. Screenshot anexada para inspeção. Execução autenticada e visual pendente dos gates; validar SHA final antes de integrar. Este teste complementa a implementação existente e não a substitui.
+
+### Sequência
+
 1. AGENTS.md;
 2. docs/reference/SYSTEM_CANONICAL_MODEL.md;
 3. docs/CURRENT_STAGE.md;

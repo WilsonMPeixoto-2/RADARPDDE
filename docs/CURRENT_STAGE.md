@@ -149,6 +149,8 @@ Não reintroduzir timestamps intermediários usados durante a preparação da br
 
 ### P1 — medir ganho pós-RLS em janela representativa
 
+Coletas de 20/09 às 03:37:00 e 11:04:42 UTC tiveram **zero chamadas novas** nas 11 assinaturas autenticadas acompanhadas. Os contadores continuavam iguais às 16:47:38 UTC. A janela não permite calcular média pós-migração nem justificar RPC única. Snapshots e SQL reproduzível estão vinculados no handoff corrente.
+
 Coletar deltas de pg_stat_statements depois de volume real suficiente e comparar especialmente:
 
 - school_programs;
@@ -189,6 +191,8 @@ Não são próximos passos automáticos:
 - hardening de senha vazada como condição desta frente.
 
 ## 9. Situação operacional
+
+O PR #342 acrescenta prova pela interface para a convergência após cancelamento de leitura por gravação auditável, sobre o baseline #341, sem nova mudança funcional. No checkpoint desta retomada a execução autenticada/visual ainda aguarda os gates do candidato; não confundir teste escrito com teste aprovado.
 
 Não há defeito funcional conhecido bloqueando uso normal do RADAR no baseline atual.
 

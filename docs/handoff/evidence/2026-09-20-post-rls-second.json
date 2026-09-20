@@ -1,0 +1,190 @@
+[
+  {
+    "captured_at": "2026-09-20 11:04:42.735247+00",
+    "stats_reset": "2026-09-17 01:18:11.005538+00",
+    "role": "authenticated",
+    "dbid": 5,
+    "toplevel": true,
+    "queryid": "-4321807221665031446",
+    "calls": 9140,
+    "total_exec_time": 44374.440239,
+    "rows": 9140,
+    "shared_blks_hit": 352714,
+    "shared_blks_read": 0,
+    "stats_since": "2026-09-17 11:00:54.428381+00",
+    "relations": [
+      "verifications"
+    ]
+  },
+  {
+    "captured_at": "2026-09-20 11:04:42.735247+00",
+    "stats_reset": "2026-09-17 01:18:11.005538+00",
+    "role": "authenticated",
+    "dbid": 5,
+    "toplevel": true,
+    "queryid": "1703864473150125473",
+    "calls": 92,
+    "total_exec_time": 40932.867027,
+    "rows": 92,
+    "shared_blks_hit": 215971,
+    "shared_blks_read": 0,
+    "stats_since": "2026-09-17 11:00:53.110784+00",
+    "relations": [
+      "verifications"
+    ]
+  },
+  {
+    "captured_at": "2026-09-20 11:04:42.735247+00",
+    "stats_reset": "2026-09-17 01:18:11.005538+00",
+    "role": "authenticated",
+    "dbid": 5,
+    "toplevel": true,
+    "queryid": "3896252041218239862",
+    "calls": 93,
+    "total_exec_time": 37552.533099,
+    "rows": 93,
+    "shared_blks_hit": 274511,
+    "shared_blks_read": 0,
+    "stats_since": "2026-09-17 11:00:53.230072+00",
+    "relations": [
+      "pendencies"
+    ]
+  },
+  {
+    "captured_at": "2026-09-20 11:04:42.735247+00",
+    "stats_reset": "2026-09-17 01:18:11.005538+00",
+    "role": "authenticated",
+    "dbid": 5,
+    "toplevel": true,
+    "queryid": "-3762349853790923694",
+    "calls": 26,
+    "total_exec_time": 34874.211584,
+    "rows": 26,
+    "shared_blks_hit": 167686,
+    "shared_blks_read": 6,
+    "stats_since": "2026-09-17 11:00:53.139643+00",
+    "relations": [
+      "school_programs"
+    ]
+  },
+  {
+    "captured_at": "2026-09-20 11:04:42.735247+00",
+    "stats_reset": "2026-09-17 01:18:11.005538+00",
+    "role": "authenticated",
+    "dbid": 5,
+    "toplevel": true,
+    "queryid": "3968175216017083107",
+    "calls": 92,
+    "total_exec_time": 21617.895454,
+    "rows": 92,
+    "shared_blks_hit": 99731,
+    "shared_blks_read": 0,
+    "stats_since": "2026-09-17 11:00:53.243608+00",
+    "relations": [
+      "registered_invoices"
+    ]
+  },
+  {
+    "captured_at": "2026-09-20 11:04:42.735247+00",
+    "stats_reset": "2026-09-17 01:18:11.005538+00",
+    "role": "authenticated",
+    "dbid": 5,
+    "toplevel": true,
+    "queryid": "-914817176531477992",
+    "calls": 92,
+    "total_exec_time": 20320.044387,
+    "rows": 92,
+    "shared_blks_hit": 96567,
+    "shared_blks_read": 0,
+    "stats_since": "2026-09-17 11:00:53.231101+00",
+    "relations": [
+      "pendencies"
+    ]
+  },
+  {
+    "captured_at": "2026-09-20 11:04:42.735247+00",
+    "stats_reset": "2026-09-17 01:18:11.005538+00",
+    "role": "authenticated",
+    "dbid": 5,
+    "toplevel": true,
+    "queryid": "-1745999911319524362",
+    "calls": 6526,
+    "total_exec_time": 15353.634649,
+    "rows": 6526,
+    "shared_blks_hit": 115278,
+    "shared_blks_read": 0,
+    "stats_since": "2026-09-17 11:00:55.717523+00",
+    "relations": [
+      "registered_invoices"
+    ]
+  },
+  {
+    "captured_at": "2026-09-20 11:04:42.735247+00",
+    "stats_reset": "2026-09-17 01:18:11.005538+00",
+    "role": "authenticated",
+    "dbid": 5,
+    "toplevel": true,
+    "queryid": "-6201889972188916973",
+    "calls": 92,
+    "total_exec_time": 8246.69642599999,
+    "rows": 92,
+    "shared_blks_hit": 70449,
+    "shared_blks_read": 0,
+    "stats_since": "2026-09-17 11:00:54.470032+00",
+    "relations": [
+      "registered_invoices"
+    ]
+  },
+  {
+    "captured_at": "2026-09-20 11:04:42.735247+00",
+    "stats_reset": "2026-09-17 01:18:11.005538+00",
+    "role": "authenticated",
+    "dbid": 5,
+    "toplevel": true,
+    "queryid": "-8172579646688886749",
+    "calls": 92,
+    "total_exec_time": 2124.31296,
+    "rows": 92,
+    "shared_blks_hit": 29302,
+    "shared_blks_read": 0,
+    "stats_since": "2026-09-17 11:00:55.436251+00",
+    "relations": [
+      "registered_invoices"
+    ]
+  },
+  {
+    "captured_at": "2026-09-20 11:04:42.735247+00",
+    "stats_reset": "2026-09-17 01:18:11.005538+00",
+    "role": "authenticated",
+    "dbid": 5,
+    "toplevel": true,
+    "queryid": "1336067394349566394",
+    "calls": 2,
+    "total_exec_time": 1043.962569,
+    "rows": 0,
+    "shared_blks_hit": 16946,
+    "shared_blks_read": 0,
+    "stats_since": "2026-09-17 13:20:59.965657+00",
+    "relations": [
+      "school_programs"
+    ]
+  },
+  {
+    "captured_at": "2026-09-20 11:04:42.735247+00",
+    "stats_reset": "2026-09-17 01:18:11.005538+00",
+    "role": "authenticated",
+    "dbid": 5,
+    "toplevel": true,
+    "queryid": "8224728630877206496",
+    "calls": 202,
+    "total_exec_time": 91.23807,
+    "rows": 202,
+    "shared_blks_hit": 1191,
+    "shared_blks_read": 0,
+    "stats_since": "2026-09-17 11:00:52.858522+00",
+    "relations": [
+      "user_profiles",
+      "profiles"
+    ]
+  }
+]
