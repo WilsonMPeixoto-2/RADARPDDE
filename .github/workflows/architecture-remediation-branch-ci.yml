@@ -45,6 +45,7 @@ jobs:
           node --check src/integration/product-extensions-bootstrap.js
           node --check src/integration/global-competence-selector.js
           node --check src/integration/operational-context-refresh.js
+          node --check src/integration/operational-realtime-invalidation.js
           node --check src/integration/school-timeline.js
           node --check src/integration/auditable-retification.js
           node --check src/integration/excel-export-audit.js
@@ -64,6 +65,7 @@ jobs:
             tests/unit/remote-scoped-unit-of-work.test.js
             tests/unit/global-competence-remote-hydration.test.js
             tests/unit/operational-context-refresh.test.js
+            tests/unit/operational-realtime-invalidation.test.js
             tests/unit/append-only-refresh-policy.test.js
             tests/unit/append-only-command-contract.test.js
             tests/unit/supabase-keyset-pagination.test.js
