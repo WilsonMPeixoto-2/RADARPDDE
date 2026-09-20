@@ -291,6 +291,14 @@ test('preload antecipa a transferência sem alterar a ordem serial das extensõe
         ],
         'a execução continua seguindo a ordem funcional canônica'
     );
+    const refreshIndex = harness.requested.indexOf('/src/integration/operational-context-refresh.js');
+    const realtimeIndex = harness.requested.indexOf('/src/integration/operational-realtime-invalidation.js');
+    assert.ok(refreshIndex >= 0, 'controlador de refresh deve ser carregado');
+    assert.equal(
+        realtimeIndex,
+        refreshIndex + 1,
+        'Realtime deve carregar imediatamente após o controlador que aplica a invalidação'
+    );
     assert.equal(
         harness.preloaded.filter(src => src === '/src/integration/atomic-analysis-pendency.js').length,
         1,
