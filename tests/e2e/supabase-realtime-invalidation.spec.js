@@ -318,7 +318,7 @@ test('gravação auditável pela UI aborta leitura do Broadcast sem perder a atu
 
     await pageB.locator('#nav-escolas').click();
     await pageB.getByRole('row').filter({ hasText: 'Escola Local Autorizada' })
-      .getByRole('button', { name: 'Ver Unidade', exact: true }).click();
+      .getByRole('link', { name: 'Ver Unidade', exact: true }).click();
     await expectVisibleExtCC(pageB, changed);
     expect(reloads).toBe(0);
     await testInfo.attach('realtime-write-abort-converged', {
