@@ -167,23 +167,6 @@ test('gravação auditável pela UI aborta leitura do Broadcast sem perder a atu
   const pageA = await contextA.newPage();
   const pageB = await contextB.newPage();
   let releaseRead = () => {};
-  let invalidations = 0;
-
-  pageB.on('websocket', socket => {
-    socket.on('framereceived', frame => {
-      let message;
-      try {
-        message = JSON.parse(String(frame.payload));
-      } catch (_error) {
-        return;
-      }
-      const event = Array.isArray(message) ? message[3] : message.event;
-      const payload = Array.isArray(message) ? message[4] : message.payload;
-      if (event === 'broadcast' && payload?.event === 'operational-change') {
-        invalidations += 1;
-      }
-    });
-  });
 
   try {
     await Promise.all([
@@ -202,6 +185,15 @@ test('gravação auditável pela UI aborta leitura do Broadcast sem perder a atu
       window.RadarOperationalContextRefreshController.refresh('e2e-ready', { force: true })
     ));
 
+    // Observe o evento já decodificado pelo SDK; Broadcast também pode usar
+    // frames binários, portanto JSON.parse no WebSocket não é um observador válido.
+    await pageB.evaluate(() => {
+      window.__e2eOperationalInvalidations = 0;
+      window.RadarOperationalRealtimeInvalidationController.getChannel()
+        .on('broadcast', { event: 'operational-change' }, () => {
+          window.__e2eOperationalInvalidations += 1;
+        });
+    });
     const original = await currentExtCC(pageB);
     const changed = original === 'Sim' ? 'Não' : 'Sim';
     await expectVisibleExtCC(pageA, original);
@@ -236,7 +228,6 @@ test('gravação auditável pela UI aborta leitura do Broadcast sem perder a atu
       if (!request.failure()) await route.fulfill({ response });
     });
 
-    const invalidationsBeforeWrite = invalidations;
     await extCCRow(pageA).getByRole('button', { name: changed, exact: true }).click();
     await pageA.evaluate(() => window.RadarApplicationServices.data.remoteExecutionTail);
     await expectVisibleExtCC(pageA, changed);
@@ -246,7 +237,7 @@ test('gravação auditável pela UI aborta leitura do Broadcast sem perder a atu
     expect(snapshot.body.find(row => (
       row.school_id === 'ESC-LOCAL' && row.program_id === 'BASIC'
     ))?.bonification?.extCC).toBe(changed);
-    expect(invalidations).toBeGreaterThan(invalidationsBeforeWrite);
+    await expect.poll(() => pageB.evaluate(() => window.__e2eOperationalInvalidations)).toBeGreaterThan(0);
     expect(await currentExtCC(pageB)).toBe(original);
 
     // Exportar grava administrativeLogs pelo AuditService real, sem abrir modal,
