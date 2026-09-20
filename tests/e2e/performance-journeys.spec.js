@@ -47,9 +47,6 @@ async function waitApplicationReady(page) {
     document.getElementById('nav-dashboard')?.classList.contains('active') === true
     && document.getElementById('main-container')?.childElementCount > 0
   ));
-  if (window?.RadarProductExtensionsReady) {
-    // eslint-disable-next-line no-undef
-  }
   await page.evaluate(async () => {
     if (window.RadarProductExtensionsReady?.then) await window.RadarProductExtensionsReady;
   });

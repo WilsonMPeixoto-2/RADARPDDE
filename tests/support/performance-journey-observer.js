@@ -22,7 +22,10 @@ function summarizeSamples(samples = []) {
     networkWallMs: { p50: percentile(metric('networkWallMs'), 0.50), p95: percentile(metric('networkWallMs'), 0.95) },
     contextLoadMs: { p50: percentile(metric('contextLoadMs'), 0.50), p95: percentile(metric('contextLoadMs'), 0.95) },
     renderProntuarioMs: { p50: percentile(metric('renderProntuarioMs'), 0.50), p95: percentile(metric('renderProntuarioMs'), 0.95) },
-    rebuildIndexesMs: { p50: percentile(metric('rebuildIndexesMs'), 0.50), p95: percentile(metric('rebuildIndexesMs'), 0.95) }
+    rebuildIndexesMs: { p50: percentile(metric('rebuildIndexesMs'), 0.50), p95: percentile(metric('rebuildIndexesMs'), 0.95) },
+    writeRpcMs: { p50: percentile(metric('writeRpcMs'), 0.50), p95: percentile(metric('writeRpcMs'), 0.95) },
+    writeApplyMs: { p50: percentile(metric('writeApplyMs'), 0.50), p95: percentile(metric('writeApplyMs'), 0.95) },
+    writeClickToStableMs: { p50: percentile(metric('writeClickToStableMs'), 0.50), p95: percentile(metric('writeClickToStableMs'), 0.95) }
   };
 }
 
