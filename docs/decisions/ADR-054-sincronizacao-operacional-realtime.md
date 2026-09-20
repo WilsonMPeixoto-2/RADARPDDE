@@ -2,6 +2,7 @@
 
 **Status:** Aprovada, implementada e publicada
 **Data:** 19 de setembro de 2026
+**Atualizada em:** 20 de setembro de 2026
 
 ## Contexto
 
@@ -52,7 +53,12 @@ O payload não transporta dados de negócio. Contém apenas informação mínima
 - reconexão força releitura;
 - invalidação durante edição não sobrescreve formulário/modal;
 - refresh fica pendente até a superfície voltar a ser segura;
-- nova leitura ou gravação pode abortar request operacional obsoleto.
+- nova leitura ou gravação pode abortar request operacional obsoleto;
+- invalidação recebida durante refresh em voo força nova releitura depois da consulta antiga;
+- falha de rede na releitura preserva a invalidação e admite uma única retry controlada;
+- leitura Realtime abortada por escrita retorna `stale/aborted` sem perder a obrigação de convergir;
+- término da escrita agenda drenagem da pendência no próximo tick;
+- não existe polling contínuo nem retry automático de escrita.
 
 ## Alternativas rejeitadas
 
@@ -88,7 +94,8 @@ Custos:
 - cada invalidação relevante pode provocar releitura contextual;
 - debounce é necessário para rajadas;
 - disponibilidade do Realtime influencia rapidez da convergência, mas não a integridade dos dados;
-- foco/reconexão continuam úteis como fallback.
+- foco/reconexão continuam úteis como fallback;
+- a convergência não depende apenas desses eventos incidentais: pendências causadas por escrita são drenadas no pós-write.
 
 ## Evidência
 
@@ -108,9 +115,15 @@ e:
 
 A prova roda dentro da pilha Supabase local com Auth, RLS, Realtime e frontend reais.
 
+Os PRs #338–#341 ampliaram a evidência com testes RED → GREEN de interleavings. Foram reproduzidos e corrigidos: Broadcast durante refresh em voo, falha da releitura, Abort causado por escrita e pendência sem drenagem pós-write. Nos PRs #340 e #341, os commits GREEN passaram 10/10 workflows, incluindo Supabase real, E2E, readiness e homologação integral.
+
 ## Relações
 
 - PR #329: RLS set-based;
 - PR #330: fila de gravação independente de refresh;
 - PR #331: cancelamento físico de leituras obsoletas;
-- PR #332: implementação desta ADR.
+- PR #332: implementação desta ADR;
+- PR #338: preservação de invalidação durante refresh em voo;
+- PR #339: retenção e retry controlada após falha de releitura;
+- PR #340: convergência quando gravação aborta leitura Realtime;
+- PR #341: drenagem pós-write de refresh pendente.

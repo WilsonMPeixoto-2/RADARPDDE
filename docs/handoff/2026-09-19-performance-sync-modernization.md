@@ -1,8 +1,9 @@
 # Checkpoint — modernização de performance e sincronização
 
 **Data:** 19 de setembro de 2026
+**Atualizado em:** 20 de setembro de 2026
 **Classe documental:** Handoff corrente
-**Baseline publicado:** PR #332 / merge ec6a22cac374d85907aca407a844748db1a20d4e
+**Baseline publicado:** PR #341 / merge 71b5a6e4967641c5dc8402ebadefbc22f9b5e5c6
 
 ## 1. Objetivo da rodada
 
@@ -24,13 +25,13 @@ O objetivo não foi redesenhar regras de negócio. Avaliação, Nota Fiscal, Pen
 
 ## 2. Estado final já publicado
 
-- SHA Production: ec6a22cac374d85907aca407a844748db1a20d4e;
-- Vercel: dpl_Et72aPRynw6ZiCpDZ14J73K8SPW7;
+- SHA Production: 71b5a6e4967641c5dc8402ebadefbc22f9b5e5c6;
+- Vercel: dpl_4KcvK1edZm9ZvCYYPBt8gVP8JfPU;
 - deployment: READY;
 - Supabase: scnryinorqeucbfkioxo, ACTIVE_HEALTHY;
 - migrations remotas: 54;
 - migration mais recente: 20260920013656_realtime_operational_invalidation;
-- erros de runtime Vercel no intervalo pós-publicação consultado: nenhum.
+- erros de runtime Vercel na janela de 1 hora pós-publicação consultada em 20/09/2026: nenhum.
 
 A versão 20260920013656 é a versão canônica que ficou tanto na main quanto no histórico remoto. Não restaurar timestamps intermediários usados durante a preparação da branch.
 
@@ -132,6 +133,42 @@ O mesmo teste valida proteção durante edição:
 
 O teste passou dentro da suíte Supabase local obrigatória, com 14/14 testes verdes no conjunto que inclui a prova multiusuário.
 
+### PR #336 — retry de leitura reconciliado com o cliente Supabase
+
+Merge: 232626a6574963bdbf22dbed5ffefeb6518a4f48
+
+- removido o `withSafeReadRetry()` próprio do RADAR;
+- cada leitura lógica é executada uma vez pelo repositório;
+- retry de transporte de GET/PostgREST elegível fica sob responsabilidade do `@supabase/supabase-js 2.116.0`;
+- POST de escrita não ganhou retry automático;
+- fail-closed, paginação, AbortSignal, RLS, idempotência e concorrência otimista foram preservados.
+
+### PR #338 — invalidação durante refresh em voo
+
+Merge: c404c618dfea494273ccf880d725009e82065c26
+
+Foi reproduzida a corrida em que um Broadcast chegava enquanto `refreshPromise` já existia. A invalidação nova podia ser absorvida pela leitura antiga. O controlador passou a preservar a pendência e forçar nova releitura depois que a consulta em voo termina.
+
+### PR #339 — falha transitória da releitura Realtime
+
+Merge: 6c92b98b03f3621e8603ff951dadd0ffb4f67f8d
+
+RED provou que uma releitura disparada pelo Broadcast podia falhar e perder a invalidação. A correção preserva a pendência e executa uma única segunda tentativa controlada, sem loop infinito.
+
+### PR #340 — escrita abortando leitura Realtime
+
+Merge: 4061dd808ed526f3dfac089a84e0735a510ebed1
+
+A primeira versão do RED falhava antes do interleaving por `INVALID_STATE_PORT`. O harness foi corrigido sem alterar produto e o RED verdadeiro confirmou que uma gravação podia abortar a leitura Realtime e deixar zero releituras agendadas. O estado `stale/aborted` passou a preservar a pendência e receber uma retry controlada.
+
+### PR #341 — drenagem pós-write da pendência
+
+Merge: 71b5a6e4967641c5dc8402ebadefbc22f9b5e5c6
+
+RED provou que tanto escrita concluída quanto escrita rejeitada podiam terminar sem gatilho para drenar a invalidação tornada pendente. O wrapper já existente de `DataService.execute()` passou a agendar, em `finally`, uma verificação no próximo tick e executar `flushPending('write-settled')` somente quando necessário.
+
+A escrita nunca é repetida. Não há polling contínuo, terceira retry Realtime, migration ou mudança de regra de negócio. O #341 fechou com 10/10 workflows verdes e Production READY.
+
 ## 4. Decisões arquiteturais vigentes
 
 ### 4.1 Supabase continua sendo a fonte canônica
@@ -158,6 +195,14 @@ Invalidação recebida durante formulário/modal/campo ativo é marcada como pen
 
 Request obsoleto abortado pelo próprio RADAR é fluxo esperado de concorrência.
 
+### 4.6 Invalidação não pode desaparecer em interleavings
+
+- invalidação recebida durante uma leitura em voo não pode ser consumida por snapshot anterior;
+- falha transitória de releitura preserva a necessidade de atualização;
+- `stale/aborted` causado por escrita converge por retry controlada;
+- término de uma escrita drena refresh pendente sem depender de F5 ou interação incidental;
+- não existe polling contínuo nem retry automático de escrita.
+
 ## 5. Evidências de validação do baseline atual
 
 No candidato final do PR #332 ficaram verdes:
@@ -178,20 +223,9 @@ No candidato final do PR #332 ficaram verdes:
 
 O teste multiusuário foi tornado parte obrigatória tanto do readiness Supabase quanto da homologação integral.
 
+A rodada adversarial #338–#341 acrescentou testes de composição com leitura lenta, Broadcast, falha de rede, AbortController real e escrita concorrente. No baseline final #341 ficaram verdes validação geral, Supabase real, readiness, ciclos funcionais, perfis/viewports, Playwright, Lighthouse, CodeQL, retificação direcionada e homologação integral.
+
 ## 6. Pendências reais depois desta rodada
-
-### P1 — reconciliar retry de leitura
-
-O RADAR ainda possui withSafeReadRetry próprio e a versão atual de @supabase/supabase-js possui retry nativo para consultas PostgREST.
-
-Próxima tarefa:
-
-1. mapear quais erros o retry nativo cobre;
-2. comparar com a classificação própria do RADAR;
-3. evitar retry duplicado;
-4. preservar fail-closed e idempotência;
-5. provar rede instável, abort e 5xx;
-6. não alterar retry de escrita sem contrato explícito.
 
 ### P1 — medir ganho pós-RLS em janela representativa
 
@@ -228,17 +262,32 @@ Não remover índices com base no advisor logo após reset/upgrade de estatísti
 
 ## 8. Critério para considerar a modernização encerrada
 
-- Production permanecer estável após #332;
+- Production permanecer estável após #341;
 - F5 não ser requisito normal de uso;
 - gravação continuar independente de refresh lento;
 - sincronização A → B continuar em gate obrigatório;
 - RLS continuar semanticamente equivalente;
-- retry duplicado ser reconciliado;
 - decisão sobre RPC única ser tomada com base em medição;
 - documentação canônica refletir o baseline final;
 - auditoria final de código + Supabase + Vercel não encontrar regressão material.
 
 ## 9. Rota de retomada
+
+### Evidências adicionais da auditoria em 20/09
+
+Production foi novamente conferida às 16h45 UTC: `71b5a6e4967641c5dc8402ebadefbc22f9b5e5c6`, deployment `dpl_4KcvK1edZm9ZvCYYPBt8gVP8JfPU`, READY. Preservar as soluções já mergeadas nos PRs #338–#341; não reaplicar os patches locais que partiram do baseline #336.
+
+**Medição pós-RLS:** [snapshot inicial](evidence/2026-09-20-post-rls-baseline.json), [snapshot final](evidence/2026-09-20-post-rls-second.json) e [SQL somente leitura](evidence/2026-09-20-post-rls-snapshot.sql). Janela 03:37:00–11:04:42 UTC: 11 assinaturas do papel `authenticated`, 16.449 chamadas acumuladas em ambas; delta de chamadas/tempo/blocos igual a zero, mesmos `stats_reset` e `stats_since`. Conferência agregada às 16:47:38 UTC ainda mostrou 16.449 chamadas e 226.531,836464 ms acumulados. Não há nova amostra para calcular desempenho pós-RLS. Não atribuir as médias acumuladas desde 17/09 à migration de 19/09.
+
+A coleta inicial limitava a 100 entradas incluindo outros papéis; o arquivo preserva apenas as 11 autenticadas. A segunda consulta, sem limite, confirmou o mesmo conjunto. Os arquivos contêm contadores e identificadores de consultas, sem registros de negócio ou textos SQL capturados. Em próxima janela de uso, repetir o SQL, comparar `(role, dbid, toplevel, queryid)`, exigir mesmos `stats_reset`/`stats_since` e contadores monotônicos, calcular `delta total_exec_time / delta calls` só com delta positivo. Assinaturas novas/removidas/reiniciadas devem ser separadas. Relações são classificadas por texto, sem atribuição exclusiva de custo por tabela. [Referência PostgreSQL 17](https://www.postgresql.org/docs/17/pgstatstatements.html).
+
+**Autorização:** revisão de código não encontrou ampliação indevida de escopo escolar. Catálogo remoto confirmou RLS ativa em `realtime.messages` e somente a policy SELECT autenticada do tópico privado `radar:operational`; nenhuma policy INSERT/ALL adicional. Trigger de invalidação possui EXECUTE somente postgres. Não há evidência para nova migration de permissões.
+
+**Limite de integridade:** o conector somente leitura recebeu permission denied em `production_integrity_check()`. Não houve tentativa de contornar privilégios; isso não equivale a auditoria atual de integridade concluída.
+
+**PR #342, prova complementar:** `test/realtime-write-abort-frontend-2026-09-20`, baseado em #341. Duas identidades institucionais; Controlador altera bonificação por botão e Assistente exporta relatório pela UI. A gravação auditável cancela uma resposta HTTP real retida do refresh. O teste exige releitura e convergência antes da navegação, confirmação visual do Prontuário e zero reload. `administrative_logs` evita falso positivo por segundo Broadcast ou reconciliação de verificações da própria escrita. Screenshot anexada para inspeção. Execução autenticada e visual pendente dos gates; validar SHA final antes de integrar. Este teste complementa a implementação existente e não a substitui.
+
+### Sequência
 
 1. AGENTS.md;
 2. docs/reference/SYSTEM_CANONICAL_MODEL.md;
