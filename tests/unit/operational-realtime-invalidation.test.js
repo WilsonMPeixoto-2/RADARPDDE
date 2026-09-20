@@ -164,3 +164,61 @@ test('install reutiliza cliente autenticado e controlador de refresh existentes'
     assert.equal(started, true);
     assert.equal(root.__radarOperationalRealtimeInvalidationInstalled, true);
 });
+
+
+test('falha da releitura disparada por Broadcast não perde a invalidação e faz uma nova tentativa controlada', async () => {
+    let attempts = 0;
+    const harness = createHarness();
+    const originalRefresh = harness.refreshes;
+    // O harness registra chamadas; substituímos apenas o comportamento da fronteira.
+    const refreshController = {
+        async refresh(reason, options) {
+            originalRefresh.push({ reason, options });
+            attempts += 1;
+            if (attempts === 1) return { ok: false, error: new Error('network') };
+            return { stale: false };
+        }
+    };
+    const { createController } = require('../../src/integration/operational-realtime-invalidation.js');
+    const controller = createController(harness.root, {
+        client: harness.client,
+        refreshController,
+        debounceMs: 0
+    });
+
+    assert.equal(await controller.start(), true);
+    harness.emitStatus('SUBSCRIBED');
+    // O callback do primeiro controller não é usado; emitimos pelo canal compartilhado já configurado.
+    harness.emitBroadcast({ entity: 'verifications' });
+    await new Promise(resolve => setTimeout(resolve, 15));
+
+    assert.equal(attempts, 2);
+    assert.equal(originalRefresh[0].reason, 'realtime');
+    assert.equal(originalRefresh[1].reason, 'realtime-retry');
+    await controller.stop();
+});
+
+
+test('nova falha no retry Realtime não cria loop de tentativas', async () => {
+    let attempts = 0;
+    const harness = createHarness();
+    const refreshController = {
+        async refresh() {
+            attempts += 1;
+            return { ok: false, error: new Error('offline') };
+        }
+    };
+    const controller = createController(harness.root, {
+        client: harness.client,
+        refreshController,
+        debounceMs: 0
+    });
+
+    assert.equal(await controller.start(), true);
+    harness.emitStatus('SUBSCRIBED');
+    harness.emitBroadcast({ entity: 'pendencies' });
+    await new Promise(resolve => setTimeout(resolve, 20));
+
+    assert.equal(attempts, 2);
+    await controller.stop();
+});

@@ -480,3 +480,29 @@ test('invalidação em voo força releitura também após consulta antiga cancel
     assert.equal(calls, 2);
     assert.equal(controller.hasPendingRefresh(), false);
 });
+
+
+test('falha de rede em refresh direto preserva a necessidade de nova tentativa', async () => {
+    const root = {
+        RadarAuthContext: { user: { id: 'user-1' } },
+        RadarCompetenceContext: { getState: () => ({ activeKey: '2026-08' }) },
+        document: {
+            querySelectorAll: () => [],
+            activeElement: null,
+            getElementById: () => null
+        },
+        console: { warn() {} }
+    };
+    const service = {
+        async loadOperationalContext() {
+            throw new Error('network');
+        }
+    };
+    const controller = createController(root, service, { minIntervalMs: 0 });
+
+    const result = await controller.refresh('realtime', { force: true });
+
+    assert.equal(result.ok, false);
+    assert.equal(result.pending, true);
+    assert.equal(controller.hasPendingRefresh(), true);
+});
