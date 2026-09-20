@@ -88,7 +88,10 @@ test('troca de competência recarrega apenas as projeções operacionais do novo
 
     await service.loadOperationalContext('2026-08');
 
-    assert.deepEqual(harness.contextQueries, [{ competenceId: '2026-08' }]);
+    assert.equal(harness.contextQueries.length, 1);
+    assert.equal(harness.contextQueries[0].competenceId, '2026-08');
+    assert.ok(harness.contextQueries[0].signal, 'leitura operacional deve receber AbortSignal');
+    assert.equal(harness.contextQueries[0].signal.aborted, false);
     assert.equal(harness.applied.length, 1);
     assert.deepEqual(
         [...harness.applied[0].entities].sort(),
@@ -180,6 +183,89 @@ test('gravação não aguarda refresh já em andamento e invalida a resposta ant
     const result = await oldRead;
     assert.equal(result.stale, true, 'refresh iniciado antes da gravação deve ser descartado');
     assert.equal(harness.applied.length, 0, 'resposta obsoleta não pode alterar a projeção local');
+});
+
+test('gravação aborta fisicamente o refresh operacional já obsoleto', async () => {
+    const harness = createHarness();
+    const service = new DataService({ repository: harness.repository, statePort: harness.statePort });
+    let signalRead;
+    const readStarted = new Promise(resolve => { signalRead = resolve; });
+    let receivedSignal = null;
+    let abortObserved = false;
+
+    harness.repository.queryOperationalContext = ({ competenceId, signal }) => new Promise((resolve, reject) => {
+        receivedSignal = signal;
+        signalRead();
+        signal.addEventListener('abort', () => {
+            abortObserved = true;
+            const error = new Error('aborted');
+            error.name = 'AbortError';
+            reject(error);
+        }, { once: true });
+    });
+
+    service.executeCommand = async () => ({ ok: true });
+
+    const oldRead = service.loadOperationalContext('2026-08');
+    await readStarted;
+
+    await service.execute({});
+
+    const result = await oldRead;
+    assert.ok(receivedSignal, 'o contexto deve receber AbortSignal');
+    assert.equal(receivedSignal.aborted, true);
+    assert.equal(abortObserved, true, 'Salvar deve cancelar fisicamente a requisição anterior');
+    assert.equal(result.stale, true);
+    assert.equal(result.aborted, true);
+    assert.equal(harness.applied.length, 0);
+});
+
+test('nova competência aborta fisicamente a leitura operacional anterior', async () => {
+    const harness = createHarness();
+    const service = new DataService({ repository: harness.repository, statePort: harness.statePort });
+    let firstStarted;
+    const started = new Promise(resolve => { firstStarted = resolve; });
+    let firstSignal = null;
+    let requests = 0;
+
+    harness.repository.queryOperationalContext = ({ competenceId, signal }) => {
+        requests += 1;
+        if (competenceId === '2026-08') {
+            firstSignal = signal;
+            firstStarted();
+            return new Promise((resolve, reject) => {
+                signal.addEventListener('abort', () => {
+                    const error = new Error('aborted');
+                    error.name = 'AbortError';
+                    reject(error);
+                }, { once: true });
+            });
+        }
+        return Promise.resolve({
+            competenceId,
+            entities: {
+                verifications: [],
+                pendencies: [],
+                pendencyAttempts: [],
+                pendencyContacts: [],
+                assets: [],
+                registeredInvoices: []
+            }
+        });
+    };
+
+    const oldRead = service.loadOperationalContext('2026-08');
+    await started;
+    const latest = service.loadOperationalContext('2026-09');
+
+    const [oldResult, latestResult] = await Promise.all([oldRead, latest]);
+    assert.equal(firstSignal?.aborted, true);
+    assert.equal(oldResult.stale, true);
+    assert.equal(oldResult.aborted, true);
+    assert.equal(latestResult.stale, false);
+    assert.equal(requests, 2);
+    assert.equal(service.currentOperationalCompetence, '2026-09');
+    assert.equal(harness.applied.length, 1);
 });
 
 test('releitura corretiva de entidade operacional conserva o recorte e nunca recarrega a coleção integral', async () => {
