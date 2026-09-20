@@ -1,14 +1,14 @@
 # Matriz de validade documental
 
-**Classe documental:** Canônico  
-**Atualizado em:** 13 de setembro de 2026
+**Classe documental:** Canônico
+**Atualizado em:** 19 de setembro de 2026
 
 ## 1. Finalidade e precedência
 
 Este arquivo define quais documentos orientam o presente. Em conflito, aplicar:
 
 1. código do SHA efetivamente analisado;
-2. Supabase/Auth/RLS/RPCs e dados efetivos;
+2. Supabase/Auth/RLS/RPCs/Realtime e dados efetivos;
 3. artefato Vercel publicado;
 4. decisões/ADRs vigentes;
 5. testes atuais do contrato;
@@ -21,99 +21,104 @@ PR aberto, Preview ou documento antigo não altera Production.
 
 | Arquivo | Classe | Uso |
 |---|---|---|
-| `AGENTS.md` | Canônico | roteador obrigatório |
-| `docs/reference/SYSTEM_CANONICAL_MODEL.md` | Canônico | autoridades, fluxos e invariantes |
-| `docs/reference/PRODUCT_SURFACE_CATALOG.md` | Referência vigente | superfícies e jornadas |
-| `docs/CURRENT_STAGE.md` | Canônico | estado ao vivo e prioridade |
-| `docs/handoff/2026-09-13-pr301-production-release.md` | Handoff corrente | fechamento pós-PR301 e Production |
-| `docs/reference/ENGINEERING_METHOD.md` | Canônico | método de engenharia |
-| `docs/reference/FRONTEND_USER_VALIDATION_GATE.md` | Canônico | prova de interface real |
-| `docs/reference/TEST_GOVERNANCE.md` | Canônico | interpretação de testes |
-| `docs/reference/functional-contract-matrix.json` e módulos | Contrato executável | cobertura funcional |
-| `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` | Gerado | visão humana da matriz |
-| `docs/DECISION_LOG.md` e `docs/decisions/*.md` | Decisão vigente | regras especializadas |
+| AGENTS.md | Canônico | roteador obrigatório |
+| docs/reference/SYSTEM_CANONICAL_MODEL.md | Canônico | autoridades, fluxos e invariantes |
+| docs/reference/PRODUCT_SURFACE_CATALOG.md | Referência vigente | superfícies e jornadas |
+| docs/CURRENT_STAGE.md | Canônico | estado ao vivo e prioridade |
+| docs/handoff/2026-09-19-performance-sync-modernization.md | Handoff corrente | checkpoint da modernização de performance/sincronização |
+| docs/decisions/ADR-054-sincronizacao-operacional-realtime.md | Decisão vigente | contrato de sincronização entre sessões |
+| docs/reference/ENGINEERING_METHOD.md | Canônico | método de engenharia |
+| docs/reference/FRONTEND_USER_VALIDATION_GATE.md | Canônico | prova de interface real |
+| docs/reference/TEST_GOVERNANCE.md | Canônico | interpretação de testes |
+| docs/reference/functional-contract-matrix.json e módulos | Contrato executável | cobertura funcional |
+| docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md | Gerado | visão humana da matriz |
+| docs/DECISION_LOG.md e docs/decisions/*.md | Decisão vigente | regras especializadas |
 
-## 3. PR #300 e PR #301
+## 3. Baseline de Production
 
-PR #300 está integrado e encerrou a correção arquitetural Supabase.
+O baseline corrente inclui os PRs #327, #329, #330, #331 e #332.
 
-PR #301 também está **integrado**. Não deve mais ser tratado como Draft/trabalho em andamento.
+- merge atual: ec6a22cac374d85907aca407a844748db1a20d4e;
+- Vercel: dpl_Et72aPRynw6ZiCpDZ14J73K8SPW7, READY;
+- Supabase: ACTIVE_HEALTHY;
+- migrations remotas: 54;
+- migration mais recente: 20260920013656_realtime_operational_invalidation.
 
-Estado integrado:
+Esse baseline substitui como estado corrente os handoffs centrados em PR #301/#305/#306. Esses documentos continuam válidos como histórico do momento em que foram produzidos.
 
-- merge PR #301: `39cd984206b33c7d2a6d7084e23597f964235c9a`;
-- candidato funcional certificado: `452d97267348957f7155fc77bb139a4adafd766b`;
-- Production publicada sobre commit documental `de336d20f514818c42a3ad403720c6b606065868`, descendente direto do merge e sem mudança de runtime;
-- deployment certificado: `dpl_DKGa7PqP6KqiDrrWeevReEhyrKLS`, `READY`.
-
-## 4. Handoffs
+## 4. Handoff corrente
 
 Handoff corrente:
 
-`docs/handoff/2026-09-13-pr301-production-release.md`
+docs/handoff/2026-09-19-performance-sync-modernization.md
 
-Classificação dos predecessores:
+Ele consolida:
 
-- `docs/handoff/2026-09-13-uat-operacional-certificacao-452d972.md` — **Histórico executado / evidência de certificação pré-merge**;
-- `docs/handoff/2026-09-13-uat-operacional-checkpoint-4a7a41dc.md` — **Histórico executado / checkpoint intermediário**;
-- `docs/handoff/2026-09-13-relatorio-tecnico-consolidado-pos-pr300-uat.md` — **Histórico executado / reconstrução detalhada da frente**.
+- objetivo da rodada;
+- diagnóstico original;
+- PRs concluídos;
+- evidências de validação;
+- arquitetura vigente;
+- pendências reais;
+- itens explicitamente fora de escopo;
+- critérios de encerramento.
 
-Nenhum deles redefine o modelo canônico ou ADRs.
+## 5. Handoffs anteriores
 
-## 5. Auditorias
+Passam a ser classificados como históricos executados, entre outros:
 
-`docs/audits/UAT_OPERACIONAL_POS_RELEASE_2026-09-13.md` é evidência incremental da homologação e do fechamento em Production.
+- docs/handoff/2026-09-14-pr306-final-maintenance.md;
+- docs/handoff/2026-09-13-pr301-production-release.md;
+- docs/handoff/2026-09-13-uat-operacional-certificacao-452d972.md;
+- docs/handoff/2026-09-13-uat-operacional-checkpoint-4a7a41dc.md;
+- docs/handoff/2026-09-13-relatorio-tecnico-consolidado-pos-pr300-uat.md.
 
-`docs/audits/SUPABASE_ARCHITECTURE_FINAL_2026-09-13.md` é evidência pré-merge do PR #300.
+Eles preservam rastreabilidade, mas não formam fila automática de execução.
 
-`docs/audits/ASTRA_AUDITORIA_RADAR_2026.md` é diário investigativo; achados intermediários podem ter sido corrigidos depois.
+## 6. Decisão nova de sincronização
 
-## 6. Cobertura `partial`
+A ADR-054 passa a ser referência vigente para sincronização operacional:
 
-A classificação `partial` na matriz significa dívida de evidência específica, não defeito conhecido nem bloqueio automático.
+- Broadcast privado apenas invalida;
+- Supabase continua sendo a fonte canônica;
+- RLS continua decidindo o que cada sessão pode ler;
+- payload Realtime não transporta dados de negócio;
+- edição em andamento não é atropelada;
+- reconexão provoca releitura de recuperação;
+- Postgres Changes não é a estratégia principal desta frente.
 
-A UAT do PR #301 fortaleceu abertura e ciclo fiscal de Pendência, novo envio/reanálise, contato, cancelamento/reabertura, consumo, serviço/Assessoria, `a_identificar`, Boleto Internet e persistência/reload.
+## 7. Contrato atual de persistência e convergência
 
-Não promover artificialmente operações que ainda exigem autoria explícita, idempotência, negativas completas por perfil, reversão controlada ou observação recorrente em Production.
-
-## 7. Production e smoke
-
-Production pós-PR301:
-
-- Vercel `READY`;
-- domínio oficial HTTP 200;
-- build `supabase-production` com 1020/1020 testes;
-- logs do novo deployment sem `error`/`fatal` no intervalo pós-publicação;
-- TinyFish confirmou tela de login e ausência de bloqueio público;
-- TinyFish não autenticou por ausência de sessão/credencial segura, portanto não serve como prova pós-deploy de todos os perfis;
-- Work/Astra havia comprovado login real e acesso ao Prontuário da Ary Barroso antes deste deploy.
-
-Não confundir ausência de credencial técnica com falha do produto.
-
-## 8. Contrato de persistência
-
-```text
-Supabase = fonte canônica persistente
-memória/cache = projeção descartável permitida
-localStorage != banco operacional paralelo
-```
+    Supabase = fonte canônica persistente
+    memória/cache = projeção descartável permitida
+    localStorage != banco operacional paralelo
+    Broadcast = sinal de invalidação, não estado
 
 Convergência esperada:
 
-```text
-remoto persistido = projeção local = UI = estado após reload
-```
+    remoto persistido = projeção local = UI = estado após reload
 
-## 9. Documentos históricos
+Entre sessões:
 
-Planos, audits, handoffs e backlogs não apontados por `CURRENT_STAGE.md` não formam fila automática. `PROJECT_CONTEXT.md` continua útil para contexto funcional, mas SHAs, PRs, deployments e próximos passos temporais cedem ao `CURRENT_STAGE.md`.
+    sessão A grava
+    → sessão B recebe invalidação
+    → sessão B relê pela própria RLS
+    → sessão B converge sem F5
 
-## 10. Manutenção
+## 8. Documentos históricos
+
+Planos, audits, handoffs e backlogs não apontados por CURRENT_STAGE.md não formam fila automática.
+
+PROJECT_CONTEXT.md continua útil para contexto funcional, mas SHAs, PRs, deployments, migrations e próximos passos temporais cedem a CURRENT_STAGE.md.
+
+## 9. Manutenção
 
 Ao mudar baseline, Production ou frente ativa:
 
-- atualizar `CURRENT_STAGE.md`;
+- atualizar CURRENT_STAGE.md;
 - atualizar este arquivo;
 - apontar um único handoff corrente;
+- registrar ADR quando a mudança for arquitetural e durável;
 - preservar handoffs/auditorias antigos como histórico;
-- não reescrever evidência antiga para parecer atual.
+- não reescrever evidência antiga para parecer atual;
+- distinguir explicitamente branch/candidato de Production.
