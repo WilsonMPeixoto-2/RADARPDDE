@@ -169,7 +169,6 @@ test('install reutiliza cliente autenticado e controlador de refresh existentes'
 test('falha da releitura disparada por Broadcast não perde a invalidação e faz uma nova tentativa controlada', async () => {
     let attempts = 0;
     const harness = createHarness();
-    harness.controller.stop;
     const originalRefresh = harness.refreshes;
     // O harness registra chamadas; substituímos apenas o comportamento da fronteira.
     const refreshController = {
@@ -196,5 +195,30 @@ test('falha da releitura disparada por Broadcast não perde a invalidação e fa
     assert.equal(attempts, 2);
     assert.equal(originalRefresh[0].reason, 'realtime');
     assert.equal(originalRefresh[1].reason, 'realtime-retry');
+    await controller.stop();
+});
+
+
+test('nova falha no retry Realtime não cria loop de tentativas', async () => {
+    let attempts = 0;
+    const harness = createHarness();
+    const refreshController = {
+        async refresh() {
+            attempts += 1;
+            return { ok: false, error: new Error('offline') };
+        }
+    };
+    const controller = createController(harness.root, {
+        client: harness.client,
+        refreshController,
+        debounceMs: 0
+    });
+
+    assert.equal(await controller.start(), true);
+    harness.emitStatus('SUBSCRIBED');
+    harness.emitBroadcast({ entity: 'pendencies' });
+    await new Promise(resolve => setTimeout(resolve, 20));
+
+    assert.equal(attempts, 2);
     await controller.stop();
 });

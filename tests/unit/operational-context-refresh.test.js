@@ -503,5 +503,6 @@ test('falha de rede em refresh direto preserva a necessidade de nova tentativa',
     const result = await controller.refresh('realtime', { force: true });
 
     assert.equal(result.ok, false);
+    assert.equal(result.pending, true);
     assert.equal(controller.hasPendingRefresh(), true);
 });

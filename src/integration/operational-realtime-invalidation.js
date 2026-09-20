@@ -63,7 +63,16 @@
                 : setTimeout;
             timer = schedule(() => {
                 timer = null;
-                void refreshController.refresh(reason, { force: true });
+                void Promise.resolve()
+                    .then(() => refreshController.refresh(reason, { force: true }))
+                    .then(result => {
+                        if (result?.ok !== false || reason === 'realtime-retry') return;
+                        scheduleRefresh('realtime-retry');
+                    })
+                    .catch(error => {
+                        root.console?.warn?.('Falha ao reler contexto após invalidação Realtime.', error);
+                        if (reason !== 'realtime-retry') scheduleRefresh('realtime-retry');
+                    });
             }, debounceMs);
             return true;
         }

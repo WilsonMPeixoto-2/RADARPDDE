@@ -184,8 +184,9 @@
                 }
                 return result;
             }).catch(error => {
+                markPending(reason);
                 root.console?.warn?.('Não foi possível atualizar o contexto operacional ao retomar a sessão.', error);
-                return { ok: false, error };
+                return { ok: false, error, pending: true };
             }).finally(() => {
                 if (refreshPromise === run) refreshPromise = null;
             });
