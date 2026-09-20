@@ -1,7 +1,7 @@
 # Modelo canônico integrado do RADAR PDDE
 
 **Classe documental:** Canônico — modelo funcional e arquitetural integrado  
-**Atualizado em:** 7 de setembro de 2026  
+**Atualizado em:** 19 de setembro de 2026  
 **Finalidade:** leitura obrigatória antes de qualquer análise funcional, correção, implementação, refatoração ou auditoria do produto  
 **Estado mutável do projeto:** `docs/CURRENT_STAGE.md`
 
@@ -619,11 +619,11 @@ Principais produtos:
 | navegação | `RadarNavigationHistory` + `RadarNavigationContext` | sessionStorage para retorno contextual |
 | performance | diagnóstico/medição apenas | **não é autoridade de negócio** |
 
-## 11. Bootstrap e composição
+## 11. Bootstrap, composição e sincronização
 
-A aplicação ainda possui módulos carregados em fases diferentes. A ordem é parte do contrato quando uma extensão depende de outra.
+A aplicação possui módulos carregados em fases diferentes. A ordem é parte do contrato quando uma extensão depende de outra.
 
-No baseline desta reconstrução:
+No baseline atual:
 
 - `app.js` é o núcleo;
 - integrações de navegação/Auth carregam depois;
@@ -631,11 +631,50 @@ No baseline desta reconstrução:
 - `atomic-analysis-pendency.js` continua na frente da cadeia crítica;
 - `service-advisory-pendency.js` e `service-advisory-corrective-submission.js` mantêm autoridades diferentes;
 - `critical-action-guard.js` integra a cadeia crítica;
-- `operational-write-performance.js` atualmente envolve somente medição/tracing da persistência e **não decide consistência funcional**.
+- `operational-write-performance.js` envolve somente medição/tracing e **não decide consistência funcional**;
+- `operational-context-refresh.js` controla releitura contextual, throttle, refresh pendente e proteção durante edição;
+- `operational-realtime-invalidation.js` depende do controlador de refresh e apenas transforma Broadcast em invalidação/releitura segura.
 
-Qualquer auditoria que descreva o wrapper de performance como autoridade atual de consistência está usando documentação anterior ao PR #282.
+### 11.1 Fila de leitura e gravação
 
-O PR #284 permanece assunto de `CURRENT_STAGE.md`; não é baseline funcional até integração aprovada.
+Escritas remotas são serializadas entre si. Leitura operacional de background não pode permanecer na frente de uma ação explícita de persistência.
+
+Regras:
+
+- leitura iniciada depois de escrita pendente aguarda aquela escrita;
+- leitura já em andamento não bloqueia uma nova escrita;
+- iniciar uma escrita invalida e aborta leitura contextual obsoleta;
+- resposta obsoleta não pode sobrescrever retorno autoritativo mais novo.
+
+### 11.2 Cancelamento de contexto obsoleto
+
+Leituras operacionais usam `AbortController`/`AbortSignal`. Troca de competência ou início de gravação pode cancelar o request anterior.
+
+Cancelamento esperado pelo próprio RADAR é estado de concorrência, não erro funcional para o usuário.
+
+### 11.3 Sincronização entre sessões
+
+Supabase Realtime Broadcast é usado **somente como mecanismo de invalidação**.
+
+Fluxo:
+
+```text
+mudança persistida no PostgreSQL
+→ trigger emite Broadcast privado mínimo
+→ outra sessão recebe a invalidação
+→ relê o contexto no Supabase
+→ RLS filtra o que a sessão pode acessar
+→ DataService/StatePort reconciliam
+→ UI converge
+```
+
+O Broadcast não transporta registros operacionais. A fonte canônica continua sendo o Supabase.
+
+Se a invalidação chegar durante edição, o refresh fica pendente e só é aplicado quando a superfície volta a ser segura.
+
+O contrato detalhado está em `docs/decisions/ADR-054-sincronizacao-operacional-realtime.md`.
+
+Qualquer auditoria que descreva performance, cache ou Realtime como autoridade de negócio está usando um modelo incorreto.
 
 ## 12. Decisões substituídas ou refinadas
 
@@ -706,6 +745,11 @@ Superada pelos guardrails posteriores. Commit remoto confirmado e reconciliaçã
 27. Layout aprovado de Prontuário/Pendências não deve ser redesenhado por plano histórico.
 28. Comunicação externa gerada não expõe o nome interno `RADAR PDDE`.
 29. Nenhuma mudança que afete o usuário é concluída sem o gate de frontend real.
+30. Broadcast Realtime sinaliza invalidação; não vira fonte de verdade nem transporta registro operacional canônico.
+31. Toda convergência entre sessões relê o Supabase e continua submetida à RLS.
+32. Leitura operacional de background não pode bloquear uma gravação explícita do usuário.
+33. Request contextual obsoleto pode e deve ser cancelado sem virar erro funcional.
+34. Invalidação recebida durante edição não pode atropelar formulário/modal ativo; ela deve permanecer pendente até a superfície ficar segura.
 
 ## 14. Jornadas concretas de referência
 
