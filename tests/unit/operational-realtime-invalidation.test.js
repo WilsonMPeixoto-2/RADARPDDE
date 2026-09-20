@@ -99,7 +99,7 @@ test('primeira assinatura não recarrega; reconexão força uma releitura canôn
 
     harness.emitStatus('CHANNEL_ERROR', new Error('socket'));
     harness.emitStatus('SUBSCRIBED');
-    await new Promise(resolve => setImmediate(resolve));
+    await new Promise(resolve => setTimeout(resolve, 5));
 
     assert.deepEqual(harness.refreshes, [{
         reason: 'realtime-reconnect',
