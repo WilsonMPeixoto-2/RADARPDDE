@@ -189,8 +189,6 @@ RPC única, render parcial, cache adicional, revisionamento numérico ou indicad
 
 ## 8. Itens deliberadamente fora da sequência atual
 
-## 8. Itens deliberadamente fora da sequência atual
-
 Não são próximos passos automáticos:
 
 - upgrade de compute do Supabase;
