@@ -262,3 +262,41 @@ test('resultado stale do refresh Realtime recebe uma única segunda tentativa co
     assert.deepEqual(reasons, ['realtime', 'realtime-retry']);
     await controller.stop();
 });
+
+
+test('install publica estado UNAVAILABLE quando o canal privado não pode ser criado', async () => {
+    const statuses = [];
+    const root = {
+        document: {},
+        RadarAuthContext: { user: { id: 'u-1' }, authorization: { role: 'controller' } },
+        RadarSessionContext: {
+            service: {
+                client: {
+                    realtime: { async setAuth() {} },
+                    channel() { return null; }
+                }
+            }
+        },
+        RadarOperationalContextRefreshController: {
+            async refresh() { return { stale: false }; }
+        },
+        CustomEvent: class {
+            constructor(type, options) {
+                this.type = type;
+                this.detail = options?.detail;
+            }
+        },
+        dispatchEvent(event) {
+            statuses.push(event);
+        },
+        setTimeout,
+        clearTimeout,
+        console: { warn() {} }
+    };
+
+    assert.equal(install(root), true);
+    await new Promise(resolve => setImmediate(resolve));
+
+    assert.equal(statuses.at(-1).type, 'radar:realtime-sync-status');
+    assert.equal(statuses.at(-1).detail.status, 'UNAVAILABLE');
+});
