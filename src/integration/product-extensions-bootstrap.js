@@ -71,6 +71,24 @@
         '/src/integration/evaluation-retification-ui.js'
     ]);
     const failedScripts = new Map();
+    const criticalScriptCapabilities = new Map([
+        [
+            '/src/integration/operational-realtime-invalidation.js',
+            () => typeof root.RadarOperationalRealtimeInvalidation?.install === 'function'
+        ],
+        [
+            '/src/integration/operational-write-feedback.js',
+            () => typeof root.RadarOperationalWriteFeedback?.install === 'function'
+        ]
+    ]);
+
+    function assertLoadedCapability(src) {
+        const predicate = criticalScriptCapabilities.get(src);
+        if (!predicate) return true;
+        if (predicate()) return true;
+        throw new Error(`Extensão crítica carregada sem expor a capacidade esperada: ${src}.`);
+    }
+
 
     function administrativeLogReadRequired() {
         const repositoryFactory = root.RadarRepositoryFactory;
@@ -205,6 +223,7 @@
         for (const src of targets) {
             try {
                 await loadScriptOnce(src);
+                assertLoadedCapability(src);
                 failedScripts.delete(src);
             } catch (error) {
                 failedScripts.set(src, error);
