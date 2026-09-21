@@ -299,4 +299,9 @@ test('install publica estado UNAVAILABLE quando o canal privado não pode ser cr
 
     assert.equal(statuses.at(-1).type, 'radar:realtime-sync-status');
     assert.equal(statuses.at(-1).detail.status, 'UNAVAILABLE');
+    assert.equal(
+        root.RadarOperationalRealtimeInvalidationController.getStatus(),
+        'UNAVAILABLE',
+        'o estado degradado precisa permanecer consultável se o consumidor visual carregar depois do evento'
+    );
 });
