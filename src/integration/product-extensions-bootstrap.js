@@ -227,6 +227,13 @@
                 failedScripts.delete(src);
             } catch (error) {
                 failedScripts.set(src, error);
+                if (criticalScriptCapabilities.has(src)) {
+                    const loadedScript = Array.from(document.scripts || []).find(script => (
+                        script.getAttribute?.('src') === src
+                        || script.dataset?.radarProductScript === src
+                    ));
+                    if (loadedScript) loadedScript.dataset.radarLoadFailed = 'true';
+                }
                 root.console?.error?.(`Não foi possível carregar a extensão ${src}.`, error);
             }
         }
