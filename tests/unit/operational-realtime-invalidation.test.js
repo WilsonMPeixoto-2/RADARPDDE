@@ -122,6 +122,17 @@ test('rajada de Broadcast é coalescida e força somente um refresh', async () =
         reason: 'realtime',
         options: { force: true }
     }]);
+
+    const metrics = harness.controller.getMetrics();
+    assert.equal(metrics.broadcastsReceived, 3);
+    assert.equal(metrics.coalescedBroadcasts, 2);
+    assert.equal(metrics.refreshAttempts, 1);
+    assert.equal(metrics.refreshSucceeded, 1);
+    assert.equal(metrics.refreshFailed, 0);
+    assert.deepEqual(
+        { ...metrics.byEntity },
+        { pendencies: 1, verifications: 1, assets: 1 }
+    );
 });
 
 test('stop remove o canal e impede novas atualizações agendadas', async () => {
