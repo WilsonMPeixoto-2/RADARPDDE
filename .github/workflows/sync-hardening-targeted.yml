@@ -12,6 +12,7 @@ on:
       - 'src/styles/operational-write-feedback.css'
       - 'tests/unit/incremental-state-application.test.js'
       - 'tests/unit/operational-realtime-invalidation.test.js'
+      - 'tests/unit/realtime-status-feedback-composition.test.js'
       - 'tests/unit/operational-write-feedback.test.js'
       - 'tests/unit/product-extensions-loader-resilience.test.js'
       - 'tests/e2e/supabase-realtime-invalidation.spec.js'
