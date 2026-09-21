@@ -5,17 +5,17 @@
 
 ## 1. Baseline vigente
 
-O baseline atualmente publicado incorpora a rodada de modernização de performance e sincronização concluída pelos PRs #327, #329, #330, #331, #332, #336, #338, #339, #340 e #341, com prova frontend adicional no #342.
+O baseline publicado incorpora a modernização de performance e sincronização concluída pelos PRs #327, #329, #330, #331, #332, #336, #338, #339, #340, #341, com provas adicionais nos #342–#344.
 
-- **PR #343:** merged (contrato de configuração pública preservado)
-- **merge de Production conferido em 21/09:** 039a88cc55485ca46ad55edcbe665e1b349272cc
-- **Vercel Production:** dpl_5NJaRKXwJhrPMGQgFPkvZGHj94GL
-- **deployment:** READY
+- **PR #344:** merged (instrumentação de jornadas e decisão quantitativa de arquitetura)
+- **baseline funcional/runtime medido (#344):** 75520d43a5ca9bc2607318cc6a70ba2a7494ca92
+- **Vercel Production correspondente ao #344:** dpl_FHt2mSxrzWbq491y497RDCuf7LsN, READY
+- **#345:** fechamento documental; não altera runtime, banco ou regras de negócio
 - **Supabase:** scnryinorqeucbfkioxo
 - **Supabase status:** ACTIVE_HEALTHY
 - **migrations remotas:** 54
 - **migration mais recente:** 20260920013656_realtime_operational_invalidation
-- **erros de runtime Vercel observados após publicação:** nenhum no intervalo consultado.
+- **runtime:** o #344 não altera `src/`, banco, RLS ou artefato funcional; o monitor de Production permanece verde sobre o runtime consolidado no #343.
 
 Production continua em modo Supabase canônico. Não existe LocalStorage como banco operacional paralelo.
 
@@ -54,6 +54,7 @@ A investigação separou as causas e tratou cada uma sem alterar regras de negó
 | #337 | 24a2d1ca906aa771b37820b113caa20efb75d438 | checkpoint documental e snapshots pós-RLS |
 | #342 | ad4a97dc7f4eff3df51deb32dd3acdcd2383a23a | prova frontend de escrita auditável, Abort real e convergência sem F5 |
 | #343 | 039a88cc55485ca46ad55edcbe665e1b349272cc | configuração pública preservada como JSON; monitor Production recuperado |
+| #344 | 75520d43a5ca9bc2607318cc6a70ba2a7494ca92 | jornadas autenticadas instrumentadas; decisão quantitativa de manter arquitetura atual |
 
 ## 4. Estado arquitetural atual
 
@@ -138,7 +139,7 @@ Depois dos PRs #336 e #338–#341, a validação foi ampliada com testes RED →
 
 ## 6. Estado de Production
 
-Em 21/09, o deployment `dpl_5NJaRKXwJhrPMGQgFPkvZGHj94GL` estava READY no merge `039a88cc55485ca46ad55edcbe665e1b349272cc`. Supabase ACTIVE_HEALTHY.
+Em 21/09, o deployment `dpl_FHt2mSxrzWbq491y497RDCuf7LsN` ficou READY no merge `75520d43a5ca9bc2607318cc6a70ba2a7494ca92`. O #344 altera somente testes, workflow, evidência e documentação; o runtime funcional permanece o consolidado no #343. Supabase ACTIVE_HEALTHY.
 
 O #343 corrigiu a incompatibilidade entre minificação de `config.runtime.js` e parser JSON. Monitor pós-merge [35541683729](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/35541683729), monitor posterior [35555050425](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/35555050425) e smoke autenticado [35549794564](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/35549794564) terminaram SUCCESS.
 
@@ -150,38 +151,41 @@ A migration Realtime que ficou canônica em main e no remoto é:
 
 Não reintroduzir timestamps intermediários usados durante a preparação da branch.
 
-## 7. Pendências reais
+## 7. Encerramento dos objetivos originais
 
-### P1 — medir ganho pós-RLS em janela representativa
+A modernização de performance/sincronização está **formalmente encerrada em 21/09/2026**. A tabela abaixo substitui listas antigas como critério de conclusão desta frente.
 
-As coletas até 20/09 21:57:55 UTC não tinham delta. A primeira janela com novas chamadas, até 21/09 03:04:00 UTC, registrou 798 chamadas e 4.144,41 ms adicionais nas mesmas 11 assinaturas, sem reset. `school_programs`: 6 chamadas, média 13,68 ms; assinaturas de contexto observadas: médias até 38,11 ms. O handoff preserva os dois extremos e a tabela por queryid.
+| Objetivo original | Estado final | Evidência/decisão |
+|---|---|---|
+| RLS / escolas acessíveis como conjunto | **Implementado** | #329; policies set-based; equivalência de perfis e RLS revalidada |
+| refresh não ser perdido durante edição | **Implementado** | pending refresh + retomada segura; #327/#338–#341 |
+| `pendingRefresh` após modal/edição | **Implementado** | retomada automática e E2E multiusuário |
+| `lastRefreshAt` somente após aplicação real | **Implementado** | #327; protegido por regressão |
+| instrumentação causal de jornada | **Implementado como ferramenta de teste** | #344; 19 amostras brutas preservadas, sem alterar runtime |
+| indicador visual de sincronização | **Não bloqueante / não implementado** | estado Realtime existe; não há defeito funcional que exija UI adicional |
+| consolidar políticas de retry | **Implementado** | #336; retry próprio removido, transporte delegado ao cliente Supabase |
+| cancelar consultas obsoletas com AbortSignal | **Implementado** | #331 |
+| separar background reads da fila de writes | **Implementado** | #330 |
+| RPC única de contexto | **Não implementar nesta rodada** | contexto mediano ~13,3 ms; benefício material não demonstrado |
+| Realtime Broadcast de invalidação | **Implementado** | #332 + hardening #338–#342 |
+| revisionamento operacional numérico | **Substituído por solução posterior comprovada** | Broadcast + reconnect/focus + pending refresh + pós-write + releitura canônica; E2E sem F5 |
+| renderização parcial adicional do Prontuário | **Não implementar nesta rodada** | render síncrono mediano ~3,9 ms; gargalo não demonstrado |
+| cache agressivo de JS/CSS/estado | **Não implementar nesta rodada** | build já reduzido; ausência de gargalo que justifique maior complexidade |
+| upgrade de Supabase/compute | **Não fazer** | medições atuais não sustentam custo/benefício |
 
-A janela ainda é pequena nas consultas de contexto (6–8 chamadas) e não identifica origem humana versus automação. Não calcular ganho percentual universal ou média global de consultas heterogêneas.
-Coletar deltas de pg_stat_statements depois de volume real suficiente e comparar especialmente:
+### 7.1 Acompanhamento longitudinal, não bloqueante
 
-- school_programs;
-- verifications;
-- registered_invoices;
-- pendencies;
-- user_profiles/profiles.
+A primeira janela pós-RLS com novas chamadas registrou 798 chamadas adicionais nas 11 assinaturas acompanhadas, mas somente 6–8 chamadas novas nas consultas de contexto e sem distinção entre uso humano e automação. Isso não permite calcular um ganho percentual universal.
 
-Não classificar uma única consulta rápida como prova definitiva.
+Continuar observando `pg_stat_statements` quando houver volume real suficiente. Essa observação **não reabre a modernização** por si só.
 
-### P1/P2 — decidir RPC única de contexto operacional
+### 7.2 Índices
 
-O contexto ainda é montado em ondas de consultas PostgREST.
+Não remover índices apenas por `idx_scan=0`. Parte deles implementa unicidade/integridade e os demais têm custo/volume pequeno. Qualquer remoção futura exige janela estatística representativa e benefício mensurável.
 
-Candidato futuro: get_operational_context_v2(...).
+### 7.3 Novas intervenções
 
-Decisão desta rodada: não implementar RPC única. A primeira janela pós-RLS e as jornadas locais do #344 não demonstram benefício material que justifique a mudança. Reavaliar somente com uso representativo e paridade de contrato, preservando RLS, AbortSignal e dependências históricas.
-
-### P2 — indicador discreto de sincronização
-
-O módulo Realtime já emite estado de conexão. Pode ser útil mostrar sincronizado/reconectando/atualização pendente, mas isso não é bloqueante.
-
-### P2 — índices ainda reportados como não utilizados
-
-Não remover índices apenas pelo advisor enquanto a janela pós-reset/upgrade de estatísticas não for representativa.
+RPC única, render parcial, cache adicional, revisionamento numérico ou indicador visual só voltam ao backlog se surgirem dados ou defeitos concretos que justifiquem a mudança.
 
 ## 8. Itens deliberadamente fora da sequência atual
 
@@ -220,15 +224,19 @@ docs/decisions/ADR-054-sincronizacao-operacional-realtime.md
 
 ## 11. Critério de encerramento da modernização
 
-A rodada pode ser classificada como integralmente encerrada quando:
+**Atendido em 21/09/2026.**
 
-- Production permanecer estável após #341;
-- F5 não for requisito normal de uso;
-- gravação continuar independente de refresh lento;
-- sincronização A → B continuar coberta por gate obrigatório;
-- RLS continuar semanticamente equivalente;
-- decisão sobre RPC única for tomada com base em medição;
-- auditoria final de código + Supabase + Vercel não encontrar regressão material.
+- Production estável e READY;
+- F5 não é requisito normal de convergência;
+- gravação permanece independente de refresh lento;
+- sincronização A → B e interleavings críticos permanecem cobertos por gates;
+- RLS continua set-based e semanticamente preservada;
+- decisão sobre RPC/render foi tomada por medição;
+- integridade agregada passou pelo caminho autorizado;
+- monitor Production e leitura autenticada estão verdes;
+- auditoria final não encontrou regressão material bloqueante.
+
+A partir deste ponto, medições futuras são observabilidade operacional. Não formam fila automática de refatoração.
 
 ## 12. Rota de retomada
 

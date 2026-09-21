@@ -1,6 +1,6 @@
 # RADAR PDDE — Roadmap canônico de atualizações 2026
 
-**Atualizado em:** 20 de setembro de 2026  
+**Atualizado em:** 21 de setembro de 2026  
 **Classe documental:** Canônico
 
 ## 1. Finalidade
@@ -30,7 +30,9 @@ A frente mais recente concluiu:
 - reconciliação do retry de leitura com o retry nativo do `supabase-js` (#336);
 - hardening adversarial da convergência Realtime em refresh em voo, falha de rede, Abort por escrita e drenagem pós-write (#338–#341).
 
-O estado corrente, objetivos restantes e ordem de execução pertencem a `CURRENT_STAGE.md` e ao handoff `docs/handoff/2026-09-19-performance-sync-modernization.md`.
+O estado corrente pertence a `CURRENT_STAGE.md` e ao handoff `docs/handoff/2026-09-19-performance-sync-modernization.md`.
+
+**Fechamento em 21/09/2026:** o #344 integrou a instrumentação de jornadas e a decisão quantitativa de manter a arquitetura atual. A frente de modernização de performance/sincronização está encerrada. Acompanhamento pós-RLS permanece observabilidade, não backlog automático.
 
 ## 2. Estado consolidado
 

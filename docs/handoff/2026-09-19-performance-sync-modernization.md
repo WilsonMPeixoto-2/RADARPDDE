@@ -343,6 +343,27 @@ Componentes observados: contexto `loadOperationalContext` mediana **13,3 ms**, r
 
 **Decisão desta rodada:** não implementar RPC única, render parcial adicional, cache de estado ou upgrade de compute. As observações atuais não demonstram benefício material que justifique essas mudanças. A instrumentação fica como ferramenta de acompanhamento; novas intervenções exigem janela representativa do uso real. Indicador visual de sincronização continua opcional P2. Monitor, integridade agregada e provas de convergência estão atendidos; a aferição longitudinal de ganho permanece acompanhamento, sem justificar reabrir a arquitetura.
 
+### Encerramento formal — 21/09/2026
+
+O PR #344 foi integrado no merge `75520d43a5ca9bc2607318cc6a70ba2a7494ca92`. Deployment Vercel `dpl_FHt2mSxrzWbq491y497RDCuf7LsN` READY. O PR altera apenas testes, workflow, evidência e documentação; não muda runtime, banco, RLS ou regra de negócio.
+
+Objetivos originais encerrados:
+
+- RLS set-based: implementada;
+- refresh diferido, pending refresh e lastRefreshAt correto: implementados;
+- retry duplicado: reconciliado;
+- AbortSignal: implementado;
+- filas de leitura/escrita: separadas;
+- Broadcast: implementado e endurecido por testes de composição;
+- instrumentação: integrada como ferramenta E2E/CI;
+- RPC única: descartada nesta rodada por falta de benefício medido;
+- render parcial adicional: descartado nesta rodada por render síncrono baixo;
+- revisionamento numérico: substituído pela combinação Broadcast + reconexão/foco + pendência + pós-write + releitura canônica, já provada sem F5;
+- indicador visual: opcional, não bloqueante;
+- compute/cache agressivo: não justificados.
+
+A modernização está encerrada. Novos trabalhos devem partir de sintomas ou medições novos, não da simples existência de planos históricos.
+
 ### Sequência
 
 1. AGENTS.md;
