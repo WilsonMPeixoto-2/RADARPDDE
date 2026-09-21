@@ -33,6 +33,7 @@ input.radar-write-pending {
     right: 1rem;
     bottom: 1rem;
     z-index: 1600;
+    pointer-events: none;
     max-width: min(34rem, calc(100vw - 2rem));
     padding: 0.7rem 0.9rem;
     border: 1px solid var(--warning, #b7791f);
