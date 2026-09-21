@@ -107,6 +107,93 @@ test('StatePort aplica somente verificações e logs no retorno remoto increment
     assert.deepEqual(memory.logs, [{ id: 'log-novo' }]);
 });
 
+test('StatePort preserva entidade fora do subconjunto incremental mesmo presente no snapshot', async () => {
+    let memory = {
+        schools: [{ id: '04.10.001', denominação: 'Escola preservada' }],
+        verifications: {
+            '04.10.001': {
+                '2026-08_BASIC': {
+                    bonificacao: { extCC: 'Não' },
+                    analise: { extCC: 'Não analisado' },
+                    rowVersion: 1
+                }
+            }
+        },
+        logs: [{ id: 'log-antigo' }]
+    };
+    const storage = {
+        length: 0,
+        key: () => null,
+        getItem: () => null,
+        setItem: () => {
+            throw new Error('aplicação incremental remota não deve persistir localStorage');
+        },
+        removeItem: () => undefined
+    };
+    const bridge = {
+        LEGACY_STORAGE_MAP: {},
+        BRIDGE_METADATA_STORAGE_KEY: 'radar_pdde_bridge_metadata',
+        exportLegacySnapshot: () => ({ snapshot: snapshot({}) }),
+        restoreCanonicalSnapshotToLegacyStorage: () => {
+            throw new Error('subconjunto incremental não deve reconstruir snapshot completo');
+        },
+        canonicalEntitiesToLegacyState: entities => ({
+            verifications: (entities.verifications || []).reduce((result, record) => {
+                if (!result[record.school_id]) result[record.school_id] = {};
+                result[record.school_id][`${record.competence_id}_${record.program_id}`] = {
+                    bonificacao: clone(record.bonification || {}),
+                    analise: clone(record.analysis || {}),
+                    rowVersion: record.row_version
+                };
+                return result;
+            }, {}),
+            logs: (entities.administrativeLogs || []).map(record => ({ id: record.id }))
+        })
+    };
+    const port = createStatePort({
+        storage,
+        bridge,
+        readMemory: () => memory,
+        writeMemory: next => { memory = clone(next); },
+        patchMemory: patch => { memory = { ...memory, ...clone(patch) }; }
+    });
+    const next = snapshot({
+        verifications: [{
+            id: '04.10.001::2026-08::BASIC',
+            school_id: '04.10.001',
+            competence_id: '2026-08',
+            program_id: 'BASIC',
+            bonification: { extCC: 'Sim' },
+            analysis: { extCC: 'Correto' },
+            payload: {},
+            row_version: 2
+        }],
+        administrativeLogs: [{
+            id: 'log-novo',
+            school_id: '04.10.001',
+            action: 'Não deve entrar neste apply',
+            user_identifier: 'controlador',
+            profile_name: 'Controlador',
+            details: {},
+            event_at: '2026-09-21T20:00:00.000Z'
+        }]
+    });
+
+    await port.applyEntities(next, ['verifications'], {
+        persistStorage: false,
+        source: 'remote-result-incremental-subset'
+    });
+
+    assert.equal(memory.verifications['04.10.001']['2026-08_BASIC'].bonificacao.extCC, 'Sim');
+    assert.equal(memory.verifications['04.10.001']['2026-08_BASIC'].rowVersion, 2);
+    assert.deepEqual(
+        memory.logs,
+        [{ id: 'log-antigo' }],
+        'entidade fora de incrementalStateEntities precisa permanecer exatamente como estava'
+    );
+    assert.deepEqual(memory.schools, [{ id: '04.10.001', denominação: 'Escola preservada' }]);
+});
+
 test('DataService usa aplicação incremental quando o retorno remoto cobre as entidades declaradas', async () => {
     const { DataService } = require('../../src/application/data-service.js');
     const before = snapshot({
