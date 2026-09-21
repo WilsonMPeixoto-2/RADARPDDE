@@ -77,7 +77,7 @@
 
         function scheduleRefresh(reason = 'realtime') {
             if (destroyed) return false;
-            if (timer != null) metrics.coalescedBroadcasts += 1;
+            if (timer != null && reason === 'realtime') metrics.coalescedBroadcasts += 1;
             clearScheduledRefresh();
             metrics.refreshesScheduled += 1;
             if (reason === 'realtime-retry') metrics.retriesScheduled += 1;
@@ -136,26 +136,35 @@
             if (!client || typeof client.channel !== 'function') return false;
             if (!refreshController || typeof refreshController.refresh !== 'function') return false;
 
-            if (typeof client.realtime?.setAuth === 'function') {
-                await client.realtime.setAuth();
-            }
-            if (destroyed) return false;
-
-            channel = client.channel(TOPIC, {
-                config: {
-                    private: true,
-                    broadcast: { self: false }
+            try {
+                if (typeof client.realtime?.setAuth === 'function') {
+                    await client.realtime.setAuth();
                 }
-            });
-            if (!channel || typeof channel.on !== 'function' || typeof channel.subscribe !== 'function') {
-                channel = null;
-                return false;
-            }
+                if (destroyed) return false;
 
-            channel
-                .on('broadcast', { event: EVENT }, handleBroadcast)
-                .subscribe(handleStatus);
-            return true;
+                channel = client.channel(TOPIC, {
+                    config: {
+                        private: true,
+                        broadcast: { self: false }
+                    }
+                });
+                if (!channel || typeof channel.on !== 'function' || typeof channel.subscribe !== 'function') {
+                    channel = null;
+                    handleStatus(
+                        'UNAVAILABLE',
+                        new Error('Sincronização operacional em tempo real indisponível.')
+                    );
+                    return false;
+                }
+
+                channel
+                    .on('broadcast', { event: EVENT }, handleBroadcast)
+                    .subscribe(handleStatus);
+                return true;
+            } catch (error) {
+                handleStatus('CHANNEL_ERROR', error);
+                throw error;
+            }
         }
 
         async function stop() {
@@ -199,12 +208,9 @@
 
         void controller.start().then(started => {
             if (!started) {
-                const error = new Error('Sincronização operacional em tempo real indisponível.');
-                emitStatus(root, 'UNAVAILABLE', error);
-                root.console?.warn?.(error.message);
+                root.console?.warn?.('Sincronização operacional em tempo real indisponível.');
             }
         }).catch(error => {
-            emitStatus(root, 'CHANNEL_ERROR', error);
             root.console?.warn?.('Sincronização operacional em tempo real falhou ao iniciar.', error);
         });
         return true;
