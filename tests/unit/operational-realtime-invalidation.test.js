@@ -305,3 +305,49 @@ test('install publica estado UNAVAILABLE quando o canal privado não pode ser cr
         'o estado degradado precisa permanecer consultável se o consumidor visual carregar depois do evento'
     );
 });
+
+
+test('falha de setAuth persiste CHANNEL_ERROR e não simula assinatura saudável', async () => {
+    const statuses = [];
+    const root = {
+        RadarAuthContext: { user: { id: 'u-1' }, authorization: { role: 'controller' } },
+        CustomEvent: class {
+            constructor(type, options) {
+                this.type = type;
+                this.detail = options?.detail;
+            }
+        },
+        dispatchEvent(event) { statuses.push(event); },
+        setTimeout,
+        clearTimeout,
+        console: { warn() {} }
+    };
+    let channelCalls = 0;
+    const client = {
+        realtime: {
+            async setAuth() {
+                throw new Error('auth-realtime-failure');
+            }
+        },
+        channel() {
+            channelCalls += 1;
+            return null;
+        }
+    };
+    const controller = createController(root, {
+        client,
+        refreshController: {
+            async refresh() { return { stale: false }; }
+        },
+        debounceMs: 0
+    });
+
+    await assert.rejects(
+        controller.start(),
+        /auth-realtime-failure/
+    );
+    assert.equal(channelCalls, 0);
+    assert.equal(controller.getStatus(), 'CHANNEL_ERROR');
+    assert.equal(statuses.at(-1).detail.status, 'CHANNEL_ERROR');
+    assert.match(statuses.at(-1).detail.error, /auth-realtime-failure/);
+});
