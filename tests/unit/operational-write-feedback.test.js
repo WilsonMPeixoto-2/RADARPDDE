@@ -94,7 +94,7 @@ test('feedback de sincronização torna degradação Realtime visível e a remov
     const root = {
         document,
         RadarOperationalRealtimeInvalidationController: {
-            getStatus: () => 'CHANNEL_ERROR'
+            getStatus: () => 'UNAVAILABLE'
         },
         addEventListener(type, callback) {
             listeners.set(type, callback);
@@ -107,7 +107,7 @@ test('feedback de sincronização torna degradação Realtime visível e a remov
     assert.equal(status.hidden, false);
     assert.equal(status.textContent, feedback.REALTIME_SYNC_WARNING_MESSAGE);
     assert.equal(status.attributes.get('role'), 'status');
-    assert.equal(status.dataset.radarRealtimeStatus, 'channel_error');
+    assert.equal(status.dataset.radarRealtimeStatus, 'unavailable');
 
     listeners.get('radar:realtime-sync-status')({
         detail: { status: 'SUBSCRIBED', error: null }
