@@ -250,6 +250,31 @@ test('reexecução concorrente durante a carga não pode mascarar falha crítica
     assert.equal(harness.requested.filter(src => src === atomic).length, 2);
 });
 
+
+for (const criticalSyncModule of [
+    '/src/integration/operational-realtime-invalidation.js',
+    '/src/integration/operational-write-feedback.js'
+]) {
+    test(`falha em ${criticalSyncModule} mantém readiness falso até recuperação`, async () => {
+        const harness = createHarness({ failOnce: [criticalSyncModule] });
+
+        const firstReady = await harness.executeBootstrap();
+        assert.equal(firstReady, false);
+        assert.equal(
+            harness.requested.filter(src => src === criticalSyncModule).length,
+            1
+        );
+
+        const secondReady = await harness.executeBootstrap();
+        assert.equal(secondReady, true);
+        assert.equal(
+            harness.requested.filter(src => src === criticalSyncModule).length,
+            2,
+            'o loader deve retentar o módulo crítico de convergência'
+        );
+    });
+}
+
 test('modo local não exige o leitor administrativo exclusivo do Supabase para ficar pronto', async () => {
     const harness = createHarness({
         remoteMode: false,
