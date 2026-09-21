@@ -78,7 +78,10 @@
         ],
         [
             '/src/integration/operational-write-feedback.js',
-            () => typeof root.RadarOperationalWriteFeedback?.install === 'function'
+            () => (
+                typeof root.RadarOperationalWriteFeedback?.install === 'function'
+                && root.RadarOperationalWriteFeedback.install(root) === true
+            )
         ]
     ]);
 
