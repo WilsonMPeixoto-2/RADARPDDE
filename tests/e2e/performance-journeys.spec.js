@@ -258,6 +258,7 @@ test('mede jornadas críticas do baseline atual sem alterar runtime', async ({ b
         'Login começa no clique após carregar o shell; contextos novos, servidor compartilhado.',
         'fetchHeadersWallMs mede fetch até cabeçalhos; exclui corpo, scripts/CSS e WebSocket.',
         'Tempos de contexto, render e rede se sobrepõem; não somar como parcelas exclusivas.',
+        'totalMs inclui chamadas, auto-wait e asserções Playwright; não é tempo puro do evento de UI.',
         'writeRpcClientMs mede saveVerificationWithLog completo no cliente, não execução SQL.',
         'Métrica ausente é null; zero indica hook disponível sem execução observada.',
         'Troca de competência não foi medida: fixture expõe somente Maio/2026.'

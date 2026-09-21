@@ -1,15 +1,15 @@
 # RADAR PDDE — Estado atual do projeto
 
 **Classe documental:** Canônico — estado mutável e retomada futura
-**Atualizado em:** 20 de setembro de 2026
+**Atualizado em:** 21 de setembro de 2026
 
 ## 1. Baseline vigente
 
 O baseline atualmente publicado incorpora a rodada de modernização de performance e sincronização concluída pelos PRs #327, #329, #330, #331, #332, #336, #338, #339, #340 e #341, com prova frontend adicional no #342.
 
-- **PR #342:** merged (prova E2E, sem mudança de runtime)
-- **merge de Production conferido às 22:00 UTC:** ad4a97dc7f4eff3df51deb32dd3acdcd2383a23a
-- **Vercel Production:** dpl_XiHbqtceCMiWpW4QDNKWxK1kzneL
+- **PR #343:** merged (contrato de configuração pública preservado)
+- **merge de Production conferido em 21/09:** 039a88cc55485ca46ad55edcbe665e1b349272cc
+- **Vercel Production:** dpl_5NJaRKXwJhrPMGQgFPkvZGHj94GL
 - **deployment:** READY
 - **Supabase:** scnryinorqeucbfkioxo
 - **Supabase status:** ACTIVE_HEALTHY
@@ -53,6 +53,7 @@ A investigação separou as causas e tratou cada uma sem alterar regras de negó
 | #341 | 71b5a6e4967641c5dc8402ebadefbc22f9b5e5c6 | refresh pendente é drenado após término da gravação |
 | #337 | 24a2d1ca906aa771b37820b113caa20efb75d438 | checkpoint documental e snapshots pós-RLS |
 | #342 | ad4a97dc7f4eff3df51deb32dd3acdcd2383a23a | prova frontend de escrita auditável, Abort real e convergência sem F5 |
+| #343 | 039a88cc55485ca46ad55edcbe665e1b349272cc | configuração pública preservada como JSON; monitor Production recuperado |
 
 ## 4. Estado arquitetural atual
 
@@ -137,9 +138,11 @@ Depois dos PRs #336 e #338–#341, a validação foi ampliada com testes RED →
 
 ## 6. Estado de Production
 
-Às 22:00 UTC, o deployment `dpl_XiHbqtceCMiWpW4QDNKWxK1kzneL` estava READY e correspondia ao merge `ad4a97dc7f4eff3df51deb32dd3acdcd2383a23a`. O projeto Supabase foi revalidado como ACTIVE_HEALTHY, com 54 migrations remotas.
+Em 21/09, o deployment `dpl_5NJaRKXwJhrPMGQgFPkvZGHj94GL` estava READY no merge `039a88cc55485ca46ad55edcbe665e1b349272cc`. Supabase ACTIVE_HEALTHY.
 
-A consulta Vercel de 20/09/2026 entre 16:57 e 22:00 UTC não retornou logs error/fatal. Isso não cobre erros no navegador. O monitor pós-merge falhou em `PRODUCTION_RUNTIME_INVALID`: o otimizador convertia o JSON de `config.runtime.js` em sintaxe JS que o parser do monitor não aceita. Esta entrega preserva esse arquivo gerado, mantém a minificação restante e acrescenta teste do build final contra o parser real. A aprovação pós-publicação exige o monitor verde; READY isoladamente não comprova saúde funcional.
+O #343 corrigiu a incompatibilidade entre minificação de `config.runtime.js` e parser JSON. Monitor pós-merge [35541683729](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/35541683729), monitor posterior [35555050425](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/35555050425) e smoke autenticado [35549794564](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/35549794564) terminaram SUCCESS.
+
+A checagem agregada de integridade [35550316696](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/35550316696), às 01:16 UTC de 21/09, passou pelo caminho autorizado do workflow. O SQL exige `schemaVersion=1`, `status=healthy` e `totalIssues=0`. Isso fecha a pendência anterior da chamada negada ao conector; certifica os invariantes automatizados, não uma revisão manual de cada documento escolar.
 
 A migration Realtime que ficou canônica em main e no remoto é:
 
@@ -151,8 +154,9 @@ Não reintroduzir timestamps intermediários usados durante a preparação da br
 
 ### P1 — medir ganho pós-RLS em janela representativa
 
-Coletas de 20/09 às 03:37:00 e 11:04:42 UTC tiveram **zero chamadas novas** nas 11 assinaturas autenticadas acompanhadas. A coleta bruta de 21:57:55 UTC confirmou os mesmos 11 queryids, 16.449 chamadas e deltas zero, com reset e início das estatísticas preservados. A janela não permite calcular média pós-migração nem justificar RPC única. Snapshots e SQL reproduzível estão vinculados no handoff corrente.
+As coletas até 20/09 21:57:55 UTC não tinham delta. A primeira janela com novas chamadas, até 21/09 03:04:00 UTC, registrou 798 chamadas e 4.144,41 ms adicionais nas mesmas 11 assinaturas, sem reset. `school_programs`: 6 chamadas, média 13,68 ms; assinaturas de contexto observadas: médias até 38,11 ms. O handoff preserva os dois extremos e a tabela por queryid.
 
+A janela ainda é pequena nas consultas de contexto (6–8 chamadas) e não identifica origem humana versus automação. Não calcular ganho percentual universal ou média global de consultas heterogêneas.
 Coletar deltas de pg_stat_statements depois de volume real suficiente e comparar especialmente:
 
 - school_programs;
@@ -169,7 +173,7 @@ O contexto ainda é montado em ondas de consultas PostgREST.
 
 Candidato futuro: get_operational_context_v2(...).
 
-Somente implementar se a medição demonstrar benefício material. Antes da troca, provar paridade exata do contrato, manter fallback durante rollout e preservar RLS, AbortSignal e dependências históricas.
+Decisão desta rodada: não implementar RPC única. A primeira janela pós-RLS e as jornadas locais do #344 não demonstram benefício material que justifique a mudança. Reavaliar somente com uso representativo e paridade de contrato, preservando RLS, AbortSignal e dependências históricas.
 
 ### P2 — indicador discreto de sincronização
 
@@ -196,7 +200,7 @@ Não são próximos passos automáticos:
 
 O PR #342 foi integrado após 7/7 workflows SUCCESS no HEAD `065f53013edb1626ac95b17d387716dfe65850cf` e inspeção das imagens do run `35526578564`. A prova exige duas identidades autenticadas, Broadcast, leitura HTTP real cancelada por escrita auditável, releitura e convergência antes de navegação, zero reload e confirmação no Prontuário. O Lighthouse passou sem alterar budgets.
 
-A revisão integrada de 20/09 não encontrou nova regressão nos contratos de sincronização examinados. Encontrou a incompatibilidade de serialização no monitor descrita acima, reproduzida RED → GREEN. O handoff registra o escopo, as evidências e os limites dessa revisão. A medição real pós-RLS e a auditoria atual de integridade de Production continuam pendentes; não declarar encerramento integral.
+A revisão integrada de 20/09 não encontrou nova regressão nos contratos de sincronização examinados. Encontrou a incompatibilidade de serialização no monitor descrita acima, reproduzida RED → GREEN. O handoff registra o escopo, as evidências e os limites dessa revisão. A auditoria agregada atual de integridade passou em 21/09, e a primeira janela pós-RLS com deltas está preservada. Aferição representativa de ganho continua em acompanhamento. O #344 instrumenta jornadas em Supabase local: 19 amostras preservadas no handoff, com medianas de 13,3 ms para carregamento de contexto e 45,3 ms para o cliente da RPC de gravação. Não extrapolar esses números para Production. A decisão atual é manter a arquitetura e acompanhar uso real.
 
 Não há defeito funcional conhecido bloqueando uso normal do RADAR no baseline atual.
 
