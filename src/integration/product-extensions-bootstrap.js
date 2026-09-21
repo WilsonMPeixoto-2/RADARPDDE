@@ -61,6 +61,8 @@
         '/src/integration/atomic-analysis-pendency.js',
         '/src/integration/administrative-log-read-model.js',
         '/src/integration/operational-context-refresh.js',
+        '/src/integration/operational-realtime-invalidation.js',
+        '/src/integration/operational-write-feedback.js',
         '/src/integration/service-advisory-pendency.js',
         '/src/integration/service-advisory-corrective-submission.js',
         '/src/integration/critical-action-guard.js',
