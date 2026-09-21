@@ -13,11 +13,13 @@ const bootstrapSource = fs.readFileSync(
 
 function createHarness({
     failOnce = [],
+    omitCapabilityOnce = [],
     remoteMode = true,
     administrativeLogInstallResult = true
 } = {}) {
     const requested = [];
     const failedOnce = new Set(failOnce);
+    const omittedCapabilityOnce = new Set(omitCapabilityOnce);
     const scripts = [];
     const links = [];
     const preloaded = [];
@@ -103,6 +105,14 @@ function createHarness({
                     }
                     if (node.src.endsWith('/operational-context-refresh.js')) {
                         root.RadarOperationalContextRefresh = { install: () => true };
+                    }
+                    if (node.src.endsWith('/operational-realtime-invalidation.js')
+                        && !omittedCapabilityOnce.delete(node.src)) {
+                        root.RadarOperationalRealtimeInvalidation = { install: () => false };
+                    }
+                    if (node.src.endsWith('/operational-write-feedback.js')
+                        && !omittedCapabilityOnce.delete(node.src)) {
+                        root.RadarOperationalWriteFeedback = { install: () => true };
                     }
                     if (node.src.endsWith('/service-advisory-pendency.js')) {
                         root.RadarServiceAdvisoryPendency = { install: () => true };
@@ -271,6 +281,33 @@ for (const criticalSyncModule of [
             harness.requested.filter(src => src === criticalSyncModule).length,
             2,
             'o loader deve retentar o módulo crítico de convergência'
+        );
+    });
+}
+
+for (const criticalSyncModule of [
+    '/src/integration/operational-realtime-invalidation.js',
+    '/src/integration/operational-write-feedback.js'
+]) {
+    test(`carregamento sem API de ${criticalSyncModule} falha fechado e é recuperável`, async () => {
+        const harness = createHarness({ omitCapabilityOnce: [criticalSyncModule] });
+
+        const firstReady = await settleWithin(harness.executeBootstrap());
+        assert.equal(
+            firstReady,
+            false,
+            'um script HTTP 200 sem a capacidade esperada não pode produzir readiness verde'
+        );
+        assert.equal(
+            harness.requested.filter(src => src === criticalSyncModule).length,
+            1
+        );
+
+        const secondReady = await settleWithin(harness.executeBootstrap());
+        assert.equal(secondReady, true, 'a capacidade crítica deve ser recuperável por retry');
+        assert.equal(
+            harness.requested.filter(src => src === criticalSyncModule).length,
+            2
         );
     });
 }
