@@ -48,6 +48,26 @@
         let everSubscribed = false;
         let destroyed = false;
         let lastStatus = 'IDLE';
+        const metrics = {
+            broadcastsReceived: 0,
+            coalescedBroadcasts: 0,
+            refreshesScheduled: 0,
+            refreshAttempts: 0,
+            refreshSucceeded: 0,
+            refreshFailed: 0,
+            retriesScheduled: 0,
+            reconnectRefreshes: 0,
+            lastBroadcastAt: null,
+            lastRefreshAt: null,
+            byEntity: Object.create(null)
+        };
+
+        function metricsSnapshot() {
+            return Object.freeze({
+                ...metrics,
+                byEntity: Object.freeze({ ...metrics.byEntity })
+            });
+        }
 
         function clearScheduledRefresh() {
             if (timer == null) return;
@@ -57,20 +77,30 @@
 
         function scheduleRefresh(reason = 'realtime') {
             if (destroyed) return false;
+            if (timer != null) metrics.coalescedBroadcasts += 1;
             clearScheduledRefresh();
+            metrics.refreshesScheduled += 1;
+            if (reason === 'realtime-retry') metrics.retriesScheduled += 1;
+            if (reason === 'realtime-reconnect') metrics.reconnectRefreshes += 1;
             const schedule = typeof root.setTimeout === 'function'
                 ? root.setTimeout.bind(root)
                 : setTimeout;
             timer = schedule(() => {
                 timer = null;
+                metrics.refreshAttempts += 1;
                 void Promise.resolve()
                     .then(() => refreshController.refresh(reason, { force: true }))
                     .then(result => {
+                        metrics.lastRefreshAt = new Date().toISOString();
                         const needsRetry = result?.ok === false || result?.stale === true;
+                        if (needsRetry) metrics.refreshFailed += 1;
+                        else metrics.refreshSucceeded += 1;
                         if (!needsRetry || reason === 'realtime-retry') return;
                         scheduleRefresh('realtime-retry');
                     })
                     .catch(error => {
+                        metrics.lastRefreshAt = new Date().toISOString();
+                        metrics.refreshFailed += 1;
                         root.console?.warn?.('Falha ao reler contexto após invalidação Realtime.', error);
                         if (reason !== 'realtime-retry') scheduleRefresh('realtime-retry');
                     });
@@ -78,7 +108,11 @@
             return true;
         }
 
-        function handleBroadcast() {
+        function handleBroadcast(message = {}) {
+            metrics.broadcastsReceived += 1;
+            metrics.lastBroadcastAt = new Date().toISOString();
+            const entity = String(message?.payload?.entity || message?.entity || 'unknown');
+            metrics.byEntity[entity] = (metrics.byEntity[entity] || 0) + 1;
             scheduleRefresh('realtime');
         }
 
@@ -145,7 +179,8 @@
             stop,
             scheduleRefresh,
             getStatus: () => lastStatus,
-            getChannel: () => channel
+            getChannel: () => channel,
+            getMetrics: metricsSnapshot
         });
     }
 
@@ -164,9 +199,12 @@
 
         void controller.start().then(started => {
             if (!started) {
-                root.console?.warn?.('Sincronização operacional em tempo real não pôde ser iniciada.');
+                const error = new Error('Sincronização operacional em tempo real indisponível.');
+                emitStatus(root, 'UNAVAILABLE', error);
+                root.console?.warn?.(error.message);
             }
         }).catch(error => {
+            emitStatus(root, 'CHANNEL_ERROR', error);
             root.console?.warn?.('Sincronização operacional em tempo real falhou ao iniciar.', error);
         });
         return true;
