@@ -15,7 +15,8 @@ function createHarness({
     failOnce = [],
     omitCapabilityOnce = [],
     remoteMode = true,
-    administrativeLogInstallResult = true
+    administrativeLogInstallResult = true,
+    writeFeedbackInstallResult = true
 } = {}) {
     const requested = [];
     const failedOnce = new Set(failOnce);
@@ -112,7 +113,7 @@ function createHarness({
                     }
                     if (node.src.endsWith('/operational-write-feedback.js')
                         && !omittedCapabilityOnce.delete(node.src)) {
-                        root.RadarOperationalWriteFeedback = { install: () => true };
+                        root.RadarOperationalWriteFeedback = { install: () => writeFeedbackInstallResult };
                     }
                     if (node.src.endsWith('/service-advisory-pendency.js')) {
                         root.RadarServiceAdvisoryPendency = { install: () => true };
@@ -311,6 +312,18 @@ for (const criticalSyncModule of [
         );
     });
 }
+
+test('feedback pós-write carregado mas não instalável mantém readiness falso', async () => {
+    const harness = createHarness({ writeFeedbackInstallResult: false });
+
+    const ready = await settleWithin(harness.executeBootstrap());
+
+    assert.equal(
+        ready,
+        false,
+        'a presença do objeto global não basta: o feedback crítico precisa instalar com sucesso'
+    );
+});
 
 test('modo local não exige o leitor administrativo exclusivo do Supabase para ficar pronto', async () => {
     const harness = createHarness({
