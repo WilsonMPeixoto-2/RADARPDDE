@@ -700,6 +700,9 @@
                     { operation: String(command.name || 'data-command') }
                 );
             }
+            const stateApplyEntities = incrementalStateEntities.length > 0
+                ? incrementalStateEntities
+                : changedEntities;
             const declaredRefreshExemptEntities = [
                 ...new Set(Array.isArray(command.remoteRefreshExemptEntities)
                     ? command.remoteRefreshExemptEntities
@@ -806,7 +809,7 @@
                         try {
                             await this.applyRemoteState(
                                 committedSnapshot,
-                                changedEntities,
+                                stateApplyEntities,
                                 authoritativeCommitConfirmed
                                     ? 'remote-commit-incremental'
                                     : 'remote-result-incremental'
@@ -831,7 +834,7 @@
                                     try {
                                         await this.applyRemoteState(
                                             result.snapshot,
-                                            changedEntities,
+                                            stateApplyEntities,
                                             'remote-fallback-incremental'
                                         );
                                         localStateApplied = true;

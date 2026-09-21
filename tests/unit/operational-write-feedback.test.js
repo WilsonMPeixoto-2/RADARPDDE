@@ -61,3 +61,58 @@ test('settlePending remove estado de gravação sem destruir o controle', () => 
     assert.equal(attributes.has('aria-busy'), false);
     assert.equal(classes.has('btn-group-toggle'), true);
 });
+
+
+test('feedback de sincronização torna degradação Realtime visível e a remove após reconexão', () => {
+    const feedback = require(modulePath);
+    const elements = new Map();
+    const listeners = new Map();
+    const document = {
+        getElementById(id) {
+            return elements.get(id) || null;
+        },
+        createElement() {
+            return {
+                id: '',
+                className: '',
+                hidden: false,
+                textContent: '',
+                dataset: {},
+                attributes: new Map(),
+                setAttribute(name, value) {
+                    this.attributes.set(name, String(value));
+                }
+            };
+        },
+        body: {
+            appendChild(node) {
+                elements.set(node.id, node);
+                return node;
+            }
+        }
+    };
+    const root = {
+        document,
+        RadarOperationalRealtimeInvalidationController: {
+            getStatus: () => 'UNAVAILABLE'
+        },
+        addEventListener(type, callback) {
+            listeners.set(type, callback);
+        }
+    };
+
+    assert.equal(feedback.installRealtimeStatusFeedback(root), true);
+    const status = elements.get(feedback.REALTIME_STATUS_ID);
+    assert.ok(status);
+    assert.equal(status.hidden, false);
+    assert.equal(status.textContent, feedback.REALTIME_SYNC_WARNING_MESSAGE);
+    assert.equal(status.attributes.get('role'), 'status');
+    assert.equal(status.dataset.radarRealtimeStatus, 'unavailable');
+
+    listeners.get('radar:realtime-sync-status')({
+        detail: { status: 'SUBSCRIBED', error: null }
+    });
+    assert.equal(status.hidden, true);
+    assert.equal(status.textContent, '');
+    assert.equal(status.dataset.radarRealtimeStatus, 'subscribed');
+});

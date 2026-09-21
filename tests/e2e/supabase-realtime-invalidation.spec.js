@@ -186,6 +186,14 @@ test('Broadcast atualiza outra sessão sem F5 e respeita edição em andamento',
     expect(await pageB.evaluate(() => (
       window.RadarOperationalContextRefreshController?.hasPendingRefresh?.()
     ))).toBe(false);
+
+    const realtimeMetrics = await pageB.evaluate(() => (
+      window.RadarOperationalRealtimeInvalidationController?.getMetrics?.()
+    ));
+    expect(realtimeMetrics.broadcastsReceived).toBeGreaterThanOrEqual(2);
+    expect(realtimeMetrics.refreshAttempts).toBeGreaterThanOrEqual(2);
+    expect(realtimeMetrics.refreshSucceeded).toBeGreaterThanOrEqual(2);
+    expect(realtimeMetrics.byEntity?.verifications || 0).toBeGreaterThanOrEqual(2);
   } finally {
     await contextA.close();
     await contextB.close();
@@ -348,4 +356,39 @@ test('gravação auditável pela UI aborta leitura do Broadcast sem perder a atu
     await contextA.close();
     await contextB.close();
   }
+});
+
+
+test('degradação Realtime fica visível, não bloqueia interação e desaparece após reconexão', async ({ page }) => {
+  test.setTimeout(45000);
+
+  await signInInstitutional(page);
+  await openSchool(page);
+  await waitRealtimeSubscribed(page);
+
+  await page.evaluate(() => {
+    window.dispatchEvent(new window.CustomEvent('radar:realtime-sync-status', {
+      detail: { status: 'CHANNEL_ERROR', error: 'e2e-degraded' }
+    }));
+  });
+
+  const status = page.locator('#radar-realtime-sync-status');
+  await expect(status).toBeVisible();
+  await expect(status).toContainText('Sincronização em tempo real temporariamente indisponível');
+  await expect(status).toHaveAttribute('data-radar-realtime-status', 'channel_error');
+  expect(await status.evaluate(element => getComputedStyle(element).pointerEvents)).toBe('none');
+
+  const navDashboard = page.locator('#nav-dashboard');
+  await expect(navDashboard).toBeVisible();
+  await navDashboard.click();
+  await expect(page.locator('#main-container')).toBeVisible();
+
+  await page.evaluate(() => {
+    window.dispatchEvent(new window.CustomEvent('radar:realtime-sync-status', {
+      detail: { status: 'SUBSCRIBED', error: null }
+    }));
+  });
+
+  await expect(status).toBeHidden();
+  await expect(status).toHaveAttribute('data-radar-realtime-status', 'subscribed');
 });

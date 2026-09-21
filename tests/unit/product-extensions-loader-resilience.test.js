@@ -13,11 +13,14 @@ const bootstrapSource = fs.readFileSync(
 
 function createHarness({
     failOnce = [],
+    omitCapabilityOnce = [],
     remoteMode = true,
-    administrativeLogInstallResult = true
+    administrativeLogInstallResult = true,
+    writeFeedbackInstallResult = true
 } = {}) {
     const requested = [];
     const failedOnce = new Set(failOnce);
+    const omittedCapabilityOnce = new Set(omitCapabilityOnce);
     const scripts = [];
     const links = [];
     const preloaded = [];
@@ -103,6 +106,14 @@ function createHarness({
                     }
                     if (node.src.endsWith('/operational-context-refresh.js')) {
                         root.RadarOperationalContextRefresh = { install: () => true };
+                    }
+                    if (node.src.endsWith('/operational-realtime-invalidation.js')
+                        && !omittedCapabilityOnce.delete(node.src)) {
+                        root.RadarOperationalRealtimeInvalidation = { install: () => false };
+                    }
+                    if (node.src.endsWith('/operational-write-feedback.js')
+                        && !omittedCapabilityOnce.delete(node.src)) {
+                        root.RadarOperationalWriteFeedback = { install: () => writeFeedbackInstallResult };
                     }
                     if (node.src.endsWith('/service-advisory-pendency.js')) {
                         root.RadarServiceAdvisoryPendency = { install: () => true };
@@ -248,6 +259,70 @@ test('reexecução concorrente durante a carga não pode mascarar falha crítica
     const retryReady = await harness.executeBootstrap();
     assert.equal(retryReady, true, 'após a falha estar estabelecida, uma nova execução pode retentar');
     assert.equal(harness.requested.filter(src => src === atomic).length, 2);
+});
+
+
+for (const criticalSyncModule of [
+    '/src/integration/operational-realtime-invalidation.js',
+    '/src/integration/operational-write-feedback.js'
+]) {
+    test(`falha em ${criticalSyncModule} mantém readiness falso até recuperação`, async () => {
+        const harness = createHarness({ failOnce: [criticalSyncModule] });
+
+        const firstReady = await harness.executeBootstrap();
+        assert.equal(firstReady, false);
+        assert.equal(
+            harness.requested.filter(src => src === criticalSyncModule).length,
+            1
+        );
+
+        const secondReady = await harness.executeBootstrap();
+        assert.equal(secondReady, true);
+        assert.equal(
+            harness.requested.filter(src => src === criticalSyncModule).length,
+            2,
+            'o loader deve retentar o módulo crítico de convergência'
+        );
+    });
+}
+
+for (const criticalSyncModule of [
+    '/src/integration/operational-realtime-invalidation.js',
+    '/src/integration/operational-write-feedback.js'
+]) {
+    test(`carregamento sem API de ${criticalSyncModule} falha fechado e é recuperável`, async () => {
+        const harness = createHarness({ omitCapabilityOnce: [criticalSyncModule] });
+
+        const firstReady = await settleWithin(harness.executeBootstrap());
+        assert.equal(
+            firstReady,
+            false,
+            'um script HTTP 200 sem a capacidade esperada não pode produzir readiness verde'
+        );
+        assert.equal(
+            harness.requested.filter(src => src === criticalSyncModule).length,
+            1
+        );
+
+        const secondReady = await settleWithin(harness.executeBootstrap());
+        assert.equal(secondReady, true, 'a capacidade crítica deve ser recuperável por retry');
+        assert.equal(
+            harness.requested.filter(src => src === criticalSyncModule).length,
+            2
+        );
+    });
+}
+
+test('feedback pós-write carregado mas não instalável mantém readiness falso', async () => {
+    const harness = createHarness({ writeFeedbackInstallResult: false });
+
+    const ready = await settleWithin(harness.executeBootstrap());
+
+    assert.equal(
+        ready,
+        false,
+        'a presença do objeto global não basta: o feedback crítico precisa instalar com sucesso'
+    );
 });
 
 test('modo local não exige o leitor administrativo exclusivo do Supabase para ficar pronto', async () => {

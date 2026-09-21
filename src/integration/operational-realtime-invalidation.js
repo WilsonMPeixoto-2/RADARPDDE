@@ -47,7 +47,28 @@
         let timer = null;
         let everSubscribed = false;
         let destroyed = false;
+        let startPromise = null;
         let lastStatus = 'IDLE';
+        const metrics = {
+            broadcastsReceived: 0,
+            coalescedBroadcasts: 0,
+            refreshesScheduled: 0,
+            refreshAttempts: 0,
+            refreshSucceeded: 0,
+            refreshFailed: 0,
+            retriesScheduled: 0,
+            reconnectRefreshes: 0,
+            lastBroadcastAt: null,
+            lastRefreshAt: null,
+            byEntity: Object.create(null)
+        };
+
+        function metricsSnapshot() {
+            return Object.freeze({
+                ...metrics,
+                byEntity: Object.freeze({ ...metrics.byEntity })
+            });
+        }
 
         function clearScheduledRefresh() {
             if (timer == null) return;
@@ -57,20 +78,30 @@
 
         function scheduleRefresh(reason = 'realtime') {
             if (destroyed) return false;
+            if (timer != null && reason === 'realtime') metrics.coalescedBroadcasts += 1;
             clearScheduledRefresh();
+            metrics.refreshesScheduled += 1;
+            if (reason === 'realtime-retry') metrics.retriesScheduled += 1;
+            if (reason === 'realtime-reconnect') metrics.reconnectRefreshes += 1;
             const schedule = typeof root.setTimeout === 'function'
                 ? root.setTimeout.bind(root)
                 : setTimeout;
             timer = schedule(() => {
                 timer = null;
+                metrics.refreshAttempts += 1;
                 void Promise.resolve()
                     .then(() => refreshController.refresh(reason, { force: true }))
                     .then(result => {
+                        metrics.lastRefreshAt = new Date().toISOString();
                         const needsRetry = result?.ok === false || result?.stale === true;
+                        if (needsRetry) metrics.refreshFailed += 1;
+                        else metrics.refreshSucceeded += 1;
                         if (!needsRetry || reason === 'realtime-retry') return;
                         scheduleRefresh('realtime-retry');
                     })
                     .catch(error => {
+                        metrics.lastRefreshAt = new Date().toISOString();
+                        metrics.refreshFailed += 1;
                         root.console?.warn?.('Falha ao reler contexto após invalidação Realtime.', error);
                         if (reason !== 'realtime-retry') scheduleRefresh('realtime-retry');
                     });
@@ -78,7 +109,11 @@
             return true;
         }
 
-        function handleBroadcast() {
+        function handleBroadcast(message = {}) {
+            metrics.broadcastsReceived += 1;
+            metrics.lastBroadcastAt = new Date().toISOString();
+            const entity = String(message?.payload?.entity || message?.entity || 'unknown');
+            metrics.byEntity[entity] = (metrics.byEntity[entity] || 0) + 1;
             scheduleRefresh('realtime');
         }
 
@@ -96,32 +131,52 @@
             }
         }
 
-        async function start() {
-            if (destroyed || channel) return Boolean(channel);
-            if (!authenticated(root)) return false;
-            if (!client || typeof client.channel !== 'function') return false;
-            if (!refreshController || typeof refreshController.refresh !== 'function') return false;
-
-            if (typeof client.realtime?.setAuth === 'function') {
-                await client.realtime.setAuth();
+        function start() {
+            if (destroyed || channel) return Promise.resolve(Boolean(channel));
+            if (startPromise) return startPromise;
+            if (!authenticated(root)) return Promise.resolve(false);
+            if (!client || typeof client.channel !== 'function') return Promise.resolve(false);
+            if (!refreshController || typeof refreshController.refresh !== 'function') {
+                return Promise.resolve(false);
             }
-            if (destroyed) return false;
 
-            channel = client.channel(TOPIC, {
-                config: {
-                    private: true,
-                    broadcast: { self: false }
+            let run = null;
+            run = (async () => {
+                try {
+                    if (typeof client.realtime?.setAuth === 'function') {
+                        await client.realtime.setAuth();
+                    }
+                    if (destroyed) return false;
+
+                    channel = client.channel(TOPIC, {
+                        config: {
+                            private: true,
+                            broadcast: { self: false }
+                        }
+                    });
+                    if (!channel || typeof channel.on !== 'function' || typeof channel.subscribe !== 'function') {
+                        channel = null;
+                        handleStatus(
+                            'UNAVAILABLE',
+                            new Error('Sincronização operacional em tempo real indisponível.')
+                        );
+                        return false;
+                    }
+
+                    channel
+                        .on('broadcast', { event: EVENT }, handleBroadcast)
+                        .subscribe(handleStatus);
+                    return true;
+                } catch (error) {
+                    channel = null;
+                    handleStatus('CHANNEL_ERROR', error);
+                    throw error;
                 }
+            })().finally(() => {
+                if (startPromise === run) startPromise = null;
             });
-            if (!channel || typeof channel.on !== 'function' || typeof channel.subscribe !== 'function') {
-                channel = null;
-                return false;
-            }
-
-            channel
-                .on('broadcast', { event: EVENT }, handleBroadcast)
-                .subscribe(handleStatus);
-            return true;
+            startPromise = run;
+            return run;
         }
 
         async function stop() {
@@ -145,7 +200,8 @@
             stop,
             scheduleRefresh,
             getStatus: () => lastStatus,
-            getChannel: () => channel
+            getChannel: () => channel,
+            getMetrics: metricsSnapshot
         });
     }
 
@@ -162,13 +218,23 @@
         root.RadarOperationalRealtimeInvalidationController = controller;
         root.__radarOperationalRealtimeInvalidationInstalled = true;
 
-        void controller.start().then(started => {
-            if (!started) {
-                root.console?.warn?.('Sincronização operacional em tempo real não pôde ser iniciada.');
-            }
-        }).catch(error => {
-            root.console?.warn?.('Sincronização operacional em tempo real falhou ao iniciar.', error);
-        });
+        const attemptStart = () => {
+            void controller.start().then(started => {
+                if (!started) {
+                    root.console?.warn?.('Sincronização operacional em tempo real indisponível.');
+                }
+            }).catch(error => {
+                root.console?.warn?.('Sincronização operacional em tempo real falhou ao iniciar.', error);
+            });
+        };
+        const recoverInitialConnection = () => {
+            if (!authenticated(root) || controller.getChannel()) return;
+            attemptStart();
+        };
+
+        root.addEventListener?.('online', recoverInitialConnection);
+        root.addEventListener?.('focus', recoverInitialConnection);
+        attemptStart();
         return true;
     }
 

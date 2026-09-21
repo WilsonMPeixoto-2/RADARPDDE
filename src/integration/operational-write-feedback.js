@@ -41,6 +41,10 @@
         'inventory:complete': 'Inventariação salva com sucesso.'
     });
     const SYNC_WARNING_MESSAGE = 'A alteração foi salva, mas a tela não conseguiu atualizar os dados. Atualize a página antes de continuar.';
+    const REALTIME_SYNC_WARNING_MESSAGE = 'Sincronização em tempo real temporariamente indisponível. Os dados continuam salvos no RADAR; atualizações de outras sessões podem aparecer somente após a próxima reconciliação.';
+    const REALTIME_STATUS_ID = 'radar-realtime-sync-status';
+    const REALTIME_DEGRADED_STATUSES = new Set(['CHANNEL_ERROR', 'TIMED_OUT', 'CLOSED', 'UNAVAILABLE']);
+    const REALTIME_STATUS_FEEDBACK_MARKER = '__radarRealtimeStatusFeedbackInstalled';
     const DATA_SERVICE_FEEDBACK_MARKER = '__radarOperationalSaveFeedbackWrapped';
     const DATA_SERVICE_INSTANCE_FEEDBACK_MARKER = '__radarOperationalSaveFeedbackInstanceWrapped';
     const PENDENCY_NOTICE_COORDINATION_MARKER = '__radarOperationalSavePendencyNoticeCoordinated';
@@ -219,6 +223,63 @@
         return true;
     }
 
+    function ensureRealtimeStatus(root) {
+        const document = root?.document;
+        if (!document) return null;
+        const existing = document.getElementById?.(REALTIME_STATUS_ID);
+        if (existing) return existing;
+        if (typeof document.createElement !== 'function') return null;
+        const status = document.createElement('div');
+        status.id = REALTIME_STATUS_ID;
+        status.className = 'radar-realtime-sync-status';
+        status.setAttribute?.('role', 'status');
+        status.setAttribute?.('aria-live', 'polite');
+        status.setAttribute?.('aria-atomic', 'true');
+        status.hidden = true;
+        const target = document.body || document.documentElement;
+        target?.appendChild?.(status);
+        return status;
+    }
+
+    function realtimeStatusValue(eventOrStatus) {
+        if (typeof eventOrStatus === 'string') return text(eventOrStatus).toUpperCase();
+        return text(eventOrStatus?.detail?.status || eventOrStatus?.status).toUpperCase();
+    }
+
+    function updateRealtimeStatus(root, eventOrStatus) {
+        const statusValue = realtimeStatusValue(eventOrStatus);
+        if (!statusValue) return false;
+        const status = ensureRealtimeStatus(root);
+        if (!status) return false;
+        status.dataset.radarRealtimeStatus = statusValue.toLowerCase();
+
+        if (statusValue === 'SUBSCRIBED') {
+            status.hidden = true;
+            status.textContent = '';
+            return true;
+        }
+        if (!REALTIME_DEGRADED_STATUSES.has(statusValue)) return false;
+
+        status.textContent = REALTIME_SYNC_WARNING_MESSAGE;
+        status.hidden = false;
+        return true;
+    }
+
+    function installRealtimeStatusFeedback(root) {
+        if (!root || root[REALTIME_STATUS_FEEDBACK_MARKER] === true) return Boolean(root);
+        const handler = event => updateRealtimeStatus(root, event);
+        root.addEventListener?.('radar:realtime-sync-status', handler);
+        const currentStatus = root.RadarOperationalRealtimeInvalidationController?.getStatus?.();
+        if (currentStatus) updateRealtimeStatus(root, currentStatus);
+        Object.defineProperty(root, REALTIME_STATUS_FEEDBACK_MARKER, {
+            value: true,
+            configurable: false,
+            enumerable: false,
+            writable: false
+        });
+        return true;
+    }
+
     function collectDataServices(root) {
         const services = root?.RadarApplicationServices;
         if (!services || typeof services !== 'object') return [];
@@ -348,7 +409,11 @@
         document.addEventListener('change', handle, true);
         installDataServiceFeedback(root);
         installPendencyNoticeCoordination(root);
-        root.addEventListener?.('radar:application-services-ready', () => installDataServiceFeedback(root));
+        installRealtimeStatusFeedback(root);
+        root.addEventListener?.('radar:application-services-ready', () => {
+            installDataServiceFeedback(root);
+            installRealtimeStatusFeedback(root);
+        });
         Object.defineProperty(document, '__radarOperationalWriteFeedbackInstalled', {
             value: true,
             configurable: false,
@@ -363,6 +428,8 @@
         INLINE_HANDLER_NAMES,
         SAVE_SUCCESS_MESSAGES,
         SYNC_WARNING_MESSAGE,
+        REALTIME_SYNC_WARNING_MESSAGE,
+        REALTIME_STATUS_ID,
         bonificationActiveClass,
         analysisStateClass,
         inlineHandlerName,
@@ -376,6 +443,10 @@
         feedbackForResult,
         ensureSaveNotice,
         showSaveNotice,
+        ensureRealtimeStatus,
+        realtimeStatusValue,
+        updateRealtimeStatus,
+        installRealtimeStatusFeedback,
         collectDataServices,
         schedulePendingRefreshAfterWrite,
         installDataServiceFeedback,

@@ -106,6 +106,10 @@ test('primeira assinatura não recarrega; reconexão força uma releitura canôn
         options: { force: true }
     }]);
     assert.equal(harness.statuses.at(-1).detail.status, 'SUBSCRIBED');
+    const metrics = harness.controller.getMetrics();
+    assert.equal(metrics.reconnectRefreshes, 1);
+    assert.equal(metrics.refreshAttempts, 1);
+    assert.equal(metrics.refreshSucceeded, 1);
 });
 
 test('rajada de Broadcast é coalescida e força somente um refresh', async () => {
@@ -122,6 +126,17 @@ test('rajada de Broadcast é coalescida e força somente um refresh', async () =
         reason: 'realtime',
         options: { force: true }
     }]);
+
+    const metrics = harness.controller.getMetrics();
+    assert.equal(metrics.broadcastsReceived, 3);
+    assert.equal(metrics.coalescedBroadcasts, 2);
+    assert.equal(metrics.refreshAttempts, 1);
+    assert.equal(metrics.refreshSucceeded, 1);
+    assert.equal(metrics.refreshFailed, 0);
+    assert.deepEqual(
+        { ...metrics.byEntity },
+        { pendencies: 1, verifications: 1, assets: 1 }
+    );
 });
 
 test('stop remove o canal e impede novas atualizações agendadas', async () => {
@@ -250,4 +265,218 @@ test('resultado stale do refresh Realtime recebe uma única segunda tentativa co
     assert.equal(attempts, 2);
     assert.deepEqual(reasons, ['realtime', 'realtime-retry']);
     await controller.stop();
+});
+
+
+test('install publica estado UNAVAILABLE quando o canal privado não pode ser criado', async () => {
+    const statuses = [];
+    const root = {
+        document: {},
+        RadarAuthContext: { user: { id: 'u-1' }, authorization: { role: 'controller' } },
+        RadarSessionContext: {
+            service: {
+                client: {
+                    realtime: { async setAuth() {} },
+                    channel() { return null; }
+                }
+            }
+        },
+        RadarOperationalContextRefreshController: {
+            async refresh() { return { stale: false }; }
+        },
+        CustomEvent: class {
+            constructor(type, options) {
+                this.type = type;
+                this.detail = options?.detail;
+            }
+        },
+        dispatchEvent(event) {
+            statuses.push(event);
+        },
+        setTimeout,
+        clearTimeout,
+        console: { warn() {} }
+    };
+
+    assert.equal(install(root), true);
+    await new Promise(resolve => setImmediate(resolve));
+
+    assert.equal(statuses.at(-1).type, 'radar:realtime-sync-status');
+    assert.equal(statuses.at(-1).detail.status, 'UNAVAILABLE');
+    assert.equal(
+        root.RadarOperationalRealtimeInvalidationController.getStatus(),
+        'UNAVAILABLE',
+        'o estado degradado precisa permanecer consultável se o consumidor visual carregar depois do evento'
+    );
+});
+
+
+test('falha de setAuth persiste CHANNEL_ERROR e não simula assinatura saudável', async () => {
+    const statuses = [];
+    const root = {
+        RadarAuthContext: { user: { id: 'u-1' }, authorization: { role: 'controller' } },
+        CustomEvent: class {
+            constructor(type, options) {
+                this.type = type;
+                this.detail = options?.detail;
+            }
+        },
+        dispatchEvent(event) { statuses.push(event); },
+        setTimeout,
+        clearTimeout,
+        console: { warn() {} }
+    };
+    let channelCalls = 0;
+    const client = {
+        realtime: {
+            async setAuth() {
+                throw new Error('auth-realtime-failure');
+            }
+        },
+        channel() {
+            channelCalls += 1;
+            return null;
+        }
+    };
+    const controller = createController(root, {
+        client,
+        refreshController: {
+            async refresh() { return { stale: false }; }
+        },
+        debounceMs: 0
+    });
+
+    await assert.rejects(
+        controller.start(),
+        /auth-realtime-failure/
+    );
+    assert.equal(channelCalls, 0);
+    assert.equal(controller.getStatus(), 'CHANNEL_ERROR');
+    assert.equal(statuses.at(-1).detail.status, 'CHANNEL_ERROR');
+    assert.match(statuses.at(-1).detail.error, /auth-realtime-failure/);
+});
+
+
+test('starts concorrentes compartilham uma única tentativa e um único canal', async () => {
+    let releaseAuth;
+    const authBarrier = new Promise(resolve => { releaseAuth = resolve; });
+    let setAuthCalls = 0;
+    let channelCalls = 0;
+    const root = {
+        RadarAuthContext: { user: { id: 'u-1' }, authorization: { role: 'controller' } },
+        CustomEvent: class {
+            constructor(type, options) {
+                this.type = type;
+                this.detail = options?.detail;
+            }
+        },
+        dispatchEvent() {},
+        setTimeout,
+        clearTimeout,
+        console: { warn() {} }
+    };
+    const channel = {
+        on() { return this; },
+        subscribe() { return this; }
+    };
+    const controller = createController(root, {
+        client: {
+            realtime: {
+                async setAuth() {
+                    setAuthCalls += 1;
+                    await authBarrier;
+                }
+            },
+            channel() {
+                channelCalls += 1;
+                return channel;
+            }
+        },
+        refreshController: {
+            async refresh() { return { stale: false }; }
+        }
+    });
+
+    const first = controller.start();
+    const second = controller.start();
+    releaseAuth();
+
+    assert.equal(await first, true);
+    assert.equal(await second, true);
+    assert.equal(setAuthCalls, 1);
+    assert.equal(channelCalls, 1);
+    assert.equal(controller.getChannel(), channel);
+});
+
+test('install recupera falha inicial de setAuth quando a conexão volta sem exigir reload', async () => {
+    const listeners = new Map();
+    const statuses = [];
+    let setAuthCalls = 0;
+    let subscribeCalls = 0;
+    let statusHandler = null;
+    const channel = {
+        on() { return this; },
+        subscribe(callback) {
+            subscribeCalls += 1;
+            statusHandler = callback;
+            return this;
+        }
+    };
+    const root = {
+        document: {},
+        RadarAuthContext: { user: { id: 'u-1' }, authorization: { role: 'controller' } },
+        RadarSessionContext: {
+            service: {
+                client: {
+                    realtime: {
+                        async setAuth() {
+                            setAuthCalls += 1;
+                            if (setAuthCalls === 1) throw new Error('network-down');
+                        }
+                    },
+                    channel() { return channel; }
+                }
+            }
+        },
+        RadarOperationalContextRefreshController: {
+            async refresh() { return { stale: false }; }
+        },
+        CustomEvent: class {
+            constructor(type, options) {
+                this.type = type;
+                this.detail = options?.detail;
+            }
+        },
+        dispatchEvent(event) {
+            statuses.push(event);
+            for (const callback of listeners.get(event.type) || []) callback(event);
+        },
+        addEventListener(type, callback) {
+            const current = listeners.get(type) || [];
+            current.push(callback);
+            listeners.set(type, current);
+        },
+        removeEventListener(type, callback) {
+            const current = listeners.get(type) || [];
+            listeners.set(type, current.filter(item => item !== callback));
+        },
+        setTimeout,
+        clearTimeout,
+        console: { warn() {} }
+    };
+
+    assert.equal(install(root), true);
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(root.RadarOperationalRealtimeInvalidationController.getStatus(), 'CHANNEL_ERROR');
+    assert.equal(setAuthCalls, 1);
+    assert.equal(subscribeCalls, 0);
+
+    for (const callback of listeners.get('online') || []) callback();
+    await new Promise(resolve => setImmediate(resolve));
+
+    assert.equal(setAuthCalls, 2);
+    assert.equal(subscribeCalls, 1);
+    statusHandler('SUBSCRIBED');
+    assert.equal(root.RadarOperationalRealtimeInvalidationController.getStatus(), 'SUBSCRIBED');
+    assert.equal(statuses.at(-1).detail.status, 'SUBSCRIBED');
 });

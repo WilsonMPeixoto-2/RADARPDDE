@@ -61,6 +61,8 @@
         '/src/integration/atomic-analysis-pendency.js',
         '/src/integration/administrative-log-read-model.js',
         '/src/integration/operational-context-refresh.js',
+        '/src/integration/operational-realtime-invalidation.js',
+        '/src/integration/operational-write-feedback.js',
         '/src/integration/service-advisory-pendency.js',
         '/src/integration/service-advisory-corrective-submission.js',
         '/src/integration/critical-action-guard.js',
@@ -69,6 +71,27 @@
         '/src/integration/evaluation-retification-ui.js'
     ]);
     const failedScripts = new Map();
+    const criticalScriptCapabilities = new Map([
+        [
+            '/src/integration/operational-realtime-invalidation.js',
+            () => typeof root.RadarOperationalRealtimeInvalidation?.install === 'function'
+        ],
+        [
+            '/src/integration/operational-write-feedback.js',
+            () => (
+                typeof root.RadarOperationalWriteFeedback?.install === 'function'
+                && root.RadarOperationalWriteFeedback.install(root) === true
+            )
+        ]
+    ]);
+
+    function assertLoadedCapability(src) {
+        const predicate = criticalScriptCapabilities.get(src);
+        if (!predicate) return true;
+        if (predicate()) return true;
+        throw new Error(`Extensão crítica carregada sem expor a capacidade esperada: ${src}.`);
+    }
+
 
     function administrativeLogReadRequired() {
         const repositoryFactory = root.RadarRepositoryFactory;
@@ -163,11 +186,11 @@
             script.getAttribute('src') === src
             || script.dataset?.radarProductScript === src
         ));
-        if (existing?.dataset?.radarLoaded === 'true') return Promise.resolve(existing);
         if (existing?.dataset?.radarLoadFailed === 'true') {
             existing.remove?.();
             existing = null;
         }
+        if (existing?.dataset?.radarLoaded === 'true') return Promise.resolve(existing);
         if (existing) {
             return new Promise((resolve, reject) => {
                 existing.addEventListener('load', () => {
@@ -203,9 +226,20 @@
         for (const src of targets) {
             try {
                 await loadScriptOnce(src);
+                assertLoadedCapability(src);
                 failedScripts.delete(src);
             } catch (error) {
                 failedScripts.set(src, error);
+                if (criticalScriptCapabilities.has(src)) {
+                    const loadedScript = Array.from(document.scripts || []).find(script => (
+                        script.getAttribute?.('src') === src
+                        || script.dataset?.radarProductScript === src
+                    ));
+                    if (loadedScript) {
+                        loadedScript.dataset.radarLoadFailed = 'true';
+                        delete loadedScript.dataset.radarLoaded;
+                    }
+                }
                 root.console?.error?.(`Não foi possível carregar a extensão ${src}.`, error);
             }
         }
