@@ -186,11 +186,11 @@
             script.getAttribute('src') === src
             || script.dataset?.radarProductScript === src
         ));
-        if (existing?.dataset?.radarLoaded === 'true') return Promise.resolve(existing);
         if (existing?.dataset?.radarLoadFailed === 'true') {
             existing.remove?.();
             existing = null;
         }
+        if (existing?.dataset?.radarLoaded === 'true') return Promise.resolve(existing);
         if (existing) {
             return new Promise((resolve, reject) => {
                 existing.addEventListener('load', () => {
@@ -235,7 +235,10 @@
                         script.getAttribute?.('src') === src
                         || script.dataset?.radarProductScript === src
                     ));
-                    if (loadedScript) loadedScript.dataset.radarLoadFailed = 'true';
+                    if (loadedScript) {
+                        loadedScript.dataset.radarLoadFailed = 'true';
+                        delete loadedScript.dataset.radarLoaded;
+                    }
                 }
                 root.console?.error?.(`Não foi possível carregar a extensão ${src}.`, error);
             }
