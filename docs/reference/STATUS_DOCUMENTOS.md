@@ -36,10 +36,10 @@ PR aberto, Preview ou documento antigo não altera Production.
 
 ## 3. Baseline de Production
 
-O baseline corrente inclui os PRs #327, #329, #330, #331, #332, #336, #338, #339, #340, #341, com provas adicionais #342–#344.
+O baseline funcional inclui os PRs #327, #329, #330, #331, #332, #336, #338, #339, #340, #341, com provas adicionais #342–#344. O #345 é fechamento documental e não altera runtime.
 
-- merge conferido em 21/09: 75520d43a5ca9bc2607318cc6a70ba2a7494ca92;
-- Vercel: dpl_FHt2mSxrzWbq491y497RDCuf7LsN, READY;
+- baseline funcional/runtime conferido em 21/09 (#344): 75520d43a5ca9bc2607318cc6a70ba2a7494ca92;
+- Vercel correspondente ao #344: dpl_FHt2mSxrzWbq491y497RDCuf7LsN, READY;
 - Supabase: ACTIVE_HEALTHY;
 - migrations remotas: 54;
 - migration mais recente: 20260920013656_realtime_operational_invalidation;

@@ -8,9 +8,9 @@
 O baseline publicado incorpora a modernização de performance e sincronização concluída pelos PRs #327, #329, #330, #331, #332, #336, #338, #339, #340, #341, com provas adicionais nos #342–#344.
 
 - **PR #344:** merged (instrumentação de jornadas e decisão quantitativa de arquitetura)
-- **merge atual da main:** 75520d43a5ca9bc2607318cc6a70ba2a7494ca92
-- **Vercel Production:** dpl_FHt2mSxrzWbq491y497RDCuf7LsN
-- **deployment:** READY
+- **baseline funcional/runtime medido (#344):** 75520d43a5ca9bc2607318cc6a70ba2a7494ca92
+- **Vercel Production correspondente ao #344:** dpl_FHt2mSxrzWbq491y497RDCuf7LsN, READY
+- **#345:** fechamento documental; não altera runtime, banco ou regras de negócio
 - **Supabase:** scnryinorqeucbfkioxo
 - **Supabase status:** ACTIVE_HEALTHY
 - **migrations remotas:** 54
