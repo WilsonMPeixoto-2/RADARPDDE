@@ -106,6 +106,10 @@ test('primeira assinatura não recarrega; reconexão força uma releitura canôn
         options: { force: true }
     }]);
     assert.equal(harness.statuses.at(-1).detail.status, 'SUBSCRIBED');
+    const metrics = harness.controller.getMetrics();
+    assert.equal(metrics.reconnectRefreshes, 1);
+    assert.equal(metrics.refreshAttempts, 1);
+    assert.equal(metrics.refreshSucceeded, 1);
 });
 
 test('rajada de Broadcast é coalescida e força somente um refresh', async () => {
