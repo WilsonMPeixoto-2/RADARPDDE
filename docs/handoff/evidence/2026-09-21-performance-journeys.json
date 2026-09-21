@@ -1,0 +1,1046 @@
+{
+  "schemaVersion": 2,
+  "checkoutCommit": "2e8b79464329b2476450532716e5a7702959b4aa",
+  "browserVersion": "153.0.8010.12",
+  "limitations": [
+    "Fixture pequena de Supabase local; não mede latência, volume ou ganho pós-RLS de Production.",
+    "3 ou 4 amostras por jornada: p95 é o máximo observado, não estimativa populacional.",
+    "Login começa no clique após carregar o shell; contextos novos, servidor compartilhado.",
+    "fetchHeadersWallMs mede fetch até cabeçalhos; exclui corpo, scripts/CSS e WebSocket.",
+    "Tempos de contexto, render e rede se sobrepõem; não somar como parcelas exclusivas.",
+    "writeRpcClientMs mede saveVerificationWithLog completo no cliente, não execução SQL.",
+    "Métrica ausente é null; zero indica hook disponível sem execução observada.",
+    "Troca de competência não foi medida: fixture expõe somente Maio/2026."
+  ],
+  "environment": "supabase-local-authenticated",
+  "generatedAt": "2026-09-21T03:05:35.156Z",
+  "sampleCount": 19,
+  "summary": {
+    "login-dashboard-usable": {
+      "sampleCount": 3,
+      "totalMs": {
+        "observedSampleCount": 3,
+        "p50": 397.7,
+        "p95": 500.1
+      },
+      "fetchHeadersWallMs": {
+        "observedSampleCount": 3,
+        "p50": 218.1,
+        "p95": 223.3
+      },
+      "contextLoadMs": {
+        "observedSampleCount": 0,
+        "p50": null,
+        "p95": null
+      },
+      "renderProntuarioMs": {
+        "observedSampleCount": 0,
+        "p50": null,
+        "p95": null
+      },
+      "rebuildIndexesMs": {
+        "observedSampleCount": 0,
+        "p50": null,
+        "p95": null
+      },
+      "writeRpcClientMs": {
+        "observedSampleCount": 0,
+        "p50": null,
+        "p95": null
+      },
+      "writeDiagnosticsRpcMs": {
+        "observedSampleCount": 0,
+        "p50": null,
+        "p95": null
+      },
+      "writeApplyMs": {
+        "observedSampleCount": 0,
+        "p50": null,
+        "p95": null
+      },
+      "writeClickToStableMs": {
+        "observedSampleCount": 0,
+        "p50": null,
+        "p95": null
+      }
+    },
+    "operational-context-refresh": {
+      "sampleCount": 4,
+      "totalMs": {
+        "observedSampleCount": 4,
+        "p50": 86.3,
+        "p95": 167.2
+      },
+      "fetchHeadersWallMs": {
+        "observedSampleCount": 4,
+        "p50": 12,
+        "p95": 18.4
+      },
+      "contextLoadMs": {
+        "observedSampleCount": 4,
+        "p50": 13.3,
+        "p95": 20.9
+      },
+      "renderProntuarioMs": {
+        "observedSampleCount": 4,
+        "p50": 0,
+        "p95": 0
+      },
+      "rebuildIndexesMs": {
+        "observedSampleCount": 4,
+        "p50": 0,
+        "p95": 0
+      },
+      "writeRpcClientMs": {
+        "observedSampleCount": 4,
+        "p50": 0,
+        "p95": 0
+      },
+      "writeDiagnosticsRpcMs": {
+        "observedSampleCount": 0,
+        "p50": null,
+        "p95": null
+      },
+      "writeApplyMs": {
+        "observedSampleCount": 0,
+        "p50": null,
+        "p95": null
+      },
+      "writeClickToStableMs": {
+        "observedSampleCount": 0,
+        "p50": null,
+        "p95": null
+      }
+    },
+    "dashboard-to-portfolio": {
+      "sampleCount": 3,
+      "totalMs": {
+        "observedSampleCount": 3,
+        "p50": 514.5,
+        "p95": 560.8
+      },
+      "fetchHeadersWallMs": {
+        "observedSampleCount": 3,
+        "p50": 0,
+        "p95": 0
+      },
+      "contextLoadMs": {
+        "observedSampleCount": 3,
+        "p50": 0,
+        "p95": 0
+      },
+      "renderProntuarioMs": {
+        "observedSampleCount": 3,
+        "p50": 0,
+        "p95": 0
+      },
+      "rebuildIndexesMs": {
+        "observedSampleCount": 3,
+        "p50": 0,
+        "p95": 0
+      },
+      "writeRpcClientMs": {
+        "observedSampleCount": 3,
+        "p50": 0,
+        "p95": 0
+      },
+      "writeDiagnosticsRpcMs": {
+        "observedSampleCount": 0,
+        "p50": null,
+        "p95": null
+      },
+      "writeApplyMs": {
+        "observedSampleCount": 0,
+        "p50": null,
+        "p95": null
+      },
+      "writeClickToStableMs": {
+        "observedSampleCount": 0,
+        "p50": null,
+        "p95": null
+      }
+    },
+    "portfolio-to-prontuario": {
+      "sampleCount": 3,
+      "totalMs": {
+        "observedSampleCount": 3,
+        "p50": 456.1,
+        "p95": 487.5
+      },
+      "fetchHeadersWallMs": {
+        "observedSampleCount": 3,
+        "p50": 0,
+        "p95": 0
+      },
+      "contextLoadMs": {
+        "observedSampleCount": 3,
+        "p50": 0,
+        "p95": 0
+      },
+      "renderProntuarioMs": {
+        "observedSampleCount": 3,
+        "p50": 3.9,
+        "p95": 7.4
+      },
+      "rebuildIndexesMs": {
+        "observedSampleCount": 3,
+        "p50": 0,
+        "p95": 0
+      },
+      "writeRpcClientMs": {
+        "observedSampleCount": 3,
+        "p50": 0,
+        "p95": 0
+      },
+      "writeDiagnosticsRpcMs": {
+        "observedSampleCount": 0,
+        "p50": null,
+        "p95": null
+      },
+      "writeApplyMs": {
+        "observedSampleCount": 0,
+        "p50": null,
+        "p95": null
+      },
+      "writeClickToStableMs": {
+        "observedSampleCount": 0,
+        "p50": null,
+        "p95": null
+      }
+    },
+    "open-pendencies": {
+      "sampleCount": 3,
+      "totalMs": {
+        "observedSampleCount": 3,
+        "p50": 529.4,
+        "p95": 601.4
+      },
+      "fetchHeadersWallMs": {
+        "observedSampleCount": 3,
+        "p50": 0,
+        "p95": 0
+      },
+      "contextLoadMs": {
+        "observedSampleCount": 3,
+        "p50": 0,
+        "p95": 0
+      },
+      "renderProntuarioMs": {
+        "observedSampleCount": 3,
+        "p50": 0,
+        "p95": 0
+      },
+      "rebuildIndexesMs": {
+        "observedSampleCount": 3,
+        "p50": 0,
+        "p95": 0
+      },
+      "writeRpcClientMs": {
+        "observedSampleCount": 3,
+        "p50": 0,
+        "p95": 0
+      },
+      "writeDiagnosticsRpcMs": {
+        "observedSampleCount": 0,
+        "p50": null,
+        "p95": null
+      },
+      "writeApplyMs": {
+        "observedSampleCount": 0,
+        "p50": null,
+        "p95": null
+      },
+      "writeClickToStableMs": {
+        "observedSampleCount": 0,
+        "p50": null,
+        "p95": null
+      }
+    },
+    "write-bonification-stable": {
+      "sampleCount": 3,
+      "totalMs": {
+        "observedSampleCount": 3,
+        "p50": 240.3,
+        "p95": 241.9
+      },
+      "fetchHeadersWallMs": {
+        "observedSampleCount": 3,
+        "p50": 44.2,
+        "p95": 44.7
+      },
+      "contextLoadMs": {
+        "observedSampleCount": 3,
+        "p50": 0,
+        "p95": 0
+      },
+      "renderProntuarioMs": {
+        "observedSampleCount": 3,
+        "p50": 0,
+        "p95": 0
+      },
+      "rebuildIndexesMs": {
+        "observedSampleCount": 3,
+        "p50": 0,
+        "p95": 0
+      },
+      "writeRpcClientMs": {
+        "observedSampleCount": 3,
+        "p50": 45.3,
+        "p95": 45.6
+      },
+      "writeDiagnosticsRpcMs": {
+        "observedSampleCount": 0,
+        "p50": null,
+        "p95": null
+      },
+      "writeApplyMs": {
+        "observedSampleCount": 3,
+        "p50": 0.7,
+        "p95": 1.1
+      },
+      "writeClickToStableMs": {
+        "observedSampleCount": 3,
+        "p50": 92.9,
+        "p95": 98.6
+      }
+    }
+  },
+  "samples": [
+    {
+      "label": "login-dashboard-usable",
+      "iteration": 1,
+      "totalMs": 500.1,
+      "fetchHeadersWallMs": 223.3,
+      "requestCount": 23,
+      "pendingFetchCount": 0,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/rest/v1/assets",
+          "count": 4,
+          "totalFetchHeadersMs": 124.4,
+          "maxFetchHeadersMs": 47.1
+        },
+        {
+          "method": "POST",
+          "path": "/auth/v1/token",
+          "count": 1,
+          "totalFetchHeadersMs": 113.7,
+          "maxFetchHeadersMs": 113.7
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/pendencies",
+          "count": 4,
+          "totalFetchHeadersMs": 105.6,
+          "maxFetchHeadersMs": 52.5
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/registered_invoices",
+          "count": 2,
+          "totalFetchHeadersMs": 44.2,
+          "maxFetchHeadersMs": 24.7
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/school_programs",
+          "count": 1,
+          "totalFetchHeadersMs": 41,
+          "maxFetchHeadersMs": 41
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/schools",
+          "count": 1,
+          "totalFetchHeadersMs": 37.1,
+          "maxFetchHeadersMs": 37.1
+        },
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/current_app_role",
+          "count": 1,
+          "totalFetchHeadersMs": 36,
+          "maxFetchHeadersMs": 36
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/inventory_team_members",
+          "count": 1,
+          "totalFetchHeadersMs": 34.7,
+          "maxFetchHeadersMs": 34.7
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/user_school_scopes",
+          "count": 1,
+          "totalFetchHeadersMs": 33.2,
+          "maxFetchHeadersMs": 33.2
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/verifications",
+          "count": 2,
+          "totalFetchHeadersMs": 32,
+          "maxFetchHeadersMs": 22.5
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/app_config",
+          "count": 1,
+          "totalFetchHeadersMs": 29.7,
+          "maxFetchHeadersMs": 29.7
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/controllers",
+          "count": 1,
+          "totalFetchHeadersMs": 28.8,
+          "maxFetchHeadersMs": 28.8
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/programs",
+          "count": 1,
+          "totalFetchHeadersMs": 26.1,
+          "maxFetchHeadersMs": 26.1
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/user_profiles",
+          "count": 1,
+          "totalFetchHeadersMs": 24.6,
+          "maxFetchHeadersMs": 24.6
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/competences",
+          "count": 1,
+          "totalFetchHeadersMs": 12.1,
+          "maxFetchHeadersMs": 12.1
+        }
+      ],
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "contextLoadMs": null,
+      "renderProntuarioMs": null,
+      "rebuildIndexesMs": null,
+      "writeRpcClientMs": null
+    },
+    {
+      "label": "login-dashboard-usable",
+      "iteration": 2,
+      "totalMs": 390.4,
+      "fetchHeadersWallMs": 218.1,
+      "requestCount": 23,
+      "pendingFetchCount": 0,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/rest/v1/assets",
+          "count": 4,
+          "totalFetchHeadersMs": 112,
+          "maxFetchHeadersMs": 57.8
+        },
+        {
+          "method": "POST",
+          "path": "/auth/v1/token",
+          "count": 1,
+          "totalFetchHeadersMs": 96.3,
+          "maxFetchHeadersMs": 96.3
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/pendencies",
+          "count": 4,
+          "totalFetchHeadersMs": 95.4,
+          "maxFetchHeadersMs": 52.6
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/app_config",
+          "count": 1,
+          "totalFetchHeadersMs": 62.8,
+          "maxFetchHeadersMs": 62.8
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/school_programs",
+          "count": 1,
+          "totalFetchHeadersMs": 62.3,
+          "maxFetchHeadersMs": 62.3
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/inventory_team_members",
+          "count": 1,
+          "totalFetchHeadersMs": 55.8,
+          "maxFetchHeadersMs": 55.8
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/controllers",
+          "count": 1,
+          "totalFetchHeadersMs": 52.6,
+          "maxFetchHeadersMs": 52.6
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/schools",
+          "count": 1,
+          "totalFetchHeadersMs": 52.3,
+          "maxFetchHeadersMs": 52.3
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/programs",
+          "count": 1,
+          "totalFetchHeadersMs": 40.4,
+          "maxFetchHeadersMs": 40.4
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/registered_invoices",
+          "count": 2,
+          "totalFetchHeadersMs": 39.8,
+          "maxFetchHeadersMs": 30.7
+        },
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/current_app_role",
+          "count": 1,
+          "totalFetchHeadersMs": 39.7,
+          "maxFetchHeadersMs": 39.7
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/user_profiles",
+          "count": 1,
+          "totalFetchHeadersMs": 38.4,
+          "maxFetchHeadersMs": 38.4
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/user_school_scopes",
+          "count": 1,
+          "totalFetchHeadersMs": 37.1,
+          "maxFetchHeadersMs": 37.1
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/verifications",
+          "count": 2,
+          "totalFetchHeadersMs": 27.6,
+          "maxFetchHeadersMs": 18.4
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/competences",
+          "count": 1,
+          "totalFetchHeadersMs": 14,
+          "maxFetchHeadersMs": 14
+        }
+      ],
+      "longTaskCount": 1,
+      "longTaskTotalMs": 51,
+      "contextLoadMs": null,
+      "renderProntuarioMs": null,
+      "rebuildIndexesMs": null,
+      "writeRpcClientMs": null
+    },
+    {
+      "label": "login-dashboard-usable",
+      "iteration": 3,
+      "totalMs": 397.7,
+      "fetchHeadersWallMs": 193.9,
+      "requestCount": 23,
+      "pendingFetchCount": 0,
+      "requests": [
+        {
+          "method": "POST",
+          "path": "/auth/v1/token",
+          "count": 1,
+          "totalFetchHeadersMs": 100.6,
+          "maxFetchHeadersMs": 100.6
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/assets",
+          "count": 4,
+          "totalFetchHeadersMs": 78.4,
+          "maxFetchHeadersMs": 32.4
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/pendencies",
+          "count": 4,
+          "totalFetchHeadersMs": 77.4,
+          "maxFetchHeadersMs": 23.7
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/registered_invoices",
+          "count": 2,
+          "totalFetchHeadersMs": 41.7,
+          "maxFetchHeadersMs": 24.5
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/verifications",
+          "count": 2,
+          "totalFetchHeadersMs": 32.1,
+          "maxFetchHeadersMs": 21.4
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/schools",
+          "count": 1,
+          "totalFetchHeadersMs": 30.9,
+          "maxFetchHeadersMs": 30.9
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/programs",
+          "count": 1,
+          "totalFetchHeadersMs": 30.3,
+          "maxFetchHeadersMs": 30.3
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/inventory_team_members",
+          "count": 1,
+          "totalFetchHeadersMs": 30,
+          "maxFetchHeadersMs": 30
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/school_programs",
+          "count": 1,
+          "totalFetchHeadersMs": 29,
+          "maxFetchHeadersMs": 29
+        },
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/current_app_role",
+          "count": 1,
+          "totalFetchHeadersMs": 28.7,
+          "maxFetchHeadersMs": 28.7
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/user_profiles",
+          "count": 1,
+          "totalFetchHeadersMs": 26.3,
+          "maxFetchHeadersMs": 26.3
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/user_school_scopes",
+          "count": 1,
+          "totalFetchHeadersMs": 25.4,
+          "maxFetchHeadersMs": 25.4
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/app_config",
+          "count": 1,
+          "totalFetchHeadersMs": 23.5,
+          "maxFetchHeadersMs": 23.5
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/controllers",
+          "count": 1,
+          "totalFetchHeadersMs": 22.9,
+          "maxFetchHeadersMs": 22.9
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/competences",
+          "count": 1,
+          "totalFetchHeadersMs": 8.7,
+          "maxFetchHeadersMs": 8.7
+        }
+      ],
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "contextLoadMs": null,
+      "renderProntuarioMs": null,
+      "rebuildIndexesMs": null,
+      "writeRpcClientMs": null
+    },
+    {
+      "label": "operational-context-refresh",
+      "totalMs": 167.2,
+      "fetchHeadersWallMs": 18.4,
+      "requestCount": 6,
+      "pendingFetchCount": 0,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/rest/v1/pendencies",
+          "count": 2,
+          "totalFetchHeadersMs": 30.6,
+          "maxFetchHeadersMs": 17.8
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/assets",
+          "count": 2,
+          "totalFetchHeadersMs": 26.1,
+          "maxFetchHeadersMs": 13.9
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/registered_invoices",
+          "count": 1,
+          "totalFetchHeadersMs": 18.1,
+          "maxFetchHeadersMs": 18.1
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/verifications",
+          "count": 1,
+          "totalFetchHeadersMs": 15.3,
+          "maxFetchHeadersMs": 15.3
+        }
+      ],
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "contextLoadMs": 20.9,
+      "renderProntuarioMs": 0,
+      "rebuildIndexesMs": 0,
+      "writeRpcClientMs": 0
+    },
+    {
+      "label": "operational-context-refresh",
+      "totalMs": 107.2,
+      "fetchHeadersWallMs": 14.4,
+      "requestCount": 6,
+      "pendingFetchCount": 0,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/rest/v1/assets",
+          "count": 2,
+          "totalFetchHeadersMs": 24,
+          "maxFetchHeadersMs": 13.4
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/pendencies",
+          "count": 2,
+          "totalFetchHeadersMs": 23.2,
+          "maxFetchHeadersMs": 13.4
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/registered_invoices",
+          "count": 1,
+          "totalFetchHeadersMs": 7.8,
+          "maxFetchHeadersMs": 7.8
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/verifications",
+          "count": 1,
+          "totalFetchHeadersMs": 6.1,
+          "maxFetchHeadersMs": 6.1
+        }
+      ],
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "contextLoadMs": 15.8,
+      "renderProntuarioMs": 0,
+      "rebuildIndexesMs": 0,
+      "writeRpcClientMs": 0
+    },
+    {
+      "label": "operational-context-refresh",
+      "totalMs": 86.1,
+      "fetchHeadersWallMs": 12,
+      "requestCount": 6,
+      "pendingFetchCount": 0,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/rest/v1/assets",
+          "count": 2,
+          "totalFetchHeadersMs": 20.7,
+          "maxFetchHeadersMs": 10.9
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/pendencies",
+          "count": 2,
+          "totalFetchHeadersMs": 19.8,
+          "maxFetchHeadersMs": 11.5
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/registered_invoices",
+          "count": 1,
+          "totalFetchHeadersMs": 9.3,
+          "maxFetchHeadersMs": 9.3
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/verifications",
+          "count": 1,
+          "totalFetchHeadersMs": 6.2,
+          "maxFetchHeadersMs": 6.2
+        }
+      ],
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "contextLoadMs": 13.3,
+      "renderProntuarioMs": 0,
+      "rebuildIndexesMs": 0,
+      "writeRpcClientMs": 0
+    },
+    {
+      "label": "operational-context-refresh",
+      "totalMs": 86.3,
+      "fetchHeadersWallMs": 10.4,
+      "requestCount": 6,
+      "pendingFetchCount": 0,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/rest/v1/assets",
+          "count": 2,
+          "totalFetchHeadersMs": 18.7,
+          "maxFetchHeadersMs": 9.8
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/pendencies",
+          "count": 2,
+          "totalFetchHeadersMs": 18.6,
+          "maxFetchHeadersMs": 9.8
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/verifications",
+          "count": 1,
+          "totalFetchHeadersMs": 10.1,
+          "maxFetchHeadersMs": 10.1
+        },
+        {
+          "method": "GET",
+          "path": "/rest/v1/registered_invoices",
+          "count": 1,
+          "totalFetchHeadersMs": 9.4,
+          "maxFetchHeadersMs": 9.4
+        }
+      ],
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "contextLoadMs": 11.8,
+      "renderProntuarioMs": 0,
+      "rebuildIndexesMs": 0,
+      "writeRpcClientMs": 0
+    },
+    {
+      "label": "dashboard-to-portfolio",
+      "totalMs": 494.1,
+      "fetchHeadersWallMs": 0,
+      "requestCount": 0,
+      "pendingFetchCount": 0,
+      "requests": [],
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "contextLoadMs": 0,
+      "renderProntuarioMs": 0,
+      "rebuildIndexesMs": 0,
+      "writeRpcClientMs": 0
+    },
+    {
+      "label": "portfolio-to-prontuario",
+      "totalMs": 487.5,
+      "fetchHeadersWallMs": 0,
+      "requestCount": 0,
+      "pendingFetchCount": 0,
+      "requests": [],
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "contextLoadMs": 0,
+      "renderProntuarioMs": 7.4,
+      "rebuildIndexesMs": 0,
+      "writeRpcClientMs": 0
+    },
+    {
+      "label": "dashboard-to-portfolio",
+      "totalMs": 514.5,
+      "fetchHeadersWallMs": 0,
+      "requestCount": 0,
+      "pendingFetchCount": 0,
+      "requests": [],
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "contextLoadMs": 0,
+      "renderProntuarioMs": 0,
+      "rebuildIndexesMs": 0,
+      "writeRpcClientMs": 0
+    },
+    {
+      "label": "portfolio-to-prontuario",
+      "totalMs": 456.1,
+      "fetchHeadersWallMs": 0,
+      "requestCount": 0,
+      "pendingFetchCount": 0,
+      "requests": [],
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "contextLoadMs": 0,
+      "renderProntuarioMs": 3.9,
+      "rebuildIndexesMs": 0,
+      "writeRpcClientMs": 0
+    },
+    {
+      "label": "dashboard-to-portfolio",
+      "totalMs": 560.8,
+      "fetchHeadersWallMs": 0,
+      "requestCount": 0,
+      "pendingFetchCount": 0,
+      "requests": [],
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "contextLoadMs": 0,
+      "renderProntuarioMs": 0,
+      "rebuildIndexesMs": 0,
+      "writeRpcClientMs": 0
+    },
+    {
+      "label": "portfolio-to-prontuario",
+      "totalMs": 344.7,
+      "fetchHeadersWallMs": 0,
+      "requestCount": 0,
+      "pendingFetchCount": 0,
+      "requests": [],
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "contextLoadMs": 0,
+      "renderProntuarioMs": 3.8,
+      "rebuildIndexesMs": 0,
+      "writeRpcClientMs": 0
+    },
+    {
+      "label": "open-pendencies",
+      "totalMs": 529.4,
+      "fetchHeadersWallMs": 0,
+      "requestCount": 0,
+      "pendingFetchCount": 0,
+      "requests": [],
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "contextLoadMs": 0,
+      "renderProntuarioMs": 0,
+      "rebuildIndexesMs": 0,
+      "writeRpcClientMs": 0
+    },
+    {
+      "label": "open-pendencies",
+      "totalMs": 601.4,
+      "fetchHeadersWallMs": 0,
+      "requestCount": 0,
+      "pendingFetchCount": 0,
+      "requests": [],
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "contextLoadMs": 0,
+      "renderProntuarioMs": 0,
+      "rebuildIndexesMs": 0,
+      "writeRpcClientMs": 0
+    },
+    {
+      "label": "open-pendencies",
+      "totalMs": 519.4,
+      "fetchHeadersWallMs": 0,
+      "requestCount": 0,
+      "pendingFetchCount": 0,
+      "requests": [],
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "contextLoadMs": 0,
+      "renderProntuarioMs": 0,
+      "rebuildIndexesMs": 0,
+      "writeRpcClientMs": 0
+    },
+    {
+      "label": "write-bonification-stable",
+      "totalMs": 191.1,
+      "fetchHeadersWallMs": 41.3,
+      "requestCount": 1,
+      "pendingFetchCount": 0,
+      "requests": [
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "count": 1,
+          "totalFetchHeadersMs": 41.3,
+          "maxFetchHeadersMs": 41.3
+        }
+      ],
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "contextLoadMs": 0,
+      "renderProntuarioMs": 0,
+      "rebuildIndexesMs": 0,
+      "writeRpcClientMs": 42.9,
+      "writeDiagnosticsRpcMs": null,
+      "writeApplyMs": 1.1,
+      "writeClickToStableMs": 88.7
+    },
+    {
+      "label": "write-bonification-stable",
+      "totalMs": 241.9,
+      "fetchHeadersWallMs": 44.2,
+      "requestCount": 1,
+      "pendingFetchCount": 0,
+      "requests": [
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "count": 1,
+          "totalFetchHeadersMs": 44.2,
+          "maxFetchHeadersMs": 44.2
+        }
+      ],
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "contextLoadMs": 0,
+      "renderProntuarioMs": 0,
+      "rebuildIndexesMs": 0,
+      "writeRpcClientMs": 45.3,
+      "writeDiagnosticsRpcMs": null,
+      "writeApplyMs": 0.6,
+      "writeClickToStableMs": 98.6
+    },
+    {
+      "label": "write-bonification-stable",
+      "totalMs": 240.3,
+      "fetchHeadersWallMs": 44.7,
+      "requestCount": 1,
+      "pendingFetchCount": 0,
+      "requests": [
+        {
+          "method": "POST",
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "count": 1,
+          "totalFetchHeadersMs": 44.7,
+          "maxFetchHeadersMs": 44.7
+        }
+      ],
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "contextLoadMs": 0,
+      "renderProntuarioMs": 0,
+      "rebuildIndexesMs": 0,
+      "writeRpcClientMs": 45.6,
+      "writeDiagnosticsRpcMs": null,
+      "writeApplyMs": 0.7,
+      "writeClickToStableMs": 92.9
+    }
+  ]
+}

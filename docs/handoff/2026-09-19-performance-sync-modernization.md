@@ -1,9 +1,9 @@
 # Checkpoint — modernização de performance e sincronização
 
 **Data:** 19 de setembro de 2026
-**Atualizado em:** 20 de setembro de 2026
+**Atualizado em:** 21 de setembro de 2026
 **Classe documental:** Handoff corrente
-**Baseline publicado conferido às 22:00 UTC:** PR #342 / merge ad4a97dc7f4eff3df51deb32dd3acdcd2383a23a
+**Baseline publicado conferido em 21/09:** PR #343 / merge 039a88cc55485ca46ad55edcbe665e1b349272cc
 
 ## 1. Objetivo da rodada
 
@@ -25,14 +25,14 @@ O objetivo não foi redesenhar regras de negócio. Avaliação, Nota Fiscal, Pen
 
 ## 2. Estado final já publicado
 
-- SHA Production conferido às 22:00 UTC: ad4a97dc7f4eff3df51deb32dd3acdcd2383a23a;
-- Vercel: dpl_XiHbqtceCMiWpW4QDNKWxK1kzneL;
+- SHA Production conferido em 21/09: 039a88cc55485ca46ad55edcbe665e1b349272cc;
+- Vercel: dpl_5NJaRKXwJhrPMGQgFPkvZGHj94GL;
 - deployment: READY;
 - Supabase: scnryinorqeucbfkioxo, ACTIVE_HEALTHY;
 - migrations remotas: 54;
 - migration mais recente: 20260920013656_realtime_operational_invalidation;
 - logs Vercel error/fatal entre 16:57 e 22:00 UTC em 20/09: nenhum; não cobre console do navegador;
-- monitor pós-merge #342: falhou no parser da configuração minificada; correção nesta entrega, verificar monitor após publicação.
+- monitor: falha de serialização do #342 corrigida pelo #343; monitor, leitura autenticada e integridade agregada posteriores SUCCESS (detalhes na retomada de 21/09).
 
 A versão 20260920013656 é a versão canônica que ficou tanto na main quanto no histórico remoto. Não restaurar timestamps intermediários usados durante a preparação da branch.
 
@@ -284,7 +284,7 @@ A coleta inicial limitava a 100 entradas incluindo outros papéis; o arquivo pre
 
 **Autorização:** revisão de código não encontrou ampliação indevida de escopo escolar. Catálogo remoto confirmou RLS ativa em `realtime.messages` e somente a policy SELECT autenticada do tópico privado `radar:operational`; nenhuma policy INSERT/ALL adicional. Trigger de invalidação possui EXECUTE somente postgres. Não há evidência para nova migration de permissões.
 
-**Limite de integridade:** o conector somente leitura recebeu permission denied em `production_integrity_check()`. Não houve tentativa de contornar privilégios; isso não equivale a auditoria atual de integridade concluída.
+**Limite histórico de integridade (20/09):** o conector somente leitura recebeu permission denied em `production_integrity_check()`. Não houve tentativa de contornar privilégios. A pendência foi atendida pelo workflow autorizado em 21/09, descrito abaixo.
 
 **PR #342, prova complementar:** `test/realtime-write-abort-frontend-2026-09-20`, baseado em #341. Duas identidades institucionais; Controlador altera bonificação por botão e Assistente exporta relatório pela UI. A gravação auditável cancela uma resposta HTTP real retida do refresh. O teste exige releitura e convergência antes da navegação, confirmação visual do Prontuário e zero reload. `administrative_logs` evita falso positivo por segundo Broadcast ou reconciliação de verificações da própria escrita. Screenshot anexada para inspeção. Integrado no merge `ad4a97dc7f4eff3df51deb32dd3acdcd2383a23a`. HEAD `065f53013edb1626ac95b17d387716dfe65850cf`: 7/7 workflows SUCCESS, incluindo [homologação 35526578564](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/35526578564). Artefato `10609603303`, retenção 7 dias, imagens da linha extCC e do Prontuário inspecionadas: Assistente Local, Maio/2026, BASIC, Sim selecionado. A fixture isolada ESC-OTHER habilita o relatório; o alvo continua ESC-LOCAL. Os erros intermediários de fixture, seletor e regex eram do teste. Lighthouse final verde sem relaxamento de budget. Este teste complementa a implementação existente e não a substitui.
 
@@ -294,13 +294,54 @@ A coleta inicial limitava a 100 entradas incluindo outros papéis; o arquivo pre
 - **Refresh e UI:** `operational-context-refresh.js` preserva invalidação durante voo/edição/falha; aplica somente com autenticação e competência válidas e superfície segura. `lastRefreshAt` avança após aplicação/render. `operational-write-feedback.js` drena em `finally`, inclusive quando a escrita rejeita.
 - **Realtime:** `operational-realtime-invalidation.js` mantém canal privado de invalidação mínima, debounce e uma segunda tentativa controlada por disparo; falha da segunda tentativa não agenda a terceira. Pendência residual depende dos gatilhos de retomada previstos, sem polling contínuo. O E2E #342 confirma o caminho pós-write sem navegação/foco como resgate.
 - **Competência/projeção:** `global-competence-selector.js` protege a hidratação por sequência; `StatePort` recebe `persistStorage:false` no caminho remoto. `repository-factory.js` mantém filtros de competência/passivo ativo, dependências históricas por IDs e AbortSignal em paginação; não voltou a ler globalmente as coleções operacionais.
-- **Permissões:** código das policies continua set-based; catálogo remoto revalidado com policy única SELECT autenticada para Broadcast no tópico privado. Supabase ACTIVE_HEALTHY; 54 migrations, última `20260920013656`. Sem alteração de banco nesta retomada. A limitação da checagem de integridade descrita acima permanece.
+- **Permissões:** código das policies continua set-based; catálogo remoto revalidado com policy única SELECT autenticada para Broadcast no tópico privado. Supabase ACTIVE_HEALTHY; 54 migrations, última `20260920013656`. Sem alteração de banco nesta retomada. Naquela revisão de 20/09 a checagem de integridade permanecia pendente; ver atualização de 21/09 abaixo.
 
 **Nova evidência pós-RLS:** [coleta de 21:57:55 UTC](evidence/2026-09-20-post-rls-closeout.json) comparada por chave com a coleta de 11:04:42: mesmos 11 registros, reset e stats_since; delta zero em calls, total_exec_time, rows e blocos. O handoff recebido também relata uma observação às 17:32 sem delta; ela é referência textual, não snapshot bruto recuperado. A nova coleta preservada evita reconstruir evidência inexistente. RPC única permanece adiada por falta de amostra representativa; médias acumuladas não medem ganho pós-RLS.
 
 **Achado no monitor publicado:** run [35540203679](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/35540203679) falhou em `PRODUCTION_RUNTIME_INVALID`, enquanto Vercel estava READY. GET público confirmou que a minificação removia aspas das chaves e convertia `true` para `!0`. O navegador aceita o JS; `parseRuntimeConfigScript()` exige JSON e rejeita. O teste de integração em `vercel-build.test.js` reproduziu o mesmo erro antes da correção. `optimize-public-assets.mjs` passa a preservar exclusivamente `config.runtime.js`; restante do JS/CSS continua otimizado. Não executar JS remoto nem relaxar validação do monitor. Após integrar, conferir o arquivo publicado e o monitor completo, incluindo bloqueio anônimo e preflight da Edge Function.
 
-**Próxima retomada:** revalidar main/Production e o monitor; coletar nova janela pós-RLS somente após uso real; concluir a checagem de integridade por um caminho autorizado. Indicador visual de sincronização continua P2 opcional. Não reaplicar patches antigos nem reabrir RPC/revision/compute por hipótese. Esta revisão não substitui uma nova auditoria completa de todos os dados de Production.
+**Próxima retomada:** revalidar main/Production e o monitor; coletar nova janela pós-RLS somente após uso real; concluir a checagem de integridade por um caminho autorizado. Indicador visual de sincronização continua P2 opcional. Não reaplicar patches antigos nem reabrir RPC/revision/compute por hipótese. Esta revisão não substitui uma auditoria manual de todos os documentos de Production.
+
+### Retomada em 21/09 — entregas, integridade e primeira medição útil
+
+**#343 concluído:** merge `039a88cc55485ca46ad55edcbe665e1b349272cc`; Production `dpl_5NJaRKXwJhrPMGQgFPkvZGHj94GL`, READY. [Monitor pós-merge](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/35541683729), [monitor posterior](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/35555050425) e [leitura autenticada](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/35549794564): SUCCESS. O erro de serialização está encerrado.
+
+**Integridade agregada:** o [run 35550316696](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/35550316696), em 21/09 às 01:16 UTC, executou `supabase/verification/production-integrity-health.sql` pelo caminho autorizado do workflow e passou. O script exige schemaVersion 1, healthy e totalIssues 0 nos 20 invariantes agregados de perfis/equipes, escolas/programas, Pendências e vínculos patrimoniais. Isso atende a pendência técnica anterior do conector, sem alteração de permissões. Não significa revisão manual do conteúdo de cada prestação de contas.
+
+**Pós-RLS em Production:** [novo snapshot de 21/09 03:04:00 UTC](evidence/2026-09-21-post-rls-observation.json), comparado com [20/09 21:57:55 UTC](evidence/2026-09-20-post-rls-closeout.json), usando o mesmo SQL preservado. Mesmas 11 chaves `(role, dbid, toplevel, queryid)`, mesmos stats_reset/stats_since e contadores monotônicos. Total: **798 chamadas e 4.144,413237 ms adicionais**. Agora existe delta; não continuar repetindo o checkpoint anterior de zero tráfego.
+
+| Queryid | Relações mencionadas | Novas chamadas | Média por chamada nesta janela (ms) |
+|---|---|---:|---:|
+| `-4321807221665031446` | verifications | 422 | 4.609 |
+| `1703864473150125473` | verifications | 8 | 38.108 |
+| `3896252041218239862` | pendencies | 8 | 24.586 |
+| `-3762349853790923694` | school_programs | 6 | 13.680 |
+| `3968175216017083107` | registered_invoices | 8 | 20.083 |
+| `-914817176531477992` | pendencies | 8 | 31.385 |
+| `-1745999911319524362` | registered_invoices | 315 | 3.548 |
+| `-6201889972188916973` | registered_invoices | 8 | 7.917 |
+| `-8172579646688886749` | registered_invoices | 7 | 2.377 |
+| `1336067394349566394` | school_programs | 0 | — |
+| `8224728630877206496` | user_profiles, profiles | 8 | 0.767 |
+
+As consultas de contexto têm somente 6–8 novas chamadas; a origem humana versus monitoramento não está nos contadores. As duas assinaturas com 422/315 chamadas não devem ser confundidas com 737 carregamentos completos de contexto. Não somar médias de consultas diferentes, atribuir custo exclusivo a cada tabela ou comparar médias acumuladas desde 17/09 com esta janela como se fossem um experimento controlado. O ganho universal pós-RLS continua sem quantificação causal.
+
+**#344 — observação de jornadas:** o [run 35556168076](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/35556168076), candidato `9731a99bc1355506e1ac3bd9693239b27808ed4a`, produziu [19 amostras brutas](evidence/2026-09-21-performance-journeys.json) em Supabase local autenticado. O SHA `2e8b79464329b2476450532716e5a7702959b4aa` no JSON é o merge de teste efetivamente executado. Artefato `10621055638` (retenção de 7 dias); JSON preservado no Git para continuidade. Imagens do Prontuário de Controlador/Assistente inspecionadas; gravação e sincronização continuam visíveis na UI.
+
+| Jornada local | n | Mediana do intervalo automatizado (ms) | Máximo observado (ms) |
+|---|---:|---:|---:|
+| Login → Dashboard utilizável | 3 | 397,7 | 500,1 |
+| Refresh operacional forçado | 4 | 86,3 | 167,2 |
+| Dashboard → Carteira | 3 | 514,5 | 560,8 |
+| Carteira → Prontuário | 3 | 456,1 | 487,5 |
+| Abrir Pendências | 3 | 529,4 | 601,4 |
+| Bonificação → estável | 3 | 240,3 | 241,9 |
+
+Componentes observados: contexto `loadOperationalContext` mediana **13,3 ms**, render síncrono do Prontuário **3,9 ms**, cliente da RPC de gravação **45,3 ms**, reconciliação medida pelo diagnóstico de UI **0,7 ms** e click→stable nativo **92,9 ms**. Componentes se sobrepõem; não somá-los nem atribuir a diferença para o total a uma causa não medida. O total inclui transporte/auto-wait/asserts Playwright; fetch mede somente até cabeçalhos. Scripts, CSS e WebSocket não entram na janela fetch. Login começa depois do shell; os hooks internos só são instalados depois do login. As quatro amostras de refresh não são troca de competência, que a fixture de Maio/2026 não exercita.
+
+**Defeito do harness resolvido:** no candidato anterior, todas as durações rpc nativas eram null. O trace mostrou gravações concluídas e métricas apply/stable válidas; o código confirma que `runSerializedVerificationWrite()` executa depois do encerramento do trace síncrono. O observador agora mede `saveVerificationWithLog()` diretamente no cliente, preserva retorno/erro/this e não altera a aplicação. `writeDiagnosticsRpcMs` permanece null no relatório; a lacuna nativa não foi mascarada nem corrigida incidentalmente neste PR. Cinco testes de fidelidade protegem nulos, gerações assíncronas, erros e fronteira fetch/cabeçalhos. Métrica indisponível é null; zero significa ausência de chamada pelo hook instalado naquela janela. O p95 de 3/4 observações equivale ao máximo, não a uma estimativa da população.
+
+**Decisão desta rodada:** não implementar RPC única, render parcial adicional, cache de estado ou upgrade de compute. As observações atuais não demonstram benefício material que justifique essas mudanças. A instrumentação fica como ferramenta de acompanhamento; novas intervenções exigem janela representativa do uso real. Indicador visual de sincronização continua opcional P2. Monitor, integridade agregada e provas de convergência estão atendidos; a aferição longitudinal de ganho permanece acompanhamento, sem justificar reabrir a arquitetura.
 
 ### Sequência
 

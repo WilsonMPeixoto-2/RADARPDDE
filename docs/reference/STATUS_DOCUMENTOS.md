@@ -1,7 +1,7 @@
 # Matriz de validade documental
 
 **Classe documental:** Canônico
-**Atualizado em:** 20 de setembro de 2026
+**Atualizado em:** 21 de setembro de 2026
 
 ## 1. Finalidade e precedência
 
@@ -38,13 +38,13 @@ PR aberto, Preview ou documento antigo não altera Production.
 
 O baseline corrente inclui os PRs #327, #329, #330, #331, #332, #336, #338, #339, #340 e #341, com prova E2E adicional no #342.
 
-- merge conferido às 22:00 UTC: ad4a97dc7f4eff3df51deb32dd3acdcd2383a23a;
-- Vercel: dpl_XiHbqtceCMiWpW4QDNKWxK1kzneL, READY;
+- merge conferido em 21/09: 039a88cc55485ca46ad55edcbe665e1b349272cc;
+- Vercel: dpl_5NJaRKXwJhrPMGQgFPkvZGHj94GL, READY;
 - Supabase: ACTIVE_HEALTHY;
 - migrations remotas: 54;
 - migration mais recente: 20260920013656_realtime_operational_invalidation;
 - logs Vercel error/fatal entre 16:57 e 22:00 UTC: nenhum;
-- monitor pós-merge #342: incompatibilidade de serialização reproduzida; correção e acompanhamento no CURRENT_STAGE/handoff.
+- monitor: incompatibilidade corrigida no #343; monitor, leitura autenticada e integridade agregada atuais SUCCESS, com runs vinculados no CURRENT_STAGE.
 
 Esse baseline substitui como estado corrente os handoffs centrados em PR #301/#305/#306. Esses documentos continuam válidos como histórico do momento em que foram produzidos.
 
