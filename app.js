@@ -8371,8 +8371,32 @@ function configureRegistrarNovoEnvioIdentification(pendency) {
     if (!required) return { required: false, invoice };
 
     const typeSelect = document.getElementById('envio-identificacao-tipo');
+    const canonicalTypes = window.RadarInvoiceDocumentAnalysis?.IDENTIFIED_EXPENSE_TYPES || [
+        'consumo',
+        'permanente',
+        'servico',
+        'boleto_internet'
+    ];
+    const renderedTypes = typeSelect
+        ? Array.from(typeSelect.options)
+            .map(option => option.value)
+            .filter(Boolean)
+        : [];
+    if (typeSelect && (
+        renderedTypes.length !== canonicalTypes.length
+        || canonicalTypes.some(type => !renderedTypes.includes(type))
+    )) {
+        throw new Error('As opções de identificação de despesa estão divergentes do contrato do domínio.');
+    }
+
     const billOption = typeSelect?.querySelector('option[value="boleto_internet"]');
-    const isConnected = pendency?.programaId === 'CONECTADA';
+    const programId = String(
+        pendency?.programaId
+        || pendency?.programId
+        || pendency?.program_id
+        || ''
+    ).trim().toUpperCase();
+    const isConnected = programId === 'CONECTADA';
     if (billOption) {
         billOption.hidden = !isConnected;
         billOption.disabled = !isConnected;
