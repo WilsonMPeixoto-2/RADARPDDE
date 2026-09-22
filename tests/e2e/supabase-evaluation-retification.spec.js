@@ -20,20 +20,24 @@ async function settleWrites(page) {
   await page.evaluate(() => window.RadarApplicationServices.data.remoteExecutionTail);
 }
 
-async function setStableScrollProbe(page) {
+async function setStableScrollProbe(page, anchor) {
   const contentArea = page.locator('main.content-area');
-  const before = await contentArea.evaluate(element => {
-    element.scrollTop = Math.min(700, Math.max(0, element.scrollHeight - element.clientHeight));
-    return element.scrollTop;
+  await anchor.evaluate(element => {
+    element.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
   });
-  expect(before).toBeGreaterThan(50);
-  return { contentArea, before };
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(resolve)));
+  const beforeScroll = await contentArea.evaluate(element => element.scrollTop);
+  const beforeAnchorTop = await anchor.evaluate(element => element.getBoundingClientRect().top);
+  expect(beforeScroll).toBeGreaterThan(50);
+  return { contentArea, anchor, beforeScroll, beforeAnchorTop };
 }
 
 async function expectScrollPreserved(page, probe) {
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-  const after = await probe.contentArea.evaluate(element => element.scrollTop);
-  expect(Math.abs(after - probe.before)).toBeLessThanOrEqual(4);
+  const afterScroll = await probe.contentArea.evaluate(element => element.scrollTop);
+  const afterAnchorTop = await probe.anchor.evaluate(element => element.getBoundingClientRect().top);
+  expect(afterScroll).toBeGreaterThan(0);
+  expect(Math.abs(afterAnchorTop - probe.beforeAnchorTop)).toBeLessThanOrEqual(4);
 }
 
 async function verification(page) {
@@ -80,7 +84,7 @@ test('edição explícita salva, desfaz e retifica Pendência atomicamente sem b
   await expect(dialog).toContainText('Registrar novo envio');
   await dialog.getByLabel('Nova análise técnica').selectOption('Não analisado');
   await expect(dialog.locator('.evaluation-retification-preview')).toHaveText('Correto → Não analisado');
-  const editScroll = await setStableScrollProbe(page);
+  const editScroll = await setStableScrollProbe(page, row);
   await dialog.getByRole('button', { name: 'Salvar edição', exact: true }).click();
   await expect(dialog).toBeHidden();
   await expectScrollPreserved(page, editScroll);
@@ -108,7 +112,7 @@ test('edição explícita salva, desfaz e retifica Pendência atomicamente sem b
   await expect(pendencyForm).toHaveClass(/show/);
   await pendencyForm.locator('input[name="pend-erros"]').first().check();
   await pendencyForm.locator('#pend-obs').fill('Lançamento incorreto para homologar retificação auditável.');
-  const pendencySaveScroll = await setStableScrollProbe(page);
+  const pendencySaveScroll = await setStableScrollProbe(page, row);
   await pendencyForm.locator('button[type="submit"]').click();
   await expect(pendencyForm).not.toHaveClass(/show/);
   await expectScrollPreserved(page, pendencySaveScroll);
@@ -131,7 +135,7 @@ test('edição explícita salva, desfaz e retifica Pendência atomicamente sem b
   await expect(submit).toBeDisabled();
   await dialog.getByLabel('Justificativa da retificação').fill('A conferência confirmou erro do operador; o documento original está correto.');
   await testInfo.attach('confirmacao-retificacao.png', { body: await page.screenshot(), contentType: 'image/png' });
-  const formalRetificationScroll = await setStableScrollProbe(page);
+  const formalRetificationScroll = await setStableScrollProbe(page, row);
   const rpcResponse = page.waitForResponse(response => response.url().endsWith('/rpc/retify_verification_with_pendency_cancel'));
   await submit.click();
   const response = await rpcResponse;
