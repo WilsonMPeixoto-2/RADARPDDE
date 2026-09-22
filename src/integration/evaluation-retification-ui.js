@@ -390,6 +390,7 @@
             submit.setAttribute('aria-busy', 'true');
             form.setAttribute('aria-busy', 'true');
             feedback.textContent = 'Salvando alteração…';
+            const scrollSnapshot = root.RadarProntuarioScrollPreservation?.capture?.(root) || null;
 
             try {
                 const service = root.RadarApplicationServices?.verifications;
@@ -433,7 +434,7 @@
                     reload.textContent = 'Atualizar página';
                     reload.addEventListener('click', () => root.location.reload());
                     feedback.appendChild(reload);
-                    reload.focus();
+                    reload.focus({ preventScroll: true });
                     return;
                 }
                 closeModal(root);
@@ -462,6 +463,8 @@
                 refresh();
                 feedback.textContent = text(error?.message) || 'Não foi possível salvar a edição. Sua alteração não foi confirmada. Tente novamente.';
                 feedback.setAttribute('role', 'alert');
+            } finally {
+                root.RadarProntuarioScrollPreservation?.restore?.(root, scrollSnapshot);
             }
         });
 
