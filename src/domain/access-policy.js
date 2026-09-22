@@ -17,6 +17,7 @@
         REGISTER_PENDENCY_CONTACT: 'registerPendencyContact',
         CANCEL_PENDENCY: 'cancelPendency',
         REOPEN_PENDENCY: 'reopenPendency',
+        DELETE_INVOICE_WITH_HISTORY: 'deleteInvoiceWithHistory',
         VIEW_ALL_ADMINISTRATIVE_LOGS: 'viewAllAdministrativeLogs',
         VIEW_OWN_ADMINISTRATIVE_LOGS: 'viewOwnAdministrativeLogs'
     });
@@ -53,6 +54,7 @@
             CAPABILITIES.REGISTER_PENDENCY_CONTACT,
             CAPABILITIES.CANCEL_PENDENCY,
             CAPABILITIES.REOPEN_PENDENCY,
+            CAPABILITIES.DELETE_INVOICE_WITH_HISTORY,
             CAPABILITIES.VIEW_ALL_ADMINISTRATIVE_LOGS
         ]),
         sme: Object.freeze([
