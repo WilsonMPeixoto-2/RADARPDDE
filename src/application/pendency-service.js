@@ -56,6 +56,10 @@
         return Array.isArray(value) ? value : [];
     }
 
+    function programIdOf(record = {}) {
+        return text(record.programaId || record.programId || record.program_id).toUpperCase();
+    }
+
     function rowVersionOf(record) {
         const candidate = record?.rowVersion ?? record?.row_version;
         return Number.isInteger(candidate) && candidate > 0 ? candidate : null;
@@ -526,8 +530,9 @@
                     { registeredInvoiceId: invoice.id }
                 );
             }
+            const programId = programIdOf(invoice) || programIdOf(pendency);
             if (expenseType === 'boleto_internet'
-                && text(pendency.programaId) !== 'CONECTADA') {
+                && programId !== 'CONECTADA') {
                 fail(
                     'DOCUMENT_NOT_APPLICABLE',
                     'Boleto de pagamento de Internet só pode identificar despesa de Educação Conectada.',
@@ -552,8 +557,14 @@
                 pendency,
                 operation
             );
-            const competence = text(pendency.competenciaOrigem || pendency.competencia);
-            const programId = text(pendency.programaId);
+            const competence = text(
+                invoice.competencia
+                || invoice.competenceId
+                || invoice.competence_id
+                || pendency.competenciaOrigem
+                || pendency.competencia
+            );
+            const programId = programIdOf(invoice) || programIdOf(pendency);
             const compKey = `${competence}_${programId}`;
             if (text(invoice.compKey) !== compKey) {
                 fail(
@@ -684,7 +695,7 @@
                     persistence.expectedVerificationVersion = rowVersionOf(verification);
                     persistence.schoolId = pendency.escolaId;
                     persistence.competence = pendency.competenciaOrigem || pendency.competencia;
-                    persistence.programId = pendency.programaId;
+                    persistence.programId = programIdOf(invoice) || programIdOf(pendency);
 
                     const bonificationBefore = cloneValue(verification.bonificacao);
                     const resultBefore = cloneValue(verification.resultadoBonif);
