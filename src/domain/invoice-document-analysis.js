@@ -16,11 +16,14 @@
     ]);
 
     const INVOICE_DOCUMENT_ANALYSIS_SET = new Set(INVOICE_DOCUMENT_ANALYSES);
-    const INVOICE_DOCUMENT_TYPES = new Set([
+    const IDENTIFIED_EXPENSE_TYPES = Object.freeze([
         'consumo',
         'permanente',
         'servico',
-        'boleto_internet',
+        'boleto_internet'
+    ]);
+    const INVOICE_DOCUMENT_TYPES = new Set([
+        ...IDENTIFIED_EXPENSE_TYPES,
         'a_identificar'
     ]);
 
@@ -124,6 +127,7 @@
 
     return Object.freeze({
         INVOICE_DOCUMENT_ANALYSES,
+        IDENTIFIED_EXPENSE_TYPES,
         deriveInvoiceDocumentAnalysis,
         getInvoiceDocumentAnalysis,
         hasExplicitInvoiceDocumentAnalysis,
