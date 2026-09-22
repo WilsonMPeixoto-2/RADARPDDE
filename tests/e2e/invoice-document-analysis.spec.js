@@ -193,8 +193,17 @@ test.describe('Prontuário — análise individual de Notas Fiscais', () => {
       .toHaveCount(0);
     await expect(invoiceRow(page, service1234).locator('.invoice-document-status'))
       .toHaveText('Correto');
-    await expect(invoiceRow(page, service1234).getByRole('button', { name: 'Editar análise' }))
+    const editAnalysisButton = invoiceRow(page, service1234)
+      .getByRole('button', { name: 'Editar análise' });
+    await expect(editAnalysisButton).toBeVisible();
+    await invoiceRow(page, service1234).scrollIntoViewIfNeeded();
+    const beforeEditMode = await contentArea.evaluate(element => element.scrollTop);
+    await editAnalysisButton.click();
+    await expect(invoiceRow(page, service1234).locator('select.invoice-document-analysis-select'))
       .toBeVisible();
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const afterEditMode = await contentArea.evaluate(element => element.scrollTop);
+    expect(Math.abs(afterEditMode - beforeEditMode)).toBeLessThanOrEqual(4);
 
     await markIncorrectAndOpenPendency(
       page,
