@@ -112,6 +112,61 @@ test('refresh adiado é retomado após a edição e só atualiza o relógio depo
     assert.match(events.at(-1).detail.refreshedAt, /^\d{4}-\d{2}-\d{2}T/);
 });
 
+test('refresh automático atualiza a visão sem mover a área de conteúdo', async () => {
+    const area = {
+        scrollTop: 845,
+        scrollLeft: 13,
+        scrollTo({ top, left }) {
+            this.scrollTop = top;
+            this.scrollLeft = left;
+        }
+    };
+    const root = {
+        RadarAuthContext: { user: { id: 'user-1' } },
+        RadarCompetenceContext: { getState: () => ({ activeKey: '2026-08' }) },
+        RadarProntuarioScrollPreservation: {
+            capture() {
+                return { top: area.scrollTop, left: area.scrollLeft };
+            },
+            restore(_root, snapshot) {
+                area.scrollTo(snapshot);
+                return true;
+            }
+        },
+        RadarGlobalCompetenceSelector: {
+            refreshCurrentView() {
+                area.scrollTop = 0;
+                area.scrollLeft = 0;
+            }
+        },
+        document: {
+            querySelectorAll: () => [],
+            activeElement: null,
+            getElementById: () => null
+        },
+        CustomEvent: class {
+            constructor(type, options) {
+                this.type = type;
+                this.detail = options?.detail;
+            }
+        },
+        dispatchEvent() {},
+        console: { warn() {} }
+    };
+    const service = {
+        async loadOperationalContext() {
+            return { stale: false };
+        }
+    };
+    const controller = createController(root, service, { minIntervalMs: 0 });
+
+    const result = await controller.refresh('realtime', { force: true });
+
+    assert.equal(result.stale, false);
+    assert.equal(area.scrollTop, 845);
+    assert.equal(area.scrollLeft, 13);
+});
+
 test('falha de refresh não avança lastRefreshAt nem apaga a necessidade de nova tentativa adiada', async () => {
     let editing = true;
     const root = {
