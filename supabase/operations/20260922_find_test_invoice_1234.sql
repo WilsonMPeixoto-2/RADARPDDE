@@ -1,5 +1,6 @@
 -- Consulta somente leitura para localizar a NF de teste mostrada pelo usuário.
 select
+    count(*) over () as candidatos,
     i.id,
     i.school_id,
     s.designation,
@@ -25,9 +26,4 @@ from public.registered_invoices i
 join public.schools s on s.id = i.school_id
 where lower(i.invoice_number) like '%1234%teste%'
   and lower(i.description) like '%limpeza%caixa%'
-order by i.created_at desc;
-
-select count(*) as candidatos
-from public.registered_invoices i
-where lower(i.invoice_number) like '%1234%teste%'
-  and lower(i.description) like '%limpeza%caixa%';
+order by i.created_at desc;;
