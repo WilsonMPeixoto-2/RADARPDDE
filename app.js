@@ -8543,7 +8543,8 @@ function focusPendencyActionAfterRender(pendencyId, sourceContext, actionName) {
             || preparePendencyActionFallbackFocus(scope, pendencyId, sourceContext);
         if (!target) return;
 
-        if (typeof target.scrollIntoView === 'function') {
+        if (sourceContext.currentView !== 'prontuario'
+            && typeof target.scrollIntoView === 'function') {
             target.scrollIntoView({ block: 'nearest', behavior: 'auto' });
         }
         target.focus({ preventScroll: true });
@@ -8726,14 +8727,19 @@ async function confirmarRegistrarNovoEnvio(event) {
     updateAlertsBell();
 
     if (sourceContext.currentView === 'prontuario') {
-        activeSchoolId = sourceContext.escolaId;
-        activeProntuarioCompetencia = sourceContext.competencia;
-        renderProntuario(sourceContext.escolaId);
-        activateProntuarioTab(
-            CORRECTIVE_SUBMISSION_PRONTUARIO_TABS.has(sourceContext.prontuarioTabId)
-                ? sourceContext.prontuarioTabId
-                : 'tab-verificacoes'
-        );
+        const scrollSnapshot = window.RadarProntuarioScrollPreservation?.capture?.(window) || null;
+        try {
+            activeSchoolId = sourceContext.escolaId;
+            activeProntuarioCompetencia = sourceContext.competencia;
+            renderProntuario(sourceContext.escolaId);
+            activateProntuarioTab(
+                CORRECTIVE_SUBMISSION_PRONTUARIO_TABS.has(sourceContext.prontuarioTabId)
+                    ? sourceContext.prontuarioTabId
+                    : 'tab-verificacoes'
+            );
+        } finally {
+            window.RadarProntuarioScrollPreservation?.restore?.(window, scrollSnapshot);
+        }
     } else {
         activePendencyDetailId = current.id;
         renderPendencias();
@@ -9097,14 +9103,19 @@ async function confirmarReanalisePendencia(event) {
     updateAlertsBell();
 
     if (sourceContext.currentView === 'prontuario') {
-        activeSchoolId = sourceContext.escolaId;
-        activeProntuarioCompetencia = sourceContext.competencia;
-        renderProntuario(sourceContext.escolaId);
-        activateProntuarioTab(
-            CORRECTIVE_SUBMISSION_PRONTUARIO_TABS.has(sourceContext.prontuarioTabId)
-                ? sourceContext.prontuarioTabId
-                : 'tab-verificacoes'
-        );
+        const scrollSnapshot = window.RadarProntuarioScrollPreservation?.capture?.(window) || null;
+        try {
+            activeSchoolId = sourceContext.escolaId;
+            activeProntuarioCompetencia = sourceContext.competencia;
+            renderProntuario(sourceContext.escolaId);
+            activateProntuarioTab(
+                CORRECTIVE_SUBMISSION_PRONTUARIO_TABS.has(sourceContext.prontuarioTabId)
+                    ? sourceContext.prontuarioTabId
+                    : 'tab-verificacoes'
+            );
+        } finally {
+            window.RadarProntuarioScrollPreservation?.restore?.(window, scrollSnapshot);
+        }
     } else {
         activePendencyDetailId = current.id;
         renderPendencias();
