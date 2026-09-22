@@ -89,6 +89,24 @@
         }
     }
 
+    function preserveRadarMetadata(original, wrapped) {
+        Object.getOwnPropertyNames(original || {})
+            .filter(name => name.startsWith('__radar'))
+            .forEach(name => {
+                if (name === WRAPPED_MARKER) return;
+                try {
+                    Object.defineProperty(
+                        wrapped,
+                        name,
+                        Object.getOwnPropertyDescriptor(original, name)
+                    );
+                } catch (_error) {
+                    // Metadado auxiliar não pode impedir a proteção funcional.
+                }
+            });
+        return wrapped;
+    }
+
     function wrapHandler(root, name, required = true) {
         const original = root?.[name];
         if (typeof original !== 'function') return !required;
@@ -97,6 +115,7 @@
         const wrapped = async function evaluationHandlerPreservingScroll(...args) {
             return preserve(root, () => original.apply(this, args));
         };
+        preserveRadarMetadata(original, wrapped);
         Object.defineProperty(wrapped, WRAPPED_MARKER, {
             value: true,
             configurable: false,
@@ -110,14 +129,16 @@
 
     function install(root) {
         if (!root?.document) return false;
-        if (root.__radarProntuarioScrollPreservationInstalled === true) return true;
 
+        // Reentrante de propósito: outros módulos também envolvem esses handlers.
+        // Cada chamada garante que a camada mais externa continue sendo a proteção de rolagem.
         const requiredReady = EVALUATION_HANDLER_NAMES.every(name => wrapHandler(root, name, true));
-        if (!requiredReady) return false;
         OPTIONAL_HANDLER_NAMES.forEach(name => wrapHandler(root, name, false));
 
-        root.__radarProntuarioScrollPreservationInstalled = true;
-        return true;
+        if (requiredReady) {
+            root.__radarProntuarioScrollPreservationInstalled = true;
+        }
+        return requiredReady;
     }
 
     return Object.freeze({
@@ -126,6 +147,7 @@
         capture,
         restore,
         preserve,
+        preserveRadarMetadata,
         wrapHandler,
         install
     });
