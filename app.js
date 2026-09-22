@@ -10956,7 +10956,14 @@ async function savePendencyDrawerEdits() {
         rebuildOperationalIndexes();
         drawer.dataset.mode = 'view';
         renderPendencyDrawer();
-        if (activeSchoolId) renderProntuario(activeSchoolId);
+        if (activeSchoolId) {
+            const scrollSnapshot = window.RadarProntuarioScrollPreservation?.capture?.(window) || null;
+            try {
+                renderProntuario(activeSchoolId);
+            } finally {
+                window.RadarProntuarioScrollPreservation?.restore?.(window, scrollSnapshot);
+            }
+        }
         updateAlertsBell();
         return true;
     } catch (error) {
@@ -11096,13 +11103,18 @@ async function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElem
 }
 
 function beginInvoiceDocumentAnalysisEdit(invoiceId, escolaId) {
-    invoiceAnalysisEditId = String(invoiceId);
-    renderProntuario(escolaId);
-    const selector = document.querySelector(
-        `.invoice-document-row[data-invoice-id="${CSS.escape(String(invoiceId))}"] .invoice-document-analysis-select`
-    );
-    selector?.focus({ preventScroll: true });
-    return true;
+    const scrollSnapshot = window.RadarProntuarioScrollPreservation?.capture?.(window) || null;
+    try {
+        invoiceAnalysisEditId = String(invoiceId);
+        renderProntuario(escolaId);
+        const selector = document.querySelector(
+            `.invoice-document-row[data-invoice-id="${CSS.escape(String(invoiceId))}"] .invoice-document-analysis-select`
+        );
+        selector?.focus({ preventScroll: true });
+        return true;
+    } finally {
+        window.RadarProntuarioScrollPreservation?.restore?.(window, scrollSnapshot);
+    }
 }
 
 async function changeInvoiceDocumentAnalysis(
@@ -11474,20 +11486,25 @@ async function removerNotaRegistrada(notaId, escolaId) {
 async function calcularEFecharBonificacao(escolaId, compKey) {
     const accessProfile = getRadarAccessProfile();
     if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
+    const scrollSnapshot = window.RadarProntuarioScrollPreservation?.capture?.(window) || null;
     try {
-        await radarVerificationService.closeBonification({
-            schoolId: escolaId,
-            compKey,
-            profile: accessProfile
-        });
-    } catch (error) {
-        reportRadarActionError(error, 'Não foi possível consolidar a bonificação.');
+        try {
+            await radarVerificationService.closeBonification({
+                schoolId: escolaId,
+                compKey,
+                profile: accessProfile
+            });
+        } catch (error) {
+            reportRadarActionError(error, 'Não foi possível consolidar a bonificação.');
+            renderProntuario(escolaId);
+            return false;
+        }
         renderProntuario(escolaId);
-        return false;
+        updateAlertsBell();
+        return true;
+    } finally {
+        window.RadarProntuarioScrollPreservation?.restore?.(window, scrollSnapshot);
     }
-    renderProntuario(escolaId);
-    updateAlertsBell();
-    return true;
 }
 
 
@@ -11802,8 +11819,13 @@ async function saveNovaPendencia(e) {
             const existingPendencyId = error.details.existingPendencyId;
             resetNovaPendenciaForm();
             if (sourceView === 'prontuario') {
-                renderProntuario(escolaId);
-                openPendencyDrawer(existingPendencyId);
+                const scrollSnapshot = window.RadarProntuarioScrollPreservation?.capture?.(window) || null;
+                try {
+                    renderProntuario(escolaId);
+                    openPendencyDrawer(existingPendencyId);
+                } finally {
+                    window.RadarProntuarioScrollPreservation?.restore?.(window, scrollSnapshot);
+                }
             } else {
                 openPendencyDetail(existingPendencyId);
                 showPendencyNotice('Já existe uma pendência ativa para este documento.', 'duplicate');
@@ -11826,9 +11848,14 @@ async function saveNovaPendencia(e) {
     resetNovaPendenciaForm();
 
     if (sourceView === 'prontuario') {
-        renderProntuario(escolaId);
-        if (newPend?.registeredInvoiceId || newPend?.registered_invoice_id) {
-            openPendencyDrawer(newPend.id);
+        const scrollSnapshot = window.RadarProntuarioScrollPreservation?.capture?.(window) || null;
+        try {
+            renderProntuario(escolaId);
+            if (newPend?.registeredInvoiceId || newPend?.registered_invoice_id) {
+                openPendencyDrawer(newPend.id);
+            }
+        } finally {
+            window.RadarProntuarioScrollPreservation?.restore?.(window, scrollSnapshot);
         }
     } else {
         renderPendencias();
