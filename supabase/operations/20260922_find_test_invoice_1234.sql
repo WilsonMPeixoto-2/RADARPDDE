@@ -23,11 +23,11 @@ select
     ) as pendencias_vinculadas
 from public.registered_invoices i
 join public.schools s on s.id = i.school_id
-where lower(btrim(i.invoice_number)) = lower('1234 teste')
-  and lower(i.description) like '%limpeza de caixa%'
+where lower(i.invoice_number) like '%1234%teste%'
+  and lower(i.description) like '%limpeza%caixa%'
 order by i.created_at desc;
 
 select count(*) as candidatos
 from public.registered_invoices i
-where lower(btrim(i.invoice_number)) = lower('1234 teste')
-  and lower(i.description) like '%limpeza de caixa%';
+where lower(i.invoice_number) like '%1234%teste%'
+  and lower(i.description) like '%limpeza%caixa%';
