@@ -85,7 +85,8 @@
     "check:architecture": "depcruise src scripts supabase/functions --config .dependency-cruiser.cjs --output-type err-long",
     "test:properties": "node --test tests/unit/property-evaluation-invariants.test.js",
     "test:network-failures": "node --test tests/unit/msw-remote-failures.test.js",
-    "test:sync-hardening": "node --test tests/unit/incremental-state-application.test.js tests/unit/operational-realtime-invalidation.test.js tests/unit/realtime-status-feedback-composition.test.js tests/unit/operational-write-feedback.test.js tests/unit/operational-save-feedback.test.js tests/unit/operational-save-feedback-composition.test.js tests/unit/operational-write-performance-policy.test.js tests/unit/realtime-write-abort-interleaving.test.js tests/unit/product-extensions-loader-resilience.test.js"
+    "test:sync-hardening": "node --test tests/unit/incremental-state-application.test.js tests/unit/operational-realtime-invalidation.test.js tests/unit/realtime-status-feedback-composition.test.js tests/unit/operational-write-feedback.test.js tests/unit/operational-save-feedback.test.js tests/unit/operational-save-feedback-composition.test.js tests/unit/operational-write-performance-policy.test.js tests/unit/realtime-write-abort-interleaving.test.js tests/unit/product-extensions-loader-resilience.test.js",
+    "test:prontuario-position-stability": "node --test tests/unit/prontuario-scroll-preservation.test.js tests/unit/operational-context-refresh.test.js tests/unit/product-extensions-loader-resilience.test.js tests/unit/prontuario-conditional-reconciler.test.js tests/unit/prontuario-inline-write-contract.test.js tests/unit/evaluation-retification.test.js tests/unit/evaluation-retification-atomic.test.js"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
