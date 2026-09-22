@@ -186,6 +186,133 @@ test('Boleto de Internet existe somente como Tipo de Gasto de Notas Fiscais em E
   ).toBeVisible();
 });
 
+test('Despesa a identificar oferece todos os tipos finais e permite identificar Boleto de Internet em Educação Conectada', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+  await page.goto('/');
+  await selectFixtureCompetence(page);
+
+  const context = await page.evaluate(async () => {
+    switchProfile('controlador');
+    const competencia = activeCompetenciaKey;
+    const programaId = 'CONECTADA';
+    const escola = escolas.find(candidate => (
+      Array.isArray(candidate.programasIds)
+      && candidate.programasIds.includes(programaId)
+      && isCompetenceInScope(candidate.competenciaInicial, competencia)
+    ));
+    if (!escola) throw new Error('Fixture sem escola com Educação Conectada.');
+
+    const compKey = `${competencia}_${programaId}`;
+    verificacoes[escola.id] = verificacoes[escola.id] || {};
+    const verification = RadarFluxoOperacional.createEmptyVerification();
+    verification.bonificacao.notaFiscal = 'Não';
+    verification.analise.notaFiscal = 'Não analisado';
+    verificacoes[escola.id][compKey] = verification;
+
+    const created = await window.RadarApplicationServices.invoices.saveUnidentifiedExpenseWithPendency({
+      schoolId: escola.id,
+      compKey,
+      description: 'Débito de conectividade ainda não identificado',
+      expenseType: 'a_identificar',
+      invoiceNumber: '',
+      amount: 179.9,
+      profile: 'controlador',
+      pendencyObservation: 'Aguardando documento que identifique a despesa.'
+    });
+
+    rebuildOperationalIndexes();
+    switchView('pendencias');
+
+    return {
+      escolaId: escola.id,
+      compKey,
+      invoiceId: created.value.invoice.id,
+      pendencyId: created.value.pendency.id
+    };
+  });
+
+  const opened = await page.evaluate(pendencyId => abrirModalRegistrarNovoEnvio(pendencyId), context.pendencyId);
+  expect(opened).toBe(true);
+
+  const modal = page.locator('#modal-registrar-envio');
+  await expect(modal).toHaveClass(/show/);
+  await expect(modal.locator('#envio-identificacao')).toBeVisible();
+
+  const typeSelect = modal.getByLabel('Tipo da despesa', { exact: true });
+  const options = await typeSelect.locator('option').evaluateAll(nodes => nodes
+    .filter(option => option.value)
+    .map(option => ({
+      value: option.value,
+      label: option.textContent.trim(),
+      hidden: option.hidden,
+      disabled: option.disabled
+    })));
+
+  expect(options).toEqual([
+    {
+      value: 'consumo',
+      label: 'Material de Consumo',
+      hidden: false,
+      disabled: false
+    },
+    {
+      value: 'permanente',
+      label: 'Bem Permanente',
+      hidden: false,
+      disabled: false
+    },
+    {
+      value: 'servico',
+      label: 'Prestação de Serviço',
+      hidden: false,
+      disabled: false
+    },
+    {
+      value: 'boleto_internet',
+      label: 'Boleto de pagamento de Internet',
+      hidden: false,
+      disabled: false
+    }
+  ]);
+
+  await typeSelect.selectOption('boleto_internet');
+  await modal.getByLabel('Número ou referência do documento', { exact: true }).fill('BOL-IDENT-17990');
+  await modal.getByLabel('Descrição', { exact: true }).fill('Pagamento mensal de acesso à Internet');
+  await modal.getByLabel('Valor (R$)', { exact: true }).fill('179.90');
+  await modal.getByLabel('Data em que o arquivo foi disponibilizado no Drive', { exact: true }).fill('2026-09-22');
+  await modal.getByLabel('Observação', { exact: true }).fill('Boleto e comprovante apresentados pela escola.');
+  await modal.getByRole('button', {
+    name: 'Registrar e enviar para reanálise',
+    exact: true
+  }).click();
+  await expect(modal).not.toHaveClass(/show/);
+
+  const persisted = await page.evaluate(({ invoiceId, pendencyId }) => {
+    const invoice = notasRegistradas.find(item => String(item.id) === String(invoiceId));
+    const pendency = pendencias.find(item => String(item.id) === String(pendencyId));
+    return {
+      invoiceId: invoice?.id || null,
+      type: invoice?.tipo || null,
+      number: invoice?.numero || null,
+      description: invoice?.desc || invoice?.descricao || null,
+      amount: invoice?.valor ?? null,
+      pendencyId: pendency?.id || null,
+      pendencyStatus: pendency?.status || null
+    };
+  }, context);
+
+  expect(persisted).toEqual({
+    invoiceId: context.invoiceId,
+    type: 'boleto_internet',
+    number: 'BOL-IDENT-17990',
+    description: 'Pagamento mensal de acesso à Internet',
+    amount: 179.9,
+    pendencyId: context.pendencyId,
+    pendencyStatus: 'Aguardando reanálise'
+  });
+});
+
 test('boletoInternet legado permanece armazenado, mas não aparece nem participa da consolidação', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
