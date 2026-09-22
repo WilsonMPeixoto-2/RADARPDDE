@@ -72,3 +72,93 @@ test('não instala sem DOM ou sem o handler de bonificação', () => {
     assert.equal(api.install({}), false);
     assert.equal(api.install({ document: {} }), false);
 });
+
+
+test('todos os handlers de avaliação preservam a posição mesmo se o handler reposicionar o conteúdo', async () => {
+    const handlerNames = [
+        'toggleBonif',
+        'changeAnaliseTecnica',
+        'toggleInvoiceAdvisorySent',
+        'changeInvoiceAdvisoryAnalysis',
+        'toggleConsEnviada',
+        'confirmRetification'
+    ];
+
+    for (const handlerName of handlerNames) {
+        const area = {
+            scrollTop: 937,
+            scrollLeft: 21,
+            scrollTo({ top, left }) {
+                this.scrollTop = top;
+                this.scrollLeft = left;
+            }
+        };
+        const root = {
+            document: {
+                querySelector(selector) {
+                    return selector === 'main.content-area' ? area : null;
+                }
+            },
+            requestAnimationFrame(callback) {
+                callback();
+                return 1;
+            }
+        };
+        root[handlerName] = async () => {
+            area.scrollTop = 0;
+            area.scrollLeft = 0;
+            return true;
+        };
+
+        assert.equal(api.install(root), true, `${handlerName} precisa ser protegido`);
+        await root[handlerName]();
+
+        assert.equal(area.scrollTop, 937, `${handlerName} alterou scrollTop`);
+        assert.equal(area.scrollLeft, 21, `${handlerName} alterou scrollLeft`);
+    }
+});
+
+test('todos os handlers de avaliação restauram posição também quando a operação falha', async () => {
+    const handlerNames = [
+        'toggleBonif',
+        'changeAnaliseTecnica',
+        'toggleInvoiceAdvisorySent',
+        'changeInvoiceAdvisoryAnalysis',
+        'toggleConsEnviada',
+        'confirmRetification'
+    ];
+
+    for (const handlerName of handlerNames) {
+        const area = {
+            scrollTop: 611,
+            scrollLeft: 7,
+            scrollTo({ top, left }) {
+                this.scrollTop = top;
+                this.scrollLeft = left;
+            }
+        };
+        const root = {
+            document: {
+                querySelector(selector) {
+                    return selector === 'main.content-area' ? area : null;
+                }
+            },
+            requestAnimationFrame(callback) {
+                callback();
+                return 1;
+            }
+        };
+        const expected = new Error(`falha-${handlerName}`);
+        root[handlerName] = async () => {
+            area.scrollTop = 0;
+            area.scrollLeft = 0;
+            throw expected;
+        };
+
+        assert.equal(api.install(root), true, `${handlerName} precisa ser protegido`);
+        await assert.rejects(root[handlerName](), error => error === expected);
+
+        assert.equal(area.scrollTop, 611, `${handlerName} perdeu scrollTop após erro`);
+        assert.equal(area.scrollLeft, 7, `${handlerName} perdeu scrollLeft após erro`);
+    }
+});
