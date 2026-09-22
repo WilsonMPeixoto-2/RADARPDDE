@@ -56,16 +56,21 @@
     }
 
     function refreshCurrentView(root) {
-        if (typeof root.RadarGlobalCompetenceSelector?.refreshCurrentView === 'function') {
-            root.RadarGlobalCompetenceSelector.refreshCurrentView();
+        const scrollSnapshot = root.RadarProntuarioScrollPreservation?.capture?.(root) || null;
+        try {
+            if (typeof root.RadarGlobalCompetenceSelector?.refreshCurrentView === 'function') {
+                root.RadarGlobalCompetenceSelector.refreshCurrentView();
+                return true;
+            }
+            if (typeof root.switchView !== 'function') return false;
+            const active = root.document?.querySelector?.('.nav-item.active[data-view]');
+            const view = text(active?.dataset?.view || root.currentView || 'dashboard') || 'dashboard';
+            const schoolId = text(root.activeProntuarioSchoolId || root.currentSchoolId);
+            root.switchView(view, schoolId || undefined);
             return true;
+        } finally {
+            root.RadarProntuarioScrollPreservation?.restore?.(root, scrollSnapshot);
         }
-        if (typeof root.switchView !== 'function') return false;
-        const active = root.document?.querySelector?.('.nav-item.active[data-view]');
-        const view = text(active?.dataset?.view || root.currentView || 'dashboard') || 'dashboard';
-        const schoolId = text(root.activeProntuarioSchoolId || root.currentSchoolId);
-        root.switchView(view, schoolId || undefined);
-        return true;
     }
 
     function hiddenByState(element) {
