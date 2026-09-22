@@ -116,6 +116,7 @@ test('todos os handlers de avaliação preservam a posição mesmo se o handler 
             async changeAnaliseTecnica() { return true; },
             async toggleInvoiceAdvisorySent() { return true; },
             async changeInvoiceAdvisoryAnalysis() { return true; },
+            async changeInvoiceDocumentAnalysis() { return true; },
             async toggleConsEnviada() { return true; }
         };
         root[handlerName] = async (...args) => {
@@ -169,6 +170,7 @@ test('todos os handlers de avaliação restauram posição também quando a oper
             async changeAnaliseTecnica() { return true; },
             async toggleInvoiceAdvisorySent() { return true; },
             async changeInvoiceAdvisoryAnalysis() { return true; },
+            async changeInvoiceDocumentAnalysis() { return true; },
             async toggleConsEnviada() { return true; }
         };
         const expected = new Error(`falha-${handlerName}`);
