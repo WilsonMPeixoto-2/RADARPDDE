@@ -16,7 +16,9 @@ function createHarness({
     omitCapabilityOnce = [],
     remoteMode = true,
     administrativeLogInstallResult = true,
-    writeFeedbackInstallResult = true
+    writeFeedbackInstallResult = true,
+    conditionalReconcilerInstallResult = true,
+    scrollPreservationInstallResult = true
 } = {}) {
     const requested = [];
     const failedOnce = new Set(failOnce);
@@ -114,6 +116,18 @@ function createHarness({
                     if (node.src.endsWith('/operational-write-feedback.js')
                         && !omittedCapabilityOnce.delete(node.src)) {
                         root.RadarOperationalWriteFeedback = { install: () => writeFeedbackInstallResult };
+                    }
+                    if (node.src.endsWith('/prontuario-conditional-reconciler.js')
+                        && !omittedCapabilityOnce.delete(node.src)) {
+                        root.RadarProntuarioConditionalReconciler = {
+                            install: () => conditionalReconcilerInstallResult
+                        };
+                    }
+                    if (node.src.endsWith('/prontuario-scroll-preservation.js')
+                        && !omittedCapabilityOnce.delete(node.src)) {
+                        root.RadarProntuarioScrollPreservation = {
+                            install: () => scrollPreservationInstallResult
+                        };
                     }
                     if (node.src.endsWith('/service-advisory-pendency.js')) {
                         root.RadarServiceAdvisoryPendency = { install: () => true };
@@ -264,7 +278,9 @@ test('reexecução concorrente durante a carga não pode mascarar falha crítica
 
 for (const criticalSyncModule of [
     '/src/integration/operational-realtime-invalidation.js',
-    '/src/integration/operational-write-feedback.js'
+    '/src/integration/operational-write-feedback.js',
+    '/src/integration/prontuario-conditional-reconciler.js',
+    '/src/integration/prontuario-scroll-preservation.js'
 ]) {
     test(`falha em ${criticalSyncModule} mantém readiness falso até recuperação`, async () => {
         const harness = createHarness({ failOnce: [criticalSyncModule] });
@@ -288,7 +304,9 @@ for (const criticalSyncModule of [
 
 for (const criticalSyncModule of [
     '/src/integration/operational-realtime-invalidation.js',
-    '/src/integration/operational-write-feedback.js'
+    '/src/integration/operational-write-feedback.js',
+    '/src/integration/prontuario-conditional-reconciler.js',
+    '/src/integration/prontuario-scroll-preservation.js'
 ]) {
     test(`carregamento sem API de ${criticalSyncModule} falha fechado e é recuperável`, async () => {
         const harness = createHarness({ omitCapabilityOnce: [criticalSyncModule] });
@@ -312,6 +330,22 @@ for (const criticalSyncModule of [
         );
     });
 }
+
+test('reconciliador carregado mas não instalável impede readiness', async () => {
+    const harness = createHarness({ conditionalReconcilerInstallResult: false });
+
+    const ready = await settleWithin(harness.executeBootstrap());
+
+    assert.equal(ready, 'timeout');
+});
+
+test('proteção de scroll carregada mas não instalável impede readiness', async () => {
+    const harness = createHarness({ scrollPreservationInstallResult: false });
+
+    const ready = await settleWithin(harness.executeBootstrap());
+
+    assert.equal(ready, 'timeout');
+});
 
 test('feedback pós-write carregado mas não instalável mantém readiness falso', async () => {
     const harness = createHarness({ writeFeedbackInstallResult: false });
