@@ -1,0 +1,72 @@
+name: Remover lançamento de teste NF 1234
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "supabase/operations/20260922_remove_test_invoice_1234.sql"
+      - ".github/workflows/remove-test-invoice-1234.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-test-invoice-cleanup-1234
+  cancel-in-progress: false
+
+jobs:
+  cleanup-production:
+    name: Remover e verificar lançamento de teste em Production
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      SUPABASE_TELEMETRY_DISABLED: '1'
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PGPASS_REMOTE: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      PROJECT_REF: scnryinorqeucbfkioxo
+
+    steps:
+      - name: Obter código sem persistir credenciais
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          check-latest: false
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Validar alvo e credenciais
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${PROJECT_REF}" = 'scnryinorqeucbfkioxo'
+          test -n "${SUPABASE_ACCESS_TOKEN}" || { echo 'SUPABASE_ACCESS_TOKEN ausente.' >&2; exit 1; }
+          test -n "${PGPASS_REMOTE}" || { echo 'SUPABASE_DB_PASSWORD ausente.' >&2; exit 1; }
+
+      - name: Vincular Supabase Production autorizado
+        run: npx --no-install supabase link --project-ref "${PROJECT_REF}" --password "${PGPASS_REMOTE}"
+
+      - name: Remover lançamento de teste e verificar invariantes
+        run: npx --no-install supabase db query --linked --file supabase/operations/20260922_remove_test_invoice_1234.sql
+
+      - name: Registrar resumo sanitizado
+        if: always()
+        run: |
+          {
+            echo '### Limpeza do lançamento de teste NF 1234'
+            echo
+            echo '- Escola: `04.10.001`'
+            echo '- Competência/programa: `2026-09 / BASIC`'
+            echo '- NF de teste: `NF 1234 teste`'
+            echo '- A operação é idempotente e fail-closed.'
+            echo '- NF, Pendência e tentativa vinculada são removidas apenas se todas as guardas previamente auditadas permanecerem válidas.'
+            echo '- A verificação mensal é recomposta pela mesma semântica do domínio do RADAR.'
+          } >> "${GITHUB_STEP_SUMMARY}"
