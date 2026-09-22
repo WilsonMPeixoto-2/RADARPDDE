@@ -1310,11 +1310,20 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     ).fill('2026-07-10');
     await modal.getByLabel('Observação', { exact: true })
       .fill('Novo envio iniciado na aba de pendências da unidade.');
+    const contentArea = page.locator('main.content-area');
+    const beforeSubmissionScroll = await contentArea.evaluate(element => {
+      element.scrollTop = Math.min(500, Math.max(0, element.scrollHeight - element.clientHeight));
+      return element.scrollTop;
+    });
+    expect(beforeSubmissionScroll).toBeGreaterThan(20);
     await modal.getByRole('button', {
       name: 'Registrar e enviar para reanálise',
       exact: true
     }).click();
     await expect(modal).not.toHaveClass(/show/);
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const afterSubmissionScroll = await contentArea.evaluate(element => element.scrollTop);
+    expect(Math.abs(afterSubmissionScroll - beforeSubmissionScroll)).toBeLessThanOrEqual(4);
 
     await expect(page.locator('[data-tab="pendencias"]')).toHaveClass(/active/);
     await expect(page.locator('#tab-pendencias')).toHaveClass(/active/);
@@ -1838,8 +1847,17 @@ test.describe('reanálise atômica da pendência documental no desktop', () => {
     await modal.getByLabel('Resultado da reanálise', { exact: true }).selectOption('correto');
     await modal.getByLabel('Observação da análise', { exact: true })
       .fill('Documento correto confirmado a partir da aba de Pendências.');
+    const contentArea = page.locator('main.content-area');
+    const beforeReanalysisScroll = await contentArea.evaluate(element => {
+      element.scrollTop = Math.min(500, Math.max(0, element.scrollHeight - element.clientHeight));
+      return element.scrollTop;
+    });
+    expect(beforeReanalysisScroll).toBeGreaterThan(20);
     await modal.getByRole('button', { name: 'Confirmar reanálise', exact: true }).click();
     await expect(modal).not.toHaveClass(/show/);
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const afterReanalysisScroll = await contentArea.evaluate(element => element.scrollTop);
+    expect(Math.abs(afterReanalysisScroll - beforeReanalysisScroll)).toBeLessThanOrEqual(4);
 
     const result = await page.evaluate(seeded => {
       const pendency = pendencias.find(item => item.id === seeded.pendencyId);
