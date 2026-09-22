@@ -54,7 +54,7 @@ test.describe('Prontuário — preservação de rolagem na avaliação', () => {
     const before = await contentArea.evaluate(element => element.scrollTop);
     expect(before).toBeGreaterThan(100);
 
-    await naButton.click();
+    await naButton.evaluate(button => button.click());
 
     const refreshedRow = page.locator(
       `#prontuario-verif-rows tr[data-program-id="${context.programaId}"][data-document-key="notaFiscal"]`
@@ -120,7 +120,10 @@ test.describe('Prontuário — preservação de rolagem na avaliação', () => {
     const before = await contentArea.evaluate(element => element.scrollTop);
     expect(before).toBeGreaterThan(100);
 
-    await analysis.selectOption('Correto');
+    await analysis.evaluate(select => {
+      select.value = 'Correto';
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    });
     await expect(analysis).toHaveValue('Correto');
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 
