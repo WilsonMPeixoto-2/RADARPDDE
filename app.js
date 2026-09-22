@@ -9885,6 +9885,7 @@ function schoolContactHistoryHTML(records) {
                                         <span>Atendimento: ${new Date(c.dataAtendimento).toLocaleDateString('pt-BR')} (Registro: ${new Date(c.dataRegistro).toLocaleString('pt-BR')})</span>
                                     </div>
                                     <div class="contact-desc">${escapeHtml(c.desc)}</div>
+                                    ${(c.responsavel || c.usuario) ? `<div class="contact-author">Registrado por ${escapeHtml(c.responsavel || c.usuario)}</div>` : ''}
                                 </div>
                             `).join('');
 }
@@ -9904,7 +9905,11 @@ async function loadProntuarioContactHistory(panel) {
             tipo: record.contact_type,
             dataAtendimento: record.contact_date,
             dataRegistro: record.created_at || record.payload?.dataRegistro || record.contact_date,
-            desc: record.description || record.payload?.desc || ''
+            desc: record.description || record.payload?.desc || '',
+            responsavel: record.payload?.responsavel
+                || record.payload?.usuario
+                || record.created_by_name
+                || ''
         }));
         const fragment = document.createDocumentFragment();
         if (!legacy.length) {
@@ -9927,6 +9932,12 @@ async function loadProntuarioContactHistory(panel) {
             description.className = 'contact-desc';
             description.textContent = contact.desc;
             card.append(meta, description);
+            if (contact.responsavel) {
+                const author = document.createElement('div');
+                author.className = 'contact-author';
+                author.textContent = `Registrado por ${contact.responsavel}`;
+                card.appendChild(author);
+            }
             fragment.appendChild(card);
         });
         timeline.replaceChildren(fragment);
