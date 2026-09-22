@@ -289,6 +289,26 @@
                     });
                 }
 
+                if (value.privilegedHistoricalDelete === true) {
+                    return repository.executeRpc('delete_invoice_with_history', {
+                        p_invoice_id: value.removedInvoice.id,
+                        p_expected_invoice_version: value.removedInvoice.rowVersion
+                            || value.removedInvoice.row_version
+                            || null,
+                        p_expected_pendencies: cloneValue(value.expectedPendencies || []),
+                        p_delete_linked_asset: Boolean(value.removedAssetId),
+                        p_expected_asset_version: value.removedAsset?.rowVersion
+                            || value.removedAsset?.row_version
+                            || null,
+                        p_verification_patch: verificationPatch,
+                        p_expected_verification_version: value.verification
+                            ? (value.verification.rowVersion || value.verification.row_version || null)
+                            : null,
+                        p_justification: value.deletionJustification,
+                        p_administrative_log: administrativeLog
+                    }, 'deleteInvoiceWithHistory');
+                }
+
                 return repository.deleteInvoiceWithEffects({
                     invoiceId: value.removedInvoice.id,
                     expectedInvoiceVersion: value.removedInvoice.rowVersion
@@ -1279,18 +1299,47 @@
                     { id: invoiceId }
                 );
             }
+
             const initialInvoice = initialState.registeredInvoices[initialIndex];
-            this.assertOrdinaryUnidentifiedMutationAllowed(initialInvoice, 'invoice:remove');
-            this.assertDeletionHistorySafe(initialState, invoiceId);
+            const history = this.invoicePendencyHistory(initialState, invoiceId);
+            const requiresPrivilegedDeletion = history.length > 0 || isUnidentifiedExpense(initialInvoice);
+            const authenticatedRole = text(input.authenticatedRole).toLocaleLowerCase('pt-BR');
+            const privilegedHistoricalDelete = input.allowHistoryDeletion === true
+                && requiresPrivilegedDeletion
+                && ['technical_admin', 'federal_assistant'].includes(authenticatedRole);
+
+            if (input.allowHistoryDeletion === true && requiresPrivilegedDeletion && !privilegedHistoricalDelete) {
+                fail(
+                    'FORBIDDEN',
+                    'A exclusão excepcional de lançamento com histórico é restrita ao Administrador Técnico e à Assistente de Verbas Federais.',
+                    'invoice:remove',
+                    { invoiceId, authenticatedRole }
+                );
+            }
+            if (privilegedHistoricalDelete && !text(input.justification)) {
+                fail(
+                    'VALIDATION_FAILED',
+                    'A justificativa é obrigatória para excluir lançamento com histórico.',
+                    'invoice:remove',
+                    { invoiceId }
+                );
+            }
+            if (!privilegedHistoricalDelete) {
+                this.assertOrdinaryUnidentifiedMutationAllowed(initialInvoice, 'invoice:remove');
+                this.assertDeletionHistorySafe(initialState, invoiceId);
+            }
+
             const initialContext = this.getContext(initialState, {
                 schoolId: input.schoolId || initialInvoice.escolaId,
                 compKey: initialInvoice.compKey
             }, 'invoice:remove');
-            this.assertVerificationEditable(
-                initialContext.verification,
-                profile,
-                'invoice:remove'
-            );
+            if (!privilegedHistoricalDelete) {
+                this.assertVerificationEditable(
+                    initialContext.verification,
+                    profile,
+                    'invoice:remove'
+                );
+            }
 
             const contextInvoices = initialState.registeredInvoices.filter(invoice => (
                 invoice.escolaId === initialContext.schoolId
@@ -1314,7 +1363,7 @@
                 verification: initialContext.verification,
                 school: initialContext.school,
                 program: initialContext.program,
-                profile,
+                profile: privilegedHistoricalDelete ? 'assistente' : profile,
                 request: {
                     schoolId: initialContext.schoolId,
                     compKey: initialContext.compKey,
@@ -1323,11 +1372,24 @@
                 }
             });
             const verificationId = `${initialContext.schoolId}::${initialContext.context.competence}::${initialContext.context.programId}`;
+            const expectedPendencies = history.map(pendency => ({
+                id: text(pendency.id),
+                row_version: rowVersionOf(pendency)
+            }));
 
             return this.dataService.execute({
-                name: 'invoice:remove',
+                name: privilegedHistoricalDelete
+                    ? 'invoice:remove-with-history'
+                    : 'invoice:remove',
                 remoteRefreshExemptEntities: ['administrativeLogs'],
-                changedEntities: [...plan.changedEntities],
+                changedEntities: privilegedHistoricalDelete
+                    ? [...new Set([
+                        ...plan.changedEntities,
+                        'pendencies',
+                        'pendencyAttempts',
+                        'pendencyContacts'
+                    ])]
+                    : [...plan.changedEntities],
                 remoteCommitIsAuthoritative: true,
                 persist: this.createPersistence('remove'),
                 mutate: () => {
@@ -1347,6 +1409,23 @@
                         compKey: invoice.compKey
                     }, 'invoice:remove');
 
+                    if (privilegedHistoricalDelete) {
+                        const pendencyIds = new Set(expectedPendencies.map(item => item.id));
+                        state.pendencies.splice(
+                            0,
+                            state.pendencies.length,
+                            ...state.pendencies.filter(pendency => !pendencyIds.has(text(pendency.id)))
+                        );
+                        if (Array.isArray(state.contacts)) {
+                            state.contacts.forEach(contact => {
+                                if (pendencyIds.has(text(contact.pendenciaId || contact.pendency_id))) {
+                                    contact.pendenciaId = null;
+                                    if ('pendency_id' in contact) contact.pendency_id = null;
+                                }
+                            });
+                        }
+                    }
+
                     if (invoice.bemId) {
                         state.assets.splice(
                             0,
@@ -1363,10 +1442,14 @@
                         );
                     }
 
-                    const auditLog = this.appendLog(
-                        plan.auditDescriptor.action,
-                        plan.auditDescriptor.details
-                    );
+                    const justification = text(input.justification);
+                    const logAction = privilegedHistoricalDelete
+                        ? 'Lançamento Excluído com Histórico'
+                        : plan.auditDescriptor.action;
+                    const logDetails = privilegedHistoricalDelete
+                        ? `${plan.auditDescriptor.details} Exclusão excepcional auditada. Justificativa: ${justification}. Pendências removidas: ${expectedPendencies.map(item => item.id).join(', ') || 'nenhuma'}.`
+                        : plan.auditDescriptor.details;
+                    const auditLog = this.appendLog(logAction, logDetails);
                     return {
                         operation: 'remove',
                         removedInvoice: cloneValue(plan.invoice),
@@ -1380,6 +1463,9 @@
                         verificationId,
                         auditLog: cloneValue(auditLog),
                         resetFiscalAnalysis: Boolean(plan.resetFiscalAnalysis),
+                        privilegedHistoricalDelete,
+                        expectedPendencies: cloneValue(expectedPendencies),
+                        deletionJustification: justification || null,
                         unchanged: false
                     };
                 }
