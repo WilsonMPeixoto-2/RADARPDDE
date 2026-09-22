@@ -20,6 +20,22 @@ async function settleWrites(page) {
   await page.evaluate(() => window.RadarApplicationServices.data.remoteExecutionTail);
 }
 
+async function setStableScrollProbe(page) {
+  const contentArea = page.locator('main.content-area');
+  const before = await contentArea.evaluate(element => {
+    element.scrollTop = Math.min(700, Math.max(0, element.scrollHeight - element.clientHeight));
+    return element.scrollTop;
+  });
+  expect(before).toBeGreaterThan(50);
+  return { contentArea, before };
+}
+
+async function expectScrollPreserved(page, probe) {
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const after = await probe.contentArea.evaluate(element => element.scrollTop);
+  expect(Math.abs(after - probe.before)).toBeLessThanOrEqual(4);
+}
+
 async function verification(page) {
   return page.evaluate(async () => {
     const { data, error } = await window.RadarSessionContext.service.client.from('verifications')
@@ -54,9 +70,11 @@ test('edição explícita salva, desfaz e retifica Pendência atomicamente sem b
   await expect(sim).toHaveClass(/active-sim/);
   await expect.poll(async () => (await verification(page)).bonification.extCC).toBe('Sim');
 
+  const directAnalysisScroll = await setStableScrollProbe(page);
   await row.locator('select.select-analise').selectOption('Correto');
   await settleWrites(page);
   await expect(row.locator('select.select-analise')).toHaveValue('Correto');
+  await expectScrollPreserved(page, directAnalysisScroll);
   await expect.poll(async () => (await verification(page)).analysis.extCC).toBe('Correto');
 
   await row.getByRole('button', { name: 'Editar análise', exact: true }).click();
@@ -64,8 +82,10 @@ test('edição explícita salva, desfaz e retifica Pendência atomicamente sem b
   await expect(dialog).toContainText('Registrar novo envio');
   await dialog.getByLabel('Nova análise técnica').selectOption('Não analisado');
   await expect(dialog.locator('.evaluation-retification-preview')).toHaveText('Correto → Não analisado');
+  const editScroll = await setStableScrollProbe(page);
   await dialog.getByRole('button', { name: 'Salvar edição', exact: true }).click();
   await expect(dialog).toBeHidden();
+  await expectScrollPreserved(page, editScroll);
   await expect(row.locator('select.select-analise')).toHaveValue('Não analisado');
   await expect.poll(async () => (await verification(page)).analysis.extCC).toBe('Não analisado');
 
@@ -111,6 +131,7 @@ test('edição explícita salva, desfaz e retifica Pendência atomicamente sem b
   await expect(submit).toBeDisabled();
   await dialog.getByLabel('Justificativa da retificação').fill('A conferência confirmou erro do operador; o documento original está correto.');
   await testInfo.attach('confirmacao-retificacao.png', { body: await page.screenshot(), contentType: 'image/png' });
+  const formalRetificationScroll = await setStableScrollProbe(page);
   const rpcResponse = page.waitForResponse(response => response.url().endsWith('/rpc/retify_verification_with_pendency_cancel'));
   await submit.click();
   const response = await rpcResponse;
@@ -122,6 +143,7 @@ test('edição explícita salva, desfaz e retifica Pendência atomicamente sem b
   expect(saved.administrative_log.action).toBe('Avaliação técnica retificada');
   await expect(dialog).toBeHidden();
   await expect(row.locator('select.select-analise')).toHaveValue('Correto');
+  await expectScrollPreserved(page, formalRetificationScroll);
   await expect(page.locator('#pendency-notice')).toContainText('Avaliação retificada e Pendência anulada com sucesso.');
   await expect.poll(async () => (await verification(page)).row_version).toBe(saved.verification.row_version);
   await page.reload();
