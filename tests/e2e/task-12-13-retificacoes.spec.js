@@ -86,6 +86,12 @@ test.describe('Tasks 12–13 — retificação administrativa auditável', () =>
 
     await expect(dialog.getByTestId('retification-preview')).toContainText('Extrato Investimento');
     await expect(dialog.getByTestId('retification-preview')).toContainText('Não → Sim');
+    const contentArea = page.locator('main.content-area');
+    const beforeScroll = await contentArea.evaluate(element => {
+      element.scrollTop = Math.min(700, Math.max(0, element.scrollHeight - element.clientHeight));
+      return element.scrollTop;
+    });
+    expect(beforeScroll).toBeGreaterThan(50);
     await dialog.getByRole('button', { name: 'Confirmar retificação' }).click();
 
     const history = page.locator('.retification-history-panel').first();
@@ -94,6 +100,9 @@ test.describe('Tasks 12–13 — retificação administrativa auditável', () =>
       'Correção do lançamento após conferência administrativa do documento apresentado.',
       { exact: true }
     )).toBeVisible();
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const afterScroll = await contentArea.evaluate(element => element.scrollTop);
+    expect(Math.abs(afterScroll - beforeScroll)).toBeLessThanOrEqual(4);
 
     const result = await page.evaluate(({ schoolId, compKey }) => {
       const verification = verificacoes[schoolId][compKey];
