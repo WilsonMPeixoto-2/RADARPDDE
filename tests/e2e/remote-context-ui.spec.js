@@ -52,7 +52,8 @@ test('histórico consulta contatos somente ao abrir e apresenta registro sem pen
       async readSchoolContacts(id) {
         window.__contactReads.push(id);
         return [{ id: 'standalone', school_id: id, pendency_id: null, contact_type: 'E-mail',
-          contact_date: '2025-02-01', created_at: '2025-02-01T12:00:00Z', description: 'Contato histórico <img src=x>' }];
+          contact_date: '2025-02-01', created_at: '2025-02-01T12:00:00Z', description: 'Contato histórico <img src=x>',
+          payload: { responsavel: 'Luísa Ferreira', perfil: 'Assistente de Verbas Federais' } }];
       }
     } });
   });
@@ -60,6 +61,8 @@ test('histórico consulta contatos somente ao abrir e apresenta registro sem pen
   await page.getByRole('tab', { name: 'Histórico de Contatos', exact: true }).click();
   await expect(page.locator('#tab-contatos .contact-desc')).toHaveText('Contato histórico <img src=x>');
   await expect(page.locator('#tab-contatos .contact-desc')).toBeVisible();
+  await expect(page.locator('#tab-contatos .contact-author')).toHaveText('Registrado por Luísa Ferreira');
+  await expect(page.locator('#tab-contatos .contact-author')).toBeVisible();
   await page.locator('#tab-contatos .contact-desc').scrollIntoViewIfNeeded();
   await expect(page.locator('#tab-contatos img')).toHaveCount(0);
   expect(await page.evaluate(() => window.__contactReads)).toEqual([schoolId]);
