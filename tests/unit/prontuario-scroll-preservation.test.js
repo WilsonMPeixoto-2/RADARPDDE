@@ -33,6 +33,7 @@ function createRoot(handler) {
         async changeAnaliseTecnica() { return true; },
         async toggleInvoiceAdvisorySent() { return true; },
         async changeInvoiceAdvisoryAnalysis() { return true; },
+        async changeInvoiceDocumentAnalysis() { return true; },
         async toggleConsEnviada() { return true; }
     };
     return { root, area, calls };
@@ -86,6 +87,7 @@ test('todos os handlers de avaliação preservam a posição mesmo se o handler 
         'changeAnaliseTecnica',
         'toggleInvoiceAdvisorySent',
         'changeInvoiceAdvisoryAnalysis',
+        'changeInvoiceDocumentAnalysis',
         'toggleConsEnviada',
         'confirmRetification'
     ];
@@ -139,6 +141,7 @@ test('todos os handlers de avaliação restauram posição também quando a oper
         'changeAnaliseTecnica',
         'toggleInvoiceAdvisorySent',
         'changeInvoiceAdvisoryAnalysis',
+        'changeInvoiceDocumentAnalysis',
         'toggleConsEnviada',
         'confirmRetification'
     ];
