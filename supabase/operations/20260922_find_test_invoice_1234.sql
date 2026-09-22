@@ -1,25 +1,33 @@
--- Consulta somente leitura do contexto mensal da NF de teste.
+-- Preflight sem escrita: simula contexto Auth técnico e reverte a transação.
+begin;
+
+select set_config(
+  'request.jwt.claim.sub',
+  (
+    select up.user_id::text
+    from public.user_profiles up
+    where up.profile_id = 'technical_admin'
+      and up.active = true
+    order by up.created_at
+    limit 1
+  ),
+  true
+);
+
+select set_config('request.jwt.claim.role', 'authenticated', true);
+
+select set_config(
+  'request.jwt.claims',
+  jsonb_build_object(
+    'sub', current_setting('request.jwt.claim.sub', true),
+    'role', 'authenticated'
+  )::text,
+  true
+);
+
 select
-    v.id as verification_id,
-    v.row_version as verification_row_version,
-    v.bonus_result,
-    v.analysis,
-    v.bonification,
-    (
-      select coalesce(jsonb_agg(jsonb_build_object(
-        'id', i.id,
-        'expense_type', i.expense_type,
-        'invoice_number', i.invoice_number,
-        'description', i.description,
-        'row_version', i.row_version,
-        'analiseDocumentoFiscal', coalesce(i.payload ->> 'analiseDocumentoFiscal', ''),
-        'consultaAssessoriaEnviada', coalesce(i.payload ->> 'consultaAssessoriaEnviada', ''),
-        'analiseConsultaAssessoria', coalesce(i.payload ->> 'analiseConsultaAssessoria', '')
-      ) order by i.created_at), '[]'::jsonb)
-      from public.registered_invoices i
-      where i.school_id = '04.10.001'
-        and i.competence_id = '2026-09'
-        and i.program_id = 'BASIC'
-    ) as invoices_contexto
-from public.verifications v
-where v.id = '04.10.001::2026-09::BASIC';
+  (auth.uid() is not null) as auth_uid_present,
+  public.current_app_role() as app_role,
+  public.can_write_school('04.10.001') as can_write_target_school;
+
+rollback;
