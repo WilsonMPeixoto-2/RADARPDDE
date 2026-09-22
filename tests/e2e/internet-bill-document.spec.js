@@ -353,6 +353,90 @@ test('Despesa a identificar oferece todos os tipos finais e permite identificar 
   });
 });
 
+test('Despesa a identificar pode ser convertida em Bem Permanente preservando o item patrimonial canônico', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+  await page.goto('/');
+  await selectFixtureCompetence(page);
+
+  const context = await page.evaluate(async () => {
+    switchProfile('controlador');
+    const competencia = activeCompetenciaKey;
+    const programaId = 'BASIC';
+    const escola = escolas.find(candidate => (
+      Array.isArray(candidate.programasIds)
+      && candidate.programasIds.includes(programaId)
+      && isCompetenceInScope(candidate.competenciaInicial, competencia)
+    ));
+    if (!escola) throw new Error('Fixture sem escola com PDDE Básico.');
+
+    const compKey = `${competencia}_${programaId}`;
+    verificacoes[escola.id] = verificacoes[escola.id] || {};
+    const verification = RadarFluxoOperacional.createEmptyVerification();
+    verification.bonificacao.notaFiscal = 'Não';
+    verification.analise.notaFiscal = 'Não analisado';
+    verificacoes[escola.id][compKey] = verification;
+
+    const created = await window.RadarApplicationServices.invoices.saveUnidentifiedExpenseWithPendency({
+      schoolId: escola.id,
+      compKey,
+      description: 'Débito de patrimônio ainda não identificado',
+      expenseType: 'a_identificar',
+      invoiceNumber: '',
+      amount: 200,
+      profile: 'controlador',
+      pendencyObservation: 'Aguardando Nota Fiscal do bem.'
+    });
+
+    rebuildOperationalIndexes();
+    switchView('pendencias');
+    return {
+      invoiceId: created.value.invoice.id,
+      pendencyId: created.value.pendency.id
+    };
+  });
+
+  expect(await page.evaluate(pendencyId => abrirModalRegistrarNovoEnvio(pendencyId), context.pendencyId)).toBe(true);
+
+  const modal = page.locator('#modal-registrar-envio');
+  await modal.getByLabel('Tipo da despesa', { exact: true }).selectOption('permanente');
+  await modal.getByLabel('Número ou referência do documento', { exact: true }).fill('116');
+  await modal.getByLabel('Descrição', { exact: true }).fill('4 CAIXAS DE SOM');
+  await modal.getByLabel('Valor (R$)', { exact: true }).fill('200');
+  await modal.getByLabel('Data em que o arquivo foi disponibilizado no Drive', { exact: true }).fill('2026-09-22');
+  await modal.getByLabel('Observação', { exact: true }).fill('Nota Fiscal apresentada pela escola.');
+  await modal.getByRole('button', {
+    name: 'Registrar e enviar para reanálise',
+    exact: true
+  }).click();
+  await expect(modal).not.toHaveClass(/show/);
+
+  const persisted = await page.evaluate(({ invoiceId, pendencyId }) => {
+    const invoice = notasRegistradas.find(item => String(item.id) === String(invoiceId));
+    const asset = bens.find(item => String(item.id) === String(invoice?.bemId));
+    const pendency = pendencias.find(item => String(item.id) === String(pendencyId));
+    return {
+      type: invoice?.tipo || null,
+      number: invoice?.numero || null,
+      assetId: invoice?.bemId || null,
+      assetDescription: asset?.descricao || asset?.item || null,
+      assetType: asset?.tipo || null,
+      assetAmount: asset?.valor ?? null,
+      pendencyStatus: pendency?.status || null
+    };
+  }, context);
+
+  expect(persisted).toEqual({
+    type: 'permanente',
+    number: '116',
+    assetId: expect.any(String),
+    assetDescription: 'PDDE Básico - 4 CAIXAS DE SOM',
+    assetType: 'permanente',
+    assetAmount: 200,
+    pendencyStatus: 'Aguardando reanálise'
+  });
+});
+
 test('boletoInternet legado permanece armazenado, mas não aparece nem participa da consolidação', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
