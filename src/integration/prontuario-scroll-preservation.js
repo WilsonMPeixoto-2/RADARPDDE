@@ -17,6 +17,7 @@
         'changeAnaliseTecnica',
         'toggleInvoiceAdvisorySent',
         'changeInvoiceAdvisoryAnalysis',
+        'changeInvoiceDocumentAnalysis',
         'toggleConsEnviada'
     ]);
     const OPTIONAL_HANDLER_NAMES = Object.freeze([
@@ -82,6 +83,7 @@
             else if (name === 'changeAnaliseTecnica') changeAnaliseTecnica = wrapped;
             else if (name === 'toggleInvoiceAdvisorySent') toggleInvoiceAdvisorySent = wrapped;
             else if (name === 'changeInvoiceAdvisoryAnalysis') changeInvoiceAdvisoryAnalysis = wrapped;
+            else if (name === 'changeInvoiceDocumentAnalysis') changeInvoiceDocumentAnalysis = wrapped;
             else if (name === 'toggleConsEnviada') toggleConsEnviada = wrapped;
             else if (name === 'confirmRetification') confirmRetification = wrapped;
         } catch (_error) {
