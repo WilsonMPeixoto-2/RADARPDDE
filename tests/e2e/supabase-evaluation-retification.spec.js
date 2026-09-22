@@ -70,11 +70,9 @@ test('edição explícita salva, desfaz e retifica Pendência atomicamente sem b
   await expect(sim).toHaveClass(/active-sim/);
   await expect.poll(async () => (await verification(page)).bonification.extCC).toBe('Sim');
 
-  const directAnalysisScroll = await setStableScrollProbe(page);
   await row.locator('select.select-analise').selectOption('Correto');
   await settleWrites(page);
   await expect(row.locator('select.select-analise')).toHaveValue('Correto');
-  await expectScrollPreserved(page, directAnalysisScroll);
   await expect.poll(async () => (await verification(page)).analysis.extCC).toBe('Correto');
 
   await row.getByRole('button', { name: 'Editar análise', exact: true }).click();
@@ -110,8 +108,10 @@ test('edição explícita salva, desfaz e retifica Pendência atomicamente sem b
   await expect(pendencyForm).toHaveClass(/show/);
   await pendencyForm.locator('input[name="pend-erros"]').first().check();
   await pendencyForm.locator('#pend-obs').fill('Lançamento incorreto para homologar retificação auditável.');
+  const pendencySaveScroll = await setStableScrollProbe(page);
   await pendencyForm.locator('button[type="submit"]').click();
   await expect(pendencyForm).not.toHaveClass(/show/);
+  await expectScrollPreserved(page, pendencySaveScroll);
   await expect(pendencyForm).toHaveAttribute('aria-hidden', 'true');
   await expect.poll(async () => (await verification(page)).analysis.extCC).toBe('Incorreto');
   const viewPendency = row.getByRole('button', { name: 'Visualizar pendência', exact: true });
