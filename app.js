@@ -5234,7 +5234,12 @@ function blockConsolidatedFiscalNoteMutation(escolaId, compProgKey) {
     }
 
     alert('Esta competência está consolidada. Apenas o(a) Assistente de Verbas Federais pode incluir, editar ou excluir Notas Fiscais.');
-    renderProntuario(escolaId);
+    const scrollSnapshot = window.RadarProntuarioScrollPreservation?.capture?.(window) || null;
+    try {
+        renderProntuario(escolaId);
+    } finally {
+        window.RadarProntuarioScrollPreservation?.restore?.(window, scrollSnapshot);
+    }
     return true;
 }
 
@@ -11278,9 +11283,14 @@ async function salvarDadosNota(e = {}) {
                 alert('Aviso: O bem permanente foi registrado no inventário, mas a escola não tem Processo de Inventário cadastrado. A equipe de inventário não poderá tombá-lo até que você cadastre o processo da escola.');
             }
             closeModal('modal-dados-nota');
-            renderProntuario(escolaId);
-            if (result.value.pendency?.id) {
-                openPendencyDrawer(result.value.pendency.id);
+            const scrollSnapshot = window.RadarProntuarioScrollPreservation?.capture?.(window) || null;
+            try {
+                renderProntuario(escolaId);
+                if (result.value.pendency?.id) {
+                    openPendencyDrawer(result.value.pendency.id);
+                }
+            } finally {
+                window.RadarProntuarioScrollPreservation?.restore?.(window, scrollSnapshot);
             }
             updateAlertsBell();
             return true;
@@ -11485,7 +11495,12 @@ async function removerNotaRegistrada(notaId, escolaId) {
         if (result.value.resetFiscalAnalysis) {
             alert('Aviso: Como você removeu todas as notas fiscais cadastradas para esta competência/programa, a análise técnica foi redefinida para "Não analisado".');
         }
-        renderProntuario(escolaId);
+        const scrollSnapshot = window.RadarProntuarioScrollPreservation?.capture?.(window) || null;
+        try {
+            renderProntuario(escolaId);
+        } finally {
+            window.RadarProntuarioScrollPreservation?.restore?.(window, scrollSnapshot);
+        }
         updateAlertsBell();
     } catch (error) {
         reportRadarActionError(error, 'Não foi possível remover a nota fiscal.');
