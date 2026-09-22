@@ -619,38 +619,43 @@
             const traceId = takeTrace(root, name);
             const schoolId = schoolIdForHandler(name, args);
             const compKeyBefore = compKeyForHandler(root, name, args);
+            const scrollSnapshot = root.RadarProntuarioScrollPreservation?.capture?.(root) || null;
             const requiresFullProntuarioRender = name === 'toggleBonif'
                 && text(args[2]) === 'notaFiscal';
             const release = requiresFullProntuarioRender
                 ? (() => {})
                 : suppressProntuarioRender(schoolId);
-            let result;
             try {
-                result = await invokeWithTrace(root, traceId, () => original.apply(this, args));
-            } finally {
-                release();
-            }
+                let result;
+                try {
+                    result = await invokeWithTrace(root, traceId, () => original.apply(this, args));
+                } finally {
+                    release();
+                }
 
-            if (result === false) {
-                if (!requiresFullProntuarioRender) forceProntuarioRender(root, schoolId);
-                return false;
-            }
-            if (requiresFullProntuarioRender) {
+                if (result === false) {
+                    if (!requiresFullProntuarioRender) forceProntuarioRender(root, schoolId);
+                    return false;
+                }
+                if (requiresFullProntuarioRender) {
+                    scheduleStable(root, traceId);
+                    return result;
+                }
+
+                const compKey = compKeyBefore || compKeyForHandler(root, name, args);
+                if (compKey) {
+                    markTrace(root, traceId, 'applyStart');
+                    try {
+                        reconcile(root, schoolId, compKey);
+                    } finally {
+                        markTrace(root, traceId, 'applyEnd');
+                    }
+                }
                 scheduleStable(root, traceId);
                 return result;
+            } finally {
+                root.RadarProntuarioScrollPreservation?.restore?.(root, scrollSnapshot);
             }
-
-            const compKey = compKeyBefore || compKeyForHandler(root, name, args);
-            if (compKey) {
-                markTrace(root, traceId, 'applyStart');
-                try {
-                    reconcile(root, schoolId, compKey);
-                } finally {
-                    markTrace(root, traceId, 'applyEnd');
-                }
-            }
-            scheduleStable(root, traceId);
-            return result;
         };
         Object.defineProperty(wrapped, '__radarConditionalReconciler', {
             value: true,
