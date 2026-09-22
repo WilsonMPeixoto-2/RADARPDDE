@@ -5,6 +5,7 @@ const assert = require('node:assert/strict');
 
 const {
     INVOICE_DOCUMENT_ANALYSES,
+    IDENTIFIED_EXPENSE_TYPES,
     deriveInvoiceDocumentAnalysis,
     getInvoiceDocumentAnalysis,
     isInvoiceDocument,
@@ -119,4 +120,14 @@ test('boleto de Internet é documento individual de notaFiscal sem criar identid
     assert.equal(boleto.analiseDocumentoFiscal, 'Incorreto');
     assert.equal(boleto.tipo, 'boleto_internet');
     assert.equal('documentoKey' in boleto, false);
+});
+
+
+test('tipos finais identificáveis permanecem completos e incluem Boleto de pagamento de Internet', () => {
+    assert.deepEqual(IDENTIFIED_EXPENSE_TYPES, [
+        'consumo',
+        'permanente',
+        'servico',
+        'boleto_internet'
+    ]);
 });
