@@ -92,12 +92,19 @@ test.describe('Prontuário — preservação de rolagem na avaliação', () => {
         delete verificacoes[escola.id][`${competencia}_${programId}`];
       });
 
+      const programaId = escola.programasIds[escola.programasIds.length - 1];
+      const verification = RadarFluxoOperacional.createEmptyVerification();
+      verification.bonificacao.extINV = 'Sim';
+      verification.analise.extINV = 'Não analisado';
+      verificacoes[escola.id][`${competencia}_${programaId}`] = verification;
+      rebuildOperationalIndexes();
+
       activeProntuarioCompetencia = competencia;
       switchView('prontuario', escola.id);
 
       return {
         escolaId: escola.id,
-        programaId: escola.programasIds[escola.programasIds.length - 1],
+        programaId,
         competencia
       };
     });
