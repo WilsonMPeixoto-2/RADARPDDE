@@ -50,7 +50,7 @@ A matriz contém **44 operações** distribuídas entre 13 superfícies.
 | `NAV-01` | Abrir rota canônica e retornar preservando contexto | read / P1 | Controlador, Assistente de Verbas Federais, Gestão SME, Equipe de Inventário, Administrador técnico | RadarNavigationContext.navigate/restore → sessionStorage (route, competence, filters, scroll, focus) | Comprovada | Nenhuma; manter regressão |
 | `NAV-02` | Pesquisar escolas, programas, competências e pendências autorizadas | read / P1 | Controlador, Assistente de Verbas Federais, Gestão SME, Equipe de Inventário, Administrador técnico | RadarGlobalSearch.search → state projection (schools, programs, competences, pendencies) | Parcial | Smoke autenticado de leitura |
 
-### Dashboard
+### Painel
 
 | ID | Ação | Modo | Perfis autorizados | Serviço e persistência | Cobertura | Próxima prova |
 |---|---|---|---|---|---|---|
