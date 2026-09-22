@@ -19,9 +19,13 @@ test.describe('Guia do Controlador', () => {
     }
 
     await page.evaluate(() => switchProfile('controlador'));
+    await expect(page.locator('#nav-dashboard')).toContainText('Painel');
+    await expect(page.locator('#nav-dashboard')).not.toContainText('Dashboard');
     await nav.click();
 
     await expect(guide.getByRole('heading', { level: 1, name: 'Guia do Controlador' })).toBeVisible();
+    await expect(guide).toContainText('Painel do Controlador');
+    await expect(guide).toContainText('Abrir Painel');
     await expect(guide.locator('[data-guide-section]')).toHaveCount(16);
 
     for (const content of [

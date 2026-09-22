@@ -94,12 +94,12 @@
                 id: 'guia-comecar',
                 eyebrow: '01 · Comece por aqui',
                 title: 'Entenda o que você vê ao entrar',
-                intro: 'O Dashboard é seu ponto de partida. Ele resume a competência selecionada e ajuda a localizar o que exige ação.',
+                intro: 'O Painel é seu ponto de partida. Ele resume a competência selecionada e ajuda a localizar o que exige ação.',
                 image: SCREENS.dashboard,
-                imageTitle: 'Dashboard do Controlador',
+                imageTitle: 'Painel do Controlador',
                 imageCaption: 'Use o menu à esquerda para mudar de área. No alto, confira a competência, a busca e o sino de alertas.',
                 route: 'dashboard',
-                routeLabel: 'Abrir Dashboard',
+                routeLabel: 'Abrir Painel',
                 body: `
                     <ol class="controller-guide-steps">
                         ${step(1, 'Confira a competência', 'Antes de qualquer lançamento, confirme o mês exibido no seletor de competência no cabeçalho.')}
@@ -159,7 +159,7 @@
                 id: 'guia-competencia',
                 eyebrow: '04 · Trabalhe no mês certo',
                 title: 'Selecione a competência antes de avaliar',
-                intro: 'A competência é global: ao trocar o mês, Dashboard, Carteira, Competências, Prontuário e Pendências passam a trabalhar com o mesmo contexto.',
+                intro: 'A competência é global: ao trocar o mês, Painel, Carteira, Competências, Prontuário e Pendências passam a trabalhar com o mesmo contexto.',
                 image: SCREENS.competencias,
                 imageTitle: 'Competências Mensais',
                 imageCaption: 'A tela mensal permite acompanhar entrega, bonificação, análise técnica e pendências da competência escolhida.',
@@ -408,7 +408,7 @@
                         <div><strong>“Recebi um arquivo corrigido.”</strong><p>Pendências → abra a ocorrência → Registrar novo envio → Reanalisar.</p>${quickAction('Abrir Pendências', 'pendencias')}</div>
                         <div><strong>“Quero registrar uma conversa.”</strong><p>Abra a escola ou a pendência → Registrar Contato.</p>${quickAction('Ir para Carteira', 'escolas')}</div>
                         <div><strong>“Quero saber o que já aconteceu.”</strong><p>Prontuário → Histórico cronológico; ou Registros Internos para a trilha administrativa.</p>${quickAction('Abrir Registros', 'auditoria')}</div>
-                        <div><strong>“Quero localizar uma escola rapidamente.”</strong><p>Use a busca no cabeçalho pelo nome ou designação e abra o resultado.</p>${quickAction('Voltar ao Dashboard', 'dashboard')}</div>
+                        <div><strong>“Quero localizar uma escola rapidamente.”</strong><p>Use a busca no cabeçalho pelo nome ou designação e abra o resultado.</p>${quickAction('Voltar ao Painel', 'dashboard')}</div>
                     </div>
                 `
             })

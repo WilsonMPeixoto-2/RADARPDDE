@@ -15,7 +15,7 @@
     const MAX_FOCUS_RESTORE_FRAMES = 30;
     const CONTEXTUAL_VIEWS = new Set(['prontuario', 'pendencias']);
     const VIEW_LABELS = Object.freeze({
-        dashboard: 'Dashboard',
+        dashboard: 'Painel',
         escolas: 'Carteira',
         competencias: 'Competências',
         pendencias: 'Pendências',
