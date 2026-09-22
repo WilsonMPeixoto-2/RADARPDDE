@@ -1312,7 +1312,17 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
       .fill('Novo envio iniciado na aba de pendências da unidade.');
     const contentArea = page.locator('main.content-area');
     const beforeSubmissionScroll = await contentArea.evaluate(element => {
-      element.scrollTop = Math.min(500, Math.max(0, element.scrollHeight - element.clientHeight));
+      let spacer = element.querySelector('[data-e2e-scroll-spacer="pendency-position"]');
+      if (!spacer) {
+        spacer = document.createElement('div');
+        spacer.dataset.e2eScrollSpacer = 'pendency-position';
+        spacer.setAttribute('aria-hidden', 'true');
+        spacer.style.flex = '0 0 900px';
+        spacer.style.height = '900px';
+        spacer.style.pointerEvents = 'none';
+        element.appendChild(spacer);
+      }
+      element.scrollTop = 500;
       return element.scrollTop;
     });
     expect(beforeSubmissionScroll).toBeGreaterThan(20);
@@ -1849,7 +1859,17 @@ test.describe('reanálise atômica da pendência documental no desktop', () => {
       .fill('Documento correto confirmado a partir da aba de Pendências.');
     const contentArea = page.locator('main.content-area');
     const beforeReanalysisScroll = await contentArea.evaluate(element => {
-      element.scrollTop = Math.min(500, Math.max(0, element.scrollHeight - element.clientHeight));
+      let spacer = element.querySelector('[data-e2e-scroll-spacer="pendency-position"]');
+      if (!spacer) {
+        spacer = document.createElement('div');
+        spacer.dataset.e2eScrollSpacer = 'pendency-position';
+        spacer.setAttribute('aria-hidden', 'true');
+        spacer.style.flex = '0 0 900px';
+        spacer.style.height = '900px';
+        spacer.style.pointerEvents = 'none';
+        element.appendChild(spacer);
+      }
+      element.scrollTop = 500;
       return element.scrollTop;
     });
     expect(beforeReanalysisScroll).toBeGreaterThan(20);
