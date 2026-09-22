@@ -276,6 +276,46 @@ test('Despesa a identificar oferece todos os tipos finais e permite identificar 
     }
   ]);
 
+  const aliasStates = await page.evaluate(pendencyId => {
+    const current = pendencias.find(item => String(item.id) === String(pendencyId));
+    if (!current) throw new Error('Pendência de teste não localizada.');
+
+    const optionState = pendency => {
+      configureRegistrarNovoEnvioIdentification(pendency);
+      const option = document.querySelector(
+        '#envio-identificacao-tipo option[value="boleto_internet"]'
+      );
+      return {
+        hidden: option?.hidden ?? null,
+        disabled: option?.disabled ?? null
+      };
+    };
+
+    const connectedBySnakeCase = {
+      ...current,
+      programaId: undefined,
+      programId: undefined,
+      program_id: 'CONECTADA'
+    };
+    const basicBySnakeCase = {
+      ...current,
+      programaId: undefined,
+      programId: undefined,
+      program_id: 'BASIC'
+    };
+
+    const connected = optionState(connectedBySnakeCase);
+    const basic = optionState(basicBySnakeCase);
+    configureRegistrarNovoEnvioIdentification(current);
+
+    return { connected, basic };
+  }, context.pendencyId);
+
+  expect(aliasStates).toEqual({
+    connected: { hidden: false, disabled: false },
+    basic: { hidden: true, disabled: true }
+  });
+
   await typeSelect.selectOption('boleto_internet');
   await modal.getByLabel('Número ou referência do documento', { exact: true }).fill('BOL-IDENT-17990');
   await modal.getByLabel('Descrição', { exact: true }).fill('Pagamento mensal de acesso à Internet');
