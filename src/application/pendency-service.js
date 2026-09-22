@@ -40,17 +40,13 @@
     }
     const { RepositoryError, cloneValue } = contract;
     const {
+        IDENTIFIED_EXPENSE_TYPES: IDENTIFIED_EXPENSE_TYPE_LIST,
         deriveInvoiceDocumentAnalysis,
         isUnidentifiedExpense,
         normalizeInvoiceDocumentAnalysis
     } = invoiceDocumentAnalysis;
     const { planInvoiceEffects } = invoiceEffects;
-    const IDENTIFIED_EXPENSE_TYPES = new Set([
-        'consumo',
-        'permanente',
-        'servico',
-        'boleto_internet'
-    ]);
+    const IDENTIFIED_EXPENSE_TYPES = new Set(IDENTIFIED_EXPENSE_TYPE_LIST);
 
     function text(value) {
         return value == null ? '' : String(value).trim();
