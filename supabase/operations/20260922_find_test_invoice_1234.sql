@@ -1,6 +1,4 @@
 -- Consulta somente leitura para localizar a NF de teste mostrada pelo usuário.
-\pset pager off
-
 select
     i.id,
     i.school_id,
