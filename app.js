@@ -8391,15 +8391,26 @@ function configureRegistrarNovoEnvioIdentification(pendency) {
 
     const billOption = typeSelect?.querySelector('option[value="boleto_internet"]');
     const programId = String(
-        pendency?.programaId
+        invoice?.programaId
+        || invoice?.programId
+        || invoice?.program_id
+        || pendency?.programaId
         || pendency?.programId
         || pendency?.program_id
+        || String(invoice?.compKey || '').split('_').slice(1).join('_')
         || ''
     ).trim().toUpperCase();
     const isConnected = programId === 'CONECTADA';
     if (billOption) {
-        billOption.hidden = !isConnected;
+        billOption.hidden = false;
         billOption.disabled = !isConnected;
+        billOption.setAttribute('aria-disabled', String(!isConnected));
+    }
+    const typeHint = document.getElementById('envio-identificacao-tipo-hint');
+    if (typeHint) {
+        typeHint.textContent = isConnected
+            ? 'Boleto de pagamento de Internet está disponível porque esta despesa pertence à Educação Conectada.'
+            : 'Boleto de pagamento de Internet é exibido para referência, mas só pode ser selecionado em Educação Conectada.';
     }
     if (typeSelect) typeSelect.value = '';
     const numberInput = document.getElementById('envio-identificacao-numero');
@@ -10310,15 +10321,24 @@ function renderProntuarioVerificacoes(esc) {
                                     `;
                                 }
 
-                                const editControls = canMutateInvoice
+                                const canDeleteHistoricalInvoice = hasRadarCapability(
+                                    window.RadarAccessPolicy.CAPABILITIES.DELETE_INVOICE_WITH_HISTORY
+                                );
+                                const canShowOrdinaryEdit = canMutateInvoice
                                     && !invoicePendency
-                                    && note.tipo !== 'a_identificar'
+                                    && note.tipo !== 'a_identificar';
+                                const canShowDelete = canMutateInvoice
+                                    && (!hasPendencyHistory && note.tipo !== 'a_identificar'
+                                        || canDeleteHistoricalInvoice);
+                                const editControls = canShowOrdinaryEdit || canShowDelete
                                     ? `
                                         <span class="invoice-document-inline-actions">
-                                            <button type="button" onclick="abrirEditarNota('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')" aria-label="Editar ${escapeHtml(getInvoiceDocumentTitle(note))}">
-                                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg>
-                                            </button>
-                                            ${!hasPendencyHistory ? `
+                                            ${canShowOrdinaryEdit ? `
+                                                <button type="button" onclick="abrirEditarNota('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')" aria-label="Editar ${escapeHtml(getInvoiceDocumentTitle(note))}">
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg>
+                                                </button>
+                                            ` : ''}
+                                            ${canShowDelete ? `
                                                 <button type="button" class="is-danger" onclick="removerNotaRegistrada('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')" aria-label="Excluir ${escapeHtml(getInvoiceDocumentTitle(note))}">
                                                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4.5h6V7M7 7l1 13h8l1-13M10 10v7M14 10v7"/></svg>
                                                 </button>
@@ -11505,15 +11525,60 @@ async function removerNotaRegistrada(notaId, escolaId) {
     const accessProfile = getRadarAccessProfile();
     if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
     const nota = notasRegistradas.find(item => item.id === notaId);
-    if (!nota) return;
-    if (blockConsolidatedFiscalNoteMutation(escolaId, nota.compKey)) return;
-    if (!confirm('Deseja realmente remover esta nota fiscal registrada?')) return;
+    if (!nota) return false;
+
+    const hasHistory = pendencias.some(pendency => (
+        String(pendency.registeredInvoiceId || pendency.registered_invoice_id || '') === String(notaId)
+        && ['notaFiscal', 'consAssessoria'].includes(
+            String(pendency.documentoKey || pendency.document_key || '')
+        )
+    ));
+    const requiresPrivilegedDeletion = hasHistory || nota.tipo === 'a_identificar';
+    const canDeleteHistory = hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.DELETE_INVOICE_WITH_HISTORY
+    );
+
+    if (requiresPrivilegedDeletion && !canDeleteHistory) {
+        reportRadarActionError(
+            new window.RadarRepositoryContract.RepositoryError(
+                'INVOICE_HISTORY_LOCKED',
+                'Este lançamento possui histórico individual. A exclusão excepcional é restrita ao Administrador Técnico e à Assistente de Verbas Federais.',
+                { operation: 'invoice:remove' }
+            ),
+            'Este lançamento possui histórico protegido.'
+        );
+        return false;
+    }
+    if (!requiresPrivilegedDeletion && blockConsolidatedFiscalNoteMutation(escolaId, nota.compKey)) {
+        return false;
+    }
+
+    const title = getInvoiceDocumentTitle(nota);
+    const confirmation = requiresPrivilegedDeletion
+        ? `Excluir definitivamente ${title} e a Pendência/tentativas vinculadas? Os contatos administrativos serão preservados, mas desvinculados da Pendência excluída.`
+        : 'Deseja realmente remover esta nota fiscal registrada?';
+    if (!confirm(confirmation)) return false;
+
+    let justification = '';
+    if (requiresPrivilegedDeletion) {
+        justification = String(prompt(
+            'Informe a justificativa obrigatória para a exclusão excepcional deste lançamento:',
+            ''
+        ) || '').trim();
+        if (!justification) {
+            alert('A exclusão excepcional não foi realizada porque a justificativa é obrigatória.');
+            return false;
+        }
+    }
 
     try {
         const result = await radarInvoiceService.remove({
             id: notaId,
             schoolId: escolaId,
-            profile: accessProfile
+            profile: accessProfile,
+            authenticatedRole: window.RadarAuthContext?.authorization?.role || '',
+            allowHistoryDeletion: requiresPrivilegedDeletion,
+            justification
         });
         rebuildOperationalIndexes();
         if (result.value.resetFiscalAnalysis) {
