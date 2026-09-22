@@ -63,6 +63,8 @@
         '/src/integration/operational-context-refresh.js',
         '/src/integration/operational-realtime-invalidation.js',
         '/src/integration/operational-write-feedback.js',
+        '/src/integration/prontuario-conditional-reconciler.js',
+        '/src/integration/prontuario-scroll-preservation.js',
         '/src/integration/service-advisory-pendency.js',
         '/src/integration/service-advisory-corrective-submission.js',
         '/src/integration/critical-action-guard.js',
@@ -82,6 +84,14 @@
                 typeof root.RadarOperationalWriteFeedback?.install === 'function'
                 && root.RadarOperationalWriteFeedback.install(root) === true
             )
+        ],
+        [
+            '/src/integration/prontuario-conditional-reconciler.js',
+            () => typeof root.RadarProntuarioConditionalReconciler?.install === 'function'
+        ],
+        [
+            '/src/integration/prontuario-scroll-preservation.js',
+            () => typeof root.RadarProntuarioScrollPreservation?.install === 'function'
         ]
     ]);
 
@@ -112,6 +122,9 @@
         const administrativeLogReadInstalled = !administrativeLogReadRequired()
             || root.RadarAdministrativeLogReadModel?.install?.(root) === true;
         const operationalContextRefreshInstalled = root.RadarOperationalContextRefresh?.install?.(root) === true;
+        const conditionalReconcilerInstalled = root.RadarProntuarioConditionalReconciler?.install?.(root) === true;
+        const scrollPreservationInstalled = conditionalReconcilerInstalled
+            && root.RadarProntuarioScrollPreservation?.install?.(root) === true;
         const advisoryInstalled = root.RadarServiceAdvisoryPendency?.install?.(root) === true;
         const correctiveInstalled = root.RadarServiceAdvisoryCorrectiveSubmission?.install?.(root) === true;
         const retificationInstalled = root.RadarAuditableRetification?.install?.(root) === true;
@@ -119,6 +132,8 @@
         const evaluationUiInstalled = root.RadarEvaluationRetificationUi?.install?.(root) === true;
         return administrativeLogReadInstalled
             && operationalContextRefreshInstalled
+            && conditionalReconcilerInstalled
+            && scrollPreservationInstalled
             && advisoryInstalled
             && correctiveInstalled
             && retificationInstalled
