@@ -1,25 +1,25 @@
--- Consulta somente leitura do histórico vinculado à NF de teste identificada em Production.
+-- Consulta somente leitura do contexto mensal da NF de teste.
 select
-    p.id as pendency_id,
-    p.registered_invoice_id,
-    p.document_key,
-    p.status,
-    p.reason,
-    p.notes,
-    p.opened_at,
-    p.resolved_at,
-    p.canceled_at,
-    p.row_version,
+    v.id as verification_id,
+    v.row_version as verification_row_version,
+    v.bonus_result,
+    v.analysis,
+    v.bonification,
     (
-      select count(*)
-      from public.pendency_attempts a
-      where a.pendency_id = p.id
-    ) as tentativas,
-    (
-      select count(*)
-      from public.pendency_contacts c
-      where c.pendency_id = p.id
-    ) as contatos
-from public.pendencies p
-where p.registered_invoice_id = 'nota-8f25ad3a-da84-4867-a1cf-e2acbfbd2fdd'
-order by p.opened_at;
+      select coalesce(jsonb_agg(jsonb_build_object(
+        'id', i.id,
+        'expense_type', i.expense_type,
+        'invoice_number', i.invoice_number,
+        'description', i.description,
+        'row_version', i.row_version,
+        'analiseDocumentoFiscal', coalesce(i.payload ->> 'analiseDocumentoFiscal', ''),
+        'consultaAssessoriaEnviada', coalesce(i.payload ->> 'consultaAssessoriaEnviada', ''),
+        'analiseConsultaAssessoria', coalesce(i.payload ->> 'analiseConsultaAssessoria', '')
+      ) order by i.created_at), '[]'::jsonb)
+      from public.registered_invoices i
+      where i.school_id = '04.10.001'
+        and i.competence_id = '2026-09'
+        and i.program_id = 'BASIC'
+    ) as invoices_contexto
+from public.verifications v
+where v.id = '04.10.001::2026-09::BASIC';
