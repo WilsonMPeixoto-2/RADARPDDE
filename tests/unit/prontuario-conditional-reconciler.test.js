@@ -228,3 +228,75 @@ test('reconcile reaplica restrição tardia e ações condicionais sem render in
     assert.equal(unidentifiedEnhance, 1);
     assert.equal(fullRenderCalls, 0);
 });
+
+
+test('toggleBonif de Nota Fiscal preserva posição dentro do reconciliador sem alterar resultado funcional', async () => {
+    const area = {
+        scrollTop: 720,
+        scrollLeft: 9,
+        scrollTo({ top, left }) {
+            this.scrollTop = top;
+            this.scrollLeft = left;
+        }
+    };
+    const calls = [];
+    const root = {
+        document: {
+            querySelector(selector) {
+                return selector === 'main.content-area' ? area : null;
+            },
+            querySelectorAll: () => []
+        },
+        RadarApplicationServices: {
+            verifications: {
+                getState: () => ({ verifications: {}, registeredInvoices: [], pendencies: [] })
+            }
+        },
+        RadarServiceAdvisoryPendency: { findActiveForInvoice: () => null },
+        RadarProntuarioScrollPreservation: {
+            capture() {
+                return { top: area.scrollTop, left: area.scrollLeft };
+            },
+            restore(_root, snapshot) {
+                area.scrollTo(snapshot);
+                return true;
+            }
+        },
+        renderProntuario() {
+            area.scrollTop = 0;
+            return true;
+        },
+        async toggleBonif(...args) {
+            calls.push(args);
+            root.renderProntuario(args[0]);
+            return true;
+        },
+        async changeAnaliseTecnica() { return true; },
+        async toggleInvoiceAdvisorySent() { return true; },
+        async changeInvoiceAdvisoryAnalysis() { return true; },
+        async toggleConsEnviada() { return true; },
+        RadarCompetencia: {
+            splitCompetenciaContext: value => {
+                const [competenciaKey, contextId] = String(value).split('_');
+                return { competenciaKey, contextId };
+            }
+        },
+        getRadarAccessProfile: () => 'controlador',
+        RadarUnidentifiedExpenseUx: { enhance() {} },
+        RadarProntuarioOperationalUx: { enhance() {} },
+        RadarAccessPolicy: { CAPABILITIES: {} },
+        hasRadarCapability: () => true,
+        requestAnimationFrame(callback) {
+            callback();
+            return 1;
+        }
+    };
+
+    assert.equal(reconciler.install(root), true);
+    const result = await root.toggleBonif('ESC-1', '2026-08_BASIC', 'notaFiscal', 'Não se aplica');
+
+    assert.equal(result, true);
+    assert.deepEqual(calls, [['ESC-1', '2026-08_BASIC', 'notaFiscal', 'Não se aplica']]);
+    assert.equal(area.scrollTop, 720);
+    assert.equal(area.scrollLeft, 9);
+});

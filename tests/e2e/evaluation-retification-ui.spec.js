@@ -95,6 +95,12 @@ test.describe('retificação formal de avaliações no Preview', () => {
     await expect(submit).toBeDisabled();
     await justification.fill('A avaliação foi marcada como Incorreto por engano após nova conferência do documento já correto.');
     await expect(submit).toBeEnabled();
+    const contentArea = page.locator('main.content-area');
+    const beforeScroll = await contentArea.evaluate(element => {
+      element.scrollTop = Math.min(700, Math.max(0, element.scrollHeight - element.clientHeight));
+      return element.scrollTop;
+    });
+    expect(beforeScroll).toBeGreaterThan(50);
     await submit.click();
 
     await expect(dialog).toBeHidden();
@@ -105,6 +111,9 @@ test.describe('retificação formal de avaliações no Preview', () => {
       'Avaliação retificada e Pendência anulada com sucesso.'
     );
     await expect(row.locator('select.select-analise')).toHaveValue('Correto');
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const afterScroll = await contentArea.evaluate(element => element.scrollTop);
+    expect(Math.abs(afterScroll - beforeScroll)).toBeLessThanOrEqual(4);
 
     const state = await page.evaluate(({ schoolId, compKey }) => {
       const verification = verificacoes[schoolId][compKey];
@@ -218,6 +227,12 @@ test('edição mantém erro visível e impede fechamento ou segundo envio enquan
   await row.getByRole('button', { name: 'Editar análise', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Editar análise técnica', exact: true });
   await dialog.getByLabel('Nova análise técnica').selectOption('Não analisado');
+  const contentArea = page.locator('main.content-area');
+  const beforeScroll = await contentArea.evaluate(element => {
+    element.scrollTop = Math.min(650, Math.max(0, element.scrollHeight - element.clientHeight));
+    return element.scrollTop;
+  });
+  expect(beforeScroll).toBeGreaterThan(50);
   await page.evaluate(() => {
     window.__evaluationSaveCalls = 0;
     RadarApplicationServices.verifications.correctTechnicalAnalysis = () => {
@@ -234,6 +249,9 @@ test('edição mantém erro visível e impede fechamento ou segundo envio enquan
   await expect(dialog.getByRole('alert')).toContainText('Conexão interrompida; alteração não confirmada.');
   await expect(dialog.getByRole('button', { name: 'Salvar edição', exact: true })).toBeEnabled();
   await expect(row.locator('select.select-analise')).toHaveValue('Correto');
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const afterScroll = await contentArea.evaluate(element => element.scrollTop);
+  expect(Math.abs(afterScroll - beforeScroll)).toBeLessThanOrEqual(4);
   expect(await page.evaluate(() => window.__evaluationSaveCalls)).toBe(1);
 });
 

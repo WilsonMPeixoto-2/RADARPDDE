@@ -98,7 +98,16 @@ test('controlador lança agosto, consolida APTA e recupera o estado após nova s
   ).toHaveCount(0);
 
   const basicProgramFirstRow = programRows(page, 'BASIC').first();
-  await basicProgramFirstRow.getByRole('button', { name: 'Consolidar', exact: true }).click();
+  const consolidationScroll = await page.evaluate(async ({ escolaId, compProgKey }) => {
+    const area = document.querySelector('main.content-area');
+    area.scrollTop = Math.min(650, Math.max(0, area.scrollHeight - area.clientHeight));
+    const before = area.scrollTop;
+    const result = await calcularEFecharBonificacao(escolaId, compProgKey);
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    return { result, before, after: area.scrollTop };
+  }, context);
+  expect(consolidationScroll.result).toBe(true);
+  expect(Math.abs(consolidationScroll.after - consolidationScroll.before)).toBeLessThanOrEqual(4);
   await expect(basicProgramFirstRow.getByRole('button', { name: 'Consolidada', exact: true })).toBeVisible();
 
   const consolidated = await page.evaluate(({ escolaId, compProgKey }) => {

@@ -5234,7 +5234,12 @@ function blockConsolidatedFiscalNoteMutation(escolaId, compProgKey) {
     }
 
     alert('Esta competência está consolidada. Apenas o(a) Assistente de Verbas Federais pode incluir, editar ou excluir Notas Fiscais.');
-    renderProntuario(escolaId);
+    const scrollSnapshot = window.RadarProntuarioScrollPreservation?.capture?.(window) || null;
+    try {
+        renderProntuario(escolaId);
+    } finally {
+        window.RadarProntuarioScrollPreservation?.restore?.(window, scrollSnapshot);
+    }
     return true;
 }
 
@@ -8543,7 +8548,8 @@ function focusPendencyActionAfterRender(pendencyId, sourceContext, actionName) {
             || preparePendencyActionFallbackFocus(scope, pendencyId, sourceContext);
         if (!target) return;
 
-        if (typeof target.scrollIntoView === 'function') {
+        if (sourceContext.currentView !== 'prontuario'
+            && typeof target.scrollIntoView === 'function') {
             target.scrollIntoView({ block: 'nearest', behavior: 'auto' });
         }
         target.focus({ preventScroll: true });
@@ -8726,14 +8732,19 @@ async function confirmarRegistrarNovoEnvio(event) {
     updateAlertsBell();
 
     if (sourceContext.currentView === 'prontuario') {
-        activeSchoolId = sourceContext.escolaId;
-        activeProntuarioCompetencia = sourceContext.competencia;
-        renderProntuario(sourceContext.escolaId);
-        activateProntuarioTab(
-            CORRECTIVE_SUBMISSION_PRONTUARIO_TABS.has(sourceContext.prontuarioTabId)
-                ? sourceContext.prontuarioTabId
-                : 'tab-verificacoes'
-        );
+        const scrollSnapshot = window.RadarProntuarioScrollPreservation?.capture?.(window) || null;
+        try {
+            activeSchoolId = sourceContext.escolaId;
+            activeProntuarioCompetencia = sourceContext.competencia;
+            renderProntuario(sourceContext.escolaId);
+            activateProntuarioTab(
+                CORRECTIVE_SUBMISSION_PRONTUARIO_TABS.has(sourceContext.prontuarioTabId)
+                    ? sourceContext.prontuarioTabId
+                    : 'tab-verificacoes'
+            );
+        } finally {
+            window.RadarProntuarioScrollPreservation?.restore?.(window, scrollSnapshot);
+        }
     } else {
         activePendencyDetailId = current.id;
         renderPendencias();
@@ -9097,14 +9108,19 @@ async function confirmarReanalisePendencia(event) {
     updateAlertsBell();
 
     if (sourceContext.currentView === 'prontuario') {
-        activeSchoolId = sourceContext.escolaId;
-        activeProntuarioCompetencia = sourceContext.competencia;
-        renderProntuario(sourceContext.escolaId);
-        activateProntuarioTab(
-            CORRECTIVE_SUBMISSION_PRONTUARIO_TABS.has(sourceContext.prontuarioTabId)
-                ? sourceContext.prontuarioTabId
-                : 'tab-verificacoes'
-        );
+        const scrollSnapshot = window.RadarProntuarioScrollPreservation?.capture?.(window) || null;
+        try {
+            activeSchoolId = sourceContext.escolaId;
+            activeProntuarioCompetencia = sourceContext.competencia;
+            renderProntuario(sourceContext.escolaId);
+            activateProntuarioTab(
+                CORRECTIVE_SUBMISSION_PRONTUARIO_TABS.has(sourceContext.prontuarioTabId)
+                    ? sourceContext.prontuarioTabId
+                    : 'tab-verificacoes'
+            );
+        } finally {
+            window.RadarProntuarioScrollPreservation?.restore?.(window, scrollSnapshot);
+        }
     } else {
         activePendencyDetailId = current.id;
         renderPendencias();
@@ -10956,7 +10972,14 @@ async function savePendencyDrawerEdits() {
         rebuildOperationalIndexes();
         drawer.dataset.mode = 'view';
         renderPendencyDrawer();
-        if (activeSchoolId) renderProntuario(activeSchoolId);
+        if (activeSchoolId) {
+            const scrollSnapshot = window.RadarProntuarioScrollPreservation?.capture?.(window) || null;
+            try {
+                renderProntuario(activeSchoolId);
+            } finally {
+                window.RadarProntuarioScrollPreservation?.restore?.(window, scrollSnapshot);
+            }
+        }
         updateAlertsBell();
         return true;
     } catch (error) {
@@ -11096,13 +11119,18 @@ async function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElem
 }
 
 function beginInvoiceDocumentAnalysisEdit(invoiceId, escolaId) {
-    invoiceAnalysisEditId = String(invoiceId);
-    renderProntuario(escolaId);
-    const selector = document.querySelector(
-        `.invoice-document-row[data-invoice-id="${CSS.escape(String(invoiceId))}"] .invoice-document-analysis-select`
-    );
-    selector?.focus({ preventScroll: true });
-    return true;
+    const scrollSnapshot = window.RadarProntuarioScrollPreservation?.capture?.(window) || null;
+    try {
+        invoiceAnalysisEditId = String(invoiceId);
+        renderProntuario(escolaId);
+        const selector = document.querySelector(
+            `.invoice-document-row[data-invoice-id="${CSS.escape(String(invoiceId))}"] .invoice-document-analysis-select`
+        );
+        selector?.focus({ preventScroll: true });
+        return true;
+    } finally {
+        window.RadarProntuarioScrollPreservation?.restore?.(window, scrollSnapshot);
+    }
 }
 
 async function changeInvoiceDocumentAnalysis(
@@ -11255,9 +11283,14 @@ async function salvarDadosNota(e = {}) {
                 alert('Aviso: O bem permanente foi registrado no inventário, mas a escola não tem Processo de Inventário cadastrado. A equipe de inventário não poderá tombá-lo até que você cadastre o processo da escola.');
             }
             closeModal('modal-dados-nota');
-            renderProntuario(escolaId);
-            if (result.value.pendency?.id) {
-                openPendencyDrawer(result.value.pendency.id);
+            const scrollSnapshot = window.RadarProntuarioScrollPreservation?.capture?.(window) || null;
+            try {
+                renderProntuario(escolaId);
+                if (result.value.pendency?.id) {
+                    openPendencyDrawer(result.value.pendency.id);
+                }
+            } finally {
+                window.RadarProntuarioScrollPreservation?.restore?.(window, scrollSnapshot);
             }
             updateAlertsBell();
             return true;
@@ -11462,7 +11495,12 @@ async function removerNotaRegistrada(notaId, escolaId) {
         if (result.value.resetFiscalAnalysis) {
             alert('Aviso: Como você removeu todas as notas fiscais cadastradas para esta competência/programa, a análise técnica foi redefinida para "Não analisado".');
         }
-        renderProntuario(escolaId);
+        const scrollSnapshot = window.RadarProntuarioScrollPreservation?.capture?.(window) || null;
+        try {
+            renderProntuario(escolaId);
+        } finally {
+            window.RadarProntuarioScrollPreservation?.restore?.(window, scrollSnapshot);
+        }
         updateAlertsBell();
     } catch (error) {
         reportRadarActionError(error, 'Não foi possível remover a nota fiscal.');
@@ -11474,20 +11512,25 @@ async function removerNotaRegistrada(notaId, escolaId) {
 async function calcularEFecharBonificacao(escolaId, compKey) {
     const accessProfile = getRadarAccessProfile();
     if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
+    const scrollSnapshot = window.RadarProntuarioScrollPreservation?.capture?.(window) || null;
     try {
-        await radarVerificationService.closeBonification({
-            schoolId: escolaId,
-            compKey,
-            profile: accessProfile
-        });
-    } catch (error) {
-        reportRadarActionError(error, 'Não foi possível consolidar a bonificação.');
+        try {
+            await radarVerificationService.closeBonification({
+                schoolId: escolaId,
+                compKey,
+                profile: accessProfile
+            });
+        } catch (error) {
+            reportRadarActionError(error, 'Não foi possível consolidar a bonificação.');
+            renderProntuario(escolaId);
+            return false;
+        }
         renderProntuario(escolaId);
-        return false;
+        updateAlertsBell();
+        return true;
+    } finally {
+        window.RadarProntuarioScrollPreservation?.restore?.(window, scrollSnapshot);
     }
-    renderProntuario(escolaId);
-    updateAlertsBell();
-    return true;
 }
 
 
@@ -11802,8 +11845,13 @@ async function saveNovaPendencia(e) {
             const existingPendencyId = error.details.existingPendencyId;
             resetNovaPendenciaForm();
             if (sourceView === 'prontuario') {
-                renderProntuario(escolaId);
-                openPendencyDrawer(existingPendencyId);
+                const scrollSnapshot = window.RadarProntuarioScrollPreservation?.capture?.(window) || null;
+                try {
+                    renderProntuario(escolaId);
+                    openPendencyDrawer(existingPendencyId);
+                } finally {
+                    window.RadarProntuarioScrollPreservation?.restore?.(window, scrollSnapshot);
+                }
             } else {
                 openPendencyDetail(existingPendencyId);
                 showPendencyNotice('Já existe uma pendência ativa para este documento.', 'duplicate');
@@ -11826,9 +11874,14 @@ async function saveNovaPendencia(e) {
     resetNovaPendenciaForm();
 
     if (sourceView === 'prontuario') {
-        renderProntuario(escolaId);
-        if (newPend?.registeredInvoiceId || newPend?.registered_invoice_id) {
-            openPendencyDrawer(newPend.id);
+        const scrollSnapshot = window.RadarProntuarioScrollPreservation?.capture?.(window) || null;
+        try {
+            renderProntuario(escolaId);
+            if (newPend?.registeredInvoiceId || newPend?.registered_invoice_id) {
+                openPendencyDrawer(newPend.id);
+            }
+        } finally {
+            window.RadarProntuarioScrollPreservation?.restore?.(window, scrollSnapshot);
         }
     } else {
         renderPendencias();

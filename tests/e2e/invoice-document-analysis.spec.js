@@ -12,14 +12,24 @@ function invoiceRow(page, invoiceId) {
 async function markIncorrectAndOpenPendency(page, invoiceId, observation) {
   const row = invoiceRow(page, invoiceId);
   const select = row.locator('select.invoice-document-analysis-select');
+  await row.scrollIntoViewIfNeeded();
+  const contentArea = page.locator('main.content-area');
+  const beforeAnalysis = await contentArea.evaluate(element => element.scrollTop);
   await select.selectOption('Incorreto');
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const afterAnalysis = await contentArea.evaluate(element => element.scrollTop);
+  expect(Math.abs(afterAnalysis - beforeAnalysis)).toBeLessThanOrEqual(4);
 
   const modal = page.locator('#modal-nova-pendencia');
   await expect(modal).toHaveClass(/show/);
   await modal.locator('input[name="pend-erros"]').first().check();
   await modal.locator('#pend-obs').fill(observation);
+  const beforeSave = await contentArea.evaluate(element => element.scrollTop);
   await modal.locator('button[type="submit"]').click();
   await expect(modal).not.toHaveClass(/show/);
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const afterSave = await contentArea.evaluate(element => element.scrollTop);
+  expect(Math.abs(afterSave - beforeSave)).toBeLessThanOrEqual(4);
 
   const drawer = page.locator('#pendency-preview-drawer');
   await expect(drawer).toBeVisible();
@@ -168,16 +178,39 @@ test.describe('Prontuário — análise individual de Notas Fiscais', () => {
     }));
     expect(invoicePanelOverflow.scrollWidth).toBeLessThanOrEqual(invoicePanelOverflow.clientWidth + 1);
 
-    await invoiceRow(page, service1234)
+    const firstInvoiceRow = invoiceRow(page, service1234);
+    await firstInvoiceRow.scrollIntoViewIfNeeded();
+    const contentArea = page.locator('main.content-area');
+    const beforeCorrect = await contentArea.evaluate(element => element.scrollTop);
+    await firstInvoiceRow
       .locator('select.invoice-document-analysis-select')
       .selectOption('Correto');
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const afterCorrect = await contentArea.evaluate(element => element.scrollTop);
+    expect(Math.abs(afterCorrect - beforeCorrect)).toBeLessThanOrEqual(4);
 
     await expect(invoiceRow(page, service1234).locator('select.invoice-document-analysis-select'))
       .toHaveCount(0);
     await expect(invoiceRow(page, service1234).locator('.invoice-document-status'))
       .toHaveText('Correto');
-    await expect(invoiceRow(page, service1234).getByRole('button', { name: 'Editar análise' }))
-      .toBeVisible();
+    const editAnalysisButton = invoiceRow(page, service1234)
+      .getByRole('button', { name: 'Editar análise' });
+    await expect(editAnalysisButton).toBeVisible();
+    await invoiceRow(page, service1234).scrollIntoViewIfNeeded();
+    const beforeEditMode = await contentArea.evaluate(element => element.scrollTop);
+    await editAnalysisButton.click();
+    const editSelect = invoiceRow(page, service1234).locator('select.invoice-document-analysis-select');
+    await expect(editSelect).toBeVisible();
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const afterEditMode = await contentArea.evaluate(element => element.scrollTop);
+    expect(Math.abs(afterEditMode - beforeEditMode)).toBeLessThanOrEqual(4);
+
+    const beforeLeavingEditMode = await contentArea.evaluate(element => element.scrollTop);
+    await editSelect.selectOption('Correto');
+    await expect(invoiceRow(page, service1234).locator('.invoice-document-status')).toHaveText('Correto');
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const afterLeavingEditMode = await contentArea.evaluate(element => element.scrollTop);
+    expect(Math.abs(afterLeavingEditMode - beforeLeavingEditMode)).toBeLessThanOrEqual(4);
 
     await markIncorrectAndOpenPendency(
       page,

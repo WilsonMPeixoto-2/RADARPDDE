@@ -351,6 +351,7 @@
     async function confirmRetification(event) {
         event.preventDefault();
         if (!activeContext) return false;
+        const scrollSnapshot = root.RadarProntuarioScrollPreservation?.capture?.(root) || null;
         try {
             const form = event.currentTarget;
             if (!form.checkValidity()) {
@@ -383,10 +384,7 @@
             root.requestAnimationFrame(() => {
                 const history = document.querySelector('.retification-history-panel');
                 const target = document.querySelector('[data-retification-control] button') || history;
-                if (history) {
-                    history.setAttribute('tabindex', '-1');
-                    history.scrollIntoView({ block: 'nearest' });
-                }
+                if (history) history.setAttribute('tabindex', '-1');
                 if (target) target.focus({ preventScroll: true });
             });
             return true;
@@ -394,6 +392,8 @@
             if (typeof reportRadarPersistenceError === 'function') reportRadarPersistenceError(error);
             showRetificationError(error.message || 'Não foi possível registrar a retificação.');
             return false;
+        } finally {
+            root.RadarProntuarioScrollPreservation?.restore?.(root, scrollSnapshot);
         }
     }
 
