@@ -129,6 +129,49 @@ test('atualiza somente a nota fiscal pelo comando versionado e registra auditori
     assert.equal(harness.persisted[0].administrativeLog.id, harness.state.logs[0].id);
 });
 
+test('Equipe de Inventário registra observação sem alterar o status do bem', async () => {
+    const harness = createHarness();
+    harness.state.assets[0].status = 'Encaminhada';
+
+    const result = await harness.service.updateAsset({
+        assetId: 'bem-1',
+        field: 'observacoes',
+        value: 'Processo com documento faltante; aguardando Nota Fiscal.',
+        profile: 'inventario'
+    });
+
+    assert.equal(result.value.asset.status, 'Encaminhada');
+    assert.equal(
+        harness.state.assets[0].observacoes,
+        'Processo com documento faltante; aguardando Nota Fiscal.'
+    );
+    assert.equal(harness.state.logs[0].action, 'Observação de Inventário Atualizada');
+    assert.match(harness.state.logs[0].details, /documento faltante/i);
+    assert.equal(harness.persisted.length, 1);
+    assert.equal(harness.persisted[0].expectedVersion, 4);
+    assert.equal(
+        harness.persisted[0].asset.notes,
+        'Processo com documento faltante; aguardando Nota Fiscal.'
+    );
+});
+
+test('Equipe de Inventário não ganha permissão para editar a Nota Fiscal pela edição rápida', async () => {
+    const harness = createHarness();
+
+    await assert.rejects(
+        harness.service.updateAsset({
+            assetId: 'bem-1',
+            field: 'notaFiscal',
+            value: 'NF-INDEVIDA',
+            profile: 'inventario'
+        }),
+        error => error && error.code === 'FORBIDDEN'
+    );
+
+    assert.equal(harness.state.assets[0].notaFiscal, 'NF-001');
+    assert.equal(harness.persisted.length, 0);
+});
+
 test('bloqueia edição do número da NF no bem quando existe Nota Fiscal vinculada', async () => {
     const harness = createHarness();
     harness.state.registeredInvoices.push({
