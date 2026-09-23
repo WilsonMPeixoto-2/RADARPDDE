@@ -2,7 +2,7 @@ begin;
 set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
-select plan(42);
+select plan(47);
 
 -- Contratos implantados pela migration operacional.
 select ok(to_regprocedure('public.save_pendency_contact_with_log(jsonb,text,jsonb)') is not null, 'RPC de contato existe');
@@ -127,15 +127,29 @@ select lives_ok($$
 $$, 'Controlador cadastra bem e log atomicamente');
 select is((select row_version from public.assets where id = 'OPS-ASSET-1'), 1, 'bem inicia na versão 1');
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000943', true);
-select lives_ok($$
+
+-- Demanda específica do help desk: registrar observação sem concluir a inventariação.
+select lives_ok($
     select public.save_asset_with_log(
-        '{"id":"OPS-ASSET-1","school_id":"OPS-SCHOOL-1","competence_id":"2034-01","description":"Notebook","expense_type":"permanente","invoice_number":"NF-OPS","amount":4500,"status":"Inventariada","inventory_process":"07/941/2034","notes":"Conferido","inventoried_by_member_id":"OPS-INV","inventoried_at":"2034-01-12T12:00:00Z","payload":{}}'::jsonb,
+        '{"id":"OPS-ASSET-1","school_id":"OPS-SCHOOL-1","competence_id":"2034-01","description":"Notebook","expense_type":"permanente","invoice_number":"NF-OPS","amount":4500,"status":"Encaminhada","inventory_process":"07/941/2034","notes":"Processo com documento faltante; aguardando Nota Fiscal.","inventoried_by_member_id":null,"inventoried_at":null,"payload":{}}'::jsonb,
         1,
+        '{"id":"OPS-LOG-ASSET-NOTE","school_id":"OPS-SCHOOL-1","action":"Observação de Inventário Atualizada","details":{"text":"Processo com documento faltante; aguardando Nota Fiscal."}}'::jsonb
+    )
+$, 'Inventário da mesma CRE salva somente a observação pela RPC real');
+select is((select status from public.assets where id = 'OPS-ASSET-1'), 'Encaminhada', 'salvar observação não conclui nem altera o status');
+select is((select notes from public.assets where id = 'OPS-ASSET-1'), 'Processo com documento faltante; aguardando Nota Fiscal.', 'observação foi persistida no bem');
+select is((select row_version from public.assets where id = 'OPS-ASSET-1'), 2, 'salvar observação eleva somente a versão do bem');
+select is((select count(*)::integer from public.administrative_logs where id = 'OPS-LOG-ASSET-NOTE'), 1, 'observação gera log administrativo atômico');
+
+select lives_ok($
+    select public.save_asset_with_log(
+        '{"id":"OPS-ASSET-1","school_id":"OPS-SCHOOL-1","competence_id":"2034-01","description":"Notebook","expense_type":"permanente","invoice_number":"NF-OPS","amount":4500,"status":"Inventariada","inventory_process":"07/941/2034","notes":"Processo com documento faltante; aguardando Nota Fiscal.","inventoried_by_member_id":"OPS-INV","inventoried_at":"2034-01-12T12:00:00Z","payload":{}}'::jsonb,
+        2,
         '{"id":"OPS-LOG-ASSET-2","school_id":"OPS-SCHOOL-1","action":"Inventariação Concluída","details":{}}'::jsonb
     )
-$$, 'Inventário da mesma CRE conclui o bem');
+$, 'Inventário da mesma CRE conclui o bem depois da observação');
 select is((select status from public.assets where id = 'OPS-ASSET-1'), 'Inventariada', 'status patrimonial foi atualizado');
-select is((select row_version from public.assets where id = 'OPS-ASSET-1'), 2, 'inventariação eleva a versão do bem');
+select is((select row_version from public.assets where id = 'OPS-ASSET-1'), 3, 'inventariação posterior respeita a versão produzida pela observação');
 
 -- Administração global e redistribuição.
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000942', true);
