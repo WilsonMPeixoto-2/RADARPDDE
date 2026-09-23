@@ -1,4 +1,4 @@
-name: Aplicar migration PR361 em Production
+name: Validar migration PR361 em Production
 
 on:
   push:
@@ -11,14 +11,14 @@ permissions:
   contents: read
 
 concurrency:
-  group: production-migration-pr361
+  group: production-migration-pr361-validation
   cancel-in-progress: false
 
 jobs:
-  apply:
-    name: Aplicar e provar migration 20260922234500
+  validate:
+    name: Provar migration 20260922234500 em Production
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 20
     env:
       SUPABASE_TELEMETRY_DISABLED: '1'
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
@@ -52,54 +52,8 @@ jobs:
       - name: Vincular Supabase Production
         run: npx --no-install supabase link --project-ref "${PROJECT_REF}" --password "${PGPASS_REMOTE}"
 
-      - name: Confirmar baseline remoto antes da escrita
-        shell: bash
-        run: |
-          cat > /tmp/pr361-precheck.sql <<'SQL'
-          do $$
-          declare
-            v_count integer;
-            v_latest text;
-            v_target integer;
-          begin
-            select count(*), max(version)
-              into v_count, v_latest
-              from supabase_migrations.schema_migrations;
-            select count(*)
-              into v_target
-              from supabase_migrations.schema_migrations
-             where version = '20260922234500';
-
-            if v_count <> 54
-               or v_latest <> '20260920013656'
-               or v_target <> 0 then
-              raise exception 'PR361_PRODUCTION_BASELINE_MISMATCH: count=%, latest=%, target=%',
-                v_count, v_latest, v_target;
-            end if;
-          end
-          $$;
-          SQL
-          npx --no-install supabase db query --linked --file /tmp/pr361-precheck.sql
-
-      - name: Dry-run da migration canônica
-        shell: bash
-        run: |
-          set -euo pipefail
-          npx --no-install supabase db push --linked --dry-run --password "${PGPASS_REMOTE}" 2>&1 | tee /tmp/pr361-dry-run.txt
-          grep -q '20260922234500_fix_permanent_identification_asset_description.sql' /tmp/pr361-dry-run.txt
-
-      - name: Aplicar migrations sem seed
-        shell: bash
-        run: |
-          set -euo pipefail
-          npx --no-install supabase db push --linked --password "${PGPASS_REMOTE}" --yes 2>&1 | tee /tmp/pr361-apply.txt
-
       - name: Confirmar histórico e contrato pós-aplicação
-        shell: bash
-        run: |
-          set -euo pipefail
-          npx --no-install supabase migration list --linked --password "${PGPASS_REMOTE}" 2>&1 | tee /tmp/pr361-migrations-after.txt
-          npx --no-install supabase db query --linked --file supabase/verification/remote-post-apply.sql
+        run: npx --no-install supabase db query --linked --file supabase/verification/remote-post-apply.sql
 
       - name: Provar RPC instalada em Production
         shell: bash
@@ -114,7 +68,8 @@ jobs:
             ) into v_definition;
 
             if position('select nullif(name, '''') from public.programs' in v_definition) = 0
-               or position('p_invoice ->> ''description''' in v_definition) = 0 then
+               or position('p_invoice ->> ''description''' in v_definition) = 0
+               or position('identificação como bem permanente exige patrimônio novo e correspondente à despesa' in v_definition) = 0 then
               raise exception 'PR361_RPC_CONTRACT_NOT_INSTALLED';
             end if;
 
@@ -130,18 +85,17 @@ jobs:
           SQL
           npx --no-install supabase db query --linked --file /tmp/pr361-function-check.sql
 
-      - name: Executar pgTAP específico da identificação fiscal
+      - name: Executar pgTAP específico da identificação fiscal em Production
         run: npx --no-install supabase test db supabase/tests/database/invoice-document-analysis-pendency.test.sql --linked
 
       - name: Resumo
         if: always()
         run: |
           {
-            echo '### Migration PR #361'
+            echo '### Validação remota PR #361'
             echo
-            echo '- alvo fixo: Supabase Production do RADAR'
-            echo '- migration: `20260922234500_fix_permanent_identification_asset_description`'
-            echo '- pré-condição: 54 migrations e alvo ausente'
-            echo '- pós-condição esperada: 55 migrations e RPC canônica instalada'
-            echo '- prova funcional: pgTAP específico de identificação fiscal'
+            echo '- migration esperada: `20260922234500_fix_permanent_identification_asset_description`'
+            echo '- histórico esperado: 55 migrations'
+            echo '- contrato: descrição patrimonial canônica + guardas preservadas'
+            echo '- prova funcional: pgTAP específico em Production'
           } >> "${GITHUB_STEP_SUMMARY}"
