@@ -768,7 +768,47 @@
         </div>
     </div>
 
-    <!-- 8. Modal de Cadastro/Edição de Controlador -->
+    <!-- 8. Modal de Observação do Item de Inventário -->
+    <div class="modal-overlay" id="modal-inventory-observation">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h3>Observação do Item de Inventário</h3>
+                    <p style="margin:4px 0 0; color:var(--text-muted); font-size:0.82rem;">Registre impedimentos, documentos faltantes ou outras informações úteis sem alterar o status do bem.</p>
+                </div>
+                <button class="btn-close" type="button" aria-label="Fechar" onclick="closeModal('modal-inventory-observation')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-inventory-observation" onsubmit="saveInventoryObservation(event)">
+                    <input type="hidden" id="inventory-observation-asset-id">
+
+                    <div class="inventory-observation-context">
+                        <strong id="inventory-observation-item"></strong>
+                        <span id="inventory-observation-school"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inventory-observation-text">Observação</label>
+                        <textarea
+                            class="form-control"
+                            id="inventory-observation-text"
+                            rows="5"
+                            maxlength="2000"
+                            placeholder="Ex.: não foi possível inventariar porque falta a Nota Fiscal no processo."
+                        ></textarea>
+                        <small style="color:var(--text-muted);">O campo pode ser atualizado ou apagado posteriormente. Salvar a observação não conclui a inventariação.</small>
+                    </div>
+
+                    <div class="modal-footer" style="padding:16px 0 0; background:none;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-inventory-observation')">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar observação</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9. Modal de Cadastro/Edição de Controlador -->
     <div class="modal-overlay" id="modal-controlador-edit">
         <div class="modal-content">
             <div class="modal-header">
@@ -798,7 +838,7 @@
         </div>
     </div>
 
-    <!-- 9. Modal de Cadastro/Edição de Integrante de Inventário -->
+    <!-- 10. Modal de Cadastro/Edição de Integrante de Inventário -->
     <div class="modal-overlay" id="modal-inventariador-edit">
         <div class="modal-content">
             <div class="modal-header">

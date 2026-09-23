@@ -1081,6 +1081,35 @@ textarea.form-control {
     font-weight: 500;
 }
 
+.inventory-row-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.inventory-item-observation {
+    margin-top: 8px;
+    max-width: 34rem;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    line-height: 1.45;
+}
+
+.inventory-observation-context {
+    display: grid;
+    gap: 4px;
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: rgba(157, 125, 252, 0.04);
+}
+
+.inventory-observation-context span {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+}
+
 /* Prontuário Escola Layout */
 .school-grid {
     display: grid;

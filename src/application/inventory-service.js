@@ -13,7 +13,7 @@
 
     if (!contract) throw new Error('Contrato de dados obrigatório para inventário.');
     const { RepositoryError, cloneValue } = contract;
-    const DIRECT_EDIT_FIELDS = new Set(['notaFiscal']);
+    const DIRECT_EDIT_FIELDS = new Set(['notaFiscal', 'observacoes']);
 
     function text(value) {
         return value == null ? '' : String(value).trim();
@@ -246,7 +246,6 @@
         }
 
         async updateAsset(input = {}) {
-            this.assertOperationalProfile(input.profile, 'inventory:update-asset');
             const field = text(input.field);
             if (!DIRECT_EDIT_FIELDS.has(field)) {
                 fail(
@@ -255,6 +254,19 @@
                     'inventory:update-asset',
                     { field }
                 );
+            }
+            const profile = normalizeProfile(this.getCurrentProfile() || input.profile);
+            if (field === 'observacoes') {
+                if (!['inventario', 'assistente', 'controlador'].includes(profile)) {
+                    fail(
+                        'FORBIDDEN',
+                        'O perfil atual não pode registrar observações de inventário.',
+                        'inventory:update-asset',
+                        { field }
+                    );
+                }
+            } else {
+                this.assertOperationalProfile(input.profile, 'inventory:update-asset');
             }
             const persistence = {};
             return this.dataService.execute({
@@ -276,10 +288,19 @@
                     persistence.expectedVersion = rowVersionOf(asset);
                     const previousValue = text(asset[field]);
                     asset[field] = text(input.value);
+                    const isObservation = field === 'observacoes';
+                    const action = isObservation
+                        ? 'Observação de Inventário Atualizada'
+                        : 'Bem Patrimonial Atualizado';
+                    const details = isObservation
+                        ? (asset[field]
+                            ? `Observação do bem ${asset.item || asset.descricao || asset.id} atualizada para: ${asset[field]}`
+                            : `Observação do bem ${asset.item || asset.descricao || asset.id} removida.`)
+                        : `Nota fiscal do bem ${asset.item || asset.descricao || asset.id} alterada de ${previousValue || 'não informada'} para ${asset[field] || 'não informada'}.`;
                     const log = this.appendSchoolLog(
                         asset.escolaId,
-                        'Bem Patrimonial Atualizado',
-                        `Nota fiscal do bem ${asset.item || asset.descricao || asset.id} alterada de ${previousValue || 'não informada'} para ${asset[field] || 'não informada'}.`
+                        action,
+                        details
                     );
                     persistence.logId = text(log?.id);
                     return { asset: cloneValue(asset) };

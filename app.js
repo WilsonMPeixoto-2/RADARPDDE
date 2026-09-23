@@ -6809,7 +6809,13 @@ function renderDashboardInventario(container) {
 
                     const compLabel = COMPETENCIAS.find(c => c.key === b.competencia)?.label || b.competencia;
 
-                    let actionBtn = '';
+                    const observationLabel = b.observacoes ? 'Editar observação' : 'Adicionar observação';
+                    const observationButton = `
+                        <button class="btn btn-secondary btn-sm" onclick="openInventoryObservationModal('${escapeHtml(b.id)}')">
+                            ${observationLabel}
+                        </button>
+                    `;
+                    let actionBtn = observationButton;
 
                     let statusBadge = '';
 
@@ -6823,7 +6829,12 @@ function renderDashboardInventario(container) {
 
                         statusBadge = `<span class="badge badge-warning">Aguardando Inventariação</span>`;
 
-                        actionBtn = `<button class="btn btn-primary btn-sm" onclick="inventariarBem('${escapeHtml(b.id)}')">Marcar como Inventariado</button>`;
+                        actionBtn = `
+                            <div class="inventory-row-actions">
+                                <button class="btn btn-primary btn-sm" onclick="inventariarBem('${escapeHtml(b.id)}')">Marcar como Inventariado</button>
+                                ${observationButton}
+                            </div>
+                        `;
 
                     } else {
 
@@ -6834,13 +6845,12 @@ function renderDashboardInventario(container) {
                             details += `<br><small style="color:var(--text-muted); font-size: 0.75rem;">Por: <strong>${escapeHtml(b.inventariadoPor)}</strong>${b.inventariadoEm ? ' em ' + escapeHtml(b.inventariadoEm) : ''}</small>`;
                         }
 
-                        if (b.observacoes) {
-
-                            details += `<br><small style="color:var(--text-muted); font-size: 0.75rem; font-style: italic;">Obs: ${escapeHtml(b.observacoes)}</small>`;
-                        }
-
                         statusBadge = `<span class="badge badge-success">Inventariado</span>${details}`;
 
+                    }
+
+                    if (b.observacoes) {
+                        statusBadge += `<div class="inventory-item-observation"><strong>Observação:</strong> ${escapeHtml(b.observacoes)}</div>`;
                     }
 
 
@@ -7132,6 +7142,46 @@ function renderDashboardInventario(container) {
 
 
 
+function openInventoryObservationModal(bemId) {
+    const b = bens.find(item => item.id === bemId);
+    if (!b) return false;
+
+    const esc = escolas.find(e => e.id === b.escolaId);
+    document.getElementById('inventory-observation-asset-id').value = bemId;
+    document.getElementById('inventory-observation-item').textContent = b.item || b.descricao || 'Bem patrimonial';
+    document.getElementById('inventory-observation-school').textContent = esc
+        ? `${esc.denominação} (${esc.designação})`
+        : '';
+    document.getElementById('inventory-observation-text').value = b.observacoes || '';
+    openModal('modal-inventory-observation');
+    return true;
+}
+
+async function saveInventoryObservation(event) {
+    event.preventDefault();
+    const assetId = document.getElementById('inventory-observation-asset-id').value;
+    const observation = document.getElementById('inventory-observation-text').value.trim();
+
+    try {
+        await radarInventoryService.updateAsset({
+            assetId,
+            field: 'observacoes',
+            value: observation,
+            profile: getRadarAccessProfile()
+        });
+        rebuildOperationalIndexes();
+        closeModal('modal-inventory-observation');
+        if (currentView === 'inventario') {
+            renderInventarioView();
+        } else {
+            renderDashboard();
+        }
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível salvar a observação do item de inventário.');
+    }
+}
+
+
 function inventariarBem(bemId) {
     const b = bens.find(item => item.id === bemId);
     if (!b) return;
@@ -7151,7 +7201,7 @@ function inventariarBem(bemId) {
             respSelect.value = equipeInventario[0].name;
         }
     }
-    document.getElementById('inventario-observacoes').value = '';
+    document.getElementById('inventario-observacoes').value = b.observacoes || '';
 
     openModal('modal-inventario-confirm');
 }
