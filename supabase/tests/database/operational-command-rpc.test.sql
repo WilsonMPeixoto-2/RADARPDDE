@@ -208,7 +208,7 @@ select throws_ok($$
         null
     )
 $$, 'P0001', 'VALIDATION_ERROR: log administrativo obrigatório e inválido', 'gravação de escola recusa log ausente');
-select is((select count(*)::integer from public.administrative_logs where id like 'OPS-LOG-%'), 9, 'quantidade final de logs corresponde aos comandos confirmados');
+select is((select count(*)::integer from public.administrative_logs where id like 'OPS-LOG-%'), 10, 'quantidade final de logs corresponde aos comandos confirmados');
 
 select * from finish();
 rollback;
