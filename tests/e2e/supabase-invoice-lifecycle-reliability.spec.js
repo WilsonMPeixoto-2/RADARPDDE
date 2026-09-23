@@ -67,6 +67,7 @@ async function prepareVerification(page) {
 
     return { schoolId, competence, programId, compKey, verificationId };
   });
+}
 
 async function prepareIdentificationVerification(page, programId) {
   return page.evaluate(async inputProgramId => {
@@ -233,8 +234,6 @@ async function readRemoteIdentification(page, { invoiceId, pendencyId, verificat
       } : null
     };
   }, { invoiceId, pendencyId, verificationId });
-}
-
 }
 
 test('criar, editar, converter, reverter e excluir Nota Fiscal permanece correto após cada recarga', async ({ page }) => {
