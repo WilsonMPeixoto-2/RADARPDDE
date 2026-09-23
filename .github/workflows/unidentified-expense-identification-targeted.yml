@@ -8,6 +8,10 @@ on:
       - 'app.js'
       - 'index.html'
       - 'src/domain/invoice-document-analysis.js'
+      - 'src/domain/invoice-effects.js'
+      - 'src/application/pendency-service.js'
+      - 'supabase/migrations/20260922234500_fix_permanent_identification_asset_description.sql'
+      - 'supabase/tests/database/invoice-document-analysis-pendency.test.sql'
       - 'tests/unit/unidentified-expense-identification-options.test.js'
       - 'tests/e2e/internet-bill-document.spec.js'
       - '.github/workflows/unidentified-expense-identification-targeted.yml'
@@ -47,6 +51,37 @@ jobs:
 
       - name: Provar contrato domínio × interface
         run: node --test tests/unit/unidentified-expense-identification-options.test.js
+
+  database:
+    name: Bem Permanente pela RPC real
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - name: Obter código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Iniciar Supabase local
+        run: npm run supabase:start
+
+      - name: Recriar banco
+        run: npm run supabase:reset
+
+      - name: Provar identificação fiscal e patrimônio canônico
+        run: npx supabase test db supabase/tests/database/invoice-document-analysis-pendency.test.sql
+
+      - name: Encerrar Supabase local
+        if: always()
+        run: npm run supabase:stop || true
 
   browser:
     name: Educação Conectada identifica Boleto de Internet
