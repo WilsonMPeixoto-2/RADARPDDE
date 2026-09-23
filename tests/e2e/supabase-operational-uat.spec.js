@@ -402,9 +402,8 @@ async function submitIdentifyingPendencyUI(page, pendency, {
 
   let dialogMessage = '';
   if (expectedDialog) {
-    page.once('dialog', async dialog => {
+    page.once('dialog', dialog => {
       dialogMessage = dialog.message();
-      await dialog.accept();
     });
   }
 
