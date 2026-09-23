@@ -373,6 +373,107 @@ async function submitPendencyUI(page, pendency, identify = false) {
   await closePreview(page, { waitForAppearance: true });
 }
 
+async function submitIdentifyingPendencyUI(page, pendency, {
+  expenseType,
+  invoiceNumber,
+  description,
+  amount,
+  expectedDialog = null
+}) {
+  await page.locator('#nav-pendencias').click();
+  await page.getByRole('tab', { name: /^Abertas/ }).click();
+
+  const row = page.locator(`#p-abertas [data-pendency-id="${pendency.id}"]`)
+    .filter({ visible: true })
+    .first();
+  await expect(row).toBeVisible();
+
+  const drawer = page.locator('#pendency-detail-drawer');
+  await drawer.waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
+  if (!(await drawer.isVisible().catch(() => false))) {
+    await row.getByRole('button', { name: 'Ver detalhes', exact: true }).click();
+    await expect(drawer).toBeVisible();
+  }
+  await drawer.getByRole('button', { name: 'Registrar novo envio', exact: true }).click();
+
+  const modal = page.locator('#modal-registrar-envio');
+  await expect(modal).toHaveClass(/show/);
+  await expect(modal.locator('#envio-identificacao')).toBeVisible();
+
+  let dialogMessage = '';
+  if (expectedDialog) {
+    page.once('dialog', dialog => {
+      dialogMessage = dialog.message();
+    });
+  }
+
+  await modal.getByLabel('Tipo da despesa', { exact: true }).selectOption(expenseType);
+  await modal.getByLabel('Número ou referência do documento', { exact: true }).fill(invoiceNumber);
+  await modal.getByLabel('Descrição', { exact: true }).fill(description);
+  await modal.getByLabel('Valor (R$)', { exact: true }).fill(String(amount));
+  await modal.getByLabel(
+    'Data em que o arquivo foi disponibilizado no Drive',
+    { exact: true }
+  ).fill('2026-05-20');
+  await modal.getByLabel('Observação', { exact: true })
+    .fill('Documento fiscal apresentado e despesa identificada.');
+
+  await modal.getByRole('button', {
+    name: 'Registrar e enviar para reanálise',
+    exact: true
+  }).click();
+  await expect(modal).not.toHaveClass(/show/);
+  await settleWrites(page);
+
+  if (expectedDialog) expect(dialogMessage).toContain(expectedDialog);
+
+  const storedPendency = (await remoteRows(page, 'pendencies', { id: pendency.id }))[0];
+  expect(storedPendency.status).toBe('Aguardando reanálise');
+
+  const attempts = await remoteRows(page, 'pendency_attempts', { pendency_id: pendency.id });
+  expect(attempts).toHaveLength(1);
+
+  const invoice = (await remoteRows(page, 'registered_invoices', {
+    id: pendency.registered_invoice_id
+  }))[0];
+  expect(invoice.expense_type).toBe(expenseType);
+  expect(invoice.invoice_number).toBe(invoiceNumber);
+  expect(invoice.description).toBe(description);
+  expect(Number(invoice.amount)).toBe(Number(amount));
+  expect(invoice.payload.analiseDocumentoFiscal).toBe('Não analisado');
+
+  await closePreview(page, { waitForAppearance: true });
+  return invoice;
+}
+
+async function createUnidentifiedUat(page, {
+  description,
+  amount,
+  program = 'BASIC'
+}) {
+  const invoice = await createInvoiceUI(page, {
+    type: 'a_identificar',
+    description,
+    amount: String(amount),
+    program
+  });
+  expect(invoice.invoice_number).toBeNull();
+  expect(invoice.linked_asset_id).toBeNull();
+  expect(invoice.payload.analiseDocumentoFiscal).toBe('Incorreto');
+
+  const pendencies = await remoteRows(page, 'pendencies', {
+    registered_invoice_id: invoice.id,
+    document_key: 'notaFiscal'
+  });
+  expect(pendencies).toHaveLength(1);
+  expect(pendencies[0].status).toBe('Aberta');
+  expect(await remoteRows(page, 'pendency_attempts', {
+    pendency_id: pendencies[0].id
+  })).toEqual([]);
+
+  return { invoice, pendency: pendencies[0] };
+}
+
 async function reanalyzePendencyUI(page, pendency, result = 'correto') {
   await page.getByRole('tab', { name: /^Aguardando/ }).click();
   const row = page.locator(`#p-aguardando [data-pendency-id="${pendency.id}"]`).filter({ visible: true }).first();
@@ -489,6 +590,239 @@ test.describe('Formulários operacionais com banco real', () => {
     await expect(restoredCard).toContainText('Correto');
     expect((await remoteRows(page, 'registered_invoices', { id: invoice.id }))[0].payload.analiseDocumentoFiscal).toBe('Correto');
     expect((await remoteRows(page, 'pendencies', { id: pending.id }))[0].status).toBe('Resolvida');
+    await assertOperationalReads(observed);
+  });
+
+  test('a identificar → consumo: identifica, resolve a Pendência documental e não cria efeitos indevidos', async ({ page }, testInfo) => {
+    const observed = observeBrowser(page);
+    await openUatSchool(page);
+
+    const { invoice: original, pendency } = await createUnidentifiedUat(page, {
+      description: `Débito consumo a identificar ${testInfo.retry}`,
+      amount: 111.11
+    });
+
+    await closePreview(page, { waitForAppearance: true });
+    const identified = await submitIdentifyingPendencyUI(page, pendency, {
+      expenseType: 'consumo',
+      invoiceNumber: `NF-ID-CONS-${testInfo.retry}`,
+      description: 'Material de expediente identificado',
+      amount: 111.11
+    });
+
+    expect(identified.id).toBe(original.id);
+    expect(identified.linked_asset_id).toBeNull();
+
+    await reanalyzePendencyUI(page, pendency);
+    expect((await remoteRows(page, 'pendencies', { id: pendency.id }))[0].status).toBe('Resolvida');
+
+    await page.goto('/escolas/ESC-UAT');
+    await waitForControllerAfterReload(page);
+
+    const restored = (await remoteRows(page, 'registered_invoices', { id: original.id }))[0];
+    expect(restored.expense_type).toBe('consumo');
+    expect(restored.payload.analiseDocumentoFiscal).toBe('Correto');
+    expect(restored.linked_asset_id).toBeNull();
+    await expect(page.locator(`[data-service-advisory-invoice="${original.id}"]`)).toHaveCount(0);
+    expect(await remoteRows(page, 'assets', { invoice_number: identified.invoice_number })).toEqual([]);
+
+    await assertOperationalReads(observed);
+  });
+
+  test('a identificar → serviço: identifica, resolve NF e executa o ciclo individual da Assessoria', async ({ page }, testInfo) => {
+    const observed = observeBrowser(page);
+    await openUatSchool(page);
+
+    const { invoice: original, pendency } = await createUnidentifiedUat(page, {
+      description: `Débito serviço a identificar ${testInfo.retry}`,
+      amount: 222.22
+    });
+
+    await closePreview(page, { waitForAppearance: true });
+    const identified = await submitIdentifyingPendencyUI(page, pendency, {
+      expenseType: 'servico',
+      invoiceNumber: `NF-ID-SERV-${testInfo.retry}`,
+      description: 'Serviço de manutenção identificado',
+      amount: 222.22,
+      expectedDialog: 'Consulta à Assessoria passa a ser exigida'
+    });
+
+    expect(identified.id).toBe(original.id);
+    expect(identified.linked_asset_id).toBeNull();
+    expect(identified.payload.consultaAssessoriaEnviada).toBe(false);
+    expect(identified.payload.analiseConsultaAssessoria).toBe('Não analisado');
+
+    await reanalyzePendencyUI(page, pendency);
+    await page.goto('/escolas/ESC-UAT');
+    await waitForControllerAfterReload(page);
+
+    const sent = page.getByLabel(
+      `Consulta enviada à Assessoria para a NF ${identified.invoice_number}`,
+      { exact: true }
+    );
+    await expect(sent).not.toBeChecked();
+    await sent.check();
+    await settleWrites(page);
+
+    let remote = (await remoteRows(page, 'registered_invoices', { id: original.id }))[0];
+    expect(remote.payload.consultaAssessoriaEnviada).toBe(true);
+
+    const advisoryPendency = await openInvoicePendencyUI(page, original.id, true);
+    expect(advisoryPendency.registered_invoice_id).toBe(original.id);
+
+    await submitPendencyUI(page, advisoryPendency);
+    await reanalyzePendencyUI(page, advisoryPendency, 'incorreto');
+    expect((await remoteRows(page, 'pendencies', { id: advisoryPendency.id }))[0].status)
+      .toBe('Aberta');
+
+    await submitPendencyUI(page, advisoryPendency);
+    await reanalyzePendencyUI(page, advisoryPendency);
+
+    remote = (await remoteRows(page, 'registered_invoices', { id: original.id }))[0];
+    expect(remote.expense_type).toBe('servico');
+    expect(remote.payload.analiseDocumentoFiscal).toBe('Correto');
+    expect(remote.payload.consultaAssessoriaEnviada).toBe(true);
+    expect(remote.payload.analiseConsultaAssessoria).toBe('Correto');
+
+    await page.goto('/escolas/ESC-UAT');
+    await waitForControllerAfterReload(page);
+    await expect(page.getByLabel(
+      `Análise da consulta à Assessoria para a NF ${identified.invoice_number}`,
+      { exact: true }
+    )).toHaveValue('Correto');
+
+    await assertOperationalReads(observed);
+  });
+
+  test('a identificar → permanente: cria bem, resolve NF, aceita observação e conclui inventariação', async ({ page }, testInfo) => {
+    const observed = observeBrowser(page);
+    await openUatSchool(page);
+
+    const schoolRows = await remoteRows(page, 'schools', { id: 'ESC-UAT' });
+    expect(schoolRows).toHaveLength(1);
+    expect(String(schoolRows[0].inventory_process || '').trim()).not.toBe('');
+
+    const { invoice: original, pendency } = await createUnidentifiedUat(page, {
+      description: `Débito patrimônio a identificar ${testInfo.retry}`,
+      amount: 333.33
+    });
+
+    await closePreview(page, { waitForAppearance: true });
+    const identified = await submitIdentifyingPendencyUI(page, pendency, {
+      expenseType: 'permanente',
+      invoiceNumber: `NF-ID-PERM-${testInfo.retry}`,
+      description: 'CAIXAS DE SOM PARA INVENTÁRIO',
+      amount: 333.33
+    });
+
+    expect(identified.id).toBe(original.id);
+    expect(identified.linked_asset_id).toEqual(expect.any(String));
+
+    let assets = await remoteRows(page, 'assets', { id: identified.linked_asset_id });
+    expect(assets).toHaveLength(1);
+    expect(assets[0]).toMatchObject({
+      expense_type: 'permanente',
+      invoice_number: identified.invoice_number,
+      status: 'Encaminhada',
+      inventory_process: schoolRows[0].inventory_process
+    });
+    expect(assets[0].description).toBe('PDDE Básico - CAIXAS DE SOM PARA INVENTÁRIO');
+
+    await reanalyzePendencyUI(page, pendency);
+    expect((await remoteRows(page, 'registered_invoices', { id: original.id }))[0]
+      .payload.analiseDocumentoFiscal).toBe('Correto');
+
+    await page.evaluate(() => switchView('inventario'));
+    const row = page.locator('table.data-table tbody tr')
+      .filter({ hasText: 'PDDE Básico - CAIXAS DE SOM PARA INVENTÁRIO' });
+    await expect(row).toHaveCount(1);
+    await expect(row).toContainText('Aguardando Inventariação');
+
+    await row.getByRole('button', { name: 'Adicionar observação', exact: true }).click();
+    const noteModal = page.locator('#modal-inventory-observation');
+    await expect(noteModal).toHaveClass(/show/);
+    await noteModal.locator('#inventory-observation-text')
+      .fill('Bem conferido; aguardando tombamento definitivo.');
+    await noteModal.getByRole('button', { name: 'Salvar observação', exact: true }).click();
+    await expect(noteModal).not.toHaveClass(/show/);
+    await settleWrites(page);
+
+    assets = await remoteRows(page, 'assets', { id: identified.linked_asset_id });
+    expect(assets[0].status).toBe('Encaminhada');
+    expect(assets[0].notes).toBe('Bem conferido; aguardando tombamento definitivo.');
+
+    const refreshedRow = page.locator('table.data-table tbody tr')
+      .filter({ hasText: 'PDDE Básico - CAIXAS DE SOM PARA INVENTÁRIO' });
+    await refreshedRow.getByRole('button', {
+      name: 'Marcar como Inventariado',
+      exact: true
+    }).click();
+
+    const inventoryModal = page.locator('#modal-inventario-confirm');
+    await expect(inventoryModal).toHaveClass(/show/);
+    await expect(inventoryModal.locator('#inventario-responsavel')).not.toHaveValue('');
+    await inventoryModal.locator('#inventario-observacoes')
+      .fill('Inventariado e tombado no teste de ciclo completo.');
+    await inventoryModal.getByRole('button', {
+      name: 'Confirmar Inventariação',
+      exact: true
+    }).click();
+    await expect(inventoryModal).not.toHaveClass(/show/);
+    await settleWrites(page);
+
+    assets = await remoteRows(page, 'assets', { id: identified.linked_asset_id });
+    expect(assets[0].status).toBe('Inventariada');
+    expect(assets[0].notes).toBe('Inventariado e tombado no teste de ciclo completo.');
+    expect(assets[0].inventoried_at).toBeTruthy();
+
+    await page.reload();
+    await waitForControllerAfterReload(page);
+    const remoteInvoice = (await remoteRows(page, 'registered_invoices', { id: original.id }))[0];
+    const remoteAsset = (await remoteRows(page, 'assets', { id: identified.linked_asset_id }))[0];
+    expect(remoteInvoice.expense_type).toBe('permanente');
+    expect(remoteInvoice.linked_asset_id).toBe(remoteAsset.id);
+    expect(remoteInvoice.payload.analiseDocumentoFiscal).toBe('Correto');
+    expect(remoteAsset.status).toBe('Inventariada');
+
+    await assertOperationalReads(observed);
+  });
+
+  test('a identificar → boleto de Internet: resolve NF na Conectada sem criar Assessoria ou patrimônio', async ({ page }, testInfo) => {
+    const observed = observeBrowser(page);
+    await openUatSchool(page);
+
+    const { invoice: original, pendency } = await createUnidentifiedUat(page, {
+      description: `Débito de Internet a identificar ${testInfo.retry}`,
+      amount: 179.90,
+      program: 'CONECTADA'
+    });
+
+    await closePreview(page, { waitForAppearance: true });
+    const identified = await submitIdentifyingPendencyUI(page, pendency, {
+      expenseType: 'boleto_internet',
+      invoiceNumber: `BOL-ID-EC-${testInfo.retry}`,
+      description: 'Acesso mensal à Internet identificado',
+      amount: 179.90
+    });
+
+    expect(identified.id).toBe(original.id);
+    expect(identified.program_id).toBe('CONECTADA');
+    expect(identified.linked_asset_id).toBeNull();
+    expect(Object.hasOwn(identified.payload, 'consultaAssessoriaEnviada')).toBe(false);
+    expect(Object.hasOwn(identified.payload, 'analiseConsultaAssessoria')).toBe(false);
+
+    await reanalyzePendencyUI(page, pendency);
+    await page.goto('/escolas/ESC-UAT');
+    await waitForControllerAfterReload(page);
+
+    const restored = (await remoteRows(page, 'registered_invoices', { id: original.id }))[0];
+    expect(restored.expense_type).toBe('boleto_internet');
+    expect(restored.payload.analiseDocumentoFiscal).toBe('Correto');
+    expect(restored.linked_asset_id).toBeNull();
+    await expect(page.locator(`[data-service-advisory-invoice="${original.id}"]`)).toHaveCount(0);
+    expect(await remoteRows(page, 'assets', { invoice_number: identified.invoice_number })).toEqual([]);
+    await expect(page.locator('[data-document-key="boletoInternet"]')).toHaveCount(0);
+
     await assertOperationalReads(observed);
   });
 
