@@ -107,6 +107,9 @@ test('contato e log usam uma única RPC idempotente', async () => {
     assert.equal(rpcCalls[0].operationId, 'operation-contact-1');
     assert.equal(rpcCalls[0].contact.id, 'cont-atomic-contact');
     assert.equal(rpcCalls[0].contact.school_id, '04.10.001');
+    assert.equal(rpcCalls[0].contact.payload.responsavel, 'Controlador Teste');
+    assert.equal(rpcCalls[0].contact.payload.usuario, 'Controlador Teste');
+    assert.equal(rpcCalls[0].contact.payload.perfil, 'Controlador');
     assert.equal(rpcCalls[0].administrativeLog.id, 'op-log-1');
     assert.equal(rpcCalls[0].administrativeLog.school_id, '04.10.001');
 });
