@@ -1,0 +1,73 @@
+name: Regressões direcionadas do help desk
+
+on:
+  push:
+    branches:
+      - test/helpdesk-specific-regressions-2026-09-23
+
+permissions:
+  contents: read
+
+env:
+  SUPABASE_TELEMETRY_DISABLED: '1'
+
+jobs:
+  contact-author:
+    name: Autoria real do Histórico de Contatos
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - name: Provar persistência da autoria no comando remoto
+        run: node --test tests/unit/remote-operational-commands.test.js
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Provar renderização da autoria no Histórico de Contatos
+        run: npx playwright test tests/e2e/remote-context-ui.spec.js --project=desktop-chromium --workers=1 --grep "histórico consulta contatos somente ao abrir"
+
+  inventory-observation:
+    name: Observação patrimonial sem mudar status
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - name: Provar autorização e persistência no serviço
+        run: node --test tests/unit/inventory-service.test.js tests/unit/inventory-observation-ui.test.js
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Provar jornada exata da Equipe de Inventário
+        run: npx playwright test tests/e2e/inventory-observation.spec.js --project=desktop-chromium --workers=1 --grep "Equipe de Inventário registra observação sem concluir a inventariação"
+
+  inventory-observation-rpc:
+    name: RPC real da observação patrimonial
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - name: Iniciar Supabase local
+        run: npm run supabase:start
+      - name: Recriar banco
+        run: npm run supabase:reset
+      - name: Executar apenas o contrato RPC patrimonial/operacional
+        run: npx supabase test db supabase/tests/database/operational-command-rpc.test.sql
+      - name: Encerrar Supabase local
+        if: always()
+        run: npm run supabase:stop || true
