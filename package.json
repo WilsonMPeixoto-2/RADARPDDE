@@ -109,7 +109,7 @@
     "knip": "6.35.1",
     "lighthouse": "13.4.1",
     "msw": "2.15.0",
-    "prettier": "3.9.6",
+    "prettier": "3.9.8",
     "supabase": "2.114.0",
     "typescript": "7.0.2"
   },
