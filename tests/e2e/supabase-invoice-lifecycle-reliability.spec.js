@@ -639,7 +639,7 @@ test('matriz a_identificar persiste consumo, serviço, permanente e boleto com R
   expect(remote.invoice).toMatchObject({
     id: invalidBill.invoiceId,
     type: 'a_identificar',
-    number: '',
+    number: null,
     description: 'Débito básico para teste de boleto inválido',
     amount: 88.8,
     linkedAssetId: null,
