@@ -4,7 +4,7 @@ set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(31);
+select plan(32);
 
 insert into auth.users (id, email)
 values ('00000000-0000-0000-0000-000000000211', 'invoice-document-hotfix@example.test');
@@ -181,7 +181,7 @@ select lives_ok($$
         ((select to_jsonb(i) - 'row_version' - 'created_at' - 'updated_at' from public.registered_invoices i where id='invoice-doc-u')
             || jsonb_build_object('description','Projetor multimídia','expense_type','permanente','invoice_number','NF-U-IDENT','amount',850,'linked_asset_id','asset-doc-u','payload',jsonb_build_object('analiseDocumentoFiscal','Não analisado'))),
         (select row_version from public.registered_invoices where id='invoice-doc-u'),
-        '{"id":"asset-doc-u","school_id":"04.99.211","competence_id":"2029-01","description":"Projetor multimídia","expense_type":"permanente","invoice_number":"NF-U-IDENT","amount":850,"status":"Não encaminhada","inventory_process":"","notes":"","payload":{}}'::jsonb,
+        '{"id":"asset-doc-u","school_id":"04.99.211","competence_id":"2029-01","description":"Programa teste análise fiscal individual - Projetor multimídia","expense_type":"permanente","invoice_number":"NF-U-IDENT","amount":850,"status":"Não encaminhada","inventory_process":"","notes":"","payload":{}}'::jsonb,
         null,
         jsonb_set((select to_jsonb(p) - 'row_version' - 'created_at' - 'updated_at' from public.pendencies p where id='pendency-doc-u'), '{status}', to_jsonb('Aguardando reanálise'::text), true),
         (select row_version from public.pendencies where id='pendency-doc-u'),
@@ -195,6 +195,7 @@ select is((select id from public.registered_invoices where id='invoice-doc-u'), 
 select is((select expense_type from public.registered_invoices where id='invoice-doc-u'), 'permanente', 'despesa passa a bem permanente');
 select is((select linked_asset_id from public.registered_invoices where id='invoice-doc-u'), 'asset-doc-u', 'Nota Fiscal fica vinculada ao bem criado');
 select is((select count(*)::integer from public.assets where id='asset-doc-u'), 1, 'bem permanente é efetivamente gravado');
+select is((select description from public.assets where id='asset-doc-u'), 'Programa teste análise fiscal individual - Projetor multimídia', 'identificação aceita a descrição patrimonial canônica prefixada pelo programa');
 select is((select status from public.pendencies where id='pendency-doc-u'), 'Aguardando reanálise', 'mesma Pendência passa a Aguardando reanálise');
 select is((select count(*)::integer from public.pendency_attempts where pendency_id='pendency-doc-u' and result is null), 1, 'novo envio registra uma tentativa aguardando');
 
