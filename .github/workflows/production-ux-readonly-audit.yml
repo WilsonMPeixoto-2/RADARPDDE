@@ -1,0 +1,137 @@
+name: Auditoria UX read-only temporária em Production
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/production-ux-readonly-audit.yml'
+      - 'tests/e2e/production-authenticated-read.spec.js'
+      - 'tests/support/production-authenticated-read.js'
+      - 'scripts/ops/prepare-remote-homologation-users.mjs'
+      - 'scripts/ops/cleanup-remote-homologation-users.mjs'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-ux-readonly-audit-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  RADAR_PRODUCTION_URL: https://radarpdde-fix.vercel.app
+  RADAR_SUPABASE_URL: ${{ secrets.RADAR_SUPABASE_URL }}
+  RADAR_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.RADAR_SUPABASE_SERVICE_ROLE_KEY }}
+  RADAR_ALLOW_REMOTE_HOMOLOGATION: 'true'
+
+jobs:
+  audit:
+    name: Navegação real read-only no Prontuário
+    if: github.head_ref == 'test/production-ux-readonly-audit-2026-09-24'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+
+    steps:
+      - name: Obter código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Validar alvo e segredos
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${RADAR_SUPABASE_URL}"
+          test -n "${RADAR_SUPABASE_SERVICE_ROLE_KEY}"
+          test "${RADAR_SUPABASE_URL}" = 'https://scnryinorqeucbfkioxo.supabase.co'
+          node --input-type=module <<'NODE'
+          const response = await fetch(new URL('/radar-build-manifest.json', process.env.RADAR_PRODUCTION_URL));
+          if (!response.ok) throw new Error('Manifesto de Production indisponível.');
+          const manifest = await response.json();
+          if (manifest.commitSha !== 'a1bf581f93b81538c3828425cd671ede4ff09c53') {
+            throw new Error('Production não está no SHA homologado esperado.');
+          }
+          if (manifest.vercelEnvironment !== 'production'
+              || manifest.runtimeEnvironment !== 'production'
+              || manifest.dataMode !== 'supabase-production'
+              || manifest.productionActivationApproved !== true) {
+            throw new Error('Manifesto de Production divergente.');
+          }
+          process.stdout.write('Alvo Production confirmado.\n');
+          NODE
+
+      - name: Gerar credenciais efêmeras
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          password="$(node --input-type=module -e "import { randomBytes } from 'node:crypto'; process.stdout.write(randomBytes(36).toString('base64url') + 'A1!')")"
+          echo "::add-mask::${password}"
+          echo "RADAR_HML_PASSWORD=${password}" >> "${GITHUB_ENV}"
+          echo "RADAR_HML_RUN_ID=PROD-UX-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "${GITHUB_ENV}"
+          echo "RADAR_HML_FIXTURE_FILE=${RUNNER_TEMP}/radar-prod-ux-users.json" >> "${GITHUB_ENV}"
+          echo "RADAR_PRODUCTION_READ_ACCOUNTS_FILE=${RUNNER_TEMP}/radar-prod-ux-accounts.json" >> "${GITHUB_ENV}"
+
+      - name: Criar identidades técnicas temporárias
+        run: node scripts/ops/prepare-remote-homologation-users.mjs
+
+      - name: Preparar arquivo protegido das cinco contas
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+
+          const fixture = JSON.parse(fs.readFileSync(process.env.RADAR_HML_FIXTURE_FILE, 'utf8'));
+          const password = process.env.RADAR_HML_PASSWORD;
+          const byKey = Object.fromEntries(fixture.users.map(user => [user.key, user]));
+          const selected = [
+            byKey.controllerTuane,
+            byKey.assistant,
+            byKey.inventory,
+            byKey.sme,
+            byKey.technicalAdmin
+          ];
+          if (selected.some(user => !user)) {
+            throw new Error('Fixture temporária incompleta.');
+          }
+          const accounts = selected.map(user => ({
+            profileId: user.profileId,
+            email: user.email,
+            password
+          }));
+          fs.writeFileSync(
+            process.env.RADAR_PRODUCTION_READ_ACCOUNTS_FILE,
+            JSON.stringify({ accounts }),
+            { mode: 0o600 }
+          );
+          process.stdout.write('Cinco contas técnicas temporárias preparadas sem expor credenciais.\n');
+          NODE
+
+      - name: Executar Playwright autenticado read-only na Production
+        env:
+          RADAR_E2E_PRODUCTION_AUTHENTICATED_READ: '1'
+        run: npx playwright test --config=playwright.production-authenticated-read.config.js
+
+      - name: Remover identidades e rastros temporários
+        if: always()
+        run: node scripts/ops/cleanup-remote-homologation-users.mjs
+
+      - name: Remover arquivos locais de credenciais
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f -- "${RADAR_HML_FIXTURE_FILE:-}" "${RADAR_PRODUCTION_READ_ACCOUNTS_FILE:-}"
