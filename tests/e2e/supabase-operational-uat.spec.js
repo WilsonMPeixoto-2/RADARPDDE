@@ -641,7 +641,12 @@ test.describe('Formulários operacionais com banco real', () => {
     await page.locator('#form-dados-nota button[type="submit"]').click();
     await expect(page.locator('#modal-dados-nota')).not.toHaveClass(/show/);
     expect((await remoteRows(page, 'pendencies', { id: pending.id }))[0].registered_invoice_id).toBe(invoice.id);
-    await submitPendencyUI(page, pending, true);
+    await submitIdentifyingPendencyUI(page, pending, {
+      expenseType: 'consumo',
+      invoiceNumber: `NF-RET-ID-${testInfo.retry}`,
+      description: 'Débito retificado e identificado como material de consumo',
+      amount: 850
+    });
     const identified = (await remoteRows(page, 'registered_invoices', { id: invoice.id }))[0];
     expect(identified.expense_type).toBe('consumo');
     expect(identified.payload.analiseDocumentoFiscal).toBe('Não analisado');
