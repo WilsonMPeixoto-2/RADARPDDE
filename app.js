@@ -9662,39 +9662,58 @@ function renderProntuario(escolaId) {
 
             <!-- Corpo Principal: Abas de Trabalho -->
             <div class="school-workspace">
-                <div class="tab-container prontuario-tablist" role="tablist" aria-label="Seções do prontuário da unidade">
-                    ${accessProfile === 'inventario' ? `
-                        <button type="button" id="prontuario-tab-capital" class="tab-button active" data-tab="capital" role="tab" aria-controls="tab-capital" aria-selected="true" tabindex="0" onclick="switchSchoolTab(event, 'tab-capital')" onkeydown="handleSchoolTabKeydown(event)">Registro de Capital</button>
-                    ` : accessProfile === 'sme' ? `
-                        <button type="button" id="prontuario-tab-verificacoes" class="tab-button active" data-tab="verificacoes" role="tab" aria-controls="tab-verificacoes" aria-selected="true" tabindex="0" onclick="switchSchoolTab(event, 'tab-verificacoes')" onkeydown="handleSchoolTabKeydown(event)">Competências e Bonificação</button>
-                    ` : `
-                        <button
-                            type="button"
-                            id="prontuario-tab-verificacoes"
-                            class="tab-button active prontuario-flow-tab prontuario-tooltip"
-                            data-tooltip="Abrir a análise documental da competência e dos programas da unidade."
-                            data-tab="verificacoes"
-                            role="tab"
-                            aria-controls="tab-verificacoes"
-                            aria-selected="true"
-                            tabindex="0"
-                            onclick="switchSchoolTab(event, 'tab-verificacoes')"
-                            onkeydown="handleSchoolTabKeydown(event)"
-                        >Competências e Análises</button>
-                        <button
-                            type="button"
-                            id="prontuario-tab-pendencias"
-                            class="tab-button prontuario-flow-tab prontuario-tooltip"
-                            data-tooltip="Abrir as pendências ativas desta unidade e as ações disponíveis para cada uma."
-                            data-tab="pendencias"
-                            role="tab"
-                            aria-controls="tab-pendencias"
-                            aria-selected="false"
-                            tabindex="-1"
-                            onclick="switchSchoolTab(event, 'tab-pendencias')"
-                            onkeydown="handleSchoolTabKeydown(event)"
-                        >Pendências Ativas (${pAtivas.length})</button>
-                        ${showProntuarioActions ? `
+                <div class="prontuario-flowbar">
+                    <div class="tab-container prontuario-tablist" role="tablist" aria-label="Seções do prontuário da unidade">
+                        ${accessProfile === 'inventario' ? `
+                            <button type="button" id="prontuario-tab-capital" class="tab-button active" data-tab="capital" role="tab" aria-controls="tab-capital" aria-selected="true" tabindex="0" onclick="switchSchoolTab(event, 'tab-capital')" onkeydown="handleSchoolTabKeydown(event)">Registro de Capital</button>
+                        ` : accessProfile === 'sme' ? `
+                            <button type="button" id="prontuario-tab-verificacoes" class="tab-button active" data-tab="verificacoes" role="tab" aria-controls="tab-verificacoes" aria-selected="true" tabindex="0" onclick="switchSchoolTab(event, 'tab-verificacoes')" onkeydown="handleSchoolTabKeydown(event)">Competências e Bonificação</button>
+                        ` : `
+                            <button
+                                type="button"
+                                id="prontuario-tab-verificacoes"
+                                class="tab-button active prontuario-flow-tab prontuario-tooltip"
+                                data-tooltip="Abrir a análise documental da competência e dos programas da unidade."
+                                data-tab="verificacoes"
+                                role="tab"
+                                aria-controls="tab-verificacoes"
+                                aria-selected="true"
+                                tabindex="0"
+                                onclick="switchSchoolTab(event, 'tab-verificacoes')"
+                                onkeydown="handleSchoolTabKeydown(event)"
+                            >Competências e Análises</button>
+                            <button
+                                type="button"
+                                id="prontuario-tab-pendencias"
+                                class="tab-button prontuario-flow-tab prontuario-tooltip"
+                                data-tooltip="Abrir as pendências ativas desta unidade e as ações disponíveis para cada uma."
+                                data-tab="pendencias"
+                                role="tab"
+                                aria-controls="tab-pendencias"
+                                aria-selected="false"
+                                tabindex="-1"
+                                onclick="switchSchoolTab(event, 'tab-pendencias')"
+                                onkeydown="handleSchoolTabKeydown(event)"
+                            >Pendências Ativas (${pAtivas.length})</button>
+                            <button
+                                type="button"
+                                id="prontuario-tab-contatos"
+                                class="tab-button prontuario-flow-tab prontuario-tooltip"
+                                data-tooltip="Consultar o histórico dos contatos e comunicações registrados para esta unidade."
+                                data-tab="contatos"
+                                role="tab"
+                                aria-controls="tab-contatos"
+                                aria-selected="false"
+                                tabindex="-1"
+                                onclick="switchSchoolTab(event, 'tab-contatos')"
+                                onkeydown="handleSchoolTabKeydown(event)"
+                            >Histórico de Contatos</button>
+                            <button type="button" id="prontuario-tab-capital" class="tab-button" data-tab="capital" role="tab" aria-controls="tab-capital" aria-selected="false" tabindex="-1" onclick="switchSchoolTab(event, 'tab-capital')" onkeydown="handleSchoolTabKeydown(event)">Registro de Capital</button>
+                            <button type="button" id="prontuario-tab-auditoria" class="tab-button" data-tab="auditoria" role="tab" aria-controls="tab-auditoria" aria-selected="false" tabindex="-1" onclick="switchSchoolTab(event, 'tab-auditoria')" onkeydown="handleSchoolTabKeydown(event)">Registros Internos</button>
+                        `}
+                    </div>
+                    ${showProntuarioActions ? `
+                        <div class="prontuario-flow-actions" role="group" aria-label="Ações de acompanhamento da unidade">
                             <button
                                 type="button"
                                 class="prontuario-flow-action prontuario-flow-action-primary prontuario-tooltip"
@@ -9713,23 +9732,8 @@ function renderProntuario(escolaId) {
                                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                                 <span>Registrar contato</span>
                             </button>
-                        ` : ''}
-                        <button
-                            type="button"
-                            id="prontuario-tab-contatos"
-                            class="tab-button prontuario-flow-tab prontuario-tooltip"
-                            data-tooltip="Consultar o histórico dos contatos e comunicações registrados para esta unidade."
-                            data-tab="contatos"
-                            role="tab"
-                            aria-controls="tab-contatos"
-                            aria-selected="false"
-                            tabindex="-1"
-                            onclick="switchSchoolTab(event, 'tab-contatos')"
-                            onkeydown="handleSchoolTabKeydown(event)"
-                        >Histórico de Contatos</button>
-                        <button type="button" id="prontuario-tab-capital" class="tab-button" data-tab="capital" role="tab" aria-controls="tab-capital" aria-selected="false" tabindex="-1" onclick="switchSchoolTab(event, 'tab-capital')" onkeydown="handleSchoolTabKeydown(event)">Registro de Capital</button>
-                        <button type="button" id="prontuario-tab-auditoria" class="tab-button" data-tab="auditoria" role="tab" aria-controls="tab-auditoria" aria-selected="false" tabindex="-1" onclick="switchSchoolTab(event, 'tab-auditoria')" onkeydown="handleSchoolTabKeydown(event)">Registros Internos</button>
-                    `}
+                        </div>
+                    ` : ''}
                 </div>
 
                 ${accessProfile !== 'inventario' ? `
@@ -10082,7 +10086,8 @@ function activateProntuarioTab(tabId) {
     if (!targetPanel || !targetButton) return false;
 
     const tabContainer = targetButton.closest('.tab-container');
-    if (!tabContainer || targetPanel.parentElement !== tabContainer.parentElement) return false;
+    const workspace = targetButton.closest('.school-workspace');
+    if (!tabContainer || !workspace || targetPanel.parentElement !== workspace) return false;
 
     Array.from(tabContainer.children).forEach(element => {
         if (!element.classList.contains('tab-button')) return;
