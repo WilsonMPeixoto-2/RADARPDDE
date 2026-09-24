@@ -1126,3 +1126,87 @@ html.radar-auth-required .radar-auth-gate {
 .panel-card + .panel-card {
     margin-top: 2px;
 }
+
+
+/* Reconciliação com os breakpoints já homologados do RADAR. */
+@media (min-width: 901px) and (max-width: 1536px) {
+    aside.sidebar {
+        padding: 18px 12px 14px;
+    }
+
+    .sidebar-logo {
+        margin-bottom: 18px;
+    }
+
+    .nav-group {
+        margin-bottom: 16px;
+    }
+
+    header.top-header {
+        min-height: 66px;
+        height: 66px;
+        padding: 8px 18px;
+        gap: 12px;
+    }
+
+    .search-bar-container {
+        max-width: 500px;
+    }
+
+    .search-input {
+        min-height: 40px;
+    }
+
+    .exercise-selector,
+    .profile-button,
+    .global-competence-badge,
+    .bell-button {
+        min-height: 38px;
+    }
+
+    .page-container {
+        padding: 22px 20px 32px;
+    }
+
+    .page-header {
+        margin-bottom: 18px;
+    }
+}
+
+@media (min-width: 2200px) {
+    aside.sidebar {
+        padding: 30px 22px;
+    }
+
+    header.top-header {
+        min-height: 84px;
+        height: 84px;
+        padding-inline: 40px;
+        gap: 18px;
+    }
+
+    .search-bar-container {
+        max-width: 640px;
+    }
+
+    .search-input,
+    .exercise-selector,
+    .profile-button,
+    .global-competence-badge,
+    .bell-button {
+        min-height: 44px;
+    }
+
+    .page-container {
+        padding: 36px 40px 48px;
+    }
+
+    .panel-card,
+    .config-section {
+        padding: 28px;
+    }
+
+    .modal-content {
+        max-height: calc(100vh - 72px);
+    }
+}
