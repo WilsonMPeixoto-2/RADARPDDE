@@ -24,13 +24,23 @@ async function openProntuario(page) {
     const activeKey = window.RadarCompetenceContext.getState().activeKey;
     const school = escolas.find(candidate => (
       Array.isArray(candidate.programasIds)
-      && candidate.programasIds.length > 0
+      && candidate.programasIds.includes('BASIC')
       && isCompetenceInScope(candidate.competenciaInicial, activeKey)
     ));
-    if (!school) throw new Error('Nenhuma escola disponível para auditoria visual.');
+    if (!school) throw new Error('Nenhuma escola com PDDE Básico disponível para auditoria visual.');
+
+    const compKey = activeKey + '_BASIC';
+    verificacoes[school.id] ||= {};
+    if (!verificacoes[school.id][compKey]) {
+      verificacoes[school.id][compKey] = RadarFluxoOperacional.createEmptyVerification('BASIC');
+    }
+    verificacoes[school.id][compKey].bonificacao.notaFiscal = 'Não';
+    verificacoes[school.id][compKey].analise.notaFiscal = 'Não analisado';
+    rebuildOperationalIndexes();
+
     activeProntuarioCompetencia = activeKey;
     switchView('prontuario', school.id);
-    return { schoolId: school.id, competence: activeKey };
+    return { schoolId: school.id, competence: activeKey, compKey };
   });
 }
 
