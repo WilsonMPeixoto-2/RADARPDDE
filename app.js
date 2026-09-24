@@ -10474,7 +10474,8 @@ function renderProntuarioVerificacoes(esc) {
                                         ? `
                                             <button
                                                 type="button"
-                                                class="invoice-pendency-primary-action"
+                                                class="invoice-pendency-primary-action prontuario-tooltip"
+                                                data-tooltip="Registrar os dados do documento recebido e identificar esta despesa."
                                                 data-action="register-corrective-submission"
                                                 data-pendency-ref="${pendencyReference}"
                                                 onclick="abrirModalRegistrarNovoEnvio(this)"
@@ -10487,7 +10488,8 @@ function renderProntuarioVerificacoes(esc) {
                                             ? `
                                                 <button
                                                     type="button"
-                                                    class="invoice-pendency-primary-action"
+                                                    class="invoice-pendency-primary-action prontuario-tooltip"
+                                                    data-tooltip="Conferir o último documento recebido e registrar o resultado da reanálise."
                                                     data-action="reanalyse-pendency"
                                                     data-pendency-ref="${pendencyReference}"
                                                     onclick="abrirModalReanalisarPendencia(this)"
