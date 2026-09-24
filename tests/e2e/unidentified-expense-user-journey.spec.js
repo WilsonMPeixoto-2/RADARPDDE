@@ -103,12 +103,14 @@ test.describe('Jornada real — Despesa a identificar', () => {
         content: style.content,
         opacity: Number.parseFloat(style.opacity),
         visibility: style.visibility,
-        bottom: style.bottom
+        bottom: style.bottom,
+        left: style.left
       };
     })).toMatchObject({
       content: expect.stringContaining('saída no extrato'),
       opacity: 1,
-      visibility: 'visible'
+      visibility: 'visible',
+      left: '0px'
     });
     await attachScreenshot(page, testInfo, '01b-ajuda-contextual-despesa-a-identificar');
     await start.click();
@@ -322,6 +324,8 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await expect(page.locator('#tab-contatos')).toContainText(
       'Mensagem encaminhada ao diretor pelo WhatsApp.'
     );
+    await page.mouse.move(12, 12);
+    await page.waitForTimeout(160);
     await attachScreenshot(page, testInfo, '07-historico-contato-registrado');
   });
 });
