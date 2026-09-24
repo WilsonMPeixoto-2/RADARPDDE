@@ -144,8 +144,22 @@ test.describe('Prontuário operacional no desktop', () => {
     await expect(dataActions.nth(0)).toHaveText('Editar Dados');
     await expect(dataActions.nth(1)).toHaveText('Exibir dados da unidade');
 
-    const flow = page.locator('.prontuario-tablist > button');
-    const labels = (await flow.allTextContents()).map(value => value.replace(/\s+/g, ' ').trim());
+    const labels = await page.locator('.prontuario-flowbar').evaluate(flowbar => {
+      const controls = Array.from(flowbar.querySelectorAll(
+        '.prontuario-tablist > .tab-button, .prontuario-flow-actions > .prontuario-flow-action'
+      ));
+      return controls
+        .map(element => {
+          const rect = element.getBoundingClientRect();
+          return {
+            label: element.textContent.replace(/\s+/g, ' ').trim(),
+            top: Math.round(rect.top),
+            left: Math.round(rect.left)
+          };
+        })
+        .sort((a, b) => (a.top - b.top) || (a.left - b.left))
+        .map(item => item.label);
+    });
     expect(labels).toEqual([
       'Competências e Análises',
       expect.stringMatching(/^Pendências Ativas \(\d+\)$/),
@@ -168,13 +182,18 @@ test.describe('Prontuário operacional no desktop', () => {
     await expect(history).toHaveAttribute('data-tooltip', /histórico dos contatos/);
 
     await communication.hover();
-    const tooltip = await communication.evaluate(element => {
+    await expect.poll(async () => communication.evaluate(element => {
       const style = getComputedStyle(element, '::after');
-      return { content: style.content, opacity: style.opacity, visibility: style.visibility };
+      return {
+        content: style.content,
+        opacity: Number.parseFloat(style.opacity),
+        visibility: style.visibility
+      };
+    })).toMatchObject({
+      content: expect.stringContaining('Gerar uma comunicação'),
+      opacity: 1,
+      visibility: 'visible'
     });
-    expect(tooltip.content).toContain('Gerar uma comunicação');
-    expect(tooltip.opacity).toBe('1');
-    expect(tooltip.visibility).toBe('visible');
 
     await testInfo.attach('prontuario-fluxo-operacional-desktop', {
       body: await page.screenshot({ fullPage: true }),
