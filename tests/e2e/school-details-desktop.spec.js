@@ -136,7 +136,7 @@ test.describe('Prontuário operacional no desktop', () => {
     expect(geometry.tabsInside).toBe(true);
   });
 
-  test('organiza ações cadastrais e fluxo operacional na ordem aprovada', async ({ page }) => {
+  test('organiza ações cadastrais e fluxo operacional na ordem aprovada', async ({ page }, testInfo) => {
     await openProfileSchool(page, 'controlador');
 
     const dataActions = page.locator('.prontuario-data-actions .btn');
@@ -175,6 +175,11 @@ test.describe('Prontuário operacional no desktop', () => {
     expect(tooltip.content).toContain('Gerar uma comunicação');
     expect(tooltip.opacity).toBe('1');
     expect(tooltip.visibility).toBe('visible');
+
+    await testInfo.attach('prontuario-fluxo-operacional-desktop', {
+      body: await page.screenshot({ fullPage: true }),
+      contentType: 'image/png'
+    });
   });
 
   test('mantém dados cadastrais recolhidos e cabeçalho da escola visível durante rolagem', async ({ page }) => {
