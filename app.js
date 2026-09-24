@@ -9454,6 +9454,7 @@ function toggleSchoolRegistrationDetails(button) {
     const expand = panel.hidden;
     panel.hidden = !expand;
     button.setAttribute('aria-expanded', String(expand));
+    button.setAttribute('aria-label', expand ? 'Ocultar dados da unidade' : 'Exibir dados da unidade');
     button.textContent = expand ? 'Ocultar dados da unidade' : 'Exibir dados da unidade';
     return expand;
 }
@@ -9524,6 +9525,7 @@ function renderProntuario(escolaId) {
                     <button
                         type="button"
                         class="btn btn-primary prontuario-tooltip"
+                        aria-label="Editar Dados"
                         data-tooltip="Atualizar os dados cadastrais e administrativos da unidade."
                         onclick="openEscolaEditModal('${escapeHtml(esc.id)}')"
                     >Editar Dados</button>
@@ -9531,6 +9533,7 @@ function renderProntuario(escolaId) {
         <button
             type="button"
             class="btn prontuario-data-toggle prontuario-tooltip"
+            aria-label="Exibir dados da unidade"
             data-tooltip="Exibir ou ocultar os dados cadastrais da unidade."
             aria-expanded="false"
             aria-controls="school-registration-details"
@@ -9673,6 +9676,7 @@ function renderProntuario(escolaId) {
                                 type="button"
                                 id="prontuario-tab-verificacoes"
                                 class="tab-button active prontuario-flow-tab prontuario-tooltip"
+                                aria-label="Competências e Análises"
                                 data-tooltip="Abrir a análise documental da competência e dos programas da unidade."
                                 data-tab="verificacoes"
                                 role="tab"
@@ -9686,6 +9690,7 @@ function renderProntuario(escolaId) {
                                 type="button"
                                 id="prontuario-tab-pendencias"
                                 class="tab-button prontuario-flow-tab prontuario-tooltip"
+                                aria-label="Pendências Ativas (${pAtivas.length})"
                                 data-tooltip="Abrir as pendências ativas desta unidade e as ações disponíveis para cada uma."
                                 data-tab="pendencias"
                                 role="tab"
@@ -9699,6 +9704,7 @@ function renderProntuario(escolaId) {
                                 type="button"
                                 id="prontuario-tab-contatos"
                                 class="tab-button prontuario-flow-tab prontuario-tooltip"
+                                aria-label="Histórico de Contatos"
                                 data-tooltip="Consultar o histórico dos contatos e comunicações registrados para esta unidade."
                                 data-tab="contatos"
                                 role="tab"
@@ -9717,6 +9723,7 @@ function renderProntuario(escolaId) {
                             <button
                                 type="button"
                                 class="prontuario-flow-action prontuario-flow-action-primary prontuario-tooltip"
+                                aria-label="Gerar comunicação"
                                 data-tooltip="Gerar uma comunicação com as pendências ativas para encaminhamento à unidade."
                                 onclick="openCobrancaModal('${escapeHtml(esc.id)}')"
                             >
@@ -9726,6 +9733,7 @@ function renderProntuario(escolaId) {
                             <button
                                 type="button"
                                 class="prontuario-flow-action prontuario-tooltip"
+                                aria-label="Registrar contato"
                                 data-tooltip="Registrar ligação, e-mail, reunião ou outro contato realizado com a unidade."
                                 onclick="openContatoModal('${escapeHtml(esc.id)}')"
                             >
@@ -10423,6 +10431,7 @@ function renderProntuarioVerificacoes(esc) {
                                             <button
                                                 type="button"
                                                 class="invoice-document-status ${statusClass} invoice-reanalysis-status-button prontuario-tooltip"
+                                                aria-label="${escapeHtml(statusLabel)}"
                                                 data-tooltip="Clique para reanalisar o último documento enviado pela unidade."
                                                 data-action="reanalyse-pendency"
                                                 data-pendency-ref="${escapeHtml(encodePendencyIdReference(invoicePendency.id))}"
