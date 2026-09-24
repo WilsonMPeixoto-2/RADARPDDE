@@ -9875,7 +9875,7 @@ function renderProntuario(escolaId) {
                 <div class="tab-content-panel" id="tab-contatos" role="tabpanel" aria-labelledby="prontuario-tab-contatos" hidden>
                     <div class="panel-card">
                         <div class="panel-header">
-                            <h2>Histórico de Contatos e Cobranças</h2>
+                            <h2>Histórico de Contatos e Comunicações</h2>
                         </div>
                         <div class="contact-timeline">
                             ${schoolContactHistoryHTML(contatos.filter(c => c.escolaId === esc.id))}
@@ -12334,7 +12334,7 @@ function copyCobrancaText() {
     )) return false;
     const previewText = document.getElementById('cobranca-preview-text').innerText;
     return navigator.clipboard.writeText(previewText).then(async () => {
-        alert('Texto de cobrança copiado para a área de transferência! Você já pode colar no e-mail ou WhatsApp.');
+        alert('Texto da comunicação copiado para a área de transferência! Você já pode colar no e-mail ou WhatsApp.');
         const escolaId = document.getElementById('cobranca-escola-id').value;
         try {
             await radarPendencyService.registerContact({
@@ -12342,7 +12342,7 @@ function copyCobrancaText() {
                 schoolId: escolaId,
                 channel: 'E-mail',
                 serviceDate: new Date().toISOString().slice(0, 10),
-                description: 'Mensagem de cobrança consolidada enviada para a escola cobrando pendências selecionadas.',
+                description: 'Comunicação consolidada enviada à unidade sobre as pendências selecionadas.',
                 operationId: `cobranca:${escolaId}:${Date.now()}`
             });
         } catch (error) {
@@ -12351,7 +12351,7 @@ function copyCobrancaText() {
         }
         closeModal('modal-cobranca');
         if (currentView === 'prontuario') renderProntuario(escolaId);
-    }).catch(error => reportRadarActionError(error, 'Não foi possível copiar o texto da cobrança.'));
+    }).catch(error => reportRadarActionError(error, 'Não foi possível copiar o texto da comunicação.'));
 }
 
 
