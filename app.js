@@ -10584,7 +10584,7 @@ function renderProntuarioVerificacoes(esc) {
                                                 ${canAddUnidentifiedExpense ? `
                                                     <button
                                                         type="button"
-                                                        class="invoice-add-secondary prontuario-tooltip prontuario-tooltip-up"
+                                                        class="invoice-add-secondary prontuario-tooltip prontuario-tooltip-up prontuario-tooltip-align-start"
                                                         aria-label="Registrar despesa a identificar"
                                                         data-tooltip="Use quando houver uma saída no extrato, mas a documentação ainda não permitir identificar a natureza da despesa ou o documento fiscal."
                                                         onclick="openUnidentifiedExpenseModal('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')"
