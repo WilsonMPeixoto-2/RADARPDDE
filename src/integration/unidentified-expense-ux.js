@@ -215,7 +215,7 @@
 
         const button = root.document.createElement('button');
         button.type = 'button';
-        button.className = 'btn btn-secondary btn-sm unidentified-expense-button prontuario-tooltip prontuario-tooltip-up';
+        button.className = 'btn btn-secondary btn-sm unidentified-expense-button prontuario-tooltip prontuario-tooltip-up prontuario-tooltip-align-start';
         button.dataset.registerUnidentifiedExpense = 'true';
         button.dataset.tooltip = 'Use quando houver uma saída no extrato, mas a documentação ainda não permitir identificar a natureza da despesa ou o documento fiscal.';
         button.setAttribute('aria-label', 'Registrar despesa a identificar');
