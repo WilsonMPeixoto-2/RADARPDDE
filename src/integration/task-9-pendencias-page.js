@@ -122,8 +122,14 @@
         ));
     }
 
+    function getUnidentifiedExpenseFlow(recordOrPendency) {
+        if (typeof root.getUnidentifiedExpenseFlowState !== 'function') return null;
+        const pendency = recordOrPendency?.pendency || recordOrPendency;
+        return root.getUnidentifiedExpenseFlowState(pendency);
+    }
+
     function getPageModel() {
-        return root.RadarPendenciasViewModel.createPendencyPageModel({
+        const model = root.RadarPendenciasViewModel.createPendencyPageModel({
             pendencias,
             escolas,
             programas,
@@ -131,6 +137,15 @@
             contatos,
             filters: pageState.filters
         });
+
+        model.records.forEach(record => {
+            const flow = getUnidentifiedExpenseFlow(record);
+            if (flow?.phase !== 'awaiting-identification') return;
+            record.nextAction = flow.actionLabel;
+            record.searchText = `${record.searchText || ''} ${flow.statusLabel} ${flow.actionLabel}`.trim();
+        });
+
+        return model;
     }
 
     function getSelectedRecord(model) {
@@ -242,8 +257,12 @@
         if (record.status === 'Aberta'
             && documentary
             && hasCapability(root.RadarAccessPolicy.CAPABILITIES.REGISTER_CORRECTIVE_SUBMISSION)) {
+            const unidentifiedFlow = getUnidentifiedExpenseFlow(record);
+            const actionLabel = unidentifiedFlow?.phase === 'awaiting-identification'
+                ? unidentifiedFlow.actionLabel
+                : 'Registrar novo envio';
             buttons.push(`
-                <button class="btn btn-primary btn-sm" data-action="register-corrective-submission" data-pendency-ref="${reference}" onclick="abrirModalRegistrarNovoEnvio(this)">Registrar novo envio</button>
+                <button class="btn btn-primary btn-sm" data-action="register-corrective-submission" data-pendency-ref="${reference}" onclick="abrirModalRegistrarNovoEnvio(this)">${escapeHtml(actionLabel)}</button>
             `);
         }
         if (record.status === 'Aguardando reanálise' && documentary && canReanalysePendency(record.pendency)) {
