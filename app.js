@@ -8157,7 +8157,7 @@ function renderPendencias() {
                                 const isMine = (accessProfile === 'controlador' && esc && esc.controladorId === getDefaultControladorId());
                                 const isSelected = p.id === activePendencyDetailId;
                                 const canReanalyse = canReanalysePendency(p);
-                                const submissionActionLabel = canReanalyse
+                                const submissionActionLabel = p.status === 'Aguardando reanálise'
                                     ? null
                                     : getCorrectiveSubmissionActionLabel(p);
 
@@ -9824,7 +9824,7 @@ function renderProntuario(escolaId) {
                                     ` : pAtivas.map(p => {
                                         const pData = getFormattedPendencyData(p);
                                         const canReanalyse = canReanalysePendency(p);
-                                        const submissionActionLabel = canReanalyse
+                                        const submissionActionLabel = p.status === 'Aguardando reanálise'
                                             ? null
                                             : getCorrectiveSubmissionActionLabel(p);
                                         return `
