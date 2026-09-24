@@ -7986,7 +7986,7 @@ function getCorrectiveSubmissionActionLabel(pendency) {
     if (!window.RadarPendencias.isDocumentaryPendency(pendency)) return '';
     if (pendency.status === 'Aberta') return 'Registrar novo envio';
     if (pendency.status === 'Aguardando reanálise') {
-        return 'Registrar substituição mais recente';
+        return 'Novo envio da escola';
     }
     return '';
 }
@@ -8661,6 +8661,20 @@ function abrirModalRegistrarNovoEnvio(pendencySource) {
         || !allowedStatus
         || !window.RadarPendencias.isDocumentaryPendency(pendency)) {
         return false;
+    }
+
+    const modalTitle = document.getElementById('modal-registrar-envio-title');
+    const modalSubtitle = document.querySelector('#modal-registrar-envio .modal-subtitle');
+    if (pendency.status === 'Aguardando reanálise') {
+        if (modalTitle) modalTitle.textContent = 'Registrar novo envio da escola';
+        if (modalSubtitle) {
+            modalSubtitle.textContent = 'Use somente se a escola enviou uma nova versão antes da reanálise. O envio anterior será preservado no histórico como substituído.';
+        }
+    } else {
+        if (modalTitle) modalTitle.textContent = 'Registrar novo envio para conferência';
+        if (modalSubtitle) {
+            modalSubtitle.textContent = 'Registre a nova disponibilização do documento para que a pendência siga para reanálise.';
+        }
     }
 
     const competence = pendency.competenciaOrigem || pendency.competencia;
@@ -10348,7 +10362,19 @@ function renderProntuarioVerificacoes(esc) {
                                             <option value="Incorreto">Incorreto</option>
                                         </select>
                                     `
-                                    : `<span class="invoice-document-status ${statusClass}">${escapeHtml(statusLabel)}</span>`;
+                                    : (invoicePendency?.status === 'Aguardando reanálise'
+                                        && canReanalysePendency(invoicePendency)
+                                        ? `
+                                            <button
+                                                type="button"
+                                                class="invoice-document-status ${statusClass} invoice-reanalysis-status-button"
+                                                data-action="reanalyse-pendency"
+                                                data-pendency-ref="${escapeHtml(encodePendencyIdReference(invoicePendency.id))}"
+                                                onclick="abrirModalReanalisarPendencia(this)"
+                                                title="Abrir a reanálise desta pendência"
+                                            >${escapeHtml(statusLabel)}</button>
+                                        `
+                                        : `<span class="invoice-document-status ${statusClass}">${escapeHtml(statusLabel)}</span>`);
 
                                 let actionHTML = '';
                                 if (invoicePendency) {
