@@ -419,7 +419,7 @@ async function submitIdentifyingPendencyUI(page, pendency, {
     .fill('Documento fiscal apresentado e despesa identificada.');
 
   await modal.getByRole('button', {
-    name: 'Registrar e enviar para reanálise',
+    name: 'Identificar e enviar para reanálise',
     exact: true
   }).click();
   await expect(modal).not.toHaveClass(/show/);
