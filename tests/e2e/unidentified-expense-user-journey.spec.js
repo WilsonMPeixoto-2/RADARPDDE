@@ -188,9 +188,19 @@ test.describe('Jornada real — Despesa a identificar', () => {
 
     expect(finalState).toEqual({
       invoiceType: 'consumo',
-      invoiceAnalysis: 'Correto',
+      // A competência usada pela jornada é maio/2026 e o arquivo é disponibilizado
+      // em 23/09/2026. O resultado canônico, portanto, é correto após o prazo.
+      invoiceAnalysis: 'Correto (Atrasado)',
       activePendency: null
     });
+    const resolvedInvoice = page.locator('.invoice-document-row').filter({
+      hasText: 'NF: NF-UX-001'
+    });
+    await expect(resolvedInvoice).toContainText('Correto (Atrasado)');
+    await expect(resolvedInvoice.getByRole('button', {
+      name: 'Aguardando reanálise',
+      exact: true
+    })).toHaveCount(0);
     await attachScreenshot(page, testInfo, '05-reanalise-concluida');
   });
 
