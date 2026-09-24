@@ -10467,20 +10467,23 @@ function renderProntuarioVerificacoes(esc) {
                                     const pendencyReference = escapeHtml(
                                         encodePendencyIdReference(invoicePendency.id)
                                     );
-                                    const primaryWorkflowAction = unidentifiedOpen
+                                    const canRegisterCorrectiveSubmission = invoicePendency.status === 'Aberta'
                                         && hasRadarCapability(
                                             window.RadarAccessPolicy.CAPABILITIES.REGISTER_CORRECTIVE_SUBMISSION
-                                        )
+                                        );
+                                    const primaryWorkflowAction = canRegisterCorrectiveSubmission
                                         ? `
                                             <button
                                                 type="button"
                                                 class="invoice-pendency-primary-action prontuario-tooltip"
-                                                data-tooltip="Registrar os dados do documento recebido e identificar esta despesa."
+                                                data-tooltip="${unidentifiedOpen
+                                                    ? 'Registrar os dados do documento recebido e identificar esta despesa.'
+                                                    : 'Registrar o novo documento recebido para encaminhar esta Pendência à reanálise.'}"
                                                 data-action="register-corrective-submission"
                                                 data-pendency-ref="${pendencyReference}"
                                                 onclick="abrirModalRegistrarNovoEnvio(this)"
                                             >
-                                                <span>Identificar despesa</span>
+                                                <span>${unidentifiedOpen ? 'Identificar despesa' : 'Registrar novo envio'}</span>
                                             </button>
                                         `
                                         : invoicePendency.status === 'Aguardando reanálise'
