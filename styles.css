@@ -3950,10 +3950,51 @@ button.invoice-document-status {
     font-weight: 600;
 }
 
+.pendency-preview-next-step {
+    margin: 0 0 18px;
+    padding: 14px 15px;
+    border: 1px solid rgba(91, 33, 182, 0.16);
+    border-radius: 10px;
+    background: #f7f3ff;
+}
+
+.pendency-preview-next-step-label {
+    display: block;
+    margin-bottom: 5px;
+    color: #5b21b6;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.045em;
+    text-transform: uppercase;
+}
+
+.pendency-preview-next-step p {
+    margin: 0;
+    color: #352d42;
+    font-size: 0.80rem;
+    font-weight: 520;
+    line-height: 1.5;
+}
+
+.pendency-preview-actions {
+    display: grid;
+    gap: 9px;
+    margin-top: auto;
+}
+
+.pendency-preview-workflow-button {
+    width: 100%;
+    min-height: 46px;
+    justify-content: center;
+    border-radius: 9px;
+    font-size: 0.82rem;
+    font-weight: 750;
+}
+
 .pendency-preview-edit-button {
     width: 100%;
     min-height: 44px;
-    margin-top: auto;
+    margin-top: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -4007,6 +4048,19 @@ body.dark-theme .invoice-document-list-head {
 body.dark-theme .pendency-preview-drawer {
     background: #100c1e;
     color: #f5f3f7;
+}
+
+body.dark-theme .pendency-preview-next-step {
+    border-color: rgba(180, 157, 253, 0.18);
+    background: #211935;
+}
+
+body.dark-theme .pendency-preview-next-step-label {
+    color: #c5b4ff;
+}
+
+body.dark-theme .pendency-preview-next-step p {
+    color: #e7e2ee;
 }
 
 
@@ -5171,9 +5225,27 @@ body.dark-theme .pendency-preview-drawer {
     .prontuario-flowbar.has-operational-actions #prontuario-tab-pendencias { order: 2; }
     .prontuario-flowbar.has-operational-actions .prontuario-flow-actions { order: 3; }
     .prontuario-flowbar.has-operational-actions #prontuario-tab-contatos { order: 4; }
-    .prontuario-flowbar.has-operational-actions #prontuario-tab-capital { order: 5; }
-    .prontuario-flowbar.has-operational-actions #prontuario-tab-auditoria { order: 6; }
-    .prontuario-flowbar.has-operational-actions #prontuario-tab-historico { order: 7; }
+
+    .prontuario-flowbar.has-operational-actions .prontuario-flow-break {
+        order: 5;
+        flex: 0 0 100%;
+        height: 0;
+        margin: -2px 0 0;
+    }
+
+    .prontuario-flowbar.has-operational-actions #prontuario-tab-capital { order: 6; }
+    .prontuario-flowbar.has-operational-actions #prontuario-tab-auditoria { order: 7; }
+    .prontuario-flowbar.has-operational-actions #prontuario-tab-historico { order: 8; }
+
+    .prontuario-flowbar.has-operational-actions #prontuario-tab-capital,
+    .prontuario-flowbar.has-operational-actions #prontuario-tab-auditoria,
+    .prontuario-flowbar.has-operational-actions #prontuario-tab-historico {
+        min-height: 34px;
+        padding-top: 6px;
+        padding-bottom: 6px;
+        color: var(--text-muted);
+        font-size: 0.78rem;
+    }
 
     .prontuario-tablist {
         overflow: visible;
