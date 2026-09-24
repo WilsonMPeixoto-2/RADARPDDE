@@ -151,7 +151,7 @@ test.describe('governança de acesso da Gestão SME', () => {
 
     await main.locator('#pendency-tab-aguardando').click();
     for (const label of [
-      'Novo envio da escola',
+      'Registrar substituição mais recente',
       'Reanalisar',
       'Registrar contato',
       'Cancelar pendência'
