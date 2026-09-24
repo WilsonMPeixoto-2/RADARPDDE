@@ -8401,6 +8401,12 @@ function resetRegistrarNovoEnvioForm() {
     form.reset();
     document.getElementById('envio-pendencia-id').value = '';
     document.getElementById('envio-contexto').replaceChildren();
+    const title = document.getElementById('modal-registrar-envio-title');
+    const subtitle = document.querySelector('#modal-registrar-envio .modal-subtitle');
+    if (title) title.textContent = 'Registrar novo envio para conferência';
+    if (subtitle) {
+        subtitle.textContent = 'Registre a nova disponibilização do documento para que a pendência siga para reanálise.';
+    }
     const identification = document.getElementById('envio-identificacao');
     if (identification) {
         identification.hidden = true;
@@ -8678,6 +8684,14 @@ function abrirModalRegistrarNovoEnvio(pendencySource) {
     resetRegistrarNovoEnvioForm();
     document.getElementById('envio-pendencia-id').value = encodePendencyIdReference(pendency.id);
     const identificationContext = configureRegistrarNovoEnvioIdentification(pendency);
+    if (identificationContext.required) {
+        const title = document.getElementById('modal-registrar-envio-title');
+        const subtitle = document.querySelector('#modal-registrar-envio .modal-subtitle');
+        if (title) title.textContent = 'Identificar despesa e registrar novo envio';
+        if (subtitle) {
+            subtitle.textContent = 'Informe os dados do documento recebido. O RADAR atualizará a despesa existente e a encaminhará para reanálise, sem criar um novo lançamento.';
+        }
+    }
     document.getElementById('envio-contexto').innerHTML = `
         <dl class="corrective-context-grid" aria-label="Contexto da pendência">
             <div class="corrective-context-item is-school">
@@ -9724,7 +9738,7 @@ function renderProntuario(escolaId) {
                                 type="button"
                                 class="prontuario-flow-action prontuario-flow-action-primary prontuario-tooltip"
                                 aria-label="Gerar comunicação"
-                                data-tooltip="Gerar uma comunicação com as pendências ativas para encaminhamento à unidade."
+                                data-tooltip="Preparar uma mensagem com as pendências sob responsabilidade da unidade. Copiar o texto não registra envio."
                                 onclick="openCobrancaModal('${escapeHtml(esc.id)}')"
                             >
                                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 3-7.5 18-4.2-6.3L3 10.5 21 3Z"></path><path d="m9.3 14.7 4.2-4.2"></path></svg>
@@ -9734,13 +9748,14 @@ function renderProntuario(escolaId) {
                                 type="button"
                                 class="prontuario-flow-action prontuario-tooltip"
                                 aria-label="Registrar contato"
-                                data-tooltip="Registrar ligação, e-mail, reunião ou outro contato realizado com a unidade."
+                                data-tooltip="Registrar um contato que realmente ocorreu, informando canal, data e descrição."
                                 onclick="openContatoModal('${escapeHtml(esc.id)}')"
                             >
                                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                                 <span>Registrar contato</span>
                             </button>
                         </div>
+                        <span class="prontuario-flow-break" aria-hidden="true"></span>
                     ` : ''}
                 </div>
 
@@ -12347,25 +12362,17 @@ function copyCobrancaText() {
         window.RadarAccessPolicy.CAPABILITIES.REGISTER_PENDENCY_CONTACT
     )) return false;
     const previewText = document.getElementById('cobranca-preview-text').innerText;
-    return navigator.clipboard.writeText(previewText).then(async () => {
-        alert('Texto da comunicação copiado para a área de transferência! Você já pode colar no e-mail ou WhatsApp.');
-        const escolaId = document.getElementById('cobranca-escola-id').value;
-        try {
-            await radarPendencyService.registerContact({
-                id: `cont-${Date.now()}`,
-                schoolId: escolaId,
-                channel: 'E-mail',
-                serviceDate: new Date().toISOString().slice(0, 10),
-                description: 'Comunicação consolidada enviada à unidade sobre as pendências selecionadas.',
-                operationId: `cobranca:${escolaId}:${Date.now()}`
-            });
-        } catch (error) {
-            reportRadarActionError(error, 'O texto foi copiado, mas o contato não pôde ser registrado.');
-            return;
-        }
+    return navigator.clipboard.writeText(previewText).then(() => {
         closeModal('modal-cobranca');
-        if (currentView === 'prontuario') renderProntuario(escolaId);
-    }).catch(error => reportRadarActionError(error, 'Não foi possível copiar o texto da comunicação.'));
+        alert(
+            'Texto da comunicação copiado. Depois de encaminhá-lo à unidade, use “Registrar contato” '
+            + 'para registrar o canal, a data e o que efetivamente foi comunicado.'
+        );
+        return true;
+    }).catch(error => {
+        reportRadarActionError(error, 'Não foi possível copiar o texto da comunicação.');
+        return false;
+    });
 }
 
 
