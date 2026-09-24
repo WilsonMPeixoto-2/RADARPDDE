@@ -896,3 +896,233 @@ body.dark-theme #modal-cobranca .cobranca-preview {
         transform: none !important;
     }
 }
+
+
+/* Login e autenticação */
+html.radar-auth-required .radar-auth-gate {
+    padding: 28px 18px;
+    background:
+        radial-gradient(circle at 18% 16%, color-mix(in srgb, var(--primary) 20%, transparent), transparent 38%),
+        radial-gradient(circle at 82% 84%, color-mix(in srgb, var(--accent-lavender) 16%, transparent), transparent 36%),
+        var(--bg-page);
+}
+
+.radar-auth-card {
+    width: min(100%, 450px);
+    padding: clamp(30px, 4.5vw, 42px);
+    border-color: color-mix(in srgb, var(--primary) 16%, rgba(255,255,255,0.72));
+    border-radius: 24px;
+    box-shadow:
+        0 26px 64px -22px rgba(67, 35, 108, 0.28),
+        0 0 0 1px color-mix(in srgb, var(--primary) 6%, transparent);
+}
+
+.radar-auth-card h1,
+.radar-auth-card h2 {
+    letter-spacing: -0.028em;
+    line-height: 1.14;
+}
+
+.radar-auth-card .form-group {
+    margin-bottom: 18px;
+}
+
+.radar-auth-card .input-icon-wrapper input {
+    min-height: 46px;
+    border-radius: 11px;
+    border-color: var(--polish-border-strong);
+    background: color-mix(in srgb, var(--bg-input) 68%, var(--bg-sidebar) 32%);
+}
+
+.radar-auth-card .input-icon-wrapper input:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+.radar-auth-submit {
+    min-height: 44px;
+    width: 100%;
+    margin-top: 4px;
+}
+
+/* Menus flutuantes do topo */
+.alerts-dropdown,
+.profile-dropdown {
+    margin-top: 6px;
+    border-color: var(--polish-border-strong);
+    border-radius: 14px;
+    box-shadow: var(--polish-shadow-lg);
+    overflow: hidden;
+}
+
+.alerts-dropdown {
+    width: min(340px, calc(100vw - 32px));
+    max-height: min(440px, calc(100vh - 100px));
+}
+
+.alerts-header {
+    min-height: 48px;
+    padding: 13px 16px;
+    background: color-mix(in srgb, var(--bg-sidebar) 96%, var(--primary) 4%);
+}
+
+.alert-item {
+    padding: 13px 16px;
+    gap: 12px;
+    line-height: 1.4;
+}
+
+.alert-item:hover,
+.profile-option:hover {
+    background: color-mix(in srgb, var(--primary) 6%, transparent);
+}
+
+.alert-empty {
+    padding: 30px 18px;
+    line-height: 1.5;
+}
+
+.profile-dropdown {
+    width: 230px;
+}
+
+.profile-option {
+    min-height: 44px;
+    padding: 11px 14px;
+}
+
+.profile-option.active {
+    background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+/* Badges, toggles e estados */
+.badge {
+    min-height: 26px;
+    padding: 4px 9px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 0.71rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.badge.badge-success {
+    border-color: color-mix(in srgb, var(--success) 18%, transparent);
+}
+
+.badge.badge-warning {
+    border-color: color-mix(in srgb, var(--warning) 18%, transparent);
+}
+
+.badge.badge-danger {
+    border-color: color-mix(in srgb, var(--danger) 18%, transparent);
+}
+
+.badge.badge-info {
+    border-color: color-mix(in srgb, var(--info) 18%, transparent);
+}
+
+.btn-group-toggle {
+    min-height: 38px;
+    padding: 2px;
+    border-color: var(--polish-border-strong);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--bg-input) 66%, var(--bg-sidebar) 34%);
+}
+
+.btn-toggle {
+    min-height: 32px;
+    border-radius: 7px;
+    font-weight: 620;
+}
+
+/* Carteira, filtros e cartões cadastrais */
+.school-filter-panel {
+    margin-bottom: 24px;
+}
+
+.school-filter-header {
+    margin-bottom: 20px;
+}
+
+.school-filter-header h2 {
+    font-size: 1.04rem;
+    letter-spacing: -0.015em;
+}
+
+.school-filter-header p {
+    max-width: 72ch;
+    line-height: 1.5;
+}
+
+.school-filter-grid {
+    gap: 15px;
+}
+
+.filter-field {
+    gap: 7px;
+}
+
+.filter-field label {
+    color: var(--text-main);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.035em;
+}
+
+.school-filter-summary {
+    gap: 7px;
+    margin-top: 18px;
+}
+
+.school-filter-summary span {
+    min-height: 30px;
+    padding: 5px 10px;
+    border-color: var(--polish-border);
+    background: color-mix(in srgb, var(--primary) 5%, var(--bg-sidebar) 95%);
+}
+
+.school-info-card.school-data-card,
+.school-info-card.school-programs-card {
+    padding: 23px 24px 25px;
+    border-color: var(--polish-border);
+    border-radius: 16px;
+    box-shadow: var(--polish-shadow-sm);
+}
+
+.school-card-heading {
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom-color: var(--polish-border);
+}
+
+.school-card-heading-icon {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
+    border-radius: 11px;
+}
+
+.school-card-heading h2 {
+    font-size: 0.98rem;
+    letter-spacing: -0.012em;
+}
+
+.school-data-sections {
+    gap: 20px;
+}
+
+/* Melhora a leitura dos blocos de configuração e inventário sem mudar sua estrutura. */
+.inventory-row-actions {
+    gap: 7px;
+}
+
+.inventory-item-observation {
+    margin-top: 9px;
+    line-height: 1.5;
+}
+
+.config-section + .config-section,
+.panel-card + .panel-card {
+    margin-top: 2px;
+}
