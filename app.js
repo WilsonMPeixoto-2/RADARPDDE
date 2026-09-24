@@ -8706,7 +8706,7 @@ function abrirModalRegistrarNovoEnvio(pendencySource) {
         const submit = document.querySelector('#modal-registrar-envio button[type="submit"][form="form-registrar-envio"]');
         if (title) title.textContent = 'Identificar despesa';
         if (subtitle) {
-            subtitle.textContent = 'Informe os dados do documento recebido. Ao confirmar, o RADAR preservará o lançamento original, identificará a despesa e registrará este documento para reanálise.';
+            subtitle.textContent = 'Informe os dados do documento recebido. Ao confirmar, o RADAR identificará a despesa no mesmo registro, sem criar um novo lançamento, e encaminhará este documento para reanálise.';
         }
         if (submit) submit.textContent = 'Identificar e enviar para reanálise';
     }
