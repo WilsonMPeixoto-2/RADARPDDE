@@ -5301,6 +5301,16 @@ body.dark-theme .pendency-preview-next-step p {
     .prontuario-tooltip-up[data-tooltip]:focus-visible::after {
         transform: translate(-50%, 0);
     }
+
+    .prontuario-tooltip-align-start[data-tooltip]::after {
+        left: 0;
+        transform: translateY(-5px);
+    }
+
+    .prontuario-tooltip-align-start[data-tooltip]:hover::after,
+    .prontuario-tooltip-align-start[data-tooltip]:focus-visible::after {
+        transform: translateY(0);
+    }
 }
 
 body:not(.dark-theme) aside.sidebar {
