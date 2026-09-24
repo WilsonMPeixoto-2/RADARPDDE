@@ -44,3 +44,64 @@
     border-style: dashed;
     font-weight: 600;
 }
+
+
+.unidentified-expense-actions {
+    align-items: center;
+}
+
+.unidentified-bonification-prerequisite {
+    flex: 1 1 100%;
+    margin: 0 0 2px;
+    padding: 9px 11px;
+    border: 1px solid rgba(180, 83, 9, 0.24);
+    border-radius: 9px;
+    background: #fff8e8;
+    color: #8a4b08;
+    font-size: 0.72rem;
+    font-weight: 650;
+    line-height: 1.4;
+}
+
+.invoice-bonification-toggle.needs-unidentified-prerequisite {
+    border-color: rgba(180, 83, 9, 0.58);
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
+}
+
+.invoice-document-status.is-identification {
+    border-color: rgba(180, 83, 9, 0.18);
+    background: #fff8e8;
+    color: #8a4b08;
+}
+
+.invoice-pendency-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+
+.invoice-pendency-primary-action {
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 12px;
+    border: 1px solid #6d28d9;
+    border-radius: 9px;
+    background: #6d28d9;
+    color: #ffffff;
+    font-family: var(--font-body);
+    font-size: 0.74rem;
+    font-weight: 700;
+    line-height: 1.2;
+    cursor: pointer;
+    box-shadow: 0 4px 11px rgba(91, 33, 182, 0.16);
+}
+
+.invoice-pendency-primary-action:hover,
+.invoice-pendency-primary-action:focus-visible {
+    border-color: #5b21b6;
+    background: #5b21b6;
+    color: #ffffff;
+}
