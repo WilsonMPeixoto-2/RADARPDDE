@@ -235,7 +235,7 @@ test.describe('Prontuário — despesa a identificar', () => {
       provisionalInvoiceRow.getByRole('button', { name: 'Identificar despesa', exact: true })
     ).toBeVisible();
     await expect(
-      provisionalInvoiceRow.getByRole('button', { name: 'Ver pendência', exact: true })
+      provisionalInvoiceRow.getByRole('button', { name: 'Visualizar pendência', exact: true })
     ).toBeVisible();
 
     await page.evaluate(() => switchView('pendencias'));
