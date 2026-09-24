@@ -62,14 +62,22 @@ async function prepareSchool(page, { withOpenUnidentified = false } = {}) {
   }, { seedOpen: withOpenUnidentified });
 }
 
+async function attachScreenshot(page, testInfo, name) {
+  await testInfo.attach(name, {
+    body: await page.screenshot({ fullPage: true }),
+    contentType: 'image/png'
+  });
+}
+
 test.describe('Jornada real — Despesa a identificar', () => {
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Auditoria orientada ao fluxo desktop.');
     await page.setViewportSize({ width: 1440, height: 900 });
   });
 
-  test('conduz um usuário do débito sem documento até a reanálise sem atalhos internos', async ({ page }) => {
+  test('conduz um usuário do débito sem documento até a reanálise sem atalhos internos', async ({ page }, testInfo) => {
     const context = await prepareSchool(page);
+    await attachScreenshot(page, testInfo, '01-prontuario-inicio-fluxo');
 
     const start = page.getByRole('button', {
       name: 'Registrar despesa a identificar',
@@ -100,6 +108,7 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await expect(drawer).toBeVisible();
     await expect(drawer.getByText('Próximo passo', { exact: true })).toBeVisible();
     await expect(drawer).toContainText('Quando a documentação chegar');
+    await attachScreenshot(page, testInfo, '02-pendencia-proximo-passo');
     const newSubmission = drawer.getByRole('button', {
       name: 'Registrar novo envio',
       exact: true
@@ -116,6 +125,7 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await expect(submissionModal.locator('.modal-subtitle')).toContainText(
       'sem criar um novo lançamento'
     );
+    await attachScreenshot(page, testInfo, '03-identificar-despesa-novo-envio');
 
     await submissionModal.getByLabel('Tipo da despesa', { exact: true })
       .selectOption('consumo');
@@ -141,6 +151,7 @@ test.describe('Jornada real — Despesa a identificar', () => {
     });
     await expect(waiting).toHaveCount(1);
     await expect(waiting).toBeVisible();
+    await attachScreenshot(page, testInfo, '04-aguardando-reanalise-clicavel');
     await waiting.click();
 
     const reanalysisModal = page.locator('#modal-reanalisar-pendencia');
@@ -180,9 +191,10 @@ test.describe('Jornada real — Despesa a identificar', () => {
       invoiceAnalysis: 'Correto',
       activePendency: null
     });
+    await attachScreenshot(page, testInfo, '05-reanalise-concluida');
   });
 
-  test('separa preparar comunicação de registrar contato efetivamente realizado', async ({ page, context }) => {
+  test('separa preparar comunicação de registrar contato efetivamente realizado', async ({ page, context }, testInfo) => {
     const fixture = await prepareSchool(page, { withOpenUnidentified: true });
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
@@ -200,6 +212,7 @@ test.describe('Jornada real — Despesa a identificar', () => {
       name: 'Copiar texto',
       exact: true
     })).toHaveCount(1);
+    await attachScreenshot(page, testInfo, '06-preparar-comunicacao');
 
     let copiedMessage = '';
     page.once('dialog', async dialog => {
@@ -242,5 +255,6 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await expect(page.locator('#tab-contatos')).toContainText(
       'Mensagem encaminhada ao diretor pelo WhatsApp.'
     );
+    await attachScreenshot(page, testInfo, '07-historico-contato-registrado');
   });
 });
