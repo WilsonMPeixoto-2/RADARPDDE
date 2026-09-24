@@ -7986,7 +7986,7 @@ function getCorrectiveSubmissionActionLabel(pendency) {
     if (!window.RadarPendencias.isDocumentaryPendency(pendency)) return '';
     if (pendency.status === 'Aberta') return 'Registrar novo envio';
     if (pendency.status === 'Aguardando reanálise') {
-        return 'Novo envio da escola';
+        return 'Registrar substituição mais recente';
     }
     return '';
 }
@@ -8663,20 +8663,6 @@ function abrirModalRegistrarNovoEnvio(pendencySource) {
         || !allowedStatus
         || !window.RadarPendencias.isDocumentaryPendency(pendency)) {
         return false;
-    }
-
-    const modalTitle = document.getElementById('modal-registrar-envio-title');
-    const modalSubtitle = document.querySelector('#modal-registrar-envio .modal-subtitle');
-    if (pendency.status === 'Aguardando reanálise') {
-        if (modalTitle) modalTitle.textContent = 'Registrar novo envio da escola';
-        if (modalSubtitle) {
-            modalSubtitle.textContent = 'Use somente se a escola enviou uma nova versão antes da reanálise. O envio anterior será preservado no histórico como substituído.';
-        }
-    } else {
-        if (modalTitle) modalTitle.textContent = 'Registrar novo envio para conferência';
-        if (modalSubtitle) {
-            modalSubtitle.textContent = 'Registre a nova disponibilização do documento para que a pendência siga para reanálise.';
-        }
     }
 
     const competence = pendency.competenciaOrigem || pendency.competencia;
