@@ -7985,9 +7985,46 @@ function getPendencyLinkedInvoice(pendency) {
     return notasRegistradas.find(item => String(item.id) === String(invoiceId)) || null;
 }
 
-function isUnidentifiedExpensePendency(pendency) {
-    return getPendencyLinkedInvoice(pendency)?.tipo === 'a_identificar';
+function getInvoiceExpenseType(invoice) {
+    return String(
+        invoice?.tipo
+        || invoice?.expense_type
+        || invoice?.expenseType
+        || invoice?.type
+        || ''
+    ).trim();
 }
+
+function getUnidentifiedExpenseFlowState(pendency) {
+    const invoice = getPendencyLinkedInvoice(pendency);
+    if (!invoice || getInvoiceExpenseType(invoice) !== 'a_identificar') return null;
+
+    if (pendency?.status === 'Aberta') {
+        return Object.freeze({
+            phase: 'awaiting-identification',
+            statusLabel: 'Aguardando identificação',
+            action: 'identify-expense',
+            actionLabel: 'Identificar despesa',
+            actionTooltip: 'Registrar os dados do documento recebido e identificar esta despesa.',
+            nextStep: 'Quando a documentação chegar, identifique a natureza da despesa e registre o documento recebido nesta mesma Pendência. O lançamento original será preservado.'
+        });
+    }
+
+    return Object.freeze({
+        phase: 'unidentified-expense',
+        statusLabel: String(pendency?.status || ''),
+        action: null,
+        actionLabel: '',
+        actionTooltip: '',
+        nextStep: ''
+    });
+}
+
+function isUnidentifiedExpensePendency(pendency) {
+    return Boolean(getUnidentifiedExpenseFlowState(pendency));
+}
+
+window.getUnidentifiedExpenseFlowState = getUnidentifiedExpenseFlowState;
 
 function getCorrectiveSubmissionActionLabel(pendency) {
     if (!hasRadarCapability(
@@ -7995,9 +8032,8 @@ function getCorrectiveSubmissionActionLabel(pendency) {
     )) return '';
     if (!window.RadarPendencias.isDocumentaryPendency(pendency)) return '';
     if (pendency.status === 'Aberta') {
-        return isUnidentifiedExpensePendency(pendency)
-            ? 'Identificar despesa'
-            : 'Registrar novo envio';
+        return getUnidentifiedExpenseFlowState(pendency)?.actionLabel
+            || 'Registrar novo envio';
     }
     if (pendency.status === 'Aguardando reanálise') {
         return 'Registrar substituição mais recente';
@@ -8438,7 +8474,7 @@ function configureRegistrarNovoEnvioIdentification(pendency) {
     const invoice = invoiceId
         ? notasRegistradas.find(item => String(item.id) === String(invoiceId)) || null
         : null;
-    const required = invoice?.tipo === 'a_identificar';
+    const required = getInvoiceExpenseType(invoice) === 'a_identificar';
     fieldset.hidden = !required;
     fieldset.disabled = !required;
 
@@ -8493,7 +8529,7 @@ function collectRegistrarNovoEnvioIdentification(current) {
     const invoice = invoiceId
         ? notasRegistradas.find(item => String(item.id) === String(invoiceId)) || null
         : null;
-    if (invoice?.tipo !== 'a_identificar') return null;
+    if (getInvoiceExpenseType(invoice) !== 'a_identificar') return null;
 
     return {
         expenseType: document.getElementById('envio-identificacao-tipo')?.value || '',
@@ -10418,13 +10454,14 @@ function renderProntuarioVerificacoes(esc) {
                                     : 'Não analisado';
                                 const analysis = window.RadarInvoiceDocumentAnalysis
                                     .getInvoiceDocumentAnalysis(note, analysisFallback);
-                                const unidentifiedOpen = note.tipo === 'a_identificar'
-                                    && invoicePendency?.status === 'Aberta';
+                                const unidentifiedFlow = invoicePendency
+                                    ? getUnidentifiedExpenseFlowState(invoicePendency)
+                                    : null;
+                                const unidentifiedOpen = unidentifiedFlow?.phase === 'awaiting-identification';
                                 const statusLabel = invoicePendency?.status === 'Aguardando reanálise'
                                     ? 'Aguardando reanálise'
-                                    : unidentifiedOpen
-                                        ? 'Aguardando identificação'
-                                        : analysis;
+                                    : unidentifiedFlow?.statusLabel
+                                        || analysis;
                                 const statusClass = statusLabel === 'Incorreto'
                                     ? 'is-incorrect'
                                     : statusLabel === 'Correto'
@@ -10480,14 +10517,13 @@ function renderProntuarioVerificacoes(esc) {
                                             <button
                                                 type="button"
                                                 class="invoice-pendency-primary-action prontuario-tooltip"
-                                                data-tooltip="${unidentifiedOpen
-                                                    ? 'Registrar os dados do documento recebido e identificar esta despesa.'
-                                                    : 'Registrar o novo documento recebido para encaminhar esta Pendência à reanálise.'}"
+                                                data-tooltip="${unidentifiedFlow?.actionTooltip
+                                                    || 'Registrar o novo documento recebido para encaminhar esta Pendência à reanálise.'}"
                                                 data-action="register-corrective-submission"
                                                 data-pendency-ref="${pendencyReference}"
                                                 onclick="abrirModalRegistrarNovoEnvio(this)"
                                             >
-                                                <span>${unidentifiedOpen ? 'Identificar despesa' : 'Registrar novo envio'}</span>
+                                                <span>${unidentifiedFlow?.actionLabel || 'Registrar novo envio'}</span>
                                             </button>
                                         `
                                         : invoicePendency.status === 'Aguardando reanálise'
@@ -11145,14 +11181,15 @@ function renderPendencyDrawer() {
         && pendency.status === 'Aguardando reanálise'
         && documentary
         && canReanalysePendency(pendency);
-    const unidentifiedPendency = canRegisterNext && isUnidentifiedExpensePendency(pendency);
-    const nextStepCopy = unidentifiedPendency
-        ? 'Quando a documentação chegar, identifique a natureza da despesa e registre o documento recebido nesta mesma Pendência. O lançamento original será preservado.'
-        : canRegisterNext
+    const unidentifiedFlow = canRegisterNext
+        ? getUnidentifiedExpenseFlowState(pendency)
+        : null;
+    const nextStepCopy = unidentifiedFlow?.nextStep
+        || (canRegisterNext
             ? 'Quando a documentação corrigida chegar, registre o novo envio nesta mesma Pendência. Se precisar falar com a unidade antes disso, use “Registrar contato” no Prontuário.'
             : canReanalyseNext
                 ? 'O novo envio já foi registrado. O próximo passo é conferir o documento recebido e registrar o resultado da reanálise.'
-                : '';
+                : '');
 
     // eslint-disable-next-line nounsanitized/property -- valores dinâmicos do drawer são escapados com escapeHtml antes da interpolação; SVG e estrutura são estáticos.
     content.innerHTML = `
@@ -11203,7 +11240,7 @@ function renderPendencyDrawer() {
                     data-action="register-corrective-submission"
                     data-pendency-ref="${escapeHtml(pendencyReference)}"
                     onclick="openPendencyDrawerWorkflowAction('register', this)"
-                >${unidentifiedPendency ? 'Identificar despesa' : 'Registrar novo envio'}</button>
+                >${unidentifiedFlow?.actionLabel || 'Registrar novo envio'}</button>
             ` : ''}
             ${canReanalyseNext ? `
                 <button
@@ -11344,7 +11381,7 @@ async function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElem
         }
         const instruction = activePendency.status === 'Aguardando reanálise'
             ? 'Esta análise aguarda reanálise. Use Reanalisar para registrar o resultado.'
-            : isUnidentifiedExpensePendency(activePendency)
+            : getUnidentifiedExpenseFlowState(activePendency)?.phase === 'awaiting-identification'
                 ? 'Esta despesa aguarda identificação. Use Identificar despesa quando a documentação chegar.'
                 : 'Esta análise possui pendência aberta. Use Registrar novo envio para prosseguir.';
         alert(instruction);
