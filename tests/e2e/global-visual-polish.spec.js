@@ -1,6 +1,7 @@
 'use strict';
 
 const { test, expect } = require('@playwright/test');
+const { selectFixtureCompetence } = require('../support/e2e-competence');
 
 async function waitForApp(page) {
   await page.waitForFunction(() => window.RadarDataContext?.ready === true);
@@ -19,6 +20,7 @@ async function shot(page, testInfo, name) {
 }
 
 async function openProntuario(page) {
+  await selectFixtureCompetence(page, '2026-05');
   return page.evaluate(() => {
     switchProfile('controlador');
     const activeKey = window.RadarCompetenceContext.getState().activeKey;
