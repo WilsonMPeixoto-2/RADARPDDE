@@ -259,7 +259,7 @@ test.describe('Prontuário — despesa a identificar', () => {
     await submissionModal.getByLabel('Observação', { exact: true })
       .fill('Documento fiscal identificado e disponibilizado pela escola.');
     await submissionModal.getByRole('button', {
-      name: 'Registrar e enviar para reanálise',
+      name: 'Identificar e enviar para reanálise',
       exact: true
     }).click();
     await expect(submissionModal).not.toHaveClass(/show/);
