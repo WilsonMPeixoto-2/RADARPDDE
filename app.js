@@ -10409,7 +10409,6 @@ function renderProntuarioVerificacoes(esc) {
                             .canRegisterFiscalNote(accessProfile, bonifValue)
                             && !isBonifLocked;
                         const canAddUnidentifiedExpense = canMutateInvoice
-                            && Boolean(bonifValue)
                             && bonifValue !== 'Não se aplica';
 
                         const fiscalBonificationHTML = accessProfile === 'sme'
@@ -10670,7 +10669,9 @@ function renderProntuarioVerificacoes(esc) {
                                                         type="button"
                                                         class="invoice-add-secondary prontuario-tooltip prontuario-tooltip-up prontuario-tooltip-align-start"
                                                         aria-label="Registrar despesa a identificar"
-                                                        data-tooltip="Use quando houver uma saída no extrato, mas a documentação ainda não permitir identificar a natureza da despesa ou o documento fiscal."
+                                                        data-tooltip="${bonifValue
+                                                            ? 'Use quando houver uma saída no extrato, mas a documentação ainda não permitir identificar a natureza da despesa ou o documento fiscal.'
+                                                            : 'Antes de registrar, informe a situação da entrega de Notas Fiscais em Bonificação.'}"
                                                         onclick="openUnidentifiedExpenseModal('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')"
                                                     >
                                                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h10l4 4V20.5H5z"/><path d="M15 3.5v4h4"/><path d="M12 11v5M9.5 13.5h5"/></svg>
