@@ -5290,6 +5290,17 @@ body.dark-theme .pendency-preview-next-step p {
         visibility: visible;
         transform: translate(-50%, 0);
     }
+
+    .prontuario-tooltip-up[data-tooltip]::after {
+        top: auto;
+        bottom: calc(100% + 9px);
+        transform: translate(-50%, -5px);
+    }
+
+    .prontuario-tooltip-up[data-tooltip]:hover::after,
+    .prontuario-tooltip-up[data-tooltip]:focus-visible::after {
+        transform: translate(-50%, 0);
+    }
 }
 
 body:not(.dark-theme) aside.sidebar {
