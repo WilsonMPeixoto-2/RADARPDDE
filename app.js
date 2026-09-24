@@ -7979,12 +7979,26 @@ function getFormattedPendencyData(p) {
     };
 }
 
+function getPendencyLinkedInvoice(pendency) {
+    const invoiceId = pendency?.registeredInvoiceId || pendency?.registered_invoice_id;
+    if (!invoiceId) return null;
+    return notasRegistradas.find(item => String(item.id) === String(invoiceId)) || null;
+}
+
+function isUnidentifiedExpensePendency(pendency) {
+    return getPendencyLinkedInvoice(pendency)?.tipo === 'a_identificar';
+}
+
 function getCorrectiveSubmissionActionLabel(pendency) {
     if (!hasRadarCapability(
         window.RadarAccessPolicy.CAPABILITIES.REGISTER_CORRECTIVE_SUBMISSION
     )) return '';
     if (!window.RadarPendencias.isDocumentaryPendency(pendency)) return '';
-    if (pendency.status === 'Aberta') return 'Registrar novo envio';
+    if (pendency.status === 'Aberta') {
+        return isUnidentifiedExpensePendency(pendency)
+            ? 'Identificar despesa'
+            : 'Registrar novo envio';
+    }
     if (pendency.status === 'Aguardando reanálise') {
         return 'Registrar substituição mais recente';
     }
@@ -10400,9 +10414,13 @@ function renderProntuarioVerificacoes(esc) {
                                     : 'Não analisado';
                                 const analysis = window.RadarInvoiceDocumentAnalysis
                                     .getInvoiceDocumentAnalysis(note, analysisFallback);
+                                const unidentifiedOpen = note.tipo === 'a_identificar'
+                                    && invoicePendency?.status === 'Aberta';
                                 const statusLabel = invoicePendency?.status === 'Aguardando reanálise'
                                     ? 'Aguardando reanálise'
-                                    : analysis;
+                                    : unidentifiedOpen
+                                        ? 'Aguardando identificação'
+                                        : analysis;
                                 const statusClass = statusLabel === 'Incorreto'
                                     ? 'is-incorrect'
                                     : statusLabel === 'Correto'
@@ -10411,7 +10429,9 @@ function renderProntuarioVerificacoes(esc) {
                                             ? 'is-late'
                                             : statusLabel === 'Aguardando reanálise'
                                                 ? 'is-waiting'
-                                                : 'is-pending';
+                                                : statusLabel === 'Aguardando identificação'
+                                                    ? 'is-identification'
+                                                    : 'is-pending';
                                 const hasPendencyHistory = documentaryPendencies.some(pendency => (
                                     String(pendency.registeredInvoiceId || pendency.registered_invoice_id || '')
                                         === String(note.id)
@@ -10440,33 +10460,52 @@ function renderProntuarioVerificacoes(esc) {
                                             <option value="Incorreto">Incorreto</option>
                                         </select>
                                     `
-                                    : (invoicePendency?.status === 'Aguardando reanálise'
-                                        && canReanalysePendency(invoicePendency)
-                                        ? `
-                                            <button
-                                                type="button"
-                                                class="invoice-document-status ${statusClass} invoice-reanalysis-status-button prontuario-tooltip"
-                                                aria-label="${escapeHtml(statusLabel)}"
-                                                data-tooltip="Clique para reanalisar o último documento enviado pela unidade."
-                                                data-action="reanalyse-pendency"
-                                                data-pendency-ref="${escapeHtml(encodePendencyIdReference(invoicePendency.id))}"
-                                                onclick="abrirModalReanalisarPendencia(this)"
-                                            >
-                                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v5h-5"></path><path d="M18.6 9A7 7 0 1 0 19 16"></path></svg>
-                                                <span>${escapeHtml(statusLabel)}</span>
-                                            </button>
-                                        `
-                                        : `<span class="invoice-document-status ${statusClass}">${escapeHtml(statusLabel)}</span>`);
+                                    : `<span class="invoice-document-status ${statusClass}">${escapeHtml(statusLabel)}</span>`;
 
                                 let actionHTML = '';
                                 if (invoicePendency) {
+                                    const pendencyReference = escapeHtml(
+                                        encodePendencyIdReference(invoicePendency.id)
+                                    );
+                                    const primaryWorkflowAction = unidentifiedOpen
+                                        && hasRadarCapability(
+                                            window.RadarAccessPolicy.CAPABILITIES.REGISTER_CORRECTIVE_SUBMISSION
+                                        )
+                                        ? `
+                                            <button
+                                                type="button"
+                                                class="invoice-pendency-primary-action"
+                                                data-action="register-corrective-submission"
+                                                data-pendency-ref="${pendencyReference}"
+                                                onclick="abrirModalRegistrarNovoEnvio(this)"
+                                            >
+                                                <span>Identificar despesa</span>
+                                            </button>
+                                        `
+                                        : invoicePendency.status === 'Aguardando reanálise'
+                                            && canReanalysePendency(invoicePendency)
+                                            ? `
+                                                <button
+                                                    type="button"
+                                                    class="invoice-pendency-primary-action"
+                                                    data-action="reanalyse-pendency"
+                                                    data-pendency-ref="${pendencyReference}"
+                                                    onclick="abrirModalReanalisarPendencia(this)"
+                                                >
+                                                    <span>Reanalisar</span>
+                                                </button>
+                                            `
+                                            : '';
                                     actionHTML = `
-                                        <button type="button" class="invoice-pendency-view-button"
-                                            data-pendency-ref="${escapeHtml(encodePendencyIdReference(invoicePendency.id))}"
-                                            onclick="openPendencyDrawer('${escapeHtml(invoicePendency.id)}')">
-                                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.6-6 9.5-6 9.5 6 9.5 6-3.6 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.7"/></svg>
-                                            <span>Visualizar pendência</span>
-                                        </button>
+                                        <div class="invoice-pendency-actions">
+                                            ${primaryWorkflowAction}
+                                            <button type="button" class="invoice-pendency-view-button"
+                                                data-pendency-ref="${pendencyReference}"
+                                                onclick="openPendencyDrawer('${escapeHtml(invoicePendency.id)}')">
+                                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.6-6 9.5-6 9.5 6 9.5 6-3.6 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.7"/></svg>
+                                                <span>Ver pendência</span>
+                                            </button>
+                                        </div>
                                     `;
                                 } else if (canEditAnalysis
                                     && ['Correto', 'Correto (Atrasado)'].includes(analysis)
@@ -11097,11 +11136,14 @@ function renderPendencyDrawer() {
         && pendency.status === 'Aguardando reanálise'
         && documentary
         && canReanalysePendency(pendency);
-    const nextStepCopy = canRegisterNext
-        ? 'Quando a documentação chegar, registre o novo envio nesta mesma Pendência. Se precisar falar com a unidade antes disso, use “Registrar contato” no Prontuário.'
-        : canReanalyseNext
-            ? 'O novo envio já foi registrado. O próximo passo é conferir o documento recebido e registrar o resultado da reanálise.'
-            : '';
+    const unidentifiedPendency = canRegisterNext && isUnidentifiedExpensePendency(pendency);
+    const nextStepCopy = unidentifiedPendency
+        ? 'Quando a documentação chegar, identifique a natureza da despesa e registre o documento recebido nesta mesma Pendência. O lançamento original será preservado.'
+        : canRegisterNext
+            ? 'Quando a documentação corrigida chegar, registre o novo envio nesta mesma Pendência. Se precisar falar com a unidade antes disso, use “Registrar contato” no Prontuário.'
+            : canReanalyseNext
+                ? 'O novo envio já foi registrado. O próximo passo é conferir o documento recebido e registrar o resultado da reanálise.'
+                : '';
 
     // eslint-disable-next-line nounsanitized/property -- valores dinâmicos do drawer são escapados com escapeHtml antes da interpolação; SVG e estrutura são estáticos.
     content.innerHTML = `
@@ -11152,7 +11194,7 @@ function renderPendencyDrawer() {
                     data-action="register-corrective-submission"
                     data-pendency-ref="${escapeHtml(pendencyReference)}"
                     onclick="openPendencyDrawerWorkflowAction('register', this)"
-                >Registrar novo envio</button>
+                >${unidentifiedPendency ? 'Identificar despesa' : 'Registrar novo envio'}</button>
             ` : ''}
             ${canReanalyseNext ? `
                 <button
@@ -11293,7 +11335,9 @@ async function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElem
         }
         const instruction = activePendency.status === 'Aguardando reanálise'
             ? 'Esta análise aguarda reanálise. Use Reanalisar para registrar o resultado.'
-            : 'Esta análise possui pendência aberta. Use Registrar novo envio para prosseguir.';
+            : isUnidentifiedExpensePendency(activePendency)
+                ? 'Esta despesa aguarda identificação. Use Identificar despesa quando a documentação chegar.'
+                : 'Esta análise possui pendência aberta. Use Registrar novo envio para prosseguir.';
         alert(instruction);
         renderProntuario(escolaId);
         return false;
