@@ -89,7 +89,7 @@ async function identifyThroughModal(page, context, {
   await modal.getByLabel('Observação', { exact: true }).fill(observation);
 
   await modal.getByRole('button', {
-    name: 'Registrar e enviar para reanálise',
+    name: 'Identificar e enviar para reanálise',
     exact: true
   }).click();
 
@@ -321,7 +321,7 @@ test('Educação Conectada identifica Despesa a identificar como Boleto de pagam
   ).fill('2026-09-23');
   await modal.getByLabel('Observação', { exact: true }).fill('Boleto e comprovante apresentados.');
   await modal.getByRole('button', {
-    name: 'Registrar e enviar para reanálise',
+    name: 'Identificar e enviar para reanálise',
     exact: true
   }).click();
   await expect(modal).not.toHaveClass(/show/);
