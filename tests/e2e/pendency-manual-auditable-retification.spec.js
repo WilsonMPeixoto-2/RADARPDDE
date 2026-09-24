@@ -46,7 +46,7 @@ test.describe('Edição auditável de Pendência manual', () => {
 
     const drawer = page.locator('#pendency-preview-drawer');
     await expect(drawer).toBeVisible();
-    await drawer.getByRole('button', { name: 'Editar', exact: true }).click();
+    await drawer.getByRole('button', { name: 'Editar detalhes', exact: true }).click();
 
     await expect(drawer.locator('#pendency-preview-item')).toBeVisible();
     await expect(drawer.locator('#pendency-preview-responsible')).toBeVisible();
