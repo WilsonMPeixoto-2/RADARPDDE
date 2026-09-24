@@ -153,7 +153,8 @@ test.describe('Prontuário operacional no desktop', () => {
       'Registrar contato',
       'Histórico de Contatos',
       'Registro de Capital',
-      'Registros Internos'
+      'Registros Internos',
+      'Histórico cronológico'
     ]);
 
     const communication = page.getByRole('button', { name: 'Gerar comunicação', exact: true });
