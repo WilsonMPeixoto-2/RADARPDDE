@@ -138,12 +138,79 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await expect(drawer.getByText('Próximo passo', { exact: true })).toBeVisible();
     await expect(drawer).toContainText('Quando a documentação chegar');
     await attachScreenshot(page, testInfo, '02-pendencia-proximo-passo');
+
+    const flowIds = await page.evaluate(({ schoolId, compKey }) => {
+      const invoice = [...notasRegistradas].reverse().find(item => (
+        item.escolaId === schoolId
+        && item.compKey === compKey
+        && item.tipo === 'a_identificar'
+      ));
+      const pendency = invoice
+        ? [...pendencias].reverse().find(item => (
+            String(item.registeredInvoiceId || item.registered_invoice_id || '')
+              === String(invoice.id)
+            && item.status === 'Aberta'
+          ))
+        : null;
+      return {
+        invoiceId: invoice?.id || null,
+        pendencyId: pendency?.id || null
+      };
+    }, context);
+    expect(flowIds.invoiceId).toBeTruthy();
+    expect(flowIds.pendencyId).toBeTruthy();
+
     const identifyExpense = drawer.getByRole('button', {
       name: 'Identificar despesa',
       exact: true
     });
     await expect(identifyExpense).toBeVisible();
-    await identifyExpense.click();
+
+    const initialInvoiceRow = page.locator(
+      `.invoice-document-row[data-invoice-id="${flowIds.invoiceId}"]`
+    );
+    await expect(initialInvoiceRow).toContainText('Aguardando identificação');
+    await expect(
+      initialInvoiceRow.getByRole('button', { name: 'Identificar despesa', exact: true })
+    ).toBeVisible();
+    await expect(
+      initialInvoiceRow.getByRole('button', { name: 'Visualizar pendência', exact: true })
+    ).toBeVisible();
+
+    await page.locator('#nav-pendencias').click();
+    await expect(page.getByRole('heading', { name: 'Pendências operacionais' })).toBeVisible();
+    const task9Row = page.locator(
+      `[data-pendency-id="${flowIds.pendencyId}"]`
+    ).filter({ visible: true }).first();
+    await expect(task9Row).toBeVisible();
+    await expect(
+      task9Row.getByRole('button', { name: 'Identificar despesa', exact: true })
+    ).toBeVisible();
+    await expect(
+      task9Row.getByRole('button', { name: 'Registrar novo envio', exact: true })
+    ).toHaveCount(0);
+
+    await task9Row.getByRole('button', { name: 'Ver detalhes', exact: true }).click();
+    const task9Drawer = page.locator('#pendency-detail-drawer');
+    await expect(task9Drawer).toBeVisible();
+    await expect(
+      task9Drawer.getByRole('button', { name: 'Identificar despesa', exact: true })
+    ).toBeVisible();
+
+    await page.evaluate(({ schoolId, competence }) => {
+      activeProntuarioCompetencia = competence;
+      switchView('prontuario', schoolId);
+    }, { schoolId: context.schoolId, competence: context.competence });
+    await expect(page.locator('.prontuario-school-header')).toBeVisible();
+
+    const restoredInvoiceRow = page.locator(
+      `.invoice-document-row[data-invoice-id="${flowIds.invoiceId}"]`
+    );
+    await expect(restoredInvoiceRow).toContainText('Aguardando identificação');
+    await restoredInvoiceRow.getByRole('button', {
+      name: 'Identificar despesa',
+      exact: true
+    }).click();
 
     const submissionModal = page.locator('#modal-registrar-envio');
     await expect(submissionModal).toHaveClass(/show/);
