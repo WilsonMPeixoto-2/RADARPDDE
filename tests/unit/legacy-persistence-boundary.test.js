@@ -23,7 +23,8 @@ test('ações operacionais legadas não chamam persist diretamente', () => {
     assert.doesNotMatch(consultation, /radarVerificationService\.setBonification/);
     assert.match(consultation, /toggleInvoiceAdvisorySent/);
     assert.doesNotMatch(charge, /\bpersist\s*\(/);
-    assert.match(charge, /radarPendencyService\.registerContact/);
+    assert.match(charge, /navigator\.clipboard\.writeText/);
+    assert.doesNotMatch(charge, /radarPendencyService\.registerContact/);
     assert.doesNotMatch(report, /\bpersist\s*\(/);
     assert.match(report, /radarAuditService\.record/);
     assert.doesNotMatch(theme, /\bpersist\s*\(/);

@@ -106,13 +106,14 @@ test.describe('Prontuário operacional no desktop', () => {
 
     const geometry = await page.evaluate(() => {
       const main = document.querySelector('main.content-area');
-      const actionButtons = Array.from(document.querySelectorAll('.prontuario-actions .btn'));
+      const dataActions = Array.from(document.querySelectorAll('.prontuario-actions .btn'));
+      const flowActions = Array.from(document.querySelectorAll('.prontuario-flow-action'));
       const tabs = Array.from(document.querySelectorAll('.prontuario-tablist .tab-button'));
       const mainRect = main.getBoundingClientRect();
       return {
         mainClientWidth: main.clientWidth,
         mainScrollWidth: main.scrollWidth,
-        actionsInside: actionButtons.every(button => {
+        actionsInside: [...dataActions, ...flowActions].every(button => {
           const rect = button.getBoundingClientRect();
           return rect.left >= mainRect.left && rect.right <= mainRect.right + 1;
         }),
@@ -126,12 +127,102 @@ test.describe('Prontuário operacional no desktop', () => {
     expect(geometry.mainScrollWidth).toBeLessThanOrEqual(geometry.mainClientWidth + 1);
     const actions = page.locator('.prontuario-actions');
     await expect(actions).toHaveAttribute('role', 'group');
-    await expect(actions).toHaveAttribute('aria-label', 'Ações da unidade escolar');
-    await expect(actions.locator('.btn')).toHaveCount(4);
+    await expect(actions).toHaveAttribute('aria-label', 'Dados cadastrais da unidade');
+    await expect(actions.locator('.btn')).toHaveCount(2);
     await expect(actions.locator('.btn:not([type="button"])')).toHaveCount(0);
+    await expect(page.locator('.prontuario-flow-action')).toHaveCount(2);
     await expect(page.locator('.prontuario-tablist .tab-button')).toHaveCount(6);
     expect(geometry.actionsInside).toBe(true);
     expect(geometry.tabsInside).toBe(true);
+  });
+
+  test('organiza ações cadastrais e fluxo operacional na ordem aprovada', async ({ page }, testInfo) => {
+    await openProfileSchool(page, 'controlador');
+
+    const dataActions = page.locator('.prontuario-data-actions .btn');
+    await expect(dataActions).toHaveCount(2);
+    await expect(dataActions.nth(0)).toHaveText('Editar Dados');
+    await expect(dataActions.nth(1)).toHaveText('Exibir dados da unidade');
+
+    const labels = await page.locator('.prontuario-flowbar').evaluate(flowbar => {
+      const controls = Array.from(flowbar.querySelectorAll(
+        '.prontuario-tablist > .tab-button, .prontuario-flow-actions > .prontuario-flow-action'
+      ));
+      return controls
+        .map(element => {
+          const rect = element.getBoundingClientRect();
+          return {
+            label: element.textContent.replace(/\s+/g, ' ').trim(),
+            top: Math.round(rect.top),
+            left: Math.round(rect.left)
+          };
+        })
+        .sort((a, b) => {
+          const sameVisualRow = Math.abs(a.top - b.top) <= 12;
+          return sameVisualRow ? (a.left - b.left) : (a.top - b.top);
+        })
+        .map(item => item.label);
+    });
+    expect(labels).toEqual([
+      'Competências e Análises',
+      expect.stringMatching(/^Pendências Ativas \(\d+\)$/),
+      'Gerar comunicação',
+      'Registrar contato',
+      'Histórico de Contatos',
+      'Registro de Capital',
+      'Registros Internos',
+      'Histórico cronológico'
+    ]);
+
+    const rowGeometry = await page.locator('.prontuario-flowbar').evaluate(flowbar => {
+      const byText = label => Array.from(flowbar.querySelectorAll('button')).find(button => (
+        button.textContent.replace(/\s+/g, ' ').trim().startsWith(label)
+      ));
+      const primary = [
+        'Competências e Análises',
+        'Pendências Ativas',
+        'Gerar comunicação',
+        'Registrar contato',
+        'Histórico de Contatos'
+      ].map(byText).filter(Boolean).map(element => Math.round(element.getBoundingClientRect().top));
+      const secondary = [
+        'Registro de Capital',
+        'Registros Internos',
+        'Histórico cronológico'
+      ].map(byText).filter(Boolean).map(element => Math.round(element.getBoundingClientRect().top));
+      return { primary, secondary };
+    });
+    expect(Math.max(...rowGeometry.primary) - Math.min(...rowGeometry.primary)).toBeLessThanOrEqual(12);
+    expect(Math.min(...rowGeometry.secondary)).toBeGreaterThan(Math.max(...rowGeometry.primary) + 12);
+
+    const communication = page.getByRole('button', { name: 'Gerar comunicação', exact: true });
+    const contact = page.getByRole('button', { name: 'Registrar contato', exact: true });
+    const pendencies = page.getByRole('tab', { name: /^Pendências Ativas/ });
+    const history = page.getByRole('tab', { name: 'Histórico de Contatos', exact: true });
+
+    await expect(communication).toHaveAttribute('data-tooltip', /Copiar o texto não registra envio/);
+    await expect(contact).toHaveAttribute('data-tooltip', /contato que realmente ocorreu/);
+    await expect(pendencies).toHaveAttribute('data-tooltip', /pendências ativas/);
+    await expect(history).toHaveAttribute('data-tooltip', /histórico dos contatos/);
+
+    await communication.hover();
+    await expect.poll(async () => communication.evaluate(element => {
+      const style = getComputedStyle(element, '::after');
+      return {
+        content: style.content,
+        opacity: Number.parseFloat(style.opacity),
+        visibility: style.visibility
+      };
+    })).toMatchObject({
+      content: expect.stringContaining('Preparar uma mensagem'),
+      opacity: 1,
+      visibility: 'visible'
+    });
+
+    await testInfo.attach('prontuario-fluxo-operacional-desktop', {
+      body: await page.screenshot({ fullPage: true }),
+      contentType: 'image/png'
+    });
   });
 
   test('mantém dados cadastrais recolhidos e cabeçalho da escola visível durante rolagem', async ({ page }) => {
@@ -297,8 +388,8 @@ test.describe('Prontuário operacional no desktop', () => {
     await openProfileSchool(page, 'controlador');
 
     const scenarios = [
-      { button: 'Registrar Contato', modal: '#modal-contato' },
-      { button: 'Gerar Cobrança', modal: '#modal-cobranca' },
+      { button: 'Registrar contato', modal: '#modal-contato' },
+      { button: 'Gerar comunicação', modal: '#modal-cobranca' },
       { button: 'Editar Dados', modal: '#modal-escola-edit' }
     ];
 
@@ -322,15 +413,16 @@ test.describe('Prontuário operacional no desktop', () => {
 
   test('preserva ações e abas autorizadas por perfil', async ({ page }) => {
     const scenarios = [
-      { profile: 'controlador', actions: 4, tabs: 6 },
-      { profile: 'assistente', actions: 4, tabs: 6 },
-      { profile: 'sme', actions: 1, tabs: 2 },
-      { profile: 'inventario', actions: 1, tabs: 2 }
+      { profile: 'controlador', dataActions: 2, flowActions: 2, tabs: 6 },
+      { profile: 'assistente', dataActions: 2, flowActions: 2, tabs: 6 },
+      { profile: 'sme', dataActions: 1, flowActions: 0, tabs: 2 },
+      { profile: 'inventario', dataActions: 1, flowActions: 0, tabs: 2 }
     ];
 
     for (const scenario of scenarios) {
       await openProfileSchool(page, scenario.profile);
-      await expect(page.locator('.prontuario-actions .btn')).toHaveCount(scenario.actions);
+      await expect(page.locator('.prontuario-actions .btn')).toHaveCount(scenario.dataActions);
+      await expect(page.locator('.prontuario-flow-action')).toHaveCount(scenario.flowActions);
       const tabs = page.locator('.prontuario-tablist [role="tab"]');
       await expect(tabs).toHaveCount(scenario.tabs);
       for (const tab of await tabs.all()) await expect(tab).toBeVisible();

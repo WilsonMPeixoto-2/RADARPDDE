@@ -148,7 +148,7 @@
                     </div>
                     <ol class="controller-guide-steps">
                         ${step(1, 'Use “Registrar Contato”', 'Registre uma comunicação relevante com a unidade para que o acompanhamento não dependa de memória ou conversa fora do sistema.')}
-                        ${step(2, 'Use “Gerar Cobrança”', 'Quando precisar cobrar uma regularização, abra a ação e utilize a mensagem preparada pelo RADAR como apoio à comunicação.')}
+                        ${step(2, 'Use “Gerar comunicação”', 'Quando precisar solicitar uma regularização, abra a ação e utilize a mensagem preparada pelo RADAR como apoio à comunicação.')}
                         ${step(3, 'Use “Editar Dados”', 'Atualize os dados cadastrais que o Controlador está autorizado a manter, como contatos e responsáveis. O sistema protege campos institucionais e a responsabilidade da carteira que não podem ser alterados por esse perfil.')}
                         ${step(4, 'Troque de aba sem sair da escola', 'Use as abas do Prontuário para mudar o tipo de informação mantendo a unidade selecionada.')}
                     </ol>
@@ -324,16 +324,16 @@
             }),
             section({
                 id: 'guia-comunicacao',
-                eyebrow: '12 · Contatos, comentários e cobrança',
+                eyebrow: '12 · Contatos, comentários e comunicação',
                 title: 'Registre as comunicações que fazem parte do acompanhamento',
-                intro: 'Uma orientação enviada por telefone, e-mail ou outro meio só vira histórico do RADAR quando você a registra. O sistema também oferece apoio para preparar uma cobrança.',
+                intro: 'Uma orientação enviada por telefone, e-mail ou outro meio só vira histórico do RADAR quando você a registra. O sistema também oferece apoio para preparar uma comunicação.',
                 body: `
                     <ol class="controller-guide-steps">
-                        ${step(1, 'Use “Registrar Contato”', 'A ação pode ser aberta no contexto da escola ou da pendência. Registre a comunicação e a informação relevante para o acompanhamento.')}
-                        ${step(2, 'Use “Gerar Cobrança” quando precisar de texto de apoio', 'A tela apresenta uma pré-visualização da mensagem e permite copiar o texto para o canal de comunicação utilizado pela equipe.')}
+                        ${step(1, 'Use “Gerar comunicação” para preparar a mensagem', 'A tela reúne as pendências da unidade, apresenta uma pré-visualização e permite copiar o texto. Copiar não registra que a mensagem foi enviada.')}
+                        ${step(2, 'Depois do envio, use “Registrar contato”', 'Informe o canal realmente utilizado, a data e o que foi comunicado. Quando fizer sentido, vincule o contato à Pendência correspondente.')}
                         ${step(3, 'Use a observação da ação correta', 'Pendência, novo envio e reanálise possuem seus próprios campos. Registre em cada etapa o que ocorreu naquele momento.')}
                         ${step(4, 'Seja específico', 'Prefira “Arquivo sem assinatura do Presidente do CEC” a “documento errado”.')}
-                        ${step(5, 'Consulte o histórico antes de repetir contato', 'O detalhe da pendência e o Prontuário mostram as movimentações anteriores e ajudam a evitar cobranças duplicadas.')}
+                        ${step(5, 'Consulte o histórico antes de repetir contato', 'O detalhe da pendência e o Prontuário mostram as movimentações anteriores e ajudam a evitar comunicações duplicadas.')}
                     </ol>
                     ${callout('info', 'Boa prática', 'Uma observação deve permitir que outra pessoa entenda o problema e a providência esperada sem precisar perguntar o que aconteceu.')}
                 `
@@ -455,7 +455,7 @@
                     <a href="#guia-pendencia"><span>09</span>Pendências</a>
                     <a href="#guia-novo-envio"><span>10</span>Nova entrega</a>
                     <a href="#guia-reanalise"><span>11</span>Reanálise</a>
-                    <a href="#guia-comunicacao"><span>12</span>Contatos e cobrança</a>
+                    <a href="#guia-comunicacao"><span>12</span>Contatos e comunicação</a>
                     <a href="#guia-encerrar-pendencia"><span>13</span>Cancelar / reabrir</a>
                     <a href="#guia-historico"><span>14</span>Histórico</a>
                     <a href="#guia-inventario"><span>15</span>Inventário</a>

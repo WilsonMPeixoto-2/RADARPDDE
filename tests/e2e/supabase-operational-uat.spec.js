@@ -443,6 +443,64 @@ async function submitIdentifyingPendencyUI(page, pendency, {
   expect(invoice.payload.analiseDocumentoFiscal).toBe('Não analisado');
 
   await closePreview(page, { waitForAppearance: true });
+
+  // Gate específico desta jornada: após identificar qualquer tipo de despesa,
+  // o próprio Prontuário precisa oferecer uma ação direta e descobrível de reanálise.
+  await page.goto('/escolas/ESC-UAT');
+  await waitForControllerAfterReload(page);
+  const card = invoiceCard(page, invoice.id);
+  await expect(card).toBeVisible();
+  const inlineReanalysis = card.getByRole('button', {
+    name: 'Aguardando reanálise',
+    exact: true
+  });
+  await expect(inlineReanalysis).toBeVisible();
+  await expect(inlineReanalysis).toHaveCSS('cursor', 'pointer');
+  await expect(inlineReanalysis).toHaveAttribute(
+    'data-tooltip',
+    'Clique para reanalisar o último documento enviado pela unidade.'
+  );
+  const visualContract = await inlineReanalysis.evaluate(element => {
+    const style = getComputedStyle(element);
+    return {
+      backgroundImage: style.backgroundImage,
+      borderStyle: style.borderStyle,
+      boxShadow: style.boxShadow
+    };
+  });
+  expect(visualContract.backgroundImage).not.toBe('none');
+  expect(visualContract.borderStyle).not.toBe('none');
+  expect(visualContract.boxShadow).not.toBe('none');
+
+  await inlineReanalysis.click();
+
+  const reanalysisModal = page.locator('#modal-reanalisar-pendencia');
+  await expect(reanalysisModal).toHaveClass(/show/);
+  await expect(reanalysisModal.getByLabel('Resultado da reanálise', { exact: true }))
+    .toBeVisible();
+  await reanalysisModal.getByRole('button', { name: 'Cancelar', exact: true }).click();
+  await expect(reanalysisModal).not.toHaveClass(/show/);
+
+  // No Prontuário, enquanto o último envio aguarda conferência, a ação concorrente
+  // de novo envio não aparece. Se a reanálise for incorreta, a Pendência volta a Aberta
+  // e o fluxo normal de novo envio reaparece.
+  const activeTab = page.getByRole('tab', { name: /^Pendências Ativas/ });
+  await activeTab.click();
+  const activeRow = page.locator('#tab-pendencias tr[data-pendency-ref]')
+    .filter({ hasText: invoiceNumber })
+    .first();
+  await expect(activeRow).toBeVisible();
+  await expect(activeRow.getByRole('button', { name: 'Reanalisar', exact: true }))
+    .toBeVisible();
+  await expect(activeRow.getByRole('button', { name: 'Novo envio da escola', exact: true }))
+    .toHaveCount(0);
+  await expect(activeRow.getByRole('button', {
+    name: 'Registrar substituição mais recente',
+    exact: true
+  })).toHaveCount(0);
+
+  // Restaura a superfície canônica usada pelo restante da jornada.
+  await page.locator('#nav-pendencias').click();
   return invoice;
 }
 

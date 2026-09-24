@@ -8156,8 +8156,10 @@ function renderPendencias() {
                                 const desig = esc ? esc.designação : '';
                                 const isMine = (accessProfile === 'controlador' && esc && esc.controladorId === getDefaultControladorId());
                                 const isSelected = p.id === activePendencyDetailId;
-                                const submissionActionLabel = getCorrectiveSubmissionActionLabel(p);
                                 const canReanalyse = canReanalysePendency(p);
+                                const submissionActionLabel = p.status === 'Aguardando reanálise'
+                                    ? null
+                                    : getCorrectiveSubmissionActionLabel(p);
 
                                 return `
                                     <tr
@@ -8399,6 +8401,12 @@ function resetRegistrarNovoEnvioForm() {
     form.reset();
     document.getElementById('envio-pendencia-id').value = '';
     document.getElementById('envio-contexto').replaceChildren();
+    const title = document.getElementById('modal-registrar-envio-title');
+    const subtitle = document.querySelector('#modal-registrar-envio .modal-subtitle');
+    if (title) title.textContent = 'Registrar novo envio para conferência';
+    if (subtitle) {
+        subtitle.textContent = 'Registre a nova disponibilização do documento para que a pendência siga para reanálise.';
+    }
     const identification = document.getElementById('envio-identificacao');
     if (identification) {
         identification.hidden = true;
@@ -8676,6 +8684,14 @@ function abrirModalRegistrarNovoEnvio(pendencySource) {
     resetRegistrarNovoEnvioForm();
     document.getElementById('envio-pendencia-id').value = encodePendencyIdReference(pendency.id);
     const identificationContext = configureRegistrarNovoEnvioIdentification(pendency);
+    if (identificationContext.required) {
+        const title = document.getElementById('modal-registrar-envio-title');
+        const subtitle = document.querySelector('#modal-registrar-envio .modal-subtitle');
+        if (title) title.textContent = 'Identificar despesa e registrar novo envio';
+        if (subtitle) {
+            subtitle.textContent = 'Informe os dados do documento recebido. O RADAR atualizará a despesa existente e a encaminhará para reanálise, sem criar um novo lançamento.';
+        }
+    }
     document.getElementById('envio-contexto').innerHTML = `
         <dl class="corrective-context-grid" aria-label="Contexto da pendência">
             <div class="corrective-context-item is-school">
@@ -9452,6 +9468,7 @@ function toggleSchoolRegistrationDetails(button) {
     const expand = panel.hidden;
     panel.hidden = !expand;
     button.setAttribute('aria-expanded', String(expand));
+    button.setAttribute('aria-label', expand ? 'Ocultar dados da unidade' : 'Exibir dados da unidade');
     button.textContent = expand ? 'Ocultar dados da unidade' : 'Exibir dados da unidade';
     return expand;
 }
@@ -9517,19 +9534,25 @@ function renderProntuario(escolaId) {
                     ? 'Consulta mensal das informações de bonificação da unidade escolar.'
                     : 'Acompanhamento e Histórico Unificado da Unidade Escolar'}</p>
             </div>
-            <div class="prontuario-actions" role="group" aria-label="Ações da unidade escolar">
+            <div class="prontuario-actions prontuario-data-actions" role="group" aria-label="Dados cadastrais da unidade">
         ${showProntuarioActions ? `
-                    <button type="button" class="btn btn-secondary" onclick="openContatoModal('${escapeHtml(esc.id)}')">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                        Registrar Contato
-                    </button>
-                    <button type="button" class="btn btn-secondary" onclick="openCobrancaModal('${escapeHtml(esc.id)}')">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
-                        Gerar Cobrança
-                    </button>
-                    <button type="button" class="btn btn-primary" onclick="openEscolaEditModal('${escapeHtml(esc.id)}')">Editar Dados</button>
+                    <button
+                        type="button"
+                        class="btn btn-primary prontuario-tooltip"
+                        aria-label="Editar Dados"
+                        data-tooltip="Atualizar os dados cadastrais e administrativos da unidade."
+                        onclick="openEscolaEditModal('${escapeHtml(esc.id)}')"
+                    >Editar Dados</button>
         ` : ''}
-        <button type="button" class="btn prontuario-data-toggle" aria-expanded="false" aria-controls="school-registration-details" onclick="toggleSchoolRegistrationDetails(this)">Exibir dados da unidade</button>
+        <button
+            type="button"
+            class="btn prontuario-data-toggle prontuario-tooltip"
+            aria-label="Exibir dados da unidade"
+            data-tooltip="Exibir ou ocultar os dados cadastrais da unidade."
+            aria-expanded="false"
+            aria-controls="school-registration-details"
+            onclick="toggleSchoolRegistrationDetails(this)"
+        >Exibir dados da unidade</button>
     </div>
     ${(() => {
         const nextSchool = getNextProntuarioSchool(esc.id);
@@ -9656,18 +9679,84 @@ function renderProntuario(escolaId) {
 
             <!-- Corpo Principal: Abas de Trabalho -->
             <div class="school-workspace">
-                <div class="tab-container prontuario-tablist" role="tablist" aria-label="Seções do prontuário da unidade">
-                    ${accessProfile === 'inventario' ? `
-                        <button type="button" id="prontuario-tab-capital" class="tab-button active" data-tab="capital" role="tab" aria-controls="tab-capital" aria-selected="true" tabindex="0" onclick="switchSchoolTab(event, 'tab-capital')" onkeydown="handleSchoolTabKeydown(event)">Registro de Capital</button>
-                    ` : accessProfile === 'sme' ? `
-                        <button type="button" id="prontuario-tab-verificacoes" class="tab-button active" data-tab="verificacoes" role="tab" aria-controls="tab-verificacoes" aria-selected="true" tabindex="0" onclick="switchSchoolTab(event, 'tab-verificacoes')" onkeydown="handleSchoolTabKeydown(event)">Competências e Bonificação</button>
-                    ` : `
-                        <button type="button" id="prontuario-tab-verificacoes" class="tab-button active" data-tab="verificacoes" role="tab" aria-controls="tab-verificacoes" aria-selected="true" tabindex="0" onclick="switchSchoolTab(event, 'tab-verificacoes')" onkeydown="handleSchoolTabKeydown(event)">Competências e Análises</button>
-                        <button type="button" id="prontuario-tab-pendencias" class="tab-button" data-tab="pendencias" role="tab" aria-controls="tab-pendencias" aria-selected="false" tabindex="-1" onclick="switchSchoolTab(event, 'tab-pendencias')" onkeydown="handleSchoolTabKeydown(event)">Pendências Ativas (${pAtivas.length})</button>
-                        <button type="button" id="prontuario-tab-contatos" class="tab-button" data-tab="contatos" role="tab" aria-controls="tab-contatos" aria-selected="false" tabindex="-1" onclick="switchSchoolTab(event, 'tab-contatos')" onkeydown="handleSchoolTabKeydown(event)">Histórico de Contatos</button>
-                        <button type="button" id="prontuario-tab-capital" class="tab-button" data-tab="capital" role="tab" aria-controls="tab-capital" aria-selected="false" tabindex="-1" onclick="switchSchoolTab(event, 'tab-capital')" onkeydown="handleSchoolTabKeydown(event)">Registro de Capital</button>
-                        <button type="button" id="prontuario-tab-auditoria" class="tab-button" data-tab="auditoria" role="tab" aria-controls="tab-auditoria" aria-selected="false" tabindex="-1" onclick="switchSchoolTab(event, 'tab-auditoria')" onkeydown="handleSchoolTabKeydown(event)">Registros Internos</button>
-                    `}
+                <div class="prontuario-flowbar ${showProntuarioActions ? 'has-operational-actions' : ''}">
+                    <div class="tab-container prontuario-tablist" role="tablist" aria-label="Seções do prontuário da unidade">
+                        ${accessProfile === 'inventario' ? `
+                            <button type="button" id="prontuario-tab-capital" class="tab-button active" data-tab="capital" role="tab" aria-controls="tab-capital" aria-selected="true" tabindex="0" onclick="switchSchoolTab(event, 'tab-capital')" onkeydown="handleSchoolTabKeydown(event)">Registro de Capital</button>
+                        ` : accessProfile === 'sme' ? `
+                            <button type="button" id="prontuario-tab-verificacoes" class="tab-button active" data-tab="verificacoes" role="tab" aria-controls="tab-verificacoes" aria-selected="true" tabindex="0" onclick="switchSchoolTab(event, 'tab-verificacoes')" onkeydown="handleSchoolTabKeydown(event)">Competências e Bonificação</button>
+                        ` : `
+                            <button
+                                type="button"
+                                id="prontuario-tab-verificacoes"
+                                class="tab-button active prontuario-flow-tab prontuario-tooltip"
+                                aria-label="Competências e Análises"
+                                data-tooltip="Abrir a análise documental da competência e dos programas da unidade."
+                                data-tab="verificacoes"
+                                role="tab"
+                                aria-controls="tab-verificacoes"
+                                aria-selected="true"
+                                tabindex="0"
+                                onclick="switchSchoolTab(event, 'tab-verificacoes')"
+                                onkeydown="handleSchoolTabKeydown(event)"
+                            >Competências e Análises</button>
+                            <button
+                                type="button"
+                                id="prontuario-tab-pendencias"
+                                class="tab-button prontuario-flow-tab prontuario-tooltip"
+                                aria-label="Pendências Ativas (${pAtivas.length})"
+                                data-tooltip="Abrir as pendências ativas desta unidade e as ações disponíveis para cada uma."
+                                data-tab="pendencias"
+                                role="tab"
+                                aria-controls="tab-pendencias"
+                                aria-selected="false"
+                                tabindex="-1"
+                                onclick="switchSchoolTab(event, 'tab-pendencias')"
+                                onkeydown="handleSchoolTabKeydown(event)"
+                            >Pendências Ativas (${pAtivas.length})</button>
+                            <button
+                                type="button"
+                                id="prontuario-tab-contatos"
+                                class="tab-button prontuario-flow-tab prontuario-tooltip"
+                                aria-label="Histórico de Contatos"
+                                data-tooltip="Consultar o histórico dos contatos e comunicações registrados para esta unidade."
+                                data-tab="contatos"
+                                role="tab"
+                                aria-controls="tab-contatos"
+                                aria-selected="false"
+                                tabindex="-1"
+                                onclick="switchSchoolTab(event, 'tab-contatos')"
+                                onkeydown="handleSchoolTabKeydown(event)"
+                            >Histórico de Contatos</button>
+                            <button type="button" id="prontuario-tab-capital" class="tab-button" data-tab="capital" role="tab" aria-controls="tab-capital" aria-selected="false" tabindex="-1" onclick="switchSchoolTab(event, 'tab-capital')" onkeydown="handleSchoolTabKeydown(event)">Registro de Capital</button>
+                            <button type="button" id="prontuario-tab-auditoria" class="tab-button" data-tab="auditoria" role="tab" aria-controls="tab-auditoria" aria-selected="false" tabindex="-1" onclick="switchSchoolTab(event, 'tab-auditoria')" onkeydown="handleSchoolTabKeydown(event)">Registros Internos</button>
+                        `}
+                    </div>
+                    ${showProntuarioActions ? `
+                        <div class="prontuario-flow-actions" role="group" aria-label="Ações de acompanhamento da unidade">
+                            <button
+                                type="button"
+                                class="prontuario-flow-action prontuario-flow-action-primary prontuario-tooltip"
+                                aria-label="Gerar comunicação"
+                                data-tooltip="Preparar uma mensagem com as pendências sob responsabilidade da unidade. Copiar o texto não registra envio."
+                                onclick="openCobrancaModal('${escapeHtml(esc.id)}')"
+                            >
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 3-7.5 18-4.2-6.3L3 10.5 21 3Z"></path><path d="m9.3 14.7 4.2-4.2"></path></svg>
+                                <span>Gerar comunicação</span>
+                            </button>
+                            <button
+                                type="button"
+                                class="prontuario-flow-action prontuario-tooltip"
+                                aria-label="Registrar contato"
+                                data-tooltip="Registrar um contato que realmente ocorreu, informando canal, data e descrição."
+                                onclick="openContatoModal('${escapeHtml(esc.id)}')"
+                            >
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                                <span>Registrar contato</span>
+                            </button>
+                        </div>
+                        <span class="prontuario-flow-break" aria-hidden="true"></span>
+                    ` : ''}
                 </div>
 
                 ${accessProfile !== 'inventario' ? `
@@ -9761,8 +9850,10 @@ function renderProntuario(escolaId) {
                                         <tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:32px;">Nenhuma pendência ativa nesta escola! Tudo regularizado.</td></tr>
                                     ` : pAtivas.map(p => {
                                         const pData = getFormattedPendencyData(p);
-                                        const submissionActionLabel = getCorrectiveSubmissionActionLabel(p);
                                         const canReanalyse = canReanalysePendency(p);
+                                        const submissionActionLabel = p.status === 'Aguardando reanálise'
+                                            ? null
+                                            : getCorrectiveSubmissionActionLabel(p);
                                         return `
                                             <tr
                                                 data-pendency-ref="${escapeHtml(encodePendencyIdReference(p.id))}"
@@ -9811,7 +9902,7 @@ function renderProntuario(escolaId) {
                 <div class="tab-content-panel" id="tab-contatos" role="tabpanel" aria-labelledby="prontuario-tab-contatos" hidden>
                     <div class="panel-card">
                         <div class="panel-header">
-                            <h2>Histórico de Contatos e Cobranças</h2>
+                            <h2>Histórico de Contatos e Comunicações</h2>
                         </div>
                         <div class="contact-timeline">
                             ${schoolContactHistoryHTML(contatos.filter(c => c.escolaId === esc.id))}
@@ -10018,7 +10109,8 @@ function activateProntuarioTab(tabId) {
     if (!targetPanel || !targetButton) return false;
 
     const tabContainer = targetButton.closest('.tab-container');
-    if (!tabContainer || targetPanel.parentElement !== tabContainer.parentElement) return false;
+    const workspace = targetButton.closest('.school-workspace');
+    if (!tabContainer || !workspace || targetPanel.parentElement !== workspace) return false;
 
     Array.from(tabContainer.children).forEach(element => {
         if (!element.classList.contains('tab-button')) return;
@@ -10348,12 +10440,29 @@ function renderProntuarioVerificacoes(esc) {
                                             <option value="Incorreto">Incorreto</option>
                                         </select>
                                     `
-                                    : `<span class="invoice-document-status ${statusClass}">${escapeHtml(statusLabel)}</span>`;
+                                    : (invoicePendency?.status === 'Aguardando reanálise'
+                                        && canReanalysePendency(invoicePendency)
+                                        ? `
+                                            <button
+                                                type="button"
+                                                class="invoice-document-status ${statusClass} invoice-reanalysis-status-button prontuario-tooltip"
+                                                aria-label="${escapeHtml(statusLabel)}"
+                                                data-tooltip="Clique para reanalisar o último documento enviado pela unidade."
+                                                data-action="reanalyse-pendency"
+                                                data-pendency-ref="${escapeHtml(encodePendencyIdReference(invoicePendency.id))}"
+                                                onclick="abrirModalReanalisarPendencia(this)"
+                                            >
+                                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v5h-5"></path><path d="M18.6 9A7 7 0 1 0 19 16"></path></svg>
+                                                <span>${escapeHtml(statusLabel)}</span>
+                                            </button>
+                                        `
+                                        : `<span class="invoice-document-status ${statusClass}">${escapeHtml(statusLabel)}</span>`);
 
                                 let actionHTML = '';
                                 if (invoicePendency) {
                                     actionHTML = `
                                         <button type="button" class="invoice-pendency-view-button"
+                                            data-pendency-ref="${escapeHtml(encodePendencyIdReference(invoicePendency.id))}"
                                             onclick="openPendencyDrawer('${escapeHtml(invoicePendency.id)}')">
                                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.6-6 9.5-6 9.5 6 9.5 6-3.6 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.7"/></svg>
                                             <span>Visualizar pendência</span>
@@ -10473,7 +10582,13 @@ function renderProntuarioVerificacoes(esc) {
                                                     </button>
                                                 ` : ''}
                                                 ${canAddUnidentifiedExpense ? `
-                                                    <button type="button" class="invoice-add-secondary" onclick="openUnidentifiedExpenseModal('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">
+                                                    <button
+                                                        type="button"
+                                                        class="invoice-add-secondary prontuario-tooltip prontuario-tooltip-up prontuario-tooltip-align-start"
+                                                        aria-label="Registrar despesa a identificar"
+                                                        data-tooltip="Use quando houver uma saída no extrato, mas a documentação ainda não permitir identificar a natureza da despesa ou o documento fiscal."
+                                                        onclick="openUnidentifiedExpenseModal('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')"
+                                                    >
                                                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h10l4 4V20.5H5z"/><path d="M15 3.5v4h4"/><path d="M12 11v5M9.5 13.5h5"/></svg>
                                                         <span>Registrar despesa a identificar</span>
                                                     </button>
@@ -10564,6 +10679,7 @@ function renderProntuarioVerificacoes(esc) {
                                 const actionHTML = invoicePendency
                                     ? `
                                         <button type="button" class="invoice-pendency-view-button"
+                                            data-pendency-ref="${escapeHtml(encodePendencyIdReference(invoicePendency.id))}"
                                             onclick="openPendencyDrawer('${escapeHtml(invoicePendency.id)}')">
                                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.6-6 9.5-6 9.5 6 9.5 6-3.6 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.7"/></svg>
                                             <span>Visualizar pendência</span>
@@ -10969,6 +11085,23 @@ function renderPendencyDrawer() {
         : pendency.status === 'Aguardando reanálise'
             ? 'is-waiting'
             : 'is-closed';
+    const documentary = window.RadarPendencias.isDocumentaryPendency(pendency);
+    const pendencyReference = encodePendencyIdReference(pendency.id);
+    const canRegisterNext = !edit
+        && pendency.status === 'Aberta'
+        && documentary
+        && hasRadarCapability(
+            window.RadarAccessPolicy.CAPABILITIES.REGISTER_CORRECTIVE_SUBMISSION
+        );
+    const canReanalyseNext = !edit
+        && pendency.status === 'Aguardando reanálise'
+        && documentary
+        && canReanalysePendency(pendency);
+    const nextStepCopy = canRegisterNext
+        ? 'Quando a documentação chegar, registre o novo envio nesta mesma Pendência. Se precisar falar com a unidade antes disso, use “Registrar contato” no Prontuário.'
+        : canReanalyseNext
+            ? 'O novo envio já foi registrado. O próximo passo é conferir o documento recebido e registrar o resultado da reanálise.'
+            : '';
 
     // eslint-disable-next-line nounsanitized/property -- valores dinâmicos do drawer são escapados com escapeHtml antes da interpolação; SVG e estrutura são estáticos.
     content.innerHTML = `
@@ -11005,13 +11138,56 @@ function renderPendencyDrawer() {
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M7 3v4M17 3v4M3.5 9h17"/></svg>
             <div><span>Registrada em</span><strong>${escapeHtml(formatPendencyDate(pendency.dataAbertura))}</strong></div>
         </div>
-        <button type="button" class="pendency-preview-edit-button" onclick="handlePendencyDrawerPrimaryAction()">
-            ${edit
-                ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4 4L19 6.5"/></svg><span>Salvar</span>'
-                : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg><span>Editar</span>'}
-        </button>
+        ${nextStepCopy ? `
+            <section class="pendency-preview-next-step" aria-label="Próximo passo">
+                <span class="pendency-preview-next-step-label">Próximo passo</span>
+                <p>${escapeHtml(nextStepCopy)}</p>
+            </section>
+        ` : ''}
+        <div class="pendency-preview-actions">
+            ${canRegisterNext ? `
+                <button
+                    type="button"
+                    class="btn btn-primary pendency-preview-workflow-button"
+                    data-action="register-corrective-submission"
+                    data-pendency-ref="${escapeHtml(pendencyReference)}"
+                    onclick="openPendencyDrawerWorkflowAction('register', this)"
+                >Registrar novo envio</button>
+            ` : ''}
+            ${canReanalyseNext ? `
+                <button
+                    type="button"
+                    class="btn btn-primary pendency-preview-workflow-button"
+                    data-action="reanalyse-pendency"
+                    data-pendency-ref="${escapeHtml(pendencyReference)}"
+                    onclick="openPendencyDrawerWorkflowAction('reanalyze', this)"
+                >Reanalisar</button>
+            ` : ''}
+            <button type="button" class="pendency-preview-edit-button" onclick="handlePendencyDrawerPrimaryAction()">
+                ${edit
+                    ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4 4L19 6.5"/></svg><span>Salvar</span>'
+                    : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg><span>Editar detalhes</span>'}
+            </button>
+        </div>
     `;
     return true;
+}
+
+function openPendencyDrawerWorkflowAction(action, source) {
+    if (!source || !source.dataset?.pendencyRef) return false;
+    const reference = source.dataset.pendencyRef;
+    const visibleEquivalent = Array.from(document.querySelectorAll('[data-pendency-ref]'))
+        .find(candidate => (
+            candidate !== source
+            && candidate.dataset.pendencyRef === reference
+            && !candidate.closest('[hidden]')
+            && candidate.getClientRects().length > 0
+        )) || null;
+    closePendencyDrawer();
+    const trigger = visibleEquivalent || source;
+    if (action === 'register') return abrirModalRegistrarNovoEnvio(trigger);
+    if (action === 'reanalyze') return abrirModalReanalisarPendencia(trigger);
+    return false;
 }
 
 function openPendencyDrawer(pendencyId) {
@@ -12254,25 +12430,17 @@ function copyCobrancaText() {
         window.RadarAccessPolicy.CAPABILITIES.REGISTER_PENDENCY_CONTACT
     )) return false;
     const previewText = document.getElementById('cobranca-preview-text').innerText;
-    return navigator.clipboard.writeText(previewText).then(async () => {
-        alert('Texto de cobrança copiado para a área de transferência! Você já pode colar no e-mail ou WhatsApp.');
-        const escolaId = document.getElementById('cobranca-escola-id').value;
-        try {
-            await radarPendencyService.registerContact({
-                id: `cont-${Date.now()}`,
-                schoolId: escolaId,
-                channel: 'E-mail',
-                serviceDate: new Date().toISOString().slice(0, 10),
-                description: 'Mensagem de cobrança consolidada enviada para a escola cobrando pendências selecionadas.',
-                operationId: `cobranca:${escolaId}:${Date.now()}`
-            });
-        } catch (error) {
-            reportRadarActionError(error, 'O texto foi copiado, mas o contato não pôde ser registrado.');
-            return;
-        }
+    return navigator.clipboard.writeText(previewText).then(() => {
         closeModal('modal-cobranca');
-        if (currentView === 'prontuario') renderProntuario(escolaId);
-    }).catch(error => reportRadarActionError(error, 'Não foi possível copiar o texto da cobrança.'));
+        alert(
+            'Texto da comunicação copiado. Depois de encaminhá-lo à unidade, use “Registrar contato” '
+            + 'para registrar o canal, a data e o que efetivamente foi comunicado.'
+        );
+        return true;
+    }).catch(error => {
+        reportRadarActionError(error, 'Não foi possível copiar o texto da comunicação.');
+        return false;
+    });
 }
 
 

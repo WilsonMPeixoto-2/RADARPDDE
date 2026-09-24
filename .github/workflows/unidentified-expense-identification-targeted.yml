@@ -7,6 +7,10 @@ on:
     paths:
       - 'app.js'
       - 'index.html'
+      - 'styles.css'
+      - 'src/integration/unidentified-expense-ux.js'
+      - 'src/integration/operational-write-feedback.js'
+      - 'src/styles/unidentified-expense-ux.css'
       - 'src/domain/invoice-document-analysis.js'
       - 'src/domain/invoice-effects.js'
       - 'src/application/pendency-service.js'
@@ -15,6 +19,7 @@ on:
       - 'tests/unit/unidentified-expense-identification-options.test.js'
       - 'tests/e2e/internet-bill-document.spec.js'
       - 'tests/e2e/unidentified-expense-identification-matrix.spec.js'
+      - 'tests/e2e/unidentified-expense-user-journey.spec.js'
       - 'tests/e2e/supabase-invoice-lifecycle-reliability.spec.js'
       - '.github/workflows/unidentified-expense-identification-targeted.yml'
   workflow_dispatch:
@@ -86,7 +91,7 @@ jobs:
         run: npm run supabase:stop || true
 
   browser:
-    name: Educação Conectada identifica Boleto de Internet
+    name: Jornada leiga e identificação por tipo
     runs-on: ubuntu-24.04
     timeout-minutes: 20
 
@@ -111,12 +116,13 @@ jobs:
           npx playwright test
           tests/e2e/internet-bill-document.spec.js
           tests/e2e/unidentified-expense-identification-matrix.spec.js
+          tests/e2e/unidentified-expense-user-journey.spec.js
           --project=desktop-chromium
           --workers=1
           --max-failures=1
 
-      - name: Publicar evidências se houver falha
-        if: failure()
+      - name: Publicar evidências da jornada específica
+        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: unidentified-expense-identification-${{ github.run_id }}

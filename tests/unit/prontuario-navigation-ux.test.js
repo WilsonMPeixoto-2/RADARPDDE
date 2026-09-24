@@ -18,9 +18,12 @@ test('Prontuário oferece navegação para a próxima unidade preservando a comp
     assert.match(appSource, /activeProntuarioCompetencia\s*=\s*preservedCompetence/);
 });
 
-test('controle cadastral fica junto das ações da unidade e recebe maior destaque', () => {
-    assert.match(appSource, /class="prontuario-actions"[\s\S]*Editar Dados[\s\S]*prontuario-data-toggle/);
-    assert.match(appSource, /prontuario-data-toggle[\s\S]*Exibir dados da unidade/);
+test('controles cadastrais permanecem agrupados e na ordem aprovada', () => {
+    assert.match(
+        appSource,
+        /class="prontuario-actions prontuario-data-actions"[\s\S]*Editar Dados[\s\S]*prontuario-data-toggle[\s\S]*Exibir dados da unidade/
+    );
+    assert.match(appSource, /aria-label="Dados cadastrais da unidade"/);
     assert.match(cssSource, /\.prontuario-data-toggle\s*\{[\s\S]*background:/);
 });
 

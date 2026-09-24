@@ -303,7 +303,7 @@
                     </div>
                     <div style="display:none;" id="cobranca-flag-container">
                         <label class="badge badge-info">
-                            <input type="checkbox" id="cobranca-envio-registro" checked> Registrar como cobrança oficial enviada
+                            <input type="checkbox" id="cobranca-envio-registro" checked> Registrar como comunicação oficial enviada
                         </label>
                     </div>
                     <div class="modal-footer" style="padding: 16px 0 0 0; background:none;">
@@ -326,11 +326,11 @@
                         </svg>
                     </span>
                     <div>
-                        <h3>Gerar Mensagem de Cobrança</h3>
-                        <p class="modal-subtitle">Selecione as pendências que devem constar na comunicação com a unidade escolar.</p>
+                        <h3>Gerar comunicação com a unidade</h3>
+                        <p class="modal-subtitle">Selecione as pendências que devem constar na mensagem. Copiar o texto apenas prepara a comunicação; depois do envio, registre o contato realizado.</p>
                     </div>
                 </div>
-                <button class="btn-close" aria-label="Fechar geração de cobrança" onclick="closeModal('modal-cobranca')">×</button>
+                <button class="btn-close" aria-label="Fechar geração de comunicação" onclick="closeModal('modal-cobranca')">×</button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="cobranca-escola-id">
@@ -361,7 +361,6 @@
                             <h4 id="cobranca-preview-title">Pré-visualização da mensagem</h4>
                             <p>Texto final pronto para copiar e encaminhar por e-mail ou WhatsApp.</p>
                         </div>
-                        <button type="button" class="btn btn-secondary btn-sm cobranca-copy-inline" onclick="copyCobrancaText()">Copiar texto</button>
                     </div>
                     <div class="cobranca-preview" id="cobranca-preview-text"></div>
                 </section>
@@ -689,7 +688,7 @@
                     <input type="hidden" id="nota-comp-key">
                     <input type="hidden" id="nota-id">
                     
-                    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:12px;">
+                    <p id="nota-modal-intro" style="font-size:0.8rem; color:var(--text-muted); margin-bottom:12px;">
                         Cadastre o gasto referente a esta Nota Fiscal para que o sistema direcione as obrigações operacionais corretas.
                     </p>
 

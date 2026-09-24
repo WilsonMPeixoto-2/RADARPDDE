@@ -410,7 +410,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     expect(dialogs).toEqual([]);
   });
 
-  test('registra novo envio e substituição sem encerrar nem recalcular a bonificação', async ({ page }, testInfo) => {
+  test('exige reanálise antes de oferecer novo envio novamente', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
     await page.goto('/');
@@ -686,102 +686,86 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
       .toHaveAttribute('aria-selected', 'true');
     const awaitingRow = page.locator('#p-aguardando tr[data-pendency-ref]');
     await expect(awaitingRow).toContainText('Aguardando reanálise');
-    const replacementTrigger = awaitingRow.getByRole('button', {
+    await expect(awaitingRow.getByRole('button', {
       name: 'Registrar substituição mais recente',
       exact: true
+    })).toHaveCount(0);
+
+    // O novo envio mantém a Pendência selecionada e o drawer aberto.
+    // A próxima ação deve ser executada no próprio drawer, não "atrás" dele.
+    const drawer = page.locator('#pendency-detail-drawer');
+    await expect(drawer).toBeVisible();
+    const reanalysisTrigger = drawer.getByRole('button', {
+      name: 'Reanalisar',
+      exact: true
     });
-    await expect(replacementTrigger).toBeVisible();
-    const focusedReplacementTrigger = page.locator(':focus');
-    await expect(focusedReplacementTrigger)
-      .toHaveAttribute('data-action', 'register-corrective-submission');
-    await expect(focusedReplacementTrigger)
-      .toHaveText('Registrar substituição mais recente');
+    await expect(reanalysisTrigger).toBeVisible();
+    await reanalysisTrigger.click();
 
-    await page.evaluate(() => closePendencyDetail());
-    await replacementTrigger.click();
-    await expect(availabilityDate).toHaveValue('');
-    await expect(observation).toHaveValue('');
-    await expect(link).toHaveValue('');
-    await availabilityDate.fill('2026-07-11');
-    await observation.fill('Versão mais recente do extrato substitui o envio anterior.');
-    await link.fill('https://drive.google.com/file/d/e2e-extrato-corrigido/view');
-    await submit.click();
-    await expect(modal).not.toHaveClass(/show/);
+    const reanalysisModal = page.locator('#modal-reanalisar-pendencia');
+    await expect(reanalysisModal).toHaveClass(/show/);
+    await reanalysisModal.getByLabel('Resultado da reanálise', { exact: true })
+      .selectOption('incorreto');
+    await reanalysisModal.getByLabel('Observação da análise', { exact: true })
+      .fill('A nova versão ainda apresenta erro e deve retornar à escola.');
+    await reanalysisModal.locator('input[name="reanalisar-erros"]').first().check();
+    await reanalysisModal.getByRole('button', {
+      name: 'Confirmar reanálise',
+      exact: true
+    }).click();
+    await expect(reanalysisModal).not.toHaveClass(/show/);
 
-    const secondSubmission = await page.evaluate(seeded => {
+    // A reanálise re-renderiza a Pendência selecionada no drawer.
+    // Fechamos o detalhe antes de operar novamente a fila principal.
+    const refreshedDrawer = page.locator('#pendency-detail-drawer');
+    await expect(refreshedDrawer).toBeVisible();
+    await refreshedDrawer.getByRole('button', { name: /Fechar/i }).click();
+    await expect(refreshedDrawer).toHaveCount(0);
+
+    await page.getByRole('tab', { name: /^Abertas\b/ }).click();
+    const reopenedRow = page.locator('#p-abertas tr[data-pendency-ref]');
+    await expect(reopenedRow).toContainText('Aberta');
+    await expect(reopenedRow.getByRole('button', {
+      name: 'Registrar novo envio',
+      exact: true
+    })).toBeVisible();
+    await expect(reopenedRow.getByRole('button', {
+      name: 'Reanalisar',
+      exact: true
+    })).toHaveCount(0);
+
+    const afterIncorrectReview = await page.evaluate(seeded => {
       const pendency = pendencias.find(item => item.id === seeded.pendencyId);
       const verification = verificacoes[seeded.escolaId][seeded.compProgKey];
+      const latestAttempt = pendency.tentativas.at(-1);
       return {
-        pendency,
-        isActive: RadarPendencias.isActivePendency(pendency),
-        activeIds: pendencias
-          .filter(item => RadarPendencias.isActivePendency(item))
-          .map(item => item.id),
+        status: pendency.status,
+        responsavel: pendency.responsavel,
+        attempts: pendency.tentativas.length,
+        latestAttemptStatus: latestAttempt?.status,
+        latestAttemptResult: latestAttempt?.resultado,
+        analysis: verification.analise[seeded.documentoKey],
         bonificacaoDocumento: verification.bonificacao[seeded.documentoKey],
         bonificacao: { ...verification.bonificacao },
-        analise: { ...verification.analise },
         resultadoBonif: verification.resultadoBonif,
         unrelatedVerification: JSON.parse(JSON.stringify(
           verificacoes[seeded.escolaId][seeded.unrelatedCompProgKey]
-        )),
-        matchingLogs: logs.filter(log => log.acao === 'Novo envio registrado')
+        ))
       };
     }, context);
 
-    expect(secondSubmission.pendency).toMatchObject({
-      status: 'Aguardando reanálise',
-      responsavel: 'Controlador',
-      dataResolucao: null
+    expect(afterIncorrectReview).toEqual({
+      status: 'Aberta',
+      responsavel: 'Escola',
+      attempts: 1,
+      latestAttemptStatus: 'analisada',
+      latestAttemptResult: 'incorreto',
+      analysis: 'Incorreto',
+      bonificacaoDocumento: context.bonificacaoDocumentoAntes,
+      bonificacao: context.bonificacaoAntes,
+      resultadoBonif: context.resultadoAntes,
+      unrelatedVerification: context.unrelatedVerificationAntes
     });
-    expect(secondSubmission.pendency.tentativas).toHaveLength(2);
-    expect(secondSubmission.pendency.tentativas[0]).toEqual({
-      ...firstSubmission.pendency.tentativas[0],
-      status: 'substituida_antes_da_analise'
-    });
-    expect(secondSubmission.pendency.tentativas[1]).toMatchObject({
-      numero: 2,
-      dataDisponibilizacao: '2026-07-11',
-      observacao: 'Versão mais recente do extrato substitui o envio anterior.',
-      link: 'https://drive.google.com/file/d/e2e-extrato-corrigido/view',
-      registradoPor: context.user.name,
-      status: 'aguardando',
-      dataAnalise: null,
-      analisadoPor: null,
-      resultado: null,
-      errosEncontrados: [],
-      observacaoAnalise: null
-    });
-    expect(secondSubmission.pendency.tentativas[1].id)
-      .not.toBe(firstSubmission.pendency.tentativas[0].id);
-    expect(secondSubmission.pendency.tentativas[1].dataRegistro).toMatch(
-      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
-    );
-    expect(secondSubmission.pendency.historico).toHaveLength(3);
-    expect(secondSubmission.pendency.historico.at(-1)).toMatchObject({
-      tipo: 'novo_envio',
-      tentativaId: secondSubmission.pendency.tentativas[1].id
-    });
-    expect(secondSubmission.pendency.historico.at(-1).dataHora)
-      .toBe(secondSubmission.pendency.tentativas[1].dataRegistro);
-    expect(secondSubmission.isActive).toBe(true);
-    expect(secondSubmission.activeIds).toEqual([context.pendencyId]);
-    expect(secondSubmission.analise).toEqual({
-      ...context.analiseAntes,
-      [DOCUMENT_CONTEXT.documentoKey]: 'Não analisado'
-    });
-    expect(secondSubmission.unrelatedVerification).toEqual(context.unrelatedVerificationAntes);
-    expect(secondSubmission.bonificacaoDocumento).toBe(context.bonificacaoDocumentoAntes);
-    expect(secondSubmission.bonificacao).toEqual(context.bonificacaoAntes);
-    expect(secondSubmission.resultadoBonif).toBe(context.resultadoAntes);
-    expect(secondSubmission.matchingLogs).toHaveLength(context.novoEnvioLogsAntes + 2);
-    expect(secondSubmission.matchingLogs.slice(0, 2)
-      .every(log => log.acao === 'Novo envio registrado')).toBe(true);
-    expect(secondSubmission.matchingLogs[0].detalhes).toContain('2026-07-11');
-    const focusedAfterReplacement = page.locator(':focus');
-    await expect(focusedAfterReplacement)
-      .toHaveAttribute('data-action', 'register-corrective-submission');
-    await expect(focusedAfterReplacement)
-      .toHaveText('Registrar substituição mais recente');
   });
 
   test('restaura memória, índices e localStorage após falha intermediária de persistência', async ({ page }, testInfo) => {
@@ -1827,11 +1811,6 @@ test.describe('reanálise atômica da pendência documental no desktop', () => {
       name: 'Reanalisar',
       exact: true
     });
-    const replacementTrigger = sourceRow.getByRole('button', {
-      name: 'Registrar substituição mais recente',
-      exact: true
-    });
-
     await expect(sourceRow).toHaveCount(1);
     await expect(reanalysisTrigger).toBeVisible();
     await expect(reanalysisTrigger).toHaveAttribute('type', 'button');
@@ -1841,12 +1820,10 @@ test.describe('reanálise atômica da pendência documental no desktop', () => {
       'onclick',
       'abrirModalReanalisarPendencia(this)'
     );
-    await expect(replacementTrigger).toBeVisible();
-    await expect(replacementTrigger).toHaveAttribute(
-      'data-action',
-      'register-corrective-submission'
-    );
-    await expect(replacementTrigger).toHaveAttribute('data-pendency-ref', /.+/);
+    await expect(sourceRow.getByRole('button', {
+      name: 'Registrar substituição mais recente',
+      exact: true
+    })).toHaveCount(0);
     expect(await reanalysisTrigger.evaluate((button, expectedId) => (
       decodePendencyIdReference(button.dataset.pendencyRef) === expectedId
     ), context.pendencyId)).toBe(true);
@@ -2096,7 +2073,7 @@ test.describe('reanálise atômica da pendência documental no desktop', () => {
     await expect(rowFor(ids.awaiting).getByRole('button', {
       name: 'Registrar substituição mais recente',
       exact: true
-    })).toBeVisible();
+    })).toHaveCount(0);
     await expect(reanalysisButtons).toHaveCount(1);
 
     await expect(rowFor(ids.open)).toHaveCount(1);
@@ -2118,7 +2095,7 @@ test.describe('reanálise atômica da pendência documental no desktop', () => {
     await expect(rowFor(ids.awaiting).getByRole('button', {
       name: 'Registrar substituição mais recente',
       exact: true
-    })).toBeVisible();
+    })).toHaveCount(0);
   });
 });
 

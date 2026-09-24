@@ -251,13 +251,6 @@
                 <button class="btn btn-primary btn-sm" data-action="reanalyse-pendency" data-pendency-ref="${reference}" onclick="abrirModalReanalisarPendencia(this)">Reanalisar</button>
             `);
         }
-        if (record.status === 'Aguardando reanálise'
-            && documentary
-            && hasCapability(root.RadarAccessPolicy.CAPABILITIES.REGISTER_CORRECTIVE_SUBMISSION)) {
-            buttons.push(`
-                <button class="btn btn-secondary btn-sm" data-action="register-corrective-submission" data-pendency-ref="${reference}" onclick="abrirModalRegistrarNovoEnvio(this)">Registrar substituição mais recente</button>
-            `);
-        }
         buttons.push(`<button class="btn btn-secondary btn-sm" data-action="open-pendency-prontuario" data-pendency-ref="${reference}" onclick="openPendencyInProntuario(this)">Abrir no Prontuário</button>`);
         return `<div class="pendency-row-actions">${buttons.join('')}</div>`;
     }

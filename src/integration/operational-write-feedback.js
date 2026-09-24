@@ -36,6 +36,7 @@
         'verification:undo-bonification': 'Bonificação desfeita com sucesso.',
         'invoice:save': 'Nota fiscal salva com sucesso.',
         'invoice:save-unidentified-with-pendency': 'Despesa e pendência salvas com sucesso.',
+        'pendency:register-contact': 'Contato registrado com sucesso.',
         'inventory:update-asset': 'Alterações do bem salvas com sucesso.',
         'inventory:forward': 'Encaminhamento para inventariação salvo com sucesso.',
         'inventory:complete': 'Inventariação salva com sucesso.'
