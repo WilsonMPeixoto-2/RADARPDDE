@@ -9,6 +9,7 @@ on:
       - 'index.html'
       - 'styles.css'
       - 'src/integration/unidentified-expense-ux.js'
+      - 'src/integration/operational-write-feedback.js'
       - 'src/styles/unidentified-expense-ux.css'
       - 'src/domain/invoice-document-analysis.js'
       - 'src/domain/invoice-effects.js'
