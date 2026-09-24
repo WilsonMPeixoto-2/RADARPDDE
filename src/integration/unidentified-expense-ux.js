@@ -247,7 +247,11 @@
         button.type = 'button';
         button.className = 'btn btn-secondary btn-sm unidentified-expense-button prontuario-tooltip prontuario-tooltip-up prontuario-tooltip-align-start';
         button.dataset.registerUnidentifiedExpense = 'true';
-        button.dataset.tooltip = 'Use quando houver uma saída no extrato, mas a documentação ainda não permitir identificar a natureza da despesa ou o documento fiscal.';
+        const allVerifications = getLegacyValue('verificacoes', {});
+        const bonification = text(allVerifications?.[schoolId]?.[compKey]?.bonificacao?.notaFiscal);
+        button.dataset.tooltip = bonification
+            ? 'Use quando houver uma saída no extrato, mas a documentação ainda não permitir identificar a natureza da despesa ou o documento fiscal.'
+            : 'Antes de registrar, informe a situação da entrega de Notas Fiscais em Bonificação.';
         button.setAttribute('aria-label', 'Registrar despesa a identificar');
         button.textContent = 'Registrar despesa a identificar';
         button.addEventListener('click', () => openUnidentifiedExpenseModal(schoolId, compKey));
