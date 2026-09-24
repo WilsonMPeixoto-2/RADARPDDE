@@ -169,7 +169,7 @@ async function identifyRemoteThroughModal(page, ids, {
   ).fill('2026-09-23');
   await modal.getByLabel('Observação', { exact: true }).fill('Documento fiscal apresentado.');
   await modal.getByRole('button', {
-    name: 'Registrar e enviar para reanálise',
+    name: 'Identificar e enviar para reanálise',
     exact: true
   }).click();
   await expect(modal).not.toHaveClass(/show/);
@@ -566,7 +566,7 @@ test('matriz a_identificar persiste consumo, serviço, permanente e boleto com R
   ).fill('2026-09-23');
   await modal.getByLabel('Observação', { exact: true }).fill('Boleto identificado.');
   await modal.getByRole('button', {
-    name: 'Registrar e enviar para reanálise',
+    name: 'Identificar e enviar para reanálise',
     exact: true
   }).click();
   await expect(modal).not.toHaveClass(/show/);
