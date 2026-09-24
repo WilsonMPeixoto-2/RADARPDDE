@@ -86,6 +86,7 @@
         const description = root.document.getElementById('nota-desc');
         const invoiceId = text(root.document.getElementById('nota-id')?.value);
         const title = modal?.querySelector('h3');
+        const intro = root.document.getElementById('nota-modal-intro');
         const submit = modal?.querySelector('button[type="submit"]');
         const legacyUnidentifiedEdit = Boolean(invoiceId && select.value === TYPE);
         const unidentifiedAllowed = select.dataset.allowUnidentifiedExpense === 'true'
@@ -115,6 +116,11 @@
             title.textContent = unidentified
                 ? (invoiceId ? 'Editar despesa a identificar' : 'Registrar despesa a identificar')
                 : (invoiceId ? 'Editar Dados da Nota Fiscal' : 'Dados da Nota Fiscal / Despesa');
+        }
+        if (intro) {
+            intro.textContent = unidentified
+                ? 'Registre apenas o que já é conhecido sobre a saída observada no extrato. Não invente a natureza da despesa nem o número da Nota Fiscal: o RADAR criará uma Pendência para identificação quando a documentação chegar.'
+                : 'Cadastre o gasto referente a esta Nota Fiscal para que o sistema direcione as obrigações operacionais corretas.';
         }
         if (submit) {
             submit.textContent = unidentified
