@@ -151,12 +151,15 @@ test.describe('Prontuário — despesa a identificar', () => {
     ).toHaveCount(0);
     await expect(
       provisionalInvoiceRow.locator('.invoice-document-status')
-    ).toHaveText('Incorreto');
+    ).toHaveText('Aguardando identificação');
     await expect(
       refreshedRow.locator('.invoice-document-panel-summary').getByText('1 pendência', { exact: true })
     ).toBeVisible();
     await expect(
-      provisionalInvoiceRow.getByRole('button', { name: 'Visualizar pendência' })
+      provisionalInvoiceRow.getByRole('button', { name: 'Identificar despesa', exact: true })
+    ).toBeVisible();
+    await expect(
+      provisionalInvoiceRow.getByRole('button', { name: 'Ver pendência', exact: true })
     ).toBeVisible();
 
     await page.evaluate(() => switchView('pendencias'));
@@ -165,7 +168,7 @@ test.describe('Prontuário — despesa a identificar', () => {
     );
     await expect(pendingRow).toHaveCount(1);
     await pendingRow.getByRole('button', {
-      name: 'Registrar novo envio',
+      name: 'Identificar despesa',
       exact: true
     }).click();
 
