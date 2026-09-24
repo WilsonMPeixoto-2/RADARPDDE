@@ -443,6 +443,29 @@ async function submitIdentifyingPendencyUI(page, pendency, {
   expect(invoice.payload.analiseDocumentoFiscal).toBe('Não analisado');
 
   await closePreview(page, { waitForAppearance: true });
+
+  // Gate específico desta jornada: após identificar qualquer tipo de despesa,
+  // o próprio Prontuário precisa oferecer uma ação direta e descobrível de reanálise.
+  await page.goto('/escolas/ESC-UAT');
+  await waitForControllerAfterReload(page);
+  const card = invoiceCard(page, invoice.id);
+  await expect(card).toBeVisible();
+  const inlineReanalysis = card.getByRole('button', {
+    name: 'Aguardando reanálise',
+    exact: true
+  });
+  await expect(inlineReanalysis).toBeVisible();
+  await inlineReanalysis.click();
+
+  const reanalysisModal = page.locator('#modal-reanalisar-pendencia');
+  await expect(reanalysisModal).toHaveClass(/show/);
+  await expect(reanalysisModal.getByLabel('Resultado da reanálise', { exact: true }))
+    .toBeVisible();
+  await reanalysisModal.getByRole('button', { name: 'Cancelar', exact: true }).click();
+  await expect(reanalysisModal).not.toHaveClass(/show/);
+
+  // Restaura a superfície canônica usada pelo restante da jornada.
+  await page.locator('#nav-pendencias').click();
   return invoice;
 }
 
