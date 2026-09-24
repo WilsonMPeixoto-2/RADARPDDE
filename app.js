@@ -8156,8 +8156,10 @@ function renderPendencias() {
                                 const desig = esc ? esc.designação : '';
                                 const isMine = (accessProfile === 'controlador' && esc && esc.controladorId === getDefaultControladorId());
                                 const isSelected = p.id === activePendencyDetailId;
-                                const submissionActionLabel = getCorrectiveSubmissionActionLabel(p);
                                 const canReanalyse = canReanalysePendency(p);
+                                const submissionActionLabel = canReanalyse
+                                    ? null
+                                    : getCorrectiveSubmissionActionLabel(p);
 
                                 return `
                                     <tr
@@ -9531,19 +9533,23 @@ function renderProntuario(escolaId) {
                     ? 'Consulta mensal das informações de bonificação da unidade escolar.'
                     : 'Acompanhamento e Histórico Unificado da Unidade Escolar'}</p>
             </div>
-            <div class="prontuario-actions" role="group" aria-label="Ações da unidade escolar">
+            <div class="prontuario-actions prontuario-data-actions" role="group" aria-label="Dados cadastrais da unidade">
         ${showProntuarioActions ? `
-                    <button type="button" class="btn btn-secondary" onclick="openContatoModal('${escapeHtml(esc.id)}')">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                        Registrar Contato
-                    </button>
-                    <button type="button" class="btn btn-secondary" onclick="openCobrancaModal('${escapeHtml(esc.id)}')">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
-                        Gerar Cobrança
-                    </button>
-                    <button type="button" class="btn btn-primary" onclick="openEscolaEditModal('${escapeHtml(esc.id)}')">Editar Dados</button>
+                    <button
+                        type="button"
+                        class="btn btn-primary prontuario-tooltip"
+                        data-tooltip="Atualizar os dados cadastrais e administrativos da unidade."
+                        onclick="openEscolaEditModal('${escapeHtml(esc.id)}')"
+                    >Editar Dados</button>
         ` : ''}
-        <button type="button" class="btn prontuario-data-toggle" aria-expanded="false" aria-controls="school-registration-details" onclick="toggleSchoolRegistrationDetails(this)">Exibir dados da unidade</button>
+        <button
+            type="button"
+            class="btn prontuario-data-toggle prontuario-tooltip"
+            data-tooltip="Exibir ou ocultar os dados cadastrais da unidade."
+            aria-expanded="false"
+            aria-controls="school-registration-details"
+            onclick="toggleSchoolRegistrationDetails(this)"
+        >Exibir dados da unidade</button>
     </div>
     ${(() => {
         const nextSchool = getNextProntuarioSchool(esc.id);
@@ -9677,8 +9683,52 @@ function renderProntuario(escolaId) {
                         <button type="button" id="prontuario-tab-verificacoes" class="tab-button active" data-tab="verificacoes" role="tab" aria-controls="tab-verificacoes" aria-selected="true" tabindex="0" onclick="switchSchoolTab(event, 'tab-verificacoes')" onkeydown="handleSchoolTabKeydown(event)">Competências e Bonificação</button>
                     ` : `
                         <button type="button" id="prontuario-tab-verificacoes" class="tab-button active" data-tab="verificacoes" role="tab" aria-controls="tab-verificacoes" aria-selected="true" tabindex="0" onclick="switchSchoolTab(event, 'tab-verificacoes')" onkeydown="handleSchoolTabKeydown(event)">Competências e Análises</button>
-                        <button type="button" id="prontuario-tab-pendencias" class="tab-button" data-tab="pendencias" role="tab" aria-controls="tab-pendencias" aria-selected="false" tabindex="-1" onclick="switchSchoolTab(event, 'tab-pendencias')" onkeydown="handleSchoolTabKeydown(event)">Pendências Ativas (${pAtivas.length})</button>
-                        <button type="button" id="prontuario-tab-contatos" class="tab-button" data-tab="contatos" role="tab" aria-controls="tab-contatos" aria-selected="false" tabindex="-1" onclick="switchSchoolTab(event, 'tab-contatos')" onkeydown="handleSchoolTabKeydown(event)">Histórico de Contatos</button>
+                        <button
+                            type="button"
+                            id="prontuario-tab-pendencias"
+                            class="tab-button prontuario-flow-tab prontuario-tooltip"
+                            data-tooltip="Abrir as pendências ativas desta unidade e as ações disponíveis para cada uma."
+                            data-tab="pendencias"
+                            role="tab"
+                            aria-controls="tab-pendencias"
+                            aria-selected="false"
+                            tabindex="-1"
+                            onclick="switchSchoolTab(event, 'tab-pendencias')"
+                            onkeydown="handleSchoolTabKeydown(event)"
+                        >Pendências Ativas (${pAtivas.length})</button>
+                        ${showProntuarioActions ? `
+                            <button
+                                type="button"
+                                class="prontuario-flow-action prontuario-flow-action-primary prontuario-tooltip"
+                                data-tooltip="Gerar uma comunicação com as pendências ativas para encaminhamento à unidade."
+                                onclick="openCobrancaModal('${escapeHtml(esc.id)}')"
+                            >
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 3-7.5 18-4.2-6.3L3 10.5 21 3Z"></path><path d="m9.3 14.7 4.2-4.2"></path></svg>
+                                <span>Gerar comunicação</span>
+                            </button>
+                            <button
+                                type="button"
+                                class="prontuario-flow-action prontuario-tooltip"
+                                data-tooltip="Registrar ligação, e-mail, reunião ou outro contato realizado com a unidade."
+                                onclick="openContatoModal('${escapeHtml(esc.id)}')"
+                            >
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                                <span>Registrar contato</span>
+                            </button>
+                        ` : ''}
+                        <button
+                            type="button"
+                            id="prontuario-tab-contatos"
+                            class="tab-button prontuario-flow-tab prontuario-tooltip"
+                            data-tooltip="Consultar o histórico dos contatos e comunicações registrados para esta unidade."
+                            data-tab="contatos"
+                            role="tab"
+                            aria-controls="tab-contatos"
+                            aria-selected="false"
+                            tabindex="-1"
+                            onclick="switchSchoolTab(event, 'tab-contatos')"
+                            onkeydown="handleSchoolTabKeydown(event)"
+                        >Histórico de Contatos</button>
                         <button type="button" id="prontuario-tab-capital" class="tab-button" data-tab="capital" role="tab" aria-controls="tab-capital" aria-selected="false" tabindex="-1" onclick="switchSchoolTab(event, 'tab-capital')" onkeydown="handleSchoolTabKeydown(event)">Registro de Capital</button>
                         <button type="button" id="prontuario-tab-auditoria" class="tab-button" data-tab="auditoria" role="tab" aria-controls="tab-auditoria" aria-selected="false" tabindex="-1" onclick="switchSchoolTab(event, 'tab-auditoria')" onkeydown="handleSchoolTabKeydown(event)">Registros Internos</button>
                     `}
@@ -9775,8 +9825,10 @@ function renderProntuario(escolaId) {
                                         <tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:32px;">Nenhuma pendência ativa nesta escola! Tudo regularizado.</td></tr>
                                     ` : pAtivas.map(p => {
                                         const pData = getFormattedPendencyData(p);
-                                        const submissionActionLabel = getCorrectiveSubmissionActionLabel(p);
                                         const canReanalyse = canReanalysePendency(p);
+                                        const submissionActionLabel = canReanalyse
+                                            ? null
+                                            : getCorrectiveSubmissionActionLabel(p);
                                         return `
                                             <tr
                                                 data-pendency-ref="${escapeHtml(encodePendencyIdReference(p.id))}"
@@ -10367,12 +10419,15 @@ function renderProntuarioVerificacoes(esc) {
                                         ? `
                                             <button
                                                 type="button"
-                                                class="invoice-document-status ${statusClass} invoice-reanalysis-status-button"
+                                                class="invoice-document-status ${statusClass} invoice-reanalysis-status-button prontuario-tooltip"
+                                                data-tooltip="Clique para reanalisar o último documento enviado pela unidade."
                                                 data-action="reanalyse-pendency"
                                                 data-pendency-ref="${escapeHtml(encodePendencyIdReference(invoicePendency.id))}"
                                                 onclick="abrirModalReanalisarPendencia(this)"
-                                                title="Abrir a reanálise desta pendência"
-                                            >${escapeHtml(statusLabel)}</button>
+                                            >
+                                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v5h-5"></path><path d="M18.6 9A7 7 0 1 0 19 16"></path></svg>
+                                                <span>${escapeHtml(statusLabel)}</span>
+                                            </button>
                                         `
                                         : `<span class="invoice-document-status ${statusClass}">${escapeHtml(statusLabel)}</span>`);
 
