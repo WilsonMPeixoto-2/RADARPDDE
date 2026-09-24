@@ -13,13 +13,31 @@
 .unidentified-expense-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 7px;
+    gap: 8px;
+    margin-top: 10px;
 }
 
 .unidentified-expense-button {
-    font-size: 0.65rem;
-    padding: 3px 7px;
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 12px;
+    border-color: rgba(91, 33, 182, 0.42);
+    border-radius: 9px;
+    background: #ffffff;
+    color: #5b21b6;
+    font-size: 0.74rem;
+    font-weight: 650;
+    box-shadow: 0 2px 7px rgba(52, 31, 86, 0.05);
+    cursor: pointer;
+}
+
+.unidentified-expense-button:hover,
+.unidentified-expense-button:focus-visible {
+    border-color: rgba(91, 33, 182, 0.62);
+    background: #f3efff;
+    color: #4c1d95;
 }
 
 .unidentified-expense-badge {
