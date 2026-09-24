@@ -87,7 +87,11 @@ test.describe('Jornada real — Despesa a identificar', () => {
     const context = await prepareSchool(page);
     await attachScreenshot(page, testInfo, '01-prontuario-inicio-fluxo');
 
-    const start = page.getByRole('button', {
+    const fiscalRow = page.locator(
+      '#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="notaFiscal"]'
+    );
+    await expect(fiscalRow).toBeVisible();
+    const start = fiscalRow.getByRole('button', {
       name: 'Registrar despesa a identificar',
       exact: true
     });
