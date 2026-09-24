@@ -686,18 +686,22 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
       .toHaveAttribute('aria-selected', 'true');
     const awaitingRow = page.locator('#p-aguardando tr[data-pendency-ref]');
     await expect(awaitingRow).toContainText('Aguardando reanálise');
-
-    const reanalysisTrigger = awaitingRow.getByRole('button', {
-      name: 'Reanalisar',
-      exact: true
-    });
-    await expect(reanalysisTrigger).toBeVisible();
     await expect(awaitingRow.getByRole('button', {
       name: 'Registrar substituição mais recente',
       exact: true
     })).toHaveCount(0);
 
+    // O novo envio mantém a Pendência selecionada e o drawer aberto.
+    // A próxima ação deve ser executada no próprio drawer, não "atrás" dele.
+    const drawer = page.locator('#pendency-detail-drawer');
+    await expect(drawer).toBeVisible();
+    const reanalysisTrigger = drawer.getByRole('button', {
+      name: 'Reanalisar',
+      exact: true
+    });
+    await expect(reanalysisTrigger).toBeVisible();
     await reanalysisTrigger.click();
+
     const reanalysisModal = page.locator('#modal-reanalisar-pendencia');
     await expect(reanalysisModal).toHaveClass(/show/);
     await reanalysisModal.getByLabel('Resultado da reanálise', { exact: true })
@@ -710,6 +714,13 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
       exact: true
     }).click();
     await expect(reanalysisModal).not.toHaveClass(/show/);
+
+    // A reanálise re-renderiza a Pendência selecionada no drawer.
+    // Fechamos o detalhe antes de operar novamente a fila principal.
+    const refreshedDrawer = page.locator('#pendency-detail-drawer');
+    await expect(refreshedDrawer).toBeVisible();
+    await refreshedDrawer.getByRole('button', { name: /Fechar/i }).click();
+    await expect(refreshedDrawer).toHaveCount(0);
 
     await page.getByRole('tab', { name: /^Abertas\b/ }).click();
     const reopenedRow = page.locator('#p-abertas tr[data-pendency-ref]');
