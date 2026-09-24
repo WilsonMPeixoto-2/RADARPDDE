@@ -9,6 +9,7 @@ const appSource = fs.readFileSync(path.resolve(__dirname, '../../app.js'), 'utf8
 const cssSource = fs.readFileSync(path.resolve(__dirname, '../../styles.css'), 'utf8');
 const extensionsSource = fs.readFileSync(path.resolve(__dirname, '../../src/integration/product-extensions-bootstrap.js'), 'utf8');
 const polishCssPath = path.resolve(__dirname, '../../src/styles/sidebar-prontuario-polish.css');
+const globalPolishCssPath = path.resolve(__dirname, '../../src/styles/global-visual-polish.css');
 
 test('Prontuário oferece navegação para a próxima unidade preservando a competência', () => {
     assert.match(appSource, /function\s+getNextProntuarioSchool\s*\(/);
@@ -27,11 +28,12 @@ test('controles cadastrais permanecem agrupados e na ordem aprovada', () => {
     assert.match(cssSource, /\.prontuario-data-toggle\s*\{[\s\S]*background:/);
 });
 
-test('camada corretiva é carregada por último entre os estilos de produto', () => {
+test('camada global de polimento é carregada por último entre os estilos de produto', () => {
     assert.match(
         extensionsSource,
-        /'\/src\/styles\/evaluation-retification-ui\.css',[\s\S]*'\/src\/styles\/sidebar-prontuario-polish\.css'/
+        /'\/src\/styles\/evaluation-retification-ui\.css',[\s\S]*'\/src\/styles\/sidebar-prontuario-polish\.css',[\s\S]*'\/src\/styles\/global-visual-polish\.css'/
     );
+    assert.equal(fs.existsSync(globalPolishCssPath), true);
 });
 
 test('sidebar ganha identidade escura viva sem contraste híbrido no Dashboard', () => {
