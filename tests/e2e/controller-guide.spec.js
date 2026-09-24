@@ -34,7 +34,7 @@ test.describe('Guia do Controlador', () => {
       'Documento ausente',
       'Documento ilegível',
       'Adicionar Nota',
-      'Gerar Cobrança',
+      'Gerar comunicação',
       'Editar Dados',
       'Registrar novo envio',
       'Aguardando reanálise',
