@@ -174,13 +174,34 @@ test.describe('Prontuário operacional no desktop', () => {
       'Histórico cronológico'
     ]);
 
+    const rowGeometry = await page.locator('.prontuario-flowbar').evaluate(flowbar => {
+      const byText = label => Array.from(flowbar.querySelectorAll('button')).find(button => (
+        button.textContent.replace(/\s+/g, ' ').trim().startsWith(label)
+      ));
+      const primary = [
+        'Competências e Análises',
+        'Pendências Ativas',
+        'Gerar comunicação',
+        'Registrar contato',
+        'Histórico de Contatos'
+      ].map(byText).filter(Boolean).map(element => Math.round(element.getBoundingClientRect().top));
+      const secondary = [
+        'Registro de Capital',
+        'Registros Internos',
+        'Histórico cronológico'
+      ].map(byText).filter(Boolean).map(element => Math.round(element.getBoundingClientRect().top));
+      return { primary, secondary };
+    });
+    expect(Math.max(...rowGeometry.primary) - Math.min(...rowGeometry.primary)).toBeLessThanOrEqual(12);
+    expect(Math.min(...rowGeometry.secondary)).toBeGreaterThan(Math.max(...rowGeometry.primary) + 12);
+
     const communication = page.getByRole('button', { name: 'Gerar comunicação', exact: true });
     const contact = page.getByRole('button', { name: 'Registrar contato', exact: true });
     const pendencies = page.getByRole('tab', { name: /^Pendências Ativas/ });
     const history = page.getByRole('tab', { name: 'Histórico de Contatos', exact: true });
 
-    await expect(communication).toHaveAttribute('data-tooltip', /pendências ativas/);
-    await expect(contact).toHaveAttribute('data-tooltip', /Registrar ligação/);
+    await expect(communication).toHaveAttribute('data-tooltip', /Copiar o texto não registra envio/);
+    await expect(contact).toHaveAttribute('data-tooltip', /contato que realmente ocorreu/);
     await expect(pendencies).toHaveAttribute('data-tooltip', /pendências ativas/);
     await expect(history).toHaveAttribute('data-tooltip', /histórico dos contatos/);
 
@@ -193,7 +214,7 @@ test.describe('Prontuário operacional no desktop', () => {
         visibility: style.visibility
       };
     })).toMatchObject({
-      content: expect.stringContaining('Gerar uma comunicação'),
+      content: expect.stringContaining('Preparar uma mensagem'),
       opacity: 1,
       visibility: 'visible'
     });
