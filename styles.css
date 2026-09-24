@@ -5053,6 +5053,12 @@ body.dark-theme .pendency-preview-drawer {
     border-radius: 9px;
 }
 
+.prontuario-flow-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .prontuario-tablist .prontuario-flow-tab {
     min-height: 40px;
     padding: 9px 14px;
@@ -5146,6 +5152,29 @@ body.dark-theme .pendency-preview-drawer {
 }
 
 @media (min-width: 901px) {
+    .prontuario-flowbar.has-operational-actions {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px 10px;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border-color);
+        overflow: visible;
+    }
+
+    .prontuario-flowbar.has-operational-actions .prontuario-tablist {
+        display: contents;
+    }
+
+    .prontuario-flowbar.has-operational-actions #prontuario-tab-verificacoes { order: 1; }
+    .prontuario-flowbar.has-operational-actions #prontuario-tab-pendencias { order: 2; }
+    .prontuario-flowbar.has-operational-actions .prontuario-flow-actions { order: 3; }
+    .prontuario-flowbar.has-operational-actions #prontuario-tab-contatos { order: 4; }
+    .prontuario-flowbar.has-operational-actions #prontuario-tab-capital { order: 5; }
+    .prontuario-flowbar.has-operational-actions #prontuario-tab-auditoria { order: 6; }
+    .prontuario-flowbar.has-operational-actions #prontuario-tab-historico { order: 7; }
+
     .prontuario-tablist {
         overflow: visible;
     }
