@@ -329,8 +329,8 @@
                 intro: 'Uma orientação enviada por telefone, e-mail ou outro meio só vira histórico do RADAR quando você a registra. O sistema também oferece apoio para preparar uma comunicação.',
                 body: `
                     <ol class="controller-guide-steps">
-                        ${step(1, 'Use “Registrar Contato”', 'A ação pode ser aberta no contexto da escola ou da pendência. Registre a comunicação e a informação relevante para o acompanhamento.')}
-                        ${step(2, 'Use “Gerar comunicação” quando precisar de texto de apoio', 'A tela apresenta uma pré-visualização da mensagem e permite copiar o texto para o canal de comunicação utilizado pela equipe.')}
+                        ${step(1, 'Use “Gerar comunicação” para preparar a mensagem', 'A tela reúne as pendências da unidade, apresenta uma pré-visualização e permite copiar o texto. Copiar não registra que a mensagem foi enviada.')}
+                        ${step(2, 'Depois do envio, use “Registrar contato”', 'Informe o canal realmente utilizado, a data e o que foi comunicado. Quando fizer sentido, vincule o contato à Pendência correspondente.')}
                         ${step(3, 'Use a observação da ação correta', 'Pendência, novo envio e reanálise possuem seus próprios campos. Registre em cada etapa o que ocorreu naquele momento.')}
                         ${step(4, 'Seja específico', 'Prefira “Arquivo sem assinatura do Presidente do CEC” a “documento errado”.')}
                         ${step(5, 'Consulte o histórico antes de repetir contato', 'O detalhe da pendência e o Prontuário mostram as movimentações anteriores e ajudam a evitar comunicações duplicadas.')}
