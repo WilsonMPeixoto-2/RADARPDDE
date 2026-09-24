@@ -250,6 +250,9 @@
         const tabContainer = main?.querySelector('.school-grid .tab-container');
         if (!tabContainer) return false;
 
+        const workspace = tabContainer.closest('.school-workspace');
+        if (!workspace) return false;
+
         let button = tabContainer.querySelector('[data-tab="historico"]');
         let panel = main.querySelector('#tab-historico');
         if (!panel) {
@@ -257,7 +260,7 @@
             panel.className = 'tab-content-panel';
             panel.id = 'tab-historico';
             panel.hidden = true;
-            tabContainer.parentElement.appendChild(panel);
+            workspace.appendChild(panel);
         }
         if (!button) {
             button = document.createElement('button');
