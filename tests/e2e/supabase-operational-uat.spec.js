@@ -486,9 +486,9 @@ async function submitIdentifyingPendencyUI(page, pendency, {
   // e o fluxo normal de novo envio reaparece.
   const activeTab = page.getByRole('tab', { name: /^Pendências Ativas/ });
   await activeTab.click();
-  const activeRow = page.locator(
-    `#tab-pendencias [data-pendency-ref="${encodeURIComponent(String(pendency.id))}"]`
-  ).first();
+  const activeRow = page.locator('#tab-pendencias tr[data-pendency-ref]')
+    .filter({ hasText: invoiceNumber })
+    .first();
   await expect(activeRow).toBeVisible();
   await expect(activeRow.getByRole('button', { name: 'Reanalisar', exact: true }))
     .toBeVisible();
