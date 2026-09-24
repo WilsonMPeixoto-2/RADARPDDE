@@ -5365,3 +5365,23 @@ body:not(.dark-theme) aside.sidebar .user-badge {
         margin-left: 0;
     }
 }
+
+/* Fluxo de identificação: o CTA deve permanecer visível enquanto somente o corpo rola. */
+#modal-registrar-envio .modal-content {
+    max-height: min(880px, calc(100vh - 32px));
+}
+
+#modal-registrar-envio .modal-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    overflow-y: auto;
+}
+
+#modal-registrar-envio .modal-footer {
+    flex: 0 0 auto;
+    margin: 0 !important;
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 -8px 22px rgba(48, 30, 76, 0.055);
+}
