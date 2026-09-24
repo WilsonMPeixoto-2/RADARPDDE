@@ -215,10 +215,11 @@
 
         const button = root.document.createElement('button');
         button.type = 'button';
-        button.className = 'btn btn-secondary btn-sm unidentified-expense-button';
+        button.className = 'btn btn-secondary btn-sm unidentified-expense-button prontuario-tooltip prontuario-tooltip-up';
         button.dataset.registerUnidentifiedExpense = 'true';
+        button.dataset.tooltip = 'Use quando houver uma saída no extrato, mas a documentação ainda não permitir identificar a natureza da despesa ou o documento fiscal.';
+        button.setAttribute('aria-label', 'Registrar despesa a identificar');
         button.textContent = 'Registrar despesa a identificar';
-        button.title = 'Registrar uma saída observada no extrato enquanto a documentação da escola ainda não permite identificar a natureza ou a Nota Fiscal.';
         button.addEventListener('click', () => openUnidentifiedExpenseModal(schoolId, compKey));
         actions.appendChild(button);
     }
