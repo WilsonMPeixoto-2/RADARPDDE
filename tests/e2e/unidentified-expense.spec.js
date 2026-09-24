@@ -9,6 +9,82 @@ function fiscalNoteRow(page) {
 }
 
 test.describe('Prontuário — despesa a identificar', () => {
+  test('expõe a pré-condição de Bonificação antes de abrir o cadastro', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    await page.goto('/');
+    await waitForProductExtensions(page);
+
+    await page.evaluate(() => {
+      switchProfile('controlador');
+      const competencia = activeCompetenciaKey;
+      const escola = escolas.find(candidate => (
+        Array.isArray(candidate.programasIds)
+        && candidate.programasIds.length > 0
+        && isCompetenceInScope(candidate.competenciaInicial, competencia)
+      ));
+      if (!escola) throw new Error('Escola determinística não encontrada.');
+      const programaId = escola.programasIds[0];
+      const compKey = `${competencia}_${programaId}`;
+      verificacoes[escola.id] = verificacoes[escola.id] || {};
+      verificacoes[escola.id][compKey] = {
+        bonificacao: {
+          extCC: '',
+          extINV: '',
+          notaFiscal: '',
+          consAssessoria: 'Não se aplica',
+          declBBAgil: '',
+          encampInventario: 'Não se aplica'
+        },
+        analise: {
+          extCC: 'Não analisado',
+          extINV: 'Não analisado',
+          notaFiscal: 'Não analisado',
+          consAssessoria: 'Correto',
+          declBBAgil: 'Não analisado',
+          encampInventario: 'Correto'
+        },
+        resultadoBonif: ''
+      };
+      activeProntuarioCompetencia = competencia;
+      rebuildOperationalIndexes();
+      switchView('prontuario', escola.id);
+    });
+
+    const row = fiscalNoteRow(page);
+    const action = row.getByRole('button', {
+      name: 'Registrar despesa a identificar',
+      exact: true
+    });
+    await expect(action).toBeVisible();
+    await action.click();
+
+    await expect(page.locator('#modal-dados-nota')).not.toHaveClass(/show/);
+    await expect(row.getByText(
+      'Antes de registrar a despesa, informe a situação da entrega de Notas Fiscais em Bonificação.',
+      { exact: true }
+    )).toBeVisible();
+    await expect(row.locator('.invoice-bonification-toggle'))
+      .toHaveClass(/needs-unidentified-prerequisite/);
+
+    await row.locator('.invoice-bonification-toggle')
+      .getByRole('button', { name: 'Não', exact: true })
+      .click();
+
+    await expect(row.getByRole('button', {
+      name: 'Registrar despesa a identificar',
+      exact: true
+    })).toBeVisible();
+    await row.getByRole('button', {
+      name: 'Registrar despesa a identificar',
+      exact: true
+    }).click();
+
+    await expect(page.locator('#modal-dados-nota')).toHaveClass(/show/);
+    await expect(page.locator('#modal-dados-nota h3'))
+      .toHaveText('Registrar despesa a identificar');
+  });
+
   test('nasce Incorreto + Pendência, preserva ID ao ser identificada e então aceita novo envio', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
     page.on('dialog', dialog => dialog.accept());
