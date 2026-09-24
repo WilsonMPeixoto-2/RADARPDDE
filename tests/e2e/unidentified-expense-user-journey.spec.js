@@ -92,6 +92,25 @@ test.describe('Jornada real — Despesa a identificar', () => {
       exact: true
     });
     await expect(start).toBeVisible();
+    await expect(start).toHaveAttribute(
+      'data-tooltip',
+      'Use quando houver uma saída no extrato, mas a documentação ainda não permitir identificar a natureza da despesa ou o documento fiscal.'
+    );
+    await start.hover();
+    await expect.poll(async () => start.evaluate(element => {
+      const style = getComputedStyle(element, '::after');
+      return {
+        content: style.content,
+        opacity: Number.parseFloat(style.opacity),
+        visibility: style.visibility,
+        bottom: style.bottom
+      };
+    })).toMatchObject({
+      content: expect.stringContaining('saída no extrato'),
+      opacity: 1,
+      visibility: 'visible'
+    });
+    await attachScreenshot(page, testInfo, '01b-ajuda-contextual-despesa-a-identificar');
     await start.click();
 
     const expenseModal = page.locator('#modal-dados-nota');
@@ -270,6 +289,10 @@ test.describe('Jornada real — Despesa a identificar', () => {
       .fill('Mensagem encaminhada ao diretor pelo WhatsApp.');
     await contactModal.getByRole('button', { name: 'Registrar', exact: true }).click();
     await expect(contactModal).not.toHaveClass(/show/);
+    const successNotice = page.locator('#pendency-notice');
+    await expect(successNotice).toBeVisible();
+    await expect(successNotice).toHaveText('Contato registrado com sucesso.');
+    await expect(successNotice).toHaveAttribute('data-radar-save-feedback', 'success');
 
     const recorded = await page.evaluate(pendencyId => {
       const last = contatos.at(-1);
