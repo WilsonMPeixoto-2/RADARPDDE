@@ -699,6 +699,12 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
 
     await page.evaluate(() => closePendencyDetail());
     await replacementTrigger.click();
+    await expect(page.locator('#modal-registrar-envio-title'))
+      .toHaveText('Registrar novo envio da escola');
+    await expect(page.locator('#modal-registrar-envio .modal-subtitle'))
+      .toContainText('nova versão antes da reanálise');
+    await expect(page.locator('#modal-registrar-envio .modal-subtitle'))
+      .toContainText('preservado no histórico como substituído');
     await expect(availabilityDate).toHaveValue('');
     await expect(observation).toHaveValue('');
     await expect(link).toHaveValue('');
