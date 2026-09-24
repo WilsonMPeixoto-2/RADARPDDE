@@ -160,6 +160,17 @@ test.describe('Jornada real — Despesa a identificar', () => {
       name: 'Identificar despesa',
       exact: true
     })).toBeVisible();
+    const identifySubmit = submissionModal.getByRole('button', {
+      name: 'Identificar e enviar para reanálise',
+      exact: true
+    });
+    await expect(identifySubmit).toBeVisible();
+    const submitBox = await identifySubmit.boundingBox();
+    const viewport = page.viewportSize();
+    expect(submitBox).not.toBeNull();
+    expect(viewport).not.toBeNull();
+    expect(submitBox.y).toBeGreaterThanOrEqual(0);
+    expect(submitBox.y + submitBox.height).toBeLessThanOrEqual(viewport.height);
     await attachScreenshot(page, testInfo, '03-identificar-despesa-novo-envio');
 
     await submissionModal.getByLabel('Tipo da despesa', { exact: true })
