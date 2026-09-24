@@ -61,7 +61,7 @@ jobs:
 
   authenticated-read:
     name: Cinco perfis × seis leituras reais
-    if: github.event_name == 'pull_request' || vars.RADAR_PRODUCTION_AUTH_READ_ENABLED == 'true'
+    if: github.event_name != 'pull_request' && vars.RADAR_PRODUCTION_AUTH_READ_ENABLED == 'true'
     needs: contracts
     runs-on: ubuntu-24.04
     timeout-minutes: 20
