@@ -3409,6 +3409,22 @@ body.dark-theme .radar-auth-brand {
     color: var(--invoice-wait);
 }
 
+button.invoice-document-status {
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+}
+
+button.invoice-document-status.is-waiting:hover {
+    border-color: rgba(66, 87, 166, 0.34);
+    background: #e8edff;
+}
+
+button.invoice-document-status.is-waiting:focus-visible {
+    outline: 2px solid rgba(66, 87, 166, 0.34);
+    outline-offset: 2px;
+}
+
 .invoice-document-analysis-select {
     min-width: 158px;
     height: 38px;
