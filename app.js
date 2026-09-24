@@ -10462,6 +10462,7 @@ function renderProntuarioVerificacoes(esc) {
                                 if (invoicePendency) {
                                     actionHTML = `
                                         <button type="button" class="invoice-pendency-view-button"
+                                            data-pendency-ref="${escapeHtml(encodePendencyIdReference(invoicePendency.id))}"
                                             onclick="openPendencyDrawer('${escapeHtml(invoicePendency.id)}')">
                                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.6-6 9.5-6 9.5 6 9.5 6-3.6 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.7"/></svg>
                                             <span>Visualizar pendência</span>
@@ -10672,6 +10673,7 @@ function renderProntuarioVerificacoes(esc) {
                                 const actionHTML = invoicePendency
                                     ? `
                                         <button type="button" class="invoice-pendency-view-button"
+                                            data-pendency-ref="${escapeHtml(encodePendencyIdReference(invoicePendency.id))}"
                                             onclick="openPendencyDrawer('${escapeHtml(invoicePendency.id)}')">
                                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.6-6 9.5-6 9.5 6 9.5 6-3.6 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.7"/></svg>
                                             <span>Visualizar pendência</span>
@@ -11167,9 +11169,18 @@ function renderPendencyDrawer() {
 
 function openPendencyDrawerWorkflowAction(action, source) {
     if (!source || !source.dataset?.pendencyRef) return false;
+    const reference = source.dataset.pendencyRef;
+    const visibleEquivalent = Array.from(document.querySelectorAll('[data-pendency-ref]'))
+        .find(candidate => (
+            candidate !== source
+            && candidate.dataset.pendencyRef === reference
+            && !candidate.closest('[hidden]')
+            && candidate.getClientRects().length > 0
+        )) || null;
     closePendencyDrawer();
-    if (action === 'register') return abrirModalRegistrarNovoEnvio(source);
-    if (action === 'reanalyze') return abrirModalReanalisarPendencia(source);
+    const trigger = visibleEquivalent || source;
+    if (action === 'register') return abrirModalRegistrarNovoEnvio(trigger);
+    if (action === 'reanalyze') return abrirModalReanalisarPendencia(trigger);
     return false;
 }
 
