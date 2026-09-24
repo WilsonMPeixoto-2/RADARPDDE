@@ -1212,3 +1212,37 @@ html.radar-auth-required .radar-auth-gate {
         max-height: calc(100vh - 72px);
     }
 }
+
+
+/* Ajustes finais observados na auditoria por screenshot. */
+.school-actions-stack .btn {
+    min-height: 34px;
+    padding: 6px 8px;
+    font-size: 0.72rem;
+    white-space: nowrap;
+}
+
+.modal-overlay {
+    transition: opacity 160ms ease;
+}
+
+.modal-content {
+    background-color: var(--bg-sidebar);
+    transition: transform 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (min-width: 901px) and (max-width: 1536px) {
+    .exercise-selector {
+        flex: 0 0 126px;
+        width: 126px;
+        max-width: 126px;
+        padding-inline: 8px;
+    }
+
+    #main-container .panel-card:has(#carteira-competencia-select) .school-actions-stack .btn {
+        min-height: 34px;
+        padding: 6px 7px;
+        font-size: 0.69rem;
+        white-space: nowrap;
+    }
+}
