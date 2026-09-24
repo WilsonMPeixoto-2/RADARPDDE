@@ -9682,7 +9682,19 @@ function renderProntuario(escolaId) {
                     ` : accessProfile === 'sme' ? `
                         <button type="button" id="prontuario-tab-verificacoes" class="tab-button active" data-tab="verificacoes" role="tab" aria-controls="tab-verificacoes" aria-selected="true" tabindex="0" onclick="switchSchoolTab(event, 'tab-verificacoes')" onkeydown="handleSchoolTabKeydown(event)">Competências e Bonificação</button>
                     ` : `
-                        <button type="button" id="prontuario-tab-verificacoes" class="tab-button active" data-tab="verificacoes" role="tab" aria-controls="tab-verificacoes" aria-selected="true" tabindex="0" onclick="switchSchoolTab(event, 'tab-verificacoes')" onkeydown="handleSchoolTabKeydown(event)">Competências e Análises</button>
+                        <button
+                            type="button"
+                            id="prontuario-tab-verificacoes"
+                            class="tab-button active prontuario-flow-tab prontuario-tooltip"
+                            data-tooltip="Abrir a análise documental da competência e dos programas da unidade."
+                            data-tab="verificacoes"
+                            role="tab"
+                            aria-controls="tab-verificacoes"
+                            aria-selected="true"
+                            tabindex="0"
+                            onclick="switchSchoolTab(event, 'tab-verificacoes')"
+                            onkeydown="handleSchoolTabKeydown(event)"
+                        >Competências e Análises</button>
                         <button
                             type="button"
                             id="prontuario-tab-pendencias"
