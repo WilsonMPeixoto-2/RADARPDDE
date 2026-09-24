@@ -394,7 +394,7 @@ async function submitIdentifyingPendencyUI(page, pendency, {
     await row.getByRole('button', { name: 'Ver detalhes', exact: true }).click();
     await expect(drawer).toBeVisible();
   }
-  await drawer.getByRole('button', { name: 'Registrar novo envio', exact: true }).click();
+  await drawer.getByRole('button', { name: 'Identificar despesa', exact: true }).click();
 
   const modal = page.locator('#modal-registrar-envio');
   await expect(modal).toHaveClass(/show/);
@@ -450,25 +450,30 @@ async function submitIdentifyingPendencyUI(page, pendency, {
   await waitForControllerAfterReload(page);
   const card = invoiceCard(page, invoice.id);
   await expect(card).toBeVisible();
+  const waitingStatus = card.locator('.invoice-document-status').filter({
+    hasText: 'Aguardando reanálise'
+  });
+  await expect(waitingStatus).toBeVisible();
+
   const inlineReanalysis = card.getByRole('button', {
-    name: 'Aguardando reanálise',
+    name: 'Reanalisar',
     exact: true
   });
   await expect(inlineReanalysis).toBeVisible();
   await expect(inlineReanalysis).toHaveCSS('cursor', 'pointer');
   await expect(inlineReanalysis).toHaveAttribute(
     'data-tooltip',
-    'Clique para reanalisar o último documento enviado pela unidade.'
+    'Conferir o último documento recebido e registrar o resultado da reanálise.'
   );
   const visualContract = await inlineReanalysis.evaluate(element => {
     const style = getComputedStyle(element);
     return {
-      backgroundImage: style.backgroundImage,
+      backgroundColor: style.backgroundColor,
       borderStyle: style.borderStyle,
       boxShadow: style.boxShadow
     };
   });
-  expect(visualContract.backgroundImage).not.toBe('none');
+  expect(visualContract.backgroundColor).not.toBe('rgba(0, 0, 0, 0)');
   expect(visualContract.borderStyle).not.toBe('none');
   expect(visualContract.boxShadow).not.toBe('none');
 
