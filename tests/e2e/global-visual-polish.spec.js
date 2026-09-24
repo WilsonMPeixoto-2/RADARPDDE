@@ -81,15 +81,18 @@ test.describe('Polimento visual global', () => {
     await shot(page, testInfo, '01-dashboard-polido');
 
     await page.locator('#nav-escolas').click();
-    await expect(page.locator('#main-container')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Escolas e Carteiras', exact: true }))
+      .toBeVisible();
     await shot(page, testInfo, '02-carteira-escolas-polida');
 
     await page.locator('#nav-competencias').click();
-    await expect(page.locator('#main-container')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Visão por Competência', exact: true }))
+      .toBeVisible();
     await shot(page, testInfo, '03-competencias-polidas');
 
     await page.locator('#nav-pendencias').click();
-    await expect(page.locator('#main-container')).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Pendências operacionais/i }))
+      .toBeVisible();
     await shot(page, testInfo, '04-pendencias-polidas');
   });
 
