@@ -62,9 +62,17 @@ async function prepareSchool(page, { withOpenUnidentified = false } = {}) {
   }, { seedOpen: withOpenUnidentified });
 }
 
+async function settleVisualState(page) {
+  // A interface usa transições curtas e reconciliação incremental. Para a auditoria
+  // visual, o estado precisa continuar correto depois que essas tarefas terminarem.
+  await page.waitForTimeout(350);
+}
+
 async function attachScreenshot(page, testInfo, name) {
   await testInfo.attach(name, {
-    body: await page.screenshot({ fullPage: true }),
+    // O Prontuário usa rolagem interna; capturar o viewport reproduz o que o usuário
+    // realmente vê e evita que a captura fullPage altere a composição observada.
+    body: await page.screenshot(),
     contentType: 'image/png'
   });
 }
@@ -125,6 +133,12 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await expect(submissionModal.locator('.modal-subtitle')).toContainText(
       'sem criar um novo lançamento'
     );
+    await settleVisualState(page);
+    await expect(submissionModal).toHaveClass(/show/);
+    await expect(submissionModal.getByRole('heading', {
+      name: 'Identificar despesa e registrar novo envio',
+      exact: true
+    })).toBeVisible();
     await attachScreenshot(page, testInfo, '03-identificar-despesa-novo-envio');
 
     await submissionModal.getByLabel('Tipo da despesa', { exact: true })
@@ -150,6 +164,9 @@ test.describe('Jornada real — Despesa a identificar', () => {
       hasText: 'Aguardando reanálise'
     });
     await expect(waiting).toHaveCount(1);
+    await expect(waiting).toBeVisible();
+    await settleVisualState(page);
+    await expect(submissionModal).not.toHaveClass(/show/);
     await expect(waiting).toBeVisible();
     await attachScreenshot(page, testInfo, '04-aguardando-reanalise-clicavel');
     await waiting.click();
@@ -201,6 +218,10 @@ test.describe('Jornada real — Despesa a identificar', () => {
       name: 'Aguardando reanálise',
       exact: true
     })).toHaveCount(0);
+    await settleVisualState(page);
+    await expect(page.locator('.prontuario-flowbar')).toBeVisible();
+    await expect(resolvedInvoice).toBeVisible();
+    await expect(resolvedInvoice).toContainText('Correto (Atrasado)');
     await attachScreenshot(page, testInfo, '05-reanalise-concluida');
   });
 
@@ -222,6 +243,10 @@ test.describe('Jornada real — Despesa a identificar', () => {
       name: 'Copiar texto',
       exact: true
     })).toHaveCount(1);
+    await settleVisualState(page);
+    await expect(communicationModal).toHaveClass(/show/);
+    await expect(communicationModal.getByText('Pré-visualização da mensagem', { exact: true }))
+      .toBeVisible();
     await attachScreenshot(page, testInfo, '06-preparar-comunicacao');
 
     let copiedMessage = '';
@@ -262,6 +287,15 @@ test.describe('Jornada real — Despesa a identificar', () => {
     expect(recorded.description).toContain('Mensagem encaminhada ao diretor');
 
     await page.getByRole('tab', { name: 'Histórico de Contatos', exact: true }).click();
+    await expect(page.locator('#tab-contatos')).toContainText(
+      'Mensagem encaminhada ao diretor pelo WhatsApp.'
+    );
+    await settleVisualState(page);
+    await expect(page.getByRole('tab', {
+      name: 'Histórico de Contatos',
+      exact: true
+    })).toHaveAttribute('aria-selected', 'true');
+    await expect(page.locator('#tab-contatos')).toBeVisible();
     await expect(page.locator('#tab-contatos')).toContainText(
       'Mensagem encaminhada ao diretor pelo WhatsApp.'
     );
