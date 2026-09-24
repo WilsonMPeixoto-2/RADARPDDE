@@ -138,12 +138,12 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await expect(drawer.getByText('Próximo passo', { exact: true })).toBeVisible();
     await expect(drawer).toContainText('Quando a documentação chegar');
     await attachScreenshot(page, testInfo, '02-pendencia-proximo-passo');
-    const newSubmission = drawer.getByRole('button', {
-      name: 'Registrar novo envio',
+    const identifyExpense = drawer.getByRole('button', {
+      name: 'Identificar despesa',
       exact: true
     });
-    await expect(newSubmission).toBeVisible();
-    await newSubmission.click();
+    await expect(identifyExpense).toBeVisible();
+    await identifyExpense.click();
 
     const submissionModal = page.locator('#modal-registrar-envio');
     await expect(submissionModal).toHaveClass(/show/);
@@ -181,16 +181,22 @@ test.describe('Jornada real — Despesa a identificar', () => {
     }).click();
     await expect(submissionModal).not.toHaveClass(/show/);
 
-    const waiting = page.locator('.invoice-reanalysis-status-button').filter({
+    const waitingStatus = page.locator('.invoice-document-status').filter({
       hasText: 'Aguardando reanálise'
     });
-    await expect(waiting).toHaveCount(1);
-    await expect(waiting).toBeVisible();
+    const reanalyzeAction = page.getByRole('button', {
+      name: 'Reanalisar',
+      exact: true
+    }).first();
+    await expect(waitingStatus).toHaveCount(1);
+    await expect(waitingStatus).toBeVisible();
+    await expect(reanalyzeAction).toBeVisible();
     await settleVisualState(page);
     await expect(submissionModal).not.toHaveClass(/show/);
-    await expect(waiting).toBeVisible();
-    await attachScreenshot(page, testInfo, '04-aguardando-reanalise-clicavel');
-    await waiting.click();
+    await expect(waitingStatus).toBeVisible();
+    await expect(reanalyzeAction).toBeVisible();
+    await attachScreenshot(page, testInfo, '04-aguardando-reanalise-com-acao');
+    await reanalyzeAction.click();
 
     const reanalysisModal = page.locator('#modal-reanalisar-pendencia');
     await expect(reanalysisModal).toHaveClass(/show/);
@@ -236,7 +242,7 @@ test.describe('Jornada real — Despesa a identificar', () => {
     });
     await expect(resolvedInvoice).toContainText('Correto (Atrasado)');
     await expect(resolvedInvoice.getByRole('button', {
-      name: 'Aguardando reanálise',
+      name: 'Reanalisar',
       exact: true
     })).toHaveCount(0);
     await settleVisualState(page);
