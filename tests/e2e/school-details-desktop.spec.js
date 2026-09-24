@@ -157,7 +157,10 @@ test.describe('Prontuário operacional no desktop', () => {
             left: Math.round(rect.left)
           };
         })
-        .sort((a, b) => (a.top - b.top) || (a.left - b.left))
+        .sort((a, b) => {
+          const sameVisualRow = Math.abs(a.top - b.top) <= 12;
+          return sameVisualRow ? (a.left - b.left) : (a.top - b.top);
+        })
         .map(item => item.label);
     });
     expect(labels).toEqual([
