@@ -233,3 +233,227 @@ for (const account of accounts) {
     await context.close();
   });
 }
+
+
+const controllerAccount = accounts.find(account => account.profileId === 'controller');
+
+if (controllerAccount) {
+  test('controller percorre o Prontuário em Production como usuário comum sem mutação', async ({ browser }) => {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const page = await context.newPage();
+    const observation = observePage(page);
+    const report = {
+      route: [],
+      flowLabels: [],
+      unidentified: {},
+      communication: {},
+      contact: {},
+      history: {},
+      reanalysis: {}
+    };
+
+    await signIn(page, controllerAccount);
+    report.route.push('login');
+
+    await page.locator('#nav-dashboard').click();
+    await expect(page.locator('#main-container')).toBeVisible();
+    report.route.push('dashboard');
+
+    await page.locator('#nav-escolas').click();
+    await expect(page.getByRole('heading', { name: 'Resultado da carteira' })).toBeVisible();
+    report.route.push('escolas');
+
+    const firstSchool = page.getByRole('link', { name: 'Ver Unidade' }).first();
+    await expect(firstSchool).toBeVisible();
+    await firstSchool.click();
+    await waitForApplication(page, controllerAccount.profileId);
+    await expect(page).toHaveURL(/\/escolas\/[^/?#]+/);
+    report.route.push('prontuario');
+
+    const flowbar = page.locator('.prontuario-flowbar');
+    await expect(flowbar).toBeVisible();
+    report.flowLabels = (await flowbar.locator('button').allTextContents())
+      .map(value => value.replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+
+    for (const label of [
+      'Competências e Análises',
+      'Gerar comunicação',
+      'Registrar contato',
+      'Histórico de Contatos'
+    ]) {
+      expect(
+        report.flowLabels.some(value => value === label || value.startsWith(label)),
+        'Ação esperada ausente no fluxo: ' + label
+      ).toBe(true);
+    }
+    expect(report.flowLabels.some(value => value.startsWith('Pendências Ativas'))).toBe(true);
+
+    const start = page.getByRole('button', {
+      name: 'Registrar despesa a identificar',
+      exact: true
+    }).first();
+    await expect(start).toBeVisible();
+    report.unidentified.tooltip = await start.getAttribute('data-tooltip');
+    expect(report.unidentified.tooltip).toContain('saída no extrato');
+    expect(report.unidentified.tooltip).toContain('documentação');
+    await start.hover();
+    report.unidentified.tooltipVisual = await start.evaluate(element => {
+      const style = getComputedStyle(element, '::after');
+      return {
+        opacity: Number.parseFloat(style.opacity),
+        visibility: style.visibility,
+        contentHasExtrato: style.content.includes('extrato')
+      };
+    });
+    expect(report.unidentified.tooltipVisual.opacity).toBe(1);
+    expect(report.unidentified.tooltipVisual.visibility).toBe('visible');
+    expect(report.unidentified.tooltipVisual.contentHasExtrato).toBe(true);
+
+    await start.click();
+    const expenseModal = page.locator('#modal-dados-nota');
+    await expect(expenseModal).toHaveClass(/show/);
+    await expect(expenseModal.getByRole('heading', {
+      name: 'Registrar despesa a identificar',
+      exact: true
+    })).toBeVisible();
+    const invoiceNumber = expenseModal.getByLabel(
+      'Número da Nota Fiscal (opcional neste estágio)',
+      { exact: true }
+    );
+    await expect(invoiceNumber).toBeVisible();
+    report.unidentified.invoiceNumberRequired = await invoiceNumber.evaluate(
+      element => element.required
+    );
+    report.unidentified.introMentionsNoGuessing = (
+      await expenseModal.locator('#nota-modal-intro').innerText()
+    ).includes('Não invente');
+    const registerExpense = expenseModal.getByRole('button', {
+      name: 'Registrar Despesa',
+      exact: true
+    });
+    const registerBox = await registerExpense.boundingBox();
+    const viewport = page.viewportSize();
+    report.unidentified.primaryActionInitiallyVisible = Boolean(
+      registerBox
+      && viewport
+      && registerBox.y >= 0
+      && registerBox.y + registerBox.height <= viewport.height
+    );
+    report.unidentified.modalScroll = await expenseModal.locator('.modal-body').evaluate(element => ({
+      clientHeight: element.clientHeight,
+      scrollHeight: element.scrollHeight,
+      needsScroll: element.scrollHeight > element.clientHeight + 1
+    }));
+    expect(report.unidentified.invoiceNumberRequired).toBe(false);
+    expect(report.unidentified.introMentionsNoGuessing).toBe(true);
+    await expenseModal.locator('.btn-close').click();
+    await expect(expenseModal).not.toHaveClass(/show/);
+
+    const generate = page.getByRole('button', { name: 'Gerar comunicação', exact: true });
+    await expect(generate).toBeVisible();
+    report.communication.tooltip = await generate.getAttribute('data-tooltip');
+    expect(report.communication.tooltip).toContain('Copiar o texto não registra envio');
+    report.communication.style = await generate.evaluate(element => {
+      const style = getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return {
+        backgroundColor: style.backgroundColor,
+        borderColor: style.borderColor,
+        fontWeight: style.fontWeight,
+        rowTop: Math.round(rect.top)
+      };
+    });
+
+    let communicationDialog = null;
+    page.once('dialog', async dialog => {
+      communicationDialog = dialog.message();
+      await dialog.accept();
+    });
+    await generate.click();
+    await page.waitForTimeout(250);
+    const communicationModal = page.locator('#modal-cobranca');
+    report.communication.modalOpened = await communicationModal.evaluate(
+      element => element.classList.contains('show')
+    );
+    report.communication.dialogShown = Boolean(communicationDialog);
+    if (report.communication.modalOpened) {
+      report.communication.hasPreview = await communicationModal
+        .getByText('Pré-visualização da mensagem', { exact: true }).isVisible();
+      report.communication.hasCopy = await communicationModal
+        .getByRole('button', { name: 'Copiar texto', exact: true }).isVisible();
+      const bodyText = await communicationModal.innerText();
+      report.communication.explainsCopyIsNotContact = (
+        bodyText.includes('Copiar')
+        && bodyText.includes('Registrar contato')
+      );
+      expect(report.communication.hasPreview).toBe(true);
+      expect(report.communication.hasCopy).toBe(true);
+      expect(report.communication.explainsCopyIsNotContact).toBe(true);
+      await communicationModal.locator('.btn-close').click();
+      await expect(communicationModal).not.toHaveClass(/show/);
+    }
+
+    const registerContact = page.getByRole('button', { name: 'Registrar contato', exact: true });
+    await expect(registerContact).toBeVisible();
+    report.contact.tooltip = await registerContact.getAttribute('data-tooltip');
+    expect(report.contact.tooltip).toContain('contato que realmente ocorreu');
+    await registerContact.click();
+    const contactModal = page.locator('#modal-contato');
+    await expect(contactModal).toHaveClass(/show/);
+    report.contact.hasChannel = await contactModal
+      .getByLabel('Tipo de Contato', { exact: true }).isVisible();
+    report.contact.hasPendencyLink = await contactModal
+      .getByLabel('Vincular a uma Pendência (Opcional)', { exact: true }).isVisible();
+    report.contact.hasDescription = await contactModal
+      .getByLabel('Descrição do Atendimento', { exact: true }).isVisible();
+    expect(report.contact.hasChannel).toBe(true);
+    expect(report.contact.hasPendencyLink).toBe(true);
+    expect(report.contact.hasDescription).toBe(true);
+    await contactModal.locator('.btn-close').click();
+    await expect(contactModal).not.toHaveClass(/show/);
+
+    const historyTab = page.getByRole('tab', {
+      name: 'Histórico de Contatos',
+      exact: true
+    });
+    await expect(historyTab).toBeVisible();
+    await historyTab.click();
+    await expect(historyTab).toHaveAttribute('aria-selected', 'true');
+    report.history.visible = await page.locator('#tab-contatos').isVisible();
+    expect(report.history.visible).toBe(true);
+
+    const analysisTab = page.getByRole('tab', {
+      name: 'Competências e Análises',
+      exact: true
+    });
+    await analysisTab.click();
+    const waitingButtons = page.locator('.invoice-reanalysis-status-button');
+    report.reanalysis.waitingButtonsVisible = await waitingButtons.count();
+    if (report.reanalysis.waitingButtonsVisible > 0) {
+      const waiting = waitingButtons.first();
+      report.reanalysis.tooltip = await waiting.getAttribute('data-tooltip');
+      expect(report.reanalysis.tooltip).toContain('reanalisar');
+      await waiting.click();
+      const reanalysisModal = page.locator('#modal-reanalisar-pendencia');
+      await expect(reanalysisModal).toHaveClass(/show/);
+      report.reanalysis.modalOpened = true;
+      report.reanalysis.hasResult = await reanalysisModal
+        .getByLabel('Resultado da reanálise', { exact: true }).isVisible();
+      report.reanalysis.hasObservation = await reanalysisModal
+        .getByLabel('Observação da análise', { exact: true }).isVisible();
+      expect(report.reanalysis.hasResult).toBe(true);
+      expect(report.reanalysis.hasObservation).toBe(true);
+      await reanalysisModal.locator('.btn-close').click();
+      await expect(reanalysisModal).not.toHaveClass(/show/);
+    } else {
+      report.reanalysis.modalOpened = false;
+    }
+
+    expect(observation.mutations, 'A auditoria UX em Production emitiu requisição mutante.').toEqual([]);
+    expect(observation.errors, 'O navegador registrou erros durante a auditoria UX.').toEqual([]);
+
+    console.log('RADAR_PRODUCTION_UX_READONLY_AUDIT=' + JSON.stringify(report));
+    await context.close();
+  });
+}
