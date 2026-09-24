@@ -151,6 +151,16 @@ header.top-header {
     box-shadow: 0 2px 8px rgba(48, 30, 76, 0.045);
 }
 
+/* Controles superiores não podem cortar rótulos institucionais. */
+.exercise-selector {
+    min-width: 142px;
+    padding-right: 30px;
+}
+
+.global-competence-badge {
+    flex: 0 0 auto;
+}
+
 /* Páginas e títulos */
 .page-container {
     padding: 28px 32px 40px;
