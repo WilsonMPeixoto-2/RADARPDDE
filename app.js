@@ -10512,7 +10512,7 @@ function renderProntuarioVerificacoes(esc) {
                                                 data-pendency-ref="${pendencyReference}"
                                                 onclick="openPendencyDrawer('${escapeHtml(invoicePendency.id)}')">
                                                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.6-6 9.5-6 9.5 6 9.5 6-3.6 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.7"/></svg>
-                                                <span>Ver pendência</span>
+                                                <span>Visualizar pendência</span>
                                             </button>
                                         </div>
                                     `;
