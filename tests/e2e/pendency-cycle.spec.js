@@ -687,7 +687,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     const awaitingRow = page.locator('#p-aguardando tr[data-pendency-ref]');
     await expect(awaitingRow).toContainText('Aguardando reanálise');
     const replacementTrigger = awaitingRow.getByRole('button', {
-      name: 'Registrar substituição mais recente',
+      name: 'Novo envio da escola',
       exact: true
     });
     await expect(replacementTrigger).toBeVisible();
@@ -695,7 +695,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     await expect(focusedReplacementTrigger)
       .toHaveAttribute('data-action', 'register-corrective-submission');
     await expect(focusedReplacementTrigger)
-      .toHaveText('Registrar substituição mais recente');
+      .toHaveText('Novo envio da escola');
 
     await page.evaluate(() => closePendencyDetail());
     await replacementTrigger.click();
@@ -781,7 +781,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     await expect(focusedAfterReplacement)
       .toHaveAttribute('data-action', 'register-corrective-submission');
     await expect(focusedAfterReplacement)
-      .toHaveText('Registrar substituição mais recente');
+      .toHaveText('Novo envio da escola');
   });
 
   test('restaura memória, índices e localStorage após falha intermediária de persistência', async ({ page }, testInfo) => {
@@ -1828,7 +1828,7 @@ test.describe('reanálise atômica da pendência documental no desktop', () => {
       exact: true
     });
     const replacementTrigger = sourceRow.getByRole('button', {
-      name: 'Registrar substituição mais recente',
+      name: 'Novo envio da escola',
       exact: true
     });
 
@@ -2094,7 +2094,7 @@ test.describe('reanálise atômica da pendência documental no desktop', () => {
       exact: true
     })).toBeVisible();
     await expect(rowFor(ids.awaiting).getByRole('button', {
-      name: 'Registrar substituição mais recente',
+      name: 'Novo envio da escola',
       exact: true
     })).toBeVisible();
     await expect(reanalysisButtons).toHaveCount(1);
@@ -2116,7 +2116,7 @@ test.describe('reanálise atômica da pendência documental no desktop', () => {
     await page.locator('[data-tab="pendencias"]').click();
     await expect(sourceTab.locator('[data-action="reanalyse-pendency"]')).toHaveCount(0);
     await expect(rowFor(ids.awaiting).getByRole('button', {
-      name: 'Registrar substituição mais recente',
+      name: 'Novo envio da escola',
       exact: true
     })).toBeVisible();
   });
@@ -2325,7 +2325,7 @@ test.describe('resultados alternativos, bloqueio e rollback da reanálise', () =
     await expect(awaitingRow.getByRole('button', { name: 'Reanalisar', exact: true }))
       .toHaveCount(0);
     await expect(awaitingRow.getByRole('button', {
-      name: 'Registrar substituição mais recente',
+      name: 'Novo envio da escola',
       exact: true
     })).toHaveCount(0);
     await expect(unrelatedDocumentRow.locator('select.select-analise')).toBeEnabled();
