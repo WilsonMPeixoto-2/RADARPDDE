@@ -323,7 +323,7 @@ test('Despesa a identificar oferece todos os tipos finais e permite identificar 
   await modal.getByLabel('Data em que o arquivo foi disponibilizado no Drive', { exact: true }).fill('2026-09-22');
   await modal.getByLabel('Observação', { exact: true }).fill('Boleto e comprovante apresentados pela escola.');
   await modal.getByRole('button', {
-    name: 'Registrar e enviar para reanálise',
+    name: 'Identificar e enviar para reanálise',
     exact: true
   }).click();
   await expect(modal).not.toHaveClass(/show/);
@@ -406,7 +406,7 @@ test('Despesa a identificar pode ser convertida em Bem Permanente preservando o 
   await modal.getByLabel('Data em que o arquivo foi disponibilizado no Drive', { exact: true }).fill('2026-09-22');
   await modal.getByLabel('Observação', { exact: true }).fill('Nota Fiscal apresentada pela escola.');
   await modal.getByRole('button', {
-    name: 'Registrar e enviar para reanálise',
+    name: 'Identificar e enviar para reanálise',
     exact: true
   }).click();
   await expect(modal).not.toHaveClass(/show/);
