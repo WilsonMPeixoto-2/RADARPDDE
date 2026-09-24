@@ -1,0 +1,246 @@
+'use strict';
+
+const { test, expect } = require('@playwright/test');
+const { selectFixtureCompetence } = require('../support/e2e-competence');
+
+async function prepareSchool(page, { withOpenUnidentified = false } = {}) {
+  await page.goto('/');
+  await selectFixtureCompetence(page, '2026-05');
+
+  return page.evaluate(async ({ seedOpen }) => {
+    switchProfile('controlador');
+    const competence = window.RadarCompetenceContext.getState().activeKey;
+    const school = escolas.find(candidate => (
+      Array.isArray(candidate.programasIds)
+      && candidate.programasIds.includes('BASIC')
+      && isCompetenceInScope(candidate.competenciaInicial, competence)
+    ));
+    if (!school) throw new Error('Escola de fixture não encontrada.');
+
+    const compKey = competence + '_BASIC';
+    verificacoes[school.id] ||= {};
+    const verification = RadarFluxoOperacional.createEmptyVerification('BASIC');
+    verification.bonificacao.notaFiscal = 'Não';
+    verification.analise.notaFiscal = 'Não analisado';
+    verificacoes[school.id][compKey] = verification;
+
+    notasRegistradas = notasRegistradas.filter(item => !(
+      item.escolaId === school.id && item.compKey === compKey
+    ));
+    pendencias = pendencias.filter(item => !(
+      String(item.escolaId) === String(school.id)
+      && String(item.competenciaOrigem || item.competencia) === competence
+      && String(item.programaId || '') === 'BASIC'
+      && item.documentoKey === 'notaFiscal'
+    ));
+
+    let seeded = null;
+    if (seedOpen) {
+      seeded = await window.RadarApplicationServices.invoices.saveUnidentifiedExpenseWithPendency({
+        schoolId: school.id,
+        compKey,
+        description: 'Débito bancário ainda sem documento',
+        expenseType: 'a_identificar',
+        invoiceNumber: '',
+        amount: 145.67,
+        profile: 'controlador',
+        pendencyObservation: 'Aguardando documento para identificar a despesa.'
+      });
+    }
+
+    rebuildOperationalIndexes();
+    persist();
+    activeProntuarioCompetencia = competence;
+    switchView('prontuario', school.id);
+
+    return {
+      schoolId: school.id,
+      competence,
+      compKey,
+      seededPendencyId: seeded?.value?.pendency?.id || null
+    };
+  }, { seedOpen: withOpenUnidentified });
+}
+
+test.describe('Jornada real — Despesa a identificar', () => {
+  test.beforeEach(async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Auditoria orientada ao fluxo desktop.');
+    await page.setViewportSize({ width: 1440, height: 900 });
+  });
+
+  test('conduz um usuário do débito sem documento até a reanálise sem atalhos internos', async ({ page }) => {
+    const context = await prepareSchool(page);
+
+    const start = page.getByRole('button', {
+      name: 'Registrar despesa a identificar',
+      exact: true
+    });
+    await expect(start).toBeVisible();
+    await start.click();
+
+    const expenseModal = page.locator('#modal-dados-nota');
+    await expect(expenseModal).toHaveClass(/show/);
+    await expect(expenseModal.getByRole('heading', {
+      name: 'Registrar despesa a identificar',
+      exact: true
+    })).toBeVisible();
+    await expect(expenseModal.locator('#nota-modal-intro')).toContainText('Não invente');
+    await expect(expenseModal.getByLabel(
+      'Número da Nota Fiscal (opcional neste estágio)',
+      { exact: true }
+    )).not.toHaveAttribute('required', '');
+
+    await expenseModal.getByLabel('Descrição do Gasto', { exact: true })
+      .fill('Débito visto no extrato; documento ainda não recebido');
+    await expenseModal.getByLabel('Valor do Gasto (R$)', { exact: true }).fill('123.45');
+    await expenseModal.getByRole('button', { name: 'Registrar Despesa', exact: true }).click();
+    await expect(expenseModal).not.toHaveClass(/show/);
+
+    const drawer = page.locator('#pendency-preview-drawer');
+    await expect(drawer).toBeVisible();
+    await expect(drawer.getByText('Próximo passo', { exact: true })).toBeVisible();
+    await expect(drawer).toContainText('Quando a documentação chegar');
+    const newSubmission = drawer.getByRole('button', {
+      name: 'Registrar novo envio',
+      exact: true
+    });
+    await expect(newSubmission).toBeVisible();
+    await newSubmission.click();
+
+    const submissionModal = page.locator('#modal-registrar-envio');
+    await expect(submissionModal).toHaveClass(/show/);
+    await expect(submissionModal.getByRole('heading', {
+      name: 'Identificar despesa e registrar novo envio',
+      exact: true
+    })).toBeVisible();
+    await expect(submissionModal.locator('.modal-subtitle')).toContainText(
+      'sem criar um novo lançamento'
+    );
+
+    await submissionModal.getByLabel('Tipo da despesa', { exact: true })
+      .selectOption('consumo');
+    await submissionModal.getByLabel('Número ou referência do documento', { exact: true })
+      .fill('NF-UX-001');
+    await submissionModal.getByLabel('Descrição', { exact: true })
+      .fill('Material de consumo identificado');
+    await submissionModal.getByLabel('Valor (R$)', { exact: true }).fill('123.45');
+    await submissionModal.getByLabel(
+      'Data em que o arquivo foi disponibilizado no Drive',
+      { exact: true }
+    ).fill('2026-09-23');
+    await submissionModal.getByLabel('Observação', { exact: true })
+      .fill('Documento recebido e conferido para reanálise.');
+    await submissionModal.getByRole('button', {
+      name: 'Registrar e enviar para reanálise',
+      exact: true
+    }).click();
+    await expect(submissionModal).not.toHaveClass(/show/);
+
+    const waiting = page.locator('.invoice-reanalysis-status-button').filter({
+      hasText: 'Aguardando reanálise'
+    });
+    await expect(waiting).toHaveCount(1);
+    await expect(waiting).toBeVisible();
+    await waiting.click();
+
+    const reanalysisModal = page.locator('#modal-reanalisar-pendencia');
+    await expect(reanalysisModal).toHaveClass(/show/);
+    await reanalysisModal.getByLabel('Resultado da reanálise', { exact: true })
+      .selectOption('correto');
+    await reanalysisModal.getByLabel('Observação da análise', { exact: true })
+      .fill('Documento correto após identificação da despesa.');
+    await reanalysisModal.getByRole('button', {
+      name: 'Confirmar reanálise',
+      exact: true
+    }).click();
+    await expect(reanalysisModal).not.toHaveClass(/show/);
+
+    const finalState = await page.evaluate(({ schoolId, compKey }) => {
+      const invoice = notasRegistradas.find(item => (
+        item.escolaId === schoolId
+        && item.compKey === compKey
+        && item.numero === 'NF-UX-001'
+      ));
+      const activePendency = invoice
+        ? pendencias.find(item => (
+            String(item.registeredInvoiceId || item.registered_invoice_id || '')
+              === String(invoice.id)
+            && ['Aberta', 'Aguardando reanálise'].includes(item.status)
+          ))
+        : null;
+      return {
+        invoiceType: invoice?.tipo || null,
+        invoiceAnalysis: invoice?.analiseDocumentoFiscal || null,
+        activePendency: activePendency?.status || null
+      };
+    }, context);
+
+    expect(finalState).toEqual({
+      invoiceType: 'consumo',
+      invoiceAnalysis: 'Correto',
+      activePendency: null
+    });
+  });
+
+  test('separa preparar comunicação de registrar contato efetivamente realizado', async ({ page, context }) => {
+    const fixture = await prepareSchool(page, { withOpenUnidentified: true });
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+
+    const contactCountBefore = await page.evaluate(() => contatos.length);
+
+    const generate = page.getByRole('button', { name: 'Gerar comunicação', exact: true });
+    await expect(generate).toBeVisible();
+    await generate.click();
+
+    const communicationModal = page.locator('#modal-cobranca');
+    await expect(communicationModal).toHaveClass(/show/);
+    await expect(communicationModal.getByText('Pendências selecionadas', { exact: true }))
+      .toBeVisible();
+    await expect(communicationModal.getByRole('button', {
+      name: 'Copiar texto',
+      exact: true
+    })).toHaveCount(1);
+
+    let copiedMessage = '';
+    page.once('dialog', async dialog => {
+      copiedMessage = dialog.message();
+      await dialog.accept();
+    });
+    await communicationModal.getByRole('button', { name: 'Copiar texto', exact: true }).click();
+    await expect(communicationModal).not.toHaveClass(/show/);
+    expect(copiedMessage).toContain('use “Registrar contato”');
+
+    expect(await page.evaluate(() => contatos.length)).toBe(contactCountBefore);
+
+    await page.getByRole('button', { name: 'Registrar contato', exact: true }).click();
+    const contactModal = page.locator('#modal-contato');
+    await expect(contactModal).toHaveClass(/show/);
+    await contactModal.getByLabel('Tipo de Contato', { exact: true }).selectOption('WhatsApp');
+    await contactModal.getByLabel('Vincular a uma Pendência (Opcional)', { exact: true })
+      .selectOption(String(fixture.seededPendencyId));
+    await contactModal.getByLabel('Descrição do Atendimento', { exact: true })
+      .fill('Mensagem encaminhada ao diretor pelo WhatsApp.');
+    await contactModal.getByRole('button', { name: 'Registrar', exact: true }).click();
+    await expect(contactModal).not.toHaveClass(/show/);
+
+    const recorded = await page.evaluate(pendencyId => {
+      const last = contatos.at(-1);
+      return {
+        count: contatos.length,
+        type: last?.tipo || last?.channel || null,
+        pendencyId: last?.pendenciaId || last?.pendencyId || null,
+        description: last?.descricao || last?.description || ''
+      };
+    }, fixture.seededPendencyId);
+
+    expect(recorded.count).toBe(contactCountBefore + 1);
+    expect(recorded.type).toBe('WhatsApp');
+    expect(String(recorded.pendencyId)).toBe(String(fixture.seededPendencyId));
+    expect(recorded.description).toContain('Mensagem encaminhada ao diretor');
+
+    await page.getByRole('tab', { name: 'Histórico de Contatos', exact: true }).click();
+    await expect(page.locator('#tab-contatos')).toContainText(
+      'Mensagem encaminhada ao diretor pelo WhatsApp.'
+    );
+  });
+});
