@@ -148,7 +148,7 @@ test.describe('Jornada real — Despesa a identificar', () => {
     const submissionModal = page.locator('#modal-registrar-envio');
     await expect(submissionModal).toHaveClass(/show/);
     await expect(submissionModal.getByRole('heading', {
-      name: 'Identificar despesa e registrar novo envio',
+      name: 'Identificar despesa',
       exact: true
     })).toBeVisible();
     await expect(submissionModal.locator('.modal-subtitle')).toContainText(
@@ -157,7 +157,7 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await settleVisualState(page);
     await expect(submissionModal).toHaveClass(/show/);
     await expect(submissionModal.getByRole('heading', {
-      name: 'Identificar despesa e registrar novo envio',
+      name: 'Identificar despesa',
       exact: true
     })).toBeVisible();
     await attachScreenshot(page, testInfo, '03-identificar-despesa-novo-envio');
@@ -176,7 +176,7 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await submissionModal.getByLabel('Observação', { exact: true })
       .fill('Documento recebido e conferido para reanálise.');
     await submissionModal.getByRole('button', {
-      name: 'Registrar e enviar para reanálise',
+      name: 'Identificar e enviar para reanálise',
       exact: true
     }).click();
     await expect(submissionModal).not.toHaveClass(/show/);
