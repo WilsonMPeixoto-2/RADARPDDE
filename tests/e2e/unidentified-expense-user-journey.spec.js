@@ -191,6 +191,9 @@ test.describe('Jornada real — Despesa a identificar', () => {
       exact: true
     }).click();
     await expect(submissionModal).not.toHaveClass(/show/);
+    await expect(page.locator('#pendency-notice')).toHaveText(
+      'Despesa identificada e documento enviado para reanálise.'
+    );
 
     const waitingStatus = page.locator('.invoice-document-status').filter({
       hasText: 'Aguardando reanálise'
@@ -220,6 +223,9 @@ test.describe('Jornada real — Despesa a identificar', () => {
       exact: true
     }).click();
     await expect(reanalysisModal).not.toHaveClass(/show/);
+    await expect(page.locator('#pendency-notice')).toHaveText(
+      'Reanálise registrada com sucesso.'
+    );
 
     const finalState = await page.evaluate(({ schoolId, compKey }) => {
       const invoice = notasRegistradas.find(item => (
