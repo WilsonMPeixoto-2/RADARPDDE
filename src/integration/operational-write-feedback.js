@@ -35,7 +35,11 @@
         'verification:set-bonification': 'Bonificação atualizada com sucesso.',
         'verification:undo-bonification': 'Bonificação desfeita com sucesso.',
         'invoice:save': 'Nota fiscal salva com sucesso.',
-        'invoice:save-unidentified-with-pendency': 'Despesa e pendência salvas com sucesso.',
+        'invoice:save-unidentified-with-pendency': 'Despesa a identificar e Pendência registradas com sucesso.',
+        'invoice:register-document-attempt': 'Novo envio registrado e encaminhado para reanálise.',
+        'invoice:reanalyze-document-pendency': 'Reanálise registrada com sucesso.',
+        'pendency:register-attempt': 'Novo envio registrado e encaminhado para reanálise.',
+        'pendency:reanalyze': 'Reanálise registrada com sucesso.',
         'pendency:register-contact': 'Contato registrado com sucesso.',
         'inventory:update-asset': 'Alterações do bem salvas com sucesso.',
         'inventory:forward': 'Encaminhamento para inventariação salvo com sucesso.',
@@ -155,7 +159,12 @@
     }
 
     function feedbackForResult(operation, result = {}) {
-        const successMessage = SAVE_SUCCESS_MESSAGES[text(operation)];
+        const operationName = text(operation);
+        let successMessage = SAVE_SUCCESS_MESSAGES[operationName];
+        if (operationName === 'invoice:register-document-attempt'
+            && result?.value?.identified === true) {
+            successMessage = 'Despesa identificada e documento enviado para reanálise.';
+        }
         if (!successMessage || result?.ok !== true) return null;
         const sync = result.stateSync || {};
         if (sync.remoteCommitConfirmed === true
