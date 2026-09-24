@@ -8417,10 +8417,12 @@ function resetRegistrarNovoEnvioForm() {
     document.getElementById('envio-contexto').replaceChildren();
     const title = document.getElementById('modal-registrar-envio-title');
     const subtitle = document.querySelector('#modal-registrar-envio .modal-subtitle');
+    const submit = document.querySelector('#form-registrar-envio button[type="submit"]');
     if (title) title.textContent = 'Registrar novo envio para conferência';
     if (subtitle) {
         subtitle.textContent = 'Registre a nova disponibilização do documento para que a pendência siga para reanálise.';
     }
+    if (submit) submit.textContent = 'Registrar e enviar para reanálise';
     const identification = document.getElementById('envio-identificacao');
     if (identification) {
         identification.hidden = true;
@@ -8701,10 +8703,12 @@ function abrirModalRegistrarNovoEnvio(pendencySource) {
     if (identificationContext.required) {
         const title = document.getElementById('modal-registrar-envio-title');
         const subtitle = document.querySelector('#modal-registrar-envio .modal-subtitle');
-        if (title) title.textContent = 'Identificar despesa e registrar novo envio';
+        const submit = document.querySelector('#form-registrar-envio button[type="submit"]');
+        if (title) title.textContent = 'Identificar despesa';
         if (subtitle) {
-            subtitle.textContent = 'Informe os dados do documento recebido. O RADAR atualizará a despesa existente e a encaminhará para reanálise, sem criar um novo lançamento.';
+            subtitle.textContent = 'Informe os dados do documento recebido. Ao confirmar, o RADAR preservará o lançamento original, identificará a despesa e registrará este documento para reanálise.';
         }
+        if (submit) submit.textContent = 'Identificar e enviar para reanálise';
     }
     document.getElementById('envio-contexto').innerHTML = `
         <dl class="corrective-context-grid" aria-label="Contexto da pendência">
