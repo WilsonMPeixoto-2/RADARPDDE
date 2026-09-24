@@ -9662,7 +9662,7 @@ function renderProntuario(escolaId) {
 
             <!-- Corpo Principal: Abas de Trabalho -->
             <div class="school-workspace">
-                <div class="prontuario-flowbar">
+                <div class="prontuario-flowbar ${showProntuarioActions ? 'has-operational-actions' : ''}">
                     <div class="tab-container prontuario-tablist" role="tablist" aria-label="Seções do prontuário da unidade">
                         ${accessProfile === 'inventario' ? `
                             <button type="button" id="prontuario-tab-capital" class="tab-button active" data-tab="capital" role="tab" aria-controls="tab-capital" aria-selected="true" tabindex="0" onclick="switchSchoolTab(event, 'tab-capital')" onkeydown="handleSchoolTabKeydown(event)">Registro de Capital</button>
