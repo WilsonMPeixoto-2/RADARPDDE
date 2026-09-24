@@ -181,6 +181,9 @@ test.describe('Jornada real — Despesa a identificar', () => {
       initialInvoiceRow.getByRole('button', { name: 'Visualizar pendência', exact: true })
     ).toBeVisible();
 
+    await drawer.locator('[data-pendency-drawer-close]').first().click();
+    await expect(drawer).toBeHidden();
+
     await page.locator('#nav-pendencias').click();
     await expect(page.getByRole('heading', { name: 'Pendências operacionais' })).toBeVisible();
     const task9Row = page.locator(
