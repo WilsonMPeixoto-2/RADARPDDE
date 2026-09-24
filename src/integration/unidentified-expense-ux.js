@@ -130,7 +130,37 @@
         return unidentified;
     }
 
+    function showBonificationPrerequisite(schoolId, compKey) {
+        const allVerifications = getLegacyValue('verificacoes', {});
+        const verification = allVerifications?.[schoolId]?.[compKey] || null;
+        if (text(verification?.bonificacao?.notaFiscal)) return false;
+
+        const context = root.RadarCompetencia?.splitCompetenciaContext?.(compKey) || {};
+        const programId = text(context.contextId || context.programaId || context.programId);
+        const row = Array.from(root.document.querySelectorAll(
+            '#prontuario-verif-rows tr[data-program-id][data-document-key="notaFiscal"]'
+        )).find(candidate => text(candidate.dataset.programId) === programId);
+        const toggle = row?.querySelector('.invoice-bonification-toggle');
+        const actions = row?.querySelector('[data-unidentified-expense-actions]');
+        if (!row || !toggle || !actions) return false;
+
+        toggle.classList.add('needs-unidentified-prerequisite');
+        let hint = actions.querySelector('[data-unidentified-bonification-prerequisite]');
+        if (!hint) {
+            hint = root.document.createElement('p');
+            hint.className = 'unidentified-bonification-prerequisite';
+            hint.dataset.unidentifiedBonificationPrerequisite = 'true';
+            hint.setAttribute('role', 'alert');
+            hint.textContent = 'Antes de registrar a despesa, informe a situação da entrega de Notas Fiscais em Bonificação.';
+            actions.prepend(hint);
+        }
+        const firstEditable = toggle.querySelector('button:not(:disabled)');
+        firstEditable?.focus({ preventScroll: true });
+        return true;
+    }
+
     function openUnidentifiedExpenseModal(schoolId, compKey) {
+        if (showBonificationPrerequisite(schoolId, compKey)) return false;
         if (typeof root.openModalDadosNota !== 'function') return false;
         const opened = root.openModalDadosNota(schoolId, compKey);
         if (opened === false) return false;
