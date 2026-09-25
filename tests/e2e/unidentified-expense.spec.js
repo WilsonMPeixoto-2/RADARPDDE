@@ -128,7 +128,8 @@ test.describe('Prontuário — despesa a identificar', () => {
         bonification: verification?.bonificacao?.notaFiscal,
         consAssessoria: verification?.bonificacao?.consAssessoria,
         pendencyId: linked?.id || null,
-        pendencyStatus: linked?.status || null
+        pendencyStatus: linked?.status || null,
+        pendencyObservation: linked?.observacao || null
       };
     }, context);
 
@@ -142,6 +143,8 @@ test.describe('Prontuário — despesa a identificar', () => {
     expect(stateAfterCreate.consAssessoria).toBe('Não se aplica');
     expect(stateAfterCreate.pendencyId).toBeTruthy();
     expect(stateAfterCreate.pendencyStatus).toBe('Aberta');
+    expect(stateAfterCreate.pendencyObservation)
+      .toBe('Débito localizado no extrato; aguardando documentação da unidade.');
 
     const drawer = page.locator('#pendency-preview-drawer');
     await expect(drawer.getByText('Despesa a identificar', { exact: true }).first()).toBeVisible();
