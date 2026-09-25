@@ -162,7 +162,7 @@ test.describe('Jornada real — Despesa a identificar', () => {
       exact: true
     })).toBeVisible();
     await expect(submissionModal.locator('.modal-subtitle')).toContainText(
-      'sem criar um novo lançamento'
+      'mesmo lançamento e a mesma Pendência'
     );
     await settleVisualState(page);
     await expect(submissionModal).toHaveClass(/show/);
@@ -254,6 +254,117 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await expect(resolvedInvoice).toBeVisible();
     await expect(resolvedInvoice).toContainText('Correto (Atrasado)');
     await attachScreenshot(page, testInfo, '05-reanalise-concluida');
+  });
+
+  test('permite retificar os dados provisórios pelo drawer sem identificar a despesa', async ({ page }) => {
+    const context = await prepareSchool(page);
+
+    await page.getByRole('button', {
+      name: 'Registrar despesa a identificar',
+      exact: true
+    }).click();
+
+    const expenseModal = page.locator('#modal-dados-nota');
+    await expenseModal.getByLabel('Descrição provisória da saída', { exact: true })
+      .fill('Débito provisório a conferir');
+    await expenseModal.getByLabel('Valor do Gasto (R$)', { exact: true }).fill('210.50');
+    await expenseModal.getByLabel('Observação', { exact: true })
+      .fill('Primeira observação provisória.');
+    await expenseModal.getByRole('button', {
+      name: 'Registrar Despesa',
+      exact: true
+    }).click();
+
+    const drawer = page.locator('#pendency-preview-drawer');
+    await expect(drawer).toBeVisible();
+    await expect(drawer.getByText('Dados provisórios', { exact: true })).toBeVisible();
+    await expect(drawer).toContainText('Débito provisório a conferir');
+    await expect(drawer).toContainText('R$ 210,50');
+    await expect(drawer.getByRole('button', {
+      name: 'Editar dados da despesa',
+      exact: true
+    })).toBeVisible();
+    await expect(drawer.getByRole('button', {
+      name: 'Editar detalhes da pendência',
+      exact: true
+    })).toBeVisible();
+
+    await drawer.getByRole('button', {
+      name: 'Editar dados da despesa',
+      exact: true
+    }).click();
+
+    await expect(expenseModal).toHaveClass(/show/);
+    await expect(expenseModal.getByRole('heading', {
+      name: 'Editar despesa a identificar',
+      exact: true
+    })).toBeVisible();
+    await expect(expenseModal.locator('#nota-tipo')).toHaveValue('a_identificar');
+    await expect(expenseModal.locator('#nota-tipo')).toBeDisabled();
+    await expect(expenseModal.locator('#nota-tipo')).not.toBeVisible();
+    await expenseModal.getByLabel('Descrição provisória da saída', { exact: true })
+      .fill('Débito provisório retificado');
+    await expenseModal.getByLabel('Referência provisória (opcional)', { exact: true })
+      .fill('REF-EXTRATO-01');
+    await expenseModal.getByLabel('Valor do Gasto (R$)', { exact: true }).fill('215.75');
+    await expenseModal.getByRole('button', { name: 'Salvar Alterações', exact: true }).click();
+    await expect(expenseModal).not.toHaveClass(/show/);
+
+    const invoiceRow = page.locator('.invoice-document-row').filter({
+      hasText: 'Débito provisório retificado'
+    }).first();
+    await expect(invoiceRow).toBeVisible();
+    await invoiceRow.getByRole('button', {
+      name: 'Visualizar pendência',
+      exact: true
+    }).click();
+
+    await expect(drawer).toBeVisible();
+    await expect(drawer).toContainText('Débito provisório retificado');
+    await expect(drawer).toContainText('R$ 215,75');
+    await expect(drawer).toContainText('REF-EXTRATO-01');
+
+    await drawer.getByRole('button', {
+      name: 'Editar detalhes da pendência',
+      exact: true
+    }).click();
+    await drawer.locator('#pendency-preview-observation')
+      .fill('Observação da Pendência retificada pelo usuário.');
+    await drawer.getByRole('button', { name: 'Salvar', exact: true }).click();
+    await expect(drawer).toContainText('Observação da Pendência retificada pelo usuário.');
+
+    const state = await page.evaluate(({ schoolId, compKey }) => {
+      const invoice = notasRegistradas.find(item => (
+        item.escolaId === schoolId
+        && item.compKey === compKey
+        && item.desc === 'Débito provisório retificado'
+      ));
+      const pendency = invoice
+        ? pendencias.find(item => (
+            String(item.registeredInvoiceId || item.registered_invoice_id || '')
+              === String(invoice.id)
+          ))
+        : null;
+      return {
+        invoiceId: invoice?.id || null,
+        type: invoice?.tipo || null,
+        amount: invoice?.valor ?? null,
+        reference: invoice?.numero || null,
+        pendencyId: pendency?.id || null,
+        pendencyStatus: pendency?.status || null,
+        pendencyObservation: pendency?.observacao || null
+      };
+    }, context);
+
+    expect(state.invoiceId).toBeTruthy();
+    expect(state.pendencyId).toBeTruthy();
+    expect(state).toMatchObject({
+      type: 'a_identificar',
+      amount: 215.75,
+      reference: 'REF-EXTRATO-01',
+      pendencyStatus: 'Aberta',
+      pendencyObservation: 'Observação da Pendência retificada pelo usuário.'
+    });
   });
 
   test('separa preparar comunicação de registrar contato efetivamente realizado', async ({ page, context }, testInfo) => {
