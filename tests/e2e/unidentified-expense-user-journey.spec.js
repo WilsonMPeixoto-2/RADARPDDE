@@ -142,6 +142,9 @@ test.describe('Jornada real — Despesa a identificar', () => {
       .fill('Débito localizado no extrato; aguardando documentação da unidade.');
     await expenseModal.getByRole('button', { name: 'Registrar Despesa', exact: true }).click();
     await expect(expenseModal).not.toHaveClass(/show/);
+    await expect(page.locator('#pendency-notice')).toHaveText(
+      'Despesa a identificar e Pendência registradas com sucesso.'
+    );
 
     const drawer = page.locator('#pendency-preview-drawer');
     await expect(drawer).toBeVisible();
@@ -190,6 +193,9 @@ test.describe('Jornada real — Despesa a identificar', () => {
       exact: true
     }).click();
     await expect(submissionModal).not.toHaveClass(/show/);
+    await expect(page.locator('#pendency-notice')).toHaveText(
+      'Despesa identificada e documento enviado para reanálise.'
+    );
 
     const waiting = page.locator('.invoice-reanalysis-status-button').filter({
       hasText: 'Aguardando reanálise'
@@ -213,6 +219,9 @@ test.describe('Jornada real — Despesa a identificar', () => {
       exact: true
     }).click();
     await expect(reanalysisModal).not.toHaveClass(/show/);
+    await expect(page.locator('#pendency-notice')).toHaveText(
+      'Reanálise registrada com sucesso.'
+    );
 
     const finalState = await page.evaluate(({ schoolId, compKey }) => {
       const invoice = notasRegistradas.find(item => (
