@@ -73,3 +73,14 @@ Production confirmado pelo manifesto público radar-build-manifest.json: commitS
 **NAV-01 — P1, filtro por unidade se perde ao abrir detalhe (observado):** vindo de Pendências Ativas → Ver todas as pendências desta escola, URL /pendencias?escola=04.31.017 exibe 4 registros e banner da escola. Clicar Ver detalhes da segunda linha abre a pendência correta, mas a lista de fundo passa a 142 registros/132 ativos e o banner desaparece; fechar mantém a fila ampla, embora URL ainda contenha escola. Não foi clicado Limpar filtro. Antes: evidência 13; depois: 14–15 e snapshot de DOM. Necessário reproduzir isoladamente e localizar causa; risco de perder contexto e atuar em outra unidade.
 
 Sem escrita de dados até este checkpoint. Próximo: contraprova de navegação e estado Aguardando reanálise em registro preexistente.
+
+## Checkpoint 5 — reanálise e contraprovas
+Status: parcial
+
+NAV-01 reproduzido novamente por seletores semânticos: voltar ao Prontuário → Ver todas as pendências desta escola → 4 registros → Ver detalhes → 142 registros/132 ativos. O filtro explícito no select Unidade escolar funciona para localizar outro registro; a perda observada é do filtro contextual de entrada.
+
+Reanálise inspecionada em despesa preexistente de outra unidade: Pendências Operacionais mostra Aguardando reanálise, Próxima ação Conferir o novo arquivo, responsável Controlador e botão Reanalisar. Modal abre com contexto e tentativa. Abrir no Prontuário conduz à linha destacada; Aguardando reanálise é botão roxo preenchido com ícone, distinto do badge estático Incorreto e da ação secundária Visualizar pendência. Enter abriu o modal; Escape fechou sem salvar. Evidências 16–17. Não afirmamos que este registro foi identificado nesta rodada nem que seu histórico inteiro foi reconstituído.
+
+**UX-06 — P2, reanálise tem baixa hierarquia do contexto (confirmado):** campos Estado/ator/erros/escola/competência/programa/data/observação aparecem como sequência vertical com peso semelhante, diferente dos agrupamentos visuais do formulário de identificação. Não exibe identidade individual (número/valor/descrição) da despesa no contexto mostrado. Recomendar agrupar contexto, último envio e decisão, incluindo identificação individual. Evidência 16.
+
+PR #374: diff restrito a operacional-write-feedback.js e asserts de mensagens na jornada E2E. Mensagens previstas: cadastro da despesa/Pendência, identificação + envio e reanálise registrada. Não modifica layout, schema ou transições; os achados de navegação/mobile não foram atribuídos a esse PR. Feedback real após salvar não executado pela restrição read-only.
