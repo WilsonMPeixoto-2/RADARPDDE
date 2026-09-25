@@ -53,3 +53,12 @@ Capturas locais 02–05 (desktop 1440×900) inspecionadas. Cadastro aberto e fec
 **UX-03 — P2, distinção dos registros provisórios (confirmado):** linhas existentes repetem Despesa a identificar como documento e tipo, com truncamento; descrição provisória só aparece após abrir drawer. Valor diferencia as linhas, mas falta pista textual da saída na listagem. Risco de abrir/editar registro errado quando valores forem próximos/iguais (cenário hipotético, não reproduzido). Recomendar descrição provisória como identificador primário e tipo como metadado único. Evidência 02.
 
 Retorno: Escape no editor fecha também o contexto de drawer já substituído e devolve foco a Visualizar pendência na linha; escola/programa e posição visível preservados. Para continuar identificando, é preciso reabrir drawer (+1 clique).
+
+## Checkpoint 3 — identificação e responsividade
+Status: parcial
+
+Identificação: modal mostra escola, competência, programa e documento; explica preservação da mesma despesa/Pendência e resultado de encaminhar à reanálise. Tipos finais só aparecem aqui; Boleto de Internet aparece desabilitado no programa examinado (fora de Educação Conectada). Formulário apenas aberto/fechado, sem alteração nem envio. Evidências 07–09. No mobile 390×844, formulário tem rolagem interna e rodapé acessível; cabeçalho/contexto ocupam quase toda primeira dobra, exigindo rolagem para preencher.
+
+**UX-04 — P1 na experiência móvel, drawer comprimido (confirmado):** em 390×844, painel da Pendência ocupa faixa estreita à direita (~160px visuais), com texto quebrado em poucas palavras por linha, cabeçalho parcialmente fora da área visível e ações apenas após rolagem. A ação principal chega a quatro linhas; observação/contexto/Próximo passo tornam a leitura excessivamente longa. Ações foram alcançadas com scroll, portanto não classificadas como inexistentes. Evidências 10-drawer-mobile.png e 11-drawer-mobile-acoes.png. Recomendar drawer ocupar largura útil da viewport móvel e cabeçalho/fechamento acessíveis. Verificar CSS responsável antes de corrigir.
+
+Editar detalhes: edição inline de motivo/observação, sem campos da despesa; não mostra Cancelar explícito, somente Salvar e fechar. Escape funcionou sem alterações e retornou à linha. Recomendar nome Editar motivo e observação da Pendência para antecipar a diferença. Evidência 06. Nenhum teste de descarte de dados alterados foi feito.
