@@ -210,6 +210,27 @@
         );
     }
 
+    function linkedInvoiceForRecord(record) {
+        const pendency = record?.pendency;
+        const invoiceId = pendency?.registeredInvoiceId || pendency?.registered_invoice_id;
+        if (!invoiceId) return null;
+        const state = root.RadarApplicationServices?.invoices?.getState?.();
+        return (state?.registeredInvoices || []).find(invoice => (
+            String(invoice.id) === String(invoiceId)
+        )) || null;
+    }
+
+    function isUnidentifiedExpenseRecord(record) {
+        return linkedInvoiceForRecord(record)?.tipo === 'a_identificar';
+    }
+
+    function nextActionLabel(record) {
+        if (record?.status === 'Aberta' && isUnidentifiedExpenseRecord(record)) {
+            return 'Enviar documento e identificar a despesa';
+        }
+        return record?.nextAction || '';
+    }
+
     function renderErrors(record, { full = false } = {}) {
         if (!record.errors.length) return '<span class="pendency-muted">Nenhum erro ativo</span>';
         const visible = full ? record.errors : record.errors.slice(0, 2);
@@ -242,8 +263,11 @@
         if (record.status === 'Aberta'
             && documentary
             && hasCapability(root.RadarAccessPolicy.CAPABILITIES.REGISTER_CORRECTIVE_SUBMISSION)) {
+            const actionLabel = isUnidentifiedExpenseRecord(record)
+                ? 'Registrar envio / identificação da despesa'
+                : 'Registrar novo envio';
             buttons.push(`
-                <button class="btn btn-primary btn-sm" data-action="register-corrective-submission" data-pendency-ref="${reference}" onclick="abrirModalRegistrarNovoEnvio(this)">Registrar novo envio</button>
+                <button class="btn btn-primary btn-sm" data-action="register-corrective-submission" data-pendency-ref="${reference}" onclick="abrirModalRegistrarNovoEnvio(this)">${escapeHtml(actionLabel)}</button>
             `);
         }
         if (record.status === 'Aguardando reanálise' && documentary && canReanalysePendency(record.pendency)) {
@@ -288,7 +312,7 @@
                 <td>${renderErrors(record)}</td>
                 <td><span class="badge ${getStatusBadgeClass(record.status)}">${escapeHtml(record.status)}</span></td>
                 <td>
-                    <strong>${escapeHtml(record.nextAction)}</strong>
+                    <strong>${escapeHtml(nextActionLabel(record))}</strong>
                     ${record.nextActor ? `<small>Responsável: ${escapeHtml(record.nextActor)}</small>` : ''}
                 </td>
                 <td>
@@ -329,7 +353,7 @@
                     <div><dt>Competência</dt><dd>${escapeHtml(formatCompetenciaText(record.competence))}</dd></div>
                     <div><dt>Programa</dt><dd>${escapeHtml(record.programName)}</dd></div>
                     <div><dt>Documento</dt><dd>${escapeHtml(record.documentName)}</dd></div>
-                    <div><dt>Próxima ação</dt><dd>${escapeHtml(record.nextAction)}</dd></div>
+                    <div><dt>Próxima ação</dt><dd>${escapeHtml(nextActionLabel(record))}</dd></div>
                     <div><dt>Tempo aguardando</dt><dd>${record.ageDays == null ? 'Não informado' : `${record.ageDays} dia${record.ageDays === 1 ? '' : 's'}`}</dd></div>
                     <div><dt>Tentativas</dt><dd>${record.attemptCount}</dd></div>
                 </dl>
