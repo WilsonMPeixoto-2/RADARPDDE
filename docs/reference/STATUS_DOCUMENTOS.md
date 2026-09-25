@@ -25,7 +25,8 @@ PR aberto, Preview ou documento antigo não altera Production.
 | docs/reference/SYSTEM_CANONICAL_MODEL.md | Canônico | autoridades, fluxos e invariantes |
 | docs/reference/PRODUCT_SURFACE_CATALOG.md | Referência vigente | superfícies e jornadas |
 | docs/CURRENT_STAGE.md | Canônico | estado ao vivo e prioridade |
-| docs/handoff/2026-09-19-performance-sync-modernization.md | Handoff corrente | checkpoint da modernização de performance/sincronização |
+| docs/handoff/2026-09-25-desktop-expense-journey.md | Handoff corrente | checkpoints da jornada desktop, PRs e verificações |
+| docs/handoff/2026-09-19-performance-sync-modernization.md | Handoff histórico concluído | modernização de performance/sincronização encerrada em 21/09 |
 | docs/decisions/ADR-054-sincronizacao-operacional-realtime.md | Decisão vigente | contrato de sincronização entre sessões |
 | docs/reference/ENGINEERING_METHOD.md | Canônico | método de engenharia |
 | docs/reference/FRONTEND_USER_VALIDATION_GATE.md | Canônico | prova de interface real |
@@ -36,7 +37,7 @@ PR aberto, Preview ou documento antigo não altera Production.
 
 ## 3. Baseline de Production
 
-O baseline funcional inclui os PRs #327, #329, #330, #331, #332, #336, #338, #339, #340, #341, com provas adicionais #342–#344. O #345 é fechamento documental e não altera runtime.
+Os registros abaixo são históricos da janela de 21/09, não a descrição da `main` nem uma confirmação de Production em 25/09. A `main` observada está em `bb724643` (#374), com o PR #375 aberto e em draft; consulte `docs/CURRENT_STAGE.md`.
 
 - baseline funcional/runtime conferido em 21/09 (#344): 75520d43a5ca9bc2607318cc6a70ba2a7494ca92;
 - Vercel correspondente ao #344: dpl_FHt2mSxrzWbq491y497RDCuf7LsN, READY;
@@ -44,7 +45,7 @@ O baseline funcional inclui os PRs #327, #329, #330, #331, #332, #336, #338, #33
 - migrations remotas: 54;
 - migration mais recente: 20260920013656_realtime_operational_invalidation;
 - #344: instrumentação de jornadas integrada sem alteração de runtime;
-- monitor, leitura autenticada e integridade agregada atuais SUCCESS, com runs vinculados no CURRENT_STAGE.
+- monitor, leitura autenticada e integridade agregada tiveram runs SUCCESS naquela janela; os vínculos estão no handoff histórico de performance/sincronização.
 
 Esse baseline substitui como estado corrente os handoffs centrados em PR #301/#305/#306. Esses documentos continuam válidos como histórico do momento em que foram produzidos.
 
@@ -52,18 +53,9 @@ Esse baseline substitui como estado corrente os handoffs centrados em PR #301/#3
 
 Handoff corrente:
 
-docs/handoff/2026-09-19-performance-sync-modernization.md
+docs/handoff/2026-09-25-desktop-expense-journey.md
 
-Ele consolida:
-
-- objetivo da rodada;
-- diagnóstico original;
-- PRs concluídos;
-- evidências de validação;
-- arquitetura vigente;
-- decisões finais de não implementação;
-- acompanhamento longitudinal não bloqueante;
-- critérios de encerramento atendidos.
+Ele consolida achados da jornada desktop, estado do PR #375, commits da continuação e critérios de verificação.
 
 ## 5. Handoffs anteriores
 

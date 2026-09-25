@@ -1,7 +1,7 @@
 # Documentação do RADAR PDDE
 
 **Classe documental:** Canônico — índice e rota de leitura  
-**Atualizado em:** 19 de setembro de 2026
+**Atualizado em:** 25 de setembro de 2026
 
 ## 1. Rota obrigatória
 
@@ -21,7 +21,7 @@ Ordem:
 10. ADRs e referências especializadas da área afetada;
 11. planos, auditorias, demais handoffs e evidências históricas apenas para compreender o seu momento/SHA.
 
-`CURRENT_STAGE.md` aponta explicitamente para o handoff corrente. Em 19/09/2026, a frente vigente é a modernização de performance e sincronização concluída até o PR #332; não usar handoffs antigos como fila de execução.
+`CURRENT_STAGE.md` aponta explicitamente para o handoff corrente. Em 25/09/2026, a frente é a jornada desktop de Despesa a identificar sobre o PR #375 ainda em draft; a modernização de performance e sincronização está encerrada e seu handoff é histórico.
 
 ## 2. Função de cada documento canônico/vigente
 
