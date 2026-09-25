@@ -7979,12 +7979,26 @@ function getFormattedPendencyData(p) {
     };
 }
 
+function getPendencyLinkedInvoice(pendency) {
+    const invoiceId = pendency?.registeredInvoiceId || pendency?.registered_invoice_id;
+    if (!invoiceId) return null;
+    return notasRegistradas.find(item => String(item.id) === String(invoiceId)) || null;
+}
+
+function isUnidentifiedExpensePendency(pendency) {
+    return getPendencyLinkedInvoice(pendency)?.tipo === 'a_identificar';
+}
+
 function getCorrectiveSubmissionActionLabel(pendency) {
     if (!hasRadarCapability(
         window.RadarAccessPolicy.CAPABILITIES.REGISTER_CORRECTIVE_SUBMISSION
     )) return '';
     if (!window.RadarPendencias.isDocumentaryPendency(pendency)) return '';
-    if (pendency.status === 'Aberta') return 'Registrar novo envio';
+    if (pendency.status === 'Aberta') {
+        return isUnidentifiedExpensePendency(pendency)
+            ? 'Registrar envio / identificação da despesa'
+            : 'Registrar novo envio';
+    }
     if (pendency.status === 'Aguardando reanálise') {
         return 'Registrar substituição mais recente';
     }
@@ -8687,9 +8701,9 @@ function abrirModalRegistrarNovoEnvio(pendencySource) {
     if (identificationContext.required) {
         const title = document.getElementById('modal-registrar-envio-title');
         const subtitle = document.querySelector('#modal-registrar-envio .modal-subtitle');
-        if (title) title.textContent = 'Identificar despesa e registrar novo envio';
+        if (title) title.textContent = 'Registrar envio e identificar despesa';
         if (subtitle) {
-            subtitle.textContent = 'Informe os dados do documento recebido. O RADAR atualizará a despesa existente e a encaminhará para reanálise, sem criar um novo lançamento.';
+            subtitle.textContent = 'Este é o primeiro documento que identifica a despesa provisória. O RADAR manterá o mesmo lançamento e a mesma Pendência e, em seguida, encaminhará o documento para reanálise.';
         }
     }
     document.getElementById('envio-contexto').innerHTML = `
@@ -9704,7 +9718,7 @@ function renderProntuario(escolaId) {
                                 type="button"
                                 id="prontuario-tab-pendencias"
                                 class="tab-button prontuario-flow-tab prontuario-tooltip"
-                                aria-label="Pendências Ativas (${pAtivas.length})"
+                                aria-label="Pendências Ativas desta unidade (${pAtivas.length})"
                                 data-tooltip="Abrir as pendências ativas desta unidade e as ações disponíveis para cada uma."
                                 data-tab="pendencias"
                                 role="tab"
@@ -9713,7 +9727,7 @@ function renderProntuario(escolaId) {
                                 tabindex="-1"
                                 onclick="switchSchoolTab(event, 'tab-pendencias')"
                                 onkeydown="handleSchoolTabKeydown(event)"
-                            >Pendências Ativas (${pAtivas.length})</button>
+                            >Pendências Ativas desta unidade (${pAtivas.length})</button>
                             <button
                                 type="button"
                                 id="prontuario-tab-contatos"
@@ -11034,7 +11048,7 @@ function closePendencyDrawer() {
 
 function pendencyDrawerDocumentMeta(pendency) {
     const invoiceId = pendency?.registeredInvoiceId || pendency?.registered_invoice_id;
-    const invoice = notasRegistradas.find(item => String(item.id) === String(invoiceId));
+    const invoice = getPendencyLinkedInvoice(pendency);
     if (invoice) {
         return {
             title: getInvoiceDocumentTitle(invoice),
@@ -11086,6 +11100,8 @@ function renderPendencyDrawer() {
             ? 'is-waiting'
             : 'is-closed';
     const documentary = window.RadarPendencias.isDocumentaryPendency(pendency);
+    const linkedInvoice = getPendencyLinkedInvoice(pendency);
+    const unidentifiedExpense = linkedInvoice?.tipo === 'a_identificar';
     const pendencyReference = encodePendencyIdReference(pendency.id);
     const canRegisterNext = !edit
         && pendency.status === 'Aberta'
@@ -11097,11 +11113,14 @@ function renderPendencyDrawer() {
         && pendency.status === 'Aguardando reanálise'
         && documentary
         && canReanalysePendency(pendency);
-    const nextStepCopy = canRegisterNext
-        ? 'Quando a documentação chegar, registre o novo envio nesta mesma Pendência. Se precisar falar com a unidade antes disso, use “Registrar contato” no Prontuário.'
-        : canReanalyseNext
-            ? 'O novo envio já foi registrado. O próximo passo é conferir o documento recebido e registrar o resultado da reanálise.'
-            : '';
+    const unidentifiedOpen = canRegisterNext && unidentifiedExpense;
+    const nextStepCopy = unidentifiedOpen
+        ? 'Quando a documentação chegar, registre o primeiro envio e identifique a natureza da despesa. O RADAR manterá o mesmo lançamento e a mesma Pendência.'
+        : canRegisterNext
+            ? 'Quando a documentação corrigida chegar, registre o novo envio nesta mesma Pendência. Se precisar falar com a unidade antes disso, use “Registrar contato” no Prontuário.'
+            : canReanalyseNext
+                ? 'O envio já foi registrado. O próximo passo é conferir o documento recebido e registrar o resultado da reanálise.'
+                : '';
 
     // eslint-disable-next-line nounsanitized/property -- valores dinâmicos do drawer são escapados com escapeHtml antes da interpolação; SVG e estrutura são estáticos.
     content.innerHTML = `
@@ -11122,6 +11141,27 @@ function renderPendencyDrawer() {
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M7 3v4M17 3v4M3.5 9h17"/></svg>
             <span>${escapeHtml(competence?.label || pendency.competenciaOrigem || pendency.competencia || '')} · ${escapeHtml(program?.name || pendency.programaId || '')}</span>
         </div>
+        ${unidentifiedExpense ? `
+            <section class="pendency-preview-provisional" aria-label="Dados provisórios da despesa">
+                <span class="pendency-preview-provisional-label">Dados provisórios</span>
+                <dl>
+                    <div>
+                        <dt>Descrição</dt>
+                        <dd>${escapeHtml(linkedInvoice?.desc || linkedInvoice?.descricao || '')}</dd>
+                    </div>
+                    <div>
+                        <dt>Valor</dt>
+                        <dd>${escapeHtml(formatInvoiceCurrency(linkedInvoice?.valor))}</dd>
+                    </div>
+                    ${linkedInvoice?.numero ? `
+                        <div>
+                            <dt>Referência</dt>
+                            <dd>${escapeHtml(linkedInvoice.numero)}</dd>
+                        </div>
+                    ` : ''}
+                </dl>
+            </section>
+        ` : ''}
         <div class="pendency-preview-field">
             <label for="pendency-preview-reason">Motivo</label>
             ${edit
@@ -11152,7 +11192,16 @@ function renderPendencyDrawer() {
                     data-action="register-corrective-submission"
                     data-pendency-ref="${escapeHtml(pendencyReference)}"
                     onclick="openPendencyDrawerWorkflowAction('register', this)"
-                >Registrar novo envio</button>
+                >${unidentifiedOpen ? 'Registrar envio / identificação da despesa' : 'Registrar novo envio'}</button>
+            ` : ''}
+            ${unidentifiedOpen ? `
+                <button
+                    type="button"
+                    class="btn btn-secondary pendency-preview-workflow-button"
+                    data-action="edit-unidentified-expense"
+                    data-pendency-ref="${escapeHtml(pendencyReference)}"
+                    onclick="openUnidentifiedExpensePendencyEdit(this)"
+                >Editar dados da despesa</button>
             ` : ''}
             ${canReanalyseNext ? `
                 <button
@@ -11166,7 +11215,7 @@ function renderPendencyDrawer() {
             <button type="button" class="pendency-preview-edit-button" onclick="handlePendencyDrawerPrimaryAction()">
                 ${edit
                     ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4 4L19 6.5"/></svg><span>Salvar</span>'
-                    : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg><span>Editar detalhes</span>'}
+                    : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg><span>Editar detalhes da pendência</span>'}
             </button>
         </div>
     `;
@@ -11188,6 +11237,27 @@ function openPendencyDrawerWorkflowAction(action, source) {
     if (action === 'register') return abrirModalRegistrarNovoEnvio(trigger);
     if (action === 'reanalyze') return abrirModalReanalisarPendencia(trigger);
     return false;
+}
+
+function openUnidentifiedExpensePendencyEdit(source) {
+    if (!source || !source.dataset?.pendencyRef) return false;
+    let pendencyId;
+    try {
+        pendencyId = decodePendencyIdReference(source.dataset.pendencyRef);
+    } catch (_error) {
+        return false;
+    }
+
+    const pendency = findPendencyById(pendencyId);
+    const invoice = getPendencyLinkedInvoice(pendency);
+    if (!pendency
+        || pendency.status !== 'Aberta'
+        || invoice?.tipo !== 'a_identificar') {
+        return false;
+    }
+
+    closePendencyDrawer();
+    return abrirEditarNota(invoice.id, invoice.escolaId);
 }
 
 function openPendencyDrawer(pendencyId) {
@@ -11521,6 +11591,8 @@ async function salvarDadosNota(e = {}) {
         const tipo = document.getElementById('nota-tipo').value;
         const numero = document.getElementById('nota-numero').value.trim();
         const valor = parseFloat(document.getElementById('nota-valor').value);
+        const provisionalObservation = document.getElementById('nota-unidentified-observation')
+            ?.value.trim() || '';
 
         try {
             const saveInput = {
@@ -11531,7 +11603,10 @@ async function salvarDadosNota(e = {}) {
                 expenseType: tipo,
                 invoiceNumber: numero,
                 amount: valor,
-                profile: accessProfile
+                profile: accessProfile,
+                ...(!notaId && tipo === 'a_identificar' && provisionalObservation
+                    ? { pendencyObservation: provisionalObservation }
+                    : {})
             };
             const result = !notaId && tipo === 'a_identificar'
                 ? await radarInvoiceService.saveUnidentifiedExpenseWithPendency(saveInput)
