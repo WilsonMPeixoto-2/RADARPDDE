@@ -12,7 +12,13 @@ Status: EM ANDAMENTO
 ## 1. Baseline
 Status: parcial
 
-Main confirmada. Estado detalhado do PR #374, documentação, testes e arquivos do fluxo pendentes de inspeção. SHA de Production informado pelo usuário coincide com main, mas publicação ainda não verificada nesta sessão.
+PR #374 confirmado merged em 2026-09-25T06:38:07Z; merge bb7246438b8c6b72ef068b21bb40d492a7049af2 coincide com main. Acesso autenticado ao frontend obtido, apresentação Controlador; não foi inspecionado JWT/papel efetivo. Clone local da branch disponível em work/RADARPDDE. Git localizado no runtime empacotado após checkpoint inicial.
+
+Documentação consultada: AGENTS.md, SYSTEM_CANONICAL_MODEL.md, PRODUCT_SURFACE_CATALOG.md, CURRENT_STAGE.md, handoff corrente de modernização, ENGINEERING_METHOD.md, FRONTEND_USER_VALIDATION_GATE.md, STATUS_DOCUMENTOS.md e matriz funcional.
+
+**D-01 — divergência documental de baseline (confirmada):** CURRENT_STAGE.md ainda descreve 6dd4b923 e PRs #370/#371 como baseline recente; a main e o PR #374 consultados ao vivo já apontam bb724643. Não confundir esse texto histórico com certificação atual de Production. Não é defeito funcional da interface.
+
+Arquivos centrais: src/integration/unidentified-expense-ux.js; task-9-pendencias-page.js; task-10-11-pendency-actions.js; src/application/pendency-service.js; src/styles/unidentified-expense-ux.css. Testes existentes: tests/e2e/unidentified-expense-user-journey.spec.js, unidentified-expense-identification-matrix.spec.js, tests/unit/unidentified-expense*.test.js, supabase/tests/database/unidentified-expense.test.sql. Existência não equivale a execução nesta rodada.
 
 ## 2. Jornada e regras no código
 Status: não iniciado
@@ -29,3 +35,8 @@ Status: não iniciado
 Status: parcial
 
 Nenhum achado de UX registrado ainda. Próximo passo: baseline do PR e acesso read-only à interface real. Feedback pós-gravação e transições mutáveis não serão executados em Production; exigem evidência existente ou ambiente seguro.
+
+## Checkpoint 1 — recuperação
+Status: parcial
+
+Frontend autenticado aberto na unidade com despesas provisórias em Agosto/2026. Captura desktop 1440×900 salva localmente em outputs/01-prontuario-desktop.png. Nenhuma gravação de negócio realizada. Próximo passo: abrir formulário de cadastro sem submeter e examinar drawer/edições/envio, usando registros existentes. SHA publicado ainda não confirmado independentemente.
