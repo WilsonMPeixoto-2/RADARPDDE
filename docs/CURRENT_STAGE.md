@@ -1,23 +1,28 @@
 # RADAR PDDE — Estado atual do projeto
 
 **Classe documental:** Canônico — estado mutável e retomada futura
-**Atualizado em:** 21 de setembro de 2026
+**Atualizado em:** 25 de setembro de 2026
 
 ## 1. Baseline vigente
 
-O baseline publicado incorpora a modernização de performance e sincronização concluída pelos PRs #327, #329, #330, #331, #332, #336, #338, #339, #340, #341, com provas adicionais nos #342–#344.
+A baseline publicada mais recente incorpora as correções funcionais e os refinamentos visuais dos PRs #370 e #371 **sobre** a arquitetura de performance/sincronização já consolidada nos PRs #327–#344.
 
-- **PR #344:** merged (instrumentação de jornadas e decisão quantitativa de arquitetura)
-- **baseline funcional/runtime medido (#344):** 75520d43a5ca9bc2607318cc6a70ba2a7494ca92
-- **Vercel Production correspondente ao #344:** dpl_FHt2mSxrzWbq491y497RDCuf7LsN, READY
-- **#345:** fechamento documental; não altera runtime, banco ou regras de negócio
-- **Supabase:** scnryinorqeucbfkioxo
-- **Supabase status:** ACTIVE_HEALTHY
-- **migrations remotas:** 54
-- **migration mais recente:** 20260920013656_realtime_operational_invalidation
-- **runtime:** o #344 não altera `src/`, banco, RLS ou artefato funcional; o monitor de Production permanece verde sobre o runtime consolidado no #343.
+- **PR #370:** merged — UX específica de `Despesa a identificar` alinhada ao fluxo funcional já existente, sem alteração de schema, RPC ou transições;
+- **PR #371:** merged — polimento visual global reaplicado sobre a baseline do #370, sem alteração de regras de negócio;
+- **main / Production:** `6dd4b92367dfa7f9f45e3a9db49ebde5b21807c7`;
+- **Vercel Production:** `dpl_6V1cQ9FvLdy9bQXgpd2TruxczT81`, READY, alias `radarpdde-fix.vercel.app`;
+- **manifesto Production:** `dataMode=supabase-production`, `supabaseRepositoryEnabled=true`, `productionActivationApproved=true`;
+- **Supabase:** `scnryinorqeucbfkioxo`;
+- **runtime errors após o deploy:** nenhum erro agrupado observado na janela de validação;
+- **árvore do merge #371:** idêntica à árvore do head homologado do PR.
+
+O fluxo específico vigente de `Despesa a identificar` preserva o mesmo lançamento e a mesma Pendência do cadastro provisório até a identificação. O primeiro documento usa **Registrar envio / identificação da despesa**; depois a Pendência entra em **Aguardando reanálise**, acessível tanto pelo Prontuário quanto pela página de Pendências. A retificação dos dados provisórios reutiliza a retificação auditável existente.
 
 Production continua em modo Supabase canônico. Não existe LocalStorage como banco operacional paralelo.
+
+### 1.1 Baseline arquitetural anterior preservada
+
+A modernização de performance e sincronização concluída pelos PRs #327, #329, #330, #331, #332, #336, #338, #339, #340 e #341, com provas adicionais nos #342–#344, permanece vigente. O baseline medido no #344 foi `75520d43a5ca9bc2607318cc6a70ba2a7494ca92`; os PRs posteriores preservaram seus invariantes de RLS set-based, prioridade de gravação, cancelamento de leitura obsoleta, Realtime por invalidação e proteção durante edição.
 
 ## 2. Objetivo da rodada concluída
 
