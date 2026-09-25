@@ -121,15 +121,25 @@ test.describe('Jornada real — Despesa a identificar', () => {
       name: 'Registrar despesa a identificar',
       exact: true
     })).toBeVisible();
-    await expect(expenseModal.locator('#nota-modal-intro')).toContainText('Não invente');
+    await expect(expenseModal.locator('#nota-modal-intro'))
+      .toContainText('classificará automaticamente');
+    await expect(expenseModal.locator('[data-unidentified-expense-classification]'))
+      .toBeVisible();
+    await expect(expenseModal.locator('[data-unidentified-expense-classification]'))
+      .toContainText('Despesa a identificar');
+    await expect(expenseModal.locator('#nota-tipo')).toHaveValue('a_identificar');
+    await expect(expenseModal.locator('#nota-tipo')).toBeDisabled();
+    await expect(expenseModal.locator('#nota-tipo')).not.toBeVisible();
     await expect(expenseModal.getByLabel(
-      'Número da Nota Fiscal (opcional neste estágio)',
+      'Referência provisória (opcional)',
       { exact: true }
     )).not.toHaveAttribute('required', '');
 
-    await expenseModal.getByLabel('Descrição do Gasto', { exact: true })
+    await expenseModal.getByLabel('Descrição provisória da saída', { exact: true })
       .fill('Débito visto no extrato; documento ainda não recebido');
     await expenseModal.getByLabel('Valor do Gasto (R$)', { exact: true }).fill('123.45');
+    await expenseModal.getByLabel('Observação', { exact: true })
+      .fill('Débito localizado no extrato; aguardando documentação da unidade.');
     await expenseModal.getByRole('button', { name: 'Registrar Despesa', exact: true }).click();
     await expect(expenseModal).not.toHaveClass(/show/);
 
@@ -139,7 +149,7 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await expect(drawer).toContainText('Quando a documentação chegar');
     await attachScreenshot(page, testInfo, '02-pendencia-proximo-passo');
     const newSubmission = drawer.getByRole('button', {
-      name: 'Registrar novo envio',
+      name: 'Registrar envio / identificação da despesa',
       exact: true
     });
     await expect(newSubmission).toBeVisible();
@@ -148,7 +158,7 @@ test.describe('Jornada real — Despesa a identificar', () => {
     const submissionModal = page.locator('#modal-registrar-envio');
     await expect(submissionModal).toHaveClass(/show/);
     await expect(submissionModal.getByRole('heading', {
-      name: 'Identificar despesa e registrar novo envio',
+      name: 'Registrar envio e identificar despesa',
       exact: true
     })).toBeVisible();
     await expect(submissionModal.locator('.modal-subtitle')).toContainText(
@@ -157,7 +167,7 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await settleVisualState(page);
     await expect(submissionModal).toHaveClass(/show/);
     await expect(submissionModal.getByRole('heading', {
-      name: 'Identificar despesa e registrar novo envio',
+      name: 'Registrar envio e identificar despesa',
       exact: true
     })).toBeVisible();
     await attachScreenshot(page, testInfo, '03-identificar-despesa-novo-envio');
