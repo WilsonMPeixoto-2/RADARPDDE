@@ -75,12 +75,67 @@
         return hint;
     }
 
+    function ensureAutomaticClassificationNotice(modal) {
+        if (!modal) return null;
+        let notice = modal.querySelector('[data-unidentified-expense-classification]');
+        if (notice) return notice;
+
+        notice = root.document.createElement('section');
+        notice.className = 'unidentified-expense-classification';
+        notice.dataset.unidentifiedExpenseClassification = 'true';
+        notice.hidden = true;
+        notice.innerHTML = `
+            <span class="unidentified-expense-classification-label">Classificação automática</span>
+            <strong>Despesa a identificar</strong>
+            <small>A natureza do gasto só será definida quando o primeiro documento for recebido.</small>
+        `;
+        const intro = root.document.getElementById('nota-modal-intro');
+        if (intro?.parentNode) intro.insertAdjacentElement('afterend', notice);
+        return notice;
+    }
+
+    function syncUnidentifiedPresentation({
+        modal,
+        select,
+        unidentified,
+        invoiceId
+    }) {
+        const typeRow = select?.closest('.form-row') || select?.closest('.form-group');
+        if (typeRow) typeRow.hidden = unidentified;
+
+        const notice = ensureAutomaticClassificationNotice(modal);
+        if (notice) notice.hidden = !unidentified;
+
+        const observationGroup = root.document.getElementById(
+            'nota-unidentified-observation-group'
+        );
+        const observationInput = root.document.getElementById(
+            'nota-unidentified-observation'
+        );
+        const creatingUnidentified = unidentified && !invoiceId;
+        if (observationGroup) observationGroup.hidden = !creatingUnidentified;
+        if (!creatingUnidentified && observationInput) observationInput.value = '';
+
+        if (select) {
+            if (unidentified) {
+                select.disabled = true;
+                select.setAttribute('aria-hidden', 'true');
+            } else {
+                select.removeAttribute('aria-hidden');
+                if (select.dataset.auditableRetificationLocked !== 'true') {
+                    select.disabled = false;
+                }
+            }
+        }
+    }
+
     function syncModalFields() {
         const select = ensureTypeOption();
         const numberInput = root.document.getElementById('nota-numero');
         if (!select || !numberInput) return false;
 
         const label = root.document.querySelector('label[for="nota-numero"]');
+        const descriptionLabel = root.document.querySelector('label[for="nota-desc"]');
         const hint = ensureHint(numberInput);
         const modal = root.document.getElementById('modal-dados-nota');
         const description = root.document.getElementById('nota-desc');
@@ -95,6 +150,13 @@
         if (!unidentifiedAllowed && select.value === TYPE) select.value = 'consumo';
         const unidentified = unidentifiedAllowed && select.value === TYPE;
 
+        syncUnidentifiedPresentation({
+            modal,
+            select,
+            unidentified,
+            invoiceId
+        });
+
         numberInput.required = !unidentified;
         numberInput.setAttribute('aria-required', unidentified ? 'false' : 'true');
         numberInput.placeholder = unidentified
@@ -102,10 +164,20 @@
             : DEFAULT_NUMBER_PLACEHOLDER;
         if (label) {
             label.textContent = unidentified
-                ? 'Número da Nota Fiscal (opcional neste estágio)'
+                ? 'Referência provisória (opcional)'
                 : 'Número da Nota Fiscal';
         }
-        if (hint) hint.hidden = !unidentified;
+        if (descriptionLabel) {
+            descriptionLabel.textContent = unidentified
+                ? 'Descrição provisória da saída'
+                : 'Descrição do Gasto';
+        }
+        if (hint) {
+            hint.hidden = !unidentified;
+            if (unidentified) {
+                hint.textContent = 'Não informe natureza do gasto ou número de Nota Fiscal sem documentação. A classificação permanece automaticamente como “Despesa a identificar”.';
+            }
+        }
         if (description) {
             description.placeholder = unidentified
                 ? UNIDENTIFIED_DESCRIPTION_PLACEHOLDER
@@ -119,7 +191,7 @@
         }
         if (intro) {
             intro.textContent = unidentified
-                ? 'Registre apenas o que já é conhecido sobre a saída observada no extrato. Não invente a natureza da despesa nem o número da Nota Fiscal: o RADAR criará uma Pendência para identificação quando a documentação chegar.'
+                ? 'Registre apenas os dados já conhecidos sobre a saída observada no extrato. O RADAR classificará automaticamente este lançamento como “Despesa a identificar” e abrirá a Pendência correspondente.'
                 : 'Cadastre o gasto referente a esta Nota Fiscal para que o sistema direcione as obrigações operacionais corretas.';
         }
         if (submit) {
