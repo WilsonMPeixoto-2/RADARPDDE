@@ -285,7 +285,13 @@ async function createInvoiceUI(page, { type, number, description, amount = '250'
   }
   const modal = page.locator('#modal-dados-nota');
   await expect(modal).toHaveClass(/show/);
-  await modal.locator('#nota-tipo').selectOption(type);
+  if (type === 'a_identificar') {
+    await expect(modal.locator('#nota-tipo')).toHaveValue('a_identificar');
+    await expect(modal.locator('#nota-tipo')).toBeDisabled();
+    await expect(modal.locator('#nota-tipo')).not.toBeVisible();
+  } else {
+    await modal.locator('#nota-tipo').selectOption(type);
+  }
   await modal.locator('#nota-desc').fill(description);
   if (number) await modal.locator('#nota-numero').fill(number);
   await modal.locator('#nota-valor').fill(amount);
@@ -394,7 +400,10 @@ async function submitIdentifyingPendencyUI(page, pendency, {
     await row.getByRole('button', { name: 'Ver detalhes', exact: true }).click();
     await expect(drawer).toBeVisible();
   }
-  await drawer.getByRole('button', { name: 'Registrar novo envio', exact: true }).click();
+  await drawer.getByRole('button', {
+    name: 'Registrar envio / identificação da despesa',
+    exact: true
+  }).click();
 
   const modal = page.locator('#modal-registrar-envio');
   await expect(modal).toHaveClass(/show/);
@@ -636,7 +645,12 @@ test.describe('Formulários operacionais com banco real', () => {
     await page.locator('#form-dados-nota button[type="submit"]').click();
     await expect(page.locator('#modal-dados-nota')).not.toHaveClass(/show/);
     expect((await remoteRows(page, 'pendencies', { id: pending.id }))[0].registered_invoice_id).toBe(invoice.id);
-    await submitPendencyUI(page, pending, true);
+    await submitIdentifyingPendencyUI(page, pending, {
+      expenseType: 'consumo',
+      invoiceNumber: `NF-RET-ID-${testInfo.retry}`,
+      description: 'Débito retificado e identificado como material de consumo',
+      amount: 850
+    });
     const identified = (await remoteRows(page, 'registered_invoices', { id: invoice.id }))[0];
     expect(identified.expense_type).toBe('consumo');
     expect(identified.payload.analiseDocumentoFiscal).toBe('Não analisado');

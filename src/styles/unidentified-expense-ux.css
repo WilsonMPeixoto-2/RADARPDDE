@@ -44,3 +44,84 @@
     border-style: dashed;
     font-weight: 600;
 }
+
+
+.unidentified-expense-classification {
+    display: grid;
+    gap: 4px;
+    margin: 0 0 16px;
+    padding: 14px 16px;
+    border: 1px solid rgba(91, 33, 182, 0.16);
+    border-radius: 12px;
+    background: rgba(91, 33, 182, 0.055);
+}
+
+.unidentified-expense-classification[hidden] {
+    display: none;
+}
+
+.unidentified-expense-classification-label {
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.055em;
+    text-transform: uppercase;
+}
+
+.unidentified-expense-classification strong {
+    color: #5b21b6;
+    font-size: 0.92rem;
+    line-height: 1.25;
+}
+
+.unidentified-expense-classification small {
+    color: var(--text-muted);
+    font-size: 0.74rem;
+    line-height: 1.45;
+}
+
+
+.pendency-preview-provisional {
+    display: grid;
+    gap: 8px;
+    padding: 12px 14px;
+    border: 1px solid rgba(91, 33, 182, 0.14);
+    border-radius: 11px;
+    background: rgba(91, 33, 182, 0.035);
+}
+
+.pendency-preview-provisional-label {
+    color: var(--text-muted);
+    font-size: 0.67rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.pendency-preview-provisional dl {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+}
+
+.pendency-preview-provisional dl > div {
+    display: grid;
+    gap: 2px;
+}
+
+.pendency-preview-provisional dt {
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    font-weight: 650;
+}
+
+.pendency-preview-provisional dd {
+    margin: 0;
+    color: var(--text);
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+#modal-dados-nota .form-row[hidden] {
+    display: none;
+}

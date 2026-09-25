@@ -418,7 +418,7 @@
             hint.className = 'form-hint';
             hint.dataset.auditableRetificationTypeHint = 'true';
             hint.textContent = normalizeType(invoice.tipo) === UNIDENTIFIED_EXPENSE_TYPE
-                ? 'O tipo permanece “A identificar”. A identificação da natureza ocorre somente em “Registrar novo envio”.'
+                ? 'O tipo permanece “A identificar”. A natureza será definida somente em “Registrar envio / identificação da despesa”.'
                 : 'O tipo do gasto fica bloqueado para preservar a identidade e as regras do histórico desta Pendência.';
             group.appendChild(hint);
         }
