@@ -24,6 +24,17 @@
         return (collection || []).filter(item => String(item?.escolaId || '') === String(schoolId));
     }
 
+    function syncPendencyPageSchoolFilter(root, schoolId) {
+        const api = root?.RadarTask9PendencyPage;
+        if (!api || typeof api.setSchoolFilter !== 'function') return false;
+        const target = String(schoolId || '');
+        const current = String(api.getState?.().filters?.schoolId || '');
+        if (current !== target) {
+            api.setSchoolFilter(target, { render: false });
+        }
+        return true;
+    }
+
     function buildSchoolHref(schoolId, section = null) {
         if (!routesApi) return '/dashboard';
         return routesApi.buildRoute({
@@ -225,6 +236,7 @@
                 activePendencySchoolFilter = resolved.view === 'pendencias'
                     ? (resolved.filters?.escola || null)
                     : null;
+                syncPendencyPageSchoolFilter(root, activePendencySchoolFilter);
                 originalSwitchView(resolved.view, resolved.param);
                 if (resolved.view === 'prontuario' && resolved.section === 'pendencias') {
                     originalActivateProntuarioTab?.('tab-pendencias');
@@ -241,6 +253,7 @@
         root.switchView = function navigationAwareSwitchView(view, param = null) {
             if (!navigationApplying) {
                 activePendencySchoolFilter = null;
+                syncPendencyPageSchoolFilter(root, '');
             }
             const result = originalSwitchView(view, param);
             decorateSchoolLinks(document);
@@ -248,20 +261,11 @@
         };
 
         if (originalRenderPendencias) {
-            root.renderPendencias = function renderFilteredPendencias() {
-                const fullCollection = getPendencies();
-                const filteredCollection = filterPendenciesBySchool(
-                    fullCollection,
-                    activePendencySchoolFilter
-                );
-                const replaced = filteredCollection !== fullCollection && setPendencies(filteredCollection);
-                try {
-                    return originalRenderPendencias();
-                } finally {
-                    if (replaced) setPendencies(fullCollection);
-                    renderPendencyFilterBanner();
-                    decorateSchoolLinks(document);
-                }
+            root.renderPendencias = function renderRoutedPendencias() {
+                syncPendencyPageSchoolFilter(root, activePendencySchoolFilter);
+                const result = originalRenderPendencias();
+                decorateSchoolLinks(document);
+                return result;
             };
             try { renderPendencias = root.renderPendencias; } catch (_error) { /* browser global fallback */ }
         }
@@ -329,6 +333,7 @@
 
     return Object.freeze({
         filterPendenciesBySchool,
+        syncPendencyPageSchoolFilter,
         buildSchoolHref,
         extractSchoolIdFromOnclick,
         shouldHandleInternalClick,
