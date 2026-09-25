@@ -9734,7 +9734,7 @@ function renderProntuario(escolaId) {
                                 type="button"
                                 id="prontuario-tab-pendencias"
                                 class="tab-button prontuario-flow-tab prontuario-tooltip"
-                                aria-label="Pendências ativas desta escola (${pAtivas.length})"
+                                aria-label="Pendências Ativas desta unidade (${pAtivas.length})"
                                 data-tooltip="Abrir pendências ativas desta escola e as ações disponíveis. A fila completa fica em Pendências operacionais."
                                 data-tab="pendencias"
                                 role="tab"
@@ -9743,7 +9743,7 @@ function renderProntuario(escolaId) {
                                 tabindex="-1"
                                 onclick="switchSchoolTab(event, 'tab-pendencias')"
                                 onkeydown="handleSchoolTabKeydown(event)"
-                            >Pendências ativas (${pAtivas.length})</button>
+                            >Pendências Ativas desta unidade (${pAtivas.length})</button>
                             <button
                                 type="button"
                                 id="prontuario-tab-contatos"
