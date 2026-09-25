@@ -4018,6 +4018,22 @@ button.invoice-document-status {
     height: 19px;
 }
 
+@media (max-width: 720px) {
+    .pendency-preview-drawer {
+        width: 100%;
+        max-width: 100%;
+        border-left: 0;
+    }
+
+    #pendency-preview-content {
+        padding: 20px max(18px, env(safe-area-inset-right)) 22px max(18px, env(safe-area-inset-left));
+    }
+
+    .pendency-preview-header {
+        gap: 12px;
+    }
+}
+
 body.dark-theme .invoice-document-panel {
     --invoice-surface: #151022;
     --invoice-stripe: #191328;
