@@ -27,9 +27,10 @@ Esta versão foi reconstruída source-first, confrontando documentação, códig
 
 ### Código e deployment
 
-- `main` verificada em `6dd4b92367dfa7f9f45e3a9db49ebde5b21807c7`;
-- Vercel Production verificada como `READY` no mesmo SHA;
+- baseline de **runtime** homologada e publicada: `6dd4b92367dfa7f9f45e3a9db49ebde5b21807c7`;
+- Vercel Production verificada como `READY` nessa baseline de runtime;
 - deployment observado: `dpl_6V1cQ9FvLdy9bQXgpd2TruxczT81`;
+- a `main` pode estar à frente desse SHA por commits exclusivamente documentais; revalidar o head ao vivo quando o SHA da documentação for material;
 - o merge do PR #370 consolidou a UX específica de `a_identificar` sem alterar domínio, schema, RPC ou transições;
 - o merge do PR #371 aplicou apenas polimento visual sobre essa baseline e tem árvore Git idêntica à homologada no PR.
 
