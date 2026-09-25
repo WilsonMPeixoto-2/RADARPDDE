@@ -217,7 +217,7 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await expect(reanalysisModal.locator('.reanalysis-document-identity'))
       .toContainText('Material de consumo identificado');
     await expect(reanalysisModal.locator('#reanalisar-tentativa-atual'))
-      .toContainText('05/2026');
+      .toContainText('Maio/2026');
     await reanalysisModal.getByLabel('Resultado da reanálise', { exact: true })
       .selectOption('correto');
     await reanalysisModal.getByLabel('Observação da análise', { exact: true })
