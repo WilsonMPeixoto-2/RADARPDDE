@@ -11215,7 +11215,7 @@ function renderPendencyDrawer() {
             <button type="button" class="pendency-preview-edit-button" onclick="handlePendencyDrawerPrimaryAction()">
                 ${edit
                     ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4 4L19 6.5"/></svg><span>Salvar</span>'
-                    : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg><span>Editar detalhes da pendência</span>'}
+                    : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg><span>Editar detalhes</span>'}
             </button>
         </div>
     `;
