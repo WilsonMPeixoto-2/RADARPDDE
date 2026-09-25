@@ -62,3 +62,14 @@ Identificação: modal mostra escola, competência, programa e documento; explic
 **UX-04 — P1 na experiência móvel, drawer comprimido (confirmado):** em 390×844, painel da Pendência ocupa faixa estreita à direita (~160px visuais), com texto quebrado em poucas palavras por linha, cabeçalho parcialmente fora da área visível e ações apenas após rolagem. A ação principal chega a quatro linhas; observação/contexto/Próximo passo tornam a leitura excessivamente longa. Ações foram alcançadas com scroll, portanto não classificadas como inexistentes. Evidências 10-drawer-mobile.png e 11-drawer-mobile-acoes.png. Recomendar drawer ocupar largura útil da viewport móvel e cabeçalho/fechamento acessíveis. Verificar CSS responsável antes de corrigir.
 
 Editar detalhes: edição inline de motivo/observação, sem campos da despesa; não mostra Cancelar explícito, somente Salvar e fechar. Escape funcionou sem alterações e retornou à linha. Recomendar nome Editar motivo e observação da Pendência para antecipar a diferença. Evidência 06. Nenhum teste de descarte de dados alterados foi feito.
+
+## Checkpoint 4 — comparação entre superfícies
+Status: parcial
+
+Production confirmado pelo manifesto público radar-build-manifest.json: commitSha bb7246438b8c6b72ef068b21bb40d492a7049af2, vercelEnvironment/runtimeEnvironment production, dataMode supabase-production. Coincide com main e merge #374.
+
+**UX-05 — P2, identificação insuficiente entre superfícies:** Pendências Ativas mostra descrição/observação mas omite programa e valor nas linhas; Pendências Operacionais mostra programa e documento genérico Notas Fiscais, mas omite descrição/valor na lista. Há duas linhas do mesmo programa com informação aparente igual. Drawer operacional mostra a observação da mesma despesa examinada, porém Próxima ação usa Entregar ou corrigir o documento enquanto a lista usa Enviar documento e identificar a despesa. Recomendar identidade compacta consistente e mesma próxima ação no detalhe. Evidências 12–14.
+
+**NAV-01 — P1, filtro por unidade se perde ao abrir detalhe (observado):** vindo de Pendências Ativas → Ver todas as pendências desta escola, URL /pendencias?escola=04.31.017 exibe 4 registros e banner da escola. Clicar Ver detalhes da segunda linha abre a pendência correta, mas a lista de fundo passa a 142 registros/132 ativos e o banner desaparece; fechar mantém a fila ampla, embora URL ainda contenha escola. Não foi clicado Limpar filtro. Antes: evidência 13; depois: 14–15 e snapshot de DOM. Necessário reproduzir isoladamente e localizar causa; risco de perder contexto e atuar em outra unidade.
+
+Sem escrita de dados até este checkpoint. Próximo: contraprova de navegação e estado Aguardando reanálise em registro preexistente.
