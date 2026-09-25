@@ -40,3 +40,16 @@ Nenhum achado de UX registrado ainda. Próximo passo: baseline do PR e acesso re
 Status: parcial
 
 Frontend autenticado aberto na unidade com despesas provisórias em Agosto/2026. Captura desktop 1440×900 salva localmente em outputs/01-prontuario-desktop.png. Nenhuma gravação de negócio realizada. Próximo passo: abrir formulário de cadastro sem submeter e examinar drawer/edições/envio, usando registros existentes. SHA publicado ainda não confirmado independentemente.
+
+## Checkpoint 2 — cadastro, drawer e edição
+Status: parcial
+
+Capturas locais 02–05 (desktop 1440×900) inspecionadas. Cadastro aberto e fechado por Escape sem preencher/submeter; foco retornou ao botão de origem. Drawer abriu com estado Aberta, competência/programa, dados provisórios, motivo, observação, data e Próximo passo. Identificação é o botão preenchido principal; edições têm peso secundário.
+
+**UX-01 — P2, texto de criação dentro da edição (confirmado):** Editar dados da despesa abre título Editar despesa a identificar e botão Salvar Alterações, mas a introdução promete que o RADAR 'abrirá a Pendência correspondente', embora o usuário esteja editando um registro já vinculado. Risco: receio de duplicidade e confusão entre retificar e registrar. Recomendar texto específico de edição, afirmando preservação da despesa e da Pendência. Evidência 05-editar-despesa-texto-criacao.png. Nenhuma duplicação real foi executada ou constatada.
+
+**UX-02 — P2, contexto incompleto nos overlays (confirmado nas telas inspecionadas):** drawer informa competência e programa, mas não repete a unidade escolar; cadastro/edição não exibem resumo de escola, competência e programa. O fundo escurecido não oferece confirmação confiável, sobretudo em mobile. Recomendar resumo contextual compacto nos próprios overlays. Evidências 03–05.
+
+**UX-03 — P2, distinção dos registros provisórios (confirmado):** linhas existentes repetem Despesa a identificar como documento e tipo, com truncamento; descrição provisória só aparece após abrir drawer. Valor diferencia as linhas, mas falta pista textual da saída na listagem. Risco de abrir/editar registro errado quando valores forem próximos/iguais (cenário hipotético, não reproduzido). Recomendar descrição provisória como identificador primário e tipo como metadado único. Evidência 02.
+
+Retorno: Escape no editor fecha também o contexto de drawer já substituído e devolve foco a Visualizar pendência na linha; escola/programa e posição visível preservados. Para continuar identificando, é preciso reabrir drawer (+1 clique).
