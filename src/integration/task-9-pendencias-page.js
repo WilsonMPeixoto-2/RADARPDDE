@@ -604,6 +604,22 @@
         return chips.length ? `<div class="pendency-filter-chips" aria-label="Filtros aplicados">${chips.join('')}</div>` : '';
     }
 
+    function renderSchoolFilterBanner(model) {
+        const schoolId = String(pageState.filters.schoolId || '').trim();
+        if (!schoolId) return '';
+        const schoolOption = getFilterOptions(model).schools
+            .find(option => String(option.value) === schoolId);
+        const label = schoolOption?.label || schoolId;
+        return `
+            <section class="panel-card" data-radar-pendency-school-filter="true" style="margin-bottom: 18px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+                    <p style="margin:0;"><strong>Filtro por unidade: </strong>${escapeHtml(label)}</p>
+                    <a class="btn btn-secondary btn-sm" href="/pendencias" data-radar-route="true">Limpar filtro</a>
+                </div>
+            </section>
+        `;
+    }
+
     function renderFilters(model) {
         const options = getFilterOptions(model);
         const activeCount = getActiveFilterCount();
@@ -912,6 +928,8 @@
                 </div>
             </div>
 
+            ${renderSchoolFilterBanner(model)}
+
             ${renderFilters(model)}
 
             <div class="pendency-tabs" role="tablist" aria-label="Situações das pendências">
@@ -983,6 +1001,12 @@
         if (!Object.prototype.hasOwnProperty.call(DEFAULT_FILTERS, name)) return false;
         pageState.filters[name] = value || '';
         renderPendenciasTask9();
+        return true;
+    }
+
+    function setPendencySchoolFilter(schoolId, options = {}) {
+        pageState.filters.schoolId = String(schoolId || '').trim();
+        if (options.render !== false) renderPendenciasTask9();
         return true;
     }
 
@@ -1252,6 +1276,7 @@
             VERSION: '1.2.0',
             requestedHistoryStatuses,
             getFilterSummary: () => getFilterSummary(getPageModel()),
+            setSchoolFilter: setPendencySchoolFilter,
             getState: () => ({
                 activeTab: pageState.activeTab,
                 filters: { ...pageState.filters },
