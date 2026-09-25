@@ -165,7 +165,7 @@ test.describe('Prontuário operacional no desktop', () => {
     });
     expect(labels).toEqual([
       'Competências e Análises',
-      expect.stringMatching(/^Pendências Ativas \(\d+\)$/),
+      expect.stringMatching(/^Pendências Ativas desta unidade \(\d+\)$/),
       'Gerar comunicação',
       'Registrar contato',
       'Histórico de Contatos',
