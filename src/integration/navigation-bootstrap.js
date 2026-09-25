@@ -136,14 +136,6 @@
             }
         }
 
-        function getPendencies() {
-            try {
-                return typeof pendencias !== 'undefined' && Array.isArray(pendencias) ? pendencias : [];
-            } catch (_error) {
-                return [];
-            }
-        }
-
         function currentSchoolId() {
             try {
                 return typeof activeSchoolId !== 'undefined' ? activeSchoolId : null;
@@ -158,44 +150,6 @@
             } catch (_error) {
                 return null;
             }
-        }
-
-        function renderPendencyFilterBanner() {
-            if (!activePendencySchoolFilter) return;
-            const container = document.getElementById('main-container');
-            if (!container || container.querySelector('[data-radar-pendency-school-filter]')) return;
-            const school = getSchools().find(item => item.id === activePendencySchoolFilter);
-            const banner = document.createElement('section');
-            banner.className = 'panel-card';
-            banner.dataset.radarPendencySchoolFilter = 'true';
-            banner.style.marginBottom = '18px';
-
-            const row = document.createElement('div');
-            row.style.display = 'flex';
-            row.style.alignItems = 'center';
-            row.style.justifyContent = 'space-between';
-            row.style.gap = '16px';
-            row.style.flexWrap = 'wrap';
-
-            const text = document.createElement('p');
-            text.style.margin = '0';
-            const strong = document.createElement('strong');
-            strong.textContent = 'Filtro por unidade: ';
-            text.append(strong, document.createTextNode(
-                school
-                    ? `${school.denominação || school.denominacao || school.id} (${school.designação || school.designacao || school.id})`
-                    : activePendencySchoolFilter
-            ));
-
-            const clearLink = document.createElement('a');
-            clearLink.className = 'btn btn-secondary btn-sm';
-            clearLink.href = '/pendencias';
-            clearLink.dataset.radarRoute = 'true';
-            clearLink.textContent = 'Limpar filtro';
-
-            row.append(text, clearLink);
-            banner.appendChild(row);
-            container.prepend(banner);
         }
 
         function addProntuarioPendencyLink(schoolId) {
