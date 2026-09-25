@@ -121,3 +121,7 @@
     font-size: 0.8rem;
     line-height: 1.4;
 }
+
+#modal-dados-nota .form-row[hidden] {
+    display: none;
+}
