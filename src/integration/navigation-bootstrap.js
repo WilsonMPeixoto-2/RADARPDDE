@@ -144,15 +144,6 @@
             }
         }
 
-        function setPendencies(value) {
-            try {
-                pendencias = value;
-                return true;
-            } catch (_error) {
-                return false;
-            }
-        }
-
         function currentSchoolId() {
             try {
                 return typeof activeSchoolId !== 'undefined' ? activeSchoolId : null;
