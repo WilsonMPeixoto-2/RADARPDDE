@@ -11,9 +11,9 @@
 
 ## Frente ativa: auditoria da jornada desktop de Despesa a identificar
 
-O PR [#375](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/375) está **aberto e em draft** no head `49e94a998dfc096f0912b8ad78c27b07f16a0d7c`, base `main`. Trata NAV-01 (filtro de escola em Pendências) e UX-04 (largura do drawer mobile). O próprio PR condiciona merge e Production à validação do Preview pelo responsável pelo produto. Não tratá-lo como integrado nem promovê-lo antes disso.
+O PR [#375](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/375) está **aberto e em draft** no head `b1b115be3bc5041e7a514d5745e6291a4324381b`, base `main`. Trata NAV-01 (filtro de escola em Pendências) e UX-04 (largura do drawer mobile); o último commit corrige a fixture desktop do teste NAV-01, que começava sem Pendências. O próprio PR condiciona merge e Production à validação do Preview pelo responsável pelo produto. Não tratá-lo como integrado nem promovê-lo antes disso.
 
-A continuação dos achados UX-01, UX-02, UX-03, UX-05, UX-06 e D-01 está no PR [#376](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/376), **draft, empilhado sobre a branch do #375**. O primeiro checkpoint remoto de implementação é `a2915d2d1aadb08b128b88d4e810c082eb8923b2`; o checkpoint documental e o CI do head devem ser confirmados pelo handoff. O foco de aceitação é desktop. Esta frente modifica apenas apresentação, cópia e contexto visual, preservando o mesmo lançamento, a mesma Pendência, as transições e os serviços existentes.
+A continuação dos achados UX-01, UX-02, UX-03, UX-05, UX-06 e D-01 está no PR [#376](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/376), **draft, empilhado sobre a branch do #375**. O primeiro checkpoint remoto de implementação é `a2915d2d1aadb08b128b88d4e810c082eb8923b2`; a integração com o novo head do #375 e a restauração do rótulo aprovado estão em `27f2af29768bd90b3c1127b5b728b4fc8a6beb64`. O foco de aceitação é desktop. Esta frente modifica apenas apresentação, cópia e contexto visual, preservando o mesmo lançamento, a mesma Pendência, as transições e os serviços existentes.
 
 O estado de execução, comandos de validação, commits remotos, pontos pendentes e instruções de integração estão no **handoff corrente**:
 
