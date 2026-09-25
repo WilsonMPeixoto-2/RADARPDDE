@@ -9,7 +9,8 @@ A baseline publicada mais recente incorpora as correções funcionais e os refin
 
 - **PR #370:** merged — UX específica de `Despesa a identificar` alinhada ao fluxo funcional já existente, sem alteração de schema, RPC ou transições;
 - **PR #371:** merged — polimento visual global reaplicado sobre a baseline do #370, sem alteração de regras de negócio;
-- **main / Production:** `6dd4b92367dfa7f9f45e3a9db49ebde5b21807c7`;
+- **baseline de runtime homologada e publicada:** `6dd4b92367dfa7f9f45e3a9db49ebde5b21807c7`;
+- **main após fechamento documental:** pode conter commits posteriores exclusivamente Markdown sem alterar o runtime publicado;
 - **Vercel Production:** `dpl_6V1cQ9FvLdy9bQXgpd2TruxczT81`, READY, alias `radarpdde-fix.vercel.app`;
 - **manifesto Production:** `dataMode=supabase-production`, `supabaseRepositoryEnabled=true`, `productionActivationApproved=true`;
 - **Supabase:** `scnryinorqeucbfkioxo`;
