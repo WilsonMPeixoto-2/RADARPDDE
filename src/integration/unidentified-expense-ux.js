@@ -21,6 +21,8 @@
             if (name === 'activeProntuarioCompetencia' && typeof activeProntuarioCompetencia !== 'undefined') return activeProntuarioCompetencia;
             if (name === 'notasRegistradas' && typeof notasRegistradas !== 'undefined') return notasRegistradas;
             if (name === 'verificacoes' && typeof verificacoes !== 'undefined') return verificacoes;
+            if (name === 'escolas' && typeof escolas !== 'undefined') return escolas;
+            if (name === 'programas' && typeof programas !== 'undefined') return programas;
         } catch (_error) {
             return fallback;
         }
@@ -94,6 +96,32 @@
         return notice;
     }
 
+    function syncExpenseContext(modal) {
+        const schoolId = text(root.document.getElementById('nota-escola-id')?.value);
+        const compKey = text(root.document.getElementById('nota-comp-key')?.value);
+        const intro = root.document.getElementById('nota-modal-intro');
+        if (!modal || !intro) return;
+        let context = modal.querySelector('[data-expense-context]');
+        if (!context) {
+            context = root.document.createElement('p');
+            context.className = 'expense-modal-context';
+            context.dataset.expenseContext = 'true';
+            intro.insertAdjacentElement('beforebegin', context);
+        }
+        const school = getLegacyValue('escolas', []).find(item => String(item.id) === schoolId);
+        const programId = compKey.slice(8);
+        const program = getLegacyValue('programas', []).find(item => String(item.id) === programId);
+        const competence = compKey.slice(0, 7);
+        const formattedCompetence = /^\d{4}-\d{2}$/.test(competence)
+            ? `${competence.slice(5)}/${competence.slice(0, 4)}` : competence;
+        context.textContent = [
+            school?.denominação || school?.denominacao || schoolId,
+            formattedCompetence,
+            program?.name || programId
+        ].filter(Boolean).join(' · ');
+        context.hidden = !context.textContent;
+    }
+
     function syncUnidentifiedPresentation({
         modal,
         select,
@@ -150,6 +178,8 @@
         if (!unidentifiedAllowed && select.value === TYPE) select.value = 'consumo';
         const unidentified = unidentifiedAllowed && select.value === TYPE;
 
+        syncExpenseContext(modal);
+
         syncUnidentifiedPresentation({
             modal,
             select,
@@ -191,8 +221,12 @@
         }
         if (intro) {
             intro.textContent = unidentified
-                ? 'Registre apenas os dados já conhecidos sobre a saída observada no extrato. O RADAR classificará automaticamente este lançamento como “Despesa a identificar” e abrirá a Pendência correspondente.'
-                : 'Cadastre o gasto referente a esta Nota Fiscal para que o sistema direcione as obrigações operacionais corretas.';
+                ? (invoiceId
+                    ? 'Corrija os dados provisórios deste mesmo lançamento. A Pendência e seu histórico permanecem vinculados; o documento recebido deve ser registrado na Pendência.'
+                    : 'Registre apenas os dados já conhecidos sobre a saída observada no extrato. O RADAR classificará automaticamente este lançamento como “Despesa a identificar” e abrirá a Pendência correspondente.')
+                : (invoiceId
+                    ? 'Corrija os dados deste mesmo lançamento. Salvar as alterações não cria outra despesa ou Pendência.'
+                    : 'Cadastre o gasto referente a esta Nota Fiscal para que o sistema direcione as obrigações operacionais corretas.');
         }
         if (submit) {
             submit.textContent = unidentified

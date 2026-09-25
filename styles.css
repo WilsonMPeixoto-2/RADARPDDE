@@ -2038,6 +2038,65 @@ body.dark-theme .modal-content {
     width: min(720px, calc(100vw - 32px));
 }
 
+#modal-dados-nota .expense-modal-context {
+    margin: 0 0 12px;
+    padding: 9px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 9px;
+    color: var(--primary);
+    background: var(--bg-input);
+    font-size: 0.8rem;
+    font-weight: 650;
+    line-height: 1.45;
+}
+
+.invoice-provisional-label {
+    display: block;
+    margin-top: 4px;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    line-height: 1.35;
+}
+
+#modal-reanalisar-pendencia .reanalysis-guidance,
+.pendency-scope-explanation {
+    color: var(--text-muted);
+    font-size: 0.83rem;
+    line-height: 1.5;
+}
+
+#modal-reanalisar-pendencia .reanalysis-guidance { margin: 0 0 16px; }
+.pendency-scope-explanation { margin: 5px 0 0; }
+
+.pendency-expense-identity {
+    display: block;
+    margin-top: 5px;
+    color: var(--text-main);
+    font-weight: 650;
+    overflow-wrap: anywhere;
+}
+
+#modal-reanalisar-pendencia .reanalysis-document-identity {
+    display: grid;
+    gap: 4px;
+    padding: 14px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 11px;
+    background: var(--bg-input);
+    margin-bottom: 14px;
+}
+
+.reanalysis-document-identity span {
+    color: var(--primary);
+    font-size: 0.69rem;
+    font-weight: 750;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.reanalysis-document-identity strong { overflow-wrap: anywhere; }
+.reanalysis-document-identity small { color: var(--text-muted); }
+
 #modal-cobranca .modal-content {
     width: min(760px, calc(100vw - 32px));
 }

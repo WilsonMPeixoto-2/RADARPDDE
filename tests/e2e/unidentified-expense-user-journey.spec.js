@@ -123,6 +123,8 @@ test.describe('Jornada real — Despesa a identificar', () => {
     })).toBeVisible();
     await expect(expenseModal.locator('#nota-modal-intro'))
       .toContainText('classificará automaticamente');
+    await expect(expenseModal.locator('[data-expense-context]'))
+      .toContainText('05/2026 ·');
     await expect(expenseModal.locator('[data-unidentified-expense-classification]'))
       .toBeVisible();
     await expect(expenseModal.locator('[data-unidentified-expense-classification]'))
@@ -150,6 +152,8 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await expect(drawer).toBeVisible();
     await expect(drawer.getByText('Próximo passo', { exact: true })).toBeVisible();
     await expect(drawer).toContainText('Quando a documentação chegar');
+    await expect(page.locator('.invoice-document-row .invoice-document-title-line > strong'))
+      .toContainText('Débito visto no extrato; documento ainda não recebido');
     await attachScreenshot(page, testInfo, '02-pendencia-proximo-passo');
     const newSubmission = drawer.getByRole('button', {
       name: 'Registrar envio / identificação da despesa',
@@ -210,6 +214,10 @@ test.describe('Jornada real — Despesa a identificar', () => {
 
     const reanalysisModal = page.locator('#modal-reanalisar-pendencia');
     await expect(reanalysisModal).toHaveClass(/show/);
+    await expect(reanalysisModal.locator('.reanalysis-document-identity'))
+      .toContainText('Material de consumo identificado');
+    await expect(reanalysisModal.locator('#reanalisar-tentativa-atual'))
+      .toContainText('05/2026');
     await reanalysisModal.getByLabel('Resultado da reanálise', { exact: true })
       .selectOption('correto');
     await reanalysisModal.getByLabel('Observação da análise', { exact: true })
@@ -329,6 +337,10 @@ test.describe('Jornada real — Despesa a identificar', () => {
       name: 'Editar despesa a identificar',
       exact: true
     })).toBeVisible();
+    await expect(expenseModal.locator('#nota-modal-intro'))
+      .toContainText('A Pendência e seu histórico permanecem vinculados');
+    await expect(expenseModal.locator('[data-expense-context]'))
+      .toContainText('05/2026 ·');
     await expect(expenseModal.locator('#nota-tipo')).toHaveValue('a_identificar');
     await expect(expenseModal.locator('#nota-tipo')).toBeDisabled();
     await expect(expenseModal.locator('#nota-tipo')).not.toBeVisible();
@@ -344,6 +356,10 @@ test.describe('Jornada real — Despesa a identificar', () => {
       `.invoice-document-row[data-invoice-id="${provisionalIds.invoiceId}"]`
     );
     await expect(invoiceRow).toBeVisible();
+    await expect(invoiceRow.locator('.invoice-document-title-line > strong'))
+      .toHaveText('Débito provisório retificado');
+    await expect(invoiceRow.locator('.invoice-provisional-label'))
+      .toContainText('documentação pendente');
     await invoiceRow.getByRole('button', {
       name: 'Visualizar pendência',
       exact: true

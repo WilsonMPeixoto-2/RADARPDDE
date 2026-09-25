@@ -9014,6 +9014,22 @@ function renderReanalysisAttemptSummary(pendency, attempt, school) {
     const currentErrors = Array.isArray(pendency.errosAtuais)
         ? pendency.errosAtuais.filter(Boolean)
         : [];
+    const invoice = getPendencyLinkedInvoice(pendency);
+    const snapshot = pendency.documentSnapshot || {};
+    const expenseDescription = invoice?.desc || invoice?.descricao || snapshot.desc || snapshot.descricao;
+    const identity = document.createElement('div');
+    identity.className = 'reanalysis-document-identity';
+    const identityLabel = document.createElement('span');
+    identityLabel.textContent = 'Documento em reanálise';
+    const identityTitle = document.createElement('strong');
+    identityTitle.textContent = expenseDescription || pendency.item || documentName;
+    identity.append(identityLabel, identityTitle);
+    if (invoice || snapshot.valor != null) {
+        const identityDetail = document.createElement('small');
+        const expense = invoice || snapshot;
+        identityDetail.textContent = `${getInvoiceDocumentTypeLabel(expense)} · ${formatInvoiceCurrency(expense.valor)}`;
+        identity.append(identityDetail);
+    }
     appendReanalysisSummaryItem(list, 'Estado atual', pendency.status);
     appendReanalysisSummaryItem(list, 'Próximo ator', nextActor);
     appendReanalysisSummaryItem(
@@ -9048,7 +9064,7 @@ function renderReanalysisAttemptSummary(pendency, attempt, school) {
         link.textContent = 'Abrir arquivo no Drive';
         appendReanalysisSummaryItem(list, 'Arquivo', link);
     }
-    summary.replaceChildren(list);
+    summary.replaceChildren(identity, list);
 }
 
 function openReanalysisModal(trigger, sourceContext) {
@@ -9718,8 +9734,8 @@ function renderProntuario(escolaId) {
                                 type="button"
                                 id="prontuario-tab-pendencias"
                                 class="tab-button prontuario-flow-tab prontuario-tooltip"
-                                aria-label="Pendências Ativas desta unidade (${pAtivas.length})"
-                                data-tooltip="Abrir as pendências ativas desta unidade e as ações disponíveis para cada uma."
+                                aria-label="Pendências ativas desta escola (${pAtivas.length})"
+                                data-tooltip="Abrir pendências ativas desta escola e as ações disponíveis. A fila completa fica em Pendências operacionais."
                                 data-tab="pendencias"
                                 role="tab"
                                 aria-controls="tab-pendencias"
@@ -9727,7 +9743,7 @@ function renderProntuario(escolaId) {
                                 tabindex="-1"
                                 onclick="switchSchoolTab(event, 'tab-pendencias')"
                                 onkeydown="handleSchoolTabKeydown(event)"
-                            >Pendências Ativas desta unidade (${pAtivas.length})</button>
+                            >Pendências ativas (${pAtivas.length})</button>
                             <button
                                 type="button"
                                 id="prontuario-tab-contatos"
@@ -9844,7 +9860,7 @@ function renderProntuario(escolaId) {
                 <div class="tab-content-panel" id="tab-pendencias" role="tabpanel" aria-labelledby="prontuario-tab-pendencias" hidden>
                     <div class="panel-card">
                         <div class="panel-header">
-                            <h2>Pendências Operacionais Ativas</h2>
+                            <div><h2>Pendências ativas desta escola</h2><p class="pendency-scope-explanation">Ocorrências abertas ou aguardando reanálise nesta unidade. Consulte Pendências operacionais para a fila de todas as escolas e situações.</p></div>
                             <button class="btn btn-secondary btn-sm" onclick="openNovaPendenciaModal('${escapeHtml(esc.id)}')">Criar Pendência Manual</button>
                         </div>
                         <div class="table-responsive">
@@ -10517,7 +10533,7 @@ function renderProntuarioVerificacoes(esc) {
                                             <span class="invoice-document-icon">${invoiceDocumentIconSvg(note.tipo)}</span>
                                             <div class="invoice-document-copy">
                                                 <div class="invoice-document-title-line">
-                                                    <strong>${escapeHtml(getInvoiceDocumentTitle(note))}</strong>
+                                                    <strong>${escapeHtml(note.tipo === 'a_identificar' ? (note.desc || 'Saída sem descrição') : getInvoiceDocumentTitle(note))}</strong>
                                                     ${isLegacyUnidentified ? `
                                                         <span class="invoice-legacy-badge"
                                                             title="Registro anterior à individualização; nenhuma Pendência histórica foi inventada.">
@@ -10526,6 +10542,7 @@ function renderProntuarioVerificacoes(esc) {
                                                     ` : ''}
                                                     ${editControls}
                                                 </div>
+                                                ${note.tipo === 'a_identificar' ? '<small class="invoice-provisional-label">Despesa a identificar · documentação pendente</small>' : ''}
                                             </div>
                                         </div>
                                         <div class="invoice-document-meta">
