@@ -114,7 +114,7 @@ test.describe('Task 8 — indicadores independentes', () => {
     await expect(summary.locator('[data-status-dimension="analise"]'))
       .toHaveText('Incorreto');
     await expect(page.locator('.tab-button[data-tab="pendencias"]'))
-      .toHaveText('Pendências Ativas (1)');
+      .toHaveText('Pendências Ativas desta unidade (1)');
 
     const aggregate = await page.evaluate(({ escolaId, competencia }) => {
       const escola = escolas.find(item => item.id === escolaId);
