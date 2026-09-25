@@ -1,7 +1,7 @@
 # Catálogo de superfícies do RADAR PDDE
 
 **Estado:** referência operacional vigente  
-**Atualizado em:** 14 de setembro de 2026
+**Atualizado em:** 25 de setembro de 2026
 
 ## 1. Regra de leitura
 
@@ -115,8 +115,10 @@ Não duplicar a mesma ação em todas as telas por conveniência aparente.
 
 Exemplos vigentes:
 
-- Prontuário mostra a NF e, quando aplicável, **Visualizar pendência** no próprio item;
-- o ciclo posterior de **Registrar novo envio** e **Reanalisar** pertence à página de Pendências, onde tentativa, histórico, erros e estado estão completos;
+- Prontuário mostra a NF/despesa e, quando aplicável, **Visualizar pendência** no próprio item;
+- o drawer do Prontuário é uma superfície contextual de gestão da Pendência: para NF comum pode oferecer **Registrar novo envio**; para `a_identificar` aberto oferece **Registrar envio / identificação da despesa** e acesso à retificação dos dados provisórios;
+- após o envio, **Aguardando reanálise** é clicável no Prontuário; a página de Pendências mantém **Reanalisar** como caminho completo e alternativo para a mesma ação;
+- a página de Pendências continua sendo a visão transversal completa do passivo, tentativas, erros, responsável, histórico e ações;
 - Dashboard e Carteira conduzem o usuário ao registro/ação, mas não substituem a tela especializada quando falta contexto para uma decisão segura.
 
 ### 2.7 Critério de diagnóstico pelo olhar do usuário

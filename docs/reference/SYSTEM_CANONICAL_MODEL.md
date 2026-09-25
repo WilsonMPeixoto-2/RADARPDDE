@@ -1,7 +1,7 @@
 # Modelo canônico integrado do RADAR PDDE
 
 **Classe documental:** Canônico — modelo funcional e arquitetural integrado  
-**Atualizado em:** 19 de setembro de 2026  
+**Atualizado em:** 25 de setembro de 2026  
 **Finalidade:** leitura obrigatória antes de qualquer análise funcional, correção, implementação, refatoração ou auditoria do produto  
 **Estado mutável do projeto:** `docs/CURRENT_STAGE.md`
 
@@ -27,9 +27,11 @@ Esta versão foi reconstruída source-first, confrontando documentação, códig
 
 ### Código e deployment
 
-- `main` verificada em `cafef971b902fd206ce26208445e27aeacbc9a0f`;
+- `main` verificada em `6dd4b92367dfa7f9f45e3a9db49ebde5b21807c7`;
 - Vercel Production verificada como `READY` no mesmo SHA;
-- deployment observado: `dpl_DWSLXhgTktiphBs7CMbk18wM2UCL`.
+- deployment observado: `dpl_6V1cQ9FvLdy9bQXgpd2TruxczT81`;
+- o merge do PR #370 consolidou a UX específica de `a_identificar` sem alterar domínio, schema, RPC ou transições;
+- o merge do PR #371 aplicou apenas polimento visual sobre essa baseline e tem árvore Git idêntica à homologada no PR.
 
 ### Supabase Production
 
@@ -372,29 +374,50 @@ Efeitos por tipo:
 ## 9.4 Criar `a_identificar`
 
 ```text
-usuário registra despesa ainda não identificada
+usuário registra uma saída cuja natureza ainda não pode ser identificada
+→ interface fixa automaticamente a classificação como Despesa a identificar
+→ não expõe Consumo / Serviço / Permanente / Boleto neste estágio
+→ usuário informa apenas os dados provisórios já conhecidos
 → InvoiceService
 → operação atômica específica
 → registered_invoice + análise Incorreto + Pendência individual
 → save_unidentified_expense_with_pendency
 → retorno autoritativo
-→ Prontuário mostra estado e ação de Pendência
+→ Prontuário mostra a despesa e a ação Visualizar pendência
 ```
 
 Regra inegociável: **novo `a_identificar` nasce `Incorreto + Pendência` na mesma operação**.
+
+No cadastro provisório, a natureza final da despesa não é escolha do usuário. Descrição, valor e referência opcional pertencem ao lançamento; a observação provisória é projetada na Pendência. O modelo vigente não possui um campo de negócio para “data da saída/débito”: `registered_at` e `dataAbertura` são datas técnicas/auditáveis e não devem ser reinterpretadas como esse dado.
+
+Enquanto a Pendência vinculada está aberta, os dados provisórios editáveis podem ser retificados pela **retificação auditável existente**, preservando ID, tipo `a_identificar`, escola, competência, programa, histórico e vínculo da Pendência. A observação/motivo da Pendência continuam editáveis no próprio drawer.
 
 O editor comum não transforma despesa identificada em `a_identificar`.
 
 ## 9.5 Identificar posteriormente um `a_identificar`
 
-Ocorre em **Pendências → Registrar novo envio**.
+A identificação acontece quando chega o **primeiro documento capaz de identificar a despesa provisória**. Há caminhos de acesso diferentes para a mesma operação:
+
+```text
+Prontuário
+→ linha da Despesa a identificar
+→ Visualizar pendência
+→ drawer da Pendência
+→ Registrar envio / identificação da despesa
+```
+
+ou pela superfície geral de Pendências, onde a Pendência aberta vinculada ao `a_identificar` expõe a ação equivalente.
+
+A operação continua sendo a já consolidada de registro de tentativa documental:
 
 ```text
 Pendência Aberta
-→ Registrar novo envio
-→ informar identificação/documento
-→ preservar registered_invoice_id
-→ atualizar a despesa
+→ Registrar envio / identificação da despesa
+→ informar o primeiro documento recebido
+→ escolher a natureza final permitida
+   consumo | permanente | servico | boleto_internet quando Educação Conectada
+→ preservar registered_invoice_id e o ID da própria Pendência
+→ atualizar a mesma despesa
 → criar efeito de serviço ou patrimônio se necessário
 → criar tentativa
 → Pendência = Aguardando reanálise
@@ -403,7 +426,9 @@ Pendência Aberta
 → reler
 ```
 
-Apresentar o documento não resolve a Pendência.
+A identificação **não cria uma segunda despesa** e não cria uma nova Pendência. Ela encerra a condição provisória de “despesa a identificar” no mesmo lançamento; a despesa passa a seguir as regras canônicas do tipo identificado.
+
+Apresentar o documento não resolve a Pendência. Em **Aguardando reanálise**, o Prontuário expõe o próprio estado como ação clicável de reanálise e a página de Pendências mantém **Reanalisar** como segundo caminho para a mesma ação. Reanálise correta resolve a Pendência; reanálise incorreta devolve a mesma Pendência para **Aberta / Escola**, quando um novo envio corretivo volta a ser cabível.
 
 ## 9.6 Análise individual de NF e abertura de Pendência
 
@@ -797,11 +822,11 @@ analisar NF específica como Incorreto
 → novo envio e reanálise não aparecem como ações do Prontuário
 ```
 
-### J4 — Regularização da NF
+### J4 — Regularização da NF já identificada
 
 ```text
-Pendências
-→ abrir a Pendência da NF
+Pendência de NF comum
+→ abrir a Pendência
 → Registrar novo envio
 → tentativa criada
 → Pendência = Aguardando reanálise
@@ -815,14 +840,19 @@ Pendências
 ### J5 — `a_identificar`
 
 ```text
-registrar despesa não identificada
+Registrar despesa a identificar
+→ classificação automática, sem expor tipos finais
 → criação atômica Incorreto + Pendência
-→ depois, em Pendências, Registrar novo envio
-→ identificar como serviço ou permanente
-→ preservar ID
-→ gerar efeitos correspondentes
-→ Aguardando reanálise
-→ reanalisar
+→ Prontuário mostra Visualizar pendência
+→ drawer permite consultar/retificar dados provisórios
+→ Registrar envio / identificação da despesa
+→ primeiro documento recebido informa a natureza final
+→ preservar o mesmo ID de despesa e a mesma Pendência
+→ gerar efeitos correspondentes ao tipo identificado
+→ Pendência = Aguardando reanálise
+→ Aguardando reanálise clicável no Prontuário
+   OU Reanalisar na página de Pendências
+→ reanálise correta resolve; incorreta devolve para Aberta / Escola
 ```
 
 ### J6 — Consulta Assessoria
