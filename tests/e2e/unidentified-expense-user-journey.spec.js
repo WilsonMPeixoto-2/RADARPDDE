@@ -285,7 +285,7 @@ test.describe('Jornada real — Despesa a identificar', () => {
       exact: true
     })).toBeVisible();
     await expect(drawer.getByRole('button', {
-      name: 'Editar detalhes da pendência',
+      name: 'Editar detalhes',
       exact: true
     })).toBeVisible();
 
@@ -325,7 +325,7 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await expect(drawer).toContainText('REF-EXTRATO-01');
 
     await drawer.getByRole('button', {
-      name: 'Editar detalhes da pendência',
+      name: 'Editar detalhes',
       exact: true
     }).click();
     await drawer.locator('#pendency-preview-observation')
