@@ -289,6 +289,27 @@ test.describe('Jornada real — Despesa a identificar', () => {
       exact: true
     })).toBeVisible();
 
+    const provisionalIds = await page.evaluate(({ schoolId, compKey }) => {
+      const invoice = notasRegistradas.find(item => (
+        item.escolaId === schoolId
+        && item.compKey === compKey
+        && item.tipo === 'a_identificar'
+        && item.desc === 'Débito provisório a conferir'
+      ));
+      const pendency = invoice
+        ? pendencias.find(item => (
+            String(item.registeredInvoiceId || item.registered_invoice_id || '')
+              === String(invoice.id)
+          ))
+        : null;
+      return {
+        invoiceId: invoice?.id || null,
+        pendencyId: pendency?.id || null
+      };
+    }, context);
+    expect(provisionalIds.invoiceId).toBeTruthy();
+    expect(provisionalIds.pendencyId).toBeTruthy();
+
     await drawer.getByRole('button', {
       name: 'Editar dados da despesa',
       exact: true
@@ -310,9 +331,9 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await expenseModal.getByRole('button', { name: 'Salvar Alterações', exact: true }).click();
     await expect(expenseModal).not.toHaveClass(/show/);
 
-    const invoiceRow = page.locator('.invoice-document-row').filter({
-      hasText: 'Débito provisório retificado'
-    }).first();
+    const invoiceRow = page.locator(
+      `.invoice-document-row[data-invoice-id="${provisionalIds.invoiceId}"]`
+    );
     await expect(invoiceRow).toBeVisible();
     await invoiceRow.getByRole('button', {
       name: 'Visualizar pendência',
@@ -333,12 +354,8 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await drawer.getByRole('button', { name: 'Salvar', exact: true }).click();
     await expect(drawer).toContainText('Observação da Pendência retificada pelo usuário.');
 
-    const state = await page.evaluate(({ schoolId, compKey }) => {
-      const invoice = notasRegistradas.find(item => (
-        item.escolaId === schoolId
-        && item.compKey === compKey
-        && item.desc === 'Débito provisório retificado'
-      ));
+    const state = await page.evaluate(({ invoiceId }) => {
+      const invoice = notasRegistradas.find(item => String(item.id) === String(invoiceId));
       const pendency = invoice
         ? pendencias.find(item => (
             String(item.registeredInvoiceId || item.registered_invoice_id || '')
@@ -354,7 +371,7 @@ test.describe('Jornada real — Despesa a identificar', () => {
         pendencyStatus: pendency?.status || null,
         pendencyObservation: pendency?.observacao || null
       };
-    }, context);
+    }, provisionalIds);
 
     expect(state.invoiceId).toBeTruthy();
     expect(state.pendencyId).toBeTruthy();
