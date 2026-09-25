@@ -228,6 +228,6 @@ test.describe('Edição auditável de lançamentos', () => {
 
     await refreshed.getByRole('button', { name: 'Visualizar pendência' }).click();
     const drawer = page.locator('#pendency-preview-drawer');
-    await expect(drawer.getByText(/400,25/)).toBeVisible();
+    await expect(drawer.locator('.pendency-preview-provisional').getByText(/400,25/)).toBeVisible();
   });
 });
