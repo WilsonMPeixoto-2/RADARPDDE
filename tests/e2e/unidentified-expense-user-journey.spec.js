@@ -138,7 +138,7 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await expenseModal.getByLabel('Descrição provisória da saída', { exact: true })
       .fill('Débito visto no extrato; documento ainda não recebido');
     await expenseModal.getByLabel('Valor do Gasto (R$)', { exact: true }).fill('123.45');
-    await expenseModal.getByLabel('Observação', { exact: true })
+    await expenseModal.locator('#nota-unidentified-observation')
       .fill('Débito localizado no extrato; aguardando documentação da unidade.');
     await expenseModal.getByRole('button', { name: 'Registrar Despesa', exact: true }).click();
     await expect(expenseModal).not.toHaveClass(/show/);
@@ -268,7 +268,7 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await expenseModal.getByLabel('Descrição provisória da saída', { exact: true })
       .fill('Débito provisório a conferir');
     await expenseModal.getByLabel('Valor do Gasto (R$)', { exact: true }).fill('210.50');
-    await expenseModal.getByLabel('Observação', { exact: true })
+    await expenseModal.locator('#nota-unidentified-observation')
       .fill('Primeira observação provisória.');
     await expenseModal.getByRole('button', {
       name: 'Registrar Despesa',
