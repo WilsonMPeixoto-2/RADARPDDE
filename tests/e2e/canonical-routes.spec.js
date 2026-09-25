@@ -114,6 +114,49 @@ test('rota de escola, aba de pendências, filtro e histórico permanecem estáve
   await expect(page.locator('[data-radar-pendency-school-filter="true"]')).toBeVisible();
 });
 
+test('filtro escolar permanece ao abrir e fechar o detalhe da Pendência', async ({ page }) => {
+  await page.goto('/pendencias');
+  await waitForRadarRoute(page, { view: 'pendencias' });
+
+  const schoolId = await page.locator('#pendency-filter-school option').evaluateAll(options => (
+    options.map(option => String(option.value || '').trim()).find(Boolean) || ''
+  ));
+  expect(schoolId).not.toBe('');
+
+  await page.evaluate(id => {
+    window.RadarNavigationHistory.navigate(window, {
+      view: 'pendencias',
+      filters: { escola: id }
+    });
+  }, schoolId);
+  await waitForRadarRoute(page, { view: 'pendencias', schoolFilter: schoolId });
+
+  const schoolSelect = page.locator('#pendency-filter-school');
+  const banner = page.locator('[data-radar-pendency-school-filter="true"]');
+  await expect(schoolSelect).toHaveValue(schoolId);
+  await expect(banner).toBeVisible();
+
+  const detailButton = page.getByRole('button', { name: 'Ver detalhes', exact: true }).first();
+  await expect(detailButton).toBeVisible();
+  await detailButton.click();
+
+  const drawer = page.locator('#pendency-detail-drawer');
+  await expect(drawer).toBeVisible();
+  await expect.poll(() => page.evaluate(() => (
+    window.RadarTask9PendencyPage?.getState?.().filters?.schoolId || ''
+  ))).toBe(schoolId);
+  await expect(page.locator('#pendency-filter-school')).toHaveValue(schoolId);
+  await expect(page.locator('[data-radar-pendency-school-filter="true"]')).toBeVisible();
+
+  await drawer.getByRole('button', { name: /Fechar/i }).click();
+  await expect(page.locator('#pendency-detail-drawer')).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => (
+    window.RadarTask9PendencyPage?.getState?.().filters?.schoolId || ''
+  ))).toBe(schoolId);
+  await expect(page.locator('#pendency-filter-school')).toHaveValue(schoolId);
+  await expect(page.locator('[data-radar-pendency-school-filter="true"]')).toBeVisible();
+});
+
 test('botão Voltar restaura a origem contextual, competência, rolagem e foco', async ({ page }) => {
   await openCarteira(page);
   const schoolLink = await chooseScrollableSchoolLink(page);
