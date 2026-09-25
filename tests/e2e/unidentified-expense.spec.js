@@ -89,13 +89,19 @@ test.describe('Prontuário — despesa a identificar', () => {
 
     await expect(page.locator('#modal-dados-nota')).toHaveClass(/show/);
     await expect(page.locator('#nota-tipo')).toHaveValue('a_identificar');
-    await expect(page.locator('#nota-tipo option[value="a_identificar"]')).toBeEnabled();
+    await expect(page.locator('#nota-tipo')).toBeDisabled();
+    await expect(page.locator('#nota-tipo')).not.toBeVisible();
+    await expect(page.locator('[data-unidentified-expense-classification]')).toBeVisible();
+    await expect(page.locator('[data-unidentified-expense-classification]'))
+      .toContainText('Despesa a identificar');
     await expect(page.locator('#nota-numero')).not.toHaveAttribute('required');
-    await expect(page.getByText('Número da Nota Fiscal (opcional neste estágio)')).toBeVisible();
+    await expect(page.getByText('Referência provisória (opcional)', { exact: true })).toBeVisible();
     await expect(page.locator('#modal-dados-nota h3')).toHaveText('Registrar despesa a identificar');
 
     await page.locator('#nota-desc').fill('Saída de R$ 850,00 observada no extrato; documentação pendente');
     await page.locator('#nota-valor').fill('850');
+    await page.locator('#nota-unidentified-observation')
+      .fill('Débito localizado no extrato; aguardando documentação da unidade.');
     await page.locator('#form-dados-nota button[type="submit"]').click();
 
     await expect(page.locator('#modal-dados-nota')).not.toHaveClass(/show/);
@@ -165,7 +171,7 @@ test.describe('Prontuário — despesa a identificar', () => {
     );
     await expect(pendingRow).toHaveCount(1);
     await pendingRow.getByRole('button', {
-      name: 'Registrar novo envio',
+      name: 'Registrar envio / identificação da despesa',
       exact: true
     }).click();
 
