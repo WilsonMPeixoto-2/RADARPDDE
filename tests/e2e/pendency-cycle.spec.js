@@ -1603,7 +1603,9 @@ test.describe('reanálise atômica da pendência documental no desktop', () => {
     await expect(modal).toHaveClass(/show/);
     await expect(modal).toHaveAttribute('aria-hidden', 'false');
     await expect(modal).not.toHaveAttribute('inert', '');
-    await expect(resultSelect).toBeFocused();
+    const guidance = modal.locator('.reanalysis-guidance');
+    await expect(guidance).toBeFocused();
+    await expect(guidance).toBeVisible();
     await expect(attemptSummary).toContainText(context.availabilityDate);
     await expect(attemptSummary).toContainText(context.submissionObservation);
     await expect(driveLink).toHaveAttribute('href', context.submissionLink);
