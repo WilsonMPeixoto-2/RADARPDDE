@@ -785,7 +785,7 @@ textarea.form-control {
 }
 
 @media (min-width: 721px) {
-    body:has(.pendency-preview-shell:not([hidden])) .pendency-notice {
+    body.pendency-drawer-open .pendency-notice {
         right: calc(min(440px, 44vw) + 28px);
     }
 }
