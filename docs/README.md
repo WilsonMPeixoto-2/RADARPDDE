@@ -21,7 +21,7 @@ Ordem:
 10. ADRs e referências especializadas da área afetada;
 11. planos, auditorias, demais handoffs e evidências históricas apenas para compreender o seu momento/SHA.
 
-`CURRENT_STAGE.md` aponta explicitamente para o handoff corrente. Em 26/09/2026, o **PR #376 é o candidato único contra `main`**: ele contém integralmente o antigo #375 e o runtime funcional/UI auditado. O #375 foi substituído por essa estratégia e não deve ser integrado separadamente. Os sete gates do head `8d44b1d1...` estão verdes; o Preview desktop final está READY e falta somente a homologação visual/navegada do mesmo runtime antes de qualquer integração. Como pushes em `main` publicam Production automaticamente, merge e publicação são a mesma decisão operacional nesta frente.
+A frente desktop de Despesa a identificar e contexto escolar foi concluída tecnicamente em `2d21e752`, com 16 workflows verdes. O usuário autorizou a publicação do candidato único #376 em 26/09/2026. Não há handoff corrente de implementação. Consulte `CURRENT_STAGE.md` e o registro de publicação do #376 para o resultado operacional e os SHAs efetivos; o merge em `main` dispara Production automaticamente.
 
 ## 2. Função de cada documento canônico/vigente
 
@@ -81,7 +81,7 @@ O modelo detalhado está em `SYSTEM_CANONICAL_MODEL.md`; a finalidade humana das
 Consultar conforme a área materialmente afetada:
 
 - [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — referência funcional/arquitetural detalhada; **afirmações temporais de PR, SHA, fila ou deployment nele não representam o estado corrente e cedem a `CURRENT_STAGE.md`**;
-- [`handoff/2026-09-25-desktop-expense-journey.md`](handoff/2026-09-25-desktop-expense-journey.md) — **handoff corrente** da jornada desktop de Despesa a identificar, com candidato único #376, CI, Preview final e ordem de retomada;
+- [`handoff/2026-09-25-desktop-expense-journey.md`](handoff/2026-09-25-desktop-expense-journey.md) — **handoff histórico concluído** da jornada desktop de Despesa a identificar, preservando os checkpoints e o adendo de encerramento;
 - [`handoff/2026-09-19-performance-sync-modernization.md`](handoff/2026-09-19-performance-sync-modernization.md) — handoff histórico concluído da modernização de performance/sincronização;
 - [`decisions/ADR-054-sincronizacao-operacional-realtime.md`](decisions/ADR-054-sincronizacao-operacional-realtime.md) — decisão vigente sobre invalidação Realtime entre sessões;
 - [`DECISION_LOG.md`](DECISION_LOG.md) — decisões duradouras;

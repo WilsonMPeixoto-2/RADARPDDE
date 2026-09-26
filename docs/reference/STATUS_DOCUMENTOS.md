@@ -25,7 +25,7 @@ PR aberto, Preview ou documento antigo não altera Production.
 | docs/reference/SYSTEM_CANONICAL_MODEL.md | Canônico | autoridades, fluxos e invariantes |
 | docs/reference/PRODUCT_SURFACE_CATALOG.md | Referência vigente | superfícies e jornadas |
 | docs/CURRENT_STAGE.md | Canônico | estado ao vivo e prioridade |
-| docs/handoff/2026-09-25-desktop-expense-journey.md | Handoff corrente | checkpoints da jornada desktop, PRs e verificações |
+| docs/handoff/2026-09-25-desktop-expense-journey.md | Handoff histórico concluído | checkpoints preservados e adendo de encerramento |
 | docs/handoff/2026-09-19-performance-sync-modernization.md | Handoff histórico concluído | modernização de performance/sincronização encerrada em 21/09 |
 | docs/decisions/ADR-054-sincronizacao-operacional-realtime.md | Decisão vigente | contrato de sincronização entre sessões |
 | docs/reference/ENGINEERING_METHOD.md | Canônico | método de engenharia |
@@ -35,28 +35,19 @@ PR aberto, Preview ou documento antigo não altera Production.
 | docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md | Gerado | visão humana da matriz |
 | docs/DECISION_LOG.md e docs/decisions/*.md | Decisão vigente | regras especializadas |
 
-## 3. Baseline de Production
+## 3. Entrega e baseline operacional
 
-Estado confirmado em 26/09/2026:
+A frente desktop/contexto escolar foi concluída tecnicamente em `2d21e752d8004e9c0343cca3978a84a46bf4609b`. O fechamento posterior é documental. O usuário autorizou a publicação em 26/09/2026 pelo PR #376, entrega única que contém #375; #375 está fechado sem merge e #377 é histórico técnico.
 
-- `main`: `bb7246438b8c6b72ef068b21bb40d492a7049af2` (#374);
-- Production: mesmo SHA `bb7246438b8c6b72ef068b21bb40d492a7049af2`;
-- deployment Vercel Production: `dpl_BztNyEgnHjFxAKJvkPcQGeV6GGWm`, `READY`;
-- projeto oficial: `radarpdde-fix`;
-- o PR #376 permanece fora de `main`/Production e é o candidato único de integração;
-- o antigo PR #375 foi incorporado integralmente ao histórico do #376 e não deve ser integrado separadamente;
-- o PR #377 permanece apenas como merge técnico histórico de sincronização;
-- a frente não altera schema, migrations, RPCs, RLS ou persistência canônica.
+A base anterior à entrega é `bb7246438b8c6b72ef068b21bb40d492a7049af2`, deployment `dpl_BztNyEgnHjFxAKJvkPcQGeV6GGWm`. O resultado de publicação, SHA efetivo e deployment são registrados no PR #376 e manifesto público. Consultar `CURRENT_STAGE.md` e revalidar o ambiente; a aprovação pré-merge não substitui a confirmação do deployment.
 
-A janela de performance/sincronização de 21/09 continua válida como histórico técnico, não como baseline temporal corrente. Seus SHAs, migrations e evidências permanecem no handoff histórico correspondente.
+A frente não altera schema, migrations, RPCs, RLS, serviços de domínio nem persistência canônica.
 
-## 4. Handoff corrente
+## 4. Handoff encerrado
 
-Handoff corrente:
+Não há handoff corrente de implementação. `docs/handoff/2026-09-25-desktop-expense-journey.md` é histórico concluído, com adendo apontando o fechamento e preservando o checkpoint anterior. As antigas pendências nele descritas não formam fila atual.
 
-docs/handoff/2026-09-25-desktop-expense-journey.md
-
-Ele consolida o #376 como candidato único contra `main`, o diagnóstico do falso vermelho atribuído ao #375, os sete gates verdes do head `8d44b1d1...`, o Preview desktop final e a única lacuna restante: homologação visual/navegada antes de qualquer merge/publicação.
+A evidência `docs/evidence/2026-09-26-desktop-final-preview/README.md` preserva o momento de criação do Preview; a homologação posterior está no registro do #376 e em CURRENT_STAGE.md. O acesso direto ao Preview permaneceu limitado por SSO; a inspeção visual registrada é do Chromium do CI, do mesmo runtime.
 
 ## 5. Handoffs anteriores
 

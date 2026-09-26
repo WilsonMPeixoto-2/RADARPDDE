@@ -1,4 +1,6 @@
-# Handoff corrente — jornada desktop de Despesa a identificar
+> **Encerramento em 26/09/2026:** este handoff deixou de ser corrente. A implementação e homologação foram concluídas em `2d21e752`; os 16 workflows estão verdes, inclusive runs `36276637534` e `36276637527` (183 passed / 54 skipped). A inspeção visual do mesmo runtime foi registrada no #376 com artifact `10916268576`. O delta de 8 px era medição antes da remoção da classe de Dashboard; apenas a sincronização do teste mudou. #375 foi fechado sem merge e #376 é a entrega única. O usuário autorizou publicação em 26/09. Estado operacional e resultado do merge/deployment: `docs/CURRENT_STAGE.md` e comentário final do PR #376. O texto abaixo preserva o checkpoint anterior e suas pendências já superadas; não representa fila de trabalho atual.
+
+# Handoff histórico — jornada desktop de Despesa a identificar
 
 **Atualizado:** 26/09/2026  
 **Estado:** #376 consolidado como candidato único contra `main`; código/testes alinhados; sete gates verdes; Preview desktop final READY; resta apenas homologação visual/navegada antes de qualquer merge/publicação.  
