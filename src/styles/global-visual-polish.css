@@ -781,7 +781,7 @@ textarea.form-control {
     font-size: 0.82rem;
     line-height: 1.42;
     backdrop-filter: blur(12px);
-    transition: right 180ms ease, opacity 160ms ease, transform 160ms ease;
+    transition: opacity 160ms ease, transform 160ms ease;
 }
 
 @media (min-width: 721px) and (max-width: 999px) {
