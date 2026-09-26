@@ -820,8 +820,13 @@ analisar NF específica como Incorreto
 → NF = Incorreto
 → Pendência daquela NF = Aberta
 → Prontuário mostra Visualizar pendência
-→ novo envio e reanálise não aparecem como ações do Prontuário
+→ drawer contextual pode oferecer Registrar novo envio
+→ após o envio, Pendência = Aguardando reanálise
+→ Aguardando reanálise pode ser acionado no Prontuário
+   OU Reanalisar na página de Pendências
 ```
+
+A página de Pendências continua sendo a visão transversal completa do passivo; o acesso contextual pelo Prontuário não cria uma segunda operação nem uma segunda fonte de verdade.
 
 ### J4 — Regularização da NF já identificada
 
