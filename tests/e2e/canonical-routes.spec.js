@@ -118,10 +118,37 @@ test('filtro escolar permanece ao abrir e fechar o detalhe da Pendência', async
   await page.goto('/pendencias');
   await waitForRadarRoute(page, { view: 'pendencias' });
 
-  const schoolId = await page.locator('#pendency-filter-school option').evaluateAll(options => (
-    options.map(option => String(option.value || '').trim()).find(Boolean) || ''
-  ));
-  expect(schoolId).not.toBe('');
+  // A fixture de navegação pode começar sem Pendências. Crie um registro real
+  // para que o filtro e o detalhe representem a mesma escola durante o teste.
+  const schoolId = await page.evaluate(() => {
+    switchProfile('controlador');
+    const school = escolas.find(candidate => (
+      Array.isArray(candidate.programasIds)
+      && candidate.programasIds.includes('BASIC')
+      && isCompetenceInScope(candidate.competenciaInicial, '2026-05')
+    ));
+    if (!school) throw new Error('Escola de fixture para o filtro não encontrada.');
+    pendencias = [RadarPendencias.createDocumentPendency({
+      id: 'navigation-school-filter-pendency',
+      escolaId: school.id,
+      competenciaOrigem: '2026-05',
+      programaId: 'BASIC',
+      documentoKey: 'extCC',
+      item: 'PDDE Básico - Extrato Conta Corrente',
+      errosAtuais: ['Documento incompleto'],
+      observacao: 'Registro de fixture para a navegação escolar.',
+      dataAbertura: '2026-06-01'
+    }, {
+      eventId: 'navigation-school-filter-open',
+      at: '2026-06-01T12:00:00.000Z',
+      usuario: 'Controlador',
+      perfil: 'Controlador'
+    })];
+    rebuildOperationalIndexes();
+    window.RadarTask9PendencyPage.render();
+    return school.id;
+  });
+  await expect(page.locator('#pendency-filter-school option')).toHaveCount(2);
 
   await page.evaluate(id => {
     window.RadarNavigationHistory.navigate(window, {
