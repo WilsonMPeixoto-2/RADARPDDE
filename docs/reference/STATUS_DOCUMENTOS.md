@@ -1,7 +1,7 @@
 # Matriz de validade documental
 
 **Classe documental:** Canônico
-**Atualizado em:** 21 de setembro de 2026
+**Atualizado em:** 26 de setembro de 2026
 
 ## 1. Finalidade e precedência
 
@@ -25,7 +25,8 @@ PR aberto, Preview ou documento antigo não altera Production.
 | docs/reference/SYSTEM_CANONICAL_MODEL.md | Canônico | autoridades, fluxos e invariantes |
 | docs/reference/PRODUCT_SURFACE_CATALOG.md | Referência vigente | superfícies e jornadas |
 | docs/CURRENT_STAGE.md | Canônico | estado ao vivo e prioridade |
-| docs/handoff/2026-09-19-performance-sync-modernization.md | Handoff corrente | checkpoint da modernização de performance/sincronização |
+| docs/handoff/2026-09-25-desktop-expense-journey.md | Handoff corrente | checkpoints da jornada desktop, PRs e verificações |
+| docs/handoff/2026-09-19-performance-sync-modernization.md | Handoff histórico concluído | modernização de performance/sincronização encerrada em 21/09 |
 | docs/decisions/ADR-054-sincronizacao-operacional-realtime.md | Decisão vigente | contrato de sincronização entre sessões |
 | docs/reference/ENGINEERING_METHOD.md | Canônico | método de engenharia |
 | docs/reference/FRONTEND_USER_VALIDATION_GATE.md | Canônico | prova de interface real |
@@ -36,34 +37,24 @@ PR aberto, Preview ou documento antigo não altera Production.
 
 ## 3. Baseline de Production
 
-O baseline funcional inclui os PRs #327, #329, #330, #331, #332, #336, #338, #339, #340, #341, com provas adicionais #342–#344. O #345 é fechamento documental e não altera runtime.
+Estado confirmado em 25/09/2026:
 
-- baseline funcional/runtime conferido em 21/09 (#344): 75520d43a5ca9bc2607318cc6a70ba2a7494ca92;
-- Vercel correspondente ao #344: dpl_FHt2mSxrzWbq491y497RDCuf7LsN, READY;
-- Supabase: ACTIVE_HEALTHY;
-- migrations remotas: 54;
-- migration mais recente: 20260920013656_realtime_operational_invalidation;
-- #344: instrumentação de jornadas integrada sem alteração de runtime;
-- monitor, leitura autenticada e integridade agregada atuais SUCCESS, com runs vinculados no CURRENT_STAGE.
+- `main`: `bb7246438b8c6b72ef068b21bb40d492a7049af2` (#374);
+- Production: mesmo SHA `bb7246438b8c6b72ef068b21bb40d492a7049af2`;
+- deployment Vercel Production: `dpl_BztNyEgnHjFxAKJvkPcQGeV6GGWm`, `READY`;
+- projeto oficial: `radarpdde-fix`;
+- PR #375 e PR #376 permanecem abertos/draft e **não** fazem parte de `main` ou Production;
+- os dois PRs atuais não alteram schema, migrations, RPCs, RLS ou persistência canônica.
 
-Esse baseline substitui como estado corrente os handoffs centrados em PR #301/#305/#306. Esses documentos continuam válidos como histórico do momento em que foram produzidos.
+A janela de performance/sincronização de 21/09 continua válida como histórico técnico, não como baseline temporal corrente. Seus SHAs, migrations e evidências permanecem no handoff histórico correspondente.
 
 ## 4. Handoff corrente
 
 Handoff corrente:
 
-docs/handoff/2026-09-19-performance-sync-modernization.md
+docs/handoff/2026-09-25-desktop-expense-journey.md
 
-Ele consolida:
-
-- objetivo da rodada;
-- diagnóstico original;
-- PRs concluídos;
-- evidências de validação;
-- arquitetura vigente;
-- decisões finais de não implementação;
-- acompanhamento longitudinal não bloqueante;
-- critérios de encerramento atendidos.
+Ele consolida o head atual do #375 (`d591b231...`), o candidato funcional/UI auditado do #376 (`4994aeb3...`), a reconciliação dos testes, a classificação da falha externa do registry no Supabase readiness, o Preview combinado e a ordem exata de retomada/integração.
 
 ## 5. Handoffs anteriores
 

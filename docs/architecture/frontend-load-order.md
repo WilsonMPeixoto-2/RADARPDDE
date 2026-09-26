@@ -1,7 +1,7 @@
 # Ordem de carregamento e precedência do frontend
 
 **Estado:** vigente  
-**Atualizado em:** 3 de setembro de 2026
+**Atualizado em:** 26 de setembro de 2026
 
 ## 1. Finalidade
 
@@ -32,8 +32,14 @@ O manifesto em `docs/evidence/frontend-precedence/manifest.json` é gerado. Não
 
 ### Estático
 
-1. `styles.css`;
-2. `src/styles/shared-interactions.css`.
+Ordem declarada em `index.html`:
+
+1. Google Fonts — Outfit + Plus Jakarta Sans;
+2. `styles.css`;
+3. `src/styles/shared-interactions.css`;
+4. `src/styles/global-search.css`;
+5. `src/styles/floating-ui.css`;
+6. `src/styles/view-transitions.css`.
 
 ### Inserido por `config.js`
 
@@ -50,74 +56,93 @@ O manifesto em `docs/evidence/frontend-precedence/manifest.json` é gerado. Não
 
 ### Extensões de produto
 
-`product-extensions-bootstrap.js` adiciona `src/styles/school-timeline.css`.
+`product-extensions-bootstrap.js` adiciona atualmente 13 folhas, em ordem explícita:
 
-Repetição de seletor não prova conflito. Consolidação exige computed styles e regressão visual nos breakpoints.
+1. `src/styles/school-timeline.css`;
+2. `src/styles/controller-guide.css`;
+3. `src/styles/controller-guide-theme.css`;
+4. `src/styles/unidentified-expense-ux.css`;
+5. `src/styles/prontuario-operational-ux.css`;
+6. `src/styles/desktop-basic-monitors.css`;
+7. `src/styles/pendency-passive-queue.css`;
+8. `src/styles/operational-write-feedback.css`;
+9. `src/styles/layout-responsive-2026.css`;
+10. `src/styles/inventory-icon-refinement.css`;
+11. `src/styles/evaluation-retification-ui.css`;
+12. `src/styles/sidebar-prontuario-polish.css`;
+13. `src/styles/global-visual-polish.css`.
+
+A ordem exata de scripts e estilos do bootstrap é mantida em [`product-extensions-load-order.md`](product-extensions-load-order.md). Repetição de seletor não prova conflito. Consolidação exige computed styles e regressão visual nos breakpoints.
 
 ## 4. Scripts estáticos antes de `app.js`
 
-Ordem declarada em `index.html`:
+Ordem efetiva declarada em `index.html`:
 
 ### Domínio inicial
 
 1. `src/domain/competencia.js`;
 2. `src/domain/estatisticas.js`;
 3. `src/domain/fluxo-operacional.js`;
-4. `src/domain/pendencias.js`;
-5. `src/domain/access-policy.js`;
-6. `src/domain/global-search-index.js`;
-7. `src/domain/retificacoes.js`, já marcado para deduplicação.
+4. `src/domain/service-advisory.js`;
+5. `src/domain/invoice-document-analysis.js`;
+6. `src/domain/invoice-effects.js`;
+7. `src/domain/pendencias.js`;
+8. `src/domain/access-policy.js`;
+9. `src/domain/global-search-index.js`;
+10. `src/domain/retificacoes.js`.
 
 ### Configuração
 
-8. `config.runtime.js`;
-9. `config.js`.
+11. `config.runtime.js`;
+12. `config.js`.
 
 `config.js` valida ambiente, modo de dados, URL e chave publicável, bloqueia chave administrativa e registra extensões antes do bootstrap da aplicação.
 
-### Cliente e persistência
+### Cliente, Auth e persistência
 
-10. `vendor/supabase-client.js`;
-11. `src/data/repository-contract.js`;
-12. `vendor/ajv.js`;
-13. `src/domain/json-contracts.js`;
-14. `src/application/error-mapper.js`;
-15. `src/auth/session-service.js`;
-16. `src/integration/auth-bootstrap.js`;
-17. `src/data/local-storage-repository.js`;
-18. `src/data/supabase-repository.js`;
-19. `src/data/repository-factory.js`;
-20. `src/data/snapshot-tools.js`;
-21. `src/data/import-coordinator.js`;
-22. `src/data/legacy-state-adapter.js`;
-23. `src/data/state-bridge.js`;
-24. `src/data/state-bridge-metadata.js`.
+13. `src/data/repository-contract.js`;
+14. `vendor/ajv.js`;
+15. `src/domain/json-contracts.js`;
+16. `src/application/error-mapper.js`;
+17. `src/auth/session-service.js`;
+18. `src/integration/auth-bootstrap.js`;
+19. `src/data/local-storage-repository.js`;
+20. `src/data/supabase-repository.js`;
+21. `src/data/repository-factory.js`;
+22. `src/data/snapshot-tools.js`;
+23. `src/data/import-coordinator.js`;
+24. `src/data/legacy-state-adapter.js`;
+25. `src/data/state-bridge.js`;
+26. `src/data/state-bridge-metadata.js`.
+
+`vendor/supabase-client.js` **não é mais um script estático do HTML**. Quando `runtimeConfig.supabase.connectionEnabled === true`, `auth-bootstrap.js` o injeta sob demanda como script assíncrono e só prossegue após validar `createClient`.
 
 ### Aplicação
 
-25. `src/application/state-port.js`;
-26. `src/application/unit-of-work.js`;
-27. `src/application/data-service.js`;
-28. `src/application/configuration-service.js`;
-29. `src/application/directory-service.js`;
-30. `src/application/school-service.js`;
-31. `src/application/pendency-service.js`;
-32. `src/application/verification-service.js`;
-33. `src/application/audit-service.js`;
-34. `src/application/invoice-service.js`;
-35. `src/application/inventory-service.js`;
-36. `src/integration/shared-interactions.js`.
+27. `src/application/state-port.js`;
+28. `src/application/unit-of-work.js`;
+29. `src/application/data-service.js`;
+30. `src/application/configuration-service.js`;
+31. `src/application/directory-service.js`;
+32. `src/application/school-service.js`;
+33. `src/application/pendency-service.js`;
+34. `src/application/verification-service.js`;
+35. `src/application/audit-service.js`;
+36. `src/domain/operation-key.js`;
+37. `src/application/invoice-service.js`;
+38. `src/application/inventory-service.js`;
+39. `src/integration/shared-interactions.js`.
 
 ### Núcleo
 
-37. `app.js`.
+40. `app.js`.
 
 ## 5. Integrações estáticas pós-`app.js`
 
-38. `src/integration/view-transitions.js`;
-39. `src/integration/global-search.js`;
-40. `src/integration/floating-ui-bootstrap.js`;
-41. `src/integration/auth-gate.js`.
+41. `src/integration/view-transitions.js`;
+42. `src/integration/global-search.js`;
+43. `src/integration/floating-ui-bootstrap.js`;
+44. `src/integration/auth-gate.js`.
 
 ### View Transitions
 

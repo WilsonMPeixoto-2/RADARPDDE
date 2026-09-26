@@ -123,6 +123,8 @@ test.describe('Jornada real — Despesa a identificar', () => {
     })).toBeVisible();
     await expect(expenseModal.locator('#nota-modal-intro'))
       .toContainText('classificará automaticamente');
+    await expect(expenseModal.locator('[data-expense-context]'))
+      .toContainText('05/2026 ·');
     await expect(expenseModal.locator('[data-unidentified-expense-classification]'))
       .toBeVisible();
     await expect(expenseModal.locator('[data-unidentified-expense-classification]'))
@@ -148,8 +150,28 @@ test.describe('Jornada real — Despesa a identificar', () => {
 
     const drawer = page.locator('#pendency-preview-drawer');
     await expect(drawer).toBeVisible();
+
+    // Regressão visual: o feedback da criação deve continuar legível mesmo
+    // enquanto o drawer contextual está aberto.
+    const creationNotice = page.locator('#pendency-notice');
+    await expect(creationNotice).toBeVisible();
+    const noticeLayer = await creationNotice.evaluate(element => Number.parseInt(
+      getComputedStyle(element).zIndex,
+      10
+    ));
+    const drawerLayer = await drawer.evaluate(element => Number.parseInt(
+      getComputedStyle(element).zIndex,
+      10
+    ));
+    expect(noticeLayer).toBeGreaterThan(drawerLayer);
+    const noticeBounds = await creationNotice.boundingBox();
+    const drawerPanelBounds = await drawer.locator('.pendency-preview-drawer').boundingBox();
+    expect(noticeBounds.x + noticeBounds.width).toBeLessThanOrEqual(drawerPanelBounds.x - 12);
+
     await expect(drawer.getByText('Próximo passo', { exact: true })).toBeVisible();
     await expect(drawer).toContainText('Quando a documentação chegar');
+    await expect(page.locator('.invoice-document-row .invoice-document-title-line > strong'))
+      .toContainText('Débito visto no extrato; documento ainda não recebido');
     await attachScreenshot(page, testInfo, '02-pendencia-proximo-passo');
     const newSubmission = drawer.getByRole('button', {
       name: 'Registrar envio / identificação da despesa',
@@ -167,6 +189,18 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await expect(submissionModal.locator('.modal-subtitle')).toContainText(
       'mesmo lançamento e a mesma Pendência'
     );
+
+    // Regressão de foco/rolagem: abrir a identificação precisa manter o começo
+    // do contexto visível, sem saltar diretamente para um campo inferior.
+    const submissionBody = submissionModal.locator('.modal-body');
+    await expect(submissionModal.locator('#envio-contexto')).toBeVisible();
+    expect(await submissionBody.evaluate(element => element.scrollTop)).toBeLessThanOrEqual(2);
+    const submissionBodyBounds = await submissionBody.boundingBox();
+    const submissionContextBounds = await submissionModal.locator('#envio-contexto').boundingBox();
+    expect(submissionContextBounds.y).toBeGreaterThanOrEqual(submissionBodyBounds.y);
+    expect(submissionContextBounds.y + Math.min(submissionContextBounds.height, 48))
+      .toBeLessThanOrEqual(submissionBodyBounds.y + submissionBodyBounds.height);
+
     await settleVisualState(page);
     await expect(submissionModal).toHaveClass(/show/);
     await expect(submissionModal.getByRole('heading', {
@@ -202,6 +236,15 @@ test.describe('Jornada real — Despesa a identificar', () => {
     });
     await expect(waiting).toHaveCount(1);
     await expect(waiting).toBeVisible();
+    const waitingRow = page.locator('.invoice-document-row').filter({ has: waiting });
+    const pendencyAction = waitingRow.getByRole('button', {
+      name: 'Visualizar pendência',
+      exact: true
+    });
+    await expect(pendencyAction).toBeVisible();
+    const statusBounds = await waiting.boundingBox();
+    const actionBounds = await pendencyAction.boundingBox();
+    expect(statusBounds.x + statusBounds.width).toBeLessThanOrEqual(actionBounds.x - 4);
     await settleVisualState(page);
     await expect(submissionModal).not.toHaveClass(/show/);
     await expect(waiting).toBeVisible();
@@ -210,6 +253,32 @@ test.describe('Jornada real — Despesa a identificar', () => {
 
     const reanalysisModal = page.locator('#modal-reanalisar-pendencia');
     await expect(reanalysisModal).toHaveClass(/show/);
+    await expect(reanalysisModal.locator('.reanalysis-document-identity'))
+      .toContainText('Material de consumo identificado');
+    await expect(reanalysisModal.locator('#reanalisar-tentativa-atual'))
+      .toContainText('Maio/2026');
+
+    // Ao abrir, a orientação e a identidade devem começar visíveis; focar
+    // diretamente o resultado não pode rolar o conteúdo sob o cabeçalho.
+    const reanalysisBody = reanalysisModal.locator('.modal-body');
+    await expect(reanalysisModal.locator('.reanalysis-guidance')).toBeFocused();
+    expect(await reanalysisBody.evaluate(element => element.scrollTop)).toBeLessThanOrEqual(2);
+    const reanalysisHeaderBounds = await reanalysisModal.locator('.modal-header').boundingBox();
+    const reanalysisGuidanceBounds = await reanalysisModal.locator('.reanalysis-guidance').boundingBox();
+    expect(reanalysisGuidanceBounds.y).toBeGreaterThanOrEqual(
+      reanalysisHeaderBounds.y + reanalysisHeaderBounds.height
+    );
+
+    // Regressão de hierarquia: documento, tentativa, contexto e decisão devem
+    // formar zonas reconhecíveis antes de o Controlador escolher o resultado.
+    await expect(reanalysisModal.getByText('Tentativa recebida', { exact: true })).toBeVisible();
+    await expect(reanalysisModal.getByText('Contexto da Pendência', { exact: true })).toBeVisible();
+    await expect(reanalysisModal.getByText('Resultado da reanálise', { exact: true })).toBeVisible();
+    await expect(reanalysisModal.locator('[data-reanalysis-attempt]')).toBeVisible();
+    await expect(reanalysisModal.locator('[data-reanalysis-context]')).toBeVisible();
+    await expect(reanalysisModal.locator('[data-reanalysis-decision]')).toBeVisible();
+    await settleVisualState(page);
+    await attachScreenshot(page, testInfo, '04b-reanalise-documento-identificado');
     await reanalysisModal.getByLabel('Resultado da reanálise', { exact: true })
       .selectOption('correto');
     await reanalysisModal.getByLabel('Observação da análise', { exact: true })
@@ -265,7 +334,7 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await attachScreenshot(page, testInfo, '05-reanalise-concluida');
   });
 
-  test('permite retificar os dados provisórios pelo drawer sem identificar a despesa', async ({ page }) => {
+  test('permite retificar os dados provisórios pelo drawer sem identificar a despesa', async ({ page }, testInfo) => {
     const context = await prepareSchool(page);
 
     await page.getByRole('button', {
@@ -329,9 +398,15 @@ test.describe('Jornada real — Despesa a identificar', () => {
       name: 'Editar despesa a identificar',
       exact: true
     })).toBeVisible();
+    await expect(expenseModal.locator('#nota-modal-intro'))
+      .toContainText('A Pendência e seu histórico permanecem vinculados');
+    await expect(expenseModal.locator('[data-expense-context]'))
+      .toContainText('05/2026 ·');
     await expect(expenseModal.locator('#nota-tipo')).toHaveValue('a_identificar');
     await expect(expenseModal.locator('#nota-tipo')).toBeDisabled();
     await expect(expenseModal.locator('#nota-tipo')).not.toBeVisible();
+    await settleVisualState(page);
+    await attachScreenshot(page, testInfo, '02b-editar-despesa-provisoria');
     await expenseModal.getByLabel('Descrição provisória da saída', { exact: true })
       .fill('Débito provisório retificado');
     await expenseModal.getByLabel('Referência provisória (opcional)', { exact: true })
@@ -344,6 +419,10 @@ test.describe('Jornada real — Despesa a identificar', () => {
       `.invoice-document-row[data-invoice-id="${provisionalIds.invoiceId}"]`
     );
     await expect(invoiceRow).toBeVisible();
+    await expect(invoiceRow.locator('.invoice-document-title-line > strong'))
+      .toHaveText('Débito provisório retificado');
+    await expect(invoiceRow.locator('.invoice-provisional-label'))
+      .toContainText('documentação pendente');
     await invoiceRow.getByRole('button', {
       name: 'Visualizar pendência',
       exact: true

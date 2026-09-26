@@ -1,262 +1,150 @@
-# RADAR PDDE — Estado atual do projeto
+# RADAR PDDE — estado atual e retomada
 
-**Classe documental:** Canônico — estado mutável e retomada futura
-**Atualizado em:** 25 de setembro de 2026
+**Classe documental:** Canônico — estado mutável  
+**Atualizado em:** 26 de setembro de 2026
 
-## 1. Baseline vigente
+## 1. Baseline confirmada
 
-A baseline publicada mais recente incorpora as correções funcionais e os refinamentos visuais dos PRs #370 e #371 **sobre** a arquitetura de performance/sincronização já consolidada nos PRs #327–#344.
+- `main`: `bb7246438b8c6b72ef068b21bb40d492a7049af2` — merge do PR #374.
+- Production: mesmo SHA `bb7246438b8c6b72ef068b21bb40d492a7049af2`.
+- Deployment Production: `dpl_BztNyEgnHjFxAKJvkPcQGeV6GGWm`, `READY`.
+- PRs #375/#376 continuam fora de `main` e Production.
+- A frente atual não altera schema, migrations, RPCs, RLS, serviços de domínio nem persistência canônica.
 
-- **PR #370:** merged — UX específica de `Despesa a identificar` alinhada ao fluxo funcional já existente, sem alteração de schema, RPC ou transições;
-- **PR #371:** merged — polimento visual global reaplicado sobre a baseline do #370, sem alteração de regras de negócio;
-- **baseline de runtime homologada e publicada:** `6dd4b92367dfa7f9f45e3a9db49ebde5b21807c7`;
-- **main após fechamento documental:** pode conter commits posteriores exclusivamente Markdown sem alterar o runtime publicado;
-- **Vercel Production:** `dpl_6V1cQ9FvLdy9bQXgpd2TruxczT81`, READY, alias `radarpdde-fix.vercel.app`;
-- **manifesto Production:** `dataMode=supabase-production`, `supabaseRepositoryEnabled=true`, `productionActivationApproved=true`;
-- **Supabase:** `scnryinorqeucbfkioxo`;
-- **runtime errors após o deploy:** nenhum erro agrupado observado na janela de validação;
-- **árvore do merge #371:** idêntica à árvore do head homologado do PR.
+## 2. Frente ativa
 
-O fluxo específico vigente de `Despesa a identificar` preserva o mesmo lançamento e a mesma Pendência do cadastro provisório até a identificação. O primeiro documento usa **Registrar envio / identificação da despesa**; depois a Pendência entra em **Aguardando reanálise**, acessível tanto pelo Prontuário quanto pela página de Pendências. A retificação dos dados provisórios reutiliza a retificação auditável existente.
+### PR #375 — contexto escolar de Pendências
 
-Production continua em modo Supabase canônico. Não existe LocalStorage como banco operacional paralelo.
+- branch: `fix/pendency-context-mobile-preview-2026-09-25`
+- head: `d591b231eb06e95a1c09ba2fb6e40d2c7bb83f7d`
+- base: `main`
+- aberto, draft e mergeable
+- `0d2fe5c6`: limpeza do filtro escolar ocorre após atualização da rota;
+- `d591b231`: abrir Prontuário e voltar às Pendências sincroniza URL e contexto escolar.
+- UX-04 permanece no #375, mas não é foco da auditoria desktop atual.
 
-### 1.1 Baseline arquitetural anterior preservada
+### PR #376 — jornada desktop de Despesa a identificar
 
-A modernização de performance e sincronização concluída pelos PRs #327, #329, #330, #331, #332, #336, #338, #339, #340 e #341, com provas adicionais nos #342–#344, permanece vigente. O baseline medido no #344 foi `75520d43a5ca9bc2607318cc6a70ba2a7494ca92`; os PRs posteriores preservaram seus invariantes de RLS set-based, prioridade de gravação, cancelamento de leitura obsoleta, Realtime por invalidação e proteção durante edição.
+- branch: `fix/desktop-expense-journey-2026-09-25`
+- base: branch do #375 em `d591b231...`
+- candidato de runtime/UI auditado: `4994aeb331f643c09ab4b76f66e5c831be9cd5d2`
+- relação #375 → #376 nesse candidato: **ahead 51 / behind 0**
+- aberto, draft e mergeable
+- PR #377 foi usado apenas para incorporar formalmente o head atual do #375 ao histórico do #376.
+- commits posteriores ao candidato funcional podem ser test-only/documentação; qualquer alteração de runtime exige nova homologação explícita.
 
-## 2. Objetivo da rodada concluída
+## 3. Contratos de código confirmados
 
-A frente foi aberta por dois sintomas operacionais:
+A revisão source-first confirmou alinhamento entre código e regras vigentes:
 
-1. leituras/contextos mais lentos do que o esperado para o volume real do RADAR;
-2. usuários precisando pressionar F5 para perceber mudanças recentes, especialmente após alteração feita por outra sessão.
+- filtro escolar sincroniza o estado real de `RadarTask9PendencyPage`, sem substituir a coleção global de Pendências;
+- abrir Pendência no Prontuário usa `/escolas/<id>`; voltar restaura `/pendencias?escola=<id>`, busca, aba, seleção e contexto;
+- limpar o filtro navega primeiro para a rota global e só então limpa o estado interno;
+- `a_identificar` continua nascendo `Incorreto + Pendência` atomicamente;
+- identificação preserva o mesmo ID de despesa e a mesma Pendência;
+- modal de identificação abre no topo e foca o título do contexto;
+- modal de reanálise abre no topo e foca `.reanalysis-guidance`;
+- documento, tentativa, contexto e decisão são zonas distintas;
+- descrição provisória é a identidade principal e a natureza provisória fica secundária;
+- feedback de criação permanece legível com drawer aberto;
+- a ação longa `Registrar envio / identificação da despesa` permanece dentro da célula no desktop.
 
-A investigação separou as causas e tratou cada uma sem alterar regras de negócio:
+Nenhuma dessas mudanças redefine domínio, persistência ou transições.
 
-- RLS escolar calculada repetidamente por linha;
-- ausência de invalidação entre sessões;
-- refresh compartilhando fila com gravações;
-- leituras obsoletas continuando em voo;
-- refresh durante edição sem retomada suficientemente robusta;
-- duplicação entre retry próprio e retry nativo do cliente Supabase;
-- invalidações que podiam ser perdidas em interleavings entre refresh em voo, falha de rede e gravações concorrentes;
-- peso desnecessário no artefato público e instabilidade de LCP/CLS.
+## 4. Testes alinhados
 
-## 3. Entregas integradas
+Playwright do candidato `4994aeb3...`, run `36261993415`: **182 passed, 54 skipped, 1 flaky, 0 final failures**.
 
-| PR | Merge | Resultado principal |
-|---:|---|---|
-| #327 | 61d2762ecb37daa30cefcafe32e06042aa689772 | refresh pendente confiável, build público otimizado, -725 KiB, Lighthouse ~81%, LCP ~3,0 s, CLS ~0,08 |
-| #329 | 83e2576548eca2c11bac0acb143cda7ad44cde4c | RLS set-based; 25 policies sem autorização escolar linha a linha |
-| #330 | ce42ace4b18be5a3326ee992d90cb0c4062a81a6 | fila de gravação independente de refresh |
-| #331 | cf9c22bc670461826cf89ca585313983c6a1cb78 | AbortController/AbortSignal para leituras operacionais obsoletas |
-| #332 | ec6a22cac374d85907aca407a844748db1a20d4e | Broadcast privado de invalidação e sincronização A → B sem F5 |
-| #336 | 232626a6574963bdbf22dbed5ffefeb6518a4f48 | retry de leitura reconciliado com `supabase-js 2.116.0`; uma execução lógica no RADAR |
-| #338 | c404c618dfea494273ccf880d725009e82065c26 | invalidação durante refresh em voo força nova releitura |
-| #339 | 6c92b98b03f3621e8603ff951dadd0ffb4f67f8d | falha de rede preserva invalidação e recebe uma retry controlada |
-| #340 | 4061dd808ed526f3dfac089a84e0735a510ebed1 | escrita que aborta leitura Realtime não perde convergência |
-| #341 | 71b5a6e4967641c5dc8402ebadefbc22f9b5e5c6 | refresh pendente é drenado após término da gravação |
-| #337 | 24a2d1ca906aa771b37820b113caa20efb75d438 | checkpoint documental e snapshots pós-RLS |
-| #342 | ad4a97dc7f4eff3df51deb32dd3acdcd2383a23a | prova frontend de escrita auditável, Abort real e convergência sem F5 |
-| #343 | 039a88cc55485ca46ad55edcbe665e1b349272cc | configuração pública preservada como JSON; monitor Production recuperado |
-| #344 | 75520d43a5ca9bc2607318cc6a70ba2a7494ca92 | jornadas autenticadas instrumentadas; decisão quantitativa de manter arquitetura atual |
+- o contrato antigo que focava diretamente `Resultado da reanálise` foi removido; o teste agora valida foco na orientação visível;
+- `canonical-routes.spec.js` cobre preservação e limpeza do filtro escolar;
+- `task-9-pendencias.spec.js` cobre URL Prontuário ↔ Pendências;
+- `pendency-desktop-action-containment.spec.js` mede contenção geométrica em 1440×900 e executa a ação;
+- `unidentified-expense-user-journey.spec.js` percorre a jornada real pelo frontend.
 
-## 4. Estado arquitetural atual
+### Adequação do flaky de layout
 
-### 4.1 Persistência e autorização
+`layout-responsive-regressions.spec.js:87` variou 8 px na primeira tentativa e passou no retry. O helper aguardava apenas a presença de uma folha intermediária no DOM, não a aplicação da folha final `layout-responsive-2026.css`.
 
-Supabase permanece a fonte canônica de persistência.
+A correção test-only desta rodada:
+- espera `layout-responsive-2026.css` com regras acessíveis;
+- espera `document.fonts.ready`;
+- espera dois frames de layout;
+- mantém as mesmas tolerâncias geométricas estritas;
+- a mesma sincronização de CSS/fonte foi aplicada ao helper irmão de `desktop-basic-monitors.spec.js`, que tinha a mesma premissa temporal.
 
-A autorização escolar foi convertida para conjuntos calculados por statement:
+Não foi alterado CSS/runtime para satisfazer os testes.
 
-- accessible_school_ids();
-- writable_school_ids();
-- inventory_cre_school_ids().
+## 5. Gates técnicos do candidato funcional
 
-Os wrappers públicos históricos permanecem compatíveis. A mudança foi de execução, não de regra de acesso.
+Verdes:
+- Validar RADAR PDDE `36261993404`;
+- snapshot canônico `36261993525`;
+- Retificação auditável `36261993433`;
+- Lighthouse `36261993359`;
+- contratos-fonte Excel SME `36261993396`;
+- Playwright desktop `36261993415`.
 
-### 4.2 Prioridade de gravação
+### Supabase readiness
 
-Gravações remotas permanecem serializadas entre si, mas uma leitura operacional já em andamento não pode atrasar uma ação explícita de Salvar.
+- `readiness`: success;
+- `migration-smoke`: success;
+- `supabase-local`: falha de infraestrutura externa, reproduzida no rerun.
 
-Leitura iniciada depois de uma escrita pendente aguarda a escrita já conhecida; leitura mais antiga é marcada como obsoleta.
+Antes da falha: **34 arquivos / 486 testes SQL passaram** e `supabase db lint` retornou **No schema errors found**. Depois, o registry recusou `public.ecr.aws/supabase/postgres-meta:v0.97.0` com `toomanyrequests: Data limit exceeded` nas três tentativas. Não há evidência de regressão de banco nesta frente.
 
-### 4.3 Cancelamento de leitura obsoleta
+## 6. Preview combinado atual
 
-Nova competência ou início de gravação cancela fisicamente o request contextual anterior. Cancelamento esperado pelo próprio RADAR retorna stale/aborted e não vira erro funcional para o usuário.
+Branch descartável: `preview/final-combined-current-2026-09-26`
 
-### 4.4 Sincronização entre sessões
-
-Realtime usa Broadcast privado somente para invalidação.
-
-Fluxo canônico:
-
-    mudança persistida
-    → trigger emite invalidação mínima
-    → sessão remota recebe o evento
-    → sessão relê Supabase
-    → RLS filtra o que pode ser visto
-    → DataService/StatePort reconciliam
-    → UI converge
-
-O Broadcast não transporta escola, usuário, valor, documento nem registro operacional.
-
-### 4.5 Proteção durante edição
-
-Se uma invalidação chega enquanto formulário/modal/campo está ativo, o refresh fica pendente. Quando a edição termina, o contexto é relido e aplicado. A edição local não é atropelada.
-
-A auditoria adversarial posterior acrescentou garantias de convergência para interleavings antes não cobertos: invalidação durante leitura em voo, falha transitória da releitura, leitura Realtime abortada por uma gravação e pendência remanescente após a escrita. O desenho vigente usa no máximo uma retry Realtime controlada e uma drenagem pós-write; não existe polling contínuo nem retry automático de escrita.
-
-## 5. Evidência funcional e técnica
-
-No candidato final do PR #332 ficaram verdes:
-
-- Validar RADAR PDDE;
-- Testes E2E Playwright;
-- Supabase readiness;
-- Supabase local + Auth + RLS + pgTAP;
-- Confiabilidade funcional com Supabase real;
-- Ciclos funcionais reais com Supabase;
-- Gate remoto de perfis e viewports;
-- Backup e restauração descartáveis;
-- Homologação integral pré-production;
-- Lighthouse CI;
-- CodeQL;
-- Saúde das dependências;
-- Retificação auditável direcionada.
-
-O cenário multiusuário passou em gate obrigatório:
-
-    A altera avaliação
-    → B recebe Broadcast
-    → B relê o estado canônico
-    → B atualiza a UI sem F5
-
-e também:
-
-    B está editando
-    → A altera
-    → B marca refresh pendente
-    → B termina edição
-    → B converge sem perder o trabalho em andamento
-
-Depois dos PRs #336 e #338–#341, a validação foi ampliada com testes RED → GREEN de composição. Foram provados e corrigidos: retry duplicado de leitura; invalidação recebida durante refresh em voo; falha de rede na releitura Realtime; leitura Realtime abortada por gravação; e pendência que precisava ser drenada após a escrita. No #341, 10/10 workflows ficaram verdes, incluindo Supabase real, readiness, ciclos funcionais, perfis/viewports, Playwright, Lighthouse, CodeQL e homologação integral.
-
-## 6. Estado de Production
-
-Em 21/09, o deployment `dpl_FHt2mSxrzWbq491y497RDCuf7LsN` ficou READY no merge `75520d43a5ca9bc2607318cc6a70ba2a7494ca92`. O #344 altera somente testes, workflow, evidência e documentação; o runtime funcional permanece o consolidado no #343. Supabase ACTIVE_HEALTHY.
-
-O #343 corrigiu a incompatibilidade entre minificação de `config.runtime.js` e parser JSON. Monitor pós-merge [35541683729](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/35541683729), monitor posterior [35555050425](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/35555050425) e smoke autenticado [35549794564](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/35549794564) terminaram SUCCESS.
-
-A checagem agregada de integridade [35550316696](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/35550316696), às 01:16 UTC de 21/09, passou pelo caminho autorizado do workflow. O SQL exige `schemaVersion=1`, `status=healthy` e `totalIssues=0`. Isso fecha a pendência anterior da chamada negada ao conector; certifica os invariantes automatizados, não uma revisão manual de cada documento escolar.
-
-A migration Realtime que ficou canônica em main e no remoto é:
-
-20260920013656_realtime_operational_invalidation
-
-Não reintroduzir timestamps intermediários usados durante a preparação da branch.
-
-## 7. Encerramento dos objetivos originais
-
-A modernização de performance/sincronização está **formalmente encerrada em 21/09/2026**. A tabela abaixo substitui listas antigas como critério de conclusão desta frente.
-
-| Objetivo original | Estado final | Evidência/decisão |
-|---|---|---|
-| RLS / escolas acessíveis como conjunto | **Implementado** | #329; policies set-based; equivalência de perfis e RLS revalidada |
-| refresh não ser perdido durante edição | **Implementado** | pending refresh + retomada segura; #327/#338–#341 |
-| `pendingRefresh` após modal/edição | **Implementado** | retomada automática e E2E multiusuário |
-| `lastRefreshAt` somente após aplicação real | **Implementado** | #327; protegido por regressão |
-| instrumentação causal de jornada | **Implementado como ferramenta de teste** | #344; 19 amostras brutas preservadas, sem alterar runtime |
-| indicador visual de sincronização | **Não bloqueante / não implementado** | estado Realtime existe; não há defeito funcional que exija UI adicional |
-| consolidar políticas de retry | **Implementado** | #336; retry próprio removido, transporte delegado ao cliente Supabase |
-| cancelar consultas obsoletas com AbortSignal | **Implementado** | #331 |
-| separar background reads da fila de writes | **Implementado** | #330 |
-| RPC única de contexto | **Não implementar nesta rodada** | contexto mediano ~13,3 ms; benefício material não demonstrado |
-| Realtime Broadcast de invalidação | **Implementado** | #332 + hardening #338–#342 |
-| revisionamento operacional numérico | **Substituído por solução posterior comprovada** | Broadcast + reconnect/focus + pending refresh + pós-write + releitura canônica; E2E sem F5 |
-| renderização parcial adicional do Prontuário | **Não implementar nesta rodada** | render síncrono mediano ~3,9 ms; gargalo não demonstrado |
-| cache agressivo de JS/CSS/estado | **Não implementar nesta rodada** | build já reduzido; ausência de gargalo que justifique maior complexidade |
-| upgrade de Supabase/compute | **Não fazer** | medições atuais não sustentam custo/benefício |
-
-### 7.1 Acompanhamento longitudinal, não bloqueante
-
-A primeira janela pós-RLS com novas chamadas registrou 798 chamadas adicionais nas 11 assinaturas acompanhadas, mas somente 6–8 chamadas novas nas consultas de contexto e sem distinção entre uso humano e automação. Isso não permite calcular um ganho percentual universal.
-
-Continuar observando `pg_stat_statements` quando houver volume real suficiente. Essa observação **não reabre a modernização** por si só.
-
-### 7.2 Índices
-
-Não remover índices apenas por `idx_scan=0`. Parte deles implementa unicidade/integridade e os demais têm custo/volume pequeno. Qualquer remoção futura exige janela estatística representativa e benefício mensurável.
-
-### 7.3 Novas intervenções
-
-RPC única, render parcial, cache adicional, revisionamento numérico ou indicador visual só voltam ao backlog se surgirem dados ou defeitos concretos que justifiquem a mudança.
-
-## 8. Itens deliberadamente fora da sequência atual
-
-Não são próximos passos automáticos:
-
-- upgrade de compute do Supabase;
-- Redis;
-- cache agressivo de estado operacional;
-- Postgres Changes em todas as tabelas;
-- reescrita de framework;
-- remoção indiscriminada de índices;
-- relaxamento dos pisos Lighthouse;
-- hardening de senha vazada como condição desta frente.
-
-## 9. Situação operacional
-
-O PR #342 foi integrado após 7/7 workflows SUCCESS no HEAD `065f53013edb1626ac95b17d387716dfe65850cf` e inspeção das imagens do run `35526578564`. A prova exige duas identidades autenticadas, Broadcast, leitura HTTP real cancelada por escrita auditável, releitura e convergência antes de navegação, zero reload e confirmação no Prontuário. O Lighthouse passou sem alterar budgets.
-
-A revisão integrada de 20/09 não encontrou nova regressão nos contratos de sincronização examinados. Encontrou a incompatibilidade de serialização no monitor descrita acima, reproduzida RED → GREEN. O handoff registra o escopo, as evidências e os limites dessa revisão. A auditoria agregada atual de integridade passou em 21/09, e a primeira janela pós-RLS com deltas está preservada. Aferição representativa de ganho continua em acompanhamento. O #344 instrumenta jornadas em Supabase local: 19 amostras preservadas no handoff, com medianas de 13,3 ms para carregamento de contexto e 45,3 ms para o cliente da RPC de gravação. Não extrapolar esses números para Production. A decisão atual é manter a arquitetura e acompanhar uso real.
-
-Não há defeito funcional conhecido bloqueando uso normal do RADAR no baseline atual.
-
-A auditoria adversarial encontrou quatro arestas reais de convergência nos PRs #338–#341, todas reproduzidas antes da correção e protegidas por regressão depois dela. Isso reforça que gates verdes demonstram os contratos cobertos, não ausência absoluta de interleavings não testados.
-
-Novos relatos e novas hipóteses devem ser tratados como incidentes concretos, preferencialmente com RED → GREEN e teste de composição. Não reabrir automaticamente planos históricos nem desfazer decisões posteriores já certificadas.
-
-## 10. Handoff corrente
-
-Checkpoint detalhado:
-
-docs/handoff/2026-09-19-performance-sync-modernization.md
-
-Decisão arquitetural associada:
-
-docs/decisions/ADR-054-sincronizacao-operacional-realtime.md
-
-## 11. Critério de encerramento da modernização
-
-**Atendido em 21/09/2026.**
-
-- Production estável e READY;
-- F5 não é requisito normal de convergência;
-- gravação permanece independente de refresh lento;
-- sincronização A → B e interleavings críticos permanecem cobertos por gates;
-- RLS continua set-based e semanticamente preservada;
-- decisão sobre RPC/render foi tomada por medição;
-- integridade agregada passou pelo caminho autorizado;
-- monitor Production e leitura autenticada estão verdes;
-- auditoria final não encontrou regressão material bloqueante.
-
-A partir deste ponto, medições futuras são observabilidade operacional. Não formam fila automática de refatoração.
-
-## 12. Rota de retomada
-
-Ler nesta ordem:
-
-1. ../AGENTS.md;
-2. reference/SYSTEM_CANONICAL_MODEL.md;
-3. reference/PRODUCT_SURFACE_CATALOG.md;
-4. este CURRENT_STAGE.md;
-5. handoff/2026-09-19-performance-sync-modernization.md;
-6. decisions/ADR-054-sincronizacao-operacional-realtime.md;
-7. reference/ENGINEERING_METHOD.md;
-8. reference/FRONTEND_USER_VALIDATION_GATE.md;
-9. reference/STATUS_DOCUMENTOS.md;
-10. matriz funcional e ADRs especializados conforme a frente.
-
-Revalidar sempre main, Vercel e Supabase quando a decisão depender do estado ao vivo.
+- base de produto: `4994aeb331f643c09ab4b76f66e5c831be9cd5d2`
+- commit temporário: `4f8aca3cc9cf58b7da5cbb1eb7c3ba9d4f933dd4`
+- deployment: `dpl_9wLYQYVKszqwX4rZbCS6WQAJcfec`
+- estado: `READY`
+- URL: `https://radarpdde-5rjsbtb4x-wilson-m-peixotos-projects.vercel.app`
+
+A branch de Preview altera somente `vercel.json` para permitir o deploy e **não deve ser mesclada**.
+
+As evidências em `docs/evidence/2026-09-26-postfix-preview/` pertencem a candidato anterior e permanecem históricas.
+
+## 7. Lacuna restante
+
+O gate permanente de frontend ainda exige inspeção visual/navegada do Preview combinado do mesmo runtime. No desktop, confirmar:
+
+1. limpar filtro escolar devolve fila global e URL `/pendencias`;
+2. Prontuário usa URL correta e reload preserva a superfície;
+3. ação longa permanece contida em 1366/1440 px;
+4. reanálise abre no topo com orientação/contexto visíveis;
+5. feedback não é encoberto pelo drawer.
+
+Essa é a lacuna real. Não reabrir arquitetura nem regras já comprovadas.
+
+## 8. Não alterar nesta frente
+
+- Supabase/RLS/RPC/migrations;
+- `InvoiceService`, `PendencyService` ou `DataService` sem novo defeito reproduzido;
+- identidade da despesa/Pendência e histórico;
+- Boleto de Internet, Assessoria ou patrimônio;
+- mobile geral;
+- Production.
+
+## 9. Ordem de integração após homologação visual
+
+1. confirmar head do #375;
+2. integrar #375;
+3. retarget/rebase #376 para `main`;
+4. conferir diff residual;
+5. rerodar gates do novo SHA;
+6. Preview final se o runtime mudar materialmente;
+7. integrar #376;
+8. Production somente com autorização explícita separada.
+
+## 10. Rota de retomada
+
+1. `AGENTS.md`
+2. `docs/reference/SYSTEM_CANONICAL_MODEL.md`
+3. `docs/reference/PRODUCT_SURFACE_CATALOG.md`
+4. este arquivo
+5. `docs/handoff/2026-09-25-desktop-expense-journey.md`
+6. `docs/reference/FRONTEND_USER_VALIDATION_GATE.md`
+7. `docs/reference/TEST_GOVERNANCE.md`
+8. `docs/reference/STATUS_DOCUMENTOS.md`

@@ -2038,6 +2038,269 @@ body.dark-theme .modal-content {
     width: min(720px, calc(100vw - 32px));
 }
 
+#modal-dados-nota .expense-modal-context {
+    margin: 0 0 12px;
+    padding: 9px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 9px;
+    color: var(--primary);
+    background: var(--bg-input);
+    font-size: 0.8rem;
+    font-weight: 650;
+    line-height: 1.45;
+}
+
+.invoice-provisional-label {
+    display: block;
+    margin-top: 4px;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    line-height: 1.35;
+}
+
+#modal-reanalisar-pendencia .reanalysis-guidance,
+.pendency-scope-explanation {
+    color: var(--text-muted);
+    font-size: 0.83rem;
+    line-height: 1.5;
+}
+
+#modal-reanalisar-pendencia .reanalysis-guidance { margin: 0 0 16px; }
+.pendency-scope-explanation { margin: 5px 0 0; }
+
+.pendency-expense-identity {
+    display: block;
+    margin-top: 5px;
+    color: var(--text-main);
+    font-weight: 650;
+    overflow-wrap: anywhere;
+}
+
+#modal-reanalisar-pendencia .reanalysis-document-identity {
+    display: grid;
+    gap: 4px;
+    padding: 14px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 11px;
+    background: var(--bg-input);
+    margin-bottom: 14px;
+}
+
+.reanalysis-document-identity span {
+    color: var(--primary);
+    font-size: 0.69rem;
+    font-weight: 750;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.reanalysis-document-identity strong { overflow-wrap: anywhere; }
+.reanalysis-document-identity small { color: var(--text-muted); }
+
+#modal-reanalisar-pendencia .modal-content {
+    width: min(780px, calc(100vw - 32px));
+    border: 1px solid rgba(124, 58, 237, 0.15);
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+#modal-reanalisar-pendencia .modal-header {
+    padding: 22px 26px;
+    background:
+        linear-gradient(180deg, rgba(124, 58, 237, 0.055), rgba(124, 58, 237, 0.012)),
+        var(--bg-sidebar);
+}
+
+#modal-reanalisar-pendencia .modal-header h3 {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: 1.30rem;
+    font-weight: 760;
+    letter-spacing: -0.016em;
+}
+
+#modal-reanalisar-pendencia .modal-body {
+    padding: 0;
+}
+
+#modal-reanalisar-pendencia form {
+    display: grid;
+}
+
+#modal-reanalisar-pendencia .reanalysis-guidance {
+    margin: 0;
+    padding: 20px 28px 0;
+    max-width: 78ch;
+}
+
+#modal-reanalisar-pendencia #reanalisar-tentativa-atual {
+    display: grid;
+    gap: 14px;
+    padding: 18px 28px 0;
+}
+
+#modal-reanalisar-pendencia .reanalysis-document-identity {
+    margin: 0;
+    padding: 16px 18px;
+    border-color: rgba(124, 58, 237, 0.18);
+    border-radius: 14px;
+    background:
+        linear-gradient(135deg, rgba(124, 58, 237, 0.065), rgba(124, 58, 237, 0.018)),
+        var(--bg-card);
+}
+
+#modal-reanalisar-pendencia .reanalysis-document-identity strong {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 720;
+    line-height: 1.35;
+}
+
+#modal-reanalisar-pendencia .reanalysis-document-identity small {
+    font-size: 0.78rem;
+    line-height: 1.4;
+}
+
+.reanalysis-summary-section {
+    padding: 16px 18px 18px;
+    border: 1px solid rgba(124, 58, 237, 0.11);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--bg-card) 97%, var(--primary-glow));
+}
+
+.reanalysis-summary-section > h4 {
+    margin: 0 0 12px;
+    color: var(--text-main);
+    font-family: var(--font-heading);
+    font-size: 0.86rem;
+    font-weight: 740;
+    letter-spacing: -0.006em;
+}
+
+.reanalysis-summary-section > dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    margin: 0;
+    border: 1px solid rgba(124, 58, 237, 0.08);
+    border-radius: 11px;
+    overflow: hidden;
+}
+
+.reanalysis-summary-section > dl > div {
+    min-width: 0;
+    padding: 11px 13px 12px;
+    background: var(--bg-sidebar);
+}
+
+.reanalysis-summary-section > dl > div:nth-child(odd) {
+    border-right: 1px solid rgba(124, 58, 237, 0.08);
+}
+
+.reanalysis-summary-section > dl > div:nth-child(n + 3) {
+    border-top: 1px solid rgba(124, 58, 237, 0.08);
+}
+
+.reanalysis-summary-section dt {
+    margin: 0 0 4px;
+    color: var(--primary);
+    font-size: 0.64rem;
+    font-weight: 760;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.reanalysis-summary-section dd {
+    margin: 0;
+    color: var(--text-main);
+    font-size: 0.79rem;
+    font-weight: 570;
+    line-height: 1.42;
+    overflow-wrap: anywhere;
+}
+
+.reanalysis-summary-section dd a {
+    color: var(--primary);
+    font-weight: 680;
+}
+
+.reanalysis-decision-panel {
+    margin: 22px 28px 0;
+    padding: 18px 20px 4px;
+    border-top: 1px solid rgba(124, 58, 237, 0.12);
+}
+
+.reanalysis-decision-heading {
+    margin-bottom: 17px;
+}
+
+.reanalysis-decision-heading > span {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--primary);
+    font-size: 0.65rem;
+    font-weight: 780;
+    letter-spacing: 0.045em;
+    text-transform: uppercase;
+}
+
+.reanalysis-decision-heading h4 {
+    margin: 0;
+    color: var(--text-main);
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 740;
+    letter-spacing: -0.01em;
+}
+
+.reanalysis-decision-heading p {
+    margin: 6px 0 0;
+    color: var(--text-muted);
+    font-size: 0.79rem;
+    line-height: 1.45;
+}
+
+#modal-reanalisar-pendencia .reanalysis-decision-panel .form-group {
+    margin-bottom: 16px;
+}
+
+#modal-reanalisar-pendencia .modal-footer {
+    margin: 20px 0 0 !important;
+    padding: 16px 28px 18px !important;
+    border-top: 1px solid rgba(124, 58, 237, 0.10);
+    background: color-mix(in srgb, var(--bg-sidebar) 97%, var(--primary-glow)) !important;
+}
+
+@media (max-width: 900px) {
+    #modal-reanalisar-pendencia .modal-content {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    #modal-reanalisar-pendencia .reanalysis-guidance,
+    #modal-reanalisar-pendencia #reanalisar-tentativa-atual {
+        padding-inline: 18px;
+    }
+
+    .reanalysis-decision-panel {
+        margin-inline: 18px;
+    }
+}
+
+@media (max-width: 620px) {
+    .reanalysis-summary-section > dl {
+        grid-template-columns: 1fr;
+    }
+
+    .reanalysis-summary-section > dl > div:nth-child(odd) {
+        border-right: 0;
+    }
+
+    .reanalysis-summary-section > dl > div + div {
+        border-top: 1px solid rgba(124, 58, 237, 0.08);
+    }
+}
+
 #modal-cobranca .modal-content {
     width: min(760px, calc(100vw - 32px));
 }
@@ -3708,6 +3971,15 @@ button.invoice-document-status {
     .invoice-document-analysis-select {
         min-width: 0;
         width: min(100%, 158px);
+    }
+
+    .invoice-reanalysis-status-button {
+        max-width: 100%;
+        padding-inline: 8px;
+        gap: 6px;
+        line-height: 1.15;
+        text-align: left;
+        white-space: normal;
     }
 
     .service-advisory-delivery label {

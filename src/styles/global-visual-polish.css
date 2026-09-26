@@ -781,6 +781,21 @@ textarea.form-control {
     font-size: 0.82rem;
     line-height: 1.42;
     backdrop-filter: blur(12px);
+    transition: opacity 160ms ease, transform 160ms ease;
+}
+
+@media (min-width: 721px) and (max-width: 999px) {
+    body.pendency-drawer-open .pendency-notice {
+        right: calc(44vw + 28px);
+        z-index: 1700;
+    }
+}
+
+@media (min-width: 1000px) {
+    body.pendency-drawer-open .pendency-notice {
+        right: 468px;
+        z-index: 1700;
+    }
 }
 
 .pendency-notice[data-radar-save-feedback="success"] {
