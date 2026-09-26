@@ -9005,7 +9005,6 @@ function getSafeReanalysisLink(value) {
 
 function renderReanalysisAttemptSummary(pendency, attempt, school) {
     const summary = document.getElementById('reanalisar-tentativa-atual');
-    const list = document.createElement('dl');
     const competence = pendency.competenciaOrigem || pendency.competencia;
     const program = programas.find(item => item.id === pendency.programaId);
     const documentName = VERIFICATION_DOCUMENT_LABELS[pendency.documentoKey]
@@ -9020,6 +9019,7 @@ function renderReanalysisAttemptSummary(pendency, attempt, school) {
     const invoice = getPendencyLinkedInvoice(pendency);
     const snapshot = pendency.documentSnapshot || {};
     const expenseDescription = invoice?.desc || invoice?.descricao || snapshot.desc || snapshot.descricao;
+
     const identity = document.createElement('div');
     identity.className = 'reanalysis-document-identity';
     const identityLabel = document.createElement('span');
@@ -9033,30 +9033,19 @@ function renderReanalysisAttemptSummary(pendency, attempt, school) {
         identityDetail.textContent = `${getInvoiceDocumentTypeLabel(expense)} · ${formatInvoiceCurrency(expense.valor)}`;
         identity.append(identityDetail);
     }
-    appendReanalysisSummaryItem(list, 'Estado atual', pendency.status);
-    appendReanalysisSummaryItem(list, 'Próximo ator', nextActor);
+
+    const attemptSection = document.createElement('section');
+    attemptSection.className = 'reanalysis-summary-section is-attempt';
+    attemptSection.dataset.reanalysisAttempt = 'true';
+    const attemptTitle = document.createElement('h4');
+    attemptTitle.textContent = 'Tentativa recebida';
+    const attemptList = document.createElement('dl');
     appendReanalysisSummaryItem(
-        list,
-        'Erros atuais',
-        currentErrors.length > 0 ? currentErrors.join(' • ') : 'Nenhum erro registrado'
-    );
-    appendReanalysisSummaryItem(list, 'Escola', schoolName);
-    appendReanalysisSummaryItem(
-        list,
-        'Competência',
-        formatCompetenciaText(competence) + ' (' + competence + ')'
-    );
-    appendReanalysisSummaryItem(
-        list,
-        'Programa / documento',
-        (program ? program.name : pendency.programaId) + ' — ' + documentName
-    );
-    appendReanalysisSummaryItem(
-        list,
+        attemptList,
         'Disponibilizado no Drive em',
         attempt.dataDisponibilizacao
     );
-    appendReanalysisSummaryItem(list, 'Observação do envio', attempt.observacao);
+    appendReanalysisSummaryItem(attemptList, 'Observação do envio', attempt.observacao);
 
     const safeLink = getSafeReanalysisLink(attempt.link);
     if (safeLink) {
@@ -9065,9 +9054,37 @@ function renderReanalysisAttemptSummary(pendency, attempt, school) {
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
         link.textContent = 'Abrir arquivo no Drive';
-        appendReanalysisSummaryItem(list, 'Arquivo', link);
+        appendReanalysisSummaryItem(attemptList, 'Arquivo', link);
     }
-    summary.replaceChildren(identity, list);
+    attemptSection.append(attemptTitle, attemptList);
+
+    const contextSection = document.createElement('section');
+    contextSection.className = 'reanalysis-summary-section is-context';
+    contextSection.dataset.reanalysisContext = 'true';
+    const contextTitle = document.createElement('h4');
+    contextTitle.textContent = 'Contexto da Pendência';
+    const contextList = document.createElement('dl');
+    appendReanalysisSummaryItem(contextList, 'Estado atual', pendency.status);
+    appendReanalysisSummaryItem(contextList, 'Próximo ator', nextActor);
+    appendReanalysisSummaryItem(
+        contextList,
+        'Erros atuais',
+        currentErrors.length > 0 ? currentErrors.join(' • ') : 'Nenhum erro registrado'
+    );
+    appendReanalysisSummaryItem(contextList, 'Escola', schoolName);
+    appendReanalysisSummaryItem(
+        contextList,
+        'Competência',
+        formatCompetenciaText(competence) + ' (' + competence + ')'
+    );
+    appendReanalysisSummaryItem(
+        contextList,
+        'Programa / documento',
+        (program ? program.name : pendency.programaId) + ' — ' + documentName
+    );
+    contextSection.append(contextTitle, contextList);
+
+    summary.replaceChildren(identity, attemptSection, contextSection);
 }
 
 function openReanalysisModal(trigger, sourceContext) {
