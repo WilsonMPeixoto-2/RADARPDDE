@@ -69,9 +69,10 @@ A correção test-only desta rodada:
 - espera `layout-responsive-2026.css` com regras acessíveis;
 - espera `document.fonts.ready`;
 - espera dois frames de layout;
-- mantém as mesmas tolerâncias geométricas estritas.
+- mantém as mesmas tolerâncias geométricas estritas;
+- a mesma sincronização de CSS/fonte foi aplicada ao helper irmão de `desktop-basic-monitors.spec.js`, que tinha a mesma premissa temporal.
 
-Não foi alterado CSS/runtime para satisfazer o teste.
+Não foi alterado CSS/runtime para satisfazer os testes.
 
 ## 5. Gates técnicos do candidato funcional
 

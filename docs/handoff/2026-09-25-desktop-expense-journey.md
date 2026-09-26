@@ -72,7 +72,8 @@ Correção test-only:
 - aguardar `layout-responsive-2026.css` carregada;
 - aguardar `document.fonts.ready`;
 - aguardar dois frames;
-- preservar tolerância <= 1 px e demais invariantes.
+- preservar tolerância <= 1 px e demais invariantes;
+- aplicar a mesma espera determinística em `desktop-basic-monitors.spec.js`, que compartilhava a premissa temporal antiga.
 
 ## 5. CI do candidato funcional
 
