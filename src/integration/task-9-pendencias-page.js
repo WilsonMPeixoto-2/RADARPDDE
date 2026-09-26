@@ -953,6 +953,9 @@
 
         if (selectedRecord) syncDrawerSemantics();
         container.setAttribute('aria-busy', String(Boolean(historyRequest)));
+        // Internal rerenders (drawer, tabs and search) bypass the global render bridge.
+        // Restore its contextual banner after replacing the page contents.
+        root.RadarTask9FocusBridge?.ensureSchoolFilterBanner?.();
         if (options.restoreSearchFocus) restoreSearchFocus(options.selectionStart, options.selectionEnd);
         return true;
     }
