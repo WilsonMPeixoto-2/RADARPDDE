@@ -114,6 +114,135 @@ test('rota de escola, aba de pendências, filtro e histórico permanecem estáve
   await expect(page.locator('[data-radar-pendency-school-filter="true"]')).toBeVisible();
 });
 
+test('filtro escolar permanece ao abrir e fechar o detalhe da Pendência', async ({ page }) => {
+  await page.goto('/pendencias');
+  await waitForRadarRoute(page, { view: 'pendencias' });
+
+  // A fixture de navegação pode começar sem Pendências. Crie um registro real
+  // para que o filtro e o detalhe representem a mesma escola durante o teste.
+  const schoolId = await page.evaluate(() => {
+    switchProfile('controlador');
+    const school = escolas.find(candidate => (
+      Array.isArray(candidate.programasIds)
+      && candidate.programasIds.includes('BASIC')
+      && isCompetenceInScope(candidate.competenciaInicial, '2026-05')
+    ));
+    if (!school) throw new Error('Escola de fixture para o filtro não encontrada.');
+    pendencias = [RadarPendencias.createDocumentPendency({
+      id: 'navigation-school-filter-pendency',
+      escolaId: school.id,
+      competenciaOrigem: '2026-05',
+      programaId: 'BASIC',
+      documentoKey: 'extCC',
+      item: 'PDDE Básico - Extrato Conta Corrente',
+      errosAtuais: ['Documento incompleto'],
+      observacao: 'Registro de fixture para a navegação escolar.',
+      dataAbertura: '2026-06-01'
+    }, {
+      eventId: 'navigation-school-filter-open',
+      at: '2026-06-01T12:00:00.000Z',
+      usuario: 'Controlador',
+      perfil: 'Controlador'
+    })];
+    rebuildOperationalIndexes();
+    window.RadarTask9PendencyPage.render();
+    return school.id;
+  });
+  await expect(page.locator('#pendency-filter-school option')).toHaveCount(2);
+
+  await page.evaluate(id => {
+    window.RadarNavigationHistory.navigate(window, {
+      view: 'pendencias',
+      filters: { escola: id }
+    });
+  }, schoolId);
+  await waitForRadarRoute(page, { view: 'pendencias', schoolFilter: schoolId });
+
+  const schoolSelect = page.locator('#pendency-filter-school');
+  const banner = page.locator('[data-radar-pendency-school-filter="true"]');
+  await expect(schoolSelect).toHaveValue(schoolId);
+  await expect(banner).toBeVisible();
+
+  const detailButton = page.getByRole('button', { name: 'Ver detalhes', exact: true }).first();
+  await expect(detailButton).toBeVisible();
+  await detailButton.click();
+
+  const drawer = page.locator('#pendency-detail-drawer');
+  await expect(drawer).toBeVisible();
+  await expect.poll(() => page.evaluate(() => (
+    window.RadarTask9PendencyPage?.getState?.().filters?.schoolId || ''
+  ))).toBe(schoolId);
+  await expect(page.locator('#pendency-filter-school')).toHaveValue(schoolId);
+  await expect(page.locator('[data-radar-pendency-school-filter="true"]')).toBeVisible();
+
+  await drawer.getByRole('button', { name: /Fechar/i }).click();
+  await expect(page.locator('#pendency-detail-drawer')).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => (
+    window.RadarTask9PendencyPage?.getState?.().filters?.schoolId || ''
+  ))).toBe(schoolId);
+  await expect(page.locator('#pendency-filter-school')).toHaveValue(schoolId);
+  await expect(page.locator('[data-radar-pendency-school-filter="true"]')).toBeVisible();
+});
+
+test('limpar o filtro escolar da rota devolve a lista transversal', async ({ page }) => {
+  await page.goto('/pendencias');
+  await waitForRadarRoute(page, { view: 'pendencias' });
+
+  const schoolId = await page.evaluate(() => {
+    switchProfile('controlador');
+    const schools = escolas.filter(candidate => (
+      Array.isArray(candidate.programasIds)
+      && candidate.programasIds.includes('BASIC')
+      && isCompetenceInScope(candidate.competenciaInicial, '2026-05')
+    )).slice(0, 2);
+    if (schools.length !== 2) throw new Error('Duas escolas de fixture não encontradas.');
+    pendencias = schools.map((school, index) => RadarPendencias.createDocumentPendency({
+      id: `navigation-clear-school-filter-${index}`,
+      escolaId: school.id,
+      competenciaOrigem: '2026-05',
+      programaId: 'BASIC',
+      documentoKey: 'extCC',
+      item: 'PDDE Básico - Extrato Conta Corrente',
+      errosAtuais: ['Documento incompleto'],
+      observacao: 'Registro de fixture para limpar o filtro escolar.',
+      dataAbertura: '2026-06-01'
+    }, {
+      eventId: `navigation-clear-school-filter-open-${index}`,
+      at: '2026-06-01T12:00:00.000Z',
+      usuario: 'Controlador',
+      perfil: 'Controlador'
+    }));
+    rebuildOperationalIndexes();
+    window.RadarTask9PendencyPage.render();
+    return schools[0].id;
+  });
+
+  await page.evaluate(id => {
+    window.RadarNavigationHistory.navigate(window, {
+      view: 'pendencias',
+      filters: { escola: id }
+    });
+  }, schoolId);
+  await waitForRadarRoute(page, { view: 'pendencias', schoolFilter: schoolId });
+  await expect(page.locator('#pendency-filter-school')).toHaveValue(schoolId);
+  await expect(page.locator('#p-abertas tbody tr')).toHaveCount(1);
+
+  await page.getByRole('button', { name: 'Limpar filtro de unidade' }).click();
+
+  await expect(page).toHaveURL(/\/pendencias$/);
+  await expect.poll(() => page.evaluate(() => (
+    window.RadarNavigationHistory.currentRoute(window).filters.escola || ''
+  ))).toBe('');
+  await expect(page.locator('#pendency-filter-school')).toHaveValue('');
+  await expect(page.locator('[data-radar-pendency-school-filter="true"]')).toHaveCount(0);
+  await expect(page.locator('#p-abertas tbody tr')).toHaveCount(2);
+
+  await page.locator('#pendency-tab-aguardando').click();
+  await page.locator('#pendency-tab-aberta').click();
+  await expect(page.locator('#pendency-filter-school')).toHaveValue('');
+  await expect(page.locator('#p-abertas tbody tr')).toHaveCount(2);
+});
+
 test('botão Voltar restaura a origem contextual, competência, rolagem e foco', async ({ page }) => {
   await openCarteira(page);
   const schoolLink = await chooseScrollableSchoolLink(page);
