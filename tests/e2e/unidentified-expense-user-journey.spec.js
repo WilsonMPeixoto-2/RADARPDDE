@@ -218,6 +218,7 @@ test.describe('Jornada real — Despesa a identificar', () => {
       .toContainText('Material de consumo identificado');
     await expect(reanalysisModal.locator('#reanalisar-tentativa-atual'))
       .toContainText('Maio/2026');
+    await attachScreenshot(page, testInfo, '04b-reanalise-documento-identificado');
     await reanalysisModal.getByLabel('Resultado da reanálise', { exact: true })
       .selectOption('correto');
     await reanalysisModal.getByLabel('Observação da análise', { exact: true })
@@ -273,7 +274,7 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await attachScreenshot(page, testInfo, '05-reanalise-concluida');
   });
 
-  test('permite retificar os dados provisórios pelo drawer sem identificar a despesa', async ({ page }) => {
+  test('permite retificar os dados provisórios pelo drawer sem identificar a despesa', async ({ page }, testInfo) => {
     const context = await prepareSchool(page);
 
     await page.getByRole('button', {
@@ -344,6 +345,7 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await expect(expenseModal.locator('#nota-tipo')).toHaveValue('a_identificar');
     await expect(expenseModal.locator('#nota-tipo')).toBeDisabled();
     await expect(expenseModal.locator('#nota-tipo')).not.toBeVisible();
+    await attachScreenshot(page, testInfo, '02b-editar-despesa-provisoria');
     await expenseModal.getByLabel('Descrição provisória da saída', { exact: true })
       .fill('Débito provisório retificado');
     await expenseModal.getByLabel('Referência provisória (opcional)', { exact: true })
