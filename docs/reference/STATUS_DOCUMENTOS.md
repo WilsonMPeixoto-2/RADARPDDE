@@ -37,14 +37,16 @@ PR aberto, Preview ou documento antigo não altera Production.
 
 ## 3. Baseline de Production
 
-Estado confirmado em 25/09/2026:
+Estado confirmado em 26/09/2026:
 
 - `main`: `bb7246438b8c6b72ef068b21bb40d492a7049af2` (#374);
 - Production: mesmo SHA `bb7246438b8c6b72ef068b21bb40d492a7049af2`;
 - deployment Vercel Production: `dpl_BztNyEgnHjFxAKJvkPcQGeV6GGWm`, `READY`;
 - projeto oficial: `radarpdde-fix`;
-- PR #375 e PR #376 permanecem abertos/draft e **não** fazem parte de `main` ou Production;
-- os dois PRs atuais não alteram schema, migrations, RPCs, RLS ou persistência canônica.
+- o PR #376 permanece fora de `main`/Production e é o candidato único de integração;
+- o antigo PR #375 foi incorporado integralmente ao histórico do #376 e não deve ser integrado separadamente;
+- o PR #377 permanece apenas como merge técnico histórico de sincronização;
+- a frente não altera schema, migrations, RPCs, RLS ou persistência canônica.
 
 A janela de performance/sincronização de 21/09 continua válida como histórico técnico, não como baseline temporal corrente. Seus SHAs, migrations e evidências permanecem no handoff histórico correspondente.
 
@@ -54,7 +56,7 @@ Handoff corrente:
 
 docs/handoff/2026-09-25-desktop-expense-journey.md
 
-Ele consolida o head atual do #375 (`d591b231...`), o candidato funcional/UI auditado do #376 (`4994aeb3...`), a reconciliação dos testes, a classificação da falha externa do registry no Supabase readiness, o Preview combinado e a ordem exata de retomada/integração.
+Ele consolida o #376 como candidato único contra `main`, o diagnóstico do falso vermelho atribuído ao #375, os sete gates verdes do head `8d44b1d1...`, o Preview desktop final e a única lacuna restante: homologação visual/navegada antes de qualquer merge/publicação.
 
 ## 5. Handoffs anteriores
 

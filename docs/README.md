@@ -21,7 +21,7 @@ Ordem:
 10. ADRs e referências especializadas da área afetada;
 11. planos, auditorias, demais handoffs e evidências históricas apenas para compreender o seu momento/SHA.
 
-`CURRENT_STAGE.md` aponta explicitamente para o handoff corrente. Em 26/09/2026, a frente é o fechamento da jornada de **Despesa a identificar** em dois PRs draft empilhados: #375 em `d591b231...` e #376 com candidato funcional/UI auditado em `4994aeb3...`. Código, testes e documentação foram reconciliados; o Preview combinado está READY e falta a homologação visual/navegada do mesmo candidato antes da integração ordenada. A falha remanescente de Supabase readiness é externa ao produto e ocorreu após testes SQL e lint verdes.
+`CURRENT_STAGE.md` aponta explicitamente para o handoff corrente. Em 26/09/2026, o **PR #376 é o candidato único contra `main`**: ele contém integralmente o antigo #375 e o runtime funcional/UI auditado. O #375 foi substituído por essa estratégia e não deve ser integrado separadamente. Os sete gates do head `8d44b1d1...` estão verdes; o Preview desktop final está READY e falta somente a homologação visual/navegada do mesmo runtime antes de qualquer integração. Como pushes em `main` publicam Production automaticamente, merge e publicação são a mesma decisão operacional nesta frente.
 
 ## 2. Função de cada documento canônico/vigente
 
@@ -81,7 +81,7 @@ O modelo detalhado está em `SYSTEM_CANONICAL_MODEL.md`; a finalidade humana das
 Consultar conforme a área materialmente afetada:
 
 - [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — referência funcional/arquitetural detalhada; **afirmações temporais de PR, SHA, fila ou deployment nele não representam o estado corrente e cedem a `CURRENT_STAGE.md`**;
-- [`handoff/2026-09-25-desktop-expense-journey.md`](handoff/2026-09-25-desktop-expense-journey.md) — **handoff corrente** da jornada desktop de Despesa a identificar, com heads, CI e ordem de retomada;
+- [`handoff/2026-09-25-desktop-expense-journey.md`](handoff/2026-09-25-desktop-expense-journey.md) — **handoff corrente** da jornada desktop de Despesa a identificar, com candidato único #376, CI, Preview final e ordem de retomada;
 - [`handoff/2026-09-19-performance-sync-modernization.md`](handoff/2026-09-19-performance-sync-modernization.md) — handoff histórico concluído da modernização de performance/sincronização;
 - [`decisions/ADR-054-sincronizacao-operacional-realtime.md`](decisions/ADR-054-sincronizacao-operacional-realtime.md) — decisão vigente sobre invalidação Realtime entre sessões;
 - [`DECISION_LOG.md`](DECISION_LOG.md) — decisões duradouras;

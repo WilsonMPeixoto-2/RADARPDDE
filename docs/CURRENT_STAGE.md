@@ -8,135 +8,155 @@
 - `main`: `bb7246438b8c6b72ef068b21bb40d492a7049af2` — merge do PR #374.
 - Production: mesmo SHA `bb7246438b8c6b72ef068b21bb40d492a7049af2`.
 - Deployment Production: `dpl_BztNyEgnHjFxAKJvkPcQGeV6GGWm`, `READY`.
-- PRs #375/#376 continuam fora de `main` e Production.
-- A frente atual não altera schema, migrations, RPCs, RLS, serviços de domínio nem persistência canônica.
+- Nenhum commit da frente #375/#376 foi integrado em `main` ou Production.
+- A frente não altera schema, migrations, RPCs, RLS, serviços de domínio nem persistência canônica.
 
-## 2. Frente ativa
+## 2. Estratégia corrente — #376 é o candidato único
 
-### PR #375 — contexto escolar de Pendências
+### PR #376
 
-- branch: `fix/pendency-context-mobile-preview-2026-09-25`
-- head: `d591b231eb06e95a1c09ba2fb6e40d2c7bb83f7d`
-- base: `main`
-- aberto, draft e mergeable
-- `0d2fe5c6`: limpeza do filtro escolar ocorre após atualização da rota;
-- `d591b231`: abrir Prontuário e voltar às Pendências sincroniza URL e contexto escolar.
-- UX-04 permanece no #375, mas não é foco da auditoria desktop atual.
+- título: **Concluir contexto escolar e jornada desktop de Despesa a identificar**;
+- branch: `fix/desktop-expense-journey-2026-09-25`;
+- base atual: `main`;
+- head validado: `8d44b1d18f96b1dddb96f1d92af2cd816587e759`;
+- runtime funcional/UI: idêntico ao commit `4994aeb331f643c09ab4b76f66e5c831be9cd5d2`;
+- aberto, draft e mergeable;
+- comparação contra `main`: ahead 74 / behind 0 no checkpoint de 26/09;
+- contém integralmente os commits do antigo #375 e as melhorias desktop do #376.
 
-### PR #376 — jornada desktop de Despesa a identificar
+O retarget para `main` foi feito sem rebase/force-push, preservando o histórico Git. A integração em duas etapas deixou de ser a estratégia vigente.
 
-- branch: `fix/desktop-expense-journey-2026-09-25`
-- base: branch do #375 em `d591b231...`
-- candidato de runtime/UI auditado: `4994aeb331f643c09ab4b76f66e5c831be9cd5d2`
-- relação #375 → #376 nesse candidato: **ahead 51 / behind 0**
-- aberto, draft e mergeable
-- PR #377 foi usado apenas para incorporar formalmente o head atual do #375 ao histórico do #376.
-- commits posteriores ao candidato funcional podem ser test-only/documentação; qualquer alteração de runtime exige nova homologação explícita.
+### PR #375
 
-## 3. Contratos de código confirmados
+- branch: `fix/pendency-context-mobile-preview-2026-09-25`;
+- head: `d591b231eb06e95a1c09ba2fb6e40d2c7bb83f7d`;
+- seu conteúdo está integralmente contido no #376;
+- **substituído pelo #376 como candidato de integração**;
+- não deve ser mergeado separadamente.
 
-A revisão source-first confirmou alinhamento entre código e regras vigentes:
+### PR #377
 
-- filtro escolar sincroniza o estado real de `RadarTask9PendencyPage`, sem substituir a coleção global de Pendências;
-- abrir Pendência no Prontuário usa `/escolas/<id>`; voltar restaura `/pendencias?escola=<id>`, busca, aba, seleção e contexto;
-- limpar o filtro navega primeiro para a rota global e só então limpa o estado interno;
+PR técnico de sincronização entre as branches antigas. Está fechado/merged e permanece somente como histórico da incorporação dos dois commits finais do #375 ao #376.
+
+## 3. Diagnóstico do “vermelho do #375”
+
+A comparação anterior entre uma execução verde e uma vermelha do mesmo head do #375 era enganosa.
+
+O run vermelho `36261864567` / job `108465025843` não executou o #375 isolado. O checkout foi do merge temporário do PR técnico #377:
+
+`refs/remotes/pull/377/merge`  
+SHA `b79f4d93f6fea3a336dfd0389878ce914f2c3ba6`
+
+Esse estado combinava:
+
+- runtime novo do #376, que foca `.reanalysis-guidance`;
+- teste antigo ainda exigindo foco em `#reanalisar-resultado`.
+
+O run verde `36252023185` executou o merge-ref real do #375:
+
+`refs/remotes/pull/375/merge`  
+SHA `97d3431131c730fadc002208d0852c1b315487d5`
+
+e passou **182 testes**.
+
+Conclusão: não há evidência de corrida de foco ou regressão determinística no #375 isolado. O vermelho era produto de um merge-ref diferente associado ao mesmo head SHA pela interface do GitHub.
+
+## 4. Contratos funcionais confirmados no candidato
+
+- filtro escolar de Pendências usa o estado real da Task 9 e não substitui a coleção transversal;
+- limpar o filtro atualiza a rota global antes de limpar o estado;
+- abrir Prontuário usa `/escolas/<id>`;
+- voltar às Pendências restaura rota, escola, busca, aba, seleção e contexto quando aplicável;
 - `a_identificar` continua nascendo `Incorreto + Pendência` atomicamente;
-- identificação preserva o mesmo ID de despesa e a mesma Pendência;
-- modal de identificação abre no topo e foca o título do contexto;
-- modal de reanálise abre no topo e foca `.reanalysis-guidance`;
-- documento, tentativa, contexto e decisão são zonas distintas;
-- descrição provisória é a identidade principal e a natureza provisória fica secundária;
-- feedback de criação permanece legível com drawer aberto;
-- a ação longa `Registrar envio / identificação da despesa` permanece dentro da célula no desktop.
+- identificação preserva o mesmo ID da despesa, a mesma Pendência e o histórico;
+- identificação abre pelo topo/contexto;
+- reanálise abre pelo topo e foca `.reanalysis-guidance`;
+- documento → tentativa → contexto → decisão permanecem zonas distintas;
+- ação longa da identificação permanece contida na tabela desktop;
+- feedback não fica oculto pelo drawer;
+- nenhum contrato de domínio/persistência foi alterado para satisfazer testes.
 
-Nenhuma dessas mudanças redefine domínio, persistência ou transições.
+## 5. Gates do head candidato
 
-## 4. Testes alinhados
+Head `8d44b1d18f96b1dddb96f1d92af2cd816587e759`:
 
-Playwright do candidato `4994aeb3...`, run `36261993415`: **182 passed, 54 skipped, 1 flaky, 0 final failures**.
+- Testes E2E Playwright — **success**;
+- Validar RADAR PDDE — **success**;
+- snapshot canônico — **success**;
+- Retificação auditável direcionada — **success**;
+- Lighthouse CI — **success**;
+- Supabase readiness — **success**;
+- contratos-fonte Excel SME — **success**.
 
-- o contrato antigo que focava diretamente `Resultado da reanálise` foi removido; o teste agora valida foco na orientação visível;
-- `canonical-routes.spec.js` cobre preservação e limpeza do filtro escolar;
-- `task-9-pendencias.spec.js` cobre URL Prontuário ↔ Pendências;
-- `pendency-desktop-action-containment.spec.js` mede contenção geométrica em 1440×900 e executa a ação;
-- `unidentified-expense-user-journey.spec.js` percorre a jornada real pelo frontend.
+O head está ahead de `main` e behind 0. O PR permanece mergeable.
 
-### Adequação do flaky de layout
+## 6. Preview desktop final
 
-`layout-responsive-regressions.spec.js:87` variou 8 px na primeira tentativa e passou no retry. O helper aguardava apenas a presença de uma folha intermediária no DOM, não a aplicação da folha final `layout-responsive-2026.css`.
+Branch efêmera:
 
-A correção test-only desta rodada:
-- espera `layout-responsive-2026.css` com regras acessíveis;
-- espera `document.fonts.ready`;
-- espera dois frames de layout;
-- mantém as mesmas tolerâncias geométricas estritas;
-- a mesma sincronização de CSS/fonte foi aplicada ao helper irmão de `desktop-basic-monitors.spec.js`, que tinha a mesma premissa temporal.
+`preview/desktop-final-2026-09-26`
 
-Não foi alterado CSS/runtime para satisfazer os testes.
+A branch parte do mesmo candidato de produto e possui somente alterações temporárias em `vercel.json` para permitir o Preview.
 
-## 5. Gates técnicos do candidato funcional
+Primeiro commit de Preview:
+`795a8cac4767b2794836722ee35ac44545ea6773`
 
-Verdes:
-- Validar RADAR PDDE `36261993404`;
-- snapshot canônico `36261993525`;
-- Retificação auditável `36261993433`;
-- Lighthouse `36261993359`;
-- contratos-fonte Excel SME `36261993396`;
-- Playwright desktop `36261993415`.
+Deployment:
+`dpl_4wFGj3QbqQRwuFdKXCNhCJL9qjaJ` — **ERROR**
 
-### Supabase readiness
+Causa: o build ainda executava os testes unitários que, corretamente, exigem a política Vercel “somente main”. A exceção de Preview conflitava deliberadamente com esses guardrails.
 
-- `readiness`: success;
-- `migration-smoke`: success;
-- `supabase-local`: falha de infraestrutura externa, reproduzida no rerun.
+Correção efêmera:
+`9aa59f5a0fea47bbb03036dfa6eda0ee001eac15` — `chore(preview): separar build efêmero dos gates da política main-only`
 
-Antes da falha: **34 arquivos / 486 testes SQL passaram** e `supabase db lint` retornou **No schema errors found**. Depois, o registry recusou `public.ecr.aws/supabase/postgres-meta:v0.97.0` com `toomanyrequests: Data limit exceeded` nas três tentativas. Não há evidência de regressão de banco nesta frente.
+Deployment válido:
+`dpl_EcLDqaAPe7aWo5dwNyR6G3TuwQSy` — **READY**
 
-## 6. Preview combinado atual
+URL:
+`https://radarpdde-4ja1codbg-wilson-m-peixotos-projects.vercel.app`
 
-Branch descartável: `preview/final-combined-current-2026-09-26`
+A branch de Preview está ahead 2 do candidato e behind 0; o único arquivo diferente é `vercel.json`.
 
-- base de produto: `4994aeb331f643c09ab4b76f66e5c831be9cd5d2`
-- commit temporário: `4f8aca3cc9cf58b7da5cbb1eb7c3ba9d4f933dd4`
-- deployment: `dpl_9wLYQYVKszqwX4rZbCS6WQAJcfec`
-- estado: `READY`
-- URL: `https://radarpdde-5rjsbtb4x-wilson-m-peixotos-projects.vercel.app`
+**Nunca mergear a branch `preview/*` nem transportar seu `vercel.json` temporário para o produto.**
 
-A branch de Preview altera somente `vercel.json` para permitir o deploy e **não deve ser mesclada**.
+## 7. Lacuna real restante
 
-As evidências em `docs/evidence/2026-09-26-postfix-preview/` pertencem a candidato anterior e permanecem históricas.
+A homologação visual/navegada do Preview desktop final foi iniciada, mas não concluída antes da interrupção da sessão Work.
 
-## 7. Lacuna restante
+Ainda precisa ser comprovado no Preview atual, em desktop:
 
-O gate permanente de frontend ainda exige inspeção visual/navegada do Preview combinado do mesmo runtime. No desktop, confirmar:
+1. filtro escolar → detalhe → alternância de abas → limpar filtro → fila global;
+2. URL `/pendencias` após limpar;
+3. abrir Prontuário → URL `/escolas/<id>` → reload;
+4. voltar às Pendências preservando o contexto;
+5. ação longa de `a_identificar` contida;
+6. modal de identificação abrindo pelo topo;
+7. feedback visível com drawer aberto;
+8. reanálise abrindo pelo topo com orientação/contexto;
+9. hierarquia documento → tentativa → contexto → decisão;
+10. ausência de overflow, cortes e sobreposições materiais.
 
-1. limpar filtro escolar devolve fila global e URL `/pendencias`;
-2. Prontuário usa URL correta e reload preserva a superfície;
-3. ação longa permanece contida em 1366/1440 px;
-4. reanálise abre no topo com orientação/contexto visíveis;
-5. feedback não é encoberto pelo drawer.
+Não transformar ausência dessa inspeção em aprovação presumida.
 
-Essa é a lacuna real. Não reabrir arquitetura nem regras já comprovadas.
+## 8. Integração e Production
 
-## 8. Não alterar nesta frente
+A configuração vigente da Vercel publica pushes em `main` automaticamente.
 
-- Supabase/RLS/RPC/migrations;
-- `InvoiceService`, `PendencyService` ou `DataService` sem novo defeito reproduzido;
-- identidade da despesa/Pendência e histórico;
-- Boleto de Internet, Assessoria ou patrimônio;
-- mobile geral;
-- Production.
+Portanto, nesta frente:
 
-## 9. Ordem de integração após homologação visual
+**merge do #376 em `main` = decisão de integração + publicação em Production.**
 
-1. confirmar head do #375;
-2. integrar #375;
-3. retarget/rebase #376 para `main`;
-4. conferir diff residual;
-5. rerodar gates do novo SHA;
-6. Preview final se o runtime mudar materialmente;
-7. integrar #376;
-8. Production somente com autorização explícita separada.
+Não fazer merge enquanto a homologação visual final não estiver concluída e não houver autorização explícita para publicar.
+
+Não existe mais etapa de “merge #375 primeiro”.
+
+## 9. Próxima ação exata
+
+1. homologar visualmente o deployment `dpl_EcLDqaAPe7aWo5dwNyR6G3TuwQSy`;
+2. registrar screenshots/evidências do mesmo runtime;
+3. se não houver defeito, atualizar o checkpoint final do #376;
+4. deixar #376 pronto para a decisão explícita de merge/publicação;
+5. Production somente após essa autorização.
 
 ## 10. Rota de retomada
 
