@@ -2,7 +2,7 @@
 
 **Data:** 25/09/2026  
 **Estado:** implementação concluída em dois PRs draft; CI final verde; validação humana de Preview ainda necessária antes de merge/Production.  
-**Baseline efetiva:** `main`/Production `bb7246438b8c6b72ef068b21bb40d492a7049af2` (#374) → PR #375 head `3b369122acca81b1d07668e8c88fc64c55b06121` → PR #376 head `f183e4b11b7c3ea91113ed98fa63031d0e3479d7`.
+**Baseline efetiva:** `main`/Production `bb7246438b8c6b72ef068b21bb40d492a7049af2` (#374) → PR #375 head funcional `3b369122acca81b1d07668e8c88fc64c55b06121` → PR #376 último SHA funcional `f183e4b11b7c3ea91113ed98fa63031d0e3479d7`. Os commits posteriores no #376 desta reconciliação são apenas documentais.
 
 ## 0. Leia isto primeiro
 
@@ -57,7 +57,7 @@ Nenhum commit dos PRs #375/#376 foi publicado em Production.
 - URL: https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/376
 - branch: `fix/desktop-expense-journey-2026-09-25`
 - base: branch do #375
-- head: `f183e4b11b7c3ea91113ed98fa63031d0e3479d7`
+- último SHA funcional: `f183e4b11b7c3ea91113ed98fa63031d0e3479d7`; commits posteriores na mesma branch são somente documentação
 - aberto, draft, mergeable
 - escopo: UX-01, UX-02, UX-03, UX-05, UX-06, D-01 + correção de colisão visual encontrada durante a validação desktop
 
@@ -178,7 +178,7 @@ Também verdes:
 - `Ciclos funcionais reais com Supabase` — `36207289674`
 - `Retificação auditável direcionada` — `36207289679`
 
-### PR #376 — `f183e4b1`
+### PR #376 — último SHA funcional `f183e4b1`
 
 E2E Playwright:
 
