@@ -52,6 +52,17 @@ async function seedPendency(page) {
     switchView('pendencias');
   });
   await expect(page.locator('.pendency-operations-table')).toBeVisible();
+
+  // O polimento do Dashboard usa MutationObserver + requestAnimationFrame para
+  // remover a classe visual quando a superfície muda. Medir antes dessa
+  // reconciliação compara CSS de Dashboard com CSS de Pendências e produz uma
+  // diferença espúria de largura (8 px no CI), sem o drawer alterar a página.
+  await page.waitForFunction(() => (
+    !document.body.classList.contains('radar-expressiva-institucional')
+  ));
+  await page.evaluate(async () => {
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  });
 }
 
 for (const viewport of [
