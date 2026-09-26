@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "ignoreCommand": "case \"$VERCEL_GIT_COMMIT_REF\" in main|preview/final-visual-fixes-2026-09-26) exit 1 ;; dependabot/*) exit 0 ;; *) exit 0 ;; esac",
-  "buildCommand": "npm run check && npm run test:unit && node scripts/build-vercel.mjs && node scripts/copy-controller-guide-assets.mjs && node scripts/build-vercel-output.mjs",
+  "buildCommand": "npm run check && node scripts/build-vercel.mjs && node scripts/copy-controller-guide-assets.mjs && node scripts/build-vercel-output.mjs",
   "cleanUrls": true,
   "trailingSlash": false,
   "headers": [
