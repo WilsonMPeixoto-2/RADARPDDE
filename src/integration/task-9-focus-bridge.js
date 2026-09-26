@@ -97,14 +97,17 @@
         }
 
         function clearSchoolRouteContext() {
-            lastRouteSchoolId = '';
-            task9ChangePendencyFilter('schoolId', '');
             const route = getCurrentRoute();
             if (route?.view === 'pendencias' && route.filters?.escola
                 && root.RadarNavigationHistory?.navigate) {
                 root.RadarNavigationHistory.navigate(root, { view: 'pendencias' });
+                lastRouteSchoolId = '';
+                task9ChangePendencyFilter('schoolId', '');
+                ensureSchoolFilterBanner();
                 return true;
             }
+            lastRouteSchoolId = '';
+            task9ChangePendencyFilter('schoolId', '');
             try {
                 if (root.location?.pathname === '/pendencias' && root.location?.search) {
                     root.history?.replaceState?.(root.history.state, '', '/pendencias');
