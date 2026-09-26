@@ -34,7 +34,7 @@ A frente corrente é o fechamento da auditoria UX da jornada **Despesa a identif
 - URL: https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/376
 - base: branch do PR #375
 - branch: `fix/desktop-expense-journey-2026-09-25`
-- head atual: `f183e4b11b7c3ea91113ed98fa63031d0e3479d7`
+- último SHA funcional (runtime/UI): `f183e4b11b7c3ea91113ed98fa63031d0e3479d7`; commits posteriores desta branch, produzidos na reconciliação de 25/09, são documentais
 - estado: aberto, draft, mergeable
 - escopo: UX-01, UX-02, UX-03, UX-05, UX-06 e D-01
 - foco de aceitação desta frente: **desktop**
@@ -50,7 +50,7 @@ Implementado no #376:
 6. **D-01** — documentação corrente passa a apontar esta frente e seus PRs.
 7. **Ajuste adicional encontrado na inspeção desktop** — os controles `Aguardando reanálise` e `Visualizar pendência` foram separados para não colidir; o E2E mede geometricamente a ausência de sobreposição.
 
-**Validação final do head #376:** `Validar RADAR PDDE`, snapshot canônico, retificação auditável, Lighthouse, Supabase readiness, contratos-fonte do Excel SME e E2E Playwright concluíram com sucesso. O E2E desktop terminou com **181 passed, 54 skipped, 0 failed**.
+**Validação final do último SHA funcional do #376 (`f183e4b1`):** `Validar RADAR PDDE`, snapshot canônico, retificação auditável, Lighthouse, Supabase readiness, contratos-fonte do Excel SME e E2E Playwright concluíram com sucesso. O E2E desktop terminou com **181 passed, 54 skipped, 0 failed**.
 
 ## 3. O que NÃO está pendente
 
@@ -91,7 +91,7 @@ Restam somente:
 - homologação integral pré-production: `36207289662` — success
 - Lighthouse, CodeQL, Supabase readiness, confiabilidade Supabase, ciclos funcionais, identificação de `a_identificar`, retificação e gate de perfis/viewports: success.
 
-### PR #376 — head `f183e4b1`
+### PR #376 — último SHA funcional `f183e4b1`
 
 - E2E Playwright: run `36207648694` — success — **181 passed, 54 skipped**
 - artefato Playwright: `10894812623` (`playwright-report-desktop`)
