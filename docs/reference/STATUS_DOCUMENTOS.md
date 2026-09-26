@@ -54,7 +54,7 @@ Handoff corrente:
 
 docs/handoff/2026-09-25-desktop-expense-journey.md
 
-Ele consolida o head atual do #375 (\`d591b231...\`), o candidato funcional/UI auditado do #376 (\`4994aeb3...\`), a reconciliação dos testes, a classificação da falha externa do registry no Supabase readiness, o Preview combinado e a ordem exata de retomada/integração.
+Ele consolida o head atual do #375 (`d591b231...`), o candidato funcional/UI auditado do #376 (`4994aeb3...`), a reconciliação dos testes, a classificação da falha externa do registry no Supabase readiness, o Preview combinado e a ordem exata de retomada/integração.
 
 ## 5. Handoffs anteriores
 

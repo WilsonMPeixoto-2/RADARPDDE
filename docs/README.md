@@ -21,7 +21,7 @@ Ordem:
 10. ADRs e referências especializadas da área afetada;
 11. planos, auditorias, demais handoffs e evidências históricas apenas para compreender o seu momento/SHA.
 
-`CURRENT_STAGE.md` aponta explicitamente para o handoff corrente. Em 26/09/2026, a frente é o fechamento da jornada de **Despesa a identificar** em dois PRs draft empilhados: #375 em \`d591b231...\` e #376 com candidato funcional/UI auditado em \`4994aeb3...\`. Código, testes e documentação foram reconciliados; o Preview combinado está READY e falta a homologação visual/navegada do mesmo candidato antes da integração ordenada. A falha remanescente de Supabase readiness é externa ao produto e ocorreu após testes SQL e lint verdes.
+`CURRENT_STAGE.md` aponta explicitamente para o handoff corrente. Em 26/09/2026, a frente é o fechamento da jornada de **Despesa a identificar** em dois PRs draft empilhados: #375 em `d591b231...` e #376 com candidato funcional/UI auditado em `4994aeb3...`. Código, testes e documentação foram reconciliados; o Preview combinado está READY e falta a homologação visual/navegada do mesmo candidato antes da integração ordenada. A falha remanescente de Supabase readiness é externa ao produto e ocorreu após testes SQL e lint verdes.
 
 ## 2. Função de cada documento canônico/vigente
 
