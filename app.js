@@ -9092,10 +9092,14 @@ function renderReanalysisAttemptSummary(pendency, attempt, school) {
 function openReanalysisModal(trigger, sourceContext) {
     reanalisarPendenciaTrigger = trigger;
     reanalisarPendenciaSourceContext = sourceContext;
+    const modal = document.getElementById('modal-reanalisar-pendencia');
+    const modalBody = modal?.querySelector('.modal-body');
+    if (modalBody) modalBody.scrollTop = 0;
     setAccessibleModalOpen(
         'modal-reanalisar-pendencia',
-        document.getElementById('reanalisar-resultado')
+        modal?.querySelector('.reanalysis-guidance')
     );
+    if (modalBody) modalBody.scrollTop = 0;
 }
 
 function closeReanalysisModal({ restoreFocus = true } = {}) {

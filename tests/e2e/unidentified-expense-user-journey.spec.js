@@ -258,6 +258,17 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await expect(reanalysisModal.locator('#reanalisar-tentativa-atual'))
       .toContainText('Maio/2026');
 
+    // Ao abrir, a orientação e a identidade devem começar visíveis; focar
+    // diretamente o resultado não pode rolar o conteúdo sob o cabeçalho.
+    const reanalysisBody = reanalysisModal.locator('.modal-body');
+    await expect(reanalysisModal.locator('.reanalysis-guidance')).toBeFocused();
+    expect(await reanalysisBody.evaluate(element => element.scrollTop)).toBeLessThanOrEqual(2);
+    const reanalysisHeaderBounds = await reanalysisModal.locator('.modal-header').boundingBox();
+    const reanalysisGuidanceBounds = await reanalysisModal.locator('.reanalysis-guidance').boundingBox();
+    expect(reanalysisGuidanceBounds.y).toBeGreaterThanOrEqual(
+      reanalysisHeaderBounds.y + reanalysisHeaderBounds.height
+    );
+
     // Regressão de hierarquia: documento, tentativa, contexto e decisão devem
     // formar zonas reconhecíveis antes de o Controlador escolher o resultado.
     await expect(reanalysisModal.getByText('Tentativa recebida', { exact: true })).toBeVisible();
