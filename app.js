@@ -11075,7 +11075,7 @@ function closePendencyDrawer() {
     const drawer = document.getElementById('pendency-preview-drawer');
     if (!drawer) return;
     drawer.hidden = true;
-    document.body.style.removeProperty('--pendency-notice-right');
+    document.body.classList.remove('pendency-drawer-open');
     drawer.dataset.pendencyId = '';
     drawer.dataset.mode = 'view';
     if (pendencyDrawerReturnFocus && typeof pendencyDrawerReturnFocus.focus === 'function') {
@@ -11306,10 +11306,7 @@ function openPendencyDrawer(pendencyId) {
     drawer.dataset.pendencyId = String(pendencyId);
     drawer.dataset.mode = 'view';
     drawer.hidden = false;
-    document.body.style.setProperty(
-        '--pendency-notice-right',
-        'calc(min(440px, 44vw) + 28px)'
-    );
+    document.body.classList.add('pendency-drawer-open');
     renderPendencyDrawer();
     drawer.querySelector('.pendency-preview-close')?.focus({ preventScroll: true });
     return true;
