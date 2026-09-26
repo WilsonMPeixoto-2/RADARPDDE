@@ -212,8 +212,9 @@ Deployment:
 URL:
 `https://radarpdde-4yobdz9ea-wilson-m-peixotos-projects.vercel.app`
 
-Share gerado:
-`https://radarpdde-4yobdz9ea-wilson-m-peixotos-projects.vercel.app/?_vercel_share=4j6ov8kocHUTEFJUYTBVJG3GbDGmuxw2`
+O Preview é protegido pela autenticação Vercel. O código de compartilhamento não deve ser registrado no repositório.
+
+O código chegou a constar em commits públicos anteriores. Sua remoção deste head não revoga o acesso; invalidar ou renovar esse compartilhamento na Vercel antes de depender dele como controle de acesso. A URL sem código continua servindo como identificação do deployment.
 
 Estado Vercel:
 `READY`

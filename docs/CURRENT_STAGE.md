@@ -97,7 +97,9 @@ Branch descartável:
 - deployment: `dpl_37XBGX5i9LfcVqdZEpu9yQwY6x94`
 - estado: `READY`
 - URL: `https://radarpdde-4yobdz9ea-wilson-m-peixotos-projects.vercel.app`
-- share temporário gerado em 26/09: `?_vercel_share=4j6ov8kocHUTEFJUYTBVJG3GbDGmuxw2`
+- acesso ao Preview protegido: usar autenticação Vercel. O código de compartilhamento não deve ser publicado no repositório.
+
+O código anterior constou de commits públicos; remover o valor do head não o revoga. Renovar ou invalidar o compartilhamento pela Vercel.
 
 A branch Preview difere do produto apenas em `vercel.json` para permitir o deploy e omitir o teste unitário que rejeita, por contrato, branches habilitadas na Vercel. Essa exceção é **somente do Preview** e nunca deve ser integrada ao PR #376.
 
