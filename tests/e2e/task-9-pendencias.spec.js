@@ -243,6 +243,15 @@ test.describe('Task 9 — página de Pendências Operacionais', () => {
     await page.goto('/');
     const seeded = await seedFourPendencyStates(page);
 
+    await page.evaluate(schoolId => {
+      window.RadarNavigationHistory.navigate(window, {
+        view: 'pendencias',
+        filters: { escola: schoolId }
+      });
+    }, seeded.schoolId);
+    await expect(page).toHaveURL(new RegExp(`/pendencias\\?escola=${seeded.schoolId}$`));
+    await expect(page.locator('#pendency-filter-school')).toHaveValue(seeded.schoolId);
+
     const search = page.getByRole('searchbox', { name: 'Buscar pendências' });
     await search.fill(seeded.schoolDesignation);
     await visibleRecord(page, 'task9-open').getByRole('button', { name: 'Ver detalhes' }).click();
@@ -252,8 +261,16 @@ test.describe('Task 9 — página de Pendências Operacionais', () => {
 
     await expect(page.getByRole('button', { name: 'Voltar às Pendências' })).toBeVisible();
     await expect(page.locator('#main-container')).toContainText(seeded.schoolName);
+    await expect(page).toHaveURL(new RegExp(`/escolas/${seeded.schoolId}$`));
+    await expect.poll(() => page.evaluate(() => window.RadarNavigationHistory.currentRoute(window).view))
+      .toBe('prontuario');
 
     await page.getByRole('button', { name: 'Voltar às Pendências' }).click();
+    await expect(page).toHaveURL(new RegExp(`/pendencias\\?escola=${seeded.schoolId}$`));
+    await expect.poll(() => page.evaluate(() => (
+      window.RadarNavigationHistory.currentRoute(window).filters.escola || ''
+    ))).toBe(seeded.schoolId);
+    await expect(page.locator('#pendency-filter-school')).toHaveValue(seeded.schoolId);
     await expect(search).toHaveValue(seeded.schoolDesignation);
     await expect(page.getByRole('complementary', { name: 'Detalhes da pendência' })).toBeVisible();
     await expect(visibleRecord(page, 'task9-open')).toHaveClass(/pendency-row-selected/);

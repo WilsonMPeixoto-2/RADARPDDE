@@ -258,6 +258,13 @@
     justify-content: center;
 }
 
+.pendency-operations-table .pendency-row-actions .btn {
+    width: 100%;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
 .pendency-count-cell {
     text-align: center;
     font-weight: 800;

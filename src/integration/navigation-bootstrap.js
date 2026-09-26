@@ -24,6 +24,17 @@
         return (collection || []).filter(item => String(item?.escolaId || '') === String(schoolId));
     }
 
+    function syncPendencyPageSchoolFilter(root, schoolId) {
+        const api = root?.RadarTask9PendencyPage;
+        if (!api || typeof api.setSchoolFilter !== 'function') return false;
+        const target = String(schoolId || '');
+        const current = String(api.getState?.().filters?.schoolId || '');
+        if (current !== target) {
+            api.setSchoolFilter(target, { render: false });
+        }
+        return true;
+    }
+
     function buildSchoolHref(schoolId, section = null) {
         if (!routesApi) return '/dashboard';
         return routesApi.buildRoute({
@@ -125,23 +136,6 @@
             }
         }
 
-        function getPendencies() {
-            try {
-                return typeof pendencias !== 'undefined' && Array.isArray(pendencias) ? pendencias : [];
-            } catch (_error) {
-                return [];
-            }
-        }
-
-        function setPendencies(value) {
-            try {
-                pendencias = value;
-                return true;
-            } catch (_error) {
-                return false;
-            }
-        }
-
         function currentSchoolId() {
             try {
                 return typeof activeSchoolId !== 'undefined' ? activeSchoolId : null;
@@ -156,44 +150,6 @@
             } catch (_error) {
                 return null;
             }
-        }
-
-        function renderPendencyFilterBanner() {
-            if (!activePendencySchoolFilter) return;
-            const container = document.getElementById('main-container');
-            if (!container || container.querySelector('[data-radar-pendency-school-filter]')) return;
-            const school = getSchools().find(item => item.id === activePendencySchoolFilter);
-            const banner = document.createElement('section');
-            banner.className = 'panel-card';
-            banner.dataset.radarPendencySchoolFilter = 'true';
-            banner.style.marginBottom = '18px';
-
-            const row = document.createElement('div');
-            row.style.display = 'flex';
-            row.style.alignItems = 'center';
-            row.style.justifyContent = 'space-between';
-            row.style.gap = '16px';
-            row.style.flexWrap = 'wrap';
-
-            const text = document.createElement('p');
-            text.style.margin = '0';
-            const strong = document.createElement('strong');
-            strong.textContent = 'Filtro por unidade: ';
-            text.append(strong, document.createTextNode(
-                school
-                    ? `${school.denominação || school.denominacao || school.id} (${school.designação || school.designacao || school.id})`
-                    : activePendencySchoolFilter
-            ));
-
-            const clearLink = document.createElement('a');
-            clearLink.className = 'btn btn-secondary btn-sm';
-            clearLink.href = '/pendencias';
-            clearLink.dataset.radarRoute = 'true';
-            clearLink.textContent = 'Limpar filtro';
-
-            row.append(text, clearLink);
-            banner.appendChild(row);
-            container.prepend(banner);
         }
 
         function addProntuarioPendencyLink(schoolId) {
@@ -225,6 +181,7 @@
                 activePendencySchoolFilter = resolved.view === 'pendencias'
                     ? (resolved.filters?.escola || null)
                     : null;
+                syncPendencyPageSchoolFilter(root, activePendencySchoolFilter);
                 originalSwitchView(resolved.view, resolved.param);
                 if (resolved.view === 'prontuario' && resolved.section === 'pendencias') {
                     originalActivateProntuarioTab?.('tab-pendencias');
@@ -241,6 +198,7 @@
         root.switchView = function navigationAwareSwitchView(view, param = null) {
             if (!navigationApplying) {
                 activePendencySchoolFilter = null;
+                syncPendencyPageSchoolFilter(root, '');
             }
             const result = originalSwitchView(view, param);
             decorateSchoolLinks(document);
@@ -248,20 +206,11 @@
         };
 
         if (originalRenderPendencias) {
-            root.renderPendencias = function renderFilteredPendencias() {
-                const fullCollection = getPendencies();
-                const filteredCollection = filterPendenciesBySchool(
-                    fullCollection,
-                    activePendencySchoolFilter
-                );
-                const replaced = filteredCollection !== fullCollection && setPendencies(filteredCollection);
-                try {
-                    return originalRenderPendencias();
-                } finally {
-                    if (replaced) setPendencies(fullCollection);
-                    renderPendencyFilterBanner();
-                    decorateSchoolLinks(document);
-                }
+            root.renderPendencias = function renderRoutedPendencias() {
+                syncPendencyPageSchoolFilter(root, activePendencySchoolFilter);
+                const result = originalRenderPendencias();
+                decorateSchoolLinks(document);
+                return result;
             };
             try { renderPendencias = root.renderPendencias; } catch (_error) { /* browser global fallback */ }
         }
@@ -329,6 +278,7 @@
 
     return Object.freeze({
         filterPendenciesBySchool,
+        syncPendencyPageSchoolFilter,
         buildSchoolHref,
         extractSchoolIdFromOnclick,
         shouldHandleInternalClick,

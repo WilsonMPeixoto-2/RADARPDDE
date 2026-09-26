@@ -1,7 +1,7 @@
 # Modelo canônico integrado do RADAR PDDE
 
 **Classe documental:** Canônico — modelo funcional e arquitetural integrado  
-**Atualizado em:** 25 de setembro de 2026  
+**Atualizado em:** 26 de setembro de 2026  
 **Finalidade:** leitura obrigatória antes de qualquer análise funcional, correção, implementação, refatoração ou auditoria do produto  
 **Estado mutável do projeto:** `docs/CURRENT_STAGE.md`
 
@@ -21,34 +21,23 @@ Antes de propor qualquer mudança funcional, o executor deve:
 
 **Proibido:** criar nova regra funcional apenas porque ela parece ausente no primeiro módulo encontrado.
 
-## 1. Baseline desta reconstrução
+## 1. Baseline e estado mutável
 
-Esta versão foi reconstruída source-first, confrontando documentação, código e ambientes efetivos.
+Este arquivo descreve o **modelo estável** do produto. SHA de branch, head de PR, deployment, resultado de CI e fila corrente são deliberadamente excluídos daqui porque envelhecem mais rápido que o contrato funcional.
 
-### Código e deployment
+Para estado temporal usar exclusivamente:
 
-- baseline de **runtime** homologada e publicada: `6dd4b92367dfa7f9f45e3a9db49ebde5b21807c7`;
-- Vercel Production verificada como `READY` nessa baseline de runtime;
-- deployment observado: `dpl_6V1cQ9FvLdy9bQXgpd2TruxczT81`;
-- a `main` pode estar à frente desse SHA por commits exclusivamente documentais; revalidar o head ao vivo quando o SHA da documentação for material;
-- o merge do PR #370 consolidou a UX específica de `a_identificar` sem alterar domínio, schema, RPC ou transições;
-- o merge do PR #371 aplicou apenas polimento visual sobre essa baseline e tem árvore Git idêntica à homologada no PR.
+- `docs/CURRENT_STAGE.md` — baseline de `main`/Production, PRs correntes, candidato auditado, gates e Preview;
+- o handoff corrente apontado por `CURRENT_STAGE.md` — detalhes da frente ativa;
+- evidências históricas — prova do SHA/deployment específico em que foram produzidas.
+
+Uma referência histórica a PR ou SHA só deve aparecer neste modelo quando for necessária para explicar uma **decisão durável**, nunca para afirmar o estado corrente.
 
 ### Supabase Production
 
-Projeto verificado: `scnryinorqeucbfkioxo`.
+A persistência canônica continua sendo o Supabase. A reconstrução source-first confirmou as entidades, RPCs, RLS, triggers e contratos descritos nas seções seguintes.
 
-Foram conferidos diretamente:
-
-- tabelas públicas;
-- colunas das entidades operacionais centrais;
-- RPCs/funções;
-- políticas RLS;
-- triggers de integridade e auditoria.
-
-O schema remoto confirma, entre outras, as entidades `schools`, `school_programs`, `verifications`, `pendencies`, `pendency_attempts`, `pendency_contacts`, `registered_invoices`, `assets`, `controllers`, `inventory_team_members`, `user_profiles`, `user_school_scopes`, `programs`, `competences`, `app_config`, `administrative_logs` e `audit_events`.
-
-**Importante:** SHA, deployment, contagens e estado remoto são voláteis. Revalidar ao vivo antes de depender deles. O que este documento torna estável é o **modelo de produto e suas autoridades**, não um snapshot eterno do ambiente.
+SHA, deployment, contagens e estado remoto são voláteis e devem ser revalidados ao vivo antes de depender deles. O que este documento torna estável é o **modelo de produto e suas autoridades**, não um snapshot eterno do ambiente.
 
 ## 2. O que é o RADAR PDDE
 
@@ -820,8 +809,13 @@ analisar NF específica como Incorreto
 → NF = Incorreto
 → Pendência daquela NF = Aberta
 → Prontuário mostra Visualizar pendência
-→ novo envio e reanálise não aparecem como ações do Prontuário
+→ drawer contextual pode oferecer Registrar novo envio
+→ após o envio, Pendência = Aguardando reanálise
+→ Aguardando reanálise pode ser acionado no Prontuário
+   OU Reanalisar na página de Pendências
 ```
+
+A página de Pendências continua sendo a visão transversal completa do passivo; o acesso contextual pelo Prontuário não cria uma segunda operação nem uma segunda fonte de verdade.
 
 ### J4 — Regularização da NF já identificada
 

@@ -288,6 +288,8 @@
     function renderDesktopRow(record) {
         const reference = escapeHtml(encodePendencyIdReference(record.id));
         const isSelected = record.id === activePendencyDetailId;
+        const linkedExpense = linkedInvoiceForRecord(record);
+        const expenseDescription = String(linkedExpense?.desc || linkedExpense?.descricao || '').trim();
         return `
             <tr
                 data-pendency-id="${escapeHtml(String(record.id))}"
@@ -308,6 +310,7 @@
                 <td>
                     <strong>${escapeHtml(record.programName)}</strong>
                     <small>${escapeHtml(record.documentName)}</small>
+                    ${expenseDescription ? `<small class="pendency-expense-identity">${escapeHtml(expenseDescription)}</small>` : ''}
                 </td>
                 <td>${renderErrors(record)}</td>
                 <td><span class="badge ${getStatusBadgeClass(record.status)}">${escapeHtml(record.status)}</span></td>
@@ -887,7 +890,7 @@
             <div class="page-header pendency-page-header">
                 <div class="page-title">
                     <h1>Pendências operacionais</h1>
-                    <p>Localize, acompanhe e trate pendências por unidade, competência, programa e documento.</p>
+                    <p>Fila de todas as escolas e competências, incluindo ocorrências ativas e histórico. No Prontuário, veja apenas as pendências ativas da escola selecionada.</p>
                 </div>
                 <div class="pendency-page-header-actions">
                     <button
@@ -950,6 +953,9 @@
 
         if (selectedRecord) syncDrawerSemantics();
         container.setAttribute('aria-busy', String(Boolean(historyRequest)));
+        // Internal rerenders (drawer, tabs and search) bypass the global render bridge.
+        // Restore its contextual banner after replacing the page contents.
+        root.RadarTask9FocusBridge?.ensureSchoolFilterBanner?.();
         if (options.restoreSearchFocus) restoreSearchFocus(options.selectionStart, options.selectionEnd);
         return true;
     }
@@ -983,6 +989,12 @@
         if (!Object.prototype.hasOwnProperty.call(DEFAULT_FILTERS, name)) return false;
         pageState.filters[name] = value || '';
         renderPendenciasTask9();
+        return true;
+    }
+
+    function setPendencySchoolFilter(schoolId, options = {}) {
+        pageState.filters.schoolId = String(schoolId || '').trim();
+        if (options.render !== false) renderPendenciasTask9();
         return true;
     }
 
@@ -1194,6 +1206,14 @@
         }));
     }
 
+    function navigatePendencyContext(route) {
+        if (root.RadarNavigationHistory?.navigate) {
+            root.RadarNavigationHistory.navigate(root, route);
+        } else {
+            originalSwitchView(route.view, route.param);
+        }
+    }
+
     function openPendencyInProntuario(source) {
         let pendencyId;
         try {
@@ -1208,7 +1228,7 @@
 
         pageState.returnContext = captureReturnContext(record);
         activeProntuarioCompetencia = record.competence;
-        originalSwitchView('prontuario', record.schoolId);
+        navigatePendencyContext({ view: 'prontuario', param: record.schoolId });
         focusProntuarioDocument(record);
         return true;
     }
@@ -1216,13 +1236,16 @@
     function returnToPendencias() {
         const context = pageState.returnContext;
         if (!context) {
-            originalSwitchView('pendencias');
+            navigatePendencyContext({ view: 'pendencias' });
             return true;
         }
         pageState.activeTab = context.activeTab;
         pageState.filters = { ...DEFAULT_FILTERS, ...context.filters };
         activePendencyDetailId = context.selectedPendencyId;
-        originalSwitchView('pendencias');
+        navigatePendencyContext({
+            view: 'pendencias',
+            filters: context.filters.schoolId ? { escola: context.filters.schoolId } : {}
+        });
         root.requestAnimationFrame(() => {
             root.scrollTo({ top: context.scrollY, behavior: 'auto' });
             const drawer = document.getElementById('pendency-detail-drawer');
@@ -1252,6 +1275,7 @@
             VERSION: '1.2.0',
             requestedHistoryStatuses,
             getFilterSummary: () => getFilterSummary(getPageModel()),
+            setSchoolFilter: setPendencySchoolFilter,
             getState: () => ({
                 activeTab: pageState.activeTab,
                 filters: { ...pageState.filters },

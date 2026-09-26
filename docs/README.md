@@ -1,7 +1,7 @@
 # Documentação do RADAR PDDE
 
 **Classe documental:** Canônico — índice e rota de leitura  
-**Atualizado em:** 19 de setembro de 2026
+**Atualizado em:** 26 de setembro de 2026
 
 ## 1. Rota obrigatória
 
@@ -21,7 +21,7 @@ Ordem:
 10. ADRs e referências especializadas da área afetada;
 11. planos, auditorias, demais handoffs e evidências históricas apenas para compreender o seu momento/SHA.
 
-`CURRENT_STAGE.md` aponta explicitamente para o handoff corrente. Em 19/09/2026, a frente vigente é a modernização de performance e sincronização concluída até o PR #332; não usar handoffs antigos como fila de execução.
+A frente desktop de Despesa a identificar e contexto escolar foi concluída tecnicamente em `2d21e752`, com 16 workflows verdes. O usuário autorizou a publicação do candidato único #376 em 26/09/2026. Não há handoff corrente de implementação. Consulte `CURRENT_STAGE.md` e o registro de publicação do #376 para o resultado operacional e os SHAs efetivos; o merge em `main` dispara Production automaticamente.
 
 ## 2. Função de cada documento canônico/vigente
 
@@ -81,7 +81,8 @@ O modelo detalhado está em `SYSTEM_CANONICAL_MODEL.md`; a finalidade humana das
 Consultar conforme a área materialmente afetada:
 
 - [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — referência funcional/arquitetural detalhada; **afirmações temporais de PR, SHA, fila ou deployment nele não representam o estado corrente e cedem a `CURRENT_STAGE.md`**;
-- [`handoff/2026-09-19-performance-sync-modernization.md`](handoff/2026-09-19-performance-sync-modernization.md) — handoff corrente da modernização de performance/sincronização;
+- [`handoff/2026-09-25-desktop-expense-journey.md`](handoff/2026-09-25-desktop-expense-journey.md) — **handoff histórico concluído** da jornada desktop de Despesa a identificar, preservando os checkpoints e o adendo de encerramento;
+- [`handoff/2026-09-19-performance-sync-modernization.md`](handoff/2026-09-19-performance-sync-modernization.md) — handoff histórico concluído da modernização de performance/sincronização;
 - [`decisions/ADR-054-sincronizacao-operacional-realtime.md`](decisions/ADR-054-sincronizacao-operacional-realtime.md) — decisão vigente sobre invalidação Realtime entre sessões;
 - [`DECISION_LOG.md`](DECISION_LOG.md) — decisões duradouras;
 - [`architecture/`](architecture/) — contratos arquiteturais específicos;

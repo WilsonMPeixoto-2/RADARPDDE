@@ -1,7 +1,7 @@
 # Matriz de validade documental
 
 **Classe documental:** Canônico
-**Atualizado em:** 21 de setembro de 2026
+**Atualizado em:** 26 de setembro de 2026
 
 ## 1. Finalidade e precedência
 
@@ -25,7 +25,8 @@ PR aberto, Preview ou documento antigo não altera Production.
 | docs/reference/SYSTEM_CANONICAL_MODEL.md | Canônico | autoridades, fluxos e invariantes |
 | docs/reference/PRODUCT_SURFACE_CATALOG.md | Referência vigente | superfícies e jornadas |
 | docs/CURRENT_STAGE.md | Canônico | estado ao vivo e prioridade |
-| docs/handoff/2026-09-19-performance-sync-modernization.md | Handoff corrente | checkpoint da modernização de performance/sincronização |
+| docs/handoff/2026-09-25-desktop-expense-journey.md | Handoff histórico concluído | checkpoints preservados e adendo de encerramento |
+| docs/handoff/2026-09-19-performance-sync-modernization.md | Handoff histórico concluído | modernização de performance/sincronização encerrada em 21/09 |
 | docs/decisions/ADR-054-sincronizacao-operacional-realtime.md | Decisão vigente | contrato de sincronização entre sessões |
 | docs/reference/ENGINEERING_METHOD.md | Canônico | método de engenharia |
 | docs/reference/FRONTEND_USER_VALIDATION_GATE.md | Canônico | prova de interface real |
@@ -34,36 +35,19 @@ PR aberto, Preview ou documento antigo não altera Production.
 | docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md | Gerado | visão humana da matriz |
 | docs/DECISION_LOG.md e docs/decisions/*.md | Decisão vigente | regras especializadas |
 
-## 3. Baseline de Production
+## 3. Entrega e baseline operacional
 
-O baseline funcional inclui os PRs #327, #329, #330, #331, #332, #336, #338, #339, #340, #341, com provas adicionais #342–#344. O #345 é fechamento documental e não altera runtime.
+A frente desktop/contexto escolar foi concluída tecnicamente em `2d21e752d8004e9c0343cca3978a84a46bf4609b`. O fechamento posterior é documental. O usuário autorizou a publicação em 26/09/2026 pelo PR #376, entrega única que contém #375; #375 está fechado sem merge e #377 é histórico técnico.
 
-- baseline funcional/runtime conferido em 21/09 (#344): 75520d43a5ca9bc2607318cc6a70ba2a7494ca92;
-- Vercel correspondente ao #344: dpl_FHt2mSxrzWbq491y497RDCuf7LsN, READY;
-- Supabase: ACTIVE_HEALTHY;
-- migrations remotas: 54;
-- migration mais recente: 20260920013656_realtime_operational_invalidation;
-- #344: instrumentação de jornadas integrada sem alteração de runtime;
-- monitor, leitura autenticada e integridade agregada atuais SUCCESS, com runs vinculados no CURRENT_STAGE.
+A base anterior à entrega é `bb7246438b8c6b72ef068b21bb40d492a7049af2`, deployment `dpl_BztNyEgnHjFxAKJvkPcQGeV6GGWm`. O resultado de publicação, SHA efetivo e deployment são registrados no PR #376 e manifesto público. Consultar `CURRENT_STAGE.md` e revalidar o ambiente; a aprovação pré-merge não substitui a confirmação do deployment.
 
-Esse baseline substitui como estado corrente os handoffs centrados em PR #301/#305/#306. Esses documentos continuam válidos como histórico do momento em que foram produzidos.
+A frente não altera schema, migrations, RPCs, RLS, serviços de domínio nem persistência canônica.
 
-## 4. Handoff corrente
+## 4. Handoff encerrado
 
-Handoff corrente:
+Não há handoff corrente de implementação. `docs/handoff/2026-09-25-desktop-expense-journey.md` é histórico concluído, com adendo apontando o fechamento e preservando o checkpoint anterior. As antigas pendências nele descritas não formam fila atual.
 
-docs/handoff/2026-09-19-performance-sync-modernization.md
-
-Ele consolida:
-
-- objetivo da rodada;
-- diagnóstico original;
-- PRs concluídos;
-- evidências de validação;
-- arquitetura vigente;
-- decisões finais de não implementação;
-- acompanhamento longitudinal não bloqueante;
-- critérios de encerramento atendidos.
+A evidência `docs/evidence/2026-09-26-desktop-final-preview/README.md` preserva o momento de criação do Preview; a homologação posterior está no registro do #376 e em CURRENT_STAGE.md. O acesso direto ao Preview permaneceu limitado por SSO; a inspeção visual registrada é do Chromium do CI, do mesmo runtime.
 
 ## 5. Handoffs anteriores
 

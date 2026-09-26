@@ -8555,13 +8555,18 @@ function capturePendencyActionSourceContext(pendency, trigger) {
     });
 }
 
-function openRegistrarNovoEnvioModal(trigger, sourceContext) {
+function openRegistrarNovoEnvioModal(trigger, sourceContext, { focusContext = false } = {}) {
     registrarNovoEnvioTrigger = trigger;
     registrarNovoEnvioSourceContext = sourceContext;
-    setAccessibleModalOpen(
-        'modal-registrar-envio',
-        document.getElementById('envio-data-disponibilizacao')
-    );
+    const modal = document.getElementById('modal-registrar-envio');
+    const modalBody = modal?.querySelector('.modal-body');
+    const contextHeading = document.getElementById('envio-contexto-title');
+    const availabilityDate = document.getElementById('envio-data-disponibilizacao');
+    const initialFocus = focusContext ? contextHeading : availabilityDate;
+
+    if (focusContext && modalBody) modalBody.scrollTop = 0;
+    setAccessibleModalOpen('modal-registrar-envio', initialFocus);
+    if (focusContext && modalBody) modalBody.scrollTop = 0;
 }
 
 function closeRegistrarNovoEnvioModal({ restoreFocus = true } = {}) {
@@ -8743,11 +8748,11 @@ function abrirModalRegistrarNovoEnvio(pendencySource) {
         </dl>
     `;
 
-    openRegistrarNovoEnvioModal(trigger, sourceContext);
-    if (identificationContext.required) {
-        const identificationType = document.getElementById('envio-identificacao-tipo');
-        if (identificationType) identificationType.focus({ preventScroll: true });
-    }
+    openRegistrarNovoEnvioModal(
+        trigger,
+        sourceContext,
+        { focusContext: identificationContext.required }
+    );
     return true;
 }
 
@@ -9002,7 +9007,6 @@ function getSafeReanalysisLink(value) {
 
 function renderReanalysisAttemptSummary(pendency, attempt, school) {
     const summary = document.getElementById('reanalisar-tentativa-atual');
-    const list = document.createElement('dl');
     const competence = pendency.competenciaOrigem || pendency.competencia;
     const program = programas.find(item => item.id === pendency.programaId);
     const documentName = VERIFICATION_DOCUMENT_LABELS[pendency.documentoKey]
@@ -9014,30 +9018,36 @@ function renderReanalysisAttemptSummary(pendency, attempt, school) {
     const currentErrors = Array.isArray(pendency.errosAtuais)
         ? pendency.errosAtuais.filter(Boolean)
         : [];
-    appendReanalysisSummaryItem(list, 'Estado atual', pendency.status);
-    appendReanalysisSummaryItem(list, 'Próximo ator', nextActor);
+    const invoice = getPendencyLinkedInvoice(pendency);
+    const snapshot = pendency.documentSnapshot || {};
+    const expenseDescription = invoice?.desc || invoice?.descricao || snapshot.desc || snapshot.descricao;
+
+    const identity = document.createElement('div');
+    identity.className = 'reanalysis-document-identity';
+    const identityLabel = document.createElement('span');
+    identityLabel.textContent = 'Documento em reanálise';
+    const identityTitle = document.createElement('strong');
+    identityTitle.textContent = expenseDescription || pendency.item || documentName;
+    identity.append(identityLabel, identityTitle);
+    if (invoice || snapshot.valor != null) {
+        const identityDetail = document.createElement('small');
+        const expense = invoice || snapshot;
+        identityDetail.textContent = `${getInvoiceDocumentTypeLabel(expense)} · ${formatInvoiceCurrency(expense.valor)}`;
+        identity.append(identityDetail);
+    }
+
+    const attemptSection = document.createElement('section');
+    attemptSection.className = 'reanalysis-summary-section is-attempt';
+    attemptSection.dataset.reanalysisAttempt = 'true';
+    const attemptTitle = document.createElement('h4');
+    attemptTitle.textContent = 'Tentativa recebida';
+    const attemptList = document.createElement('dl');
     appendReanalysisSummaryItem(
-        list,
-        'Erros atuais',
-        currentErrors.length > 0 ? currentErrors.join(' • ') : 'Nenhum erro registrado'
-    );
-    appendReanalysisSummaryItem(list, 'Escola', schoolName);
-    appendReanalysisSummaryItem(
-        list,
-        'Competência',
-        formatCompetenciaText(competence) + ' (' + competence + ')'
-    );
-    appendReanalysisSummaryItem(
-        list,
-        'Programa / documento',
-        (program ? program.name : pendency.programaId) + ' — ' + documentName
-    );
-    appendReanalysisSummaryItem(
-        list,
+        attemptList,
         'Disponibilizado no Drive em',
         attempt.dataDisponibilizacao
     );
-    appendReanalysisSummaryItem(list, 'Observação do envio', attempt.observacao);
+    appendReanalysisSummaryItem(attemptList, 'Observação do envio', attempt.observacao);
 
     const safeLink = getSafeReanalysisLink(attempt.link);
     if (safeLink) {
@@ -9046,18 +9056,50 @@ function renderReanalysisAttemptSummary(pendency, attempt, school) {
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
         link.textContent = 'Abrir arquivo no Drive';
-        appendReanalysisSummaryItem(list, 'Arquivo', link);
+        appendReanalysisSummaryItem(attemptList, 'Arquivo', link);
     }
-    summary.replaceChildren(list);
+    attemptSection.append(attemptTitle, attemptList);
+
+    const contextSection = document.createElement('section');
+    contextSection.className = 'reanalysis-summary-section is-context';
+    contextSection.dataset.reanalysisContext = 'true';
+    const contextTitle = document.createElement('h4');
+    contextTitle.textContent = 'Contexto da Pendência';
+    const contextList = document.createElement('dl');
+    appendReanalysisSummaryItem(contextList, 'Estado atual', pendency.status);
+    appendReanalysisSummaryItem(contextList, 'Próximo ator', nextActor);
+    appendReanalysisSummaryItem(
+        contextList,
+        'Erros atuais',
+        currentErrors.length > 0 ? currentErrors.join(' • ') : 'Nenhum erro registrado'
+    );
+    appendReanalysisSummaryItem(contextList, 'Escola', schoolName);
+    appendReanalysisSummaryItem(
+        contextList,
+        'Competência',
+        formatCompetenciaText(competence) + ' (' + competence + ')'
+    );
+    appendReanalysisSummaryItem(
+        contextList,
+        'Programa / documento',
+        (program ? program.name : pendency.programaId) + ' — ' + documentName
+    );
+    contextSection.append(contextTitle, contextList);
+
+    summary.replaceChildren(identity, attemptSection, contextSection);
 }
 
 function openReanalysisModal(trigger, sourceContext) {
     reanalisarPendenciaTrigger = trigger;
     reanalisarPendenciaSourceContext = sourceContext;
+    const modal = document.getElementById('modal-reanalisar-pendencia');
+    const modalBody = modal?.querySelector('.modal-body');
+    if (modalBody) modalBody.scrollTop = 0;
     setAccessibleModalOpen(
         'modal-reanalisar-pendencia',
-        document.getElementById('reanalisar-resultado')
+        modal?.querySelector('.reanalysis-guidance')
     );
+    if (modalBody) modalBody.scrollTop = 0;
 }
 
 function closeReanalysisModal({ restoreFocus = true } = {}) {
@@ -9719,7 +9761,7 @@ function renderProntuario(escolaId) {
                                 id="prontuario-tab-pendencias"
                                 class="tab-button prontuario-flow-tab prontuario-tooltip"
                                 aria-label="Pendências Ativas desta unidade (${pAtivas.length})"
-                                data-tooltip="Abrir as pendências ativas desta unidade e as ações disponíveis para cada uma."
+                                data-tooltip="Abrir pendências ativas desta escola e as ações disponíveis. A fila completa fica em Pendências operacionais."
                                 data-tab="pendencias"
                                 role="tab"
                                 aria-controls="tab-pendencias"
@@ -9844,7 +9886,7 @@ function renderProntuario(escolaId) {
                 <div class="tab-content-panel" id="tab-pendencias" role="tabpanel" aria-labelledby="prontuario-tab-pendencias" hidden>
                     <div class="panel-card">
                         <div class="panel-header">
-                            <h2>Pendências Operacionais Ativas</h2>
+                            <div><h2>Pendências ativas desta escola</h2><p class="pendency-scope-explanation">Ocorrências abertas ou aguardando reanálise nesta unidade. Consulte Pendências operacionais para a fila de todas as escolas e situações.</p></div>
                             <button class="btn btn-secondary btn-sm" onclick="openNovaPendenciaModal('${escapeHtml(esc.id)}')">Criar Pendência Manual</button>
                         </div>
                         <div class="table-responsive">
@@ -10517,7 +10559,7 @@ function renderProntuarioVerificacoes(esc) {
                                             <span class="invoice-document-icon">${invoiceDocumentIconSvg(note.tipo)}</span>
                                             <div class="invoice-document-copy">
                                                 <div class="invoice-document-title-line">
-                                                    <strong>${escapeHtml(getInvoiceDocumentTitle(note))}</strong>
+                                                    <strong>${escapeHtml(note.tipo === 'a_identificar' ? (note.desc || 'Saída sem descrição') : getInvoiceDocumentTitle(note))}</strong>
                                                     ${isLegacyUnidentified ? `
                                                         <span class="invoice-legacy-badge"
                                                             title="Registro anterior à individualização; nenhuma Pendência histórica foi inventada.">
@@ -10526,6 +10568,7 @@ function renderProntuarioVerificacoes(esc) {
                                                     ` : ''}
                                                     ${editControls}
                                                 </div>
+                                                ${note.tipo === 'a_identificar' ? '<small class="invoice-provisional-label">Despesa a identificar · documentação pendente</small>' : ''}
                                             </div>
                                         </div>
                                         <div class="invoice-document-meta">
@@ -11038,6 +11081,7 @@ function closePendencyDrawer() {
     const drawer = document.getElementById('pendency-preview-drawer');
     if (!drawer) return;
     drawer.hidden = true;
+    document.body.classList.remove('pendency-drawer-open');
     drawer.dataset.pendencyId = '';
     drawer.dataset.mode = 'view';
     if (pendencyDrawerReturnFocus && typeof pendencyDrawerReturnFocus.focus === 'function') {
@@ -11268,6 +11312,7 @@ function openPendencyDrawer(pendencyId) {
     drawer.dataset.pendencyId = String(pendencyId);
     drawer.dataset.mode = 'view';
     drawer.hidden = false;
+    document.body.classList.add('pendency-drawer-open');
     renderPendencyDrawer();
     drawer.querySelector('.pendency-preview-close')?.focus({ preventScroll: true });
     return true;

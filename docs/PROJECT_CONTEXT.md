@@ -1,6 +1,6 @@
 # RADAR PDDE 2026 — Contexto funcional e arquitetural
 
-**Atualizado em:** 6 de setembro de 2026
+**Atualizado em:** 25 de setembro de 2026
 **Classe documental:** Canônico
 
 ## 1. Finalidade
@@ -22,23 +22,18 @@ Dashboard, Carteira, Competências, Prontuário, Pendências, Inventário, Regis
 
 ## 2. Baseline operacional
 
-O baseline mutável corrente fica em [`CURRENT_STAGE.md`](CURRENT_STAGE.md).
+O baseline temporal e mutável do projeto fica **exclusivamente** em [`CURRENT_STAGE.md`](CURRENT_STAGE.md). Não usar este documento para inferir SHA atual, PR aberto, deployment, migrations ou fila de execução.
 
-A porta de entrada corrente é [`CURRENT_STAGE.md`](CURRENT_STAGE.md), com a [revisão de 06/09 por SHA](audits/2026-09-06-pr272-inventory-auth-review.md). O plano R1–R9 e a reauditoria de 03/09 são históricos: seus próximos passos não autorizam implementação automática após os hotfixes.
+Este arquivo preserva somente o contexto funcional/arquitetural estável. Em particular:
 
-`Inventariada` é terminal nos fluxos operacionais ordinários. O PR #265 protege o salvamento da NF, o serviço de encaminhamento e os UPDATEs de status no banco, incluindo a RPC patrimonial. `Não encaminhada → Encaminhada` continua permitido com os requisitos e versões esperadas existentes. Nenhuma alteração fiscal posterior pode rebaixar um bem inventariado.
+- Supabase permanece a persistência canônica de Production;
+- `localStorage` não é banco operacional paralelo em modo remoto;
+- commit remoto confirmado, sincronização local e atualização visual são fronteiras distintas;
+- `Inventariada` permanece terminal nos fluxos operacionais ordinários;
+- hotfixes, auditorias, planos e handoffs antigos são evidência histórica e não autorizam regressão para decisões superadas;
+- a frente corrente e o único handoff temporal obrigatório são os explicitamente apontados por `CURRENT_STAGE.md`.
 
-Commit remoto confirmado, sincronização local e finalização da operação Auth + banco são fronteiras diferentes. Os PRs #272 e #271 ainda não integrados não representam garantia disponível na main; consultar as lacunas e reproduções da revisão corrente antes de trabalhar nessas áreas.
-
-O hotfix de Notas Fiscais permanece documentado em [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md) e [`handoff/2026-08-30-pr211-publicacao-concluida.md`](handoff/2026-08-30-pr211-publicacao-concluida.md), agora como histórico técnico protegido pelas decisões posteriores.
-
-O checkpoint pós-PR #200 em [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md) permanece histórico/canônico para contexto, mas não controla mais a ordem corrente de execução.
-
-O checkpoint pós-PR #193 permanece como histórico técnico da estabilização anterior em [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md).
-
-O snapshot de encerramento de 18/08/2026 permanece histórico em [`handoff/2026-08-18-encerramento-operacional.md`](handoff/2026-08-18-encerramento-operacional.md).
-
-Este documento descreve contratos estáveis e não deve ser usado para presumir SHA, deployment, contagem de migrations ou versão de Edge Function sem nova consulta ao remoto.
+Ao retomar qualquer trabalho, consultar primeiro `CURRENT_STAGE.md` e o handoff corrente indicado por ele. Referências históricas deste arquivo continuam úteis para explicar decisões, mas não controlam a ordem atual de execução.
 
 ## 3. Regra de precedência
 
@@ -255,7 +250,7 @@ escola + competência + programa + notaFiscal + registered_invoice_id
 
 O vínculo individual não transforma cada NF em uma nova categoria documental: a categoria continua sendo `notaFiscal`. O ID apenas fornece granularidade ao ciclo de análise, Pendência, envio e reanálise.
 
-No Prontuário, após a abertura da Pendência, a ação é **Visualizar pendência**. Novo envio e reanálise pertencem à tela de Pendências.
+No Prontuário, após a abertura da Pendência, a ação contextual é **Visualizar pendência**. O drawer pode oferecer o novo envio quando houver contexto suficiente; no fluxo de `a_identificar`, oferece **Registrar envio / identificação da despesa**. Depois do envio, **Aguardando reanálise** pode ser acionado no próprio Prontuário, enquanto a página de Pendências mantém **Reanalisar** como caminho transversal/alternativo para a mesma operação.
 
 ### Pendência de Assessoria vinculada à NF
 
