@@ -8558,10 +8558,13 @@ function capturePendencyActionSourceContext(pendency, trigger) {
 function openRegistrarNovoEnvioModal(trigger, sourceContext) {
     registrarNovoEnvioTrigger = trigger;
     registrarNovoEnvioSourceContext = sourceContext;
-    setAccessibleModalOpen(
-        'modal-registrar-envio',
-        document.getElementById('envio-data-disponibilizacao')
-    );
+    const modal = document.getElementById('modal-registrar-envio');
+    const modalBody = modal?.querySelector('.modal-body');
+    const contextHeading = document.getElementById('envio-contexto-title');
+
+    if (modalBody) modalBody.scrollTop = 0;
+    setAccessibleModalOpen('modal-registrar-envio', contextHeading);
+    if (modalBody) modalBody.scrollTop = 0;
 }
 
 function closeRegistrarNovoEnvioModal({ restoreFocus = true } = {}) {
