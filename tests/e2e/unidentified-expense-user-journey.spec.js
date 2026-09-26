@@ -150,6 +150,24 @@ test.describe('Jornada real — Despesa a identificar', () => {
 
     const drawer = page.locator('#pendency-preview-drawer');
     await expect(drawer).toBeVisible();
+
+    // Regressão visual: o feedback da criação deve continuar legível mesmo
+    // enquanto o drawer contextual está aberto.
+    const creationNotice = page.locator('#pendency-notice');
+    await expect(creationNotice).toBeVisible();
+    const noticeLayer = await creationNotice.evaluate(element => Number.parseInt(
+      getComputedStyle(element).zIndex,
+      10
+    ));
+    const drawerLayer = await drawer.evaluate(element => Number.parseInt(
+      getComputedStyle(element).zIndex,
+      10
+    ));
+    expect(noticeLayer).toBeGreaterThan(drawerLayer);
+    const noticeBounds = await creationNotice.boundingBox();
+    const drawerPanelBounds = await drawer.locator('.pendency-preview-drawer').boundingBox();
+    expect(noticeBounds.x + noticeBounds.width).toBeLessThanOrEqual(drawerPanelBounds.x - 12);
+
     await expect(drawer.getByText('Próximo passo', { exact: true })).toBeVisible();
     await expect(drawer).toContainText('Quando a documentação chegar');
     await expect(page.locator('.invoice-document-row .invoice-document-title-line > strong'))
@@ -171,6 +189,18 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await expect(submissionModal.locator('.modal-subtitle')).toContainText(
       'mesmo lançamento e a mesma Pendência'
     );
+
+    // Regressão de foco/rolagem: abrir a identificação precisa manter o começo
+    // do contexto visível, sem saltar diretamente para um campo inferior.
+    const submissionBody = submissionModal.locator('.modal-body');
+    await expect(submissionModal.locator('#envio-contexto')).toBeVisible();
+    expect(await submissionBody.evaluate(element => element.scrollTop)).toBeLessThanOrEqual(2);
+    const submissionBodyBounds = await submissionBody.boundingBox();
+    const submissionContextBounds = await submissionModal.locator('#envio-contexto').boundingBox();
+    expect(submissionContextBounds.y).toBeGreaterThanOrEqual(submissionBodyBounds.y);
+    expect(submissionContextBounds.y + Math.min(submissionContextBounds.height, 48))
+      .toBeLessThanOrEqual(submissionBodyBounds.y + submissionBodyBounds.height);
+
     await settleVisualState(page);
     await expect(submissionModal).toHaveClass(/show/);
     await expect(submissionModal.getByRole('heading', {
@@ -227,6 +257,15 @@ test.describe('Jornada real — Despesa a identificar', () => {
       .toContainText('Material de consumo identificado');
     await expect(reanalysisModal.locator('#reanalisar-tentativa-atual'))
       .toContainText('Maio/2026');
+
+    // Regressão de hierarquia: documento, tentativa, contexto e decisão devem
+    // formar zonas reconhecíveis antes de o Controlador escolher o resultado.
+    await expect(reanalysisModal.getByText('Tentativa recebida', { exact: true })).toBeVisible();
+    await expect(reanalysisModal.getByText('Contexto da Pendência', { exact: true })).toBeVisible();
+    await expect(reanalysisModal.getByText('Resultado da reanálise', { exact: true })).toBeVisible();
+    await expect(reanalysisModal.locator('[data-reanalysis-attempt]')).toBeVisible();
+    await expect(reanalysisModal.locator('[data-reanalysis-context]')).toBeVisible();
+    await expect(reanalysisModal.locator('[data-reanalysis-decision]')).toBeVisible();
     await attachScreenshot(page, testInfo, '04b-reanalise-documento-identificado');
     await reanalysisModal.getByLabel('Resultado da reanálise', { exact: true })
       .selectOption('correto');
