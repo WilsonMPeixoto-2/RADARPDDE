@@ -206,6 +206,15 @@ test.describe('Jornada real — Despesa a identificar', () => {
     });
     await expect(waiting).toHaveCount(1);
     await expect(waiting).toBeVisible();
+    const waitingRow = page.locator('.invoice-document-row').filter({ has: waiting });
+    const pendencyAction = waitingRow.getByRole('button', {
+      name: 'Visualizar pendência',
+      exact: true
+    });
+    await expect(pendencyAction).toBeVisible();
+    const statusBounds = await waiting.boundingBox();
+    const actionBounds = await pendencyAction.boundingBox();
+    expect(statusBounds.x + statusBounds.width).toBeLessThanOrEqual(actionBounds.x - 4);
     await settleVisualState(page);
     await expect(submissionModal).not.toHaveClass(/show/);
     await expect(waiting).toBeVisible();

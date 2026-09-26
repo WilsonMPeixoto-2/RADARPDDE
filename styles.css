@@ -3769,6 +3769,15 @@ button.invoice-document-status {
         width: min(100%, 158px);
     }
 
+    .invoice-reanalysis-status-button {
+        max-width: 100%;
+        padding-inline: 8px;
+        gap: 6px;
+        line-height: 1.15;
+        text-align: left;
+        white-space: normal;
+    }
+
     .service-advisory-delivery label {
         max-width: 100%;
     }
