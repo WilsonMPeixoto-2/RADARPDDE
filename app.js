@@ -8555,16 +8555,18 @@ function capturePendencyActionSourceContext(pendency, trigger) {
     });
 }
 
-function openRegistrarNovoEnvioModal(trigger, sourceContext) {
+function openRegistrarNovoEnvioModal(trigger, sourceContext, { focusContext = false } = {}) {
     registrarNovoEnvioTrigger = trigger;
     registrarNovoEnvioSourceContext = sourceContext;
     const modal = document.getElementById('modal-registrar-envio');
     const modalBody = modal?.querySelector('.modal-body');
     const contextHeading = document.getElementById('envio-contexto-title');
+    const availabilityDate = document.getElementById('envio-data-disponibilizacao');
+    const initialFocus = focusContext ? contextHeading : availabilityDate;
 
-    if (modalBody) modalBody.scrollTop = 0;
-    setAccessibleModalOpen('modal-registrar-envio', contextHeading);
-    if (modalBody) modalBody.scrollTop = 0;
+    if (focusContext && modalBody) modalBody.scrollTop = 0;
+    setAccessibleModalOpen('modal-registrar-envio', initialFocus);
+    if (focusContext && modalBody) modalBody.scrollTop = 0;
 }
 
 function closeRegistrarNovoEnvioModal({ restoreFocus = true } = {}) {
@@ -8746,11 +8748,11 @@ function abrirModalRegistrarNovoEnvio(pendencySource) {
         </dl>
     `;
 
-    openRegistrarNovoEnvioModal(trigger, sourceContext);
-    if (identificationContext.required) {
-        const identificationType = document.getElementById('envio-identificacao-tipo');
-        if (identificationType) identificationType.focus({ preventScroll: true });
-    }
+    openRegistrarNovoEnvioModal(
+        trigger,
+        sourceContext,
+        { focusContext: identificationContext.required }
+    );
     return true;
 }
 
