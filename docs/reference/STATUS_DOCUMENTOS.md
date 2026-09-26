@@ -1,7 +1,7 @@
 # Matriz de validade documental
 
 **Classe documental:** Canônico
-**Atualizado em:** 21 de setembro de 2026
+**Atualizado em:** 25 de setembro de 2026
 
 ## 1. Finalidade e precedência
 
@@ -37,17 +37,16 @@ PR aberto, Preview ou documento antigo não altera Production.
 
 ## 3. Baseline de Production
 
-Os registros abaixo são históricos da janela de 21/09, não a descrição da `main` nem uma confirmação de Production em 25/09. A `main` observada está em `bb724643` (#374), com o PR #375 aberto e em draft; consulte `docs/CURRENT_STAGE.md`.
+Estado confirmado em 25/09/2026:
 
-- baseline funcional/runtime conferido em 21/09 (#344): 75520d43a5ca9bc2607318cc6a70ba2a7494ca92;
-- Vercel correspondente ao #344: dpl_FHt2mSxrzWbq491y497RDCuf7LsN, READY;
-- Supabase: ACTIVE_HEALTHY;
-- migrations remotas: 54;
-- migration mais recente: 20260920013656_realtime_operational_invalidation;
-- #344: instrumentação de jornadas integrada sem alteração de runtime;
-- monitor, leitura autenticada e integridade agregada tiveram runs SUCCESS naquela janela; os vínculos estão no handoff histórico de performance/sincronização.
+- `main`: `bb7246438b8c6b72ef068b21bb40d492a7049af2` (#374);
+- Production: mesmo SHA `bb7246438b8c6b72ef068b21bb40d492a7049af2`;
+- deployment Vercel Production: `dpl_BztNyEgnHjFxAKJvkPcQGeV6GGWm`, `READY`;
+- projeto oficial: `radarpdde-fix`;
+- PR #375 e PR #376 permanecem abertos/draft e **não** fazem parte de `main` ou Production;
+- os dois PRs atuais não alteram schema, migrations, RPCs, RLS ou persistência canônica.
 
-Esse baseline substitui como estado corrente os handoffs centrados em PR #301/#305/#306. Esses documentos continuam válidos como histórico do momento em que foram produzidos.
+A janela de performance/sincronização de 21/09 continua válida como histórico técnico, não como baseline temporal corrente. Seus SHAs, migrations e evidências permanecem no handoff histórico correspondente.
 
 ## 4. Handoff corrente
 
@@ -55,7 +54,7 @@ Handoff corrente:
 
 docs/handoff/2026-09-25-desktop-expense-journey.md
 
-Ele consolida achados da jornada desktop, estado do PR #375, commits da continuação e critérios de verificação.
+Ele consolida os heads finais dos PRs #375/#376, a matriz dos achados do Codex, os resultados finais de CI, os limites de escopo, a situação de Preview e a ordem exata de retomada/integração.
 
 ## 5. Handoffs anteriores
 
