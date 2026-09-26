@@ -21,7 +21,7 @@ Ordem:
 10. ADRs e referências especializadas da área afetada;
 11. planos, auditorias, demais handoffs e evidências históricas apenas para compreender o seu momento/SHA.
 
-`CURRENT_STAGE.md` aponta explicitamente para o handoff corrente. Em 25/09/2026, a frente é a jornada desktop de Despesa a identificar sobre o PR #375 ainda em draft; a modernização de performance e sincronização está encerrada e seu handoff é histórico.
+`CURRENT_STAGE.md` aponta explicitamente para o handoff corrente. Em 25/09/2026, a frente é o fechamento da jornada de **Despesa a identificar** em dois PRs draft empilhados: #375 (NAV-01/UX-04) e #376 (refinamentos desktop UX-01/02/03/05/06 e documentação). A implementação e o CI final estão concluídos; falta validação humana do Preview e integração ordenada. A modernização de performance/sincronização está encerrada e seu handoff é histórico.
 
 ## 2. Função de cada documento canônico/vigente
 
@@ -81,7 +81,8 @@ O modelo detalhado está em `SYSTEM_CANONICAL_MODEL.md`; a finalidade humana das
 Consultar conforme a área materialmente afetada:
 
 - [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — referência funcional/arquitetural detalhada; **afirmações temporais de PR, SHA, fila ou deployment nele não representam o estado corrente e cedem a `CURRENT_STAGE.md`**;
-- [`handoff/2026-09-19-performance-sync-modernization.md`](handoff/2026-09-19-performance-sync-modernization.md) — handoff corrente da modernização de performance/sincronização;
+- [`handoff/2026-09-25-desktop-expense-journey.md`](handoff/2026-09-25-desktop-expense-journey.md) — **handoff corrente** da jornada desktop de Despesa a identificar, com heads, CI e ordem de retomada;
+- [`handoff/2026-09-19-performance-sync-modernization.md`](handoff/2026-09-19-performance-sync-modernization.md) — handoff histórico concluído da modernização de performance/sincronização;
 - [`decisions/ADR-054-sincronizacao-operacional-realtime.md`](decisions/ADR-054-sincronizacao-operacional-realtime.md) — decisão vigente sobre invalidação Realtime entre sessões;
 - [`DECISION_LOG.md`](DECISION_LOG.md) — decisões duradouras;
 - [`architecture/`](architecture/) — contratos arquiteturais específicos;
