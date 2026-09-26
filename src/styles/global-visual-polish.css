@@ -771,7 +771,7 @@ textarea.form-control {
 .pendency-notice {
     top: 82px;
     right: 28px;
-    z-index: 1700;
+    z-index: 980;
     pointer-events: none;
     max-width: min(390px, calc(100vw - 56px));
     min-height: 48px;
@@ -787,6 +787,7 @@ textarea.form-control {
 @media (min-width: 721px) {
     body.pendency-drawer-open .pendency-notice {
         right: calc(min(440px, 44vw) + 28px);
+        z-index: 1700;
     }
 }
 
