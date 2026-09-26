@@ -1206,6 +1206,14 @@
         }));
     }
 
+    function navigatePendencyContext(route) {
+        if (root.RadarNavigationHistory?.navigate) {
+            root.RadarNavigationHistory.navigate(root, route);
+        } else {
+            originalSwitchView(route.view, route.param);
+        }
+    }
+
     function openPendencyInProntuario(source) {
         let pendencyId;
         try {
@@ -1220,7 +1228,7 @@
 
         pageState.returnContext = captureReturnContext(record);
         activeProntuarioCompetencia = record.competence;
-        originalSwitchView('prontuario', record.schoolId);
+        navigatePendencyContext({ view: 'prontuario', param: record.schoolId });
         focusProntuarioDocument(record);
         return true;
     }
@@ -1228,13 +1236,16 @@
     function returnToPendencias() {
         const context = pageState.returnContext;
         if (!context) {
-            originalSwitchView('pendencias');
+            navigatePendencyContext({ view: 'pendencias' });
             return true;
         }
         pageState.activeTab = context.activeTab;
         pageState.filters = { ...DEFAULT_FILTERS, ...context.filters };
         activePendencyDetailId = context.selectedPendencyId;
-        originalSwitchView('pendencias');
+        navigatePendencyContext({
+            view: 'pendencias',
+            filters: context.filters.schoolId ? { escola: context.filters.schoolId } : {}
+        });
         root.requestAnimationFrame(() => {
             root.scrollTo({ top: context.scrollY, behavior: 'auto' });
             const drawer = document.getElementById('pendency-detail-drawer');
