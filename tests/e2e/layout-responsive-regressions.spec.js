@@ -2,9 +2,21 @@ const { test, expect } = require('@playwright/test');
 
 async function waitForLayout(page) {
   await page.waitForFunction(() => window.RadarProductExtensionsReady);
-  await page.waitForFunction(() => Array.from(document.querySelectorAll('link[rel="stylesheet"]')).some(link => (
-    link.getAttribute('href') === '/src/styles/desktop-basic-monitors.css'
-  )));
+  await page.waitForFunction(() => {
+    const link = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).find(candidate => (
+      candidate.getAttribute('href') === '/src/styles/layout-responsive-2026.css'
+    ));
+    if (!link?.sheet) return false;
+    try {
+      return link.sheet.cssRules.length > 0;
+    } catch (_error) {
+      return false;
+    }
+  });
+  await page.evaluate(async () => {
+    if (document.fonts?.ready) await document.fonts.ready;
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  });
 }
 
 async function seedPendency(page) {

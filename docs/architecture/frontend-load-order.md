@@ -1,7 +1,7 @@
 # Ordem de carregamento e precedência do frontend
 
 **Estado:** vigente  
-**Atualizado em:** 3 de setembro de 2026
+**Atualizado em:** 26 de setembro de 2026
 
 ## 1. Finalidade
 
@@ -50,9 +50,23 @@ O manifesto em `docs/evidence/frontend-precedence/manifest.json` é gerado. Não
 
 ### Extensões de produto
 
-`product-extensions-bootstrap.js` adiciona `src/styles/school-timeline.css`.
+`product-extensions-bootstrap.js` adiciona atualmente 13 folhas, em ordem explícita:
 
-Repetição de seletor não prova conflito. Consolidação exige computed styles e regressão visual nos breakpoints.
+1. `src/styles/school-timeline.css`;
+2. `src/styles/controller-guide.css`;
+3. `src/styles/controller-guide-theme.css`;
+4. `src/styles/unidentified-expense-ux.css`;
+5. `src/styles/prontuario-operational-ux.css`;
+6. `src/styles/desktop-basic-monitors.css`;
+7. `src/styles/pendency-passive-queue.css`;
+8. `src/styles/operational-write-feedback.css`;
+9. `src/styles/layout-responsive-2026.css`;
+10. `src/styles/inventory-icon-refinement.css`;
+11. `src/styles/evaluation-retification-ui.css`;
+12. `src/styles/sidebar-prontuario-polish.css`;
+13. `src/styles/global-visual-polish.css`.
+
+A ordem exata de scripts e estilos do bootstrap é mantida em [`product-extensions-load-order.md`](product-extensions-load-order.md). Repetição de seletor não prova conflito. Consolidação exige computed styles e regressão visual nos breakpoints.
 
 ## 4. Scripts estáticos antes de `app.js`
 

@@ -9,147 +9,135 @@
 - Production: mesmo SHA `bb7246438b8c6b72ef068b21bb40d492a7049af2`.
 - Deployment Production: `dpl_BztNyEgnHjFxAKJvkPcQGeV6GGWm`, `READY`.
 - PRs #375/#376 continuam fora de `main` e Production.
-- Nenhuma mudança desta frente altera schema, migrations, RPCs, RLS, serviços de domínio ou persistência canônica.
+- A frente atual não altera schema, migrations, RPCs, RLS, serviços de domínio nem persistência canônica.
 
 ## 2. Frente ativa
 
-### PR #375 — filtro escolar + drawer mobile
+### PR #375 — contexto escolar de Pendências
 
-- URL: https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/375
 - branch: `fix/pendency-context-mobile-preview-2026-09-25`
-- head: `3b369122acca81b1d07668e8c88fc64c55b06121`
+- head: `d591b231eb06e95a1c09ba2fb6e40d2c7bb83f7d`
 - base: `main`
-- estado: aberto, draft, mergeable
-- NAV-01 e UX-04 implementados.
-- E2E do head: **181 passed, 54 skipped, 0 failed**.
+- aberto, draft e mergeable
+- `0d2fe5c6`: limpeza do filtro escolar ocorre após atualização da rota;
+- `d591b231`: abrir Prontuário e voltar às Pendências sincroniza URL e contexto escolar.
+- UX-04 permanece no #375, mas não é foco da auditoria desktop atual.
 
 ### PR #376 — jornada desktop de Despesa a identificar
 
-- URL: https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/376
 - branch: `fix/desktop-expense-journey-2026-09-25`
-- base: branch do #375
-- head funcional atual: `f5e35f8f4a7519cefcd883bb6b8999542ba77a48`
-- estado: aberto, draft, mergeable
-- escopo original UX-01/02/03/05/06 e D-01 permanece.
-- validação visual de 26/09 encontrou três defeitos reais e localizados, já corrigidos no mesmo PR:
-  1. confirmação de criação ficava atrás do drawer;
-  2. identificação abria rolada e escondia o contexto inicial;
-  3. reanálise misturava documento, tentativa, contexto e decisão na mesma hierarquia.
-- a varredura final de acessibilidade encontrou contraste insuficiente em **Editar análise**; correção localizada aplicada no head atual.
+- base: branch do #375 em `d591b231...`
+- candidato de runtime/UI auditado: `4994aeb331f643c09ab4b76f66e5c831be9cd5d2`
+- relação #375 → #376 nesse candidato: **ahead 51 / behind 0**
+- aberto, draft e mergeable
+- PR #377 foi usado apenas para incorporar formalmente o head atual do #375 ao histórico do #376.
+- commits posteriores ao candidato funcional podem ser test-only/documentação; qualquer alteração de runtime exige nova homologação explícita.
 
-## 3. Estado das correções visuais de 26/09
+## 3. Contratos de código confirmados
 
-### Feedback + drawer
+A revisão source-first confirmou alinhamento entre código e regras vigentes:
 
-- o body recebe marcador apenas enquanto o drawer está aberto;
-- em desktop, o aviso de sucesso fica acima da camada do drawer e deslocado para a área útil à esquerda;
-- o movimento horizontal foi removido da transição para o aviso já nascer na posição final;
-- E2E mede z-index e ausência de sobreposição geométrica.
+- filtro escolar sincroniza o estado real de `RadarTask9PendencyPage`, sem substituir a coleção global de Pendências;
+- abrir Pendência no Prontuário usa `/escolas/<id>`; voltar restaura `/pendencias?escola=<id>`, busca, aba, seleção e contexto;
+- limpar o filtro navega primeiro para a rota global e só então limpa o estado interno;
+- `a_identificar` continua nascendo `Incorreto + Pendência` atomicamente;
+- identificação preserva o mesmo ID de despesa e a mesma Pendência;
+- modal de identificação abre no topo e foca o título do contexto;
+- modal de reanálise abre no topo e foca `.reanalysis-guidance`;
+- documento, tentativa, contexto e decisão são zonas distintas;
+- descrição provisória é a identidade principal e a natureza provisória fica secundária;
+- feedback de criação permanece legível com drawer aberto;
+- a ação longa `Registrar envio / identificação da despesa` permanece dentro da célula no desktop.
 
-### Identificação da despesa
+Nenhuma dessas mudanças redefine domínio, persistência ou transições.
 
-- o primeiro documento de `a_identificar` abre o modal pelo topo;
-- o foco inicial vai para **Contexto da pendência**, elemento estático com `tabindex="-1"`;
-- o `scrollTop` do corpo do modal permanece no início;
-- novo envio comum preserva o foco anterior no campo de data.
+## 4. Testes alinhados
 
-### Reanálise
+Playwright do candidato `4994aeb3...`, run `36261993415`: **182 passed, 54 skipped, 1 flaky, 0 final failures**.
 
-A leitura agora é separada em quatro blocos:
+- o contrato antigo que focava diretamente `Resultado da reanálise` foi removido; o teste agora valida foco na orientação visível;
+- `canonical-routes.spec.js` cobre preservação e limpeza do filtro escolar;
+- `task-9-pendencias.spec.js` cobre URL Prontuário ↔ Pendências;
+- `pendency-desktop-action-containment.spec.js` mede contenção geométrica em 1440×900 e executa a ação;
+- `unidentified-expense-user-journey.spec.js` percorre a jornada real pelo frontend.
 
-1. **Documento em reanálise**
-2. **Tentativa recebida**
-3. **Contexto da Pendência**
-4. **Decisão técnica**
+### Adequação do flaky de layout
 
-Não houve alteração dos dados, estados ou serviços usados pela reanálise.
+`layout-responsive-regressions.spec.js:87` variou 8 px na primeira tentativa e passou no retry. O helper aguardava apenas a presença de uma folha intermediária no DOM, não a aplicação da folha final `layout-responsive-2026.css`.
 
-### Contraste
+A correção test-only desta rodada:
+- espera `layout-responsive-2026.css` com regras acessíveis;
+- espera `document.fonts.ready`;
+- espera dois frames de layout;
+- mantém as mesmas tolerâncias geométricas estritas.
 
-- a ação **Editar análise** falhava no axe com razão 4,13:1;
-- o texto foi escurecido de forma localizada;
-- o novo head passou a suíte desktop completa, incluindo a auditoria axe;
-- WCAG AA para texto normal exige pelo menos 4,5:1.
+Não foi alterado CSS/runtime para satisfazer o teste.
 
-## 4. Verificação final do head #376
+## 5. Gates técnicos do candidato funcional
 
-Head validado: `f5e35f8f4a7519cefcd883bb6b8999542ba77a48`.
+Verdes:
+- Validar RADAR PDDE `36261993404`;
+- snapshot canônico `36261993525`;
+- Retificação auditável `36261993433`;
+- Lighthouse `36261993359`;
+- contratos-fonte Excel SME `36261993396`;
+- Playwright desktop `36261993415`.
 
-- E2E Playwright: run `36228321339` — **success**
-- resultado: **181 passed, 54 skipped, 0 failed**
-- artifact: `10901976187` — `playwright-report-desktop`
-- `Validar RADAR PDDE`: `36228321338` — success
-- snapshot canônico: `36228321326` — success
-- retificação auditável: `36228321321` — success
-- Lighthouse: `36228321380` — success
-- Supabase readiness: `36228321316` — success
-- contratos-fonte Excel SME: `36228321323` — success
+### Supabase readiness
 
-O commit RED `a7d044c94ad245ed5bd190944eea7c079c6e1afc` falhou no E2E especificamente porque o feedback tinha z-index 980 contra drawer 1500. Isso registra o ciclo de regressão antes/depois.
+- `readiness`: success;
+- `migration-smoke`: success;
+- `supabase-local`: falha de infraestrutura externa, reproduzida no rerun.
 
-## 5. Preview final pós-correções
+Antes da falha: **34 arquivos / 486 testes SQL passaram** e `supabase db lint` retornou **No schema errors found**. Depois, o registry recusou `public.ecr.aws/supabase/postgres-meta:v0.97.0` com `toomanyrequests: Data limit exceeded` nas três tentativas. Não há evidência de regressão de banco nesta frente.
 
-Branch descartável:
-`preview/final-visual-fixes-2026-09-26`
+## 6. Preview combinado atual
 
-- base de produto: `f5e35f8f4a7519cefcd883bb6b8999542ba77a48`
-- commit da branch Preview: `23ccba404aed028f2847ebbff55362c9beb0f99c`
-- deployment: `dpl_37XBGX5i9LfcVqdZEpu9yQwY6x94`
+Branch descartável: `preview/final-combined-current-2026-09-26`
+
+- base de produto: `4994aeb331f643c09ab4b76f66e5c831be9cd5d2`
+- commit temporário: `4f8aca3cc9cf58b7da5cbb1eb7c3ba9d4f933dd4`
+- deployment: `dpl_9wLYQYVKszqwX4rZbCS6WQAJcfec`
 - estado: `READY`
-- URL: `https://radarpdde-4yobdz9ea-wilson-m-peixotos-projects.vercel.app`
-- acesso ao Preview protegido: usar autenticação Vercel. O código de compartilhamento não deve ser publicado no repositório.
+- URL: `https://radarpdde-5rjsbtb4x-wilson-m-peixotos-projects.vercel.app`
 
-O código anterior constou de commits públicos; remover o valor do head não o revoga. Renovar ou invalidar o compartilhamento pela Vercel.
+A branch de Preview altera somente `vercel.json` para permitir o deploy e **não deve ser mesclada**.
 
-A branch Preview difere do produto apenas em `vercel.json` para permitir o deploy e omitir o teste unitário que rejeita, por contrato, branches habilitadas na Vercel. Essa exceção é **somente do Preview** e nunca deve ser integrada ao PR #376.
+As evidências em `docs/evidence/2026-09-26-postfix-preview/` pertencem a candidato anterior e permanecem históricas.
 
-A captura live do Preview em 1440×900 retornou o RADAR completo. A automação interativa Firecrawl não concluiu dentro do timeout; não tratá-la como evidência de aprovação. A evidência confiável pós-correção é o E2E final + screenshots do artifact `10901976187`.
+## 7. Lacuna restante
 
-## 6. Evidência visual inspecionada
+O gate permanente de frontend ainda exige inspeção visual/navegada do Preview combinado do mesmo runtime. No desktop, confirmar:
 
-No artifact final do Playwright foram conferidas capturas 1440×900 que mostram:
+1. limpar filtro escolar devolve fila global e URL `/pendencias`;
+2. Prontuário usa URL correta e reload preserva a superfície;
+3. ação longa permanece contida em 1366/1440 px;
+4. reanálise abre no topo com orientação/contexto visíveis;
+5. feedback não é encoberto pelo drawer.
 
-- confirmação verde totalmente visível à esquerda do drawer aberto;
-- modal **Registrar envio e identificar despesa** começando no topo, com Escola, Competência, Programa e Documento visíveis;
-- modal **Reanalisar pendência documental** com os quatro níveis de informação claramente separados.
+Essa é a lacuna real. Não reabrir arquitetura nem regras já comprovadas.
 
-As capturas do checkpoint anterior em `docs/evidence/2026-09-26-final-preview/` representam o candidato anterior e não devem ser reutilizadas como prova das correções posteriores.
-
-## 7. O que NÃO está pendente
-
-Não reimplementar nem reaudiar do zero:
-
-- NAV-01;
-- UX-01/02/03/04/05/06;
-- feedback vs drawer;
-- foco/scroll do primeiro documento;
-- hierarquia da reanálise;
-- contraste de `Editar análise`.
-
-Não alterar nesta frente:
+## 8. Não alterar nesta frente
 
 - Supabase/RLS/RPC/migrations;
-- `InvoiceService`, `PendencyService`, `DataService`;
+- `InvoiceService`, `PendencyService` ou `DataService` sem novo defeito reproduzido;
 - identidade da despesa/Pendência e histórico;
 - Boleto de Internet, Assessoria ou patrimônio;
 - mobile geral;
 - Production.
 
-## 8. Próxima ação
+## 9. Ordem de integração após homologação visual
 
-A próxima sessão deve usar o Preview pós-correções para a **validação humana final**, sem reconstruir a investigação.
+1. confirmar head do #375;
+2. integrar #375;
+3. retarget/rebase #376 para `main`;
+4. conferir diff residual;
+5. rerodar gates do novo SHA;
+6. Preview final se o runtime mudar materialmente;
+7. integrar #376;
+8. Production somente com autorização explícita separada.
 
-Se o responsável aprovar visualmente:
-
-1. integrar #375 primeiro;
-2. retarget/rebase #376 para `main`;
-3. conferir o diff residual;
-4. rerodar gates porque o SHA mudará;
-5. gerar Preview final do novo SHA se necessário;
-6. integrar #376 somente após nova confirmação;
-7. Production apenas mediante autorização explícita separada.
-
-## 9. Rota de retomada
+## 10. Rota de retomada
 
 1. `AGENTS.md`
 2. `docs/reference/SYSTEM_CANONICAL_MODEL.md`
@@ -157,4 +145,5 @@ Se o responsável aprovar visualmente:
 4. este arquivo
 5. `docs/handoff/2026-09-25-desktop-expense-journey.md`
 6. `docs/reference/FRONTEND_USER_VALIDATION_GATE.md`
-7. `docs/reference/STATUS_DOCUMENTOS.md`
+7. `docs/reference/TEST_GOVERNANCE.md`
+8. `docs/reference/STATUS_DOCUMENTOS.md`
