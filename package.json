@@ -110,7 +110,6 @@
     "eslint-plugin-playwright": "2.11.0",
     "fast-check": "4.10.0",
     "fuse.js": "7.5.0",
-    "http-server": "14.1.1",
     "knip": "6.35.1",
     "lighthouse": "13.4.1",
     "msw": "2.15.0",
