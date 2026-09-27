@@ -16,6 +16,7 @@ O baseline mutável fica em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md).
 - `@supabase/supabase-js`: `2.117.2` no navegador e na Edge Function de Gestão de Equipe;
 - bundle do navegador gerado/versionado em `vendor/supabase-client.js`;
 - Supabase CLI permanece em `2.114.0`, homologada separadamente do SDK;
+- Supabase CLI `2.118.0` foi reavaliada em 27/09/2026 no PR #385 e **reprovada**: após `supabase start`, `db reset`, migrations e preflight verdes, o pgTAP repetiu exclusivamente as duas falhas históricas de `service_role` em `rls.test.sql` (testes 32 e 33: remoção de perfis e escopos pelo bootstrap). O RADAR preserva `2.114.0`; `2.116.0`, `2.117.0` e `2.118.0` ficam bloqueadas de forma exata, sem impedir avaliação de versão posterior.
 - retry nativo de GET/PostgREST continua coberto por regressão; escrita POST continua sem retry automático;
 - a linha 2.117.2 incorpora descarte seguro de refresh concorrente, relevante para múltiplas abas/sessões.
 
