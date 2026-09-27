@@ -173,7 +173,7 @@ test('Vercel limita deploy automático à main e preserva filtro do Dependabot',
 test('Dependabot não reabre versões do Supabase CLI já rejeitadas por RLS', () => {
     const dependabot = read('.github/dependabot.yml');
 
-    for (const version of ['2.116.0', '2.117.0']) {
+    for (const version of ['2.116.0', '2.117.0', '2.118.0']) {
         const escaped = version.replaceAll('.', '\\.');
         assert.match(
             dependabot,
