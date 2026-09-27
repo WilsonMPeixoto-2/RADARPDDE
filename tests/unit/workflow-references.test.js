@@ -95,7 +95,7 @@ test('bloqueia caminhos YAML locais inexistentes ou action sem metadata', async 
     const root = createRepository();
 
     write(root, '.github/actions/no-metadata/README.md', '# Sem action.yml\n');
-    write(root, '.github/workflows/invalid-yaml-path.yml', `name: Invalid\non: workflow_dispatch\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: ./.github/actions/missing\n      - uses: ./.github/actions/no-metadata\n      - uses: actions/setup-node@sha\n        with:\n          cache-dependency-path: missing-lock.json\n      - working-directory: missing-directory\n        run: pwd\n`);
+    write(root, '.github/workflows/invalid-yaml-path.yml', `name: Invalid\non: workflow_dispatch\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: ./.github/actions/missing\n      - uses: ./.github/actions/no-metadata\n      - uses: actions/setup-node@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n        with:\n          cache-dependency-path: missing-lock.json\n      - working-directory: missing-directory\n        run: pwd\n`);
 
     const result = checker.analyzeWorkflowReferences(root);
 
