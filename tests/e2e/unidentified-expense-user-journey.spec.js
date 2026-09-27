@@ -164,28 +164,37 @@ test.describe('Jornada real — Despesa a identificar', { lock: 'unidentified-ex
     await expect(drawer).toBeVisible();
 
     // Regressão visual: o feedback da criação deve continuar legível mesmo
-    // enquanto o drawer contextual está aberto.
+    // enquanto o drawer contextual está aberto. A medição é atômica no browser
+    // porque o aviso de sucesso é temporário; múltiplos round-trips podem cruzar
+    // o timer de auto-ocultação e transformar um estado válido em boundingBox null.
     const creationNotice = page.locator('#pendency-notice');
     await expect(creationNotice).toBeVisible();
-    const noticeLayer = await creationNotice.evaluate(element => Number.parseInt(
-      getComputedStyle(element).zIndex,
-      10
-    ));
-    const drawerLayer = await drawer.evaluate(element => Number.parseInt(
-      getComputedStyle(element).zIndex,
-      10
-    ));
-    expect(noticeLayer).toBeGreaterThan(drawerLayer);
-    const noticeBounds = await creationNotice.boundingBox();
-    const drawerPanelBounds = await drawer.locator('.pendency-preview-drawer').boundingBox();
-    expect(noticeBounds.x + noticeBounds.width).toBeLessThanOrEqual(drawerPanelBounds.x - 12);
+    const feedbackGeometry = await page.evaluate(() => {
+      const notice = document.querySelector('#pendency-notice');
+      const drawerRoot = document.querySelector('#pendency-preview-drawer');
+      const drawerPanel = drawerRoot?.querySelector('.pendency-preview-drawer');
+      if (!notice || !drawerRoot || !drawerPanel) return null;
+
+      const noticeRect = notice.getBoundingClientRect();
+      const drawerRect = drawerPanel.getBoundingClientRect();
+      return {
+        noticeLayer: Number.parseInt(getComputedStyle(notice).zIndex, 10),
+        drawerLayer: Number.parseInt(getComputedStyle(drawerRoot).zIndex, 10),
+        noticeRight: noticeRect.right,
+        drawerLeft: drawerRect.left
+      };
+    });
+    expect(feedbackGeometry).not.toBeNull();
+    expect(feedbackGeometry.noticeLayer).toBeGreaterThan(feedbackGeometry.drawerLayer);
+    expect(feedbackGeometry.noticeRight).toBeLessThanOrEqual(feedbackGeometry.drawerLeft - 12);
+
+    await golden(page, 'drawer-despesa-a-identificar.png');
+    await attachScreenshot(page, testInfo, '02-pendencia-proximo-passo');
 
     await expect(drawer.getByText('Próximo passo', { exact: true })).toBeVisible();
     await expect(drawer).toContainText('Quando a documentação chegar');
     await expect(page.locator('.invoice-document-row .invoice-document-title-line > strong'))
       .toContainText('Débito visto no extrato; documento ainda não recebido');
-    await attachScreenshot(page, testInfo, '02-pendencia-proximo-passo');
-    await golden(page, 'drawer-despesa-a-identificar.png');
     const newSubmission = drawer.getByRole('button', {
       name: 'Registrar envio / identificação da despesa',
       exact: true
