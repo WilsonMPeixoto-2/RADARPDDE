@@ -22,10 +22,6 @@ const ALLOWED_ADVISORIES = Object.freeze(new Map([
       'zip-stream'
     ])),
     reason: 'Cadeia de glob/streaming do Node não alcançada pelo workbook documental do navegador.'
-  })],
-  ['GHSA-W5HQ-G745-H8PQ', Object.freeze({
-    packages: Object.freeze(new Set(['exceljs', 'uuid'])),
-    reason: 'Advisory restrito a uuid v3/v5/v6 com buffer; o caminho usado pelo ExcelJS emprega uuid v4.'
   })]
 ]));
 

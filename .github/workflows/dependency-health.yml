@@ -158,7 +158,7 @@ jobs:
           echo "- Referências locais de workflows: bloqueantes quando apontam para arquivos, ações locais ou scripts npm inexistentes." >> "${GITHUB_STEP_SUMMARY}"
           echo "- Knip: bloqueante para dependências não usadas, não declaradas, não resolvidas e falhas internas de análise." >> "${GITHUB_STEP_SUMMARY}"
           echo "- Vulnerabilidades: relatório integral preservado; alertas novos e críticos continuam bloqueantes." >> "${GITHUB_STEP_SUMMARY}"
-          echo "- ExcelJS: somente dois advisories conhecidos podem ser aceitos nos caminhos transitivos não alcançados pelo runtime documental do navegador." >> "${GITHUB_STEP_SUMMARY}"
+          echo "- ExcelJS: somente o advisory remanescente da cadeia glob pode ser aceito nos caminhos transitivos não alcançados pelo runtime documental do navegador; a vulnerabilidade uuid deve permanecer eliminada." >> "${GITHUB_STEP_SUMMARY}"
           echo "- Bundle oficial, escopo de runtime, assinaturas, pacotes desatualizados, SBOM e árvore instalada são verificados ou registrados como evidência." >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Publicar evidências de dependências
