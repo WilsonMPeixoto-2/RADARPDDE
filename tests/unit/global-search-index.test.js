@@ -106,3 +106,34 @@ test('token search encontra consulta multi-termo com ordem livre e typo por term
     const crossField = searchCatalog(engine, 'planejamento herbert', 8);
     assert.equal(crossField[0]?.id, 'pendency:p1');
 });
+
+
+test('programa não herda nomes de escolas e não sequestra busca pela Carteira', () => {
+    const searchContext = {
+        ...context,
+        allowedSchoolIds: ['04.31.026', '04.31.501'],
+        modules: [
+            ...context.modules,
+            {
+                id: 'escolas',
+                view: 'escolas',
+                title: 'Carteira de Escolas',
+                visible: true,
+                keywords: ['carteira', 'escolas']
+            }
+        ]
+    };
+    const catalog = createSearchCatalog(searchContext);
+    const connectedProgram = catalog.find(item => item.id === 'program:CONECTADA');
+
+    assert.ok(connectedProgram);
+    assert.equal(
+        connectedProgram.keywords.some(keyword => /cartola|escola municipal/i.test(keyword)),
+        false
+    );
+
+    const engine = createSearchEngine(Fuse, catalog);
+    const results = searchCatalog(engine, 'Cartera de Escolas', 8);
+
+    assert.equal(results[0]?.id, 'module:escolas');
+});

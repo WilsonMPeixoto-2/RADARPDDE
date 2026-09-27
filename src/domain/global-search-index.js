@@ -93,8 +93,7 @@
             keywords: uniqueStrings([
                 id,
                 program.desc,
-                program.descricao,
-                ...linkedSchools.map(school => school.denominação || school.denominacao || school.id)
+                program.descricao
             ]),
             route: normalizeRoute({ view: 'escolas' }),
             priority: 30
