@@ -1,7 +1,7 @@
 # Auditoria de integração — Supabase e frontend
 
 **Classificação:** referência vigente  
-**Atualizado em:** 7 de agosto de 2026
+**Atualizado em:** 26 de setembro de 2026
 
 ## 1. Parecer executivo
 
@@ -11,7 +11,15 @@ Os incidentes recentes demonstraram que uma arquitetura amplamente correta pode 
 
 O baseline mutável fica em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md).
 
-## 2. Camadas da integração
+## 2. Baseline de tooling Supabase
+
+- `@supabase/supabase-js`: `2.117.2` no navegador e na Edge Function de Gestão de Equipe;
+- bundle do navegador gerado/versionado em `vendor/supabase-client.js`;
+- Supabase CLI permanece em `2.114.0`, homologada separadamente do SDK;
+- retry nativo de GET/PostgREST continua coberto por regressão; escrita POST continua sem retry automático;
+- a linha 2.117.2 incorpora descarte seguro de refresh concorrente, relevante para múltiplas abas/sessões.
+
+## 18. Camadas da integração
 
 ```text
 index.html / app.js / integrações
@@ -239,12 +247,12 @@ A infraestrutura foi integrada, mas permanece desativada sem identidades técnic
 
 ## 14. Matriz funcional
 
-A matriz executável possui 41 operações e é a fonte granular de cobertura.
+A matriz executável possui 44 operações e é a fonte granular de cobertura.
 
 Estado reconciliado:
 
-- 9 comprovadas;
-- 32 parciais;
+- 19 comprovadas;
+- 25 parciais;
 - 0 lacunas técnicas;
 - 0 decisões funcionais pendentes.
 

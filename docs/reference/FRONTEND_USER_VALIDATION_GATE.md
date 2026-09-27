@@ -2,7 +2,7 @@
 
 **Estado:** referência operacional canônica  
 **Aplicação:** todas as futuras correções, implementações, refatorações, otimizações e alterações visuais ou funcionais do RADAR PDDE  
-**Atualizado em:** 7 de setembro de 2026  
+**Atualizado em:** 26 de setembro de 2026  
 **Complementa:** `docs/reference/ENGINEERING_METHOD.md`
 
 ## 1. Regra central
@@ -52,7 +52,7 @@ Essa camada é necessária, mas não suficiente.
 
 ### 3.2 Automação pelo navegador real
 
-Usar Playwright ou ferramenta equivalente para executar a jornada pelo frontend, interagindo com os mesmos controles disponíveis ao usuário.
+Usar Playwright, Playwright MCP ou ferramenta equivalente para executar a jornada pelo frontend, interagindo com os mesmos controles disponíveis ao usuário. Quando a prova depender de SSO/2FA/sessão existente, o modo MCP com extensão pode reutilizar a sessão autorizada; isso não muda os guardrails de escrita ou ambiente.
 
 Sempre que materialmente possível, o teste deve:
 
@@ -71,7 +71,7 @@ Não substituir essa prova por chamada direta ao serviço quando a finalidade do
 
 ### 3.3 Homologação visual e navegada
 
-Inspecionar a interface renderizada, por screenshots, traces, vídeo ou navegação interativa apropriada, para confirmar que o produto continua utilizável e visualmente íntegro.
+Inspecionar a interface renderizada, por screenshots, visual snapshots versionados, traces, vídeo ou navegação interativa apropriada, para confirmar que o produto continua utilizável e visualmente íntegro. Baseline visual automatizado é regressão complementar; atualização do golden exige revisão consciente do diff.
 
 Verificar conforme o impacto:
 

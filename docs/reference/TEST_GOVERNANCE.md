@@ -1,7 +1,7 @@
 # Governança de testes do RADAR PDDE
 
 **Estado:** referência operacional vigente  
-**Atualizado em:** 9 de agosto de 2026
+**Atualizado em:** 26 de setembro de 2026
 
 ## 1. Finalidade
 
@@ -110,3 +110,35 @@ Uma rodada de validação termina quando:
 - não existe evidência concreta de regressão relevante ao usuário.
 
 Ausência de cobertura máxima, existência de teste histórico ou um job não relacionado ao escopo não transforma automaticamente o sistema em “inacabado”.
+
+## 9. Regressão visual canônica
+
+O RADAR mantém um conjunto pequeno de baselines visuais críticos em Playwright. Eles protegem composição visual estável, não cada pixel de cada tela.
+
+Baselines vigentes: Dashboard, Pendências, Prontuário, modal de Despesa a identificar, drawer/feedback de Despesa a identificar e modal de reanálise.
+
+Regras:
+
+1. o gate canônico roda em Chromium/Linux, viewport 1440×900;
+2. `toHaveScreenshot()` complementa a jornada real; não substitui navegação, persistência ou inspeção humana quando material;
+3. golden só pode ser atualizado quando a mudança visual é intencional e o diff foi revisado;
+4. não aumentar tolerância apenas para obter verde;
+5. conteúdo efêmero deve ser sincronizado/capturado dentro do seu estado real, não artificialmente congelado para mascarar corrida;
+6. mudanças de fonte, antialiasing ou plataforma devem ser classificadas antes de aceitar novo baseline.
+
+## 10. Locks e paralelismo
+
+Playwright 1.63 permite locks por recurso. O RADAR usa locks somente onde testes compartilham estado material.
+
+- não elevar paralelismo global de suíte que depende de estado compartilhado;
+- serializar o recurso, não o repositório inteiro;
+- manter cenários puramente visuais/isolados paralelos quando seguro;
+- nomear o lock pelo recurso compartilhado.
+
+## 11. Trace enriquecido
+
+Configs Playwright relevantes preservam em falha/retry screenshots, DOM snapshots, ARIA snapshots, screen snapshots e sources. Trace é instrumento de diagnóstico; não autoriza alterar regra, tolerância ou CSS sem causa reproduzida.
+
+## 12. Navegador MCP para agentes
+
+Playwright MCP pode ser usado para reprodução interativa e homologação navegada. `playwright` usa navegador isolado; `playwright-session` reutiliza sessão existente quando SSO/2FA/cookies são parte material da prova. O MCP não ganha autoridade de negócio nem autoriza escrita em Production por inferência.

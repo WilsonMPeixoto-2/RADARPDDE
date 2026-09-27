@@ -1,6 +1,6 @@
 # Arquitetura do RADAR PDDE
 
-**Atualizado em:** 7 de agosto de 2026  
+**Atualizado em:** 26 de setembro de 2026  
 **Estado:** referência vigente
 
 Esta pasta registra contratos técnicos e funcionais estáveis. Valores mutáveis do ambiente ficam em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md). Planos e auditorias datadas não substituem estes contratos.
@@ -115,10 +115,14 @@ A arquitetura possui:
 - monitor geral de Production;
 - incidentes automáticos;
 - auditoria agregada de vinte invariantes;
-- matriz funcional executável de 41 operações;
+- matriz funcional executável de 44 operações;
 - backup/restauração descartáveis;
 - gate por perfil/viewport;
-- infraestrutura integrada do smoke autenticado de leitura.
+- infraestrutura integrada do smoke autenticado de leitura;
+- Stylelint errors-only para a camada CSS;
+- seis baselines visuais Playwright;
+- trace enriquecido e locks por recurso;
+- Playwright MCP versionado para agentes.
 
 A última permanece deliberadamente desativada até provisionamento autorizado de identidades técnicas.
 
@@ -131,7 +135,7 @@ A fonte JSON executável diferencia:
 - `gap`: lacuna técnica comprovada;
 - `decision`: implementação existente cuja regra ainda precisa de decisão.
 
-Após a reconciliação pós-PR #162: 9 `covered`, 32 `partial`, 0 `gap`, 0 `decision`.
+Estado corrente: 19 `covered`, 25 `partial`, 0 `gap`, 0 `decision`.
 
 Correção implementada não é sinônimo de cobertura total. `ASSET-02`, por exemplo, migra de lacuna para parcial.
 
