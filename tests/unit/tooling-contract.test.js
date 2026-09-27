@@ -188,18 +188,27 @@ test('Dependabot não reabre versões do Supabase CLI já rejeitadas por RLS', (
     );
 });
 
-test('Supabase readiness repete geração de tipos apenas para falha transitória do registry', () => {
+test('Supabase readiness e pré-production toleram apenas falha transitória conhecida do registry', () => {
     const readinessWorkflow = read('.github/workflows/supabase-readiness.yml');
+    const preproductionWorkflow = read('.github/workflows/preproduction-full-validation.yml');
 
-    assert.match(readinessWorkflow, /gen_types_with_registry_retry/);
-    assert.match(
-        readinessWorkflow,
-        /toomanyrequests\|rate exceeded\|postgres-meta\|error running container: exit 125/i
+    for (const workflow of [readinessWorkflow, preproductionWorkflow]) {
+        assert.match(workflow, /gen_types_with_registry_retry/);
+        assert.match(
+            workflow,
+            /toomanyrequests\|rate exceeded\|postgres-meta\|error running container: exit 125/i
+        );
+        assert.match(workflow, /max_attempts=3/);
+        assert.match(workflow, /if ! grep -Eiq/);
+        assert.match(workflow, /return "\$\{status\}"/);
+        assert.match(workflow, /npm run supabase:gen:types/);
+    }
+
+    assert.equal(
+        (preproductionWorkflow.match(/bash scripts\/start-disposable-supabase-ci\.sh/g) || []).length,
+        2,
+        'os dois jobs pré-production que sobem Supabase devem usar o starter resiliente'
     );
-    assert.match(readinessWorkflow, /max_attempts=3/);
-    assert.match(readinessWorkflow, /if ! grep -Eiq/);
-    assert.match(readinessWorkflow, /return "\$\{status\}"/);
-    assert.match(readinessWorkflow, /npm run supabase:gen:types/);
 });
 
 test('tooling A/B fixa ambiente, qualidade CSS, revisão de dependências e regressão visual', () => {

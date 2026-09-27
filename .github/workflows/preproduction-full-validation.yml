@@ -110,7 +110,7 @@ jobs:
           chmod 600 supabase/functions/.env
       - name: Iniciar e recriar Supabase local
         run: |
-          npm run supabase:start
+          bash scripts/start-disposable-supabase-ci.sh
           npm run supabase:reset
       - name: Validar SQL, pgTAP e lint
         run: |
@@ -119,9 +119,48 @@ jobs:
           npm run supabase:test:db
           npm run supabase:lint:db
       - name: Regenerar e conferir artefatos
+        shell: bash
         run: |
+          set -euo pipefail
           mkdir -p src/types
-          npm run supabase:gen:types
+
+          gen_types_with_registry_retry() {
+            local attempt=1
+            local max_attempts=3
+            local log_file
+            log_file="$(mktemp)"
+
+            while true; do
+              : > "${log_file}"
+              set +e
+              npm run supabase:gen:types 2>&1 | tee "${log_file}"
+              local status=${PIPESTATUS[0]}
+              set -e
+
+              if [ "${status}" -eq 0 ]; then
+                rm -f "${log_file}"
+                return 0
+              fi
+
+              if ! grep -Eiq 'toomanyrequests|rate exceeded|postgres-meta|error running container: exit 125' "${log_file}"; then
+                rm -f "${log_file}"
+                return "${status}"
+              fi
+
+              if [ "${attempt}" -ge "${max_attempts}" ]; then
+                echo "Falha transitória do registry persistiu após ${max_attempts} tentativas." >&2
+                rm -f "${log_file}"
+                return "${status}"
+              fi
+
+              local delay=$((attempt * 15))
+              echo "Registry do Supabase indisponível/rate-limited; nova tentativa em ${delay}s (${attempt}/${max_attempts})."
+              sleep "${delay}"
+              attempt=$((attempt + 1))
+            done
+          }
+
+          gen_types_with_registry_retry
           npm run build:supabase-client
           npm run build:ajv
           npm run check:generated
@@ -363,7 +402,7 @@ jobs:
           sudo apt-get install --yes postgresql-client
       - name: Iniciar e recriar Supabase descartável
         run: |
-          npm run supabase:start
+          bash scripts/start-disposable-supabase-ci.sh
           npm run supabase:reset
       - name: Criar identidades Auth efêmeras
         shell: bash
