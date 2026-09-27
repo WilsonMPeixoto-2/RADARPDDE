@@ -16,12 +16,64 @@ jobs:
   dependency-review:
     name: Dependências introduzidas pelo PR
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Obter código
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Detectar suporte ao Dependency Graph
+        id: dependency-graph
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          status="$(curl -sS -o "${RUNNER_TEMP}/dependency-graph.json" -w '%{http_code}'             -H "Accept: application/vnd.github+json"             -H "Authorization: Bearer ${GH_TOKEN}"             -H "X-GitHub-Api-Version: 2022-11-28"             "https://api.github.com/repos/${GITHUB_REPOSITORY}/dependency-graph/sbom")"
+          if [ "${status}" = "200" ]; then
+            echo "supported=true" >> "${GITHUB_OUTPUT}"
+            echo "Dependency Graph disponível; usando diff nativo do GitHub."
+          else
+            echo "supported=false" >> "${GITHUB_OUTPUT}"
+            echo "Dependency Graph indisponível (HTTP ${status}); usando fallback bloqueante npm audit + política do projeto."
+          fi
+
       - name: Revisar diferença de dependências
+        if: steps.dependency-graph.outputs.supported == 'true'
         uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
         with:
           fail-on-severity: moderate
+
+      - name: Configurar Node.js 24 para fallback
+        if: steps.dependency-graph.outputs.supported != 'true'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências reproduzíveis para fallback
+        if: steps.dependency-graph.outputs.supported != 'true'
+        run: npm ci
+
+      - name: Auditar árvore completa quando o Dependency Graph estiver indisponível
+        if: steps.dependency-graph.outputs.supported != 'true'
+        shell: bash
+        run: |
+          mkdir -p dependency-health
+          set +e
+          npm audit --json > dependency-health/npm-audit.json
+          audit_exit=$?
+          set -e
+          printf '{"exitCode":%s}\n' "${audit_exit}" > dependency-health/npm-audit-exit.json
+          npm run audit:exceljs-policy
+
+      - name: Resumir estratégia aplicada
+        if: always()
+        shell: bash
+        run: |
+          echo "### Dependency Review" >> "${GITHUB_STEP_SUMMARY}"
+          if [ "${{ steps.dependency-graph.outputs.supported }}" = "true" ]; then
+            echo "- Dependency Graph disponível: diff nativo do GitHub executado com piso de severidade moderate." >> "${GITHUB_STEP_SUMMARY}"
+          else
+            echo "- Dependency Graph indisponível: fallback bloqueante npm audit + política de vulnerabilidades conhecidas do RADAR." >> "${GITHUB_STEP_SUMMARY}"
+            echo "- Ao habilitar Dependency Graph nas configurações do repositório, o workflow migra automaticamente para o diff nativo." >> "${GITHUB_STEP_SUMMARY}"
+          fi

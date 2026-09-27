@@ -12,7 +12,7 @@ module.exports = defineConfig({
     ...devices['Desktop Chrome'],
     baseURL: 'http://127.0.0.1:4175',
     trace: {
-      mode: 'retain-on-failure-and-retries',
+      mode: 'on-first-retry',
       screenshots: true,
       snapshots: { dom: true, aria: true, screen: true },
       sources: true

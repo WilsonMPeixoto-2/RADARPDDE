@@ -137,7 +137,7 @@ Playwright 1.63 permite locks por recurso. O RADAR usa locks somente onde testes
 
 ## 11. Trace enriquecido
 
-Configs Playwright relevantes preservam em falha/retry screenshots, DOM snapshots, ARIA snapshots, screen snapshots e sources. Trace é instrumento de diagnóstico; não autoriza alterar regra, tolerância ou CSS sem causa reproduzida.
+Configs Playwright relevantes preservam screenshots, DOM snapshots, ARIA snapshots, screen snapshots e sources. Nas suítes grandes, a gravação rica ocorre em `on-first-retry` para evitar custo permanente de CPU/memória; o projeto visual pequeno pode usar `retain-on-failure-and-retries`. Trace é instrumento de diagnóstico; não autoriza alterar regra, tolerância ou CSS sem causa reproduzida.
 
 ## 12. Navegador MCP para agentes
 

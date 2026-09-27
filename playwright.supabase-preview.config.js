@@ -17,7 +17,7 @@ module.exports = defineConfig({
   use: {
     baseURL,
     trace: {
-      mode: 'retain-on-failure-and-retries',
+      mode: 'on-first-retry',
       screenshots: true,
       snapshots: { dom: true, aria: true, screen: true },
       sources: true
