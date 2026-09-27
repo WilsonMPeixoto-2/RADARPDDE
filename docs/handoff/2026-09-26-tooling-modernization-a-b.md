@@ -98,3 +98,11 @@ O usuário autorizou concluir os gates, tirar Draft, integrar e publicar após m
 - Verificação local: 12 contratos de tooling passaram; ESLint sem erros; shell validado; execução com executáveis de fronteira controlados comprovou recuperação na segunda tentativa, falha após três e recusa fora de github-hosted.
 - Chromium desta sessão: download oficial retornou ZIP truncado; binário de sessão anterior terminou em SIGSEGV antes de abrir página. Não há prova visual local válida. A comparação canônica será executada no Chromium/Linux do CI, sem atualizar baselines.
 - Próximo passo: confirmar os dois gates no novo SHA e a matriz completa. Avaliação de ferramentas visuais em andamento; nenhuma dependência de design adicionada ao runtime.
+
+
+### Validação do candidato 060a6573
+
+- Readiness local integral: 1.133 unitários e 8 integrações aprovados, além de checks estáticos, CSS, arquitetura, banco e artefatos.
+- Gate remoto ultrapassou a falha original: inicialização/reset/Auth/RLS verdes; matriz de perfis em execução.
+- A divisão visual evidenciou configuração herdada: `devices['Desktop Chrome']` no projeto sobrescrevia viewport global com 1280×720; os testes antigos faziam `setViewportSize`, ocultando isso. Agora o próprio projeto fixa 1440×900, confirmado pela configuração efetiva. Nenhum pixel de golden/CSS alterado.
+- Avaliação de ferramentas concluída em `docs/evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md`, com metadados e prova executada de Sharp/SVGO/Lucide/fontes. Figma autenticado; Superdesign executável, mas login bloqueado pela revisão automática por envolver credenciais fora da avaliação autorizada.

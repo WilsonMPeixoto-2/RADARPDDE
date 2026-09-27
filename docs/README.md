@@ -117,3 +117,5 @@ Na mesma entrega que criar ou alterar fonte canônica, atualizar quando aplicáv
 7. o vínculo de handoff corrente quando a frente mudar.
 
 Documento histórico não deve ser reescrito para fingir atualidade. Deve ser preservado e, quando necessário, reclassificado por uma fonte canônica posterior.
+
+- [Avaliação de ferramentas para design profissional — 27/09/2026](evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md) — opções compatíveis, instalação isolada e evidências; sem adoção no runtime.
