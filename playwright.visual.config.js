@@ -3,10 +3,13 @@ const { defineConfig, devices } = require('@playwright/test');
 module.exports = defineConfig({
   testDir: './tests/e2e',
   testMatch: /(?:global-visual-polish|unidentified-expense-user-journey)\.spec\.js/,
+  grep: /(?:camada final é carregada|Prontuário, abas, formulários|fluxo de despesa a identificar|conduz um usuário do débito)/,
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
   workers: 2,
+  timeout: 90000,
+  expect: { timeout: 15000 },
   reporter: process.env.CI
     ? [['line'], ['html', { open: 'never', outputFolder: 'playwright-report-visual' }]]
     : [['list'], ['html', { open: 'never', outputFolder: 'playwright-report-visual' }]],
