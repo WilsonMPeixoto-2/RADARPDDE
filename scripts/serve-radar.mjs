@@ -80,19 +80,30 @@ export function safeFilePath(root, requestPath) {
 }
 
 async function serveFile(response, filePath, method) {
-    const metadata = await fs.stat(filePath).catch(() => null);
-    if (!metadata?.isFile()) return false;
+    let file;
+    try {
+        file = await fs.open(filePath, 'r');
+    } catch (error) {
+        if (error.code === 'ENOENT' || error.code === 'ENOTDIR') return false;
+        throw error;
+    }
 
+    let content;
+    try {
+        // Inspect and read the same opened file, even if its pathname changes.
+        if (!(await file.stat()).isFile()) return false;
+        if (method !== 'HEAD') content = await file.readFile();
+    } finally {
+        await file.close();
+    }
+
+    // A read/close failure must reach the handler before success headers are sent.
     const extension = path.extname(filePath).toLowerCase();
     response.writeHead(200, {
         'content-type': MIME_TYPES[extension] || 'application/octet-stream',
         'cache-control': 'no-store'
     });
-    if (method === 'HEAD') {
-        response.end();
-        return true;
-    }
-    response.end(await fs.readFile(filePath));
+    response.end(content);
     return true;
 }
 
@@ -113,12 +124,12 @@ export function createRadarRequestHandler({ root }) {
                 'cache-control': 'no-store'
             });
             response.end('Not Found');
-        } catch (error) {
+        } catch {
             response.writeHead(500, {
                 'content-type': 'text/plain; charset=utf-8',
                 'cache-control': 'no-store'
             });
-            response.end(error instanceof Error ? error.message : String(error));
+            response.end('Internal Server Error');
         }
     };
 }

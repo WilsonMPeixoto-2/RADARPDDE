@@ -3,94 +3,42 @@
 **Classe documental:** Canônico — estado mutável  
 **Atualizado em:** 27 de setembro de 2026
 
-## 1. Baseline de Production anterior à integração do PR #378
+## 1. Fases A/B concluídas; entrega de encerramento da Fase C
 
-- `main`: `95d9f0a1112c506f915b3b6d37677e94b7bf7c26`;
-- deployment Production: `dpl_Dc5aaMc2Aif6ggmj1pRauxrCQ2fU`, `READY`;
-- PR #376 integrado e encerrado;
-- manifesto/assets publicados conferem com o candidato aprovado;
-- nenhuma configuração efêmera de Preview foi integrada.
+| Frente | Resultado | Registro |
+|---|---|---|
+| A/B | Integradas à main e publicadas | [PR #378](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/378), merge `5581ee8814dd8361e8be70fe467f832f2ddce20c` |
+| C1 | Concluída: ExcelJS 4.4.0 preservado com uuid 11.1.1 | [PR #384](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/384), merge `70e3d7e601b9157940dba0d2cbbc8a0d7cf90ad3` |
+| C2 | Concluída: CLI 2.118.0 reprovada; 2.114.0 preservada | [PR #385](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/385), merge `0af1c5a81536f68b848a7194f72071c1e7e9ad2f` |
+| C3 | Servidor Node canônico implementado; correções dos dois achados CodeQL nesta entrega | [PR #386](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/386) |
 
-A frente desktop/Pendências anterior está encerrada. Não reabrir #375/#376/#377 como fila de implementação.
+**A integração de #386 e a confirmação de Production encerram A + B + C.** O registro de encerramento no PR contém o SHA final homologado, merge, deployment READY, manifesto/assets e smoke. Enquanto o PR estiver aberto, C3 permanece candidata; depois de integrado e publicado, não existe implementação A/B/C pendente por causa de textos históricos pré-merge.
 
-## 2. Fases A/B concluídas — candidato à integração #378
+## 2. Baseline e confirmação de publicação
 
-Branch:
+Baseline revalidada antes desta entrega:
 
-`chore/tooling-phases-a-b-2026-09-26`
+- main `0af1c5a81536f68b848a7194f72071c1e7e9ad2f`;
+- Production `dpl_CcYXX4tvFhjFRyGYwsaJJxupFrZ5`, READY, mesmo SHA;
+- URL: https://radarpdde-fix.vercel.app.
 
-Registro de implementação e validação (histórico da entrega):
+Essa baseline não é o resultado antecipado da publicação de C3. Para o estado posterior, conferir o encerramento do [PR #386](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/386), o deployment associado à main e `/radar-build-manifest.json`. A matriz verde de um SHA anterior não certifica uma correção posterior.
 
-`docs/handoff/2026-09-26-tooling-modernization-a-b.md`
+## 3. Decisões preservadas
 
-Objetivo: elevar capacidade de agentes, segurança de supply chain, reprodutibilidade, qualidade CSS, diagnóstico Playwright, regressão visual e busca global sem reescrever arquitetura funcional.
+- Supabase JS 2.117.2 alinhado no navegador e Edge Function;
+- Supabase CLI 2.114.0: não enfraquecer RLS/pgTAP para aceitar CLI reprovada;
+- ExcelJS 4.4.0 / uuid 11.1.1, sem a antiga exceção de vulnerabilidade;
+- servidor `scripts/serve-radar.mjs` para dev, Playwright, auditoria e Lighthouse; `http-server` removido;
+- `RADAR_SERVE_ROOT` seleciona a raiz; `RADAR_E2E_ROOT` preservado por compatibilidade;
+- servidor abre uma vez, verifica/lê pelo mesmo descritor e sempre o fecha; falhas HTTP não expõem mensagens internas;
+- sem alteração de layout, regras funcionais, banco, schema, migrations, RPCs, RLS ou persistência nesta C3;
+- goldens visuais não são atualizados automaticamente para obter verde.
 
-### Fase A
+## 4. Evidência e retomada
 
-- Playwright MCP `0.0.82` versionado em `.mcp.json`, fora das dependências/runtime;
-- modo isolado + modo `--extension` para sessão autenticada/SSO/2FA;
-- Dependabot separado em `supabase-sdk`, `supabase-cli` e `css-quality`;
-- `@supabase/supabase-js` elevado de `2.116.0` para `2.117.2`;
-- navegador e Edge Function usam a mesma versão `2.117.2`;
-- Supabase CLI permanece deliberadamente em `2.114.0`;
-- Actions externas passam a exigir SHA completo pelo checker do repositório;
-- Dependency Review Action adicionada;
-- `devEngines` exige Node 24 e npm 11.
+Registro técnico desta entrega: [correções CodeQL e validação C3](evidence/2026-09-27-phase-c3-codeql.md). Resultados remotos incrementais e encerramento ficam no PR #386 para permitir continuidade entre sessões.
 
-### Fase B
+Não há handoff corrente separado. O handoff `2026-09-26-tooling-modernization-a-b.md` é **histórico concluído**. Os PRs #375/#376/#377/#378 não formam fila de implementação. Textos pré-merge neles preservam somente o estado daquele momento.
 
-- Stylelint `17.15.0` + `stylelint-config-recommended 18.0.0`, calibrado para erros reais e não para dívida editorial legada;
-- gate CSS incorporado ao readiness;
-- seis baselines visuais Playwright em Chromium 1440×900;
-- projeto visual dedicado com dois workers e locks apenas nos fluxos que compartilham estado;
-- traces enriquecidos com DOM, ARIA, screen snapshot e sources;
-- Fuse 7.5 usa Token Search com `tokenMatch: 'all'`;
-- busca multi-termo passa a tolerar ordem livre e typo por termo.
-
-## 3. Escopo e invariantes
-
-A frente não altera:
-
-- schema, migrations, RPCs ou RLS;
-- modelo de persistência;
-- contratos de Pendências/NF/Inventário;
-- permissões funcionais;
-- configuração Vercel de Production.
-
-A única mudança funcional deliberada de produto é a melhoria da busca global por Token Search. Supabase 2.117.2 atualiza biblioteca cliente/Edge mantendo os contratos de leitura/escrita já protegidos.
-
-## 4. Regras de teste novas
-
-- baseline visual não é atualizado automaticamente para “ficar verde”;
-- mudança de golden exige revisão visual do diff;
-- `test lock` é usado apenas onde estado compartilhado material exige serialização;
-- trace enriquecido é evidência de diagnóstico, não substitui contrato funcional;
-- snapshots visuais complementam, não substituem, jornada real e persistência;
-- o gate visual canônico usa Linux/Chromium 1440×900 no CI.
-
-## 5. Estado de validação e publicação
-
-A implementação das Fases A/B está concluída. A materialização `5c2495d1` gerou lockfile, bundle Supabase e seis PNGs; o workflow temporário foi removido. O encerramento foi autorizado pelo usuário em 27/09.
-
-- Readiness local integral aprovado: 1.133 unitários e 8 integrações, checks estáticos/CSS/arquitetura/banco/artefatos.
-- Visual canônico aprovado no candidato `5bbcff35`, run `36298032902`: cinco cenários e seis baselines, 1,5 minuto, sem atualizar goldens.
-- Jornada funcional completa preservada; os dois estados visuais independentes ficam exclusivamente no gate visual. Viewport 1440×900 fixado no projeto e protegido por contrato.
-- Gate remoto usa limpeza restrita ao projeto Supabase descartável e três tentativas limitadas. Esgotamento continua bloqueante.
-
-Este documento é o registro de preparação da integração. O merge depende da matriz integral verde no head final; **não tratar esta descrição como confirmação antecipada de deployment**. A confirmação posterior de merge, SHA de main, deployment READY, manifesto/assets e smoke é registrada no [PR #378](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/378) e no manifesto público `/radar-build-manifest.json`.
-
-## 6. Próxima ação
-
-Fechar a publicação autorizada após os gates do SHA final e registrar a evidência no PR #378. Depois dessa confirmação, A/B não formam fila de implementação nem possuem handoff corrente pendente.
-
-A evolução visual profissional é uma frente futura, ainda sem alterações de layout nesta entrega. A avaliação de ferramentas, versões, provas de instalação e roteiro está em `docs/evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md`. Figma conectado; Sharp/SVGO/Lucide/Fontsource exercidos isoladamente. Nenhuma dependência nova de design adicionada ao runtime. Superdesign requer conexão autorizada; isso não bloqueia a publicação.
-
-## 7. Rota de retomada
-
-1. `AGENTS.md`
-2. `docs/reference/SYSTEM_CANONICAL_MODEL.md`
-3. este arquivo
-4. `docs/handoff/2026-09-26-tooling-modernization-a-b.md`
-5. `docs/reference/TEST_GOVERNANCE.md`
-6. `docs/reference/FRONTEND_USER_VALIDATION_GATE.md`
-7. `docs/reference/STATUS_DOCUMENTOS.md`
+Após o encerramento de C3, a próxima frente é a **Fase D**, ainda não iniciada nesta entrega. A avaliação de ferramentas de design está em [DESIGN_TOOLING.md](evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md): Figma conectado e provas isoladas de Sharp/SVGO/Lucide/Fontsource. Nenhuma biblioteca de design nova foi adicionada ao runtime. O modo Playwright com sessão autenticada depende da extensão instalada no computador do usuário e não bloqueia Production.

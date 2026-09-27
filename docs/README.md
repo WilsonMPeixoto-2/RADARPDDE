@@ -1,7 +1,7 @@
 # Documentação do RADAR PDDE
 
 **Classe documental:** Canônico — índice e rota de leitura  
-**Atualizado em:** 26 de setembro de 2026
+**Atualizado em:** 27 de setembro de 2026
 
 ## 1. Rota obrigatória
 
@@ -21,7 +21,7 @@ Ordem:
 10. ADRs e referências especializadas da área afetada;
 11. planos, auditorias, demais handoffs e evidências históricas apenas para compreender o seu momento/SHA.
 
-Production corrente está em `95d9f0a1...` após a publicação do #376. A frente ativa é a modernização de tooling A/B na branch `chore/tooling-phases-a-b-2026-09-26`, com handoff em `handoff/2026-09-26-tooling-modernization-a-b.md`. Ela moderniza agentes, Supabase JS, supply chain, CSS, Playwright visual/trace/locks e busca Fuse sem alterar schema/RLS ou regras centrais.
+A/B estão integradas e publicadas; C1 e C2 estão concluídas. A entrega de encerramento de C3 é o [PR #386](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/386). Consultar `CURRENT_STAGE.md` e o registro de publicação no PR para o estado efetivo; não retomar a antiga fila #378. Não há handoff corrente separado.
 
 ## 2. Função de cada documento canônico/vigente
 
@@ -80,7 +80,9 @@ O modelo detalhado está em `SYSTEM_CANONICAL_MODEL.md`; a finalidade humana das
 
 Consultar conforme a área materialmente afetada:
 
-- [`handoff/2026-09-26-tooling-modernization-a-b.md`](handoff/2026-09-26-tooling-modernization-a-b.md) — **handoff corrente** da modernização de tooling A/B;
+- [`evidence/2026-09-27-phase-c3-codeql.md`](evidence/2026-09-27-phase-c3-codeql.md) — registro técnico da entrega C3 e seus dois achados CodeQL;
+
+- [`handoff/2026-09-26-tooling-modernization-a-b.md`](handoff/2026-09-26-tooling-modernization-a-b.md) — **histórico concluído** da modernização de tooling A/B;
 - [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — referência funcional/arquitetural detalhada; **afirmações temporais de PR, SHA, fila ou deployment nele não representam o estado corrente e cedem a `CURRENT_STAGE.md`**;
 - [`handoff/2026-09-25-desktop-expense-journey.md`](handoff/2026-09-25-desktop-expense-journey.md) — **handoff histórico concluído** da jornada desktop de Despesa a identificar, preservando os checkpoints e o adendo de encerramento;
 - [`handoff/2026-09-19-performance-sync-modernization.md`](handoff/2026-09-19-performance-sync-modernization.md) — handoff histórico concluído da modernização de performance/sincronização;
