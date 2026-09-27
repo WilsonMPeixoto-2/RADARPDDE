@@ -25,7 +25,7 @@ test('ferramentas Supabase modernas estão fixadas e reproduzíveis', () => {
 
     assert.equal(pkg.devDependencies['@supabase/supabase-js'], '2.117.2');
     assert.equal(pkg.devDependencies.supabase, '2.118.0');
-    const lock = readJson('package-lock.json');
+    const lock = JSON.parse(read('package-lock.json'));
     assert.equal(lock.packages['node_modules/supabase'].version, '2.118.0');
     for (const platform of [
         'darwin-arm64',
