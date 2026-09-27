@@ -21,7 +21,7 @@ Ordem:
 10. ADRs e referências especializadas da área afetada;
 11. planos, auditorias, demais handoffs e evidências históricas apenas para compreender o seu momento/SHA.
 
-**Estado funcional corrente:** A + B + C estão concluídas; a Fase D ainda não foi iniciada; não há handoff corrente separado.
+**Estado funcional corrente:** A + B + C estão concluídas; a Fase D ainda não foi iniciada e está deliberadamente adiada; a frente ativa voltou a ser a jornada desktop de Despesa a identificar/Pendências. O handoff corrente é [`handoff/2026-09-27-post-abc-expense-baseline-audit.md`](handoff/2026-09-27-post-abc-expense-baseline-audit.md).
 
 O [PR #386](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/386) e o merge funcional `e6b692a97dd5148877c788da11e0c8ae4c8fcd19` registram o encerramento da C3. Commits posteriores exclusivamente documentais podem avançar a `main` e gerar novo deployment sem reabrir a Fase C. Quando o SHA do head ou o deployment ativo importarem para uma nova entrega, verificá-los ao vivo.
 
@@ -83,6 +83,8 @@ O modelo detalhado está em `SYSTEM_CANONICAL_MODEL.md`; a finalidade humana das
 ## 5. Documentação especializada vigente
 
 Consultar conforme a área materialmente afetada:
+
+- [`handoff/2026-09-27-post-abc-expense-baseline-audit.md`](handoff/2026-09-27-post-abc-expense-baseline-audit.md) — **handoff corrente** da auditoria baseline pós-A+B+C da jornada Despesa a identificar/Pendências;
 
 - [`evidence/2026-09-27-phase-c3-codeql.md`](evidence/2026-09-27-phase-c3-codeql.md) — evidência técnica histórica da entrega C3 e dos dois achados CodeQL;
 - [`evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md`](evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md) — avaliação de ferramentas para evolução visual; sem adoção de novas bibliotecas no runtime;

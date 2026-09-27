@@ -25,6 +25,7 @@ PR aberto, Preview ou documento antigo não altera Production.
 | docs/reference/SYSTEM_CANONICAL_MODEL.md | Canônico | autoridades, fluxos e invariantes |
 | docs/reference/PRODUCT_SURFACE_CATALOG.md | Referência vigente | superfícies e jornadas |
 | docs/CURRENT_STAGE.md | Canônico | estado funcional e prioridade; head/deployment exatos devem ser revalidados ao vivo quando relevantes |
+| docs/handoff/2026-09-27-post-abc-expense-baseline-audit.md | **Handoff corrente** | auditoria baseline pós-A+B+C da jornada Despesa a identificar/Pendências; observar antes de corrigir |
 | docs/handoff/2026-09-26-tooling-modernization-a-b.md | Histórico concluído A/B | integrado e publicado pelo PR #378; não é handoff corrente |
 | docs/handoff/2026-09-25-desktop-expense-journey.md | Handoff histórico concluído | checkpoints preservados e adendo de encerramento |
 | docs/handoff/2026-09-19-performance-sync-modernization.md | Handoff histórico concluído | modernização de performance/sincronização encerrada em 21/09 |
@@ -49,13 +50,17 @@ A baseline funcional que comprovou o encerramento da C3 é:
 
 Commits posteriores exclusivamente documentais não reabrem uma fase encerrada nem representam, por si, mudança funcional do RADAR. Como a `main` pode avançar por manutenção documental e a Vercel pode publicar esses commits, o head e o deployment exatos devem ser consultados ao vivo quando forem necessários para uma nova entrega.
 
-A **Fase D ainda não foi iniciada**. Não há branch, PR ou handoff corrente da Fase D.
+A **Fase D ainda não foi iniciada e está deliberadamente adiada** enquanto a frente funcional/visual principal de Despesa a identificar/Pendências é reavaliada com o ferramental pós-A+B+C.
+
+O handoff corrente é `docs/handoff/2026-09-27-post-abc-expense-baseline-audit.md`. A primeira execução dessa frente é observacional e não autoriza correções de produto/teste durante a coleta.
 
 O servidor canônico e suas correções não alteraram schema, migrations, RPCs, RLS, serviços de domínio, layout ou persistência canônica.
 
 ## 4. Handoff corrente e histórico
 
-Não há handoff corrente separado.
+Handoff corrente:
+
+- `docs/handoff/2026-09-27-post-abc-expense-baseline-audit.md` — auditoria baseline da jornada Despesa a identificar/Pendências após A+B+C; define escopo, guardrails, evidências e critérios de parada para a primeira execução no Codex.
 
 `docs/handoff/2026-09-26-tooling-modernization-a-b.md`, `docs/handoff/2026-09-25-desktop-expense-journey.md` e os demais handoffs anteriores permanecem históricos concluídos. As antigas pendências descritas neles não formam fila atual.
 
