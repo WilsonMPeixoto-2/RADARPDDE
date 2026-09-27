@@ -165,7 +165,7 @@ test.describe('Polimento visual global', () => {
     await shot(page, testInfo, '10-historico-cronologico-polido');
   });
 
-  test('fluxo de despesa a identificar mantém conteúdo e melhora modal, drawer e comunicação', async ({ page }, testInfo) => {
+  test('fluxo de despesa a identificar mantém conteúdo e melhora modal, drawer e comunicação', { lock: 'unidentified-expense-local-state' }, async ({ page }, testInfo) => {
     const context = await openProntuario(page);
 
     await page.getByRole('tab', { name: 'Competências e Análises', exact: true }).click();
