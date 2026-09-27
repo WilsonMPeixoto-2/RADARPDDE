@@ -12,7 +12,7 @@ Ordem:
 1. [`../AGENTS.md`](../AGENTS.md) — regras de trabalho e precedência;
 2. [`reference/SYSTEM_CANONICAL_MODEL.md`](reference/SYSTEM_CANONICAL_MODEL.md) — modelo integrado do produto: superfícies, perfis, entidades, fluxos, estados, autoridades, diferenças deliberadas e invariantes;
 3. [`reference/PRODUCT_SURFACE_CATALOG.md`](reference/PRODUCT_SURFACE_CATALOG.md) — modelo mental do usuário: finalidade de cada tela, jornada, hierarquia visual, encontrabilidade e papel de cada superfície;
-4. [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — estado mutável, Production, prioridade e PRs correntes;
+4. [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — estado funcional, prioridade e evidências de encerramento/publicação;
 5. **handoff corrente explicitamente apontado em `CURRENT_STAGE.md`, quando houver** — contexto detalhado da frente ativa, sem ganhar autoridade funcional sobre o modelo canônico;
 6. [`reference/ENGINEERING_METHOD.md`](reference/ENGINEERING_METHOD.md) — método permanente de engenharia;
 7. [`reference/FRONTEND_USER_VALIDATION_GATE.md`](reference/FRONTEND_USER_VALIDATION_GATE.md) — gate permanente de jornada real pelo frontend;
@@ -21,7 +21,11 @@ Ordem:
 10. ADRs e referências especializadas da área afetada;
 11. planos, auditorias, demais handoffs e evidências históricas apenas para compreender o seu momento/SHA.
 
-A/B estão integradas e publicadas; C1 e C2 estão concluídas. A entrega de encerramento de C3 é o [PR #386](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/386). Consultar `CURRENT_STAGE.md` e o registro de publicação no PR para o estado efetivo; não retomar a antiga fila #378. Não há handoff corrente separado.
+**Estado funcional corrente:** A + B + C estão concluídas; a Fase D ainda não foi iniciada; não há handoff corrente separado.
+
+O [PR #386](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/386) e o merge funcional `e6b692a97dd5148877c788da11e0c8ae4c8fcd19` registram o encerramento da C3. Commits posteriores exclusivamente documentais podem avançar a `main` e gerar novo deployment sem reabrir a Fase C. Quando o SHA do head ou o deployment ativo importarem para uma nova entrega, verificá-los ao vivo.
+
+Não retomar a antiga fila #378 nem transformar textos pré-merge em pendências atuais.
 
 ## 2. Função de cada documento canônico/vigente
 
@@ -30,7 +34,7 @@ A/B estão integradas e publicadas; C1 e C2 estão concluídas. A entrega de enc
 | `AGENTS.md` | roteador obrigatório e regras de trabalho |
 | `reference/SYSTEM_CANONICAL_MODEL.md` | mapa integrado do sistema e seus contratos funcionais |
 | `reference/PRODUCT_SURFACE_CATALOG.md` | leitura do produto pelo usuário e contrato das superfícies |
-| `CURRENT_STAGE.md` | estado mutável, Production, frente ativa e handoff corrente |
+| `CURRENT_STAGE.md` | estado funcional, prioridade e evidência de encerramento |
 | handoff corrente indicado por `CURRENT_STAGE.md` | contexto detalhado temporário da frente ativa |
 | `reference/ENGINEERING_METHOD.md` | método de investigação, implementação e revisão |
 | `reference/FRONTEND_USER_VALIDATION_GATE.md` | prova obrigatória pela interface real |
@@ -80,12 +84,12 @@ O modelo detalhado está em `SYSTEM_CANONICAL_MODEL.md`; a finalidade humana das
 
 Consultar conforme a área materialmente afetada:
 
-- [`evidence/2026-09-27-phase-c3-codeql.md`](evidence/2026-09-27-phase-c3-codeql.md) — registro técnico da entrega C3 e seus dois achados CodeQL;
-
+- [`evidence/2026-09-27-phase-c3-codeql.md`](evidence/2026-09-27-phase-c3-codeql.md) — evidência técnica histórica da entrega C3 e dos dois achados CodeQL;
+- [`evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md`](evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md) — avaliação de ferramentas para evolução visual; sem adoção de novas bibliotecas no runtime;
 - [`handoff/2026-09-26-tooling-modernization-a-b.md`](handoff/2026-09-26-tooling-modernization-a-b.md) — **histórico concluído** da modernização de tooling A/B;
-- [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — referência funcional/arquitetural detalhada; **afirmações temporais de PR, SHA, fila ou deployment nele não representam o estado corrente e cedem a `CURRENT_STAGE.md`**;
-- [`handoff/2026-09-25-desktop-expense-journey.md`](handoff/2026-09-25-desktop-expense-journey.md) — **handoff histórico concluído** da jornada desktop de Despesa a identificar, preservando os checkpoints e o adendo de encerramento;
-- [`handoff/2026-09-19-performance-sync-modernization.md`](handoff/2026-09-19-performance-sync-modernization.md) — handoff histórico concluído da modernização de performance/sincronização;
+- [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — referência funcional/arquitetural detalhada; **afirmações temporais de PR, SHA, fila ou deployment nele não representam o estado corrente e cedem ao estado efetivo e a `CURRENT_STAGE.md`**;
+- [`handoff/2026-09-25-desktop-expense-journey.md`](handoff/2026-09-25-desktop-expense-journey.md) — **handoff histórico concluído** da jornada desktop de Despesa a identificar;
+- [`handoff/2026-09-19-performance-sync-modernization.md`](handoff/2026-09-19-performance-sync-modernization.md) — histórico concluído da modernização de performance/sincronização;
 - [`decisions/ADR-054-sincronizacao-operacional-realtime.md`](decisions/ADR-054-sincronizacao-operacional-realtime.md) — decisão vigente sobre invalidação Realtime entre sessões;
 - [`DECISION_LOG.md`](DECISION_LOG.md) — decisões duradouras;
 - [`architecture/`](architecture/) — contratos arquiteturais específicos;
@@ -119,5 +123,3 @@ Na mesma entrega que criar ou alterar fonte canônica, atualizar quando aplicáv
 7. o vínculo de handoff corrente quando a frente mudar.
 
 Documento histórico não deve ser reescrito para fingir atualidade. Deve ser preservado e, quando necessário, reclassificado por uma fonte canônica posterior.
-
-- [Avaliação de ferramentas para design profissional — 27/09/2026](evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md) — opções compatíveis, instalação isolada e evidências; sem adoção no runtime.

@@ -1,6 +1,6 @@
 # Matriz de validade documental
 
-**Classe documental:** Canônico
+**Classe documental:** Canônico  
 **Atualizado em:** 27 de setembro de 2026
 
 ## 1. Finalidade e precedência
@@ -24,7 +24,7 @@ PR aberto, Preview ou documento antigo não altera Production.
 | AGENTS.md | Canônico | roteador obrigatório |
 | docs/reference/SYSTEM_CANONICAL_MODEL.md | Canônico | autoridades, fluxos e invariantes |
 | docs/reference/PRODUCT_SURFACE_CATALOG.md | Referência vigente | superfícies e jornadas |
-| docs/CURRENT_STAGE.md | Canônico | estado ao vivo e prioridade |
+| docs/CURRENT_STAGE.md | Canônico | estado funcional e prioridade; head/deployment exatos devem ser revalidados ao vivo quando relevantes |
 | docs/handoff/2026-09-26-tooling-modernization-a-b.md | Histórico concluído A/B | integrado e publicado pelo PR #378; não é handoff corrente |
 | docs/handoff/2026-09-25-desktop-expense-journey.md | Handoff histórico concluído | checkpoints preservados e adendo de encerramento |
 | docs/handoff/2026-09-19-performance-sync-modernization.md | Handoff histórico concluído | modernização de performance/sincronização encerrada em 21/09 |
@@ -38,17 +38,28 @@ PR aberto, Preview ou documento antigo não altera Production.
 
 ## 3. Frente corrente e baseline operacional
 
-A/B foram integradas e publicadas no PR #378; C1 foi concluída no #384 e C2 no #385. A baseline anterior à entrega C3 é main `0af1c5a81536f68b848a7194f72071c1e7e9ad2f`, Production `dpl_CcYXX4tvFhjFRyGYwsaJJxupFrZ5`, READY.
+A/B foram integradas e publicadas no #378; C1 foi concluída no #384; C2 no #385; C3 no #386. **A + B + C estão encerradas.**
 
-A entrega C3 ocorre no PR #386. Sua integração e publicação confirmadas encerram a Fase C; consultar `CURRENT_STAGE.md` e o registro de encerramento no PR para SHA, gates e deployment. A Fase D ainda não foi iniciada nesta entrega.
+A baseline funcional que comprovou o encerramento da C3 é:
 
-O servidor canônico e suas correções não alteram schema, migrations, RPCs, RLS, serviços de domínio, layout ou persistência canônica.
+- merge funcional `e6b692a97dd5148877c788da11e0c8ae4c8fcd19`;
+- Production de encerramento `dpl_vp8YKMA9pGDMZD7RQRjQDM8qkYC5`, `READY`;
+- manifesto no mesmo SHA e em `supabase-production`;
+- smoke com 50 assets válidos e bloqueio anônimo `blocked-401`.
+
+Commits posteriores exclusivamente documentais não reabrem uma fase encerrada nem representam, por si, mudança funcional do RADAR. Como a `main` pode avançar por manutenção documental e a Vercel pode publicar esses commits, o head e o deployment exatos devem ser consultados ao vivo quando forem necessários para uma nova entrega.
+
+A **Fase D ainda não foi iniciada**. Não há branch, PR ou handoff corrente da Fase D.
+
+O servidor canônico e suas correções não alteraram schema, migrations, RPCs, RLS, serviços de domínio, layout ou persistência canônica.
 
 ## 4. Handoff corrente e histórico
 
-Não há handoff corrente separado. `docs/handoff/2026-09-26-tooling-modernization-a-b.md` e `docs/handoff/2026-09-25-desktop-expense-journey.md` são históricos concluídos. As antigas pendências dessas frentes não formam fila atual.
+Não há handoff corrente separado.
 
-`docs/evidence/2026-09-27-phase-c3-codeql.md` registra a reprodução e correção dos achados de C3; é evidência técnica, não autoridade funcional. Resultados remotos posteriores e publicação são registrados no PR #386.
+`docs/handoff/2026-09-26-tooling-modernization-a-b.md`, `docs/handoff/2026-09-25-desktop-expense-journey.md` e os demais handoffs anteriores permanecem históricos concluídos. As antigas pendências descritas neles não formam fila atual.
+
+`docs/evidence/2026-09-27-phase-c3-codeql.md` registra a reprodução RED → GREEN e a correção dos achados da C3. É evidência técnica histórica da entrega; o fechamento remoto, merge e publicação estão registrados no PR #386 e consolidados em `CURRENT_STAGE.md`.
 
 ## 5. Handoffs anteriores
 
@@ -62,9 +73,9 @@ Passam a ser classificados como históricos executados, entre outros:
 
 Eles preservam rastreabilidade, mas não formam fila automática de execução.
 
-## 6. Decisão nova de sincronização
+## 6. Decisão vigente de sincronização
 
-A ADR-054 passa a ser referência vigente para sincronização operacional:
+A ADR-054 permanece referência vigente para sincronização operacional:
 
 - Broadcast privado apenas invalida;
 - Supabase continua sendo a fonte canônica;
@@ -110,18 +121,20 @@ Interleavings adicionais protegidos:
 
 ## 8. Documentos históricos
 
-Planos, audits, handoffs e backlogs não apontados por CURRENT_STAGE.md não formam fila automática.
+Planos, audits, handoffs e backlogs não apontados por `CURRENT_STAGE.md` não formam fila automática.
 
-PROJECT_CONTEXT.md continua útil para contexto funcional, mas SHAs, PRs, deployments, migrations e próximos passos temporais cedem a CURRENT_STAGE.md.
+`PROJECT_CONTEXT.md` continua útil para contexto funcional, mas SHAs, PRs, deployments, migrations e próximos passos temporais cedem ao estado efetivo e a `CURRENT_STAGE.md`.
 
 ## 9. Manutenção
 
-Ao mudar baseline, Production ou frente ativa:
+Ao mudar baseline funcional ou frente ativa:
 
-- atualizar CURRENT_STAGE.md;
+- atualizar `CURRENT_STAGE.md`;
 - atualizar este arquivo;
-- apontar um único handoff corrente;
+- atualizar `docs/README.md` quando a rota de retomada ou o estado de fase mudar;
+- apontar no máximo um handoff corrente;
 - registrar ADR quando a mudança for arquitetural e durável;
 - preservar handoffs/auditorias antigos como histórico;
 - não reescrever evidência antiga para parecer atual;
-- distinguir explicitamente branch/candidato de Production.
+- distinguir baseline funcional de head/deployment técnico ao vivo;
+- não criar ciclos de commits apenas para registrar no próprio repositório o SHA/deployment gerado por uma alteração exclusivamente documental.
