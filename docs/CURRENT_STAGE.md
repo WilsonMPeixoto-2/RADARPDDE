@@ -70,15 +70,15 @@ A única mudança funcional deliberada de produto é a melhoria da busca global 
 
 ## 5. Estado de validação
 
-A materialização de `package-lock.json`, `vendor/supabase-client.js` e seis PNGs de baseline é feita por runner Node 24/npm 11 limpo. O workflow temporário se remove após concluir essa materialização.
+A materialização foi concluída pelo runner Node 24/npm 11 no commit `5c2495d1082fda11c71c7ce85e09ec1409dc62e5`: `package-lock.json`, bundle `vendor/supabase-client.js` 2.117.2 e os seis PNGs de baseline foram versionados. O workflow temporário de bootstrap removeu a si próprio e não faz parte do candidato final.
 
-Depois disso, a branch deve passar readiness completo, unit/integration, visual regression, E2E desktop, Supabase readiness/pgTAP/RLS, CodeQL/Dependency Review, Lighthouse e demais gates proporcionais disparados pelo PR.
+Próximo gate: abrir PR contra `main` e passar readiness completo, unit/integration, visual regression sem `--update-snapshots`, E2E desktop, Supabase readiness/pgTAP/RLS, CodeQL/Dependency Review, Lighthouse e demais checks disparados pelo PR.
 
 Nenhum resultado parcial autoriza merge ou Production.
 
 ## 6. Próxima ação
 
-Concluir a materialização, abrir PR contra `main`, classificar qualquer vermelho real e deixar o candidato integralmente verde. Como `main` publica automaticamente na Vercel, merge/publicação só ocorre mediante decisão explícita posterior.
+Abrir PR contra `main`, classificar qualquer vermelho real e deixar o candidato integralmente verde. Como `main` publica automaticamente na Vercel, merge/publicação só ocorre mediante decisão explícita posterior.
 
 ## 7. Rota de retomada
 

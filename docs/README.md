@@ -80,6 +80,7 @@ O modelo detalhado está em `SYSTEM_CANONICAL_MODEL.md`; a finalidade humana das
 
 Consultar conforme a área materialmente afetada:
 
+- [`handoff/2026-09-26-tooling-modernization-a-b.md`](handoff/2026-09-26-tooling-modernization-a-b.md) — **handoff corrente** da modernização de tooling A/B;
 - [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — referência funcional/arquitetural detalhada; **afirmações temporais de PR, SHA, fila ou deployment nele não representam o estado corrente e cedem a `CURRENT_STAGE.md`**;
 - [`handoff/2026-09-25-desktop-expense-journey.md`](handoff/2026-09-25-desktop-expense-journey.md) — **handoff histórico concluído** da jornada desktop de Despesa a identificar, preservando os checkpoints e o adendo de encerramento;
 - [`handoff/2026-09-19-performance-sync-modernization.md`](handoff/2026-09-19-performance-sync-modernization.md) — handoff histórico concluído da modernização de performance/sincronização;

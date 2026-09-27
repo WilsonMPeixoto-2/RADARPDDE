@@ -51,20 +51,29 @@ Implementar as Fases A e B aprovadas sem misturar refatoração de domínio.
 5. O bundle 2.117.2 contém `AuthRefreshDiscardedError`, proteção relevante para refresh concorrente.
 6. O bundle minificado pode conter whitespace final gerado; o bootstrap valida whitespace em lock/snapshots, não reescreve o artefato do bundler.
 
+## Materialização concluída
+
+- commit de materialização: `5c2495d1082fda11c71c7ce85e09ec1409dc62e5`;
+- `package-lock.json` resolve Supabase JS `2.117.2`;
+- bundle web versionado contém `2.117.2` e `AuthRefreshDiscardedError`;
+- seis snapshots PNG foram gerados pelo Chromium do CI e versionados;
+- workflow temporário de bootstrap foi removido pelo próprio runner;
+- nenhuma configuração temporária de bootstrap permanece no candidato.
+
 ## Critérios de encerramento
 
-- lockfile regenerado em Node 24/npm 11;
-- bundle Supabase 2.117.2 gerado;
-- Edge Function alinhada na mesma versão;
-- seis PNGs versionados;
-- bootstrap temporário removido;
-- unit/integration/readiness verdes;
-- visual regression verde sem atualizar goldens;
-- E2E desktop verde;
-- Supabase pgTAP/RLS/readiness verde;
-- Dependency Review e CodeQL verdes;
-- documentação canônica reconciliada;
-- PR contra main mergeable.
+- [x] lockfile regenerado em Node 24/npm 11;
+- [x] bundle Supabase 2.117.2 gerado;
+- [x] Edge Function alinhada na mesma versão;
+- [x] seis PNGs versionados;
+- [x] bootstrap temporário removido;
+- [ ] unit/integration/readiness verdes no PR final;
+- [ ] visual regression verde sem atualizar goldens;
+- [ ] E2E desktop verde;
+- [ ] Supabase pgTAP/RLS/readiness verde;
+- [ ] Dependency Review e CodeQL verdes;
+- [x] documentação canônica reconciliada;
+- [ ] PR contra main mergeable.
 
 ## Guardrails
 
