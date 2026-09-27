@@ -72,13 +72,13 @@ A única mudança funcional deliberada de produto é a melhoria da busca global 
 
 A materialização foi concluída pelo runner Node 24/npm 11 no commit `5c2495d1082fda11c71c7ce85e09ec1409dc62e5`: `package-lock.json`, bundle `vendor/supabase-client.js` 2.117.2 e os seis PNGs de baseline foram versionados. O workflow temporário de bootstrap removeu a si próprio e não faz parte do candidato final.
 
-Próximo gate: abrir PR contra `main` e passar readiness completo, unit/integration, visual regression sem `--update-snapshots`, E2E desktop, Supabase readiness/pgTAP/RLS, CodeQL/Dependency Review, Lighthouse e demais checks disparados pelo PR.
+PR #378 aberto em Draft. Retomada de 27/09 confirmou 18 workflows verdes e falhas de infraestrutura/teste nos gates remoto/visual, detalhadas no handoff. Próximo gate: passar readiness completo, unit/integration, visual regression sem `--update-snapshots`, E2E desktop, Supabase readiness/pgTAP/RLS, CodeQL/Dependency Review, Lighthouse e demais checks disparados pelo PR.
 
 Nenhum resultado parcial autoriza merge ou Production.
 
 ## 6. Próxima ação
 
-Abrir PR contra `main`, classificar qualquer vermelho real e deixar o candidato integralmente verde. Como `main` publica automaticamente na Vercel, merge/publicação só ocorre mediante decisão explícita posterior.
+Concluir os gates do PR #378, confirmar a matriz verde e executar merge/publicação expressamente autorizados pelo usuário na retomada de 27/09. Confirmar deployment READY, manifesto/assets e smoke pós-deploy antes de declarar A/B encerradas.
 
 ## 7. Rota de retomada
 

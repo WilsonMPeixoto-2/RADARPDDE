@@ -1,66 +1,7 @@
 'use strict';
 
 const { test, expect } = require('@playwright/test');
-const { selectFixtureCompetence } = require('../support/e2e-competence');
-
-async function prepareSchool(page, { withOpenUnidentified = false } = {}) {
-  await page.goto('/');
-  await selectFixtureCompetence(page, '2026-05');
-
-  return page.evaluate(async ({ seedOpen }) => {
-    switchProfile('controlador');
-    const competence = window.RadarCompetenceContext.getState().activeKey;
-    const school = escolas.find(candidate => (
-      Array.isArray(candidate.programasIds)
-      && candidate.programasIds.includes('BASIC')
-      && isCompetenceInScope(candidate.competenciaInicial, competence)
-    ));
-    if (!school) throw new Error('Escola de fixture não encontrada.');
-
-    const compKey = competence + '_BASIC';
-    verificacoes[school.id] ||= {};
-    const verification = RadarFluxoOperacional.createEmptyVerification('BASIC');
-    verification.bonificacao.notaFiscal = 'Não';
-    verification.analise.notaFiscal = 'Não analisado';
-    verificacoes[school.id][compKey] = verification;
-
-    notasRegistradas = notasRegistradas.filter(item => !(
-      item.escolaId === school.id && item.compKey === compKey
-    ));
-    pendencias = pendencias.filter(item => !(
-      String(item.escolaId) === String(school.id)
-      && String(item.competenciaOrigem || item.competencia) === competence
-      && String(item.programaId || '') === 'BASIC'
-      && item.documentoKey === 'notaFiscal'
-    ));
-
-    let seeded = null;
-    if (seedOpen) {
-      seeded = await window.RadarApplicationServices.invoices.saveUnidentifiedExpenseWithPendency({
-        schoolId: school.id,
-        compKey,
-        description: 'Débito bancário ainda sem documento',
-        expenseType: 'a_identificar',
-        invoiceNumber: '',
-        amount: 145.67,
-        profile: 'controlador',
-        pendencyObservation: 'Aguardando documento para identificar a despesa.'
-      });
-    }
-
-    rebuildOperationalIndexes();
-    persist();
-    activeProntuarioCompetencia = competence;
-    switchView('prontuario', school.id);
-
-    return {
-      schoolId: school.id,
-      competence,
-      compKey,
-      seededPendencyId: seeded?.value?.pendency?.id || null
-    };
-  }, { seedOpen: withOpenUnidentified });
-}
+const { prepareSchool } = require('../support/unidentified-expense-fixture');
 
 async function settleVisualState(page) {
   // A interface usa transições curtas e reconciliação incremental. Para a auditoria
@@ -74,18 +15,6 @@ async function attachScreenshot(page, testInfo, name) {
     // realmente vê e evita que a captura fullPage altere a composição observada.
     body: await page.screenshot(),
     contentType: 'image/png'
-  });
-}
-
-async function golden(page, name) {
-  await page.evaluate(async () => {
-    if (document.fonts?.ready) await document.fonts.ready;
-    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-  });
-  await expect(page).toHaveScreenshot(name, {
-    animations: 'disabled',
-    caret: 'hide',
-    maxDiffPixelRatio: 0.01
   });
 }
 
@@ -188,7 +117,6 @@ test.describe('Jornada real — Despesa a identificar', { lock: 'unidentified-ex
     expect(feedbackGeometry.noticeLayer).toBeGreaterThan(feedbackGeometry.drawerLayer);
     expect(feedbackGeometry.noticeRight).toBeLessThanOrEqual(feedbackGeometry.drawerLeft - 12);
 
-    await golden(page, 'drawer-despesa-a-identificar.png');
     await attachScreenshot(page, testInfo, '02-pendencia-proximo-passo');
 
     await expect(drawer.getByText('Próximo passo', { exact: true })).toBeVisible();
@@ -301,7 +229,6 @@ test.describe('Jornada real — Despesa a identificar', { lock: 'unidentified-ex
     await expect(reanalysisModal.locator('[data-reanalysis-decision]')).toBeVisible();
     await settleVisualState(page);
     await attachScreenshot(page, testInfo, '04b-reanalise-documento-identificado');
-    await golden(page, 'modal-reanalise.png');
     await reanalysisModal.getByLabel('Resultado da reanálise', { exact: true })
       .selectOption('correto');
     await reanalysisModal.getByLabel('Observação da análise', { exact: true })

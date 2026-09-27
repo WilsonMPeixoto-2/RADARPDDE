@@ -2,8 +2,8 @@ const { defineConfig, devices } = require('@playwright/test');
 
 module.exports = defineConfig({
   testDir: './tests/e2e',
-  testMatch: /(?:global-visual-polish|unidentified-expense-user-journey)\.spec\.js/,
-  grep: /(?:camada final é carregada|Prontuário, abas, formulários|fluxo de despesa a identificar|conduz um usuário do débito)/,
+  testMatch: /(?:global-visual-polish|unidentified-expense-visual)\.spec\.js/,
+  grep: /(?:camada final é carregada|Prontuário, abas, formulários|fluxo de despesa a identificar|estado visual)/,
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,

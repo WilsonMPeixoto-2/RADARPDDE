@@ -9,7 +9,8 @@ on:
       - styles.css
       - 'src/**'
       - 'tests/e2e/global-visual-polish.spec.js'
-      - 'tests/e2e/unidentified-expense-user-journey.spec.js'
+      - 'tests/e2e/unidentified-expense-visual.spec.js'
+      - 'tests/support/unidentified-expense-fixture.js'
       - 'tests/e2e/**-snapshots/**'
       - playwright.visual.config.js
       - package.json
@@ -23,7 +24,8 @@ on:
       - styles.css
       - 'src/**'
       - 'tests/e2e/global-visual-polish.spec.js'
-      - 'tests/e2e/unidentified-expense-user-journey.spec.js'
+      - 'tests/e2e/unidentified-expense-visual.spec.js'
+      - 'tests/support/unidentified-expense-fixture.js'
       - 'tests/e2e/**-snapshots/**'
       - playwright.visual.config.js
       - package.json

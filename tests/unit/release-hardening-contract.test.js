@@ -44,7 +44,8 @@ test('gate remoto cobre papéis institucionais e três viewports no código do P
   for (const requiredPath of ["'app.js'", "'src/**'", "'supabase/**'", "'package.json'"]) {
     assert.match(workflow, new RegExp(requiredPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
-  assert.match(workflow, /npm run supabase:start/);
+  assert.match(workflow, /bash scripts\/start-disposable-supabase-ci\.sh/);
+  assert.match(read('scripts/start-disposable-supabase-ci.sh'), /npx --no-install supabase start/);
   assert.match(workflow, /npm run supabase:reset/);
   assert.match(workflow, /npm run bootstrap:auth-fixtures/);
   assert.match(workflow, /npm run generate:runtime-config/);

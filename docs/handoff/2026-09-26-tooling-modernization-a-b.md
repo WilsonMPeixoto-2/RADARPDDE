@@ -49,7 +49,10 @@ Implementar as Fases A e B aprovadas sem misturar refatoração de domínio.
 3. Baselines iniciais excederam o timeout funcional antigo; o timeout foi alterado apenas no projeto visual.
 4. O aviso de sucesso de Pendência é temporário; sua geometria passou a ser lida atomicamente antes do baseline, sem alterar o produto.
 5. O bundle 2.117.2 contém `AuthRefreshDiscardedError`, proteção relevante para refresh concorrente.
-6. O bundle minificado pode conter whitespace final gerado; o bootstrap valida whitespace em lock/snapshots, não reescreve o artefato do bundler.\n7. `retain-on-failure-and-retries` com DOM+ARIA+screen em toda a suíte grande elevou custo e provocou timeout/session closed; a política foi ajustada para `on-first-retry` nas suítes grandes, preservando trace rico apenas quando necessário.\n8. O Dependency Review oficial exige Dependency Graph. Quando o repositório não oferece essa capacidade, o workflow executa fallback bloqueante `npm audit` + política ExcelJS e migra automaticamente ao Action nativo assim que o Graph for habilitado.\n9. A busca moderna expôs um ruído de índice: Programa passou a herdar centenas de nomes de escolas vinculadas e podia superar `Carteira de Escolas` em consulta com typo. O índice foi refinado para manter nomes de escola somente nos itens de escola; Programa continua pesquisável por identidade e descrição, preservando ranking intuitivo.
+6. O bundle minificado pode conter whitespace final gerado; o bootstrap valida whitespace em lock/snapshots, não reescreve o artefato do bundler.
+7. `retain-on-failure-and-retries` com DOM+ARIA+screen em toda a suíte grande elevou custo e provocou timeout/session closed; a política foi ajustada para `on-first-retry` nas suítes grandes, preservando trace rico apenas quando necessário.
+8. O Dependency Review oficial exige Dependency Graph. Quando o repositório não oferece essa capacidade, o workflow executa fallback bloqueante `npm audit` + política ExcelJS e migra automaticamente ao Action nativo assim que o Graph for habilitado.
+9. A busca moderna expôs um ruído de índice: Programa passou a herdar centenas de nomes de escolas vinculadas e podia superar `Carteira de Escolas` em consulta com typo. O índice foi refinado para manter nomes de escola somente nos itens de escola; Programa continua pesquisável por identidade e descrição, preservando ranking intuitivo.
 
 ## Materialização concluída
 
@@ -83,3 +86,15 @@ Implementar as Fases A e B aprovadas sem misturar refatoração de domínio.
 - não misturar Supabase CLI com SDK;
 - não adicionar Playwright MCP ao runtime;
 - não publicar Production automaticamente ao concluir a branch.
+
+
+## Retomada de 27/09 — fechamento autorizado do PR #378
+
+O usuário autorizou concluir os gates, tirar Draft, integrar e publicar após matriz verde, validar Production e registrar o encerramento. Essa autorização supera a pausa operacional anterior; não altera regras de negócio.
+
+- Head retomado: `033bfb22c069cdeeae0b72b9c23f027cbacb9c05`; 18 workflows verdes.
+- Visual `36293688040`: três cenários passaram; a jornada completa excedeu 90 s sem mismatch. A prova visual foi separada em dois estados independentes; os dois PNGs foram somente movidos, sem alteração de conteúdo/tolerância. A jornada funcional integral permanece na suíte E2E, sem dupla comparação de golden.
+- Remoto `36293687905`: download ECR limitado e porta 54322 ocupada antes dos testes. Novo script exclusivo de runner GitHub descartável: cleanup do projeto antes/depois de falhas, três tentativas limitadas, preservação de imagens, diagnóstico de porta; nunca mata serviço alheio nem transforma esgotamento em sucesso.
+- Verificação local: 12 contratos de tooling passaram; ESLint sem erros; shell validado; execução com executáveis de fronteira controlados comprovou recuperação na segunda tentativa, falha após três e recusa fora de github-hosted.
+- Chromium desta sessão: download oficial retornou ZIP truncado; binário de sessão anterior terminou em SIGSEGV antes de abrir página. Não há prova visual local válida. A comparação canônica será executada no Chromium/Linux do CI, sem atualizar baselines.
+- Próximo passo: confirmar os dois gates no novo SHA e a matriz completa. Avaliação de ferramentas visuais em andamento; nenhuma dependência de design adicionada ao runtime.

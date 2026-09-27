@@ -14,6 +14,7 @@ on:
       - 'vendor/**'
       - 'supabase/**'
       - 'scripts/bootstrap-local-auth-fixtures.mjs'
+      - 'scripts/start-disposable-supabase-ci.sh'
       - 'scripts/check-local-auth-fixtures.mjs'
       - 'scripts/generate-runtime-config.mjs'
       - 'tests/e2e/supabase-auth-local.spec.js'
@@ -40,6 +41,7 @@ on:
       - 'vendor/**'
       - 'supabase/**'
       - 'scripts/bootstrap-local-auth-fixtures.mjs'
+      - 'scripts/start-disposable-supabase-ci.sh'
       - 'scripts/check-local-auth-fixtures.mjs'
       - 'scripts/generate-runtime-config.mjs'
       - 'tests/e2e/supabase-auth-local.spec.js'
@@ -97,7 +99,7 @@ jobs:
           chmod 600 supabase/functions/.env
 
       - name: Iniciar Supabase descartável
-        run: npm run supabase:start
+        run: bash scripts/start-disposable-supabase-ci.sh
 
       - name: Recriar banco com as migrations versionadas
         run: npm run supabase:reset

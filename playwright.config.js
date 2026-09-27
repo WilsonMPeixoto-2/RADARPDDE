@@ -8,7 +8,7 @@ const SUPERSEDED_CONTRACT_TESTS =
 
 module.exports = defineConfig({
   testDir: './tests/e2e',
-  testIgnore: /remote-deployment-contract\.spec\.js/,
+  testIgnore: /(?:remote-deployment-contract|unidentified-expense-visual)\.spec\.js/,
   grepInvert: SUPERSEDED_CONTRACT_TESTS,
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
