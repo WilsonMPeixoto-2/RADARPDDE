@@ -347,7 +347,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npx --no-install http-server dist -p 4175 -c-1 > preproduction-lighthouse-server.log 2>&1 &
+          RADAR_SERVE_ROOT=dist node scripts/serve-radar.mjs > preproduction-lighthouse-server.log 2>&1 &
           echo "$!" > preproduction-lighthouse-server.pid
           for attempt in $(seq 1 60); do
             if curl --fail --silent --show-error http://127.0.0.1:4175/ > /dev/null; then

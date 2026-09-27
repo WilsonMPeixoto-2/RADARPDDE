@@ -25,7 +25,7 @@ PR aberto, Preview ou documento antigo não altera Production.
 | docs/reference/SYSTEM_CANONICAL_MODEL.md | Canônico | autoridades, fluxos e invariantes |
 | docs/reference/PRODUCT_SURFACE_CATALOG.md | Referência vigente | superfícies e jornadas |
 | docs/CURRENT_STAGE.md | Canônico | estado ao vivo e prioridade |
-| docs/handoff/2026-09-26-tooling-modernization-a-b.md | Registro da entrega A/B | implementação concluída; confirmação de publicação no PR #378 |
+| docs/handoff/2026-09-26-tooling-modernization-a-b.md | Histórico concluído A/B | integrado e publicado pelo PR #378; não é handoff corrente |
 | docs/handoff/2026-09-25-desktop-expense-journey.md | Handoff histórico concluído | checkpoints preservados e adendo de encerramento |
 | docs/handoff/2026-09-19-performance-sync-modernization.md | Handoff histórico concluído | modernização de performance/sincronização encerrada em 21/09 |
 | docs/decisions/ADR-054-sincronizacao-operacional-realtime.md | Decisão vigente | contrato de sincronização entre sessões |
@@ -38,17 +38,17 @@ PR aberto, Preview ou documento antigo não altera Production.
 
 ## 3. Frente corrente e baseline operacional
 
-A frente desktop/contexto escolar foi publicada e encerrada. Production corrente está em `95d9f0a1112c506f915b3b6d37677e94b7bf7c26`, deployment `dpl_Dc5aaMc2Aif6ggmj1pRauxrCQ2fU`. A implementação A/B está concluída no PR #378; a publicação autorizada depende da matriz final e do smoke. Confirmar o estado posterior no PR e manifesto, conforme CURRENT_STAGE.md.
+A/B foram integradas e publicadas no PR #378; C1 foi concluída no #384 e C2 no #385. A baseline anterior à entrega C3 é main `0af1c5a81536f68b848a7194f72071c1e7e9ad2f`, Production `dpl_CcYXX4tvFhjFRyGYwsaJJxupFrZ5`, READY.
 
-A base anterior à entrega é `bb7246438b8c6b72ef068b21bb40d492a7049af2`, deployment `dpl_BztNyEgnHjFxAKJvkPcQGeV6GGWm`. O resultado de publicação, SHA efetivo e deployment são registrados no PR #376 e manifesto público. Consultar `CURRENT_STAGE.md` e revalidar o ambiente; a aprovação pré-merge não substitui a confirmação do deployment.
+A entrega C3 ocorre no PR #386. Sua integração e publicação confirmadas encerram a Fase C; consultar `CURRENT_STAGE.md` e o registro de encerramento no PR para SHA, gates e deployment. A Fase D ainda não foi iniciada nesta entrega.
 
-A frente não altera schema, migrations, RPCs, RLS, serviços de domínio nem persistência canônica.
+O servidor canônico e suas correções não alteram schema, migrations, RPCs, RLS, serviços de domínio, layout ou persistência canônica.
 
 ## 4. Handoff corrente e histórico
 
-`docs/handoff/2026-09-26-tooling-modernization-a-b.md` registra a entrega A/B e passa a histórico concluído após a confirmação de publicação no PR #378. `docs/handoff/2026-09-25-desktop-expense-journey.md` permanece histórico concluído. As antigas pendências da frente desktop não formam fila atual.
+Não há handoff corrente separado. `docs/handoff/2026-09-26-tooling-modernization-a-b.md` e `docs/handoff/2026-09-25-desktop-expense-journey.md` são históricos concluídos. As antigas pendências dessas frentes não formam fila atual.
 
-A evidência `docs/evidence/2026-09-26-desktop-final-preview/README.md` preserva o momento de criação do Preview; a homologação posterior está no registro do #376 e em CURRENT_STAGE.md. O acesso direto ao Preview permaneceu limitado por SSO; a inspeção visual registrada é do Chromium do CI, do mesmo runtime.
+`docs/evidence/2026-09-27-phase-c3-codeql.md` registra a reprodução e correção dos achados de C3; é evidência técnica, não autoridade funcional. Resultados remotos posteriores e publicação são registrados no PR #386.
 
 ## 5. Handoffs anteriores
 

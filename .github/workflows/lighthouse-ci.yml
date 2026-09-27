@@ -11,6 +11,7 @@ on:
       - 'src/**'
       - 'vendor/**'
       - 'scripts/run-lighthouse-baseline.mjs'
+      - 'scripts/serve-radar.mjs'
       - 'scripts/build-vercel.mjs'
       - 'scripts/optimize-public-assets.mjs'
       - 'package.json'
@@ -29,6 +30,7 @@ on:
       - 'src/**'
       - 'vendor/**'
       - 'scripts/run-lighthouse-baseline.mjs'
+      - 'scripts/serve-radar.mjs'
       - 'scripts/build-vercel.mjs'
       - 'scripts/optimize-public-assets.mjs'
       - 'package.json'
@@ -82,7 +84,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p artifacts/lighthouse
-          npx --no-install http-server dist -p 4175 -c-1 > artifacts/lighthouse/server.log 2>&1 &
+          RADAR_SERVE_ROOT=dist node scripts/serve-radar.mjs > artifacts/lighthouse/server.log 2>&1 &
           server_pid=$!
           printf '%s\n' "${server_pid}" > artifacts/lighthouse/server.pid
           for attempt in $(seq 1 30); do

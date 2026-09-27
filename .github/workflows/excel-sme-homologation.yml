@@ -21,7 +21,7 @@ on:
       - 'scripts/generate-excel-sme-homologation.mjs'
       - 'tests/e2e/excel-export-button.spec.js'
       - 'tests/integration/excel-sme-assets-manifest.test.js'
-      - 'tests/support/spa-server.mjs'
+      - 'scripts/serve-radar.mjs'
       - 'tests/unit/excel-export-bootstrap-guard.test.js'
       - 'tests/unit/excel-sme-*.test.js'
       - 'tests/unit/load-excel-export.test.js'

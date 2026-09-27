@@ -28,7 +28,7 @@ module.exports = defineConfig({
     video: 'retain-on-failure'
   },
   webServer: {
-    command: 'node tests/support/spa-server.mjs',
+    command: 'npm run start',
     url: 'http://127.0.0.1:4175',
     reuseExistingServer: !process.env.CI,
     timeout: 120000
