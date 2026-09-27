@@ -19,6 +19,18 @@ async function shot(page, testInfo, name) {
   });
 }
 
+async function golden(page, name) {
+  await page.evaluate(async () => {
+    if (document.fonts?.ready) await document.fonts.ready;
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  });
+  await expect(page).toHaveScreenshot(name, {
+    animations: 'disabled',
+    caret: 'hide',
+    maxDiffPixelRatio: 0.01
+  });
+}
+
 async function openProntuario(page) {
   await selectFixtureCompetence(page, '2026-05');
   return page.evaluate(() => {
@@ -81,6 +93,7 @@ test.describe('Polimento visual global', () => {
     expect(Number.parseFloat(globalVisual.panelRadius)).toBeGreaterThanOrEqual(16);
     expect(globalVisual.bodyOverflow).toBeLessThanOrEqual(1);
     await shot(page, testInfo, '01-dashboard-polido');
+    await golden(page, 'dashboard.png');
 
     await page.locator('#nav-escolas').click();
     await expect(page.getByRole('heading', { name: 'Escolas e Carteiras', exact: true }))
@@ -96,6 +109,7 @@ test.describe('Polimento visual global', () => {
     await expect(page.getByRole('heading', { name: /Pendências operacionais/i }))
       .toBeVisible();
     await shot(page, testInfo, '04-pendencias-polidas');
+    await golden(page, 'pendencias.png');
   });
 
   test('Prontuário, abas, formulários e modais preservam elementos e ganham acabamento', async ({ page }, testInfo) => {
@@ -118,6 +132,7 @@ test.describe('Polimento visual global', () => {
       expect(flowText).toContain(label);
     }
     await shot(page, testInfo, '05-prontuario-visao-geral');
+    await golden(page, 'prontuario.png');
 
     const contactButton = page.getByRole('button', { name: 'Registrar contato', exact: true });
     await contactButton.click();
@@ -178,6 +193,7 @@ test.describe('Polimento visual global', () => {
     await expect(expenseModal.locator('#nota-tipo')).toBeDisabled();
     await expect(expenseModal.locator('#nota-tipo')).not.toBeVisible();
     await shot(page, testInfo, '11-modal-despesa-a-identificar-polido');
+    await golden(page, 'modal-despesa-a-identificar.png');
     await expenseModal.locator('.btn-close').click();
 
     await page.evaluate(async ({ schoolId, competence }) => {

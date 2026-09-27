@@ -77,7 +77,19 @@ async function attachScreenshot(page, testInfo, name) {
   });
 }
 
-test.describe('Jornada real — Despesa a identificar', () => {
+async function golden(page, name) {
+  await page.evaluate(async () => {
+    if (document.fonts?.ready) await document.fonts.ready;
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  });
+  await expect(page).toHaveScreenshot(name, {
+    animations: 'disabled',
+    caret: 'hide',
+    maxDiffPixelRatio: 0.01
+  });
+}
+
+test.describe('Jornada real — Despesa a identificar', { lock: 'unidentified-expense-local-state' }, () => {
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Auditoria orientada ao fluxo desktop.');
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -173,6 +185,7 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await expect(page.locator('.invoice-document-row .invoice-document-title-line > strong'))
       .toContainText('Débito visto no extrato; documento ainda não recebido');
     await attachScreenshot(page, testInfo, '02-pendencia-proximo-passo');
+    await golden(page, 'drawer-despesa-a-identificar.png');
     const newSubmission = drawer.getByRole('button', {
       name: 'Registrar envio / identificação da despesa',
       exact: true
@@ -279,6 +292,7 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await expect(reanalysisModal.locator('[data-reanalysis-decision]')).toBeVisible();
     await settleVisualState(page);
     await attachScreenshot(page, testInfo, '04b-reanalise-documento-identificado');
+    await golden(page, 'modal-reanalise.png');
     await reanalysisModal.getByLabel('Resultado da reanálise', { exact: true })
       .selectOption('correto');
     await reanalysisModal.getByLabel('Observação da análise', { exact: true })

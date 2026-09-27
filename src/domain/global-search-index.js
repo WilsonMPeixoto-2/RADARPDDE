@@ -215,6 +215,8 @@
             includeScore: true,
             shouldSort: true,
             ignoreLocation: true,
+            useTokenSearch: true,
+            tokenMatch: 'all',
             threshold: 0.36,
             minMatchCharLength: MIN_QUERY_LENGTH,
             keys: [

@@ -14,10 +14,16 @@ updates:
         patterns:
           - "@axe-core/playwright"
           - "@playwright/test"
-      supabase-tooling:
+      supabase-sdk:
         patterns:
           - "@supabase/supabase-js"
+      supabase-cli:
+        patterns:
           - "supabase"
+      css-quality:
+        patterns:
+          - "stylelint"
+          - "stylelint-config-recommended"
       build-and-validation:
         patterns:
           - "acorn"

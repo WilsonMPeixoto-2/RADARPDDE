@@ -19,7 +19,12 @@ module.exports = defineConfig({
     : [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL: 'http://127.0.0.1:4175',
-    trace: 'on-first-retry',
+    trace: {
+      mode: 'retain-on-failure-and-retries',
+      screenshots: true,
+      snapshots: { dom: true, aria: true, screen: true },
+      sources: true
+    },
     screenshot: process.env.RADAR_E2E_CAPTURE === '1' ? 'on' : 'only-on-failure',
     video: 'retain-on-failure'
   },

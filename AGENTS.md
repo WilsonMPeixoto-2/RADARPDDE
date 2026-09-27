@@ -1,7 +1,7 @@
 # AGENTS.md — RADAR PDDE 2026
 
 **Classe documental:** Canônico — roteador obrigatório para agentes e novos chats  
-**Atualizado em:** 13 de setembro de 2026
+**Atualizado em:** 26 de setembro de 2026
 
 ## 1. Leitura obrigatória
 
@@ -191,6 +191,17 @@ revalidar main/ambiente
 ```
 
 Performance nunca compra regressão funcional.
+
+
+### Navegador MCP para agentes
+
+O repositório versiona `.mcp.json` com Playwright MCP fixado em `0.0.82`.
+
+- use `playwright` para navegação isolada e reproduzível;
+- use `playwright-session` quando a validação depender de sessão já autenticada, SSO, 2FA ou extensões do navegador;
+- a configuração MCP é tooling do agente e não integra o bundle/runtime do RADAR;
+- nenhuma sessão autenticada autoriza escrita em Production por inferência: aplicar os mesmos guardrails de ambiente e autorização do restante do projeto;
+- para detalhes operacionais, leia `docs/runbooks/AGENT_BROWSER_MCP.md`.
 
 ## 9. Documentação: regra de manutenção
 

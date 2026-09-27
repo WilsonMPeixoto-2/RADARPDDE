@@ -1,0 +1,74 @@
+name: Regressão visual desktop
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - app.js
+      - index.html
+      - styles.css
+      - 'src/**'
+      - 'tests/e2e/global-visual-polish.spec.js'
+      - 'tests/e2e/unidentified-expense-user-journey.spec.js'
+      - 'tests/e2e/**-snapshots/**'
+      - playwright.visual.config.js
+      - package.json
+      - package-lock.json
+      - '.github/workflows/visual-regression.yml'
+  push:
+    branches: [main]
+    paths:
+      - app.js
+      - index.html
+      - styles.css
+      - 'src/**'
+      - 'tests/e2e/global-visual-polish.spec.js'
+      - 'tests/e2e/unidentified-expense-user-journey.spec.js'
+      - 'tests/e2e/**-snapshots/**'
+      - playwright.visual.config.js
+      - package.json
+      - package-lock.json
+      - '.github/workflows/visual-regression.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: visual-regression-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  desktop:
+    name: Seis baselines críticos
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Obter código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Instalar Chromium
+        run: npx --no-install playwright install --with-deps chromium
+
+      - name: Executar baselines visuais
+        run: npm run test:visual
+
+      - name: Publicar relatório
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: visual-regression-${{ github.run_id }}
+          path: |
+            playwright-report-visual/
+            test-results/
+          retention-days: 14
+          if-no-files-found: warn
