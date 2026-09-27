@@ -1,9 +1,9 @@
-# Handoff corrente — modernização de tooling A/B
+# Registro da entrega — modernização de tooling A/B
 
 **Data:** 26/09/2026  
 **Branch:** `chore/tooling-phases-a-b-2026-09-26`  
 **Base:** `95d9f0a1112c506f915b3b6d37677e94b7bf7c26`  
-**Production:** permanece no mesmo SHA durante a implementação.
+**Production:** baseline anterior à integração: SHA acima. Confirmar publicação posterior no PR #378.
 
 ## Objetivo
 
@@ -85,7 +85,7 @@ Implementar as Fases A e B aprovadas sem misturar refatoração de domínio.
 - não atualizar golden sem revisar intenção;
 - não misturar Supabase CLI com SDK;
 - não adicionar Playwright MCP ao runtime;
-- não publicar Production automaticamente ao concluir a branch.
+- publicação autorizada na retomada de 27/09, condicionada à matriz verde e smoke pós-deploy.
 
 
 ## Retomada de 27/09 — fechamento autorizado do PR #378
@@ -106,3 +106,10 @@ O usuário autorizou concluir os gates, tirar Draft, integrar e publicar após m
 - Gate remoto ultrapassou a falha original: inicialização/reset/Auth/RLS verdes; matriz de perfis em execução.
 - A divisão visual evidenciou configuração herdada: `devices['Desktop Chrome']` no projeto sobrescrevia viewport global com 1280×720; os testes antigos faziam `setViewportSize`, ocultando isso. Agora o próprio projeto fixa 1440×900, confirmado pela configuração efetiva. Nenhum pixel de golden/CSS alterado.
 - Avaliação de ferramentas concluída em `docs/evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md`, com metadados e prova executada de Sharp/SVGO/Lucide/fontes. Figma autenticado; Superdesign executável, mas login bloqueado pela revisão automática por envolver credenciais fora da avaliação autorizada.
+
+
+### Consolidação final
+
+Fases A/B concluídas em implementação. Visual aprovado em `5bbcff35`, run `36298032902`: 5 cenários/6 PNGs, 1,5 min, sem retries ou atualização dos goldens. O preset de projeto passou a manter 1440×900. A exclusão do spec visual também é definida no projeto funcional (configurações por projeto sobrescrevem defaults globais); `--list` comprovou 237 testes desktop funcionais sem os dois testes visuais, mantendo a jornada integral. Contratos de configuração protegem ambos os casos.
+
+Este registro preserva a entrega e deixa de ser handoff corrente após o encerramento publicado no PR #378. O PR recebe a prova definitiva da matriz do head final, merge e deployment/smoke. Não usar os checkboxes históricos da etapa inicial como fila nova após esse encerramento.

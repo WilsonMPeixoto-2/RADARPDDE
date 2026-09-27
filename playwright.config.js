@@ -47,7 +47,7 @@ module.exports = defineConfig({
     },
     {
       name: 'desktop-chromium',
-      testIgnore: /(?:mobile-smoke|mobile-header-controls|remote-deployment-contract)\.spec\.js/,
+      testIgnore: /(?:mobile-smoke|mobile-header-controls|remote-deployment-contract|unidentified-expense-visual)\.spec\.js/,
       use: { ...devices['Desktop Chrome'] }
     }
   ]

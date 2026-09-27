@@ -226,6 +226,14 @@ test('tooling A/B fixa ambiente, qualidade CSS, revisão de dependências e regr
     assert.match(dependencyReview, /actions\/dependency-review-action@[0-9a-f]{40}/);
     assert.match(visualWorkflow, /npm run test:visual/);
     assert.match(visualConfig, /workers:\s*2/);
+    const visual = require('../../playwright.visual.config');
+    for (const project of visual.projects) {
+        assert.deepEqual({ ...visual.use, ...project.use }.viewport, { width: 1440, height: 900 });
+    }
+    const functional = require('../../playwright.config');
+    const desktop = functional.projects.find(project => project.name === 'desktop-chromium');
+    assert.ok(desktop.testIgnore.test('unidentified-expense-visual.spec.js'));
+    assert.ok(!desktop.testIgnore.test('unidentified-expense-user-journey.spec.js'));
     assert.match(visualConfig, /timeout:\s*90000/);
     assert.match(visualConfig, /snapshots:\s*\{\s*dom:\s*true,\s*aria:\s*true,\s*screen:\s*true\s*\}/);
     assert.equal(fs.existsSync(path.join(ROOT, 'stylelint.config.mjs')), true);

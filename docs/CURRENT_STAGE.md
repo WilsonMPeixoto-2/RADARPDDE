@@ -1,9 +1,9 @@
 # RADAR PDDE — estado atual e retomada
 
 **Classe documental:** Canônico — estado mutável  
-**Atualizado em:** 26 de setembro de 2026
+**Atualizado em:** 27 de setembro de 2026
 
-## 1. Production confirmada
+## 1. Baseline de Production anterior à integração do PR #378
 
 - `main`: `95d9f0a1112c506f915b3b6d37677e94b7bf7c26`;
 - deployment Production: `dpl_Dc5aaMc2Aif6ggmj1pRauxrCQ2fU`, `READY`;
@@ -13,13 +13,13 @@
 
 A frente desktop/Pendências anterior está encerrada. Não reabrir #375/#376/#377 como fila de implementação.
 
-## 2. Frente ativa — modernização de tooling A/B
+## 2. Fases A/B concluídas — candidato à integração #378
 
 Branch:
 
 `chore/tooling-phases-a-b-2026-09-26`
 
-Handoff corrente:
+Registro de implementação e validação (histórico da entrega):
 
 `docs/handoff/2026-09-26-tooling-modernization-a-b.md`
 
@@ -68,17 +68,22 @@ A única mudança funcional deliberada de produto é a melhoria da busca global 
 - snapshots visuais complementam, não substituem, jornada real e persistência;
 - o gate visual canônico usa Linux/Chromium 1440×900 no CI.
 
-## 5. Estado de validação
+## 5. Estado de validação e publicação
 
-A materialização foi concluída pelo runner Node 24/npm 11 no commit `5c2495d1082fda11c71c7ce85e09ec1409dc62e5`: `package-lock.json`, bundle `vendor/supabase-client.js` 2.117.2 e os seis PNGs de baseline foram versionados. O workflow temporário de bootstrap removeu a si próprio e não faz parte do candidato final.
+A implementação das Fases A/B está concluída. A materialização `5c2495d1` gerou lockfile, bundle Supabase e seis PNGs; o workflow temporário foi removido. O encerramento foi autorizado pelo usuário em 27/09.
 
-PR #378 aberto em Draft. Retomada de 27/09 confirmou 18 workflows verdes e falhas de infraestrutura/teste nos gates remoto/visual, detalhadas no handoff. Próximo gate: passar readiness completo, unit/integration, visual regression sem `--update-snapshots`, E2E desktop, Supabase readiness/pgTAP/RLS, CodeQL/Dependency Review, Lighthouse e demais checks disparados pelo PR.
+- Readiness local integral aprovado: 1.133 unitários e 8 integrações, checks estáticos/CSS/arquitetura/banco/artefatos.
+- Visual canônico aprovado no candidato `5bbcff35`, run `36298032902`: cinco cenários e seis baselines, 1,5 minuto, sem atualizar goldens.
+- Jornada funcional completa preservada; os dois estados visuais independentes ficam exclusivamente no gate visual. Viewport 1440×900 fixado no projeto e protegido por contrato.
+- Gate remoto usa limpeza restrita ao projeto Supabase descartável e três tentativas limitadas. Esgotamento continua bloqueante.
 
-Nenhum resultado parcial autoriza merge ou Production.
+Este documento é o registro de preparação da integração. O merge depende da matriz integral verde no head final; **não tratar esta descrição como confirmação antecipada de deployment**. A confirmação posterior de merge, SHA de main, deployment READY, manifesto/assets e smoke é registrada no [PR #378](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/378) e no manifesto público `/radar-build-manifest.json`.
 
 ## 6. Próxima ação
 
-Concluir os gates do PR #378, confirmar a matriz verde e executar merge/publicação expressamente autorizados pelo usuário na retomada de 27/09. Confirmar deployment READY, manifesto/assets e smoke pós-deploy antes de declarar A/B encerradas.
+Fechar a publicação autorizada após os gates do SHA final e registrar a evidência no PR #378. Depois dessa confirmação, A/B não formam fila de implementação nem possuem handoff corrente pendente.
+
+A evolução visual profissional é uma frente futura, ainda sem alterações de layout nesta entrega. A avaliação de ferramentas, versões, provas de instalação e roteiro está em `docs/evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md`. Figma conectado; Sharp/SVGO/Lucide/Fontsource exercidos isoladamente. Nenhuma dependência nova de design adicionada ao runtime. Superdesign requer conexão autorizada; isso não bloqueia a publicação.
 
 ## 7. Rota de retomada
 
