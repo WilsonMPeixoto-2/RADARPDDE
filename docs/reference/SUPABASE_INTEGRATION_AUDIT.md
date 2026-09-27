@@ -1,7 +1,7 @@
 # Auditoria de integração — Supabase e frontend
 
 **Classificação:** referência vigente  
-**Atualizado em:** 7 de agosto de 2026
+**Atualizado em:** 26 de setembro de 2026
 
 ## 1. Parecer executivo
 
@@ -11,7 +11,15 @@ Os incidentes recentes demonstraram que uma arquitetura amplamente correta pode 
 
 O baseline mutável fica em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md).
 
-## 2. Camadas da integração
+## 2. Baseline de tooling Supabase
+
+- `@supabase/supabase-js`: `2.117.2` no navegador e na Edge Function de Gestão de Equipe;
+- bundle do navegador gerado/versionado em `vendor/supabase-client.js`;
+- Supabase CLI permanece em `2.114.0`, homologada separadamente do SDK;
+- retry nativo de GET/PostgREST continua coberto por regressão; escrita POST continua sem retry automático;
+- a linha 2.117.2 incorpora descarte seguro de refresh concorrente, relevante para múltiplas abas/sessões.
+
+## 3. Camadas da integração
 
 ```text
 index.html / app.js / integrações
@@ -55,7 +63,7 @@ index.html / app.js / integrações
 - autoria e logs;
 - constraints, triggers e relacionamentos.
 
-## 3. Auth e autorização
+## 4. Auth e autorização
 
 O bootstrap autenticado:
 
@@ -77,7 +85,7 @@ Papéis:
 
 Simulação visual do administrador técnico não altera JWT.
 
-## 4. Gestão de Equipe — percurso vigente
+## 5. Gestão de Equipe — percurso vigente
 
 ```text
 formulário
@@ -113,7 +121,7 @@ O contrato atual é a soma dessas camadas. Não atribuir a resolução integral 
 - bloqueio/desbloqueio e metadados compensados em falha parcial;
 - payload funcional de erro preservado até a interface.
 
-## 5. Integração de dados operacionais
+## 6. Integração de dados operacionais
 
 | Entidade/fluxo | Interface | Serviço | Backend |
 |---|---|---|---|
@@ -129,7 +137,7 @@ O contrato atual é a soma dessas camadas. Não atribuir a resolução integral 
 | exportações | ações Excel | RadarExcelExportAudit + integração Excel | AuditService + memória autorizada/assets |
 | importação | superfície técnica | ImportCoordinator | staging + RPCs de promoção/rollback |
 
-## 6. Escolas e carteira
+## 7. Escolas e carteira
 
 ### Cadastro/edição
 
@@ -146,25 +154,25 @@ Esses limites são impostos no serviço e, para a carteira, também por proteç�
 
 Redistribuição individual ou em lote pertence à Gestão de Equipe autorizada. A operação usa versão esperada e log administrativo.
 
-## 7. Configuração e exercício
+## 8. Configuração e exercício
 
 `ConfigurationService.createExercise` preserva o estado completo localmente, mas envia à RPC somente as doze competências do exercício novo.
 
 O backend exige `row_version`, janeiro a dezembro, um único exercício, configuração coerente e log. A sincronização remota de competências ocorre antes do primeiro render do Controlador.
 
-## 8. Pendências
+## 9. Pendências
 
 A integração usa RPCs para abertura, tentativa, reanálise, status e contatos.
 
 A remediação PEND-02 adicionou sincronização entre o agregado de tentativas da pendência e `pendency_attempts`. Isso elimina divergência conhecida, mas a prova completa de todas as transições continua registrada como `partial` na matriz.
 
-## 9. Notas e bens
+## 10. Notas e bens
 
 Notas fiscais usam operações atômicas e efeitos vinculados. A remediação INV-01 garante que bem derivado anteriormente vinculado seja removido quando a nota perde/troca `linked_asset_id`, sem deixar órfão silencioso.
 
 `InventoryService.updateAsset` não usa persistência genérica. A edição rápida admite somente o campo permitido e persiste com `saveAssetWithLog`, versão esperada e log.
 
-## 10. Exportações
+## 11. Exportações
 
 `RadarExcelExportAudit` envolve as duas exportações:
 
@@ -175,7 +183,7 @@ Notas fiscais usam operações atômicas e efeitos vinculados. A remediação IN
 5. registra a conclusão correspondente;
 6. distingue falha de auditoria final de falha de geração.
 
-## 11. RLS e escopos
+## 12. RLS e escopos
 
 ### Controlador
 
@@ -211,7 +219,7 @@ Notas fiscais usam operações atômicas e efeitos vinculados. A remediação IN
 
 - infraestrutura, perfis, escopos, importação e auditoria.
 
-## 12. Migrations e alinhamento
+## 13. Migrations e alinhamento
 
 A quantidade/última migration fica em `CURRENT_STAGE.md` e deve ser confirmada no Supabase.
 
@@ -223,7 +231,7 @@ As remediações recentes incluem:
 
 Antes de nova migration: comparar histórico, resetar localmente, executar pgTAP/lint/tipos, backup/restauração, dry-run, analisar reversão e aplicar somente dentro do escopo autorizado.
 
-## 13. Garantia operacional
+## 14. Garantia operacional
 
 ### Monitor geral
 
@@ -237,28 +245,28 @@ A auditoria agregada de vinte invariantes está integrada. O estado atual é reg
 
 A infraestrutura foi integrada, mas permanece desativada sem identidades técnicas exclusivas.
 
-## 14. Matriz funcional
+## 15. Matriz funcional
 
-A matriz executável possui 41 operações e é a fonte granular de cobertura.
+A matriz executável possui 44 operações e é a fonte granular de cobertura.
 
 Estado reconciliado:
 
-- 9 comprovadas;
-- 32 parciais;
+- 19 comprovadas;
+- 25 parciais;
 - 0 lacunas técnicas;
 - 0 decisões funcionais pendentes.
 
 A ausência de lacuna não equivale a UAT concluído. O próximo ganho de confiança vem das provas controladas das operações parciais.
 
-## 15. PR #156
+## 16. PR #156
 
 A auditoria funcional do PR #156 produziu evidências importantes, mas a branch ficou divergente da `main`. Ela não deve ser mesclada como pacote documental atual. A continuação deve partir do código presente e reaproveitar somente evidências compatíveis.
 
-## 16. Conclusão
+## 17. Conclusão
 
 A integração está ativa e coerente quanto às camadas principais. Os achados estruturais conhecidos da auditoria anterior receberam remediação técnica. O trabalho remanescente é provar sistematicamente as operações ainda parciais, decidir a ativação do smoke autenticado e executar UAT.
 
-## 17. Referências
+## 18. Referências
 
 - [`SUPABASE_FUNCTIONAL_COVERAGE.md`](SUPABASE_FUNCTIONAL_COVERAGE.md);
 - [`SUPABASE_PERMISSIONS_MATRIX.md`](SUPABASE_PERMISSIONS_MATRIX.md);

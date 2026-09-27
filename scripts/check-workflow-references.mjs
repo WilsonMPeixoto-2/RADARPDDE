@@ -234,9 +234,23 @@ function extractYamlPathReferences(workflow, content, references) {
         addReference(references, workflow, match[1], match[2], { allowBare: true });
     }
 
-    const actionPattern = /^\s*(?:-\s*)?uses:\s*['"]?(\.[^'"\s#]+)['"]?\s*(?:#.*)?$/gm;
-    while ((match = actionPattern.exec(content)) !== null) {
+    const localActionPattern = /^\s*(?:-\s*)?uses:\s*['"]?(\.[^'"\s#]+)['"]?\s*(?:#.*)?$/gm;
+    while ((match = localActionPattern.exec(content)) !== null) {
         addReference(references, workflow, 'local-action', match[1], { allowBare: true });
+    }
+
+    const externalActionPattern = /^\s*(?:-\s*)?uses:\s*['"]?([^.'"\s#][^@'"\s#]+)@([^'"\s#]+)['"]?\s*(?:#.*)?$/gm;
+    while ((match = externalActionPattern.exec(content)) !== null) {
+        const action = String(match[1] || '').trim();
+        const ref = String(match[2] || '').trim();
+        if (!action || !ref || isDynamicReference(ref) || action.startsWith('docker://')) continue;
+        references.push({
+            workflow,
+            kind: 'external-action',
+            reference: `${action}@${ref}`,
+            action,
+            ref
+        });
     }
 }
 
@@ -283,6 +297,12 @@ export function analyzeWorkflowReferences(rootDir = process.cwd()) {
             return validation.passed
                 ? []
                 : [{ ...item, code: validation.code }];
+        }
+
+        if (item.kind === 'external-action') {
+            return /^[0-9a-f]{40}$/i.test(String(item.ref || ''))
+                ? []
+                : [{ ...item, code: 'UNPINNED_EXTERNAL_ACTION' }];
         }
 
         return referenceExists(rootDir, item.reference, repositoryEntries)

@@ -1,7 +1,7 @@
 # Matriz de validade documental
 
 **Classe documental:** Canônico
-**Atualizado em:** 26 de setembro de 2026
+**Atualizado em:** 27 de setembro de 2026
 
 ## 1. Finalidade e precedência
 
@@ -25,6 +25,7 @@ PR aberto, Preview ou documento antigo não altera Production.
 | docs/reference/SYSTEM_CANONICAL_MODEL.md | Canônico | autoridades, fluxos e invariantes |
 | docs/reference/PRODUCT_SURFACE_CATALOG.md | Referência vigente | superfícies e jornadas |
 | docs/CURRENT_STAGE.md | Canônico | estado ao vivo e prioridade |
+| docs/handoff/2026-09-26-tooling-modernization-a-b.md | Registro da entrega A/B | implementação concluída; confirmação de publicação no PR #378 |
 | docs/handoff/2026-09-25-desktop-expense-journey.md | Handoff histórico concluído | checkpoints preservados e adendo de encerramento |
 | docs/handoff/2026-09-19-performance-sync-modernization.md | Handoff histórico concluído | modernização de performance/sincronização encerrada em 21/09 |
 | docs/decisions/ADR-054-sincronizacao-operacional-realtime.md | Decisão vigente | contrato de sincronização entre sessões |
@@ -35,17 +36,17 @@ PR aberto, Preview ou documento antigo não altera Production.
 | docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md | Gerado | visão humana da matriz |
 | docs/DECISION_LOG.md e docs/decisions/*.md | Decisão vigente | regras especializadas |
 
-## 3. Entrega e baseline operacional
+## 3. Frente corrente e baseline operacional
 
-A frente desktop/contexto escolar foi concluída tecnicamente em `2d21e752d8004e9c0343cca3978a84a46bf4609b`. O fechamento posterior é documental. O usuário autorizou a publicação em 26/09/2026 pelo PR #376, entrega única que contém #375; #375 está fechado sem merge e #377 é histórico técnico.
+A frente desktop/contexto escolar foi publicada e encerrada. Production corrente está em `95d9f0a1112c506f915b3b6d37677e94b7bf7c26`, deployment `dpl_Dc5aaMc2Aif6ggmj1pRauxrCQ2fU`. A implementação A/B está concluída no PR #378; a publicação autorizada depende da matriz final e do smoke. Confirmar o estado posterior no PR e manifesto, conforme CURRENT_STAGE.md.
 
 A base anterior à entrega é `bb7246438b8c6b72ef068b21bb40d492a7049af2`, deployment `dpl_BztNyEgnHjFxAKJvkPcQGeV6GGWm`. O resultado de publicação, SHA efetivo e deployment são registrados no PR #376 e manifesto público. Consultar `CURRENT_STAGE.md` e revalidar o ambiente; a aprovação pré-merge não substitui a confirmação do deployment.
 
 A frente não altera schema, migrations, RPCs, RLS, serviços de domínio nem persistência canônica.
 
-## 4. Handoff encerrado
+## 4. Handoff corrente e histórico
 
-Não há handoff corrente de implementação. `docs/handoff/2026-09-25-desktop-expense-journey.md` é histórico concluído, com adendo apontando o fechamento e preservando o checkpoint anterior. As antigas pendências nele descritas não formam fila atual.
+`docs/handoff/2026-09-26-tooling-modernization-a-b.md` registra a entrega A/B e passa a histórico concluído após a confirmação de publicação no PR #378. `docs/handoff/2026-09-25-desktop-expense-journey.md` permanece histórico concluído. As antigas pendências da frente desktop não formam fila atual.
 
 A evidência `docs/evidence/2026-09-26-desktop-final-preview/README.md` preserva o momento de criação do Preview; a homologação posterior está no registro do #376 e em CURRENT_STAGE.md. O acesso direto ao Preview permaneceu limitado por SSO; a inspeção visual registrada é do Chromium do CI, do mesmo runtime.
 

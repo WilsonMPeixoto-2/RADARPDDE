@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@0.0.82"
+      ]
+    },
+    "playwright-session": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@0.0.82",
+        "--extension"
+      ]
+    }
+  }
+}

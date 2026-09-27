@@ -23,7 +23,7 @@ test('ferramentas Supabase modernas estão fixadas e reproduzíveis', () => {
         assert.match(pkg.devDependencies[dependency], /^\d+\.\d+\.\d+$/, `${dependency} deve usar versão exata.`);
     });
 
-    assert.equal(pkg.devDependencies['@supabase/supabase-js'], '2.116.0');
+    assert.equal(pkg.devDependencies['@supabase/supabase-js'], '2.117.2');
     assert.equal(pkg.devDependencies.supabase, '2.114.0');
     assert.equal(pkg.scripts['supabase:start'], 'supabase start');
     assert.equal(pkg.scripts['supabase:stop'], 'supabase stop --no-backup');
@@ -41,14 +41,15 @@ test('gerador do cliente Supabase não recompila nem altera o bundle Ajv', () =>
     assert.doesNotMatch(source, /(?:ajvVersion|ajvOutputFile|ajv-entry\.js|vendor\/ajv\.js)/i);
 });
 
-test('cliente do navegador e Edge Function usam exatamente Supabase JS 2.116.0', () => {
+test('cliente do navegador e Edge Function usam exatamente Supabase JS 2.117.2', () => {
     const bundle = read('vendor/supabase-client.js');
     const edgeFunction = read('supabase/functions/team-account-management/index.ts');
 
-    assert.match(bundle, /@supabase\/supabase-js 2\.116\.0/);
+    assert.match(bundle, /@supabase\/supabase-js 2\.117\.2/);
     assert.doesNotMatch(bundle, /@supabase\/supabase-js 2\.110\.9/);
-    assert.match(edgeFunction, /@supabase\/supabase-js@2\.116\.0/);
+    assert.match(edgeFunction, /@supabase\/supabase-js@2\.117\.2/);
     assert.doesNotMatch(edgeFunction, /@supabase\/supabase-js@2\.110\.9/);
+    assert.match(bundle, /AuthRefreshDiscardedError/);
 });
 
 test('ambiente local, tipos, pgTAP e bundle do cliente estão versionados', () => {

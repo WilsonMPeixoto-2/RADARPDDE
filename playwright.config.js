@@ -8,7 +8,7 @@ const SUPERSEDED_CONTRACT_TESTS =
 
 module.exports = defineConfig({
   testDir: './tests/e2e',
-  testIgnore: /remote-deployment-contract\.spec\.js/,
+  testIgnore: /(?:remote-deployment-contract|unidentified-expense-visual)\.spec\.js/,
   grepInvert: SUPERSEDED_CONTRACT_TESTS,
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
@@ -19,7 +19,12 @@ module.exports = defineConfig({
     : [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL: 'http://127.0.0.1:4175',
-    trace: 'on-first-retry',
+    trace: {
+      mode: 'on-first-retry',
+      screenshots: true,
+      snapshots: { dom: true, aria: true, screen: true },
+      sources: true
+    },
     screenshot: process.env.RADAR_E2E_CAPTURE === '1' ? 'on' : 'only-on-failure',
     video: 'retain-on-failure'
   },
@@ -42,7 +47,7 @@ module.exports = defineConfig({
     },
     {
       name: 'desktop-chromium',
-      testIgnore: /(?:mobile-smoke|mobile-header-controls|remote-deployment-contract)\.spec\.js/,
+      testIgnore: /(?:mobile-smoke|mobile-header-controls|remote-deployment-contract|unidentified-expense-visual)\.spec\.js/,
       use: { ...devices['Desktop Chrome'] }
     }
   ]

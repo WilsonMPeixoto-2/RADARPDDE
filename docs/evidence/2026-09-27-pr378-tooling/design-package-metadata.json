@@ -1,0 +1,67 @@
+[
+  {
+    "package": "sharp",
+    "exit": 0,
+    "metadata": {
+      "version": "0.35.4",
+      "engines": {
+        "node": ">=20.9.0"
+      },
+      "license": "Apache-2.0"
+    }
+  },
+  {
+    "package": "svgo",
+    "exit": 0,
+    "metadata": {
+      "version": "4.1.0",
+      "engines": {
+        "node": ">=16"
+      },
+      "license": "MIT"
+    }
+  },
+  {
+    "package": "lucide",
+    "exit": 0,
+    "metadata": {
+      "version": "1.48.0",
+      "license": "ISC"
+    }
+  },
+  {
+    "package": "style-dictionary",
+    "exit": 0,
+    "metadata": {
+      "version": "5.5.5",
+      "engines": {
+        "node": ">=22.0.0"
+      },
+      "license": "Apache-2.0"
+    }
+  },
+  {
+    "package": "@fontsource-variable/outfit",
+    "exit": 0,
+    "metadata": {
+      "version": "5.3.0",
+      "license": "OFL-1.1"
+    }
+  },
+  {
+    "package": "@fontsource-variable/plus-jakarta-sans",
+    "exit": 0,
+    "metadata": {
+      "version": "5.3.0",
+      "license": "OFL-1.1"
+    }
+  },
+  {
+    "package": "@storybook/web-components-vite",
+    "exit": 0,
+    "metadata": {
+      "version": "10.6.0",
+      "license": "MIT"
+    }
+  }
+]

@@ -188,16 +188,71 @@ test('Dependabot não reabre versões do Supabase CLI já rejeitadas por RLS', (
     );
 });
 
-test('Supabase readiness repete geração de tipos apenas para falha transitória do registry', () => {
+test('Supabase readiness e pré-production toleram apenas falha transitória conhecida do registry', () => {
     const readinessWorkflow = read('.github/workflows/supabase-readiness.yml');
+    const preproductionWorkflow = read('.github/workflows/preproduction-full-validation.yml');
 
-    assert.match(readinessWorkflow, /gen_types_with_registry_retry/);
-    assert.match(
-        readinessWorkflow,
-        /toomanyrequests\|rate exceeded\|postgres-meta\|error running container: exit 125/i
+    for (const workflow of [readinessWorkflow, preproductionWorkflow]) {
+        assert.match(workflow, /gen_types_with_registry_retry/);
+        assert.match(
+            workflow,
+            /toomanyrequests\|rate exceeded\|postgres-meta\|error running container: exit 125/i
+        );
+        assert.match(workflow, /max_attempts=3/);
+        assert.match(workflow, /if ! grep -Eiq/);
+        assert.match(workflow, /return "\$\{status\}"/);
+        assert.match(workflow, /npm run supabase:gen:types/);
+    }
+
+    assert.equal(
+        (preproductionWorkflow.match(/bash scripts\/start-disposable-supabase-ci\.sh/g) || []).length,
+        2,
+        'os dois jobs pré-production que sobem Supabase devem usar o starter resiliente'
     );
-    assert.match(readinessWorkflow, /max_attempts=3/);
-    assert.match(readinessWorkflow, /if ! grep -Eiq/);
-    assert.match(readinessWorkflow, /return "\$\{status\}"/);
-    assert.match(readinessWorkflow, /npm run supabase:gen:types/);
+});
+
+test('tooling A/B fixa ambiente, qualidade CSS, revisão de dependências e regressão visual', () => {
+    const packageJson = readJson('package.json');
+    const dependabot = read('.github/dependabot.yml');
+    const visualWorkflow = read('.github/workflows/visual-regression.yml');
+    const dependencyReview = read('.github/workflows/dependency-review.yml');
+    const visualConfig = read('playwright.visual.config.js');
+
+    assert.equal(packageJson.devDependencies['@supabase/supabase-js'], '2.117.2');
+    assert.equal(packageJson.devDependencies.stylelint, '17.15.0');
+    assert.equal(packageJson.devDependencies['stylelint-config-recommended'], '18.0.0');
+    assert.equal(packageJson.scripts['lint:css'], 'stylelint "styles.css" "src/styles/**/*.css"');
+    assert.match(packageJson.scripts['test:readiness'], /lint:css/);
+    assert.equal(packageJson.scripts['test:visual'], 'playwright test --config=playwright.visual.config.js');
+    assert.deepEqual(packageJson.devEngines, {
+        runtime: { name: 'node', version: '^24.0.0', onFail: 'error' },
+        packageManager: { name: 'npm', version: '^11.0.0', onFail: 'error' }
+    });
+
+    assert.match(dependabot, /supabase-sdk:/);
+    assert.match(dependabot, /supabase-cli:/);
+    assert.match(dependabot, /css-quality:/);
+    assert.match(dependencyReview, /actions\/dependency-review-action@[0-9a-f]{40}/);
+    assert.match(visualWorkflow, /npm run test:visual/);
+    assert.match(visualConfig, /workers:\s*2/);
+    const visual = require('../../playwright.visual.config');
+    for (const project of visual.projects) {
+        assert.deepEqual({ ...visual.use, ...project.use }.viewport, { width: 1440, height: 900 });
+    }
+    const functional = require('../../playwright.config');
+    const desktop = functional.projects.find(project => project.name === 'desktop-chromium');
+    assert.ok(desktop.testIgnore.test('unidentified-expense-visual.spec.js'));
+    assert.ok(!desktop.testIgnore.test('unidentified-expense-user-journey.spec.js'));
+    assert.match(visualConfig, /timeout:\s*90000/);
+    assert.match(visualConfig, /snapshots:\s*\{\s*dom:\s*true,\s*aria:\s*true,\s*screen:\s*true\s*\}/);
+    assert.equal(fs.existsSync(path.join(ROOT, 'stylelint.config.mjs')), true);
+});
+
+test('checker de workflows exige SHA imutável para Actions externas', () => {
+    const checker = read('scripts/check-workflow-references.mjs');
+    const checkerTests = read('tests/unit/workflow-references.test.js');
+
+    assert.match(checker, /UNPINNED_EXTERNAL_ACTION/);
+    assert.match(checker, /\^\[0-9a-f\]\{40\}\$/i);
+    assert.match(checkerTests, /actions\/checkout@v7/);
 });

@@ -1,0 +1,47 @@
+{
+  "node": "v24.19.0",
+  "svg": {
+    "before": 155,
+    "after": 155,
+    "viewBox": true
+  },
+  "lucide": {
+    "icons": 2114
+  },
+  "fonts": [
+    {
+      "name": "outfit",
+      "woff2": 2
+    },
+    {
+      "name": "plus-jakarta-sans",
+      "woff2": 8
+    }
+  ],
+  "images": [
+    {
+      "format": "webp",
+      "width": 640,
+      "height": 400,
+      "bytes": 530
+    },
+    {
+      "format": "avif",
+      "width": 640,
+      "height": 400,
+      "bytes": 314
+    },
+    {
+      "format": "webp",
+      "width": 1280,
+      "height": 800,
+      "bytes": 1896
+    },
+    {
+      "format": "avif",
+      "width": 1280,
+      "height": 800,
+      "bytes": 352
+    }
+  ]
+}

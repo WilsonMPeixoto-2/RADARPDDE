@@ -1575,7 +1575,6 @@ body.dark-theme .comp-sub-tab:disabled {
     box-shadow: 0 0 8px var(--warning);
 }
 .status-dot-nao-lancado {
-    background-color: var(--text-muted);
     border: 1px solid var(--text-muted);
     background: transparent;
 }

@@ -21,7 +21,7 @@ Ordem:
 10. ADRs e referências especializadas da área afetada;
 11. planos, auditorias, demais handoffs e evidências históricas apenas para compreender o seu momento/SHA.
 
-A frente desktop de Despesa a identificar e contexto escolar foi concluída tecnicamente em `2d21e752`, com 16 workflows verdes. O usuário autorizou a publicação do candidato único #376 em 26/09/2026. Não há handoff corrente de implementação. Consulte `CURRENT_STAGE.md` e o registro de publicação do #376 para o resultado operacional e os SHAs efetivos; o merge em `main` dispara Production automaticamente.
+Production corrente está em `95d9f0a1...` após a publicação do #376. A frente ativa é a modernização de tooling A/B na branch `chore/tooling-phases-a-b-2026-09-26`, com handoff em `handoff/2026-09-26-tooling-modernization-a-b.md`. Ela moderniza agentes, Supabase JS, supply chain, CSS, Playwright visual/trace/locks e busca Fuse sem alterar schema/RLS ou regras centrais.
 
 ## 2. Função de cada documento canônico/vigente
 
@@ -80,6 +80,7 @@ O modelo detalhado está em `SYSTEM_CANONICAL_MODEL.md`; a finalidade humana das
 
 Consultar conforme a área materialmente afetada:
 
+- [`handoff/2026-09-26-tooling-modernization-a-b.md`](handoff/2026-09-26-tooling-modernization-a-b.md) — **handoff corrente** da modernização de tooling A/B;
 - [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — referência funcional/arquitetural detalhada; **afirmações temporais de PR, SHA, fila ou deployment nele não representam o estado corrente e cedem a `CURRENT_STAGE.md`**;
 - [`handoff/2026-09-25-desktop-expense-journey.md`](handoff/2026-09-25-desktop-expense-journey.md) — **handoff histórico concluído** da jornada desktop de Despesa a identificar, preservando os checkpoints e o adendo de encerramento;
 - [`handoff/2026-09-19-performance-sync-modernization.md`](handoff/2026-09-19-performance-sync-modernization.md) — handoff histórico concluído da modernização de performance/sincronização;
@@ -116,3 +117,5 @@ Na mesma entrega que criar ou alterar fonte canônica, atualizar quando aplicáv
 7. o vínculo de handoff corrente quando a frente mudar.
 
 Documento histórico não deve ser reescrito para fingir atualidade. Deve ser preservado e, quando necessário, reclassificado por uma fonte canônica posterior.
+
+- [Avaliação de ferramentas para design profissional — 27/09/2026](evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md) — opções compatíveis, instalação isolada e evidências; sem adoção no runtime.

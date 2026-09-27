@@ -16,7 +16,12 @@ module.exports = defineConfig({
     : [['list'], ['html', { open: 'never', outputFolder: 'playwright-report-profile-viewport' }]],
   use: {
     baseURL,
-    trace: 'on-first-retry',
+    trace: {
+      mode: 'on-first-retry',
+      screenshots: true,
+      snapshots: { dom: true, aria: true, screen: true },
+      sources: true
+    },
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     navigationTimeout: 30000,

@@ -1,66 +1,7 @@
 'use strict';
 
 const { test, expect } = require('@playwright/test');
-const { selectFixtureCompetence } = require('../support/e2e-competence');
-
-async function prepareSchool(page, { withOpenUnidentified = false } = {}) {
-  await page.goto('/');
-  await selectFixtureCompetence(page, '2026-05');
-
-  return page.evaluate(async ({ seedOpen }) => {
-    switchProfile('controlador');
-    const competence = window.RadarCompetenceContext.getState().activeKey;
-    const school = escolas.find(candidate => (
-      Array.isArray(candidate.programasIds)
-      && candidate.programasIds.includes('BASIC')
-      && isCompetenceInScope(candidate.competenciaInicial, competence)
-    ));
-    if (!school) throw new Error('Escola de fixture não encontrada.');
-
-    const compKey = competence + '_BASIC';
-    verificacoes[school.id] ||= {};
-    const verification = RadarFluxoOperacional.createEmptyVerification('BASIC');
-    verification.bonificacao.notaFiscal = 'Não';
-    verification.analise.notaFiscal = 'Não analisado';
-    verificacoes[school.id][compKey] = verification;
-
-    notasRegistradas = notasRegistradas.filter(item => !(
-      item.escolaId === school.id && item.compKey === compKey
-    ));
-    pendencias = pendencias.filter(item => !(
-      String(item.escolaId) === String(school.id)
-      && String(item.competenciaOrigem || item.competencia) === competence
-      && String(item.programaId || '') === 'BASIC'
-      && item.documentoKey === 'notaFiscal'
-    ));
-
-    let seeded = null;
-    if (seedOpen) {
-      seeded = await window.RadarApplicationServices.invoices.saveUnidentifiedExpenseWithPendency({
-        schoolId: school.id,
-        compKey,
-        description: 'Débito bancário ainda sem documento',
-        expenseType: 'a_identificar',
-        invoiceNumber: '',
-        amount: 145.67,
-        profile: 'controlador',
-        pendencyObservation: 'Aguardando documento para identificar a despesa.'
-      });
-    }
-
-    rebuildOperationalIndexes();
-    persist();
-    activeProntuarioCompetencia = competence;
-    switchView('prontuario', school.id);
-
-    return {
-      schoolId: school.id,
-      competence,
-      compKey,
-      seededPendencyId: seeded?.value?.pendency?.id || null
-    };
-  }, { seedOpen: withOpenUnidentified });
-}
+const { prepareSchool } = require('../support/unidentified-expense-fixture');
 
 async function settleVisualState(page) {
   // A interface usa transições curtas e reconciliação incremental. Para a auditoria
@@ -77,7 +18,7 @@ async function attachScreenshot(page, testInfo, name) {
   });
 }
 
-test.describe('Jornada real — Despesa a identificar', () => {
+test.describe('Jornada real — Despesa a identificar', { lock: 'unidentified-expense-local-state' }, () => {
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Auditoria orientada ao fluxo desktop.');
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -152,27 +93,36 @@ test.describe('Jornada real — Despesa a identificar', () => {
     await expect(drawer).toBeVisible();
 
     // Regressão visual: o feedback da criação deve continuar legível mesmo
-    // enquanto o drawer contextual está aberto.
+    // enquanto o drawer contextual está aberto. A medição é atômica no browser
+    // porque o aviso de sucesso é temporário; múltiplos round-trips podem cruzar
+    // o timer de auto-ocultação e transformar um estado válido em boundingBox null.
     const creationNotice = page.locator('#pendency-notice');
     await expect(creationNotice).toBeVisible();
-    const noticeLayer = await creationNotice.evaluate(element => Number.parseInt(
-      getComputedStyle(element).zIndex,
-      10
-    ));
-    const drawerLayer = await drawer.evaluate(element => Number.parseInt(
-      getComputedStyle(element).zIndex,
-      10
-    ));
-    expect(noticeLayer).toBeGreaterThan(drawerLayer);
-    const noticeBounds = await creationNotice.boundingBox();
-    const drawerPanelBounds = await drawer.locator('.pendency-preview-drawer').boundingBox();
-    expect(noticeBounds.x + noticeBounds.width).toBeLessThanOrEqual(drawerPanelBounds.x - 12);
+    const feedbackGeometry = await page.evaluate(() => {
+      const notice = document.querySelector('#pendency-notice');
+      const drawerRoot = document.querySelector('#pendency-preview-drawer');
+      const drawerPanel = drawerRoot?.querySelector('.pendency-preview-drawer');
+      if (!notice || !drawerRoot || !drawerPanel) return null;
+
+      const noticeRect = notice.getBoundingClientRect();
+      const drawerRect = drawerPanel.getBoundingClientRect();
+      return {
+        noticeLayer: Number.parseInt(getComputedStyle(notice).zIndex, 10),
+        drawerLayer: Number.parseInt(getComputedStyle(drawerRoot).zIndex, 10),
+        noticeRight: noticeRect.right,
+        drawerLeft: drawerRect.left
+      };
+    });
+    expect(feedbackGeometry).not.toBeNull();
+    expect(feedbackGeometry.noticeLayer).toBeGreaterThan(feedbackGeometry.drawerLayer);
+    expect(feedbackGeometry.noticeRight).toBeLessThanOrEqual(feedbackGeometry.drawerLeft - 12);
+
+    await attachScreenshot(page, testInfo, '02-pendencia-proximo-passo');
 
     await expect(drawer.getByText('Próximo passo', { exact: true })).toBeVisible();
     await expect(drawer).toContainText('Quando a documentação chegar');
     await expect(page.locator('.invoice-document-row .invoice-document-title-line > strong'))
       .toContainText('Débito visto no extrato; documento ainda não recebido');
-    await attachScreenshot(page, testInfo, '02-pendencia-proximo-passo');
     const newSubmission = drawer.getByRole('button', {
       name: 'Registrar envio / identificação da despesa',
       exact: true
