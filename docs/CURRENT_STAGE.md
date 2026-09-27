@@ -55,7 +55,9 @@ Registro técnico da correção final da C3: [correções CodeQL e validação C
 
 Os documentos de handoff de A/B e das frentes anteriores permanecem **históricos concluídos**. Não reabrir PRs #375/#376/#377/#378 ou textos pré-merge como fila de implementação.
 
-Não há handoff corrente separado. Para retomada, a ordem de leitura continua sendo:
+O handoff corrente é [`docs/handoff/2026-09-27-post-abc-expense-baseline-audit.md`](handoff/2026-09-27-post-abc-expense-baseline-audit.md). Ele define a retomada da frente de Despesa a identificar/Pendências após A+B+C, sem transformar pendências históricas em tarefas automáticas.
+
+Para retomada, a ordem de leitura continua sendo:
 
 1. `AGENTS.md`;
 2. `docs/reference/SYSTEM_CANONICAL_MODEL.md`;
@@ -66,15 +68,14 @@ Não há handoff corrente separado. Para retomada, a ordem de leitura continua s
 7. `docs/reference/STATUS_DOCUMENTOS.md`;
 8. matriz funcional e ADRs da área afetada.
 
-## 5. Próxima frente
+## 5. Frente ativa e Fase D
 
-A próxima frente planejada é a **Fase D — hardening e performance**, ainda não iniciada.
+A frente ativa voltou a ser a **jornada desktop de Despesa a identificar / Pendências / novo envio / reanálise / navegação e comunicação visual**, agora sob uma auditoria baseline pós-A+B+C.
+
+A primeira ação dessa retomada é **observacional**: executar uma jornada principal controlada com navegador real e Supabase descartável/autenticado, registrar UI, persistência, reload e evidências, e **não corrigir produto nem teste durante essa primeira coleta**.
+
+O roteiro, os guardrails, os testes existentes que devem ser reutilizados e os documentos históricos úteis estão em [`docs/handoff/2026-09-27-post-abc-expense-baseline-audit.md`](handoff/2026-09-27-post-abc-expense-baseline-audit.md).
+
+A **Fase D — hardening e performance permanece planejada, mas foi deliberadamente adiada** até que esta frente funcional/visual principal seja novamente compreendida no baseline pós-A+B+C. Ela não foi cancelada nem iniciada.
 
 A avaliação separada de ferramentas para evolução visual permanece em [DESIGN_TOOLING.md](evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md): Figma conectado e provas isoladas de Sharp/SVGO/Lucide/Fontsource. Nenhuma biblioteca nova dessa avaliação foi adicionada ao runtime.
-
-Antes de iniciar a Fase D:
-
-1. conferir ao vivo o head de `main` e o deployment ativo;
-2. criar entrega isolada a partir desse head;
-3. preservar como baseline funcional a conclusão A+B+C registrada acima;
-4. manter implementação, validação e eventual publicação causalmente ligadas ao mesmo SHA.
