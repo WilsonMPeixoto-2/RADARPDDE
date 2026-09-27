@@ -144,10 +144,40 @@ test('CI homologado permanece restrito ao desktop', () => {
     assert.match(preproductionWorkflow, /--project=desktop-chromium/);
     assert.match(preproductionWorkflow, /Gerar artefato público otimizado/);
     assert.match(preproductionWorkflow, /npm run build:vercel/);
-    assert.match(preproductionWorkflow, /http-server dist -p 4175 -c-1/);
-    assert.doesNotMatch(preproductionWorkflow, /npm run start > preproduction-lighthouse-server/);
+    assert.match(preproductionWorkflow, /RADAR_SERVE_ROOT=dist node scripts\/serve-radar\.mjs/);
+    assert.doesNotMatch(preproductionWorkflow, /http-server/);
     assert.doesNotMatch(preproductionWorkflow, /Auditar perfil móvel/);
     assert.doesNotMatch(preproductionWorkflow, /LHCI_PROFILE:\s*mobile/);
+});
+
+
+test('Fase C3 usa um único servidor Node canônico e remove http-server da árvore ativa', () => {
+    const packageJson = readJson('package.json');
+    const lockfile = read('package-lock.json');
+    const lighthouseWorkflow = read('.github/workflows/lighthouse-ci.yml');
+    const preproductionWorkflow = read('.github/workflows/preproduction-full-validation.yml');
+
+    assert.equal(packageJson.devDependencies['http-server'], undefined);
+    assert.equal(packageJson.scripts.start, 'node scripts/serve-radar.mjs');
+    assert.equal(packageJson.scripts.dev, 'node scripts/serve-radar.mjs');
+    assert.match(packageJson.scripts.check, /scripts\/serve-radar\.mjs/);
+    assert.doesNotMatch(packageJson.scripts.check, /tests\/support\/spa-server\.mjs/);
+    assert.equal(fs.existsSync(path.join(ROOT, 'scripts/serve-radar.mjs')), true);
+    assert.equal(fs.existsSync(path.join(ROOT, 'tests/support/spa-server.mjs')), false);
+    assert.doesNotMatch(lockfile, /"node_modules\/http-server"/);
+
+    for (const configPath of [
+        'playwright.config.js',
+        'playwright.visual.config.js',
+        'playwright.supabase-preview.config.js'
+    ]) {
+        assert.match(read(configPath), /command:\s*'npm run start'/);
+    }
+
+    for (const workflow of [lighthouseWorkflow, preproductionWorkflow]) {
+        assert.match(workflow, /RADAR_SERVE_ROOT=dist node scripts\/serve-radar\.mjs/);
+        assert.doesNotMatch(workflow, /\bhttp-server\b/);
+    }
 });
 
 test('não mantém workflows temporários de diagnóstico', () => {

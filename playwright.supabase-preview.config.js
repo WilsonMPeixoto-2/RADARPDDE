@@ -28,7 +28,7 @@ module.exports = defineConfig({
     actionTimeout: 15000
   },
   webServer: {
-    command: 'node tests/support/spa-server.mjs',
+    command: 'npm run start',
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 30000,
