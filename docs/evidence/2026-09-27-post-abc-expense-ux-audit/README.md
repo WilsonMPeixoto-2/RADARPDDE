@@ -1,6 +1,6 @@
 # Revisão visual inicial — jornada Despesa a identificar
 
-**Estado:** parcial, observacional, sem correção de produto. **Base:** `main` em `ce0886d1e7a02a711772ab765be0497383bc55ee` (tree `cc3049b3c9c2ffe8d6d704b7a9617f0e404d4476`). A [baseline funcional](../2026-09-27-post-abc-expense-baseline/README.md) foi aprovada por testes locais e UAT Supabase no CI sobre tree idêntico. Esta revisão aborda comunicação visual e UX; não reabre a conclusão de persistência.
+**Estado:** ciclo funcional e de UX em Production concluído; achados identificados, sem correção de produto. **Base:** `main` em `ce0886d1e7a02a711772ab765be0497383bc55ee` (tree `cc3049b3c9c2ffe8d6d704b7a9617f0e404d4476`). A [baseline funcional](../2026-09-27-post-abc-expense-baseline/README.md) foi aprovada por testes locais e UAT Supabase no CI sobre tree idêntico. Esta revisão aborda comunicação visual e UX; não reabre a conclusão de persistência.
 
 ## Método e limites
 
@@ -88,8 +88,24 @@ Após reload da rota da unidade e restauração da sessão, o card manteve `NF: 
 - **PROD-UX-08 — clipping do drawer global em desktop, severidade alta.** Na viewport observada de `1267 × 1113`, a página de Pendências filtrada abriu o drawer com largura computada de cerca de `431 px`, enquanto a grade interna continuou com duas colunas e o contexto com quatro. O conteúdo da primeira tentativa avançou até `x ≈ 1384`, **117 px além da borda direita do viewport**; texto, metadados e cartões ficaram cortados. Screenshot inspecionado ao vivo, ainda não versionado. A causa provável é a combinação das regras `.pendency-drawer-body` e `.pendency-detail-grid` em `task-9-pendencias.css` com o overlay estreito de `layout-responsive-2026.css`. Requer correção visual localizada e nova comparação renderizada.
 - **PROD-FUNC-09 — data de disponibilização retrocede um dia na fila global, severidade média, confiança alta na UI.** O formulário aceitou `2026-09-27`; a prévia da tentativa no diálogo de reanálise exibiu `2026-09-27`, mas `Tentativas de envio` no drawer global exibiu `26/09/2026` após reload. A linha do tempo registra corretamente os eventos em `27/09/2026`. Reproduzir com data ISO em outra configuração de fuso e inspecionar formatação antes de corrigir; isto é um defeito funcional de apresentação, fora de uma correção puramente visual.
 
+### Correlação preliminar com o código — sem correção aplicada
+
+A inspeção posterior ao ciclo de Production encontrou duas correlações fortes que justificam investigação dirigida, sem tratar hipótese como causa já comprovada:
+
+- **PROD-FUNC-09 / data um dia anterior:** `src/integration/task-9-pendencias-page.js` formata datas com `new Date(value).toLocaleDateString('pt-BR')`. Para valores date-only no formato `YYYY-MM-DD`, o JavaScript interpreta a string como meia-noite UTC; em fuso negativo, isso pode renderizar o dia civil anterior. A persistência de `dataDisponibilizacao` continua documentada como data de negócio, portanto a investigação deve separar armazenamento correto de formatação incorreta.
+- **PROD-UX-08 / clipping do drawer:** em desktop, `src/styles/task-9-pendencias.css` assume um drawer amplo, com corpo em duas colunas, contexto em quatro colunas e listas de tentativa/contato em composição horizontal. Já `src/styles/layout-responsive-2026.css`, a partir de 1181 px, reduz o drawer para `clamp(420px, 34vw, 520px)`. Na viewport observada de 1267 px isso resulta em cerca de 431 px, coerente com a largura medida em Production. A causa exata do overflow ainda deve ser reproduzida de forma controlada antes de qualquer alteração CSS.
+
 **Riscos de acessibilidade ainda não certificados:** 01b demonstra tooltip por hover; falta verificar exposição equivalente por foco/teclado e leitor de tela. Textos auxiliares cinza/roxo pequenos aparecem em 02b, 03 e 04b; falta medição de contraste e zoom/reflow. Nenhuma conclusão de conformidade WCAG é feita a partir das capturas.
 
-## Próxima verificação
+## Estado de encerramento desta rodada e próximo ponto de retomada
 
-Com um registro inequivocamente destinado a teste, conferir se o ciclo de gravação real na Production reproduz os mesmos estados e mensagens. As capturas 01–11 continuam sendo **locais**, não capturas de Production. Confrontar UX-01 e UX-03 com esse ciclo antes de decidir ajustes de interface.
+O ciclo autorizado em Production foi concluído no registro sintético: criação, retificação, primeiro envio/identificação como Material de Consumo, reanálise negativa coerente com ausência de arquivo real, retorno à Escola, reload e conferência pelos caminhos Prontuário, Pendências Ativas da unidade e fila global. Invoice e Pendência preservaram os mesmos identificadores ao longo do ciclo.
+
+As capturas 01–11 continuam sendo **locais**; os checkpoints de Production foram observados diretamente no navegador autenticado e descritos neste documento. O fechamento da rodada não depende mais de repetir o ciclo em Production.
+
+Próxima retomada:
+
+1. reproduzir isoladamente **PROD-FUNC-09** com uma data civil conhecida e confirmar armazenamento versus formatação antes de corrigir;
+2. reproduzir isoladamente **PROD-UX-08** em viewport próxima de 1267 × 1113, medir o elemento que excede o drawer e identificar a regra CSS responsável antes de alterar layout;
+3. depois dessas duas causas-raiz, revisar UX-01 a UX-07 à luz da Production real e definir a primeira fatia de melhoria;
+4. não alterar o registro sintético de Production até decidir se ele deve ser mantido como evidência, encerrado de forma administrativa ou removido por procedimento próprio.
