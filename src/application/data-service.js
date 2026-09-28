@@ -386,6 +386,18 @@
             };
         }
 
+        async readSchoolMonthlyVerifications(schoolId) {
+            if (this.repository.capabilities().remote !== true
+                || typeof this.repository.querySchoolMonthlyVerifications !== 'function') {
+                throw new RepositoryError(
+                    'MISSING_REMOTE_CAPABILITY',
+                    'Os indicadores mensais exigem consulta contextual à escola.',
+                    { operation: 'readSchoolMonthlyVerifications' }
+                );
+            }
+            return cloneValue(await this.repository.querySchoolMonthlyVerifications(schoolId));
+        }
+
         async readSchoolContacts(schoolId) {
             if (this.repository.capabilities().remote !== true
                 || typeof this.repository.querySchoolContacts !== 'function') {
