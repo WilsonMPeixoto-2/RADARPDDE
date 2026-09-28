@@ -25,7 +25,8 @@ PR aberto, Preview ou documento antigo não altera Production.
 | docs/reference/SYSTEM_CANONICAL_MODEL.md | Canônico | autoridades, fluxos e invariantes |
 | docs/reference/PRODUCT_SURFACE_CATALOG.md | Referência vigente | superfícies e jornadas |
 | docs/CURRENT_STAGE.md | Canônico | estado funcional e prioridade; head/deployment exatos devem ser revalidados ao vivo quando relevantes |
-| docs/handoff/2026-09-28-prod-func-09-date-business-investigation.md | **Handoff corrente** | investigação isolada de PROD-FUNC-09, data de negócio 27/09 exibida como 26/09; causa antes de correção |
+| docs/handoff/2026-09-28-prod-ux-08-drawer-clipping.md | **Handoff corrente** | investigação visual isolada da composição do drawer global, com gate outside-in |
+| docs/handoff/2026-09-28-prod-func-09-date-business-investigation.md | Histórico concluído | PR #392 integrado; data 27/09 confirmada em Production sem nova escrita |
 | docs/handoff/2026-09-27-post-abc-expense-baseline-audit.md | Histórico concluído | baseline pós-A+B+C homologada; origem dos achados PROD-FUNC-09 e PROD-UX-08 |
 | docs/evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md | Avaliação técnica datada / sucessor obrigatório após fila corretiva | leitura obrigatória antes da próxima frente ampla de evolução visual; ferramentas e versões devem ser revalidadas antes de adoção |
 | docs/handoff/2026-09-26-tooling-modernization-a-b.md | Histórico concluído A/B | integrado e publicado pelo PR #378; não é handoff corrente |
@@ -54,7 +55,7 @@ Commits posteriores exclusivamente documentais não reabrem uma fase encerrada n
 
 A **Fase D ainda não foi iniciada e está deliberadamente adiada** enquanto a frente funcional/visual principal de Despesa a identificar/Pendências é fechada pelos achados atuais.
 
-A baseline principal dessa jornada foi homologada. O handoff corrente é `docs/handoff/2026-09-28-prod-func-09-date-business-investigation.md`, dedicado exclusivamente à causa-raiz de `PROD-FUNC-09`. O achado `PROD-UX-08` permanece registrado para investigação separada posterior.
+A baseline principal dessa jornada foi homologada. `PROD-FUNC-09` foi encerrado pelo PR #392 e confirmado em Production no merge `8284a02faf3d9381ad42e66b6d93677d396e8515`; a data civil e o instante técnico ficaram coerentes na tentativa original, sem escrita. O handoff corrente é `docs/handoff/2026-09-28-prod-ux-08-drawer-clipping.md`, dedicado à composição visual do drawer global.
 
 O servidor canônico e suas correções não alteraram schema, migrations, RPCs, RLS, serviços de domínio, layout ou persistência canônica.
 
@@ -64,10 +65,11 @@ O servidor canônico e suas correções não alteraram schema, migrations, RPCs,
 
 Handoff corrente:
 
-- `docs/handoff/2026-09-28-prod-func-09-date-business-investigation.md` — investigação dirigida de `PROD-FUNC-09`, com contexto da auditoria, hipótese de timezone ainda não promovida a causa, comandos, critérios RED/GREEN, leitura humana outside-in e condições de parada.
+- `docs/handoff/2026-09-28-prod-ux-08-drawer-clipping.md` — diagnóstico visual dirigido do clipping desktop, reprodução causal, regressão e aceitação humana outside-in.
 
 Handoffs históricos concluídos:
 
+- `docs/handoff/2026-09-28-prod-func-09-date-business-investigation.md` — formatter de data civil corrigido e confirmado em Production pelo PR #392;
 - `docs/handoff/2026-09-27-post-abc-expense-baseline-audit.md` — baseline pós-A+B+C homologada, preservada como contexto e evidência;
 - `docs/handoff/2026-09-26-tooling-modernization-a-b.md`;
 - `docs/handoff/2026-09-25-desktop-expense-journey.md`;

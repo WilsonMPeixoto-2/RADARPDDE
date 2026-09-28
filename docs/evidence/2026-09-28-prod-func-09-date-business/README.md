@@ -1,6 +1,6 @@
 # PROD-FUNC-09 — data civil da tentativa no drawer global
 
-**Estado:** causa confirmada; correção e regressões direcionadas GREEN na branch `fix/prod-func-09-date-display-2026-09-28`; ainda não integrada nem publicada.
+**Estado:** encerrado em Production em 28/09/2026; PR #392 integrado e mesmo registro relido sem alteração.
 
 **Baseline:** `main@aa9f951dca95eb49740816869253d91e667e157d` (PR #391 integrado).
 
@@ -45,4 +45,30 @@ O teste E2E foi executado em RED antes da alteração: esperava `27/09/2026` no 
 
 [Screenshot do teste renderizado](availability-date-green.png): o evento mostra `27/09/2026, 22:00`. A asserção de DOM comprova `27/09/2026` na tentativa, mas a captura de 1280 × 720 também confirma que o bloco da tentativa é cortado à direita no drawer desktop. Portanto, **a correção funcional de data está GREEN, mas a aceitação visual humana completa desta superfície permanece parcial por PROD-UX-08**. A correção do recorte pertence à frente separada prevista no handoff; esta branch não altera o layout.
 
-Esta evidência documenta um **candidato local**. O bug permanece na Production até integração e publicação verificadas. O próximo gate deste candidato é revisão do PR e decisão de integração; depois é preciso conferir o deployment exato e repetir a leitura outside-in em Production.
+Os resultados acima pertencem à validação do candidato. A confirmação posterior em Production está registrada a seguir.
+
+## Encerramento em Production
+
+- PR funcional: [#392](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/392), candidato `620654343d5ae897a6852820a39210afbee80068`.
+- CI do candidato: **28 checks concluídos: 26 aprovados e 2 ignorados, sem falhas ou pendências**. Os dois status contexts da Vercel não entram nessa contagem de check runs.
+- Merge: `8284a02faf3d9381ad42e66b6d93677d396e8515`.
+- Deployment: `dpl_F8BVw5Js5v1HCcykq3NwBXa6SHzK`, `READY`, target `production`, com o alias oficial `https://radarpdde-fix.vercel.app`.
+- Manifesto do alias: mesmo SHA, `vercelEnvironment=production`, `runtimeEnvironment=production`, `dataMode=supabase-production`, repositório Supabase e ativação Production habilitados.
+- Smoke com `--expected-commit 8284a02faf3d9381ad42e66b6d93677d396e8515`: aprovado; 50 assets válidos; RLS anônima `blocked-401`.
+- Workflows pós-merge no mesmo SHA concluídos com sucesso, incluindo homologação Supabase Production, smoke autenticado de leitura, integridade dos dados, monitoramento, validação geral, Supabase readiness, regressão visual, Lighthouse e CodeQL.
+
+A aba autenticada foi recarregada após a publicação. A consulta usou a mesma Pendência `pend-699702ea-480f-4703-bd98-9de990237f35`, sem criar tentativa, editar, enviar ou reanalisar. O drawer manteve **Tentativa 1 / Analisada**, **Disponibilização 27/09/2026**, **Registro 27/09/2026, 23:12**, resultado `arquivo_indisponivel` e Pendência **Aberta**, sob responsabilidade da Escola.
+
+Evidências abertas e inspecionadas:
+
+- [Data civil e instante técnico legíveis na largura de 880 px](production-date-confirmed-880.png).
+- [Composição desktop ainda recortada, roteada como PROD-UX-08](production-desktop-clipping.png).
+- [Observação textual da UI e identificação do registro](production-observation.json).
+
+**Leitura outside-in:** o operador está nos detalhes de Notas Fiscais da unidade Cardeal Câmara, competência Agosto/2026, PDDE Básico. A tentativa informa disponibilização em 27/09 e registro no mesmo dia às 23:12; a linha do tempo é coerente com esse instante. O registro continua pedindo correção/entrega do documento porque o ciclo sintético anterior não recebeu arquivo fiscal real. A data está confirmada no ambiente publicado; a composição desktop continua pendente por PROD-UX-08.
+
+**Limite da ferramenta de navegação:** o acionamento por coordenadas/locators não convergiu durante a consulta e chegou a abrir um diálogo de cancelamento, que foi dispensado sem confirmação. A leitura foi concluída acionando os botões de consulta da própria página via CDP e capturando a superfície renderizada diretamente. Nenhum dado de negócio foi gravado. O viewport temporário foi restaurado ao final.
+
+O Preview do candidato não foi publicado: o `Ignored Build Step` retornou `0` e cancelou `dpl_34J5nKjqyrCgs3RsqCqkwJN46wMr`. A evidência Production acima substitui a pendência de validação pós-publicação; não transforma aquele Preview em validado.
+
+**Próxima frente:** [PROD-UX-08 — composição do drawer global](../../handoff/2026-09-28-prod-ux-08-drawer-clipping.md), separada da correção da data.
