@@ -61,7 +61,13 @@ O usuário autorizou expressamente escritas em Production após o checkpoint obs
 | Pendência no DOM | `pend-699702ea-480f-4703-bd98-9de990237f35` |
 | Estado observado | Card `Despesa a identificar`, análise `Incorreto`, drawer `Aberta`, `Documento ausente`, dados provisórios e próximo passo; contador da aba da unidade passou de 4 para 5. |
 
-Os IDs acima vêm de atributos DOM da mesma linha da descrição única, observados após o envio; ainda falta conferir persistência após reload e identidade em todas as etapas. **Não há documento fiscal real associado a este teste.** Próximas etapas: retificar, identificar como consumo com dados sintéticos, registrar envio, reanalisar e verificar o estado restaurado. O resultado final deve continuar explicitamente identificado como teste no histórico.
+Os IDs acima vêm de atributos DOM da mesma linha da descrição única, observados após o envio. **Não há documento fiscal real associado a este teste.** O resultado final deve continuar explicitamente identificado como teste no histórico.
+
+### Retificação dos dados provisórios — confirmada em Production
+
+No mesmo lançamento, o diálogo `Editar despesa a identificar` recebeu a descrição `TESTE CONTROLADO UX 27-09-2026 23:08 — saída provisória retificada`, a referência `UX-2709-2308-R1` e o valor `R$ 1,24`. Após `Salvar Alterações`, o card de Notas Fiscais mostrou a nova descrição e o novo valor, ainda com tipo automático `Despesa a identificar` e análise `Incorreto`. O drawer reaberto exibiu descrição, referência e valor atualizados, status `Aberta`, motivo `Documento ausente` e a mesma observação sintética. Os atributos DOM preservaram `nota-82b17b35-971e-49d9-85a5-d4e0e2c55065` e `pend-699702ea-480f-4703-bd98-9de990237f35`. A persistência após reload ainda será conferida ao final do ciclo.
+
+Próximas etapas: registrar identificação e envio com dados sintéticos, reanalisar e verificar o estado restaurado.
 
 **Riscos de acessibilidade ainda não certificados:** 01b demonstra tooltip por hover; falta verificar exposição equivalente por foco/teclado e leitor de tela. Textos auxiliares cinza/roxo pequenos aparecem em 02b, 03 e 04b; falta medição de contraste e zoom/reflow. Nenhuma conclusão de conformidade WCAG é feita a partir das capturas.
 
