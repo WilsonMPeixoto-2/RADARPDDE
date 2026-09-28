@@ -1,7 +1,7 @@
 # RADAR PDDE — estado atual e retomada
 
 **Classe documental:** Canônico — estado mutável  
-**Atualizado em:** 27 de setembro de 2026
+**Atualizado em:** 28 de setembro de 2026
 
 ## 1. Estado funcional corrente
 
@@ -55,7 +55,7 @@ Registro técnico da correção final da C3: [correções CodeQL e validação C
 
 Os documentos de handoff de A/B e das frentes anteriores permanecem **históricos concluídos**. Não reabrir PRs #375/#376/#377/#378 ou textos pré-merge como fila de implementação.
 
-O handoff corrente é [`docs/handoff/2026-09-27-post-abc-expense-baseline-audit.md`](handoff/2026-09-27-post-abc-expense-baseline-audit.md). Ele define a retomada da frente de Despesa a identificar/Pendências após A+B+C, sem transformar pendências históricas em tarefas automáticas.
+O handoff corrente é [`docs/handoff/2026-09-28-prod-func-09-date-business-investigation.md`](handoff/2026-09-28-prod-func-09-date-business-investigation.md). Ele define a investigação corrente de `PROD-FUNC-09`, sem reabrir a baseline funcional já homologada.
 
 Para retomada, a ordem de leitura continua sendo:
 
@@ -70,11 +70,25 @@ Para retomada, a ordem de leitura continua sendo:
 
 ## 5. Frente ativa e Fase D
 
-A frente ativa voltou a ser a **jornada desktop de Despesa a identificar / Pendências / novo envio / reanálise / navegação e comunicação visual**, agora sob uma auditoria baseline pós-A+B+C.
+A baseline principal da jornada desktop de **Despesa a identificar / Pendências / novo envio / reanálise / navegação** foi homologada por evidências complementares em ambiente local, Supabase descartável no CI e Production autenticada.
 
-A primeira ação dessa retomada é **observacional**: executar uma jornada principal controlada com navegador real e Supabase descartável/autenticado, registrar UI, persistência, reload e evidências, e **não corrigir produto nem teste durante essa primeira coleta**.
+A auditoria em Production confirmou criação, retificação, identificação como Material de Consumo, transição para `Aguardando reanálise`, reanálise negativa coerente com ausência de arquivo real, retorno para `Aberta`, preservação de invoice/Pendência e persistência após reload no registro sintético autorizado.
 
-O roteiro, os guardrails, os testes existentes que devem ser reutilizados e os documentos históricos úteis estão em [`docs/handoff/2026-09-27-post-abc-expense-baseline-audit.md`](handoff/2026-09-27-post-abc-expense-baseline-audit.md).
+A frente ativa agora é a investigação isolada do achado **`PROD-FUNC-09` — data de disponibilização informada como 27/09/2026 e exibida como 26/09/2026 em `Tentativas de envio` na fila global**.
+
+O objetivo imediato não é corrigir por palpite. É determinar em qual camada ocorre a mudança:
+
+```text
+persistência Supabase
+→ state bridge / adaptação
+→ domínio / view model
+→ formatação de apresentação
+→ UI
+```
+
+O handoff corrente com comandos, guardrails e critérios de parada é [`docs/handoff/2026-09-28-prod-func-09-date-business-investigation.md`](handoff/2026-09-28-prod-func-09-date-business-investigation.md).
+
+O achado visual **`PROD-UX-08` — clipping do drawer global** permanece confirmado e será investigado separadamente depois de `PROD-FUNC-09`, para evitar misturar causas e correções.
 
 A **Fase D — hardening e performance permanece planejada, mas foi deliberadamente adiada** até que esta frente funcional/visual principal seja novamente compreendida no baseline pós-A+B+C. Ela não foi cancelada nem iniciada.
 

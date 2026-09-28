@@ -1,7 +1,7 @@
 # Matriz de validade documental
 
 **Classe documental:** Canônico  
-**Atualizado em:** 27 de setembro de 2026
+**Atualizado em:** 28 de setembro de 2026
 
 ## 1. Finalidade e precedência
 
@@ -25,7 +25,8 @@ PR aberto, Preview ou documento antigo não altera Production.
 | docs/reference/SYSTEM_CANONICAL_MODEL.md | Canônico | autoridades, fluxos e invariantes |
 | docs/reference/PRODUCT_SURFACE_CATALOG.md | Referência vigente | superfícies e jornadas |
 | docs/CURRENT_STAGE.md | Canônico | estado funcional e prioridade; head/deployment exatos devem ser revalidados ao vivo quando relevantes |
-| docs/handoff/2026-09-27-post-abc-expense-baseline-audit.md | **Handoff corrente** | auditoria baseline pós-A+B+C da jornada Despesa a identificar/Pendências; observar antes de corrigir |
+| docs/handoff/2026-09-28-prod-func-09-date-business-investigation.md | **Handoff corrente** | investigação isolada de PROD-FUNC-09, data de negócio 27/09 exibida como 26/09; causa antes de correção |
+| docs/handoff/2026-09-27-post-abc-expense-baseline-audit.md | Histórico concluído | baseline pós-A+B+C homologada; origem dos achados PROD-FUNC-09 e PROD-UX-08 |
 | docs/handoff/2026-09-26-tooling-modernization-a-b.md | Histórico concluído A/B | integrado e publicado pelo PR #378; não é handoff corrente |
 | docs/handoff/2026-09-25-desktop-expense-journey.md | Handoff histórico concluído | checkpoints preservados e adendo de encerramento |
 | docs/handoff/2026-09-19-performance-sync-modernization.md | Handoff histórico concluído | modernização de performance/sincronização encerrada em 21/09 |
@@ -50,9 +51,9 @@ A baseline funcional que comprovou o encerramento da C3 é:
 
 Commits posteriores exclusivamente documentais não reabrem uma fase encerrada nem representam, por si, mudança funcional do RADAR. Como a `main` pode avançar por manutenção documental e a Vercel pode publicar esses commits, o head e o deployment exatos devem ser consultados ao vivo quando forem necessários para uma nova entrega.
 
-A **Fase D ainda não foi iniciada e está deliberadamente adiada** enquanto a frente funcional/visual principal de Despesa a identificar/Pendências é reavaliada com o ferramental pós-A+B+C.
+A **Fase D ainda não foi iniciada e está deliberadamente adiada** enquanto a frente funcional/visual principal de Despesa a identificar/Pendências é fechada pelos achados atuais.
 
-O handoff corrente é `docs/handoff/2026-09-27-post-abc-expense-baseline-audit.md`. A primeira execução dessa frente é observacional e não autoriza correções de produto/teste durante a coleta.
+A baseline principal dessa jornada foi homologada. O handoff corrente é `docs/handoff/2026-09-28-prod-func-09-date-business-investigation.md`, dedicado exclusivamente à causa-raiz de `PROD-FUNC-09`. O achado `PROD-UX-08` permanece registrado para investigação separada posterior.
 
 O servidor canônico e suas correções não alteraram schema, migrations, RPCs, RLS, serviços de domínio, layout ou persistência canônica.
 
@@ -60,9 +61,14 @@ O servidor canônico e suas correções não alteraram schema, migrations, RPCs,
 
 Handoff corrente:
 
-- `docs/handoff/2026-09-27-post-abc-expense-baseline-audit.md` — auditoria baseline da jornada Despesa a identificar/Pendências após A+B+C; define escopo, guardrails, evidências e critérios de parada para a primeira execução no Codex.
+- `docs/handoff/2026-09-28-prod-func-09-date-business-investigation.md` — investigação dirigida de `PROD-FUNC-09`, com contexto da auditoria, hipótese de timezone ainda não promovida a causa, comandos, critérios RED/GREEN, leitura humana outside-in e condições de parada.
 
-`docs/handoff/2026-09-26-tooling-modernization-a-b.md`, `docs/handoff/2026-09-25-desktop-expense-journey.md` e os demais handoffs anteriores permanecem históricos concluídos. As antigas pendências descritas neles não formam fila atual.
+Handoffs históricos concluídos:
+
+- `docs/handoff/2026-09-27-post-abc-expense-baseline-audit.md` — baseline pós-A+B+C homologada, preservada como contexto e evidência;
+- `docs/handoff/2026-09-26-tooling-modernization-a-b.md`;
+- `docs/handoff/2026-09-25-desktop-expense-journey.md`;
+- demais handoffs anteriores. As antigas pendências descritas neles não formam fila atual.
 
 `docs/evidence/2026-09-27-phase-c3-codeql.md` registra a reprodução RED → GREEN e a correção dos achados da C3. É evidência técnica histórica da entrega; o fechamento remoto, merge e publicação estão registrados no PR #386 e consolidados em `CURRENT_STAGE.md`.
 
