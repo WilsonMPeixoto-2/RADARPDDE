@@ -119,7 +119,7 @@ async function seedAwaitingReanalysis(page, options = {}) {
         : 'https://drive.google.com/file/d/reanalise-e2e/view'
     }, {
       eventId: (seedOptions.pendencyId || 'pend-e2e-reanalise') + '-envio',
-      at: '2026-06-10T12:00:00.000Z',
+      at: seedOptions.registrationAt || '2026-06-10T12:00:00.000Z',
       usuario: 'Escola E2E',
       perfil: 'Escola'
     });
@@ -156,6 +156,45 @@ async function seedAwaitingReanalysis(page, options = {}) {
     };
   }, { target: DOCUMENT_CONTEXT, seedOptions: options });
 }
+
+test.describe('data civil da tentativa na fila global', () => {
+  test.use({ timezoneId: 'America/Sao_Paulo' });
+
+  test('mostra o dia informado de disponibilização sem deslocar o instante de registro', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    await page.goto('/');
+    const context = await seedAwaitingReanalysis(page, {
+      pendencyId: 'pend-e2e-data-disponibilizacao',
+      availabilityDate: '2026-09-27',
+      registrationAt: '2026-09-27T12:00:00.000Z'
+    });
+    expect(context.availabilityDate).toBe('2026-09-27');
+    const trace = await page.evaluate(pendencyId => {
+      const source = pendencias.find(item => item.id === pendencyId);
+      const record = RadarPendenciasViewModel.buildPendencyRecords({
+        pendencias, escolas, programas, controladores, contatos
+      }).find(item => item.id === pendencyId);
+      return {
+        domainDate: source.tentativas[0].dataDisponibilizacao,
+        projectedDate: record.attempts[0].dataDisponibilizacao,
+        registration: record.attempts[0].dataRegistro
+      };
+    }, context.pendencyId);
+    expect(trace).toEqual({
+      domainDate: '2026-09-27',
+      projectedDate: '2026-09-27',
+      registration: '2026-09-27T12:00:00.000Z'
+    });
+
+    await page.locator('#p-aguardando [data-action="open-pendency-detail"]').first().click();
+    const drawer = page.locator('#pendency-detail-drawer');
+    await expect(drawer).toBeVisible();
+    const attempt = drawer.locator('.pendency-attempt-list > li').first();
+    await expect(attempt.locator('dd').first()).toHaveText('27/09/2026');
+    await expect(attempt).toContainText('27/09/2026, 09:00');
+  });
+});
 
 test.describe('ciclo de criação da pendência documental no desktop', () => {
   test('registra múltiplos erros e localiza a duplicata em reanálise', async ({ page }, testInfo) => {
