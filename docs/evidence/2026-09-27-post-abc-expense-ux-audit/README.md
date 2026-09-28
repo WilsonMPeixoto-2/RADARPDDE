@@ -75,6 +75,10 @@ Após `Registrar e enviar para reanálise`, o card do Prontuário passou a `NF: 
 
 **Observação de UX a avaliar:** o card acrescenta `NF:` a uma referência livre (`DOC-TESTE-...`); o formulário exigiu data de disponibilização mesmo com link do Drive vazio. Isso é visível no fluxo e não comprova que o arquivo exista. A consequência prática e eventual tratamento exigem decisão de produto; este checkpoint não afirma conformidade documental.
 
+### Reanálise e retorno à Escola — confirmados em Production
+
+O botão `Aguardando reanálise` no card abriu o diálogo `Reanalisar pendência documental`, com a tentativa, observação do envio, dados da despesa e contexto da Pendência. Como o ensaio não tem arquivo real, foi selecionado `Arquivo não localizado ou inacessível` e registrada a justificativa `Teste controlado em Production: nenhum arquivo fiscal real foi disponibilizado; devolvido à Escola para preservar a veracidade documental.` Após `Confirmar reanálise`, o mesmo card ficou `Incorreto`; o drawer voltou a `Aberta`, mostrou motivo `Arquivo não localizado ou inacessível` e orientou `Registrar novo envio` na **mesma Pendência**. O registro de teste permanece ativo, de modo explícito, sem conclusão documental falsa. Falta conferir o estado após reload e pelo segundo caminho da aba `Pendências Ativas desta unidade`.
+
 **Riscos de acessibilidade ainda não certificados:** 01b demonstra tooltip por hover; falta verificar exposição equivalente por foco/teclado e leitor de tela. Textos auxiliares cinza/roxo pequenos aparecem em 02b, 03 e 04b; falta medição de contraste e zoom/reflow. Nenhuma conclusão de conformidade WCAG é feita a partir das capturas.
 
 ## Próxima verificação
