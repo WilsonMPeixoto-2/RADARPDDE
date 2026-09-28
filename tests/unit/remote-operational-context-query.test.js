@@ -273,3 +273,29 @@ test('contexto operacional já cancelado não inicia chamadas ao Supabase', asyn
     );
     assert.deepEqual(fake.calls, []);
 });
+
+
+test('resumo visual mensal lê somente verificações da escola sem ampliar o contexto operacional', async () => {
+    const fake = createClient(seed);
+    const repo = new OperationalSupabaseRepository({ client: fake.client, pageSize: 2 });
+
+    const rows = await repo.querySchoolMonthlyVerifications('04.31.001');
+
+    assert.deepEqual(
+        rows.map(record => record.id).sort(),
+        ['v-aug-target', 'v-mar-target', 'v-sep']
+    );
+    assert.equal(
+        fake.calls.some(call => (
+            call[0] === 'eq'
+            && call[1] === 'verifications'
+            && call[2] === 'school_id'
+            && call[3] === '04.31.001'
+        )),
+        true
+    );
+    await assert.rejects(
+        repo.querySchoolMonthlyVerifications(''),
+        error => error.code === 'INVALID_OPERATIONAL_CONTEXT'
+    );
+});

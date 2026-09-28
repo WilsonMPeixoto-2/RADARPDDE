@@ -1,4 +1,4 @@
-/* global activeSchoolId, bens, notasRegistradas */
+/* global activeSchoolId, bens, notasRegistradas, escolas */
 (function installRadarProntuarioOperationalUx(root) {
     'use strict';
 
@@ -6,9 +6,24 @@
 
     const SENT_LABEL_PREFIX = 'Consulta enviada à Assessoria para a NF ';
     const CONSOLIDATED_BONUS_LABELS = new Set(['apta', 'inapta']);
+    const MONTH_STATUS_CLASSES = Object.freeze([
+        'status-dot-apta',
+        'status-dot-inapta',
+        'status-dot-em-andamento',
+        'status-dot-nao-lancado',
+        'status-dot-out-of-scope'
+    ]);
+    const MONTH_STATUS_LABELS = Object.freeze({
+        apta: 'Apta',
+        inapta: 'Inapta',
+        'em-andamento': 'Em apuração',
+        'nao-lancado': 'Não lançada'
+    });
     let installed = false;
     let originalRenderProntuario = null;
     let renderedSchoolId = '';
+    let monthlyIndicatorReadSequence = 0;
+    const monthlyIndicatorReadsInFlight = new Map();
 
     function text(value) {
         return value == null ? '' : String(value).trim();
@@ -27,6 +42,116 @@
         return Array.from(root.document.querySelectorAll(
             '#prontuario-verif-rows tr[data-program-id][data-document-key]'
         ));
+    }
+
+    function schoolProgramIds(schoolId) {
+        try {
+            const school = Array.isArray(escolas)
+                ? escolas.find(candidate => text(candidate?.id) === text(schoolId))
+                : null;
+            return Array.isArray(school?.programasIds)
+                ? school.programasIds.map(text).filter(Boolean)
+                : [];
+        } catch (_error) {
+            return [];
+        }
+    }
+
+    function monthlyStatusFromVerificationRows(records, programIds) {
+        const statusApi = root.RadarFluxoOperacional?.getProgramBonificationStatus;
+        if (typeof statusApi !== 'function' || !Array.isArray(programIds) || programIds.length === 0) {
+            return 'nao-lancado';
+        }
+
+        const byProgram = new Map();
+        (Array.isArray(records) ? records : []).forEach(record => {
+            const programId = text(record?.program_id || record?.programaId);
+            if (programId) byProgram.set(programId, record);
+        });
+
+        const statuses = programIds.map(programId => (
+            statusApi(byProgram.get(programId) || {}, programId)
+        ));
+
+        if (statuses.includes('inapta')) return 'inapta';
+        if (statuses.length > 0 && statuses.every(status => status === 'apta')) return 'apta';
+        if (statuses.some(status => ['apta', 'em-apuracao'].includes(status))) return 'em-andamento';
+        return 'nao-lancado';
+    }
+
+    function applyHistoricalMonthIndicator(tab, status) {
+        const dot = tab?.querySelector?.('.status-dot');
+        if (!dot || !dot.classList.contains('status-dot-nao-lancado')) return false;
+        if (!MONTH_STATUS_LABELS[status] || status === 'nao-lancado') return false;
+
+        MONTH_STATUS_CLASSES.forEach(className => dot.classList.remove(className));
+        dot.classList.add(`status-dot-${status}`);
+
+        const title = text(tab.getAttribute('title'));
+        const prefix = title.includes(' - Bonificação:')
+            ? title.split(' - Bonificação:')[0]
+            : title;
+        if (prefix) {
+            tab.setAttribute('title', `${prefix} - Bonificação: ${MONTH_STATUS_LABELS[status]}`);
+        }
+        return true;
+    }
+
+    async function refreshHistoricalMonthIndicators(schoolId) {
+        const id = text(schoolId);
+        const service = root.RadarApplicationServices?.data;
+        let remote = false;
+        try {
+            remote = service?.repository?.capabilities?.().remote === true;
+        } catch (_error) {
+            remote = false;
+        }
+        if (!id || !remote || typeof service?.readSchoolMonthlyVerifications !== 'function') {
+            return false;
+        }
+
+        const sequence = ++monthlyIndicatorReadSequence;
+        let readPromise = monthlyIndicatorReadsInFlight.get(id);
+        if (!readPromise) {
+            readPromise = Promise.resolve().then(() => service.readSchoolMonthlyVerifications(id));
+            monthlyIndicatorReadsInFlight.set(id, readPromise);
+            const clearRead = () => {
+                if (monthlyIndicatorReadsInFlight.get(id) === readPromise) {
+                    monthlyIndicatorReadsInFlight.delete(id);
+                }
+            };
+            readPromise.then(clearRead, clearRead);
+        }
+
+        let records;
+        try {
+            records = await readPromise;
+        } catch (_error) {
+            return false;
+        }
+
+        if (sequence !== monthlyIndicatorReadSequence || resolveSchoolId() !== id) return false;
+
+        const programIds = schoolProgramIds(id);
+        if (programIds.length === 0) return false;
+
+        const byCompetence = new Map();
+        (Array.isArray(records) ? records : []).forEach(record => {
+            const competence = text(record?.competence_id || record?.competencia);
+            if (!competence) return;
+            const group = byCompetence.get(competence) || [];
+            group.push(record);
+            byCompetence.set(competence, group);
+        });
+
+        let changed = false;
+        root.document.querySelectorAll('.comp-sub-tab[data-competence]').forEach(tab => {
+            const recordsForMonth = byCompetence.get(text(tab.dataset.competence));
+            if (!recordsForMonth?.length) return;
+            const status = monthlyStatusFromVerificationRows(recordsForMonth, programIds);
+            changed = applyHistoricalMonthIndicator(tab, status) || changed;
+        });
+        return changed;
     }
 
     function getProgramGroups(rows) {
@@ -419,13 +544,14 @@
 
     function enhanceProntuario(referenceDate = new Date(), schoolId = '') {
         const rows = getVerificationRows();
+        const resolvedSchoolId = resolveSchoolId(schoolId);
         decorateCompetenceTabs(referenceDate);
+        void refreshHistoricalMonthIndicators(resolvedSchoolId);
         if (!rows.length) {
             applyFutureCompetenceReadOnly(referenceDate);
             return false;
         }
 
-        const resolvedSchoolId = resolveSchoolId(schoolId);
         orderProgramGroupsForPresentation(getProgramGroups(rows)).forEach(group => {
             decorateProgramGroup(group);
             moveServiceAdvisoryControls(group);

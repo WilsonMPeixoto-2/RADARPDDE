@@ -103,3 +103,76 @@ test('aba Resolvidas consulta histórico de outras competências sem carregá-lo
   expect(await page.evaluate(() => window.__historyReads)).toEqual([{ key: '2026-09', statuses: ['Resolvida'] }]);
   await expect(page.locator('#global-competence-select')).toHaveValue('2026-09');
 });
+
+
+test('prontuário remoto mantém bolinhas históricas sem hidratar verificações globais', async ({ page }, testInfo) => {
+  const schoolId = await openSchool(page);
+
+  await page.evaluate(() => {
+    const school = escolas.find(item => item.id === activeSchoolId);
+    const programIds = [...(school?.programasIds || [])];
+    if (!school || programIds.length === 0) throw new Error('Cenário exige escola com programas vinculados.');
+
+    window.__monthIndicatorReads = [];
+    verificacoes[school.id] = Object.fromEntries(
+      Object.entries(verificacoes[school.id] || {})
+        .filter(([key]) => key.startsWith('2026-09_'))
+    );
+    window.__verificationSnapshotBeforeMonthIndicators = JSON.stringify(verificacoes[school.id] || {});
+
+    const february = programIds.map((programId, index) => ({
+      id: `summary-feb-${index}`,
+      school_id: school.id,
+      competence_id: '2026-02',
+      program_id: programId,
+      bonus_result: 'apta',
+      bonification: { extCC: 'Sim' },
+      analysis: {}
+    }));
+
+    const march = [{
+      id: 'summary-mar-partial',
+      school_id: school.id,
+      competence_id: '2026-03',
+      program_id: programIds[0],
+      bonus_result: null,
+      bonification: { extCC: 'Sim' },
+      analysis: {}
+    }];
+
+    const currentData = window.RadarApplicationServices.data;
+    window.RadarApplicationServices = Object.freeze({
+      ...window.RadarApplicationServices,
+      data: {
+        ...currentData,
+        repository: { capabilities: () => ({ remote: true }) },
+        async readSchoolMonthlyVerifications(id) {
+          window.__monthIndicatorReads.push(id);
+          return [...february, ...march];
+        }
+      }
+    });
+
+    renderProntuario(school.id);
+  });
+
+  await expect.poll(() => page.evaluate(() => window.__monthIndicatorReads)).toEqual([schoolId]);
+
+  const februaryDot = page.locator('.comp-sub-tab[data-competence="2026-02"] .status-dot');
+  const marchDot = page.locator('.comp-sub-tab[data-competence="2026-03"] .status-dot');
+
+  await expect(februaryDot).toHaveClass(/status-dot-apta/);
+  await expect(marchDot).toHaveClass(/status-dot-em-andamento/);
+  await expect(page.locator('.comp-sub-tab[data-competence="2026-02"]'))
+    .toHaveAttribute('title', /Bonificação: Apta/);
+  await expect(page.locator('.comp-sub-tab[data-competence="2026-03"]'))
+    .toHaveAttribute('title', /Bonificação: Em apuração/);
+
+  expect(await page.evaluate(() => JSON.stringify(verificacoes[activeSchoolId] || {})))
+    .toBe(await page.evaluate(() => window.__verificationSnapshotBeforeMonthIndicators));
+
+  await testInfo.attach('prontuario-indicadores-mensais-historicos', {
+    body: await page.locator('.comp-tabs-container').screenshot(),
+    contentType: 'image/png'
+  });
+});
