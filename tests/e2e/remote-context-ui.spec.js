@@ -105,7 +105,7 @@ test('aba Resolvidas consulta histórico de outras competências sem carregá-lo
 });
 
 
-test('prontuário remoto mantém bolinhas históricas sem hidratar verificações globais', async ({ page }) => {
+test('prontuário remoto mantém bolinhas históricas sem hidratar verificações globais', async ({ page }, testInfo) => {
   const schoolId = await openSchool(page);
 
   await page.evaluate(() => {
@@ -114,6 +114,10 @@ test('prontuário remoto mantém bolinhas históricas sem hidratar verificaçõe
     if (!school || programIds.length === 0) throw new Error('Cenário exige escola com programas vinculados.');
 
     window.__monthIndicatorReads = [];
+    verificacoes[school.id] = Object.fromEntries(
+      Object.entries(verificacoes[school.id] || {})
+        .filter(([key]) => key.startsWith('2026-09_'))
+    );
     window.__verificationSnapshotBeforeMonthIndicators = JSON.stringify(verificacoes[school.id] || {});
 
     const february = programIds.map((programId, index) => ({
@@ -166,4 +170,9 @@ test('prontuário remoto mantém bolinhas históricas sem hidratar verificaçõe
 
   expect(await page.evaluate(() => JSON.stringify(verificacoes[activeSchoolId] || {})))
     .toBe(await page.evaluate(() => window.__verificationSnapshotBeforeMonthIndicators));
+
+  await testInfo.attach('prontuario-indicadores-mensais-historicos', {
+    body: await page.locator('.comp-tabs-container').screenshot(),
+    contentType: 'image/png'
+  });
 });
