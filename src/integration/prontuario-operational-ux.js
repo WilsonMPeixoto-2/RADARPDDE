@@ -113,13 +113,14 @@
         const sequence = ++monthlyIndicatorReadSequence;
         let readPromise = monthlyIndicatorReadsInFlight.get(id);
         if (!readPromise) {
-            readPromise = Promise.resolve(service.readSchoolMonthlyVerifications(id));
+            readPromise = Promise.resolve().then(() => service.readSchoolMonthlyVerifications(id));
             monthlyIndicatorReadsInFlight.set(id, readPromise);
-            readPromise.finally(() => {
+            const clearRead = () => {
                 if (monthlyIndicatorReadsInFlight.get(id) === readPromise) {
                     monthlyIndicatorReadsInFlight.delete(id);
                 }
-            });
+            };
+            readPromise.then(clearRead, clearRead);
         }
 
         let records;
