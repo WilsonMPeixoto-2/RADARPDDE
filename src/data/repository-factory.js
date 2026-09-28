@@ -155,6 +155,23 @@
     }
 
     class OperationalSupabaseRepository extends supabaseApi.SupabaseRepository {
+        async querySchoolMonthlyVerifications(schoolId, options = {}) {
+            const id = String(schoolId || '').trim();
+            if (!id) {
+                throw operationalContextError(
+                    'Informe a escola para consultar os indicadores mensais.',
+                    'querySchoolMonthlyVerifications'
+                );
+            }
+            return this.queryByEquality(
+                'verifications',
+                'school_id',
+                id,
+                'querySchoolMonthlyVerifications',
+                options
+            );
+        }
+
         async querySchoolContacts(schoolId) {
             const id = String(schoolId || '').trim();
             if (!id) throw operationalContextError('Informe a escola para consultar o histórico de contatos.');
