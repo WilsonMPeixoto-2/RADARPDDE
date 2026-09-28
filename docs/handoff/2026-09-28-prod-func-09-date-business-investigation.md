@@ -394,12 +394,51 @@ PRÓXIMO PASSO
 
 ## 13. Depois de PROD-FUNC-09
 
-Não iniciar automaticamente.
+Não iniciar automaticamente outra frente dentro desta mesma execução.
 
-O próximo achado já conhecido é:
+A sequência de sucessão já conhecida é:
 
-**PROD-UX-08 — clipping do drawer global em desktop.**
+1. **encerrar PROD-FUNC-09** com causa, correção e aceitação humana comprovadas;
+2. abrir investigação própria para **PROD-UX-08 — clipping do drawer global em desktop**, porque a hipótese atual envolve composição entre `task-9-pendencias.css` e `layout-responsive-2026.css`;
+3. reconciliar os demais refinamentos imediatos que continuarem válidos após a auditoria, sempre sob o gate outside-in;
+4. **quando a fila corretiva imediata estiver encerrada, antes de iniciar uma nova frente ampla de layout/design, ler obrigatoriamente `docs/evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md`.**
 
-Ele deve receber investigação própria porque a hipótese atual envolve composição entre `task-9-pendencias.css` e `layout-responsive-2026.css`, e será o caso ideal para aplicar o gate outside-in completo.
+### 13.1 Ponte obrigatória para a próxima frente visual
 
-Primeiro encerrar PROD-FUNC-09. Depois reavaliar configuração/modelo/esforço.
+`DESIGN_TOOLING.md` preserva o debate já realizado sobre como elevar o RADAR para além de correções locais de layout. Ele registra, entre outros:
+
+- Figma como canvas de referência e sistema visual;
+- Superdesign como opção de exploração de direção de arte;
+- Lucide para iconografia coerente;
+- Fontsource para controle tipográfico;
+- Sharp/SVGO para pipeline de assets;
+- Style Dictionary para eventual formalização de tokens;
+- Storybook ou galeria de componentes/estados;
+- Playwright MCP para inspeção navegada e evidência visual;
+- estratégia de piloto em uma superfície completa antes de expansão.
+
+A leitura desse documento é **obrigatória como ponto de partida**, mas ele é datado e não deve ser tratado como adoção automática. Versões, compatibilidade, disponibilidade e custo/benefício devem ser revalidados no momento da retomada.
+
+A próxima frente visual deve combinar duas coisas:
+
+```text
+ferramental / arquitetura visual moderna
++
+metodologia humana outside-in do PR #389
+```
+
+O objetivo não é “instalar bibliotecas”. É decidir qual arquitetura visual e quais ferramentas permitem que o RADAR funcione como um produto coerente, com direção de arte, design system, componentes e estados integrados, sem reescrever o sistema apenas por estética.
+
+### 13.2 Regra de continuidade documental
+
+Quando `PROD-FUNC-09`, `PROD-UX-08` e a fila corretiva imediata forem encerrados:
+
+- atualizar `CURRENT_STAGE.md`;
+- retirar este handoff da posição de corrente;
+- criar ou apontar **um único handoff corrente** para a frente de evolução visual;
+- esse novo handoff deve citar `DESIGN_TOOLING.md` na leitura obrigatória;
+- registrar explicitamente se a Fase D continua adiada, é retomada depois ou passa a concorrer com a frente visual.
+
+Assim, a conexão com esse debate não depende da memória do usuário, deste chat ou do agente que estiver executando.
+
+Primeiro encerrar PROD-FUNC-09. Depois reavaliar configuração/modelo/esforço para PROD-UX-08.

@@ -88,7 +88,7 @@ Consultar conforme a área materialmente afetada:
 - [`handoff/2026-09-27-post-abc-expense-baseline-audit.md`](handoff/2026-09-27-post-abc-expense-baseline-audit.md) — handoff histórico concluído da baseline pós-A+B+C da jornada Despesa a identificar/Pendências;
 
 - [`evidence/2026-09-27-phase-c3-codeql.md`](evidence/2026-09-27-phase-c3-codeql.md) — evidência técnica histórica da entrega C3 e dos dois achados CodeQL;
-- [`evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md`](evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md) — avaliação de ferramentas para evolução visual; sem adoção de novas bibliotecas no runtime;
+- [`evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md`](evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md) — avaliação datada de ferramentas para evolução visual; **leitura obrigatória quando a fila corretiva atual encerrar e antes da próxima frente ampla de layout/design**; sem adoção automática de bibliotecas;
 - [`handoff/2026-09-26-tooling-modernization-a-b.md`](handoff/2026-09-26-tooling-modernization-a-b.md) — **histórico concluído** da modernização de tooling A/B;
 - [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — referência funcional/arquitetural detalhada; **afirmações temporais de PR, SHA, fila ou deployment nele não representam o estado corrente e cedem ao estado efetivo e a `CURRENT_STAGE.md`**;
 - [`handoff/2026-09-25-desktop-expense-journey.md`](handoff/2026-09-25-desktop-expense-journey.md) — **handoff histórico concluído** da jornada desktop de Despesa a identificar;

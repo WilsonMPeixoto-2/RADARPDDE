@@ -27,6 +27,7 @@ PR aberto, Preview ou documento antigo não altera Production.
 | docs/CURRENT_STAGE.md | Canônico | estado funcional e prioridade; head/deployment exatos devem ser revalidados ao vivo quando relevantes |
 | docs/handoff/2026-09-28-prod-func-09-date-business-investigation.md | **Handoff corrente** | investigação isolada de PROD-FUNC-09, data de negócio 27/09 exibida como 26/09; causa antes de correção |
 | docs/handoff/2026-09-27-post-abc-expense-baseline-audit.md | Histórico concluído | baseline pós-A+B+C homologada; origem dos achados PROD-FUNC-09 e PROD-UX-08 |
+| docs/evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md | Avaliação técnica datada / sucessor obrigatório após fila corretiva | leitura obrigatória antes da próxima frente ampla de evolução visual; ferramentas e versões devem ser revalidadas antes de adoção |
 | docs/handoff/2026-09-26-tooling-modernization-a-b.md | Histórico concluído A/B | integrado e publicado pelo PR #378; não é handoff corrente |
 | docs/handoff/2026-09-25-desktop-expense-journey.md | Handoff histórico concluído | checkpoints preservados e adendo de encerramento |
 | docs/handoff/2026-09-19-performance-sync-modernization.md | Handoff histórico concluído | modernização de performance/sincronização encerrada em 21/09 |
@@ -56,6 +57,8 @@ A **Fase D ainda não foi iniciada e está deliberadamente adiada** enquanto a f
 A baseline principal dessa jornada foi homologada. O handoff corrente é `docs/handoff/2026-09-28-prod-func-09-date-business-investigation.md`, dedicado exclusivamente à causa-raiz de `PROD-FUNC-09`. O achado `PROD-UX-08` permanece registrado para investigação separada posterior.
 
 O servidor canônico e suas correções não alteraram schema, migrations, RPCs, RLS, serviços de domínio, layout ou persistência canônica.
+
+**Sucessão prevista:** depois de encerrar `PROD-FUNC-09`, `PROD-UX-08` e os refinamentos imediatos que permanecerem válidos, a próxima decisão de produto deve recuperar `docs/evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md` antes de abrir uma frente ampla de layout/design. Essa obrigação preserva o debate sobre Figma, design system, tokens, componentização, iconografia, tipografia, galeria de estados e tooling visual sem transformar a avaliação datada em adoção automática.
 
 ## 4. Handoff corrente e histórico
 
