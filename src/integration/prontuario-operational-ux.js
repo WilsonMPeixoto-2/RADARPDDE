@@ -23,6 +23,7 @@
     let originalRenderProntuario = null;
     let renderedSchoolId = '';
     let monthlyIndicatorReadSequence = 0;
+    const monthlyIndicatorReadsInFlight = new Map();
 
     function text(value) {
         return value == null ? '' : String(value).trim();
@@ -110,9 +111,20 @@
         }
 
         const sequence = ++monthlyIndicatorReadSequence;
+        let readPromise = monthlyIndicatorReadsInFlight.get(id);
+        if (!readPromise) {
+            readPromise = Promise.resolve(service.readSchoolMonthlyVerifications(id));
+            monthlyIndicatorReadsInFlight.set(id, readPromise);
+            readPromise.finally(() => {
+                if (monthlyIndicatorReadsInFlight.get(id) === readPromise) {
+                    monthlyIndicatorReadsInFlight.delete(id);
+                }
+            });
+        }
+
         let records;
         try {
-            records = await service.readSchoolMonthlyVerifications(id);
+            records = await readPromise;
         } catch (_error) {
             return false;
         }
