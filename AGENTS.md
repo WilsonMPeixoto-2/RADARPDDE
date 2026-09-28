@@ -1,7 +1,7 @@
 # AGENTS.md — RADAR PDDE 2026
 
 **Classe documental:** Canônico — roteador obrigatório para agentes e novos chats  
-**Atualizado em:** 26 de setembro de 2026
+**Atualizado em:** 28 de setembro de 2026
 
 ## 1. Leitura obrigatória
 
@@ -57,6 +57,33 @@ Antes de classificar um comportamento como defeito, verificar também:
 - o que ele reencontra ao navegar, voltar ou recarregar.
 
 **Diferença entre duas projeções não é bug por si só.** Só existe inconsistência quando superfícies que deveriam responder à mesma pergunta apresentam fatos incompatíveis, ou quando uma projeção viola deliberadamente a finalidade confirmada da tela.
+
+### Regra de julgamento humano e qualidade implícita
+
+O pedido do usuário descreve o objetivo, as regras e as restrições conhecidas. Ele não precisa enumerar condições básicas de qualidade de uma interface. Para qualquer alteração percebida pelo usuário, é responsabilidade do agente preservar e avaliar também legibilidade, espaçamento, alinhamento, contraste, clipping, overflow, hierarquia, densidade, coerência, responsive, affordance, feedback e continuidade visual.
+
+Isso não autoriza inventar regra de negócio, conteúdo institucional, permissão ou fluxo novo. Autoriza e exige julgamento profissional sobre a qualidade integrada do resultado dentro da intenção funcional já definida.
+
+**Cumprir literalmente o pedido não basta se o produto renderizado ficar ruim, ambíguo ou difícil de usar.**
+
+Antes de declarar concluída uma alteração de interface, fazer uma passagem deliberadamente de fora para dentro, separada da revisão técnica:
+
+1. abrir o resultado renderizado no SHA candidato;
+2. inicialmente não usar código, DOM, seletor, DevTools ou conhecimento da implementação para justificar a tela;
+3. observar a superfície como um operador que acabou de chegar nela;
+4. responder, apenas pelo que está visível:
+   - onde estou e qual contexto estou operando?
+   - qual registro ou objeto está em foco?
+   - qual é o estado atual?
+   - qual informação merece atenção primeiro?
+   - qual é a próxima ação principal e como descubro isso?
+   - depois da ação, o que aconteceu e o que devo fazer em seguida?
+5. inspecionar o conjunto, não apenas o componente alterado: elementos vizinhos, ordem visual, respiro, alinhamento, densidade, cortes, sobreposição, scroll, contraste, títulos, ações concorrentes e feedback;
+6. repetir a leitura depois da ação e, quando material, após voltar, trocar de superfície ou recarregar.
+
+Se as respostas dependerem de saber previamente como o código funciona, a interface ainda não se explica suficientemente para o usuário.
+
+O agente pode ajustar problemas diretamente causados pela sua mudança que impeçam leitura, composição ou uso adequado, mesmo que o prompt não tenha nomeado cada detalhe visual. Problemas preexistentes e não relacionados devem ser registrados e roteados, não usados para ampliar silenciosamente o escopo funcional.
 
 ## 3. Precedência de autoridade
 
@@ -187,6 +214,8 @@ revalidar main/ambiente
 → gates do SHA final
 → jornada real pelo frontend quando aplicável
 → inspeção visual da superfície afetada
+→ leitura humana outside-in do resultado integrado
+→ corrigir composição e clareza diretamente afetadas até o resultado ser utilizável
 → atualizar documentação afetada
 ```
 
