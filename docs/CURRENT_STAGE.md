@@ -55,7 +55,7 @@ Registro técnico da correção final da C3: [correções CodeQL e validação C
 
 Os documentos de handoff de A/B e das frentes anteriores permanecem **históricos concluídos**. Não reabrir PRs #375/#376/#377/#378 ou textos pré-merge como fila de implementação.
 
-O handoff corrente é [`docs/handoff/2026-09-28-prod-func-09-date-business-investigation.md`](handoff/2026-09-28-prod-func-09-date-business-investigation.md). Ele define a investigação corrente de `PROD-FUNC-09`, sem reabrir a baseline funcional já homologada.
+O handoff corrente é [`docs/handoff/2026-09-28-prod-ux-08-drawer-clipping.md`](handoff/2026-09-28-prod-ux-08-drawer-clipping.md). Ele define a investigação visual separada de `PROD-UX-08`. A investigação de `PROD-FUNC-09` está encerrada.
 
 Para retomada, a ordem de leitura continua sendo:
 
@@ -74,21 +74,13 @@ A baseline principal da jornada desktop de **Despesa a identificar / Pendências
 
 A auditoria em Production confirmou criação, retificação, identificação como Material de Consumo, transição para `Aguardando reanálise`, reanálise negativa coerente com ausência de arquivo real, retorno para `Aberta`, preservação de invoice/Pendência e persistência após reload no registro sintético autorizado.
 
-A frente ativa agora é a investigação isolada do achado **`PROD-FUNC-09` — data de disponibilização informada como 27/09/2026 e exibida como 26/09/2026 em `Tentativas de envio` na fila global**.
+**`PROD-FUNC-09` está encerrado em Production.** O PR [#392](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/392) corrigiu apenas o formatter de datas civis. Persistência, bridge, domínio e view model já preservavam `2026-09-27`. O merge `8284a02faf3d9381ad42e66b6d93677d396e8515` foi publicado no deployment `dpl_F8BVw5Js5v1HCcykq3NwBXa6SHzK`, `READY`, com manifesto no mesmo SHA e smoke aprovado.
 
-O objetivo imediato não é corrigir por palpite. É determinar em qual camada ocorre a mudança:
+A aba autenticada foi recarregada e o mesmo registro sintético, sem nova escrita, mostrou **Disponibilização 27/09/2026** e **Registro 27/09/2026, 23:12**. O CI do candidato terminou com **28 checks concluídos: 26 aprovados e 2 ignorados, sem falhas ou pendências**. [Evidência de encerramento](evidence/2026-09-28-prod-func-09-date-business/README.md).
 
-```text
-persistência Supabase
-→ state bridge / adaptação
-→ domínio / view model
-→ formatação de apresentação
-→ UI
-```
+A frente ativa passa a ser **`PROD-UX-08` — clipping e sobreposição do drawer global em desktop**. A correção de data não homologa a composição inteira do drawer; essa limitação foi novamente vista em Production e exige diagnóstico próprio antes de alterar CSS.
 
-O handoff corrente com comandos, guardrails e critérios de parada é [`docs/handoff/2026-09-28-prod-func-09-date-business-investigation.md`](handoff/2026-09-28-prod-func-09-date-business-investigation.md).
-
-O achado visual **`PROD-UX-08` — clipping do drawer global** permanece confirmado e será investigado separadamente depois de `PROD-FUNC-09`, para evitar misturar causas e correções.
+O handoff corrente com escopo, evidências e gate outside-in é [`docs/handoff/2026-09-28-prod-ux-08-drawer-clipping.md`](handoff/2026-09-28-prod-ux-08-drawer-clipping.md).
 
 A **Fase D — hardening e performance permanece planejada, mas foi deliberadamente adiada** até que esta frente funcional/visual principal seja novamente compreendida no baseline pós-A+B+C. Ela não foi cancelada nem iniciada.
 

@@ -1,10 +1,14 @@
-# Handoff corrente — investigação PROD-FUNC-09: data de negócio exibida um dia antes
+# Handoff histórico concluído — investigação PROD-FUNC-09
 
-**Estado:** corrente  
+**Estado:** histórico concluído; integrado e confirmado em Production
 **Data:** 28 de setembro de 2026  
 **Escopo:** causa-raiz primeiro; correção somente após prova  
 **Próximo executor previsto:** Codex  
 **Fase D:** adiada; não iniciar nesta frente
+
+**Encerramento:** PR #392, merge `8284a02faf3d9381ad42e66b6d93677d396e8515`, deployment `dpl_F8BVw5Js5v1HCcykq3NwBXa6SHzK`. Após reload autenticado, a tentativa original mostrou **Disponibilização 27/09/2026** e **Registro 27/09/2026, 23:12**, sem alteração do registro. [Evidência completa](../evidence/2026-09-28-prod-func-09-date-business/README.md). O handoff corrente passa a ser [PROD-UX-08](2026-09-28-prod-ux-08-drawer-clipping.md).
+
+O texto abaixo preserva o roteiro histórico da investigação; não representa uma tarefa funcional ainda aberta.
 
 ## 1. Onde o projeto está
 

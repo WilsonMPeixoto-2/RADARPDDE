@@ -1,0 +1,49 @@
+{
+  "observedAt": "2026-09-28T11:29:25.276Z",
+  "publishedCommit": "8284a02faf3d9381ad42e66b6d93677d396e8515",
+  "deploymentId": "dpl_F8BVw5Js5v1HCcykq3NwBXa6SHzK",
+  "mode": "observation-only",
+  "drawerText": "Aberta\nNotas Fiscais\n\nEscola Municipal Cardeal Câmara · 04.31.017\n\n×\nContexto\nCOMPETÊNCIA\nAgosto/2026\nPROGRAMA\nPDDE Básico\nDOCUMENTO\nNotas Fiscais\nCONTROLADOR\nWilson Peixoto\nPRÓXIMA AÇÃO\nEntregar ou corrigir o documento\nRESPONSÁVEL ATUAL\nEscola\nABERTURA\n27/09/2026\nÚLTIMA MOVIMENTAÇÃO\n27/09/2026, 23:13\nErros atuais\nArquivo não localizado ou inacessível\nObservação de abertura\n\nRegistro sintético autorizado para auditoria de UX; sem despesa ou documento real.\n\nTentativas de envio\nTentativa 1\nAnalisada\nDISPONIBILIZAÇÃO\n27/09/2026\nREGISTRO\n27/09/2026, 23:12\nRESULTADO\narquivo_indisponivel\n\nTeste autorizado em Production; nenhum documento fiscal ou arquivo real foi recebido.\n\nArquivo não localizado ou inacessível\nObservação da reanálise\n\nTeste controlado em Production: nenhum arquivo fiscal real foi disponibilizado; devolvido à Escola para preservar a veracidade documental.\n\nAnalisado por wilsonmp2@gmail.com · 27/09/2026, 23:13\nContatos vinculados\n\nNenhum contato vinculado a esta pendência.\n\nLinha do tempo\nArquivo indisponível\n27/09/2026, 23:13\n\nReanálise não localizou um arquivo acessível.\n\nwilsonmp2@gmail.com · Administrador técnico\nArquivo não localizado ou inacessível\nObservação da reanálise\n\nTeste controlado em Production: nenhum arquivo fiscal real foi disponibilizado; devolvido à Escola para preservar a veracidade documental.\n\nAnalisado por wilsonmp2@gmail.com · 27/09/2026, 23:13\nNovo envio\n27/09/2026, 23:12\n\nNovo envio corretivo registrado para reanálise.\n\nwilsonmp2@gmail.com · Administrador técnico\nDocumento ausente\nObservação da reanálise\n\nTeste controlado em Production: nenhum arquivo fiscal real foi disponibilizado; devolvido à Escola para preservar a veracidade documental.\n\nAnalisado por wilsonmp2@gmail.com · 27/09/2026, 23:13\nAbertura\n27/09/2026, 23:09\n\nPendência documental aberta.\n\nSistema · controlador\nDocumento ausente\nRegistrar novo envio\nAbrir no Prontuário\nRegistrar contato\nCancelar pendência",
+  "rowAttributes": [
+    [
+      "data-pendency-id",
+      "pend-699702ea-480f-4703-bd98-9de990237f35"
+    ],
+    [
+      "data-pendency-ref",
+      "{\"type\":\"string\",\"value\":\"pend-699702ea-480f-4703-bd98-9de990237f35\"}"
+    ],
+    [
+      "data-pendency-status",
+      "Aberta"
+    ],
+    [
+      "data-program-id",
+      "BASIC"
+    ],
+    [
+      "data-document-key",
+      "notaFiscal"
+    ],
+    [
+      "class",
+      "pendency-row-selected pendency-record-clickable"
+    ],
+    [
+      "aria-current",
+      "true"
+    ],
+    [
+      "tabindex",
+      "0"
+    ],
+    [
+      "aria-label",
+      "Escola Municipal Cardeal Câmara. Competência Agosto/2026. Abrir detalhes da pendência."
+    ],
+    [
+      "title",
+      "Abrir detalhes da pendência"
+    ]
+  ]
+}
