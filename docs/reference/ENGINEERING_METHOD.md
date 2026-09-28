@@ -2,8 +2,8 @@
 
 **Estado:** referência operacional canônica  
 **Aplicação:** todas as futuras análises, correções, implementações, refatorações e revisões do RADAR PDDE  
-**Atualizado em:** 6 de setembro de 2026  
-**Origem dos ensinamentos:** histórico recente do projeto, especialmente #265, #266, #271, #272 e a revisão independente registrada em `docs/audits/2026-09-06-pr272-inventory-auth-review.md`.
+**Atualizado em:** 28 de setembro de 2026  
+**Origem dos ensinamentos:** histórico recente do projeto, especialmente #265, #266, #271, #272, as revisões independentes registradas em setembro e a auditoria pós-A+B+C da jornada de Despesa a identificar em Production.
 
 ## 1. Finalidade
 
@@ -266,6 +266,28 @@ A revisão deve procurar, conforme o risco:
 
 Quando materialmente possível, essa revisão deve usar uma reprodução diferente do teste que guiou a implementação.
 
+### 12.1 Revisão adversarial humana: sair da cabeça do implementador
+
+Para qualquer mudança percebida pelo usuário, a revisão adversarial possui uma segunda perspectiva obrigatória: **o produto visto de fora**.
+
+Depois da implementação técnica, o agente deve interromper a leitura do código e observar a interface renderizada como se não soubesse como ela foi construída. O objetivo não é “confirmar o componente”, mas tentar refutar a ideia de que o resultado é suficientemente claro para uso humano.
+
+Perguntas mínimas:
+
+    uma pessoa entende onde está?
+    entende qual caso está tratando?
+    entende o estado atual?
+    percebe o que merece atenção?
+    encontra a ação principal?
+    entende o resultado depois de agir?
+    consegue continuar sem conhecer a arquitetura?
+
+Em seguida, inspecionar o conjunto visual: legibilidade, espaçamento, alinhamento, contraste, clipping, overflow, hierarquia, densidade, coerência, responsive, affordance, feedback e continuidade.
+
+**A implementação pode satisfazer integralmente o requisito funcional e ainda assim reprovar esta revisão.** Nesse caso, a tarefa permanece aberta.
+
+O prompt não precisa antecipar cada problema de diagramação. Se a própria mudança produzir corte, sobreposição, hierarquia enganosa, perda de identidade, ação escondida ou integração visual ruim, corrigir isso faz parte da mesma entrega desde que não altere regra de negócio.
+
 ## 13. Métodos vulneráveis já observados
 
 | Método vulnerável | Por que falha | Substituição preferida |
@@ -282,6 +304,10 @@ Quando materialmente possível, essa revisão deve usar uma reprodução diferen
 | Corrigir só o caso proibido | Pode quebrar vizinhos legítimos | Par proibido + legítimo |
 | Repetir Lighthouse até verde | Seleciona ruído favorável | Controle comparável e protocolo fixo |
 | Tratar auditoria histórica como estado atual | Pode reintroduzir regra superada | Revalidar por SHA no código corrente |
+| Cumprir o prompt literalmente e parar | O pedido não enumera toda condição básica de qualidade humana | Avaliar o produto integrado e corrigir degradação diretamente causada |
+| Validar UI pelo DOM/CSS sem olhar a tela | Prova implementação, não percepção | Fazer leitura outside-in do render antes da correlação técnica |
+| Validar componente isolado | Pode ignorar competição, densidade e precedência com vizinhos | Inspecionar composição completa e jornada anterior/posterior |
+| Gerar screenshot sem abri-la | Produz artefato sem julgamento | Abrir, inspecionar e registrar a leitura humana da captura |
 
 ## 14. Exemplos históricos que originaram o método
 
@@ -357,7 +383,7 @@ O defeito não estava no caminho feliz nem na ambiguidade do convite já tratada
 | Tipo de mudança | Prova mínima recomendada quando o risco existir |
 |---|---|
 | Regra de domínio simples | caso válido + inválido + vizinho legítimo + efeitos/log |
-| UI/feedback | DOM real, produtores/consumidores, lifecycle e acessibilidade afetada |
+| UI/feedback | DOM real + jornada visível + leitura humana outside-in + composição com vizinhos + lifecycle e acessibilidade afetada |
 | Bootstrap/extensão/wrapper | ordem real, inversa relevante, tardia e repetida |
 | Persistência | estado antes/depois, retorno remoto, memória, reload |
 | Concorrência | interleaving determinístico sem depender de `sleep` |
@@ -384,7 +410,8 @@ Para alteração funcional material, não declarar pronto apenas com “testes v
 8. fluxo legítimo vizinho permanece válido;
 9. falhas de CI foram classificadas como produto, teste, infraestrutura ou variabilidade;
 10. os gates proporcionais passaram no SHA final, ou qualquer vermelho remanescente está explicitamente classificado sem ser ocultado;
-11. documentação corrente foi atualizada somente onde realmente mudou.
+11. se a mudança for percebida pelo usuário, a tela renderizada passou pela leitura humana outside-in e nenhum defeito visível diretamente causado pela alteração ficou pendente;
+12. documentação corrente foi atualizada somente onde realmente mudou.
 
 Para mudanças P0/P1 ou transversais, a revisão adversarial faz parte do trabalho de implementação, não é uma etapa opcional terceirizada a outro modelo.
 

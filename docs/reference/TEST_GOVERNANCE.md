@@ -1,7 +1,7 @@
 # Governança de testes do RADAR PDDE
 
 **Estado:** referência operacional vigente  
-**Atualizado em:** 26 de setembro de 2026
+**Atualizado em:** 28 de setembro de 2026
 
 ## 1. Finalidade
 
@@ -44,6 +44,8 @@ Para uma mudança funcional comum, validar somente o necessário para responder 
 7. a tela posterior reflete corretamente a ação realizada.
 
 Isso inclui experiência do usuário: visualização, encontrabilidade, legibilidade, coerência de dados, feedback, navegação e recuperação de contexto.
+
+Para UI, teste automatizado é evidência de comportamento, não substituto de julgamento. Um teste pode confirmar que um botão existe e é clicável enquanto a tela continua ruim para um ser humano. Quando a mudança for percebida pelo usuário, combinar a automação com a leitura humana outside-in definida em FRONTEND_USER_VALIDATION_GATE.md.
 
 ## 5. Quantidade de testes
 
@@ -124,7 +126,11 @@ Regras:
 3. golden só pode ser atualizado quando a mudança visual é intencional e o diff foi revisado;
 4. não aumentar tolerância apenas para obter verde;
 5. conteúdo efêmero deve ser sincronizado/capturado dentro do seu estado real, não artificialmente congelado para mascarar corrida;
-6. mudanças de fonte, antialiasing ou plataforma devem ser classificadas antes de aceitar novo baseline.
+6. mudanças de fonte, antialiasing ou plataforma devem ser classificadas antes de aceitar novo baseline;
+7. snapshot verde não prova hierarquia, clareza ou compreensão humana;
+8. estado vazio não certifica layout populado; usar dados representativos quando densidade ou comprimento puderem alterar composição;
+9. toda captura usada como evidência material deve ser efetivamente aberta e inspecionada;
+10. defeito visível como clipping, sobreposição, overflow ou ação materialmente escondida bloqueia conclusão mesmo que o diff visual esteja estável em relação a um golden antigo.
 
 ## 10. Locks e paralelismo
 

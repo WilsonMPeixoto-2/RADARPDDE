@@ -2,7 +2,7 @@
 
 **Estado:** referência operacional canônica  
 **Aplicação:** todas as futuras correções, implementações, refatorações, otimizações e alterações visuais ou funcionais do RADAR PDDE  
-**Atualizado em:** 26 de setembro de 2026  
+**Atualizado em:** 28 de setembro de 2026  
 **Complementa:** `docs/reference/ENGINEERING_METHOD.md`
 
 ## 1. Regra central
@@ -14,6 +14,18 @@ A conclusão exige também validação do produto pela interface real, no fronte
 A regra é:
 
 > Código verde sem jornada real do usuário comprovada não encerra a tarefa.
+
+A aceitação de uma mudança percebida pelo usuário possui **duas aprovações independentes**:
+
+    aprovação técnica
+    +
+    aprovação humana do resultado renderizado
+    =
+    tarefa concluída
+
+A aprovação técnica demonstra que a regra, persistência e integrações funcionam. A aprovação humana demonstra que uma pessoa consegue perceber, ler, entender e operar o resultado composto. Uma não substitui a outra.
+
+O prompt recebido não é uma especificação exaustiva de qualidade visual. O agente deve preservar os requisitos implícitos de uso humano mesmo quando o usuário descreve apenas a ideia funcional.
 
 O objetivo é evitar regressões em que serviços, handlers, módulos, migrations ou testes aparentem estar corretos, mas a funcionalidade falhe quando o usuário navega, clica, preenche, salva, atualiza a página ou retorna ao registro.
 
@@ -85,6 +97,76 @@ Verificar conforme o impacto:
 - atualização da tela após gravação;
 - persistência após refresh;
 - console e rede sem erro material relacionado à jornada.
+
+### 3.4 Leitura humana outside-in obrigatória
+
+Esta etapa existe para impedir que a própria implementação determine o critério de sucesso.
+
+O agente deve fazer uma segunda leitura começando pela tela, não pelo código. A intenção é reproduzir, de forma disciplinada, a perspectiva de uma pessoa que não conhece handlers, seletores, classes CSS, serviços ou decisões internas.
+
+#### Passagem A — primeira leitura
+
+Com a interface já renderizada, antes de consultar a implementação para explicar o resultado, registrar em linguagem comum:
+
+    Onde estou?
+    O que estou vendo?
+    Qual registro ou assunto está em foco?
+    Qual é o estado atual?
+    O que parece mais importante?
+    O que eu faria agora?
+    O que espero que aconteça depois?
+
+A resposta deve ser inferível pela tela. Se o agente só consegue responder porque conhece o código ou o roteiro do teste, a interface reprova essa passagem.
+
+#### Passagem B — varredura de integridade visual
+
+Observar o conjunto completo e verificar:
+
+- legibilidade;
+- espaçamento e respiro;
+- alinhamento;
+- contraste;
+- clipping e truncamento;
+- overflow horizontal ou vertical inesperado;
+- sobreposição;
+- hierarquia entre informação principal e secundária;
+- densidade;
+- coerência com componentes vizinhos e superfícies relacionadas;
+- comportamento no viewport suportado;
+- affordance de controles e áreas clicáveis;
+- feedback visível;
+- continuidade visual durante mudança de estado.
+
+Não examinar apenas o elemento novo. A pergunta é se **o produto resultante** continua coerente depois que o novo elemento passou a conviver com os anteriores.
+
+#### Passagem C — compreensão e continuidade
+
+Executar a ação principal e responder novamente, pela interface:
+
+    O que acabou de acontecer?
+    O estado mudou para quê?
+    Quem precisa agir agora?
+    Existe uma próxima ação clara?
+    Eu consigo reencontrar este caso se navegar, voltar ou recarregar?
+
+Uma mensagem como “Operação realizada com sucesso” pode ser tecnicamente verdadeira e ainda ser insuficiente se a consequência relevante para o usuário permanecer ambígua.
+
+#### Passagem D — só então correlacionar com o código
+
+Depois de registrar a percepção da tela, usar DOM, CSS, JavaScript, trace e DevTools para explicar a causa de qualquer problema observado.
+
+A ordem é intencional:
+
+    percepção humana
+    → problema observado
+    → mecanismo técnico
+
+e não:
+
+    implementação parece correta
+    → portanto a tela deve estar boa
+
+Esta passagem não substitui teste com usuários reais quando esse nível de pesquisa for necessário. Ela estabelece o mínimo obrigatório de julgamento humano para qualquer agente que implemente ou revise interface.
 
 ## 4. Testar a jornada, não apenas a função
 
@@ -159,11 +241,55 @@ Exemplos:
 - alterações de equipe e carteira;
 - retificações e histórico/auditoria.
 
-## 7. Layout é parte da funcionalidade
+## 7. Qualidade humana é parte da funcionalidade
 
-Uma funcionalidade tecnicamente existente, mas inacessível, invisível, deslocada, encoberta ou sem feedback adequado não está concluída.
+Uma funcionalidade tecnicamente existente, mas difícil de perceber, ler, compreender ou operar não está concluída.
 
-Alterações que afetem UI devem incluir inspeção visual real da superfície impactada. Testes que apenas verificam presença de seletor no DOM podem ser usados como apoio, mas não substituem evidência de renderização e usabilidade quando houver risco visual.
+Alterações que afetem UI devem incluir inspeção visual real da superfície impactada. Testes que apenas verificam presença de seletor no DOM podem ser usados como apoio, mas não substituem evidência de renderização, composição e compreensão humana.
+
+### 7.1 Condições que bloqueiam a conclusão
+
+Salvo decisão explícita em contrário, uma alteração percebida pelo usuário reprova o gate se, em viewport suportado e estado representativo:
+
+- conteúdo necessário à decisão fica cortado, encoberto, sobreposto ou fora da área utilizável;
+- controle necessário existe no DOM, mas não é razoavelmente encontrável pela composição visual;
+- ação secundária recebe mais destaque que a ação principal sem justificativa funcional;
+- títulos, rótulos ou agrupamentos fazem o usuário perder a identidade do caso ou do estado que está operando;
+- novo componente quebra alinhamento, respiro, largura, fluxo ou hierarquia dos elementos com os quais passou a conviver;
+- scroll é necessário para informação essencial, mas a composição não oferece pista suficiente de que existe conteúdo relevante adiante;
+- feedback confirma apenas a execução técnica e não comunica uma consequência material para a jornada;
+- a interface depende do conhecimento prévio do implementador para ser compreendida;
+- uma largura suportada produz clipping, overflow horizontal, controles inacessíveis ou leitura materialmente degradada.
+
+### 7.2 Critérios concretos de aprovação humana
+
+A superfície pode ser aprovada quando, no estado representativo:
+
+1. **orientação:** a pessoa identifica tela, contexto, registro e estado sem consultar outra fonte;
+2. **prioridade:** a hierarquia visual faz a informação mais importante chamar atenção antes das secundárias;
+3. **ação:** a próxima ação relevante é descobrível, nomeada em linguagem compatível com a tarefa e visualmente diferenciada;
+4. **leitura:** textos, valores e controles necessários estão integralmente legíveis e possuem espaço compatível com seu conteúdo real;
+5. **composição:** o elemento novo parece parte da mesma interface e não degrada elementos preexistentes;
+6. **feedback:** depois da ação, a pessoa entende o que mudou, o novo estado e, quando aplicável, quem deve agir;
+7. **continuidade:** navegar, voltar e recarregar não destrói o contexto necessário para continuar;
+8. **responsividade:** a mesma intenção permanece legível e operável nas larguras desktop suportadas afetadas pela mudança;
+9. **densidade:** a quantidade de informação não esconde a tarefa principal nem cria competição desnecessária entre ações;
+10. **coerência semântica:** datas, estados, nomes e rótulos são apresentados de forma humana e consistente entre superfícies que tratam o mesmo fato.
+
+Não existe obrigação de colocar tudo acima da dobra. Existe obrigação de não esconder de forma enganosa o que é necessário para decidir ou agir.
+
+### 7.3 Evidência mínima de uma mudança visual material
+
+Para mudança visual ou material:
+
+- usar estado preenchido e conteúdo com comprimento e densidade realistas; tela vazia ou texto curto não certifica o estado populado;
+- verificar o viewport desktop principal e pelo menos um viewport desktop mais restrito quando a geometria puder mudar;
+- abrir e inspecionar efetivamente as screenshots ou capturas produzidas; gerar arquivo sem examiná-lo não conta como validação;
+- registrar uma **leitura humana do resultado** em linguagem comum, sem citar classes CSS, seletores ou handlers;
+- confrontar o elemento novo com seus vizinhos e com a etapa anterior e posterior da jornada;
+- quando Production tiver densidade ou composição materialmente diferente de fixture ou Preview, obter evidência navegada apropriada antes de afirmar homologação visual de Production.
+
+O projeto usa 1440×900 como baseline visual canônica. Quando a alteração puder degradar monitores mais restritos, incluir uma largura desktop menor pertinente ao risco, como 1366×768 ou 1280×720, sem transformar isso em exigência de múltiplos navegadores para toda mudança.
 
 ## 8. Performance não pode comprar regressão
 
@@ -192,6 +318,8 @@ Uma tarefa relevante só pode ser declarada concluída quando, conforme o impact
 - as ações críticas tiverem sido exercidas por controles visíveis ao usuário;
 - persistência e releitura tiverem sido comprovadas quando houver escrita;
 - o layout/superfície afetada tiver sido inspecionado visualmente;
+- a leitura humana outside-in tiver sido registrada e aprovada quando a mudança for percebida pelo usuário;
+- nenhum bloqueador da seção 7.1 estiver presente;
 - não houver regressão material conhecida nas jornadas vizinhas;
 - o SHA efetivamente homologado for o mesmo candidato à integração/publicação.
 
@@ -209,6 +337,7 @@ causa real no código
 + jornada real pelo frontend
 + persistência/releitura
 + inspeção visual
++ leitura humana outside-in
 + revisão adversarial
 = evidência suficiente para conclusão
 ```
