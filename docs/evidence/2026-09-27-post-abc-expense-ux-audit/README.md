@@ -67,7 +67,13 @@ Os IDs acima vêm de atributos DOM da mesma linha da descrição única, observa
 
 No mesmo lançamento, o diálogo `Editar despesa a identificar` recebeu a descrição `TESTE CONTROLADO UX 27-09-2026 23:08 — saída provisória retificada`, a referência `UX-2709-2308-R1` e o valor `R$ 1,24`. Após `Salvar Alterações`, o card de Notas Fiscais mostrou a nova descrição e o novo valor, ainda com tipo automático `Despesa a identificar` e análise `Incorreto`. O drawer reaberto exibiu descrição, referência e valor atualizados, status `Aberta`, motivo `Documento ausente` e a mesma observação sintética. Os atributos DOM preservaram `nota-82b17b35-971e-49d9-85a5-d4e0e2c55065` e `pend-699702ea-480f-4703-bd98-9de990237f35`. A persistência após reload ainda será conferida ao final do ciclo.
 
-Próximas etapas: registrar identificação e envio com dados sintéticos, reanalisar e verificar o estado restaurado.
+### Primeiro envio e identificação — confirmados em Production
+
+Pelo CTA `Registrar envio / identificação da despesa` no drawer, o diálogo mostrou contexto da mesma unidade, competência e programa e exigiu a escolha do tipo final. Foram salvos `Material de Consumo`, referência `DOC-TESTE-UX-2709-2308`, descrição `TESTE CONTROLADO UX 27-09-2026 23:08 — material de consumo sintético`, `R$ 1,24`, data de disponibilização `27/09/2026` e observação `Teste autorizado em Production; nenhum documento fiscal ou arquivo real foi recebido.` O link opcional do Drive ficou vazio. **A data atende a validação obrigatória do formulário neste ensaio sintético; não prova disponibilização de um arquivo real.**
+
+Após `Registrar e enviar para reanálise`, o card do Prontuário passou a `NF: DOC-TESTE-UX-2709-2308`, `Material de consumo`, `R$ 1,24` e botão clicável `Aguardando reanálise`. O mesmo `data-invoice-id` (`nota-82b17b35-971e-49d9-85a5-d4e0e2c55065`) e a referência de Pendência (`pend-699702ea-480f-4703-bd98-9de990237f35`) permaneceram no DOM. O drawer mostrou `Aguardando reanálise` e CTA `Reanalisar` com orientação coerente para conferir o documento recebido. O contador de pendências da unidade permaneceu 5. Próximas etapas: devolver como `Incorreto`, pois não existe arquivo fiscal real neste teste, e conferir persistência após reload.
+
+**Observação de UX a avaliar:** o card acrescenta `NF:` a uma referência livre (`DOC-TESTE-...`); o formulário exigiu data de disponibilização mesmo com link do Drive vazio. Isso é visível no fluxo e não comprova que o arquivo exista. A consequência prática e eventual tratamento exigem decisão de produto; este checkpoint não afirma conformidade documental.
 
 **Riscos de acessibilidade ainda não certificados:** 01b demonstra tooltip por hover; falta verificar exposição equivalente por foco/teclado e leitor de tela. Textos auxiliares cinza/roxo pequenos aparecem em 02b, 03 e 04b; falta medição de contraste e zoom/reflow. Nenhuma conclusão de conformidade WCAG é feita a partir das capturas.
 
