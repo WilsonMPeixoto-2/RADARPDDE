@@ -167,7 +167,7 @@ test.describe('data civil da tentativa na fila global', () => {
     const context = await seedAwaitingReanalysis(page, {
       pendencyId: 'pend-e2e-data-disponibilizacao',
       availabilityDate: '2026-09-27',
-      registrationAt: '2026-09-27T12:00:00.000Z'
+      registrationAt: '2026-09-28T01:00:00.000Z'
     });
     expect(context.availabilityDate).toBe('2026-09-27');
     const trace = await page.evaluate(pendencyId => {
@@ -184,7 +184,7 @@ test.describe('data civil da tentativa na fila global', () => {
     expect(trace).toEqual({
       domainDate: '2026-09-27',
       projectedDate: '2026-09-27',
-      registration: '2026-09-27T12:00:00.000Z'
+      registration: '2026-09-28T01:00:00.000Z'
     });
 
     await page.locator('#p-aguardando [data-action="open-pendency-detail"]').first().click();
@@ -192,7 +192,15 @@ test.describe('data civil da tentativa na fila global', () => {
     await expect(drawer).toBeVisible();
     const attempt = drawer.locator('.pendency-attempt-list > li').first();
     await expect(attempt.locator('dd').first()).toHaveText('27/09/2026');
-    await expect(attempt).toContainText('27/09/2026, 09:00');
+    await expect(attempt).toContainText('27/09/2026, 22:00');
+    await expect(page.locator('#p-aguardando tr[data-pendency-ref]').first())
+      .toContainText('27/09/2026');
+    await expect(page.locator('body')).toHaveClass(/pendency-drawer-open-desktop/);
+    await drawer.evaluate(async element => {
+      await Promise.all(element.getAnimations().map(animation => animation.finished));
+    });
+    await attempt.scrollIntoViewIfNeeded();
+    await page.screenshot({ path: testInfo.outputPath('availability-date-green.png') });
   });
 });
 

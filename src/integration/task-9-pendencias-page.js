@@ -172,7 +172,8 @@
         if (!value) return 'Data não informada';
         const parsed = new Date(value);
         if (Number.isNaN(parsed.getTime())) return 'Data não informada';
-        return parsed.toLocaleDateString('pt-BR');
+        const isCivilDate = /^\d{4}-\d{2}-\d{2}$/.test(String(value));
+        return parsed.toLocaleDateString('pt-BR', isCivilDate ? { timeZone: 'UTC' } : undefined);
     }
 
     function formatDateTime(value) {
