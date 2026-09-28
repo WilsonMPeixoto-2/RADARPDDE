@@ -21,7 +21,7 @@ Ordem:
 10. ADRs e referências especializadas da área afetada;
 11. planos, auditorias, demais handoffs e evidências históricas apenas para compreender o seu momento/SHA.
 
-**Estado funcional corrente:** A + B + C estão concluídas; a Fase D ainda não foi iniciada e está deliberadamente adiada; a baseline principal de Despesa a identificar/Pendências foi homologada e a frente ativa é a investigação isolada de `PROD-FUNC-09`. O handoff corrente é [`handoff/2026-09-28-prod-func-09-date-business-investigation.md`](handoff/2026-09-28-prod-func-09-date-business-investigation.md).
+**Estado funcional corrente:** A + B + C estão concluídas; a Fase D ainda não foi iniciada e está deliberadamente adiada; `PROD-FUNC-09` foi encerrado em Production após o PR #392 e a frente ativa é a investigação visual isolada de `PROD-UX-08`. O handoff corrente é [`handoff/2026-09-28-prod-ux-08-drawer-clipping.md`](handoff/2026-09-28-prod-ux-08-drawer-clipping.md).
 
 O [PR #386](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/386) e o merge funcional `e6b692a97dd5148877c788da11e0c8ae4c8fcd19` registram o encerramento da C3. Commits posteriores exclusivamente documentais podem avançar a `main` e gerar novo deployment sem reabrir a Fase C. Quando o SHA do head ou o deployment ativo importarem para uma nova entrega, verificá-los ao vivo.
 
@@ -84,7 +84,8 @@ O modelo detalhado está em `SYSTEM_CANONICAL_MODEL.md`; a finalidade humana das
 
 Consultar conforme a área materialmente afetada:
 
-- [`handoff/2026-09-28-prod-func-09-date-business-investigation.md`](handoff/2026-09-28-prod-func-09-date-business-investigation.md) — **handoff corrente** da investigação PROD-FUNC-09;
+- [`handoff/2026-09-28-prod-ux-08-drawer-clipping.md`](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) — **handoff corrente** da investigação visual PROD-UX-08;
+- [`handoff/2026-09-28-prod-func-09-date-business-investigation.md`](handoff/2026-09-28-prod-func-09-date-business-investigation.md) — handoff histórico concluído de PROD-FUNC-09, integrado pelo PR #392 e confirmado em Production sem nova escrita;
 - [`handoff/2026-09-27-post-abc-expense-baseline-audit.md`](handoff/2026-09-27-post-abc-expense-baseline-audit.md) — handoff histórico concluído da baseline pós-A+B+C da jornada Despesa a identificar/Pendências;
 
 - [`evidence/2026-09-27-phase-c3-codeql.md`](evidence/2026-09-27-phase-c3-codeql.md) — evidência técnica histórica da entrega C3 e dos dois achados CodeQL;
