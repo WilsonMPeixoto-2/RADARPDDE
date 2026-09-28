@@ -278,3 +278,27 @@ test('releitura corretiva de entidade operacional conserva o recorte e nunca rec
     assert.equal(refreshed.entities.verifications[0].id, 'v-sep');
     assert.deepEqual(refreshed.entities.administrativeLogs, []);
 });
+
+
+test('leitura visual anual da escola não hidrata nem substitui o contexto operacional', async () => {
+    const harness = createHarness();
+    harness.repository.querySchoolMonthlyVerifications = async schoolId => ([
+        {
+            id: 'v-feb',
+            school_id: schoolId,
+            competence_id: '2026-02',
+            program_id: 'BASIC',
+            bonus_result: 'apta',
+            bonification: { extCC: 'Sim' },
+            analysis: {}
+        }
+    ]);
+    const service = new DataService({ repository: harness.repository, statePort: harness.statePort });
+
+    const rows = await service.readSchoolMonthlyVerifications('04.31.001');
+
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].competence_id, '2026-02');
+    assert.equal(harness.applied.length, 0, 'a leitura das bolinhas não pode hidratar o estado operacional');
+    assert.equal(service.currentOperationalCompetence, '');
+});
