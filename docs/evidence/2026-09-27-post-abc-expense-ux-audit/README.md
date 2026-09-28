@@ -38,8 +38,18 @@ Uma tentativa complementar no navegador interno mostrou o Prontuário em 1215 px
 
 **UX-07 — identidade da despesa perde destaque no drawer global; prioridade média; confiança alta no desktop local.** Em 06, o item é `Despesa a identificar` e o CTA nomeia a identificação. Em 09, o título do drawer vira `Notas Fiscais` e a próxima ação é o genérico `Entregar ou corrigir o documento`; sem voltar à linha selecionada, a pessoa não vê no cabeçalho que está identificando uma despesa provisória. Expor a natureza provisória e a ação específica no próprio drawer ajudaria a conectar as superfícies.
 
+## Production autenticada — checkpoint de navegação
+
+Após o login do usuário, a sessão autenticada de `https://radarpdde-fix.vercel.app/` foi inspecionada no navegador interno, em viewport de aproximadamente 1215 px. **Este checkpoint é leitura de UI de Production, sem gravação e sem captura versionada.** O SHA exato do deployment não foi identificado; as observações não são atribuídas automaticamente ao tree da baseline.
+
+Na unidade **Escola Municipal Cardeal Câmara (04.31.017)**, competência **Agosto/2026**, o Prontuário mostrou quatro Pendências Ativas, todas de `Despesa a identificar`. Os cards de Notas Fiscais mostraram estado `Incorreto`, dados provisórios e `Visualizar pendência`; a aba `Pendências Ativas desta unidade (4)` listou competência, defeito, responsável, abertura e `Registrar envio / identificação da despesa`, sem controle de detalhe na própria linha. A captura visual ao vivo confirmou a mesma diferença de inspeção descrita em UX-05.
+
+O link `Ver todas as pendências desta escola` abriu `/pendencias?escola=04.31.017`, com filtro da unidade selecionado e quatro resultados abertos. Na fila, a próxima ação do registro **WEDAX DEDETIZADORA** foi específica — `Enviar documento e identificar a despesa`. Seu drawer, porém, intitulou o item apenas `Notas Fiscais` e indicou `Entregar ou corrigir o documento`, corroborando UX-07. O drawer mostrou contexto, erro `Documento ausente`, observação, tentativas, contatos e linha do tempo. `Abrir no Prontuário` conduziu à mesma unidade e competência; `Voltar às Pendências` restaurou filtro e drawer do mesmo registro. **Nenhum envio, reanálise, edição ou cancelamento foi salvo.**
+
+Os cliques disparados pelo controle remoto do navegador interno não ativaram os handlers de navegação nessa sessão; a ativação por **Enter** funcionou. Isso não é classificado como defeito do produto, pois a navegação local Playwright já havia passado por clique. A abertura inicial do Prontuário usou o `href` exibido pelo próprio link. Falta executar e observar o ciclo de gravação na Production com um registro inequivocamente destinado a teste.
+
 **Riscos de acessibilidade ainda não certificados:** 01b demonstra tooltip por hover; falta verificar exposição equivalente por foco/teclado e leitor de tela. Textos auxiliares cinza/roxo pequenos aparecem em 02b, 03 e 04b; falta medição de contraste e zoom/reflow. Nenhuma conclusão de conformidade WCAG é feita a partir das capturas.
 
 ## Próxima verificação
 
-Repetir a comparação no **deployment de Production autenticado** e, com registro reservado para teste, conferir se o ciclo real reproduz os mesmos estados e mensagens. A sessão Chrome disponível nesta rodada continuou no login `Acesso institucional`; as capturas 01–11 não devem ser descritas como capturas de Production. Confrontar UX-01 e UX-03 com essa navegação real antes de decidir ajustes de interface.
+Com um registro inequivocamente destinado a teste, conferir se o ciclo de gravação real na Production reproduz os mesmos estados e mensagens. As capturas 01–11 continuam sendo **locais**, não capturas de Production. Confrontar UX-01 e UX-03 com esse ciclo antes de decidir ajustes de interface.
