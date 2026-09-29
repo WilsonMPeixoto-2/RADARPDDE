@@ -34,7 +34,7 @@ select ok(to_regprocedure('public.promote_data_import(text,text,jsonb,jsonb)') i
 select ok(to_regprocedure('public.rollback_data_import(text)') is not null, 'RPC de rollback existe');
 select ok(
     (select count(*) = 55 from supabase_migrations.schema_migrations),
-    'cinquenta e cinco migrations foram registradas'
+    'cinquenta e seis migrations foram registradas'
 );
 select has_extension('pg_jsonschema', 'pg_jsonschema está instalada e ativa');
 select ok(
