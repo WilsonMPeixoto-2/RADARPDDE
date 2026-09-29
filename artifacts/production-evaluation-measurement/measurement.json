@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-09-29T04:36:57.811Z",
+  "capturedAt": "2026-09-29T04:48:06.639Z",
   "environment": "production",
   "profile": "technical_admin",
   "viewport": {
@@ -11,10 +11,10 @@
   "runs": [
     {
       "label": "global-competence:2026-07",
-      "totalMs": 11754,
+      "totalMs": 8842,
       "requestCount": 278,
       "requestFailures": 0,
-      "requestP95Ms": 242,
+      "requestP95Ms": 172,
       "requestsByTable": {
         "verifications": 160,
         "registered_invoices": 109,
@@ -23,6 +23,23 @@
         "pendency_attempts": 2,
         "pendency_contacts": 2
       },
+      "visualFrames": {
+        "sampledDurationMs": 8845.6,
+        "frameCount": 474,
+        "busyFrames": 450,
+        "hiddenFrames": 0,
+        "emptyFrames": 0,
+        "degradedFrames": 0,
+        "maxDegradedDurationMs": 0,
+        "baselineTextLength": 2274,
+        "minTextLength": 2274,
+        "minTextRatio": 1,
+        "baselineRowCount": 12,
+        "minRowCount": 12,
+        "minRowRatio": 1,
+        "minHeight": 2395.1,
+        "maxHeight": 2694.7
+      },
       "mutationBatches": 6,
       "mutationRecords": 289,
       "addedNodes": 104,
@@ -30,13 +47,13 @@
       "switchView": [
         {
           "view": "prontuario",
-          "durationMs": 13.5
+          "durationMs": 12
         }
       ],
       "loadContext": [
         {
           "competence": "2026-07",
-          "durationMs": 10912.6,
+          "durationMs": 7994.4,
           "stale": false
         }
       ],
@@ -45,24 +62,24 @@
           "name": "radar:competence-change",
           "competence": "2026-07",
           "source": "global-selector",
-          "at": 18820
+          "at": 14516.5
         },
         {
           "name": "radar:operational-context-refreshed",
           "competence": "2026-07",
           "source": "competence-change",
-          "at": 18820
+          "at": 14516.5
         }
       ],
       "layoutShifts": [],
-      "lastMutationAgeMs": 817
+      "lastMutationAgeMs": 814
     },
     {
       "label": "global-competence:2026-06",
-      "totalMs": 11011,
+      "totalMs": 9209,
       "requestCount": 292,
       "requestFailures": 0,
-      "requestP95Ms": 204,
+      "requestP95Ms": 163,
       "requestsByTable": {
         "verifications": 168,
         "registered_invoices": 115,
@@ -71,6 +88,23 @@
         "pendency_attempts": 2,
         "pendency_contacts": 2
       },
+      "visualFrames": {
+        "sampledDurationMs": 9211.8,
+        "frameCount": 488,
+        "busyFrames": 467,
+        "hiddenFrames": 0,
+        "emptyFrames": 0,
+        "degradedFrames": 0,
+        "maxDegradedDurationMs": 0,
+        "baselineTextLength": 2517,
+        "minTextLength": 2397,
+        "minTextRatio": 0.952,
+        "baselineRowCount": 12,
+        "minRowCount": 12,
+        "minRowRatio": 1,
+        "minHeight": 2395.1,
+        "maxHeight": 2694.7
+      },
       "mutationBatches": 6,
       "mutationRecords": 289,
       "addedNodes": 104,
@@ -78,13 +112,13 @@
       "switchView": [
         {
           "view": "prontuario",
-          "durationMs": 15.7
+          "durationMs": 14.9
         }
       ],
       "loadContext": [
         {
           "competence": "2026-06",
-          "durationMs": 10166.6,
+          "durationMs": 8363,
           "stale": false
         }
       ],
@@ -93,24 +127,24 @@
           "name": "radar:competence-change",
           "competence": "2026-06",
           "source": "global-selector",
-          "at": 29834
+          "at": 23736.2
         },
         {
           "name": "radar:operational-context-refreshed",
           "competence": "2026-06",
           "source": "competence-change",
-          "at": 29834
+          "at": 23736.2
         }
       ],
       "layoutShifts": [],
-      "lastMutationAgeMs": 817
+      "lastMutationAgeMs": 813
     },
     {
       "label": "global-competence:2026-08",
-      "totalMs": 6630,
+      "totalMs": 5694,
       "requestCount": 172,
       "requestFailures": 0,
-      "requestP95Ms": 213,
+      "requestP95Ms": 169,
       "requestsByTable": {
         "verifications": 94,
         "registered_invoices": 69,
@@ -119,6 +153,23 @@
         "pendency_attempts": 2,
         "pendency_contacts": 2
       },
+      "visualFrames": {
+        "sampledDurationMs": 5697.2,
+        "frameCount": 281,
+        "busyFrames": 261,
+        "hiddenFrames": 0,
+        "emptyFrames": 0,
+        "degradedFrames": 0,
+        "maxDegradedDurationMs": 0,
+        "baselineTextLength": 2517,
+        "minTextLength": 2154,
+        "minTextRatio": 0.856,
+        "baselineRowCount": 12,
+        "minRowCount": 12,
+        "minRowRatio": 1,
+        "minHeight": 2213.5,
+        "maxHeight": 2694.7
+      },
       "mutationBatches": 6,
       "mutationRecords": 279,
       "addedNodes": 94,
@@ -126,13 +177,13 @@
       "switchView": [
         {
           "view": "prontuario",
-          "durationMs": 11.4
+          "durationMs": 18.7
         }
       ],
       "loadContext": [
         {
           "competence": "2026-08",
-          "durationMs": 5804.3,
+          "durationMs": 4847.3,
           "stale": false
         }
       ],
@@ -141,24 +192,24 @@
           "name": "radar:competence-change",
           "competence": "2026-08",
           "source": "global-selector",
-          "at": 36481.6
+          "at": 29437.6
         },
         {
           "name": "radar:operational-context-refreshed",
           "competence": "2026-08",
           "source": "competence-change",
-          "at": 36481.6
+          "at": 29437.6
         }
       ],
       "layoutShifts": [],
-      "lastMutationAgeMs": 803
+      "lastMutationAgeMs": 811
     },
     {
       "label": "evaluation-month-tab:2026-01",
-      "totalMs": 10249,
+      "totalMs": 9497,
       "requestCount": 280,
       "requestFailures": 0,
-      "requestP95Ms": 203,
+      "requestP95Ms": 173,
       "requestsByTable": {
         "verifications": 161,
         "registered_invoices": 110,
@@ -167,6 +218,23 @@
         "pendency_attempts": 2,
         "pendency_contacts": 2
       },
+      "visualFrames": {
+        "sampledDurationMs": 9499.7,
+        "frameCount": 501,
+        "busyFrames": 483,
+        "hiddenFrames": 0,
+        "emptyFrames": 0,
+        "degradedFrames": 0,
+        "maxDegradedDurationMs": 0,
+        "baselineTextLength": 2274,
+        "minTextLength": 2274,
+        "minTextRatio": 1,
+        "baselineRowCount": 12,
+        "minRowCount": 12,
+        "minRowRatio": 1,
+        "minHeight": 2395.1,
+        "maxHeight": 2694.7
+      },
       "mutationBatches": 6,
       "mutationRecords": 291,
       "addedNodes": 106,
@@ -174,13 +242,13 @@
       "switchView": [
         {
           "view": "prontuario",
-          "durationMs": 14.6
+          "durationMs": 13.8
         }
       ],
       "loadContext": [
         {
           "competence": "2026-01",
-          "durationMs": 9394,
+          "durationMs": 8614.6,
           "stale": false
         }
       ],
@@ -189,25 +257,26 @@
           "name": "radar:competence-change",
           "competence": "2026-01",
           "source": "prontuario-competence",
-          "at": 46737.5
+          "at": 38944.6
         },
         {
           "name": "radar:operational-context-refreshed",
           "competence": "2026-01",
           "source": "competence-change",
-          "at": 46737.5
+          "at": 38944.6
         }
       ],
       "layoutShifts": [],
-      "lastMutationAgeMs": 812
+      "lastMutationAgeMs": 815
     },
     {
       "label": "leave-evaluation-tab",
-      "totalMs": 844,
+      "totalMs": 842,
       "requestCount": 0,
       "requestFailures": 0,
       "requestP95Ms": 0,
       "requestsByTable": {},
+      "visualFrames": null,
       "mutationBatches": 1,
       "mutationRecords": 52,
       "addedNodes": 0,
@@ -216,15 +285,16 @@
       "loadContext": [],
       "events": [],
       "layoutShifts": [],
-      "lastMutationAgeMs": 810
+      "lastMutationAgeMs": 811
     },
     {
       "label": "return-evaluation-tab",
-      "totalMs": 846,
+      "totalMs": 848,
       "requestCount": 0,
       "requestFailures": 0,
       "requestP95Ms": 0,
       "requestsByTable": {},
+      "visualFrames": null,
       "mutationBatches": 1,
       "mutationRecords": 52,
       "addedNodes": 0,
