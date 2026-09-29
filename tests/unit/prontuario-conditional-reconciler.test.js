@@ -67,7 +67,7 @@ test('reabre e reconsolida a ação do programa a partir do estado autoritativo'
     assert.equal(consolidatedCalls, 1);
 });
 
-test('remove A identificar em N/A e o recompõe quando a NF volta a ser aplicável', () => {
+test('mantém A identificar disponível independentemente da bonificação e consolidação', () => {
     let removed = 0;
     let actionContainerRemoved = 0;
     let enhanced = 0;
@@ -93,12 +93,12 @@ test('remove A identificar em N/A e o recompõe quando a NF volta a ser aplicáv
         root,
         'ESC-1',
         '2026-08_BASIC',
-        { bonificacao: { notaFiscal: 'Não se aplica' }, resultadoBonif: '' },
+        { bonificacao: { notaFiscal: 'Não se aplica' }, resultadoBonif: 'apta' },
         rows
     );
-    assert.equal(removed, 1);
-    assert.equal(actionContainerRemoved, 1);
-    assert.equal(enhanced, 0);
+    assert.equal(removed, 0);
+    assert.equal(actionContainerRemoved, 0);
+    assert.equal(enhanced, 1);
 
     reconciler.syncUnidentifiedExpenseAction(
         root,
@@ -107,7 +107,7 @@ test('remove A identificar em N/A e o recompõe quando a NF volta a ser aplicáv
         { bonificacao: { notaFiscal: 'Sim' }, resultadoBonif: '' },
         rows
     );
-    assert.equal(enhanced, 1);
+    assert.equal(enhanced, 2);
 });
 
 test('pendência de Assessoria bloqueia apenas a NF vinculada e preserva a irmã', () => {
