@@ -44,7 +44,7 @@ insert into public.assets (
     ('asset-feb-active', '04.99.995', '2026-02', 'Bem ativo', 'permanente', 'NF-ASSET-A', 100, 'Encaminhada', '{}'::jsonb),
     ('asset-feb-done', '04.99.995', '2026-02', 'Bem irmão terminal', 'permanente', 'NF-ASSET-B', 200, 'Inventariada', '{}'::jsonb),
     ('asset-sep-done', '04.99.995', '2026-09', 'Bem mensal terminal', 'permanente', 'NF-ASSET-C', 300, 'Inventariada', '{}'::jsonb),
-    ('asset-other-school', '04.99.996', '2026-02', 'Bem alheio', 'permanente', 'NF-ASSET-X', 400, 'Encaminhada', '{}'::jsonb);
+    ('asset-other-school', '04.99.996', '2026-02', 'Bem terminal alheio', 'permanente', 'NF-ASSET-X', 400, 'Inventariada', '{}'::jsonb);
 
 insert into public.registered_invoices (
     id, school_id, competence_id, program_id, verification_id, source_context_key,
