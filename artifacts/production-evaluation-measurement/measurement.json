@@ -1,0 +1,239 @@
+{
+  "capturedAt": "2026-09-29T04:36:57.811Z",
+  "environment": "production",
+  "profile": "technical_admin",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "competenceOptionCount": 12,
+  "measuredTransitions": 6,
+  "runs": [
+    {
+      "label": "global-competence:2026-07",
+      "totalMs": 11754,
+      "requestCount": 278,
+      "requestFailures": 0,
+      "requestP95Ms": 242,
+      "requestsByTable": {
+        "verifications": 160,
+        "registered_invoices": 109,
+        "pendencies": 2,
+        "assets": 3,
+        "pendency_attempts": 2,
+        "pendency_contacts": 2
+      },
+      "mutationBatches": 6,
+      "mutationRecords": 289,
+      "addedNodes": 104,
+      "removedNodes": 51,
+      "switchView": [
+        {
+          "view": "prontuario",
+          "durationMs": 13.5
+        }
+      ],
+      "loadContext": [
+        {
+          "competence": "2026-07",
+          "durationMs": 10912.6,
+          "stale": false
+        }
+      ],
+      "events": [
+        {
+          "name": "radar:competence-change",
+          "competence": "2026-07",
+          "source": "global-selector",
+          "at": 18820
+        },
+        {
+          "name": "radar:operational-context-refreshed",
+          "competence": "2026-07",
+          "source": "competence-change",
+          "at": 18820
+        }
+      ],
+      "layoutShifts": [],
+      "lastMutationAgeMs": 817
+    },
+    {
+      "label": "global-competence:2026-06",
+      "totalMs": 11011,
+      "requestCount": 292,
+      "requestFailures": 0,
+      "requestP95Ms": 204,
+      "requestsByTable": {
+        "verifications": 168,
+        "registered_invoices": 115,
+        "pendencies": 2,
+        "assets": 3,
+        "pendency_attempts": 2,
+        "pendency_contacts": 2
+      },
+      "mutationBatches": 6,
+      "mutationRecords": 289,
+      "addedNodes": 104,
+      "removedNodes": 51,
+      "switchView": [
+        {
+          "view": "prontuario",
+          "durationMs": 15.7
+        }
+      ],
+      "loadContext": [
+        {
+          "competence": "2026-06",
+          "durationMs": 10166.6,
+          "stale": false
+        }
+      ],
+      "events": [
+        {
+          "name": "radar:competence-change",
+          "competence": "2026-06",
+          "source": "global-selector",
+          "at": 29834
+        },
+        {
+          "name": "radar:operational-context-refreshed",
+          "competence": "2026-06",
+          "source": "competence-change",
+          "at": 29834
+        }
+      ],
+      "layoutShifts": [],
+      "lastMutationAgeMs": 817
+    },
+    {
+      "label": "global-competence:2026-08",
+      "totalMs": 6630,
+      "requestCount": 172,
+      "requestFailures": 0,
+      "requestP95Ms": 213,
+      "requestsByTable": {
+        "verifications": 94,
+        "registered_invoices": 69,
+        "pendencies": 2,
+        "assets": 3,
+        "pendency_attempts": 2,
+        "pendency_contacts": 2
+      },
+      "mutationBatches": 6,
+      "mutationRecords": 279,
+      "addedNodes": 94,
+      "removedNodes": 51,
+      "switchView": [
+        {
+          "view": "prontuario",
+          "durationMs": 11.4
+        }
+      ],
+      "loadContext": [
+        {
+          "competence": "2026-08",
+          "durationMs": 5804.3,
+          "stale": false
+        }
+      ],
+      "events": [
+        {
+          "name": "radar:competence-change",
+          "competence": "2026-08",
+          "source": "global-selector",
+          "at": 36481.6
+        },
+        {
+          "name": "radar:operational-context-refreshed",
+          "competence": "2026-08",
+          "source": "competence-change",
+          "at": 36481.6
+        }
+      ],
+      "layoutShifts": [],
+      "lastMutationAgeMs": 803
+    },
+    {
+      "label": "evaluation-month-tab:2026-01",
+      "totalMs": 10249,
+      "requestCount": 280,
+      "requestFailures": 0,
+      "requestP95Ms": 203,
+      "requestsByTable": {
+        "verifications": 161,
+        "registered_invoices": 110,
+        "pendencies": 2,
+        "assets": 3,
+        "pendency_attempts": 2,
+        "pendency_contacts": 2
+      },
+      "mutationBatches": 6,
+      "mutationRecords": 291,
+      "addedNodes": 106,
+      "removedNodes": 51,
+      "switchView": [
+        {
+          "view": "prontuario",
+          "durationMs": 14.6
+        }
+      ],
+      "loadContext": [
+        {
+          "competence": "2026-01",
+          "durationMs": 9394,
+          "stale": false
+        }
+      ],
+      "events": [
+        {
+          "name": "radar:competence-change",
+          "competence": "2026-01",
+          "source": "prontuario-competence",
+          "at": 46737.5
+        },
+        {
+          "name": "radar:operational-context-refreshed",
+          "competence": "2026-01",
+          "source": "competence-change",
+          "at": 46737.5
+        }
+      ],
+      "layoutShifts": [],
+      "lastMutationAgeMs": 812
+    },
+    {
+      "label": "leave-evaluation-tab",
+      "totalMs": 844,
+      "requestCount": 0,
+      "requestFailures": 0,
+      "requestP95Ms": 0,
+      "requestsByTable": {},
+      "mutationBatches": 1,
+      "mutationRecords": 52,
+      "addedNodes": 0,
+      "removedNodes": 0,
+      "switchView": [],
+      "loadContext": [],
+      "events": [],
+      "layoutShifts": [],
+      "lastMutationAgeMs": 810
+    },
+    {
+      "label": "return-evaluation-tab",
+      "totalMs": 846,
+      "requestCount": 0,
+      "requestFailures": 0,
+      "requestP95Ms": 0,
+      "requestsByTable": {},
+      "mutationBatches": 1,
+      "mutationRecords": 52,
+      "addedNodes": 0,
+      "removedNodes": 0,
+      "switchView": [],
+      "loadContext": [],
+      "events": [],
+      "layoutShifts": [],
+      "lastMutationAgeMs": 812
+    }
+  ]
+}
