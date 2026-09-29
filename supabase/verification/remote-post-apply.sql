@@ -56,7 +56,8 @@ declare
         '20260917011723',
         '20260919234500',
         '20260920013656',
-        '20260922234500'
+        '20260922234500',
+        '20260929120000'
     ];
     v_actual text[];
     v_missing_extensions text[];
@@ -100,6 +101,16 @@ begin
        or to_regprocedure('public.save_unidentified_expense_with_pendency(jsonb,jsonb,integer,jsonb,jsonb)') is null
        or to_regprocedure('public.retify_verification_with_pendency_cancel(jsonb,integer,jsonb,integer,jsonb,jsonb)') is null then
         raise exception 'ATOMIC_OPERATIONAL_RPC_MISSING';
+    end if;
+
+    if to_regprocedure('public.read_operational_context(text,text[])') is null then
+        raise exception 'OPERATIONAL_CONTEXT_READ_MISSING';
+    end if;
+
+    if has_function_privilege('anon', 'public.read_operational_context(text,text[])', 'EXECUTE')
+       or not has_function_privilege('authenticated', 'public.read_operational_context(text,text[])', 'EXECUTE')
+       or not has_function_privilege('service_role', 'public.read_operational_context(text,text[])', 'EXECUTE') then
+        raise exception 'OPERATIONAL_CONTEXT_READ_PRIVILEGES_INVALID';
     end if;
 
     if to_regprocedure('public.upsert_team_member_account(jsonb,uuid,text,uuid,jsonb)') is null
@@ -160,7 +171,8 @@ begin
        or (select prosecdef from pg_proc where oid = 'public.reanalyze_invoice_document_pendency(jsonb,integer,jsonb,jsonb,jsonb,integer,integer,jsonb)'::regprocedure)
        or (select prosecdef from pg_proc where oid = 'public.save_unidentified_expense_with_pendency(jsonb,jsonb,integer,jsonb,jsonb)'::regprocedure)
        or (select prosecdef from pg_proc where oid = 'public.production_integrity_check()'::regprocedure)
-       or (select prosecdef from pg_proc where oid = 'public.enforce_school_controller_assignment_authorization()'::regprocedure) then
+       or (select prosecdef from pg_proc where oid = 'public.enforce_school_controller_assignment_authorization()'::regprocedure)
+       or (select prosecdef from pg_proc where oid = 'public.read_operational_context(text,text[])'::regprocedure) then
         raise exception 'PUBLIC_SECURITY_DEFINER_STILL_EXPOSED';
     end if;
 
