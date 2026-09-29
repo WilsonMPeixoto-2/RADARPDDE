@@ -497,7 +497,7 @@
             }
         }
 
-        async executeRpc(name, args, operation) {
+        async executeRpc(name, args, operation, options = {}) {
             if (typeof this.client.rpc !== 'function') {
                 throw new RepositoryError(
                     'MISSING_RPC_CLIENT',
@@ -506,10 +506,22 @@
                 );
             }
             try {
-                const result = await this.client.rpc(name, cloneValue(args || {}));
+                let request = this.client.rpc(name, cloneValue(args || {}));
+                if (options.signal) {
+                    if (!request || typeof request.abortSignal !== 'function') {
+                        throw new RepositoryError(
+                            'MISSING_RPC_ABORT_CAPABILITY',
+                            'A leitura RPC cancelável exige suporte a AbortSignal.',
+                            { operation, details: { rpc: name } }
+                        );
+                    }
+                    request = request.abortSignal(options.signal);
+                }
+                const result = await request;
                 if (result?.error) throw result.error;
                 return cloneValue(result?.data ?? null);
             } catch (error) {
+                if (error?.name === 'AbortError') throw error;
                 if (error instanceof RepositoryError) throw error;
                 const remoteMessage = String(error?.message || 'Falha em operação transacional Supabase.');
                 let code = classifyRemoteError(error).code;
