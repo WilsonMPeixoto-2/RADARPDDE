@@ -337,11 +337,7 @@
     function canRetifyInvoiceInUi(root, state, invoice) {
         const profile = currentAccessProfile(root);
         if (!['controlador', 'assistente'].includes(profile)) return false;
-        if (!isRetifiableInvoice(state, invoice)) return false;
-        const { schoolId, compKey } = invoiceContext(invoice);
-        const verification = state?.verifications?.[schoolId]?.[compKey];
-        if (verification?.resultadoBonif && profile !== 'assistente') return false;
-        return true;
+        return isRetifiableInvoice(state, invoice);
     }
 
     function invoiceEditLabel(root, invoice = {}) {
