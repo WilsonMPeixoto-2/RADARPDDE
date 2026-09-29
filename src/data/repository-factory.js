@@ -28,9 +28,6 @@
     const DEFAULT_ADMINISTRATIVE_LOG_PAGE_SIZE = 100;
     const MAX_ADMINISTRATIVE_LOG_PAGE_SIZE = 200;
     const OPERATIONAL_COMPETENCE_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
-    const ACTIVE_PENDENCY_STATUSES = Object.freeze(['Aberta', 'Aguardando reanálise']);
-    const ACTIVE_ASSET_STATUSES = Object.freeze(['Não encaminhada', 'Encaminhada']);
-    const CHILD_QUERY_CHUNK_SIZE = 100;
 
     function isSupabaseExplicitlyEnabled(runtimeConfig = {}) {
         return runtimeConfig.dataMode !== 'local'
@@ -139,14 +136,6 @@
         ));
     }
 
-    function chunks(values, size = CHILD_QUERY_CHUNK_SIZE) {
-        const result = [];
-        for (let offset = 0; offset < values.length; offset += size) {
-            result.push(values.slice(offset, offset + size));
-        }
-        return result;
-    }
-
     function throwIfAborted(signal) {
         if (!signal?.aborted) return;
         const error = new Error('Leitura operacional cancelada.');
@@ -251,181 +240,57 @@
             }, operation, options);
         }
 
-        async queryByIn(entity, column, values, operation, options = {}) {
-            const requested = [...new Set((values || []).map(String).filter(Boolean))];
-            if (requested.length === 0) return [];
-            const pages = await Promise.all(chunks(requested).map((batch, index) => (
-                this.queryFilteredCollection(entity, query => {
-                    requireQueryMethod(query, 'in', operation);
-                    return query.in(column, batch);
-                }, `${operation}:chunk-${index + 1}`, options)
-            )));
-            return uniqueById(...pages);
-        }
-
-        async queryContextDependencies(entity, records, currentCompetence, options = {}) {
-            const contexts = new Map();
-            (records || []).forEach(record => {
-                const schoolId = String(record.school_id || '').trim();
-                const competenceId = String(record.competence_id || record.competence_origin || '').trim();
-                const programId = String(record.program_id || '').trim();
-                if (!schoolId || !OPERATIONAL_COMPETENCE_PATTERN.test(competenceId)
-                    || competenceId === currentCompetence) return;
-                contexts.set(`${schoolId}::${competenceId}::${programId}`, { schoolId, competenceId, programId });
-            });
-            const result = [];
-            // Limite de concorrência também para passivos distribuídos por muitos meses.
-            for (const batch of chunks([...contexts.values()], 6)) {
-                throwIfAborted(options.signal);
-                const pages = await Promise.all(batch.map(context => (
-                    this.queryFilteredCollection(entity, query => {
-                        requireQueryMethod(query, 'eq', 'queryOperationalContext:dependencies');
-                        query = query.eq('school_id', context.schoolId).eq('competence_id', context.competenceId);
-                        return context.programId ? query.eq('program_id', context.programId) : query;
-                    }, `queryOperationalContext:${entity}Dependencies`, options)
-                )));
-                result.push(...pages);
-            }
-            return uniqueById(...result);
-        }
-
         async queryOperationalContext(options = {}) {
             const competenceId = String(options.competenceId || '').trim();
             if (!OPERATIONAL_COMPETENCE_PATTERN.test(competenceId)) {
                 throw operationalContextError('Informe uma competência mensal válida para carregar o contexto operacional.');
             }
             const historyStatuses = [...new Set(options.historyStatuses || [])];
-            const queryOptions = options.signal ? { signal: options.signal } : {};
             throwIfAborted(options.signal);
             if (historyStatuses.some(status => !['Resolvida', 'Cancelada'].includes(status))) {
                 throw operationalContextError('Estado histórico de Pendência inválido.');
             }
 
-            const [
-                monthlyVerifications,
-                monthlyRegisteredInvoices,
-                monthlyPendencies,
-                activePendencies,
-                monthlyAssets,
-                activeAssets,
-                historicalPendencies
-            ] = await Promise.all([
-                this.queryByEquality(
-                    'verifications',
-                    'competence_id',
-                    competenceId,
-                    'queryOperationalContext:verifications',
-                    queryOptions
-                ),
-                this.queryByEquality(
-                    'registeredInvoices',
-                    'competence_id',
-                    competenceId,
-                    'queryOperationalContext:registeredInvoices',
-                    queryOptions
-                ),
-                this.queryByEquality(
-                    'pendencies',
-                    'competence_origin',
-                    competenceId,
-                    'queryOperationalContext:monthlyPendencies',
-                    queryOptions
-                ),
-                this.queryByIn(
-                    'pendencies',
-                    'status',
-                    ACTIVE_PENDENCY_STATUSES,
-                    'queryOperationalContext:activePendencies',
-                    queryOptions
-                ),
-                this.queryByEquality(
-                    'assets',
-                    'competence_id',
-                    competenceId,
-                    'queryOperationalContext:monthlyAssets',
-                    queryOptions
-                ),
-                this.queryByIn(
-                    'assets',
-                    'status',
-                    ACTIVE_ASSET_STATUSES,
-                    'queryOperationalContext:activeAssets',
-                    queryOptions
-                ),
-                this.queryByIn(
-                    'pendencies', 'status', historyStatuses,
-                    'queryOperationalContext:requestedPendencyHistory',
-                    queryOptions
-                )
-            ]);
-
-            const pendencies = uniqueById(monthlyPendencies, activePendencies, historicalPendencies);
-            const assets = uniqueById(monthlyAssets, activeAssets);
-            const pendencyIds = pendencies.map(record => String(record.id));
-            const historicalInvoiceIds = pendencies
-                .filter(record => String(record?.competence_origin || '').trim() !== competenceId)
-                .map(record => String(record?.registered_invoice_id || '').trim())
-                .filter(Boolean);
-            const [
-                pendencyAttempts,
-                pendencyContacts,
-                verificationDependencies,
-                linkedHistoricalInvoices
-            ] = await Promise.all([
-                this.queryByIn(
-                    'pendencyAttempts',
-                    'pendency_id',
-                    pendencyIds,
-                    'queryOperationalContext:pendencyAttempts',
-                    queryOptions
-                ),
-                this.queryByIn(
-                    'pendencyContacts',
-                    'pendency_id',
-                    pendencyIds,
-                    'queryOperationalContext:pendencyContacts',
-                    queryOptions
-                ),
-                this.queryContextDependencies('verifications', pendencies, competenceId, queryOptions),
-                this.queryByIn(
-                    'registeredInvoices',
-                    'id',
-                    historicalInvoiceIds,
-                    'queryOperationalContext:linkedHistoricalInvoices',
-                    queryOptions
-                )
-            ]);
-
-            // Uma ação sobre passivo histórico pode recalcular o agregado de todas as NFs
-            // do mesmo contexto, inclusive seus bens já inventariados.
-            const assetInvoices = await this.queryByIn(
-                'registeredInvoices', 'linked_asset_id', activeAssets.map(record => record.id),
-                'queryOperationalContext:assetInvoices',
-                queryOptions
+            const result = await this.executeRpc(
+                'read_operational_context',
+                {
+                    p_competence_id: competenceId,
+                    p_history_statuses: historyStatuses
+                },
+                'queryOperationalContext',
+                options.signal ? { signal: options.signal } : {}
             );
-            const dependencyInvoices = await this.queryContextDependencies(
-                'registeredInvoices', [...pendencies, ...assetInvoices], competenceId, queryOptions
-            );
-            const registeredInvoices = uniqueById(
-                monthlyRegisteredInvoices, linkedHistoricalInvoices, assetInvoices, dependencyInvoices
-            );
-            const [assetVerifications, linkedAssets] = await Promise.all([
-                this.queryContextDependencies('verifications', registeredInvoices, competenceId, queryOptions),
-                this.queryByIn('assets', 'id', registeredInvoices.map(record => record.linked_asset_id).filter(Boolean),
-                    'queryOperationalContext:linkedAssets', queryOptions)
-            ]);
+            throwIfAborted(options.signal);
 
-            return {
-                competenceId,
-                entities: {
-                    verifications: uniqueById(monthlyVerifications, verificationDependencies, assetVerifications),
-                    pendencies,
-                    pendencyAttempts,
-                    pendencyContacts,
-                    assets: uniqueById(assets, linkedAssets),
-                    registeredInvoices
+            if (!result || typeof result !== 'object' || Array.isArray(result)
+                || String(result.competenceId || '') !== competenceId
+                || !result.entities || typeof result.entities !== 'object') {
+                throw operationalContextError(
+                    'Resposta inválida da leitura operacional por competência.',
+                    'queryOperationalContext'
+                );
+            }
+
+            const entityNames = [
+                'verifications',
+                'registeredInvoices',
+                'pendencies',
+                'pendencyAttempts',
+                'pendencyContacts',
+                'assets'
+            ];
+            const entities = {};
+            for (const entity of entityNames) {
+                if (!Array.isArray(result.entities[entity])) {
+                    throw operationalContextError(
+                        `Resposta operacional sem coleção válida para ${entity}.`,
+                        'queryOperationalContext'
+                    );
                 }
-            };
+                entities[entity] = uniqueById(result.entities[entity]);
+            }
+
+            return { competenceId, entities };
         }
     }
 
