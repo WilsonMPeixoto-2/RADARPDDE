@@ -5,6 +5,19 @@ const assert = require('node:assert/strict');
 
 const { SupabaseRepository } = require('../../src/data/supabase-repository.js');
 
+function validClient(rpc) {
+    return {
+        rpc,
+        from() {
+            return {
+                select() { return this; },
+                order() { return this; },
+                limit() { return Promise.resolve({ data: [], error: null }); }
+            };
+        }
+    };
+}
+
 function rpcBuilder(result, calls) {
     let signal = null;
     return {
@@ -26,12 +39,10 @@ function rpcBuilder(result, calls) {
 
 test('executeRpc propaga AbortSignal para leitura RPC sem alterar argumentos', async () => {
     const calls = [];
-    const client = {
-        rpc(name, args) {
-            calls.push(['rpc', name, structuredClone(args)]);
-            return rpcBuilder({ data: { ok: true }, error: null }, calls);
-        }
-    };
+    const client = validClient((name, args) => {
+        calls.push(['rpc', name, structuredClone(args)]);
+        return rpcBuilder({ data: { ok: true }, error: null }, calls);
+    });
     const repository = new SupabaseRepository({ client });
     const controller = new AbortController();
 
@@ -53,12 +64,10 @@ test('executeRpc propaga AbortSignal para leitura RPC sem alterar argumentos', a
 
 test('executeRpc sem signal preserva o contrato das RPCs de escrita e não exige abortSignal', async () => {
     const calls = [];
-    const client = {
-        rpc(name, args) {
-            calls.push([name, structuredClone(args)]);
-            return Promise.resolve({ data: { persisted: true }, error: null });
-        }
-    };
+    const client = validClient((name, args) => {
+        calls.push([name, structuredClone(args)]);
+        return Promise.resolve({ data: { persisted: true }, error: null });
+    });
     const repository = new SupabaseRepository({ client });
 
     const result = await repository.executeRpc(
@@ -75,11 +84,7 @@ test('executeRpc sem signal preserva o contrato das RPCs de escrita e não exige
 });
 
 test('executeRpc mantém AbortError reconhecível para leitura cancelada', async () => {
-    const client = {
-        rpc() {
-            return rpcBuilder({ data: { ok: true }, error: null }, []);
-        }
-    };
+    const client = validClient(() => rpcBuilder({ data: { ok: true }, error: null }, []));
     const repository = new SupabaseRepository({ client });
     const controller = new AbortController();
     controller.abort();
