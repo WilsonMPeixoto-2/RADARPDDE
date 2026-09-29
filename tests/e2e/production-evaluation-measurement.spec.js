@@ -1,4 +1,5 @@
 'use strict';
+// Reexecução pós-publicação do PR #396.
 
 const fs = require('node:fs');
 const path = require('node:path');
