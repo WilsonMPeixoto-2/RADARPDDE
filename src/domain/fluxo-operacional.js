@@ -246,8 +246,8 @@
         });
     }
 
-    function canRegisterFiscalNote(profile, bonificacaoNotaFiscal) {
-        return EDITABLE_PROFILES.has(profile) && bonificacaoNotaFiscal === 'Sim';
+    function canRegisterFiscalNote(profile) {
+        return EDITABLE_PROFILES.has(profile);
     }
 
     function isIdentifiedFiscalNote(note = {}) {
