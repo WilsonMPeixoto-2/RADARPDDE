@@ -73,7 +73,8 @@ test.describe('Prontuário — despesa a identificar', () => {
     });
 
     const row = fiscalNoteRow(page);
-    await expect(row.getByRole('button', { name: 'Adicionar Nota' })).toHaveCount(0);
+    await expect(row.getByRole('button', { name: 'Adicionar Nota' })).toBeVisible();
+    await expect(row.getByRole('button', { name: 'Adicionar Nota' })).toBeEnabled();
 
     await page.evaluate(({ escolaId, compKey }) => openModalDadosNota(escolaId, compKey), context);
     const normalUnidentifiedOption = page.locator('#nota-tipo option[value="a_identificar"]');
