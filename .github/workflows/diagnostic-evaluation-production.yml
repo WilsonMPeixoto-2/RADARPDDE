@@ -1,0 +1,92 @@
+name: Diagnóstico temporário — Avaliação em Production
+
+on:
+  push:
+    branches:
+      - diag/evaluation-production-measurement-2026-09-29
+    paths:
+      - '.github/workflows/diagnostic-evaluation-production.yml'
+      - 'playwright.production-evaluation-measurement.config.js'
+      - 'tests/e2e/production-evaluation-measurement.spec.js'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: diagnostic-evaluation-production
+  cancel-in-progress: false
+
+jobs:
+  measure:
+    name: Medir Avaliação real em Production
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+
+    steps:
+      - name: Obter branch diagnóstica
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          check-latest: false
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Instalar Chromium homologado
+        run: npx playwright install --with-deps chromium
+
+      - name: Preparar conta técnica sem expor credenciais
+        id: credentials
+        shell: bash
+        env:
+          ACCOUNTS_JSON: ${{ secrets.RADAR_PRODUCTION_READ_ACCOUNTS_JSON }}
+        run: |
+          set -euo pipefail
+          umask 077
+          test -n "${ACCOUNTS_JSON:-}" || { echo 'Secret de contas técnicas ausente.' >&2; exit 1; }
+          ACCOUNTS_FILE="${RUNNER_TEMP}/radar-production-read-accounts.json"
+          printf '%s' "${ACCOUNTS_JSON}" > "${ACCOUNTS_FILE}"
+          chmod 600 "${ACCOUNTS_FILE}"
+          printf 'accounts_file=%s\n' "${ACCOUNTS_FILE}" >> "${GITHUB_OUTPUT}"
+
+      - name: Executar medição instrumentada
+        env:
+          RADAR_PRODUCTION_READ_ACCOUNTS_FILE: ${{ steps.credentials.outputs.accounts_file }}
+        run: npx playwright test --config=playwright.production-evaluation-measurement.config.js
+
+      - name: Remover material de autenticação
+        if: always()
+        shell: bash
+        env:
+          ACCOUNTS_FILE: ${{ steps.credentials.outputs.accounts_file }}
+        run: |
+          set -euo pipefail
+          if [ -n "${ACCOUNTS_FILE:-}" ]; then rm -f -- "${ACCOUNTS_FILE}"; fi
+
+      - name: Publicar artefato da medição
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: production-evaluation-measurement-${{ github.run_id }}
+          path: artifacts/production-evaluation-measurement/
+          if-no-files-found: warn
+
+      - name: Registrar resultado JSON na branch diagnóstica
+        if: ${{ success() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f artifacts/production-evaluation-measurement/measurement.json
+          git config user.name "radar-diagnostic-bot"
+          git config user.email "radar-diagnostic-bot@users.noreply.github.com"
+          git add -f artifacts/production-evaluation-measurement/measurement.json
+          git commit -m "chore: record Production evaluation measurement [measurement-result]"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
