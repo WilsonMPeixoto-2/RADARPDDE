@@ -134,7 +134,7 @@ test('mesma NF permanente com bem derivado divergente produz plano corretivo', (
     assert.equal(result.changedEntities.includes('assets'), true);
 });
 
-test('mudança real em consolidação de assistente planeja reabertura; no-op não reabre', () => {
+test('mudança real em despesa preserva consolidação; no-op também preserva', () => {
     const unchangedInput = baseInput({ profile: 'assistente' });
     unchangedInput.verification.resultadoBonif = 'apta';
     const unchanged = planInvoiceEffects(unchangedInput);
@@ -149,7 +149,8 @@ test('mudança real em consolidação de assistente planeja reabertura; no-op n�
     };
     const changed = planInvoiceEffects(changedInput);
     assert.equal(changed.unchanged, false);
-    assert.equal(changed.verification.resultadoBonif, '');
+    assert.equal(changed.verification.resultadoBonif, 'apta');
+    assert.doesNotMatch(changed.auditDescriptor.details, /reaberta/i);
 });
 
 test('inclusão nova nunca é no-op apenas porque existe outra NF de conteúdo igual', () => {
