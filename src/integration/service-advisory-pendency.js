@@ -162,8 +162,7 @@
                 const verification = state.verifications?.[invoice.escolaId]?.[invoice.compKey];
                 if (!verification) fail('NOT_FOUND', 'Verificação mensal não localizada.', 'openServiceAdvisoryPendency');
 
-                const profile = invoiceService.assertEditable(currentProfile(root), 'updateServiceAdvisory');
-                invoiceService.assertVerificationEditable(verification, profile, 'updateServiceAdvisory');
+                invoiceService.assertEditable(currentProfile(root), 'updateServiceAdvisory');
                 persistence.invoiceId = invoice.id;
                 persistence.expectedInvoiceVersion = rowVersionOf(invoice);
                 persistence.expectedVerificationVersion = rowVersionOf(verification);
@@ -173,11 +172,6 @@
 
                 invoice.analiseConsultaAssessoria = 'Incorreto';
                 invoiceService.syncServiceRequirement(state, invoice.escolaId, invoice.compKey);
-                const reopened = profile === 'assistente' && Boolean(text(verification.resultadoBonif));
-                if (reopened) {
-                    verification.resultadoBonif = '';
-                }
-
                 const opened = pendencyService.domain.createDocumentPendency({
                     id: text(input.id) || pendencyService.createId('pend'),
                     escolaId: invoice.escolaId,
@@ -191,13 +185,10 @@
                     dataAbertura: text(input.openingDate || input.dataAbertura) || pendencyService.now().slice(0, 10)
                 }, pendencyService.audit('evento-pendencia'));
                 state.pendencies.push(opened);
-                const reopenSuffix = reopened
-                    ? ' A consolidação anterior foi reaberta pela alteração.'
-                    : '';
                 const log = pendencyService.appendSchoolLog(
                     invoice.escolaId,
                     'Análise incorreta e pendência aberta',
-                    `Consulta à Assessoria da NF ${invoice.numero || invoice.id} marcada como “Incorreto” e pendência ${opened.id} aberta atomicamente.${reopenSuffix}`
+                    `Consulta à Assessoria da NF ${invoice.numero || invoice.id} marcada como “Incorreto” e pendência ${opened.id} aberta atomicamente.`
                 );
                 persistence.pendencyId = opened.id;
                 persistence.logId = text(log?.id);
