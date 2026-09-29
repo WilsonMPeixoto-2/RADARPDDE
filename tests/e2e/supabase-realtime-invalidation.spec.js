@@ -255,25 +255,36 @@ test('gravação auditável pela UI aborta leitura do Broadcast sem perder a atu
     const capturedRead = new Promise(resolve => { captureRead = resolve; });
     const readReleased = new Promise(resolve => { releaseRead = resolve; });
     let heldRequest = null;
-    let monthlyReads = 0;
+    let contextualReads = 0;
     let reloads = 0;
     pageB.on('load', () => { reloads += 1; });
 
-    await pageB.route('**/rest/v1/verifications?**', async route => {
+    await pageB.route('**/rest/v1/rpc/read_operational_context', async route => {
       const request = route.request();
-      const url = new URL(request.url());
-      if (request.method() !== 'GET' || url.searchParams.get('competence_id') !== 'eq.2026-05') {
+      if (request.method() !== 'POST') {
         await route.continue();
         return;
       }
-      monthlyReads += 1;
+
+      let body = {};
+      try {
+        body = request.postDataJSON() || {};
+      } catch (_error) {
+        body = {};
+      }
+      if (body.p_competence_id !== '2026-05') {
+        await route.continue();
+        return;
+      }
+
+      contextualReads += 1;
       if (heldRequest) {
         await route.continue();
         return;
       }
       heldRequest = request;
-      // O Broadcast de A inicia uma consulta real. Retemos só a entrega HTTP,
-      // depois de o Supabase já ter produzido a resposta que contém a alteração.
+      // O Broadcast de A inicia a leitura contextual canônica. Retemos só a
+      // entrega HTTP, depois de o Supabase já ter produzido o snapshot com a alteração.
       const response = await route.fetch();
       captureRead({ status: response.status(), body: await response.json() });
       await readReleased;
@@ -286,8 +297,9 @@ test('gravação auditável pela UI aborta leitura do Broadcast sem perder a atu
     await expectVisibleExtCC(pageA, changed);
     const snapshot = await capturedRead;
     expect(snapshot.status).toBe(200);
-    expect(Array.isArray(snapshot.body)).toBe(true);
-    expect(snapshot.body.find(row => (
+    expect(snapshot.body?.competenceId).toBe('2026-05');
+    expect(Array.isArray(snapshot.body?.entities?.verifications)).toBe(true);
+    expect(snapshot.body.entities.verifications.find(row => (
       row.school_id === 'ESC-LOCAL' && row.program_id === 'BASIC'
     ))?.bonification?.extCC).toBe(changed);
     await expect.poll(() => pageB.evaluate(() => window.__e2eOperationalInvalidations)).toBeGreaterThan(0);
@@ -319,7 +331,7 @@ test('gravação auditável pela UI aborta leitura do Broadcast sem perder a atu
       timeout: 10000,
       message: 'B perdeu a invalidação cujo refresh foi abortado pela própria gravação.'
     }).toBe(changed);
-    expect(monthlyReads).toBeGreaterThanOrEqual(2);
+    expect(contextualReads).toBeGreaterThanOrEqual(2);
     expect(await pageB.evaluate(() => (
       window.RadarOperationalContextRefreshController.hasPendingRefresh()
     ))).toBe(false);
