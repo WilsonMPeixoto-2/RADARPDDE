@@ -1,6 +1,6 @@
 # RADAR PDDE — Registro de decisões
 
-**Atualizado em:** 6 de setembro de 2026
+**Atualizado em:** 29 de setembro de 2026
 
 Este documento registra decisões duradouras. Não é diário de commits. Uma decisão somente é substituída por decisão expressa com impacto e status documentados.
 
@@ -734,3 +734,18 @@ Se a sessão estiver editando, o refresh fica pendente e é aplicado quando a in
 Postgres Changes, streaming de registros pelo Broadcast, polling frequente e cache agressivo não são a estratégia principal desta frente.
 
 **Documento integral:** `docs/decisions/ADR-054-sincronizacao-operacional-realtime.md`.
+
+
+---
+
+## ADR-055 — Despesas e bonificação são fluxos operacionais independentes
+
+**Status:** Aprovada para implementação no PR corrente
+
+A autorização do ciclo de despesas decorre do perfil/capacidade e das regras próprias do registro. O valor de `bonification.notaFiscal` e a existência de `bonus_result` não autorizam nem bloqueiam cadastro, edição, exclusão, análise fiscal individual, Consulta Assessoria ou ações derivadas de Pendência.
+
+Operações de despesa preservam `bonus_result`: não reabrem consolidação. A própria bonificação continua submetida às regras separadas de `VerificationService`.
+
+Quando a primeira despesa antecede qualquer lançamento de bonificação, a operação composta pode materializar atomicamente a `verification` estrutural vazia necessária ao vínculo sem inventar status de bonificação, consolidar ou criar uma segunda ação administrativa.
+
+**Documento integral:** `docs/decisions/ADR-055-independencia-despesas-bonificacao.md`.
