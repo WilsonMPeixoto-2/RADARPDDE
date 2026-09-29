@@ -87,7 +87,7 @@ jobs:
             '{}'::jsonb,now(),now()
           );
           insert into auth.identities (
-            provider_id,user_id,identity_data,provider,last_sign_in_at,created_at,updated_at,email
+            provider_id,user_id,identity_data,provider,last_sign_in_at,created_at,updated_at
           ) values (
             '${USER_ID}',
             '${USER_ID}',
@@ -97,17 +97,17 @@ jobs:
               'email_verified',true,
               'phone_verified',false
             ),
-            'email',now(),now(),now(),'${EMAIL}'
+            'email',now(),now(),now()
           );
           insert into public.user_profiles(user_id,profile_id,active)
           values ('${USER_ID}','technical_admin',true);
           SQL
 
+          printf 'user_id=%s\n' "${USER_ID}" >> "${GITHUB_OUTPUT}"
           npx --no-install supabase db query --linked --file "${CREATE_SQL}" >/dev/null
           printf '[{"profileId":"technical_admin","email":"%s","password":"%s"}]' "${EMAIL}" "${PASSWORD}" > "${ACCOUNTS_FILE}"
           chmod 600 "${ACCOUNTS_FILE}"
           printf 'accounts_file=%s\n' "${ACCOUNTS_FILE}" >> "${GITHUB_OUTPUT}"
-          printf 'user_id=%s\n' "${USER_ID}" >> "${GITHUB_OUTPUT}"
 
       - name: Executar medição instrumentada
         env:
