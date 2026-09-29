@@ -263,10 +263,6 @@
     function canOfferUnidentifiedExpense(schoolId, compKey) {
         const profile = currentAccessProfile();
         if (!['controlador', 'assistente'].includes(profile)) return false;
-        const allVerifications = getLegacyValue('verificacoes', {});
-        const verification = allVerifications?.[schoolId]?.[compKey] || null;
-        if (verification?.bonificacao?.notaFiscal === 'Não se aplica') return false;
-        if (verification?.resultadoBonif && profile !== 'assistente') return false;
         return true;
     }
 
