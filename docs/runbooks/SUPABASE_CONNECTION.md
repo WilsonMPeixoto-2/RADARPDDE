@@ -149,7 +149,7 @@ As migrations correntes incluem, conforme `CURRENT_STAGE.md` e a branch de estab
 - migration integrada `20260905231000_inventory_terminal_state`, que impede no banco qualquer regressão de um bem já `Inventariada` para estado patrimonial anterior. Sua presença e o trigger habilitado foram confirmados por consulta de metadados em 06/09/2026; revalidar no ambiente antes de outra publicação.\n- migration `20260919234500_rls_set_based_access`, que preserva os mesmos escopos institucionais, mas calcula conjuntos de escolas autorizadas uma vez por statement para evitar reavaliação RLS linha a linha.
 - migration `20260920013656_realtime_operational_invalidation`, que emite somente invalidações operacionais mínimas por Broadcast privado para sincronizar sessões sem transportar registros de negócio pelo canal.
 - migration `20260922234500_fix_permanent_identification_asset_description`, que alinha a validação do novo envio à descrição patrimonial canônica derivada do programa.
-- migration `20260929120000_read_operational_context`, que consolida a leitura operacional por competência e suas dependências históricas em uma única RPC set-based sob RLS do chamador.
+- migration `20260929143215_read_operational_context`, que consolida a leitura operacional por competência e suas dependências históricas em uma única RPC set-based sob RLS do chamador.
 
 Não reaplicar SQL já aplicado para “corrigir” histórico.
 
