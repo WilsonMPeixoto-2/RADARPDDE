@@ -158,13 +158,13 @@ test('distingue análise correta no prazo de análise correta após o prazo', ()
     );
 });
 
-test('permite cadastrar nota após entrega Sim apenas para perfis editáveis', () => {
-    assert.equal(canRegisterFiscalNote('controlador', 'Sim'), true);
-    assert.equal(canRegisterFiscalNote('assistente', 'Sim'), true);
-    assert.equal(canRegisterFiscalNote('inventario', 'Sim'), false);
-    assert.equal(canRegisterFiscalNote('sme', 'Sim'), false);
-    assert.equal(canRegisterFiscalNote('controlador', 'Não'), false);
-    assert.equal(canRegisterFiscalNote('controlador', 'Não se aplica'), false);
+test('cadastro de despesa depende apenas do perfil editável, não da bonificação', () => {
+    for (const bonification of ['', 'Sim', 'Não', 'Não se aplica']) {
+        assert.equal(canRegisterFiscalNote('controlador', bonification), true);
+        assert.equal(canRegisterFiscalNote('assistente', bonification), true);
+        assert.equal(canRegisterFiscalNote('inventario', bonification), false);
+        assert.equal(canRegisterFiscalNote('sme', bonification), false);
+    }
 });
 
 test('exige nota somente ao tentar aprovar entrega Sim ainda sem cadastro', () => {
