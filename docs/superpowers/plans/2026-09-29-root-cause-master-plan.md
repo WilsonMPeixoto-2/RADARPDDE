@@ -1,4 +1,4 @@
-# Plano Mestre — Consolidação por Causas-Raiz
+# Consolidação por Causas-Raiz — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -61,7 +61,8 @@
 
 - [ ] Criar leitura set-based `read_operational_context`.
 - [ ] Substituir `queryContextDependencies()` no caminho de Production.
-- [ ] Preservar interface de `queryOperationalContext()`.
+- [ ] Preservar interface de `queryOperationalContext()` e o cancelamento físico da request obsoleta por `AbortSignal`.
+- [ ] Estender `executeRpc()` apenas com signal opcional, sem alterar o comportamento das RPCs de escrita.
 - [ ] Provar abort/staleness/concorrência.
 - [ ] Criar gate de contagem de requests.
 - [ ] Medir novamente em Production.
