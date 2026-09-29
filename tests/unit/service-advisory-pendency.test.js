@@ -259,7 +259,7 @@ test('confirmação atômica altera somente a NF alvo e cria pendência vinculad
 });
 
 
-test('abertura atômica consolidada reabre no mesmo efeito e mantém um único log persistível', async () => {
+test('abertura atômica da Assessoria preserva bonificação consolidada e um único log', async () => {
     const integration = freshIntegration();
     const harness = createRoot();
     const verification = harness.state.verifications['ESC-1']['2026-08_BASIC'];
@@ -285,12 +285,12 @@ test('abertura atômica consolidada reabre no mesmo efeito e mantém um único l
         observation: 'Corrigir a consulta.'
     });
 
-    assert.equal(result.value.verification.resultadoBonif, '');
-    assert.equal(verification.resultadoBonif, '');
+    assert.equal(result.value.verification.resultadoBonif, 'apta');
+    assert.equal(verification.resultadoBonif, 'apta');
     assert.equal(harness.reopenCalls.length, 0);
     assert.equal(harness.state.logs.length, 1);
     assert.equal(harness.state.logs[0].action, 'Análise incorreta e pendência aberta');
-    assert.match(harness.state.logs[0].details, /reaberta/i);
+    assert.doesNotMatch(harness.state.logs[0].details, /reaberta/i);
 });
 
 
