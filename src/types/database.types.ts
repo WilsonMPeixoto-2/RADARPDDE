@@ -1177,6 +1177,10 @@ export type Database = {
         Args: { p_contract: string; p_value: Json }
         Returns: boolean
       }
+      read_operational_context: {
+        Args: { p_competence_id: string; p_history_statuses?: string[] }
+        Returns: Json
+      }
       reanalyze_invoice_document_pendency: {
         Args: {
           p_administrative_log: Json
