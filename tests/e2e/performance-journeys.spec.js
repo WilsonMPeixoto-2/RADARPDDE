@@ -102,6 +102,27 @@ function aggregateByLabel(samples) {
   }));
 }
 
+function observedRequestCount(sample, method, path) {
+  const normalizedMethod = String(method || 'GET').toUpperCase();
+  return (sample.requests || [])
+    .filter(item => item.method === normalizedMethod && item.path === path)
+    .reduce((total, item) => total + Number(item.count || 0), 0);
+}
+
+function directOperationalGetCount(sample) {
+  const paths = new Set([
+    '/rest/v1/verifications',
+    '/rest/v1/registered_invoices',
+    '/rest/v1/pendencies',
+    '/rest/v1/pendency_attempts',
+    '/rest/v1/pendency_contacts',
+    '/rest/v1/assets'
+  ]);
+  return (sample.requests || [])
+    .filter(item => item.method === 'GET' && paths.has(item.path))
+    .reduce((total, item) => total + Number(item.count || 0), 0);
+}
+
 test('mede jornadas críticas do baseline atual sem alterar runtime', async ({ browser }, testInfo) => {
   test.setTimeout(180000);
   const samples = [];
@@ -249,7 +270,7 @@ test('mede jornadas críticas do baseline atual sem alterar runtime', async ({ b
     }
 
     const report = {
-      schemaVersion: 2,
+      schemaVersion: 3,
       checkoutCommit: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
       browserVersion: browser.version(),
       limitations: [
@@ -261,7 +282,7 @@ test('mede jornadas críticas do baseline atual sem alterar runtime', async ({ b
         'totalMs inclui chamadas, auto-wait e asserções Playwright; não é tempo puro do evento de UI.',
         'writeRpcClientMs mede saveVerificationWithLog completo no cliente, não execução SQL.',
         'Métrica ausente é null; zero indica hook disponível sem execução observada.',
-        'Troca de competência não foi medida: fixture expõe somente Maio/2026.'
+        'Troca de competência não foi medida: fixture expõe somente Maio/2026; o refresh contextual autenticado protege a mesma topologia de leitura.'
       ],
       environment: 'supabase-local-authenticated',
       generatedAt: new Date().toISOString(),
@@ -293,7 +314,14 @@ test('mede jornadas críticas do baseline atual sem alterar runtime', async ({ b
 
     for (const sample of samples.filter(item => item.label === 'operational-context-refresh')) {
       expect(sample.contextLoadMs).toBeGreaterThan(0);
-      expect(sample.requestCount).toBeGreaterThan(0);
+      expect(observedRequestCount(
+        sample,
+        'POST',
+        '/rest/v1/rpc/read_operational_context'
+      )).toBe(1);
+      expect(directOperationalGetCount(sample)).toBe(0);
+      expect(sample.requestCount).toBeLessThanOrEqual(3);
+      expect(sample.pendingFetchCount).toBe(0);
     }
     await testInfo.attach('performance-prontuario-baseline', {
       body: await page.screenshot(), contentType: 'image/png'
