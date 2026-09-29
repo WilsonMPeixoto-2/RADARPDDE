@@ -189,6 +189,8 @@ Características:
 - verificações e NFs históricas são fechadas por dependência funcional, não por loop cliente;
 - assets vinculados continuam preservados;
 - retorno JSON mantém o contrato atual de `competenceId + entities`;
+- a chamada RPC de leitura permanece fisicamente cancelável pelo mesmo `AbortSignal` usado hoje por `DataService`, por meio de builder PostgREST com `.abortSignal(signal)`;
+- `SupabaseRepository.executeRpc` só recebe o novo parâmetro opcional de signal; RPCs de escrita sem signal preservam o caminho atual;
 - o frontend não ganha uma segunda representação.
 
 Após homologação:
