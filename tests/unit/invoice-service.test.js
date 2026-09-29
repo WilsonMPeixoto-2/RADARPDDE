@@ -55,6 +55,29 @@ function createHarness(overrides = {}) {
         },
         createId: prefix => `${prefix}-${++sequence}`,
         now: () => '2026-07-14T12:00:00.000Z',
+        ensureVerification: (schoolId, compKey) => {
+            state.verifications[schoolId] ||= {};
+            state.verifications[schoolId][compKey] ||= {
+                bonificacao: {
+                    extCC: '',
+                    extINV: '',
+                    notaFiscal: '',
+                    consAssessoria: '',
+                    declBBAgil: '',
+                    encampInventario: ''
+                },
+                analise: {
+                    extCC: 'Não analisado',
+                    extINV: 'Não analisado',
+                    notaFiscal: 'Não analisado',
+                    consAssessoria: 'Não analisado',
+                    declBBAgil: 'Não analisado',
+                    encampInventario: 'Não analisado'
+                },
+                resultadoBonif: ''
+            };
+            return state.verifications[schoolId][compKey];
+        },
         reopenConsolidation: (schoolId, compKey, verification, changed, profile) => {
             reopenCalls.push({ schoolId, compKey, changed, profile });
             if (changed && profile === 'assistente' && verification.resultadoBonif) {
@@ -469,37 +492,41 @@ test('remove a última nota e restaura análise e assessoria sem deixar bem órf
     assert.equal(harness.reopenCalls.length, 0);
 });
 
-test('bloqueia nota consolidada para controlador e aceita assistente com reabertura', async () => {
+test('controlador e assistente operam despesa consolidada sem alterar a bonificação', async () => {
     const harness = createHarness();
-    harness.state.verifications['ESC-1']['2026-05_BASIC'].resultadoBonif = 'apta';
+    const verification = harness.state.verifications['ESC-1']['2026-05_BASIC'];
+    verification.resultadoBonif = 'apta';
+    verification.bonificacao.notaFiscal = 'Não se aplica';
 
-    await assert.rejects(
-        harness.service.save({
-            schoolId: 'ESC-1',
-            compKey: '2026-05_BASIC',
-            description: 'Material',
-            expenseType: 'consumo',
-            invoiceNumber: 'NF-004',
-            amount: 10,
-            profile: 'controlador'
-        }),
-        error => error.code === 'CONSOLIDATED_VERIFICATION'
-    );
-
-    await harness.service.save({
+    const controllerResult = await harness.service.save({
         schoolId: 'ESC-1',
         compKey: '2026-05_BASIC',
         description: 'Material',
         expenseType: 'consumo',
         invoiceNumber: 'NF-004',
         amount: 10,
+        profile: 'controlador'
+    });
+    assert.equal(controllerResult.value.verification.resultadoBonif, 'apta');
+    assert.equal(verification.resultadoBonif, 'apta');
+    assert.equal(verification.bonificacao.notaFiscal, 'Não se aplica');
+
+    const assistantResult = await harness.service.save({
+        schoolId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        description: 'Outro material',
+        expenseType: 'consumo',
+        invoiceNumber: 'NF-005',
+        amount: 20,
         profile: 'assistente'
     });
-    assert.equal(harness.state.verifications['ESC-1']['2026-05_BASIC'].resultadoBonif, '');
+    assert.equal(assistantResult.value.verification.resultadoBonif, 'apta');
+    assert.equal(verification.resultadoBonif, 'apta');
+    assert.equal(verification.bonificacao.notaFiscal, 'Não se aplica');
 });
 
 
-test('remoção real por Assistente reabre consolidação sem callback lateral e mantém um único log', async () => {
+test('remoção de despesa preserva consolidação e mantém um único log', async () => {
     const harness = createHarness();
     const verification = harness.state.verifications['ESC-1']['2026-05_BASIC'];
     verification.resultadoBonif = 'apta';
@@ -524,13 +551,34 @@ test('remoção real por Assistente reabre consolidação sem callback lateral e
         profile: 'assistente'
     });
 
-    assert.equal(result.value.verification.resultadoBonif, '');
-    assert.equal(verification.resultadoBonif, '');
+    assert.equal(result.value.verification.resultadoBonif, 'apta');
+    assert.equal(verification.resultadoBonif, 'apta');
     assert.equal(harness.state.logs.length, 1);
-    assert.match(harness.state.logs[0].details, /reaberta/i);
+    assert.doesNotMatch(harness.state.logs[0].details, /reaberta/i);
     assert.equal(harness.reopenCalls.length, 0);
 });
 
+
+test('primeira despesa inicializa o contexto mensal sem preencher bonificação', async () => {
+    const harness = createHarness({ state: { verifications: {} } });
+
+    const result = await harness.service.save({
+        schoolId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        description: 'Material antes da bonificação',
+        expenseType: 'consumo',
+        invoiceNumber: 'NF-PRIMEIRA',
+        amount: 75,
+        profile: 'controlador'
+    });
+
+    const verification = harness.state.verifications['ESC-1']['2026-05_BASIC'];
+    assert.ok(verification);
+    assert.equal(verification.bonificacao.notaFiscal, '');
+    assert.equal(verification.resultadoBonif, '');
+    assert.equal(result.value.invoice.numero, 'NF-PRIMEIRA');
+    assert.equal(result.value.verification.resultadoBonif, '');
+});
 
 test('nova Nota Fiscal nasce Não analisado e o resumo técnico passa a ser derivado', async () => {
     const harness = createHarness();
