@@ -409,9 +409,7 @@
         const noteRow = rows.find(row => row.dataset.documentKey === 'notaFiscal');
         if (!noteRow) return false;
         const profile = text(root.getRadarAccessProfile?.()).toLocaleLowerCase('pt-BR');
-        const eligible = ['controlador', 'assistente'].includes(profile)
-            && verification?.bonificacao?.notaFiscal !== 'Não se aplica'
-            && (!verification?.resultadoBonif || profile === 'assistente');
+        const eligible = ['controlador', 'assistente'].includes(profile);
         const actions = noteRow.querySelector?.('[data-unidentified-expense-actions]');
         const button = noteRow.querySelector?.('[data-register-unidentified-expense]');
 
@@ -473,7 +471,6 @@
         const { competence, programId } = splitContext(root, compKey);
         const profile = text(root.getRadarAccessProfile?.()).toLocaleLowerCase('pt-BR');
         const readOnlyProfile = profile === 'inventario' || profile === 'sme';
-        const consolidatedLock = Boolean(verification?.resultadoBonif) && profile !== 'assistente';
         const capabilities = root.RadarAccessPolicy?.CAPABILITIES || {};
         const canRegister = root.hasRadarCapability?.(capabilities.REGISTER_CORRECTIVE_SUBMISSION) !== false;
         const canReanalyze = root.hasRadarCapability?.(capabilities.REANALYZE_PENDENCY) !== false;
@@ -504,7 +501,7 @@
             ) || null;
             const active = legacyActive || linkedActive;
             const futureLock = select.dataset.futureCompetenceDisabled === 'true';
-            select.disabled = readOnlyProfile || consolidatedLock || futureLock || Boolean(active);
+            select.disabled = readOnlyProfile || futureLock || Boolean(active);
             if (linkedActive) select.dataset.radarServicePendencyDisabled = 'true';
             else delete select.dataset.radarServicePendencyDisabled;
 
@@ -542,7 +539,7 @@
                         || (linkedActive.status === 'Aguardando reanálise' ? 'Substituir envio' : 'Registrar novo envio');
                     if (label) appendPendencyButton(root, container, label, 'register', linkedActive);
                 }
-            } else if (!readOnlyProfile && !consolidatedLock && !futureLock) {
+            } else if (!readOnlyProfile && !futureLock) {
                 appendRecoveryButton(root, container, invoice, schoolId, select);
             }
             if (container.childElementCount > 0) card.appendChild(container);
