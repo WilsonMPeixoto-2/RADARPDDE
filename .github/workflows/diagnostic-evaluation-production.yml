@@ -89,12 +89,23 @@ jobs:
           ) values (
             '00000000-0000-0000-0000-000000000000',
             '${USER_ID}',
-            'authenticated','authenticated',
+            'authenticated',
+            'authenticated',
             '${EMAIL}',
             extensions.crypt('${PASSWORD}', extensions.gen_salt('bf')),
-            now(),'','','','','','','',
+            now(),
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
             '{"provider":"email","providers":["email"]}'::jsonb,
-            '{}'::jsonb,now(),now()
+            '{}'::jsonb,
+            now(),
+            now()
           );
           insert into auth.identities (
             provider_id,user_id,identity_data,provider,last_sign_in_at,created_at,updated_at
