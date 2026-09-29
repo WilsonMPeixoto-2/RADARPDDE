@@ -58,6 +58,14 @@ jobs:
           test -n "${PGPASS_REMOTE:-}" || { echo 'SUPABASE_DB_PASSWORD ausente.' >&2; exit 1; }
           npx --no-install supabase link --project-ref "${PROJECT_REF}" --password "${PGPASS_REMOTE}"
 
+      - name: Limpar identidades diagnósticas residuais
+        shell: bash
+        run: |
+          set -euo pipefail
+          CLEAN_STALE_SQL="${RUNNER_TEMP}/radar-clean-stale-measurement-users.sql"
+          printf "%s\n" "delete from auth.users where email like 'radar-measurement-%@example.test';" > "${CLEAN_STALE_SQL}"
+          npx --no-install supabase db query --linked --file "${CLEAN_STALE_SQL}" >/dev/null
+
       - name: Criar identidade técnica efêmera
         id: credentials
         shell: bash
@@ -75,6 +83,8 @@ jobs:
           insert into auth.users (
             instance_id,id,aud,role,email,encrypted_password,email_confirmed_at,
             confirmation_token,recovery_token,email_change,
+            email_change_token_new,email_change_token_current,
+            phone_change,phone_change_token,reauthentication_token,
             raw_app_meta_data,raw_user_meta_data,created_at,updated_at
           ) values (
             '00000000-0000-0000-0000-000000000000',
@@ -82,7 +92,7 @@ jobs:
             'authenticated','authenticated',
             '${EMAIL}',
             extensions.crypt('${PASSWORD}', extensions.gen_salt('bf')),
-            now(),'','','',
+            now(),'','','','','','','',
             '{"provider":"email","providers":["email"]}'::jsonb,
             '{}'::jsonb,now(),now()
           );
@@ -122,15 +132,13 @@ jobs:
           ACCOUNTS_FILE: ${{ steps.credentials.outputs.accounts_file }}
         run: |
           set -euo pipefail
+          CLEAN_SQL="${RUNNER_TEMP}/radar-clean-measurement-user.sql"
           if [ -n "${USER_ID:-}" ]; then
-            CLEAN_SQL="${RUNNER_TEMP}/radar-clean-measurement-user.sql"
-            cat > "${CLEAN_SQL}" <<SQL
-            delete from public.user_profiles where user_id = '${USER_ID}'::uuid;
-            delete from auth.identities where user_id = '${USER_ID}'::uuid;
-            delete from auth.users where id = '${USER_ID}'::uuid;
-            SQL
-            npx --no-install supabase db query --linked --file "${CLEAN_SQL}" >/dev/null
+            printf "%s\n" "delete from auth.users where id = '${USER_ID}'::uuid;" > "${CLEAN_SQL}"
+          else
+            printf "%s\n" "delete from auth.users where email like 'radar-measurement-%@example.test';" > "${CLEAN_SQL}"
           fi
+          npx --no-install supabase db query --linked --file "${CLEAN_SQL}" >/dev/null
           if [ -n "${ACCOUNTS_FILE:-}" ]; then rm -f -- "${ACCOUNTS_FILE}"; fi
 
       - name: Publicar artefato da medição
