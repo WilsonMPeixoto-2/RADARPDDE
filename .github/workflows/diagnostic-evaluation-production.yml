@@ -16,6 +16,12 @@ concurrency:
   group: diagnostic-evaluation-production
   cancel-in-progress: false
 
+env:
+  SUPABASE_TELEMETRY_DISABLED: '1'
+  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+  PGPASS_REMOTE: ${{ secrets.SUPABASE_DB_PASSWORD }}
+  PROJECT_REF: scnryinorqeucbfkioxo
+
 jobs:
   measure:
     name: Medir Avaliação real em Production
@@ -43,32 +49,88 @@ jobs:
       - name: Instalar Chromium homologado
         run: npx playwright install --with-deps chromium
 
-      - name: Preparar conta técnica sem expor credenciais
+      - name: Vincular Supabase Production autorizado
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${PROJECT_REF}" = 'scnryinorqeucbfkioxo'
+          test -n "${SUPABASE_ACCESS_TOKEN:-}" || { echo 'SUPABASE_ACCESS_TOKEN ausente.' >&2; exit 1; }
+          test -n "${PGPASS_REMOTE:-}" || { echo 'SUPABASE_DB_PASSWORD ausente.' >&2; exit 1; }
+          npx --no-install supabase link --project-ref "${PROJECT_REF}" --password "${PGPASS_REMOTE}"
+
+      - name: Criar identidade técnica efêmera
         id: credentials
         shell: bash
-        env:
-          ACCOUNTS_JSON: ${{ secrets.RADAR_PRODUCTION_READ_ACCOUNTS_JSON }}
         run: |
           set -euo pipefail
           umask 077
-          test -n "${ACCOUNTS_JSON:-}" || { echo 'Secret de contas técnicas ausente.' >&2; exit 1; }
+          USER_ID="$(node -e "console.log(require('node:crypto').randomUUID())")"
+          PASSWORD="$(openssl rand -hex 24)"
+          EMAIL="radar-measurement-${GITHUB_RUN_ID}@example.test"
+          CREATE_SQL="${RUNNER_TEMP}/radar-create-measurement-user.sql"
           ACCOUNTS_FILE="${RUNNER_TEMP}/radar-production-read-accounts.json"
-          printf '%s' "${ACCOUNTS_JSON}" > "${ACCOUNTS_FILE}"
+
+          cat > "${CREATE_SQL}" <<SQL
+          set search_path = extensions, public, auth, pg_catalog;
+          insert into auth.users (
+            instance_id,id,aud,role,email,encrypted_password,email_confirmed_at,
+            confirmation_token,recovery_token,email_change,
+            raw_app_meta_data,raw_user_meta_data,created_at,updated_at
+          ) values (
+            '00000000-0000-0000-0000-000000000000',
+            '${USER_ID}',
+            'authenticated','authenticated',
+            '${EMAIL}',
+            extensions.crypt('${PASSWORD}', extensions.gen_salt('bf')),
+            now(),'','','',
+            '{"provider":"email","providers":["email"]}'::jsonb,
+            '{}'::jsonb,now(),now()
+          );
+          insert into auth.identities (
+            provider_id,user_id,identity_data,provider,last_sign_in_at,created_at,updated_at,email
+          ) values (
+            '${USER_ID}',
+            '${USER_ID}',
+            jsonb_build_object(
+              'sub','${USER_ID}',
+              'email','${EMAIL}',
+              'email_verified',true,
+              'phone_verified',false
+            ),
+            'email',now(),now(),now(),'${EMAIL}'
+          );
+          insert into public.user_profiles(user_id,profile_id,active)
+          values ('${USER_ID}','technical_admin',true);
+          SQL
+
+          npx --no-install supabase db query --linked --file "${CREATE_SQL}" >/dev/null
+          printf '[{"profileId":"technical_admin","email":"%s","password":"%s"}]' "${EMAIL}" "${PASSWORD}" > "${ACCOUNTS_FILE}"
           chmod 600 "${ACCOUNTS_FILE}"
           printf 'accounts_file=%s\n' "${ACCOUNTS_FILE}" >> "${GITHUB_OUTPUT}"
+          printf 'user_id=%s\n' "${USER_ID}" >> "${GITHUB_OUTPUT}"
 
       - name: Executar medição instrumentada
         env:
           RADAR_PRODUCTION_READ_ACCOUNTS_FILE: ${{ steps.credentials.outputs.accounts_file }}
         run: npx playwright test --config=playwright.production-evaluation-measurement.config.js
 
-      - name: Remover material de autenticação
+      - name: Remover identidade técnica e credenciais efêmeras
         if: always()
         shell: bash
         env:
+          USER_ID: ${{ steps.credentials.outputs.user_id }}
           ACCOUNTS_FILE: ${{ steps.credentials.outputs.accounts_file }}
         run: |
           set -euo pipefail
+          if [ -n "${USER_ID:-}" ]; then
+            CLEAN_SQL="${RUNNER_TEMP}/radar-clean-measurement-user.sql"
+            cat > "${CLEAN_SQL}" <<SQL
+            delete from public.user_profiles where user_id = '${USER_ID}'::uuid;
+            delete from auth.identities where user_id = '${USER_ID}'::uuid;
+            delete from auth.users where id = '${USER_ID}'::uuid;
+            SQL
+            npx --no-install supabase db query --linked --file "${CLEAN_SQL}" >/dev/null
+          fi
           if [ -n "${ACCOUNTS_FILE:-}" ]; then rm -f -- "${ACCOUNTS_FILE}"; fi
 
       - name: Publicar artefato da medição
