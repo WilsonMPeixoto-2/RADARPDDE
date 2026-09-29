@@ -190,6 +190,137 @@ async function resetProbe(page) {
   await page.evaluate(() => window.__radarEvaluationMeasurementProbe.reset());
 }
 
+async function startVisualFrameProbe(page) {
+  return page.evaluate(() => {
+    const main = document.getElementById('main-container');
+    const rows = document.querySelectorAll('#prontuario-verif-rows tr[data-program-id]');
+    if (!main) throw new Error('main-container ausente para amostragem visual.');
+
+    const baselineTextLength = (main.innerText || '').trim().length;
+    const baselineRowCount = rows.length;
+    const baselineRect = main.getBoundingClientRect();
+    const state = {
+      running: true,
+      startedAt: performance.now(),
+      frameCount: 0,
+      busyFrames: 0,
+      hiddenFrames: 0,
+      emptyFrames: 0,
+      degradedFrames: 0,
+      baselineTextLength,
+      baselineRowCount,
+      minTextLength: baselineTextLength,
+      minRowCount: baselineRowCount,
+      minHeight: baselineRect.height,
+      maxHeight: baselineRect.height,
+      currentDegradedStart: null,
+      maxDegradedDurationMs: 0,
+      lastFrameAt: performance.now()
+    };
+
+    const sample = timestamp => {
+      if (!state.running) return;
+      const currentMain = document.getElementById('main-container');
+      const currentRows = document.querySelectorAll('#prontuario-verif-rows tr[data-program-id]');
+      if (!currentMain) {
+        state.hiddenFrames += 1;
+        state.emptyFrames += 1;
+        state.degradedFrames += 1;
+        if (state.currentDegradedStart == null) state.currentDegradedStart = timestamp;
+        state.frameCount += 1;
+        state.lastFrameAt = timestamp;
+        requestAnimationFrame(sample);
+        return;
+      }
+
+      const style = getComputedStyle(currentMain);
+      const rect = currentMain.getBoundingClientRect();
+      const textLength = (currentMain.innerText || '').trim().length;
+      const rowCount = currentRows.length;
+      const busy = currentMain.inert === true || currentMain.getAttribute('aria-busy') === 'true';
+      const hidden = style.display === 'none'
+        || style.visibility === 'hidden'
+        || Number.parseFloat(style.opacity || '1') < 0.5
+        || rect.width <= 1
+        || rect.height <= 1;
+      const textRatio = state.baselineTextLength > 0 ? textLength / state.baselineTextLength : 1;
+      const rowRatio = state.baselineRowCount > 0 ? rowCount / state.baselineRowCount : 1;
+      const empty = textLength < 20 || (state.baselineRowCount > 0 && rowCount === 0);
+      const degraded = hidden || empty || textRatio < 0.5 || rowRatio < 0.5;
+
+      state.frameCount += 1;
+      if (busy) state.busyFrames += 1;
+      if (hidden) state.hiddenFrames += 1;
+      if (empty) state.emptyFrames += 1;
+      if (degraded) {
+        state.degradedFrames += 1;
+        if (state.currentDegradedStart == null) state.currentDegradedStart = timestamp;
+      } else if (state.currentDegradedStart != null) {
+        state.maxDegradedDurationMs = Math.max(
+          state.maxDegradedDurationMs,
+          timestamp - state.currentDegradedStart
+        );
+        state.currentDegradedStart = null;
+      }
+
+      state.minTextLength = Math.min(state.minTextLength, textLength);
+      state.minRowCount = Math.min(state.minRowCount, rowCount);
+      state.minHeight = Math.min(state.minHeight, rect.height);
+      state.maxHeight = Math.max(state.maxHeight, rect.height);
+      state.lastFrameAt = timestamp;
+      requestAnimationFrame(sample);
+    };
+
+    window.__radarVisualFrameProbe = state;
+    requestAnimationFrame(sample);
+    return {
+      baselineTextLength,
+      baselineRowCount,
+      baselineHeight: Number(baselineRect.height.toFixed(1))
+    };
+  });
+}
+
+async function stopVisualFrameProbe(page) {
+  return page.evaluate(() => {
+    const state = window.__radarVisualFrameProbe;
+    if (!state) return null;
+    state.running = false;
+    const stoppedAt = performance.now();
+    if (state.currentDegradedStart != null) {
+      state.maxDegradedDurationMs = Math.max(
+        state.maxDegradedDurationMs,
+        stoppedAt - state.currentDegradedStart
+      );
+    }
+    const textRatio = state.baselineTextLength > 0
+      ? state.minTextLength / state.baselineTextLength
+      : 1;
+    const rowRatio = state.baselineRowCount > 0
+      ? state.minRowCount / state.baselineRowCount
+      : 1;
+    const result = {
+      sampledDurationMs: Number((stoppedAt - state.startedAt).toFixed(1)),
+      frameCount: state.frameCount,
+      busyFrames: state.busyFrames,
+      hiddenFrames: state.hiddenFrames,
+      emptyFrames: state.emptyFrames,
+      degradedFrames: state.degradedFrames,
+      maxDegradedDurationMs: Number(state.maxDegradedDurationMs.toFixed(1)),
+      baselineTextLength: state.baselineTextLength,
+      minTextLength: state.minTextLength,
+      minTextRatio: Number(textRatio.toFixed(3)),
+      baselineRowCount: state.baselineRowCount,
+      minRowCount: state.minRowCount,
+      minRowRatio: Number(rowRatio.toFixed(3)),
+      minHeight: Number(state.minHeight.toFixed(1)),
+      maxHeight: Number(state.maxHeight.toFixed(1))
+    };
+    delete window.__radarVisualFrameProbe;
+    return result;
+  });
+}
+
 async function waitForStable(page) {
   await page.waitForFunction(() => {
     const probe = window.__radarEvaluationMeasurementProbe;
@@ -266,6 +397,10 @@ test('mede jornadas reais da Avaliação em Production sem alterar dados', async
 
   async function measure(label, action) {
     await resetProbe(page);
+    const sampleVisualFrames = label.startsWith('global-competence:')
+      || label.startsWith('evaluation-month-tab:');
+    if (sampleVisualFrames) await startVisualFrameProbe(page);
+
     const run = {
       label,
       requests: [],
@@ -279,6 +414,7 @@ test('mede jornadas reais da Avaliação em Production sem alterar dados', async
     await waitNetworkIdle(run);
     const totalMs = Date.now() - run.startedAt;
     const probe = await page.evaluate(() => window.__radarEvaluationMeasurementProbe.snapshot());
+    const visualFrames = sampleVisualFrames ? await stopVisualFrameProbe(page) : null;
     activeRun = null;
 
     const byTable = {};
@@ -300,6 +436,7 @@ test('mede jornadas reais da Avaliação em Production sem alterar dados', async
       requestFailures: run.requests.filter(item => item.failed).length,
       requestP95Ms: p95,
       requestsByTable: byTable,
+      visualFrames,
       ...probe
     });
   }
