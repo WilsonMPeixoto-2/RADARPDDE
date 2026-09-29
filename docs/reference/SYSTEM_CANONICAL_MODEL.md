@@ -238,6 +238,8 @@ school + competence + program
 
 Cada linha em `registered_invoices` tem identidade própria. Para análise documental individual e Pendência fiscal, a identidade canônica é o `registered_invoice_id`.
 
+**Regra de independência operacional:** o ciclo de despesas é independente do ciclo de bonificação. Para perfis com capacidade de escrita em despesas, cadastrar, editar, excluir, analisar documento fiscal, operar Consulta Assessoria e seguir Pendência/novo envio/reanálise **não depende** do valor de `bonification.notaFiscal` nem de `bonus_result`. Essas operações preservam a bonificação e o resultado consolidado; não os reabrem como efeito colateral.
+
 ### 7.3 Pendência documental genérica
 
 Contexto canônico:
@@ -276,8 +278,10 @@ Essas métricas não devem ser unificadas.
 ### 8.2 Nota Fiscal
 
 - bonificação de `notaFiscal`: agregada no contexto mensal;
+- cadastro e ciclo operacional da despesa: independentes da bonificação e da consolidação;
 - análise técnica: individual por NF;
-- resumo técnico mensal: derivado das análises individuais.
+- resumo técnico mensal: derivado das análises individuais;
+- `Sim`, `Não`, `Não se aplica`, ausência de preenchimento ou `bonus_result` consolidado não funcionam como autorização para o domínio de despesas.
 
 ### 8.3 Consulta Assessoria
 
@@ -340,7 +344,8 @@ Bonificação, análise e Pendência são dimensões independentes. Uma não dev
 ```text
 formulário NF
 → InvoiceService.save
-→ valida contexto, tipo, valor, programa e estado mensal
+→ valida perfil, contexto, tipo, valor e programa pelas regras próprias da despesa
+→ se o contexto mensal ainda não existir, materializa verification vazia na mesma transação
 → invoice-effects planeja efeitos
 → DataService/Repository
 → saveInvoiceWithEffects
@@ -360,6 +365,8 @@ Efeitos por tipo:
 - `servico`: participa da dimensão Consulta Assessoria;
 - `boleto_internet`: tipo de gasto de NF, somente Educação Conectada;
 - `a_identificar`: não usa o fluxo comum de uma despesa identificada.
+
+A `verification` é necessária como vínculo estrutural do contexto escolar/mês/programa, mas **não significa que a bonificação tenha começado**. A primeira despesa pode materializar essa linha com bonificação ainda vazia. Alterar uma despesa nunca limpa `bonus_result`; alterar a própria bonificação continua submetido às regras de `VerificationService`, inclusive às restrições pós-consolidação.
 
 ## 9.4 Criar `a_identificar`
 
