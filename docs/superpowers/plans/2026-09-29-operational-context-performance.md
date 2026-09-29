@@ -94,14 +94,17 @@ git commit -m "perf: add set-based operational context read"
 ### Task 2: Substituir o fan-out cliente pela autoridade única
 
 **Files:**
+- Modify: `src/data/supabase-repository.js:500-528`
 - Modify: `src/data/repository-factory.js:266-430`
+- Create: `tests/unit/supabase-rpc-abort-signal.test.js`
 - Test: `tests/unit/remote-operational-context-query.test.js`
 - Test: `tests/unit/remote-context-bootstrap.test.js`
 - Test: `tests/unit/remote-bootstrap-concurrency.test.js`
 
 **Interfaces:**
 - Consumes: RPC `read_operational_context(...)`.
-- Produces: `OperationalSupabaseRepository.queryOperationalContext(options) -> { competenceId, entities }` com a mesma forma atual.
+- Extends: `SupabaseRepository.executeRpc(name, args, operation, options = {})`, com `options.signal` opcional apenas para leituras canceláveis; chamadas de escrita existentes sem `options.signal` mantêm comportamento idêntico.
+- Produces: `OperationalSupabaseRepository.queryOperationalContext(options) -> { competenceId, entities }` com a mesma forma atual e cancelamento físico da requisição obsoleta.
 
 - [ ] **Step 1: Reescrever teste unitário para exigir uma RPC e zero fan-out por contexto**
 
@@ -110,7 +113,8 @@ Asserções mínimas:
 - uma chamada `rpc('read_operational_context', ...)`;
 - zero GETs diretos em `verifications`/`registered_invoices` para resolver dependências;
 - envelope final idêntico ao contrato anterior;
-- AbortSignal impede aplicação de resposta obsoleta.
+- o mesmo `AbortSignal` recebido por `queryOperationalContext()` chega ao builder PostgREST da RPC por `.abortSignal(signal)`;
+- abortar a competência A cancela fisicamente a request A, além de impedir a aplicação de resposta obsoleta.
 
 - [ ] **Step 2: Rodar o teste e confirmar que o código atual falha pelo excesso de chamadas**
 
@@ -118,17 +122,39 @@ Run: `node --test tests/unit/remote-operational-context-query.test.js`
 
 Expected: FAIL porque o caminho atual usa `queryContextDependencies()`.
 
-- [ ] **Step 3: Alterar somente `queryOperationalContext()`**
+- [ ] **Step 3: Tornar a execução de RPC opcionalmente abortável sem alterar as escritas existentes**
+
+Em `src/data/supabase-repository.js`:
+
+- evoluir a assinatura para `executeRpc(name, args, operation, options = {})`;
+- criar o builder com `this.client.rpc(name, cloneValue(args || {}))`;
+- quando `options.signal` existir, exigir suporte a `.abortSignal(signal)` e aplicá-lo antes do `await`;
+- quando não houver signal, manter exatamente o caminho atual das RPCs de escrita;
+- preservar o mapeamento de erros já existente e permitir que cancelamento continue detectável pelo chamador como abort da leitura, sem convertê-lo em falso erro funcional.
+
+- [ ] **Step 4: Testar isoladamente o contrato de cancelamento da RPC**
+
+Em `tests/unit/supabase-rpc-abort-signal.test.js`, provar:
+
+- `abortSignal` recebe exatamente o signal passado;
+- RPC sem signal não exige nem chama `abortSignal`;
+- abort de leitura não faz fallback para outra consulta nem retry de escrita.
+
+Run: `node --test tests/unit/supabase-rpc-abort-signal.test.js`
+
+Expected: PASS.
+
+- [ ] **Step 5: Substituir somente a implementação de `queryOperationalContext()`**
 
 Implementação:
 
-- chamar `this.executeRpc('read_operational_context', ...)`;
+- chamar `this.executeRpc('read_operational_context', args, 'queryOperationalContext', { signal: options.signal })`;
 - normalizar/validar o JSON recebido;
 - preservar ordenação determinística;
-- preservar suporte a abort/stale no nível de `DataService`;
+- manter `DataService` como autoridade de sequence/stale/application;
 - remover `queryContextDependencies()` se ficar sem consumidor.
 
-- [ ] **Step 4: Rodar os testes de contexto/bootstrap**
+- [ ] **Step 6: Rodar os testes de contexto/bootstrap**
 
 Run:
 
@@ -138,10 +164,14 @@ node --test   tests/unit/remote-operational-context-query.test.js   tests/unit/r
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add src/data/repository-factory.js   tests/unit/remote-operational-context-query.test.js   tests/unit/remote-context-bootstrap.test.js   tests/unit/remote-bootstrap-concurrency.test.js
+git add src/data/supabase-repository.js src/data/repository-factory.js \
+  tests/unit/supabase-rpc-abort-signal.test.js \
+  tests/unit/remote-operational-context-query.test.js \
+  tests/unit/remote-context-bootstrap.test.js \
+  tests/unit/remote-bootstrap-concurrency.test.js
 git commit -m "perf: collapse operational context fan-out"
 ```
 
@@ -161,10 +191,11 @@ git commit -m "perf: collapse operational context fan-out"
 
 Preservar casos de:
 
-- competência A abortada por competência B;
-- leitura abortada por intenção de escrita;
+- competência A abortada fisicamente por competência B;
+- leitura abortada fisicamente por intenção de escrita;
 - escrita aguardada como barreira somente quando já pendente;
-- resposta antiga nunca aplicada.
+- resposta antiga nunca aplicada;
+- cancelamento continua reduzindo trabalho de rede, não apenas descartando o resultado no JavaScript.
 
 - [ ] **Step 2: Rodar testes antes de alterar DataService**
 
