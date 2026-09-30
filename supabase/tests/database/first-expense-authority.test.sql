@@ -8,10 +8,11 @@ insert into auth.users(id,email) values
 ('00000000-0000-0000-0000-000000000733','first-inventory@example.test'),
 ('00000000-0000-0000-0000-000000000734','first-sme@example.test');
 insert into public.controllers(id,name,user_id) values('FIRST-CTRL','Controlador','00000000-0000-0000-0000-000000000732');
-insert into public.user_profiles(user_id,profile_id,controller_id,cre_scope) values
-('00000000-0000-0000-0000-000000000732','controller','FIRST-CTRL','4ª CRE'),
-('00000000-0000-0000-0000-000000000733','inventory',null,'4ª CRE'),
-('00000000-0000-0000-0000-000000000734','sme_management',null,null);
+insert into public.inventory_team_members(id,name,user_id) values('FIRST-INV','Inventário','00000000-0000-0000-0000-000000000733');
+insert into public.user_profiles(user_id,profile_id,controller_id,inventory_member_id,cre_scope) values
+('00000000-0000-0000-0000-000000000732','controller','FIRST-CTRL',null,'4ª CRE'),
+('00000000-0000-0000-0000-000000000733','inventory',null,'FIRST-INV','4ª CRE'),
+('00000000-0000-0000-0000-000000000734','sme_management',null,null,null);
 insert into public.competences(id,label,exercise) values('2033-05','Maio 2033',2033),('2033-06','Junho 2033',2033);
 insert into public.programs(id,name) values('FIRST_AUTH','Autoridade primeira despesa');
 insert into public.schools(id,designation,denomination,cre,initial_competence,inep,cnpj,sici) values

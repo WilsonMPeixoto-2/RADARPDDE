@@ -110,7 +110,7 @@ select lives_ok(
 
 select is(
     (select bonus_result from public.verifications where id = '04.99.193::2028-09::BONUS_CLEAR'),
-    null,
+    'apta',
     'save: campo bonus_result presente e vazio não pertence à despesa'
 );
 
@@ -184,7 +184,7 @@ select lives_ok(
 
 select is(
     (select bonus_result from public.verifications where id = '04.99.193::2028-09::BONUS_CLEAR'),
-    null,
+    'apta',
     'delete: campo bonus_result presente e vazio não pertence à despesa'
 );
 

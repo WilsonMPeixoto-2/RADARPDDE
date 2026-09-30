@@ -31,7 +31,7 @@ insert into public.verifications (
     '2028-01',
     'RPC_BASIC',
     '{}'::jsonb,
-    '{"notas":"Não analisado"}'::jsonb
+    '{"notaFiscal":"Não analisado"}'::jsonb
 );
 
 insert into public.user_profiles (user_id, profile_id)
@@ -67,7 +67,7 @@ select lives_ok(
         ),
         p_verification_patch => jsonb_build_object(
             'id', '04.99.101::2028-01::RPC_BASIC',
-            'analysis', jsonb_build_object('notas', 'Correto')
+            'analysis', jsonb_build_object('notaFiscal', 'Correto')
         ),
         p_expected_verification_version => 1,
         p_administrative_log => jsonb_build_object(
@@ -86,7 +86,7 @@ select lives_ok(
 select is((select count(*)::integer from public.registered_invoices where id = 'invoice-pgtap'), 1, 'nota foi criada');
 select is((select count(*)::integer from public.assets where id = 'asset-pgtap'), 1, 'bem foi criado');
 select is((select linked_asset_id from public.registered_invoices where id = 'invoice-pgtap'), 'asset-pgtap', 'nota foi vinculada ao bem');
-select is((select analysis ->> 'notas' from public.verifications where id = '04.99.101::2028-01::RPC_BASIC'), 'Correto', 'análise foi atualizada atomicamente');
+select is((select analysis ->> 'notaFiscal' from public.verifications where id = '04.99.101::2028-01::RPC_BASIC'), 'Correto', 'análise foi atualizada atomicamente');
 select is((select count(*)::integer from public.administrative_logs where id = 'log-invoice-create'), 1, 'auditoria da criação foi gravada na mesma RPC');
 
 select lives_ok(
@@ -116,7 +116,7 @@ select lives_ok(
         ),
         p_verification_patch => jsonb_build_object(
             'id', '04.99.101::2028-01::RPC_BASIC',
-            'analysis', jsonb_build_object('notas', 'Correto após o prazo')
+            'analysis', jsonb_build_object('notaFiscal', 'Correto após o prazo')
         ),
         p_expected_invoice_version => 1,
         p_expected_asset_version => 1,
@@ -157,7 +157,7 @@ select lives_ok(
         p_delete_linked_asset => true,
         p_expected_asset_version => 2,
         p_verification_patch => jsonb_build_object(
-            'analysis', jsonb_build_object('notas', 'Não analisado')
+            'analysis', jsonb_build_object('notaFiscal', 'Não analisado')
         ),
         p_expected_verification_version => 3,
         p_administrative_log => jsonb_build_object(
