@@ -405,13 +405,6 @@
                     }
                     verification.analise = verification.analise || {};
                     verification.bonificacao = verification.bonificacao || {};
-                    if (!text(verification.bonificacao.notaFiscal)) {
-                        fail(
-                            'DELIVERY_REQUIRED',
-                            'Preencha a bonificação de Notas Fiscais antes de registrar a análise técnica.',
-                            'openInvoiceDocumentPendency'
-                        );
-                    }
 
                     const expectedAnalysis = text(input.technicalAnalysisValue || input.analysis || 'Incorreto');
                     if (expectedAnalysis !== 'Incorreto') {

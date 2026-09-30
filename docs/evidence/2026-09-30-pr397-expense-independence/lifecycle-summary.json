@@ -1,0 +1,17 @@
+{
+  "sha": "203ef0428c598a3cf2895e9c67c67fc4b96c924a",
+  "mergeRef": "ad566fe98a4dfadc177179953b86dfb8a4354543",
+  "stats": {
+    "total": 20,
+    "expected": 20,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "startTime": 1790764720687,
+  "projects": [
+    "desktop-chromium"
+  ],
+  "errors": []
+}

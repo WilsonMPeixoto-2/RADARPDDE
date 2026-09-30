@@ -105,13 +105,13 @@ select lives_ok(
         p_expected_verification_version => 2
     )
     $$,
-    'save: patch com bonus_result vazio representa reabertura explícita'
+    'save: patch vazio de despesa preserva a consolidação (ADR-055)'
 );
 
 select is(
     (select bonus_result from public.verifications where id = '04.99.193::2028-09::BONUS_CLEAR'),
-    null,
-    'save: campo bonus_result presente e vazio limpa a consolidação'
+    'apta',
+    'save: campo bonus_result presente e vazio não pertence à despesa'
 );
 
 -- Reconstitui uma consolidação para provar a mesma semântica na exclusão atômica.
@@ -179,13 +179,13 @@ select lives_ok(
         p_expected_verification_version => 5
     )
     $$,
-    'delete: patch com bonus_result vazio representa reabertura explícita'
+    'delete: patch vazio de despesa preserva a consolidação (ADR-055)'
 );
 
 select is(
     (select bonus_result from public.verifications where id = '04.99.193::2028-09::BONUS_CLEAR'),
-    null,
-    'delete: campo bonus_result presente e vazio limpa a consolidação'
+    'apta',
+    'delete: campo bonus_result presente e vazio não pertence à despesa'
 );
 
 select * from finish();

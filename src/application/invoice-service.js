@@ -124,6 +124,7 @@
             this.dataService = options.dataService;
             this.getState = options.getState;
             this.appendLog = options.appendLog;
+            this.ensureVerification = options.ensureVerification || null;
             this.getCurrentProfile = options.getCurrentProfile || (() => '');
             this.createId = options.createId || (prefix => `${prefix}-${Date.now()}`);
             this.now = options.now || (() => new Date().toISOString());
@@ -158,6 +159,30 @@
             return { schoolId, compKey, school, context, program, verification };
         }
 
+        ensureContextVerification(state, input, operation) {
+            let context = this.getContext(state, input, operation);
+            if (context.verification) return context;
+            if (typeof this.ensureVerification !== 'function') {
+                fail(
+                    'VERIFICATION_NOT_FOUND',
+                    'O contexto mensal da despesa não pôde ser inicializado.',
+                    operation,
+                    { schoolId: context.schoolId, compKey: context.compKey }
+                );
+            }
+            this.ensureVerification(context.schoolId, context.compKey);
+            context = this.getContext(this.getState(), input, operation);
+            if (!context.verification) {
+                fail(
+                    'VERIFICATION_NOT_FOUND',
+                    'O contexto mensal da despesa não pôde ser inicializado.',
+                    operation,
+                    { schoolId: context.schoolId, compKey: context.compKey }
+                );
+            }
+            return context;
+        }
+
         assertExpenseTypeApplicable(expenseType, context, operation) {
             if (expenseType !== INTERNET_BILL_EXPENSE_TYPE) return;
 
@@ -173,23 +198,6 @@
                         programId: context.context.programId,
                         expenseType
                     }
-                );
-            }
-        }
-
-        assertVerificationEditable(verification, profile, operation) {
-            if (verification?.resultadoBonif && profile !== 'assistente') {
-                fail(
-                    'CONSOLIDATED_VERIFICATION',
-                    'Esta competência está consolidada. Apenas o(a) Assistente de Verbas Federais pode incluir, editar ou excluir despesas e Notas Fiscais.',
-                    operation
-                );
-            }
-            if (verification?.bonificacao?.notaFiscal === 'Não se aplica') {
-                fail(
-                    'FISCAL_NOTES_NOT_APPLICABLE',
-                    'Não é possível adicionar despesas ou notas fiscais para competências marcadas como "Não se aplica".',
-                    operation
                 );
             }
         }
@@ -361,25 +369,11 @@
             }
 
             const initialState = this.getState();
-            const initialContext = this.getContext(
+            const initialContext = this.ensureContextVerification(
                 initialState,
                 input,
                 'invoice:save-unidentified-with-pendency'
             );
-            this.assertVerificationEditable(
-                initialContext.verification,
-                profile,
-                'invoice:save-unidentified-with-pendency'
-            );
-            if (!initialContext.verification
-                || !text(initialContext.verification.bonificacao?.notaFiscal)
-                || initialContext.verification.bonificacao?.notaFiscal === 'Não se aplica') {
-                fail(
-                    'DELIVERY_REQUIRED',
-                    'Preencha a bonificação de Notas Fiscais antes de registrar uma despesa sem documentação.',
-                    'invoice:save-unidentified-with-pendency'
-                );
-            }
 
             const contextInvoices = initialState.registeredInvoices.filter(invoice => (
                 invoice.escolaId === initialContext.schoolId
@@ -666,15 +660,10 @@
             const profile = this.assertEditable(input.profile, 'invoice:save');
             const invoiceData = this.validateInvoice(input, 'invoice:save');
             const initialState = this.getState();
-            const initialContext = this.getContext(initialState, input, 'invoice:save');
+            const initialContext = this.ensureContextVerification(initialState, input, 'invoice:save');
             this.assertExpenseTypeApplicable(
                 invoiceData.expenseType,
                 initialContext,
-                'invoice:save'
-            );
-            this.assertVerificationEditable(
-                initialContext.verification,
-                profile,
                 'invoice:save'
             );
 
@@ -947,11 +936,6 @@
                     { id: invoiceId }
                 );
             }
-            this.assertVerificationEditable(
-                initialContext.verification,
-                profile,
-                'invoice:update-document-analysis'
-            );
 
             const contextInvoices = initialState.registeredInvoices
                 .filter(item => item.escolaId === schoolId && item.compKey === initialInvoice.compKey);
@@ -993,11 +977,6 @@
                 };
             }
 
-            const shouldReopen = Boolean(
-                profile === 'assistente'
-                && initialContext.verification.resultadoBonif
-            );
-
             return this.dataService.execute({
                 name: 'invoice:update-document-analysis',
                 changedEntities: ['registeredInvoices', 'verifications', 'administrativeLogs'],
@@ -1033,15 +1012,10 @@
                         schoolId,
                         invoice.compKey
                     );
-                    if (shouldReopen) context.verification.resultadoBonif = '';
-
                     const label = invoiceLabel(invoice);
-                    const reopenSuffix = shouldReopen
-                        ? ' A consolidação anterior foi reaberta pela alteração.'
-                        : '';
                     const auditLog = this.appendLog(
                         'Análise Técnica de Documento Fiscal Atualizada',
-                        `${label} atualizado de “${previous}” para “${analysis}”. Resumo técnico de Notas Fiscais: “${aggregate}”.${reopenSuffix}`
+                        `${label} atualizado de “${previous}” para “${analysis}”. Resumo técnico de Notas Fiscais: “${aggregate}”.`
                     );
 
                     return {
@@ -1125,11 +1099,6 @@
                     { id: invoiceId }
                 );
             }
-            this.assertVerificationEditable(
-                initialContext.verification,
-                profile,
-                'invoice:update-service-advisory'
-            );
 
             const serviceInvoices = initialState.registeredInvoices.filter(item => (
                 item.escolaId === initialContext.schoolId
@@ -1189,11 +1158,6 @@
                 };
             }
 
-            const shouldReopen = Boolean(
-                profile === 'assistente'
-                && initialContext.verification.resultadoBonif
-            );
-
             return this.dataService.execute({
                 name: 'invoice:update-service-advisory',
                 changedEntities: [
@@ -1239,16 +1203,9 @@
                         context.schoolId,
                         context.compKey
                     );
-                    if (shouldReopen) {
-                        context.verification.resultadoBonif = '';
-                    }
-
-                    const reopenSuffix = shouldReopen
-                        ? ' A consolidação anterior foi reaberta pela alteração.'
-                        : '';
                     const auditLog = this.appendLog(
                         'Consulta à Assessoria Atualizada',
-                        `Consulta à Assessoria da NF ${invoice.numero} atualizada: envio "${invoice.consultaAssessoriaEnviada ? 'Sim' : 'Não'}"; análise "${invoice.analiseConsultaAssessoria}".${reopenSuffix}`
+                        `Consulta à Assessoria da NF ${invoice.numero} atualizada: envio "${invoice.consultaAssessoriaEnviada ? 'Sim' : 'Não'}"; análise "${invoice.analiseConsultaAssessoria}".`
                     );
 
                     return {
@@ -1286,11 +1243,6 @@
                 schoolId: input.schoolId || initialInvoice.escolaId,
                 compKey: initialInvoice.compKey
             }, 'invoice:remove');
-            this.assertVerificationEditable(
-                initialContext.verification,
-                profile,
-                'invoice:remove'
-            );
 
             const contextInvoices = initialState.registeredInvoices.filter(invoice => (
                 invoice.escolaId === initialContext.schoolId

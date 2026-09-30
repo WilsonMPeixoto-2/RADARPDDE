@@ -451,7 +451,7 @@
   {
     "id": "INV-01",
     "surface": "school-record",
-    "action": "Cadastrar Nota Fiscal/despesa e retificar dados editáveis do mesmo lançamento, inclusive com Pendência ativa; A identificar nasce atomicamente",
+    "action": "Cadastrar Nota Fiscal/despesa e retificar dados editáveis do mesmo lançamento independentemente da bonificação/consolidação; A identificar nasce atomicamente",
     "mode": "write",
     "criticality": "P0",
     "allow": [
@@ -484,6 +484,10 @@
       [
         "supabase/migrations/20260828023000_invoice_document_analysis_pendency.sql",
         "save_unidentified_expense_with_pendency"
+      ],
+      [
+        "supabase/migrations/20260929213000_expense_bonification_independence.sql",
+        "save_invoice_with_effects_impl"
       ]
     ],
     "service": "InvoiceService.save + saveUnidentifiedExpenseWithPendency + RadarAuditableRetification",
@@ -506,7 +510,7 @@
   {
     "id": "INV-02",
     "surface": "school-record",
-    "action": "Excluir documento fiscal sem qualquer histórico de Pendência individual e reverter efeitos vinculados; operação separada da retificação",
+    "action": "Excluir documento fiscal sem qualquer histórico de Pendência individual e reverter efeitos vinculados, preservando bonificação/consolidação; operação separada da retificação",
     "mode": "write",
     "criticality": "P0",
     "allow": [
@@ -557,7 +561,7 @@
   {
     "id": "INV-03",
     "surface": "school-record",
-    "action": "Registrar envio, análise, pendência, novo envio e reanálise da Assessoria por nota fiscal de serviço",
+    "action": "Registrar envio, análise, pendência, novo envio e reanálise da Assessoria por nota fiscal de serviço sem depender nem reabrir bonificação/consolidação",
     "mode": "write",
     "criticality": "P0",
     "allow": [
@@ -614,7 +618,7 @@
   {
     "id": "INV-04",
     "surface": "school-record",
-    "action": "Analisar cada documento fiscal, abrir Pendência por invoice e manter resumo técnico derivado",
+    "action": "Analisar cada documento fiscal, abrir Pendência por invoice e manter resumo técnico derivado sem depender nem reabrir bonificação/consolidação",
     "mode": "write",
     "criticality": "P0",
     "allow": [

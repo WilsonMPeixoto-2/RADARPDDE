@@ -1,11 +1,17 @@
 # RADAR PDDE — estado atual e retomada
 
 **Classe documental:** Canônico — estado mutável  
-**Atualizado em:** 28 de setembro de 2026
+**Atualizado em:** 30 de setembro de 2026
 
 ## 1. Estado funcional corrente
 
 **As Fases A, B e C estão encerradas. A Fase D ainda não foi iniciada.**
+
+**Prioridade executora corrente: PR #397 — independência entre despesas e bonificação.** A decisão funcional é a ADR-055; a implementação permanece candidata na branch `fix/decouple-expenses-bonification`, baseada em `main@a38eeef6`. O PR #396 já integrou a leitura `read_operational_context`, que deve ser preservada. O handoff corrente passa a ser [PR #397](handoff/2026-09-30-pr397-independencia-despesas-bonificacao.md); checkpoints e CI por SHA estão no próprio PR. Isso não comprova merge, aplicação de SQL ou publicação em Production.
+
+`PROD-UX-08` permanece pendência visual separada, com seu registro de retomada preservado. #394 e os planos amplos do #395 não compõem o escopo executor do #397. Autorizações históricas de outros PRs não autorizam merge/deploy/escrita em Production nesta frente.
+
+O #397 permanece Draft/parcial: provas operacionais e de banco estão registradas por SHA no handoff/PR, mas os gates obrigatórios de auditoria de dependências continuam bloqueando integração. O lockfile é idêntico à base comparada; não houve upgrade ou exceção de segurança nesta frente. Capturas/JSONs e leitura humana estão preservados na evidência do handoff; seletores preexistentes e drawer impedem homologação integral da superfície. A quota de registry de execuções anteriores não se repetiu no candidato validado; consultar o fechamento do PR para os checks vivos e o SHA efetivamente executado.
 
 Baseline funcional que encerrou a Fase C:
 
@@ -55,7 +61,7 @@ Registro técnico da correção final da C3: [correções CodeQL e validação C
 
 Os documentos de handoff de A/B e das frentes anteriores permanecem **históricos concluídos**. Não reabrir PRs #375/#376/#377/#378 ou textos pré-merge como fila de implementação.
 
-O handoff corrente é [`docs/handoff/2026-09-28-prod-ux-08-drawer-clipping.md`](handoff/2026-09-28-prod-ux-08-drawer-clipping.md). Ele define a investigação visual separada de `PROD-UX-08`. A investigação de `PROD-FUNC-09` está encerrada.
+O handoff corrente é [PR #397 — independência de despesas](handoff/2026-09-30-pr397-independencia-despesas-bonificacao.md). [PROD-UX-08](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) é uma pendência separada de retomada visual. A investigação de `PROD-FUNC-09` está encerrada.
 
 Para retomada, a ordem de leitura continua sendo:
 
@@ -78,9 +84,9 @@ A auditoria em Production confirmou criação, retificação, identificação co
 
 A aba autenticada foi recarregada e o mesmo registro sintético, sem nova escrita, mostrou **Disponibilização 27/09/2026** e **Registro 27/09/2026, 23:12**. O CI do candidato terminou com **28 checks concluídos: 26 aprovados e 2 ignorados, sem falhas ou pendências**. [Evidência de encerramento](evidence/2026-09-28-prod-func-09-date-business/README.md).
 
-A frente ativa passa a ser **`PROD-UX-08` — clipping e sobreposição do drawer global em desktop**. A correção de data não homologa a composição inteira do drawer; essa limitação foi novamente vista em Production e exige diagnóstico próprio antes de alterar CSS.
+A investigação de **`PROD-UX-08` — clipping e sobreposição do drawer global em desktop** permanece pendente e separada da frente executora #397. A correção de data não homologa a composição inteira do drawer; essa limitação foi novamente vista em Production e exige diagnóstico próprio antes de alterar CSS.
 
-O handoff corrente com escopo, evidências e gate outside-in é [`docs/handoff/2026-09-28-prod-ux-08-drawer-clipping.md`](handoff/2026-09-28-prod-ux-08-drawer-clipping.md).
+O registro de retomada dessa pendência visual é [`docs/handoff/2026-09-28-prod-ux-08-drawer-clipping.md`](handoff/2026-09-28-prod-ux-08-drawer-clipping.md). Ele não concorre com o handoff corrente do #397.
 
 A **Fase D — hardening e performance permanece planejada, mas foi deliberadamente adiada** até que esta frente funcional/visual principal seja novamente compreendida no baseline pós-A+B+C. Ela não foi cancelada nem iniciada.
 

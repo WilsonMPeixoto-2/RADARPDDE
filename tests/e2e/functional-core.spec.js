@@ -131,7 +131,7 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     await expect(page.locator('#sme-detail-table .sme-detail-row')).toHaveCount(430);
   });
 
-  test('abre prontuário sem persistir e inicia análise técnica somente depois do cadastro da primeira nota', async ({ page }, testInfo) => {
+  test('abre prontuário sem persistir e a primeira despesa independe da bonificação', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
     page.on('dialog', dialog => dialog.accept());
@@ -142,32 +142,11 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     expect(context.verificationExistsAfterOpen).toBe(false);
 
     const noteRow = fiscalNoteRow(page);
-    await noteRow.getByRole('button', { name: 'Sim', exact: true }).click();
     await expect(noteRow.getByRole('button', { name: 'Adicionar Nota' })).toBeVisible();
     await expect(noteRow.locator('select.invoice-document-analysis-select')).toHaveCount(0);
-
     expect(await page.evaluate(({ escolaId, compProgKey }) => (
-      verificacoes[escolaId][compProgKey]
-    ), context)).toEqual({
-      bonificacao: {
-        extCC: '',
-        extINV: '',
-        notaFiscal: 'Sim',
-        consAssessoria: 'Não se aplica',
-        consEnviada: false,
-        declBBAgil: '',
-        encampInventario: ''
-      },
-      analise: {
-        extCC: 'Não analisado',
-        extINV: 'Não analisado',
-        notaFiscal: 'Não analisado',
-        consAssessoria: 'Correto',
-        declBBAgil: 'Não analisado',
-        encampInventario: 'Não analisado'
-      },
-      resultadoBonif: ''
-    });
+      Boolean(verificacoes[escolaId]?.[compProgKey])
+    ), context)).toBe(false);
 
     await noteRow.getByRole('button', { name: 'Adicionar Nota' }).click();
     await page.locator('#nota-desc').fill('Material pedagógico');
@@ -176,6 +155,14 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     await page.locator('#form-dados-nota button[type="submit"]').click();
 
     await expect(page.locator('#modal-dados-nota')).not.toHaveClass(/show/);
+    expect(await page.evaluate(({ escolaId, compProgKey }) => {
+      const verification = verificacoes[escolaId][compProgKey];
+      return {
+        notaFiscal: verification.bonificacao.notaFiscal,
+        resultadoBonif: verification.resultadoBonif
+      };
+    }, context)).toEqual({ notaFiscal: '', resultadoBonif: '' });
+
     const individualAnalysis = fiscalNoteRow(page).locator('select.invoice-document-analysis-select').first();
     await expect(individualAnalysis).toHaveValue('Não analisado');
     await individualAnalysis.selectOption('Correto');
@@ -192,18 +179,22 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
         && item.compKey === compProgKey
         && item.numero === 'NF-E2E-001'
       ));
+      const verification = verificacoes[escolaId][compProgKey];
       return {
         invoiceAnalysis: invoice?.analiseDocumentoFiscal,
-        aggregateAnalysis: verificacoes[escolaId][compProgKey].analise.notaFiscal
+        aggregateAnalysis: verification.analise.notaFiscal,
+        notaFiscal: verification.bonificacao.notaFiscal,
+        resultadoBonif: verification.resultadoBonif
       };
     }, context);
 
     expect(state).toEqual({
       invoiceAnalysis: 'Correto',
-      aggregateAnalysis: 'Correto'
+      aggregateAnalysis: 'Correto',
+      notaFiscal: '',
+      resultadoBonif: ''
     });
   });
-
   test('renderiza e persiste consulta à Assessoria individualizada por nota de serviço', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
@@ -367,7 +358,7 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     await expect(fiscalNoteRow(page).getByText('NF: NF-PRESERVADA-E2E')).toBeVisible();
   });
 
-  test('bloqueia criação edição e remoção de nota consolidada para Controlador', async ({ page }, testInfo) => {
+  test('Controlador cria edita e remove despesas consolidadas sem alterar a bonificação', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
     const dialogs = [];
@@ -389,27 +380,40 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     await setConsolidatedProgram(page, context, { profile: 'controlador' });
 
     const noteRow = fiscalNoteRow(page);
-    await expect(noteRow.getByRole('button', { name: 'Adicionar Nota' })).toHaveCount(0);
-    await expect(noteRow.getByRole('button', { name: /^Editar / })).toHaveCount(0);
-    await expect(noteRow.getByRole('button', { name: /^Excluir / })).toHaveCount(0);
+    await expect(noteRow.getByRole('button', { name: 'Adicionar Nota' })).toBeVisible();
+    await expect(noteRow.getByRole('button', { name: /^Editar NF: / })).toBeVisible();
+    await expect(noteRow.getByRole('button', { name: /^Excluir / })).toBeVisible();
 
-    await page.evaluate(({ escolaId, compProgKey }) => {
-      openModalDadosNota(escolaId, compProgKey);
-      abrirEditarNota('nota-e2e-consumo', escolaId);
-      removerNotaRegistrada('nota-e2e-consumo', escolaId);
-    }, context);
+    await noteRow.getByRole('button', { name: 'Adicionar Nota' }).click();
+    await page.locator('#nota-desc').fill('Nova despesa consolidada');
+    await page.locator('#nota-numero').fill('NF-CONSOLIDADA-NOVA');
+    await page.locator('#nota-valor').fill('90');
+    await page.locator('#form-dados-nota button[type="submit"]').click();
 
-    await expect(page.locator('#modal-dados-nota')).not.toHaveClass(/show/);
+    const originalRow = fiscalNoteRow(page)
+      .locator('.invoice-document-row')
+      .filter({ hasText: 'NF: NF-CONSOLIDADA-E2E' });
+    await originalRow.getByRole('button', { name: 'Editar NF: NF-CONSOLIDADA-E2E', exact: true }).click();
+    await page.locator('#nota-numero').fill('NF-CONSOLIDADA-EDITADA');
+    await page.locator('#form-dados-nota button[type="submit"]').click();
+
+    const editedRow = fiscalNoteRow(page)
+      .locator('.invoice-document-row')
+      .filter({ hasText: 'NF: NF-CONSOLIDADA-EDITADA' });
+    await editedRow.getByRole('button', { name: 'Excluir NF: NF-CONSOLIDADA-EDITADA', exact: true }).click();
+
     expect(await page.evaluate(({ escolaId, compProgKey }) => ({
-      noteCount: notasRegistradas.filter(note => (
-        note.escolaId === escolaId && note.compKey === compProgKey
-      )).length,
+      noteNumbers: notasRegistradas
+        .filter(note => note.escolaId === escolaId && note.compKey === compProgKey)
+        .map(note => note.numero),
       result: verificacoes[escolaId][compProgKey].resultadoBonif
-    }), context)).toEqual({ noteCount: 1, result: 'apta' });
-    expect(dialogs.filter(message => message.includes('consolidada')).length).toBeGreaterThanOrEqual(3);
+    }), context)).toEqual({
+      noteNumbers: ['NF-CONSOLIDADA-NOVA'],
+      result: 'apta'
+    });
+    expect(dialogs.some(message => message.includes('consolidada'))).toBe(false);
   });
-
-  test('Assistente reabre consolidação ao incluir serviço editar e remover nota', async ({ page }, testInfo) => {
+  test('Assistente opera serviço consolidado sem reabrir a bonificação', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
     page.on('dialog', dialog => dialog.accept());
@@ -438,17 +442,13 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
         reopenMentions: logs.filter(log => /reaberta/i.test(String(log.detalhes || ''))).length
       };
     }, context)).toEqual({
-      result: '',
-      persistedResult: '',
+      result: 'apta',
+      persistedResult: 'apta',
       assessoria: 'Não',
       assessoriaAnalysis: 'Não analisado',
-      reopenMentions: 1
+      reopenMentions: 0
     });
 
-    await page.evaluate(({ escolaId, compProgKey }) => {
-      verificacoes[escolaId][compProgKey].resultadoBonif = 'apta';
-      renderProntuario(escolaId);
-    }, context);
     const createdInvoiceRow = fiscalNoteRow(page)
       .locator('.invoice-document-row')
       .filter({ hasText: 'NF: NF-SERV-CONSOLIDADA' });
@@ -465,12 +465,8 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
         note.escolaId === escolaId && note.compKey === compProgKey
       )).numero,
       reopenMentions: logs.filter(log => /reaberta/i.test(String(log.detalhes || ''))).length
-    }), context)).toEqual({ result: '', numero: 'NF-SERV-EDITADA', reopenMentions: 2 });
+    }), context)).toEqual({ result: 'apta', numero: 'NF-SERV-EDITADA', reopenMentions: 0 });
 
-    await page.evaluate(({ escolaId, compProgKey }) => {
-      verificacoes[escolaId][compProgKey].resultadoBonif = 'apta';
-      renderProntuario(escolaId);
-    }, context);
     const editedInvoiceRow = fiscalNoteRow(page)
       .locator('.invoice-document-row')
       .filter({ hasText: 'NF: NF-SERV-EDITADA' });
@@ -486,9 +482,8 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       )).length,
       assessoria: verificacoes[escolaId][compProgKey].bonificacao.consAssessoria,
       reopenMentions: logs.filter(log => /reaberta/i.test(String(log.detalhes || ''))).length
-    }), context)).toEqual({ result: '', noteCount: 0, assessoria: 'Não se aplica', reopenMentions: 3 });
+    }), context)).toEqual({ result: 'apta', noteCount: 0, assessoria: 'Não se aplica', reopenMentions: 0 });
   });
-
   test('direciona alteração consolidada ao fluxo auditável sem edição silenciosa', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 

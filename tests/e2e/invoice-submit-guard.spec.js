@@ -21,12 +21,9 @@ async function prepareInvoiceForm(page, { editing = false } = {}) {
     const programaId = escola.programasIds[0];
     const compKey = `${activeCompetenciaKey}_${programaId}`;
     verificacoes[escola.id] = verificacoes[escola.id] || {};
-    const verification = buildVerificationSnapshot(verificacoes[escola.id][compKey]);
-    verification.resultadoBonif = '';
-    if (verification.bonificacao.notaFiscal === 'Não se aplica') {
-      verification.bonificacao.notaFiscal = 'Sim';
-    }
-    verificacoes[escola.id][compKey] = verification;
+    verificacoes[escola.id][compKey] = buildVerificationSnapshot(
+      verificacoes[escola.id][compKey]
+    );
 
     if (!openModalDadosNota(escola.id, compKey)) {
       throw new Error('Não foi possível abrir o modal de nota fiscal no teste.');

@@ -1,0 +1,9 @@
+supabase-local	Executar testes pgTAP	2026-09-30T10:00:49.0856303Z psql:/home/runner/work/RADARPDDE/RADARPDDE/supabase/tests/database/first-expense-authority.test.sql:3: NOTICE:  extension "pgtap" already exists, skipping
+supabase-local	Executar testes pgTAP	2026-09-30T10:00:49.1462650Z /home/runner/work/RADARPDDE/RADARPDDE/supabase/tests/database/first-expense-authority.test.sql ................. 
+supabase-local	Executar testes pgTAP	2026-09-30T10:00:49.1467343Z # Failed test 1: "Inventário com escopo de escrita não ganha capacidade de criar contexto por despesa"
+supabase-local	Executar testes pgTAP	2026-09-30T10:00:49.1469225Z # Failed test 2: "SME com escopo de escrita não ganha capacidade de criar contexto por despesa"
+supabase-local	Executar testes pgTAP	2026-09-30T10:00:49.1471980Z # Failed test 6: "Controlador real cria primeira despesa sem bonificação"
+supabase-local	Executar testes pgTAP	2026-09-30T10:00:51.8490751Z /home/runner/work/RADARPDDE/RADARPDDE/supabase/tests/database/first-expense-authority.test.sql               (Wstat: 0 Tests: 14 Failed: 3)
+supabase-local	Executar testes pgTAP	2026-09-30T10:00:51.8491862Z   Failed tests:  1-2, 6
+supabase-local	Executar testes pgTAP	2026-09-30T10:00:51.8495757Z Files=38, Tests=543,  3 wallclock secs ( 0.15 usr  0.06 sys +  0.30 cusr  0.19 csys =  0.70 CPU)
+supabase-local	Executar testes pgTAP	2026-09-30T10:00:51.8496721Z Result: FAIL

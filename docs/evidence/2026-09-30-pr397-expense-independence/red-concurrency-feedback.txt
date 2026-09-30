@@ -1,0 +1,13 @@
+RED local anterior à tradução dos conflitos dos RPCs de despesa.
+Base main a38eeef6; runtime e87a8b01; novos testes ainda não corrigidos.
+
+node --test tests/unit/expense-verification-ownership.test.js
+14 testes: 13 aprovados, 1 falha, 0 skips.
+classifyError(repositoryError(23505/verifications_pkey)):
+recebido TRANSACTION_FAILED; esperado OPTIMISTIC_CONFLICT.
+
+node --test tests/unit/first-expense-unit-of-work.test.js
+10 testes: 7 aprovados, 3 falhas, 0 skips.
+DataService/UnitOfWork/bridge reais com erro remoto 23505:
+consumo, permanente e a_identificar perdem código recuperável.
+Os cenários P0001/OPTIMISTIC_CONFLICT e VALIDATION_ERROR continuam aprovados.

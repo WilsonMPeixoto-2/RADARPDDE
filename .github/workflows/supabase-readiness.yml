@@ -202,7 +202,7 @@ jobs:
       - name: Iniciar Supabase local
         run: npm run supabase:start
 
-      - name: Recriar banco com vinte e sete migrations e seed local
+      - name: Recriar banco com migrations versionadas e seed local
         run: npm run supabase:reset
 
       - name: Validar contratos operacionais do preflight remoto
@@ -212,6 +212,9 @@ jobs:
 
       - name: Executar testes pgTAP
         run: npm run supabase:test:db
+
+      - name: Provar primeira despesa em duas sessões com barreira controlada
+        run: node scripts/test-first-expense-concurrency.mjs
 
       - name: Executar lint de PL/pgSQL
         run: npm run supabase:lint:db

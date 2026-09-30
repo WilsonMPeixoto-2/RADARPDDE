@@ -1,0 +1,64 @@
+{
+  "invoices": [
+    {
+      "id": "nota-c753fa25-5f40-4a2a-aa61-ca666265f29b",
+      "school_id": "ESC-INDEP",
+      "competence_id": "2026-05",
+      "description": "Material antes da bonificação",
+      "expense_type": "consumo",
+      "invoice_number": "NF-INDEP-UI",
+      "amount": 123.45,
+      "payload": {
+        "id": "nota-c753fa25-5f40-4a2a-aa61-ca666265f29b",
+        "desc": "Material antes da bonificação",
+        "tipo": "consumo",
+        "bemId": null,
+        "valor": 123.45,
+        "numero": "NF-INDEP-UI",
+        "compKey": "2026-05_BASIC",
+        "escolaId": "ESC-INDEP",
+        "descricao": "Material antes da bonificação",
+        "programaId": "BASIC",
+        "competencia": "2026-05",
+        "dataRegistro": "2026-09-30T10:38:58.321Z",
+        "analiseDocumentoFiscal": "Não analisado"
+      },
+      "row_version": 1,
+      "created_at": "2026-09-30T10:38:58.330523+00:00",
+      "updated_at": "2026-09-30T10:38:58.330523+00:00",
+      "program_id": "BASIC",
+      "verification_id": "ESC-INDEP::2026-05::BASIC",
+      "source_context_key": "2026-05_BASIC",
+      "linked_asset_id": null,
+      "registered_at": "2026-09-30T10:38:58.321+00:00"
+    }
+  ],
+  "verification": {
+    "id": "ESC-INDEP::2026-05::BASIC",
+    "school_id": "ESC-INDEP",
+    "competence_id": "2026-05",
+    "program_id": "BASIC",
+    "bonification": {
+      "extCC": "",
+      "extINV": "",
+      "declBBAgil": "",
+      "notaFiscal": "",
+      "consEnviada": false,
+      "consAssessoria": "Não se aplica",
+      "encampInventario": ""
+    },
+    "analysis": {
+      "extCC": "Não analisado",
+      "extINV": "Não analisado",
+      "declBBAgil": "Não analisado",
+      "notaFiscal": "Não analisado",
+      "consAssessoria": "Correto",
+      "encampInventario": "Não analisado"
+    },
+    "bonus_result": null,
+    "row_version": 2,
+    "created_at": "2026-09-30T10:38:58.330523+00:00",
+    "updated_at": "2026-09-30T10:38:58.330523+00:00",
+    "payload": {}
+  }
+}

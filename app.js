@@ -4658,7 +4658,8 @@ function initializeRadarApplicationServices() {
     });
     radarAuditService = new window.RadarAuditService.AuditService(transactionalDependencies);
     radarInvoiceService = new window.RadarInvoiceService.InvoiceService({
-        ...transactionalDependencies
+        ...transactionalDependencies,
+        ensureVerification: ensureProgramVerification
     });
     radarInventoryService = new window.RadarInventoryService.InventoryService(transactionalDependencies);
     window.RadarApplicationServices = Object.freeze({
@@ -5224,23 +5225,6 @@ function hasBonificationChanged(before, after) {
     ]);
 
     return Array.from(keys).some(key => !Object.is(before?.[key], after?.[key]));
-}
-
-function blockConsolidatedFiscalNoteMutation(escolaId, compProgKey) {
-    const verification = verificacoes[escolaId]?.[compProgKey];
-
-    if (!verification?.resultadoBonif || getRadarAccessProfile() === 'assistente') {
-        return false;
-    }
-
-    alert('Esta competência está consolidada. Apenas o(a) Assistente de Verbas Federais pode incluir, editar ou excluir Notas Fiscais.');
-    const scrollSnapshot = window.RadarProntuarioScrollPreservation?.capture?.(window) || null;
-    try {
-        renderProntuario(escolaId);
-    } finally {
-        window.RadarProntuarioScrollPreservation?.restore?.(window, scrollSnapshot);
-    }
-    return true;
 }
 
 function getProgramBonificationStatus(escolaId, compKey, progId) {
@@ -10323,7 +10307,7 @@ function renderProntuarioVerificacoes(esc) {
                         .getEffectiveDocumentState(v, progId, doc.key);
                     const bonifValue = effectiveDocumentState.bonification;
                     const analiseValue = effectiveDocumentState.analysis;
-                    const isBonifLocked = (v.resultadoBonif && accessProfile !== 'assistente')
+                    const isBonificationLocked = (v.resultadoBonif && accessProfile !== 'assistente')
                         || accessProfile === 'inventario'
                         || accessProfile === 'sme';
                     
@@ -10405,14 +10389,10 @@ function renderProntuarioVerificacoes(esc) {
                         const activePendencyCount = activeInvoicePendencies.length
                             + activeLegacyInvoicePendencies.length;
                         const canMutateInvoice = accessProfile !== 'inventario'
-                            && accessProfile !== 'sme'
-                            && !isBonifLocked;
+                            && accessProfile !== 'sme';
                         const canAddInvoice = window.RadarFluxoOperacional
-                            .canRegisterFiscalNote(accessProfile, bonifValue)
-                            && !isBonifLocked;
-                        const canAddUnidentifiedExpense = canMutateInvoice
-                            && Boolean(bonifValue)
-                            && bonifValue !== 'Não se aplica';
+                            .canRegisterFiscalNote(accessProfile);
+                        const canAddUnidentifiedExpense = canMutateInvoice;
 
                         const fiscalBonificationHTML = accessProfile === 'sme'
                             ? `
@@ -10428,13 +10408,13 @@ function renderProntuarioVerificacoes(esc) {
                                 <div class="invoice-bonification-toggle" role="group" aria-label="Bonificação de Notas Fiscais">
                                     <button type="button" class="is-sim ${bonifValue === 'Sim' ? 'is-selected' : ''}"
                                         onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', 'notaFiscal', 'Sim')"
-                                        ${isBonifLocked ? 'disabled' : ''}>Sim</button>
+                                        ${isBonificationLocked ? 'disabled' : ''}>Sim</button>
                                     <button type="button" class="is-nao ${bonifValue === 'Não' ? 'is-selected' : ''}"
                                         onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', 'notaFiscal', 'Não')"
-                                        ${isBonifLocked ? 'disabled' : ''}>Não</button>
+                                        ${isBonificationLocked ? 'disabled' : ''}>Não</button>
                                     <button type="button" class="is-na ${bonifValue === 'Não se aplica' ? 'is-selected' : ''}"
                                         onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', 'notaFiscal', 'Não se aplica')"
-                                        ${isBonifLocked ? 'disabled' : ''}>N/A</button>
+                                        ${isBonificationLocked ? 'disabled' : ''}>N/A</button>
                                 </div>
                             `;
 
@@ -10690,8 +10670,7 @@ function renderProntuarioVerificacoes(esc) {
                         const activeServicePendencyCount = activeServicePendencies.length
                             + (activePend ? 1 : 0);
                         const canMutateAdvisory = accessProfile !== 'inventario'
-                            && accessProfile !== 'sme'
-                            && !isBonifLocked;
+                            && accessProfile !== 'sme';
                         const advisoryRowsHTML = serviceEntries.length > 0
                             ? serviceEntries.map(({ note, sent, analysis }, noteIndex) => {
                                 const invoiceContext = window.RadarPendencias.buildPendencyLookupContext({
@@ -10763,7 +10742,7 @@ function renderProntuarioVerificacoes(esc) {
                                                     aria-label="Consulta enviada à Assessoria para a NF ${escapeHtml(note.numero)}"
                                                     ${sent ? 'checked' : ''}
                                                     onchange="toggleInvoiceAdvisorySent('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}', this.checked)"
-                                                    ${isBonifLocked || invoicePendency ? 'disabled' : ''}
+                                                    ${invoicePendency ? 'disabled' : ''}
                                                 >
                                                 <span>Enviada à Assessoria</span>
                                             </label>
@@ -10843,14 +10822,14 @@ function renderProntuarioVerificacoes(esc) {
                         <div class="btn-group-toggle">
                             <button class="btn-toggle ${bonifValue === 'Sim' ? 'active-sim' : ''}"
                                     onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Sim')"
-                                    ${isBonifLocked ? 'disabled' : ''}>Sim</button>
+                                    ${isBonificationLocked ? 'disabled' : ''}>Sim</button>
                             <button class="btn-toggle ${bonifValue === 'Não' ? 'active-nao' : ''}"
                                     onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Não')"
-                                    ${isBonifLocked ? 'disabled' : ''}>Não</button>
+                                    ${isBonificationLocked ? 'disabled' : ''}>Não</button>
                             ${doc.allowNaoAplica ? `
                                 <button class="btn-toggle ${bonifValue === 'Não se aplica' ? 'active-naoseaplica' : ''}"
                                         onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Não se aplica')"
-                                        ${isBonifLocked ? 'disabled' : ''}>N/A</button>
+                                        ${isBonificationLocked ? 'disabled' : ''}>N/A</button>
                             ` : ''}
                         </div>
                     `;
@@ -11602,15 +11581,6 @@ function configureInvoiceExpenseTypeOptions(compKey, selectedType = '') {
 function openModalDadosNota(escolaId, compKey) {
     const accessProfile = getRadarAccessProfile();
     if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
-    if (blockConsolidatedFiscalNoteMutation(escolaId, compKey)) {
-        return false;
-    }
-
-    const v = verificacoes[escolaId]?.[compKey];
-    if (v && v.bonificacao && v.bonificacao['notaFiscal'] === 'Não se aplica') {
-        alert('Não é possível adicionar notas fiscais para competências marcadas como "Não se aplica".');
-        return false;
-    }
     document.getElementById('form-dados-nota').reset();
     document.getElementById('nota-escola-id').value = escolaId;
     document.getElementById('nota-comp-key').value = compKey;
@@ -11697,7 +11667,6 @@ function abrirEditarNota(notaId, escolaId) {
     if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
     const nota = notasRegistradas.find(n => n.id === notaId);
     if (!nota) return false;
-    if (blockConsolidatedFiscalNoteMutation(escolaId, nota.compKey)) return false;
 
     document.getElementById('nota-escola-id').value = escolaId;
     document.getElementById('nota-comp-key').value = nota.compKey;
@@ -11863,7 +11832,6 @@ async function removerNotaRegistrada(notaId, escolaId) {
     if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
     const nota = notasRegistradas.find(item => item.id === notaId);
     if (!nota) return;
-    if (blockConsolidatedFiscalNoteMutation(escolaId, nota.compKey)) return;
     if (!confirm('Deseja realmente remover esta nota fiscal registrada?')) return;
 
     try {

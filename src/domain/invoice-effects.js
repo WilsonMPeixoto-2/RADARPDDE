@@ -45,14 +45,6 @@
         return value == null ? '' : String(value).trim();
     }
 
-    function normalizeProfile(value) {
-        const normalized = text(value).toLocaleLowerCase('pt-BR');
-        if (normalized === 'assistente cre' || normalized === 'assistente de verbas federais') {
-            return 'assistente';
-        }
-        return normalized;
-    }
-
     function invoiceType(invoice = {}) {
         return text(invoice.tipo || invoice.expenseType || invoice.expense_type)
             .toLocaleLowerCase('pt-BR');
@@ -225,14 +217,11 @@
         };
     }
 
-    function auditDescriptorFor(input, operation, previousType, invoiceChanged, assetChanged, verificationChanged, reopened) {
+    function auditDescriptorFor(input, operation, previousType, invoiceChanged, assetChanged, verificationChanged) {
         if (operation === 'update' && !invoiceChanged && (assetChanged || verificationChanged)) {
-            const suffix = reopened
-                ? ' A consolidação anterior foi reaberta pela correção.'
-                : '';
             return {
                 action: 'Efeitos de Nota Fiscal Reconciliados',
-                details: `Efeitos derivados da Nota Fiscal ${input.request.invoiceNumber || input.existingInvoice?.numero || input.existingInvoice?.id || ''} foram reconciliados para ${input.school?.denominação || input.request.schoolId}.${suffix}`
+                details: `Efeitos derivados da Nota Fiscal ${input.request.invoiceNumber || input.existingInvoice?.numero || input.existingInvoice?.id || ''} foram reconciliados para ${input.school?.denominação || input.request.schoolId}.`
             };
         }
 
@@ -267,9 +256,6 @@
             details = `Gasto com Material de Consumo registrado para ${schoolName}: ${request.description} com NF ${request.invoiceNumber} no valor de R$ ${request.amount}.`;
         }
 
-        if (reopened) {
-            details += ' A consolidação anterior foi reaberta pela alteração.';
-        }
         return { action, details };
     }
 
@@ -278,7 +264,7 @@
             && Boolean(text(invoice.numero || invoice.invoiceNumber || invoice.invoice_number));
     }
 
-    function removalAuditDescriptor(input, invoice, reopened) {
+    function removalAuditDescriptor(input, invoice) {
         const unidentified = invoiceType(invoice) === UNIDENTIFIED_EXPENSE_TYPE;
         const number = text(invoice.numero || invoice.invoiceNumber || invoice.invoice_number);
         const label = unidentified
@@ -286,10 +272,7 @@
             : invoiceType(invoice) === INTERNET_BILL_EXPENSE_TYPE
                 ? `Boleto de pagamento de Internet ${number}`
                 : `Nota Fiscal ${number}`;
-        let details = `${label} de R$ ${invoice.valor} foi excluída da escola ${input.school?.denominação || input.request?.schoolId || invoice.escolaId || ''}.`;
-        if (reopened) {
-            details += ' A consolidação anterior foi reaberta pela alteração.';
-        }
+        const details = `${label} de R$ ${invoice.valor} foi excluída da escola ${input.school?.denominação || input.request?.schoolId || invoice.escolaId || ''}.`;
         return Object.freeze({
             action: unidentified
                 ? 'Despesa a Identificar Removida'
@@ -359,13 +342,6 @@
             }
         }
 
-        const reopened = Boolean(
-            verification
-            && normalizeProfile(input.profile) === 'assistente'
-            && text(verification.resultadoBonif)
-        );
-        if (reopened) verification.resultadoBonif = '';
-
         return Object.freeze({
             unchanged: false,
             operation: 'remove',
@@ -380,7 +356,7 @@
                 'verifications',
                 'administrativeLogs'
             ]),
-            auditDescriptor: removalAuditDescriptor(input, existingInvoice, reopened),
+            auditDescriptor: removalAuditDescriptor(input, existingInvoice),
             resetFiscalAnalysis
         });
     }
@@ -521,17 +497,6 @@
             || invoiceChanged
             || assetChanged
             || verificationChanged;
-        const reopen = Boolean(
-            coreChanged
-            && verification
-            && normalizeProfile(input.profile) === 'assistente'
-            && text(verificationBefore?.resultadoBonif)
-        );
-        if (reopen) {
-            verification.resultadoBonif = '';
-            verificationChanged = true;
-        }
-
         const unchanged = !coreChanged;
         if (unchanged) {
             return Object.freeze({
@@ -577,8 +542,7 @@
                     previousType,
                     invoiceChanged,
                     assetChanged,
-                    verificationChanged,
-                    reopen
+                    verificationChanged
                 )
             )
         });

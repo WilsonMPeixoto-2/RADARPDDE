@@ -206,6 +206,7 @@ A **bonificação é editada diretamente pelos próprios controles Sim/Não/N/A*
 | Perfis | todos conforme capacidade e escopo; administrador técnico mantém autoridade autenticada |
 | SME | identificação e bonificação, sem análise técnica ou controles operacionais quando o papel real é SME |
 | Navegação | retorno contextual com competência, filtros, rolagem e foco |
+| Independência de despesas | Controlador e Assistente podem cadastrar, editar, excluir e operar os fluxos derivados de despesas conforme suas capacidades, sem depender de Sim/Não/N/A ou consolidação da bonificação; a própria bonificação mantém suas regras de edição |
 | Leitura humana | primeiro confirma escola/competência/programa; depois trabalha documentos individualmente sem perder o contexto da unidade |
 
 ## S-06 — Capital e Inventário

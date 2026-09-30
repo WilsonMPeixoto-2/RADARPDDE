@@ -80,6 +80,7 @@ jobs:
           tests/e2e/supabase-evaluation-retification.spec.js
           tests/e2e/supabase-pendency-operations-uat.spec.js
           tests/e2e/supabase-invoice-lifecycle-reliability.spec.js
+          tests/e2e/supabase-expense-independence.spec.js
           tests/e2e/supabase-verification-reliability.spec.js
           tests/e2e/pendency-reanalysis-auth.spec.js
           --project=desktop-chromium

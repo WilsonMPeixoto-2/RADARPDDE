@@ -28,7 +28,7 @@ test.describe('Jornada real — Despesa a identificar', { lock: 'unidentified-ex
     const context = await prepareSchool(page);
     await attachScreenshot(page, testInfo, '01-prontuario-inicio-fluxo');
 
-    const start = page.getByRole('button', {
+    const start = page.locator('#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="notaFiscal"]').getByRole('button', {
       name: 'Registrar despesa a identificar',
       exact: true
     });
@@ -287,7 +287,7 @@ test.describe('Jornada real — Despesa a identificar', { lock: 'unidentified-ex
   test('permite retificar os dados provisórios pelo drawer sem identificar a despesa', async ({ page }, testInfo) => {
     const context = await prepareSchool(page);
 
-    await page.getByRole('button', {
+    await page.locator('#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="notaFiscal"]').getByRole('button', {
       name: 'Registrar despesa a identificar',
       exact: true
     }).click();
