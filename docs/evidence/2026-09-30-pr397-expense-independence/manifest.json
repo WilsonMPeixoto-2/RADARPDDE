@@ -1,0 +1,210 @@
+{
+  "captureSha": "203ef0428c598a3cf2895e9c67c67fc4b96c924a",
+  "mergeRef": "ad566fe98a4dfadc177179953b86dfb8a4354543",
+  "baseSha": "a38eeef6c36e99be1777ce957d459bc40cdaca02",
+  "lifecycleRun": 36703462038,
+  "artifactId": 11091063643,
+  "artifactName": "functional-lifecycle-36703462038",
+  "environment": "GitHub Actions Ubuntu; Chromium desktop; Supabase/Auth/PostgreSQL descartaveis; dados sinteticos",
+  "files": [
+    {
+      "file": "captures/01-primeira-nf-antes-1440.png",
+      "sha256": "d5a51e706798f1b4778e2b88f6b98e5495c30c6ce374595318c8c3db0d24dc21",
+      "bytes": 302553,
+      "source": "playwright-report/data/356a305b0093f90c8a0ee6d5449779d9937ab51a.png",
+      "role": "controller",
+      "context": "ESC-INDEP/BASIC",
+      "competence": "2026-05",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "file": "captures/02-modal-consumo-basic-1440.png",
+      "sha256": "d5c7dc37d5e51b41d2072a31d2d5675917a8e433b5c246b928d0248212174301",
+      "bytes": 159653,
+      "source": "playwright-report/data/8e01490a8b848c9437b85801a56cf3e4855b4308.png",
+      "role": "controller",
+      "context": "ESC-INDEP/BASIC",
+      "competence": "2026-05",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "file": "captures/03-primeira-nf-reload-1366.png",
+      "sha256": "fa33d7af908e8c1a67b702669b50201d0168b43204dd0e9e622bf06107d8cde8",
+      "bytes": 251507,
+      "source": "playwright-report/data/d9c8606ebff165a85b07bbc2257961adb3b80150.png",
+      "role": "controller",
+      "context": "ESC-INDEP/BASIC",
+      "competence": "2026-05",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      }
+    },
+    {
+      "file": "captures/04-modal-identificar-conectada-1440.png",
+      "sha256": "edcc9376fbd0d2f7b5b931318128684ddcb4fa6d2ee6dc8a740abbcc5b3b02f3",
+      "bytes": 189957,
+      "source": "playwright-report/data/607cac6f50df868233540e4ecaf055969eef5cd6.png",
+      "role": "controller",
+      "context": "ESC-INDEP/CONECTADA",
+      "competence": "2026-05",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "file": "captures/05-identificar-drawer-1440.png",
+      "sha256": "ac65189762be754662b31a9f006f17bd6963becf45cc3043dfecb9574930da69",
+      "bytes": 291827,
+      "source": "playwright-report/data/449a33c7dff00e947d07e5a1f4d5475657b4205d.png",
+      "role": "controller",
+      "context": "ESC-INDEP/CONECTADA",
+      "competence": "2026-05",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "file": "captures/06-identificar-reload-1366.png",
+      "sha256": "e968ee8ed011d9cfa79f86e63ff09497c387e09541ad02018531cc9ec51515cd",
+      "bytes": 258675,
+      "source": "playwright-report/data/2cfece56fcfc99c787603ee8bc33c41757fb4b78.png",
+      "role": "controller",
+      "context": "ESC-INDEP/CONECTADA",
+      "competence": "2026-05",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      }
+    },
+    {
+      "file": "captures/07-controller-consolidada-1366.png",
+      "sha256": "fb9ae37cfc78c4d85a5c5be4287caa7fd72648f39aa54034ad794492f3cbf74a",
+      "bytes": 249043,
+      "source": "playwright-report/data/d9721d4b5e90a48231435a679254c1bfc3d4c83a.png",
+      "role": "controller",
+      "context": "ESC-INDEP-CONS/BASIC",
+      "competence": "2026-05",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      }
+    },
+    {
+      "file": "captures/08-assistente-consolidada-1366.png",
+      "sha256": "8bb3dc3a5aa972f70e7476c076e0b97163f02c18c8de4fe78eeff87e7bb9cf16",
+      "bytes": 265999,
+      "source": "playwright-report/data/5d4f38ad7a4824918a7a942259c83e58be0fcaf7.png",
+      "role": "federal_assistant",
+      "context": "ESC-INDEP-CONS/BASIC",
+      "competence": "2026-05",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      }
+    },
+    {
+      "file": "records/contexto-primeira-despesa.json",
+      "sha256": "d3381098caedf534fe32aee6c60c5863e5e2d247d9095b5c8c5a34696938eca7",
+      "bytes": 1988,
+      "source": "attachment:contexto-primeira-despesa.json",
+      "test": "primeira NF por controles visíveis cria somente contexto estrutural, converge ao trocar competência e reload"
+    },
+    {
+      "file": "records/contextos-e-pendencia.json",
+      "sha256": "9bc518118e3e120355d8a074a24512b00bce0dd1527f0ba7672ef2d69c7fbdb5",
+      "bytes": 5487,
+      "source": "attachment:contextos-e-pendencia.json",
+      "test": "primeira despesa a identificar de outro programa grava NF e Pendência atômicas no contexto selecionado"
+    },
+    {
+      "file": "records/controller-antes-depois.json",
+      "sha256": "7278d9266be91f289ae4923a5ffc1e0912bc06c3ad01da8ba0e2d5ff00b2bd60",
+      "bytes": 2991,
+      "source": "attachment:controller-antes-depois.json",
+      "test": "controller opera despesas consolidadas sem alterar NF manual, resultado ou exportação"
+    },
+    {
+      "file": "records/federal_assistant-antes-depois.json",
+      "sha256": "80faf4299186938ce7899f6507a1db24000fdc56202c4ef4099a81df4899e862",
+      "bytes": 3006,
+      "source": "attachment:federal_assistant-antes-depois.json",
+      "test": "federal_assistant opera despesas consolidadas sem alterar NF manual, resultado ou exportação"
+    },
+    {
+      "file": "controls/baseline-select-1366.png",
+      "sha256": "2f48840827a7ef769f0e497d149494f91f8e76798b520c8fedc960111b6fa967",
+      "bytes": 277016,
+      "source": "pr397-baseline-font-ready-select.png",
+      "sha": "a38eeef6c36e99be1777ce957d459bc40cdaca02",
+      "environment": "Windows; Chromium local; mesma fixture e fontes carregadas; sem Supabase",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      }
+    },
+    {
+      "file": "controls/baseline-modal-1366.png",
+      "sha256": "0bedb622580a6d369b12be52ee3113da3a26dd42605c621fa60c4041285d0c60",
+      "bytes": 160979,
+      "source": "pr397-baseline-font-ready-modal.png",
+      "sha": "a38eeef6c36e99be1777ce957d459bc40cdaca02",
+      "environment": "Windows; Chromium local; mesma fixture e fontes carregadas; sem Supabase",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      }
+    },
+    {
+      "file": "controls/candidate-select-1366.png",
+      "sha256": "bdd83e38ea82280037ed44a14871c62bab6faa6a25907ece8ab572121b0686d7",
+      "bytes": 277017,
+      "source": "pr397-candidate-font-ready-select.png",
+      "sha": "203ef0428c598a3cf2895e9c67c67fc4b96c924a",
+      "environment": "Windows; Chromium local; mesma fixture e fontes carregadas; sem Supabase",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      }
+    },
+    {
+      "file": "controls/candidate-modal-1366.png",
+      "sha256": "555f63038015ca735890daf24629ebebd4c340acebf4e81e400fb365ca253359",
+      "bytes": 160987,
+      "source": "pr397-candidate-font-ready-modal.png",
+      "sha": "203ef0428c598a3cf2895e9c67c67fc4b96c924a",
+      "environment": "Windows; Chromium local; mesma fixture e fontes carregadas; sem Supabase",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      }
+    },
+    {
+      "file": "controls/font-comparison.json",
+      "sha256": "fdfd27053d9a13f3135999da4c32e753e55328aed796289c8c8acdea13f10026",
+      "bytes": 3594,
+      "source": "pr397-font-comparison.json"
+    },
+    {
+      "file": "checks-203ef042.json",
+      "sha256": "c0810173cf2d938a9522d02dae455c20296146a76f94669d9df42604c3d6e4f8",
+      "bytes": 8907,
+      "source": "gh pr checks 397 --json bucket,link,name,state,workflow",
+      "sha": "203ef0428c598a3cf2895e9c67c67fc4b96c924a"
+    },
+    {
+      "file": "lifecycle-summary.json",
+      "sha256": "ab55d2fe91973710791cc84482610dfc0d1bbd590c9cd0d39c4f73421269124f",
+      "bytes": 329,
+      "source": "Playwright report.json"
+    }
+  ]
+}

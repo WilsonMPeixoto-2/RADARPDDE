@@ -11,7 +11,7 @@
 
 `PROD-UX-08` permanece pendência visual separada, com seu registro de retomada preservado. #394 e os planos amplos do #395 não compõem o escopo executor do #397. Autorizações históricas de outros PRs não autorizam merge/deploy/escrita em Production nesta frente.
 
-O #397 permanece Draft/parcial: provas operacionais e de banco estão registradas por SHA no handoff/PR, mas os gates obrigatórios de auditoria de dependências continuam bloqueando integração. O lockfile é idêntico à base comparada; não houve upgrade ou exceção de segurança nesta frente. Consultar o fechamento do PR para a contagem atual, a limitação de registry e o candidato efetivamente executado.
+O #397 permanece Draft/parcial: provas operacionais e de banco estão registradas por SHA no handoff/PR, mas os gates obrigatórios de auditoria de dependências continuam bloqueando integração. O lockfile é idêntico à base comparada; não houve upgrade ou exceção de segurança nesta frente. Capturas/JSONs e leitura humana estão preservados na evidência do handoff; seletores preexistentes e drawer impedem homologação integral da superfície. A quota de registry de execuções anteriores não se repetiu no candidato validado; consultar o fechamento do PR para os checks vivos e o SHA efetivamente executado.
 
 Baseline funcional que encerrou a Fase C:
 

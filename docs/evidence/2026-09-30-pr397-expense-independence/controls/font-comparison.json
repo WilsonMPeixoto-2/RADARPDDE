@@ -1,0 +1,120 @@
+[
+  {
+    "label": "baseline",
+    "sha": "a38eeef6c36e99be1777ce957d459bc40cdaca02",
+    "viewport": {
+      "width": 1366,
+      "height": 768
+    },
+    "conditions": {
+      "stylesheetRel": "stylesheet",
+      "wait": "document.fonts.load for Plus Jakarta Sans 600/400 + document.fonts.ready",
+      "sameBrowser": true,
+      "sameFixture": true
+    },
+    "metric": {
+      "value": "Não analisado",
+      "text": "Não analisado",
+      "width": 146.765625,
+      "font": "600 12.16px \"Plus Jakarta Sans\", \"Segoe UI\", Arial, sans-serif",
+      "paddingLeft": "12px",
+      "paddingRight": "34px",
+      "borderLeft": "1px",
+      "borderRight": "1px",
+      "renderedTextWidth": 82.5662841796875,
+      "parentWidth": 146.765625,
+      "cellWidth": 839.765625,
+      "tableWidth": 1046
+    },
+    "loadedFamilies": [
+      "Outfit 500",
+      "Outfit 600",
+      "Outfit 700",
+      "Plus Jakarta Sans 400",
+      "Plus Jakarta Sans 500",
+      "Plus Jakarta Sans 600",
+      "Plus Jakarta Sans 700"
+    ],
+    "fontResponses": [
+      {
+        "url": "https://fonts.gstatic.com/s/outfit/v15/QGYvz_MVcBeNP4NJtEtqUYLknw.woff2",
+        "status": 200
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/plusjakartasans/v12/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko20yygg_vb.woff2",
+        "status": 200
+      },
+      {
+        "url": "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap",
+        "status": 200
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/outfit/v15/QGYvz_MVcBeNP4NJtEtq.woff2",
+        "status": 200
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/plusjakartasans/v12/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko20yw.woff2",
+        "status": 200
+      }
+    ]
+  },
+  {
+    "label": "candidate",
+    "sha": "203ef0428c598a3cf2895e9c67c67fc4b96c924a",
+    "viewport": {
+      "width": 1366,
+      "height": 768
+    },
+    "conditions": {
+      "stylesheetRel": "stylesheet",
+      "wait": "document.fonts.load for Plus Jakarta Sans 600/400 + document.fonts.ready",
+      "sameBrowser": true,
+      "sameFixture": true
+    },
+    "metric": {
+      "value": "Não analisado",
+      "text": "Não analisado",
+      "width": 146.765625,
+      "font": "600 12.16px \"Plus Jakarta Sans\", \"Segoe UI\", Arial, sans-serif",
+      "paddingLeft": "12px",
+      "paddingRight": "34px",
+      "borderLeft": "1px",
+      "borderRight": "1px",
+      "renderedTextWidth": 82.5662841796875,
+      "parentWidth": 146.765625,
+      "cellWidth": 839.765625,
+      "tableWidth": 1046
+    },
+    "loadedFamilies": [
+      "Outfit 500",
+      "Outfit 600",
+      "Outfit 700",
+      "Plus Jakarta Sans 400",
+      "Plus Jakarta Sans 500",
+      "Plus Jakarta Sans 600",
+      "Plus Jakarta Sans 700"
+    ],
+    "fontResponses": [
+      {
+        "url": "https://fonts.gstatic.com/s/plusjakartasans/v12/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko20yygg_vb.woff2",
+        "status": 200
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/outfit/v15/QGYvz_MVcBeNP4NJtEtqUYLknw.woff2",
+        "status": 200
+      },
+      {
+        "url": "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap",
+        "status": 200
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/outfit/v15/QGYvz_MVcBeNP4NJtEtq.woff2",
+        "status": 200
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/plusjakartasans/v12/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko20yw.woff2",
+        "status": 200
+      }
+    ]
+  }
+]

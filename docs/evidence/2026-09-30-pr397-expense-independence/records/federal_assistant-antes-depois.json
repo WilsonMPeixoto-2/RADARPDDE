@@ -1,0 +1,108 @@
+{
+  "before": {
+    "id": "ESC-INDEP-CONS::2026-05::BASIC",
+    "school_id": "ESC-INDEP-CONS",
+    "competence_id": "2026-05",
+    "program_id": "BASIC",
+    "bonification": {
+      "extCC": "Sim",
+      "extINV": "Sim",
+      "declBBAgil": "Sim",
+      "notaFiscal": "Não",
+      "consEnviada": false,
+      "consAssessoria": "Não se aplica",
+      "encampInventario": "Não se aplica"
+    },
+    "analysis": {
+      "extCC": "Correto",
+      "extINV": "Correto",
+      "declBBAgil": "Correto",
+      "notaFiscal": "Não analisado",
+      "consAssessoria": "Correto",
+      "encampInventario": "Correto"
+    },
+    "bonus_result": "inapta",
+    "row_version": 4,
+    "created_at": "2026-09-30T10:38:36.590621+00:00",
+    "updated_at": "2026-09-30T10:39:11.414376+00:00",
+    "payload": {}
+  },
+  "after": {
+    "id": "ESC-INDEP-CONS::2026-05::BASIC",
+    "school_id": "ESC-INDEP-CONS",
+    "competence_id": "2026-05",
+    "program_id": "BASIC",
+    "bonification": {
+      "extCC": "Sim",
+      "extINV": "Sim",
+      "declBBAgil": "Sim",
+      "notaFiscal": "Não",
+      "consEnviada": false,
+      "consAssessoria": "Não",
+      "encampInventario": "Não se aplica"
+    },
+    "analysis": {
+      "extCC": "Correto",
+      "extINV": "Correto",
+      "declBBAgil": "Correto",
+      "notaFiscal": "Não analisado",
+      "consAssessoria": "Não analisado",
+      "encampInventario": "Correto"
+    },
+    "bonus_result": "inapta",
+    "row_version": 6,
+    "created_at": "2026-09-30T10:38:36.590621+00:00",
+    "updated_at": "2026-09-30T10:39:14.850958+00:00",
+    "payload": {}
+  },
+  "removed": {
+    "id": "ESC-INDEP-CONS::2026-05::BASIC",
+    "school_id": "ESC-INDEP-CONS",
+    "competence_id": "2026-05",
+    "program_id": "BASIC",
+    "bonification": {
+      "extCC": "Sim",
+      "extINV": "Sim",
+      "declBBAgil": "Sim",
+      "notaFiscal": "Não",
+      "consEnviada": false,
+      "consAssessoria": "Não se aplica",
+      "encampInventario": "Não se aplica"
+    },
+    "analysis": {
+      "extCC": "Correto",
+      "extINV": "Correto",
+      "declBBAgil": "Correto",
+      "notaFiscal": "Não analisado",
+      "consAssessoria": "Correto",
+      "encampInventario": "Correto"
+    },
+    "bonus_result": "inapta",
+    "row_version": 7,
+    "created_at": "2026-09-30T10:38:36.590621+00:00",
+    "updated_at": "2026-09-30T10:39:16.270989+00:00",
+    "payload": {}
+  },
+  "exported": {
+    "result": "inapta",
+    "rows": [
+      {
+        "inep": "33900398",
+        "denominacao": "Escola Bonificação Consolidada",
+        "designacao": "04.00.398",
+        "competencia": "05-2026",
+        "competenciaKey": "2026-05",
+        "competenciaDisplay": "Maio/2026",
+        "programa": "PDDE Básico",
+        "programaId": "BASIC",
+        "contaCorrente": "Sim",
+        "investimento": "Sim",
+        "notaFiscal": "Não",
+        "assessoria": "Não",
+        "bbAgil": "Sim",
+        "encaminhadoInventario": "Não se aplica",
+        "statusBonificacao": "INAPTA"
+      }
+    ]
+  }
+}

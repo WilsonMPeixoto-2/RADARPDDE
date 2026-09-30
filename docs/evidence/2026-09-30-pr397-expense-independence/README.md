@@ -129,3 +129,48 @@ Em `0f5978b2`/36702274474, o ciclo real terminou com 16 aprovados, uma falha e t
 Antes de alterar novamente a coleta, o método foi reavaliado com uma prova de geometria local usando o mesmo app/Playwright e fixture, separada da prova Supabase. Reprodução exata em 1440×900: ratio 0,996553242/top 601,84375/bottom 901,03125. Scroll DOM nativo centrado produziu ratio 1/top 300,84375/bottom 600,03125. Em 1366×768 também ratio 1/top 234,5/bottom 533,6875. Modal com opacidade estável e conteúdo integral passou. Três imagens locais abertas, sem afirmar persistência real desse ensaio. A captura foi corrigida para centralizar o painel e manter ratio:1; nenhuma alteração de produto, timeout, tolerância ou golden.
 
 O SQL do mesmo SHA passou 546 assertions, barreira, replay/payload divergente/recuperação e lint; workflow readiness falhou posteriormente por quota postgres-meta. A imagem final do ciclo Supabase e os cenários não executados precisam da execução sucessora. Não chamar 16/20 de aprovação integral.
+
+## Checkpoint 7 — candidato executado e evidência preservada
+
+Candidato testado: `203ef0428c598a3cf2895e9c67c67fc4b96c924a`, base `a38eeef6c36e99be1777ce957d459bc40cdaca02`, merge-ref `ad566fe98a4dfadc177179953b86dfb8a4354543` comparado sem diferenças de arquivos. [Checkpoint online](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/397#issuecomment-5909882780). Esse SHA modifica somente coleta de capturas e seu registro frente a `0f5978b2`; runtime, SQL e fixtures são equivalentes. Commit posterior que preserve estas evidências não transforma a execução de 203ef042 em execução de outro SHA.
+
+| Prova / ambiente | Execução e resultado confirmado |
+|---|---|
+| [Supabase readiness](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36703462042), Ubuntu/Supabase descartável | três jobs aprovados; 546 assertions pgTAP/38 arquivos; duas sessões com barreira, vencedor/conflito, replay/resposta descartada/payload divergente/recuperação; lint SQL, tipos e 16 jornadas frontend/Auth/RLS aprovados |
+| [Ciclos reais](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36703462038), Chromium/Auth/Supabase descartável | 20 aprovados, zero falhas/skips/flaky; primeira NF, primeiro a_identificar CONECTADA, CRUD consolidado de Controlador/Assistente e jornadas vizinhas |
+| [E2E desktop](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36703462220), modo local | 184 aprovados, 58 skips condicionais, zero falhas; skips não contam como aprovação |
+| Regressão visual desktop | seis baselines críticos aprovados, nenhum golden atualizado |
+| [Snapshot dos checks](checks-203ef042.json) | 42 concluídos: 36 aprovados, 4 falhos, 2 ignorados, zero pendentes |
+
+Os quatro checks vermelhos agrupam uma causa: três jobs param na auditoria de dependências e o gate final agrega essa falha. O lockfile e package.json/vendor não diferem da base; `npm audit --package-lock-only` reproduz quatro vulnerabilidades (2 moderate/2 high). Isso é bloqueio real do gate, mesmo sem alteração de dependências nesta frente. A quota de postgres-meta de execuções anteriores **não se repetiu** neste candidato; Supabase readiness passou integralmente. Não atualizar ferramentas, fazer allowlist ou relaxar gates para integrar o #397.
+
+### Leitura humana das capturas efetivamente abertas
+
+As imagens abaixo vieram de controles reais em sessão Auth/Supabase descartável. Foram abertas individualmente; não são aprovação obtida apenas por DOM ou assertion. Dados e escolas são sintéticos. [Manifesto](manifest.json) registra SHA, origem no artefato `functional-lifecycle-36703462038` (ID 11091063643), perfil, contexto, viewport e SHA-256; a cópia versionada preserva a evidência após expirar a retenção da CI.
+
+| Etapa e captura | O que um operador consegue entender pelo que está visível |
+|---|---|
+| [Antes da primeira NF, 1440×900](captures/01-primeira-nf-antes-1440.png) | painel Notas Fiscais vazio; nenhuma opção manual selecionada; Adicionar Nota e Registrar despesa a identificar disponíveis |
+| [Modal de consumo BASIC, 1440×900](captures/02-modal-consumo-basic-1440.png) | escola, 05/2026 e PDDE Básico identificados antes de salvar; descrição, número, valor e ação Salvar Gasto legíveis; complemento longo do tipo parcialmente cortado |
+| [Primeira NF após reload, 1366×768](captures/03-primeira-nf-reload-1366.png) | uma NF de R$ 123,45 reencontrada; bonificação manual segue sem seleção; editar/excluir estão junto do registro; rótulo do seletor técnico parcialmente cortado |
+| [Modal a identificar CONECTADA, 1440×900](captures/04-modal-identificar-conectada-1440.png) | contexto Educação Conectada explícito; dados provisórios e observação orientam cadastro; classificação final não é exigida; ação Registrar Despesa visível |
+| [Pendência recém-aberta no drawer, 1440×900](captures/05-identificar-drawer-1440.png) | sucesso, Pendência Aberta, competência/programa e dados da despesa visíveis; Registrar envio/identificação é a ação principal; edição provisória secundária; conteúdo inferior continua além do viewport |
+| [a identificar após reload, 1366×768](captures/06-identificar-reload-1366.png) | registro e valor reencontrados em CONECTADA; Incorreto + Visualizar pendência; bonificação manual continua vazia; descrição usa elipse, com texto completo no drawer |
+| [Controlador em contexto consolidado, 1366×768](captures/07-controller-consolidada-1366.png) | Não permanece selecionado e protegido nos controles manuais; ações de despesa disponíveis junto da NF; consolidação continua identificada |
+| [Assistente em contexto consolidado, 1366×768](captures/08-assistente-consolidada-1366.png) | Não permanece selecionado; serviço aparece na Consulta Assessoria com estado operacional próprio; ações elegíveis disponíveis; retificação da bonificação permanece ação distinta |
+
+O contexto completo é apresentado no modal; as capturas centradas no painel não certificam a composição de todos os cartões fora do enquadramento. A evidência JSON confirma a cadeia UI → persistência → releitura/reload: [primeira NF](records/contexto-primeira-despesa.json), [NF/Pendência CONECTADA](records/contextos-e-pendencia.json), [Controlador antes/depois/exclusão/exportação](records/controller-antes-depois.json), [Assistente](records/federal_assistant-antes-depois.json). Nos dois perfis, NF manual Não e resultado `inapta` permanecem, com exportação INAPTA; consAssessoria muda legitimamente para Não com o serviço e volta a N/A após sua exclusão. A exportação foi capturada antes da exclusão, conforme o cenário.
+
+**Parecer:** as ações e o contexto exercitados estão legíveis e o resultado funcional foi reencontrado. Isso não aprova integralmente o Prontuário nem o drawer: os cortes descritos abaixo permanecem. Os screenshots automáticos genéricos de fim de teste que pegaram a tela durante rerender não foram escolhidos como prova de layout final.
+
+### Controle comparável e roteamento das limitações visuais
+
+Os seletores nativos mostram parte de Não analisado e do complemento do tipo de gasto cortada. Não foi presumido que o defeito era anterior só porque CSS não mudou. O primeiro controle local sem readiness das fontes mostrou métricas diferentes; foi descartado como comparação insuficiente. O controle sucessor abriu baseline e candidato no mesmo Chromium/Windows, 1366×768, mesma fixture e ação NF = Sim exigida pela baseline, aguardando stylesheet e `document.fonts.load`/`document.fonts.ready` para Plus Jakarta Sans.
+
+O [registro de métricas](controls/font-comparison.json) mostra largura de seletor 146,765625 px, texto 82,566284 px e mesma tipografia/padding em ambos. As imagens foram abertas: [baseline do seletor](controls/baseline-select-1366.png), [candidato](controls/candidate-select-1366.png), [baseline do modal](controls/baseline-modal-1366.png), [candidato](controls/candidate-modal-1366.png). Ambos repetem os mesmos cortes. `git diff a38eeef6 HEAD -- styles.css src/styles index.html assets` é vazio. A preexistência está comprovada nesse controle local; ele não é prova de backend, nem homologação de Production ou comparação direta no runner Linux.
+
+Roteamento: registrar os seletores como limitação visual preexistente do Prontuário/formulário para uma frente visual dirigida, sem ampliar silenciosamente o #397. O drawer completo permanece em `PROD-UX-08`, com seu handoff próprio de retomada. Não corrigir CSS ou mudar goldens para encobrir a limitação; não afirmar homologação integral da superfície. Antes de frente ampla de design, permanece obrigatória a leitura de DESIGN_TOOLING.md pelo handoff corrente.
+
+### Situação revisável e próxima ação
+
+O PR permanece aberto/Draft, implementação e provas publicadas na branch, **parcial para integração**. Nenhuma migration foi aplicada em banco compartilhado e não houve merge ou publicação/escrita em Production. Histórico compartilhado e Preview autenticado continuam sem homologação desta rodada; as provas remotas citadas são dos runners descartáveis. Resolver dependências em frente autorizada, consultar histórico/schema compartilhado por leitura e revisar a sequência do handoff antes de qualquer integração/SQL/publicação especificamente autorizada. Conferir os checks vivos do candidato exato; não transportar esta contagem histórica a um novo HEAD.

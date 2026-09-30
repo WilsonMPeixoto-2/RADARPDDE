@@ -1,0 +1,163 @@
+{
+  "invoices": [
+    {
+      "id": "nota-c753fa25-5f40-4a2a-aa61-ca666265f29b",
+      "school_id": "ESC-INDEP",
+      "competence_id": "2026-05",
+      "description": "Material antes da bonificação",
+      "expense_type": "consumo",
+      "invoice_number": "NF-INDEP-UI",
+      "amount": 123.45,
+      "payload": {
+        "id": "nota-c753fa25-5f40-4a2a-aa61-ca666265f29b",
+        "desc": "Material antes da bonificação",
+        "tipo": "consumo",
+        "bemId": null,
+        "valor": 123.45,
+        "numero": "NF-INDEP-UI",
+        "compKey": "2026-05_BASIC",
+        "escolaId": "ESC-INDEP",
+        "descricao": "Material antes da bonificação",
+        "programaId": "BASIC",
+        "competencia": "2026-05",
+        "dataRegistro": "2026-09-30T10:38:58.321Z",
+        "analiseDocumentoFiscal": "Não analisado"
+      },
+      "row_version": 1,
+      "created_at": "2026-09-30T10:38:58.330523+00:00",
+      "updated_at": "2026-09-30T10:38:58.330523+00:00",
+      "program_id": "BASIC",
+      "verification_id": "ESC-INDEP::2026-05::BASIC",
+      "source_context_key": "2026-05_BASIC",
+      "linked_asset_id": null,
+      "registered_at": "2026-09-30T10:38:58.321+00:00"
+    },
+    {
+      "id": "nota-fa032976-2782-4008-a35b-b97f6e6e53b8",
+      "school_id": "ESC-INDEP",
+      "competence_id": "2026-05",
+      "description": "Débito sem documento Conectada",
+      "expense_type": "a_identificar",
+      "invoice_number": null,
+      "amount": 123.45,
+      "payload": {
+        "id": "nota-fa032976-2782-4008-a35b-b97f6e6e53b8",
+        "desc": "Débito sem documento Conectada",
+        "tipo": "a_identificar",
+        "bemId": null,
+        "valor": 123.45,
+        "numero": "",
+        "compKey": "2026-05_CONECTADA",
+        "escolaId": "ESC-INDEP",
+        "descricao": "Débito sem documento Conectada",
+        "programaId": "CONECTADA",
+        "competencia": "2026-05",
+        "dataRegistro": "2026-09-30T10:39:03.690Z",
+        "analiseDocumentoFiscal": "Incorreto"
+      },
+      "row_version": 1,
+      "created_at": "2026-09-30T10:39:03.70639+00:00",
+      "updated_at": "2026-09-30T10:39:03.70639+00:00",
+      "program_id": "CONECTADA",
+      "verification_id": "ESC-INDEP::2026-05::CONECTADA",
+      "source_context_key": "2026-05_CONECTADA",
+      "linked_asset_id": null,
+      "registered_at": "2026-09-30T10:39:03.69+00:00"
+    }
+  ],
+  "pending": [
+    {
+      "id": "pend-6c5efaef-fa1f-40e2-a5cf-98db3e60076f",
+      "school_id": "ESC-INDEP",
+      "competence_origin": "2026-05",
+      "program_id": "CONECTADA",
+      "document_key": "notaFiscal",
+      "status": "Aberta",
+      "responsible_area": "Escola",
+      "next_actor": "Escola",
+      "reason": "Documento ausente",
+      "notes": "Documento ausente; aguardando identificação",
+      "opened_at": "2026-09-30T00:00:00+00:00",
+      "resolved_at": null,
+      "canceled_at": null,
+      "payload": {
+        "id": "pend-6c5efaef-fa1f-40e2-a5cf-98db3e60076f",
+        "item": "Despesa a identificar",
+        "tipo": "documental",
+        "motivo": "Documento ausente",
+        "status": "Aberta",
+        "escolaId": "ESC-INDEP",
+        "historico": [
+          {
+            "id": "evento-pendencia-266bea04-b23d-4380-8542-87371cdd66f7",
+            "tipo": "abertura",
+            "erros": [
+              "Documento ausente"
+            ],
+            "perfil": "controlador",
+            "detalhe": "Pendência documental aberta.",
+            "usuario": "Sistema",
+            "dataHora": "2026-09-30T10:39:03.693Z",
+            "tentativaId": null
+          }
+        ],
+        "observacao": "Documento ausente; aguardando identificação",
+        "programaId": "CONECTADA",
+        "tentativas": [],
+        "competencia": "2026-05",
+        "errosAtuais": [
+          "Documento ausente"
+        ],
+        "proximoAtor": "Escola",
+        "responsavel": "Escola",
+        "cancelamento": null,
+        "dataAbertura": "2026-09-30",
+        "documentoKey": "notaFiscal",
+        "dataResolucao": null,
+        "schemaVersion": 2,
+        "documentSnapshot": {
+          "tipo": "a_identificar",
+          "valor": 123.45,
+          "numero": null,
+          "descricao": "Débito sem documento Conectada",
+          "registeredInvoiceId": "nota-fa032976-2782-4008-a35b-b97f6e6e53b8"
+        },
+        "competenciaOrigem": "2026-05",
+        "contextoIncompleto": false,
+        "registeredInvoiceId": "nota-fa032976-2782-4008-a35b-b97f6e6e53b8"
+      },
+      "row_version": 1,
+      "created_at": "2026-09-30T10:39:03.70639+00:00",
+      "updated_at": "2026-09-30T10:39:03.70639+00:00",
+      "registered_invoice_id": "nota-fa032976-2782-4008-a35b-b97f6e6e53b8"
+    }
+  ],
+  "verification": {
+    "id": "ESC-INDEP::2026-05::CONECTADA",
+    "school_id": "ESC-INDEP",
+    "competence_id": "2026-05",
+    "program_id": "CONECTADA",
+    "bonification": {
+      "extCC": "",
+      "extINV": "",
+      "declBBAgil": "",
+      "notaFiscal": "",
+      "consEnviada": false,
+      "consAssessoria": "Não se aplica",
+      "encampInventario": ""
+    },
+    "analysis": {
+      "extCC": "Não analisado",
+      "extINV": "Não analisado",
+      "declBBAgil": "Não analisado",
+      "notaFiscal": "Incorreto",
+      "consAssessoria": "Correto",
+      "encampInventario": "Não analisado"
+    },
+    "bonus_result": null,
+    "row_version": 2,
+    "created_at": "2026-09-30T10:39:03.70639+00:00",
+    "updated_at": "2026-09-30T10:39:03.70639+00:00",
+    "payload": {}
+  }
+}
