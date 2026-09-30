@@ -16,6 +16,8 @@ on conflict (id) do nothing;
 insert into public.programs (id, name, description)
 values ('CONECTADA', 'Educação Conectada', 'Fixture de UAT operacional')
 on conflict (id) do nothing;
+insert into public.school_programs(id,school_id,program_id)
+values ('ESC-INDEP_CONECTADA','ESC-INDEP','CONECTADA');
 insert into public.schools (id, designation, denomination, inep, cnpj, sici, cre, ra, controller_id, initial_competence, inventory_process)
 values ('ESC-UAT', '04.00.003', 'Escola de Homologação Operacional', '33900003', '90.000.003/0001-03', 'SICI-UAT-003', '4ª CRE', '10', 'controller-local', '2026-05', 'PROC-UAT-003')
 on conflict (id) do nothing;

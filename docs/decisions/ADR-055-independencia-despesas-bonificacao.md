@@ -77,3 +77,7 @@ A independência não remove proteções próprias do domínio:
 - `src/integration/service-advisory-pendency.js`;
 - `src/integration/auditable-retification.js`;
 - `supabase/migrations/20260929213000_expense_bonification_independence.sql`.
+- `src/data/supabase-repository.js`: os RPCs especializados de despesa omitem `bonus_result`; a RPC própria de bonificação conserva sua capacidade de reabertura explícita.
+- `supabase/migrations/20260930003000_expense_verification_field_ownership.sql`: nos helpers existentes de salvar/excluir despesa, o merge preserva marcações manuais e consolidação; somente análise fiscal/Assessoria/Inventário e projeções operacionais são atualizadas. Na reanálise genérica, essa restrição vale para Pendência vinculada à NF, preservando o contrato dos demais documentos.
+
+O arquivo de migration anterior permanece intacto. Como a aplicação compartilhada não foi comprovada nesta rodada, a correção usa uma versão posterior; nenhum estado remoto pode ser deduzido da contagem de arquivos. Evidências do candidato e limites de publicação ficam no [handoff do PR #397](../handoff/2026-09-30-pr397-independencia-despesas-bonificacao.md).

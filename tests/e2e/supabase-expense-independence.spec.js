@@ -19,7 +19,7 @@ async function openSchool(page, role, school) {
     await page.waitForFunction(() => window.RadarDataContext?.ready === true);
     await expect(page.locator('#global-competence-select')).toHaveValue('2026-05');
 }
-const row = page => page.locator('#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="notaFiscal"]');
+const row = (page, program = 'BASIC') => page.locator(`#prontuario-verif-rows tr[data-program-id="${program}"][data-document-key="notaFiscal"]`);
 async function remote(page, table, school) {
     return page.evaluate(async ({ table, school }) => {
         const response = await window.RadarSessionContext.service.client.from(table).select('*').eq('school_id', school);
@@ -27,8 +27,8 @@ async function remote(page, table, school) {
         return response.data;
     }, { table, school });
 }
-async function create(page, { type, number, description }) {
-    await row(page).getByRole('button', { name: type === 'a_identificar' ? 'Registrar despesa a identificar' : 'Adicionar Nota', exact: true }).click();
+async function create(page, { type, number, description, program = 'BASIC' }) {
+    await row(page, program).getByRole('button', { name: type === 'a_identificar' ? 'Registrar despesa a identificar' : 'Adicionar Nota', exact: true }).click();
     const modal = page.locator('#modal-dados-nota');
     await expect(modal).toHaveClass(/show/);
     if (type !== 'a_identificar') await modal.locator('#nota-tipo').selectOption(type);
@@ -37,7 +37,7 @@ async function create(page, { type, number, description }) {
     await modal.locator('#nota-valor').fill('123.45');
     if (type === 'a_identificar') {
         await expect(modal.locator('[data-expense-context]')).toContainText('05/2026');
-        await expect(modal.locator('[data-expense-context]')).toContainText('PDDE Básico');
+        await expect(modal.locator('[data-expense-context]')).toContainText(program === 'BASIC' ? 'PDDE Básico' : 'Educação Conectada');
         await modal.locator('#nota-unidentified-observation').fill('Documento ausente; aguardando identificação');
     }
     await modal.locator('button[type="submit"]').click();
@@ -78,6 +78,31 @@ test.describe.serial('PR397 — independência com UI/Auth/Supabase reais', () =
         await page.setViewportSize({ width: 1366, height: 768 });
         await capture(page, info, '02-primeira-despesa-persistida-1366');
         await info.attach('contexto-primeira-despesa.json', { body: Buffer.from(JSON.stringify({ invoices, verification }, null, 2)), contentType: 'application/json' });
+    });
+    test('primeira despesa a identificar de outro programa grava NF e Pendência atômicas no contexto selecionado', async ({ page }, info) => {
+        await openSchool(page, 'controller', 'ESC-INDEP');
+        const before = await remote(page, 'verifications', 'ESC-INDEP');
+        expect(before.filter(item => item.program_id === 'CONECTADA')).toEqual([]);
+        await create(page, { type: 'a_identificar', description: 'Débito sem documento Conectada', program: 'CONECTADA' });
+        await expect(page.locator('#pendency-preview-drawer')).toBeVisible();
+        const invoices = await remote(page, 'registered_invoices', 'ESC-INDEP');
+        const expense = invoices.find(item => item.description === 'Débito sem documento Conectada');
+        expect(expense).toMatchObject({ competence_id: '2026-05', program_id: 'CONECTADA', expense_type: 'a_identificar',
+            verification_id: 'ESC-INDEP::2026-05::CONECTADA' });
+        const pending = await remote(page, 'pendencies', 'ESC-INDEP');
+        expect(pending.filter(item => item.registered_invoice_id === expense.id)).toHaveLength(1);
+        expect(pending.find(item => item.registered_invoice_id === expense.id)).toMatchObject({ program_id: 'CONECTADA', status: 'Aberta' });
+        const verification = (await remote(page, 'verifications', 'ESC-INDEP')).find(item => item.program_id === 'CONECTADA');
+        expect(verification.bonification.notaFiscal).toBe('');
+        expect(verification.analysis.notaFiscal).toBe('Incorreto');
+        expect(verification.bonus_result).toBeNull();
+        await page.setViewportSize({ width: 1440, height: 900 });
+        await capture(page, info, '03-despesa-identificar-programa-conectada-1440');
+        await page.locator('#pendency-preview-drawer .pendency-preview-close').click();
+        await page.reload();
+        await expect(row(page, 'CONECTADA')).toContainText('Débito sem documento Conectada');
+        await expect(row(page, 'BASIC')).toContainText('NF-INDEP-UI');
+        await info.attach('contextos-e-pendencia.json', { body: Buffer.from(JSON.stringify({ invoices, pending, verification }, null, 2)), contentType: 'application/json' });
     });
     for (const role of ['controller', 'federal_assistant']) {
         test(`${role} opera despesas consolidadas sem alterar NF manual, resultado ou exportação`, async ({ page }, info) => {

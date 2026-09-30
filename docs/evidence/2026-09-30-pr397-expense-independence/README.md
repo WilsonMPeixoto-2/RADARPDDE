@@ -71,3 +71,17 @@ O pgTAP expense-verification-ownership foi publicado antes da correção para ve
 Mudança mínima planejada: omitir bonus_result apenas nos RPCs especializados de despesa; no helper existente salvar/excluir, limitar merge aos campos operacionais notaFiscal/consAssessoria/encampInventario da análise e consAssessoria/consEnviada/encampInventario da projeção. Defaults estruturais da primeira linha continuam vazios, sem inferência manual. Não alterar a RPC própria de verificação. Na reanálise genérica, preservar o contrato dos documentos não vinculados a NF e aplicar propriedade restrita somente à Pendência vinculada.
 
 O estado da migration compartilhada segue desconhecido (conector sem projetos). Para não reescrever história possivelmente aplicada, a correção será uma migration posterior que conserva wrappers/grants/INVOKER/DEFINER e redefine somente autoridades existentes. Não haverá aplicação remota nesta execução.
+
+## Checkpoint 3 — propriedade corrigida e provas de primeira criação instaladas
+
+Em 64bd56ec foi publicada a correção na autoridade SQL existente (save/delete e reanálise vinculada), sem nova RPC, trigger de produto, polling ou retry. A migration 20260929213000 permanece intacta; a posterior 20260930003000 inclui defaults estruturais canônicos e merge restrito. A omissão de bonus_result nos dez RPCs especializados passou nos testes, com contraprova da reabertura legítima em save_verification_with_log.
+
+RED real de propriedade: run 36664215906/job 109725311031, Supabase local, 529 assertions pgTAP, 7 falhas de propriedade dentre 15 do arquivo novo. Checkout 4ae84fc (merge-ref) equivalente a 582096b4; sem diferença de arquivos.
+
+A nova migration exigiu reconciliar os espelhos verificáveis da contagem/histórico. No primeiro pipeline corretivo, migration-smoke passou; supabase-local parou antes do pgTAP em MIGRATION_HISTORY_MISMATCH e readiness parou no esperado 57/encontrado 58. Não há resultado de autorização/concorrrência desse job. Manifesto pós-aplicação, schema.test e final-alignment foram ajustados para 58, sem enfraquecer comparação exata.
+
+Autoridade de primeira criação: hipótese adicional a refutar em banco real — can_write_school admite escopo explícito para outros perfis; a capacidade de despesa não deve nascer apenas desse escopo. O pgTAP first-expense-authority testa Controlador real, SME/Inventário com escrita explícita, CRE indevida, ID não canônico, erro de valor após INSERT, cliente que omite contexto remoto existente e ausência de efeitos parciais. Nenhuma mudança de capacidade implementada sem ver o resultado causal.
+
+A prova de concorrência usa duas sessões paradas num BEFORE INSERT de teste, depois de observarem linha inexistente. Esse trigger existe somente no runner descartável e é removido no finally; não compõe migration. Critério: um vencedor atômico, conflito explícito do perdedor, replay sem novo log, chave divergente rejeitada e recuperação após leitura da versão vigente. Não impõe sucesso simultâneo irrestrito.
+
+Readiness local avançou por unitários e integração, parando somente no espelho 57/58, depois corrigido. Capturas e ciclo real do novo UAT ainda pendentes. CURRENT_STAGE/STATUS_DOCUMENTOS foram reconciliados para um único handoff #397, preservando UX08 separado. Plano de publicação compatível documentado, sem aplicação remota.
