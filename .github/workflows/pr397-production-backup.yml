@@ -1,0 +1,72 @@
+name: PR397 one-time read-only Production backup
+
+on:
+  push:
+    branches: [ops/pr397-production-backup-20260930]
+    paths:
+      - '.github/workflows/pr397-production-backup.yml'
+      - 'ops/pr397-backup/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr397-production-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    if: github.repository == 'WilsonMPeixoto-2/RADARPDDE' && github.ref == 'refs/heads/ops/pr397-production-backup-20260930'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Require approved candidate and isolated ops branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/ops/pr397-production-backup-20260930
+          test "$(git rev-parse 0e149e148ecef708db3ab05faf9c1b5e43338fe6^{tree})" = 3fd57652658361e697321de4537760632e0b70eb
+          git merge-base --is-ancestor 0e149e148ecef708db3ab05faf9c1b5e43338fe6 HEAD
+          test -f ops/pr397-backup/recipient-public.pem
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          check-latest: false
+          cache: npm
+      - name: Install pinned tooling before receiving Production secrets
+        run: npm ci
+      - name: Start PostgreSQL only on the disposable runner
+        run: |
+          npx --no-install supabase start --exclude gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+      - name: Read Production, restore isolated copy, encrypt the backup
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_TELEMETRY_DISABLED: '1'
+          BACKUP_PUBLIC_KEY: ops/pr397-backup/recipient-public.pem
+          BACKUP_OUTPUT_DIR: ${{ runner.temp }}/pr397-backup-sealed
+          BACKUP_PRIVATE_DIR: ${{ runner.temp }}/pr397-backup-private
+        run: node ops/pr397-backup/backup-production.mjs
+      - name: Upload ciphertext and sanitized evidence only
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: pr397-production-backup-encrypted-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/pr397-backup-sealed/backup.tar.gz.enc
+            ${{ runner.temp }}/pr397-backup-sealed/envelope.json
+            ${{ runner.temp }}/pr397-backup-sealed/evidence.json
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Remove plaintext and dispose of local database
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf -- "${RUNNER_TEMP}/pr397-backup-private"
+          rm -f -- "${RUNNER_TEMP}/pr397-backup.tar.gz"
+          npx --no-install supabase stop --no-backup
