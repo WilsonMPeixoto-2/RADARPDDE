@@ -1,0 +1,78 @@
+name: PR397 apply two approved Production migrations
+on:
+  push:
+    branches: [ops/pr397-production-migrations-20260930]
+    paths: ['.github/workflows/pr397-production-migrations.yml']
+permissions:
+  contents: read
+concurrency:
+  group: pr397-production-migrations
+  cancel-in-progress: false
+jobs:
+  apply:
+    if: github.repository == 'WilsonMPeixoto-2/RADARPDDE' && github.ref == 'refs/heads/ops/pr397-production-migrations-20260930'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: 0e149e148ecef708db3ab05faf9c1b5e43338fe6
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install exactly the validated candidate tooling
+        run: npm ci
+      - name: Guard candidate and the two canonical SQL files
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = 0e149e148ecef708db3ab05faf9c1b5e43338fe6
+          test "$(npx --no-install supabase --version)" = 2.114.0
+          echo '26ab84baf226ea9f10f9a1c0d6ee9e78d11ea671ce59b55f7ff273bd5fd16e5d  supabase/migrations/20260929213000_expense_bonification_independence.sql' | sha256sum --check
+          echo 'cb3aebc3c56d003f003ff63368c1a1aacd49e5b714cea03f2e67dea1369af663  supabase/migrations/20260930003000_expense_verification_field_ownership.sql' | sha256sum --check
+      - name: Require only the two pending canonical migrations
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_TELEMETRY_DISABLED: '1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_ACCESS_TOKEN" && test -n "$SUPABASE_DB_PASSWORD"
+          npx --no-install supabase db push --project-ref scnryinorqeucbfkioxo --password "$SUPABASE_DB_PASSWORD" --skip-vault --dry-run > /tmp/pr397-dry-run.txt 2>&1
+          cat /tmp/pr397-dry-run.txt
+          node <<'NODE'
+          const fs = require('node:fs');
+          const assert = require('node:assert/strict');
+          const output = fs.readFileSync('/tmp/pr397-dry-run.txt', 'utf8');
+          const files = [...new Set(output.match(/202[0-9]{11}_[a-z0-9_]+[.]sql/g) || [])].sort();
+          assert.deepEqual(files, [
+            '20260929213000_expense_bonification_independence.sql',
+            '20260930003000_expense_verification_field_ownership.sql'
+          ]);
+          console.log('Dry-run verified: exactly the two approved migrations, in canonical order.');
+          NODE
+      - name: Apply the two migrations without Vault, roles or seed
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_TELEMETRY_DISABLED: '1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --no-install supabase db push --project-ref scnryinorqeucbfkioxo --password "$SUPABASE_DB_PASSWORD" --skip-vault --yes 2>&1 | tee /tmp/pr397-apply.txt
+          npx --no-install supabase migration list --project-ref scnryinorqeucbfkioxo --password "$SUPABASE_DB_PASSWORD" > /tmp/pr397-migrations-after.txt
+      - name: Publish operational evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: pr397-production-migrations-${{ github.run_id }}
+          path: |
+            /tmp/pr397-dry-run.txt
+            /tmp/pr397-apply.txt
+            /tmp/pr397-migrations-after.txt
+          if-no-files-found: warn
+          retention-days: 14
+
