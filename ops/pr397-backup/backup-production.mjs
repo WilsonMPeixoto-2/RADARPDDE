@@ -144,7 +144,12 @@ async function main() {
   await mkdir(privateDir, { recursive: true, mode: 0o700 });
   await chmod(privateDir, 0o700);
   const source = await poolerEnvironment();
-  const local = { PGHOST: '127.0.0.1', PGPORT: '5432', PGUSER: 'postgres', PGPASSWORD: 'postgres', PGDATABASE: 'radar_pr397_restore', PGSSLMODE: 'disable', PGOPTIONS: '-c statement_timeout=900000' };
+  // Managed functions in the unchanged archive use superuser-only SET parameters.
+  // Supabase's existing local administrator is used exclusively inside the disposable container.
+  const local = { PGHOST: '127.0.0.1', PGPORT: '5432', PGUSER: 'supabase_admin', PGPASSWORD: 'postgres', PGDATABASE: 'radar_pr397_restore', PGSSLMODE: 'disable', PGOPTIONS: '-c statement_timeout=900000' };
+  if (await query({ ...local, PGDATABASE: 'postgres' }, 'SHOW is_superuser;') !== 'on') {
+    throw new Error('Disposable restore requires the existing local superuser; Production access remains read-only');
+  }
   const keeper = await keepSnapshot(source);
   let sourceFingerprint;
   let tables;
