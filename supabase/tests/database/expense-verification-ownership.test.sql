@@ -2,7 +2,7 @@ begin;
 set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
-select plan(15);
+select plan(18);
 
 insert into auth.users(id,email) values
 ('00000000-0000-0000-0000-000000000731','ownership@example.test');
@@ -56,5 +56,26 @@ select public.delete_invoice_with_effects(
 )$$,'exclusão elegível não depende da consolidação');
 select is((select jsonb_build_object('notaFiscal',bonification->>'notaFiscal','extCC',bonification->>'extCC','bonus_result',bonus_result) from public.verifications where id='04.99.731::2033-03::EXP_OWNER'),
 '{"notaFiscal":"Não","extCC":"Sim","bonus_result":"apta"}'::jsonb,'exclusão preserva decisões manuais e resultado');
+-- Reanalysis is an expense operation even through the existing generic authority.
+-- Seed only the waiting attempt/context; the transition is performed by the RPC.
+set local role postgres;
+insert into public.pendencies(id,school_id,competence_origin,program_id,document_key,registered_invoice_id,status,payload)
+values('ownership-pend','04.99.731','2033-03','EXP_OWNER','notaFiscal','ownership-nf-absent','Aguardando reanálise','{}');
+insert into public.pendency_attempts(id,pendency_id,attempt_number,submitted_at,observation,drive_url,errors,payload)
+values('ownership-attempt','ownership-pend',1,'2033-03-10T12:00:00Z','Documento enviado','https://drive.example/owner','[]','{}');
+set local role authenticated;
+select lives_ok($$
+select public.reanalyze_pendency_with_verification(
+    '{"id":"ownership-pend","status":"Resolvida","payload":{}}',
+    '{"id":"ownership-attempt","pendency_id":"ownership-pend","attempt_number":1,"analyzed_at":"2033-03-11T12:00:00Z","result":"correto","errors":[],"payload":{}}',
+    '{"id":"04.99.731::2033-03::EXP_OWNER","bonus_result":null,"bonification":{"notaFiscal":"Sim"},"analysis":{"notaFiscal":"Correto"},"payload":{}}',
+    (select row_version from public.pendencies where id='ownership-pend'),
+    (select row_version from public.verifications where id='04.99.731::2033-03::EXP_OWNER'),
+    '{"id":"ownership-reanalysis-log","school_id":"04.99.731","action":"Reanálise registrada","details":{}}'
+)$$,'reanálise vinculada mantém a própria autoridade e aceita análise legítima');
+select is((select jsonb_build_object('notaFiscal',bonification->>'notaFiscal','extCC',bonification->>'extCC','bonus_result',bonus_result) from public.verifications where id='04.99.731::2033-03::EXP_OWNER'),
+'{"notaFiscal":"Não","extCC":"Sim","bonus_result":"apta"}'::jsonb,'reanálise vinculada não troca NF manual, campos irmãos ou consolidação');
+select ok((select status='Resolvida' from public.pendencies where id='ownership-pend')
+    and (select result='correto' from public.pendency_attempts where id='ownership-attempt'), 'tentativa e resolução reais confirmadas sem alterar a bonificação');
 select * from finish();
 rollback;

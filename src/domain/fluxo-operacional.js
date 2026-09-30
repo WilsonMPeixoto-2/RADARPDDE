@@ -136,7 +136,10 @@
 
         const bonificacao = verification.bonificacao || verification.bonification || {};
         const documentKeys = getDocumentKeysForProgram(programId);
-        const hasStarted = documentKeys.some(key => hasStartedValue(bonificacao[key]));
+        // Expense-derived projections do not start the manual bonus stage.
+        // Consolidated results above and evaluateBonification retain their rules.
+        const hasStarted = documentKeys.some(key => !['consAssessoria', 'encampInventario'].includes(key)
+            && hasStartedValue(bonificacao[key]));
         return hasStarted ? 'em-apuracao' : 'nao-lancada';
     }
 

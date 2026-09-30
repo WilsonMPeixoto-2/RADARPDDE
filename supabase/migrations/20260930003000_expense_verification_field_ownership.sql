@@ -58,6 +58,11 @@ begin
          for update;
 
         if not found then
+            -- Creating the structural context is a new expense boundary.
+            -- Explicit school scope alone does not confer expense capability.
+            if coalesce(public.current_app_role(), '') not in ('controller', 'federal_assistant', 'technical_admin') then
+                raise exception 'AUTHORIZATION_DENIED: perfil sem capacidade de materializar contexto por despesa';
+            end if;
             if p_expected_verification_version is not null then
                 raise exception 'NOT_FOUND: verifications/%', v_verification_id;
             end if;

@@ -45,6 +45,8 @@ Se a primeira despesa for criada antes de qualquer ação de bonificação, a op
 - não cria uma segunda ação ou log administrativo;
 - preserva atomicidade e concorrência otimista do fluxo de despesa.
 
+A identificação de bonificação `não lançada`/`em apuração` considera os lançamentos manuais, não as projeções `consAssessoria`/`encampInventario` criadas pela despesa. O resultado consolidado existente continua prevalecendo; as projeções continuam participando da avaliação canônica quando a própria bonificação for consolidada. Na primeira materialização remota, escopo de escrita escolar não substitui capacidade efetiva de despesa.
+
 ## Regras que permanecem
 
 A independência não remove proteções próprias do domínio:

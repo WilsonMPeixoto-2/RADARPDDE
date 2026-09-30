@@ -27,7 +27,7 @@ async function remote(page, table, school) {
         return response.data;
     }, { table, school });
 }
-async function create(page, { type, number, description, program = 'BASIC' }) {
+async function create(page, { type, number, description, program = 'BASIC', info }) {
     await row(page, program).getByRole('button', { name: type === 'a_identificar' ? 'Registrar despesa a identificar' : 'Adicionar Nota', exact: true }).click();
     const modal = page.locator('#modal-dados-nota');
     await expect(modal).toHaveClass(/show/);
@@ -40,11 +40,16 @@ async function create(page, { type, number, description, program = 'BASIC' }) {
         await expect(modal.locator('[data-expense-context]')).toContainText(program === 'BASIC' ? 'PDDE Básico' : 'Educação Conectada');
         await modal.locator('#nota-unidentified-observation').fill('Documento ausente; aguardando identificação');
     }
+    if (info) await capture(page, info, `modal-${type}-${program}`);
     await modal.locator('button[type="submit"]').click();
     await expect(modal).not.toHaveClass(/show/);
     await page.evaluate(() => window.RadarApplicationServices.data.remoteExecutionTail);
 }
 async function capture(page, testInfo, name) {
+    if (!(await page.locator('#modal-dados-nota').isVisible())
+        && !(await page.locator('#pendency-preview-drawer').isVisible())) {
+        await row(page).scrollIntoViewIfNeeded();
+    }
     await testInfo.attach(name, { body: await page.screenshot({ fullPage: true }), contentType: 'image/png' });
 }
 async function persistedContext(page, school) {
@@ -61,7 +66,7 @@ test.describe.serial('PR397 — independência com UI/Auth/Supabase reais', () =
         expect(await remote(page, 'verifications', 'ESC-INDEP')).toEqual([]);
         await expect(row(page).getByRole('button', { name: 'Adicionar Nota', exact: true })).toBeVisible();
         await capture(page, info, '01-primeira-despesa-sem-bonificacao-1440');
-        await create(page, { type: 'consumo', number: 'NF-INDEP-UI', description: 'Material antes da bonificação' });
+        await create(page, { type: 'consumo', number: 'NF-INDEP-UI', description: 'Material antes da bonificação', info });
         const invoices = await remote(page, 'registered_invoices', 'ESC-INDEP');
         expect(invoices).toHaveLength(1);
         expect(invoices[0]).toMatchObject({ competence_id: '2026-05', program_id: 'BASIC', expense_type: 'consumo',
@@ -69,6 +74,7 @@ test.describe.serial('PR397 — independência com UI/Auth/Supabase reais', () =
         const verification = await persistedContext(page, 'ESC-INDEP');
         expect(verification.bonification.notaFiscal).toBe('');
         expect(verification.bonus_result).toBeNull();
+        expect(await page.evaluate(() => getProgramBonificationStatus('ESC-INDEP', '2026-05', 'BASIC'))).toBe('nao-lancada');
         await page.locator('#global-competence-select').selectOption('2026-06');
         await expect(row(page)).not.toContainText('NF-INDEP-UI');
         await page.locator('#global-competence-select').selectOption('2026-05');
@@ -80,10 +86,11 @@ test.describe.serial('PR397 — independência com UI/Auth/Supabase reais', () =
         await info.attach('contexto-primeira-despesa.json', { body: Buffer.from(JSON.stringify({ invoices, verification }, null, 2)), contentType: 'application/json' });
     });
     test('primeira despesa a identificar de outro programa grava NF e Pendência atômicas no contexto selecionado', async ({ page }, info) => {
+        await page.setViewportSize({ width: 1440, height: 900 });
         await openSchool(page, 'controller', 'ESC-INDEP');
         const before = await remote(page, 'verifications', 'ESC-INDEP');
         expect(before.filter(item => item.program_id === 'CONECTADA')).toEqual([]);
-        await create(page, { type: 'a_identificar', description: 'Débito sem documento Conectada', program: 'CONECTADA' });
+        await create(page, { type: 'a_identificar', description: 'Débito sem documento Conectada', program: 'CONECTADA', info });
         await expect(page.locator('#pendency-preview-drawer')).toBeVisible();
         const invoices = await remote(page, 'registered_invoices', 'ESC-INDEP');
         const expense = invoices.find(item => item.description === 'Débito sem documento Conectada');
@@ -96,6 +103,7 @@ test.describe.serial('PR397 — independência com UI/Auth/Supabase reais', () =
         expect(verification.bonification.notaFiscal).toBe('');
         expect(verification.analysis.notaFiscal).toBe('Incorreto');
         expect(verification.bonus_result).toBeNull();
+        expect(await page.evaluate(() => getProgramBonificationStatus('ESC-INDEP', '2026-05', 'CONECTADA'))).toBe('nao-lancada');
         await page.setViewportSize({ width: 1440, height: 900 });
         await capture(page, info, '03-despesa-identificar-programa-conectada-1440');
         await page.locator('#pendency-preview-drawer .pendency-preview-close').click();
@@ -106,6 +114,7 @@ test.describe.serial('PR397 — independência com UI/Auth/Supabase reais', () =
     });
     for (const role of ['controller', 'federal_assistant']) {
         test(`${role} opera despesas consolidadas sem alterar NF manual, resultado ou exportação`, async ({ page }, info) => {
+            await page.setViewportSize({ width: 1366, height: 768 });
             await openSchool(page, role, 'ESC-INDEP-CONS');
             const before = await persistedContext(page, 'ESC-INDEP-CONS');
             await create(page, { type: role === 'controller' ? 'consumo' : 'servico',

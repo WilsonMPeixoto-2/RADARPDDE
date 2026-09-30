@@ -110,6 +110,19 @@ test('distingue bonificação não lançada de bonificação em apuração', () 
     }), 'em-apuracao');
 });
 
+test('projeções de despesas não iniciam bonificação manual nem substituem resultado consolidado (ADR-055)', () => {
+    const verification = createEmptyVerification();
+    verification.bonificacao.consAssessoria = 'Não se aplica';
+    verification.bonificacao.consEnviada = false;
+    verification.bonificacao.encampInventario = 'Não se aplica';
+    assert.equal(getProgramBonificationStatus(verification), 'nao-lancada');
+    verification.bonificacao.notaFiscal = 'Não';
+    assert.equal(getProgramBonificationStatus(verification), 'em-apuracao');
+    verification.resultadoBonif = 'apta';
+    verification.bonificacao.consAssessoria = 'Não';
+    assert.equal(getProgramBonificationStatus(verification), 'apta');
+});
+
 test('pendência externa não interfere no resultado da bonificação', () => {
     const verification = {
         bonificacao: COMPLETE_APTA_BONIFICATION,
