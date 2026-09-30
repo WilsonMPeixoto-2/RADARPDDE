@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "projectRef": "scnryinorqeucbfkioxo",
+  "candidate": "0e149e148ecef708db3ab05faf9c1b5e43338fe6",
+  "diagnosticRun": "36771033095",
+  "diagnosticArtifact": "11124169534",
+  "diagnosticZipSha256": "ca93112fec5f17db9ef5c7c190eb02dd75f08d7d596acf82569900454b2878d1",
+  "localDecryptionAuthenticated": true,
+  "verifiedTableCount": 57,
+  "tableContentDifferences": 0,
+  "sourceOriginalSchemaHash": "759e3db92843d5420405ab3b4c4d4008",
+  "restoredOriginalSchemaHash": "d0398e6586c329eb6545ca09c6dd45ff",
+  "sourceWithRestoreRoleSearchPathHash": "1066def5754053ea38d3bb8428621a94",
+  "sourceWithLogicalColumnPositionsHash": "6639603084d285e337d215f9d9af82a5",
+  "sourceWithBothRestoreRepresentationConditionsHash": "d0398e6586c329eb6545ca09c6dd45ff",
+  "exactMismatchReproduced": true,
+  "droppedColumnGaps": ["auth.oauth_clients", "auth.saml_relay_states"],
+  "fixes": [
+    "Use the existing local superuser only for the disposable restore",
+    "Use pg_catalog,public search_path for both fingerprint connections",
+    "Compare visible column order instead of internal dropped-column slots",
+    "Await snapshot rollback process close before disconnecting the container network"
+  ],
+  "processLifecycleRegressionTests": {"passed": 2, "failed": 0},
+  "fixCommit": "7fbb7b9a784ed266f35f58e0806e8cd23939699d",
+  "productionWritesDuringDiagnosis": false,
+  "functionalCandidateChanged": false
+}

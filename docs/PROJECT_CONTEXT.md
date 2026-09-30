@@ -1,6 +1,6 @@
 # RADAR PDDE 2026 — Contexto funcional e arquitetural
 
-**Atualizado em:** 25 de setembro de 2026
+**Atualizado em:** 30 de setembro de 2026
 **Classe documental:** Canônico
 
 ## 1. Finalidade
@@ -132,7 +132,7 @@ Regras vigentes:
 - N/A → Sim/Não reinicializa derivações incompatíveis, incluindo análise técnica de NF para `Não analisado` quando aplicável;
 - operação semanticamente idêntica ao estado atual é idempotente e não deve produzir nova persistência, novo `row_version` ou novo log apenas por repetição do comando.
 
-O diagnóstico de 24/08 foi parcialmente superado pelo PR2/#206: `invoice-effects.js` já planeja os efeitos persistentes e o fluxo possui no-op semântico real. A lacuna de `invoice:save` que permanece é a **idempotência durável de intenção no servidor** para retry, perda de resposta e concorrência. O guard de submit continua útil e será preservado em R3; a mesma RPC v2 já deverá nascer com o resultado remoto completo necessário a R5, evitando evolução redundante.
+O diagnóstico de 24/08 e o planejamento R3/R5 pertencem ao histórico de evolução a partir do PR2/#206. Não tratá-los como fila atual. O contrato vigente de idempotência, resposta perdida, concorrência e recuperação deve ser conferido na matriz funcional, nas RPCs atuais e nos seus testes; o no-op semântico e o guard de submit continuam sendo proteções distintas da intenção durável no servidor.
 
 ### Decisões supervenientes de 01–03/09
 
@@ -144,6 +144,18 @@ O diagnóstico de 24/08 foi parcialmente superado pelo PR2/#206: `invoice-effect
 ### Notas Fiscais — granularidade individual
 
 `notaFiscal` continua sendo a dimensão documental agregada para bonificação, mas cada registro em `registered_invoices` é uma unidade técnica individual.
+
+### Independência entre despesas e bonificação
+
+A [ADR-055](decisions/ADR-055-independencia-despesas-bonificacao.md) estabelece o contrato implementado pelo #397: perfil/capacidade, escopo, contexto e regras da própria despesa autorizam seu ciclo operacional. O valor manual de `bonification.notaFiscal` e a existência de `bonus_result` não autorizam nem bloqueiam esse ciclo.
+
+Cadastrar, editar, excluir ou reanalisar uma despesa preserva a bonificação manual e o resultado consolidado. `VerificationService` conserva a autoridade sobre lançamento, consolidação e retificação da própria bonificação. Análise fiscal e projeções operacionais de Assessoria/Inventário continuam sendo calculadas pelo fluxo de despesas.
+
+A primeira despesa pode materializar atomicamente a `verification` estrutural necessária ao vínculo, sem preencher bonificação ou resultado. A fronteira dos RPCs especializados omite `bonus_result`, e os helpers SQL existentes atualizam somente os campos operacionais permitidos. Reanálise vinculada à NF respeita a mesma propriedade; a regra dos outros documentos permanece própria.
+
+Capacidades, RLS, `row_version`, idempotência, regras de Pendência ativa, `a_identificar`, Boleto Internet e estado terminal Inventariada continuam obrigatórios. Estado de publicação, migrations aplicadas, testes por SHA e limites do smoke ficam exclusivamente em [CURRENT_STAGE.md](CURRENT_STAGE.md) e no handoff corrente indicado por ele.
+
+### Contrato individual preservado
 
 Contrato integrado e publicado pelo PR #211:
 
@@ -445,7 +457,7 @@ A existência de um gate não o torna automaticamente obrigatório para toda alt
 
 ### Vulnerabilidades conhecidas
 
-As vulnerabilidades moderadas conhecidas na cadeia ExcelJS/UUID são risco conscientemente aceito no estado de 23/08. Não executar atualização forçada, `npm audit fix --force` ou troca rompente de biblioteca apenas para zerar o relatório. Acompanhar versões compatíveis e reavaliar se o risco ou a exposição mudar.
+A aceitação de risco da cadeia ExcelJS/UUID em 23/08 é histórica e foi superada pela homologação posterior registrada em `CURRENT_STAGE.md`. A correção compatível de `brace-expansion`/`fast-uri` e o rebuild oficial do bundle Ajv possuem regressões versionadas em `tests/unit/dependency-security-regressions.test.js` e `tests/unit/tooling-contract.test.js`. Não executar `npm audit fix --force`, trocar biblioteca ou atualizar goldens apenas para obter verde. Consultar as provas por SHA no estado atual e revalidar a auditoria quando a mudança ou o risco justificarem.
 
 ## 20. Confiabilidade funcional ponta a ponta
 

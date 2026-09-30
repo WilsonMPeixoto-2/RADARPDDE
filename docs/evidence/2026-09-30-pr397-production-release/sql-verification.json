@@ -1,0 +1,283 @@
+{
+  "projectRef": "scnryinorqeucbfkioxo",
+  "candidate": "0e149e148ecef708db3ab05faf9c1b5e43338fe6",
+  "workflowRun": 36775217508,
+  "expectedMigrationCount": 58,
+  "migrations": [
+    {
+      "version": "202607130001",
+      "name": "core_schema"
+    },
+    {
+      "version": "202607130002",
+      "name": "auth_and_rls"
+    },
+    {
+      "version": "202607130003",
+      "name": "audit_and_import"
+    },
+    {
+      "version": "202607130004",
+      "name": "competence_bonus_deadline"
+    },
+    {
+      "version": "202607130005",
+      "name": "operational_context"
+    },
+    {
+      "version": "202607130006",
+      "name": "authorization_hardening"
+    },
+    {
+      "version": "202607130007",
+      "name": "configuration_audit_coverage"
+    },
+    {
+      "version": "202607130008",
+      "name": "atomic_invoice_operations"
+    },
+    {
+      "version": "202607140009",
+      "name": "verification_payload"
+    },
+    {
+      "version": "20260714180621",
+      "name": "preconnection_auth_and_api_grants"
+    },
+    {
+      "version": "20260714220136",
+      "name": "preconnection_transactions_and_json_contracts"
+    },
+    {
+      "version": "20260714220146",
+      "name": "preconnection_reversible_import"
+    },
+    {
+      "version": "202607190001",
+      "name": "team_management_auth_alignment"
+    },
+    {
+      "version": "20260720030046",
+      "name": "activation_basic_hardening"
+    },
+    {
+      "version": "20260720193000",
+      "name": "performance_and_rls_hardening"
+    },
+    {
+      "version": "20260721090000",
+      "name": "controller_collaborative_cre_access"
+    },
+    {
+      "version": "20260721152515",
+      "name": "inventory_cre_read_access"
+    },
+    {
+      "version": "20260721152634",
+      "name": "inventory_capital_section_scope"
+    },
+    {
+      "version": "20260721153758",
+      "name": "inventory_capital_section_inline_scope"
+    },
+    {
+      "version": "20260721160056",
+      "name": "inventory_generic_asset_scope_by_cre"
+    },
+    {
+      "version": "202607220001",
+      "name": "atomic_verification_operations"
+    },
+    {
+      "version": "202607220002",
+      "name": "atomic_operational_commands"
+    },
+    {
+      "version": "202607230001",
+      "name": "enable_pgtap_remote_validation"
+    },
+    {
+      "version": "20260723043129",
+      "name": "security_and_rls_hardening"
+    },
+    {
+      "version": "20260728182226",
+      "name": "sme_access_governance"
+    },
+    {
+      "version": "202608040001",
+      "name": "production_integrity_monitor"
+    },
+    {
+      "version": "202608050001",
+      "name": "school_assignment_authorization"
+    },
+    {
+      "version": "202608060001",
+      "name": "team_auth_legacy_repair"
+    },
+    {
+      "version": "202608060002",
+      "name": "functional_integrity_remediation"
+    },
+    {
+      "version": "202608060003",
+      "name": "school_institutional_identity"
+    },
+    {
+      "version": "20260809165500",
+      "name": "restrict_pendency_reanalysis_roles"
+    },
+    {
+      "version": "20260811181312",
+      "name": "individualize_service_invoice_advisory"
+    },
+    {
+      "version": "20260811190712",
+      "name": "require_empty_controller_portfolio_before_deactivation"
+    },
+    {
+      "version": "20260816205046",
+      "name": "unidentified_expense"
+    },
+    {
+      "version": "20260816214535",
+      "name": "atomic_pendency_open_analysis"
+    },
+    {
+      "version": "20260822040642",
+      "name": "invoice_asset_transition_integrity"
+    },
+    {
+      "version": "20260823003500",
+      "name": "invoice_bonus_result_clear_semantics"
+    },
+    {
+      "version": "20260823010000",
+      "name": "pendency_attempt_availability"
+    },
+    {
+      "version": "20260823032000",
+      "name": "service_advisory_pendency_invoice"
+    },
+    {
+      "version": "20260823045000",
+      "name": "service_advisory_corrective_submission"
+    },
+    {
+      "version": "20260823050000",
+      "name": "delete_invoice_bonus_result_clear_semantics"
+    },
+    {
+      "version": "20260827130000",
+      "name": "internet_bill_expense_type"
+    },
+    {
+      "version": "20260828023000",
+      "name": "invoice_document_analysis_pendency"
+    },
+    {
+      "version": "20260830223000",
+      "name": "payload_row_version_boundary"
+    },
+    {
+      "version": "20260903175000",
+      "name": "corrective_submission_integrity"
+    },
+    {
+      "version": "20260904040000",
+      "name": "functional_reliability_inventory_sync"
+    },
+    {
+      "version": "20260905231000",
+      "name": "inventory_terminal_state"
+    },
+    {
+      "version": "20260906062000",
+      "name": "team_account_optimistic_concurrency"
+    },
+    {
+      "version": "20260906065000",
+      "name": "invoice_save_idempotency"
+    },
+    {
+      "version": "20260906072000",
+      "name": "pendency_reanalysis_server_invariants"
+    },
+    {
+      "version": "20260910201500",
+      "name": "evaluation_retification_atomic_cancel"
+    },
+    {
+      "version": "20260917011723",
+      "name": "administrative_log_cursor_index"
+    },
+    {
+      "version": "20260919234500",
+      "name": "rls_set_based_access"
+    },
+    {
+      "version": "20260920013656",
+      "name": "realtime_operational_invalidation"
+    },
+    {
+      "version": "20260922234500",
+      "name": "fix_permanent_identification_asset_description"
+    },
+    {
+      "version": "20260929143215",
+      "name": "read_operational_context"
+    },
+    {
+      "version": "20260929213000",
+      "name": "expense_bonification_independence"
+    },
+    {
+      "version": "20260930003000",
+      "name": "expense_verification_field_ownership"
+    }
+  ],
+  "functions": [
+    {
+      "schema_name": "public",
+      "function_name": "reanalyze_pendency_with_verification",
+      "identity_arguments": "p_pendency jsonb, p_attempt jsonb, p_verification_patch jsonb, p_expected_pendency_version integer, p_expected_verification_version integer, p_administrative_log jsonb",
+      "body_md5": "2460dfc06044df900acf70fd90e1f1b9",
+      "definition_md5": "46b42b6a0654f35b97e95128267ebd24",
+      "owner": "postgres",
+      "security_definer": false,
+      "config": [
+        "search_path=pg_catalog, public"
+      ],
+      "acl": "{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "schema_name": "radar_private",
+      "function_name": "delete_invoice_with_effects_impl",
+      "identity_arguments": "p_invoice_id text, p_expected_invoice_version integer, p_delete_linked_asset boolean, p_expected_asset_version integer, p_verification_patch jsonb, p_expected_verification_version integer, p_administrative_log jsonb",
+      "body_md5": "b868305dca952eb4ba79f2bc864e907b",
+      "definition_md5": "a4b05ef93872af8f19d916c5045b22eb",
+      "owner": "postgres",
+      "security_definer": true,
+      "config": [
+        "search_path=pg_catalog, public"
+      ],
+      "acl": "{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "schema_name": "radar_private",
+      "function_name": "save_invoice_with_effects_impl",
+      "identity_arguments": "p_invoice jsonb, p_asset jsonb, p_verification_patch jsonb, p_expected_invoice_version integer, p_expected_asset_version integer, p_expected_verification_version integer, p_administrative_log jsonb",
+      "body_md5": "34be4a4cfa3376fd8ab3af3ace947d95",
+      "definition_md5": "501237c356338518652676642a1402f3",
+      "owner": "postgres",
+      "security_definer": true,
+      "config": [
+        "search_path=pg_catalog, public"
+      ],
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    }
+  ],
+  "canonicalFunctionBodiesVerified": true,
+  "permissionsAndFunctionMetadataPreserved": true
+}

@@ -1,6 +1,10 @@
 # PR #397 — independência entre despesas e bonificação
 
-**Classe:** handoff corrente, candidato publicado na branch, sem integração/Production. **Data:** 30/09/2026.
+**Classe:** histórico concluído do candidato pré-publicação. **Data:** 30/09/2026.
+
+**Adendo de encerramento:** o #397 foi integrado e publicado em Production no merge `a5e200e5c3d7955cea0a6122bde1904469771ac3`, após as duas migrations canônicas. A correção de dependências foi incorporada em `0e149e148ecef708db3ab05faf9c1b5e43338fe6`; os 45 checks concluíram sem falhas. O backup já iniciado também terminou com `restoreVerified: true`, sem permanecer como pré-requisito da publicação. Consultar a [evidência de publicação](../evidence/2026-09-30-pr397-production-release/README.md) e o [handoff corrente de continuidade](2026-09-30-pos-publicacao-pr397-retomada.md).
+
+O texto abaixo preserva o momento de investigação anterior. Afirmações de Draft, bloqueio de dependências, ausência de verificação remota ou publicação ainda não autorizada pertencem àquele checkpoint e foram superadas. Elas não constituem trabalho pendente nem anulam as provas posteriores. Não atribuir os resultados antigos a outro SHA.
 
 O ponto central é o [PR #397](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/397), branch `fix/decouple-expenses-bonification`, base revalidada `a38eeef6c36e99be1777ce957d459bc40cdaca02`. Os comentários do PR vinculam cada execução ao HEAD e ao merge-ref real; não manter um SHA autorreferente neste arquivo.
 

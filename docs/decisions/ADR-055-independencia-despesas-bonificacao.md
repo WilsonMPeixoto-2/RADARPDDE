@@ -1,6 +1,6 @@
 # ADR-055 — Despesas e bonificação são fluxos operacionais independentes
 
-**Status:** Aprovada para implementação no PR corrente
+**Status:** Aprovada e implementada pelo PR #397. Estado operacional e evidências de publicação em `docs/CURRENT_STAGE.md`.
 
 ## Contexto
 
@@ -82,4 +82,4 @@ A independência não remove proteções próprias do domínio:
 - `src/data/supabase-repository.js`: os RPCs especializados de despesa omitem `bonus_result`; a RPC própria de bonificação conserva sua capacidade de reabertura explícita.
 - `supabase/migrations/20260930003000_expense_verification_field_ownership.sql`: nos helpers existentes de salvar/excluir despesa, o merge preserva marcações manuais e consolidação; somente análise fiscal/Assessoria/Inventário e projeções operacionais são atualizadas. Na reanálise genérica, essa restrição vale para Pendência vinculada à NF, preservando o contrato dos demais documentos.
 
-O arquivo de migration anterior permanece intacto. Como a aplicação compartilhada não foi comprovada nesta rodada, a correção usa uma versão posterior; nenhum estado remoto pode ser deduzido da contagem de arquivos. Evidências do candidato e limites de publicação ficam no [handoff do PR #397](../handoff/2026-09-30-pr397-independencia-despesas-bonificacao.md).
+O arquivo de migration anterior permanece intacto; a correção foi versionada em uma migration posterior. Nenhum estado remoto pode ser deduzido da contagem de arquivos. A aplicação compartilhada e as provas da entrega estão registradas em [CURRENT_STAGE.md](../CURRENT_STAGE.md) e na [evidência de publicação](../evidence/2026-09-30-pr397-production-release/README.md). A investigação do candidato permanece no [handoff histórico do PR #397](../handoff/2026-09-30-pr397-independencia-despesas-bonificacao.md).
