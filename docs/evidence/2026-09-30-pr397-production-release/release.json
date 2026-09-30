@@ -1,0 +1,333 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-09-30T21:05:09.540Z",
+  "repository": "WilsonMPeixoto-2/RADARPDDE",
+  "pullRequest": 397,
+  "primaryAgentExecutedRelease": true,
+  "candidate": "0e149e148ecef708db3ab05faf9c1b5e43338fe6",
+  "mergeCommit": "a5e200e5c3d7955cea0a6122bde1904469771ac3",
+  "candidateAndMergeTree": "3fd57652658361e697321de4537760632e0b70eb",
+  "production": {
+    "status": "published",
+    "url": "https://radarpdde-fix.vercel.app",
+    "deploymentId": "dpl_suHN66eJ41tsHKPmS5SAs6N7iJnu",
+    "deploymentState": "READY",
+    "target": "production",
+    "manifest": {
+      "url": "https://radarpdde-fix.vercel.app/radar-build-manifest.json",
+      "verifiedAt": "2026-09-30T20:53:01.855Z",
+      "schemaVersion": 1,
+      "commitSha": "a5e200e5c3d7955cea0a6122bde1904469771ac3",
+      "vercelEnvironment": "production",
+      "runtimeEnvironment": "production",
+      "dataMode": "supabase-production",
+      "supabaseRepositoryEnabled": true,
+      "productionActivationApproved": true
+    }
+  },
+  "sql": {
+    "projectRef": "scnryinorqeucbfkioxo",
+    "workflowRun": 36775217508,
+    "conclusion": "success",
+    "migrations": [
+      "20260929213000_expense_bonification_independence",
+      "20260930003000_expense_verification_field_ownership"
+    ],
+    "historyBefore": 56,
+    "historyAfter": 58,
+    "canonicalFunctionBodiesVerified": true,
+    "ownerGrantsSignaturesSecurityAndSearchPathPreserved": true
+  },
+  "candidateCi": {
+    "total": 45,
+    "success": 43,
+    "skipped": 2,
+    "failures": 0,
+    "rerunDuringOperationalContinuation": false,
+    "checkResults": [
+      {
+        "name": "Gate final pré-production",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810442/job/109968315016"
+      },
+      {
+        "name": "CodeQL",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/runs/109964352157"
+      },
+      {
+        "name": "Vercel Preview Comments",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/runs/109964048909"
+      },
+      {
+        "name": "Prontidão completa",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810442/job/109964022118"
+      },
+      {
+        "name": "Excel SME, OOXML e rota pública local",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810442/job/109964021933"
+      },
+      {
+        "name": "Migrations em PostgreSQL limpo",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810442/job/109964021909"
+      },
+      {
+        "name": "Supabase local, Auth, RLS e pgTAP",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810442/job/109964021905"
+      },
+      {
+        "name": "Backup e restauração descartáveis",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810442/job/109964021859"
+      },
+      {
+        "name": "Playwright completo desktop",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810442/job/109964021858"
+      },
+      {
+        "name": "Dependências e segurança",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810442/job/109964021764"
+      },
+      {
+        "name": "Lighthouse CI desktop",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810442/job/109964021337"
+      },
+      {
+        "name": "Perfis × Desktop, Android e iPhone",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810560/job/109964016512"
+      },
+      {
+        "name": "Menu e Guia exibem Painel",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810281/job/109964015184"
+      },
+      {
+        "name": "Contrato de nomenclatura",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810281/job/109964015136"
+      },
+      {
+        "name": "Contratos exatos do hardening",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810766/job/109964014856"
+      },
+      {
+        "name": "Auth, perfis, RLS e persistência no Preview",
+        "conclusion": "skipped",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810334/job/109964014647"
+      },
+      {
+        "name": "Duas sessões, Realtime real e degradação visível",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810766/job/109964014506"
+      },
+      {
+        "name": "Bem Permanente pela RPC real",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810691/job/109964014443"
+      },
+      {
+        "name": "Jornada leiga e identificação por tipo",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810691/job/109964014358"
+      },
+      {
+        "name": "Contrato de opções identificáveis",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810691/job/109964013980"
+      },
+      {
+        "name": "Salvar, recarregar e reler fluxos críticos",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810497/job/109964013882"
+      },
+      {
+        "name": "Jornadas reais sem salto de tela",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810666/job/109964013755"
+      },
+      {
+        "name": "RPC real da observação patrimonial",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810550/job/109964013582"
+      },
+      {
+        "name": "Baseline desktop",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810519/job/109964013483"
+      },
+      {
+        "name": "Observação patrimonial sem mudar status",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810550/job/109964013456"
+      },
+      {
+        "name": "Dependências introduzidas pelo PR",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810591/job/109964013379"
+      },
+      {
+        "name": "Contratos de posição e composição",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810666/job/109964013376"
+      },
+      {
+        "name": "gerar-e-validar",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810502/job/109964013266"
+      },
+      {
+        "name": "Autoria real do Histórico de Contatos",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810550/job/109964013193"
+      },
+      {
+        "name": "Dump, restauração e equivalência",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810428/job/109964013188"
+      },
+      {
+        "name": "snapshot-canonico",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810534/job/109964013116"
+      },
+      {
+        "name": "Vulnerabilidades, integridade e inventário",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810370/job/109964013091"
+      },
+      {
+        "name": "supabase-local",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810452/job/109964012839"
+      },
+      {
+        "name": "CodeQL — actions",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810331/job/109964012766"
+      },
+      {
+        "name": "Seis baselines críticos",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810351/job/109964012662"
+      },
+      {
+        "name": "Desktop homologado",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810360/job/109964012609"
+      },
+      {
+        "name": "readiness",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810452/job/109964012563"
+      },
+      {
+        "name": "Sintaxe, auditoria e testes de domínio",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810334/job/109964012355"
+      },
+      {
+        "name": "CodeQL — javascript-typescript",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810331/job/109964012263"
+      },
+      {
+        "name": "migration-smoke",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810452/job/109964012196"
+      },
+      {
+        "name": "validar",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810439/job/109964012005"
+      },
+      {
+        "name": "Criar editar converter excluir avaliar e reanalisar",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810199/job/109964011939"
+      },
+      {
+        "name": "verificar",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810277/job/109964011815"
+      },
+      {
+        "name": "targeted-retification",
+        "conclusion": "success",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36737810256/job/109964011078"
+      },
+      {
+        "name": "Supabase Preview",
+        "conclusion": "skipped",
+        "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/runs/109963967739"
+      }
+    ],
+    "disposableRealExpenseLifecycles": {
+      "runId": 36737810199,
+      "passed": 20,
+      "failed": 0
+    }
+  },
+  "productionSmoke": {
+    "status": "read_only_passed",
+    "authenticatedRole": "Controlador",
+    "verified": [
+      "Invoice form opens with manual bonus empty",
+      "Invoice form opens with manual bonus No",
+      "Invoice form opens with manual bonus N/A in consolidated context",
+      "Invoice form opens in consolidated context with manual bonus controls locked",
+      "Unidentified-expense form opens with manual bonus empty",
+      "Available actions and empty bonus survive page reload"
+    ],
+    "productionExpenseRowsWritten": 0,
+    "productionCrudSmoke": "not_executed_no_test_context_defined",
+    "limitation": "Production create/edit/delete and subsequent bonus persistence have not been exercised; those lifecycles passed against a real disposable Supabase database on the validated candidate."
+  },
+  "backup": {
+    "schemaVersion": 1,
+    "projectRef": "scnryinorqeucbfkioxo",
+    "createdAt": "2026-09-30T20:49:30.124Z",
+    "sourceReadOnly": true,
+    "backup": "full logical pg_dump archive plus password-free cluster roles",
+    "sourceSnapshotConsistent": true,
+    "requiredSchemas": [
+      "public",
+      "radar_private",
+      "auth",
+      "storage",
+      "supabase_migrations"
+    ],
+    "restoreTarget": "ephemeral runner localhost/radar_pr397_restore",
+    "verification": "rows, columns, constraints, function definitions, policies and RLS flags in all five required schemas",
+    "originalOwnershipAndClusterRoles": "preserved in archive; local verifier uses no-owner and existing local platform roles",
+    "restoreVerified": true,
+    "storageObjectCount": 0,
+    "vaultSecretCount": 0,
+    "snapshotFingerprintSha256": "17a9bafc24c559ac4756304ebe66fd608b95e4e9543af462d67c77eaec955b3d",
+    "ciphertextSha256": "bed4ba1e509b7d9eae9195f31e7fca5fa8923cce34ec37383efdeea813440142",
+    "recipientSpkiSha256": "4eba43b172930e6d67b6772ad17bc58f10cc7f41568012c9a293448426f49f26",
+    "opsCommit": "7fbb7b9a784ed266f35f58e0806e8cd23939699d",
+    "runId": "36774647367",
+    "artifactId": 11125711896,
+    "zipSha256": "8dc2ec6d731c16e86054979217932bf90bc50ece2b82ce9c1bab365f1ed1e71c",
+    "localDecryptionAuthenticated": true,
+    "localFingerprintComparisonVerified": true,
+    "verifiedTableCount": 57,
+    "fullBackupWasNotAReleasePrerequisiteAfterUserScopeCorrection": true
+  },
+  "recovery": {
+    "previousProductionDeploymentId": "dpl_2B2hpgGupfEcHouH9RpWeuHmmfnH",
+    "previousProductionCommit": "a38eeef6c36e99be1777ce957d459bc40cdaca02",
+    "priorThreeFunctionDefinitionsAndGrantsSavedLocally": true,
+    "automaticSqlRollbackPerformed": false
+  }
+}
