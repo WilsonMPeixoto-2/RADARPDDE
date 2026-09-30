@@ -59,6 +59,25 @@ async function query(env, sql, snapshot) {
   return pg(env, 'psql', ['-X', '-q', '-A', '-t', '-v', 'ON_ERROR_STOP=1'], { input: body, label: 'Read metadata/fingerprint' });
 }
 
+export async function closeSnapshot(child) {
+  if (child.exitCode !== null) {
+    if (child.exitCode !== 0) throw new Error('Read-only snapshot session failed');
+    return;
+  }
+  await new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      child.kill();
+      reject(new Error('Read-only snapshot close timed out'));
+    }, 10000);
+    child.once('close', code => {
+      clearTimeout(timer);
+      if (code === 0) resolve();
+      else reject(new Error('Read-only snapshot session failed'));
+    });
+    child.stdin.end('ROLLBACK;\n');
+  });
+}
+
 async function keepSnapshot(env) {
   const child = spawn('docker', dockerArgs(env, 'psql', ['-X', '-q', '-A', '-t', '-v', 'ON_ERROR_STOP=1']), {
     env: { ...process.env, ...env }, stdio: ['pipe', 'pipe', 'pipe']
@@ -76,7 +95,7 @@ async function keepSnapshot(env) {
     child.once('exit', () => { clearTimeout(timer); reject(new Error('Snapshot session ended prematurely')); });
     child.stdin.write("BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY; SELECT 'RADAR_SNAPSHOT:' || pg_export_snapshot();\n");
   });
-  return { snapshot, child, close: () => child.stdin.end('ROLLBACK;\n') };
+  return { snapshot, child, close: () => closeSnapshot(child) };
 }
 
 async function poolerEnvironment() {
@@ -92,7 +111,7 @@ async function poolerEnvironment() {
   return {
     PGHOST: config.db_host, PGPORT: '5432', PGUSER: `postgres.${PROJECT}`, PGPASSWORD: process.env.SUPABASE_DB_PASSWORD,
     PGDATABASE: 'postgres', PGSSLMODE: 'require',
-    PGOPTIONS: '-c default_transaction_read_only=on -c statement_timeout=900000 -c lock_timeout=10000'
+    PGOPTIONS: '-c default_transaction_read_only=on -c statement_timeout=900000 -c lock_timeout=10000 -c search_path=pg_catalog,public'
   };
 }
 
@@ -101,9 +120,12 @@ async function fingerprint(env, tables, snapshot) {
     md5(coalesce(jsonb_agg(to_jsonb(t) ORDER BY to_jsonb(t)::text)::text, '[]')) AS hash FROM ${qid(schema)}.${qid(name)} t`);
   const rows = JSON.parse(await query(env, `SELECT coalesce(json_agg(x ORDER BY name), '[]'::json) FROM (${selects.join(' UNION ALL ')}) x;`, snapshot));
   const schemas = REQUIRED.map(sqlString).join(',');
+  // A logical restore preserves visible column order, not gaps left by dropped columns.
+  // Both connections use the same search_path so catalog definitions have identical qualification.
   const schemaHash = await query(env, `WITH objects AS (
-    SELECT 'column|' || table_schema || '|' || table_name || '|' || ordinal_position || '|' || column_name || '|' || udt_name || '|' || is_nullable || '|' || coalesce(column_default,'') AS item
-      FROM information_schema.columns WHERE table_schema IN (${schemas})
+    SELECT 'column|' || table_schema || '|' || table_name || '|' || logical_position || '|' || column_name || '|' || udt_name || '|' || is_nullable || '|' || coalesce(column_default,'') AS item
+      FROM (SELECT *, row_number() OVER (PARTITION BY table_schema, table_name ORDER BY ordinal_position) AS logical_position
+        FROM information_schema.columns WHERE table_schema IN (${schemas})) logical_columns
     UNION ALL SELECT 'constraint|' || n.nspname || '|' || c.relname || '|' || k.conname || '|' || pg_get_constraintdef(k.oid,true)
       FROM pg_constraint k JOIN pg_class c ON c.oid=k.conrelid JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname IN (${schemas})
     UNION ALL SELECT 'function|' || n.nspname || '|' || p.proname || '|' || pg_get_functiondef(p.oid)
@@ -146,7 +168,7 @@ async function main() {
   const source = await poolerEnvironment();
   // Managed functions in the unchanged archive use superuser-only SET parameters.
   // Supabase's existing local administrator is used exclusively inside the disposable container.
-  const local = { PGHOST: '127.0.0.1', PGPORT: '5432', PGUSER: 'supabase_admin', PGPASSWORD: 'postgres', PGDATABASE: 'radar_pr397_restore', PGSSLMODE: 'disable', PGOPTIONS: '-c statement_timeout=900000' };
+  const local = { PGHOST: '127.0.0.1', PGPORT: '5432', PGUSER: 'supabase_admin', PGPASSWORD: 'postgres', PGDATABASE: 'radar_pr397_restore', PGSSLMODE: 'disable', PGOPTIONS: '-c statement_timeout=900000 -c search_path=pg_catalog,public' };
   if (await query({ ...local, PGDATABASE: 'postgres' }, 'SHOW is_superuser;') !== 'on') {
     throw new Error('Disposable restore requires the existing local superuser; Production access remains read-only');
   }
@@ -169,7 +191,7 @@ async function main() {
     const missingRoles = roles.filter(name => !locals.includes(name));
     if (missingRoles.length) await query({ ...local, PGDATABASE: 'postgres' }, missingRoles.map(name => `CREATE ROLE ${qid(name)} NOLOGIN;`).join('\n'));
     await pg({ ...local, PGDATABASE: 'postgres' }, 'createdb', ['--template=template0', local.PGDATABASE], { label: 'Create isolated verification database' });
-  } finally { keeper.close(); }
+  } finally { await keeper.close(); }
   await exec('docker', ['cp', path.join(privateDir, 'database.dump'), `${CONTAINER}:/tmp/pr397-production.dump`], { label: 'Copy archive to disposable container' });
   // Disable every container network before restore so restored SQL cannot contact the source or external services.
   const networks = JSON.parse(await exec('docker', ['inspect', '--format', '{{json .NetworkSettings.Networks}}', CONTAINER], { label: 'Inspect disposable networks' }));
