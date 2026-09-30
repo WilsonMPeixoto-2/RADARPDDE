@@ -9,7 +9,7 @@ values ('ESC-INDEP_BASIC','ESC-INDEP','BASIC'), ('ESC-INDEP-CONS_BASIC','ESC-IND
 insert into public.verifications(id,school_id,competence_id,program_id,bonification,analysis,bonus_result)
 values ('ESC-INDEP-CONS::2026-05::BASIC','ESC-INDEP-CONS','2026-05','BASIC',
     '{"extCC":"Sim","extINV":"Sim","notaFiscal":"Não","consAssessoria":"Não se aplica","declBBAgil":"Sim","encampInventario":"Não se aplica"}',
-    '{"extCC":"Correto","extINV":"Correto","notaFiscal":"Não analisado","consAssessoria":"Correto","declBBAgil":"Correto","encampInventario":"Correto"}','apta');
+    '{"extCC":"Correto","extINV":"Correto","notaFiscal":"Não analisado","consAssessoria":"Correto","declBBAgil":"Correto","encampInventario":"Correto"}','inapta');
 insert into public.competences (id, label, exercise, starts_on, ends_on, bonus_deadline)
 values ('2026-06', 'Junho 2026', 2026, '2026-06-01', '2026-06-30', '2026-07-15')
 on conflict (id) do nothing;

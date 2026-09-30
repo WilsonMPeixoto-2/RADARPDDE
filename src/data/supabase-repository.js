@@ -543,6 +543,7 @@
                 else if (remoteMessage.includes('AUTHORIZATION_DENIED')) code = 'PERMISSION_DENIED';
                 else if (remoteMessage.includes('VALIDATION_ERROR')) code = 'VALIDATION_FAILED';
                 else if (remoteMessage.includes('NOT_FOUND')) code = 'NOT_FOUND';
+                if (code === 'CONFLICT' && EXPENSE_RPC_NAMES.has(name)) code = 'OPTIMISTIC_CONFLICT';
                 const mapped = repositoryError(error, {
                     operation,
                     rpc: name,

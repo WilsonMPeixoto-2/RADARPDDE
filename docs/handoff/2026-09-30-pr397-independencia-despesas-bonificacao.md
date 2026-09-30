@@ -1,6 +1,6 @@
 # PR #397 — independência entre despesas e bonificação
 
-**Classe:** handoff corrente, candidato não publicado. **Data:** 30/09/2026.
+**Classe:** handoff corrente, candidato publicado na branch, sem integração/Production. **Data:** 30/09/2026.
 
 O ponto central é o [PR #397](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/397), branch `fix/decouple-expenses-bonification`, base revalidada `a38eeef6c36e99be1777ce957d459bc40cdaca02`. Os comentários do PR vinculam cada execução ao HEAD e ao merge-ref real; não manter um SHA autorreferente neste arquivo.
 
@@ -17,6 +17,12 @@ O checkpoint inicial revalidou main, candidato, CI/JUnit e ref #395. RED local r
 O RED remoto em `582096b4` executou 529 assertions pgTAP: o novo teste de propriedade falhou em 7/15, comprovando perda de resultado, NF manual e campos irmãos. [Trecho do log](../evidence/2026-09-30-pr397-expense-independence/red-pgtap.txt). A árvore do merge-ref `4ae84fc` era equivalente ao HEAD, com base `a38eeef6`.
 
 As provas sucessoras estão instaladas nos workflows existentes: pgTAP de propriedade e capacidade da primeira despesa; duas sessões PostgreSQL bloqueadas numa barreira antes do INSERT estrutural; replay/resposta descartada/payload divergente e recuperação explícita; jornadas por UI/Auth/Supabase reais com contexto vazio e consolidação para Controlador/Assistente. Resultados finais, contagens e capturas inspecionadas serão registrados no PR, sem promover execução pendente a aprovação.
+
+Em `e87a8b01`, merge-ref `8554802061c618c9bddcbfc3c4d41be233c944d5` equivalente, passaram 546 assertions/38 arquivos pgTAP, concorrência controlada e lint SQL. O run Supabase readiness `36700022728` falhou posteriormente no download de postgres-meta (quota de registro); o job Supabase da homologação integral `36700022739` passou inclusive geração de tipos e 17 jornadas. O ciclo real `36700022848` passou 20/20 sem skips. Essas provas identificam aquele SHA, não o candidato posterior.
+
+O fechamento acrescenta tradução do conflito 23505 dos RPCs especializados de despesa para OPTIMISTIC_CONFLICT. RED: o mapper recebia TRANSACTION_FAILED; três cenários da UoW real perdiam o código de recuperação. GREEN dirigido: 26/26 testes de fronteira/UoW/mapper; readiness local posterior: 1165 unitários e 8 integrações, sem falhas/skips. Sem retry automático, alteração do error-mapper global ou mudança da política das outras RPCs. Fixtures centrais foram reconciliadas para estados alcançáveis: NF Sim/apta no SQL e NF Não/inapta na UI. Capturas passam a aguardar estado visual estável e enquadrar o painel operado.
+
+**Situação de integração: parcial, permanece Draft.** Gates obrigatórios de dependências/auditoria falham por quatro vulnerabilidades (2 moderate/2 high), reproduzidas com `npm audit --package-lock-only`. O controle de base tem o mesmo lockfile (blob `5d2d47d66c257da1980bbe65aec5b8d6a3ba0a59`), sem diff em package.json/package-lock/vendor. Não atualizar ferramentas ou dependências para obter verde nesta frente; tratar a causa em escopo próprio autorizado. A falha de registry e a lacuna do histórico compartilhado são separadas desse bloqueio. O comentário final do PR deve vincular os gates e a leitura das imagens ao candidato final, sem encobrir jobs interrompidos.
 
 Docker/WSL não estão instalados neste host. PostgreSQL/Supabase reais são os ambientes descartáveis de GitHub Actions, CLI 2.114.0 homologada, sem atualização de dependências. O conector Supabase retorna zero projetos; histórico compartilhado não verificado. Nenhuma migration, escrita em Production, merge ou deploy foi executado por esta rodada.
 
@@ -35,4 +41,4 @@ Docker/WSL não estão instalados neste host. PostgreSQL/Supabase reais são os 
 
 Antes de qualquer frente ampla futura de layout/design, ler obrigatoriamente [DESIGN_TOOLING.md](../evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md), revalidando versões, compatibilidade e custo/benefício. Preservar a metodologia: arquitetura/ferramental visual + aceitação humana outside-in. Quando houver decisão de abrir a frente visual, criar/apontar seu único handoff corrente e preservar este como histórico.
 
-Retomar pelo estado vivo do PR e pela primeira falha causal restante; não executar merge/SQL remoto/Production usando autorização histórica.
+Retomar pelos comentários de fechamento e pelo estado vivo dos checks. Para integrar: resolver os gates bloqueadores em frente autorizada, conferir histórico/schema compartilhado somente por leitura e obter autorização específica para a sequência de publicação acima. Não executar merge/SQL remoto/Production usando autorização histórica. Até esses passos, o resultado é um candidato revisável, não entrega integral publicada.

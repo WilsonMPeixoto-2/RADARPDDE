@@ -31,7 +31,8 @@ function harness(remoteMessage) {
         from() { throw new Error('Global table read must not be used'); },
         async rpc(name, args) {
             calls.push({ name, args });
-            return { data: null, error: { code: 'P0001', message: remoteMessage } };
+            return { data: null, error: typeof remoteMessage === 'string'
+                ? { code: 'P0001', message: remoteMessage } : remoteMessage };
         }
     } });
     const statePort = createStatePort({ storage, readMemory: () => structuredClone(memory),
@@ -57,16 +58,18 @@ function harness(remoteMessage) {
     return { service, calls, stored, get state() { return memory; } };
 }
 
-for (const error of ['VALIDATION_ERROR: rejeição controlada', 'OPTIMISTIC_CONFLICT: contexto concorrente']) {
+for (const error of ['VALIDATION_ERROR: rejeição controlada', 'OPTIMISTIC_CONFLICT: contexto concorrente',
+    { code: '23505', message: 'duplicate key value violates unique constraint "verifications_pkey"' }]) {
     for (const type of ['consumo', 'permanente', 'a_identificar']) {
-        test(`primeira ${type}: ${error} reverte efeitos via DataService/UoW/bridge reais`, async () => {
+        test(`primeira ${type}: ${typeof error === 'string' ? error : 'colisão 23505'} reverte efeitos via DataService/UoW/bridge reais`, async () => {
             const h = harness(error);
             const input = { schoolId: '04.31.001', compKey: '2026-05_BASIC', description: 'Material',
                 expenseType: type, invoiceNumber: type === 'a_identificar' ? '' : 'NF-1', amount: 200,
                 profile: 'controlador', reason: 'Documento ausente', notes: 'Aguardando identificação' };
             const command = type === 'a_identificar'
                 ? h.service.saveUnidentifiedExpenseWithPendency(input) : h.service.save(input);
-            await assert.rejects(command);
+            await assert.rejects(command, failure => failure.code ===
+                (typeof error === 'string' && error.startsWith('VALIDATION_ERROR') ? 'VALIDATION_FAILED' : 'OPTIMISTIC_CONFLICT'));
             assert.equal(h.calls.length, 1, 'atinge a persistência real da operação');
             assert.equal(h.calls[0].args.p_verification_patch.school_id, input.schoolId);
             assert.equal(h.calls[0].args.p_verification_patch.program_id, 'BASIC');

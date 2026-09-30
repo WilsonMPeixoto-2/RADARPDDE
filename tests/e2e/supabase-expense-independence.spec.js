@@ -45,12 +45,20 @@ async function create(page, { type, number, description, program = 'BASIC', info
     await expect(modal).not.toHaveClass(/show/);
     await page.evaluate(() => window.RadarApplicationServices.data.remoteExecutionTail);
 }
-async function capture(page, testInfo, name) {
-    if (!(await page.locator('#modal-dados-nota').isVisible())
-        && !(await page.locator('#pendency-preview-drawer').isVisible())) {
-        await row(page).scrollIntoViewIfNeeded();
+async function capture(page, testInfo, name, program = 'BASIC') {
+    const modal = page.locator('#modal-dados-nota');
+    if (await page.locator('#modal-dados-nota.show').count()) {
+        await expect(modal).toHaveCSS('opacity', '1');
+        await expect(modal.locator('.modal-content')).toBeInViewport({ ratio: 1 });
+    } else {
+        await expect(modal).toHaveCSS('opacity', '0');
+        if (!(await page.locator('#pendency-preview-drawer').isVisible())) {
+            const panel = row(page, program).locator('[data-invoice-document-panel]');
+            await panel.scrollIntoViewIfNeeded();
+            await expect(panel).toBeInViewport({ ratio: 1 });
+        }
     }
-    await testInfo.attach(name, { body: await page.screenshot({ fullPage: true }), contentType: 'image/png' });
+    await testInfo.attach(name, { body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
 }
 async function persistedContext(page, school) {
     const rows = await remote(page, 'verifications', school);
@@ -110,6 +118,8 @@ test.describe.serial('PR397 — independência com UI/Auth/Supabase reais', () =
         await page.reload();
         await expect(row(page, 'CONECTADA')).toContainText('Débito sem documento Conectada');
         await expect(row(page, 'BASIC')).toContainText('NF-INDEP-UI');
+        await page.setViewportSize({ width: 1366, height: 768 });
+        await capture(page, info, '04-despesa-identificar-persistida-conectada-1366', 'CONECTADA');
         await info.attach('contextos-e-pendencia.json', { body: Buffer.from(JSON.stringify({ invoices, pending, verification }, null, 2)), contentType: 'application/json' });
     });
     for (const role of ['controller', 'federal_assistant']) {
@@ -134,9 +144,9 @@ test.describe.serial('PR397 — independência com UI/Auth/Supabase reais', () =
                 return { result: getProgramBonificationStatus('ESC-INDEP-CONS', '2026-05', 'BASIC'),
                     rows: window.RadarExcelExportModel.buildBaseRows(input).filter(row => row.designacao === '04.00.398') };
             });
-            expect(exported.result).toBe('apta');
+            expect(exported.result).toBe(before.bonus_result);
             expect(exported.rows).toHaveLength(1);
-            expect(exported.rows[0].statusBonificacao).toBe('APTA');
+            expect(exported.rows[0].statusBonificacao).toBe(before.bonus_result.toUpperCase());
             await capture(page, info, `03-${role}-consolidacao-preservada`);
             const edited = row(page).locator('.invoice-document-row').filter({ hasText: `NF: NF-INDEP-${role}-EDIT` });
             await edited.getByRole('button', { name: `Excluir NF: NF-INDEP-${role}-EDIT`, exact: true }).click();

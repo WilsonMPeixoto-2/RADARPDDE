@@ -4,6 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { SupabaseRepository } = require('../../src/data/supabase-repository.js');
 const { transformLegacyState } = require('../../src/data/legacy-state-adapter.js');
+const { classifyError } = require('../../src/application/error-mapper.js');
 
 const expenseRpcs = [
     'save_invoice_with_effects', 'save_invoice_with_effects_v2',
@@ -60,4 +61,28 @@ test('a RPC própria da bonificação mantém a capacidade explícita de reabert
     }, 'verification');
     assert.equal(Object.hasOwn(sent.p_verification, 'bonus_result'), true);
     assert.equal(sent.p_verification.bonus_result, null);
+});
+
+test('colisão da primeira verification mantém conflito recuperável até o mapper da UI', async () => {
+    const repository = new SupabaseRepository({ client: {
+        from() { throw new Error('RPC only'); },
+        async rpc() { return { data: null, error: { code: '23505',
+            message: 'duplicate key value violates unique constraint "verifications_pkey"' } }; }
+    } });
+    await assert.rejects(repository.saveInvoiceWithEffects({ invoice: { id: 'NF-1' },
+        verificationPatch: { id: 'school::2026-05::BASIC' } }), error => {
+        assert.equal(classifyError(error), 'OPTIMISTIC_CONFLICT');
+        assert.equal(error.code, 'OPTIMISTIC_CONFLICT');
+        assert.equal(error.postgresCode, '23505');
+        return true;
+    });
+});
+
+test('tradução de colisão de despesa não muda a política das outras RPCs', async () => {
+    const repository = new SupabaseRepository({ client: {
+        from() { throw new Error('RPC only'); },
+        async rpc() { return { data: null, error: { code: '23505', message: 'duplicate key' } }; }
+    } });
+    await assert.rejects(repository.executeRpc('save_verification_with_log', {}, 'verification'),
+        error => error.code === 'CONFLICT' && error.postgresCode === '23505');
 });
