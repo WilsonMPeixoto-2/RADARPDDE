@@ -54,7 +54,7 @@ async function capture(page, testInfo, name, program = 'BASIC') {
         await expect(modal).toHaveCSS('opacity', '0');
         if (!(await page.locator('#pendency-preview-drawer').isVisible())) {
             const panel = row(page, program).locator('[data-invoice-document-panel]');
-            await panel.scrollIntoViewIfNeeded();
+            await panel.evaluate(element => element.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' }));
             await expect(panel).toBeInViewport({ ratio: 1 });
         }
     }
