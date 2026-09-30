@@ -77,6 +77,16 @@
     const DEFAULT_PAGE_SIZE = 500;
     const DEFAULT_WRITE_BATCH_SIZE = 250;
     const DEFAULT_READ_CONCURRENCY = 6;
+    // Expense commands own technical effects, never the consolidated bonus decision.
+    // Keep the full projection for the specialized RPC validators, which check it
+    // against the authoritative row; the SQL helpers also preserve manual fields.
+    const EXPENSE_RPC_NAMES = new Set([
+        'save_invoice_with_effects', 'save_invoice_with_effects_v2',
+        'delete_invoice_with_effects', 'save_unidentified_expense_with_pendency',
+        'save_invoice_document_with_pendency', 'register_invoice_document_attempt',
+        'reanalyze_invoice_document_pendency', 'save_service_advisory_with_pendency',
+        'register_service_advisory_attempt', 'reanalyze_service_advisory_pendency'
+    ]);
 
     function positiveInteger(value, fallback) {
         return Number.isInteger(value) && value > 0 ? value : fallback;
@@ -506,7 +516,11 @@
                 );
             }
             try {
-                let request = this.client.rpc(name, cloneValue(args || {}));
+                const rpcArgs = cloneValue(args || {});
+                if (EXPENSE_RPC_NAMES.has(name) && rpcArgs.p_verification_patch) {
+                    delete rpcArgs.p_verification_patch.bonus_result;
+                }
+                let request = this.client.rpc(name, rpcArgs);
                 if (options.signal) {
                     if (!request || typeof request.abortSignal !== 'function') {
                         throw new RepositoryError(

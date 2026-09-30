@@ -59,3 +59,15 @@ Hipóteses materiais serão registradas como invariante → reprodução/mecanis
 `node --test --test-reporter=dot tests/unit/functional-contract-matrix.test.js tests/unit/invoice-effects.test.js` reproduziu as duas falhas do JUnit. O comando de teste retornou falha; os comandos de inspeção seguintes não mudam essa conclusão. Nenhuma alteração de runtime feita neste checkpoint.
 
 A confirmação do merge-ref e a contagem da CI serão vinculadas ao checkout efetivamente executado. O estado verde de um agregador ou de um job que parou cedo nunca será promovido a prova da jornada inteira.
+
+## Checkpoint 2 — contratos reconciliados e RED da fronteira
+
+Em 582096b4 foram publicados os seletores contextualizados, a regeneração oficial da matriz e a expectativa sucessora da ADR-055. Prova local: 19 testes de matriz/effects aprovados; 12 E2E desktop (journey + functional-core) aprovados. São fixtures locais, não Supabase real.
+
+Invariante: despesa não possui bonus_result nem marcações manuais. Mecanismo: InvoiceService exporta verification inteira pelo bridge real; o mapper produz bonus_result:null para resultado vazio; executeRpc envia a chave intacta; helpers save/delete aceitam substituir o JSON completo e limpar o resultado. Contraprova local expense-verification-ownership: dez RPCs falharam como esperado, enquanto a capacidade própria de reabertura permaneceu válida. O teste adicional usa transformLegacyState real e saveInvoiceWithEffects para rastrear null até a chamada efetiva.
+
+O pgTAP expense-verification-ownership foi publicado antes da correção para verificar o efeito em PostgreSQL descartável: Assistente real, patch ausente/null/vazio/divergente, marcações e análise de outros documentos, conflito/rollback, exclusão. Resultado remoto ainda pendente.
+
+Mudança mínima planejada: omitir bonus_result apenas nos RPCs especializados de despesa; no helper existente salvar/excluir, limitar merge aos campos operacionais notaFiscal/consAssessoria/encampInventario da análise e consAssessoria/consEnviada/encampInventario da projeção. Defaults estruturais da primeira linha continuam vazios, sem inferência manual. Não alterar a RPC própria de verificação. Na reanálise genérica, preservar o contrato dos documentos não vinculados a NF e aplicar propriedade restrita somente à Pendência vinculada.
+
+O estado da migration compartilhada segue desconhecido (conector sem projetos). Para não reescrever história possivelmente aplicada, a correção será uma migration posterior que conserva wrappers/grants/INVOKER/DEFINER e redefine somente autoridades existentes. Não haverá aplicação remota nesta execução.

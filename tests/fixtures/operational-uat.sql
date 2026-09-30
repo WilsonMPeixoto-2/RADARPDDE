@@ -1,4 +1,15 @@
 -- Exclusivo da pilha descartável de CI. Não executar em Production.
+-- Contextos exclusivos do PR397: a primeira escola não tem verification;
+-- a segunda começa consolidada. As despesas serão gravadas pelos controles UI.
+insert into public.schools(id,designation,denomination,inep,cnpj,sici,cre,controller_id,initial_competence)
+values ('ESC-INDEP','04.00.397','Escola Despesa Independente','33900397','90.039.700/0001-97','SICI-INDEP-397','4ª CRE','controller-local','2026-05'),
+       ('ESC-INDEP-CONS','04.00.398','Escola Bonificação Consolidada','33900398','90.039.800/0001-98','SICI-INDEP-398','4ª CRE','controller-local','2026-05');
+insert into public.school_programs(id,school_id,program_id)
+values ('ESC-INDEP_BASIC','ESC-INDEP','BASIC'), ('ESC-INDEP-CONS_BASIC','ESC-INDEP-CONS','BASIC');
+insert into public.verifications(id,school_id,competence_id,program_id,bonification,analysis,bonus_result)
+values ('ESC-INDEP-CONS::2026-05::BASIC','ESC-INDEP-CONS','2026-05','BASIC',
+    '{"extCC":"Sim","extINV":"Sim","notaFiscal":"Não","consAssessoria":"Não se aplica","declBBAgil":"Sim","encampInventario":"Não se aplica"}',
+    '{"extCC":"Correto","extINV":"Correto","notaFiscal":"Não analisado","consAssessoria":"Correto","declBBAgil":"Correto","encampInventario":"Correto"}','apta');
 insert into public.competences (id, label, exercise, starts_on, ends_on, bonus_deadline)
 values ('2026-06', 'Junho 2026', 2026, '2026-06-01', '2026-06-30', '2026-07-15')
 on conflict (id) do nothing;

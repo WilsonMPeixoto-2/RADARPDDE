@@ -1,0 +1,27 @@
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:32.0642242Z psql:/home/runner/work/RADARPDDE/RADARPDDE/supabase/tests/database/expense-verification-ownership.test.sql:3: NOTICE:  extension "pgtap" already exists, skipping
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:32.1330919Z /home/runner/work/RADARPDDE/RADARPDDE/supabase/tests/database/expense-verification-ownership.test.sql .......... 
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:32.1333144Z # Failed test 4: "null não apaga resultado"
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:32.1334602Z #         have: NULL
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:32.1335383Z #         want: apta
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:32.1336787Z # Failed test 6: "vazio não reabre resultado"
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:32.1337624Z #         have: NULL
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:32.1338401Z #         want: apta
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:32.1340198Z # Failed test 8: "resultado diferente não substitui consolidação"
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:32.1341310Z #         have: inapta
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:32.1342166Z #         want: apta
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:32.1343141Z # Failed test 9: "NF manual preservada mesmo com snapshot divergente"
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:32.1343959Z #         have: Sim
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:32.1344520Z #         want: Não
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:32.1345376Z # Failed test 10: "snapshot parcial não apaga outro lançamento manual"
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:32.1346458Z #         have: NULL
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:32.1347270Z #         want: Sim
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:32.1348282Z # Failed test 11: "análise de outro documento não pertence à despesa"
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:32.1349186Z #         have: NULL
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:32.1349854Z #         want: Correto
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:32.1350856Z # Failed test 15: "exclusão preserva decisões manuais e resultado"
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:32.1351968Z #         have: {"extCC": null, "notaFiscal": "Sim", "bonus_result": null}
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:32.1353239Z #         want: {"extCC": "Sim", "notaFiscal": "Não", "bonus_result": "apta"}
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:34.9320239Z /home/runner/work/RADARPDDE/RADARPDDE/supabase/tests/database/expense-verification-ownership.test.sql        (Wstat: 0 Tests: 15 Failed: 7)
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:34.9322616Z   Failed tests:  4, 6, 8-11, 15
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:34.9324754Z Files=37, Tests=529,  3 wallclock secs ( 0.14 usr  0.06 sys +  0.33 cusr  0.19 csys =  0.72 CPU)
+supabase-local	Executar testes pgTAP	2026-09-30T03:26:34.9325633Z Result: FAIL

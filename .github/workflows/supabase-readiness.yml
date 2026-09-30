@@ -213,6 +213,9 @@ jobs:
       - name: Executar testes pgTAP
         run: npm run supabase:test:db
 
+      - name: Provar primeira despesa em duas sessões com barreira controlada
+        run: node scripts/test-first-expense-concurrency.mjs
+
       - name: Executar lint de PL/pgSQL
         run: npm run supabase:lint:db
 
