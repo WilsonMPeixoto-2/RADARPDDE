@@ -381,7 +381,7 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
 
     const noteRow = fiscalNoteRow(page);
     await expect(noteRow.getByRole('button', { name: 'Adicionar Nota' })).toBeVisible();
-    await expect(noteRow.getByRole('button', { name: /^Editar / })).toBeVisible();
+    await expect(noteRow.getByRole('button', { name: /^Editar NF: / })).toBeVisible();
     await expect(noteRow.getByRole('button', { name: /^Excluir / })).toBeVisible();
 
     await noteRow.getByRole('button', { name: 'Adicionar Nota' }).click();

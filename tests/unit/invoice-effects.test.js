@@ -276,7 +276,7 @@ test('remoção da última NF de serviço reconverge Assessoria e análise fisca
     assert.equal(result.auditDescriptor.action, 'Nota Fiscal Removida');
 });
 
-test('remoção de NF permanente planeja exclusão do bem derivado e reabertura em um único efeito', () => {
+test('remoção de NF permanente exclui o bem derivado e preserva a consolidação', () => {
     const permanentInvoice = {
         ...baseInput().existingInvoice,
         tipo: 'permanente',
@@ -322,8 +322,9 @@ test('remoção de NF permanente planeja exclusão do bem derivado e reabertura 
 
     assert.equal(result.operation, 'remove');
     assert.equal(result.removedAsset.id, 'bem-1');
-    assert.equal(result.verification.resultadoBonif, '');
-    assert.match(result.auditDescriptor.details, /reaberta/i);
+    assert.equal(result.verification.resultadoBonif, 'apta');
+    assert.equal(result.verification.bonificacao.notaFiscal, 'Sim');
+    assert.doesNotMatch(result.auditDescriptor.details, /reaberta/i);
     assert.deepEqual(result.changedEntities, [
         'registeredInvoices',
         'assets',

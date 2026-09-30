@@ -169,7 +169,7 @@ test.describe('Polimento visual global', () => {
     const context = await openProntuario(page);
 
     await page.getByRole('tab', { name: 'Competências e Análises', exact: true }).click();
-    const start = page.getByRole('button', {
+    const start = page.locator('#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="notaFiscal"]').getByRole('button', {
       name: 'Registrar despesa a identificar',
       exact: true
     });

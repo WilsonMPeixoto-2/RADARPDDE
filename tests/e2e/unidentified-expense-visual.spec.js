@@ -17,7 +17,8 @@ async function golden(page, name) {
 // Cada estado visual tem contexto próprio e reutiliza os goldens já revisados.
 test('estado visual — drawer e feedback após registrar despesa', async ({ page }) => {
   await prepareSchool(page);
-  await page.getByRole('button', { name: 'Registrar despesa a identificar', exact: true }).click();
+  await page.locator('#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="notaFiscal"]')
+    .getByRole('button', { name: 'Registrar despesa a identificar', exact: true }).click();
   const modal = page.locator('#modal-dados-nota');
   await modal.getByLabel('Descrição provisória da saída', { exact: true })
     .fill('Débito visto no extrato; documento ainda não recebido');
