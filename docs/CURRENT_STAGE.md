@@ -7,11 +7,25 @@
 
 **As Fases A, B e C estão encerradas. A Fase D ainda não foi iniciada.**
 
-**Prioridade executora corrente: PR #397 — independência entre despesas e bonificação.** A decisão funcional é a ADR-055; a implementação permanece candidata na branch `fix/decouple-expenses-bonification`, baseada em `main@a38eeef6`. O PR #396 já integrou a leitura `read_operational_context`, que deve ser preservada. O handoff corrente passa a ser [PR #397](handoff/2026-09-30-pr397-independencia-despesas-bonificacao.md); checkpoints e CI por SHA estão no próprio PR. Isso não comprova merge, aplicação de SQL ou publicação em Production.
+**O PR #397 — independência entre despesas e bonificação — está integrado e publicado em Production.** A ADR-055 está implementada. A entrega foi concluída pelo agente principal, preservando a leitura contextual `read_operational_context` integrada no #396. O único handoff corrente é [continuidade após a publicação do #397](handoff/2026-09-30-pos-publicacao-pr397-retomada.md).
 
-`PROD-UX-08` permanece pendência visual separada, com seu registro de retomada preservado. #394 e os planos amplos do #395 não compõem o escopo executor do #397. Autorizações históricas de outros PRs não autorizam merge/deploy/escrita em Production nesta frente.
+`PROD-UX-08` permanece pendência visual separada, com seu registro de retomada preservado. A próxima implementação solicitada é a rodada de Preview limitada a NAV-01 e UX-04, ainda não executada nesta entrega. #394, os planos amplos do #395 e a Fase D não fazem parte dessa rodada. A autorização de publicação do #397 não autoriza publicar as futuras correções de Preview em Production.
 
-O #397 permanece Draft/parcial: provas operacionais e de banco estão registradas por SHA no handoff/PR, mas os gates obrigatórios de auditoria de dependências continuam bloqueando integração. O lockfile é idêntico à base comparada; não houve upgrade ou exceção de segurança nesta frente. Capturas/JSONs e leitura humana estão preservados na evidência do handoff; seletores preexistentes e drawer impedem homologação integral da superfície. A quota de registry de execuções anteriores não se repetiu no candidato validado; consultar o fechamento do PR para os checks vivos e o SHA efetivamente executado.
+Registro da publicação de 30/09/2026:
+
+| Fronteira | Evidência confirmada |
+|---|---|
+| Candidato | `0e149e148ecef708db3ab05faf9c1b5e43338fe6`; 45 checks concluídos, 43 aprovados e dois skips condicionais de Preview, sem falhas |
+| Integração | [PR #397](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/397), merge `a5e200e5c3d7955cea0a6122bde1904469771ac3`; árvore idêntica à do candidato |
+| Supabase Production | As duas migrations `20260929213000_expense_bonification_independence` e `20260930003000_expense_verification_field_ownership` foram aplicadas em ordem; histórico 56 → 58; corpos e metadados das três funções conferidos |
+| Vercel Production | `dpl_suHN66eJ41tsHKPmS5SAs6N7iJnu`, `READY`; manifesto no merge acima, em `supabase-production` |
+| Interface real | Formulários de NF disponíveis com bonificação vazia, Não, N/A e contexto consolidado; formulário de `a_identificar` e ações após reload conferidos; formulários cancelados, sem novas despesas |
+
+[Evidência da publicação, checks e limites](evidence/2026-09-30-pr397-production-release/README.md). Os 20 ciclos de gravação/edição/exclusão passaram em Supabase descartável real no candidato. Não houve ciclo CRUD em Production nesta publicação: não foi definido um contexto de teste. O smoke observacional não homologa os defeitos visuais preexistentes nem substitui esse ciclo de escrita.
+
+A correção de dependências foi incorporada ao candidato com `npm audit` sem vulnerabilidades e sem troca de ExcelJS/Ajv/esbuild. O backup completo deixou de ser pré-requisito por instrução do usuário; a execução já iniciada também concluiu com `restoreVerified: true`, 57 tabelas conferidas e artefato cifrado preservado localmente. Nenhuma atividade adicional de backup ou repetição dos 45 gates permanece necessária para encerrar o #397.
+
+Os SHAs e deployments acima identificam a entrega funcional comprovada. Conferir o head e o manifesto ao vivo quando forem relevantes para uma nova alteração; commits documentais posteriores não reabrem essa entrega.
 
 Baseline funcional que encerrou a Fase C:
 
@@ -61,7 +75,7 @@ Registro técnico da correção final da C3: [correções CodeQL e validação C
 
 Os documentos de handoff de A/B e das frentes anteriores permanecem **históricos concluídos**. Não reabrir PRs #375/#376/#377/#378 ou textos pré-merge como fila de implementação.
 
-O handoff corrente é [PR #397 — independência de despesas](handoff/2026-09-30-pr397-independencia-despesas-bonificacao.md). [PROD-UX-08](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) é uma pendência separada de retomada visual. A investigação de `PROD-FUNC-09` está encerrada.
+O handoff corrente é [continuidade após a publicação do #397](handoff/2026-09-30-pos-publicacao-pr397-retomada.md). O [handoff do candidato #397](handoff/2026-09-30-pr397-independencia-despesas-bonificacao.md) passou a histórico concluído. [PROD-UX-08](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) é uma pendência separada de retomada visual. A investigação de `PROD-FUNC-09` está encerrada.
 
 Para retomada, a ordem de leitura continua sendo:
 
@@ -69,24 +83,25 @@ Para retomada, a ordem de leitura continua sendo:
 2. `docs/reference/SYSTEM_CANONICAL_MODEL.md`;
 3. `docs/reference/PRODUCT_SURFACE_CATALOG.md`;
 4. este arquivo;
-5. `docs/reference/ENGINEERING_METHOD.md`;
-6. `docs/reference/FRONTEND_USER_VALIDATION_GATE.md`;
-7. `docs/reference/STATUS_DOCUMENTOS.md`;
-8. matriz funcional e ADRs da área afetada.
+5. handoff corrente indicado acima;
+6. `docs/reference/ENGINEERING_METHOD.md`;
+7. `docs/reference/FRONTEND_USER_VALIDATION_GATE.md`;
+8. `docs/reference/STATUS_DOCUMENTOS.md`;
+9. matriz funcional e ADRs da área afetada.
 
 ## 5. Frente ativa e Fase D
 
 A baseline principal da jornada desktop de **Despesa a identificar / Pendências / novo envio / reanálise / navegação** foi homologada por evidências complementares em ambiente local, Supabase descartável no CI e Production autenticada.
 
-A auditoria em Production confirmou criação, retificação, identificação como Material de Consumo, transição para `Aguardando reanálise`, reanálise negativa coerente com ausência de arquivo real, retorno para `Aberta`, preservação de invoice/Pendência e persistência após reload no registro sintético autorizado.
+A auditoria histórica anterior à publicação do #397 confirmou em Production criação, retificação, identificação como Material de Consumo, transição para `Aguardando reanálise`, reanálise negativa coerente com ausência de arquivo real, retorno para `Aberta`, preservação de invoice/Pendência e persistência após reload no registro sintético autorizado. Essa prova pertence àquela auditoria; não representa um ciclo CRUD executado no deployment do #397.
 
 **`PROD-FUNC-09` está encerrado em Production.** O PR [#392](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/392) corrigiu apenas o formatter de datas civis. Persistência, bridge, domínio e view model já preservavam `2026-09-27`. O merge `8284a02faf3d9381ad42e66b6d93677d396e8515` foi publicado no deployment `dpl_F8BVw5Js5v1HCcykq3NwBXa6SHzK`, `READY`, com manifesto no mesmo SHA e smoke aprovado.
 
 A aba autenticada foi recarregada e o mesmo registro sintético, sem nova escrita, mostrou **Disponibilização 27/09/2026** e **Registro 27/09/2026, 23:12**. O CI do candidato terminou com **28 checks concluídos: 26 aprovados e 2 ignorados, sem falhas ou pendências**. [Evidência de encerramento](evidence/2026-09-28-prod-func-09-date-business/README.md).
 
-A investigação de **`PROD-UX-08` — clipping e sobreposição do drawer global em desktop** permanece pendente e separada da frente executora #397. A correção de data não homologa a composição inteira do drawer; essa limitação foi novamente vista em Production e exige diagnóstico próprio antes de alterar CSS.
+A investigação de **`PROD-UX-08` — clipping e sobreposição do drawer global em desktop** permanece pendente. As publicações de #392 e #397 não homologam a composição inteira do drawer. Esse achado não deve ser confundido com UX-04, que trata da largura mobile e integra a rodada limitada de Preview solicitada pelo usuário.
 
-O registro de retomada dessa pendência visual é [`docs/handoff/2026-09-28-prod-ux-08-drawer-clipping.md`](handoff/2026-09-28-prod-ux-08-drawer-clipping.md). Ele não concorre com o handoff corrente do #397.
+O registro de retomada dessa pendência visual é [`docs/handoff/2026-09-28-prod-ux-08-drawer-clipping.md`](handoff/2026-09-28-prod-ux-08-drawer-clipping.md). Ele não concorre com o único handoff corrente de continuidade.
 
 A **Fase D — hardening e performance permanece planejada, mas foi deliberadamente adiada** até que esta frente funcional/visual principal seja novamente compreendida no baseline pós-A+B+C. Ela não foi cancelada nem iniciada.
 

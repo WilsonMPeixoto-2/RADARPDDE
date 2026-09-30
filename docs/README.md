@@ -1,7 +1,7 @@
 # Documentação do RADAR PDDE
 
 **Classe documental:** Canônico — índice e rota de leitura  
-**Atualizado em:** 28 de setembro de 2026
+**Atualizado em:** 30 de setembro de 2026
 
 ## 1. Rota obrigatória
 
@@ -21,7 +21,7 @@ Ordem:
 10. ADRs e referências especializadas da área afetada;
 11. planos, auditorias, demais handoffs e evidências históricas apenas para compreender o seu momento/SHA.
 
-**Estado funcional corrente:** A + B + C estão concluídas; a Fase D ainda não foi iniciada e está deliberadamente adiada; `PROD-FUNC-09` foi encerrado em Production após o PR #392 e a frente ativa é a investigação visual isolada de `PROD-UX-08`. O handoff corrente é [`handoff/2026-09-28-prod-ux-08-drawer-clipping.md`](handoff/2026-09-28-prod-ux-08-drawer-clipping.md).
+**Estado funcional corrente:** A + B + C estão concluídas; a Fase D permanece adiada. `PROD-FUNC-09` foi encerrado pelo #392. O #397 está integrado e publicado, com as duas migrations verificadas em Supabase Production. O único handoff corrente é [`handoff/2026-09-30-pos-publicacao-pr397-retomada.md`](handoff/2026-09-30-pos-publicacao-pr397-retomada.md): consolida as provas da entrega e preserva a próxima rodada solicitada, limitada a NAV-01/UX-04 em Preview. `PROD-UX-08` permanece separado. O ciclo CRUD em Production não foi exercitado na publicação do #397; o handoff distingue esse limite dos 20 ciclos aprovados em Supabase descartável.
 
 O [PR #386](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/386) e o merge funcional `e6b692a97dd5148877c788da11e0c8ae4c8fcd19` registram o encerramento da C3. Commits posteriores exclusivamente documentais podem avançar a `main` e gerar novo deployment sem reabrir a Fase C. Quando o SHA do head ou o deployment ativo importarem para uma nova entrega, verificá-los ao vivo.
 
@@ -84,7 +84,11 @@ O modelo detalhado está em `SYSTEM_CANONICAL_MODEL.md`; a finalidade humana das
 
 Consultar conforme a área materialmente afetada:
 
-- [`handoff/2026-09-28-prod-ux-08-drawer-clipping.md`](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) — **handoff corrente** da investigação visual PROD-UX-08;
+- [`handoff/2026-09-30-pos-publicacao-pr397-retomada.md`](handoff/2026-09-30-pos-publicacao-pr397-retomada.md) — **único handoff corrente**, publicação concluída, testes por SHA, evidências reutilizáveis e continuidade limitada a Preview;
+- [`evidence/2026-09-30-pr397-production-release/README.md`](evidence/2026-09-30-pr397-production-release/README.md) — evidência concluída de merge, SQL, deployment, smoke e restauração; JSONs sem dados operacionais ou segredos;
+- [`handoff/2026-09-30-pr397-independencia-despesas-bonificacao.md`](handoff/2026-09-30-pr397-independencia-despesas-bonificacao.md) — histórico do candidato #397, com reclassificação após a publicação;
+- [`decisions/ADR-055-independencia-despesas-bonificacao.md`](decisions/ADR-055-independencia-despesas-bonificacao.md) — decisão vigente sobre independência dos ciclos e propriedade de campos;
+- [`handoff/2026-09-28-prod-ux-08-drawer-clipping.md`](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) — pendência separada da investigação visual PROD-UX-08;
 - [`handoff/2026-09-28-prod-func-09-date-business-investigation.md`](handoff/2026-09-28-prod-func-09-date-business-investigation.md) — handoff histórico concluído de PROD-FUNC-09, integrado pelo PR #392 e confirmado em Production sem nova escrita;
 - [`handoff/2026-09-27-post-abc-expense-baseline-audit.md`](handoff/2026-09-27-post-abc-expense-baseline-audit.md) — handoff histórico concluído da baseline pós-A+B+C da jornada Despesa a identificar/Pendências;
 
