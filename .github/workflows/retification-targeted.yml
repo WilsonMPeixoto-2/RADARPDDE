@@ -8,7 +8,9 @@ on:
       - 'src/domain/**'
       - 'src/integration/**'
       - 'tests/unit/auditable-retification.test.js'
+      - 'tests/unit/auditable-retification-discoverability.test.js'
       - 'tests/e2e/invoice-auditable-retification.spec.js'
+      - 'tests/e2e/invoice-retification-discoverability.spec.js'
       - 'tests/e2e/invoice-retification-projections.spec.js'
       - 'tests/e2e/pendency-manual-auditable-retification.spec.js'
       - '.github/workflows/retification-targeted.yml'
@@ -32,7 +34,12 @@ jobs:
       - name: Instalar dependências reproduzíveis
         run: npm ci
       - name: Executar testes unitários da retificação
-        run: node --test tests/unit/auditable-retification.test.js tests/unit/evaluation-retification.test.js tests/unit/evaluation-retification-atomic.test.js
+        run: >-
+          node --test
+          tests/unit/auditable-retification.test.js
+          tests/unit/auditable-retification-discoverability.test.js
+          tests/unit/evaluation-retification.test.js
+          tests/unit/evaluation-retification-atomic.test.js
       - name: Instalar Chromium Playwright
         run: npx playwright install --with-deps chromium
       - name: Executar regressões de retificação
@@ -40,6 +47,7 @@ jobs:
           npx playwright test
           tests/e2e/evaluation-retification-ui.spec.js
           tests/e2e/invoice-auditable-retification.spec.js
+          tests/e2e/invoice-retification-discoverability.spec.js
           tests/e2e/invoice-retification-projections.spec.js
           tests/e2e/pendency-manual-auditable-retification.spec.js
           --project=desktop-chromium
