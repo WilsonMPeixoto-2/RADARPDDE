@@ -1,0 +1,46 @@
+name: TEMP Atualizar baseline visual da Fase 1
+
+on:
+  push:
+    branches:
+      - feat/ux-edicao-lancamentos-fase1-2026-10-01
+
+permissions:
+  contents: write
+
+jobs:
+  update-baseline:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Obter branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: feat/ux-edicao-lancamentos-fase1-2026-10-01
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Instalar dependências
+        run: npm ci
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Atualizar somente o golden do drawer
+        run: >-
+          npx playwright test tests/e2e/unidentified-expense-visual.spec.js
+          --project=desktop-chromium
+          --grep "drawer e feedback"
+          --update-snapshots
+      - name: Versionar golden gerado pelo Playwright
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/e2e/unidentified-expense-visual.spec.js-snapshots/drawer-despesa-a-identificar-desktop-chromium-linux.png
+          if git diff --cached --quiet; then
+            echo "Baseline já estava atualizado."
+            exit 0
+          fi
+          git commit -m "test(visual): atualizar baseline da retificação descoberta"
+          git push origin HEAD:feat/ux-edicao-lancamentos-fase1-2026-10-01
