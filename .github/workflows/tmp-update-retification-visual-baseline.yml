@@ -11,7 +11,7 @@ permissions:
 jobs:
   update-baseline:
     if: github.actor != 'github-actions[bot]'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: Obter branch
@@ -26,10 +26,11 @@ jobs:
       - name: Instalar dependências
         run: npm ci
       - name: Instalar Chromium
-        run: npx playwright install --with-deps chromium
+        run: npx --no-install playwright install --with-deps chromium
       - name: Atualizar somente o golden do drawer
         run: >-
-          npx playwright test tests/e2e/unidentified-expense-visual.spec.js
+          npx --no-install playwright test tests/e2e/unidentified-expense-visual.spec.js
+          --config=playwright.visual.config.js
           --project=desktop-chromium
           --grep "drawer e feedback"
           --update-snapshots
