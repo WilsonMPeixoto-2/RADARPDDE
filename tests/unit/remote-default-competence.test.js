@@ -14,6 +14,25 @@ function envelope(entities) {
     });
 }
 
+function installFixedNow(iso) {
+    const NativeDate = global.Date;
+    const fixedTime = new NativeDate(iso).getTime();
+
+    global.Date = class FixedDate extends NativeDate {
+        constructor(...args) {
+            super(...(args.length ? args : [fixedTime]));
+        }
+
+        static now() {
+            return fixedTime;
+        }
+    };
+
+    return () => {
+        global.Date = NativeDate;
+    };
+}
+
 test('bootstrap remoto inicia no mês anterior quando setembro está disponível', async () => {
     const queries = [];
     const structural = envelope({
@@ -50,8 +69,13 @@ test('bootstrap remoto inicia no mês anterior quando setembro está disponível
     };
     const service = new DataService({ repository, statePort });
 
-    const result = await service.bootstrap();
+    const restoreDate = installFixedNow('2026-09-14T12:00:00.000Z');
+    try {
+        const result = await service.bootstrap();
 
-    assert.equal(result.operationalCompetence, '2026-08');
-    assert.deepEqual(queries, ['2026-08']);
+        assert.equal(result.operationalCompetence, '2026-08');
+        assert.deepEqual(queries, ['2026-08']);
+    } finally {
+        restoreDate();
+    }
 });
