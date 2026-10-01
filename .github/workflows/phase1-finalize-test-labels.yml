@@ -1,0 +1,55 @@
+name: Finalizar seletores UX da Fase 1
+
+on:
+  push:
+    branches:
+      - feat/ux-edicao-lancamentos-fase1-2026-10-01
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile-stale-selectors:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obter branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: feat/ux-edicao-lancamentos-fase1-2026-10-01
+          fetch-depth: 0
+
+      - name: Atualizar somente expectativas antigas de nome acessível
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          legacy = Path('tests/e2e/unidentified-expense.spec.js')
+          text = legacy.read_text()
+          old = "row.getByRole('button', { name: 'Editar despesa a identificar' })"
+          new = "row.getByRole('button', { name: 'Editar lançamento: despesa a identificar' })"
+          if text.count(old) != 1:
+              raise SystemExit(f'Esperava exatamente 1 seletor legado em {legacy}; encontrei {text.count(old)}')
+          legacy.write_text(text.replace(old, new, 1))
+
+          uat = Path('tests/e2e/supabase-operational-uat.spec.js')
+          text = uat.read_text()
+          old = "return card.getByRole('button', { name: /^Editar (?:NF:|Boleto Internet:|Despesa a identificar$)/ });"
+          new = "return card.getByRole('button', { name: /^(?:Editar lançamento:|Editar (?:NF:|Boleto Internet:|Despesa a identificar$))/ });"
+          if text.count(old) != 1:
+              raise SystemExit(f'Esperava exatamente 1 helper legado em {uat}; encontrei {text.count(old)}')
+          uat.write_text(text.replace(old, new, 1))
+          PY
+
+          git diff --check
+          git diff -- tests/e2e/unidentified-expense.spec.js tests/e2e/supabase-operational-uat.spec.js
+
+      - name: Registrar correção e remover auxiliar temporário
+        run: |
+          git config user.name 'Wilson Malafaia Peixoto'
+          git config user.email 'wilsonmp2@gmail.com'
+          git rm .github/workflows/phase1-finalize-test-labels.yml
+          git add tests/e2e/unidentified-expense.spec.js tests/e2e/supabase-operational-uat.spec.js
+          git diff --cached --check
+          git commit -m 'test(ux): alinhar seletores ao novo Editar lançamento'
+          git push origin HEAD:feat/ux-edicao-lancamentos-fase1-2026-10-01
