@@ -351,17 +351,26 @@
         return `Editar lançamento: NF ${number}`;
     }
 
-    function createInvoiceEditButton(root, invoice) {
-        const button = root.document.createElement('button');
-        button.type = 'button';
+    function presentInvoiceEditButton(root, button, invoice) {
         button.dataset.auditableRetificationEdit = 'true';
         button.setAttribute('aria-label', invoiceEditLabel(root, invoice));
-        button.setAttribute('class', 'btn btn-secondary btn-sm invoice-retification-edit-action');
+        const currentClass = text(button.getAttribute('class'));
+        button.setAttribute(
+            'class',
+            `${currentClass} btn btn-secondary btn-sm invoice-retification-edit-action`.trim()
+        );
         button.setAttribute(
             'style',
             'width:auto;height:30px;padding:0 9px;display:inline-flex;align-items:center;gap:5px;opacity:1;white-space:nowrap;border:1px solid rgba(91,33,182,.18);background:rgba(91,33,182,.06);font-size:.72rem;font-weight:700;'
         );
         button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg><span>Editar lançamento</span>';
+        return button;
+    }
+
+    function createInvoiceEditButton(root, invoice) {
+        const button = root.document.createElement('button');
+        button.type = 'button';
+        presentInvoiceEditButton(root, button, invoice);
         button.addEventListener('click', () => {
             root.abrirEditarNota?.(text(invoice.id), text(invoice.escolaId || invoice.school_id));
         });
@@ -380,7 +389,10 @@
             if (row.querySelector('[data-auditable-retification-edit]')) return;
             const existingEdit = Array.from(row.querySelectorAll('button[aria-label^="Editar "]'))
                 .find(button => !text(button.getAttribute('aria-label')).includes('análise'));
-            if (existingEdit) return;
+            if (existingEdit) {
+                presentInvoiceEditButton(root, existingEdit, invoice);
+                return;
+            }
 
             const titleLine = row.querySelector('.invoice-document-title-line');
             if (!titleLine) return;
@@ -506,7 +518,6 @@
             const values = [...MANUAL_RESPONSIBLES];
             if (current && !values.includes(current)) values.unshift(current);
             appendSelectOptions(root, responsibleSelect, values, current);
-            responsibleField.append(responsibleLabel, responsibleSelect);
             reasonField.after(responsibleField);
         }
         return true;
