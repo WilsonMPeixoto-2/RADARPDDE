@@ -4,6 +4,8 @@
 **Baseline:** main `92ddea14de25bfe644917900cac002a20094c57c`.  
 **Estado:** implementação local e regressões direcionadas confirmadas; CI/Supabase descartável e Preview ainda pendentes. Não publicado em Production.
 
+**PR:** [#404](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/404), rascunho aberto com checkpoint online.
+
 ## Contrato aprovado
 
 Controlador/Assistente pode corrigir tipo de gasto no mesmo lançamento quando todo histórico individual for de Nota Fiscal e todas essas Pendências estiverem Resolvidas ou Canceladas. Qualquer histórico de Consulta à Assessoria impede essa mudança. Pendência ativa continua permitindo descrição, número/referência e valor.
@@ -29,13 +31,19 @@ Foi corrigida a disputa com unidentified-expense-ux, que restaurava título e bo
 
 As primeiras capturas revelaram confirmação no canto e seletor estreito. Isso impediu aprovação visual apesar dos testes funcionais verdes. A confirmação foi centralizada e recebeu fundo opaco; o seletor passou a usar a largura completa. As capturas finais de 1440×900 foram abertas e inspecionadas.
 
+O teste adicional de Escape revelou que o gerenciador de modais legados fechava a edição sob a confirmação nativa. A integração agora respeita o modal nativo do topo para foco/Escape, sem adicionar um segundo trap de teclado. RED nos dois viewports; GREEN depois da correção, preservando formulário e valores.
+
+Capturas: [classificação assistida](classificacao-assistida.png), [confirmação](confirmacao.png), [bem inventariado protegido](protegida-inventariada.png).
+
 ## Provas locais até este checkpoint
 
 - RED real: oito transições inicialmente permitidas falharam no bloqueio genérico de tipo antes da implementação.
 - Novo contrato: 22 testes, incluindo seis transições entre consumo/serviço/permanente com histórico Resolvida e Cancelada e contraprovas.
 - Contrato + feedback: 30/30 aprovados.
-- Readiness completo local: 1.209 testes unitários e oito de integração aprovados, com demais etapas do comando concluídas. Executado antes dos últimos ajustes apenas de composição/confirmacão; o CI do candidato final deverá reaplicar os gates.
+- Readiness completo local: 1.209 testes unitários e oito de integração aprovados, com demais etapas do comando concluídas. Executado antes dos últimos ajustes apenas de composição/confirmação; o CI do candidato final deverá reaplicar os gates.
 - Cinco novos E2Es de classificação/UX aprovados sem retries; sete E2Es com descobribilidade aprovados no checkpoint anterior.
+- Sete E2Es finais da nova classificação/UX aprovados sem retries, incluindo 1366×768 e 1920×1080 com título/ação no viewport e Escape preservando a edição.
+- Quinze E2Es relacionados aprovados sem retries: edição cadastral com Pendência ativa, dados provisórios, patrimônio/Assessoria, projeções, envio repetido, foco/Escape e jornada completa de identificação.
 - Axe na confirmação sem violações.
 - Evidência de reload desta rodada local usa repositório local; não é prova de Supabase Production.
 
@@ -47,4 +55,10 @@ As primeiras capturas revelaram confirmação no canto e seletor estreito. Isso 
 4. Obter aceitação da entrega concreta antes de integração/publicação desta nova fase.
 
 Production continua no #403. Não foram criados ou editados dados reais nesta frente. NAV-01/UX-04, PROD-UX-08, exclusão e transferência/anulação auditável não fazem parte desta entrega.
+
+## Checkpoint remoto do candidato inicial
+
+O [CI de ciclos reais](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/36941153472) do SHA `834e6fef134905bfb46729915e04e3c5855d9bdc` aprovou 21 jornadas sem falhas, incluindo a nova retificação autenticada por Controlador: consumo → serviço → permanente → consumo, versões incrementadas, histórico/snapshots preservados, bonificação manual preservada e reload relendo Supabase após cada gravação. Este ambiente é descartável; não é Production.
+
+O gate direcionado desse mesmo SHA revelou a falha de Escape nos dois viewports. A correção e o GREEN local estão registrados acima e serão reaplicados pelo CI do novo head. O Preview automático foi ignorado pela configuração do repositório; status Vercel verde não é prova de artefato publicado.
 

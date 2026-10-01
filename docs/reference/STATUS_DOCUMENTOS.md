@@ -1,7 +1,7 @@
 # Matriz de validade documental
 
 **Classe documental:** Canônico  
-**Atualizado em:** 30 de setembro de 2026
+**Atualizado em:** 1 de outubro de 2026
 
 ## 1. Finalidade e precedência
 
@@ -60,7 +60,7 @@ Commits posteriores exclusivamente documentais não reabrem uma fase encerrada n
 
 A **Fase D ainda não foi iniciada e está deliberadamente adiada** enquanto a frente funcional/visual principal de Despesa a identificar/Pendências é fechada pelos achados atuais.
 
-A baseline principal dessa jornada foi homologada. `PROD-FUNC-09` foi encerrado pelo PR #392 e confirmado em Production no merge `8284a02faf3d9381ad42e66b6d93677d396e8515`; a data civil e o instante técnico ficaram coerentes na tentativa original, sem escrita. O #397 foi integrado no merge `a5e200e5c3d7955cea0a6122bde1904469771ac3` e publicado com SQL compatível, preservando a leitura contextual do #396. A evidência de publicação está em `docs/evidence/2026-09-30-pr397-production-release/`; a retomada corrente está em `docs/handoff/2026-09-30-pos-publicacao-pr397-retomada.md`. A CI de 45 checks e os 20 ciclos reais descartáveis pertencem ao candidato `0e149e1...`; o smoke do novo deployment em Production foi observacional, sem CRUD. `PROD-UX-08` permanece separado e não foi homologado pelo #397. NAV-01/UX-04 são a próxima rodada solicitada em Preview, ainda não executada nesta entrega.
+A baseline principal dessa jornada foi homologada. `PROD-FUNC-09` foi encerrado pelo PR #392 e confirmado em Production no merge `8284a02faf3d9381ad42e66b6d93677d396e8515`; a data civil e o instante técnico ficaram coerentes na tentativa original, sem escrita. O #397 foi integrado no merge `a5e200e5c3d7955cea0a6122bde1904469771ac3` e publicado com SQL compatível, preservando a leitura contextual do #396. A evidência de publicação está em `docs/evidence/2026-09-30-pr397-production-release/`; a retomada pós-publicação foi encerrada e preservada em `docs/handoff/2026-09-30-pos-publicacao-pr397-retomada.md`. A CI de 45 checks e os 20 ciclos reais descartáveis pertencem ao candidato `0e149e1...`; o smoke do novo deployment em Production foi observacional, sem CRUD. A frente corrente é a Fase 2 de autonomia/UX, sobre main `92ddea14de25bfe644917900cac002a20094c57c` (#403), descrita em `docs/handoff/2026-10-01-controller-type-retification.md`. `PROD-UX-08` e NAV-01/UX-04 permanecem frentes separadas e não são encerradas por esta entrega.
 
 O servidor canônico e suas correções não alteraram schema, migrations, RPCs, RLS, serviços de domínio, layout ou persistência canônica.
 
