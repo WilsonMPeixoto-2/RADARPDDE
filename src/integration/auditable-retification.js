@@ -518,6 +518,7 @@
             const values = [...MANUAL_RESPONSIBLES];
             if (current && !values.includes(current)) values.unshift(current);
             appendSelectOptions(root, responsibleSelect, values, current);
+            responsibleField.append(responsibleLabel, responsibleSelect);
             reasonField.after(responsibleField);
         }
         return true;
