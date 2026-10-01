@@ -152,7 +152,7 @@ test.describe('Retificação auditável — projeções derivadas', () => {
     const context = await prepareProjectionContext(page, 'permanente');
     const row = fiscalRow(page).locator(`.invoice-document-row[data-invoice-id="${context.invoiceId}"]`);
 
-    await row.getByRole('button', { name: /Editar NF/ }).click();
+    await row.getByRole('button', { name: /Editar lançamento/ }).click();
     await expect(page.locator('#nota-tipo')).toBeDisabled();
     await page.locator('#nota-desc').fill('Notebook corrigido');
     await page.locator('#nota-numero').fill('NF-PERM-CORRIGIDA');
@@ -204,7 +204,7 @@ test.describe('Retificação auditável — projeções derivadas', () => {
     const context = await prepareProjectionContext(page, 'servico');
     const row = fiscalRow(page).locator(`.invoice-document-row[data-invoice-id="${context.invoiceId}"]`);
 
-    await row.getByRole('button', { name: /Editar NF/ }).click();
+    await row.getByRole('button', { name: /Editar lançamento/ }).click();
     await expect(page.locator('#nota-tipo')).toBeDisabled();
     await page.locator('#nota-desc').fill('Manutenção elétrica corrigida');
     await page.locator('#nota-numero').fill('NF-SERV-CORRIGIDA');

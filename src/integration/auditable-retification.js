@@ -342,21 +342,35 @@
 
     function invoiceEditLabel(root, invoice = {}) {
         if (typeof root?.getInvoiceDocumentTitle === 'function') {
-            return `Editar ${text(root.getInvoiceDocumentTitle(invoice))}`;
+            return `Editar lançamento: ${text(root.getInvoiceDocumentTitle(invoice))}`;
         }
         const type = normalizeType(invoice.tipo || invoice.expense_type);
         const number = text(invoice.numero || invoice.invoice_number || invoice.id);
-        if (type === UNIDENTIFIED_EXPENSE_TYPE) return 'Editar despesa a identificar';
-        if (type === 'boleto_internet') return `Editar Boleto Internet: ${number}`;
-        return `Editar NF: ${number}`;
+        if (type === UNIDENTIFIED_EXPENSE_TYPE) return 'Editar lançamento: despesa a identificar';
+        if (type === 'boleto_internet') return `Editar lançamento: Boleto Internet ${number}`;
+        return `Editar lançamento: NF ${number}`;
+    }
+
+    function presentInvoiceEditButton(root, button, invoice) {
+        button.dataset.auditableRetificationEdit = 'true';
+        button.setAttribute('aria-label', invoiceEditLabel(root, invoice));
+        const currentClass = text(button.getAttribute('class'));
+        button.setAttribute(
+            'class',
+            `${currentClass} btn btn-secondary btn-sm invoice-retification-edit-action`.trim()
+        );
+        button.setAttribute(
+            'style',
+            'width:auto;height:30px;padding:0 9px;display:inline-flex;align-items:center;gap:5px;opacity:1;white-space:nowrap;border:1px solid rgba(91,33,182,.18);background:rgba(91,33,182,.06);font-size:.72rem;font-weight:700;'
+        );
+        button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg><span>Editar lançamento</span>';
+        return button;
     }
 
     function createInvoiceEditButton(root, invoice) {
         const button = root.document.createElement('button');
         button.type = 'button';
-        button.dataset.auditableRetificationEdit = 'true';
-        button.setAttribute('aria-label', invoiceEditLabel(root, invoice));
-        button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg>';
+        presentInvoiceEditButton(root, button, invoice);
         button.addEventListener('click', () => {
             root.abrirEditarNota?.(text(invoice.id), text(invoice.escolaId || invoice.school_id));
         });
@@ -375,7 +389,10 @@
             if (row.querySelector('[data-auditable-retification-edit]')) return;
             const existingEdit = Array.from(row.querySelectorAll('button[aria-label^="Editar "]'))
                 .find(button => !text(button.getAttribute('aria-label')).includes('análise'));
-            if (existingEdit) return;
+            if (existingEdit) {
+                presentInvoiceEditButton(root, existingEdit, invoice);
+                return;
+            }
 
             const titleLine = row.querySelector('.invoice-document-title-line');
             if (!titleLine) return;
@@ -396,6 +413,29 @@
         select.disabled = false;
         delete select.dataset.auditableRetificationLocked;
         root.document.querySelector('[data-auditable-retification-type-hint]')?.remove();
+        root.document.querySelector('[data-auditable-retification-guidance]')?.remove();
+        return true;
+    }
+
+    function ensureInvoiceRetificationGuidance(root, state, invoice, group) {
+        if (!group || !invoice) return false;
+        root.document.querySelector('[data-auditable-retification-guidance]')?.remove();
+        const guidance = root.document.createElement('div');
+        guidance.className = 'form-hint';
+        guidance.dataset.auditableRetificationGuidance = 'true';
+        guidance.setAttribute('role', 'note');
+        guidance.setAttribute(
+            'style',
+            'display:block;margin:0 0 12px;padding:10px 12px;border:1px solid rgba(91,33,182,.14);border-radius:8px;background:rgba(91,33,182,.055);color:#4f485d;line-height:1.45;'
+        );
+        const hasHistory = invoiceHistory(state || {}, invoice.id).length > 0;
+        if (normalizeType(invoice.tipo || invoice.expense_type) === UNIDENTIFIED_EXPENSE_TYPE) {
+            guidance.textContent = 'Você pode corrigir descrição, referência e valor. A despesa continuará “A identificar”.'
+                + (hasHistory ? ' A Pendência e o histórico serão preservados.' : '');
+        } else {
+            guidance.textContent = 'Você pode corrigir descrição, número/referência e valor. A Pendência e o histórico serão preservados.';
+        }
+        group.before(guidance);
         return true;
     }
 
@@ -409,13 +449,14 @@
         select.dataset.auditableRetificationLocked = 'true';
 
         const group = select.closest('.form-group');
+        if (group) ensureInvoiceRetificationGuidance(root, state || {}, invoice, group);
         if (group && !group.querySelector('[data-auditable-retification-type-hint]')) {
             const hint = root.document.createElement('small');
             hint.className = 'form-hint';
             hint.dataset.auditableRetificationTypeHint = 'true';
             hint.textContent = normalizeType(invoice.tipo) === UNIDENTIFIED_EXPENSE_TYPE
-                ? 'O tipo permanece “A identificar”. A natureza será definida somente em “Registrar envio / identificação da despesa”.'
-                : 'O tipo do gasto fica bloqueado para preservar a identidade e as regras do histórico desta Pendência.';
+                ? 'A classificação definitiva continua em “Registrar envio / identificação da despesa”.'
+                : 'A classificação fica preservada porque este lançamento já possui histórico de Pendência.';
             group.appendChild(hint);
         }
         return true;
@@ -594,6 +635,7 @@
         isManualPendency,
         protectPendencyService,
         decorateInvoiceRows,
+        ensureInvoiceRetificationGuidance,
         applyInvoiceTypeLock,
         ensureManualPendencyFields,
         installUi,
