@@ -5,6 +5,26 @@ const assert = require('node:assert/strict');
 
 const feedback = require('../../src/integration/operational-write-feedback.js');
 
+test('retificação informa valor antes/depois e preservação do histórico', () => {
+    const result = feedback.feedbackForResult('invoice:save', { ok: true, value: {
+        retification: { previousType: 'consumo', currentType: 'consumo', previousAmount: 1500, currentAmount: 150, historyPreserved: true }
+    } });
+    assert.equal(result.kind, 'success');
+    assert.match(result.message, /Lançamento atualizado/);
+    assert.match(result.message, /1\.500,00.*150,00/);
+    assert.match(result.message, /Pendência e o histórico foram preservados/);
+});
+
+test('retificação de tipo não mascara commit confirmado com falha de sincronização', () => {
+    const result = feedback.feedbackForResult('invoice:save', {
+        ok: true, value: { retification: { previousType: 'consumo', currentType: 'servico', historyPreserved: true } },
+        stateSync: { remoteCommitConfirmed: true, status: 'failed', localStateApplied: false }
+    });
+    assert.equal(result.kind, 'warning');
+    assert.match(result.message, /Atualize a página/);
+    assert.doesNotMatch(result.message, /Classificação atualizada/);
+});
+
 test('nota fiscal salva e sincronizada recebe confirmação visual de sucesso', () => {
     const result = feedback.feedbackForResult('invoice:save', {
         ok: true,

@@ -25,7 +25,8 @@ PR aberto, Preview ou documento antigo não altera Production.
 | docs/reference/SYSTEM_CANONICAL_MODEL.md | Canônico | autoridades, fluxos e invariantes |
 | docs/reference/PRODUCT_SURFACE_CATALOG.md | Referência vigente | superfícies e jornadas |
 | docs/CURRENT_STAGE.md | Canônico | estado funcional e prioridade; head/deployment exatos devem ser revalidados ao vivo quando relevantes |
-| docs/handoff/2026-09-30-pos-publicacao-pr397-retomada.md | **Handoff corrente** | publicação concluída do #397, provas por SHA, limites e continuidade em Preview |
+| docs/handoff/2026-10-01-controller-type-retification.md | **Handoff corrente** | Fase 2 de autonomia e UX, baseline #403 e provas separadas por ambiente |
+| docs/handoff/2026-09-30-pos-publicacao-pr397-retomada.md | Histórico concluído da publicação | provas do #397 e limites do smoke; prioridade superada pela frente autorizada em 01/10 |
 | docs/handoff/2026-09-30-pr397-independencia-despesas-bonificacao.md | Histórico concluído do candidato | checkpoints anteriores à publicação; bloqueios e instruções pré-merge foram superados pelo encerramento |
 | docs/evidence/2026-09-30-pr397-production-release/README.md e JSONs | Evidência concluída da publicação | merge, SQL aplicado, deployment, smoke sem escrita e backup verificado; não representam novos testes em Production |
 | docs/handoff/2026-09-28-prod-ux-08-drawer-clipping.md | Pendência separada de retomada | investigação visual isolada da composição do drawer global, com gate outside-in |
@@ -69,7 +70,7 @@ O servidor canônico e suas correções não alteraram schema, migrations, RPCs,
 
 Handoff corrente:
 
-- `docs/handoff/2026-09-30-pos-publicacao-pr397-retomada.md` — entrega publicada, mapa de evidências reutilizáveis, limites do smoke e próxima rodada de Preview.
+- `docs/handoff/2026-10-01-controller-type-retification.md` — contrato aprovado para classificação, UX, evidência por ambiente e limites de publicação.
 
 Pendência separada de retomada: `docs/handoff/2026-09-28-prod-ux-08-drawer-clipping.md` — diagnóstico visual dirigido do clipping desktop. Não executar nem declarar encerrada dentro do #397.
 

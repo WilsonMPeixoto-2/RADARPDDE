@@ -132,11 +132,12 @@ test.describe('Descoberta da retificação de lançamentos', () => {
 
     const guidance = page.locator('[data-auditable-retification-guidance]');
     await expect(guidance).toBeVisible();
-    await expect(guidance).toContainText('Você pode corrigir descrição, número/referência e valor.');
+    await expect(guidance.locator('strong')).toHaveText('Você pode corrigir');
+    await expect(guidance).toContainText('Descrição, número/referência e valor.');
     await expect(guidance).toContainText('A Pendência e o histórico serão preservados.');
     await expect(page.locator('#nota-tipo')).toBeDisabled();
     await expect(page.locator('[data-auditable-retification-type-hint]'))
-      .toContainText('A classificação fica preservada porque este lançamento já possui histórico de Pendência.');
+      .toContainText('Encerre a Pendência deste lançamento antes de corrigir a classificação.');
 
     await page.locator('#nota-desc').fill('Material pedagógico corrigido');
     await page.locator('#nota-numero').fill('NF-UX-CORRIGIDA');
@@ -186,7 +187,9 @@ test.describe('Descoberta da retificação de lançamentos', () => {
     await editButton.click();
 
     const guidance = page.locator('[data-auditable-retification-guidance]');
-    await expect(guidance).toContainText('Você pode corrigir descrição, referência e valor.');
+    await expect(guidance).toBeVisible();
+    await expect(guidance.locator('strong')).toHaveText('Você pode corrigir');
+    await expect(guidance).toContainText('Descrição, referência e valor.');
     await expect(guidance).toContainText('A despesa continuará “A identificar”.');
     await expect(page.locator('#nota-tipo')).toHaveValue('a_identificar');
     await expect(page.locator('#nota-tipo')).toBeDisabled();

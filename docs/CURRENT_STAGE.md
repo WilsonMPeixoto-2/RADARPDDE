@@ -1,15 +1,17 @@
 # RADAR PDDE — estado atual e retomada
 
 **Classe documental:** Canônico — estado mutável  
-**Atualizado em:** 30 de setembro de 2026
+**Atualizado em:** 1 de outubro de 2026
 
 ## 1. Estado funcional corrente
 
 **As Fases A, B e C estão encerradas. A Fase D ainda não foi iniciada.**
 
-**O PR #397 — independência entre despesas e bonificação — está integrado e publicado em Production.** A ADR-055 está implementada. A entrega foi concluída pelo agente principal, preservando a leitura contextual `read_operational_context` integrada no #396. O único handoff corrente é [continuidade após a publicação do #397](handoff/2026-09-30-pos-publicacao-pr397-retomada.md).
+**A frente corrente autorizada é a Fase 2 de autonomia dos Controladores, com UX da retificação.** Baseline revalidada: `main@92ddea14de25bfe644917900cac002a20094c57c`, merge do #403 (Fase 1), também confirmado no manifesto de Production. A Fase 2 permite corrigir classificação apenas com histórico fiscal encerrado/cancelado, sem Assessoria; não está publicada. O único handoff corrente é [retificação de classificação e UX](handoff/2026-10-01-controller-type-retification.md).
 
-`PROD-UX-08` permanece pendência visual separada, com seu registro de retomada preservado. A próxima implementação solicitada é a rodada de Preview limitada a NAV-01 e UX-04, ainda não executada nesta entrega. #394, os planos amplos do #395 e a Fase D não fazem parte dessa rodada. A autorização de publicação do #397 não autoriza publicar as futuras correções de Preview em Production.
+**O PR #397 — independência entre despesas e bonificação — permanece integrado e publicado.** A ADR-055 e a leitura contextual do #396 são preservadas. A [continuidade após o #397](handoff/2026-09-30-pos-publicacao-pr397-retomada.md) passou a contexto histórico desta entrega.
+
+`PROD-UX-08` e a rodada NAV-01/UX-04 permanecem separadas; não foram homologadas por esta frente. #394, planos amplos do #395 e Fase D continuam fora do recorte. A autorização antiga de publicação do #397 não autoriza publicar automaticamente esta nova fase.
 
 Registro da publicação de 30/09/2026:
 
@@ -75,7 +77,7 @@ Registro técnico da correção final da C3: [correções CodeQL e validação C
 
 Os documentos de handoff de A/B e das frentes anteriores permanecem **históricos concluídos**. Não reabrir PRs #375/#376/#377/#378 ou textos pré-merge como fila de implementação.
 
-O handoff corrente é [continuidade após a publicação do #397](handoff/2026-09-30-pos-publicacao-pr397-retomada.md). O [handoff do candidato #397](handoff/2026-09-30-pr397-independencia-despesas-bonificacao.md) passou a histórico concluído. [PROD-UX-08](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) é uma pendência separada de retomada visual. A investigação de `PROD-FUNC-09` está encerrada.
+O handoff corrente é [retificação de classificação e UX](handoff/2026-10-01-controller-type-retification.md). Ambos os handoffs de candidato/publicação do #397 permanecem históricos concluídos. [PROD-UX-08](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) é uma pendência separada de retomada visual. A investigação de `PROD-FUNC-09` está encerrada.
 
 Para retomada, a ordem de leitura continua sendo:
 

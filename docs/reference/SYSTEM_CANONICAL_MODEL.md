@@ -368,6 +368,8 @@ Efeitos por tipo:
 
 A `verification` é necessária como vínculo estrutural do contexto escolar/mês/programa, mas **não significa que a bonificação tenha começado**. A primeira despesa pode materializar essa linha com bonificação ainda vazia. Alterar uma despesa nunca limpa `bonus_result`; alterar a própria bonificação continua submetido às regras de `VerificationService`, inclusive às restrições pós-consolidação.
 
+A retificação cadastral do mesmo lançamento permite descrição, número/referência e valor mesmo com Pendência ativa. A correção de tipo é permitida com histórico exclusivamente fiscal (`notaFiscal`), quando todas as Pendências estão Resolvidas/Canceladas e nunca houve `consAssessoria`. Contexto e histórico permanecem; `a_identificar` não muda de tipo pelo editor e um bem já `Inventariada` não pode ser removido por essa conversão. O contrato é compartilhado entre editor e autoridade de salvamento no `InvoiceService`, com antes/depois no log e as versões esperadas no comando atômico existente.
+
 ## 9.4 Criar `a_identificar`
 
 ```text

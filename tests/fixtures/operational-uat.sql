@@ -33,3 +33,30 @@ from public.schools where id = 'ESC-UAT'
 on conflict (id) do nothing;
 insert into public.school_programs (id, school_id, program_id)
 values ('ESC-EDIT_BASIC', 'ESC-EDIT', 'BASIC') on conflict (id) do nothing;
+
+-- Fase 2: contexto exclusivo descartável. NF A ativa não bloqueia NF B,
+-- cujo histórico fiscal contém encerramento e cancelamento.
+insert into public.schools (id, designation, denomination, inep, cnpj, sici, controller_id, cre, initial_competence, inventory_process)
+select 'ESC-TYPE', '04.00.405', 'Escola Retificação de Classificação', '33900405', '90.040.500/0001-05', 'SICI-TYPE-405', controller_id, cre, initial_competence, inventory_process
+from public.schools where id = 'ESC-UAT';
+insert into public.school_programs (id, school_id, program_id)
+values ('ESC-TYPE_BASIC', 'ESC-TYPE', 'BASIC');
+insert into public.verifications (id, school_id, competence_id, program_id, bonification, analysis, bonus_result)
+values ('ESC-TYPE::2026-05::BASIC', 'ESC-TYPE', '2026-05', 'BASIC',
+    '{"extCC":"Sim","notaFiscal":"Não","consAssessoria":"Não","encampInventario":"Não se aplica"}',
+    '{"notaFiscal":"Incorreto","consAssessoria":"Não analisado","encampInventario":"Correto"}', 'inapta');
+insert into public.registered_invoices (id, school_id, competence_id, program_id, verification_id, source_context_key, description, expense_type, invoice_number, amount, payload)
+values ('TYPE-REMOTE', 'ESC-TYPE', '2026-05', 'BASIC', 'ESC-TYPE::2026-05::BASIC', '2026-05_BASIC',
+        'Documento com ciclo fiscal encerrado', 'consumo', 'NF-TYPE', 150, '{"analiseDocumentoFiscal":"Correto"}'),
+       ('TYPE-ACTIVE', 'ESC-TYPE', '2026-05', 'BASIC', 'ESC-TYPE::2026-05::BASIC', '2026-05_BASIC',
+        'Documento com Pendência ativa', 'consumo', 'NF-ACTIVE', 200, '{"analiseDocumentoFiscal":"Incorreto"}'),
+       ('TYPE-ADVISORY', 'ESC-TYPE', '2026-05', 'BASIC', 'ESC-TYPE::2026-05::BASIC', '2026-05_BASIC',
+        'Serviço com histórico de Assessoria', 'servico', 'NF-ADVISORY', 250,
+        '{"analiseDocumentoFiscal":"Correto","consultaAssessoriaEnviada":false,"analiseConsultaAssessoria":"Não analisado"}');
+insert into public.pendencies (id, school_id, competence_origin, program_id, document_key, registered_invoice_id, status, reason, payload)
+values ('TYPE-HISTORY-R', 'ESC-TYPE', '2026-05', 'BASIC', 'notaFiscal', 'TYPE-REMOTE', 'Resolvida', 'Dados divergentes',
+        '{"documentSnapshot":{"tipo":"consumo","numero":"NF-TYPE","valor":150},"historico":[]}'),
+       ('TYPE-HISTORY-C', 'ESC-TYPE', '2026-05', 'BASIC', 'notaFiscal', 'TYPE-REMOTE', 'Cancelada', 'Dados divergentes',
+        '{"documentSnapshot":{"tipo":"consumo","numero":"NF-TYPE","valor":150},"historico":[]}'),
+       ('TYPE-HISTORY-ACTIVE', 'ESC-TYPE', '2026-05', 'BASIC', 'notaFiscal', 'TYPE-ACTIVE', 'Aberta', 'Dados divergentes', '{}'),
+       ('TYPE-HISTORY-ADVISORY', 'ESC-TYPE', '2026-05', 'BASIC', 'consAssessoria', 'TYPE-ADVISORY', 'Cancelada', 'Documento ausente', '{}');

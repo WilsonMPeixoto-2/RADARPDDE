@@ -21,7 +21,7 @@ Ordem:
 10. ADRs e referências especializadas da área afetada;
 11. planos, auditorias, demais handoffs e evidências históricas apenas para compreender o seu momento/SHA.
 
-**Estado funcional corrente:** A + B + C estão concluídas; a Fase D permanece adiada. `PROD-FUNC-09` foi encerrado pelo #392. O #397 está integrado e publicado, com as duas migrations verificadas em Supabase Production. O único handoff corrente é [`handoff/2026-09-30-pos-publicacao-pr397-retomada.md`](handoff/2026-09-30-pos-publicacao-pr397-retomada.md): consolida as provas da entrega e preserva a próxima rodada solicitada, limitada a NAV-01/UX-04 em Preview. `PROD-UX-08` permanece separado. O ciclo CRUD em Production não foi exercitado na publicação do #397; o handoff distingue esse limite dos 20 ciclos aprovados em Supabase descartável.
+**Estado funcional corrente:** A + B + C e #397 estão concluídos; Fase D permanece adiada. A Fase 1 de descobribilidade (#403) está publicada em `92ddea14…`. A frente autorizada agora é Fase 2 de correção de classificação com histórico fiscal encerrado/cancelado, acompanhada de UX. O único handoff corrente é [retificação de classificação](handoff/2026-10-01-controller-type-retification.md), com [checkpoint de evidências](evidence/2026-10-01-controller-type-retification/REPORT.md). NAV-01/UX-04 e `PROD-UX-08` permanecem separados. A frente atual ainda não está publicada em Production.
 
 O [PR #386](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/386) e o merge funcional `e6b692a97dd5148877c788da11e0c8ae4c8fcd19` registram o encerramento da C3. Commits posteriores exclusivamente documentais podem avançar a `main` e gerar novo deployment sem reabrir a Fase C. Quando o SHA do head ou o deployment ativo importarem para uma nova entrega, verificá-los ao vivo.
 
@@ -84,7 +84,8 @@ O modelo detalhado está em `SYSTEM_CANONICAL_MODEL.md`; a finalidade humana das
 
 Consultar conforme a área materialmente afetada:
 
-- [`handoff/2026-09-30-pos-publicacao-pr397-retomada.md`](handoff/2026-09-30-pos-publicacao-pr397-retomada.md) — **único handoff corrente**, publicação concluída, testes por SHA, evidências reutilizáveis e continuidade limitada a Preview;
+- [`handoff/2026-10-01-controller-type-retification.md`](handoff/2026-10-01-controller-type-retification.md) — **único handoff corrente**, Fase 2 e UX com evidência por fronteira;
+- [`handoff/2026-09-30-pos-publicacao-pr397-retomada.md`](handoff/2026-09-30-pos-publicacao-pr397-retomada.md) — histórico da publicação concluída do #397 e evidências reutilizáveis;
 - [`evidence/2026-09-30-pr397-production-release/README.md`](evidence/2026-09-30-pr397-production-release/README.md) — evidência concluída de merge, SQL, deployment, smoke e restauração; JSONs sem dados operacionais ou segredos;
 - [`handoff/2026-09-30-pr397-independencia-despesas-bonificacao.md`](handoff/2026-09-30-pr397-independencia-despesas-bonificacao.md) — histórico do candidato #397, com reclassificação após a publicação;
 - [`decisions/ADR-055-independencia-despesas-bonificacao.md`](decisions/ADR-055-independencia-despesas-bonificacao.md) — decisão vigente sobre independência dos ciclos e propriedade de campos;

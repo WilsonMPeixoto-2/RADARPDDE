@@ -101,6 +101,42 @@
             : `Nota Fiscal ${number}`;
     }
 
+    // Shared by the save authority and editor. Closed fiscal history is kept
+    // while classification can be corrected without restarting that history.
+    function invoiceTypeChangeRestriction(state = {}, invoice = {}) {
+        if (isUnidentifiedExpense(invoice)) {
+            return {
+                code: 'UNIDENTIFIED_EXPENSE_WORKFLOW_REQUIRED',
+                message: 'A classificação definitiva continua em “Registrar envio / identificação da despesa”.'
+            };
+        }
+        const invoiceId = text(invoice.id);
+        const history = (state.pendencies || []).filter(pendency => (
+            text(pendency.registeredInvoiceId || pendency.registered_invoice_id) === invoiceId
+        ));
+        let message = '';
+        if (history.some(pendency => text(pendency.documentoKey || pendency.document_key) === 'consAssessoria')) {
+            message = 'A classificação fica preservada porque este lançamento possui histórico de Consulta à Assessoria.';
+        } else if (history.some(pendency => pendencyDomain.isActivePendency(pendency))) {
+            message = 'Encerre a Pendência deste lançamento antes de corrigir a classificação. Descrição, número/referência e valor continuam editáveis.';
+        } else if (history.some(pendency => (
+            text(pendency.documentoKey || pendency.document_key) !== 'notaFiscal'
+            || ![pendencyDomain.PENDENCY_STATUS.RESOLVED, pendencyDomain.PENDENCY_STATUS.CANCELLED].includes(text(pendency.status))
+        ))) {
+            message = 'O histórico deste lançamento não permite corrigir a classificação pelo editor.';
+        } else if (history.length > 0 && !rowVersionOf(invoice)) {
+            message = 'Recarregue o lançamento antes de corrigir a classificação.';
+        }
+        const assetId = text(invoice.bemId || invoice.linked_asset_id);
+        const asset = assetId ? (state.assets || []).find(item => text(item.id) === assetId) : null;
+        if (!message && assetId && (!asset || text(asset.status) === 'Inventariada')) {
+            message = asset
+                ? 'A classificação fica preservada porque o bem vinculado já foi inventariado. Os dados cadastrais continuam editáveis.'
+                : 'Recarregue o bem vinculado antes de corrigir a classificação.';
+        }
+        return message ? { code: 'INVOICE_HISTORY_LOCKED', message } : null;
+    }
+
     function rowVersionOf(record) {
         const candidate = Number(record?.rowVersion ?? record?.row_version);
         return Number.isInteger(candidate) && candidate > 0 ? candidate : null;
@@ -564,6 +600,12 @@
 
         assertHistorySafeMutation(state, existing, input = {}, operation = 'invoice:save') {
             if (!existing) return true;
+            const currentType = text(existing.tipo).toLocaleLowerCase('pt-BR');
+            const targetType = text(input.expenseType || currentType).toLocaleLowerCase('pt-BR');
+            if (targetType !== currentType) {
+                const restriction = invoiceTypeChangeRestriction(state, existing);
+                if (restriction) fail(restriction.code, restriction.message, operation, { invoiceId: existing.id });
+            }
             const history = this.invoicePendencyHistory(state, existing.id);
             if (history.length === 0) return true;
 
@@ -580,19 +622,6 @@
                 );
             }
 
-            const hasServiceAdvisoryHistory = history.some(pendency => (
-                text(pendency.documentoKey || pendency.document_key) === 'consAssessoria'
-            ));
-            const currentType = text(existing.tipo).toLocaleLowerCase('pt-BR');
-            const targetType = text(input.expenseType || currentType).toLocaleLowerCase('pt-BR');
-            if (hasServiceAdvisoryHistory && targetType !== currentType) {
-                fail(
-                    'INVOICE_HISTORY_LOCKED',
-                    'A natureza de uma Nota Fiscal com histórico de Assessoria não pode ser alterada.',
-                    operation,
-                    { invoiceId: existing.id }
-                );
-            }
             return true;
         }
 
@@ -739,6 +768,7 @@
                 program: initialContext.program,
                 profile
             };
+            const previousInvoice = existing ? cloneValue(existing) : null;
 
             const preliminaryPlan = planInvoiceEffects(basePlanInput);
             const verificationId = `${initialContext.schoolId}::${initialContext.context.competence}::${initialContext.context.programId}`;
@@ -799,6 +829,7 @@
                                 { id: plan.invoice.id }
                             );
                         }
+                        this.assertHistorySafeMutation(state, invoice, input, 'invoice:save');
                         Object.assign(invoice, cloneValue(plan.invoice));
                         appliedInvoice = invoice;
                     } else {
@@ -847,6 +878,13 @@
 
                     return {
                         operation: plan.operation,
+                        retification: previousInvoice ? {
+                            previousType: previousInvoice.tipo,
+                            currentType: appliedInvoice.tipo,
+                            previousAmount: previousInvoice.valor,
+                            currentAmount: appliedInvoice.valor,
+                            historyPreserved: this.invoicePendencyHistory(state, appliedInvoice.id).length > 0
+                        } : null,
                         invoice: cloneValue(appliedInvoice),
                         asset: appliedAsset ? cloneValue(appliedAsset) : null,
                         removedAsset: plan.removedAsset
@@ -1344,6 +1382,7 @@
         InvoiceService,
         UNIDENTIFIED_EXPENSE_TYPE,
         isIdentifiedInvoice,
-        isUnidentifiedExpense
+        isUnidentifiedExpense,
+        invoiceTypeChangeRestriction
     });
 }));

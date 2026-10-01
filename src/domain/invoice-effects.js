@@ -239,6 +239,9 @@
         } else if (operation === 'update') {
             action = 'Nota Editada';
             details = `Nota Fiscal ${request.invoiceNumber} editada para ${schoolName} no valor de R$ ${request.amount}.`;
+            if (previousType !== request.expenseType) {
+                details += ` Tipo de gasto: ${previousType} → ${request.expenseType}. Lançamento ${input.existingInvoice.id}; escola ${request.schoolId}; competência ${request.competence}; programa ${request.programId}. Histórico preservado.`;
+            }
         } else if (request.expenseType === UNIDENTIFIED_EXPENSE_TYPE) {
             action = 'Despesa a Identificar Cadastrada';
             details = `Despesa a identificar registrada para ${schoolName}: ${request.description}, R$ ${request.amount}; documentação fiscal pendente.`;

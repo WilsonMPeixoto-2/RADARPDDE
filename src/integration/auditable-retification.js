@@ -10,7 +10,10 @@
     const accessPolicy = typeof module !== 'undefined' && module.exports
         ? require('../domain/access-policy.js')
         : root.RadarAccessPolicy;
-    const api = factory(contract, pendencyDomain, accessPolicy);
+    const invoiceService = typeof module !== 'undefined' && module.exports
+        ? require('../application/invoice-service.js')
+        : root.RadarInvoiceService;
+    const api = factory(contract, pendencyDomain, accessPolicy, invoiceService);
 
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     if (root) {
@@ -27,11 +30,12 @@
 }(typeof window !== 'undefined' ? window : globalThis, function createAuditableRetificationApi(
     contract,
     pendencyDomain,
-    accessPolicy
+    accessPolicy,
+    invoiceService
 ) {
     'use strict';
 
-    if (!contract || !pendencyDomain || !accessPolicy) {
+    if (!contract || !pendencyDomain || !accessPolicy || !invoiceService) {
         throw new Error('Contrato de dados, domínio de Pendências e política de acesso são obrigatórios para retificação auditável.');
     }
 
@@ -114,7 +118,6 @@
     }
 
     function assertRetificationIdentity(state, existing, input = {}) {
-        const history = invoiceHistory(state, existing.id);
         const currentType = normalizeType(existing.tipo || existing.expense_type);
         const requestedType = normalizeType(input.expenseType || currentType);
         const currentContext = invoiceContext(existing);
@@ -130,16 +133,8 @@
             );
         }
         if (requestedType !== currentType) {
-            fail(
-                currentType === UNIDENTIFIED_EXPENSE_TYPE
-                    ? 'UNIDENTIFIED_EXPENSE_WORKFLOW_REQUIRED'
-                    : 'INVOICE_HISTORY_LOCKED',
-                currentType === UNIDENTIFIED_EXPENSE_TYPE
-                    ? 'A despesa a identificar só pode mudar de natureza pelo fluxo “Registrar novo envio”, preservando a mesma Pendência.'
-                    : 'O tipo de gasto é estrutural quando existe histórico individual de Pendência e não pode ser alterado por retificação cadastral.',
-                'invoice:auditable-retification',
-                { invoiceId: existing.id, historyCount: history.length }
-            );
+            const restriction = invoiceService.invoiceTypeChangeRestriction(state, existing);
+            if (restriction) fail(restriction.code, restriction.message, 'invoice:auditable-retification', { invoiceId: existing.id });
         }
         return true;
     }
@@ -411,55 +406,183 @@
         const select = root?.document?.getElementById('nota-tipo');
         if (!select) return false;
         select.disabled = false;
+        select.removeAttribute('aria-describedby');
         delete select.dataset.auditableRetificationLocked;
         root.document.querySelector('[data-auditable-retification-type-hint]')?.remove();
         root.document.querySelector('[data-auditable-retification-guidance]')?.remove();
+        root.document.getElementById('invoice-edit-context')?.remove();
+        root.document.getElementById('invoice-classification-preview')?.remove();
         return true;
+    }
+
+    const TYPE_LABELS = Object.freeze({
+        consumo: 'Material de consumo',
+        servico: 'Prestação de serviço',
+        permanente: 'Bem permanente',
+        boleto_internet: 'Boleto de internet',
+        a_identificar: 'Despesa a identificar'
+    });
+
+    function classificationEffect(previousType, nextType) {
+        const effects = [];
+        if (nextType === 'servico') effects.push('O lançamento passará a seguir o fluxo de Prestação de Serviço, com Consulta à Assessoria.');
+        else if (nextType === 'permanente') effects.push('Será criado e vinculado um bem para acompanhamento em Capital e Inventário.');
+        else if (previousType === 'servico') effects.push('O lançamento deixará de seguir o fluxo de Consulta à Assessoria.');
+        else effects.push('O lançamento passará a seguir as etapas aplicáveis ao novo tipo de gasto.');
+        if (previousType === 'permanente' && nextType !== 'permanente') {
+            effects.push('O bem vinculado, ainda não inventariado, será removido do acompanhamento patrimonial.');
+        }
+        return effects.join(' ');
+    }
+
+    function appendText(root, parent, tag, content, className = '') {
+        const element = root.document.createElement(tag);
+        element.textContent = content;
+        if (className) element.className = className;
+        parent.appendChild(element);
+        return element;
+    }
+
+    function renderInvoiceEditContext(root, state, invoice) {
+        const form = root.document.getElementById('form-dados-nota');
+        if (!form) return;
+        root.document.getElementById('invoice-edit-context')?.remove();
+        const heading = root.document.querySelector('#modal-dados-nota h3');
+        if (heading) heading.textContent = 'Editar lançamento';
+        const context = invoiceContext(invoice);
+        const school = (state.schools || []).find(item => text(item.id) === context.schoolId);
+        const program = (state.programs || []).find(item => text(item.id) === text(invoice.programaId || invoice.program_id));
+        const card = root.document.createElement('div');
+        card.id = 'invoice-edit-context';
+        card.className = 'invoice-edit-context';
+        appendText(root, card, 'strong', `${text(invoice.numero) ? 'NF: ' + text(invoice.numero) : 'Sem número/referência'} · ${TYPE_LABELS[normalizeType(invoice.tipo)] || text(invoice.tipo)}`);
+        const competence = text(invoice.competencia) || context.compKey.split('_')[0];
+        const formattedCompetence = /^\d{4}-\d{2}$/.test(competence) ? competence.slice(5) + '/' + competence.slice(0, 4) : competence;
+        appendText(root, card, 'span', `${text(school?.denominação || school?.name) || context.schoolId} · ${formattedCompetence} · ${text(program?.name) || text(invoice.programaId)}`);
+        form.prepend(card);
+        const intro = root.document.getElementById('nota-modal-intro');
+        if (intro) intro.hidden = true;
     }
 
     function ensureInvoiceRetificationGuidance(root, state, invoice, group) {
         if (!group || !invoice) return false;
         root.document.querySelector('[data-auditable-retification-guidance]')?.remove();
         const guidance = root.document.createElement('div');
-        guidance.className = 'form-hint';
+        guidance.className = 'invoice-retification-guidance';
         guidance.dataset.auditableRetificationGuidance = 'true';
         guidance.setAttribute('role', 'note');
-        guidance.setAttribute(
-            'style',
-            'display:block;margin:0 0 12px;padding:10px 12px;border:1px solid rgba(91,33,182,.14);border-radius:8px;background:rgba(91,33,182,.055);color:#4f485d;line-height:1.45;'
-        );
         const hasHistory = invoiceHistory(state || {}, invoice.id).length > 0;
+        const restriction = invoiceService.invoiceTypeChangeRestriction(state, invoice);
+        appendText(root, guidance, 'strong', 'Você pode corrigir');
+        let message;
         if (normalizeType(invoice.tipo || invoice.expense_type) === UNIDENTIFIED_EXPENSE_TYPE) {
-            guidance.textContent = 'Você pode corrigir descrição, referência e valor. A despesa continuará “A identificar”.'
+            message = 'Descrição, referência e valor. A despesa continuará “A identificar”.'
                 + (hasHistory ? ' A Pendência e o histórico serão preservados.' : '');
         } else {
-            guidance.textContent = 'Você pode corrigir descrição, número/referência e valor. A Pendência e o histórico serão preservados.';
+            message = restriction
+                ? 'Descrição, número/referência e valor. A Pendência e o histórico serão preservados.'
+                : 'Descrição, número/referência, valor e classificação. O histórico anterior será preservado.';
         }
-        group.before(guidance);
+        appendText(root, guidance, 'span', message);
+        const firstField = root.document.getElementById('nota-desc')?.closest('.form-group');
+        (firstField || group.closest('.form-row') || group).before(guidance);
         return true;
     }
 
     function applyInvoiceTypeLock(root, invoiceId) {
         const state = stateFromRoot(root);
         const invoice = currentInvoice(state || {}, invoiceId);
-        if (!isRetifiableInvoice(state || {}, invoice)) return false;
+        if (!invoice) return false;
         const select = root?.document?.getElementById('nota-tipo');
         if (!select) return false;
-        select.disabled = true;
-        select.dataset.auditableRetificationLocked = 'true';
+        const restriction = invoiceService.invoiceTypeChangeRestriction(state, invoice);
+        select.disabled = Boolean(restriction);
+        if (restriction) select.dataset.auditableRetificationLocked = 'true';
+        else delete select.dataset.auditableRetificationLocked;
 
         const group = select.closest('.form-group');
+        renderInvoiceEditContext(root, state, invoice);
         if (group) ensureInvoiceRetificationGuidance(root, state || {}, invoice, group);
         if (group && !group.querySelector('[data-auditable-retification-type-hint]')) {
             const hint = root.document.createElement('small');
             hint.className = 'form-hint';
             hint.dataset.auditableRetificationTypeHint = 'true';
-            hint.textContent = normalizeType(invoice.tipo) === UNIDENTIFIED_EXPENSE_TYPE
-                ? 'A classificação definitiva continua em “Registrar envio / identificação da despesa”.'
-                : 'A classificação fica preservada porque este lançamento já possui histórico de Pendência.';
+            hint.textContent = restriction ? '🔒 ' + restriction.message
+                : 'A classificação pode ser corrigida. O histórico anterior continuará registrado.';
             group.appendChild(hint);
+            select.setAttribute('aria-describedby', 'invoice-classification-hint');
+            hint.id = 'invoice-classification-hint';
         }
+        updateInvoiceClassificationPreview(root);
         return true;
+    }
+
+    function updateInvoiceClassificationPreview(root) {
+        const id = root.document.getElementById('nota-id')?.value;
+        const state = stateFromRoot(root) || {};
+        const invoice = currentInvoice(state, id);
+        const select = root.document.getElementById('nota-tipo');
+        const submit = root.document.querySelector('#form-dados-nota button[type="submit"]');
+        root.document.getElementById('invoice-classification-preview')?.remove();
+        if (!invoice || !select || !submit) return false;
+        const previousType = normalizeType(invoice.tipo);
+        const nextType = normalizeType(select.value);
+        const changed = previousType !== nextType;
+        submit.textContent = changed ? 'Confirmar nova classificação' : 'Salvar Alterações';
+        if (!changed || select.disabled) return false;
+        const preview = root.document.createElement('section');
+        preview.id = 'invoice-classification-preview';
+        preview.className = 'invoice-classification-preview';
+        preview.setAttribute('aria-live', 'polite');
+        appendText(root, preview, 'strong', 'Retificação de classificação');
+        const comparison = appendText(root, preview, 'div', '', 'invoice-classification-comparison');
+        for (const [label, type] of [['Antes', previousType], ['Depois', nextType]]) {
+            const column = appendText(root, comparison, 'div', '');
+            appendText(root, column, 'small', label);
+            appendText(root, column, 'strong', TYPE_LABELS[type] || type);
+        }
+        appendText(root, preview, 'p', classificationEffect(previousType, nextType));
+        appendText(root, preview, 'small', 'Identidade, escola, competência, programa e histórico serão preservados. Descrição, número e valor seguirão os dados deste formulário.');
+        select.closest('.form-row')?.after(preview);
+        return true;
+    }
+
+    async function confirmInvoiceTypeChange(root, input = {}) {
+        const invoice = currentInvoice(stateFromRoot(root) || {}, input.id);
+        const previousType = normalizeType(invoice?.tipo);
+        const nextType = normalizeType(input.expenseType);
+        if (!invoice || previousType === nextType) return true;
+        if (root.document.getElementById('invoice-type-retification-confirmation')) return false;
+        const restriction = invoiceService.invoiceTypeChangeRestriction(stateFromRoot(root) || {}, invoice);
+        if (restriction) fail(restriction.code, restriction.message, 'invoice:save', { invoiceId: input.id });
+        return new Promise(resolve => {
+            const dialog = root.document.createElement('dialog');
+            dialog.id = 'invoice-type-retification-confirmation';
+            dialog.className = 'invoice-classification-dialog';
+            dialog.setAttribute('aria-labelledby', 'invoice-type-confirmation-title');
+            const title = appendText(root, dialog, 'h3', 'Confirmar alteração de classificação?');
+            title.id = 'invoice-type-confirmation-title';
+            appendText(root, dialog, 'p', `${TYPE_LABELS[previousType]} → ${TYPE_LABELS[nextType]}`, 'invoice-classification-dialog-transition');
+            appendText(root, dialog, 'p', classificationEffect(previousType, nextType));
+            appendText(root, dialog, 'p', 'O histórico anterior será preservado. Os demais dados serão salvos conforme o formulário.');
+            const actions = appendText(root, dialog, 'div', '', 'invoice-classification-dialog-actions');
+            const finish = accepted => {
+                dialog.close();
+                dialog.remove();
+                root.document.querySelector('#form-dados-nota button[type="submit"]')?.focus();
+                resolve(accepted);
+            };
+            const cancel = appendText(root, actions, 'button', 'Cancelar', 'btn btn-secondary');
+            cancel.type = 'button';
+            cancel.addEventListener('click', () => finish(false));
+            const confirm = appendText(root, actions, 'button', 'Confirmar alteração', 'btn btn-primary');
+            confirm.type = 'button';
+            confirm.addEventListener('click', () => finish(true));
+            dialog.addEventListener('cancel', event => { event.preventDefault(); finish(false); });
+            root.document.body.appendChild(dialog);
+            dialog.showModal();
+            cancel.focus();
+        });
     }
 
     function manualPendencyFromDrawer(root) {
@@ -576,6 +699,8 @@
         const originalOpenModalDadosNota = root.openModalDadosNota;
         root.openModalDadosNota = function openModalDadosNotaWithUnlockedType(...args) {
             resetInvoiceTypeLock(root);
+            const intro = root.document.getElementById('nota-modal-intro');
+            if (intro) intro.hidden = false;
             return originalOpenModalDadosNota.apply(this, args);
         };
 
@@ -612,6 +737,7 @@
             enumerable: false,
             writable: false
         });
+        root.document.getElementById('nota-tipo')?.addEventListener('change', () => updateInvoiceClassificationPreview(root));
         decorateInvoiceRows(root);
         ensureManualPendencyFields(root);
         return true;
@@ -637,6 +763,9 @@
         decorateInvoiceRows,
         ensureInvoiceRetificationGuidance,
         applyInvoiceTypeLock,
+        classificationEffect,
+        updateInvoiceClassificationPreview,
+        confirmInvoiceTypeChange,
         ensureManualPendencyFields,
         installUi,
         install

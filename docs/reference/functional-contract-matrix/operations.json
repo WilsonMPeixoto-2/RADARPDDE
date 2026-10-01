@@ -451,7 +451,7 @@
   {
     "id": "INV-01",
     "surface": "school-record",
-    "action": "Cadastrar Nota Fiscal/despesa e retificar dados editáveis do mesmo lançamento independentemente da bonificação/consolidação; A identificar nasce atomicamente",
+    "action": "Cadastrar Nota Fiscal/despesa e retificar dados editáveis do mesmo lançamento independentemente da bonificação/consolidação; A identificar nasce atomicamente; corrigir classificação com histórico exclusivamente fiscal encerrado/cancelado, sem Assessoria ou patrimônio terminal",
     "mode": "write",
     "criticality": "P0",
     "allow": [
@@ -503,9 +503,11 @@
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "invoice",
-    "coverage": "covered",
-    "gaps": [],
-    "next": "none"
+    "coverage": "partial",
+    "gaps": [
+      "Fase 2: testes locais de retificação e UX aprovados; confirmar Auth/RLS, versões, efeitos e reload no CI descartável do candidato."
+    ],
+    "next": "controlled-write"
   },
   {
     "id": "INV-02",

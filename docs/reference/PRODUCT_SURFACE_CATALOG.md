@@ -109,6 +109,8 @@ Prioridades visuais duráveis:
 
 A identidade estrutural permanece roxa. Cores semânticas devem apoiar estados sem substituir seus rótulos.
 
+Na edição de lançamento, o modal informa NF/tipo e contexto escolar/mês/programa antes dos campos. A faixa **Você pode corrigir** distingue dados cadastrais de classificação. Campo protegido explica a razão concreta: Pendência ativa, histórico de Assessoria, identificação provisória ou inventariação concluída. Quando elegível, alterar classificação apresenta Antes/Depois e efeitos de Assessoria/patrimônio, seguida de confirmação cancelável. Dados não editados e histórico permanecem; feedback de salvamento não antecipa sucesso nem oculta falha de sincronização.
+
 ### 2.6 Ações pertencem à superfície que possui contexto suficiente
 
 Não duplicar a mesma ação em todas as telas por conveniência aparente.
