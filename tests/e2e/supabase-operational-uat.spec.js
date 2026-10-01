@@ -241,7 +241,7 @@ function invoiceCard(page, id) {
 }
 
 function invoiceEditButton(card) {
-  return card.getByRole('button', { name: /^Editar (?:NF:|Boleto Internet:|Despesa a identificar$)/ });
+  return card.getByRole('button', { name: /^(?:Editar lançamento:|Editar (?:NF:|Boleto Internet:|Despesa a identificar$))/ });
 }
 
 async function remoteRows(page, table, filters) {
