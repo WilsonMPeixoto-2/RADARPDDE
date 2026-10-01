@@ -43,6 +43,20 @@ test('Controlador corrige classificação com histórico fiscal encerrado pela U
         expect(current).toMatchObject({ id: 'TYPE-REMOTE', expense_type: type, amount: 150,
             school_id: 'ESC-TYPE', competence_id: '2026-05', program_id: 'BASIC' });
         expect(current.row_version).toBeGreaterThan(previous.row_version);
+        const assets = await read(page, 'assets');
+        if (type === 'permanente') {
+            expect(current.linked_asset_id).toBeTruthy();
+            expect(assets).toHaveLength(1);
+            expect(assets[0]).toMatchObject({ id: current.linked_asset_id, school_id: 'ESC-TYPE',
+                competence_id: '2026-05', amount: 150, status: 'Encaminhada' });
+        } else {
+            expect(current.linked_asset_id).toBeNull();
+            expect(assets).toEqual([]);
+        }
+        if (type === 'servico') {
+            expect(current.payload).toMatchObject({ consultaAssessoriaEnviada: false,
+                analiseConsultaAssessoria: 'Não analisado' });
+        }
         expect(await read(page, 'pendencies')).toEqual(beforeHistory);
         const verification = (await read(page, 'verifications'))[0];
         expect(verification.bonification.notaFiscal).toBe(beforeVerification.bonification.notaFiscal);
@@ -53,6 +67,7 @@ test('Controlador corrige classificação com histórico fiscal encerrado pela U
         await page.evaluate(() => window.RadarProductExtensionsReady);
         await row(page, 'TYPE-REMOTE').getByRole('button', { name: /Editar lançamento/ }).click();
         await expect(field).toHaveValue(type);
+        await info.attach('classificacao-' + type, { body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
         await modal.getByRole('button', { name: 'Cancelar', exact: true }).click();
     }
     expect(await read(page, 'assets')).toEqual([]);
