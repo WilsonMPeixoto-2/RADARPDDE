@@ -117,7 +117,7 @@ test.describe('Edição auditável de lançamentos', () => {
     const context = await prepareContext(page);
     const invoiceRow = fiscalRow(page).locator(`.invoice-document-row[data-invoice-id="${context.invoiceId}"]`);
 
-    const editButton = invoiceRow.getByRole('button', { name: /Editar NF/ });
+    const editButton = invoiceRow.getByRole('button', { name: /Editar lançamento/ });
     await expect(editButton).toBeVisible();
     await editButton.click();
 
