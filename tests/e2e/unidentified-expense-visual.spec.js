@@ -13,10 +13,19 @@ async function golden(page, name) {
   });
 }
 
+async function stabilizeInvoiceClock(page) {
+  await page.evaluate(() => {
+    const invoices = window.RadarApplicationServices?.invoices;
+    if (!invoices) throw new Error('InvoiceService indisponível para estabilizar a prova visual.');
+    invoices.now = () => '2026-10-01T12:00:00.000Z';
+  });
+}
+
 // A jornada funcional completa permanece em unidentified-expense-user-journey.
 // Cada estado visual tem contexto próprio e reutiliza os goldens já revisados.
 test('estado visual — drawer e feedback após registrar despesa', async ({ page }) => {
   await prepareSchool(page);
+  await stabilizeInvoiceClock(page);
   await page.locator('#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="notaFiscal"]')
     .getByRole('button', { name: 'Registrar despesa a identificar', exact: true }).click();
   const modal = page.locator('#modal-dados-nota');
@@ -35,6 +44,7 @@ test('estado visual — drawer e feedback após registrar despesa', async ({ pag
 
 test('estado visual — reanálise do documento identificado', async ({ page }) => {
   const context = await prepareSchool(page);
+  await stabilizeInvoiceClock(page);
   // Preparação pelo serviço real, sem simular HTML, estados ou regras de domínio.
   // A abertura do modal continua sendo feita pelo controle visível ao usuário.
   await page.evaluate(async ({ schoolId, compKey }) => {
