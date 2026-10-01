@@ -27,7 +27,7 @@ test('mantém o renderer institucional interno e fixa ExcelJS somente para o pro
     assert.doesNotMatch(initialLoader, /vendor\/exceljs\.min\.js/);
     assert.match(runtimeLoader, /\/vendor\/exceljs\.min\.js/);
     assert.doesNotMatch(lockfile, /"node_modules\/@lhci\/cli"/);
-    assert.equal(packageJson.devDependencies.prettier, '3.9.6');
+    assert.equal(packageJson.devDependencies.prettier, '3.9.9');
     assert.equal(packageJson.scripts.format, 'prettier . --write --ignore-unknown');
     assert.equal(packageJson.scripts['format:check'], 'prettier . --check --ignore-unknown');
     const prettierIgnore = read('.prettierignore');
