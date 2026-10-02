@@ -117,6 +117,8 @@
             ? Math.max(0, options.minIntervalMs)
             : MIN_REFRESH_INTERVAL_MS;
         let lastRefreshAt = 0;
+        let lastAttemptAt = 0;
+        let lastFailureAt = 0;
         let refreshPromise = null;
         let pendingRefreshReason = '';
 
@@ -129,7 +131,9 @@
             if (refreshPromise) {
                 markPending(reason);
                 const currentRefresh = refreshPromise;
-                return currentRefresh.then(() => flushPending('inflight-finished'));
+                return currentRefresh.then(result => flushPending('inflight-finished', {
+                    force: result?.ok !== false
+                }));
             }
             if (!authenticated(root)) {
                 pendingRefreshReason = '';
@@ -144,16 +148,31 @@
                 return { skipped: true, reason: 'invalid-competence' };
             }
             const now = Date.now();
-            if (refreshOptions.force !== true && (now - lastRefreshAt) < minIntervalMs) {
-                return { skipped: true, reason: 'throttled' };
+            const cooldownAnchor = Math.max(lastRefreshAt, lastAttemptAt);
+            if (
+                refreshOptions.force !== true
+                && cooldownAnchor > 0
+                && (now - cooldownAnchor) < minIntervalMs
+            ) {
+                markPending(reason);
+                return {
+                    skipped: true,
+                    reason: 'throttled',
+                    pending: true,
+                    retryAfterMs: Math.max(0, minIntervalMs - (now - cooldownAnchor))
+                };
             }
+
+            // Registra a tentativa, inclusive quando a RPC falhar. Assim uma falha
+            // de infraestrutura não transforma cliques/focusout em loop de retry.
+            lastAttemptAt = now;
 
             // Este refresh consome qualquer pendência já conhecida. Invalidações
             // que chegarem depois deste ponto voltam a preencher pendingRefreshReason
             // e serão relidas quando a consulta em voo terminar.
             pendingRefreshReason = '';
 
-            const startedAt = Date.now();
+            const startedAt = now;
             let run = null;
             run = Promise.resolve().then(async () => {
                 const result = await service.loadOperationalContext(competenceKey, {
@@ -175,6 +194,10 @@
                 }
                 if (activeCompetence(root) !== competenceKey) return { ...result, stale: true };
 
+                // Uma leitura aplicada com sucesso encerra qualquer cooldown de falha
+                // anterior. O throttle normal de foco/visibilidade continua ancorado
+                // em lastRefreshAt/lastAttemptAt.
+                lastFailureAt = 0;
                 refreshCurrentView(root);
                 lastRefreshAt = Date.now();
                 if (typeof root.dispatchEvent === 'function' && typeof root.CustomEvent === 'function') {
@@ -189,6 +212,7 @@
                 }
                 return result;
             }).catch(error => {
+                lastFailureAt = Date.now();
                 markPending(reason);
                 root.console?.warn?.('Não foi possível atualizar o contexto operacional ao retomar a sessão.', error);
                 return { ok: false, error, pending: true };
@@ -199,7 +223,7 @@
             return run;
         }
 
-        async function flushPending(reason = 'editing-ended') {
+        async function flushPending(reason = 'editing-ended', flushOptions = {}) {
             if (!pendingRefreshReason) return { skipped: true, reason: 'no-pending-refresh' };
             if (!authenticated(root)) {
                 pendingRefreshReason = '';
@@ -209,11 +233,19 @@
 
             const pendingReason = pendingRefreshReason;
             pendingRefreshReason = '';
-            const result = await refresh(`${pendingReason}-${reason}`, { force: true });
+            const realtimePending = /^realtime(?:-|$)/.test(pendingReason);
+            const now = Date.now();
+            const failureCooldownActive = lastFailureAt > 0 && (now - lastFailureAt) < minIntervalMs;
+
+            // Pendência Realtime bloqueada apenas por edição pode drenar assim que o
+            // usuário encerra o campo. Se a própria leitura falhou recentemente,
+            // preservamos o cooldown para não recriar a tempestade de retries.
+            const force = flushOptions.force === true || (realtimePending && !failureCooldownActive);
+            const result = await refresh(`${pendingReason}-${reason}`, { force });
             if (
                 result?.ok === false
                 || result?.stale === true
-                || (result?.skipped === true && result.reason === 'editing')
+                || (result?.skipped === true && ['editing', 'throttled'].includes(result.reason))
             ) {
                 markPending(pendingReason);
             }
@@ -224,7 +256,9 @@
             refresh,
             flushPending,
             hasPendingRefresh: () => Boolean(pendingRefreshReason),
-            getLastRefreshAt: () => lastRefreshAt
+            getLastRefreshAt: () => lastRefreshAt,
+            getLastAttemptAt: () => lastAttemptAt,
+            getLastFailureAt: () => lastFailureAt
         });
     }
 
