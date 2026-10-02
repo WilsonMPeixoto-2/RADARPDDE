@@ -130,7 +130,9 @@
             if (refreshPromise) {
                 markPending(reason);
                 const currentRefresh = refreshPromise;
-                return currentRefresh.then(() => flushPending('inflight-finished'));
+                return currentRefresh.then(result => flushPending('inflight-finished', {
+                    force: result?.ok !== false
+                }));
             }
             if (!authenticated(root)) {
                 pendingRefreshReason = '';
@@ -215,7 +217,7 @@
             return run;
         }
 
-        async function flushPending(reason = 'editing-ended') {
+        async function flushPending(reason = 'editing-ended', flushOptions = {}) {
             if (!pendingRefreshReason) return { skipped: true, reason: 'no-pending-refresh' };
             if (!authenticated(root)) {
                 pendingRefreshReason = '';
@@ -225,9 +227,12 @@
 
             const pendingReason = pendingRefreshReason;
             pendingRefreshReason = '';
-            // Interações de UI não furam o cooldown. Escritas/Reatime podem solicitar
-            // força explicitamente no ponto de origem quando isso for realmente necessário.
-            const result = await refresh(`${pendingReason}-${reason}`);
+            // Interações de UI não furam o cooldown após falha. Quando uma invalidação
+            // chegou durante uma leitura bem-sucedida, a drenagem explícita pode forçar
+            // a releitura necessária para não perder convergência entre sessões.
+            const result = await refresh(`${pendingReason}-${reason}`, {
+                force: flushOptions.force === true
+            });
             if (
                 result?.ok === false
                 || result?.stale === true
