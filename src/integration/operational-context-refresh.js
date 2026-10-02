@@ -121,14 +121,55 @@
         let lastFailureAt = 0;
         let refreshPromise = null;
         let pendingRefreshReason = '';
+        const metrics = {
+            requests: 0,
+            attempts: 0,
+            succeeded: 0,
+            failed: 0,
+            stale: 0,
+            rerenders: 0,
+            pendingMarked: 0,
+            pendingFlushed: 0,
+            lastDurationMs: 0,
+            lastReason: '',
+            lastRequestAt: null,
+            lastAttemptAt: null,
+            byReason: Object.create(null),
+            skipped: Object.create(null)
+        };
+
+        function increment(map, key) {
+            const normalized = text(key) || 'unknown';
+            map[normalized] = (map[normalized] || 0) + 1;
+        }
+
+        function metricsSnapshot() {
+            return Object.freeze({
+                ...metrics,
+                byReason: Object.freeze({ ...metrics.byReason }),
+                skipped: Object.freeze({ ...metrics.skipped })
+            });
+        }
+
+        function recordSkipped(reason) {
+            increment(metrics.skipped, reason);
+        }
 
         function markPending(reason) {
+            metrics.pendingMarked += 1;
             pendingRefreshReason = text(reason) || pendingRefreshReason || 'editing';
             return pendingRefreshReason;
         }
 
         async function refresh(reason = 'resume', refreshOptions = {}) {
+            reason = text(reason) || 'resume';
+            metrics.requests += 1;
+            metrics.lastReason = reason;
+            metrics.lastRequestAt = new Date().toISOString();
+            increment(metrics.byReason, reason);
+
             if (refreshPromise) {
+                recordSkipped('inflight');
                 markPending(reason);
                 const currentRefresh = refreshPromise;
                 return currentRefresh.then(result => flushPending('inflight-finished', {
@@ -136,15 +177,18 @@
                 }));
             }
             if (!authenticated(root)) {
+                recordSkipped('unauthenticated');
                 pendingRefreshReason = '';
                 return { skipped: true, reason: 'unauthenticated' };
             }
             if (editing(root)) {
+                recordSkipped('editing');
                 markPending(reason);
                 return { skipped: true, reason: 'editing', pending: true };
             }
             const competenceKey = activeCompetence(root);
             if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(competenceKey)) {
+                recordSkipped('invalid-competence');
                 return { skipped: true, reason: 'invalid-competence' };
             }
             const now = Date.now();
@@ -154,6 +198,7 @@
                 && cooldownAnchor > 0
                 && (now - cooldownAnchor) < minIntervalMs
             ) {
+                recordSkipped('throttled');
                 markPending(reason);
                 return {
                     skipped: true,
@@ -166,6 +211,8 @@
             // Registra a tentativa, inclusive quando a RPC falhar. Assim uma falha
             // de infraestrutura não transforma cliques/focusout em loop de retry.
             lastAttemptAt = now;
+            metrics.attempts += 1;
+            metrics.lastAttemptAt = new Date(now).toISOString();
 
             // Este refresh consome qualquer pendência já conhecida. Invalidações
             // que chegarem depois deste ponto voltam a preencher pendingRefreshReason
@@ -182,30 +229,45 @@
                         && activeCompetence(root) === competenceKey
                 });
                 if (result?.stale === true) {
+                    metrics.stale += 1;
+                    metrics.lastDurationMs = Math.max(0, Date.now() - startedAt);
                     if (authenticated(root) && activeCompetence(root) === competenceKey) {
                         markPending(reason);
                     }
                     return result;
                 }
-                if (!authenticated(root)) return { ...result, stale: true };
+                if (!authenticated(root)) {
+                    metrics.stale += 1;
+                    metrics.lastDurationMs = Math.max(0, Date.now() - startedAt);
+                    return { ...result, stale: true };
+                }
                 if (editing(root)) {
+                    metrics.stale += 1;
+                    metrics.lastDurationMs = Math.max(0, Date.now() - startedAt);
                     markPending(reason);
                     return { ...result, stale: true, pending: true };
                 }
-                if (activeCompetence(root) !== competenceKey) return { ...result, stale: true };
+                if (activeCompetence(root) !== competenceKey) {
+                    metrics.stale += 1;
+                    metrics.lastDurationMs = Math.max(0, Date.now() - startedAt);
+                    return { ...result, stale: true };
+                }
 
                 // Uma leitura aplicada com sucesso encerra qualquer cooldown de falha
                 // anterior. O throttle normal de foco/visibilidade continua ancorado
                 // em lastRefreshAt/lastAttemptAt.
                 lastFailureAt = 0;
                 refreshCurrentView(root);
+                metrics.rerenders += 1;
+                metrics.succeeded += 1;
                 lastRefreshAt = Date.now();
+                metrics.lastDurationMs = Math.max(0, lastRefreshAt - startedAt);
                 if (typeof root.dispatchEvent === 'function' && typeof root.CustomEvent === 'function') {
                     root.dispatchEvent(new root.CustomEvent('radar:operational-context-refreshed', {
                         detail: {
                             competenceKey,
                             source: `session-${reason}-refresh`,
-                            durationMs: Math.max(0, lastRefreshAt - startedAt),
+                            durationMs: metrics.lastDurationMs,
                             refreshedAt: new Date(lastRefreshAt).toISOString()
                         }
                     }));
@@ -213,6 +275,8 @@
                 return result;
             }).catch(error => {
                 lastFailureAt = Date.now();
+                metrics.failed += 1;
+                metrics.lastDurationMs = Math.max(0, lastFailureAt - startedAt);
                 markPending(reason);
                 root.console?.warn?.('Não foi possível atualizar o contexto operacional ao retomar a sessão.', error);
                 return { ok: false, error, pending: true };
@@ -233,6 +297,7 @@
 
             const pendingReason = pendingRefreshReason;
             pendingRefreshReason = '';
+            metrics.pendingFlushed += 1;
             const realtimePending = /^realtime(?:-|$)/.test(pendingReason);
             const now = Date.now();
             const failureCooldownActive = lastFailureAt > 0 && (now - lastFailureAt) < minIntervalMs;
@@ -258,7 +323,8 @@
             hasPendingRefresh: () => Boolean(pendingRefreshReason),
             getLastRefreshAt: () => lastRefreshAt,
             getLastAttemptAt: () => lastAttemptAt,
-            getLastFailureAt: () => lastFailureAt
+            getLastFailureAt: () => lastFailureAt,
+            getMetrics: metricsSnapshot
         });
     }
 
