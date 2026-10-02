@@ -12,6 +12,7 @@
     'use strict';
 
     const SUPABASE_CLIENT_SRC = 'vendor/supabase-client.js';
+    const OPERATIONAL_CLIENT_INSTANCE_HEADER = 'x-radar-client-instance';
     const pendingClientLoads = typeof WeakMap === 'function' ? new WeakMap() : null;
 
     function emitAuthRequired(root, message) {
@@ -40,6 +41,26 @@
 
     function hasSupabaseClient(root) {
         return Boolean(root?.supabase && typeof root.supabase.createClient === 'function');
+    }
+
+    function ensureOperationalClientInstanceId(root = globalThis) {
+        const existing = String(root?.RadarOperationalClientInstanceId || '').trim();
+        if (existing) return existing;
+        const cryptoRef = root?.crypto || globalThis.crypto;
+        const generated = typeof cryptoRef?.randomUUID === 'function'
+            ? cryptoRef.randomUUID()
+            : `radar-${Date.now()}-${Math.random().toString(36).slice(2, 14)}`;
+        try {
+            Object.defineProperty(root, 'RadarOperationalClientInstanceId', {
+                value: generated,
+                configurable: false,
+                enumerable: false,
+                writable: false
+            });
+        } catch (_error) {
+            root.RadarOperationalClientInstanceId = generated;
+        }
+        return generated;
     }
 
     function ensureSupabaseClient(root = globalThis) {
@@ -114,6 +135,7 @@
             throw new Error('Serviço de sessão indisponível para a conexão explicitamente ativada.');
         }
 
+        const operationalClientInstanceId = ensureOperationalClientInstanceId(root);
         const client = root.supabase.createClient(
             runtimeConfig.supabase.url,
             runtimeConfig.supabase.publishableKey,
@@ -122,6 +144,11 @@
                     persistSession: true,
                     autoRefreshToken: true,
                     detectSessionInUrl: true
+                },
+                global: {
+                    headers: {
+                        [OPERATIONAL_CLIENT_INSTANCE_HEADER]: operationalClientInstanceId
+                    }
                 }
             }
         );
@@ -169,9 +196,12 @@
     }
 
     return Object.freeze({
+        SUPABASE_CLIENT_SRC,
+        OPERATIONAL_CLIENT_INSTANCE_HEADER,
         emitAuthRequired,
         emitAuthResolved,
         publicAuthentication,
+        ensureOperationalClientInstanceId,
         ensureSupabaseClient,
         prepareAuthenticatedClient
     });
