@@ -49,6 +49,35 @@ test('falha recente de contexto impede que clique/focusout force nova RPC imedia
     assert.equal(controller.hasPendingRefresh(), true);
 });
 
+test('Realtime pendente durante edição drena ao sair do campo mesmo após refresh recente bem-sucedido', async () => {
+    let calls = 0;
+    const root = stableRoot();
+    const service = {
+        async loadOperationalContext() {
+            calls += 1;
+            return { stale: false, revision: calls };
+        }
+    };
+    const controller = createRefreshController(root, service, {
+        minIntervalMs: 30000
+    });
+
+    await controller.refresh('realtime', { force: true });
+    assert.equal(calls, 1);
+
+    root.document.activeElement = { matches: () => true };
+    const duringEdit = await controller.refresh('realtime', { force: true });
+    assert.equal(duringEdit.reason, 'editing');
+    assert.equal(controller.hasPendingRefresh(), true);
+
+    root.document.activeElement = null;
+    const resumed = await controller.flushPending('focusout');
+
+    assert.equal(resumed.stale, false);
+    assert.equal(calls, 2, 'a invalidação Realtime legítima não pode ser bloqueada pelo refresh anterior');
+    assert.equal(controller.hasPendingRefresh(), false);
+});
+
 test('invalidação recebida durante leitura bem-sucedida ainda drena uma segunda leitura dentro do cooldown', async () => {
     let calls = 0;
     let releaseFirst;
