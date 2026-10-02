@@ -26,6 +26,10 @@
     // sucessivos sem sacrificar a convergência rápida entre usuários.
     const DEFAULT_DEBOUNCE_MS = 2000;
 
+    function text(value) {
+        return value == null ? '' : String(value).trim();
+    }
+
     function authenticated(root) {
         return Boolean(root?.RadarAuthContext?.user || root?.RadarAuthContext?.authorization);
     }
@@ -54,6 +58,7 @@
         let lastStatus = 'IDLE';
         const metrics = {
             broadcastsReceived: 0,
+            ownBroadcastsIgnored: 0,
             coalescedBroadcasts: 0,
             refreshesScheduled: 0,
             refreshAttempts: 0,
@@ -112,11 +117,34 @@
             return true;
         }
 
+        function isOwnBroadcast(message = {}) {
+            const payload = message?.payload || message || {};
+            const originUserId = text(payload.originUserId);
+            const originClientInstanceId = text(payload.originClientInstanceId);
+            const currentUserId = text(
+                root?.RadarAuthContext?.user?.id
+                || root?.RadarAuthContext?.authorization?.userId
+            );
+            const currentClientInstanceId = text(root?.RadarOperationalClientInstanceId);
+            return Boolean(
+                originUserId
+                && originClientInstanceId
+                && currentUserId
+                && currentClientInstanceId
+                && originUserId === currentUserId
+                && originClientInstanceId === currentClientInstanceId
+            );
+        }
+
         function handleBroadcast(message = {}) {
             metrics.broadcastsReceived += 1;
             metrics.lastBroadcastAt = new Date().toISOString();
             const entity = String(message?.payload?.entity || message?.entity || 'unknown');
             metrics.byEntity[entity] = (metrics.byEntity[entity] || 0) + 1;
+            if (isOwnBroadcast(message)) {
+                metrics.ownBroadcastsIgnored += 1;
+                return;
+            }
             scheduleRefresh('realtime');
         }
 
