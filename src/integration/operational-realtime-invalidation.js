@@ -25,6 +25,10 @@
     // sessões. Agrupamos rajadas de escrita para evitar thundering herd e rerenders
     // sucessivos sem sacrificar a convergência rápida entre usuários.
     const DEFAULT_DEBOUNCE_MS = 2000;
+    // O resultado autoritativo de uma escrita já é aplicado localmente. O Broadcast
+    // emitido pela própria transação não precisa reler imediatamente o mesmo contexto.
+    // Mantemos, porém, uma reconciliação de quietude para garantir convergência eventual.
+    const DEFAULT_OWN_RECONCILE_MS = 30000;
 
     function text(value) {
         return value == null ? '' : String(value).trim();
@@ -50,8 +54,12 @@
         const debounceMs = Number.isFinite(options.debounceMs)
             ? Math.max(0, options.debounceMs)
             : DEFAULT_DEBOUNCE_MS;
+        const ownReconcileMs = Number.isFinite(options.ownReconcileMs)
+            ? Math.max(0, options.ownReconcileMs)
+            : DEFAULT_OWN_RECONCILE_MS;
         let channel = null;
         let timer = null;
+        let ownReconcileTimer = null;
         let everSubscribed = false;
         let destroyed = false;
         let startPromise = null;
@@ -59,6 +67,8 @@
         const metrics = {
             broadcastsReceived: 0,
             ownBroadcastsIgnored: 0,
+            ownReconciliationsScheduled: 0,
+            ownReconciliationsCoalesced: 0,
             coalescedBroadcasts: 0,
             refreshesScheduled: 0,
             refreshAttempts: 0,
@@ -84,6 +94,12 @@
             timer = null;
         }
 
+        function clearOwnReconciliation() {
+            if (ownReconcileTimer == null) return;
+            root.clearTimeout?.(ownReconcileTimer);
+            ownReconcileTimer = null;
+        }
+
         function scheduleRefresh(reason = 'realtime') {
             if (destroyed) return false;
             if (timer != null && reason === 'realtime') metrics.coalescedBroadcasts += 1;
@@ -103,7 +119,10 @@
                         metrics.lastRefreshAt = new Date().toISOString();
                         const needsRetry = result?.ok === false || result?.stale === true;
                         if (needsRetry) metrics.refreshFailed += 1;
-                        else metrics.refreshSucceeded += 1;
+                        else {
+                            metrics.refreshSucceeded += 1;
+                            clearOwnReconciliation();
+                        }
                         if (!needsRetry || reason === 'realtime-retry') return;
                         scheduleRefresh('realtime-retry');
                     })
@@ -114,6 +133,21 @@
                         if (reason !== 'realtime-retry') scheduleRefresh('realtime-retry');
                     });
             }, debounceMs);
+            return true;
+        }
+
+        function scheduleOwnReconciliation() {
+            if (destroyed) return false;
+            if (ownReconcileTimer != null) metrics.ownReconciliationsCoalesced += 1;
+            clearOwnReconciliation();
+            metrics.ownReconciliationsScheduled += 1;
+            const schedule = typeof root.setTimeout === 'function'
+                ? root.setTimeout.bind(root)
+                : setTimeout;
+            ownReconcileTimer = schedule(() => {
+                ownReconcileTimer = null;
+                scheduleRefresh('realtime-self-reconcile');
+            }, ownReconcileMs);
             return true;
         }
 
@@ -143,8 +177,12 @@
             metrics.byEntity[entity] = (metrics.byEntity[entity] || 0) + 1;
             if (isOwnBroadcast(message)) {
                 metrics.ownBroadcastsIgnored += 1;
+                scheduleOwnReconciliation();
                 return;
             }
+            // Uma mudança realmente remota torna a reconciliação de quietude redundante:
+            // a leitura rápida de Realtime já trará também os efeitos da escrita local.
+            clearOwnReconciliation();
             scheduleRefresh('realtime');
         }
 
@@ -154,7 +192,10 @@
             if (lastStatus === 'SUBSCRIBED') {
                 const reconnect = everSubscribed;
                 everSubscribed = true;
-                if (reconnect) scheduleRefresh('realtime-reconnect');
+                if (reconnect) {
+                    clearOwnReconciliation();
+                    scheduleRefresh('realtime-reconnect');
+                }
                 return;
             }
             if (lastStatus === 'CHANNEL_ERROR' || lastStatus === 'TIMED_OUT') {
@@ -213,6 +254,7 @@
         async function stop() {
             destroyed = true;
             clearScheduledRefresh();
+            clearOwnReconciliation();
             const current = channel;
             channel = null;
             if (!current) return true;
@@ -273,6 +315,7 @@
         TOPIC,
         EVENT,
         DEFAULT_DEBOUNCE_MS,
+        DEFAULT_OWN_RECONCILE_MS,
         authenticated,
         createController,
         install
