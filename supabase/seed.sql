@@ -76,3 +76,53 @@ values
     ('ESC-LOCAL_BASIC', 'ESC-LOCAL', 'BASIC', true, '2026-01-01'),
     ('ESC-OTHER_BASIC', 'ESC-OTHER', 'BASIC', true, '2026-01-01')
 on conflict (id) do nothing;
+
+-- Registros sintéticos exclusivamente locais para a auditoria visual responsiva.
+-- Exercitam as nove colunas reais de Pendências e o drawer sem tocar em Production.
+insert into public.pendencies (
+    id, school_id, competence_origin, program_id, document_key,
+    status, responsible_area, next_actor, reason, notes, opened_at, payload
+)
+values
+    (
+        'PEND-VIS-001', 'ESC-LOCAL', '2026-05', 'BASIC', 'extCC',
+        'Aberta', 'Escola', 'Escola', 'Documento ilegível',
+        'Substituir o extrato da conta corrente por arquivo legível e completo para conferência documental.',
+        now() - interval '18 days', '{"fixture":"visual-post-pr291"}'::jsonb
+    ),
+    (
+        'PEND-VIS-002', 'ESC-LOCAL', '2026-05', 'BASIC', 'extINV',
+        'Aguardando reanálise', 'Verbas Federais', 'Controlador', 'Extrato incompleto',
+        'Novo envio disponibilizado para reanálise. Conferir todas as páginas e a competência antes de concluir.',
+        now() - interval '9 days', '{"fixture":"visual-post-pr291"}'::jsonb
+    ),
+    (
+        'PEND-VIS-003', 'ESC-OTHER', '2026-05', 'BASIC', 'extCC',
+        'Aberta', 'Escola', 'Escola', 'Competência incorreta',
+        'O documento enviado corresponde a competência distinta da selecionada no RADAR e precisa ser substituído.',
+        now() - interval '31 days', '{"fixture":"visual-post-pr291"}'::jsonb
+    ),
+    (
+        'PEND-VIS-004', 'ESC-OTHER', '2026-05', 'BASIC', 'extINV',
+        'Aberta', 'Escola', 'Escola', 'Documento ausente',
+        'Extrato de investimento ainda não localizado no conjunto documental apresentado pela unidade escolar.',
+        now() - interval '5 days', '{"fixture":"visual-post-pr291"}'::jsonb
+    )
+on conflict (id) do nothing;
+
+insert into public.pendency_attempts (
+    id, pendency_id, attempt_number, submitted_at, analyzed_at,
+    result, observation, drive_url, errors, payload
+)
+values
+    (
+        'ATT-VIS-001', 'PEND-VIS-001', 1, now() - interval '15 days', now() - interval '14 days',
+        'incorreto', 'Arquivo permaneceu ilegível após o primeiro reenvio.', '', '["Documento ilegível"]'::jsonb,
+        '{"fixture":"visual-post-pr291"}'::jsonb
+    ),
+    (
+        'ATT-VIS-002', 'PEND-VIS-002', 1, now() - interval '1 day', null,
+        null, 'Novo arquivo disponibilizado e aguardando reanálise.', '', '[]'::jsonb,
+        '{"fixture":"visual-post-pr291"}'::jsonb
+    )
+on conflict (id) do nothing;
