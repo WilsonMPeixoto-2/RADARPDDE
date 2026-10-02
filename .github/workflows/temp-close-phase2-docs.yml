@@ -1,0 +1,153 @@
+name: Fechar documentação da Fase 2
+
+on:
+  push:
+    branches:
+      - docs/close-phase2-production-2026-10-02
+    paths:
+      - '.github/workflows/temp-close-phase2-docs.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  close-docs:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Obter código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: docs/close-phase2-production-2026-10-02
+          fetch-depth: 0
+
+      - name: Atualizar estado documental pós-publicação
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_one(path, old, new):
+              p = Path(path)
+              text = p.read_text()
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: esperado 1 trecho, encontrado {count}: {old[:100]!r}')
+              p.write_text(text.replace(old, new, 1))
+
+          merge_sha = 'de7bebb06b867ebd557ff83cd9194fe3d45f5903'
+          deployment = 'dpl_CLYY92KojCXpmQcL8xXQkmc3TdgG'
+
+          # Relatório da frente: checkpoint -> evidência concluída.
+          replace_one(
+              'docs/evidence/2026-10-01-controller-type-retification/REPORT.md',
+              '**Classe:** evidência da frente autorizada em 01/10/2026; checkpoint em elaboração.  \n**Baseline:** main `92ddea14de25bfe644917900cac002a20094c57c`.  \n**Estado:** implementação local e regressões direcionadas confirmadas; CI/Supabase descartável e Preview ainda pendentes. Não publicado em Production.\n\n**PR:** [#404](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/404), rascunho aberto com checkpoint online.',
+              f'**Classe:** evidência concluída da Fase 2.  \n**Baseline funcional de entrada:** main `92ddea14de25bfe644917900cac002a20094c57c` (#403).  \n**Estado:** encerrada, integrada pelo PR #404 e publicada em Production em 02/10/2026.\n\n**PR:** [#404](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/404), merge `{merge_sha}`.  \n**Production:** `{deployment}`, `READY`, alias `https://radarpdde-fix.vercel.app`, manifesto no merge `{merge_sha}`.  \n**Smoke pós-publicação:** HTTP 200 na raiz e em `/escolas/04.31.001`, sem escrita de dados reais.'
+          )
+          replace_one(
+              'docs/evidence/2026-10-01-controller-type-retification/REPORT.md',
+              'O trigger existente protege o tipo com histórico de Assessoria e mantém contexto/exclusão bloqueados. A elegibilidade da retificação comum é regra da aplicação, como já era antes desta mudança. A execução descartável com Auth/RLS real ainda precisa confirmar esta entrega.',
+              'O trigger existente protege o tipo com histórico de Assessoria e mantém contexto/exclusão bloqueados. A elegibilidade da retificação comum é regra da aplicação, como já era antes desta mudança. A execução descartável com Auth/RLS, row_version, efeitos patrimoniais e reload foi concluída e aprovada no candidato final.'
+          )
+          replace_one(
+              'docs/evidence/2026-10-01-controller-type-retification/REPORT.md',
+              '## Pendências para encerramento\n\n1. Provar Auth/RLS, row_version, histórico, patrimônio e reload em Supabase descartável real.\n2. Conferir gates do SHA final e classificar eventuais falhas auxiliares com evidência.\n3. Inspecionar Preview e composição nos viewports alvo.\n4. Obter aceitação da entrega concreta antes de integração/publicação desta nova fase.\n\nProduction continua no #403. Não foram criados ou editados dados reais nesta frente. NAV-01/UX-04, PROD-UX-08, exclusão e transferência/anulação auditável não fazem parte desta entrega.',
+              f'''## Encerramento\n\n- candidato final antes do merge: `af76855c3a11a82f5e2fce985531f2f39a79f2fc`;\n- todos os workflows aplicáveis do candidato final encerraram verdes, incluindo E2E completo, ciclos funcionais reais com Supabase, confiabilidade com reload, Supabase readiness, Auth/RLS/pgTAP, regressão visual desktop, perfis/viewports, Lighthouse e CodeQL;\n- integração: PR #404, merge `{merge_sha}`;\n- Vercel Production: `{deployment}`, `READY`, target `production`, região `gru1`;\n- smoke observacional pós-publicação: raiz e rota profunda `/escolas/04.31.001` responderam HTTP 200;\n- nenhuma escrita em dados reais de Production foi necessária para o encerramento.\n\nA Fase 2 está encerrada. NAV-01/UX-04, PROD-UX-08, exclusão, anulação auditável, transferência estrutural e futuras flexibilizações não fazem parte desta entrega e não são abertas automaticamente por este encerramento.'''
+          )
+
+          # Handoff deixa de ser corrente.
+          replace_one(
+              'docs/handoff/2026-10-01-controller-type-retification.md',
+              '**Classe:** único handoff corrente, apontado por CURRENT_STAGE.  \n**Data:** 01/10/2026. **Baseline:** main `92ddea14de25bfe644917900cac002a20094c57c` (#403).',
+              f'**Classe:** histórico concluído — Fase 2 integrada e publicada.  \n**Data de abertura:** 01/10/2026. **Encerramento:** 02/10/2026.  \n**Baseline de entrada:** main `92ddea14de25bfe644917900cac002a20094c57c` (#403). **Merge de saída:** `{merge_sha}` (#404).'
+          )
+          replace_one(
+              'docs/handoff/2026-10-01-controller-type-retification.md',
+              '## Continuidade\n\n1. Elegibilidade pertence ao InvoiceService e é compartilhada com o editor.\n2. Preservar guards de contexto/exclusão, ciclo de a_identificar, histórico de Assessoria, Inventariada e bonificação.\n3. Não criar nova persistência, migrations, schema ou permissões.\n4. Testes locais passaram; o relatório separa essa prova da validação real Auth/RLS/Supabase no CI.\n5. Abrir e julgar as capturas; testes de clique não provaram inicialmente a composição correta da confirmação.\n6. Finalizar CI do SHA final e Preview antes de pedir aceitação da entrega concreta para integração/publicação. Não há autorização nova de escrita em Production nesta fase.',
+              f'''## Encerramento\n\nA continuidade acima foi executada e não permanece como fila ativa. O candidato final passou os gates remotos, a proteção adicional de atividade real de Assessoria foi incorporada, o PR #404 foi mergeado em `{merge_sha}` e o deployment Production `{deployment}` ficou `READY`. O smoke pós-publicação respondeu HTTP 200 na raiz e na rota profunda `/escolas/04.31.001`, sem CRUD em Production.\n\nEste handoff deve ser lido apenas como histórico da frente concluída. Não existe handoff corrente desta Fase 2.'''
+          )
+
+          # CURRENT_STAGE: frente encerrada e sem novo handoff automático.
+          replace_one('docs/CURRENT_STAGE.md', '**Atualizado em:** 1 de outubro de 2026', '**Atualizado em:** 2 de outubro de 2026')
+          replace_one(
+              'docs/CURRENT_STAGE.md',
+              '**A frente corrente autorizada é a Fase 2 de autonomia dos Controladores, com UX da retificação.** Baseline revalidada: `main@92ddea14de25bfe644917900cac002a20094c57c`, merge do #403 (Fase 1), também confirmado no manifesto de Production. A Fase 2 permite corrigir classificação apenas com histórico fiscal encerrado/cancelado, sem Assessoria; não está publicada. O único handoff corrente é [retificação de classificação e UX](handoff/2026-10-01-controller-type-retification.md).',
+              f'''**A Fase 2 de autonomia dos Controladores e UX da retificação está encerrada, integrada e publicada.** O PR #404 foi mergeado em `{merge_sha}` e publicado no deployment Production `{deployment}`, `READY`, com smoke HTTP 200 na raiz e em `/escolas/04.31.001`. A retificação de classificação permanece limitada ao histórico exclusivamente fiscal encerrado/cancelado e falha fechada diante de Pendência ativa, atividade/histórico de Assessoria, `a_identificar`, bem `Inventariada` ou versionamento desconhecido.\n\n**Não há handoff corrente desta frente e nenhuma nova fase foi iniciada automaticamente.** A proteção patrimonial adicional, anulação/transferência auditável, `PROD-UX-08`, NAV-01/UX-04 e Fase D permanecem decisões/frentes separadas.'''
+          )
+          replace_one(
+              'docs/CURRENT_STAGE.md',
+              'O handoff corrente é [retificação de classificação e UX](handoff/2026-10-01-controller-type-retification.md). Ambos os handoffs de candidato/publicação do #397 permanecem históricos concluídos. [PROD-UX-08](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) é uma pendência separada de retomada visual. A investigação de `PROD-FUNC-09` está encerrada.',
+              'Não há handoff corrente. [Retificação de classificação e UX](handoff/2026-10-01-controller-type-retification.md) passa a histórico concluído da Fase 2, assim como os handoffs de candidato/publicação do #397. [PROD-UX-08](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) continua uma pendência separada de retomada visual. A investigação de `PROD-FUNC-09` está encerrada.'
+          )
+          replace_one(
+              'docs/CURRENT_STAGE.md',
+              '5. handoff corrente indicado acima;',
+              '5. handoff corrente indicado acima, quando houver;'
+          )
+          replace_one(
+              'docs/CURRENT_STAGE.md',
+              'A **Fase D — hardening e performance permanece planejada, mas foi deliberadamente adiada** até que esta frente funcional/visual principal seja novamente compreendida no baseline pós-A+B+C. Ela não foi cancelada nem iniciada.',
+              'A **Fase D — hardening e performance permanece planejada, mas não iniciada**. O encerramento da Fase 2 não a inicia automaticamente nem transforma outras pendências visuais/funcionais em fila implícita.'
+          )
+
+          # STATUS_DOCUMENTOS: nenhum handoff corrente; Fase 2 histórica concluída.
+          replace_one('docs/reference/STATUS_DOCUMENTOS.md', '**Atualizado em:** 1 de outubro de 2026', '**Atualizado em:** 2 de outubro de 2026')
+          replace_one(
+              'docs/reference/STATUS_DOCUMENTOS.md',
+              '| docs/handoff/2026-10-01-controller-type-retification.md | **Handoff corrente** | Fase 2 de autonomia e UX, baseline #403 e provas separadas por ambiente |',
+              '| docs/handoff/2026-10-01-controller-type-retification.md | Histórico concluído | Fase 2 de autonomia e UX, integrada pelo #404 e publicada em Production em 02/10/2026 |'
+          )
+          replace_one(
+              'docs/reference/STATUS_DOCUMENTOS.md',
+              'A baseline principal dessa jornada foi homologada. `PROD-FUNC-09` foi encerrado pelo PR #392 e confirmado em Production no merge `8284a02faf3d9381ad42e66b6d93677d396e8515`; a data civil e o instante técnico ficaram coerentes na tentativa original, sem escrita. O #397 foi integrado no merge `a5e200e5c3d7955cea0a6122bde1904469771ac3` e publicado com SQL compatível, preservando a leitura contextual do #396. A evidência de publicação está em `docs/evidence/2026-09-30-pr397-production-release/`; a retomada pós-publicação foi encerrada e preservada em `docs/handoff/2026-09-30-pos-publicacao-pr397-retomada.md`. A CI de 45 checks e os 20 ciclos reais descartáveis pertencem ao candidato `0e149e1...`; o smoke do novo deployment em Production foi observacional, sem CRUD. A frente corrente é a Fase 2 de autonomia/UX, sobre main `92ddea14de25bfe644917900cac002a20094c57c` (#403), descrita em `docs/handoff/2026-10-01-controller-type-retification.md`. `PROD-UX-08` e NAV-01/UX-04 permanecem frentes separadas e não são encerradas por esta entrega.',
+              f'''A baseline principal dessa jornada foi homologada. `PROD-FUNC-09` foi encerrado pelo PR #392 e confirmado em Production no merge `8284a02faf3d9381ad42e66b6d93677d396e8515`; a data civil e o instante técnico ficaram coerentes na tentativa original, sem escrita. O #397 foi integrado no merge `a5e200e5c3d7955cea0a6122bde1904469771ac3` e publicado com SQL compatível, preservando a leitura contextual do #396. A evidência de publicação está em `docs/evidence/2026-09-30-pr397-production-release/`; a retomada pós-publicação foi encerrada e preservada em `docs/handoff/2026-09-30-pos-publicacao-pr397-retomada.md`. A CI de 45 checks e os 20 ciclos reais descartáveis pertencem ao candidato `0e149e1...`; o smoke do novo deployment em Production foi observacional, sem CRUD.\n\nA Fase 2 de autonomia/UX também está encerrada: PR #404, merge `{merge_sha}`, deployment Production `{deployment}` `READY`, com smoke HTTP 200 na raiz e na rota profunda `/escolas/04.31.001`, sem escrita real. Seu handoff e relatório passam a histórico/evidência concluída. **Não há handoff corrente.** `PROD-UX-08` e NAV-01/UX-04 permanecem frentes separadas e não são encerradas por esta entrega.'''
+          )
+          replace_one(
+              'docs/reference/STATUS_DOCUMENTOS.md',
+              'Handoff corrente:\n\n- `docs/handoff/2026-10-01-controller-type-retification.md` — contrato aprovado para classificação, UX, evidência por ambiente e limites de publicação.\n\nPendência separada de retomada:',
+              'Handoff corrente:\n\n- **nenhum**.\n\nPendência separada de retomada:'
+          )
+          replace_one(
+              'docs/reference/STATUS_DOCUMENTOS.md',
+              'Handoffs históricos concluídos:\n\n- `docs/handoff/2026-09-30-pr397-independencia-despesas-bonificacao.md`',
+              'Handoffs históricos concluídos:\n\n- `docs/handoff/2026-10-01-controller-type-retification.md` — Fase 2 integrada pelo #404 e publicada em Production;\n- `docs/handoff/2026-09-30-pr397-independencia-despesas-bonificacao.md`'
+          )
+
+          # Índice documental.
+          replace_one('docs/README.md', '**Atualizado em:** 30 de setembro de 2026', '**Atualizado em:** 2 de outubro de 2026')
+          replace_one(
+              'docs/README.md',
+              '**Estado funcional corrente:** A + B + C e #397 estão concluídos; Fase D permanece adiada. A Fase 1 de descobribilidade (#403) está publicada em `92ddea14…`. A frente autorizada agora é Fase 2 de correção de classificação com histórico fiscal encerrado/cancelado, acompanhada de UX. O único handoff corrente é [retificação de classificação](handoff/2026-10-01-controller-type-retification.md), com [checkpoint de evidências](evidence/2026-10-01-controller-type-retification/REPORT.md). NAV-01/UX-04 e `PROD-UX-08` permanecem separados. A frente atual ainda não está publicada em Production.',
+              f'''**Estado funcional corrente:** A + B + C e #397 estão concluídos; Fase D permanece não iniciada. As Fases 1 e 2 de autonomia/retificação também estão concluídas e publicadas: #403 introduziu a descobribilidade da edição e #404 integrou a correção segura de classificação com UX assistida no merge `{merge_sha}`, publicado no deployment `{deployment}`. O [handoff da Fase 2](handoff/2026-10-01-controller-type-retification.md) e seu [relatório de evidências](evidence/2026-10-01-controller-type-retification/REPORT.md) são históricos concluídos. **Não há handoff corrente.** NAV-01/UX-04 e `PROD-UX-08` permanecem separados e nenhuma nova frente é aberta automaticamente.'''
+          )
+          replace_one(
+              'docs/README.md',
+              '- [`handoff/2026-10-01-controller-type-retification.md`](handoff/2026-10-01-controller-type-retification.md) — **único handoff corrente**, Fase 2 e UX com evidência por fronteira;',
+              '- [`handoff/2026-10-01-controller-type-retification.md`](handoff/2026-10-01-controller-type-retification.md) — **histórico concluído**, Fase 2 e UX integradas pelo #404; ver também o relatório de evidências da publicação;'
+          )
+
+          # Verificações simples de coerência.
+          for path in [
+              'docs/CURRENT_STAGE.md',
+              'docs/reference/STATUS_DOCUMENTOS.md',
+              'docs/README.md',
+              'docs/handoff/2026-10-01-controller-type-retification.md',
+              'docs/evidence/2026-10-01-controller-type-retification/REPORT.md',
+          ]:
+              text = Path(path).read_text()
+              if 'Fase 2' not in text:
+                  raise SystemExit(f'{path}: referência à Fase 2 ausente após atualização')
+          PY
+
+          git diff --check
+          git diff --stat
+
+      - name: Registrar fechamento documental
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'Wilson Malafaia Peixoto'
+          git config user.email 'wilsonmp2@gmail.com'
+          git add docs/CURRENT_STAGE.md docs/README.md docs/reference/STATUS_DOCUMENTOS.md docs/handoff/2026-10-01-controller-type-retification.md docs/evidence/2026-10-01-controller-type-retification/REPORT.md
+          git commit -m 'docs: encerrar Fase 2 após publicação em Production'
+          git push origin HEAD:docs/close-phase2-production-2026-10-02
