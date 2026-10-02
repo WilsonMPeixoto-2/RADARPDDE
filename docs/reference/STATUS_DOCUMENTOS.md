@@ -45,7 +45,7 @@ PR aberto, Preview ou documento antigo não altera Production.
 | docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md | Gerado | visão humana da matriz |
 | docs/DECISION_LOG.md e docs/decisions/*.md | Decisão vigente | regras especializadas |
 
-## 3. Frente corrente e baseline operacional
+## 3. Baseline operacional e frentes separadas
 
 A/B foram integradas e publicadas no #378; C1 foi concluída no #384; C2 no #385; C3 no #386. **A + B + C estão encerradas.**
 
@@ -58,7 +58,7 @@ A baseline funcional que comprovou o encerramento da C3 é:
 
 Commits posteriores exclusivamente documentais não reabrem uma fase encerrada nem representam, por si, mudança funcional do RADAR. Como a `main` pode avançar por manutenção documental e a Vercel pode publicar esses commits, o head e o deployment exatos devem ser consultados ao vivo quando forem necessários para uma nova entrega.
 
-A **Fase D ainda não foi iniciada e está deliberadamente adiada** enquanto a frente funcional/visual principal de Despesa a identificar/Pendências é fechada pelos achados atuais.
+A **Fase D ainda não foi iniciada**. O encerramento da Fase 2 não a inicia automaticamente; `PROD-UX-08`, NAV-01/UX-04 e demais refinamentos eventualmente mantidos permanecem frentes separadas até decisão explícita de retomada.
 
 A baseline principal dessa jornada foi homologada. `PROD-FUNC-09` foi encerrado pelo PR #392 e confirmado em Production no merge `8284a02faf3d9381ad42e66b6d93677d396e8515`; a data civil e o instante técnico ficaram coerentes na tentativa original, sem escrita. O #397 foi integrado no merge `a5e200e5c3d7955cea0a6122bde1904469771ac3` e publicado com SQL compatível, preservando a leitura contextual do #396. A evidência de publicação está em `docs/evidence/2026-09-30-pr397-production-release/`; a retomada pós-publicação foi encerrada e preservada em `docs/handoff/2026-09-30-pos-publicacao-pr397-retomada.md`. A CI de 45 checks e os 20 ciclos reais descartáveis pertencem ao candidato `0e149e1...`; o smoke do novo deployment em Production foi observacional, sem CRUD.
 
@@ -66,7 +66,7 @@ A Fase 2 de autonomia/UX também está encerrada: PR #404, merge `de7bebb06b867e
 
 O servidor canônico e suas correções não alteraram schema, migrations, RPCs, RLS, serviços de domínio, layout ou persistência canônica.
 
-**Sucessão prevista:** depois de encerrar `PROD-FUNC-09`, `PROD-UX-08` e os refinamentos imediatos que permanecerem válidos, a próxima decisão de produto deve recuperar `docs/evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md` antes de abrir uma frente ampla de layout/design. Essa obrigação preserva o debate sobre Figma, design system, tokens, componentização, iconografia, tipografia, galeria de estados e tooling visual sem transformar a avaliação datada em adoção automática.
+**Sucessão prevista:** com `PROD-FUNC-09` já encerrado, depois de encerrar `PROD-UX-08` e os refinamentos imediatos que permanecerem válidos, a próxima decisão de produto deve recuperar `docs/evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md` antes de abrir uma frente ampla de layout/design. Essa obrigação preserva o debate sobre Figma, design system, tokens, componentização, iconografia, tipografia, galeria de estados e tooling visual sem transformar a avaliação datada em adoção automática.
 
 ## 4. Handoff corrente e histórico
 
@@ -74,7 +74,7 @@ Handoff corrente:
 
 - **nenhum**.
 
-Pendência separada de retomada: `docs/handoff/2026-09-28-prod-ux-08-drawer-clipping.md` — diagnóstico visual dirigido do clipping desktop. Não executar nem declarar encerrada dentro do #397.
+Pendência separada de retomada: `docs/handoff/2026-09-28-prod-ux-08-drawer-clipping.md` — diagnóstico visual dirigido do clipping desktop. Não foi encerrada pelos PRs #397 ou #404 e só deve ser retomada por decisão explícita.
 
 Handoffs históricos concluídos:
 
