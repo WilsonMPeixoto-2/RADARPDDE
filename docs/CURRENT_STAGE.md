@@ -13,7 +13,7 @@
 
 **O PR #397 — independência entre despesas e bonificação — permanece integrado e publicado.** A ADR-055 e a leitura contextual do #396 são preservadas. A [continuidade após o #397](handoff/2026-09-30-pos-publicacao-pr397-retomada.md) passou a contexto histórico desta entrega.
 
-`PROD-UX-08` e a rodada NAV-01/UX-04 permanecem separadas; não foram homologadas por esta frente. #394, planos amplos do #395 e Fase D continuam fora do recorte. A autorização antiga de publicação do #397 não autoriza publicar automaticamente esta nova fase.
+`PROD-UX-08` e a rodada NAV-01/UX-04 permanecem separadas; não foram homologadas pela Fase 2. #394, planos amplos do #395 e Fase D continuam fora do recorte. O encerramento da Fase 2 não autoriza automaticamente essas frentes.
 
 Registro da publicação de 30/09/2026:
 
@@ -93,7 +93,7 @@ Para retomada, a ordem de leitura continua sendo:
 8. `docs/reference/STATUS_DOCUMENTOS.md`;
 9. matriz funcional e ADRs da área afetada.
 
-## 5. Frente ativa e Fase D
+## 5. Pendências separadas e Fase D
 
 A baseline principal da jornada desktop de **Despesa a identificar / Pendências / novo envio / reanálise / navegação** foi homologada por evidências complementares em ambiente local, Supabase descartável no CI e Production autenticada.
 
@@ -105,7 +105,7 @@ A aba autenticada foi recarregada e o mesmo registro sintético, sem nova escrit
 
 A investigação de **`PROD-UX-08` — clipping e sobreposição do drawer global em desktop** permanece pendente. As publicações de #392 e #397 não homologam a composição inteira do drawer. Esse achado não deve ser confundido com UX-04, que trata da largura mobile e integra a rodada limitada de Preview solicitada pelo usuário.
 
-O registro de retomada dessa pendência visual é [`docs/handoff/2026-09-28-prod-ux-08-drawer-clipping.md`](handoff/2026-09-28-prod-ux-08-drawer-clipping.md). Ele não concorre com o único handoff corrente de continuidade.
+O registro de retomada dessa pendência visual é [`docs/handoff/2026-09-28-prod-ux-08-drawer-clipping.md`](handoff/2026-09-28-prod-ux-08-drawer-clipping.md). Ele permanece como pendência separada; não há handoff corrente.
 
 A **Fase D — hardening e performance permanece planejada, mas não iniciada**. O encerramento da Fase 2 não a inicia automaticamente nem transforma outras pendências visuais/funcionais em fila implícita.
 
@@ -113,7 +113,7 @@ A avaliação separada de ferramentas para evolução visual permanece em [DESIG
 
 ### Sucessão obrigatória após a fila corretiva imediata
 
-A discussão sobre modernização visual **não é memória opcional de conversa**. Depois de encerrar os defeitos e refinamentos imediatos oriundos da auditoria atual — começando por `PROD-FUNC-09`, depois `PROD-UX-08` e demais ajustes que forem formalmente mantidos na fila — o próximo agente deve, **antes de abrir uma nova frente ampla de layout/design**, ler e reavaliar:
+A discussão sobre modernização visual **não é memória opcional de conversa**. Depois de encerrar os defeitos e refinamentos imediatos oriundos da auditoria atual — `PROD-FUNC-09` já está encerrado; a fila remanescente começa por `PROD-UX-08` e pelos demais ajustes que forem formalmente mantidos — o próximo agente deve, **antes de abrir uma nova frente ampla de layout/design**, ler e reavaliar:
 
 `docs/evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md`
 
@@ -121,4 +121,4 @@ Esse documento é uma avaliação técnica datada, portanto suas versões de pac
 
 Essa retomada deve combinar o estudo de tooling com o método permanente instituído pelo PR #389: qualquer proposta visual precisa ser avaliada como sistema integrado e passar pela aceitação humana outside-in. Não iniciar migração de framework ou instalar bibliotecas apenas por modernidade; primeiro comparar benefício observável, custo, risco e compatibilidade com a arquitetura vigente.
 
-Ao encerrar a fila corretiva atual, `CURRENT_STAGE.md` deve apontar explicitamente para um novo handoff de evolução visual que cite `DESIGN_TOOLING.md`; não saltar diretamente para Fase D ou outra frente sem decidir conscientemente esse próximo passo.
+Ao encerrar a fila corretiva remanescente, `CURRENT_STAGE.md` deve apontar explicitamente para um novo handoff de evolução visual que cite `DESIGN_TOOLING.md`; não saltar diretamente para Fase D ou outra frente sem decidir conscientemente esse próximo passo.
