@@ -1,0 +1,75 @@
+name: Aplicar proteção final Fase 2
+
+on:
+  push:
+    branches:
+      - fix/controller-expense-type-retification-2026-10-01
+    paths:
+      - '.github/workflows/temp-fase2-advisory-guard.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Obter código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: fix/controller-expense-type-retification-2026-10-01
+          fetch-depth: 0
+      - name: Aplicar proteção e alinhar gate direcionado
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          service = Path('src/application/invoice-service.js')
+          text = service.read_text()
+          old = """        let message = '';
+          if (history.some(pendency => text(pendency.documentoKey || pendency.document_key) === 'consAssessoria')) {
+              message = 'A classificação fica preservada porque este lançamento possui histórico de Consulta à Assessoria.';
+          } else if (history.some(pendency => pendencyDomain.isActivePendency(pendency))) {
+          """
+          new = """        let message = '';
+          const advisorySent = invoice.consultaAssessoriaEnviada === true;
+          const advisoryAnalysis = text(invoice.analiseConsultaAssessoria);
+          const hasRecordedAdvisory = advisorySent
+              || (advisoryAnalysis && advisoryAnalysis !== 'Não analisado');
+          if (hasRecordedAdvisory) {
+              message = 'A classificação fica preservada porque este lançamento já possui registro individual de Consulta à Assessoria.';
+          } else if (history.some(pendency => text(pendency.documentoKey || pendency.document_key) === 'consAssessoria')) {
+              message = 'A classificação fica preservada porque este lançamento possui histórico de Consulta à Assessoria.';
+          } else if (history.some(pendency => pendencyDomain.isActivePendency(pendency))) {
+          """
+          if text.count(old) != 1:
+              raise SystemExit('Bloco esperado de invoiceTypeChangeRestriction não localizado exatamente uma vez')
+          service.write_text(text.replace(old, new, 1))
+
+          workflow = Path('.github/workflows/retification-targeted.yml')
+          text = workflow.read_text()
+          path_old = "      - 'tests/unit/invoice-type-retification.test.js'\n"
+          path_new = path_old + "      - 'tests/unit/invoice-type-retification-advisory-state.test.js'\n"
+          if text.count(path_old) != 1:
+              raise SystemExit('Entrada de path do gate direcionado não localizada exatamente uma vez')
+          text = text.replace(path_old, path_new, 1)
+          run_old = "          tests/unit/invoice-type-retification.test.js\n"
+          run_new = run_old + "          tests/unit/invoice-type-retification-advisory-state.test.js\n"
+          if text.count(run_old) != 1:
+              raise SystemExit('Comando unitário do gate direcionado não localizado exatamente uma vez')
+          workflow.write_text(text.replace(run_old, run_new, 1))
+          PY
+          rm -f .github/workflows/temp-fase2-advisory-guard.yml
+          git diff --check
+          node --test tests/unit/invoice-type-retification-advisory-state.test.js
+      - name: Registrar correção
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'Wilson Malafaia Peixoto'
+          git config user.email 'wilsonmp2@gmail.com'
+          git add src/application/invoice-service.js tests/unit/invoice-type-retification-advisory-state.test.js .github/workflows/retification-targeted.yml .github/workflows/temp-fase2-advisory-guard.yml
+          git commit -m 'fix: preservar histórico real de Assessoria na retificação'
+          git push origin HEAD:fix/controller-expense-type-retification-2026-10-01
