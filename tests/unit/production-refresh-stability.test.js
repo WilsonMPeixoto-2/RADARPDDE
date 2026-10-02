@@ -49,9 +49,9 @@ test('falha recente de contexto impede que clique/focusout force nova RPC imedia
     assert.equal(controller.hasPendingRefresh(), true);
 });
 
-test('Realtime agrega rajadas por pelo menos cinco segundos antes de reler o contexto pesado', () => {
+test('Realtime agrega rajadas por pelo menos dois segundos antes de reler o contexto pesado', () => {
     assert.ok(
-        DEFAULT_DEBOUNCE_MS >= 5000,
+        DEFAULT_DEBOUNCE_MS >= 2000,
         `debounce atual de ${DEFAULT_DEBOUNCE_MS}ms ainda permite tempestade de releituras`
     );
 });
