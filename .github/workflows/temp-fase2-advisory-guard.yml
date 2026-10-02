@@ -28,38 +28,35 @@ jobs:
 
           service = Path('src/application/invoice-service.js')
           text = service.read_text()
-          old = """        let message = '';
-          if (history.some(pendency => text(pendency.documentoKey || pendency.document_key) === 'consAssessoria')) {
-              message = 'A classificação fica preservada porque este lançamento possui histórico de Consulta à Assessoria.';
-          } else if (history.some(pendency => pendencyDomain.isActivePendency(pendency))) {
-          """
-          new = """        let message = '';
-          const advisorySent = invoice.consultaAssessoriaEnviada === true;
-          const advisoryAnalysis = text(invoice.analiseConsultaAssessoria);
-          const hasRecordedAdvisory = advisorySent
-              || (advisoryAnalysis && advisoryAnalysis !== 'Não analisado');
-          if (hasRecordedAdvisory) {
-              message = 'A classificação fica preservada porque este lançamento já possui registro individual de Consulta à Assessoria.';
-          } else if (history.some(pendency => text(pendency.documentoKey || pendency.document_key) === 'consAssessoria')) {
-              message = 'A classificação fica preservada porque este lançamento possui histórico de Consulta à Assessoria.';
-          } else if (history.some(pendency => pendencyDomain.isActivePendency(pendency))) {
-          """
-          if text.count(old) != 1:
-              raise SystemExit('Bloco esperado de invoiceTypeChangeRestriction não localizado exatamente uma vez')
-          service.write_text(text.replace(old, new, 1))
+          anchor = "        if (history.some(pendency => text(pendency.documentoKey || pendency.document_key) === 'consAssessoria')) {"
+          replacement = """        const advisorySent = invoice.consultaAssessoriaEnviada === true;
+                  const advisoryAnalysis = text(invoice.analiseConsultaAssessoria);
+                  const hasRecordedAdvisory = advisorySent
+                      || (advisoryAnalysis && advisoryAnalysis !== 'Não analisado');
+                  if (hasRecordedAdvisory) {
+                      message = 'A classificação fica preservada porque este lançamento já possui registro individual de Consulta à Assessoria.';
+                  } else if (history.some(pendency => text(pendency.documentoKey || pendency.document_key) === 'consAssessoria')) {"""
+          replacement = '\n'.join(line[8:] if line.startswith('        ') else line for line in replacement.splitlines())
+          replacement = '\n'.join(('        ' + line) if line else line for line in replacement.splitlines())
+          if text.count(anchor) != 1:
+              raise SystemExit(f'Âncora de Assessoria localizada {text.count(anchor)} vezes; esperado 1')
+          service.write_text(text.replace(anchor, replacement, 1))
 
           workflow = Path('.github/workflows/retification-targeted.yml')
           text = workflow.read_text()
           path_old = "      - 'tests/unit/invoice-type-retification.test.js'\n"
           path_new = path_old + "      - 'tests/unit/invoice-type-retification-advisory-state.test.js'\n"
-          if text.count(path_old) != 1:
-              raise SystemExit('Entrada de path do gate direcionado não localizada exatamente uma vez')
-          text = text.replace(path_old, path_new, 1)
+          if "tests/unit/invoice-type-retification-advisory-state.test.js" not in text:
+              if text.count(path_old) != 1:
+                  raise SystemExit('Entrada de path do gate direcionado não localizada exatamente uma vez')
+              text = text.replace(path_old, path_new, 1)
           run_old = "          tests/unit/invoice-type-retification.test.js\n"
           run_new = run_old + "          tests/unit/invoice-type-retification-advisory-state.test.js\n"
-          if text.count(run_old) != 1:
-              raise SystemExit('Comando unitário do gate direcionado não localizado exatamente uma vez')
-          workflow.write_text(text.replace(run_old, run_new, 1))
+          if text.count("          tests/unit/invoice-type-retification-advisory-state.test.js\n") < 2:
+              if text.count(run_old) != 1:
+                  raise SystemExit('Comando unitário do gate direcionado não localizado exatamente uma vez')
+              text = text.replace(run_old, run_new, 1)
+          workflow.write_text(text)
           PY
           rm -f .github/workflows/temp-fase2-advisory-guard.yml
           git diff --check
