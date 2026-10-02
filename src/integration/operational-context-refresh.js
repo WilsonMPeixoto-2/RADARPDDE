@@ -117,6 +117,7 @@
             ? Math.max(0, options.minIntervalMs)
             : MIN_REFRESH_INTERVAL_MS;
         let lastRefreshAt = 0;
+        let lastAttemptAt = 0;
         let refreshPromise = null;
         let pendingRefreshReason = '';
 
@@ -144,16 +145,31 @@
                 return { skipped: true, reason: 'invalid-competence' };
             }
             const now = Date.now();
-            if (refreshOptions.force !== true && (now - lastRefreshAt) < minIntervalMs) {
-                return { skipped: true, reason: 'throttled' };
+            const cooldownAnchor = Math.max(lastRefreshAt, lastAttemptAt);
+            if (
+                refreshOptions.force !== true
+                && cooldownAnchor > 0
+                && (now - cooldownAnchor) < minIntervalMs
+            ) {
+                markPending(reason);
+                return {
+                    skipped: true,
+                    reason: 'throttled',
+                    pending: true,
+                    retryAfterMs: Math.max(0, minIntervalMs - (now - cooldownAnchor))
+                };
             }
+
+            // Registra a tentativa, inclusive quando a RPC falhar. Assim uma falha
+            // de infraestrutura não transforma cliques/focusout em loop de retry.
+            lastAttemptAt = now;
 
             // Este refresh consome qualquer pendência já conhecida. Invalidações
             // que chegarem depois deste ponto voltam a preencher pendingRefreshReason
             // e serão relidas quando a consulta em voo terminar.
             pendingRefreshReason = '';
 
-            const startedAt = Date.now();
+            const startedAt = now;
             let run = null;
             run = Promise.resolve().then(async () => {
                 const result = await service.loadOperationalContext(competenceKey, {
@@ -209,11 +225,13 @@
 
             const pendingReason = pendingRefreshReason;
             pendingRefreshReason = '';
-            const result = await refresh(`${pendingReason}-${reason}`, { force: true });
+            // Interações de UI não furam o cooldown. Escritas/Reatime podem solicitar
+            // força explicitamente no ponto de origem quando isso for realmente necessário.
+            const result = await refresh(`${pendingReason}-${reason}`);
             if (
                 result?.ok === false
                 || result?.stale === true
-                || (result?.skipped === true && result.reason === 'editing')
+                || (result?.skipped === true && ['editing', 'throttled'].includes(result.reason))
             ) {
                 markPending(pendingReason);
             }
@@ -224,7 +242,8 @@
             refresh,
             flushPending,
             hasPendingRefresh: () => Boolean(pendingRefreshReason),
-            getLastRefreshAt: () => lastRefreshAt
+            getLastRefreshAt: () => lastRefreshAt,
+            getLastAttemptAt: () => lastAttemptAt
         });
     }
 
