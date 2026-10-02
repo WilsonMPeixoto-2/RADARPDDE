@@ -3,7 +3,7 @@ set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(12);
+select plan(13);
 
 select ok(
     to_regprocedure('radar_private.broadcast_operational_invalidation()') is not null,
@@ -58,6 +58,16 @@ select ok(
     and pg_get_functiondef('radar_private.broadcast_operational_invalidation()'::regprocedure)
         ilike '%operational-change%',
     'função emite Broadcast privado no tópico/evento canônicos'
+);
+
+select ok(
+    pg_get_functiondef('radar_private.broadcast_operational_invalidation()'::regprocedure)
+        ilike '%originUserId%'
+    and pg_get_functiondef('radar_private.broadcast_operational_invalidation()'::regprocedure)
+        ilike '%originClientInstanceId%'
+    and pg_get_functiondef('radar_private.broadcast_operational_invalidation()'::regprocedure)
+        ilike '%request.headers%',
+    'Broadcast carrega proveniência suficiente para a própria aba eliminar apenas o eco da própria gravação'
 );
 
 select has_trigger('public', 'verifications', 'verifications_operational_invalidation',
