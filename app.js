@@ -11596,6 +11596,19 @@ function openModalDadosNota(escolaId, compKey) {
 }
 
 async function salvarDadosNota(e = {}) {
+    e.preventDefault?.();
+    const editingId = document.getElementById('nota-id').value;
+    if (editingId && window.RadarAuditableRetification?.confirmInvoiceTypeChange) {
+        try {
+            if (!await window.RadarAuditableRetification.confirmInvoiceTypeChange(window, {
+                id: editingId,
+                expenseType: document.getElementById('nota-tipo').value
+            })) return false;
+        } catch (error) {
+            reportRadarActionError(error, 'Não foi possível confirmar a classificação.');
+            return false;
+        }
+    }
     const executeSave = async () => {
         const accessProfile = getRadarAccessProfile();
         if (accessProfile === 'inventario' || accessProfile === 'sme') return false;

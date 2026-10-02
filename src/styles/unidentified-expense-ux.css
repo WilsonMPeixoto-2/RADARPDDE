@@ -125,3 +125,103 @@
 #modal-dados-nota .form-row[hidden] {
     display: none;
 }
+
+.invoice-edit-context,
+.invoice-retification-guidance {
+    display: grid;
+    gap: 4px;
+    margin-bottom: 16px;
+    color: var(--text-main);
+    font-size: 0.8rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.invoice-edit-context span {
+    color: var(--text-muted);
+    font-size: 0.74rem;
+}
+
+.invoice-retification-guidance {
+    padding: 12px 14px;
+    border: 1px solid rgba(91, 33, 182, 0.16);
+    border-radius: 10px;
+    background: rgba(91, 33, 182, 0.055);
+}
+
+.invoice-classification-preview {
+    display: grid;
+    gap: 10px;
+    margin: 0 0 16px;
+    padding: 14px;
+    border: 1px solid #e6c989;
+    border-radius: 10px;
+    background: #fffbef;
+    color: #594218;
+    font-size: 0.8rem;
+    line-height: 1.5;
+}
+
+.invoice-classification-preview p {
+    margin: 0;
+}
+
+.invoice-classification-comparison {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.invoice-classification-comparison > div {
+    display: grid;
+    gap: 2px;
+}
+
+.invoice-classification-dialog {
+    box-sizing: border-box;
+    width: min(480px, calc(100vw - 32px));
+    max-height: calc(100dvh - 32px);
+    margin: auto;
+    padding: 24px;
+    overflow: auto;
+    border: 1px solid var(--border-color, #e4dff0);
+    border-radius: 16px;
+    background: var(--bg-sidebar);
+    color: var(--text-main);
+    box-shadow: 0 20px 60px rgba(31, 18, 53, 0.24);
+    font-family: inherit;
+    line-height: 1.5;
+}
+
+#modal-dados-nota .form-row:has(#nota-tipo) {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.invoice-classification-dialog::backdrop {
+    background: rgba(21, 12, 37, 0.48);
+}
+
+.invoice-classification-dialog h3 {
+    margin: 0 0 16px;
+    font-size: 1.1rem;
+}
+
+.invoice-classification-dialog p {
+    font-size: 0.85rem;
+}
+
+.invoice-classification-dialog-transition {
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #fffbef;
+    color: #594218;
+    font-weight: 600;
+}
+
+.invoice-classification-dialog-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 20px;
+}

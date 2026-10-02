@@ -345,7 +345,7 @@ test.describe('Jornada real — Despesa a identificar', { lock: 'unidentified-ex
 
     await expect(expenseModal).toHaveClass(/show/);
     await expect(expenseModal.getByRole('heading', {
-      name: 'Editar despesa a identificar',
+      name: 'Editar lançamento',
       exact: true
     })).toBeVisible();
     await expect(expenseModal.locator('#nota-modal-intro'))

@@ -9,6 +9,9 @@ on:
       - 'src/integration/**'
       - 'tests/unit/auditable-retification.test.js'
       - 'tests/unit/auditable-retification-discoverability.test.js'
+      - 'tests/unit/invoice-type-retification.test.js'
+      - 'tests/unit/invoice-type-retification-advisory-state.test.js'
+      - 'tests/e2e/invoice-type-retification.spec.js'
       - 'tests/e2e/invoice-auditable-retification.spec.js'
       - 'tests/e2e/invoice-retification-discoverability.spec.js'
       - 'tests/e2e/invoice-retification-projections.spec.js'
@@ -38,6 +41,8 @@ jobs:
           node --test
           tests/unit/auditable-retification.test.js
           tests/unit/auditable-retification-discoverability.test.js
+          tests/unit/invoice-type-retification.test.js
+          tests/unit/invoice-type-retification-advisory-state.test.js
           tests/unit/evaluation-retification.test.js
           tests/unit/evaluation-retification-atomic.test.js
       - name: Instalar Chromium Playwright
@@ -48,6 +53,7 @@ jobs:
           tests/e2e/evaluation-retification-ui.spec.js
           tests/e2e/invoice-auditable-retification.spec.js
           tests/e2e/invoice-retification-discoverability.spec.js
+          tests/e2e/invoice-type-retification.spec.js
           tests/e2e/invoice-retification-projections.spec.js
           tests/e2e/pendency-manual-auditable-retification.spec.js
           --project=desktop-chromium

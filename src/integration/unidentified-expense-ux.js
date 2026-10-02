@@ -119,7 +119,7 @@
             formattedCompetence,
             program?.name || programId
         ].filter(Boolean).join(' · ');
-        context.hidden = !context.textContent;
+        context.hidden = !context.textContent || Boolean(root.document.getElementById('invoice-edit-context'));
     }
 
     function syncUnidentifiedPresentation({
@@ -168,6 +168,7 @@
         const modal = root.document.getElementById('modal-dados-nota');
         const description = root.document.getElementById('nota-desc');
         const invoiceId = text(root.document.getElementById('nota-id')?.value);
+        const retificationEditor = Boolean(invoiceId && root.document.getElementById('invoice-edit-context'));
         const title = modal?.querySelector('h3');
         const intro = root.document.getElementById('nota-modal-intro');
         const submit = modal?.querySelector('button[type="submit"]');
@@ -214,12 +215,13 @@
                 : DEFAULT_DESCRIPTION_PLACEHOLDER;
         }
 
-        if (title) {
+        if (title && !retificationEditor) {
             title.textContent = unidentified
                 ? (invoiceId ? 'Editar despesa a identificar' : 'Registrar despesa a identificar')
                 : (invoiceId ? 'Editar Dados da Nota Fiscal' : 'Dados da Nota Fiscal / Despesa');
         }
         if (intro) {
+            intro.hidden = retificationEditor;
             intro.textContent = unidentified
                 ? (invoiceId
                     ? 'Corrija os dados provisórios deste mesmo lançamento. A Pendência e seu histórico permanecem vinculados; o documento recebido deve ser registrado na Pendência.'
@@ -228,11 +230,12 @@
                     ? 'Corrija os dados deste mesmo lançamento. Salvar as alterações não cria outra despesa ou Pendência.'
                     : 'Cadastre o gasto referente a esta Nota Fiscal para que o sistema direcione as obrigações operacionais corretas.');
         }
-        if (submit) {
+        if (submit && !retificationEditor) {
             submit.textContent = unidentified
                 ? (invoiceId ? 'Salvar Alterações' : 'Registrar Despesa')
                 : (invoiceId ? 'Salvar Alterações' : 'Salvar Gasto');
         }
+        if (retificationEditor) root.RadarAuditableRetification?.updateInvoiceClassificationPreview(root);
         return unidentified;
     }
 

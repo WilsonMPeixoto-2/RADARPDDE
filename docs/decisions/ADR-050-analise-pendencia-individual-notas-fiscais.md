@@ -34,6 +34,7 @@ O hotfix também precisa representar corretamente débitos do extrato cuja docum
 19. Pendência ativa não bloqueia a retificação cadastral auditável do mesmo lançamento; permanecem bloqueadas mudanças estruturais de identidade, contexto e ciclo operacional.
 20. Pendências históricas sem identidade individual não recebem associação automática por número, valor, descrição ou heurística.
 21. O PR #295 trata somente de edição/retificação. Exclusão de lançamentos com histórico protegido permanece fora do escopo e deverá ser discutida em PR próprio.
+22. Flexibilização aprovada em 01/10/2026: o editor permite corrigir o tipo quando todo histórico individual for de `notaFiscal`, com todas as Pendências Resolvidas/Canceladas e sem histórico de `consAssessoria`. ID, escola, competência, programa, Pendências, snapshots e tentativas permanecem. A política compartilhada pertence ao `InvoiceService.invoiceTypeChangeRestriction`; efeitos, auditoria antes/depois, versões esperadas e persistência atômica usam o caminho existente. `a_identificar` continua no fluxo de identificação; bem `Inventariada` impede conversão que o removeria. Exclusão com histórico continua proibida.
 
 ### Consulta Assessoria
 

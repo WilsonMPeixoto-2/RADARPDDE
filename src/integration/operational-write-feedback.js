@@ -161,6 +161,17 @@
     function feedbackForResult(operation, result = {}) {
         const operationName = text(operation);
         let successMessage = SAVE_SUCCESS_MESSAGES[operationName];
+        if (operationName === 'invoice:save' && result?.value?.retification) {
+            const changed = result.value.retification;
+            successMessage = changed.previousType !== changed.currentType
+                ? 'Classificação atualizada.'
+                : 'Lançamento atualizado.';
+            if (changed.previousAmount !== changed.currentAmount) {
+                const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+                successMessage += ` Valor alterado de ${currency.format(changed.previousAmount)} para ${currency.format(changed.currentAmount)}.`;
+            }
+            if (changed.historyPreserved) successMessage += ' A Pendência e o histórico foram preservados.';
+        }
         if (operationName === 'invoice:register-document-attempt'
             && result?.value?.identified === true) {
             successMessage = 'Despesa identificada e documento enviado para reanálise.';

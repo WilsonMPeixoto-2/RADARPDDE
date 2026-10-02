@@ -12,16 +12,16 @@ A matriz contém **44 operações** distribuídas entre 13 superfícies.
 
 | Cobertura | Operações |
 |---|---:|
-| Comprovada | 19 |
-| Parcial | 25 |
+| Comprovada | 18 |
+| Parcial | 26 |
 | Lacuna | 0 |
 | Decisão pendente | 0 |
 
 | Próxima prova | Operações |
 |---|---:|
-| Nenhuma; manter regressão | 15 |
+| Nenhuma; manter regressão | 14 |
 | Smoke autenticado de leitura | 6 |
-| Escrita controlada e reversível | 18 |
+| Escrita controlada e reversível | 19 |
 | Observação contínua em Production | 5 |
 
 ## Perfis
@@ -78,7 +78,7 @@ A matriz contém **44 operações** distribuídas entre 13 superfícies.
 | ID | Ação | Modo | Perfis autorizados | Serviço e persistência | Cobertura | Próxima prova |
 |---|---|---|---|---|---|---|
 | `READ-03` | Consultar prontuário e timeline da unidade | read / P0 | Controlador, Assistente de Verbas Federais, Gestão SME, Equipe de Inventário, Administrador técnico | RadarSchoolTimeline.project → SupabaseRepository.read (schools, verifications, pendencies, pendency_attempts, pendency_contacts, registered_invoices, assets, administrative_logs) | Parcial | Smoke autenticado de leitura |
-| `INV-01` | Cadastrar Nota Fiscal/despesa e retificar dados editáveis do mesmo lançamento independentemente da bonificação/consolidação; A identificar nasce atomicamente | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.save + saveUnidentifiedExpenseWithPendency + RadarAuditableRetification → saveInvoiceWithEffects + save_unidentified_expense_with_pendency (registered_invoices, assets, verifications, pendencies, administrative_logs) | Comprovada | Nenhuma; manter regressão |
+| `INV-01` | Cadastrar Nota Fiscal/despesa e retificar dados editáveis do mesmo lançamento independentemente da bonificação/consolidação; A identificar nasce atomicamente; corrigir classificação com histórico exclusivamente fiscal encerrado/cancelado, sem Assessoria ou patrimônio terminal | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.save + saveUnidentifiedExpenseWithPendency + RadarAuditableRetification → saveInvoiceWithEffects + save_unidentified_expense_with_pendency (registered_invoices, assets, verifications, pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
 | `INV-02` | Excluir documento fiscal sem qualquer histórico de Pendência individual e reverter efeitos vinculados, preservando bonificação/consolidação; operação separada da retificação | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.remove + proteção histórica individual → deleteInvoiceWithEffects + advisory history trigger (registered_invoices, assets, verifications, pendencies, administrative_logs) | Comprovada | Nenhuma; manter regressão |
 | `INV-03` | Registrar envio, análise, pendência, novo envio e reanálise da Assessoria por nota fiscal de serviço sem depender nem reabrir bonificação/consolidação | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.updateServiceAdvisory + RadarServiceAdvisoryPendency → saveInvoiceWithEffects + save_service_advisory_with_pendency + register_service_advisory_attempt + reanalyze_service_advisory_pendency (registered_invoices, verifications, pendencies, pendency_attempts, administrative_logs) | Parcial | Escrita controlada e reversível |
 | `INV-04` | Analisar cada documento fiscal, abrir Pendência por invoice e manter resumo técnico derivado sem depender nem reabrir bonificação/consolidação | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.updateDocumentAnalysis + PendencyService.open/registerAttempt/reanalyze → saveInvoiceWithEffects + save_invoice_document_with_pendency + register_invoice_document_attempt + reanalyze_invoice_document_pendency (registered_invoices, assets, verifications, pendencies, pendency_attempts, administrative_logs) | Parcial | Escrita controlada e reversível |
@@ -167,6 +167,7 @@ A matriz contém **44 operações** distribuídas entre 13 superfícies.
 - **PEND-04 — Cancelar pendência com justificativa:** Falta prova controlada de justificativa, autoria e releitura.
 - **PEND-05 — Reabrir pendência cancelada ou resolvida:** Falta prova controlada da transição, autoria e releitura.
 - **PEND-06 — Registrar contato ou cobrança associado à pendência:** Falta prova controlada de idempotência, associação e releitura.
+- **INV-01 — Cadastrar Nota Fiscal/despesa e retificar dados editáveis do mesmo lançamento independentemente da bonificação/consolidação; A identificar nasce atomicamente; corrigir classificação com histórico exclusivamente fiscal encerrado/cancelado, sem Assessoria ou patrimônio terminal:** Fase 2: testes locais de retificação e UX aprovados; confirmar Auth/RLS, versões, efeitos e reload no CI descartável do candidato.
 - **INV-03 — Registrar envio, análise, pendência, novo envio e reanálise da Assessoria por nota fiscal de serviço sem depender nem reabrir bonificação/consolidação:** Abertura, novo envio e reanálise individual, isolamento entre NFs, tentativa imutável, bootstrap crítico e RPCs possuem regressões unitárias/E2E/pgTAP; falta apenas a homologação autenticada final da interface publicada com refresh/releitura.
 - **INV-04 — Analisar cada documento fiscal, abrir Pendência por invoice e manter resumo técnico derivado sem depender nem reabrir bonificação/consolidação:** Análise individual, resumo derivado, Pendência por invoice, a_identificar, patrimônio, legado, fronteira rowVersion e RPC de abertura possuem regressões e smoke transacional real; falta homologação autenticada final da interface publicada com refresh/releitura.
 - **ASSET-01 — Cadastrar bem permanente manualmente:** Falta prova controlada de criação, status inicial e releitura.

@@ -1,6 +1,6 @@
 # Continuidade após a publicação do PR #397
 
-**Classe:** único handoff corrente, indicado por `docs/CURRENT_STAGE.md`.  
+**Classe:** histórico da publicação do #397; substituído como corrente pela [frente de retificação](2026-10-01-controller-type-retification.md) em 01/10/2026.
 **Atualizado em:** 30/09/2026.  
 **Objetivo:** permitir a troca de agente sem reconstruir a investigação, repetir a publicação ou expandir o escopo.
 

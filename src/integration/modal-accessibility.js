@@ -122,6 +122,8 @@
     }
 
     function handleKeydown(event) {
+        // A native modal owns focus and Escape above the managed legacy modal.
+        if (document.querySelector('dialog:modal')) return;
         const dialog = activeManagedDialog();
         if (!dialog) return;
         if (event.key === 'Escape') {
