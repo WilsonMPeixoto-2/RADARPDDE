@@ -1,10 +1,12 @@
 # Retificação de classificação — Fase 2
 
-**Classe:** evidência da frente autorizada em 01/10/2026; checkpoint em elaboração.  
-**Baseline:** main `92ddea14de25bfe644917900cac002a20094c57c`.  
-**Estado:** implementação local e regressões direcionadas confirmadas; CI/Supabase descartável e Preview ainda pendentes. Não publicado em Production.
+**Classe:** evidência concluída da Fase 2.
+**Baseline funcional de entrada:** main `92ddea14de25bfe644917900cac002a20094c57c` (#403).
+**Estado:** encerrada, integrada pelo PR #404 e publicada em Production em 02/10/2026.
 
-**PR:** [#404](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/404), rascunho aberto com checkpoint online.
+**PR:** [#404](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/404), merge `de7bebb06b867ebd557ff83cd9194fe3d45f5903`.
+**Production:** `dpl_CLYY92KojCXpmQcL8xXQkmc3TdgG`, `READY`, alias `https://radarpdde-fix.vercel.app`, manifesto no merge `de7bebb06b867ebd557ff83cd9194fe3d45f5903`.
+**Smoke pós-publicação:** HTTP 200 na raiz e em `/escolas/04.31.001`, sem escrita de dados reais.
 
 ## Contrato aprovado
 
@@ -21,7 +23,7 @@ Escola, competência, programa, identificação e histórico permanecem. Exclus�
 - As versões esperadas da NF, verificação e bem acompanham a operação atômica.
 - Não há schema, migration, RPC, RLS, perfil ou segunda via de persistência novos.
 
-O trigger existente protege o tipo com histórico de Assessoria e mantém contexto/exclusão bloqueados. A elegibilidade da retificação comum é regra da aplicação, como já era antes desta mudança. A execução descartável com Auth/RLS real ainda precisa confirmar esta entrega.
+O trigger existente protege o tipo com histórico de Assessoria e mantém contexto/exclusão bloqueados. A elegibilidade da retificação comum é regra da aplicação, como já era antes desta mudança. A execução descartável com Auth/RLS, row_version, efeitos patrimoniais e reload foi concluída e aprovada no candidato final.
 
 ## UX
 
@@ -47,14 +49,16 @@ Capturas: [classificação assistida](classificacao-assistida.png), [confirmaç�
 - Axe na confirmação sem violações.
 - Evidência de reload desta rodada local usa repositório local; não é prova de Supabase Production.
 
-## Pendências para encerramento
+## Encerramento
 
-1. Provar Auth/RLS, row_version, histórico, patrimônio e reload em Supabase descartável real.
-2. Conferir gates do SHA final e classificar eventuais falhas auxiliares com evidência.
-3. Inspecionar Preview e composição nos viewports alvo.
-4. Obter aceitação da entrega concreta antes de integração/publicação desta nova fase.
+- candidato final antes do merge: `af76855c3a11a82f5e2fce985531f2f39a79f2fc`;
+- todos os workflows aplicáveis do candidato final encerraram verdes, incluindo E2E completo, ciclos funcionais reais com Supabase, confiabilidade com reload, Supabase readiness, Auth/RLS/pgTAP, regressão visual desktop, perfis/viewports, Lighthouse e CodeQL;
+- integração: PR #404, merge `de7bebb06b867ebd557ff83cd9194fe3d45f5903`;
+- Vercel Production: `dpl_CLYY92KojCXpmQcL8xXQkmc3TdgG`, `READY`, target `production`, região `gru1`;
+- smoke observacional pós-publicação: raiz e rota profunda `/escolas/04.31.001` responderam HTTP 200;
+- nenhuma escrita em dados reais de Production foi necessária para o encerramento.
 
-Production continua no #403. Não foram criados ou editados dados reais nesta frente. NAV-01/UX-04, PROD-UX-08, exclusão e transferência/anulação auditável não fazem parte desta entrega.
+A Fase 2 está encerrada. NAV-01/UX-04, PROD-UX-08, exclusão, anulação auditável, transferência estrutural e futuras flexibilizações não fazem parte desta entrega e não são abertas automaticamente por este encerramento.
 
 ## Checkpoint remoto do candidato inicial
 

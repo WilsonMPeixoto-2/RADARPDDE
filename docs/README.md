@@ -1,7 +1,7 @@
 # Documentação do RADAR PDDE
 
 **Classe documental:** Canônico — índice e rota de leitura  
-**Atualizado em:** 30 de setembro de 2026
+**Atualizado em:** 2 de outubro de 2026
 
 ## 1. Rota obrigatória
 
@@ -21,7 +21,7 @@ Ordem:
 10. ADRs e referências especializadas da área afetada;
 11. planos, auditorias, demais handoffs e evidências históricas apenas para compreender o seu momento/SHA.
 
-**Estado funcional corrente:** A + B + C e #397 estão concluídos; Fase D permanece adiada. A Fase 1 de descobribilidade (#403) está publicada em `92ddea14…`. A frente autorizada agora é Fase 2 de correção de classificação com histórico fiscal encerrado/cancelado, acompanhada de UX. O único handoff corrente é [retificação de classificação](handoff/2026-10-01-controller-type-retification.md), com [checkpoint de evidências](evidence/2026-10-01-controller-type-retification/REPORT.md). NAV-01/UX-04 e `PROD-UX-08` permanecem separados. A frente atual ainda não está publicada em Production.
+**Estado funcional corrente:** A + B + C e #397 estão concluídos; Fase D permanece não iniciada. As Fases 1 e 2 de autonomia/retificação também estão concluídas e publicadas: #403 introduziu a descobribilidade da edição e #404 integrou a correção segura de classificação com UX assistida no merge `de7bebb06b867ebd557ff83cd9194fe3d45f5903`, publicado no deployment `dpl_CLYY92KojCXpmQcL8xXQkmc3TdgG`. O [handoff da Fase 2](handoff/2026-10-01-controller-type-retification.md) e seu [relatório de evidências](evidence/2026-10-01-controller-type-retification/REPORT.md) são históricos concluídos. **Não há handoff corrente.** NAV-01/UX-04 e `PROD-UX-08` permanecem separados e nenhuma nova frente é aberta automaticamente.
 
 O [PR #386](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/386) e o merge funcional `e6b692a97dd5148877c788da11e0c8ae4c8fcd19` registram o encerramento da C3. Commits posteriores exclusivamente documentais podem avançar a `main` e gerar novo deployment sem reabrir a Fase C. Quando o SHA do head ou o deployment ativo importarem para uma nova entrega, verificá-los ao vivo.
 
@@ -84,7 +84,7 @@ O modelo detalhado está em `SYSTEM_CANONICAL_MODEL.md`; a finalidade humana das
 
 Consultar conforme a área materialmente afetada:
 
-- [`handoff/2026-10-01-controller-type-retification.md`](handoff/2026-10-01-controller-type-retification.md) — **único handoff corrente**, Fase 2 e UX com evidência por fronteira;
+- [`handoff/2026-10-01-controller-type-retification.md`](handoff/2026-10-01-controller-type-retification.md) — **histórico concluído**, Fase 2 e UX integradas pelo #404; ver também o relatório de evidências da publicação;
 - [`handoff/2026-09-30-pos-publicacao-pr397-retomada.md`](handoff/2026-09-30-pos-publicacao-pr397-retomada.md) — histórico da publicação concluída do #397 e evidências reutilizáveis;
 - [`evidence/2026-09-30-pr397-production-release/README.md`](evidence/2026-09-30-pr397-production-release/README.md) — evidência concluída de merge, SQL, deployment, smoke e restauração; JSONs sem dados operacionais ou segredos;
 - [`handoff/2026-09-30-pr397-independencia-despesas-bonificacao.md`](handoff/2026-09-30-pr397-independencia-despesas-bonificacao.md) — histórico do candidato #397, com reclassificação após a publicação;
