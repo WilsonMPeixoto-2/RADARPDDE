@@ -115,7 +115,7 @@
     "lighthouse": "13.4.1",
     "msw": "2.15.0",
     "prettier": "3.9.9",
-    "supabase": "2.114.0",
+    "supabase": "2.115.0",
     "typescript": "7.0.2",
     "stylelint": "17.15.0",
     "stylelint-config-recommended": "18.0.0"
