@@ -1,7 +1,7 @@
 # Matriz de validade documental
 
 **Classe documental:** Canônico  
-**Atualizado em:** 1 de outubro de 2026
+**Atualizado em:** 2 de outubro de 2026
 
 ## 1. Finalidade e precedência
 
@@ -25,7 +25,7 @@ PR aberto, Preview ou documento antigo não altera Production.
 | docs/reference/SYSTEM_CANONICAL_MODEL.md | Canônico | autoridades, fluxos e invariantes |
 | docs/reference/PRODUCT_SURFACE_CATALOG.md | Referência vigente | superfícies e jornadas |
 | docs/CURRENT_STAGE.md | Canônico | estado funcional e prioridade; head/deployment exatos devem ser revalidados ao vivo quando relevantes |
-| docs/handoff/2026-10-01-controller-type-retification.md | **Handoff corrente** | Fase 2 de autonomia e UX, baseline #403 e provas separadas por ambiente |
+| docs/handoff/2026-10-01-controller-type-retification.md | Histórico concluído | Fase 2 de autonomia e UX, integrada pelo #404 e publicada em Production em 02/10/2026 |
 | docs/handoff/2026-09-30-pos-publicacao-pr397-retomada.md | Histórico concluído da publicação | provas do #397 e limites do smoke; prioridade superada pela frente autorizada em 01/10 |
 | docs/handoff/2026-09-30-pr397-independencia-despesas-bonificacao.md | Histórico concluído do candidato | checkpoints anteriores à publicação; bloqueios e instruções pré-merge foram superados pelo encerramento |
 | docs/evidence/2026-09-30-pr397-production-release/README.md e JSONs | Evidência concluída da publicação | merge, SQL aplicado, deployment, smoke sem escrita e backup verificado; não representam novos testes em Production |
@@ -60,7 +60,9 @@ Commits posteriores exclusivamente documentais não reabrem uma fase encerrada n
 
 A **Fase D ainda não foi iniciada e está deliberadamente adiada** enquanto a frente funcional/visual principal de Despesa a identificar/Pendências é fechada pelos achados atuais.
 
-A baseline principal dessa jornada foi homologada. `PROD-FUNC-09` foi encerrado pelo PR #392 e confirmado em Production no merge `8284a02faf3d9381ad42e66b6d93677d396e8515`; a data civil e o instante técnico ficaram coerentes na tentativa original, sem escrita. O #397 foi integrado no merge `a5e200e5c3d7955cea0a6122bde1904469771ac3` e publicado com SQL compatível, preservando a leitura contextual do #396. A evidência de publicação está em `docs/evidence/2026-09-30-pr397-production-release/`; a retomada pós-publicação foi encerrada e preservada em `docs/handoff/2026-09-30-pos-publicacao-pr397-retomada.md`. A CI de 45 checks e os 20 ciclos reais descartáveis pertencem ao candidato `0e149e1...`; o smoke do novo deployment em Production foi observacional, sem CRUD. A frente corrente é a Fase 2 de autonomia/UX, sobre main `92ddea14de25bfe644917900cac002a20094c57c` (#403), descrita em `docs/handoff/2026-10-01-controller-type-retification.md`. `PROD-UX-08` e NAV-01/UX-04 permanecem frentes separadas e não são encerradas por esta entrega.
+A baseline principal dessa jornada foi homologada. `PROD-FUNC-09` foi encerrado pelo PR #392 e confirmado em Production no merge `8284a02faf3d9381ad42e66b6d93677d396e8515`; a data civil e o instante técnico ficaram coerentes na tentativa original, sem escrita. O #397 foi integrado no merge `a5e200e5c3d7955cea0a6122bde1904469771ac3` e publicado com SQL compatível, preservando a leitura contextual do #396. A evidência de publicação está em `docs/evidence/2026-09-30-pr397-production-release/`; a retomada pós-publicação foi encerrada e preservada em `docs/handoff/2026-09-30-pos-publicacao-pr397-retomada.md`. A CI de 45 checks e os 20 ciclos reais descartáveis pertencem ao candidato `0e149e1...`; o smoke do novo deployment em Production foi observacional, sem CRUD.
+
+A Fase 2 de autonomia/UX também está encerrada: PR #404, merge `de7bebb06b867ebd557ff83cd9194fe3d45f5903`, deployment Production `dpl_CLYY92KojCXpmQcL8xXQkmc3TdgG` `READY`, com smoke HTTP 200 na raiz e na rota profunda `/escolas/04.31.001`, sem escrita real. Seu handoff e relatório passam a histórico/evidência concluída. **Não há handoff corrente.** `PROD-UX-08` e NAV-01/UX-04 permanecem frentes separadas e não são encerradas por esta entrega.
 
 O servidor canônico e suas correções não alteraram schema, migrations, RPCs, RLS, serviços de domínio, layout ou persistência canônica.
 
@@ -70,12 +72,13 @@ O servidor canônico e suas correções não alteraram schema, migrations, RPCs,
 
 Handoff corrente:
 
-- `docs/handoff/2026-10-01-controller-type-retification.md` — contrato aprovado para classificação, UX, evidência por ambiente e limites de publicação.
+- **nenhum**.
 
 Pendência separada de retomada: `docs/handoff/2026-09-28-prod-ux-08-drawer-clipping.md` — diagnóstico visual dirigido do clipping desktop. Não executar nem declarar encerrada dentro do #397.
 
 Handoffs históricos concluídos:
 
+- `docs/handoff/2026-10-01-controller-type-retification.md` — Fase 2 integrada pelo #404 e publicada em Production;
 - `docs/handoff/2026-09-30-pr397-independencia-despesas-bonificacao.md` — preserva a investigação e os checkpoints do candidato; a consolidação posterior encerrou dependências, publicação e backup;
 - `docs/handoff/2026-09-28-prod-func-09-date-business-investigation.md` — formatter de data civil corrigido e confirmado em Production pelo PR #392;
 - `docs/handoff/2026-09-27-post-abc-expense-baseline-audit.md` — baseline pós-A+B+C homologada, preservada como contexto e evidência;

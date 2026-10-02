@@ -1,13 +1,15 @@
 # RADAR PDDE — estado atual e retomada
 
 **Classe documental:** Canônico — estado mutável  
-**Atualizado em:** 1 de outubro de 2026
+**Atualizado em:** 2 de outubro de 2026
 
 ## 1. Estado funcional corrente
 
 **As Fases A, B e C estão encerradas. A Fase D ainda não foi iniciada.**
 
-**A frente corrente autorizada é a Fase 2 de autonomia dos Controladores, com UX da retificação.** Baseline revalidada: `main@92ddea14de25bfe644917900cac002a20094c57c`, merge do #403 (Fase 1), também confirmado no manifesto de Production. A Fase 2 permite corrigir classificação apenas com histórico fiscal encerrado/cancelado, sem Assessoria; não está publicada. O único handoff corrente é [retificação de classificação e UX](handoff/2026-10-01-controller-type-retification.md).
+**A Fase 2 de autonomia dos Controladores e UX da retificação está encerrada, integrada e publicada.** O PR #404 foi mergeado em `de7bebb06b867ebd557ff83cd9194fe3d45f5903` e publicado no deployment Production `dpl_CLYY92KojCXpmQcL8xXQkmc3TdgG`, `READY`, com smoke HTTP 200 na raiz e em `/escolas/04.31.001`. A retificação de classificação permanece limitada ao histórico exclusivamente fiscal encerrado/cancelado e falha fechada diante de Pendência ativa, atividade/histórico de Assessoria, `a_identificar`, bem `Inventariada` ou versionamento desconhecido.
+
+**Não há handoff corrente desta frente e nenhuma nova fase foi iniciada automaticamente.** A proteção patrimonial adicional, anulação/transferência auditável, `PROD-UX-08`, NAV-01/UX-04 e Fase D permanecem decisões/frentes separadas.
 
 **O PR #397 — independência entre despesas e bonificação — permanece integrado e publicado.** A ADR-055 e a leitura contextual do #396 são preservadas. A [continuidade após o #397](handoff/2026-09-30-pos-publicacao-pr397-retomada.md) passou a contexto histórico desta entrega.
 
@@ -77,7 +79,7 @@ Registro técnico da correção final da C3: [correções CodeQL e validação C
 
 Os documentos de handoff de A/B e das frentes anteriores permanecem **históricos concluídos**. Não reabrir PRs #375/#376/#377/#378 ou textos pré-merge como fila de implementação.
 
-O handoff corrente é [retificação de classificação e UX](handoff/2026-10-01-controller-type-retification.md). Ambos os handoffs de candidato/publicação do #397 permanecem históricos concluídos. [PROD-UX-08](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) é uma pendência separada de retomada visual. A investigação de `PROD-FUNC-09` está encerrada.
+Não há handoff corrente. [Retificação de classificação e UX](handoff/2026-10-01-controller-type-retification.md) passa a histórico concluído da Fase 2, assim como os handoffs de candidato/publicação do #397. [PROD-UX-08](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) continua uma pendência separada de retomada visual. A investigação de `PROD-FUNC-09` está encerrada.
 
 Para retomada, a ordem de leitura continua sendo:
 
@@ -85,7 +87,7 @@ Para retomada, a ordem de leitura continua sendo:
 2. `docs/reference/SYSTEM_CANONICAL_MODEL.md`;
 3. `docs/reference/PRODUCT_SURFACE_CATALOG.md`;
 4. este arquivo;
-5. handoff corrente indicado acima;
+5. handoff corrente indicado acima, quando houver;
 6. `docs/reference/ENGINEERING_METHOD.md`;
 7. `docs/reference/FRONTEND_USER_VALIDATION_GATE.md`;
 8. `docs/reference/STATUS_DOCUMENTOS.md`;
@@ -105,7 +107,7 @@ A investigação de **`PROD-UX-08` — clipping e sobreposição do drawer globa
 
 O registro de retomada dessa pendência visual é [`docs/handoff/2026-09-28-prod-ux-08-drawer-clipping.md`](handoff/2026-09-28-prod-ux-08-drawer-clipping.md). Ele não concorre com o único handoff corrente de continuidade.
 
-A **Fase D — hardening e performance permanece planejada, mas foi deliberadamente adiada** até que esta frente funcional/visual principal seja novamente compreendida no baseline pós-A+B+C. Ela não foi cancelada nem iniciada.
+A **Fase D — hardening e performance permanece planejada, mas não iniciada**. O encerramento da Fase 2 não a inicia automaticamente nem transforma outras pendências visuais/funcionais em fila implícita.
 
 A avaliação separada de ferramentas para evolução visual permanece em [DESIGN_TOOLING.md](evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md): Figma conectado e provas isoladas de Sharp/SVGO/Lucide/Fontsource. Nenhuma biblioteca nova dessa avaliação foi adicionada ao runtime.
 
