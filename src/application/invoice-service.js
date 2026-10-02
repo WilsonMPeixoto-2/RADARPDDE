@@ -115,7 +115,13 @@
             text(pendency.registeredInvoiceId || pendency.registered_invoice_id) === invoiceId
         ));
         let message = '';
-        if (history.some(pendency => text(pendency.documentoKey || pendency.document_key) === 'consAssessoria')) {
+        const advisorySent = invoice.consultaAssessoriaEnviada === true;
+        const advisoryAnalysis = text(invoice.analiseConsultaAssessoria);
+        const hasRecordedAdvisory = advisorySent
+            || (advisoryAnalysis && advisoryAnalysis !== 'Não analisado');
+        if (hasRecordedAdvisory) {
+            message = 'A classificação fica preservada porque este lançamento já possui registro individual de Consulta à Assessoria.';
+        } else if (history.some(pendency => text(pendency.documentoKey || pendency.document_key) === 'consAssessoria')) {
             message = 'A classificação fica preservada porque este lançamento possui histórico de Consulta à Assessoria.';
         } else if (history.some(pendency => pendencyDomain.isActivePendency(pendency))) {
             message = 'Encerre a Pendência deste lançamento antes de corrigir a classificação. Descrição, número/referência e valor continuam editáveis.';
