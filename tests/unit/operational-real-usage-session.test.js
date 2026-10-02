@@ -7,7 +7,7 @@ const {
     createController: createRealtimeController
 } = require('../../src/integration/operational-realtime-invalidation.js');
 
-function createSession({ userId, clientInstanceId }) {
+function createSession({ userId, clientInstanceId, ownReconcileMs = 30000 }) {
     let broadcastHandler = null;
     let statusHandler = null;
     let refreshes = 0;
@@ -49,7 +49,8 @@ function createSession({ userId, clientInstanceId }) {
     const controller = createRealtimeController(root, {
         client,
         refreshController,
-        debounceMs: 0
+        debounceMs: 0,
+        ownReconcileMs
     });
     return {
         controller,
@@ -59,8 +60,8 @@ function createSession({ userId, clientInstanceId }) {
     };
 }
 
-async function settle() {
-    await new Promise(resolve => setTimeout(resolve, 4));
+async function settle(ms = 4) {
+    await new Promise(resolve => setTimeout(resolve, ms));
 }
 
 test('sessão que grava continuamente não relê o contexto por causa do eco do próprio Broadcast', async () => {
@@ -98,6 +99,35 @@ test('sessão que grava continuamente não relê o contexto por causa do eco do 
 
     await writer.controller.stop();
     await observer.controller.stop();
+});
+
+test('ecos da própria escrita convergem em uma única reconciliação após a atividade cessar', async () => {
+    const writer = createSession({
+        userId: 'controller-a',
+        clientInstanceId: 'tab-a',
+        ownReconcileMs: 12
+    });
+    await writer.controller.start();
+    writer.emitStatus('SUBSCRIBED');
+
+    for (let index = 0; index < 6; index += 1) {
+        writer.emit({
+            entity: 'verifications',
+            operation: 'update',
+            originUserId: 'controller-a',
+            originClientInstanceId: 'tab-a'
+        });
+        await settle(2);
+    }
+
+    assert.equal(writer.refreshes(), 0, 'durante a rajada o estado autoritativo local evita releituras redundantes');
+    await settle(18);
+    assert.equal(writer.refreshes(), 1, 'após a quietude uma única leitura confirma convergência eventual');
+    const metrics = writer.controller.getMetrics();
+    assert.equal(metrics.ownReconciliationsScheduled, 6);
+    assert.equal(metrics.ownReconciliationsCoalesced, 5);
+
+    await writer.controller.stop();
 });
 
 test('outra aba do mesmo usuário não é confundida com a instância que originou a gravação', async () => {
