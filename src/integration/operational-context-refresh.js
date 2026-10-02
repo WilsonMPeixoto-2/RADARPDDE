@@ -118,6 +118,7 @@
             : MIN_REFRESH_INTERVAL_MS;
         let lastRefreshAt = 0;
         let lastAttemptAt = 0;
+        let lastFailureAt = 0;
         let refreshPromise = null;
         let pendingRefreshReason = '';
 
@@ -193,6 +194,10 @@
                 }
                 if (activeCompetence(root) !== competenceKey) return { ...result, stale: true };
 
+                // Uma leitura aplicada com sucesso encerra qualquer cooldown de falha
+                // anterior. O throttle normal de foco/visibilidade continua ancorado
+                // em lastRefreshAt/lastAttemptAt.
+                lastFailureAt = 0;
                 refreshCurrentView(root);
                 lastRefreshAt = Date.now();
                 if (typeof root.dispatchEvent === 'function' && typeof root.CustomEvent === 'function') {
@@ -207,6 +212,7 @@
                 }
                 return result;
             }).catch(error => {
+                lastFailureAt = Date.now();
                 markPending(reason);
                 root.console?.warn?.('Não foi possível atualizar o contexto operacional ao retomar a sessão.', error);
                 return { ok: false, error, pending: true };
@@ -227,12 +233,15 @@
 
             const pendingReason = pendingRefreshReason;
             pendingRefreshReason = '';
-            // Interações de UI não furam o cooldown após falha. Quando uma invalidação
-            // chegou durante uma leitura bem-sucedida, a drenagem explícita pode forçar
-            // a releitura necessária para não perder convergência entre sessões.
-            const result = await refresh(`${pendingReason}-${reason}`, {
-                force: flushOptions.force === true
-            });
+            const realtimePending = /^realtime(?:-|$)/.test(pendingReason);
+            const now = Date.now();
+            const failureCooldownActive = lastFailureAt > 0 && (now - lastFailureAt) < minIntervalMs;
+
+            // Pendência Realtime bloqueada apenas por edição pode drenar assim que o
+            // usuário encerra o campo. Se a própria leitura falhou recentemente,
+            // preservamos o cooldown para não recriar a tempestade de retries.
+            const force = flushOptions.force === true || (realtimePending && !failureCooldownActive);
+            const result = await refresh(`${pendingReason}-${reason}`, { force });
             if (
                 result?.ok === false
                 || result?.stale === true
@@ -248,7 +257,8 @@
             flushPending,
             hasPendingRefresh: () => Boolean(pendingRefreshReason),
             getLastRefreshAt: () => lastRefreshAt,
-            getLastAttemptAt: () => lastAttemptAt
+            getLastAttemptAt: () => lastAttemptAt,
+            getLastFailureAt: () => lastFailureAt
         });
     }
 
