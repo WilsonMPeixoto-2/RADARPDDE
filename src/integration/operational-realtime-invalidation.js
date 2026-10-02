@@ -21,7 +21,10 @@
 
     const TOPIC = 'radar:operational';
     const EVENT = 'operational-change';
-    const DEFAULT_DEBOUNCE_MS = 250;
+    // A leitura contextual pode transportar ~1 MB e é compartilhada por todas as
+    // sessões. Agrupamos rajadas de escrita para evitar thundering herd e rerenders
+    // sucessivos sem sacrificar a convergência automática entre usuários.
+    const DEFAULT_DEBOUNCE_MS = 5000;
 
     function authenticated(root) {
         return Boolean(root?.RadarAuthContext?.user || root?.RadarAuthContext?.authorization);
