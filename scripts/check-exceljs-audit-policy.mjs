@@ -22,6 +22,7 @@ const ALLOWED_ADVISORIES = Object.freeze(new Map([
       'rimraf',
       'zip-stream'
     ])),
+    directPackages: Object.freeze(new Set(['exceljs'])),
     reason: 'Cadeia de glob/streaming do Node não alcançada pelo workbook documental do navegador.'
   })],
   ['GHSA-VFJ7-8CJW-P6XM', Object.freeze({
