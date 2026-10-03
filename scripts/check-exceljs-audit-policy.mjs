@@ -33,6 +33,7 @@ const ALLOWED_ADVISORIES = Object.freeze(new Map([
       'stylelint',
       'stylelint-config-recommended'
     ])),
+    directPackages: Object.freeze(new Set(['stylelint', 'stylelint-config-recommended'])),
     reason: 'Cadeia exclusiva do Stylelint em devDependencies; sem correção publicada em 2026-10-03. Remover a exceção quando houver versão corrigida compatível.'
   })]
 ]));
@@ -77,6 +78,11 @@ function collectAdvisories(report, packageName, seen = new Set()) {
 
 function evaluateAuditReport(report) {
   const violations = [];
+  if (!report || typeof report !== 'object' || report.error
+    || typeof report.vulnerabilities !== 'object' || report.vulnerabilities === null
+    || typeof report?.metadata?.vulnerabilities !== 'object') {
+    violations.push({ code: 'INVALID_AUDIT_REPORT', packageName: null, severity: null });
+  }
   const accepted = [];
   const vulnerabilities = report?.vulnerabilities || {};
 
@@ -100,7 +106,8 @@ function evaluateAuditReport(report) {
         violations.push({ code: 'NEW_ADVISORY', packageName, severity, advisory: id });
         continue;
       }
-      if (!policy.packages.has(packageName)) {
+      if (!policy.packages.has(packageName)
+        || (policy.directPackages && vulnerability?.isDirect === true && !policy.directPackages.has(packageName))) {
         violations.push({ code: 'PACKAGE_OUTSIDE_ALLOWED_PATH', packageName, severity, advisory: id });
         continue;
       }
