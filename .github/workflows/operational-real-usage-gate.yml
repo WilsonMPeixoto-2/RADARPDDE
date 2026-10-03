@@ -1,0 +1,139 @@
+name: Uso real operacional com volume semelhante a Production
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/application/**'
+      - 'src/data/**'
+      - 'src/integration/auth-bootstrap.js'
+      - 'src/integration/operational-context-refresh.js'
+      - 'src/integration/operational-realtime-invalidation.js'
+      - 'src/integration/operational-write-feedback.js'
+      - 'supabase/migrations/**'
+      - 'supabase/fixtures/operational-production-shape.sql'
+      - 'tests/unit/operational-real-usage-session.test.js'
+      - 'tests/e2e/operational-production-shape-performance.spec.js'
+      - 'tests/support/performance-journey-observer.js'
+      - '.github/workflows/operational-real-usage-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: operational-real-usage-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sustained-session-contracts:
+    name: Sessões sustentadas, escrita e invalidação
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Obter código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Provar jornada concorrente sustentada
+        run: node --test tests/unit/operational-real-usage-session.test.js tests/unit/production-refresh-stability.test.js tests/unit/operational-realtime-invalidation.test.js
+
+  production-shaped-volume:
+    name: 163 escolas, contexto pesado e RPC autenticada
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      SUPABASE_TELEMETRY_DISABLED: '1'
+
+    steps:
+      - name: Obter código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Configurar origem local da Edge Function
+        run: |
+          mkdir -p supabase/functions
+          printf 'RADAR_ALLOWED_ORIGIN=%s\n' 'http://127.0.0.1:4175' > supabase/functions/.env
+          chmod 600 supabase/functions/.env
+
+      - name: Iniciar Supabase descartável e aplicar migrations
+        run: |
+          bash scripts/start-disposable-supabase-ci.sh
+          npm run supabase:reset
+
+      - name: Construir massa sintética com forma de Production
+        run: npx supabase db query --local --file supabase/fixtures/operational-production-shape.sql
+
+      - name: Preparar identidade real de Controlador no ambiente descartável
+        shell: bash
+        run: |
+          set -euo pipefail
+          eval "$(npx supabase status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
+          FIXTURE_PASSWORD="$(node --input-type=module -e "import { randomBytes } from 'node:crypto'; process.stdout.write(randomBytes(32).toString('base64url') + 'A1!')")"
+          echo "::add-mask::${FIXTURE_PASSWORD}"
+          echo "::add-mask::${SERVICE_ROLE_KEY}"
+          RADAR_ALLOW_LOCAL_AUTH_BOOTSTRAP=true \
+          RADAR_SUPABASE_URL="${API_URL}" \
+          RADAR_SUPABASE_ADMIN_KEY="${SERVICE_ROLE_KEY}" \
+          RADAR_AUTH_FIXTURE_PASSWORD="${FIXTURE_PASSWORD}" \
+          npm run bootstrap:auth-fixtures
+          RADAR_DATA_MODE=supabase-preview \
+          RADAR_ENVIRONMENT=test \
+          RADAR_SUPABASE_REPOSITORY_ENABLED=true \
+          RADAR_SUPABASE_URL="${API_URL}" \
+          RADAR_SUPABASE_PUBLISHABLE_KEY="${ANON_KEY}" \
+          npm run generate:runtime-config
+          {
+            printf 'RADAR_AUTH_FIXTURE_PASSWORD=%s\n' "${FIXTURE_PASSWORD}"
+          } >> "${GITHUB_ENV}"
+
+      - name: Medir 20 leituras e refreshes reais da aplicação
+        env:
+          RADAR_E2E_SUPABASE_LOCAL: '1'
+          RADAR_E2E_PRODUCTION_SHAPE: '1'
+        run: >-
+          npx playwright test
+          tests/e2e/operational-production-shape-performance.spec.js
+          --project=desktop-chromium
+          --workers=1
+          --max-failures=1
+          --timeout=180000
+
+      - name: Publicar baseline sanitizado
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: operational-production-shape-${{ github.run_id }}
+          path: |
+            test-results/operational-production-shape/
+            playwright-report/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Restaurar configuração e encerrar Supabase
+        if: always()
+        run: |
+          npm run generate:runtime-config || true
+          rm -f supabase/functions/.env
+          npm run supabase:stop || true
