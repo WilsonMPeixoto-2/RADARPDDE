@@ -28,6 +28,7 @@ function rootWithTimers(timers) {
 }
 
 const settle = () => new Promise(resolve => setImmediate(resolve));
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 test('retry Realtime stale agenda uma única recuperação futura mesmo se write-settled ocorreu enquanto a pendência estava consumida', async () => {
     const timers = [];
@@ -44,7 +45,7 @@ test('retry Realtime stale agenda uma única recuperação futura mesmo se write
             }
             return { stale: false };
         }
-    }, { minIntervalMs: 30000 });
+    }, { minIntervalMs: 20 });
 
     await controller.refresh('realtime', { force: true });
     assert.equal(controller.hasPendingRefresh(), true);
@@ -64,6 +65,8 @@ test('retry Realtime stale agenda uma única recuperação futura mesmo se write
     assert.equal(timers.length, 1, 'o retry final precisa deixar uma recuperação limitada já agendada');
 
     const recovery = timers.shift();
+    assert.ok(recovery.delay >= 20, 'a recuperação deve respeitar a janela de cooldown, não executar imediatamente');
+    await wait(30);
     recovery.callback();
     await settle();
     await settle();
