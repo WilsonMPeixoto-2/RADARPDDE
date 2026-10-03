@@ -171,10 +171,13 @@ with invoice_contexts as (
     from perf_verification_order v
     where v.competence_id <> '2026-08'
       and not exists (
-        select 1 from invoice_contexts i
-        where i.school_id = v.school_id
-          and i.competence_id = v.competence_id
-          and i.program_id = v.program_id
+        select 1
+        from public.registered_invoices ri
+        where ri.id like 'PERF-I-%'
+          and ri.competence_id <> '2026-08'
+          and ri.school_id = v.school_id
+          and ri.competence_id = v.competence_id
+          and ri.program_id = v.program_id
       )
     order by v.competence_id, v.id
     limit 99
