@@ -358,6 +358,12 @@
         root.addEventListener?.('focus', () => {
             const resumeAfterBlur = blurredSinceFocus;
             blurredSinceFocus = false;
+            // Alguns navegadores entregam focus antes de visibilitychange ao
+            // retornar à mesma aba. Se ambos os sinais pertencem ao mesmo afastamento,
+            // o primeiro a chegar assume a única reconciliação desse ciclo.
+            if (resumeAfterBlur && hiddenSinceVisible && root.document.visibilityState === 'visible') {
+                hiddenSinceVisible = false;
+            }
             void controller.refresh('focus', { resumeAfterBlur });
         });
         root.document.addEventListener?.('visibilitychange', () => {
