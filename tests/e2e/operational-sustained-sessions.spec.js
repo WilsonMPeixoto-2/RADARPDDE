@@ -120,14 +120,41 @@ test('cinco sessões reais medem escrita, observação, edição e falha durante
         await route.continue().catch(() => {}); // Abort da leitura é concorrência prevista.
       });
     }
+    stage = 'editing-and-fault';
+    // Evento isolado antes da rajada: o debounce trailing do baseline só executa
+    // após quietude. Exigir refresh durante a rajada confundia essa política
+    // existente com perda de Broadcast e impedia medir sua convergência final.
+    const focused = pages[4].locator('#global-competence-select');
+    await focused.focus();
+    faults.readLatencyMs = 300;
+    await setDelivery(pages[0], 'Sim');
+    gestures[0] += 1;
+    await expect.poll(() => pages[4].evaluate(() =>
+      window.RadarOperationalContextRefreshController.hasPendingRefresh()), { timeout: 20000 }).toBe(true);
+    await expect(focused).toBeFocused();
+    await focused.blur();
+    faults.readLatencyMs = 1000;
+    faults.failObserverRead = true;
+    await setDelivery(pages[2], 'Sim');
+    gestures[2] += 1;
+    await expect.poll(() => faults.failuresInjected, { timeout: 20000 }).toBe(1);
+    await expect(row(pages[3]).getByRole('button', { name: 'Sim', exact: true }))
+      .toHaveClass(/active-sim/, { timeout: 60000 });
+    faults.readLatencyMs = 2000;
+    await pages[3].bringToFront();
+    await pages[0].bringToFront();
     stage = 'sustained-activity';
     const writer = async (page, index) => {
       for (let n = 0; n < rounds; n += 1) {
-        await setDelivery(page, n % 2 === 0 ? 'Sim' : 'Não');
+        await setDelivery(page, n % 2 === 0 ? 'Não' : 'Sim');
         gestures[index] += 1;
         // Pacing representa gestos humanos; a conclusão é aguardada por estado,
         // não por sleep usado para adivinhar a conclusão de uma gravação.
         await pause(300);
+      }
+      if (rounds % 2 === 0) {
+        await setDelivery(page, 'Não');
+        gestures[index] += 1;
       }
     };
     const invoiceWriter = async () => {
@@ -136,28 +163,12 @@ test('cinco sessões reais medem escrita, observação, edição e falha durante
         await pause(300);
       }
     };
-    const observer = async () => {
-      const focused = pages[4].locator('#global-competence-select');
-      await focused.focus();
-      await expect(focused).toBeFocused();
-      faults.readLatencyMs = 300;
-      await expect.poll(() => pages[4].evaluate(() =>
-        window.RadarOperationalContextRefreshController.hasPendingRefresh()), { timeout: 20000 }).toBe(true);
-      await expect(focused).toBeFocused();
-      await focused.blur();
-      faults.readLatencyMs = 1000;
-      faults.failObserverRead = true;
-      await expect.poll(() => faults.failuresInjected, { timeout: 20000 }).toBe(1);
-      faults.readLatencyMs = 2000;
-      await pages[3].bringToFront();
-      await pages[0].bringToFront();
-    };
-    const results = await Promise.allSettled([writer(pages[0], 0), invoiceWriter(), writer(pages[2], 2), observer()]);
+    const results = await Promise.allSettled([writer(pages[0], 0), invoiceWriter(), writer(pages[2], 2)]);
     const failed = results.find(result => result.status === 'rejected');
     if (failed) throw failed.reason;
     faults.readLatencyMs = 0;
     stage = 'convergence';
-    const finalValue = rounds % 2 === 0 ? 'Não' : 'Sim';
+    const finalValue = 'Não';
     for (const i of [3, 4]) {
       await expect(row(pages[i]).getByRole('button', { name: finalValue, exact: true }))
         .toHaveClass(finalValue === 'Sim' ? /active-sim/ : /active-nao/, { timeout: 60000 });
@@ -176,6 +187,10 @@ test('cinco sessões reais medem escrita, observação, edição e falha durante
     stage = 'reload';
     await pages[3].reload();
     await ready(pages[3]);
+    // Bootstrap remoto escolhe a competência do calendário. Conferir o mesmo
+    // fato exige voltar explicitamente a Agosto pelos controles visíveis.
+    report.reloadInitialCompetence = await pages[3].locator('#global-competence-select').inputValue();
+    await pages[3].locator('#global-competence-select').selectOption('2026-08');
     await expect(row(pages[3]).getByRole('button', { name: finalValue, exact: true }))
       .toHaveClass(finalValue === 'Sim' ? /active-sim/ : /active-nao/);
     await pages[3].screenshot({ path: testInfo.outputPath('observer-after-reload.png'), fullPage: true });

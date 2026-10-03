@@ -143,3 +143,36 @@ Run `37093452257`, head `9c50c06c...`:
 
 O verde no volume prova carga isolada e quatro refreshes, não uso sustentado nem
 latência cloud. Nova rodada das cinco sessões ainda necessária.
+
+## Primeira execução real concorrente: hipóteses refutadas e novas evidências
+
+Run `37093715914`, head `e25c2fa6...`, preparações passaram em ambos os produtos.
+Os cinco browsers executaram 110 gestos completos: 80 avaliações e 30 operações
+CRUD fiscais. Relatórios completos preservados como `first-sustained-*.json`.
+
+- **Baseline:** 141 Broadcasts por sessão, mas zero tentativas de refresh durante
+  a rajada contínua de aproximadamente 39 s. O debounce trailing era reiniciado
+  a cada evento. O teste terminou por expectativa inadequada de pendência em
+  menos de 20 s durante essa atividade e não aguardou a quietude final. Não
+  concluir eficiência ou perda permanente de convergência com esse resultado.
+- **Candidato:** escritor A 40 writes / 41 reads, 38 resultados stale e apenas
+  três refreshes aplicados; escritor C 40 / 42, 37 stale; escritor fiscal 30 / 30.
+  Observadores 17 e 15 reads, com 16 e 15 reconstruções principais de DOM.
+  O limitador remoto de Broadcast não limita o flush por clique/focusout/
+  write-settled/inflight-finished. As razões acumularam repetidamente o sufixo
+  inflight-finished, evidência de drenagens encadeadas. Preservar isso como
+  reprodução de amplificação fora da janela limitada, não solução homologada.
+- **Candidato convergiu antes do reload** e o banco tinha o valor final. Falhou
+  depois do reload porque o contexto inicial passou a Setembro e o teste
+  procurou o valor de Agosto sem voltar ao mês. Código de bootstrap prioriza
+  competência carregada/calendário; não classificar como perda de persistência.
+- Captura do candidato antes do reload inspecionada: contexto Agosto/escola 1,
+  Não visível, controles legíveis. Essa captura isolada não prova flicker;
+  vídeos por sessão estão nos artefatos do run, com retenção de 30 dias.
+
+Correção do harness, sem mudança funcional: provocar edição e uma falha em uma
+fase inicial de evento isolado (comparável para os dois debounces), depois
+executar a mesma rajada concorrente e aguardar convergência; voltar a Agosto
+explicitamente após reload. O novo relatório histórico enviado pelo usuário
+foi incorporado como hipóteses sobre refresh/wrappers/readiness/DOM, não como
+fila automática de refatoração nem ordem para escrever em Production.
