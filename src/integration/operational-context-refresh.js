@@ -122,6 +122,15 @@
         let refreshPromise = null;
         let pendingRefreshReason = '';
         let pendingRefreshCanForce = false;
+        let cooldownTimer = null;
+
+        function scheduleCooldownFlush(delayMs) {
+            if (cooldownTimer != null || typeof root.setTimeout !== 'function') return;
+            cooldownTimer = root.setTimeout(() => {
+                cooldownTimer = null;
+                void flushPending('cooldown-expired');
+            }, Math.max(0, Number(delayMs) || 0) + 50);
+        }
 
         function markPending(reason, { canForce = false } = {}) {
             pendingRefreshReason = text(reason) || pendingRefreshReason || 'editing';
@@ -164,11 +173,13 @@
                 && (now - cooldownAnchor) < minIntervalMs
             ) {
                 markPending(reason);
+                const retryAfterMs = Math.max(0, minIntervalMs - (now - cooldownAnchor));
+                scheduleCooldownFlush(retryAfterMs);
                 return {
                     skipped: true,
                     reason: 'throttled',
                     pending: true,
-                    retryAfterMs: Math.max(0, minIntervalMs - (now - cooldownAnchor))
+                    retryAfterMs
                 };
             }
 
