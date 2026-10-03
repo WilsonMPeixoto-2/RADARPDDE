@@ -156,6 +156,18 @@ test('rejeita entrada de auditoria incompleta em vez de tratá-la como limpa', a
     )));
 });
 
+test('rejeita metadados de auditoria que não correspondem às vulnerabilidades recebidas', async () => {
+    const policy = await import(POLICY_URL);
+    const report = stylelintBracesReport();
+    report.metadata.vulnerabilities.high = 5;
+    report.metadata.vulnerabilities.total = 5;
+
+    const result = policy.evaluateAuditReport(report);
+
+    assert.equal(result.passed, false);
+    assert.ok(result.violations.some(item => item.code === 'AUDIT_COUNT_MISMATCH'));
+});
+
 test('bloqueia a vulnerabilidade de uuid se ela reaparecer na árvore ExcelJS', async () => {
     const policy = await import(POLICY_URL);
     const report = allowedReport();
