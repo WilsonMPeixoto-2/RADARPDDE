@@ -1,0 +1,64 @@
+{
+  "codeCommit": "2be528f65d5b6782d5e4e06ab0547aa9a2cff56d",
+  "test": "operational-refresh-visibility.spec.js",
+  "mode": "local frontend, mesmo renderer de refresh",
+  "result": "RED",
+  "expectedMinimumOpacity": 0.95,
+  "frames": [
+    {
+      "opacity": 0,
+      "animation": "fadeIn"
+    },
+    {
+      "opacity": 0,
+      "animation": "fadeIn"
+    },
+    {
+      "opacity": 1,
+      "animation": "fadeIn"
+    },
+    {
+      "opacity": 0.345924,
+      "animation": "fadeIn"
+    },
+    {
+      "opacity": 0.666323,
+      "animation": "fadeIn"
+    },
+    {
+      "opacity": 0.924742,
+      "animation": "fadeIn"
+    },
+    {
+      "opacity": 0.9983,
+      "animation": "fadeIn"
+    },
+    {
+      "opacity": 1,
+      "animation": "fadeIn"
+    },
+    {
+      "opacity": 1,
+      "animation": "fadeIn"
+    },
+    {
+      "opacity": 1,
+      "animation": "fadeIn"
+    },
+    {
+      "opacity": 1,
+      "animation": "fadeIn"
+    },
+    {
+      "opacity": 1,
+      "animation": "fadeIn"
+    }
+  ],
+  "realBrowserVideo": {
+    "runId": 37094225289,
+    "variant": "candidate",
+    "file": "page@6610188fcdb9891259fe771b28945c61.webm",
+    "blankFrameAtSeconds": 24.08,
+    "normalFrameAtSeconds": 30
+  }
+}

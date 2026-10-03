@@ -1,0 +1,275 @@
+{
+  "runId": 37094996421,
+  "candidateCommit": "2be528f65d5b6782d5e4e06ab0547aa9a2cff56d",
+  "variants": {
+    "baseline": {
+      "outcome": "passed",
+      "sessions": [
+        {
+          "session": 1,
+          "humanGestures": 42,
+          "attemptedContextReads": 44,
+          "writeRpcCalls": 42,
+          "abortedRequests": 41,
+          "staleReadResults": 41,
+          "mainReplacements": 3,
+          "receivedPayloadBytes": 3986793,
+          "writeTiming": {
+            "sampleCount": 42,
+            "clickToFeedback": {
+              "p50": 0.1999999999825377,
+              "p95": 0.20000000001164153
+            },
+            "rpc": {
+              "p50": null,
+              "p95": null
+            },
+            "apply": {
+              "p50": 1.2000000000116415,
+              "p95": 2.6000000000058208
+            },
+            "clickToStable": {
+              "p50": 285.5,
+              "p95": 533.7000000000116
+            }
+          },
+          "elapsedMs": 56766.974171999995
+        },
+        {
+          "session": 2,
+          "humanGestures": 30,
+          "attemptedContextReads": 32,
+          "writeRpcCalls": 30,
+          "abortedRequests": 27,
+          "staleReadResults": 30,
+          "mainReplacements": 32,
+          "receivedPayloadBytes": 6645783,
+          "writeTiming": {
+            "sampleCount": 0,
+            "clickToFeedback": {
+              "p50": null,
+              "p95": null
+            },
+            "rpc": {
+              "p50": null,
+              "p95": null
+            },
+            "apply": {
+              "p50": null,
+              "p95": null
+            },
+            "clickToStable": {
+              "p50": null,
+              "p95": null
+            }
+          },
+          "elapsedMs": 56891.474327
+        },
+        {
+          "session": 3,
+          "humanGestures": 42,
+          "attemptedContextReads": 45,
+          "writeRpcCalls": 42,
+          "abortedRequests": 42,
+          "staleReadResults": 42,
+          "mainReplacements": 3,
+          "receivedPayloadBytes": 3987408,
+          "writeTiming": {
+            "sampleCount": 42,
+            "clickToFeedback": {
+              "p50": 0.10000000000582077,
+              "p95": 0.3000000000174623
+            },
+            "rpc": {
+              "p50": null,
+              "p95": null
+            },
+            "apply": {
+              "p50": 1.2999999999883585,
+              "p95": 3.7000000000116415
+            },
+            "clickToStable": {
+              "p50": 291.70000000001164,
+              "p95": 561.6000000000058
+            }
+          },
+          "elapsedMs": 56732.129153999995
+        },
+        {
+          "session": 4,
+          "humanGestures": 0,
+          "attemptedContextReads": 3,
+          "writeRpcCalls": 0,
+          "abortedRequests": 0,
+          "staleReadResults": 0,
+          "mainReplacements": 2,
+          "receivedPayloadBytes": 2657509,
+          "writeTiming": null,
+          "elapsedMs": 56713.63093400001
+        },
+        {
+          "session": 5,
+          "humanGestures": 0,
+          "attemptedContextReads": 3,
+          "writeRpcCalls": 0,
+          "abortedRequests": 0,
+          "staleReadResults": 0,
+          "mainReplacements": 3,
+          "receivedPayloadBytes": 3986764,
+          "writeTiming": null,
+          "elapsedMs": 56701.688989999995
+        }
+      ],
+      "sqlBefore": [],
+      "sqlAfter": [
+        {
+          "role": "authenticated",
+          "rows": 38,
+          "calls": 38,
+          "queryId": "7145021936814103127",
+          "maxExecMs": 998.508196,
+          "meanExecMs": 307.553463526316,
+          "totalExecMs": 11687.031614
+        }
+      ],
+      "note": "Baseline SQL vazio: o delta de calls é igual ao snapshot after."
+    },
+    "candidate": {
+      "outcome": "passed",
+      "sessions": [
+        {
+          "session": 1,
+          "humanGestures": 42,
+          "attemptedContextReads": 19,
+          "writeRpcCalls": 42,
+          "abortedRequests": 18,
+          "staleReadResults": 18,
+          "mainReplacements": 1,
+          "receivedPayloadBytes": 1327509,
+          "writeTiming": {
+            "sampleCount": 42,
+            "clickToFeedback": {
+              "p50": 0.10000000009313226,
+              "p95": 0.8999999999068677
+            },
+            "rpc": {
+              "p50": null,
+              "p95": null
+            },
+            "apply": {
+              "p50": 1,
+              "p95": 3
+            },
+            "clickToStable": {
+              "p50": 339.0999999999767,
+              "p95": 645.5
+            }
+          },
+          "elapsedMs": 55250.501243000006
+        },
+        {
+          "session": 2,
+          "humanGestures": 30,
+          "attemptedContextReads": 13,
+          "writeRpcCalls": 30,
+          "abortedRequests": 9,
+          "staleReadResults": 12,
+          "mainReplacements": 31,
+          "receivedPayloadBytes": 5306894,
+          "writeTiming": {
+            "sampleCount": 0,
+            "clickToFeedback": {
+              "p50": null,
+              "p95": null
+            },
+            "rpc": {
+              "p50": null,
+              "p95": null
+            },
+            "apply": {
+              "p50": null,
+              "p95": null
+            },
+            "clickToStable": {
+              "p50": null,
+              "p95": null
+            }
+          },
+          "elapsedMs": 55228.872502
+        },
+        {
+          "session": 3,
+          "humanGestures": 42,
+          "attemptedContextReads": 19,
+          "writeRpcCalls": 42,
+          "abortedRequests": 19,
+          "staleReadResults": 19,
+          "mainReplacements": 0,
+          "receivedPayloadBytes": 0,
+          "writeTiming": {
+            "sampleCount": 42,
+            "clickToFeedback": {
+              "p50": 0.19999999995343387,
+              "p95": 0.7000000000698492
+            },
+            "rpc": {
+              "p50": null,
+              "p95": null
+            },
+            "apply": {
+              "p50": 1,
+              "p95": 3.400000000023283
+            },
+            "clickToStable": {
+              "p50": 323.5,
+              "p95": 587.6999999999534
+            }
+          },
+          "elapsedMs": 55214.287834
+        },
+        {
+          "session": 4,
+          "humanGestures": 0,
+          "attemptedContextReads": 15,
+          "writeRpcCalls": 0,
+          "abortedRequests": 0,
+          "staleReadResults": 0,
+          "mainReplacements": 14,
+          "receivedPayloadBytes": 18576400,
+          "writeTiming": null,
+          "elapsedMs": 55200.125068
+        },
+        {
+          "session": 5,
+          "humanGestures": 0,
+          "attemptedContextReads": 14,
+          "writeRpcCalls": 0,
+          "abortedRequests": 0,
+          "staleReadResults": 0,
+          "mainReplacements": 14,
+          "receivedPayloadBytes": 18577885,
+          "writeTiming": null,
+          "elapsedMs": 55198.259061000004
+        }
+      ],
+      "sqlBefore": [],
+      "sqlAfter": [
+        {
+          "role": "authenticated",
+          "rows": 61,
+          "calls": 61,
+          "queryId": "7145021936814103127",
+          "maxExecMs": 426.47841,
+          "meanExecMs": 115.140039196721,
+          "totalExecMs": 7023.542391
+        }
+      ],
+      "note": "Baseline SQL vazio: o delta de calls é igual ao snapshot after."
+    }
+  },
+  "limits": [
+    "Tentativas HTTP no browser não equivalem a execuções SQL; atraso antes de envio permite abort sem alcançar Postgres.",
+    "O candidato atualiza observadores durante atividade contínua; baseline trailing só converge na quietude. Duração SQL entre runners não isola ganho causal.",
+    "114 gestos em cerca de um minuto, massa sintética calibrada. Não certifica sessões de horas, todas as jornadas ou staging cloud."
+  ]
+}

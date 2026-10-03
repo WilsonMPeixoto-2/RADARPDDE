@@ -52,8 +52,8 @@ Fonte quantitativa e limites: `../evidence/2026-10-03-operational-instability/pr
 
 Após leitura aplicada, `operational-context-refresh` chama `refreshCurrentView`,
 que chega a `switchView`/`renderProntuario`. O renderer substitui conteúdo do
-container. Isso é mecanismo compatível com flicker, ainda sem prova visual
-sustentada desta sessão. Medir substituição de DOM, foco, scroll e convergência;
+container. A prova visual ao final deste checkpoint confirma replay de fadeIn
+no painel durante refresh. Medir substituição de DOM, foco, scroll e convergência;
 não chamar toda invocação de renderer de reconstrução efetiva.
 
 ## Estado das provas e ferramentas
@@ -78,16 +78,16 @@ não chamar toda invocação de renderer de reconstrução efetiva.
 
 ## Próximo passo executável
 
-1. Executar gate corrigido no runner descartável e não confundir preparação com
-   jornada: medir pelo navegador com Auth, RLS e Realtime reais.
-2. Usar mesmo workload no baseline #406/main e no #407, com leitura pesada,
-   sessões escritoras/observadoras, edição, latência, erro e retorno à aba.
-3. Publicar contagem de gestos, escritas, Broadcasts, leituras, origem, payload,
-   p50/p95/p99, applies, substituições de DOM, convergência e resultado após F5.
-4. Somente então classificar desperdício/defeito e escrever RED da hipótese causal.
-5. Preservar checkpoint remoto após cada etapa, incluindo falhas e lacunas.
+1. Corrigir somente o replay da animação do painel do Prontuário reproduzido
+   no RED visual. A primeira correção de releituras já passou na comparação real.
+2. Reexecutar a jornada inteira com amostragem de opacidade por frame e
+   aumentar a duração/quantidade de operações para investigar estado acumulado.
+3. Confrontar SQL efetivo, tentativas abortadas, observadores, estabilidade,
+   convergência e reload. Não afirmar redução global de RPC sem essa separação.
+4. Preservar checkpoint remoto após cada etapa, incluindo falhas e lacunas.
 
-Não houve nova correção funcional nesta retomada. Não afirmar solução definitiva,
+Houve uma correção funcional candidata no controller de refresh, ainda Draft.
+Não afirmar solução definitiva,
 homologação de staging ou canário sem execução e evidência.
 
 ## Checkpoint: preparação da reprodução comparativa
@@ -238,3 +238,42 @@ de clique/feedback/RPC/apply/estável, sem novo wrapper funcional.
 Ainda não chamar a correção de solução do incidente. Executar os cinco browsers
 novamente, confrontar reads/stale/aborts/DOM/convergência e inspecionar vídeos.
 As lacunas de sessão longa, outras jornadas e cloud permanecem explícitas.
+
+## Comparação após correção de releituras e RED visual
+
+Run `37094996421`, candidato `2be528f6...`: os quatro jobs passaram, com
+114 gestos, cinco browsers, erro induzido, convergência e F5 no mesmo contexto.
+Relatórios completos: `after-read-fix-baseline.json`, `after-read-fix-candidate.json`
+e resumo com SQL antes/depois em `after-read-fix-comparison.json`.
+
+- Escritores A/C: baseline 44/45 tentativas para 42 writes cada; candidato
+  19/19. Fiscal: baseline 32 tentativas para 30 writes; candidato 13.
+  O mecanismo de rearmar leitura a cada interação foi contido, sem perder writes.
+- Observadores do candidato ainda têm 15/14 leituras e 14/14 reconstruções
+  principais; baseline trailing tem três leituras cada. Não confundir atraso
+  de convergência do baseline durante a rajada com eficiência superior.
+- SQL efetivo: baseline 38 execuções; candidato 61. Muitos aborts do escritor
+  ocorreram antes de enviar a chamada, enquanto os observadores do candidato
+  chegaram ao banco. Portanto não houve redução global comprovada de calls SQL.
+  Tempos médios 307,55/115,14 ms vêm de runners distintos e não isolam ganho causal.
+- p95 clique → estável de avaliações no candidato: A 645,5 ms, C 587,7 ms;
+  baseline 533,7/561,6 ms. O campo de duração RPC do trace existente veio nulo;
+  não anunciar essa métrica como medida. Respostas HTTP têm medição separada.
+
+**Flicker reproduzido:** vídeo do observador candidato no run `37094225289`
+mostra o painel mensal desaparecendo por alguns frames (exemplo 24,08 s) e
+retornando (30 s). Frames preservados em `refresh-panel-blank.png` e
+`refresh-panel-visible.png`; a imagem é de navegador real com Supabase local.
+Não generalizar para toda piscada relatada ou inferir duração apenas destes frames.
+
+Causa isolada atual: `renderProntuario` substitui o painel ativo; a regra global
+`.tab-content-panel.active` em `styles.css` reaplica `fadeIn 0.3s`, iniciando em
+opacity zero. `view-transitions` exige intenção de navegação e não explica esse
+refresh de fundo. RED de frontend no mesmo renderer registrou opacidade mínima
+zero, esperado ≥ 0,95; amostras em `refresh-visibility-red.json`. Essa prova
+isolada usa modo local para separar CSS; a gravação do vídeo acima usa backend
+real. A jornada de cinco sessões passa a amostrar opacidade e exigir ausência
+de frames apagados nos dois observadores candidatos. Baseline serve de controle.
+
+A alteração visual ainda não foi aplicada neste checkpoint. Não refatorar
+app.js, remover Realtime ou reabrir RPC/RLS para resolver este replay de CSS.

@@ -38,6 +38,7 @@ async function signIn(page, email, school) {
   await expect(row(page)).toBeVisible();
   await page.waitForFunction(() => document.getElementById('main-container')?.inert !== true
     && window.RadarOperationalRealtimeInvalidationController?.getStatus?.() === 'SUBSCRIBED');
+  await expect(page.locator('#tab-verificacoes')).toHaveCSS('opacity', '1');
   page.on('dialog', dialog => dialog.accept());
 }
 async function settle(page) {
@@ -200,6 +201,10 @@ test('cinco sessões reais medem escrita, observação, edição e falha durante
     for (const i of [0, 2]) expect(samples[i].requests.filter(request =>
       request.path === '/rest/v1/rpc/save_verification_with_log')).toHaveLength(gestures[i]);
     for (const i of [3, 4]) expect(samples[i].writes).toBe(0);
+    if (process.env.RADAR_OPERATIONAL_VARIANT === 'candidate') {
+      for (const i of [3, 4]) expect(samples[i].runtime.visual.fadedFrames,
+        'atualização remota não deve reapresentar o painel com opacity reduzida').toBe(0);
+    }
     outcome = 'passed';
   } catch (error) {
     outcome = 'failed';

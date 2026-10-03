@@ -39,7 +39,9 @@ async function observeOperationalSession(page) {
   await page.evaluate(() => {
     const data = window.RadarApplicationServices.data;
     const counters = { loads: [], applies: 0, renderCalls: 0, mainReplacements: 0,
-      mutations: 0, lastMutationAt: performance.now() };
+      mutations: 0, lastMutationAt: performance.now(),
+      visual: { sampledFrames: 0, fadedFrames: 0, nearlyInvisibleFrames: 0,
+        minOpacity: 1, firstFadedFrames: [] } };
     const load = data.loadOperationalContext;
     data.loadOperationalContext = async function observedContext(key, options = {}) {
       const start = performance.now();
@@ -71,6 +73,28 @@ async function observeOperationalSession(page) {
       counters.lastMutationAt = performance.now();
     }).observe(main, { childList: true, subtree: true, attributes: true, characterData: true });
     window.__RADAR_OPERATIONAL_SESSION_OBSERVATION__ = counters;
+    // O observador não navega nem troca de aba do Prontuário durante a coleta.
+    // Uma nova animação de entrada após refresh é perceptível mesmo se o DOM
+    // já contiver todos os dados. Ler opacity não modifica a apresentação.
+    const sampleFrame = () => {
+      const panel = document.getElementById('tab-verificacoes');
+      if (panel?.classList.contains('active') && !panel.hidden) {
+        const style = getComputedStyle(panel);
+        const opacity = Number(style.opacity);
+        counters.visual.sampledFrames += 1;
+        counters.visual.minOpacity = Math.min(counters.visual.minOpacity, opacity);
+        if (opacity < 0.95) {
+          counters.visual.fadedFrames += 1;
+          if (counters.visual.firstFadedFrames.length < 20) counters.visual.firstFadedFrames.push({
+            at: performance.now(), opacity, animationName: style.animationName,
+            animationDuration: style.animationDuration, display: style.display
+          });
+        }
+        if (opacity < 0.1) counters.visual.nearlyInvisibleFrames += 1;
+      }
+      requestAnimationFrame(sampleFrame);
+    };
+    requestAnimationFrame(sampleFrame);
   });
   return {
     async snapshot() {
