@@ -176,3 +176,45 @@ executar a mesma rajada concorrente e aguardar convergência; voltar a Agosto
 explicitamente após reload. O novo relatório histórico enviado pelo usuário
 foi incorporado como hipóteses sobre refresh/wrappers/readiness/DOM, não como
 fila automática de refatoração nem ordem para escrever em Production.
+
+## Comparação completa e RED causal, antes de nova correção funcional
+
+Run `37094225289`, harness `6bc0c4e8...`: todos os quatro jobs passaram.
+Cada variante realizou 114 gestos (42 + 30 + 42), um erro induzido, edição
+bloqueando refresh e convergência antes/depois do reload no mesmo contexto.
+JSONs completos e resumo durável: `complete-sustained-*.json` e
+`complete-comparison.json` na pasta de evidências desta investigação.
+
+- Baseline escritores A/C: 44/45 **tentativas** de leitura, 42 writes cada,
+  41/42 aborts. Observadores: três reads cada, após debounce trailing.
+- Candidato escritores A/C: 43/44 tentativas, 42 writes cada, 41/42 aborts;
+  os próprios Broadcasts foram reconhecidos/ignorados corretamente (42 cada).
+  Observadores: 17/16 reads e 16/16 substituições principais.
+- Causa compartilhada localizada: após read stale por escrita, controller
+  conserva a razão Realtime pendente; flushPending por click/focusout/
+  write-settled volta a interpretar a razão como permissão de forçar read.
+  Cada gesto aborta uma leitura e força a próxima. O limitador do canal não
+  governa esses flushes. Não é regressão N+1: cada tentativa usa uma RPC.
+- Abort no interceptor antes de enviar a requisição não significa execução
+  custosa de SQL. Separar tentativas do browser, HTTP concluído e chamadas
+  efetivas ao Postgres; o próximo run deve incluir baseline/delta pg_stat.
+- RED isolado em `operational-stale-read-amplification.test.js`: um evento
+  conhecido + 30 flushes de interação produzem **31 reads**, esperado um
+  antes do retry controlado. Dois controles passam: invalidação nova recupera
+  stale, e invalidação durante read bem-sucedido continua exigindo a segunda
+  leitura. Não suprimir essas invalidações reais para obter o verde.
+
+`app.js` revalidado: 13.177 linhas. Caminho de avaliação local: guard/trace →
+conditional reconciler → toggleBonif no app → VerificationService → DataService
+com feedback → RPC/resultado incremental → renderer suprimido/reconcile.
+Refresh externo chega pelo selector/switchView e passa pelo renderer completo.
+Não confundir chamada suprimida com troca efetiva de DOM. Polling de
+atomic-analysis-pendency ainda existe a 100 ms; install está privado ao módulo.
+Auditor de precedência lê config/index e cadeia Excel, sem percorrer os arrays
+do product-extensions-bootstrap. Essas são lacunas atuais confirmadas, ainda
+sem prova de que causaram esta amplificação; não fazer refatoração geral.
+
+Próxima alteração candidata: distinguir invalidação bloqueada pela edição de
+recuperação de read obsoleto; interação não deve ser autoridade para rearmar
+retry de uma invalidação já consumida. Preservar retry/reconnect, pendência e
+novo evento externo; reexecutar a comparação inteira antes de concluir.

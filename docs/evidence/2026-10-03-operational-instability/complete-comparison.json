@@ -1,0 +1,145 @@
+{
+  "runId": 37094225289,
+  "harnessCommit": "6bc0c4e8bc265d3f0eb80de56480c2d4e220d611",
+  "variants": {
+    "baseline": {
+      "outcome": "passed",
+      "sessions": [
+        {
+          "session": 1,
+          "humanGestures": 42,
+          "attemptedContextReads": 44,
+          "writeRpcCalls": 42,
+          "abortedRequests": 41,
+          "staleReadResults": 41,
+          "appliedContextReads": 3,
+          "mainReplacements": 3,
+          "receivedPayloadBytes": 3978457,
+          "elapsedMs": 56159.36939100001
+        },
+        {
+          "session": 2,
+          "humanGestures": 30,
+          "attemptedContextReads": 33,
+          "writeRpcCalls": 30,
+          "abortedRequests": 29,
+          "staleReadResults": 30,
+          "appliedContextReads": 3,
+          "mainReplacements": 33,
+          "receivedPayloadBytes": 5305959,
+          "elapsedMs": 56132.60801000001
+        },
+        {
+          "session": 3,
+          "humanGestures": 42,
+          "attemptedContextReads": 45,
+          "writeRpcCalls": 42,
+          "abortedRequests": 42,
+          "staleReadResults": 42,
+          "appliedContextReads": 3,
+          "mainReplacements": 3,
+          "receivedPayloadBytes": 3979071,
+          "elapsedMs": 56235.90222100001
+        },
+        {
+          "session": 4,
+          "humanGestures": 0,
+          "attemptedContextReads": 3,
+          "writeRpcCalls": 0,
+          "abortedRequests": 0,
+          "staleReadResults": 0,
+          "appliedContextReads": 2,
+          "mainReplacements": 2,
+          "receivedPayloadBytes": 2651951,
+          "elapsedMs": 56122.185517
+        },
+        {
+          "session": 5,
+          "humanGestures": 0,
+          "attemptedContextReads": 3,
+          "writeRpcCalls": 0,
+          "abortedRequests": 0,
+          "staleReadResults": 0,
+          "appliedContextReads": 3,
+          "mainReplacements": 3,
+          "receivedPayloadBytes": 3980003,
+          "elapsedMs": 56118.173687
+        }
+      ],
+      "totalAttemptedContextReads": 128,
+      "totalReceivedPayloadBytes": 19895441
+    },
+    "candidate": {
+      "outcome": "passed",
+      "sessions": [
+        {
+          "session": 1,
+          "humanGestures": 42,
+          "attemptedContextReads": 43,
+          "writeRpcCalls": 42,
+          "abortedRequests": 41,
+          "staleReadResults": 41,
+          "appliedContextReads": 2,
+          "mainReplacements": 2,
+          "receivedPayloadBytes": 2659639,
+          "elapsedMs": 63950.930219999995
+        },
+        {
+          "session": 2,
+          "humanGestures": 30,
+          "attemptedContextReads": 31,
+          "writeRpcCalls": 30,
+          "abortedRequests": 24,
+          "staleReadResults": 30,
+          "appliedContextReads": 1,
+          "mainReplacements": 31,
+          "receivedPayloadBytes": 9306057,
+          "elapsedMs": 63903.883169999994
+        },
+        {
+          "session": 3,
+          "humanGestures": 42,
+          "attemptedContextReads": 44,
+          "writeRpcCalls": 42,
+          "abortedRequests": 42,
+          "staleReadResults": 42,
+          "appliedContextReads": 2,
+          "mainReplacements": 2,
+          "receivedPayloadBytes": 2658994,
+          "elapsedMs": 63899.209466
+        },
+        {
+          "session": 4,
+          "humanGestures": 0,
+          "attemptedContextReads": 17,
+          "writeRpcCalls": 0,
+          "abortedRequests": 0,
+          "staleReadResults": 0,
+          "appliedContextReads": 16,
+          "mainReplacements": 16,
+          "receivedPayloadBytes": 21274006,
+          "elapsedMs": 63893.582051
+        },
+        {
+          "session": 5,
+          "humanGestures": 0,
+          "attemptedContextReads": 16,
+          "writeRpcCalls": 0,
+          "abortedRequests": 0,
+          "staleReadResults": 0,
+          "appliedContextReads": 16,
+          "mainReplacements": 16,
+          "receivedPayloadBytes": 21274562,
+          "elapsedMs": 63888.844118999994
+        }
+      ],
+      "totalAttemptedContextReads": 151,
+      "totalReceivedPayloadBytes": 57173258
+    }
+  },
+  "limits": [
+    "O atraso de transporte ocorre antes de route.continue; tentativas abortadas podem não chegar ao Postgres. Não equiparar tentativas do browser a execuções SQL.",
+    "Baseline trailing e candidato leading têm políticas de frescor diferentes; menos leituras do observador não prova por si só melhor UX.",
+    "Jornada curta com dados sintéticos e rede local; sem certificação de horas, Pendências/patrimônio ou staging."
+  ]
+}

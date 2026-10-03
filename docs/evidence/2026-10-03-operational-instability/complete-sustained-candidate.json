@@ -1,0 +1,3582 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-03T03:48:09.636Z",
+  "variant": "candidate",
+  "stage": "reload",
+  "outcome": "passed",
+  "rounds": 40,
+  "samples": [
+    {
+      "elapsedMs": 63950.930219999995,
+      "reads": 43,
+      "writes": 42,
+      "readsPerWrite": 1.0238095238095237,
+      "readsPerMinute": 40.343429885587376,
+      "readDurationMs": {
+        "p50": 2351.4,
+        "p95": 2363.57,
+        "p99": 2363.57,
+        "max": 2363.566168000005
+      },
+      "payloadBytes": 2659639,
+      "requests": [
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 212.55808499999875,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 383.07066799999666,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 294.3724450000009,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 936.4414890000007,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 410.5971300000019,
+          "payloadBytes": 1123
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 912.4656069999983,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 250.3653400000003,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 780.5544059999993,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 199.85081000000355,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1217.7712370000008,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 272.38463500000216,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1326.2321999999986,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 336.5016990000004,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1447.4477819999993,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 220.44584100000066,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1235.5298380000022,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 379.4377630000017,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1208.8771529999976,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 438.81393599999865,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 901.330285,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 270.367675999998,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1344.5516139999963,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 345.4303989999971,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1066.7603769999987,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 228.91651699999784,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1016.524897000003,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 360.14540500000294,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 718.5508100000006,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 282.7150980000006,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 992.6848769999997,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 332.9002939999991,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 880.1724109999996,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 196.99980499999947,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1119.346974,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 190.70738300000085,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1360.607978,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 188.5307529999991,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1328.9873869999938,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 190.1493330000012,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 915.1731819999986,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 252.196471999996,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 768.5120360000001,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 340.74761800000124,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 807.3368550000014,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 178.22800799999823,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1047.1009369999956,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 242.4931959999958,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1157.4154570000028,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 188.4795479999957,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1099.3315589999984,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 229.12843900000007,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1039.2176430000036,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 281.54167400000006,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1037.7625559999942,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 205.19860899999912,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 782.3047099999967,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 200.19709200000216,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1413.9488689999998,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 220.04011100000207,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 968.8767250000019,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 190.67743000000337,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1071.0022259999969,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 241.4927219999954,
+          "payloadBytes": 1128
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 551.795567000001,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 203.92977700000483,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1667.035606999998,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 209.4273119999998,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1062.9501420000015,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 331.31875800000125,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 918.6825939999981,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 287.61948600000323,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 810.1226400000014,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 179.90189799999644,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1491.1569879999952,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 173.77539200001047,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 711.1690230000095,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 230.49143300000287,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1017.2702430000063,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 236.1812409999984,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1131.2302359999885,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 242.8761830000003,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1042.0445140000083,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 228.18252400000347,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2363.566168000005,
+          "payloadBytes": 1329351
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2351.402117000005,
+          "payloadBytes": 1330288
+        },
+        {
+          "path": "/rest/v1/verifications",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 13.82908700000553,
+          "payloadBytes": 149
+        }
+      ],
+      "runtime": {
+        "loads": [
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 375.5,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-refresh",
+            "durationMs": 1230.3999999999942,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-refresh",
+            "durationMs": 1220.4000000000233,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-refresh",
+            "durationMs": 982.6000000000058,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1370.6999999999825,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1622.2000000000116,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1745.2000000000116,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1399.3000000000175,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1533.0999999999767,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1300,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1562.2999999999884,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1372.1000000000058,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1160.7000000000116,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1128.7000000000116,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1380.5999999999767,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1167.8999999999942,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1266,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1501.5,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1470.2999999999884,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1060.5,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1006.2999999999884,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1157.7000000000116,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1179.6000000000058,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1355.9000000000233,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1246.7000000000116,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1308.8999999999942,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1177.6999999999825,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 938.3999999999942,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1567.8000000000175,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1138,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1213.3999999999942,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 790.5,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1883.4000000000233,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1221.7000000000116,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1212.2000000000116,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1048.7000000000116,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1595.2999999999884,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 909.3999999999942,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1074.7000000000116,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1316.7000000000116,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1235.1999999999825,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 2449.8000000000175,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-inflight-finished-refresh",
+            "durationMs": 2264.7000000000116,
+            "stale": false,
+            "ok": true
+          }
+        ],
+        "applies": 44,
+        "renderCalls": 44,
+        "mainReplacements": 2,
+        "mutations": 2996,
+        "lastMutationAt": 68041.6,
+        "refresh": {
+          "requests": 175,
+          "attempts": 44,
+          "succeeded": 2,
+          "failed": 0,
+          "stale": 41,
+          "rerenders": 2,
+          "pendingMarked": 249,
+          "pendingFlushed": 160,
+          "lastDurationMs": 2283,
+          "lastReason": "realtime-inflight-finished",
+          "lastRequestAt": "2026-10-03T03:48:04.371Z",
+          "lastAttemptAt": "2026-10-03T03:48:04.372Z",
+          "byReason": {
+            "realtime": 14,
+            "realtime-click": 2,
+            "realtime-retry": 1,
+            "realtime-click-inflight-finished": 1,
+            "realtime-focusout": 20,
+            "realtime-focusout-click": 20,
+            "realtime-focusout-click-write-settled": 19,
+            "realtime-click-inflight-finished-inflight-finished": 1,
+            "realtime-click-focusout": 19,
+            "realtime-click-focusout-click": 19,
+            "realtime-click-focusout-click-write-settled": 19,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-write-settled": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-inflight-finished": 2
+          },
+          "skipped": {
+            "inflight": 131
+          }
+        },
+        "realtime": {
+          "broadcastsReceived": 145,
+          "ownBroadcastsIgnored": 42,
+          "ownReconciliationsScheduled": 42,
+          "ownReconciliationsCoalesced": 1,
+          "coalescedBroadcasts": 88,
+          "remoteRefreshesRateLimited": 9,
+          "refreshesScheduled": 16,
+          "refreshAttempts": 15,
+          "refreshSucceeded": 12,
+          "refreshFailed": 2,
+          "retriesScheduled": 1,
+          "reconnectRefreshes": 0,
+          "lastBroadcastAt": "2026-10-03T03:48:04.406Z",
+          "lastRefreshAt": "2026-10-03T03:48:02.081Z",
+          "byEntity": {
+            "verifications": 115,
+            "registered_invoices": 30
+          }
+        },
+        "pendingRefresh": false,
+        "scrollTop": 0,
+        "focusedId": null
+      },
+      "errors": []
+    },
+    {
+      "elapsedMs": 63903.883169999994,
+      "reads": 31,
+      "writes": 30,
+      "readsPerWrite": 1.0333333333333334,
+      "readsPerMinute": 29.10620440621827,
+      "readDurationMs": {
+        "p50": 2246.85,
+        "p95": 2451.48,
+        "p99": 2451.48,
+        "max": 2451.4770989999997
+      },
+      "payloadBytes": 9306057,
+      "requests": [
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 742.5617120000024,
+          "payloadBytes": 1328092
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1192.7595959999999,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 133.23677400000088,
+          "payloadBytes": 2318
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 22.45801399999982,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1668.1089729999985,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 238.11202600000252,
+          "payloadBytes": 2258
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 26.508108000001812,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1337.6439890000001,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 382.0705960000014,
+          "payloadBytes": 749
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 18.784841000000597,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2451.4770989999997,
+          "payloadBytes": 1329348
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 290.01918300000034,
+          "payloadBytes": 2318
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 16.296094999997877,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 2057.1366460000027,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 185.85783599999922,
+          "payloadBytes": 2258
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 18.768831000001228,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 833.1776969999992,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 287.52751100000023,
+          "payloadBytes": 749
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 16.18872900000133,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2429.0260420000013,
+          "payloadBytes": 1329349
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 288.9467369999984,
+          "payloadBytes": 2318
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 17.599717000004603,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 2263.4291929999963,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 139.38584200000332,
+          "payloadBytes": 2258
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 17.32395700000052,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1153.1095970000024,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 375.29583699999785,
+          "payloadBytes": 750
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 17.40220500000578,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2211.533838000003,
+          "payloadBytes": 1329351
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 269.6536019999985,
+          "payloadBytes": 2319
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 20.7870019999973,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 2273.4550260000033,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 120.9832779999997,
+          "payloadBytes": 2259
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 13.250011999996786,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1200.1373390000008,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 244.75131800000236,
+          "payloadBytes": 750
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 12.131154000002425,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1548.8410430000004,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 292.0306849999979,
+          "payloadBytes": 2317
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 11.293205000001763,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1990.7466649999988,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 246.12145900000178,
+          "payloadBytes": 2257
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 11.003865999999107,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 802.0789619999996,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 266.7262090000004,
+          "payloadBytes": 749
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 22.41342900000018,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1371.6806619999988,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 122.92801499999769,
+          "payloadBytes": 2319
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 15.856908000001567,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1517.804501999999,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 147.83434399999533,
+          "payloadBytes": 2259
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 17.62618400000065,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1265.4615649999978,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 243.15885300000082,
+          "payloadBytes": 750
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 20.824470999999903,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 2171.16878,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 236.61688300000242,
+          "payloadBytes": 2319
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 13.679260999997496,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 2218.284528999997,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 129.07212500000605,
+          "payloadBytes": 2259
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 14.308403000002727,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 947.0021599999964,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 279.88082700000086,
+          "payloadBytes": 750
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 19.26054799999838,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2246.847836000001,
+          "payloadBytes": 1329350
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 167.0485090000002,
+          "payloadBytes": 2319
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 22.531989999995858,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2233.545905999992,
+          "payloadBytes": 1330284
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 131.5980419999978,
+          "payloadBytes": 2256
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 13.731583999993745,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 705.8040699999983,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 293.5703050000011,
+          "payloadBytes": 750
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 13.64330000001064,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1722.6935329999978,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 130.0214879999985,
+          "payloadBytes": 2319
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 15.832013000006555,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2367.036103999999,
+          "payloadBytes": 1330283
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 206.81212600000435,
+          "payloadBytes": 2259
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 15.443673999994644,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 620.7402310000034,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 294.6630670000013,
+          "payloadBytes": 750
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 10.63386800000444,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1569.3137650000135,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 123.74185700000089,
+          "payloadBytes": 2319
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 19.674631999994745,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1172.8265769999998,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 76.18026999999711,
+          "payloadBytes": 2259
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 18.18791599999531,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 742.1550679999928,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 276.68104100000346,
+          "payloadBytes": 750
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 12.944283000004361,
+          "payloadBytes": 2
+        }
+      ],
+      "runtime": {
+        "loads": [
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 626.6000000000058,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 1143,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-write-settled-refresh",
+            "durationMs": 1623.6000000000058,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-write-settled-refresh",
+            "durationMs": 1333,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-write-settled-inflight-finished-refresh",
+            "durationMs": 2710.600000000006,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-write-settled-write-settled-refresh",
+            "durationMs": 2126.0999999999767,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-write-settled-write-settled-refresh",
+            "durationMs": 790.8999999999942,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-write-settled-click-refresh",
+            "durationMs": 2578.5,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-write-settled-write-settled-refresh",
+            "durationMs": 2170.100000000006,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-write-settled-write-settled-refresh",
+            "durationMs": 1134,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-write-settled-click-refresh",
+            "durationMs": 2500.899999999994,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-write-settled-write-settled-refresh",
+            "durationMs": 2268.5,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-write-settled-write-settled-refresh",
+            "durationMs": 1150.2999999999884,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-write-settled-click-refresh",
+            "durationMs": 1721.5,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-write-settled-write-settled-refresh",
+            "durationMs": 2071.2000000000116,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-write-settled-write-settled-refresh",
+            "durationMs": 798.2999999999884,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-write-settled-click-refresh",
+            "durationMs": 1537.1000000000058,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-write-settled-write-settled-refresh",
+            "durationMs": 1464.6999999999825,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-write-settled-write-settled-refresh",
+            "durationMs": 1233.0999999999767,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-write-settled-write-settled-inflight-finished-refresh",
+            "durationMs": 2397.5999999999767,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-write-settled-click-write-settled-write-settled-refresh",
+            "durationMs": 2237.7000000000116,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-write-settled-click-write-settled-write-settled-refresh",
+            "durationMs": 897.2999999999884,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-write-settled-click-write-settled-click-refresh",
+            "durationMs": 2426.600000000006,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-write-settled-click-write-settled-write-settled-refresh",
+            "durationMs": 2180.100000000006,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-write-settled-click-write-settled-write-settled-refresh",
+            "durationMs": 663.1999999999825,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-write-settled-click-write-settled-click-refresh",
+            "durationMs": 1950.7000000000116,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-write-settled-click-write-settled-write-settled-refresh",
+            "durationMs": 2206.7999999999884,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-write-settled-click-write-settled-write-settled-refresh",
+            "durationMs": 639.6000000000058,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-write-settled-click-write-settled-click-refresh",
+            "durationMs": 1765,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-write-settled-click-write-settled-write-settled-refresh",
+            "durationMs": 1167.1000000000058,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-write-settled-click-write-settled-write-settled-refresh",
+            "durationMs": 693,
+            "stale": true,
+            "ok": true
+          }
+        ],
+        "applies": 31,
+        "renderCalls": 31,
+        "mainReplacements": 31,
+        "mutations": 3351,
+        "lastMutationAt": 68453.5,
+        "refresh": {
+          "requests": 56,
+          "attempts": 32,
+          "succeeded": 1,
+          "failed": 0,
+          "stale": 30,
+          "rerenders": 1,
+          "pendingMarked": 89,
+          "pendingFlushed": 37,
+          "lastDurationMs": 693,
+          "lastReason": "realtime-click-write-settled-click-write-settled-click",
+          "lastRequestAt": "2026-10-03T03:48:04.347Z",
+          "lastAttemptAt": "2026-10-03T03:48:04.348Z",
+          "byReason": {
+            "realtime": 17,
+            "realtime-write-settled": 2,
+            "realtime-retry": 2,
+            "realtime-retry-dialog-transition": 1,
+            "realtime-write-settled-inflight-finished": 1,
+            "realtime-click": 1,
+            "realtime-click-write-settled": 1,
+            "realtime-click-write-settled-focusout": 1,
+            "realtime-click-write-settled-write-settled": 10,
+            "realtime-click-write-settled-click": 5,
+            "realtime-click-write-settled-write-settled-inflight-finished": 1,
+            "realtime-click-write-settled-click-write-settled": 1,
+            "realtime-click-write-settled-click-write-settled-focusout": 1,
+            "realtime-click-write-settled-click-write-settled-write-settled": 8,
+            "realtime-click-write-settled-click-write-settled-click": 4
+          },
+          "skipped": {
+            "inflight": 24
+          }
+        },
+        "realtime": {
+          "broadcastsReceived": 145,
+          "ownBroadcastsIgnored": 61,
+          "ownReconciliationsScheduled": 61,
+          "ownReconciliationsCoalesced": 33,
+          "coalescedBroadcasts": 65,
+          "remoteRefreshesRateLimited": 12,
+          "refreshesScheduled": 21,
+          "refreshAttempts": 19,
+          "refreshSucceeded": 16,
+          "refreshFailed": 3,
+          "retriesScheduled": 2,
+          "reconnectRefreshes": 0,
+          "lastBroadcastAt": "2026-10-03T03:48:04.349Z",
+          "lastRefreshAt": "2026-10-03T03:48:02.229Z",
+          "byEntity": {
+            "verifications": 115,
+            "registered_invoices": 30
+          }
+        },
+        "pendingRefresh": false,
+        "scrollTop": 631,
+        "focusedId": null
+      },
+      "errors": []
+    },
+    {
+      "elapsedMs": 63899.209466,
+      "reads": 44,
+      "writes": 42,
+      "readsPerWrite": 1.0476190476190477,
+      "readsPerMinute": 41.31506266825679,
+      "readDurationMs": {
+        "p50": 1256.19,
+        "p95": 2304.69,
+        "p99": 2304.69,
+        "max": 2304.689087999999
+      },
+      "payloadBytes": 2658994,
+      "requests": [
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 409.6242910000001,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 328.6241829999999,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 1256.1945540000015,
+          "payloadBytes": 1328706
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 528.0465700000022,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 311.50024199999825,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1400.7690299999995,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 263.48025100000086,
+          "payloadBytes": 1127
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1026.8720180000018,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 171.65087399999902,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 667.4593959999984,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 231.56538399999772,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 827.9111940000003,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 343.4856140000011,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1993.4403099999981,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 285.906081000001,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1113.6865529999995,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 229.57601799999975,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1484.7940560000025,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 274.85407999999734,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 792.5880839999991,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 413.8692779999983,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1122.398118000001,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 362.47793799999636,
+          "payloadBytes": 1128
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1286.0538329999981,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 276.37680700000055,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 965.3254159999997,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 118.51360299999942,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 774.8134229999996,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 288.1353090000048,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1128.6686390000032,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 390.51216900000145,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 897.251651999999,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 298.68144299999403,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1604.1401230000047,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 308.68140100000164,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1043.0857269999979,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 169.4721040000004,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 901.4216099999976,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 230.91199499999493,
+          "payloadBytes": 1128
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1132.304989999997,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 183.4938209999964,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 743.903323999999,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 328.952274999996,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 783.2306830000016,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 281.5184500000032,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1234.2351229999986,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 212.22199600000022,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1165.1003619999974,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 194.91898900000524,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1603.8707209999993,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 211.7796920000037,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1176.064658999996,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 198.59489999999641,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1177.4317530000044,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 247.86179200000333,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1059.358702999998,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 248.87403600000107,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1382.6523620000007,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 272.96751300000324,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1795.8578569999954,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 238.28871400000207,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 650.7290950000024,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 215.69834899999842,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 950.1048340000052,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 205.52653800000553,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 897.4615699999995,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 196.97578700000304,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1201.5565900000001,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 363.5250010000018,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 705.1951610000033,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 156.93155600000318,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1991.4577530000024,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 171.36017299999367,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 589.7973630000051,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 163.06197900000552,
+          "payloadBytes": 1128
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 636.1180980000063,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 157.8348629999964,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1363.8522150000063,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 178.6790939999919,
+          "payloadBytes": 1128
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1174.6061410000111,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 285.89970999999787,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1082.4368959999993,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 189.90294800000265,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 963.1813879999972,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 162.34741699999722,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2304.689087999999,
+          "payloadBytes": 1330288
+        }
+      ],
+      "runtime": {
+        "loads": [
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 359.4000000000233,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-click-refresh",
+            "durationMs": 1482.1000000000058,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-refresh",
+            "durationMs": 513.2999999999884,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-refresh",
+            "durationMs": 1662.7999999999884,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-refresh",
+            "durationMs": 1298.7999999999884,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-refresh",
+            "durationMs": 785.8999999999942,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1028.7000000000116,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 2286.2000000000116,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1357.6999999999825,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1664.1000000000058,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1014.6000000000058,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1437.6000000000058,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1669.3999999999942,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1213.2000000000116,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 846,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1369.7000000000116,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1288.1000000000058,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1955.2000000000116,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1308.7000000000116,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1019.1000000000058,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1295.7999999999884,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 950.6000000000058,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1071.8999999999942,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1501.3999999999942,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1332.8999999999942,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1742.6000000000058,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1337.6999999999825,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1326.3000000000175,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1325.5,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1607.4000000000233,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 2039.5,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 837.7999999999884,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1115.1000000000058,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1049.1000000000058,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1317.8999999999942,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1003.8000000000175,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 2164.8000000000175,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 723.1000000000058,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 748.8999999999942,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1472.5,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1302.2000000000116,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1322.6999999999825,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 1103.8999999999942,
+            "stale": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-refresh",
+            "durationMs": 2385.8000000000175,
+            "stale": false,
+            "ok": true
+          }
+        ],
+        "applies": 44,
+        "renderCalls": 44,
+        "mainReplacements": 2,
+        "mutations": 2996,
+        "lastMutationAt": 67781.19999999998,
+        "refresh": {
+          "requests": 176,
+          "attempts": 45,
+          "succeeded": 2,
+          "failed": 0,
+          "stale": 42,
+          "rerenders": 2,
+          "pendingMarked": 250,
+          "pendingFlushed": 160,
+          "lastDurationMs": 2400,
+          "lastReason": "realtime-retry-focusout-click-write-settled-inflight-finished",
+          "lastRequestAt": "2026-10-03T03:48:03.893Z",
+          "lastAttemptAt": "2026-10-03T03:48:03.893Z",
+          "byReason": {
+            "realtime": 14,
+            "realtime-click": 1,
+            "realtime-retry": 2,
+            "realtime-retry-click": 2,
+            "realtime-retry-click-inflight-finished": 1,
+            "realtime-retry-focusout": 20,
+            "realtime-retry-focusout-click": 20,
+            "realtime-retry-focusout-click-write-settled": 19,
+            "realtime-retry-click-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-focusout": 19,
+            "realtime-retry-click-focusout-click": 19,
+            "realtime-retry-click-focusout-click-write-settled": 19,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-write-settled": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-click-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished-inflight-finished": 1,
+            "realtime-retry-focusout-click-write-settled-inflight-finished": 1
+          },
+          "skipped": {
+            "inflight": 131
+          }
+        },
+        "realtime": {
+          "broadcastsReceived": 145,
+          "ownBroadcastsIgnored": 42,
+          "ownReconciliationsScheduled": 42,
+          "ownReconciliationsCoalesced": 2,
+          "coalescedBroadcasts": 87,
+          "remoteRefreshesRateLimited": 9,
+          "refreshesScheduled": 18,
+          "refreshAttempts": 16,
+          "refreshSucceeded": 13,
+          "refreshFailed": 3,
+          "retriesScheduled": 2,
+          "reconnectRefreshes": 0,
+          "lastBroadcastAt": "2026-10-03T03:48:04.321Z",
+          "lastRefreshAt": "2026-10-03T03:48:00.382Z",
+          "byEntity": {
+            "verifications": 115,
+            "registered_invoices": 30
+          }
+        },
+        "pendingRefresh": false,
+        "scrollTop": 0,
+        "focusedId": null
+      },
+      "errors": []
+    },
+    {
+      "elapsedMs": 63893.582051,
+      "reads": 17,
+      "writes": 0,
+      "readsPerWrite": null,
+      "readsPerMinute": 15.964043817750127,
+      "readDurationMs": {
+        "p50": 2293.44,
+        "p95": 2440.32,
+        "p99": 2440.32,
+        "max": 2440.3219099999988
+      },
+      "payloadBytes": 21274006,
+      "requests": [
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 764.9759809999996,
+          "payloadBytes": 1328092
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 500,
+          "durationMs": 6.934184999998251,
+          "payloadBytes": 66
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2430.1630799999984,
+          "payloadBytes": 1330284
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2340.4397759999993,
+          "payloadBytes": 1329348
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2436.1129089999995,
+          "payloadBytes": 1329346
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2282.028093000001,
+          "payloadBytes": 1329347
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2259.1255810000002,
+          "payloadBytes": 1329349
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2404.015913000003,
+          "payloadBytes": 1329350
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2440.3219099999988,
+          "payloadBytes": 1329351
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2306.943260999993,
+          "payloadBytes": 1330284
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2352.6081149999955,
+          "payloadBytes": 1330285
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2228.889544000005,
+          "payloadBytes": 1329350
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2288.3812060000055,
+          "payloadBytes": 1330286
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2360.683428999997,
+          "payloadBytes": 1329349
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2293.440100000007,
+          "payloadBytes": 1329350
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2239.5020309999964,
+          "payloadBytes": 1330283
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2241.281937000007,
+          "payloadBytes": 1330286
+        }
+      ],
+      "runtime": {
+        "loads": [
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 678.2999999999884,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 9,
+            "ok": false
+          },
+          {
+            "source": "session-realtime-retry-refresh",
+            "durationMs": 2331.8000000000175,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-inflight-finished-refresh",
+            "durationMs": 2359.2999999999884,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2342.1999999999825,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2295.399999999994,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2195.2999999999884,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2316.6999999999825,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2329.7999999999884,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2253.5,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2260.2000000000116,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2248.3000000000175,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2215.899999999994,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2260.5,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2204.1999999999825,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2184,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2178.600000000006,
+            "stale": false,
+            "ok": true
+          }
+        ],
+        "applies": 16,
+        "renderCalls": 16,
+        "mainReplacements": 16,
+        "mutations": 1952,
+        "lastMutationAt": 67396.70000000001,
+        "refresh": {
+          "requests": 19,
+          "attempts": 18,
+          "succeeded": 16,
+          "failed": 1,
+          "stale": 0,
+          "rerenders": 16,
+          "pendingMarked": 2,
+          "pendingFlushed": 1,
+          "lastDurationMs": 2191,
+          "lastReason": "realtime",
+          "lastRequestAt": "2026-10-03T03:48:03.826Z",
+          "lastAttemptAt": "2026-10-03T03:48:03.827Z",
+          "byReason": {
+            "realtime": 17,
+            "realtime-retry": 1,
+            "realtime-inflight-finished": 1
+          },
+          "skipped": {
+            "inflight": 1
+          }
+        },
+        "realtime": {
+          "broadcastsReceived": 145,
+          "ownBroadcastsIgnored": 0,
+          "ownReconciliationsScheduled": 0,
+          "ownReconciliationsCoalesced": 0,
+          "coalescedBroadcasts": 127,
+          "remoteRefreshesRateLimited": 13,
+          "refreshesScheduled": 19,
+          "refreshAttempts": 18,
+          "refreshSucceeded": 16,
+          "refreshFailed": 1,
+          "retriesScheduled": 1,
+          "reconnectRefreshes": 0,
+          "lastBroadcastAt": "2026-10-03T03:48:04.323Z",
+          "lastRefreshAt": "2026-10-03T03:48:03.272Z",
+          "byEntity": {
+            "verifications": 115,
+            "registered_invoices": 30
+          }
+        },
+        "pendingRefresh": false,
+        "scrollTop": 0,
+        "focusedId": null
+      },
+      "errors": []
+    },
+    {
+      "elapsedMs": 63888.844118999994,
+      "reads": 16,
+      "writes": 0,
+      "readsPerWrite": null,
+      "readsPerMinute": 15.02609709958153,
+      "readDurationMs": {
+        "p50": 2355.47,
+        "p95": 2520.3,
+        "p99": 2520.3,
+        "max": 2520.3004319999964
+      },
+      "payloadBytes": 21274562,
+      "requests": [
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 1328.449138,
+          "payloadBytes": 1328706
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2403.481252999998,
+          "payloadBytes": 1329346
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2450.870906,
+          "payloadBytes": 1329347
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2438.4446590000007,
+          "payloadBytes": 1329349
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2478.3010060000015,
+          "payloadBytes": 1329347
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2434.5005420000016,
+          "payloadBytes": 1329349
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2230.6147740000015,
+          "payloadBytes": 1330285
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2317.604419999996,
+          "payloadBytes": 1329349
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2377.4566909999994,
+          "payloadBytes": 1330286
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2310.0325349999985,
+          "payloadBytes": 1330287
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2520.3004319999964,
+          "payloadBytes": 1329351
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2282.437299999998,
+          "payloadBytes": 1329349
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2354.3157690000007,
+          "payloadBytes": 1330285
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2278.0181100000045,
+          "payloadBytes": 1329350
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2355.470539999995,
+          "payloadBytes": 1330288
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2458.945350000009,
+          "payloadBytes": 1330288
+        }
+      ],
+      "runtime": {
+        "loads": [
+          {
+            "source": "session-realtime-focusout-refresh",
+            "durationMs": 1255,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2309,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2299.2000000000116,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2338.6999999999825,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2291.2000000000116,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2502.7000000000116,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2173.899999999994,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2207.600000000006,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2251.7000000000116,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2204.399999999994,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2363.7000000000116,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2206.0999999999767,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2272.9000000000233,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2193.9000000000233,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2268.3000000000175,
+            "stale": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2377.7999999999884,
+            "stale": false,
+            "ok": true
+          }
+        ],
+        "applies": 16,
+        "renderCalls": 16,
+        "mainReplacements": 16,
+        "mutations": 1792,
+        "lastMutationAt": 67571.69999999998,
+        "refresh": {
+          "requests": 17,
+          "attempts": 16,
+          "succeeded": 16,
+          "failed": 0,
+          "stale": 0,
+          "rerenders": 16,
+          "pendingMarked": 1,
+          "pendingFlushed": 1,
+          "lastDurationMs": 2389,
+          "lastReason": "realtime",
+          "lastRequestAt": "2026-10-03T03:48:01.688Z",
+          "lastAttemptAt": "2026-10-03T03:48:01.688Z",
+          "byReason": {
+            "realtime": 16,
+            "realtime-focusout": 1
+          },
+          "skipped": {
+            "editing": 1
+          }
+        },
+        "realtime": {
+          "broadcastsReceived": 145,
+          "ownBroadcastsIgnored": 0,
+          "ownReconciliationsScheduled": 0,
+          "ownReconciliationsCoalesced": 0,
+          "coalescedBroadcasts": 128,
+          "remoteRefreshesRateLimited": 13,
+          "refreshesScheduled": 17,
+          "refreshAttempts": 16,
+          "refreshSucceeded": 16,
+          "refreshFailed": 0,
+          "retriesScheduled": 0,
+          "reconnectRefreshes": 0,
+          "lastBroadcastAt": "2026-10-03T03:48:04.321Z",
+          "lastRefreshAt": "2026-10-03T03:48:04.078Z",
+          "byEntity": {
+            "verifications": 115,
+            "registered_invoices": 30
+          }
+        },
+        "pendingRefresh": false,
+        "scrollTop": 0,
+        "focusedId": null
+      },
+      "errors": []
+    }
+  ],
+  "finalValue": "Não",
+  "gestures": [
+    42,
+    30,
+    42,
+    0,
+    0
+  ],
+  "faults": {
+    "readLatencyMs": 0,
+    "failObserverRead": false,
+    "failuresInjected": 1
+  },
+  "reloadInitialCompetence": "2026-09",
+  "limits": [
+    "Massa sintética calibrada; não clone de Production.",
+    "Cinco sessões/quatro usuários Controladores, incluindo duas abas da mesma identidade.",
+    "Esta jornada mede avaliações e CRUD fiscal; não certifica patrimônio, Pendências, horas de uso ou staging.",
+    "Latência e HTTP 500 são induzidos no transporte; dados e Realtime são reais."
+  ],
+  "evidenceSource": {
+    "runId": 37094225289,
+    "jobId": 111120727831,
+    "artifactId": 11262653896,
+    "harnessCommit": "6bc0c4e8bc265d3f0eb80de56480c2d4e220d611",
+    "productCommit": "6bc0c4e8bc265d3f0eb80de56480c2d4e220d611"
+  }
+}
