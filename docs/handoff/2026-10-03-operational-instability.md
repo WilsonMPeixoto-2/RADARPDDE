@@ -340,3 +340,42 @@ separado dos vídeos. O ZIP integral pode exceder o limite de download de 32 MiB
 do ambiente Codex em 400 rodadas; isso não deve bloquear leitura dos resultados
 nem continuidade por outro agente. Mantém-se o vídeo integral como evidência
 separada de curta retenção, e as conclusões/JSON relevantes serão versionados.
+
+## Primeira comparação longa concluída — antes da correção da janela
+
+Run `37096698975`, candidato `75da2150...` (mesmo runtime de `8c8d9c07...`):
+os quatro jobs passaram. 400 rodadas, 1.106 gestos por variante, um HTTP 500,
+um socket desconectado/reconectado, convergência e reload no mesmo contexto.
+Relatórios integrais e resumo em `long-before-window-*.json`.
+
+| Sessão | Baseline reads/writes | Candidato reads/writes | DOM baseline/candidato |
+| --- | --- | --- | --- |
+| Escritor A | 406 / 404 | 190 / 404 | 5 / 5 |
+| Fiscal | 305 / 300 | 145 / 300 | 305 / 302 |
+| Escritor C | 407 / 402 | 191 / 402 | 5 / 5 |
+| Observador | 5 / 0 | 137 / 0 | 4 / 136 |
+| Segunda aba | 5 / 0 | 136 / 0 | 5 / 136 |
+
+- Coleta: baseline ~460 s; candidato ~498 s. Não chamar isso de 30–60 minutos.
+- Todos os cinco candidatos tiveram zero frames com opacity < 0,95; observadores
+  baseline tiveram 10/11 frames apagados. O escritor fiscal baseline teve 716.
+  Nenhuma afirmação sobre causas visuais fora da opacidade deste painel.
+- Os observadores candidatos releram ~181 MB cada e ~16,5 vezes/minuto. Isso
+  confirma custo remanescente apesar do CSS estável; não esconder o desperdício
+  porque a interface deixou de piscar. É o controle anterior à janela corrigida.
+- SQL autenticado: baseline 58 calls, candidato 309, incluindo bootstrap.
+  A política leading mantém frescor durante atividade, com custo maior que o
+  trailing histórico. Não anunciar redução global de SQL em relação ao baseline.
+- p95 clique → estável, **últimas 100 amostras** de avaliação: candidato
+  A 619,3 ms / C 662 ms; baseline 561,2 / 590 ms. O trace não mede RPC nem CRUD
+  fiscal neste run. Não extrapolar esse p95 para todas as 1.106 operações.
+- Desconexão/reconexão foram induzidas via SDK no socket real. A aplicação
+  recebeu a alteração perdida sem F5; isso não prova reconexão automática de
+  uma interrupção de Internet. Baseline e candidato preservaram writes/estado.
+
+ZIPs integrais de ~65 MB foram recuperados por referência de download autorizada
+do conector; métricas, SQL e screenshots extraídos. O limite do download_file
+não impediu esta recuperação; a publicação compacta facilita agentes futuros.
+A próxima prova de runtime é o run `37097052464`, head `a652b410...`, em execução,
+com a janela corrigida e tetos de leitura. Este checkpoint contém só evidências,
+sem nova alteração funcional; [skip ci] evita repetir os mesmos testes por JSON/docs.

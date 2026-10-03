@@ -1,0 +1,361 @@
+{
+  "runId": 37096698975,
+  "candidateCommit": "75da215007fea8aa5e9763d1c69bd81e3125f84a",
+  "stage": "após stale-read/CSS, antes da correção da janela remota",
+  "variants": {
+    "baseline": {
+      "outcome": "passed",
+      "totalGestures": 1106,
+      "sessions": [
+        {
+          "session": 1,
+          "humanGestures": 404,
+          "attemptedContextReads": 406,
+          "writeRpcCalls": 404,
+          "readsPerMinute": 52.953753166342054,
+          "abortedRequests": 401,
+          "staleReadResults": 401,
+          "mainReplacements": 5,
+          "payloadBytes": 6645507,
+          "elapsedMs": 460024.04277400003,
+          "visual": {
+            "sampledFrames": 1874,
+            "fadedFrames": 11,
+            "nearlyInvisibleFrames": 10,
+            "minOpacity": 0
+          },
+          "writeTiming": {
+            "sampleCount": 100,
+            "clickToFeedback": {
+              "p50": 0.10000000009313226,
+              "p95": 0.9000000000232831
+            },
+            "rpc": {
+              "p50": null,
+              "p95": null
+            },
+            "apply": {
+              "p50": 1.1999999999534339,
+              "p95": 2.099999999976717
+            },
+            "clickToStable": {
+              "p50": 279,
+              "p95": 561.1999999999534
+            }
+          }
+        },
+        {
+          "session": 2,
+          "humanGestures": 300,
+          "attemptedContextReads": 305,
+          "writeRpcCalls": 300,
+          "readsPerMinute": 39.78532740809721,
+          "abortedRequests": 299,
+          "staleReadResults": 300,
+          "mainReplacements": 305,
+          "payloadBytes": 7974859,
+          "elapsedMs": 459968.55938399996,
+          "visual": {
+            "sampledFrames": 1775,
+            "fadedFrames": 716,
+            "nearlyInvisibleFrames": 634,
+            "minOpacity": 0
+          },
+          "writeTiming": {
+            "sampleCount": 0,
+            "clickToFeedback": {
+              "p50": null,
+              "p95": null
+            },
+            "rpc": {
+              "p50": null,
+              "p95": null
+            },
+            "apply": {
+              "p50": null,
+              "p95": null
+            },
+            "clickToStable": {
+              "p50": null,
+              "p95": null
+            }
+          }
+        },
+        {
+          "session": 3,
+          "humanGestures": 402,
+          "attemptedContextReads": 407,
+          "writeRpcCalls": 402,
+          "readsPerMinute": 53.08943732074392,
+          "abortedRequests": 402,
+          "staleReadResults": 402,
+          "mainReplacements": 5,
+          "payloadBytes": 6647062,
+          "elapsedMs": 459978.497336,
+          "visual": {
+            "sampledFrames": 1862,
+            "fadedFrames": 12,
+            "nearlyInvisibleFrames": 11,
+            "minOpacity": 0
+          },
+          "writeTiming": {
+            "sampleCount": 100,
+            "clickToFeedback": {
+              "p50": 0.10000000009313226,
+              "p95": 1.5
+            },
+            "rpc": {
+              "p50": null,
+              "p95": null
+            },
+            "apply": {
+              "p50": 1.2000000000698492,
+              "p95": 2.199999999953434
+            },
+            "clickToStable": {
+              "p50": 304.30000000004657,
+              "p95": 590
+            }
+          }
+        },
+        {
+          "session": 4,
+          "humanGestures": 0,
+          "attemptedContextReads": 5,
+          "writeRpcCalls": 0,
+          "readsPerMinute": 0.6523461772504547,
+          "abortedRequests": 0,
+          "staleReadResults": 0,
+          "mainReplacements": 4,
+          "payloadBytes": 5316219,
+          "elapsedMs": 459878.514832,
+          "visual": {
+            "sampledFrames": 2249,
+            "fadedFrames": 10,
+            "nearlyInvisibleFrames": 10,
+            "minOpacity": 0
+          },
+          "writeTiming": null
+        },
+        {
+          "session": 5,
+          "humanGestures": 0,
+          "attemptedContextReads": 5,
+          "writeRpcCalls": 0,
+          "readsPerMinute": 0.6523487150565047,
+          "abortedRequests": 0,
+          "staleReadResults": 0,
+          "mainReplacements": 5,
+          "payloadBytes": 6647050,
+          "elapsedMs": 459876.735974,
+          "visual": {
+            "sampledFrames": 2242,
+            "fadedFrames": 11,
+            "nearlyInvisibleFrames": 11,
+            "minOpacity": 0
+          },
+          "writeTiming": null
+        }
+      ],
+      "faults": {
+        "readLatencyMs": 0,
+        "failObserverRead": false,
+        "failuresInjected": 1,
+        "realtimeDisconnects": 1,
+        "realtimeRecovered": true
+      },
+      "sqlBefore": [],
+      "sqlAfter": [
+        {
+          "role": "authenticated",
+          "rows": 58,
+          "calls": 58,
+          "queryId": "7145021936814103127",
+          "maxExecMs": 769.499326,
+          "meanExecMs": 250.460958293103,
+          "totalExecMs": 14526.735581
+        }
+      ]
+    },
+    "candidate": {
+      "outcome": "passed",
+      "totalGestures": 1106,
+      "sessions": [
+        {
+          "session": 1,
+          "humanGestures": 404,
+          "attemptedContextReads": 190,
+          "writeRpcCalls": 404,
+          "readsPerMinute": 22.901388885051176,
+          "abortedRequests": 185,
+          "staleReadResults": 185,
+          "mainReplacements": 5,
+          "payloadBytes": 6646769,
+          "elapsedMs": 497786.397079,
+          "visual": {
+            "sampledFrames": 1884,
+            "fadedFrames": 0,
+            "nearlyInvisibleFrames": 0,
+            "minOpacity": 1
+          },
+          "writeTiming": {
+            "sampleCount": 100,
+            "clickToFeedback": {
+              "p50": 0.10000000009313226,
+              "p95": 0.5
+            },
+            "rpc": {
+              "p50": null,
+              "p95": null
+            },
+            "apply": {
+              "p50": 1.2999999999301508,
+              "p95": 2.5
+            },
+            "clickToStable": {
+              "p50": 305,
+              "p95": 619.3000000000466
+            }
+          }
+        },
+        {
+          "session": 2,
+          "humanGestures": 300,
+          "attemptedContextReads": 145,
+          "writeRpcCalls": 300,
+          "readsPerMinute": 17.479280081106275,
+          "abortedRequests": 138,
+          "staleReadResults": 143,
+          "mainReplacements": 302,
+          "payloadBytes": 9307030,
+          "elapsedMs": 497732.143837,
+          "visual": {
+            "sampledFrames": 1708,
+            "fadedFrames": 0,
+            "nearlyInvisibleFrames": 0,
+            "minOpacity": 1
+          },
+          "writeTiming": {
+            "sampleCount": 0,
+            "clickToFeedback": {
+              "p50": null,
+              "p95": null
+            },
+            "rpc": {
+              "p50": null,
+              "p95": null
+            },
+            "apply": {
+              "p50": null,
+              "p95": null
+            },
+            "clickToStable": {
+              "p50": null,
+              "p95": null
+            }
+          }
+        },
+        {
+          "session": 3,
+          "humanGestures": 402,
+          "attemptedContextReads": 191,
+          "writeRpcCalls": 402,
+          "readsPerMinute": 23.02340000714316,
+          "abortedRequests": 186,
+          "staleReadResults": 186,
+          "mainReplacements": 5,
+          "payloadBytes": 6650533,
+          "elapsedMs": 497754.45098900003,
+          "visual": {
+            "sampledFrames": 1888,
+            "fadedFrames": 0,
+            "nearlyInvisibleFrames": 0,
+            "minOpacity": 1
+          },
+          "writeTiming": {
+            "sampleCount": 100,
+            "clickToFeedback": {
+              "p50": 0.10000000009313226,
+              "p95": 0.7999999999301508
+            },
+            "rpc": {
+              "p50": null,
+              "p95": null
+            },
+            "apply": {
+              "p50": 1.2000000000698492,
+              "p95": 2.400000000023283
+            },
+            "clickToStable": {
+              "p50": 305.39999999990687,
+              "p95": 662
+            }
+          }
+        },
+        {
+          "session": 4,
+          "humanGestures": 0,
+          "attemptedContextReads": 137,
+          "writeRpcCalls": 0,
+          "readsPerMinute": 16.51457186707219,
+          "abortedRequests": 0,
+          "staleReadResults": 0,
+          "mainReplacements": 136,
+          "payloadBytes": 180863048,
+          "elapsedMs": 497742.231972,
+          "visual": {
+            "sampledFrames": 2136,
+            "fadedFrames": 0,
+            "nearlyInvisibleFrames": 0,
+            "minOpacity": 1
+          },
+          "writeTiming": null
+        },
+        {
+          "session": 5,
+          "humanGestures": 0,
+          "attemptedContextReads": 136,
+          "writeRpcCalls": 0,
+          "readsPerMinute": 16.393780205980914,
+          "abortedRequests": 0,
+          "staleReadResults": 0,
+          "mainReplacements": 136,
+          "payloadBytes": 180866416,
+          "elapsedMs": 497749.746009,
+          "visual": {
+            "sampledFrames": 2143,
+            "fadedFrames": 0,
+            "nearlyInvisibleFrames": 0,
+            "minOpacity": 1
+          },
+          "writeTiming": null
+        }
+      ],
+      "faults": {
+        "readLatencyMs": 0,
+        "failObserverRead": false,
+        "failuresInjected": 1,
+        "realtimeDisconnects": 1,
+        "realtimeRecovered": true
+      },
+      "sqlBefore": [],
+      "sqlAfter": [
+        {
+          "role": "authenticated",
+          "rows": 309,
+          "calls": 309,
+          "queryId": "7145021936814103127",
+          "maxExecMs": 871.435831,
+          "meanExecMs": 145.990840194175,
+          "totalExecMs": 45111.16962
+        }
+      ]
+    }
+  },
+  "limits": [
+    "Aproximadamente oito minutos e 1.106 gestos; não certificado de 30–60 minutos, Pendências/patrimônio ou cloud.",
+    "SQL inclui bootstrap anterior à coleta do browser. Aborts antes de enviar HTTP não chegam ao banco.",
+    "writeTiming conserva no máximo as últimas 100 amostras de avaliação; não representa todas as gravações, nem CRUD fiscal. Duração RPC do trace veio nula.",
+    "Disconnect/connect foram induzidos pelo SDK no socket real; app recuperou a alteração sem F5. Não é prova de reconexão automática da Internet."
+  ]
+}
