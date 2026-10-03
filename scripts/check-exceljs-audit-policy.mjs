@@ -100,6 +100,7 @@ function evaluateAuditReport(report) {
   }
   const accepted = [];
   const vulnerabilities = report?.vulnerabilities || {};
+  const observedCounts = { info: 0, low: 0, moderate: 0, high: 0, critical: 0 };
 
   for (const [packageName, vulnerability] of Object.entries(vulnerabilities)) {
     if (!validAuditEntry(vulnerability)) {
@@ -107,6 +108,7 @@ function evaluateAuditReport(report) {
       continue;
     }
     const severity = String(vulnerability.severity).toLowerCase();
+    observedCounts[severity] += 1;
     if (severity === 'critical') {
       violations.push({ code: 'CRITICAL_VULNERABILITY', packageName, severity });
       continue;
@@ -143,6 +145,21 @@ function evaluateAuditReport(report) {
   }
 
   const counts = report?.metadata?.vulnerabilities || {};
+  const metadataTotal = Number(counts.total ?? 0);
+  const observedTotal = Object.values(observedCounts).reduce((total, value) => total + value, 0);
+  const countMismatch = [...AUDIT_SEVERITIES].some(severity => (
+    Number(counts[severity] ?? 0) !== observedCounts[severity]
+  )) || metadataTotal !== observedTotal;
+  if (countMismatch) {
+    violations.push({
+      code: 'AUDIT_COUNT_MISMATCH',
+      packageName: null,
+      severity: null,
+      expected: { ...counts },
+      observed: { ...observedCounts, total: observedTotal }
+    });
+  }
+
   return Object.freeze({
     passed: violations.length === 0,
     counts: Object.freeze({
