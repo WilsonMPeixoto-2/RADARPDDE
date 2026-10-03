@@ -26,7 +26,7 @@
     // sucessivos sem sacrificar a convergência rápida entre usuários.
     const DEFAULT_DEBOUNCE_MS = 2000;
     // A primeira mudança remota continua sendo percebida rapidamente. Depois de uma
-    // leitura bem-sucedida, invalidações contínuas compartilham uma janela mínima
+    // tentativa de leitura, invalidações contínuas compartilham uma janela mínima
     // entre releituras completas, com reconciliação trailing no fim da janela.
     const DEFAULT_REMOTE_MIN_INTERVAL_MS = 5000;
     // O resultado autoritativo de uma escrita já é aplicado localmente. O Broadcast
@@ -109,13 +109,19 @@
             ownReconcileTimer = null;
         }
 
-        function remoteRefreshDelay(now = Date.now()) {
-            if (remoteMinIntervalMs <= 0 || lastSuccessfulRealtimeRefreshAt <= 0) {
-                return debounceMs;
-            }
-            const elapsed = Math.max(0, now - lastSuccessfulRealtimeRefreshAt);
-            const cooldownRemaining = Math.max(0, remoteMinIntervalMs - elapsed);
-            return Math.max(debounceMs, cooldownRemaining);
+        function remoteIntervalRemaining(now = Date.now()) {
+            // A autoridade de refresh inclui reads ainda em voo, abortados e
+            // drenados após edição. O horário do último callback Realtime não
+            // representa sozinho o trabalho realmente iniciado pela sessão.
+            const anchor = Math.max(lastSuccessfulRealtimeRefreshAt,
+                Number(refreshController.getLastAttemptAt?.()) || 0,
+                Number(refreshController.getLastRefreshAt?.()) || 0);
+            if (remoteMinIntervalMs <= 0 || anchor <= 0) return 0;
+            return Math.max(0, remoteMinIntervalMs - Math.max(0, now - anchor));
+        }
+
+        function remoteRefreshDelay() {
+            return Math.max(debounceMs, remoteIntervalRemaining());
         }
 
         function scheduleRefresh(reason = 'realtime') {
@@ -142,6 +148,13 @@
             }
             timer = schedule(() => {
                 timer = null;
+                // Outra leitura pode ter começado/concluído desde o agendamento.
+                // Conservar a invalidação e recalcular antes de chegar ao controller,
+                // evitando uma pendência forçada que drene imediatamente após a RPC.
+                if (realtimeBroadcast && remoteIntervalRemaining() > 0) {
+                    scheduleRefresh(reason);
+                    return;
+                }
                 metrics.refreshAttempts += 1;
                 void Promise.resolve()
                     .then(() => refreshController.refresh(reason, { force: true }))

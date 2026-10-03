@@ -29,6 +29,7 @@ on:
       - 'scripts/bootstrap-operational-session-fixtures.mjs'
       - 'scripts/operational-stat-snapshot.sql'
       - 'tests/unit/operational-stale-read-amplification.test.js'
+      - 'tests/unit/operational-realtime-slow-read-window.test.js'
       - '.github/workflows/operational-real-usage-gate.yml'
   workflow_dispatch:
     inputs:
@@ -43,7 +44,8 @@ permissions:
 
 concurrency:
   group: operational-real-usage-${{ github.ref }}
-  cancel-in-progress: true
+  # Checkpoints de análise não devem apagar uma reprodução ainda em andamento.
+  cancel-in-progress: false
 
 jobs:
   sustained-browser-comparison:
@@ -163,7 +165,7 @@ jobs:
         run: npm ci
 
       - name: Provar jornada concorrente sustentada
-        run: node --test tests/unit/operational-real-usage-session.test.js tests/unit/production-refresh-stability.test.js tests/unit/operational-realtime-invalidation.test.js tests/unit/operational-stale-read-amplification.test.js
+        run: node --test tests/unit/operational-real-usage-session.test.js tests/unit/production-refresh-stability.test.js tests/unit/operational-realtime-invalidation.test.js tests/unit/operational-stale-read-amplification.test.js tests/unit/operational-realtime-slow-read-window.test.js
 
   production-shaped-volume:
     name: 163 escolas, contexto pesado e RPC autenticada

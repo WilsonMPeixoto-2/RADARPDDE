@@ -232,8 +232,18 @@ test('cinco sessões reais medem escrita, observação, edição e falha durante
       request.path === '/rest/v1/rpc/save_verification_with_log')).toHaveLength(gestures[i]);
     for (const i of [3, 4]) expect(samples[i].writes).toBe(0);
     if (process.env.RADAR_OPERATIONAL_VARIANT === 'candidate') {
-      for (const i of [3, 4]) expect(samples[i].runtime.visual.fadedFrames,
-        'atualização remota não deve reapresentar o painel com opacity reduzida').toBe(0);
+      for (const i of [3, 4]) {
+        expect(samples[i].runtime.visual.fadedFrames,
+          'atualização remota não deve reapresentar o painel com opacity reduzida').toBe(0);
+        // Janela remota vigente de 5 s, com margem para bootstrap da coleta,
+        // erro/retry, edição e reconexão exercitados antes/depois da rajada.
+        expect(samples[i].reads).toBeLessThanOrEqual(Math.ceil(samples[i].elapsedMs / 5000) + 8);
+      }
+      // Retry controlado usa debounce de 2 s. Interação humana não pode furar
+      // esse teto de tentativas; comparar tempo, não exigir proporção fixa
+      // de reads/writes quando a rede e o ritmo do operador variam.
+      for (const i of [0, 2]) expect(samples[i].reads)
+        .toBeLessThanOrEqual(Math.ceil(samples[i].elapsedMs / 2000) + 8);
     }
     outcome = 'passed';
   } catch (error) {

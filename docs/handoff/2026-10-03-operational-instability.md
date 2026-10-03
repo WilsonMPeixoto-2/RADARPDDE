@@ -315,3 +315,22 @@ e exige a terceira posteriormente (sem perder invalidação). Evidência em
 `slow-read-window-red.json`. Não atribuir todas as leituras medidas a esse caso.
 Avaliar usar os timestamps já expostos pela autoridade de refresh e revalidar
 a janela no disparo do timer, sem acrescentar novo limitador nem mudar retry/reconnect.
+
+## Correção da janela no controller existente
+
+RED da leitura lenta passou após consultar getLastAttemptAt/getLastRefreshAt da
+própria autoridade de refresh e recalcular a janela no callback. Não acrescenta
+novo timeout ou limitador, nem altera o debounce de 2 s ou a janela de 5 s.
+Retry/reconnect continuam fora dessa janela e a invalidação trailing é preservada.
+41 controles dirigidos passaram. A jornada inclui tetos por tempo derivados
+ desses intervalos existentes (observadores 5 s; escritores 2 s para permitir
+retry), com margem fixa de oito reads para fases induzidas/edição/reconexão.
+Eles complementam convergência, zero writes de observadores e zero frames apagados.
+
+O commit de RED cancelou automaticamente o run longo `37096135028` pela
+concorrência do workflow anterior; esse run não é prova concluída de 400 rodadas.
+Agora cancel-in-progress=false preserva uma comparação ativa durante checkpoints.
+A comparação do head anterior ainda em andamento é controle válido antes da
+nova correção da janela; guardar ambos quando concluírem. Não registrar cancelado
+como falha funcional nem como homologação. Não publicar novo commit funcional
+sem reexecutar a jornada completa do candidato correspondente.
