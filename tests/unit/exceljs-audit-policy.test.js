@@ -78,6 +78,47 @@ function allowedReport() {
     };
 }
 
+function stylelintBracesReport() {
+    return {
+        auditReportVersion: 2,
+        vulnerabilities: {
+            braces: {
+                severity: 'high',
+                isDirect: false,
+                via: [advisory('GHSA-vfj7-8cjw-p6xm')]
+            },
+            micromatch: {
+                severity: 'high',
+                isDirect: false,
+                via: ['braces']
+            },
+            'fast-glob': {
+                severity: 'high',
+                isDirect: false,
+                via: ['micromatch']
+            },
+            globby: {
+                severity: 'high',
+                isDirect: false,
+                via: ['fast-glob', 'micromatch']
+            },
+            stylelint: {
+                severity: 'high',
+                isDirect: true,
+                via: ['fast-glob', 'globby', 'micromatch']
+            },
+            'stylelint-config-recommended': {
+                severity: 'high',
+                isDirect: true,
+                via: ['stylelint']
+            }
+        },
+        metadata: {
+            vulnerabilities: { info: 0, low: 0, moderate: 0, high: 6, critical: 0, total: 6 }
+        }
+    };
+}
+
 test('aceita somente o advisory remanescente da cadeia glob nos caminhos documentados', async () => {
     const policy = await import(POLICY_URL);
     const result = policy.evaluateAuditReport(allowedReport());
@@ -89,6 +130,39 @@ test('aceita somente o advisory remanescente da cadeia glob nos caminhos documen
         'GHSA-mh99-v99m-4gvg'.toUpperCase()
     ]));
     assert.deepEqual(result.violations, []);
+});
+
+test('aceita o advisory sem correção de braces somente na cadeia Stylelint de desenvolvimento documentada', async () => {
+    const policy = await import(POLICY_URL);
+    const result = policy.evaluateAuditReport(stylelintBracesReport());
+
+    assert.equal(result.passed, true);
+    assert.equal(result.counts.high, 6);
+    assert.deepEqual(new Set(result.accepted.map(item => item.advisory)), new Set([
+        'GHSA-vfj7-8cjw-p6xm'.toUpperCase()
+    ]));
+    assert.deepEqual(result.violations, []);
+});
+
+test('bloqueia o advisory de braces quando aparece fora da cadeia Stylelint autorizada', async () => {
+    const policy = await import(POLICY_URL);
+    const report = stylelintBracesReport();
+    report.vulnerabilities['runtime-package'] = {
+        severity: 'high',
+        isDirect: true,
+        via: ['braces']
+    };
+    report.metadata.vulnerabilities.high += 1;
+    report.metadata.vulnerabilities.total += 1;
+
+    const result = policy.evaluateAuditReport(report);
+
+    assert.equal(result.passed, false);
+    assert.ok(result.violations.some(item => (
+        item.code === 'PACKAGE_OUTSIDE_ALLOWED_PATH'
+        && item.packageName === 'runtime-package'
+        && item.advisory === 'GHSA-VFJ7-8CJW-P6XM'
+    )));
 });
 
 test('bloqueia a vulnerabilidade de uuid se ela reaparecer na árvore ExcelJS', async () => {
