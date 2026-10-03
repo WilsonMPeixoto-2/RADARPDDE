@@ -581,3 +581,36 @@ imediatamente NF, Pendência, tentativa, Assessoria e patrimônio antes de consu
 o banco separadamente. A prova real está pendente no SHA consolidado. Não supor
 que o workload sustentado de avaliação/CRUD fiscal mede essa correção de novo envio.
 Resumo causal e hashes em `document-attempt-red-green.json`.
+
+
+## Certificação integrada iniciada
+
+SHA candidato integrado: `818678a4b4ed21c67e323dc2f5e7d0a42681010e`.
+Main `62fe000c...` foi incorporada com merge de árvore funcional inalterada;
+o candidato agora contém a base conhecida. Todos os avanços locais materiais
+estão publicados nos checkpoints dc35754b (focus inflight), 7c0b84ef
+(foco/experiência/comparador) e 981ffc19 (escopo do novo envio e prova derivada).
+
+Run operacional [37144801308](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801308)
+foi iniciado em 400 rodadas. IDs iniciais: candidato `111266423009`, baseline
+`111266423194`, volume `111266423138`, contratos `111266423153`.
+Contratos+frontend já concluíram com sucesso; os browsers/backend continuam
+em andamento neste checkpoint. Não anunciar resultado final antes de artefatos.
+
+Suíte completa local do candidato: **1.246 unitários aprovados**, zero falhas/skips.
+Identificação real/fluxos de Pendências/patrimônio serão reavaliados pelo workflow
+[Ciclos funcionais reais](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801361).
+A matriz adicionada bloqueia contexto durante três identificações para provar
+retorno derivado imediato; ainda não há resultado dessa execução aqui.
+
+Staging foi revalidado via conector: somente main/Production no projeto conhecido;
+list_projects não expõe outro projeto. Foi solicitado ao usuário ref/URL existentes
+ou organização para eventual criação. `supabase_get_cost` exige organização
+informada pelo usuário e confirmação de custo antes de criar branch/projeto;
+nenhum recurso com custo foi criado. O trabalho local/CI continua independente.
+
+Para próxima retomada: primeiro verificar o run 37144801308 e os checks de 818678a4,
+baixar artefatos compactos, executar o comparador e guardar resumo/deltas/hashes.
+Não repetir 400 rodadas sem nova alteração/falha. Se algum RED surgir, classificar
+produto vs tooling/fixture e corrigir proporcionalmente. A decisão de merge deve
+usar esses resultados e riscos correntes, não a antiga instrução temporária Draft.
