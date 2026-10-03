@@ -269,12 +269,48 @@ function stylelintBracesReport() {
     return {
         auditReportVersion: 2,
         vulnerabilities: {
-            braces: { severity: 'high', isDirect: false, via: [advisory('GHSA-vfj7-8cjw-p6xm')] },
-            micromatch: { severity: 'high', isDirect: false, via: ['braces'] },
-            'fast-glob': { severity: 'high', isDirect: false, via: ['micromatch'] },
-            globby: { severity: 'high', isDirect: false, via: ['fast-glob', 'micromatch'] },
-            stylelint: { severity: 'high', isDirect: true, via: ['fast-glob', 'globby', 'micromatch'] },
-            'stylelint-config-recommended': { severity: 'high', isDirect: true, via: ['stylelint'] }
+            braces: {
+                severity: 'high',
+                isDirect: false,
+                via: [advisory('GHSA-vfj7-8cjw-p6xm')],
+                effects: ['micromatch'],
+                nodes: ['node_modules/braces']
+            },
+            micromatch: {
+                severity: 'high',
+                isDirect: false,
+                via: ['braces'],
+                effects: ['fast-glob', 'globby', 'stylelint'],
+                nodes: ['node_modules/micromatch']
+            },
+            'fast-glob': {
+                severity: 'high',
+                isDirect: false,
+                via: ['micromatch'],
+                effects: ['globby', 'stylelint'],
+                nodes: ['node_modules/fast-glob']
+            },
+            globby: {
+                severity: 'high',
+                isDirect: false,
+                via: ['fast-glob', 'micromatch'],
+                effects: ['stylelint'],
+                nodes: ['node_modules/globby']
+            },
+            stylelint: {
+                severity: 'high',
+                isDirect: true,
+                via: ['fast-glob', 'globby', 'micromatch'],
+                effects: ['stylelint-config-recommended'],
+                nodes: ['node_modules/stylelint']
+            },
+            'stylelint-config-recommended': {
+                severity: 'high',
+                isDirect: true,
+                via: ['stylelint'],
+                effects: [],
+                nodes: ['node_modules/stylelint-config-recommended']
+            }
         },
         metadata: {
             vulnerabilities: { info: 0, low: 0, moderate: 0, high: 6, critical: 0, total: 6 }
