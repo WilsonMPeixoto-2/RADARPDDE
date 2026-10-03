@@ -1,0 +1,174 @@
+{
+  "schemaVersion": 1,
+  "environment": "supabase-local-production-shaped",
+  "generatedAt": "2026-10-03T03:33:19.943Z",
+  "productionReference": {
+    "observedAt": "2026-10-02",
+    "competence": "2026-08",
+    "payloadBytes": 1245553,
+    "shape": {
+      "verifications": 473,
+      "registeredInvoices": 193,
+      "pendencies": 329,
+      "pendencyAttempts": 48,
+      "pendencyContacts": 5,
+      "assets": 21
+    }
+  },
+  "syntheticShape": {
+    "verifications": 473,
+    "registeredInvoices": 193,
+    "pendencies": 329,
+    "pendencyAttempts": 48,
+    "pendencyContacts": 5,
+    "assets": 21
+  },
+  "directRpc": {
+    "durationMs": {
+      "sampleCount": 20,
+      "p50": 77.4,
+      "p95": 112.1,
+      "p99": 190.9,
+      "max": 190.9
+    },
+    "payloadBytes": {
+      "min": 1289169,
+      "max": 1289169,
+      "p50": 1289169,
+      "p95": 1289169,
+      "p99": 1289169
+    },
+    "samples": [
+      190.9,
+      100.9,
+      112.1,
+      95.8,
+      89,
+      81.5,
+      85.9,
+      76.3,
+      78.7,
+      76.6,
+      76.1,
+      77.4,
+      75.5,
+      75.3,
+      75.5,
+      82.3,
+      108.1,
+      74.4,
+      74,
+      73.5
+    ]
+  },
+  "applicationRefresh": {
+    "durationMs": {
+      "sampleCount": 4,
+      "p50": 575.7,
+      "p95": 735.9,
+      "p99": 735.9,
+      "max": 735.9
+    },
+    "samples": [
+      {
+        "iteration": 1,
+        "totalMs": 735.9,
+        "fetchHeadersWallMs": 85.4,
+        "requestCount": 1,
+        "pendingFetchCount": 0,
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/rest/v1/rpc/read_operational_context",
+            "count": 1,
+            "totalFetchHeadersMs": 85.4,
+            "maxFetchHeadersMs": 85.4
+          }
+        ],
+        "longTaskCount": 2,
+        "longTaskTotalMs": 292,
+        "contextLoadMs": 147.5,
+        "renderProntuarioMs": 0,
+        "rebuildIndexesMs": 0.2,
+        "writeRpcClientMs": 0
+      },
+      {
+        "iteration": 2,
+        "totalMs": 588.9,
+        "fetchHeadersWallMs": 75.7,
+        "requestCount": 1,
+        "pendingFetchCount": 0,
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/rest/v1/rpc/read_operational_context",
+            "count": 1,
+            "totalFetchHeadersMs": 75.7,
+            "maxFetchHeadersMs": 75.7
+          }
+        ],
+        "longTaskCount": 1,
+        "longTaskTotalMs": 209,
+        "contextLoadMs": 134.7,
+        "renderProntuarioMs": 0,
+        "rebuildIndexesMs": 0.1,
+        "writeRpcClientMs": 0
+      },
+      {
+        "iteration": 3,
+        "totalMs": 562.9,
+        "fetchHeadersWallMs": 75.3,
+        "requestCount": 1,
+        "pendingFetchCount": 0,
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/rest/v1/rpc/read_operational_context",
+            "count": 1,
+            "totalFetchHeadersMs": 75.3,
+            "maxFetchHeadersMs": 75.3
+          }
+        ],
+        "longTaskCount": 2,
+        "longTaskTotalMs": 262,
+        "contextLoadMs": 133.8,
+        "renderProntuarioMs": 0,
+        "rebuildIndexesMs": 0.3,
+        "writeRpcClientMs": 0
+      },
+      {
+        "iteration": 4,
+        "totalMs": 575.7,
+        "fetchHeadersWallMs": 73.9,
+        "requestCount": 1,
+        "pendingFetchCount": 0,
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/rest/v1/rpc/read_operational_context",
+            "count": 1,
+            "totalFetchHeadersMs": 73.9,
+            "maxFetchHeadersMs": 73.9
+          }
+        ],
+        "longTaskCount": 2,
+        "longTaskTotalMs": 258,
+        "contextLoadMs": 135,
+        "renderProntuarioMs": 0,
+        "rebuildIndexesMs": 0.1,
+        "writeRpcClientMs": 0
+      }
+    ]
+  },
+  "limits": [
+    "Massa inteiramente sintética; somente contagens e tamanhos agregados vieram de Production.",
+    "Latência local não representa a rede/Vercel/Supabase Production; esta primeira rodada mede baseline antes de fixar SLA temporal.",
+    "O gate exige forma, payload, ausência de fan-out e estabilidade das 20 leituras; orçamento de latência será definido somente após repetibilidade."
+  ],
+  "evidenceSource": {
+    "runId": 37093452257,
+    "jobId": 111118472969,
+    "artifactId": 11263222081,
+    "testedCommit": "9c50c06c5b629717918aa73c3b0fec2e182d6125"
+  }
+}

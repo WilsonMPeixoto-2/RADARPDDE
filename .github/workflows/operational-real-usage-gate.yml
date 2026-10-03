@@ -17,6 +17,7 @@ on:
       - 'src/integration/operational-write-feedback.js'
       - 'supabase/migrations/**'
       - 'supabase/fixtures/operational-production-shape.sql'
+      - 'supabase/fixtures/operational-session-contexts.sql'
       - 'tests/unit/operational-real-usage-session.test.js'
       - 'tests/e2e/operational-production-shape-performance.spec.js'
       - 'tests/support/performance-journey-observer.js'
@@ -82,6 +83,8 @@ jobs:
           npm run supabase:reset
       - name: Preparar volume calibrado
         run: docker exec -i supabase_db_radar-pdde psql -X -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/fixtures/operational-production-shape.sql
+      - name: Preparar cadastros institucionais locais
+        run: docker exec -i supabase_db_radar-pdde psql -X -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/fixtures/operational-session-contexts.sql
       - name: Preparar Controladores reais sem credenciais Production
         working-directory: ${{ env.RADAR_OPERATIONAL_ROOT }}
         shell: bash

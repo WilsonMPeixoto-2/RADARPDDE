@@ -125,3 +125,21 @@ mais recente do #407, ler **todos** os jobs e baixar os artefatos por variante.
 Caso preparação falhe, diagnosticar essa falha sem chamar o produto de instável
 com base nela. Se uma jornada falhar com backend preparado, preservar RED e
 confrontar com vídeos, RPCs e estado canônico antes de escolher correção.
+
+## Resultado inicial: volume real de transporte, usuários ainda não executados
+
+Run `37093452257`, head `9c50c06c...`:
+- Volume autenticado: **passou**. Seed validou todas as contagens e contexto,
+  `pg_column_size` 1.357.267 bytes. Vinte chamadas pelo cliente autenticado e
+  quatro refreshes pelo controlador real passaram; JSON durável em
+  `../evidence/2026-10-03-operational-instability/local-volume-candidate.json`.
+- Contratos unitários: **passaram**, 22 testes.
+- Baseline e candidato cinco sessões: **não executaram a jornada**. A nova
+  preparação tentou INSERT em controllers por service_role, enquanto a
+  migration de grants só concede SELECT/UPDATE nessa tabela. Erro 42501.
+  Correção restrita ao laboratório: cadastrar controllers/escolas/vínculos via
+  psql local e depois vincular Auth por UPDATE e perfis pelos grants existentes.
+  Não ampliar privilégio nem alterar RLS para satisfazer o teste.
+
+O verde no volume prova carga isolada e quatro refreshes, não uso sustentado nem
+latência cloud. Nova rodada das cinco sessões ainda necessária.

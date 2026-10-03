@@ -28,25 +28,13 @@ for (let index = 1; index <= 4; index += 1) {
     ? client.auth.admin.updateUserById(user.id, attrs)
     : client.auth.admin.createUser(attrs), 'Preparar identidade local');
   const controllerId = `operational-controller-${index}`;
-  await requireResult(client.from('controllers').upsert({
-    id: controllerId, name: `Controlador operacional ${index}`, email, user_id: data.user.id
-  }), 'Vincular Controlador');
+  const linked = await requireResult(client.from('controllers').update({ user_id: data.user.id })
+    .eq('id', controllerId).select('id').single(), 'Vincular Controlador');
+  if (linked.id !== controllerId) throw new Error('Contexto institucional local ausente.');
   await requireResult(client.from('user_profiles').upsert({
     user_id: data.user.id, profile_id: 'controller', controller_id: controllerId,
     cre_scope: '4ª CRE', active: true
   }, { onConflict: 'user_id,profile_id' }), 'Vincular perfil');
-  if (index > 3) continue;
-  const schoolId = `OPS-SESSION-${index}`;
-  await requireResult(client.from('schools').upsert({
-    id: schoolId, designation: `04.99.00${index}`, denomination: `Jornada operacional ${index}`,
-    inep: `OPSINEP${index}`, cnpj: `OPSCNPJ${index}`, sici: `OPSSICI${index}`, cre: '4ª CRE',
-    ra: 'OPS', controller_id: controllerId, initial_competence: '2026-08',
-    inventory_process: `OPS-PROC-${index}`
-  }), 'Preparar contexto escolar');
-  await requireResult(client.from('school_programs').upsert({
-    id: `OPS-SP-${index}`, school_id: schoolId, program_id: 'BASIC', active: true,
-    starts_on: '2026-01-01'
-  }, { onConflict: 'school_id,program_id' }), 'Vincular programa');
   // A avaliação vazia será materializada pela própria operação de negócio.
 }
 console.log('Quatro Controladores e três contextos isolados preparados para jornadas concorrentes.');
