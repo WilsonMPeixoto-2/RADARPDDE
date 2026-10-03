@@ -53,6 +53,10 @@ function session() {
             document.visibilityState = 'hidden';
             document.dispatchEvent(new Event('visibilitychange'));
         },
+        focusWhileBecomingVisible: () => {
+            document.visibilityState = 'visible';
+            root.dispatchEvent(new Event('focus'));
+        },
         visible: () => {
             document.visibilityState = 'visible';
             document.dispatchEvent(new Event('visibilitychange'));
@@ -137,6 +141,27 @@ test('o mesmo retorno hidden+blur→visible+focus não cria duas leituras do mes
     await settle();
 
     assert.equal(tab.reads.length, 1, 'visibility e focus do mesmo retorno não podem criar reconciliação duplicada');
+    assert.equal(tab.projected(), 2);
+    assert.deepEqual(tab.renders, [2]);
+    assert.equal(tab.controller.hasPendingRefresh(), false);
+});
+
+test('o mesmo retorno hidden+blur→focus+visible também não cria duas leituras do mesmo ciclo', async () => {
+    const tab = session();
+    tab.hidden();
+    tab.blur();
+    tab.changeCanonical(2);
+
+    tab.focusWhileBecomingVisible();
+    tab.visible();
+    await settle();
+    assert.equal(tab.reads.length, 1, 'focus pode chegar antes de visibilitychange sem duplicar a retomada');
+
+    tab.releaseFirst('success');
+    await settle();
+    await settle();
+
+    assert.equal(tab.reads.length, 1, 'focus e visibility do mesmo retorno precisam compartilhar a mesma reconciliação');
     assert.equal(tab.projected(), 2);
     assert.deepEqual(tab.renders, [2]);
     assert.equal(tab.controller.hasPendingRefresh(), false);
