@@ -159,12 +159,12 @@
 
         async function refresh(reason = 'resume', refreshOptions = {}) {
             if (refreshPromise) {
-                // Foco/visibilidade do mesmo ciclo apenas retomam a leitura em
-                // andamento. Um novo ciclo hidden→visible, porém, pode ter perdido
-                // alterações posteriores ao snapshot já capturado e precisa deixar
-                // uma única reconciliação pendente.
+                // Eventos repetidos do mesmo ciclo apenas retomam a leitura em
+                // andamento. Um ciclo real hidden→visible ou blur→focus, porém,
+                // pode ter perdido alterações posteriores ao snapshot já capturado.
                 const queueAfterInflight = refreshOptions.force === true
-                    || refreshOptions.resumeAfterHidden === true;
+                    || refreshOptions.resumeAfterHidden === true
+                    || refreshOptions.resumeAfterBlur === true;
                 if (!queueAfterInflight) return refreshPromise;
                 markPending(reason, { canForce: true });
                 const currentRefresh = refreshPromise;
@@ -179,7 +179,9 @@
             }
             if (editing(root)) {
                 markPending(reason, { canForce: /^realtime(?:-|$)/.test(reason)
-                    || refreshOptions.force === true });
+                    || refreshOptions.force === true
+                    || refreshOptions.resumeAfterHidden === true
+                    || refreshOptions.resumeAfterBlur === true });
                 return { skipped: true, reason: 'editing', pending: true };
             }
             const competenceKey = activeCompetence(root);
@@ -329,6 +331,7 @@
         const controller = createController(root, service);
         root.RadarOperationalContextRefreshController = controller;
         let hiddenSinceVisible = root.document.visibilityState === 'hidden';
+        let blurredSinceFocus = false;
 
         const flushPending = reason => {
             if (!controller.hasPendingRefresh()) return;
@@ -340,8 +343,13 @@
             }, 0);
         };
 
+        root.addEventListener?.('blur', () => {
+            blurredSinceFocus = true;
+        });
         root.addEventListener?.('focus', () => {
-            void controller.refresh('focus');
+            const resumeAfterBlur = blurredSinceFocus;
+            blurredSinceFocus = false;
+            void controller.refresh('focus', { resumeAfterBlur });
         });
         root.document.addEventListener?.('visibilitychange', () => {
             if (root.document.visibilityState !== 'visible') {
