@@ -218,3 +218,23 @@ Próxima alteração candidata: distinguir invalidação bloqueada pela edição
 recuperação de read obsoleto; interação não deve ser autoridade para rearmar
 retry de uma invalidação já consumida. Preservar retry/reconnect, pendência e
 novo evento externo; reexecutar a comparação inteira antes de concluir.
+
+## Correção mínima candidata — ainda aguardando comparação real
+
+Controller existente passou a conservar, junto à razão pendente, se ela veio
+de uma invalidação nova bloqueada por edição/leitura. Um resultado stale
+sozinho mantém a necessidade de reconciliação sem permitir retry forçado por
+clique/focusout/write-settled. Não foram adicionados debounce, cooldown, RPC,
+wrapper ou política de escola/competência. Retry/reconnect Realtime continuam
+fora da drenagem de interação. Flush durante read não consume/recria a pendência.
+
+RED 31 reads → GREEN um read antes do retry controlado; 40 testes dirigidos
+passaram, incluindo edição, read em voo, falha, nova invalidação e reconexão.
+O workflow passa a executar esse RED permanentemente e a preservar snapshots
+pg_stat_statements antes/depois do browser (sem reset) para separar tentativas
+abortadas no transporte das execuções SQL. Observer lê métricas existentes
+de clique/feedback/RPC/apply/estável, sem novo wrapper funcional.
+
+Ainda não chamar a correção de solução do incidente. Executar os cinco browsers
+novamente, confrontar reads/stale/aborts/DOM/convergência e inspecionar vídeos.
+As lacunas de sessão longa, outras jornadas e cloud permanecem explícitas.

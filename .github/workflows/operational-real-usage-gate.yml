@@ -24,6 +24,8 @@ on:
       - 'tests/support/operational-session-observer.js'
       - 'tests/e2e/operational-sustained-sessions.spec.js'
       - 'scripts/bootstrap-operational-session-fixtures.mjs'
+      - 'scripts/operational-stat-snapshot.sql'
+      - 'tests/unit/operational-stale-read-amplification.test.js'
       - '.github/workflows/operational-real-usage-gate.yml'
   workflow_dispatch:
 
@@ -105,8 +107,19 @@ jobs:
           RADAR_SUPABASE_REPOSITORY_ENABLED=true RADAR_SUPABASE_PUBLISHABLE_KEY="$ANON_KEY" \
           node "$GITHUB_WORKSPACE/scripts/generate-runtime-config.mjs" --output "$RADAR_OPERATIONAL_ROOT/config.runtime.js"
           printf 'RADAR_AUTH_FIXTURE_PASSWORD=%s\n' "$FIXTURE_PASSWORD" >> "$GITHUB_ENV"
+      - name: Registrar baseline SQL sem reset
+        id: sql-baseline
+        run: |
+          docker exec supabase_db_radar-pdde psql -X -q -U postgres -d postgres -v ON_ERROR_STOP=1 -c 'create extension if not exists pg_stat_statements'
+          docker exec -i supabase_db_radar-pdde psql -X -qAt -U postgres -d postgres -v ON_ERROR_STOP=1 < scripts/operational-stat-snapshot.sql > "$RUNNER_TEMP/operational-pg-stat-before.json"
       - name: Executar gestos concorrentes e medir a cadeia completa
         run: npx playwright test tests/e2e/operational-sustained-sessions.spec.js --project=desktop-chromium --workers=1 --retries=0
+      - name: Preservar delta SQL e separar aborts de execução no banco
+        if: ${{ always() && steps.sql-baseline.outcome == 'success' }}
+        run: |
+          mkdir -p test-results/operational-sustained
+          cp "$RUNNER_TEMP/operational-pg-stat-before.json" test-results/operational-sustained/pg-stat-before.json
+          docker exec -i supabase_db_radar-pdde psql -X -qAt -U postgres -d postgres -v ON_ERROR_STOP=1 < scripts/operational-stat-snapshot.sql > test-results/operational-sustained/pg-stat-after.json
       - name: Preservar resultados mesmo se a jornada falhar
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -141,7 +154,7 @@ jobs:
         run: npm ci
 
       - name: Provar jornada concorrente sustentada
-        run: node --test tests/unit/operational-real-usage-session.test.js tests/unit/production-refresh-stability.test.js tests/unit/operational-realtime-invalidation.test.js
+        run: node --test tests/unit/operational-real-usage-session.test.js tests/unit/production-refresh-stability.test.js tests/unit/operational-realtime-invalidation.test.js tests/unit/operational-stale-read-amplification.test.js
 
   production-shaped-volume:
     name: 163 escolas, contexto pesado e RPC autenticada

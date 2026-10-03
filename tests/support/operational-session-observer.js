@@ -46,7 +46,7 @@ async function observeOperationalSession(page) {
       try {
         const result = await load.call(this, key, options);
         counters.loads.push({ source: options.source || 'unknown', durationMs: performance.now() - start,
-          stale: result?.stale === true, ok: result?.ok !== false });
+          stale: result?.stale === true, aborted: result?.aborted === true, ok: result?.ok !== false });
         return result;
       } catch (error) {
         counters.loads.push({ source: options.source || 'unknown', durationMs: performance.now() - start, ok: false });
@@ -79,6 +79,7 @@ async function observeOperationalSession(page) {
         ...window.__RADAR_OPERATIONAL_SESSION_OBSERVATION__,
         refresh: window.RadarOperationalContextRefreshController?.getMetrics?.() || null,
         realtime: window.RadarOperationalRealtimeInvalidationController?.getMetrics?.() || null,
+        writeTiming: window.RadarOperationalWriteMetrics?.summary?.() || null,
         pendingRefresh: window.RadarOperationalContextRefreshController?.hasPendingRefresh?.(),
         scrollTop: document.querySelector('.content-area')?.scrollTop ?? window.scrollY,
         focusedId: document.activeElement?.id || null
