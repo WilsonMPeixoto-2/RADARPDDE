@@ -90,6 +90,21 @@ function validAuditEntry(vulnerability) {
     && vulnerability.nodes.every(node => typeof node === 'string' && node.trim());
 }
 
+function reachesApprovedDirectPackage(report, packageName, policy, seen = new Set()) {
+  const name = String(packageName || '');
+  if (!name || seen.has(name) || !policy?.packages?.has(name)) return false;
+  seen.add(name);
+  const vulnerability = report?.vulnerabilities?.[name];
+  if (!validAuditEntry(vulnerability)) return false;
+  if (vulnerability.isDirect === true && policy.directPackages?.has(name)) return true;
+  for (const effect of vulnerability.effects) {
+    const next = String(effect || '');
+    if (!policy.packages.has(next)) continue;
+    if (reachesApprovedDirectPackage(report, next, policy, new Set(seen))) return true;
+  }
+  return false;
+}
+
 function evaluateAuditReport(report) {
   const violations = [];
   if (!report || typeof report !== 'object' || report.error
@@ -128,15 +143,18 @@ function evaluateAuditReport(report) {
         continue;
       }
       const outsideEffects = vulnerability.effects.filter(effect => !policy.packages.has(String(effect)));
+      const reachesApprovedRoot = reachesApprovedDirectPackage(report, packageName, policy);
       if (!policy.packages.has(packageName)
         || (vulnerability.isDirect === true && !policy.directPackages?.has(packageName))
-        || outsideEffects.length > 0) {
+        || outsideEffects.length > 0
+        || !reachesApprovedRoot) {
         violations.push({
           code: 'PACKAGE_OUTSIDE_ALLOWED_PATH',
           packageName,
           severity,
           advisory: id,
-          outsideEffects
+          outsideEffects,
+          reachesApprovedRoot
         });
         continue;
       }
@@ -267,6 +285,7 @@ export {
   RUNTIME_FILES,
   collectAdvisories,
   evaluateAuditReport,
+  reachesApprovedDirectPackage,
   validAuditEntry,
   verifyBundleIdentity,
   verifyRuntimeDependencyAudit,
