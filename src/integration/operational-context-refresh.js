@@ -129,6 +129,9 @@
 
         async function refresh(reason = 'resume', refreshOptions = {}) {
             if (refreshPromise) {
+                // Foco/visibilidade apenas retomam a leitura em andamento. Não
+                // anunciam alteração canônica posterior que exija nova consulta.
+                if (refreshOptions.force !== true) return refreshPromise;
                 markPending(reason);
                 const currentRefresh = refreshPromise;
                 return currentRefresh.then(result => flushPending('inflight-finished', {
