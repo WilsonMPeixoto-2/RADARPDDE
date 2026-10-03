@@ -1,0 +1,18 @@
+{
+  "runId": 37097052464,
+  "testedCommit": "a652b410509ee8bbbc2a24372010abc7a879c58d",
+  "artifacts": {
+    "metricsBaseline": 11265405505,
+    "metricsCandidate": 11265165836,
+    "fullBaseline": 11264539896,
+    "fullCandidate": 11264519780
+  },
+  "sha256": {
+    "final-checks.json": "3ff3aeedbddcd96e120b6866ce1f650539b2a2fefe7d7db132f0aa60a0910b4a",
+    "final-comparison.json": "964d3859c685c8ffaba53608a30425f05ac3c5a8b807cda4ddb299201c9ebddb",
+    "final-observer-after-reload.png": "9e4b5ca1ec2ccc1f07f27ec9a7f20f17478a602a3c8ce8142352c11126fd1216",
+    "final-sustained-baseline.json": "0c228572dd8dde52c80524f9e9de4d2b4102000a005b8e35f7843bc0820a447a",
+    "final-sustained-candidate.json": "545e5a349c353fb5da8b8f1ddc09ac29ab252e88fd8a59da3a9cfaeae032e9b3"
+  },
+  "retention": "Artefatos Actions: 30 dias. Relatórios selecionados versionados para continuidade; futuras execuções devem preservar resumo e referência/hash sem acumular logs brutos indiscriminadamente."
+}

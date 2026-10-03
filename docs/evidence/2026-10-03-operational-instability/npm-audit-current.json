@@ -1,0 +1,138 @@
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "braces": {
+      "name": "braces",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1240992,
+          "name": "braces",
+          "dependency": "braces",
+          "title": "braces vulnerable to stack-exhaustion denial of service through deeply nested patterns",
+          "url": "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm",
+          "severity": "high",
+          "cwe": [
+            "CWE-674"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": "<=3.0.3"
+        }
+      ],
+      "effects": [
+        "micromatch"
+      ],
+      "range": "*",
+      "nodes": [
+        "node_modules/braces"
+      ],
+      "fixAvailable": false
+    },
+    "fast-glob": {
+      "name": "fast-glob",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "micromatch"
+      ],
+      "effects": [
+        "globby",
+        "stylelint"
+      ],
+      "range": "*",
+      "nodes": [
+        "node_modules/fast-glob"
+      ],
+      "fixAvailable": false
+    },
+    "globby": {
+      "name": "globby",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "fast-glob",
+        "micromatch"
+      ],
+      "effects": [
+        "stylelint"
+      ],
+      "range": ">=8.0.0",
+      "nodes": [
+        "node_modules/globby"
+      ],
+      "fixAvailable": false
+    },
+    "micromatch": {
+      "name": "micromatch",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        "braces"
+      ],
+      "effects": [
+        "fast-glob",
+        "globby",
+        "stylelint"
+      ],
+      "range": ">=0.2.0",
+      "nodes": [
+        "node_modules/micromatch"
+      ],
+      "fixAvailable": false
+    },
+    "stylelint": {
+      "name": "stylelint",
+      "severity": "high",
+      "isDirect": true,
+      "via": [
+        "fast-glob",
+        "globby",
+        "micromatch"
+      ],
+      "effects": [
+        "stylelint-config-recommended"
+      ],
+      "range": ">=7.7.1",
+      "nodes": [
+        "node_modules/stylelint"
+      ],
+      "fixAvailable": false
+    },
+    "stylelint-config-recommended": {
+      "name": "stylelint-config-recommended",
+      "severity": "high",
+      "isDirect": true,
+      "via": [
+        "stylelint"
+      ],
+      "effects": [],
+      "range": "*",
+      "nodes": [
+        "node_modules/stylelint-config-recommended"
+      ],
+      "fixAvailable": false
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 6,
+      "critical": 0,
+      "total": 6
+    },
+    "dependencies": {
+      "prod": 96,
+      "dev": 493,
+      "optional": 97,
+      "peer": 0,
+      "peerOptional": 0,
+      "total": 588
+    }
+  }
+}

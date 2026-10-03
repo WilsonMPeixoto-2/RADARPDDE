@@ -1,7 +1,7 @@
 # Runbook — conexão e operação controlada do Supabase
 
 **Estado:** vigente; Production conectada  
-**Atualizado em:** 29 de setembro de 2026
+**Atualizado em:** 2 de outubro de 2026
 
 ## 1. Objetivo
 
@@ -13,7 +13,7 @@ Este runbook não autoriza, por si só, migration, importação, alteração de 
 
 Consultar [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md) e revalidar remotamente antes de operação dependente do ambiente.
 
-Por compatibilidade com o verificador de readiness, este runbook mantém um único espelho machine-readable da contagem versionada: O conjunto versionado contém atualmente **58** migrations. A lista e a ordem continuam sendo obtidas do diretório `supabase/migrations/` e do histórico do CLI, nunca de uma segunda lista manual. A contagem versionada não comprova aplicação em Production; consultar o histórico remoto antes de publicar.
+Por compatibilidade com o verificador de readiness, este runbook mantém um único espelho machine-readable da contagem versionada: O conjunto versionado contém atualmente **59** migrations. A lista e a ordem continuam sendo obtidas do diretório `supabase/migrations/` e do histórico do CLI, nunca de uma segunda lista manual. A contagem versionada não comprova aplicação em Production; consultar o histórico remoto antes de publicar.
 
 Contratos estáveis:
 
@@ -151,7 +151,8 @@ As migrations correntes incluem, conforme `CURRENT_STAGE.md` e a branch de estab
 - migration `20260922234500_fix_permanent_identification_asset_description`, que alinha a validação do novo envio à descrição patrimonial canônica derivada do programa.
 - migration `20260929143215_read_operational_context`, que consolida a leitura operacional por competência e suas dependências históricas em uma única RPC set-based sob RLS do chamador.
 - migration `20260929213000_expense_bonification_independence`, que permite materializar atomicamente o contexto mensal estrutural na primeira despesa sem exigir ou alterar bonificação/consolidação.
-- migration corretiva candidata `20260930003000_expense_verification_field_ownership`, que preserva decisões manuais/consolidação nos helpers existentes de despesa e mantém os efeitos técnicos e as projeções operacionais. Testar em banco descartável e consultar o histórico compartilhado antes de planejar aplicação; presença neste PR não comprova publicação.
+- migration `20260930003000_expense_verification_field_ownership`, que preserva decisões manuais/consolidação nos helpers existentes de despesa e mantém os efeitos técnicos e as projeções operacionais.
+- migration candidata `20261002233000_realtime_origin_provenance`, que acrescenta proveniência por instância do navegador às invalidações operacionais para suprimir apenas o eco da própria escrita, preservando a sincronização de outras abas, sessões e controladores. Sua presença na branch não comprova aplicação em Production.
 
 Não reaplicar SQL já aplicado para “corrigir” histórico.
 

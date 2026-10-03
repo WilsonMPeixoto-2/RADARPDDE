@@ -1,9 +1,29 @@
 # RADAR PDDE — estado atual e retomada
 
 **Classe documental:** Canônico — estado mutável  
-**Atualizado em:** 2 de outubro de 2026
+**Atualizado em:** 3 de outubro de 2026
 
 ## 1. Estado funcional corrente
+
+### Investigação corrente de instabilidade operacional
+
+O hotfix #406 está integrado e publicado. A investigação autorizada continua no
+[PR #407](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/407), **Draft**:
+três mecanismos atuais foram reproduzidos e corrigidos no candidato: retry
+rearmado por interação após abort, replay de fadeIn no Prontuário e prazo remoto
+calculado durante RPC lenta. O gate do SHA `a652b410...` passou com cinco browsers,
+1.106 gestos concorrentes, erro/reconexão e reload. O resultado e os limites
+estão no handoff corrente; isso não certifica toda a operação prolongada ou cloud.
+Backup/snapshot são instrumentos,
+não pré-requisitos automáticos. Nenhuma publicação nova foi autorizada nesta frente.
+
+Handoff corrente desta investigação:
+[`2026-10-03-operational-instability.md`](handoff/2026-10-03-operational-instability.md).
+O encerramento das fases funcionais anteriores permanece histórico válido.
+O manifesto consultado em 03/10 aponta `62fe000c...`, com comportamento do #406.
+Main foi revalidada e permanece nesse SHA. Os checks gerais ainda rejeitam um
+advisory sem patch na cadeia Stylelint/braces; não foram relaxados. O PR continua
+Draft e nenhuma correção candidata desta frente está publicada em Production.
 
 **As Fases A, B e C estão encerradas. A Fase D ainda não foi iniciada.**
 
@@ -79,7 +99,7 @@ Registro técnico da correção final da C3: [correções CodeQL e validação C
 
 Os documentos de handoff de A/B e das frentes anteriores permanecem **históricos concluídos**. Não reabrir PRs #375/#376/#377/#378 ou textos pré-merge como fila de implementação.
 
-Não há handoff corrente. [Retificação de classificação e UX](handoff/2026-10-01-controller-type-retification.md) passa a histórico concluído da Fase 2, assim como os handoffs de candidato/publicação do #397. [PROD-UX-08](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) continua uma pendência separada de retomada visual. A investigação de `PROD-FUNC-09` está encerrada.
+O handoff corrente é a investigação de instabilidade indicada na seção 1. [Retificação de classificação e UX](handoff/2026-10-01-controller-type-retification.md) passa a histórico concluído da Fase 2, assim como os handoffs de candidato/publicação do #397. [PROD-UX-08](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) continua uma pendência separada de retomada visual. A investigação de `PROD-FUNC-09` está encerrada.
 
 Para retomada, a ordem de leitura continua sendo:
 

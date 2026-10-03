@@ -1,0 +1,56 @@
+{
+  "test": "operational-refresh-visibility.spec.js",
+  "mode": "local frontend, targeted CSS override",
+  "result": "GREEN",
+  "frames": [
+    {
+      "opacity": 1,
+      "animation": "none"
+    },
+    {
+      "opacity": 1,
+      "animation": "none"
+    },
+    {
+      "opacity": 1,
+      "animation": "none"
+    },
+    {
+      "opacity": 1,
+      "animation": "none"
+    },
+    {
+      "opacity": 1,
+      "animation": "none"
+    },
+    {
+      "opacity": 1,
+      "animation": "none"
+    },
+    {
+      "opacity": 1,
+      "animation": "none"
+    },
+    {
+      "opacity": 1,
+      "animation": "none"
+    },
+    {
+      "opacity": 1,
+      "animation": "none"
+    },
+    {
+      "opacity": 1,
+      "animation": "none"
+    },
+    {
+      "opacity": 1,
+      "animation": "none"
+    },
+    {
+      "opacity": 1,
+      "animation": "none"
+    }
+  ],
+  "limit": "Amostragem isolada não substitui nova jornada com cinco sessões/Supabase."
+}

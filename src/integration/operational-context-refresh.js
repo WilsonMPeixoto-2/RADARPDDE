@@ -121,30 +121,83 @@
         let lastFailureAt = 0;
         let refreshPromise = null;
         let pendingRefreshReason = '';
+        let pendingRefreshCanForce = false;
+        const metrics = {
+            requests: 0,
+            attempts: 0,
+            succeeded: 0,
+            failed: 0,
+            stale: 0,
+            rerenders: 0,
+            pendingMarked: 0,
+            pendingFlushed: 0,
+            lastDurationMs: 0,
+            lastReason: '',
+            lastRequestAt: null,
+            lastAttemptAt: null,
+            byReason: Object.create(null),
+            skipped: Object.create(null)
+        };
 
-        function markPending(reason) {
+        function increment(map, key) {
+            const normalized = text(key) || 'unknown';
+            map[normalized] = (map[normalized] || 0) + 1;
+        }
+
+        function metricsSnapshot() {
+            return Object.freeze({
+                ...metrics,
+                byReason: Object.freeze({ ...metrics.byReason }),
+                skipped: Object.freeze({ ...metrics.skipped })
+            });
+        }
+
+        function recordSkipped(reason) {
+            increment(metrics.skipped, reason);
+        }
+
+        function markPending(reason, { canForce = false } = {}) {
+            metrics.pendingMarked += 1;
             pendingRefreshReason = text(reason) || pendingRefreshReason || 'editing';
+            // Uma invalidação nova adiada por edição/leitura pode exigir drenagem
+            // imediata. Recuperar uma leitura abortada não cria outra invalidação.
+            pendingRefreshCanForce = pendingRefreshCanForce || canForce;
             return pendingRefreshReason;
         }
 
         async function refresh(reason = 'resume', refreshOptions = {}) {
+            reason = text(reason) || 'resume';
+            metrics.requests += 1;
+            metrics.lastReason = reason;
+            metrics.lastRequestAt = new Date().toISOString();
+            increment(metrics.byReason, reason);
+
             if (refreshPromise) {
-                markPending(reason);
+                recordSkipped('inflight');
+                // Foco/visibilidade apenas retomam a leitura em andamento. Não
+                // anunciam alteração canônica posterior que exija nova consulta.
+                if (refreshOptions.force !== true) return refreshPromise;
+                markPending(reason, { canForce: refreshOptions.force === true });
                 const currentRefresh = refreshPromise;
                 return currentRefresh.then(result => flushPending('inflight-finished', {
-                    force: result?.ok !== false
+                    force: result?.ok !== false && result?.stale !== true
                 }));
             }
             if (!authenticated(root)) {
+                recordSkipped('unauthenticated');
                 pendingRefreshReason = '';
+                pendingRefreshCanForce = false;
                 return { skipped: true, reason: 'unauthenticated' };
             }
             if (editing(root)) {
-                markPending(reason);
+                recordSkipped('editing');
+                markPending(reason, { canForce: /^realtime(?:-|$)/.test(reason)
+                    || refreshOptions.force === true });
                 return { skipped: true, reason: 'editing', pending: true };
             }
             const competenceKey = activeCompetence(root);
             if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(competenceKey)) {
+                recordSkipped('invalid-competence');
                 return { skipped: true, reason: 'invalid-competence' };
             }
             const now = Date.now();
@@ -154,6 +207,7 @@
                 && cooldownAnchor > 0
                 && (now - cooldownAnchor) < minIntervalMs
             ) {
+                recordSkipped('throttled');
                 markPending(reason);
                 return {
                     skipped: true,
@@ -166,11 +220,14 @@
             // Registra a tentativa, inclusive quando a RPC falhar. Assim uma falha
             // de infraestrutura não transforma cliques/focusout em loop de retry.
             lastAttemptAt = now;
+            metrics.attempts += 1;
+            metrics.lastAttemptAt = new Date(now).toISOString();
 
             // Este refresh consome qualquer pendência já conhecida. Invalidações
             // que chegarem depois deste ponto voltam a preencher pendingRefreshReason
             // e serão relidas quando a consulta em voo terminar.
             pendingRefreshReason = '';
+            pendingRefreshCanForce = false;
 
             const startedAt = now;
             let run = null;
@@ -182,30 +239,45 @@
                         && activeCompetence(root) === competenceKey
                 });
                 if (result?.stale === true) {
+                    metrics.stale += 1;
+                    metrics.lastDurationMs = Math.max(0, Date.now() - startedAt);
                     if (authenticated(root) && activeCompetence(root) === competenceKey) {
                         markPending(reason);
                     }
                     return result;
                 }
-                if (!authenticated(root)) return { ...result, stale: true };
+                if (!authenticated(root)) {
+                    metrics.stale += 1;
+                    metrics.lastDurationMs = Math.max(0, Date.now() - startedAt);
+                    return { ...result, stale: true };
+                }
                 if (editing(root)) {
+                    metrics.stale += 1;
+                    metrics.lastDurationMs = Math.max(0, Date.now() - startedAt);
                     markPending(reason);
                     return { ...result, stale: true, pending: true };
                 }
-                if (activeCompetence(root) !== competenceKey) return { ...result, stale: true };
+                if (activeCompetence(root) !== competenceKey) {
+                    metrics.stale += 1;
+                    metrics.lastDurationMs = Math.max(0, Date.now() - startedAt);
+                    return { ...result, stale: true };
+                }
 
                 // Uma leitura aplicada com sucesso encerra qualquer cooldown de falha
                 // anterior. O throttle normal de foco/visibilidade continua ancorado
                 // em lastRefreshAt/lastAttemptAt.
                 lastFailureAt = 0;
                 refreshCurrentView(root);
+                metrics.rerenders += 1;
+                metrics.succeeded += 1;
                 lastRefreshAt = Date.now();
+                metrics.lastDurationMs = Math.max(0, lastRefreshAt - startedAt);
                 if (typeof root.dispatchEvent === 'function' && typeof root.CustomEvent === 'function') {
                     root.dispatchEvent(new root.CustomEvent('radar:operational-context-refreshed', {
                         detail: {
                             competenceKey,
                             source: `session-${reason}-refresh`,
-                            durationMs: Math.max(0, lastRefreshAt - startedAt),
+                            durationMs: metrics.lastDurationMs,
                             refreshedAt: new Date(lastRefreshAt).toISOString()
                         }
                     }));
@@ -213,6 +285,8 @@
                 return result;
             }).catch(error => {
                 lastFailureAt = Date.now();
+                metrics.failed += 1;
+                metrics.lastDurationMs = Math.max(0, lastFailureAt - startedAt);
                 markPending(reason);
                 root.console?.warn?.('Não foi possível atualizar o contexto operacional ao retomar a sessão.', error);
                 return { ok: false, error, pending: true };
@@ -227,27 +301,34 @@
             if (!pendingRefreshReason) return { skipped: true, reason: 'no-pending-refresh' };
             if (!authenticated(root)) {
                 pendingRefreshReason = '';
+                pendingRefreshCanForce = false;
                 return { skipped: true, reason: 'unauthenticated' };
             }
             if (editing(root)) return { skipped: true, reason: 'editing', pending: true };
+            // Clique, focusout e fim de escrita apenas tentam drenar a pendência.
+            // Durante uma leitura não representam nova alteração canônica.
+            if (refreshPromise) return refreshPromise;
 
             const pendingReason = pendingRefreshReason;
+            const pendingCanForce = pendingRefreshCanForce;
             pendingRefreshReason = '';
-            const realtimePending = /^realtime(?:-|$)/.test(pendingReason);
+            pendingRefreshCanForce = false;
+            metrics.pendingFlushed += 1;
             const now = Date.now();
             const failureCooldownActive = lastFailureAt > 0 && (now - lastFailureAt) < minIntervalMs;
 
             // Pendência Realtime bloqueada apenas por edição pode drenar assim que o
             // usuário encerra o campo. Se a própria leitura falhou recentemente,
             // preservamos o cooldown para não recriar a tempestade de retries.
-            const force = flushOptions.force === true || (realtimePending && !failureCooldownActive);
+            const force = flushOptions.force === true || (pendingCanForce && !failureCooldownActive);
             const result = await refresh(`${pendingReason}-${reason}`, { force });
             if (
                 result?.ok === false
                 || result?.stale === true
                 || (result?.skipped === true && ['editing', 'throttled'].includes(result.reason))
             ) {
-                markPending(pendingReason);
+                markPending(pendingReason, { canForce: pendingCanForce
+                    && result?.skipped === true && ['editing', 'throttled'].includes(result.reason) });
             }
             return result;
         }
@@ -258,7 +339,8 @@
             hasPendingRefresh: () => Boolean(pendingRefreshReason),
             getLastRefreshAt: () => lastRefreshAt,
             getLastAttemptAt: () => lastAttemptAt,
-            getLastFailureAt: () => lastFailureAt
+            getLastFailureAt: () => lastFailureAt,
+            getMetrics: metricsSnapshot
         });
     }
 

@@ -1,0 +1,1242 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-03T03:38:24.699Z",
+  "variant": "baseline",
+  "stage": "sustained-activity",
+  "outcome": "failed",
+  "failure": {
+    "name": "Error",
+    "message": "expect(received).toBe(expected) // Object.is equality\n\nExpected: true\nReceived: false\n\nCall Log:\n- Timeout 20000ms exceeded while waiting on the predicate"
+  },
+  "rounds": 40,
+  "samples": [
+    {
+      "elapsedMs": 39279.98636,
+      "reads": 0,
+      "writes": 40,
+      "readsPerWrite": 0,
+      "readsPerMinute": 0,
+      "readDurationMs": {
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "payloadBytes": 0,
+      "requests": [
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 239.61433599999873,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 250.8365620000004,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 142.88010699999904,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 155.63216300000022,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 237.30004100000042,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 203.72755700000016,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 449.69949499999893,
+          "payloadBytes": 1127
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 332.78390600000057,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 145.78973000000042,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 176.1379510000006,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 237.0671599999987,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 190.54341200000272,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 148.36824799999886,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 156.53629999999976,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 138.23473800000284,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 153.52962800000023,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 186.50971199999913,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 134.54121799999848,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 271.3796030000012,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 156.94675500000085,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 168.5393490000024,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 173.94019900000058,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 166.72451799999908,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 203.8614099999977,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 155.42474499999662,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 156.61494500000117,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 126.24857899999915,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 208.86680599999818,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 154.02250999999524,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 184.01953700000013,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 273.9266509999943,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 168.53130099999544,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 152.8817940000008,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 224.9388390000022,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 118.78553799999645,
+          "payloadBytes": 1128
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 130.67550499999925,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 155.18992199999775,
+          "payloadBytes": 1128
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 146.30184600000212,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 137.2739370000054,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 159.64380299999902,
+          "payloadBytes": 1132
+        }
+      ],
+      "runtime": {
+        "loads": [],
+        "applies": 40,
+        "renderCalls": 40,
+        "mainReplacements": 0,
+        "mutations": 2800,
+        "lastMutationAt": 43120.5,
+        "refresh": null,
+        "realtime": {
+          "broadcastsReceived": 141,
+          "coalescedBroadcasts": 140,
+          "refreshesScheduled": 141,
+          "refreshAttempts": 0,
+          "refreshSucceeded": 0,
+          "refreshFailed": 0,
+          "retriesScheduled": 0,
+          "reconnectRefreshes": 0,
+          "lastBroadcastAt": "2026-10-03T03:38:24.278Z",
+          "lastRefreshAt": null,
+          "byEntity": {
+            "verifications": 111,
+            "registered_invoices": 30
+          }
+        },
+        "pendingRefresh": false,
+        "scrollTop": 0,
+        "focusedId": null
+      },
+      "errors": []
+    },
+    {
+      "elapsedMs": 39263.209988,
+      "reads": 0,
+      "writes": 30,
+      "readsPerWrite": 0,
+      "readsPerMinute": 0,
+      "readDurationMs": {
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "payloadBytes": 0,
+      "requests": [
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 143.1951059999992,
+          "payloadBytes": 2318
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 10.881250999998883,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 136.51781500000106,
+          "payloadBytes": 2258
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 12.388419000000795,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 203.39568300000064,
+          "payloadBytes": 749
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 14.830453000000489,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 170.55737299999964,
+          "payloadBytes": 2318
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 20.387206999999762,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 351.6632660000014,
+          "payloadBytes": 2258
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 33.04412500000035,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 360.63894900000014,
+          "payloadBytes": 749
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 22.657078000000183,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 122.27263900000253,
+          "payloadBytes": 2318
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 14.182544999999664,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 113.60703899999862,
+          "payloadBytes": 2258
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 19.15200200000254,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 258.44976300000053,
+          "payloadBytes": 750
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 14.857136999999057,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 138.40403300000253,
+          "payloadBytes": 2319
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 10.306014999998297,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 101.63087399999858,
+          "payloadBytes": 2259
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 12.74744500000088,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 248.27645399999892,
+          "payloadBytes": 750
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 12.576031000000512,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 92.37455599999885,
+          "payloadBytes": 2319
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 28.49742999999944,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 137.2718419999983,
+          "payloadBytes": 2259
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 12.978974999998172,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 337.7155160000002,
+          "payloadBytes": 750
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 9.19275899999775,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 103.16075600000113,
+          "payloadBytes": 2319
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 9.097591999998258,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 168.00282700000025,
+          "payloadBytes": 2259
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 10.14480199999889,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 268.0938900000001,
+          "payloadBytes": 750
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 25.46491800000149,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 95.57585100000142,
+          "payloadBytes": 2319
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 12.801588999995147,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 97.60734599999705,
+          "payloadBytes": 2259
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 15.505515999997442,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 226.7581579999969,
+          "payloadBytes": 750
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 9.566740000002028,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 104.71881700000085,
+          "payloadBytes": 2317
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 16.96202799999446,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 106.3919939999978,
+          "payloadBytes": 2257
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 15.589047000001301,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 303.59740299999976,
+          "payloadBytes": 749
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 11.169407000001229,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 94.92766899999697,
+          "payloadBytes": 2319
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 13.700394999999844,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 71.01744000000326,
+          "payloadBytes": 2259
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 10.253058000002056,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 233.60590599999705,
+          "payloadBytes": 750
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 13.143627999997989,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 102.04484599999705,
+          "payloadBytes": 2317
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 13.127215000000433,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 147.81598799999483,
+          "payloadBytes": 2257
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 9.032138000002305,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 216.14228500000172,
+          "payloadBytes": 750
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 16.74042599999666,
+          "payloadBytes": 2
+        }
+      ],
+      "runtime": {
+        "loads": [],
+        "applies": 30,
+        "renderCalls": 30,
+        "mainReplacements": 30,
+        "mutations": 3540,
+        "lastMutationAt": 41100,
+        "refresh": null,
+        "realtime": {
+          "broadcastsReceived": 141,
+          "coalescedBroadcasts": 140,
+          "refreshesScheduled": 141,
+          "refreshAttempts": 0,
+          "refreshSucceeded": 0,
+          "refreshFailed": 0,
+          "retriesScheduled": 0,
+          "reconnectRefreshes": 0,
+          "lastBroadcastAt": "2026-10-03T03:38:24.254Z",
+          "lastRefreshAt": null,
+          "byEntity": {
+            "verifications": 111,
+            "registered_invoices": 30
+          }
+        },
+        "pendingRefresh": false,
+        "scrollTop": 678,
+        "focusedId": null
+      },
+      "errors": []
+    },
+    {
+      "elapsedMs": 39249.602644,
+      "reads": 0,
+      "writes": 40,
+      "readsPerWrite": 0,
+      "readsPerMinute": 0,
+      "readDurationMs": {
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "payloadBytes": 0,
+      "requests": [
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 194.1066549999996,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 251.61545400000068,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 300.80666700000074,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 137.06064700000024,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 217.01892399999997,
+          "payloadBytes": 1127
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 264.6186229999985,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 341.997863999999,
+          "payloadBytes": 1128
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 289.7427859999989,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 157.15687099999923,
+          "payloadBytes": 1126
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 255.91505400000096,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 184.26506099999824,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 180.27597199999946,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 154.36149999999907,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 173.92385400000057,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 144.44945400000142,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 157.27794599999834,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 141.078168,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 246.90496700000222,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 174.34331499999826,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 151.00100999999995,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 155.63970800000243,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 160.02033400000073,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 203.96406099999876,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 203.63973799999803,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 146.88400199999887,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 187.2036819999994,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 159.85758100000385,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 193.31198900000163,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 184.83369700000185,
+          "payloadBytes": 1128
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 137.95165300000372,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 284.2733600000065,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 156.923315,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 149.22654299999704,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 153.9308119999987,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 206.39008699999977,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 171.44717700000183,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 146.39027899999928,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 154.00079299999925,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 151.5978329999998,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 147.18181400000321,
+          "payloadBytes": 1130
+        }
+      ],
+      "runtime": {
+        "loads": [],
+        "applies": 40,
+        "renderCalls": 40,
+        "mainReplacements": 0,
+        "mutations": 2640,
+        "lastMutationAt": 41373.100000000035,
+        "refresh": null,
+        "realtime": {
+          "broadcastsReceived": 141,
+          "coalescedBroadcasts": 140,
+          "refreshesScheduled": 141,
+          "refreshAttempts": 0,
+          "refreshSucceeded": 0,
+          "refreshFailed": 0,
+          "retriesScheduled": 0,
+          "reconnectRefreshes": 0,
+          "lastBroadcastAt": "2026-10-03T03:38:24.254Z",
+          "lastRefreshAt": null,
+          "byEntity": {
+            "verifications": 111,
+            "registered_invoices": 30
+          }
+        },
+        "pendingRefresh": false,
+        "scrollTop": 0,
+        "focusedId": null
+      },
+      "errors": []
+    },
+    {
+      "elapsedMs": 39236.698759,
+      "reads": 0,
+      "writes": 0,
+      "readsPerWrite": null,
+      "readsPerMinute": 0,
+      "readDurationMs": {
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "payloadBytes": 0,
+      "requests": [],
+      "runtime": {
+        "loads": [],
+        "applies": 0,
+        "renderCalls": 0,
+        "mainReplacements": 0,
+        "mutations": 0,
+        "lastMutationAt": 4107.900000000023,
+        "refresh": null,
+        "realtime": {
+          "broadcastsReceived": 141,
+          "coalescedBroadcasts": 140,
+          "refreshesScheduled": 141,
+          "refreshAttempts": 0,
+          "refreshSucceeded": 0,
+          "refreshFailed": 0,
+          "retriesScheduled": 0,
+          "reconnectRefreshes": 0,
+          "lastBroadcastAt": "2026-10-03T03:38:24.254Z",
+          "lastRefreshAt": null,
+          "byEntity": {
+            "verifications": 111,
+            "registered_invoices": 30
+          }
+        },
+        "pendingRefresh": false,
+        "scrollTop": 0,
+        "focusedId": null
+      },
+      "errors": []
+    },
+    {
+      "elapsedMs": 39229.18271,
+      "reads": 0,
+      "writes": 0,
+      "readsPerWrite": null,
+      "readsPerMinute": 0,
+      "readDurationMs": {
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "payloadBytes": 0,
+      "requests": [],
+      "runtime": {
+        "loads": [],
+        "applies": 0,
+        "renderCalls": 0,
+        "mainReplacements": 0,
+        "mutations": 0,
+        "lastMutationAt": 3780.8000000000466,
+        "refresh": null,
+        "realtime": {
+          "broadcastsReceived": 141,
+          "coalescedBroadcasts": 140,
+          "refreshesScheduled": 141,
+          "refreshAttempts": 0,
+          "refreshSucceeded": 0,
+          "refreshFailed": 0,
+          "retriesScheduled": 0,
+          "reconnectRefreshes": 0,
+          "lastBroadcastAt": "2026-10-03T03:38:24.254Z",
+          "lastRefreshAt": null,
+          "byEntity": {
+            "verifications": 111,
+            "registered_invoices": 30
+          }
+        },
+        "pendingRefresh": false,
+        "scrollTop": 0,
+        "focusedId": "global-competence-select"
+      },
+      "errors": []
+    }
+  ],
+  "gestures": [
+    40,
+    30,
+    40,
+    0,
+    0
+  ],
+  "faults": {
+    "readLatencyMs": 300,
+    "failObserverRead": false,
+    "failuresInjected": 0
+  },
+  "limits": [
+    "Massa sintética calibrada; não clone de Production.",
+    "Cinco sessões/quatro usuários Controladores, incluindo duas abas da mesma identidade.",
+    "Esta jornada mede avaliações e CRUD fiscal; não certifica patrimônio, Pendências, horas de uso ou staging.",
+    "Latência e HTTP 500 são induzidos no transporte; dados e Realtime são reais."
+  ],
+  "evidenceSource": {
+    "runId": 37093715914,
+    "jobId": 111119238320,
+    "artifactId": 11263453611,
+    "harnessCommit": "e25c2fa6d2427f14ae55bd39d110290bbaf28968",
+    "productCommit": "62fe000c7253bb97a31091f1c7dc33407906d554"
+  }
+}

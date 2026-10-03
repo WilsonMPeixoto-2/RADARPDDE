@@ -1,0 +1,187 @@
+{
+  "commit": "a652b410509ee8bbbc2a24372010abc7a879c58d",
+  "checks": [
+    {
+      "conclusion": "failure",
+      "name": "Gate final pré-production",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "Sessões sustentadas, escrita e invalidação",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "Cinco sessões reais (candidate)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "Cinco sessões reais (baseline)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "163 escolas, contexto pesado e RPC autenticada",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "CodeQL",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "Lighthouse CI desktop",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "Excel SME, OOXML e rota pública local",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "Migrations em PostgreSQL limpo",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "Backup e restauração descartáveis",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "Supabase local, Auth, RLS e pgTAP",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "Playwright completo desktop",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "Prontidão completa",
+      "status": "completed"
+    },
+    {
+      "conclusion": "failure",
+      "name": "Dependências e segurança",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "Criar editar converter excluir avaliar e reanalisar",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "Dump, restauração e equivalência",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "Perfis × Desktop, Android e iPhone",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "Salvar, recarregar e reler fluxos críticos",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "Contratos exatos do hardening",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "Duas sessões, Realtime real e degradação visível",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "Vercel Preview Comments",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "Desktop homologado",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "Seis baselines críticos",
+      "status": "completed"
+    },
+    {
+      "conclusion": "skipped",
+      "name": "Supabase Preview",
+      "status": "completed"
+    },
+    {
+      "conclusion": "skipped",
+      "name": "Auth, perfis, RLS e persistência no Preview",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "migration-smoke",
+      "status": "completed"
+    },
+    {
+      "conclusion": "failure",
+      "name": "Sintaxe, auditoria e testes de domínio",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "Baseline desktop",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "Jornadas reais sem salto de tela",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "supabase-local",
+      "status": "completed"
+    },
+    {
+      "conclusion": "failure",
+      "name": "Vulnerabilidades, integridade e inventário",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "targeted-retification",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "Contratos de posição e composição",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "CodeQL — actions",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "readiness",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "CodeQL — javascript-typescript",
+      "status": "completed"
+    }
+  ],
+  "failureCause": "Três checks rejeitam GHSA-vfj7-8cjw-p6xm em braces/Stylelint sem fixAvailable; quarto é agregador pré-Production dependente.",
+  "skips": "Supabase Preview e fluxo Auth remoto em Preview desabilitado. Não são prova cloud."
+}

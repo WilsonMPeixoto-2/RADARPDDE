@@ -112,3 +112,49 @@ test('Realtime agrega rajadas por pelo menos dois segundos antes de reler o cont
         `debounce atual de ${DEFAULT_DEBOUNCE_MS}ms ainda permite tempestade de releituras`
     );
 });
+
+test('refresh operacional expõe métricas atribuíveis ao gatilho sem alterar o comportamento', async () => {
+    let calls = 0;
+    const root = stableRoot();
+    const service = {
+        async loadOperationalContext() {
+            calls += 1;
+            if (calls === 2) throw new Error('statement timeout');
+            return { stale: false, revision: calls };
+        }
+    };
+    const controller = createRefreshController(root, service, {
+        minIntervalMs: 30000
+    });
+
+    await controller.refresh('focus', { force: true });
+    const throttled = await controller.refresh('visibility');
+    assert.equal(throttled.reason, 'throttled');
+
+    root.document.activeElement = { matches: () => true };
+    const editing = await controller.refresh('realtime', { force: true });
+    assert.equal(editing.reason, 'editing');
+
+    root.document.activeElement = null;
+    const failed = await controller.flushPending('focusout');
+    assert.equal(failed.ok, false);
+
+    const metrics = controller.getMetrics();
+
+    assert.equal(metrics.requests, 4);
+    assert.equal(metrics.attempts, 2);
+    assert.equal(metrics.succeeded, 1);
+    assert.equal(metrics.failed, 1);
+    assert.equal(metrics.rerenders, 1);
+    assert.equal(metrics.pendingMarked >= 2, true);
+    assert.equal(metrics.skipped.throttled, 1);
+    assert.equal(metrics.skipped.editing, 1);
+    assert.equal(metrics.byReason.focus, 1);
+    assert.equal(metrics.byReason.visibility, 1);
+    assert.equal(metrics.byReason.realtime, 1);
+    assert.equal(metrics.byReason['realtime-focusout'], 1);
+    assert.equal(typeof metrics.lastDurationMs, 'number');
+    assert.equal(Object.isFrozen(metrics), true);
+    assert.equal(Object.isFrozen(metrics.byReason), true);
+    assert.equal(Object.isFrozen(metrics.skipped), true);
+});

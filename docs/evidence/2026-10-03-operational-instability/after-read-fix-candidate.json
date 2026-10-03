@@ -1,0 +1,2641 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-03T04:02:47.122Z",
+  "variant": "candidate",
+  "stage": "reload",
+  "outcome": "passed",
+  "rounds": 40,
+  "samples": [
+    {
+      "elapsedMs": 55250.501243000006,
+      "reads": 19,
+      "writes": 42,
+      "readsPerWrite": 0.4523809523809524,
+      "readsPerMinute": 20.63329483178255,
+      "readDurationMs": {
+        "p50": 2238.33,
+        "p95": 2238.33,
+        "p99": 2238.33,
+        "max": 2238.327437999993
+      },
+      "payloadBytes": 1327509,
+      "requests": [
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 165.7632590000012,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 274.13031800000135,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 328.3298589999995,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 172.03416600000128,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 282.4144979999983,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1229.359253999999,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 111.18523500000083,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 156.1382650000014,
+          "payloadBytes": 1128
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1049.5684450000008,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 127.94063599999936,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 149.31238700000176,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 156.75421300000016,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1383.7008889999997,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 156.97376900000017,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 312.14568000000145,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 118.5426179999995,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 158.7024730000012,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 216.04169999999795,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1044.566310000002,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 124.17229399999997,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 161.65930800000206,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 881.9457880000009,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 118.12286400000085,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 195.49716500000068,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 207.7224720000013,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 99.43138000000181,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 129.82226400000218,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 274.17296799999895,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 201.70632199999818,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 177.62219899999764,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 790.077925000005,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 139.7487420000034,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 142.6074840000001,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 273.15048399999796,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 133.23571800000354,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 135.58497199999692,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 169.5859679999994,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 795.3710080000019,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 123.50985200000287,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 155.59787499999948,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 704.0101409999988,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 122.02339400000346,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 162.917260000002,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 248.03701100000035,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 538.2154169999994,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 124.36178300000029,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 195.14577400000417,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 145.99459899999783,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 663.2069439999977,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 236.29671800000506,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 139.1843630000003,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 719.3763550000003,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 182.98959599999944,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 131.53714200000104,
+          "payloadBytes": 1128
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 571.8240549999973,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 225.92887000000337,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 143.55374300000403,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 252.6268740000014,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 152.96139799999946,
+          "payloadBytes": 1128
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 129.3288360000006,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2238.327437999993,
+          "payloadBytes": 1327509
+        },
+        {
+          "path": "/rest/v1/verifications",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 39.93392300000414,
+          "payloadBytes": 149
+        }
+      ],
+      "runtime": {
+        "loads": [
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 224.90000000002328,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-refresh",
+            "durationMs": 1257,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 1009.0999999999767,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-refresh",
+            "durationMs": 1441.5999999999767,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 263.69999999995343,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-refresh",
+            "durationMs": 996,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 832.1000000000931,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-refresh",
+            "durationMs": 177.80000000004657,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 218.19999999995343,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-refresh",
+            "durationMs": 740,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 223.09999999997672,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-refresh",
+            "durationMs": 845,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 759.4000000000233,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-refresh",
+            "durationMs": 583.6999999999534,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 656.7000000000698,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-refresh",
+            "durationMs": 665,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 522.0999999999767,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-refresh",
+            "durationMs": 201.90000000002328,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2146.5999999999767,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          }
+        ],
+        "applies": 43,
+        "renderCalls": 43,
+        "mainReplacements": 1,
+        "mutations": 3062,
+        "lastMutationAt": 56920,
+        "refresh": {
+          "requests": 124,
+          "attempts": 20,
+          "succeeded": 1,
+          "failed": 0,
+          "stale": 18,
+          "rerenders": 1,
+          "pendingMarked": 226,
+          "pendingFlushed": 104,
+          "lastDurationMs": 2162,
+          "lastReason": "realtime",
+          "lastRequestAt": "2026-10-03T04:02:43.416Z",
+          "lastAttemptAt": "2026-10-03T04:02:43.416Z",
+          "byReason": {
+            "realtime": 11,
+            "realtime-click": 23,
+            "realtime-write-settled": 22,
+            "realtime-focusout": 14,
+            "realtime-retry": 9,
+            "realtime-retry-click": 18,
+            "realtime-retry-write-settled": 18,
+            "realtime-retry-focusout": 9
+          },
+          "skipped": {
+            "throttled": 104
+          }
+        },
+        "realtime": {
+          "broadcastsReceived": 145,
+          "ownBroadcastsIgnored": 42,
+          "ownReconciliationsScheduled": 42,
+          "ownReconciliationsCoalesced": 3,
+          "coalescedBroadcasts": 88,
+          "remoteRefreshesRateLimited": 0,
+          "refreshesScheduled": 24,
+          "refreshAttempts": 20,
+          "refreshSucceeded": 1,
+          "refreshFailed": 18,
+          "retriesScheduled": 9,
+          "reconnectRefreshes": 0,
+          "lastBroadcastAt": "2026-10-03T04:02:43.121Z",
+          "lastRefreshAt": "2026-10-03T04:02:43.276Z",
+          "byEntity": {
+            "verifications": 115,
+            "registered_invoices": 30
+          }
+        },
+        "writeTiming": {
+          "sampleCount": 42,
+          "clickToFeedback": {
+            "p50": 0.10000000009313226,
+            "p95": 0.8999999999068677
+          },
+          "rpc": {
+            "p50": null,
+            "p95": null
+          },
+          "apply": {
+            "p50": 1,
+            "p95": 3
+          },
+          "clickToStable": {
+            "p50": 339.0999999999767,
+            "p95": 645.5
+          }
+        },
+        "pendingRefresh": false,
+        "scrollTop": 0,
+        "focusedId": null
+      },
+      "errors": []
+    },
+    {
+      "elapsedMs": 55228.872502,
+      "reads": 13,
+      "writes": 30,
+      "readsPerWrite": 0.43333333333333335,
+      "readsPerMinute": 14.123047066835085,
+      "readDurationMs": {
+        "p50": 2123.88,
+        "p95": 2204.4,
+        "p99": 2204.4,
+        "max": 2204.4039059999996
+      },
+      "payloadBytes": 5306894,
+      "requests": [
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 629.3522380000013,
+          "payloadBytes": 1325313
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 547.7150769999989,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 181.80237400000078,
+          "payloadBytes": 2318
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 11.292674000000261,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 136.6365939999996,
+          "payloadBytes": 2258
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 22.653349000000162,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 761.6314619999976,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 289.34623499999725,
+          "payloadBytes": 749
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 10.4264519999997,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 97.0994099999989,
+          "payloadBytes": 2316
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 17.079829000002064,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2123.8769119999997,
+          "payloadBytes": 1327503
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 75.5421159999969,
+          "payloadBytes": 2256
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 15.404677000002266,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 190.71411199999784,
+          "payloadBytes": 749
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 9.52093899999818,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 91.4949480000032,
+          "payloadBytes": 2316
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 14.353857999998581,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1260.6293259999984,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 232.44002399999954,
+          "payloadBytes": 2256
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 14.117615999999543,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 179.43136000000231,
+          "payloadBytes": 750
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 10.99516500000027,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 97.20807499999864,
+          "payloadBytes": 2319
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 9.045564000000013,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 2123.2015890000002,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 70.15832500000397,
+          "payloadBytes": 2259
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 10.834875000000466,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 215.059451000001,
+          "payloadBytes": 750
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 7.801033000003372,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 89.37335500000336,
+          "payloadBytes": 2319
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 12.125356000004103,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1897.0195469999962,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 115.44079300000158,
+          "payloadBytes": 2256
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 13.256442999998399,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 184.97336299999733,
+          "payloadBytes": 750
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 8.313540000002831,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 91.73589399999764,
+          "payloadBytes": 2319
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 15.70687999999791,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1476.814588000001,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 107.75374599999486,
+          "payloadBytes": 2256
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 9.341132999994443,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 216.87650199999916,
+          "payloadBytes": 750
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 25.854119000003266,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 74.0193419999996,
+          "payloadBytes": 2319
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 12.56097199999931,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2159.2119390000007,
+          "payloadBytes": 1327507
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 233.97919199999887,
+          "payloadBytes": 2259
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 9.89480700000422,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 231.61893699999928,
+          "payloadBytes": 750
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 9.142227000003913,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2204.4039059999996,
+          "payloadBytes": 1326571
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 174.13836900000024,
+          "payloadBytes": 2319
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 10.399588000000222,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1984.1100700000025,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 108.28771699999925,
+          "payloadBytes": 2259
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 10.149886000006518,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 209.83734200000617,
+          "payloadBytes": 750
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 11.951482000004034,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 60.0278349999935,
+          "payloadBytes": 2319
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 22.16591399999743,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1705.5222460000005,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 84.11687900000106,
+          "payloadBytes": 2259
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 12.817837000002328,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 198.97632699999667,
+          "payloadBytes": 750
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 12.87851899999805,
+          "payloadBytes": 2
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 99.70326899999782,
+          "payloadBytes": 2319
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 13.902793000001111,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1208.8936380000014,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 93.45637099999294,
+          "payloadBytes": 2259
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 9.616766999999527,
+          "payloadBytes": 144
+        },
+        {
+          "path": "/rest/v1/rpc/delete_invoice_with_effects",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 235.48008900000423,
+          "payloadBytes": 750
+        },
+        {
+          "path": "/rest/v1/registered_invoices",
+          "method": "GET",
+          "status": 200,
+          "durationMs": 22.604575000004843,
+          "payloadBytes": 2
+        }
+      ],
+      "runtime": {
+        "loads": [
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 523.5,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 411.39999999990687,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-refresh",
+            "durationMs": 713.5,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-write-settled-refresh",
+            "durationMs": 2098.1999999999534,
+            "stale": true,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-write-settled-refresh",
+            "durationMs": 1209,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2105.8000000000466,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-write-settled-refresh",
+            "durationMs": 1846.8000000000466,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-write-settled-refresh",
+            "durationMs": 1423.3999999999069,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2224.5,
+            "stale": true,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-refresh",
+            "durationMs": 2162.0999999999767,
+            "stale": true,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-write-settled-refresh",
+            "durationMs": 1990.3000000000466,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-write-settled-refresh",
+            "durationMs": 1654.0999999999767,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 1158.6999999999534,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          }
+        ],
+        "applies": 31,
+        "renderCalls": 31,
+        "mainReplacements": 31,
+        "mutations": 3661,
+        "lastMutationAt": 57544.39999999991,
+        "refresh": {
+          "requests": 79,
+          "attempts": 13,
+          "succeeded": 1,
+          "failed": 0,
+          "stale": 12,
+          "rerenders": 1,
+          "pendingMarked": 144,
+          "pendingFlushed": 66,
+          "lastDurationMs": 1159,
+          "lastReason": "realtime-focusout",
+          "lastRequestAt": "2026-10-03T04:02:43.261Z",
+          "lastAttemptAt": "2026-10-03T04:02:41.505Z",
+          "byReason": {
+            "realtime": 10,
+            "realtime-write-settled": 26,
+            "realtime-dialog-state-change": 13,
+            "realtime-retry": 3,
+            "realtime-retry-click": 2,
+            "realtime-retry-write-settled": 4,
+            "realtime-retry-focusout": 2,
+            "realtime-click": 8,
+            "realtime-focusout": 8,
+            "realtime-dialog-transition": 2,
+            "realtime-retry-dialog-state-change": 1
+          },
+          "skipped": {
+            "throttled": 60,
+            "editing": 6
+          }
+        },
+        "realtime": {
+          "broadcastsReceived": 145,
+          "ownBroadcastsIgnored": 61,
+          "ownReconciliationsScheduled": 61,
+          "ownReconciliationsCoalesced": 31,
+          "coalescedBroadcasts": 70,
+          "remoteRefreshesRateLimited": 7,
+          "refreshesScheduled": 18,
+          "refreshAttempts": 13,
+          "refreshSucceeded": 7,
+          "refreshFailed": 6,
+          "retriesScheduled": 4,
+          "reconnectRefreshes": 0,
+          "lastBroadcastAt": "2026-10-03T04:02:43.158Z",
+          "lastRefreshAt": "2026-10-03T04:02:42.665Z",
+          "byEntity": {
+            "verifications": 115,
+            "registered_invoices": 30
+          }
+        },
+        "writeTiming": {
+          "sampleCount": 0,
+          "clickToFeedback": {
+            "p50": null,
+            "p95": null
+          },
+          "rpc": {
+            "p50": null,
+            "p95": null
+          },
+          "apply": {
+            "p50": null,
+            "p95": null
+          },
+          "clickToStable": {
+            "p50": null,
+            "p95": null
+          }
+        },
+        "pendingRefresh": true,
+        "scrollTop": 678,
+        "focusedId": null
+      },
+      "errors": []
+    },
+    {
+      "elapsedMs": 55214.287834,
+      "reads": 19,
+      "writes": 42,
+      "readsPerWrite": 0.4523809523809524,
+      "readsPerMinute": 20.646828369508786,
+      "readDurationMs": {
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "payloadBytes": 0,
+      "requests": [
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 307.8370900000009,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 324.65045499999906,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 676.3627550000001,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 245.2885810000007,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 146.7341529999976,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 439.73302200000035,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 191.19690099999934,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 186.85466900000029,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 512.8920090000029,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 164.71860899999956,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 237.04331000000093,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 188.2810360000003,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 841.9146209999999,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 136.64959300000191,
+          "payloadBytes": 1129
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 116.84799500000008,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 289.05525200000193,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 155.59187300000121,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 221.2575649999999,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 505.1386500000008,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 112.42898400000195,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 141.5624110000026,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 655.4709860000003,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 160.67626499999824,
+          "payloadBytes": 1127
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 202.03980899999806,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 151.11657399999967,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 962.6449670000002,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 139.81152799999836,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 189.88068599999679,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 973.981025000001,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 209.5360770000043,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 122.98047299999598,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 522.5575249999965,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 132.5878969999976,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 137.83665399999882,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 177.01699400000507,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1046.3455039999972,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 144.5854560000007,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 123.72920200000226,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 863.1979009999995,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 145.70552300000418,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 138.22580400000152,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 392.46470599999884,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 201.55618799999502,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 162.14768700000423,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 145.05794199999946,
+          "payloadBytes": 1128
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 894.2185210000025,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 157.74134399999457,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 205.60698199999752,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 339.94623599999613,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 148.28143799999816,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 141.2211129999996,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 141.16820300000109,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 309.8945309999981,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 135.21457699999883,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 139.2921509999942,
+          "payloadBytes": 1131
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 193.8369570000068,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 1270.5579399999988,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 209.93843099999503,
+          "payloadBytes": 1132
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 0,
+          "aborted": true,
+          "durationMs": 278.06004699999903,
+          "payloadBytes": null
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 131.5392470000006,
+          "payloadBytes": 1130
+        },
+        {
+          "path": "/rest/v1/rpc/save_verification_with_log",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 138.99292199999763,
+          "payloadBytes": 1132
+        }
+      ],
+      "runtime": {
+        "loads": [
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 299.30000000004657,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-refresh",
+            "durationMs": 528.1999999999534,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 471,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-refresh",
+            "durationMs": 503.5999999999767,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 842.7000000000698,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-refresh",
+            "durationMs": 240.39999999990687,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 431.30000000004657,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-refresh",
+            "durationMs": 605.3000000000466,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 1012.7999999999302,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-refresh",
+            "durationMs": 929,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 472.19999999995343,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-refresh",
+            "durationMs": 1124.9000000000233,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 815.4000000000233,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-refresh",
+            "durationMs": 341.9000000000233,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 873.9000000000233,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-refresh",
+            "durationMs": 289.70000000006985,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 261.79999999993015,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-retry-refresh",
+            "durationMs": 1279.8999999999069,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 228.10000000009313,
+            "stale": true,
+            "aborted": true,
+            "ok": true
+          }
+        ],
+        "applies": 42,
+        "renderCalls": 42,
+        "mainReplacements": 0,
+        "mutations": 2940,
+        "lastMutationAt": 56663.90000000002,
+        "refresh": {
+          "requests": 125,
+          "attempts": 20,
+          "succeeded": 0,
+          "failed": 0,
+          "stale": 19,
+          "rerenders": 0,
+          "pendingMarked": 229,
+          "pendingFlushed": 105,
+          "lastDurationMs": 228,
+          "lastReason": "realtime-retry",
+          "lastRequestAt": "2026-10-03T04:02:42.441Z",
+          "lastAttemptAt": "2026-10-03T04:02:42.441Z",
+          "byReason": {
+            "realtime": 10,
+            "realtime-click": 21,
+            "realtime-write-settled": 20,
+            "realtime-retry": 10,
+            "realtime-retry-click": 21,
+            "realtime-retry-write-settled": 20,
+            "realtime-retry-focusout": 12,
+            "realtime-focusout": 11
+          },
+          "skipped": {
+            "throttled": 105
+          }
+        },
+        "realtime": {
+          "broadcastsReceived": 145,
+          "ownBroadcastsIgnored": 42,
+          "ownReconciliationsScheduled": 42,
+          "ownReconciliationsCoalesced": 0,
+          "coalescedBroadcasts": 86,
+          "remoteRefreshesRateLimited": 0,
+          "refreshesScheduled": 27,
+          "refreshAttempts": 20,
+          "refreshSucceeded": 0,
+          "refreshFailed": 19,
+          "retriesScheduled": 10,
+          "reconnectRefreshes": 0,
+          "lastBroadcastAt": "2026-10-03T04:02:43.121Z",
+          "lastRefreshAt": "2026-10-03T04:02:40.441Z",
+          "byEntity": {
+            "verifications": 115,
+            "registered_invoices": 30
+          }
+        },
+        "writeTiming": {
+          "sampleCount": 42,
+          "clickToFeedback": {
+            "p50": 0.19999999995343387,
+            "p95": 0.7000000000698492
+          },
+          "rpc": {
+            "p50": null,
+            "p95": null
+          },
+          "apply": {
+            "p50": 1,
+            "p95": 3.400000000023283
+          },
+          "clickToStable": {
+            "p50": 323.5,
+            "p95": 587.6999999999534
+          }
+        },
+        "pendingRefresh": false,
+        "scrollTop": 0,
+        "focusedId": null
+      },
+      "errors": []
+    },
+    {
+      "elapsedMs": 55200.125068,
+      "reads": 15,
+      "writes": 0,
+      "readsPerWrite": null,
+      "readsPerMinute": 16.304306276393692,
+      "readDurationMs": {
+        "p50": 2198.11,
+        "p95": 2339.14,
+        "p99": 2339.14,
+        "max": 2339.1443020000006
+      },
+      "payloadBytes": 18576400,
+      "requests": [
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 625.3674699999992,
+          "payloadBytes": 1325313
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 500,
+          "durationMs": 7.718415999999706,
+          "payloadBytes": 66
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2209.845755999999,
+          "payloadBytes": 1326567
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2264.2456889999994,
+          "payloadBytes": 1327501
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2177.173595999997,
+          "payloadBytes": 1327503
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2150.6946930000013,
+          "payloadBytes": 1326571
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2186.574345000001,
+          "payloadBytes": 1326571
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2171.3860920000006,
+          "payloadBytes": 1327506
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2310.0099709999995,
+          "payloadBytes": 1327505
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2198.107219000005,
+          "payloadBytes": 1326570
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2339.1443020000006,
+          "payloadBytes": 1327509
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2249.581195999999,
+          "payloadBytes": 1326571
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2219.441617000004,
+          "payloadBytes": 1326569
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2190.946071999999,
+          "payloadBytes": 1327506
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2237.7740300000005,
+          "payloadBytes": 1326572
+        }
+      ],
+      "runtime": {
+        "loads": [
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 499.4000000000233,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 13.599999999976717,
+            "ok": false
+          },
+          {
+            "source": "session-realtime-retry-refresh",
+            "durationMs": 2171.5,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-inflight-finished-refresh",
+            "durationMs": 2217.4000000000233,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2135.9000000000233,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2113.9000000000233,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2132.600000000093,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2132.5999999999767,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2185.5999999999767,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2177,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2231.79999999993,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2200.600000000093,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2166.6999999999534,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2239.9000000000233,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2183.3000000000466,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          }
+        ],
+        "applies": 14,
+        "renderCalls": 14,
+        "mainReplacements": 14,
+        "mutations": 1708,
+        "lastMutationAt": 58045.10000000009,
+        "refresh": {
+          "requests": 17,
+          "attempts": 16,
+          "succeeded": 14,
+          "failed": 1,
+          "stale": 0,
+          "rerenders": 14,
+          "pendingMarked": 2,
+          "pendingFlushed": 1,
+          "lastDurationMs": 2202,
+          "lastReason": "realtime",
+          "lastRequestAt": "2026-10-03T04:02:43.642Z",
+          "lastAttemptAt": "2026-10-03T04:02:43.642Z",
+          "byReason": {
+            "realtime": 15,
+            "realtime-retry": 1,
+            "realtime-inflight-finished": 1
+          },
+          "skipped": {
+            "inflight": 1
+          }
+        },
+        "realtime": {
+          "broadcastsReceived": 145,
+          "ownBroadcastsIgnored": 0,
+          "ownReconciliationsScheduled": 0,
+          "ownReconciliationsCoalesced": 0,
+          "coalescedBroadcasts": 130,
+          "remoteRefreshesRateLimited": 11,
+          "refreshesScheduled": 16,
+          "refreshAttempts": 16,
+          "refreshSucceeded": 14,
+          "refreshFailed": 1,
+          "retriesScheduled": 1,
+          "reconnectRefreshes": 0,
+          "lastBroadcastAt": "2026-10-03T04:02:43.121Z",
+          "lastRefreshAt": "2026-10-03T04:02:43.492Z",
+          "byEntity": {
+            "verifications": 115,
+            "registered_invoices": 30
+          }
+        },
+        "writeTiming": null,
+        "pendingRefresh": false,
+        "scrollTop": 0,
+        "focusedId": null
+      },
+      "errors": []
+    },
+    {
+      "elapsedMs": 55198.259061000004,
+      "reads": 14,
+      "writes": 0,
+      "readsPerWrite": null,
+      "readsPerMinute": 15.217870458021537,
+      "readDurationMs": {
+        "p50": 2210.64,
+        "p95": 2303.02,
+        "p99": 2303.02,
+        "max": 2303.0188500000004
+      },
+      "payloadBytes": 18577885,
+      "requests": [
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 1211.3523299999997,
+          "payloadBytes": 1325927
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2232.2534540000015,
+          "payloadBytes": 1326567
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2187.4661940000005,
+          "payloadBytes": 1327502
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2303.0188500000004,
+          "payloadBytes": 1327506
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2255.5471709999983,
+          "payloadBytes": 1326571
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2197.966435000002,
+          "payloadBytes": 1326571
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2238.7166780000043,
+          "payloadBytes": 1327506
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2223.505296999996,
+          "payloadBytes": 1327506
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2236.4256860000023,
+          "payloadBytes": 1327507
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2200.1623069999987,
+          "payloadBytes": 1326571
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2181.9099459999998,
+          "payloadBytes": 1327505
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2210.643605999998,
+          "payloadBytes": 1327505
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2223.2516909999977,
+          "payloadBytes": 1326569
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "method": "POST",
+          "status": 200,
+          "durationMs": 2204.3449859999964,
+          "payloadBytes": 1326572
+        }
+      ],
+      "runtime": {
+        "loads": [
+          {
+            "source": "session-realtime-focusout-refresh",
+            "durationMs": 1155.9000000000233,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2161.79999999993,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2139.79999999993,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2192.1999999999534,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2202.79999999993,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2149.899999999907,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2191.9000000000233,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2151.6999999999534,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2188.5999999999767,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2150.0999999999767,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2146.5999999999767,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2160.6999999999534,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2162.29999999993,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          },
+          {
+            "source": "session-realtime-refresh",
+            "durationMs": 2152.100000000093,
+            "stale": false,
+            "aborted": false,
+            "ok": true
+          }
+        ],
+        "applies": 14,
+        "renderCalls": 14,
+        "mainReplacements": 14,
+        "mutations": 1672,
+        "lastMutationAt": 58460.09999999998,
+        "refresh": {
+          "requests": 15,
+          "attempts": 14,
+          "succeeded": 14,
+          "failed": 0,
+          "stale": 0,
+          "rerenders": 14,
+          "pendingMarked": 1,
+          "pendingFlushed": 1,
+          "lastDurationMs": 2162,
+          "lastReason": "realtime",
+          "lastRequestAt": "2026-10-03T04:02:41.746Z",
+          "lastAttemptAt": "2026-10-03T04:02:41.746Z",
+          "byReason": {
+            "realtime": 14,
+            "realtime-focusout": 1
+          },
+          "skipped": {
+            "editing": 1
+          }
+        },
+        "realtime": {
+          "broadcastsReceived": 145,
+          "ownBroadcastsIgnored": 0,
+          "ownReconciliationsScheduled": 0,
+          "ownReconciliationsCoalesced": 0,
+          "coalescedBroadcasts": 130,
+          "remoteRefreshesRateLimited": 11,
+          "refreshesScheduled": 15,
+          "refreshAttempts": 14,
+          "refreshSucceeded": 14,
+          "refreshFailed": 0,
+          "retriesScheduled": 0,
+          "reconnectRefreshes": 0,
+          "lastBroadcastAt": "2026-10-03T04:02:43.121Z",
+          "lastRefreshAt": "2026-10-03T04:02:43.908Z",
+          "byEntity": {
+            "verifications": 115,
+            "registered_invoices": 30
+          }
+        },
+        "writeTiming": null,
+        "pendingRefresh": false,
+        "scrollTop": 0,
+        "focusedId": null
+      },
+      "errors": []
+    }
+  ],
+  "finalValue": "Não",
+  "gestures": [
+    42,
+    30,
+    42,
+    0,
+    0
+  ],
+  "faults": {
+    "readLatencyMs": 0,
+    "failObserverRead": false,
+    "failuresInjected": 1
+  },
+  "reloadInitialCompetence": "2026-09",
+  "limits": [
+    "Massa sintética calibrada; não clone de Production.",
+    "Cinco sessões/quatro usuários Controladores, incluindo duas abas da mesma identidade.",
+    "Esta jornada mede avaliações e CRUD fiscal; não certifica patrimônio, Pendências, horas de uso ou staging.",
+    "Latência e HTTP 500 são induzidos no transporte; dados e Realtime são reais."
+  ]
+}
