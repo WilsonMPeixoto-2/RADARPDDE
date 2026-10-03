@@ -132,6 +132,21 @@ test('aceita somente o advisory remanescente da cadeia glob nos caminhos documen
     assert.deepEqual(result.violations, []);
 });
 
+test('bloqueia pacote transitivo da exceção ExcelJS quando ele aparece como dependência direta', async () => {
+    const policy = await import(POLICY_URL);
+    const report = allowedReport();
+    report.vulnerabilities.glob.isDirect = true;
+
+    const result = policy.evaluateAuditReport(report);
+
+    assert.equal(result.passed, false);
+    assert.ok(result.violations.some(item => (
+        item.code === 'PACKAGE_OUTSIDE_ALLOWED_PATH'
+        && item.packageName === 'glob'
+        && item.advisory === 'GHSA-MH99-V99M-4GVG'
+    )));
+});
+
 test('aceita o advisory sem correção de braces somente na cadeia Stylelint de desenvolvimento documentada', async () => {
     const policy = await import(POLICY_URL);
     const result = policy.evaluateAuditReport(stylelintBracesReport());
