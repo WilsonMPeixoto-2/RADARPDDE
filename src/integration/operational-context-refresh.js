@@ -121,9 +121,13 @@
         let lastFailureAt = 0;
         let refreshPromise = null;
         let pendingRefreshReason = '';
+        let pendingRefreshCanForce = false;
 
-        function markPending(reason) {
+        function markPending(reason, { canForce = false } = {}) {
             pendingRefreshReason = text(reason) || pendingRefreshReason || 'editing';
+            // Uma invalidação nova adiada por edição/leitura pode exigir drenagem
+            // imediata. Recuperar uma leitura abortada não cria outra invalidação.
+            pendingRefreshCanForce = pendingRefreshCanForce || canForce;
             return pendingRefreshReason;
         }
 
@@ -132,18 +136,20 @@
                 // Foco/visibilidade apenas retomam a leitura em andamento. Não
                 // anunciam alteração canônica posterior que exija nova consulta.
                 if (refreshOptions.force !== true) return refreshPromise;
-                markPending(reason);
+                markPending(reason, { canForce: refreshOptions.force === true });
                 const currentRefresh = refreshPromise;
                 return currentRefresh.then(result => flushPending('inflight-finished', {
-                    force: result?.ok !== false
+                    force: result?.ok !== false && result?.stale !== true
                 }));
             }
             if (!authenticated(root)) {
                 pendingRefreshReason = '';
+                pendingRefreshCanForce = false;
                 return { skipped: true, reason: 'unauthenticated' };
             }
             if (editing(root)) {
-                markPending(reason);
+                markPending(reason, { canForce: /^realtime(?:-|$)/.test(reason)
+                    || refreshOptions.force === true });
                 return { skipped: true, reason: 'editing', pending: true };
             }
             const competenceKey = activeCompetence(root);
@@ -174,6 +180,7 @@
             // que chegarem depois deste ponto voltam a preencher pendingRefreshReason
             // e serão relidas quando a consulta em voo terminar.
             pendingRefreshReason = '';
+            pendingRefreshCanForce = false;
 
             const startedAt = now;
             let run = null;
@@ -230,27 +237,33 @@
             if (!pendingRefreshReason) return { skipped: true, reason: 'no-pending-refresh' };
             if (!authenticated(root)) {
                 pendingRefreshReason = '';
+                pendingRefreshCanForce = false;
                 return { skipped: true, reason: 'unauthenticated' };
             }
             if (editing(root)) return { skipped: true, reason: 'editing', pending: true };
+            // Clique, focusout e fim de escrita apenas tentam drenar a pendência.
+            // Durante uma leitura não representam nova alteração canônica.
+            if (refreshPromise) return refreshPromise;
 
             const pendingReason = pendingRefreshReason;
+            const pendingCanForce = pendingRefreshCanForce;
             pendingRefreshReason = '';
-            const realtimePending = /^realtime(?:-|$)/.test(pendingReason);
+            pendingRefreshCanForce = false;
             const now = Date.now();
             const failureCooldownActive = lastFailureAt > 0 && (now - lastFailureAt) < minIntervalMs;
 
             // Pendência Realtime bloqueada apenas por edição pode drenar assim que o
             // usuário encerra o campo. Se a própria leitura falhou recentemente,
             // preservamos o cooldown para não recriar a tempestade de retries.
-            const force = flushOptions.force === true || (realtimePending && !failureCooldownActive);
+            const force = flushOptions.force === true || (pendingCanForce && !failureCooldownActive);
             const result = await refresh(`${pendingReason}-${reason}`, { force });
             if (
                 result?.ok === false
                 || result?.stale === true
                 || (result?.skipped === true && ['editing', 'throttled'].includes(result.reason))
             ) {
-                markPending(pendingReason);
+                markPending(pendingReason, { canForce: pendingCanForce
+                    && result?.skipped === true && ['editing', 'throttled'].includes(result.reason) });
             }
             return result;
         }
