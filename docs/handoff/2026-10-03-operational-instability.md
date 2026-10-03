@@ -334,3 +334,9 @@ A comparação do head anterior ainda em andamento é controle válido antes da
 nova correção da janela; guardar ambos quando concluírem. Não registrar cancelado
 como falha funcional nem como homologação. Não publicar novo commit funcional
 sem reexecutar a jornada completa do candidato correspondente.
+
+Os artefatos passam a publicar métricas/SQL/screenshots também em ZIP pequeno
+separado dos vídeos. O ZIP integral pode exceder o limite de download de 32 MiB
+do ambiente Codex em 400 rodadas; isso não deve bloquear leitura dos resultados
+nem continuidade por outro agente. Mantém-se o vídeo integral como evidência
+separada de curta retenção, e as conclusões/JSON relevantes serão versionados.

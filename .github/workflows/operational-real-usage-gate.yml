@@ -141,6 +141,16 @@ jobs:
             playwright-report/
           if-no-files-found: warn
           retention-days: 30
+      - name: Preservar métricas pequenas separadas dos vídeos
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: operational-metrics-${{ matrix.variant }}-${{ github.run_id }}
+          path: |
+            test-results/operational-sustained/
+            test-results/**/observer-*.png
+          if-no-files-found: warn
+          retention-days: 30
       - name: Encerrar pilha descartável
         if: always()
         working-directory: ${{ env.RADAR_OPERATIONAL_ROOT }}
