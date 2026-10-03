@@ -48,6 +48,7 @@ function session() {
         reads,
         renders,
         focus: () => root.dispatchEvent(new Event('focus')),
+        blur: () => root.dispatchEvent(new Event('blur')),
         hidden: () => {
             document.visibilityState = 'hidden';
             document.dispatchEvent(new Event('visibilitychange'));
@@ -97,6 +98,25 @@ test('novo ciclo hidden→visible durante leitura em voo agenda uma reconciliaç
 
     assert.equal(tab.reads.length, 2, 'um novo ciclo de suspensão pode conter alterações posteriores ao snapshot em voo');
     assert.equal(tab.projected(), 2, 'a sessão visível deve convergir sem depender de outro gesto ou do Realtime');
+    assert.deepEqual(tab.renders, [1, 2]);
+    assert.equal(tab.controller.hasPendingRefresh(), false);
+});
+
+test('novo ciclo blur→focus durante leitura em voo agenda uma reconciliação posterior', async () => {
+    const tab = session();
+    tab.focus();
+    await settle();
+    assert.equal(tab.reads.length, 1);
+
+    tab.blur();
+    tab.changeCanonical(2);
+    tab.focus();
+    tab.releaseFirst('success');
+    await settle();
+    await settle();
+
+    assert.equal(tab.reads.length, 2, 'retomar a janela após blur pode conter alterações posteriores ao snapshot em voo');
+    assert.equal(tab.projected(), 2, 'o fallback de foco deve convergir mesmo sem visibilitychange ou Realtime');
     assert.deepEqual(tab.renders, [1, 2]);
     assert.equal(tab.controller.hasPendingRefresh(), false);
 });
