@@ -7,7 +7,13 @@ const {
     createController: createRealtimeController
 } = require('../../src/integration/operational-realtime-invalidation.js');
 
-function createSession({ userId, clientInstanceId, ownReconcileMs = 30000 }) {
+function createSession({
+    userId,
+    clientInstanceId,
+    ownReconcileMs = 30000,
+    debounceMs = 0,
+    remoteMinIntervalMs = 0
+}) {
     let broadcastHandler = null;
     let statusHandler = null;
     let refreshes = 0;
@@ -49,8 +55,9 @@ function createSession({ userId, clientInstanceId, ownReconcileMs = 30000 }) {
     const controller = createRealtimeController(root, {
         client,
         refreshController,
-        debounceMs: 0,
-        ownReconcileMs
+        debounceMs,
+        ownReconcileMs,
+        remoteMinIntervalMs
     });
     return {
         controller,
@@ -92,7 +99,7 @@ test('sessão que grava continuamente não relê o contexto por causa do eco do 
     assert.equal(
         observer.refreshes(),
         12,
-        'outra sessão continua convergindo normalmente durante a atividade do controlador'
+        'sem rate-limit explícito neste cenário-base, outra sessão continua convergindo a cada invalidação'
     );
     assert.equal(writer.controller.getMetrics().ownBroadcastsIgnored, 12);
     assert.equal(observer.controller.getMetrics().ownBroadcastsIgnored, 0);
@@ -166,4 +173,55 @@ test('Broadcast legado ou sem proveniência continua provocando reconciliação'
     assert.equal(session.refreshes(), 1);
     assert.equal(session.controller.getMetrics().ownBroadcastsIgnored, 0);
     await session.controller.stop();
+});
+
+test('atividade remota contínua mantém convergência sem transformar cada gravação alheia em leitura completa', async () => {
+    const observer = createSession({
+        userId: 'controller-observer',
+        clientInstanceId: 'tab-observer',
+        debounceMs: 1,
+        remoteMinIntervalMs: 15
+    });
+    await observer.controller.start();
+    observer.emitStatus('SUBSCRIBED');
+
+    const workload = [
+        ['verifications', 'update'],
+        ['registered_invoices', 'insert'],
+        ['registered_invoices', 'update'],
+        ['registered_invoices', 'delete'],
+        ['pendencies', 'insert'],
+        ['pendencies', 'update'],
+        ['pendency_attempts', 'insert'],
+        ['pendency_contacts', 'insert'],
+        ['assets', 'insert'],
+        ['assets', 'update'],
+        ['assets', 'delete']
+    ];
+
+    for (let index = 0; index < 33; index += 1) {
+        const [entity, operation] = workload[index % workload.length];
+        observer.emit({
+            entity,
+            operation,
+            originUserId: `controller-${index % 3}`,
+            originClientInstanceId: `tab-${index % 3}`
+        });
+        // Maior que o debounce, menor que a janela mínima desejada. Sem um
+        // rate-limit real, cada gravação remota vira uma leitura contextual.
+        await settle(3);
+    }
+    await settle(20);
+
+    assert.ok(
+        observer.refreshes() <= 10,
+        `33 gravações/correções/exclusões remotas provocaram ${observer.refreshes()} leituras completas`
+    );
+    assert.ok(observer.refreshes() >= 2, 'a sessão observadora precisa continuar convergindo durante a atividade');
+    assert.ok(
+        observer.controller.getMetrics().remoteRefreshesRateLimited > 0,
+        'o gate precisa provar que invalidações remotas contínuas foram agrupadas pela janela operacional'
+    );
+
+    await observer.controller.stop();
 });
