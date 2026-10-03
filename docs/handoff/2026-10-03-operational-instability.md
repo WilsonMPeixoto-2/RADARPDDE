@@ -557,3 +557,27 @@ para declarar homologado o foco novo ou as novas métricas de CPU.
 Main contém dois commits documentais posteriores ao hotfix (plano e revert), cuja
 árvore final não altera a funcionalidade do baseline. Sincronizar o candidato com
 main antes da certificação final mantém o SHA integrado rastreável.
+
+
+## Retorno autoritativo de novo envio — causa adicional localizada
+
+Auditoria de writers/derivados em `authoritative-writer-audit.md`. A proteção de
+completude e de falha pós-commit já existe em DataService; foi refutada a inferência
+de que a ausência de marcador autoritativo deixaria automaticamente a origem
+incorreta por 30 segundos. Não foi criado outro validador estático equivalente.
+
+RED com serviços/porta/bridge reais: novo envio de NF de consumo e identificação
+como serviço já aplicavam todos os derivados, mas declaravam assets sem alteração.
+RPC devolvia asset:null, levando a uma leitura ampla corretiva desnecessária.
+Correção mínima em PendencyService: escopo assets calculado antes da captura do
+comando pela validação existente; identificação permanente e vínculo anômalo
+conservam captura/rollback. Completude global continua estrita. Seis controles
+novos e 75 relacionados passaram. Retorno sem verification ainda exige a leitura;
+permanente retorna/aplica bem; rejeição mantém rollback integral.
+
+A matriz UI/Supabase existente foi ampliada para bloquear leitura contextual
+**durante** a identificação sequencial de consumo/serviço/permanente e conferir
+imediatamente NF, Pendência, tentativa, Assessoria e patrimônio antes de consultar
+o banco separadamente. A prova real está pendente no SHA consolidado. Não supor
+que o workload sustentado de avaliação/CRUD fiscal mede essa correção de novo envio.
+Resumo causal e hashes em `document-attempt-red-green.json`.

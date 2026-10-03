@@ -1,0 +1,29 @@
+{
+  "baseCheckpoint": "7c0b84efaa1daab3a6f73a9fc3a1fc2e2620c4b5",
+  "red": {
+    "tests": 4,
+    "pass": 2,
+    "fail": 2,
+    "cases": [
+      "NF de consumo",
+      "a_identificar para serviço"
+    ],
+    "expectedContextReads": 0,
+    "actualContextReads": 1,
+    "logSha256": "86a4b706ddc946e87ef81973d24d4852d339ee72803b05828318b7dca28df378"
+  },
+  "green": {
+    "tests": 75,
+    "pass": 75,
+    "fail": 0,
+    "skip": 0,
+    "newControls": 6
+  },
+  "cause": "Comando declarava assets alterados mesmo sem efeito patrimonial; asset:null não completa esse escopo e causava fallback amplo.",
+  "change": "Escopo assets calculado antes de execute usando validação existente, preservando permanente e rollback anômalo.",
+  "limits": [
+    "Serviços/UnitOfWork/StatePort/bridge reais, RPC controlada no RED unitário.",
+    "Matriz real de consumo/serviço/permanente será executada com leitura contextual bloqueada durante identificação; resultado ainda pendente.",
+    "Não atribuir efeito deste caso ao workload sustentado de avaliação/CRUD fiscal, que não executa novo envio."
+  ]
+}

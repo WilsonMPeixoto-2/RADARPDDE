@@ -168,11 +168,51 @@ async function identifyRemoteThroughModal(page, ids, {
     { exact: true }
   ).fill('2026-09-23');
   await modal.getByLabel('Observação', { exact: true }).fill('Documento fiscal apresentado.');
-  await modal.getByRole('button', {
-    name: 'Registrar e enviar para reanálise',
-    exact: true
-  }).click();
-  await expect(modal).not.toHaveClass(/show/);
+  // A matriz é sequencial, com um writer. Impedir que uma releitura ampla
+  // mascare efeitos ausentes no retorno da própria gravação.
+  let contextReads = 0;
+  const contextPath = '**/rest/v1/rpc/read_operational_context';
+  const blockContext = route => {
+    contextReads += 1;
+    return route.abort('failed');
+  };
+  await page.route(contextPath, blockContext);
+  try {
+    await modal.getByRole('button', {
+      name: 'Registrar e enviar para reanálise',
+      exact: true
+    }).click();
+    await expect(modal).not.toHaveClass(/show/);
+    const immediate = await page.evaluate(({ invoiceId, pendencyId }) => {
+      const invoice = notasRegistradas.find(item => item.id === invoiceId);
+      const pending = pendencias.find(item => item.id === pendencyId);
+      const verification = verificacoes[invoice?.escolaId]?.[invoice?.compKey];
+      const asset = invoice?.bemId ? bens.find(item => item.id === invoice.bemId) : null;
+      return {
+        type: invoice?.tipo, number: invoice?.numero, amount: invoice?.valor,
+        analysis: invoice?.analiseDocumentoFiscal,
+        status: pending?.status, attempts: pending?.tentativas?.length || 0,
+        advisory: invoice?.analiseConsultaAssessoria || null,
+        advisoryDelivery: verification?.bonificacao?.consAssessoria || null,
+        assetId: asset?.id || null, assetStatus: asset?.status || null,
+        inventoryDelivery: verification?.bonificacao?.encampInventario || null
+      };
+    }, ids);
+    expect(immediate).toMatchObject({
+      type: expenseType, number: invoiceNumber, amount,
+      analysis: 'Não analisado', status: 'Aguardando reanálise', attempts: 1
+    });
+    if (expenseType === 'servico') {
+      expect(immediate).toMatchObject({ advisory: 'Não analisado', advisoryDelivery: 'Não' });
+    }
+    if (expenseType === 'permanente') {
+      expect(immediate.assetId).toBeTruthy();
+      expect(immediate).toMatchObject({ assetStatus: 'Encaminhada', inventoryDelivery: 'Sim' });
+    }
+    expect(contextReads).toBe(0);
+  } finally {
+    await page.unroute(contextPath, blockContext);
+  }
 
   if (expectDialog) expect(dialogMessage).toContain(expectDialog);
 }

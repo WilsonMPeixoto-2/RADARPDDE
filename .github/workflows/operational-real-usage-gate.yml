@@ -33,6 +33,7 @@ on:
       - 'tests/unit/operational-realtime-slow-read-window.test.js'
       - 'tests/unit/operational-focus-inflight.test.js'
       - 'tests/unit/operational-session-comparison.test.js'
+      - 'tests/unit/operational-document-attempt-authority.test.js'
       - 'tests/e2e/operational-cross-school-refresh.spec.js'
       - 'scripts/compare-operational-sessions.mjs'
       - '.github/workflows/operational-real-usage-gate.yml'
@@ -185,7 +186,7 @@ jobs:
         run: npm ci
 
       - name: Provar jornada concorrente sustentada
-        run: node --test tests/unit/operational-real-usage-session.test.js tests/unit/production-refresh-stability.test.js tests/unit/operational-realtime-invalidation.test.js tests/unit/operational-stale-read-amplification.test.js tests/unit/operational-realtime-slow-read-window.test.js tests/unit/operational-focus-inflight.test.js tests/unit/operational-session-comparison.test.js
+        run: node --test tests/unit/operational-real-usage-session.test.js tests/unit/production-refresh-stability.test.js tests/unit/operational-realtime-invalidation.test.js tests/unit/operational-stale-read-amplification.test.js tests/unit/operational-realtime-slow-read-window.test.js tests/unit/operational-focus-inflight.test.js tests/unit/operational-session-comparison.test.js tests/unit/operational-document-attempt-authority.test.js
 
       - name: Instalar Chromium para continuidade de foco
         run: npx playwright install --with-deps chromium
