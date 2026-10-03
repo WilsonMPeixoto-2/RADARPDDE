@@ -159,10 +159,14 @@
 
         async function refresh(reason = 'resume', refreshOptions = {}) {
             if (refreshPromise) {
-                // Foco/visibilidade apenas retomam a leitura em andamento. Não
-                // anunciam alteração canônica posterior que exija nova consulta.
-                if (refreshOptions.force !== true) return refreshPromise;
-                markPending(reason, { canForce: refreshOptions.force === true });
+                // Foco/visibilidade do mesmo ciclo apenas retomam a leitura em
+                // andamento. Um novo ciclo hidden→visible, porém, pode ter perdido
+                // alterações posteriores ao snapshot já capturado e precisa deixar
+                // uma única reconciliação pendente.
+                const queueAfterInflight = refreshOptions.force === true
+                    || refreshOptions.resumeAfterHidden === true;
+                if (!queueAfterInflight) return refreshPromise;
+                markPending(reason, { canForce: true });
                 const currentRefresh = refreshPromise;
                 return currentRefresh.then(result => flushPending('inflight-finished', {
                     force: result?.ok !== false && result?.stale !== true
@@ -324,6 +328,7 @@
 
         const controller = createController(root, service);
         root.RadarOperationalContextRefreshController = controller;
+        let hiddenSinceVisible = root.document.visibilityState === 'hidden';
 
         const flushPending = reason => {
             if (!controller.hasPendingRefresh()) return;
@@ -339,8 +344,13 @@
             void controller.refresh('focus');
         });
         root.document.addEventListener?.('visibilitychange', () => {
-            if (root.document.visibilityState !== 'visible') return;
-            void controller.refresh('visibility');
+            if (root.document.visibilityState !== 'visible') {
+                hiddenSinceVisible = true;
+                return;
+            }
+            const resumeAfterHidden = hiddenSinceVisible;
+            hiddenSinceVisible = false;
+            void controller.refresh('visibility', { resumeAfterHidden });
         });
         root.document.addEventListener?.('focusout', () => flushPending('focusout'));
         root.document.addEventListener?.('click', () => flushPending('click'));
