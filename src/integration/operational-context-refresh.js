@@ -195,8 +195,16 @@
                 && cooldownAnchor > 0
                 && (now - cooldownAnchor) < minIntervalMs
             ) {
-                markPending(reason);
                 const retryAfterMs = Math.max(0, minIntervalMs - (now - cooldownAnchor));
+                // O segundo sinal de uma retomada pode chegar após a resposta do
+                // primeiro. Uma oportunidade sem pendência nem nova suspensão
+                // não cria trabalho futuro sobre o contexto que já está atual.
+                if (!pendingRefreshReason
+                    && refreshOptions.resumeAfterHidden !== true
+                    && refreshOptions.resumeAfterBlur !== true) {
+                    return { skipped: true, reason: 'throttled', pending: false, retryAfterMs };
+                }
+                markPending(reason);
                 scheduleCooldownFlush(retryAfterMs);
                 return {
                     skipped: true,
@@ -290,8 +298,8 @@
 
             const pendingReason = pendingRefreshReason;
             const pendingCanForce = pendingRefreshCanForce;
-            pendingRefreshReason = '';
-            pendingRefreshCanForce = false;
+            // A pendência só é consumida quando refresh inicia a leitura. Mantê-la
+            // até lá distingue recuperação necessária de mera oportunidade de foco.
             const now = Date.now();
             const failureCooldownActive = lastFailureAt > 0 && (now - lastFailureAt) < minIntervalMs;
 
