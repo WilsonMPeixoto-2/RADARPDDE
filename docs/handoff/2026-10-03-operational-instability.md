@@ -471,3 +471,30 @@ Próximas ações autorizadas nesta retomada:
 
 Este checkpoint fecha a medição do candidato a652; não encerra a investigação do
 custo residual nem autoriza publicação em Production.
+
+
+## Retomada: foco em voo e escopo de contexto
+
+O RED pelo `install()` real confirmou: focus inicia leitura; visibility/focus
+antes da resposta, sem alteração nova, produziam duas leituras/reconstruções.
+Agora solicitações sem force aderem à promise existente. Invalidação remota nova
+continua pendente e exige a segunda leitura; falha/stale conservam recuperação.
+41 controles dirigidos passaram. Evidência compacta: `focus-inflight-red-green.json`.
+A alteração funcional posterior a a652 exige novo run sustentado; não reutilizar
+os resultados de a652 como prova desse novo SHA.
+
+A revisão do contexto refutou a ideia de ignorar automaticamente a escola B
+quando o Prontuário A está visível. `read_operational_context` recebe competência
+(e histórico), não escola. RLS do Controlador cobre toda a CRE; Dashboard, Carteira
+e a troca de escola reaproveitam a projeção global em memória, sem leitura nova.
+Pendências ativas e patrimônio ainda trazem relações entre competências.
+Referências: migration `20260929143215_read_operational_context.sql`, RLS
+`20260919234500_rls_set_based_access.sql`, `switchView` em app.js,
+`readOperationalContext` em DataService e `StatePort.applyEntities`.
+
+Há dois custos distintos a investigar: atualizar o contexto canônico global e
+reconstruir a superfície visível. Toda leitura aplicada encaminha refreshCurrentView;
+a prova isolada proposta mede escrita somente em B, estado global atualizado,
+conteúdo/identidade DOM de A e navegação posterior para B sem reload. O teste misto
+anterior não permite atribuir cada reconstrução a uma mudança irrelevante para A.
+Nenhum filtro por escola/mês, nova RPC ou wrapper foi adicionado.

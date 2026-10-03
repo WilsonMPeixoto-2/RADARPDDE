@@ -1,0 +1,19 @@
+{
+  "testedBase": "a652b410509ee8bbbc2a24372010abc7a879c58d",
+  "hypothesis": "focus/visibility em voo pode forçar segunda leitura sem nova invalidação",
+  "reproduction": "install() real, eventos EventTarget, leitura controlada na fronteira de dados",
+  "red": {
+    "expectedReads": 1,
+    "actualReads": 2,
+    "passedControls": 3,
+    "logSha256": "7e01b713a07e5575775c98dded09690341cda257512cc59c3b921cef12151f3c",
+    "failure": "AssertionError: retomar a aba não informa alteração canônica posterior à leitura; 2 !== 1"
+  },
+  "green": {
+    "targetedTests": 41,
+    "failed": 0,
+    "command": "node --test tests/unit/operational-focus-inflight.test.js tests/unit/operational-context-refresh.test.js tests/unit/production-refresh-stability.test.js tests/unit/operational-stale-read-amplification.test.js tests/unit/realtime-write-abort-interleaving.test.js tests/unit/operational-realtime-invalidation.test.js tests/unit/operational-realtime-slow-read-window.test.js"
+  },
+  "change": "Solicitação sem force adere à leitura em voo; invalidação nova force=true mantém pendência/reconciliação.",
+  "limit": "Prova causal unitária; jornada concorrente no SHA novo ainda precisa ser executada."
+}

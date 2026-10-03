@@ -174,6 +174,9 @@
 
             if (refreshPromise) {
                 recordSkipped('inflight');
+                // Foco/visibilidade apenas retomam a leitura em andamento. Não
+                // anunciam alteração canônica posterior que exija nova consulta.
+                if (refreshOptions.force !== true) return refreshPromise;
                 markPending(reason, { canForce: refreshOptions.force === true });
                 const currentRefresh = refreshPromise;
                 return currentRefresh.then(result => flushPending('inflight-finished', {
