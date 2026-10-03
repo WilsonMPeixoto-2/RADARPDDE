@@ -3,6 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -22,6 +23,17 @@ const ALLOWED_ADVISORIES = Object.freeze(new Map([
       'zip-stream'
     ])),
     reason: 'Cadeia de glob/streaming do Node não alcançada pelo workbook documental do navegador.'
+  })],
+  ['GHSA-VFJ7-8CJW-P6XM', Object.freeze({
+    packages: Object.freeze(new Set([
+      'braces',
+      'micromatch',
+      'fast-glob',
+      'globby',
+      'stylelint',
+      'stylelint-config-recommended'
+    ])),
+    reason: 'Cadeia exclusiva do Stylelint em devDependencies; sem correção publicada em 2026-10-03. Remover a exceção quando houver versão corrigida compatível.'
   })]
 ]));
 
@@ -109,6 +121,23 @@ function evaluateAuditReport(report) {
   });
 }
 
+function verifyRuntimeDependencyAudit(root = ROOT) {
+  const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+  const result = spawnSync(npmCommand, ['audit', '--omit=dev', '--audit-level=high'], {
+    cwd: root,
+    encoding: 'utf8',
+    env: process.env
+  });
+  if (result.error) throw result.error;
+  if (result.status !== 0) {
+    const error = new Error('A árvore de dependências de runtime possui vulnerabilidade bloqueante; a exceção de tooling não pode ser aplicada.');
+    error.stdout = result.stdout;
+    error.stderr = result.stderr;
+    throw error;
+  }
+  return Object.freeze({ passed: true });
+}
+
 function verifyBundleIdentity(root = ROOT) {
   const packageBundle = path.join(root, 'node_modules/exceljs/dist/exceljs.min.js');
   const vendorBundle = path.join(root, 'vendor/exceljs.min.js');
@@ -155,11 +184,13 @@ function main() {
   const args = parseArgs(process.argv.slice(2));
   const report = JSON.parse(fs.readFileSync(args.report, 'utf8'));
   const evaluation = evaluateAuditReport(report);
+  const runtimeAudit = verifyRuntimeDependencyAudit();
   const bundle = verifyBundleIdentity();
   const runtime = verifyRuntimeScope();
 
   console.log(`Vulnerabilidades registradas: moderate=${evaluation.counts.moderate}, high=${evaluation.counts.high}, critical=${evaluation.counts.critical}`);
   console.log(`Ocorrências aceitas por alcance: ${evaluation.accepted.length}`);
+  console.log(`Auditoria de dependências de runtime: ${runtimeAudit.passed ? 'sem vulnerabilidades bloqueantes' : 'falhou'}`);
   console.log(`Bundle oficial conferido: ${bundle.bytes} bytes`);
   console.log(`Arquivos de runtime inspecionados: ${runtime.checkedFiles}`);
 
@@ -185,5 +216,6 @@ export {
   collectAdvisories,
   evaluateAuditReport,
   verifyBundleIdentity,
+  verifyRuntimeDependencyAudit,
   verifyRuntimeScope
 };
