@@ -358,6 +358,10 @@
             }
             const resumeAfterHidden = hiddenSinceVisible;
             hiddenSinceVisible = false;
+            // visibilitychange e focus costumam chegar como o mesmo retorno ao app.
+            // Se a transição hidden→visible já assumiu a reconciliação, o blur
+            // correspondente não pode agendar uma segunda leitura do mesmo ciclo.
+            if (resumeAfterHidden) blurredSinceFocus = false;
             void controller.refresh('visibility', { resumeAfterHidden });
         });
         root.document.addEventListener?.('focusout', () => flushPending('focusout'));
