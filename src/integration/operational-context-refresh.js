@@ -228,6 +228,12 @@
                 if (result?.stale === true) {
                     if (authenticated(root) && activeCompetence(root) === competenceKey) {
                         markPending(reason);
+                        // O Realtime possui somente um retry imediato. Se esse retry
+                        // também ficar stale, deixamos uma única reconciliação futura
+                        // já agendada para não depender de outro gesto/Broadcast.
+                        if (reason === 'realtime-retry') {
+                            scheduleCooldownFlush(remainingCooldownMs());
+                        }
                     }
                     return result;
                 }
@@ -258,6 +264,9 @@
             }).catch(error => {
                 lastFailureAt = Date.now();
                 markPending(reason);
+                if (reason === 'realtime-retry') {
+                    scheduleCooldownFlush(remainingCooldownMs());
+                }
                 root.console?.warn?.('Não foi possível atualizar o contexto operacional ao retomar a sessão.', error);
                 return { ok: false, error, pending: true };
             }).finally(() => {
