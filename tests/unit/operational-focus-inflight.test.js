@@ -48,7 +48,14 @@ function session() {
         reads,
         renders,
         focus: () => root.dispatchEvent(new Event('focus')),
-        visible: () => document.dispatchEvent(new Event('visibilitychange')),
+        hidden: () => {
+            document.visibilityState = 'hidden';
+            document.dispatchEvent(new Event('visibilitychange'));
+        },
+        visible: () => {
+            document.visibilityState = 'visible';
+            document.dispatchEvent(new Event('visibilitychange'));
+        },
         releaseFirst,
         changeCanonical: revision => { canonicalRevision = revision; },
         projected: () => projectedRevision
@@ -72,6 +79,25 @@ test('retornar foco e visibilidade durante leitura bem-sucedida não relê nem r
     assert.equal(tab.projected(), 1, 'o resultado em voo já atualiza a sessão que retomou');
     assert.equal(tab.reads.length, 1, 'retomar a aba não informa alteração canônica posterior à leitura');
     assert.deepEqual(tab.renders, [1], 'não reconstruir a projeção novamente sem alteração');
+    assert.equal(tab.controller.hasPendingRefresh(), false);
+});
+
+test('novo ciclo hidden→visible durante leitura em voo agenda uma reconciliação posterior', async () => {
+    const tab = session();
+    tab.focus();
+    await settle();
+    assert.equal(tab.reads.length, 1);
+
+    tab.hidden();
+    tab.changeCanonical(2);
+    tab.visible();
+    tab.releaseFirst('success');
+    await settle();
+    await settle();
+
+    assert.equal(tab.reads.length, 2, 'um novo ciclo de suspensão pode conter alterações posteriores ao snapshot em voo');
+    assert.equal(tab.projected(), 2, 'a sessão visível deve convergir sem depender de outro gesto ou do Realtime');
+    assert.deepEqual(tab.renders, [1, 2]);
     assert.equal(tab.controller.hasPendingRefresh(), false);
 });
 
