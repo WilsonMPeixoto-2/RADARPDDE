@@ -121,6 +121,27 @@ test('novo ciclo blur→focus durante leitura em voo agenda uma reconciliação 
     assert.equal(tab.controller.hasPendingRefresh(), false);
 });
 
+test('o mesmo retorno hidden+blur→visible+focus não cria duas leituras do mesmo ciclo', async () => {
+    const tab = session();
+    tab.hidden();
+    tab.blur();
+    tab.changeCanonical(2);
+
+    tab.visible();
+    tab.focus();
+    await settle();
+    assert.equal(tab.reads.length, 1, 'o primeiro evento de retomada deve iniciar uma única leitura');
+
+    tab.releaseFirst('success');
+    await settle();
+    await settle();
+
+    assert.equal(tab.reads.length, 1, 'visibility e focus do mesmo retorno não podem criar reconciliação duplicada');
+    assert.equal(tab.projected(), 2);
+    assert.deepEqual(tab.renders, [2]);
+    assert.equal(tab.controller.hasPendingRefresh(), false);
+});
+
 test('foco em voo não elimina invalidação realmente nova recebida na mesma leitura', async () => {
     const tab = session();
     tab.focus();
