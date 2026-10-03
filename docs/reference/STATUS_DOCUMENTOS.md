@@ -72,7 +72,9 @@ O servidor canônico e suas correções não alteraram schema, migrations, RPCs,
 
 Handoff corrente:
 
-- **nenhum**.
+- `docs/handoff/2026-10-03-operational-instability.md`: investigação autorizada
+  de recorrência/amplificação operacional no #407, sem publicação. As referências
+  históricas a ausência de handoff acima dizem respeito ao encerramento da Fase 2.
 
 Pendência separada de retomada: `docs/handoff/2026-09-28-prod-ux-08-drawer-clipping.md` — diagnóstico visual dirigido do clipping desktop. Não foi encerrada pelos PRs #397 ou #404 e só deve ser retomada por decisão explícita.
 

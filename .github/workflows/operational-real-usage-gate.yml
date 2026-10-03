@@ -83,7 +83,9 @@ jobs:
           npm run supabase:reset
 
       - name: Construir massa sintética com forma de Production
-        run: npx supabase db query --local --file supabase/fixtures/operational-production-shape.sql
+        # CLI 2.114.0 usa prepared statement em db query; esta fixture contém
+        # uma transação com vários comandos. psql executa o arquivo integral.
+        run: docker exec -i supabase_db_radar-pdde psql -X -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/fixtures/operational-production-shape.sql
 
       - name: Preparar identidade real de Controlador no ambiente descartável
         shell: bash

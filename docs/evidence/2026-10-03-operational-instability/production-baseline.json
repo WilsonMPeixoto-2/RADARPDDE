@@ -1,0 +1,508 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-03T03:09:12Z",
+  "productionManifest": {
+    "commitSha": "62fe000c7253bb97a31091f1c7dc33407906d554",
+    "dataMode": "supabase-production"
+  },
+  "hotfixDeployment": {
+    "sha": "24f51fbcce413069287236fa78418465df08d267",
+    "readyAt": "2026-10-02T20:29:48Z"
+  },
+  "sources": {
+    "hourlyLogWindow": {
+      "start": "2026-10-02T00:00:00Z",
+      "end": "2026-10-03T00:00:00Z"
+    },
+    "sessionLogWindow": {
+      "start": "2026-10-02T21:00:00Z",
+      "end": "2026-10-03T00:00:00Z"
+    },
+    "query": "logs agregados de edge_logs; duração=response.origin_time; sessões representadas por SHA256 truncado"
+  },
+  "hourly": [
+    {
+      "calls": 3,
+      "hour": "2026-10-02T00:00:00",
+      "http5xx": 0,
+      "max_ms": 773,
+      "p50_ms": 414,
+      "p95_ms": 737.0999999999999,
+      "p99_ms": 765.8199999999999,
+      "path": "/rest/v1/rpc/read_operational_context"
+    },
+    {
+      "calls": 104,
+      "hour": "2026-10-02T11:00:00",
+      "http5xx": 2,
+      "max_ms": 4421,
+      "p50_ms": 603,
+      "p95_ms": 3362.0999999999995,
+      "p99_ms": 4364.089999999999,
+      "path": "/rest/v1/rpc/read_operational_context"
+    },
+    {
+      "calls": 24,
+      "hour": "2026-10-02T11:00:00",
+      "http5xx": 0,
+      "max_ms": 1653,
+      "p50_ms": 366,
+      "p95_ms": 1439.9999999999995,
+      "p99_ms": 1610.9099999999999,
+      "path": "/rest/v1/rpc/save_verification_with_log"
+    },
+    {
+      "calls": 840,
+      "hour": "2026-10-02T12:00:00",
+      "http5xx": 43,
+      "max_ms": 12639,
+      "p50_ms": 376.5,
+      "p95_ms": 8627.699999999995,
+      "p99_ms": 10562.410000000002,
+      "path": "/rest/v1/rpc/read_operational_context"
+    },
+    {
+      "calls": 2,
+      "hour": "2026-10-02T12:00:00",
+      "http5xx": 0,
+      "max_ms": 354,
+      "p50_ms": 177,
+      "p95_ms": 336.3,
+      "p99_ms": 350.46,
+      "path": "/rest/v1/rpc/save_invoice_with_effects_v2"
+    },
+    {
+      "calls": 202,
+      "hour": "2026-10-02T12:00:00",
+      "http5xx": 0,
+      "max_ms": 10003,
+      "p50_ms": 258,
+      "p95_ms": 3242.5,
+      "p99_ms": 4911.85,
+      "path": "/rest/v1/rpc/save_verification_with_log"
+    },
+    {
+      "calls": 95,
+      "hour": "2026-10-02T13:00:00",
+      "http5xx": 27,
+      "max_ms": 17594,
+      "p50_ms": 5519,
+      "p95_ms": 10545.400000000001,
+      "p99_ms": 14328.440000000008,
+      "path": "/rest/v1/rpc/read_operational_context"
+    },
+    {
+      "calls": 30,
+      "hour": "2026-10-02T13:00:00",
+      "http5xx": 1,
+      "max_ms": 10735,
+      "p50_ms": 2071,
+      "p95_ms": 8114.999999999998,
+      "p99_ms": 10079.600000000002,
+      "path": "/rest/v1/rpc/save_verification_with_log"
+    },
+    {
+      "calls": 278,
+      "hour": "2026-10-02T14:00:00",
+      "http5xx": 1,
+      "max_ms": 9224,
+      "p50_ms": 380.5,
+      "p95_ms": 2821.2999999999965,
+      "p99_ms": 4762.810000000005,
+      "path": "/rest/v1/rpc/read_operational_context"
+    },
+    {
+      "calls": 69,
+      "hour": "2026-10-02T14:00:00",
+      "http5xx": 0,
+      "max_ms": 2930,
+      "p50_ms": 236,
+      "p95_ms": 1005.7999999999988,
+      "p99_ms": 2419.999999999995,
+      "path": "/rest/v1/rpc/save_verification_with_log"
+    },
+    {
+      "calls": 447,
+      "hour": "2026-10-02T15:00:00",
+      "http5xx": 47,
+      "max_ms": 18830,
+      "p50_ms": 1396,
+      "p95_ms": 9766.099999999999,
+      "p99_ms": 11565.760000000013,
+      "path": "/rest/v1/rpc/read_operational_context"
+    },
+    {
+      "calls": 1,
+      "hour": "2026-10-02T15:00:00",
+      "http5xx": 0,
+      "max_ms": 331,
+      "p50_ms": 331,
+      "p95_ms": 331,
+      "p99_ms": 331,
+      "path": "/rest/v1/rpc/save_invoice_with_effects_v2"
+    },
+    {
+      "calls": 86,
+      "hour": "2026-10-02T15:00:00",
+      "http5xx": 0,
+      "max_ms": 7869,
+      "p50_ms": 486.5,
+      "p95_ms": 4483.5,
+      "p99_ms": 5361.500000000017,
+      "path": "/rest/v1/rpc/save_verification_with_log"
+    },
+    {
+      "calls": 927,
+      "hour": "2026-10-02T16:00:00",
+      "http5xx": 15,
+      "max_ms": 12200,
+      "p50_ms": 735,
+      "p95_ms": 6813.9,
+      "p99_ms": 9383.720000000001,
+      "path": "/rest/v1/rpc/read_operational_context"
+    },
+    {
+      "calls": 9,
+      "hour": "2026-10-02T16:00:00",
+      "http5xx": 0,
+      "max_ms": 999,
+      "p50_ms": 508,
+      "p95_ms": 956.5999999999999,
+      "p99_ms": 990.52,
+      "path": "/rest/v1/rpc/save_invoice_with_effects_v2"
+    },
+    {
+      "calls": 305,
+      "hour": "2026-10-02T16:00:00",
+      "http5xx": 0,
+      "max_ms": 6578,
+      "p50_ms": 471,
+      "p95_ms": 3714.4000000000005,
+      "p99_ms": 5075.679999999994,
+      "path": "/rest/v1/rpc/save_verification_with_log"
+    },
+    {
+      "calls": 733,
+      "hour": "2026-10-02T17:00:00",
+      "http5xx": 3,
+      "max_ms": 10384,
+      "p50_ms": 393,
+      "p95_ms": 3307.3999999999996,
+      "p99_ms": 6932.239999999994,
+      "path": "/rest/v1/rpc/read_operational_context"
+    },
+    {
+      "calls": 13,
+      "hour": "2026-10-02T17:00:00",
+      "http5xx": 0,
+      "max_ms": 1470,
+      "p50_ms": 287,
+      "p95_ms": 1030.799999999999,
+      "p99_ms": 1382.1599999999994,
+      "path": "/rest/v1/rpc/save_invoice_with_effects_v2"
+    },
+    {
+      "calls": 199,
+      "hour": "2026-10-02T17:00:00",
+      "http5xx": 0,
+      "max_ms": 5466,
+      "p50_ms": 248,
+      "p95_ms": 2396.3,
+      "p99_ms": 4331.280000000005,
+      "path": "/rest/v1/rpc/save_verification_with_log"
+    },
+    {
+      "calls": 986,
+      "hour": "2026-10-02T18:00:00",
+      "http5xx": 148,
+      "max_ms": 15442,
+      "p50_ms": 1702,
+      "p95_ms": 10534,
+      "p99_ms": 12284.8,
+      "path": "/rest/v1/rpc/read_operational_context"
+    },
+    {
+      "calls": 5,
+      "hour": "2026-10-02T18:00:00",
+      "http5xx": 0,
+      "max_ms": 5809,
+      "p50_ms": 2705,
+      "p95_ms": 5313.799999999999,
+      "p99_ms": 5709.959999999999,
+      "path": "/rest/v1/rpc/save_invoice_with_effects_v2"
+    },
+    {
+      "calls": 284,
+      "hour": "2026-10-02T18:00:00",
+      "http5xx": 1,
+      "max_ms": 11061,
+      "p50_ms": 1761.5,
+      "p95_ms": 6825.8499999999985,
+      "p99_ms": 9085.500000000007,
+      "path": "/rest/v1/rpc/save_verification_with_log"
+    },
+    {
+      "calls": 66,
+      "hour": "2026-10-02T19:00:00",
+      "http5xx": 4,
+      "max_ms": 9435,
+      "p50_ms": 926,
+      "p95_ms": 8082,
+      "p99_ms": 9413.55,
+      "path": "/rest/v1/rpc/read_operational_context"
+    },
+    {
+      "calls": 1,
+      "hour": "2026-10-02T19:00:00",
+      "http5xx": 0,
+      "max_ms": 1035,
+      "p50_ms": 1035,
+      "p95_ms": 1035,
+      "p99_ms": 1035,
+      "path": "/rest/v1/rpc/save_verification_with_log"
+    },
+    {
+      "calls": 38,
+      "hour": "2026-10-02T20:00:00",
+      "http5xx": 0,
+      "max_ms": 1021,
+      "p50_ms": 335,
+      "p95_ms": 823.8999999999997,
+      "p99_ms": 1000.2800000000002,
+      "path": "/rest/v1/rpc/read_operational_context"
+    },
+    {
+      "calls": 8,
+      "hour": "2026-10-02T20:00:00",
+      "http5xx": 0,
+      "max_ms": 379,
+      "p50_ms": 173,
+      "p95_ms": 327.19999999999993,
+      "p99_ms": 368.64,
+      "path": "/rest/v1/rpc/save_verification_with_log"
+    },
+    {
+      "calls": 752,
+      "hour": "2026-10-02T21:00:00",
+      "http5xx": 2,
+      "max_ms": 2572,
+      "p50_ms": 228,
+      "p95_ms": 565.749999999999,
+      "p99_ms": 1192.49,
+      "path": "/rest/v1/rpc/read_operational_context"
+    },
+    {
+      "calls": 7,
+      "hour": "2026-10-02T21:00:00",
+      "http5xx": 0,
+      "max_ms": 1262,
+      "p50_ms": 622,
+      "p95_ms": 1160.8999999999996,
+      "p99_ms": 1241.7799999999997,
+      "path": "/rest/v1/rpc/save_invoice_with_effects_v2"
+    },
+    {
+      "calls": 430,
+      "hour": "2026-10-02T21:00:00",
+      "http5xx": 0,
+      "max_ms": 2879,
+      "p50_ms": 80,
+      "p95_ms": 352.1999999999998,
+      "p99_ms": 1251.369999999997,
+      "path": "/rest/v1/rpc/save_verification_with_log"
+    },
+    {
+      "calls": 72,
+      "hour": "2026-10-02T22:00:00",
+      "http5xx": 0,
+      "max_ms": 1371,
+      "p50_ms": 214,
+      "p95_ms": 686.25,
+      "p99_ms": 1029.490000000003,
+      "path": "/rest/v1/rpc/read_operational_context"
+    },
+    {
+      "calls": 62,
+      "hour": "2026-10-02T22:00:00",
+      "http5xx": 0,
+      "max_ms": 1706,
+      "p50_ms": 61,
+      "p95_ms": 268.59999999999997,
+      "p99_ms": 1164.9300000000005,
+      "path": "/rest/v1/rpc/save_verification_with_log"
+    }
+  ],
+  "sessions": [
+    {
+      "context_reads": 635,
+      "http5xx": 2,
+      "other_rpc_calls": 532,
+      "session": "E0BD135FD0C3",
+      "verification_writes": 487
+    },
+    {
+      "context_reads": 176,
+      "http5xx": 0,
+      "other_rpc_calls": 12,
+      "session": "2D612ED9173C",
+      "verification_writes": 4
+    },
+    {
+      "context_reads": 13,
+      "http5xx": 0,
+      "other_rpc_calls": 8,
+      "session": "E3B0C44298FC",
+      "verification_writes": 1
+    }
+  ],
+  "pgStatStatements": {
+    "migrations": [
+      {
+        "name": "expense_verification_field_ownership",
+        "version": "20260930003000"
+      },
+      {
+        "name": "expense_bonification_independence",
+        "version": "20260929213000"
+      },
+      {
+        "name": "read_operational_context",
+        "version": "20260929143215"
+      },
+      {
+        "name": "fix_permanent_identification_asset_description",
+        "version": "20260922234500"
+      },
+      {
+        "name": "realtime_operational_invalidation",
+        "version": "20260920013656"
+      },
+      {
+        "name": "rls_set_based_access",
+        "version": "20260919234500"
+      },
+      {
+        "name": "administrative_log_cursor_index",
+        "version": "20260917011723"
+      },
+      {
+        "name": "evaluation_retification_atomic_cancel",
+        "version": "20260910201500"
+      }
+    ],
+    "observedAt": "2026-10-03T03:09:12.637198+00:00",
+    "statements": [
+      {
+        "role": "authenticated",
+        "rows": 10491,
+        "calls": 10491,
+        "queryid": "-3945365107313684330",
+        "signature": "WITH pgrst_source AS (SELECT pgrst_call.pgrst_scalar FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT \"p_competence_id\", \"p_history_statuses\" FROM json_to_record(pgrst_payload.json_data) AS _(\"p_competence_id\" text, \"p_history_statuses\" text[]) LIMIT $4) pgrst_body , LATERAL (SELECT \"public\".\"read_operational_context\"(\"p_competence_id\" := pgrst_body.\"p_competence_id\", \"p_history_statuses\" := pgrst_body.\"p_history_statuses\") pgrst_scalar) pgrst_call) SELECT $5::bigint AS total_result_set, $6 AS page_total, coalesce(json_agg(_postgrest_t.pgrst_scalar)->$7, $8) AS body, nullif(current",
+        "stats_since": "2026-09-29T14:54:17.629061+00:00",
+        "max_exec_time": 7975.418875,
+        "mean_exec_time": 1232.11062136126,
+        "shared_blks_hit": 24660658,
+        "total_exec_time": 12926072.528701,
+        "shared_blks_read": 0
+      },
+      {
+        "role": "postgres",
+        "rows": 0,
+        "calls": 1,
+        "queryid": "5586196951573260157",
+        "signature": "comment on function public.read_operational_context(text, text[]) is\n    'Retorna o contexto operacional fechado da competência em uma única leitura set-based, preservando Pendências e dependências históricas sob RLS do chamador.'",
+        "stats_since": "2026-09-29T14:32:15.542519+00:00",
+        "max_exec_time": 1.614525,
+        "mean_exec_time": 1.614525,
+        "shared_blks_hit": 39,
+        "total_exec_time": 1.614525,
+        "shared_blks_read": 1
+      },
+      {
+        "role": "postgres",
+        "rows": 0,
+        "calls": 1,
+        "queryid": "-7249000012253430481",
+        "signature": "explain (analyze, buffers, format json) select public.read_operational_context($1, array[]::text[])",
+        "stats_since": "2026-10-02T19:30:14.239855+00:00",
+        "max_exec_time": 206.582574,
+        "mean_exec_time": 206.582574,
+        "shared_blks_hit": 2490,
+        "total_exec_time": 206.582574,
+        "shared_blks_read": 0
+      },
+      {
+        "role": "postgres",
+        "rows": 0,
+        "calls": 1,
+        "queryid": "2542877746384578564",
+        "signature": "create or replace function public.read_operational_context(\n    p_competence_id text,\n    p_history_statuses text[] default array[]::text[]\n)\nreturns jsonb\nlanguage plpgsql\nstable\nsecurity invoker\nset search_path = pg_catalog, public\nas $function$\ndeclare\n    v_history_statuses text[] := coalesce(p_history_statuses, array[]::text[]);\n    v_result jsonb;\nbegin\n    if p_competence_id is null\n        or p_competence_id !~ '^\\d{4}-(0[1-9]|1[0-2])$' then\n        raise exception 'INVALID_OPERATIONAL_CONTEXT: informe uma competência mensal válida';\n    end if;\n\n    if exists (\n        select 1\n      ",
+        "stats_since": "2026-09-29T14:32:15.540616+00:00",
+        "max_exec_time": 32.223817,
+        "mean_exec_time": 32.223817,
+        "shared_blks_hit": 295,
+        "total_exec_time": 32.223817,
+        "shared_blks_read": 0
+      },
+      {
+        "role": "postgres",
+        "rows": 1,
+        "calls": 1,
+        "queryid": "8048276566418044425",
+        "signature": "with ctx as (\n  select public.read_operational_context($1, array[]::text[]) as j\n)\nselect\n  pg_column_size(j)::bigint as payload_bytes,\n  jsonb_array_length(j->$2->$3) as verifications,\n  jsonb_array_length(j->$4->$5) as registered_invoices,\n  jsonb_array_length(j->$6->$7) as pendencies,\n  jsonb_array_length(j->$8->$9) as pendency_attempts,\n  jsonb_array_length(j->$10->$11) as pendency_contacts,\n  jsonb_array_length(j->$12->$13) as assets\nfrom ctx",
+        "stats_since": "2026-10-03T00:25:16.550459+00:00",
+        "max_exec_time": 541.452149,
+        "mean_exec_time": 541.452149,
+        "shared_blks_hit": 13484,
+        "total_exec_time": 541.452149,
+        "shared_blks_read": 0
+      },
+      {
+        "role": "postgres",
+        "rows": 6,
+        "calls": 1,
+        "queryid": "1947851780102834462",
+        "signature": "with r as (select public.read_operational_context($1, array[]::text[]) j) select key, jsonb_array_length(value) as items, pg_column_size(value) as bytes from r, lateral jsonb_each(j->$2) order by bytes desc",
+        "stats_since": "2026-10-02T19:33:18.562492+00:00",
+        "max_exec_time": 75.510566,
+        "mean_exec_time": 75.510566,
+        "shared_blks_hit": 2446,
+        "total_exec_time": 75.510566,
+        "shared_blks_read": 0
+      },
+      {
+        "role": "postgres",
+        "rows": 0,
+        "calls": 1,
+        "queryid": "-6982314213491508326",
+        "signature": "grant execute on function public.read_operational_context(text, text[])\n    to authenticated, service_role",
+        "stats_since": "2026-09-29T14:32:15.540872+00:00",
+        "max_exec_time": 0.094125,
+        "mean_exec_time": 0.094125,
+        "shared_blks_hit": 16,
+        "total_exec_time": 0.094125,
+        "shared_blks_read": 0
+      },
+      {
+        "role": "postgres",
+        "rows": 3,
+        "calls": 1,
+        "queryid": "808570356296694616",
+        "signature": "select c as competence_id, pg_column_size(public.read_operational_context(c, array[]::text[])) as bytes from unnest(array[$1,$2,$3]) c",
+        "stats_since": "2026-10-02T19:33:05.245171+00:00",
+        "max_exec_time": 221.055046,
+        "mean_exec_time": 221.055046,
+        "shared_blks_hit": 3638,
+        "total_exec_time": 221.055046,
+        "shared_blks_read": 0
+      }
+    ],
+    "statsReset": "2026-09-17T01:18:11.005538+00:00"
+  },
+  "limits": [
+    "Estatísticas SQL são cumulativas desde stats_since; não representam p95/p99 nem impacto causal do hotfix.",
+    "A duração dos logs de edge inclui origem/gateway; não é tempo percebido completo pelo usuário.",
+    "Hash de sessão vazio identifica requests sem session_id, não outra pessoa.",
+    "Broadcast, origem do refresh, DOM e tempo visual não estão disponíveis nestes logs."
+  ]
+}

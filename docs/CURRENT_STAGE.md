@@ -5,6 +5,20 @@
 
 ## 1. Estado funcional corrente
 
+### Investigação corrente de instabilidade operacional
+
+O hotfix #406 está integrado e publicado. A investigação autorizada continua no
+[PR #407](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/407), **Draft**:
+reproduzir uso sustentado e explicar amplificação de leituras e reconstrução da
+interface antes de decidir novas correções. Backup/snapshot são instrumentos,
+não pré-requisitos automáticos. Nenhuma publicação nova foi autorizada nesta frente.
+
+Handoff corrente desta investigação:
+[`2026-10-03-operational-instability.md`](handoff/2026-10-03-operational-instability.md).
+Ele supersede as afirmações abaixo de ausência de handoff apenas para esta frente;
+o encerramento das fases funcionais anteriores permanece histórico válido.
+O manifesto consultado em 03/10 aponta `62fe000c...`, com comportamento do #406.
+
 **As Fases A, B e C estão encerradas. A Fase D ainda não foi iniciada.**
 
 **A Fase 2 de autonomia dos Controladores e UX da retificação está encerrada, integrada e publicada.** O PR #404 foi mergeado em `de7bebb06b867ebd557ff83cd9194fe3d45f5903` e publicado no deployment Production `dpl_CLYY92KojCXpmQcL8xXQkmc3TdgG`, `READY`, com smoke HTTP 200 na raiz e em `/escolas/04.31.001`. A retificação de classificação permanece limitada ao histórico exclusivamente fiscal encerrado/cancelado e falha fechada diante de Pendência ativa, atividade/histórico de Assessoria, `a_identificar`, bem `Inventariada` ou versionamento desconhecido.

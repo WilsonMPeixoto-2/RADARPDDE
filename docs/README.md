@@ -132,3 +132,11 @@ Na mesma entrega que criar ou alterar fonte canônica, atualizar quando aplicáv
 7. o vínculo de handoff corrente quando a frente mudar.
 
 Documento histórico não deve ser reescrito para fingir atualidade. Deve ser preservado e, quando necessário, reclassificado por uma fonte canônica posterior.
+# Retomada da investigação operacional
+
+A frente autorizada de instabilidade recorrente está no PR #407, Draft.
+Seguir a leitura canônica de `AGENTS.md` e o
+[handoff corrente](handoff/2026-10-03-operational-instability.md), com
+[telemetria agregada de Production](evidence/2026-10-03-operational-instability/production-baseline.json).
+Backup e staging são instrumentos de prova; o objetivo é explicar o trabalho
+disparado por cada gesto e preservar sincronização e estabilidade da interface.
