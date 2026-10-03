@@ -1,0 +1,217 @@
+{
+  "testedCandidate": "818678a4b4ed21c67e323dc2f5e7d0a42681010e",
+  "state": "validation-in-progress",
+  "operationalRun": 37144801308,
+  "lifecycleRun": 37144801361,
+  "unitLocal": {
+    "pass": 1246,
+    "fail": 0,
+    "skip": 0
+  },
+  "checksAtCheckpoint": [
+    {
+      "name": "CodeQL",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/runs/111266557447"
+    },
+    {
+      "name": "Vercel Preview Comments",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://vercel.com/github"
+    },
+    {
+      "name": "Auth, perfis, RLS e persistência no Preview",
+      "status": "completed",
+      "conclusion": "skipped",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801259/job/111266423607"
+    },
+    {
+      "name": "Dependências e segurança",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801264/job/111266423195"
+    },
+    {
+      "name": "Cinco sessões reais (baseline)",
+      "status": "in_progress",
+      "conclusion": null,
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801308/job/111266423194"
+    },
+    {
+      "name": "Backup e restauração descartáveis",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801264/job/111266423192"
+    },
+    {
+      "name": "Bem Permanente pela RPC real",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801322/job/111266423158"
+    },
+    {
+      "name": "Supabase local, Auth, RLS e pgTAP",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801264/job/111266423155"
+    },
+    {
+      "name": "Sessões sustentadas, escrita e invalidação",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801308/job/111266423153"
+    },
+    {
+      "name": "163 escolas, contexto pesado e RPC autenticada",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801308/job/111266423138"
+    },
+    {
+      "name": "Playwright completo desktop",
+      "status": "in_progress",
+      "conclusion": null,
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801264/job/111266423123"
+    },
+    {
+      "name": "Contrato de opções identificáveis",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801322/job/111266423113"
+    },
+    {
+      "name": "Migrations em PostgreSQL limpo",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801264/job/111266423105"
+    },
+    {
+      "name": "Excel SME, OOXML e rota pública local",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801264/job/111266423104"
+    },
+    {
+      "name": "Lighthouse CI desktop",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801264/job/111266423083"
+    },
+    {
+      "name": "Contratos exatos do hardening",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801240/job/111266423053"
+    },
+    {
+      "name": "Cinco sessões reais (candidate)",
+      "status": "in_progress",
+      "conclusion": null,
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801308/job/111266423009"
+    },
+    {
+      "name": "Jornada leiga e identificação por tipo",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801322/job/111266422998"
+    },
+    {
+      "name": "Prontidão completa",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801264/job/111266422978"
+    },
+    {
+      "name": "Criar editar converter excluir avaliar e reanalisar",
+      "status": "in_progress",
+      "conclusion": null,
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801361/job/111266422954"
+    },
+    {
+      "name": "Seis baselines críticos",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801276/job/111266422818"
+    },
+    {
+      "name": "Sintaxe, auditoria e testes de domínio",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801259/job/111266422785"
+    },
+    {
+      "name": "Baseline desktop",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801224/job/111266422775"
+    },
+    {
+      "name": "Autoria real do Histórico de Contatos",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801244/job/111266422773"
+    },
+    {
+      "name": "Duas sessões, Realtime real e degradação visível",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801240/job/111266422761"
+    },
+    {
+      "name": "supabase-local",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801256/job/111266422758"
+    },
+    {
+      "name": "migration-smoke",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801256/job/111266422695"
+    },
+    {
+      "name": "Contratos de posição e composição",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801225/job/111266422671"
+    },
+    {
+      "name": "RPC real da observação patrimonial",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801244/job/111266422657"
+    },
+    {
+      "name": "CodeQL — actions",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801243/job/111266422630"
+    }
+  ],
+  "cloud": {
+    "organization": "WilsonMPeixoto-2",
+    "organizationId": "buycxqbdkbxgouvcxtgt",
+    "supabaseExistingBranches": [
+      "main/Production"
+    ],
+    "costQuotes": {
+      "branch": {
+        "amount": 0.01344,
+        "recurrence": "hourly"
+      },
+      "project": {
+        "amount": 0,
+        "recurrence": "monthly"
+      }
+    },
+    "costQuoteSource": "supabase_get_cost; não é garantia de ausência de outros custos/limites. Confirmar entendimento antes de criar.",
+    "approval": "Usuário exige apresentação/opções/confirmação antes da criação; nenhuma infraestrutura criada.",
+    "previewAlias": "https://radarpdde-fix-git-feat-operat-a3d9da-wilson-m-peixotos-projects.vercel.app",
+    "previewManifestHttp": 302,
+    "previewSha": "unverified"
+  },
+  "adversarialReview": "Nenhuma regressão bloqueante encontrada no diff67561172..818678a4; conferir resultados reais e foco/scroll cross-school, que são medidos sem asserção obrigatória.",
+  "production": "Sem merge/deploy/escrita de investigação."
+}

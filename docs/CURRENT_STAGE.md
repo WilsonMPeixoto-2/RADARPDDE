@@ -8,17 +8,20 @@
 ### Investigação corrente de instabilidade operacional
 
 O hotfix #406 está integrado e publicado. A investigação autorizada continua no
-[PR #407](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/407), **Draft**:
-os mecanismos atuais foram reproduzidos e corrigidos no candidato: retry
-rearmado por interação após abort, replay de fadeIn no Prontuário e prazo remoto
-calculado durante RPC lenta. O gate do SHA `a652b410...` passou com cinco browsers,
-1.106 gestos concorrentes, erro/reconexão e reload. O resultado e os limites
-estão no handoff corrente; isso não certifica toda a operação prolongada ou cloud.
-Backup/snapshot são instrumentos, não pré-requisitos automáticos. A retomada
-confirmou também focus/visibility duplicando leitura em voo; correção e RED/GREEN
-estão no checkpoint `dc35754b...`, ainda aguardando prova do candidato consolidado.
-O usuário autorizou conclusão, merge e etapas posteriores quando as evidências
-forem suficientes. Draft é o estado corrente, não uma proibição permanente.
+[PR #407](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/407), **Draft** pelo
+estado atual das provas/riscos. Candidato integrado com main: `818678a4...`.
+Estão implementadas correções de refresh stale/abort, janela em RPC lenta,
+eco próprio, replay de fadeIn, focus/visibility em voo, continuidade do foco de
+teclado e escopo autoritativo do novo envio fiscal. Comparador automático e
+métricas de CPU expõem o custo residual; não existe budget de produto inventado.
+
+A prova anterior de `a652b410...` passou com 1.106 gestos, mas o candidato atual
+exige nova certificação. Run operacional `37144801308` e lifecycle `37144801361`
+estão em andamento no último checkpoint; contratos+frontend e volume já passaram.
+1.246 unitários locais passaram. O usuário autorizou merge/publicação se as
+provas e riscos justificarem; Draft não é proibição permanente. Antes de decidir,
+consultar os runs reais e o resumo do handoff, sem repetir testes já concluídos.
+Backup/snapshot são instrumentos, não pré-requisitos automáticos.
 
 Handoff corrente desta investigação:
 [`2026-10-03-operational-instability.md`](handoff/2026-10-03-operational-instability.md).

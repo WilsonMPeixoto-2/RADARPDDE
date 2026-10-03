@@ -614,3 +614,77 @@ baixar artefatos compactos, executar o comparador e guardar resumo/deltas/hashes
 Não repetir 400 rodadas sem nova alteração/falha. Se algum RED surgir, classificar
 produto vs tooling/fixture e corrigir proporcionalmente. A decisão de merge deve
 usar esses resultados e riscos correntes, não a antiga instrução temporária Draft.
+
+
+## Ponto de continuidade remoto — interrupção por cota
+
+**Tudo que foi implementado está no remoto.** Runtime integrado/testado pela CI:
+`818678a4b4ed21c67e323dc2f5e7d0a42681010e`; commits documentais posteriores não
+modificam essa árvore funcional. Workspace estava limpo antes deste salvamento.
+Evidência compacta: `continuation-checkpoint.json`. Não iniciar outra frente nem
+recriar correções conhecidas antes de recolher os resultados abaixo.
+
+### Primeiros comandos úteis
+
+```sh
+git status --short
+git log -5 --oneline
+gh api repos/WilsonMPeixoto-2/RADARPDDE/pulls/407 --jq '{head:.head.sha,base:.base.sha,draft:.draft}'
+gh api repos/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801308/jobs
+gh api repos/WilsonMPeixoto-2/RADARPDDE/actions/runs/37144801361/jobs
+gh api repos/WilsonMPeixoto-2/RADARPDDE/commits/818678a4b4ed21c67e323dc2f5e7d0a42681010e/check-runs
+```
+
+1. O run longo continua no GitHub independente da cota Codex. Baixar artefatos
+   `operational-metrics-{baseline,candidate}-37144801308` e
+   `operational-comparison-37144801308`. O comparador CI gera JSON/Markdown e
+   resumo do Actions; reproduzir localmente se necessário:
+   `node scripts/compare-operational-sessions.mjs --baseline <raiz-base> --candidate <raiz-candidato> --output <pasta>`.
+2. Comparar também com a652/run37097052464 e com os REDs. Não atribuir redução
+   do workload principal ao novo envio fiscal, que ele não executa. Confirmar
+   CPU/apply/Long Tasks, bytes/SQL/aborts e convergência, sem tratar timer como SLO.
+3. Conferir `cross-school-report.json`: B deve atualizar a projeção global,
+   Prontuário A pode ter conteúdo lógico igual com DOM substituído; foco lógico,
+   scroll e navegação B sem read/reload devem ser inspecionados. O diagnóstico
+   registra esses valores, não bloqueia toda regressão de foco/scroll por asserção.
+4. Conferir lifecycle/identificação real: os novos controles bloqueiam contexto
+   durante consumo/serviço/permanente, verificam derivados imediatos e depois
+   mantêm os checks separados de banco/reload. Se falhar, investigar primeiro
+   causa/contrato; não retirar o bloqueio para ocultar efeito ausente.
+5. Salvar **resumo/deltas/hashes/runIDs**, não mais dumps request por request.
+   JSON completos anteriores são evidência selecionada; vídeos/raw seguem em
+   Actions com retenção de 30 dias. Não apagar progresso de outro agente.
+
+### Cloud: informação e confirmação pendente
+
+O usuário informou organização **WilsonMPeixoto-2**, ID
+`buycxqbdkbxgouvcxtgt`, sem Supabase staging existente. Preview:
+https://radarpdde-fix-git-feat-operat-a3d9da-wilson-m-peixotos-projects.vercel.app
+A tentativa de ler `/radar-build-manifest.json` retornou **302**, sem JSON;
+SHA servido ainda não foi comprovado. Não usar alias como prova do candidato.
+
+Consultas reais `supabase_get_cost` na organização informada:
+
+| Opção | Valor retornado pelo provedor | Consequência conhecida |
+| --- | --- | --- |
+| Branch de desenvolvimento | 0,01344 por hora (~0,32256/dia) | Banco novo com migrations do projeto; dados Production não são copiados |
+| Projeto separado | 0 por mês na consulta | Projeto novo/isolado; conferir limites, recursos e eventual custo adicional antes de concluir que é gratuito |
+
+**Não houve criação nem aprovação de custo.** O usuário pediu opções/custo e
+confirmação antes da criação. O conector exige `confirm_cost` e seu ID antes de
+create_branch/create_project. Primeiro concluir/recolher provas locais, apresentar
+plano concreto de homologação e consequências, então solicitar confirmação.
+Não reutilizar Production, não enfraquecer guardas loopback dos scripts locais
+para bootstrap hospedado e não enviar service_role para o navegador/Vercel.
+
+### Decisão de conclusão ainda pendente
+
+Revisão adversarial do diff67561172..818678a4 não encontrou regressão bloqueante;
+ela não certifica publicação. Último snapshot: 23 checks success, duas falhas de
+dependências, quatro em andamento e um skip (consulta não é resultado final).
+Advisory braces/Stylelint continua sem patch; revalidar se a próxima sessão for
+posterior. Não suprimir o gate. Ainda faltam resultados consolidados, avaliação
+cloud/proveniência hospedada e juízo explícito do custo residual, especialmente
+observadores e aplicação de estado. Nenhum merge/deploy foi feito nesta rodada.
+A autorização existe: decidir pelos resultados reais, não por dogma Draft nem
+por um check verde. Caso riscos impeçam merge, registrar exatamente quais.
