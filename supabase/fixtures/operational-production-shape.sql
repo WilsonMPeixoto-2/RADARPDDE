@@ -151,15 +151,28 @@ join perf_verification_order v
  and v.competence_rn = n
 on conflict (id) do nothing;
 
--- Os 81 primeiros contextos históricos com NF devem ser puxados pela leitura de Agosto.
+-- 180 contextos históricos distintos, incluindo exatamente 81 com NF. A origem
+-- da Pendência deve coincidir com o contexto selecionado; distribuir somente por
+-- escola e depois trocar o mês criava Pendências ativas duplicadas e vínculos falsos.
+create temporary table perf_historical_targets (
+    competence_id text primary key,
+    context_count integer not null,
+    invoice_count integer not null
+) on commit drop;
+insert into perf_historical_targets values
+    ('2026-01',28,16), ('2026-02',22,14), ('2026-03',24,12),
+    ('2026-04',22,13), ('2026-05',23,13), ('2026-06',28,12),
+    ('2026-07',25,0), ('2026-09',7,0), ('2026-10',1,1);
+
 create temporary table perf_selected_invoice_contexts on commit drop as
-select school_id, competence_id, program_id, verification_id,
-       row_number() over (order by competence_id, id)::integer as selected_rn
-from public.registered_invoices
-where id like 'PERF-I-%'
-  and competence_id <> '2026-08'
-order by competence_id, id
-limit 81;
+select ri.school_id, ri.competence_id, ri.program_id, ri.verification_id
+from (
+    select *, row_number() over (partition by competence_id order by id) as rn
+    from public.registered_invoices
+    where id like 'PERF-I-%' and competence_id <> '2026-08'
+) ri
+join perf_historical_targets t on t.competence_id = ri.competence_id
+where ri.rn <= t.invoice_count;
 
 -- Completa 180 contextos históricos distintos; 81 possuem NF e 99 são apenas de verificação.
 create temporary table perf_selected_historical_contexts on commit drop as
@@ -168,25 +181,25 @@ with invoice_contexts as (
     from perf_selected_invoice_contexts
 ), verification_only as (
     select v.school_id, v.competence_id, v.program_id, v.id as verification_id
-    from perf_verification_order v
-    where v.competence_id <> '2026-08'
-      and not exists (
-        select 1
-        from public.registered_invoices ri
-        where ri.id like 'PERF-I-%'
-          and ri.competence_id <> '2026-08'
-          and ri.school_id = v.school_id
-          and ri.competence_id = v.competence_id
-          and ri.program_id = v.program_id
-      )
-    order by v.competence_id, v.id
-    limit 99
+    from (
+        select v.*, row_number() over (partition by v.competence_id order by v.id) as rn
+        from perf_verification_order v
+        where v.competence_id <> '2026-08'
+          and not exists (
+            select 1 from public.registered_invoices ri
+            where ri.school_id = v.school_id
+              and ri.competence_id = v.competence_id
+              and ri.program_id = v.program_id
+          )
+    ) v
+    join perf_historical_targets t on t.competence_id = v.competence_id
+    where v.rn <= t.context_count - t.invoice_count
 ), combined as (
     select * from invoice_contexts
     union all
     select * from verification_only
 )
-select *, row_number() over (order by competence_id, school_id, program_id)::integer as rn
+select *, row_number() over (partition by competence_id order by school_id, program_id)::integer as rn
 from combined;
 
 create temporary table perf_pendency_targets (
@@ -232,7 +245,7 @@ select
     ctx.school_id,
     r.competence_id,
     ctx.program_id,
-    'extCC',
+    ctx.document_key,
     r.status,
     'Unidade Escolar',
     case when r.status in ('Aberta','Aguardando reanálise') then 'Controlador' else '' end,
@@ -244,11 +257,12 @@ select
     jsonb_build_object('synthetic', true, 'padding', repeat('p', 1320))
 from perf_pendency_rows r
 cross join lateral (
-    select school_id, program_id
+    select school_id, program_id, document_key
     from (
         select
             r2.school_id,
             r2.program_id,
+            'extCC'::text as document_key,
             1 as priority
         from perf_verification_order r2
         where r.competence_id = '2026-08'
@@ -260,22 +274,21 @@ cross join lateral (
         select
             h.school_id,
             h.program_id,
+            case when r.n <= t.context_count then 'extCC' else 'planejamento' end,
             2 as priority
         from perf_selected_historical_contexts h
+        join perf_historical_targets t on t.competence_id = h.competence_id
         where r.competence_id <> '2026-08'
           and r.is_active
-          and h.rn = ((
-            (select coalesce(sum(t2.aberta + t2.aguardando),0)
-             from perf_pendency_targets t2
-             where t2.competence_id < r.competence_id and t2.competence_id <> '2026-08')
-            + r.n - 1
-          ) % 180) + 1
+          and h.competence_id = r.competence_id
+          and h.rn = ((r.n - 1) % t.context_count) + 1
 
         union all
 
         select
             v.school_id,
             v.program_id,
+            'extCC'::text,
             3 as priority
         from perf_verification_order v
         where r.competence_id <> '2026-08'

@@ -89,3 +89,39 @@ não chamar toda invocação de renderer de reconstrução efetiva.
 
 Não houve nova correção funcional nesta retomada. Não afirmar solução definitiva,
 homologação de staging ou canário sem execução e evidência.
+
+## Checkpoint: preparação da reprodução comparativa
+
+- Primeiro checkpoint publicado: `641dd7e504462b6b973bdbaff4a2421094eb638d`.
+- CI seguinte, run `37092832359`, job `111116611086`, passou a executar psql
+  e revelou outra falha de preparação: duplicidade em
+  `pendencies_active_document_uidx`, ainda antes do navegador. A fixture
+  distribuía contextos de meses diferentes apenas por escola/programa e depois
+  substituía a competência de origem. A correção conserva os totais/shape,
+  distribui 180 contextos históricos coerentes com seus meses (81 com NF) e
+  usa dois documentos distintos quando existem duas Pendências no contexto.
+  Nenhuma constraint do produto foi removida. Resultado ainda precisa de CI.
+- Novo job compara `main` publicado em `62fe000c...` e o candidato, cada um
+  com seu próprio código/migrations e a mesma massa e jornada.
+  Worktree do baseline fica dentro da raiz servida permitida pelo servidor.
+- `scripts/bootstrap-operational-session-fixtures.mjs`: quatro identidades
+  reais locais, três escolas adicionais isoladas para não alterar os contextos
+  de volume. Cada browser entra pelo formulário; só preparação usa Admin.
+- `tests/e2e/operational-sustained-sessions.spec.js`: cinco sessões, dois
+  escritores de avaliação, um escritor de CRUD fiscal, dois observadores
+  (um deles segunda aba do mesmo usuário). 40 rodadas por escritor de avaliação
+  e dez ciclos fiscais previstos; latência 300/1.000/2.000 ms, um HTTP 500
+  e pendência durante foco no seletor. Convergência antes e depois do reload.
+- Relatórios por sessão medem requests, respostas, payload, duração, fontes de
+  refresh quando disponíveis, aplicações de estado, chamadas de renderer e
+  remoção efetiva de nós principais. Vídeos e capturas preservam a evidência
+  visual. Relatório parcial também é salvo quando o teste falha.
+- Limites: workload curto/acelerado e sintético; não prova horas de uso,
+  jornadas de Pendência/patrimônio, reconexão de WebSocket ou staging cloud.
+  Os limites temporais e de regressão não serão escolhidos antes de medir.
+
+Retomada: consultar o run do workflow `operational-real-usage-gate.yml` no head
+mais recente do #407, ler **todos** os jobs e baixar os artefatos por variante.
+Caso preparação falhe, diagnosticar essa falha sem chamar o produto de instável
+com base nela. Se uma jornada falhar com backend preparado, preservar RED e
+confrontar com vídeos, RPCs e estado canônico antes de escolher correção.

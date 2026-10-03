@@ -1,7 +1,7 @@
 # Matriz de validade documental
 
 **Classe documental:** Canônico  
-**Atualizado em:** 2 de outubro de 2026
+**Atualizado em:** 3 de outubro de 2026
 
 ## 1. Finalidade e precedência
 
@@ -62,7 +62,7 @@ A **Fase D ainda não foi iniciada**. O encerramento da Fase 2 não a inicia aut
 
 A baseline principal dessa jornada foi homologada. `PROD-FUNC-09` foi encerrado pelo PR #392 e confirmado em Production no merge `8284a02faf3d9381ad42e66b6d93677d396e8515`; a data civil e o instante técnico ficaram coerentes na tentativa original, sem escrita. O #397 foi integrado no merge `a5e200e5c3d7955cea0a6122bde1904469771ac3` e publicado com SQL compatível, preservando a leitura contextual do #396. A evidência de publicação está em `docs/evidence/2026-09-30-pr397-production-release/`; a retomada pós-publicação foi encerrada e preservada em `docs/handoff/2026-09-30-pos-publicacao-pr397-retomada.md`. A CI de 45 checks e os 20 ciclos reais descartáveis pertencem ao candidato `0e149e1...`; o smoke do novo deployment em Production foi observacional, sem CRUD.
 
-A Fase 2 de autonomia/UX também está encerrada: PR #404, merge `de7bebb06b867ebd557ff83cd9194fe3d45f5903`, deployment Production `dpl_CLYY92KojCXpmQcL8xXQkmc3TdgG` `READY`, com smoke HTTP 200 na raiz e na rota profunda `/escolas/04.31.001`, sem escrita real. Seu handoff e relatório passam a histórico/evidência concluída. **Não há handoff corrente.** `PROD-UX-08` e NAV-01/UX-04 permanecem frentes separadas e não são encerradas por esta entrega.
+A Fase 2 de autonomia/UX também está encerrada: PR #404, merge `de7bebb06b867ebd557ff83cd9194fe3d45f5903`, deployment Production `dpl_CLYY92KojCXpmQcL8xXQkmc3TdgG` `READY`, com smoke HTTP 200 na raiz e na rota profunda `/escolas/04.31.001`, sem escrita real. Seu handoff e relatório passam a histórico/evidência concluída. **O handoff corrente de instabilidade operacional está indicado na seção 4; a Fase 2 não possui retomada pendente.** `PROD-UX-08` e NAV-01/UX-04 permanecem frentes separadas e não são encerradas por esta entrega.
 
 O servidor canônico e suas correções não alteraram schema, migrations, RPCs, RLS, serviços de domínio, layout ou persistência canônica.
 

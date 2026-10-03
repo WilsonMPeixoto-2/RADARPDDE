@@ -1,7 +1,7 @@
 # RADAR PDDE — estado atual e retomada
 
 **Classe documental:** Canônico — estado mutável  
-**Atualizado em:** 2 de outubro de 2026
+**Atualizado em:** 3 de outubro de 2026
 
 ## 1. Estado funcional corrente
 
@@ -15,8 +15,7 @@ não pré-requisitos automáticos. Nenhuma publicação nova foi autorizada nest
 
 Handoff corrente desta investigação:
 [`2026-10-03-operational-instability.md`](handoff/2026-10-03-operational-instability.md).
-Ele supersede as afirmações abaixo de ausência de handoff apenas para esta frente;
-o encerramento das fases funcionais anteriores permanece histórico válido.
+O encerramento das fases funcionais anteriores permanece histórico válido.
 O manifesto consultado em 03/10 aponta `62fe000c...`, com comportamento do #406.
 
 **As Fases A, B e C estão encerradas. A Fase D ainda não foi iniciada.**
@@ -93,7 +92,7 @@ Registro técnico da correção final da C3: [correções CodeQL e validação C
 
 Os documentos de handoff de A/B e das frentes anteriores permanecem **históricos concluídos**. Não reabrir PRs #375/#376/#377/#378 ou textos pré-merge como fila de implementação.
 
-Não há handoff corrente. [Retificação de classificação e UX](handoff/2026-10-01-controller-type-retification.md) passa a histórico concluído da Fase 2, assim como os handoffs de candidato/publicação do #397. [PROD-UX-08](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) continua uma pendência separada de retomada visual. A investigação de `PROD-FUNC-09` está encerrada.
+O handoff corrente é a investigação de instabilidade indicada na seção 1. [Retificação de classificação e UX](handoff/2026-10-01-controller-type-retification.md) passa a histórico concluído da Fase 2, assim como os handoffs de candidato/publicação do #397. [PROD-UX-08](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) continua uma pendência separada de retomada visual. A investigação de `PROD-FUNC-09` está encerrada.
 
 Para retomada, a ordem de leitura continua sendo:
 

@@ -5,8 +5,12 @@ on:
     branches:
       - main
     paths:
+      - 'app.js'
+      - 'config*.js'
+      - 'src/domain/**'
       - 'src/application/**'
       - 'src/data/**'
+      - 'src/integration/**'
       - 'src/integration/auth-bootstrap.js'
       - 'src/integration/operational-context-refresh.js'
       - 'src/integration/operational-realtime-invalidation.js'
@@ -16,6 +20,9 @@ on:
       - 'tests/unit/operational-real-usage-session.test.js'
       - 'tests/e2e/operational-production-shape-performance.spec.js'
       - 'tests/support/performance-journey-observer.js'
+      - 'tests/support/operational-session-observer.js'
+      - 'tests/e2e/operational-sustained-sessions.spec.js'
+      - 'scripts/bootstrap-operational-session-fixtures.mjs'
       - '.github/workflows/operational-real-usage-gate.yml'
   workflow_dispatch:
 
@@ -27,6 +34,91 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  sustained-browser-comparison:
+    name: Cinco sessões reais (${{ matrix.variant }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [baseline, candidate]
+    env:
+      SUPABASE_TELEMETRY_DISABLED: '1'
+      RADAR_OPERATIONAL_VARIANT: ${{ matrix.variant }}
+      RADAR_E2E_SUPABASE_LOCAL: '1'
+      RADAR_E2E_SUSTAINED_OPERATIONAL: '1'
+      RADAR_OPERATIONAL_ROUNDS: '40'
+    steps:
+      - name: Obter candidato e baseline fixo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: npm
+      - name: Instalar ferramentas fixadas
+        run: npm ci
+      - name: Fixar a raiz do produto testado
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$RADAR_OPERATIONAL_VARIANT" == baseline ]]; then
+            runtime_root="${GITHUB_WORKSPACE}/.operational-baseline"
+            git worktree add --detach "$runtime_root" 62fe000c7253bb97a31091f1c7dc33407906d554
+            ln -s "${GITHUB_WORKSPACE}/node_modules" "${runtime_root}/node_modules"
+          else
+            runtime_root="$GITHUB_WORKSPACE"
+          fi
+          printf 'RADAR_OPERATIONAL_ROOT=%s\n' "$runtime_root" >> "$GITHUB_ENV"
+          printf 'RADAR_SERVE_ROOT=%s\n' "$runtime_root" >> "$GITHUB_ENV"
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Iniciar backend correspondente ao produto
+        working-directory: ${{ env.RADAR_OPERATIONAL_ROOT }}
+        run: |
+          bash "$GITHUB_WORKSPACE/scripts/start-disposable-supabase-ci.sh"
+          npm run supabase:reset
+      - name: Preparar volume calibrado
+        run: docker exec -i supabase_db_radar-pdde psql -X -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/fixtures/operational-production-shape.sql
+      - name: Preparar Controladores reais sem credenciais Production
+        working-directory: ${{ env.RADAR_OPERATIONAL_ROOT }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          eval "$(npx --no-install supabase status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
+          FIXTURE_PASSWORD="$(node --input-type=module -e "import { randomBytes } from 'node:crypto'; process.stdout.write(randomBytes(32).toString('base64url') + 'A1!')")"
+          echo "::add-mask::${FIXTURE_PASSWORD}"
+          echo "::add-mask::${SERVICE_ROLE_KEY}"
+          export RADAR_ALLOW_LOCAL_AUTH_BOOTSTRAP=true
+          export RADAR_SUPABASE_URL="$API_URL"
+          export RADAR_SUPABASE_ADMIN_KEY="$SERVICE_ROLE_KEY"
+          export RADAR_AUTH_FIXTURE_PASSWORD="$FIXTURE_PASSWORD"
+          node "$GITHUB_WORKSPACE/scripts/bootstrap-local-auth-fixtures.mjs"
+          node "$GITHUB_WORKSPACE/scripts/bootstrap-operational-session-fixtures.mjs"
+          unset RADAR_SUPABASE_ADMIN_KEY
+          RADAR_DATA_MODE=supabase-preview RADAR_ENVIRONMENT=test \
+          RADAR_SUPABASE_REPOSITORY_ENABLED=true RADAR_SUPABASE_PUBLISHABLE_KEY="$ANON_KEY" \
+          node "$GITHUB_WORKSPACE/scripts/generate-runtime-config.mjs" --output "$RADAR_OPERATIONAL_ROOT/config.runtime.js"
+          printf 'RADAR_AUTH_FIXTURE_PASSWORD=%s\n' "$FIXTURE_PASSWORD" >> "$GITHUB_ENV"
+      - name: Executar gestos concorrentes e medir a cadeia completa
+        run: npx playwright test tests/e2e/operational-sustained-sessions.spec.js --project=desktop-chromium --workers=1 --retries=0
+      - name: Preservar resultados mesmo se a jornada falhar
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: operational-sustained-${{ matrix.variant }}-${{ github.run_id }}
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Encerrar pilha descartável
+        if: always()
+        working-directory: ${{ env.RADAR_OPERATIONAL_ROOT }}
+        run: npx --no-install supabase stop --no-backup
+
   sustained-session-contracts:
     name: Sessões sustentadas, escrita e invalidação
     runs-on: ubuntu-24.04
