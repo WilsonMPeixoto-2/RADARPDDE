@@ -8,6 +8,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_REPORT = path.join(ROOT, 'dependency-health/npm-audit.json');
+const AUDIT_SEVERITIES = Object.freeze(new Set(['info', 'low', 'moderate', 'high', 'critical']));
 
 const ALLOWED_ADVISORIES = Object.freeze(new Map([
   ['GHSA-MH99-V99M-4GVG', Object.freeze({
@@ -77,9 +78,22 @@ function collectAdvisories(report, packageName, seen = new Set()) {
   return result;
 }
 
+function validAuditEntry(vulnerability) {
+  if (!vulnerability || typeof vulnerability !== 'object' || Array.isArray(vulnerability)) return false;
+  const severity = String(vulnerability.severity || '').toLowerCase();
+  return AUDIT_SEVERITIES.has(severity)
+    && typeof vulnerability.isDirect === 'boolean'
+    && Array.isArray(vulnerability.via)
+    && Array.isArray(vulnerability.effects)
+    && Array.isArray(vulnerability.nodes)
+    && vulnerability.nodes.length > 0
+    && vulnerability.nodes.every(node => typeof node === 'string' && node.trim());
+}
+
 function evaluateAuditReport(report) {
   const violations = [];
   if (!report || typeof report !== 'object' || report.error
+    || Number(report.auditReportVersion) !== 2
     || typeof report.vulnerabilities !== 'object' || report.vulnerabilities === null
     || typeof report?.metadata?.vulnerabilities !== 'object') {
     violations.push({ code: 'INVALID_AUDIT_REPORT', packageName: null, severity: null });
@@ -88,7 +102,11 @@ function evaluateAuditReport(report) {
   const vulnerabilities = report?.vulnerabilities || {};
 
   for (const [packageName, vulnerability] of Object.entries(vulnerabilities)) {
-    const severity = String(vulnerability?.severity || '').toLowerCase();
+    if (!validAuditEntry(vulnerability)) {
+      violations.push({ code: 'INVALID_AUDIT_ENTRY', packageName, severity: vulnerability?.severity || null });
+      continue;
+    }
+    const severity = String(vulnerability.severity).toLowerCase();
     if (severity === 'critical') {
       violations.push({ code: 'CRITICAL_VULNERABILITY', packageName, severity });
       continue;
@@ -107,9 +125,17 @@ function evaluateAuditReport(report) {
         violations.push({ code: 'NEW_ADVISORY', packageName, severity, advisory: id });
         continue;
       }
+      const outsideEffects = vulnerability.effects.filter(effect => !policy.packages.has(String(effect)));
       if (!policy.packages.has(packageName)
-        || (policy.directPackages && vulnerability?.isDirect === true && !policy.directPackages.has(packageName))) {
-        violations.push({ code: 'PACKAGE_OUTSIDE_ALLOWED_PATH', packageName, severity, advisory: id });
+        || (vulnerability.isDirect === true && !policy.directPackages?.has(packageName))
+        || outsideEffects.length > 0) {
+        violations.push({
+          code: 'PACKAGE_OUTSIDE_ALLOWED_PATH',
+          packageName,
+          severity,
+          advisory: id,
+          outsideEffects
+        });
         continue;
       }
       accepted.push({ packageName, severity, advisory: id, reason: policy.reason });
@@ -219,10 +245,12 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
 
 export {
   ALLOWED_ADVISORIES,
+  AUDIT_SEVERITIES,
   FORBIDDEN_RUNTIME_PATTERNS,
   RUNTIME_FILES,
   collectAdvisories,
   evaluateAuditReport,
+  validAuditEntry,
   verifyBundleIdentity,
   verifyRuntimeDependencyAudit,
   verifyRuntimeScope
