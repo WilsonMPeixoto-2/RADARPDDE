@@ -1,0 +1,34 @@
+{
+  "baseCheckpoint": "dc35754b239464d33ee4fdb17c1af68c47c42800",
+  "red": {
+    "failedScenarios": [
+      "tab com ID",
+      "Editar NF sem ID",
+      "movimento de foco durante leitura"
+    ],
+    "cause": "Renderer substitui nó focado; foco cai no body.",
+    "sha256": "2567f1dca7512bbfad3ab90a8dee7934ff3c550ac566e1f84ab5ae7f564672fa"
+  },
+  "green": {
+    "newFrontendTests": 6,
+    "relatedFrontendTests": 5,
+    "relatedUnitTests": 36,
+    "finalLogSha256": "60cdb66c5170c5183a2f62c27a75be11aae356ecc2de8f3f5881052532854edf"
+  },
+  "change": "Autoridade existente de refresh captura foco imediatamente antes de render e restaura por ID único ou linha de negócio + ação, com preventScroll.",
+  "controls": [
+    "edição em campo adia aplicação",
+    "alvo removido não foca outra NF",
+    "controle desabilitado não recebe foco",
+    "movimento durante RPC prevalece",
+    "NF reordenada mantém ação correta e Enter abre NF correta"
+  ],
+  "limits": [
+    "Fronteira de leitura controlada em modo local; renderer/teclado/foco/scroll reais.",
+    "Não preserva seleção de texto nem homologa todas as superfícies; prova backend real no próximo CI."
+  ],
+  "screenshotsSha256": {
+    "invoice": "2ed7266636abf658666e497cab256d2f62bcbd5f534140f45ed699686429c3fe",
+    "tab": "f28b41a16ca7c27de8619188f1420a9925a44b58abbc049dce4a930a9b6b0391"
+  }
+}

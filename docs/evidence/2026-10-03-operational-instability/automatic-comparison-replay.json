@@ -1,0 +1,287 @@
+{
+  "sourceRun": 37097052464,
+  "sourceCommit": "a652b410509ee8bbbc2a24372010abc7a879c58d",
+  "changes": {
+    "gestures": {
+      "baseline": 1106,
+      "candidate": 1106,
+      "absolute": 0,
+      "percent": 0,
+      "percentUnavailableReason": null
+    },
+    "writeAttempts": {
+      "baseline": 1106,
+      "candidate": 1106,
+      "absolute": 0,
+      "percent": 0,
+      "percentUnavailableReason": null
+    },
+    "successfulWrites": {
+      "baseline": 1106,
+      "candidate": 1106,
+      "absolute": 0,
+      "percent": 0,
+      "percentUnavailableReason": null
+    },
+    "readAttempts": {
+      "baseline": 1128,
+      "candidate": 500,
+      "absolute": -628,
+      "percent": -55.673758865248224,
+      "percentUnavailableReason": null
+    },
+    "successfulReadResponses": {
+      "baseline": 30,
+      "candidate": 150,
+      "absolute": 120,
+      "percent": 400,
+      "percentUnavailableReason": null
+    },
+    "abortedReadAttempts": {
+      "baseline": 1097,
+      "candidate": 349,
+      "absolute": -748,
+      "percent": -68.18596171376481,
+      "percentUnavailableReason": null
+    },
+    "readHttpErrors": {
+      "baseline": 1,
+      "candidate": 1,
+      "absolute": 0,
+      "percent": 0,
+      "percentUnavailableReason": null
+    },
+    "readNetworkErrors": {
+      "baseline": 0,
+      "candidate": 0,
+      "absolute": 0,
+      "percent": null,
+      "percentUnavailableReason": "zero-baseline"
+    },
+    "payloadBytes": {
+      "baseline": 39880237,
+      "candidate": 199475408,
+      "absolute": 159595171,
+      "percent": 400.18611474149463,
+      "percentUnavailableReason": null
+    },
+    "staleLoads": {
+      "baseline": 1103,
+      "candidate": 352,
+      "absolute": -751,
+      "percent": -68.08703535811424,
+      "percentUnavailableReason": null
+    },
+    "abortedLoads": {
+      "baseline": 1097,
+      "candidate": 349,
+      "absolute": -748,
+      "percent": -68.18596171376481,
+      "percentUnavailableReason": null
+    },
+    "failedLoads": {
+      "baseline": 1,
+      "candidate": 1,
+      "absolute": 0,
+      "percent": 0,
+      "percentUnavailableReason": null
+    },
+    "stateApplies": {
+      "baseline": 1130,
+      "candidate": 1253,
+      "absolute": 123,
+      "percent": 10.88495575221239,
+      "percentUnavailableReason": null
+    },
+    "renderCalls": {
+      "baseline": 1130,
+      "candidate": 1253,
+      "absolute": 123,
+      "percent": 10.88495575221239,
+      "percentUnavailableReason": null
+    },
+    "domReplacements": {
+      "baseline": 324,
+      "candidate": 447,
+      "absolute": 123,
+      "percent": 37.96296296296296,
+      "percentUnavailableReason": null
+    },
+    "domMutations": {
+      "baseline": 88279,
+      "candidate": 102057,
+      "absolute": 13778,
+      "percent": 15.607335832984061,
+      "percentUnavailableReason": null
+    },
+    "sampledOpacityFrames": {
+      "baseline": 10382,
+      "candidate": 11193,
+      "absolute": 811,
+      "percent": 7.81159699479869,
+      "percentUnavailableReason": null
+    },
+    "fadedOpacityFrames": {
+      "baseline": 769,
+      "candidate": 0,
+      "absolute": -769,
+      "percent": -100,
+      "percentUnavailableReason": null
+    },
+    "nearlyInvisibleFrames": {
+      "baseline": 688,
+      "candidate": 0,
+      "absolute": -688,
+      "percent": -100,
+      "percentUnavailableReason": null
+    },
+    "pageErrors": {
+      "baseline": 0,
+      "candidate": 0,
+      "absolute": 0,
+      "percent": null,
+      "percentUnavailableReason": "zero-baseline"
+    },
+    "longTaskCount": {
+      "baseline": null,
+      "candidate": null,
+      "absolute": null,
+      "percent": null,
+      "percentUnavailableReason": "not-recorded"
+    },
+    "longTaskTotalMs": {
+      "baseline": null,
+      "candidate": null,
+      "absolute": null,
+      "percent": null,
+      "percentUnavailableReason": "not-recorded"
+    },
+    "longTaskBlockingMs": {
+      "baseline": null,
+      "candidate": null,
+      "absolute": null,
+      "percent": null,
+      "percentUnavailableReason": "not-recorded"
+    },
+    "applyMeasuredCount": {
+      "baseline": null,
+      "candidate": null,
+      "absolute": null,
+      "percent": null,
+      "percentUnavailableReason": "not-recorded"
+    },
+    "applyTotalMs": {
+      "baseline": null,
+      "candidate": null,
+      "absolute": null,
+      "percent": null,
+      "percentUnavailableReason": "not-recorded"
+    },
+    "renderMeasuredCount": {
+      "baseline": null,
+      "candidate": null,
+      "absolute": null,
+      "percent": null,
+      "percentUnavailableReason": "not-recorded"
+    },
+    "renderTotalMs": {
+      "baseline": null,
+      "candidate": null,
+      "absolute": null,
+      "percent": null,
+      "percentUnavailableReason": "not-recorded"
+    },
+    "elapsedMs": {
+      "baseline": 470422.003802,
+      "candidate": 500991.387427,
+      "absolute": 30569.38362499996,
+      "percent": 6.4982894885730245,
+      "percentUnavailableReason": null
+    },
+    "readsPerMinute": {
+      "baseline": 143.8708212052224,
+      "candidate": 59.881268925748415,
+      "absolute": -83.98955227947398,
+      "percent": -58.37844781581412,
+      "percentUnavailableReason": null
+    },
+    "longTasksPerMinute": {
+      "baseline": null,
+      "candidate": null,
+      "absolute": null,
+      "percent": null,
+      "percentUnavailableReason": "not-recorded"
+    },
+    "sqlCalls": {
+      "baseline": 52,
+      "candidate": 169,
+      "absolute": 117,
+      "percent": 225,
+      "percentUnavailableReason": null
+    },
+    "sqlTotalExecMs": {
+      "baseline": 15020.126303,
+      "candidate": 24773.934538,
+      "absolute": 9753.808235000002,
+      "percent": 64.93825709742437,
+      "percentUnavailableReason": null
+    }
+  },
+  "warnings": [
+    {
+      "code": "cost-regression",
+      "metric": "payloadBytes",
+      "baseline": 39880237,
+      "candidate": 199475408,
+      "absolute": 159595171,
+      "percent": 400.18611474149463,
+      "percentUnavailableReason": null
+    },
+    {
+      "code": "cost-regression",
+      "metric": "sqlCalls",
+      "baseline": 52,
+      "candidate": 169,
+      "absolute": 117,
+      "percent": 225,
+      "percentUnavailableReason": null
+    },
+    {
+      "code": "cost-regression",
+      "metric": "sqlTotalExecMs",
+      "baseline": 15020.126303,
+      "candidate": 24773.934538,
+      "absolute": 9753.808235000002,
+      "percent": 64.93825709742437,
+      "percentUnavailableReason": null
+    },
+    {
+      "code": "cost-regression",
+      "metric": "domReplacements",
+      "baseline": 324,
+      "candidate": 447,
+      "absolute": 123,
+      "percent": 37.96296296296296,
+      "percentUnavailableReason": null
+    },
+    {
+      "code": "cost-regression",
+      "metric": "domMutations",
+      "baseline": 88279,
+      "candidate": 102057,
+      "absolute": 13778,
+      "percent": 15.607335832984061,
+      "percentUnavailableReason": null
+    },
+    {
+      "code": "baseline-freshness-not-comparable",
+      "message": "Baseline includes stale/aborted reads. Fewer completed SQL calls or payload bytes can reflect deferred updates; final convergence alone does not establish equal freshness during activity."
+    }
+  ],
+  "costBudgets": {
+    "status": "not-established",
+    "mode": "report-only",
+    "note": "No operational cost SLO is established here. Timer-derived read limits are not cost acceptance criteria; a completed comparison is not release approval."
+  },
+  "note": "Replay do comparador novo sobre artefatos já existentes; não é execução do produto novo."
+}

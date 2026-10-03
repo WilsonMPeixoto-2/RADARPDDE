@@ -9,13 +9,16 @@
 
 O hotfix #406 está integrado e publicado. A investigação autorizada continua no
 [PR #407](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/407), **Draft**:
-três mecanismos atuais foram reproduzidos e corrigidos no candidato: retry
+os mecanismos atuais foram reproduzidos e corrigidos no candidato: retry
 rearmado por interação após abort, replay de fadeIn no Prontuário e prazo remoto
 calculado durante RPC lenta. O gate do SHA `a652b410...` passou com cinco browsers,
 1.106 gestos concorrentes, erro/reconexão e reload. O resultado e os limites
 estão no handoff corrente; isso não certifica toda a operação prolongada ou cloud.
-Backup/snapshot são instrumentos,
-não pré-requisitos automáticos. Nenhuma publicação nova foi autorizada nesta frente.
+Backup/snapshot são instrumentos, não pré-requisitos automáticos. A retomada
+confirmou também focus/visibility duplicando leitura em voo; correção e RED/GREEN
+estão no checkpoint `dc35754b...`, ainda aguardando prova do candidato consolidado.
+O usuário autorizou conclusão, merge e etapas posteriores quando as evidências
+forem suficientes. Draft é o estado corrente, não uma proibição permanente.
 
 Handoff corrente desta investigação:
 [`2026-10-03-operational-instability.md`](handoff/2026-10-03-operational-instability.md).

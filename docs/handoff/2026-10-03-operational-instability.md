@@ -10,7 +10,9 @@ aplicações de estado e reconstruções excessivas da interface durante uso sus
 O relatório do usuário é roteiro de hipóteses, não fonte absoluta. Backup, Docker,
 snapshot e staging são instrumentos opcionais escolhidos conforme a hipótese.
 Não condicionar a investigação ao backup. Não otimizar RPC/RLS/Realtime por suposição.
-Não escrever em Production nem promover o #407 nesta etapa.
+A autorização mais recente permite merge/publicação quando as evidências forem
+suficientes. A investigação usa ambientes descartáveis; qualquer promoção depende
+da avaliação dos riscos, checks e jornada do SHA efetivamente candidato.
 
 ## Fatos revalidados
 
@@ -498,3 +500,60 @@ a prova isolada proposta mede escrita somente em B, estado global atualizado,
 conteúdo/identidade DOM de A e navegação posterior para B sem reload. O teste misto
 anterior não permite atribuir cada reconstrução a uma mudança irrelevante para A.
 Nenhum filtro por escola/mês, nova RPC ou wrapper foi adicionado.
+
+
+## Autorização e alcance da rodada atual
+
+O usuário autorizou investigação, correções, reorganização, commits/push e, se
+justificado pelos resultados, merge/deployment/canário pelo fluxo normal. A antiga
+regra temporária de manter Draft não determina sozinha a decisão final. Não houve
+merge nem escrita em Production nesta retomada. Os riscos conhecidos e a evidência
+do candidato consolidado devem determinar se há condição de publicação.
+
+O comparador usa dados de artefatos, sem consultar ou resetar banco. Custo sem
+budget independente permanece diagnóstico explícito; evidência incompleta,
+workloads divergentes e deltas SQL inválidos devem falhar. Instalação do baseline
+passa a conservar o próprio lockfile; o harness de comparação continua comum.
+O diagnóstico entre escolas ocorre após o snapshot SQL da sessão sustentada e em
+output Playwright separado para não apagar relatórios/vídeos ou contaminar delta.
+
+O observer de teste passa a medir Long Tasks (quando suportado pelo Chromium),
+`applyRemoteState` e o renderer observado. Totais conservam todas as chamadas;
+as durações de aplicação guardam só as últimas 100 amostras. São observações do
+harness, não instrumentação nova em Production, nem atribuição de GC/parse/RLS
+que os dados ainda não isolam. Precisam de execução real no novo candidato.
+
+Consulta npm repetida em 03/10: braces atual continua 3.0.3, seis ocorrências high,
+`fixAvailable:false`, advisory `GHSA-vfj7-8cjw-p6xm`. Não alterada/suprimida.
+
+
+## Candidato consolidado da retomada — validação local e comparação automática
+
+Perda de foco durante refresh foi reproduzida em três cenários reais de navegador:
+tab com ID, Editar NF sem ID e movimento de foco durante leitura. Correção na
+mesma autoridade de refresh, sem novo wrapper/controller: capturar imediatamente
+antes do render; restaurar somente se o nó foi removido e foco caiu no body,
+por ID único ou chave de linha + ação. Alvos removidos/ambíguos/ocultos/desabilitados
+não recebem foco. preventScroll e proteção de edição são mantidos. Se o renderer
+move foco deliberadamente, ele prevalece. Seis E2E novos passaram, incluindo Enter
+abrindo a NF correta após reordenação; cinco provas relacionadas e 36 unitários
+passaram. Evidência compacta: `refresh-focus-red-green.json`.
+
+Comparador automático implementado com oito testes: rejeita artefatos incompletos,
+carga divergente, contadores SQL regressivos/assinaturas desaparecidas e JSON
+corrompido. JSON/Markdown expõem deltas absolutos/percentuais, tentativas vs aborts
+vs SQL concluído, bytes, DOM, painel, recuperação e timing disponível. CPU não
+medida nos artefatos antigos permanece ausente, sem virar zero. Budgets de custo
+permanecem `not-established / report-only`. Replay real de a652 reproduziu
+1.128→500 tentativas, SQL 52→169 e bytes 39.880.237→199.475.408, com avisos de custo.
+Resumo em `automatic-comparison-replay.json`; não é nova jornada do produto.
+
+A suíte unitária completa passou com 1.239 testes antes da última contraprova
+visual; 49 controles dirigidos passaram no controller/comparador consolidado.
+Referências de workflows conferidas. Ainda falta repetir Supabase/concorrência do
+SHA final e inspecionar diagnóstico cross-school. Não usar os resultados de a652
+para declarar homologado o foco novo ou as novas métricas de CPU.
+
+Main contém dois commits documentais posteriores ao hotfix (plano e revert), cuja
+árvore final não altera a funcionalidade do baseline. Sincronizar o candidato com
+main antes da certificação final mantém o SHA integrado rastreável.

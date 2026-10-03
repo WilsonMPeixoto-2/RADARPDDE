@@ -26,10 +26,15 @@ on:
       - 'tests/support/operational-session-observer.js'
       - 'tests/e2e/operational-sustained-sessions.spec.js'
       - 'tests/e2e/operational-refresh-visibility.spec.js'
+      - 'tests/e2e/operational-refresh-focus.spec.js'
       - 'scripts/bootstrap-operational-session-fixtures.mjs'
       - 'scripts/operational-stat-snapshot.sql'
       - 'tests/unit/operational-stale-read-amplification.test.js'
       - 'tests/unit/operational-realtime-slow-read-window.test.js'
+      - 'tests/unit/operational-focus-inflight.test.js'
+      - 'tests/unit/operational-session-comparison.test.js'
+      - 'tests/e2e/operational-cross-school-refresh.spec.js'
+      - 'scripts/compare-operational-sessions.mjs'
       - '.github/workflows/operational-real-usage-gate.yml'
   workflow_dispatch:
     inputs:
@@ -81,7 +86,9 @@ jobs:
           if [[ "$RADAR_OPERATIONAL_VARIANT" == baseline ]]; then
             runtime_root="${GITHUB_WORKSPACE}/.operational-baseline"
             git worktree add --detach "$runtime_root" 62fe000c7253bb97a31091f1c7dc33407906d554
-            ln -s "${GITHUB_WORKSPACE}/node_modules" "${runtime_root}/node_modules"
+            # Produto baseline conserva seu lockfile; o harness comparativo é
+            # o mesmo candidato para ambas as variantes.
+            npm ci --prefix "$runtime_root"
           else
             runtime_root="$GITHUB_WORKSPACE"
           fi
@@ -131,6 +138,9 @@ jobs:
           mkdir -p test-results/operational-sustained
           cp "$RUNNER_TEMP/operational-pg-stat-before.json" test-results/operational-sustained/pg-stat-before.json
           docker exec -i supabase_db_radar-pdde psql -X -qAt -U postgres -d postgres -v ON_ERROR_STOP=1 < scripts/operational-stat-snapshot.sql > test-results/operational-sustained/pg-stat-after.json
+      - name: Isolar atualização de outra escola e navegação sem reload
+        # Executar após o snapshot SQL mantém a comparação longa inalterada.
+        run: npx playwright test tests/e2e/operational-cross-school-refresh.spec.js --project=desktop-chromium --workers=1 --retries=0 --output=test-results/cross-school-browser
       - name: Preservar resultados mesmo se a jornada falhar
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -175,7 +185,54 @@ jobs:
         run: npm ci
 
       - name: Provar jornada concorrente sustentada
-        run: node --test tests/unit/operational-real-usage-session.test.js tests/unit/production-refresh-stability.test.js tests/unit/operational-realtime-invalidation.test.js tests/unit/operational-stale-read-amplification.test.js tests/unit/operational-realtime-slow-read-window.test.js
+        run: node --test tests/unit/operational-real-usage-session.test.js tests/unit/production-refresh-stability.test.js tests/unit/operational-realtime-invalidation.test.js tests/unit/operational-stale-read-amplification.test.js tests/unit/operational-realtime-slow-read-window.test.js tests/unit/operational-focus-inflight.test.js tests/unit/operational-session-comparison.test.js
+
+      - name: Instalar Chromium para continuidade de foco
+        run: npx playwright install --with-deps chromium
+
+      - name: Preservar foco, edição, scroll e painel no refresh
+        run: npx playwright test tests/e2e/operational-refresh-focus.spec.js tests/e2e/operational-refresh-visibility.spec.js --project=desktop-chromium --workers=1 --retries=0
+
+  operational-cost-comparison:
+    name: Comparação de custo e estabilidade (diagnóstico)
+    needs: sustained-browser-comparison
+    if: ${{ always() && !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Obter comparador do candidato
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+      - name: Recuperar métricas do baseline
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: operational-metrics-baseline-${{ github.run_id }}
+          path: operational-input/baseline
+      - name: Recuperar métricas do candidato
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: operational-metrics-candidate-${{ github.run_id }}
+          path: operational-input/candidate
+      - name: Comparar tentativas, SQL, bytes e DOM
+        run: >-
+          node scripts/compare-operational-sessions.mjs
+          --baseline operational-input/baseline
+          --candidate operational-input/candidate
+          --output operational-comparison
+      - name: Mostrar resultado no resumo da execução
+        if: ${{ always() && hashFiles('operational-comparison/comparison.md') != '' }}
+        run: cat operational-comparison/comparison.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Preservar comparação compacta e referências
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: operational-comparison-${{ github.run_id }}
+          path: operational-comparison/
+          if-no-files-found: warn
+          retention-days: 30
 
   production-shaped-volume:
     name: 163 escolas, contexto pesado e RPC autenticada

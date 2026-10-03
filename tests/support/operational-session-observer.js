@@ -40,8 +40,38 @@ async function observeOperationalSession(page) {
     const data = window.RadarApplicationServices.data;
     const counters = { loads: [], applies: 0, renderCalls: 0, mainReplacements: 0,
       mutations: 0, lastMutationAt: performance.now(),
+      performance: {
+        longTasks: { supported: PerformanceObserver.supportedEntryTypes?.includes('longtask') === true,
+          count: 0, totalMs: 0, maxMs: 0, blockingMs: 0 },
+        applyRemoteState: { count: 0, totalMs: 0, maxMs: 0, samplesMs: [] },
+        renderProntuario: { count: 0, totalMs: 0, maxMs: 0 }
+      },
       visual: { sampledFrames: 0, fadedFrames: 0, nearlyInvisibleFrames: 0,
         minOpacity: 1, firstFadedFrames: [] } };
+    const recordDuration = (metric, start) => {
+      const duration = performance.now() - start;
+      metric.count += 1;
+      metric.totalMs += duration;
+      metric.maxMs = Math.max(metric.maxMs, duration);
+      if (metric.samplesMs) {
+        metric.samplesMs.push(duration);
+        if (metric.samplesMs.length > 100) metric.samplesMs.shift();
+      }
+    };
+    const recordLongTasks = entries => {
+      const metric = counters.performance.longTasks;
+      for (const entry of entries) {
+        metric.count += 1;
+        metric.totalMs += entry.duration;
+        metric.maxMs = Math.max(metric.maxMs, entry.duration);
+        metric.blockingMs += Math.max(0, entry.duration - 50);
+      }
+    };
+    if (counters.performance.longTasks.supported) {
+      const longTaskObserver = new PerformanceObserver(list => recordLongTasks(list.getEntries()));
+      longTaskObserver.observe({ type: 'longtask' });
+      window.__RADAR_OPERATIONAL_FLUSH_LONG_TASKS__ = () => recordLongTasks(longTaskObserver.takeRecords());
+    }
     const load = data.loadOperationalContext;
     data.loadOperationalContext = async function observedContext(key, options = {}) {
       const start = performance.now();
@@ -58,12 +88,16 @@ async function observeOperationalSession(page) {
     const apply = data.applyRemoteState;
     data.applyRemoteState = async function observedApply(...args) {
       counters.applies += 1;
-      return apply.apply(this, args);
+      const start = performance.now();
+      try { return await apply.apply(this, args); }
+      finally { recordDuration(counters.performance.applyRemoteState, start); }
     };
     const render = window.renderProntuario;
     window.renderProntuario = function observedRender(...args) {
       counters.renderCalls += 1;
-      return render.apply(this, args);
+      const start = performance.now();
+      try { return render.apply(this, args); }
+      finally { recordDuration(counters.performance.renderProntuario, start); }
     };
     const main = document.getElementById('main-container');
     new MutationObserver(records => {
@@ -99,7 +133,9 @@ async function observeOperationalSession(page) {
   return {
     async snapshot() {
       await Promise.all([...pendingBodies]);
-      const runtime = await page.evaluate(() => ({
+      const runtime = await page.evaluate(() => {
+        window.__RADAR_OPERATIONAL_FLUSH_LONG_TASKS__?.();
+        return ({
         ...window.__RADAR_OPERATIONAL_SESSION_OBSERVATION__,
         refresh: window.RadarOperationalContextRefreshController?.getMetrics?.() || null,
         realtime: window.RadarOperationalRealtimeInvalidationController?.getMetrics?.() || null,
@@ -107,7 +143,8 @@ async function observeOperationalSession(page) {
         pendingRefresh: window.RadarOperationalContextRefreshController?.hasPendingRefresh?.(),
         scrollTop: document.querySelector('.content-area')?.scrollTop ?? window.scrollY,
         focusedId: document.activeElement?.id || null
-      }));
+        });
+      });
       const reads = requests.filter(r => r.path === '/rest/v1/rpc/read_operational_context');
       const writePaths = new Set(['/rest/v1/rpc/save_verification_with_log',
         '/rest/v1/rpc/save_invoice_with_effects', '/rest/v1/rpc/save_invoice_with_effects_v2',
