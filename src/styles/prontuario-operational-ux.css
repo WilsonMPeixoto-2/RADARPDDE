@@ -1,3 +1,9 @@
+#main-container .school-workspace > .tab-content-panel.active {
+    /* O refresh remoto substitui este painel. Repetir fadeIn oculta dados
+       que o operador já está lendo; a navegação tem sua própria transição. */
+    animation: none;
+}
+
 #prontuario-verif-rows tr.program-block-start > td {
     border-top: 2px solid var(--border-hover);
 }

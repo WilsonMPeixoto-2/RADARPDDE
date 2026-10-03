@@ -31,6 +31,12 @@ on:
       - 'tests/unit/operational-stale-read-amplification.test.js'
       - '.github/workflows/operational-real-usage-gate.yml'
   workflow_dispatch:
+    inputs:
+      rounds:
+        description: Rodadas por escritor (40 diagnóstico curto; 400 estado acumulado)
+        type: choice
+        options: ['400', '40']
+        default: '400'
 
 permissions:
   contents: read
@@ -53,7 +59,7 @@ jobs:
       RADAR_OPERATIONAL_VARIANT: ${{ matrix.variant }}
       RADAR_E2E_SUPABASE_LOCAL: '1'
       RADAR_E2E_SUSTAINED_OPERATIONAL: '1'
-      RADAR_OPERATIONAL_ROUNDS: '40'
+      RADAR_OPERATIONAL_ROUNDS: ${{ inputs.rounds || '400' }}
     steps:
       - name: Obter candidato e baseline fixo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1

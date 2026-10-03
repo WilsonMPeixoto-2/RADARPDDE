@@ -277,3 +277,19 @@ de frames apagados nos dois observadores candidatos. Baseline serve de controle.
 
 A alteração visual ainda não foi aplicada neste checkpoint. Não refatorar
 app.js, remover Realtime ou reabrir RPC/RLS para resolver este replay de CSS.
+
+## Candidato visual mínimo e próxima prova ampliada
+
+A regra existente de UX do Prontuário passa a desabilitar a animação de entrada
+apenas dos seus painéis ativos. A navegação continua sob view-transitions; não
+houve reforma global de CSS nem novo módulo/observer de runtime. O RED isolado
+agora passa com opacidade 1 em todos os frames (`refresh-visibility-green.json`).
+Stylelint passou; ESLint sem erros (warnings condicionais do harness); referências
+locais dos workflows conferidas. Isso ainda não homologa a jornada concorrente.
+
+O gate operacional aumenta de 40 para 400 rodadas por escritor: cerca de 1.100
+gestos, crescimento de histórico e tempo real maior, sem chamá-lo de 30–60 minutos.
+Dispatch permite selecionar 40 para diagnóstico curto. Passa também a desligar
+e reconectar um socket Realtime real; uma alteração feita enquanto desconectado
+precisa reaparecer sem F5. Candidate deve ter zero frames apagados nos observadores.
+Executar, guardar resultados completos e corrigir somente falhas reproduzidas.

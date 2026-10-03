@@ -174,6 +174,36 @@ test('cinco sessões reais medem escrita, observação, edição e falha durante
       await expect(row(pages[i]).getByRole('button', { name: finalValue, exact: true }))
         .toHaveClass(finalValue === 'Sim' ? /active-sim/ : /active-nao/, { timeout: 60000 });
     }
+    stage = 'realtime-reconnect';
+    const reconnectsBefore = await pages[3].evaluate(() =>
+      window.RadarOperationalRealtimeInvalidationController.getMetrics?.().reconnectRefreshes || 0);
+    // Desconecta o socket real, mantendo HTTP/Auth e o browser utilizáveis.
+    // A alteração durante a interrupção precisa chegar pela leitura de recuperação.
+    await pages[3].evaluate(async () => {
+      await window.RadarSessionContext.service.client.realtime.disconnect();
+    });
+    await pages[3].waitForFunction(() =>
+      !window.RadarSessionContext.service.client.realtime.isConnected());
+    await setDelivery(pages[0], 'Sim');
+    gestures[0] += 1;
+    await expect(row(pages[3]).getByRole('button', { name: 'Não', exact: true }))
+      .toHaveClass(/active-nao/);
+    await pages[3].evaluate(() => window.RadarSessionContext.service.client.realtime.connect());
+    await pages[3].waitForFunction(() =>
+      window.RadarOperationalRealtimeInvalidationController.getStatus() === 'SUBSCRIBED');
+    await expect(row(pages[3]).getByRole('button', { name: 'Sim', exact: true }))
+      .toHaveClass(/active-sim/, { timeout: 60000 });
+    if (process.env.RADAR_OPERATIONAL_VARIANT === 'candidate') {
+      await expect.poll(() => pages[3].evaluate(() =>
+        window.RadarOperationalRealtimeInvalidationController.getMetrics().reconnectRefreshes))
+        .toBeGreaterThan(reconnectsBefore);
+    }
+    faults.realtimeDisconnects = 1;
+    faults.realtimeRecovered = true;
+    await setDelivery(pages[0], finalValue);
+    gestures[0] += 1;
+    for (const i of [3, 4]) await expect(row(pages[i]).getByRole('button', { name: finalValue, exact: true }))
+      .toHaveClass(/active-nao/, { timeout: 60000 });
     const [db] = await pages[0].evaluate(async () => {
       const result = await window.RadarSessionContext.service.client.from('verifications')
         .select('bonification,row_version').eq('school_id', 'OPS-SESSION-1')
@@ -217,7 +247,8 @@ test('cinco sessões reais medem escrita, observação, edição e falha durante
       rounds, ...report, limits: ['Massa sintética calibrada; não clone de Production.',
         'Cinco sessões/quatro usuários Controladores, incluindo duas abas da mesma identidade.',
         'Esta jornada mede avaliações e CRUD fiscal; não certifica patrimônio, Pendências, horas de uso ou staging.',
-        'Latência e HTTP 500 são induzidos no transporte; dados e Realtime são reais.'] }, null, 2);
+        'Latência e HTTP 500 são induzidos no transporte; dados e Realtime são reais.',
+        'Um socket Realtime real é desconectado; alteração durante a interrupção deve convergir após reconexão.'] }, null, 2);
     expect(serialized).not.toContain(password);
     const target = path.resolve('test-results/operational-sustained', process.env.RADAR_OPERATIONAL_VARIANT || 'candidate');
     fs.mkdirSync(target, { recursive: true });
