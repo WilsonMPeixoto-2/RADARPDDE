@@ -293,3 +293,25 @@ Dispatch permite selecionar 40 para diagnóstico curto. Passa também a desligar
 e reconectar um socket Realtime real; uma alteração feita enquanto desconectado
 precisa reaparecer sem F5. Candidate deve ter zero frames apagados nos observadores.
 Executar, guardar resultados completos e corrigir somente falhas reproduzidas.
+
+## Revisão adversarial da janela remota e checks gerais
+
+1.227 testes unitários passaram no candidato `8c8d9c07...`, assim como cinco
+jornadas locais de visibilidade/rolagem/composição. CI das duas sessões com
+Realtime real passou. A comparação ampliada de 400 rodadas ainda está executando.
+
+Três checks gerais falham no advisory `GHSA-vfj7-8cjw-p6xm`, em braces 3.0.3
+pela cadeia Stylelint. `npm audit` confirmou seis ocorrências high e
+`fixAvailable: false`; `npm view braces version` retornou 3.0.3. Lockfile e
+pacotes não foram alterados nesta investigação. Snapshot da auditoria preservado.
+Não relaxar o gate, inventar exceção ou substituir ferramentas para dizer verde.
+
+Hipótese adicional agora com RED: o limitador calcula prazo só ao agendar,
+usando o último refresh concluído. Um Broadcast durante leitura lenta pode
+agendar com timestamp anterior; o callback chega ainda em voo, marca pendência
+e a conclusão inicia nova leitura imediatamente. Teste determinístico com os
+dois controllers reais reproduziu três leituras, esperadas duas antes da janela,
+e exige a terceira posteriormente (sem perder invalidação). Evidência em
+`slow-read-window-red.json`. Não atribuir todas as leituras medidas a esse caso.
+Avaliar usar os timestamps já expostos pela autoridade de refresh e revalidar
+a janela no disparo do timer, sem acrescentar novo limitador nem mudar retry/reconnect.

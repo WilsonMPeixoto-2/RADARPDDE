@@ -1,0 +1,9 @@
+{
+  "codeCommit": "8c8d9c07714ea318c1fc82e473e4d4812a436d50",
+  "test": "operational-realtime-slow-read-window.test.js",
+  "result": "RED",
+  "expectedReadsBeforeWindow": 2,
+  "actualReadsBeforeWindow": 3,
+  "trigger": "Após leitura inicial bem-sucedida, um Broadcast recebido durante uma RPC lenta agenda timer com timestamp anterior. Ele pede refresh ainda em voo; ao concluir a RPC, o flush inicia imediatamente outra leitura.",
+  "limits": "Prova causal determinística com controllers reais e transporte simulado; não atribui todas as leituras dos observadores a esse mecanismo."
+}
