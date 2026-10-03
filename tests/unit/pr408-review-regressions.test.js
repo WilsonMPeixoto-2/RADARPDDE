@@ -342,3 +342,56 @@ test('braces direto é rejeitado mesmo usando o advisory permitido para a cadeia
         && item.advisory === 'GHSA-VFJ7-8CJW-P6XM'
     )));
 });
+
+test('timer de cooldown não pode consumir a única recuperação enquanto um retry fica stale em voo', async () => {
+    const timers = [];
+    const root = operationalRoot();
+    root.setTimeout = (callback, delay) => {
+        const token = { callback, delay };
+        timers.push(token);
+        return token;
+    };
+    root.clearTimeout = token => {
+        const index = timers.indexOf(token);
+        if (index >= 0) timers.splice(index, 1);
+    };
+
+    let calls = 0;
+    let secondStartedResolve;
+    let releaseSecondResolve;
+    const secondStarted = new Promise(resolve => { secondStartedResolve = resolve; });
+    const releaseSecond = new Promise(resolve => { releaseSecondResolve = resolve; });
+    const controller = createController(root, {
+        async loadOperationalContext() {
+            calls += 1;
+            if (calls === 1) return { stale: true, aborted: true };
+            if (calls === 2) {
+                secondStartedResolve();
+                await releaseSecond;
+                return { stale: true, aborted: true };
+            }
+            return { stale: false };
+        }
+    }, { minIntervalMs: 30000 });
+
+    await controller.refresh('realtime', { force: true });
+    const throttled = await controller.flushPending('write-settled');
+    assert.equal(throttled.reason, 'throttled');
+    assert.equal(timers.length, 1, 'a primeira pendência deve possuir recuperação agendada');
+
+    const retry = controller.refresh('realtime-retry', { force: true });
+    await secondStarted;
+
+    const expiringTimer = timers.shift();
+    expiringTimer.callback();
+    await Promise.resolve();
+    assert.equal(timers.length, 0, 'o timer original expirou durante a leitura em voo');
+
+    releaseSecondResolve();
+    await retry;
+    await Promise.resolve();
+
+    assert.equal(calls, 2);
+    assert.equal(controller.hasPendingRefresh(), true, 'o retry stale ainda exige convergência');
+    assert.equal(timers.length, 1, 'a recuperação deve ser reagendada depois que a leitura em voo revela nova pendência');
+});
