@@ -1,0 +1,456 @@
+{
+  "runId": 37097052464,
+  "testedCommit": "a652b410509ee8bbbc2a24372010abc7a879c58d",
+  "productionBaseline": "62fe000c7253bb97a31091f1c7dc33407906d554",
+  "variants": {
+    "baseline": {
+      "outcome": "passed",
+      "totalGestures": 1106,
+      "sessions": [
+        {
+          "session": 1,
+          "humanGestures": 404,
+          "contextReadAttempts": 406,
+          "writeRpcCalls": 404,
+          "readsPerMinute": 51.785086510544765,
+          "abortedRequests": 401,
+          "staleResults": 401,
+          "mainReplacements": 5,
+          "payloadBytes": 6646120,
+          "elapsedMs": 470405.69482499996,
+          "visual": {
+            "sampledFrames": 2031,
+            "fadedFrames": 10,
+            "nearlyInvisibleFrames": 10,
+            "minOpacity": 0
+          },
+          "writeTimingLast100": {
+            "sampleCount": 100,
+            "clickToFeedback": {
+              "p50": 0.19999999995343387,
+              "p95": 0.5
+            },
+            "rpc": {
+              "p50": null,
+              "p95": null
+            },
+            "apply": {
+              "p50": 1.2999999999883585,
+              "p95": 2.5
+            },
+            "clickToStable": {
+              "p50": 317.5,
+              "p95": 609.9000000000233
+            }
+          },
+          "allSuccessfulWriteHttpMs": {
+            "count": 404,
+            "p50": 226.74826800002484,
+            "p95": 366.89311900001485,
+            "p99": 460.5997320000315,
+            "max": 562.4439799999818
+          }
+        },
+        {
+          "session": 2,
+          "humanGestures": 300,
+          "contextReadAttempts": 305,
+          "writeRpcCalls": 300,
+          "readsPerMinute": 38.91268351043159,
+          "abortedRequests": 294,
+          "staleResults": 300,
+          "mainReplacements": 305,
+          "payloadBytes": 14623173,
+          "elapsedMs": 470283.672447,
+          "visual": {
+            "sampledFrames": 1770,
+            "fadedFrames": 724,
+            "nearlyInvisibleFrames": 647,
+            "minOpacity": 0
+          },
+          "writeTimingLast100": {
+            "sampleCount": 0,
+            "clickToFeedback": {
+              "p50": null,
+              "p95": null
+            },
+            "rpc": {
+              "p50": null,
+              "p95": null
+            },
+            "apply": {
+              "p50": null,
+              "p95": null
+            },
+            "clickToStable": {
+              "p50": null,
+              "p95": null
+            }
+          },
+          "allSuccessfulWriteHttpMs": {
+            "count": 300,
+            "p50": 197.42963100003544,
+            "p95": 400.86385600001086,
+            "p99": 493.86128499999177,
+            "max": 548.7267969999812
+          }
+        },
+        {
+          "session": 3,
+          "humanGestures": 402,
+          "contextReadAttempts": 407,
+          "writeRpcCalls": 402,
+          "readsPerMinute": 51.910836160725594,
+          "abortedRequests": 402,
+          "staleResults": 402,
+          "mainReplacements": 5,
+          "payloadBytes": 6647061,
+          "elapsedMs": 470422.003802,
+          "visual": {
+            "sampledFrames": 1974,
+            "fadedFrames": 12,
+            "nearlyInvisibleFrames": 10,
+            "minOpacity": 0
+          },
+          "writeTimingLast100": {
+            "sampleCount": 100,
+            "clickToFeedback": {
+              "p50": 0.10000000009313226,
+              "p95": 1.099999999976717
+            },
+            "rpc": {
+              "p50": null,
+              "p95": null
+            },
+            "apply": {
+              "p50": 1.2000000000698492,
+              "p95": 2.199999999953434
+            },
+            "clickToStable": {
+              "p50": 281.30000000004657,
+              "p95": 537.9000000000233
+            }
+          },
+          "allSuccessfulWriteHttpMs": {
+            "count": 402,
+            "p50": 231.7155109999876,
+            "p95": 360.53331400000025,
+            "p99": 444.5061660000356,
+            "max": 560.8405500000226
+          }
+        },
+        {
+          "session": 4,
+          "humanGestures": 0,
+          "contextReadAttempts": 5,
+          "writeRpcCalls": 0,
+          "readsPerMinute": 0.6381037445091885,
+          "abortedRequests": 0,
+          "staleResults": 0,
+          "mainReplacements": 4,
+          "payloadBytes": 5316833,
+          "elapsedMs": 470142.971793,
+          "visual": {
+            "sampledFrames": 2302,
+            "fadedFrames": 10,
+            "nearlyInvisibleFrames": 10,
+            "minOpacity": 0
+          },
+          "writeTimingLast100": null,
+          "allSuccessfulWriteHttpMs": {
+            "count": 0,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          }
+        },
+        {
+          "session": 5,
+          "humanGestures": 0,
+          "contextReadAttempts": 5,
+          "writeRpcCalls": 0,
+          "readsPerMinute": 0.6381040617567577,
+          "abortedRequests": 0,
+          "staleResults": 0,
+          "mainReplacements": 5,
+          "payloadBytes": 6647050,
+          "elapsedMs": 470142.748911,
+          "visual": {
+            "sampledFrames": 2305,
+            "fadedFrames": 13,
+            "nearlyInvisibleFrames": 11,
+            "minOpacity": 0
+          },
+          "writeTimingLast100": null,
+          "allSuccessfulWriteHttpMs": {
+            "count": 0,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          }
+        }
+      ],
+      "faults": {
+        "readLatencyMs": 0,
+        "failObserverRead": false,
+        "failuresInjected": 1,
+        "realtimeDisconnects": 1,
+        "realtimeRecovered": true
+      },
+      "sqlBefore": [],
+      "sqlAfter": [
+        {
+          "role": "authenticated",
+          "rows": 52,
+          "calls": 52,
+          "queryId": "7145021936814103127",
+          "maxExecMs": 1199.622315,
+          "meanExecMs": 288.84858275,
+          "totalExecMs": 15020.126303
+        }
+      ],
+      "totalContextReadAttempts": 1128,
+      "aggregate": {
+        "payloadBytes": 39880237,
+        "mainReplacements": 324,
+        "mutationRecords": 88279,
+        "fadedFrames": 769
+      }
+    },
+    "candidate": {
+      "outcome": "passed",
+      "totalGestures": 1106,
+      "sessions": [
+        {
+          "session": 1,
+          "humanGestures": 404,
+          "contextReadAttempts": 125,
+          "writeRpcCalls": 404,
+          "readsPerMinute": 14.97031710722018,
+          "abortedRequests": 122,
+          "staleResults": 122,
+          "mainReplacements": 3,
+          "payloadBytes": 3987411,
+          "elapsedMs": 500991.387427,
+          "visual": {
+            "sampledFrames": 2160,
+            "fadedFrames": 0,
+            "nearlyInvisibleFrames": 0,
+            "minOpacity": 1
+          },
+          "writeTimingLast100": {
+            "sampleCount": 100,
+            "clickToFeedback": {
+              "p50": 0.10000000009313226,
+              "p95": 0.30000000004656613
+            },
+            "rpc": {
+              "p50": null,
+              "p95": null
+            },
+            "apply": {
+              "p50": 1.3000000000465661,
+              "p95": 2.800000000046566
+            },
+            "clickToStable": {
+              "p50": 317.30000000004657,
+              "p95": 624.6999999999534
+            }
+          },
+          "allSuccessfulWriteHttpMs": {
+            "count": 404,
+            "p50": 233.2692350000143,
+            "p95": 365.4342009999964,
+            "p99": 438.09944600000745,
+            "max": 489.1449629999988
+          }
+        },
+        {
+          "session": 2,
+          "humanGestures": 300,
+          "contextReadAttempts": 108,
+          "writeRpcCalls": 300,
+          "readsPerMinute": 12.934740340586924,
+          "abortedRequests": 102,
+          "staleResults": 105,
+          "mainReplacements": 303,
+          "payloadBytes": 7975758,
+          "elapsedMs": 500976.41991199995,
+          "visual": {
+            "sampledFrames": 2073,
+            "fadedFrames": 0,
+            "nearlyInvisibleFrames": 0,
+            "minOpacity": 1
+          },
+          "writeTimingLast100": {
+            "sampleCount": 0,
+            "clickToFeedback": {
+              "p50": null,
+              "p95": null
+            },
+            "rpc": {
+              "p50": null,
+              "p95": null
+            },
+            "apply": {
+              "p50": null,
+              "p95": null
+            },
+            "clickToStable": {
+              "p50": null,
+              "p95": null
+            }
+          },
+          "allSuccessfulWriteHttpMs": {
+            "count": 300,
+            "p50": 193.35202099999879,
+            "p95": 396.16886799997883,
+            "p99": 474.33239799999865,
+            "max": 627.2263509999611
+          }
+        },
+        {
+          "session": 3,
+          "humanGestures": 402,
+          "contextReadAttempts": 128,
+          "writeRpcCalls": 402,
+          "readsPerMinute": 15.33043619658605,
+          "abortedRequests": 125,
+          "staleResults": 125,
+          "mainReplacements": 3,
+          "payloadBytes": 3987412,
+          "elapsedMs": 500964.213988,
+          "visual": {
+            "sampledFrames": 2117,
+            "fadedFrames": 0,
+            "nearlyInvisibleFrames": 0,
+            "minOpacity": 1
+          },
+          "writeTimingLast100": {
+            "sampleCount": 100,
+            "clickToFeedback": {
+              "p50": 0.10000000009313226,
+              "p95": 0.4000000001396984
+            },
+            "rpc": {
+              "p50": null,
+              "p95": null
+            },
+            "apply": {
+              "p50": 1.3000000000465661,
+              "p95": 2.2000000001862645
+            },
+            "clickToStable": {
+              "p50": 307,
+              "p95": 598.3000000000466
+            }
+          },
+          "allSuccessfulWriteHttpMs": {
+            "count": 402,
+            "p50": 231.91454100000556,
+            "p95": 347.36495199997444,
+            "p99": 410.2430460000178,
+            "max": 458.5082810000167
+          }
+        },
+        {
+          "session": 4,
+          "humanGestures": 0,
+          "contextReadAttempts": 70,
+          "writeRpcCalls": 0,
+          "readsPerMinute": 8.384061931653262,
+          "abortedRequests": 0,
+          "staleResults": 0,
+          "mainReplacements": 69,
+          "payloadBytes": 91761346,
+          "elapsedMs": 500950.47958,
+          "visual": {
+            "sampledFrames": 2422,
+            "fadedFrames": 0,
+            "nearlyInvisibleFrames": 0,
+            "minOpacity": 1
+          },
+          "writeTimingLast100": null,
+          "allSuccessfulWriteHttpMs": {
+            "count": 0,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          }
+        },
+        {
+          "session": 5,
+          "humanGestures": 0,
+          "contextReadAttempts": 69,
+          "writeRpcCalls": 0,
+          "readsPerMinute": 8.264086717193946,
+          "abortedRequests": 0,
+          "staleResults": 0,
+          "mainReplacements": 69,
+          "payloadBytes": 91763481,
+          "elapsedMs": 500962.79408900003,
+          "visual": {
+            "sampledFrames": 2421,
+            "fadedFrames": 0,
+            "nearlyInvisibleFrames": 0,
+            "minOpacity": 1
+          },
+          "writeTimingLast100": null,
+          "allSuccessfulWriteHttpMs": {
+            "count": 0,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          }
+        }
+      ],
+      "faults": {
+        "readLatencyMs": 0,
+        "failObserverRead": false,
+        "failuresInjected": 1,
+        "realtimeDisconnects": 1,
+        "realtimeRecovered": true
+      },
+      "sqlBefore": [],
+      "sqlAfter": [
+        {
+          "role": "authenticated",
+          "rows": 169,
+          "calls": 169,
+          "queryId": "7145021936814103127",
+          "maxExecMs": 918.515286,
+          "meanExecMs": 146.591328627219,
+          "totalExecMs": 24773.934538
+        }
+      ],
+      "totalContextReadAttempts": 500,
+      "aggregate": {
+        "payloadBytes": 199475408,
+        "mainReplacements": 447,
+        "mutationRecords": 102057,
+        "fadedFrames": 0
+      }
+    }
+  },
+  "limits": [
+    "Massa sintética calibrada, cinco sessões de quatro Controladores. Não é clone real de Production.",
+    "Coleta aproximadamente oito minutos; 1.106 gestos acelerados. Não certifica 30–60 minutos, Pendências/patrimônio concorrentes ou cloud.",
+    "SQL before/after inclui bootstrap. HTTP abortado antes do envio não representa execução SQL.",
+    "Clique-estável conserva só as últimas 100 avaliações; não mede UI de CRUD fiscal. HTTP de escrita mede todas as respostas, separadamente.",
+    "Disconnect/connect do socket real são induzidos pelo SDK; não prova reconexão automática de Internet.",
+    "Os tetos de leitura atuais verificam os intervalos do scheduler; não são orçamento independente de custo aceitável do produto.",
+    "Contadores de render/mutação são indicadores do observer, não contagem exaustiva de todo trabalho DOM."
+  ],
+  "comparisonWithPriorCandidate": {
+    "priorRunId": 37096698975,
+    "contextAttemptsBefore": 799,
+    "contextAttemptsAfter": 500,
+    "sqlCallsBefore": 309,
+    "sqlCallsAfter": 169,
+    "note": "Mesmo workload e intervalos, runners distintos; reportar contagens observadas e prova causal, não ganho isolado de tempo SQL."
+  }
+}

@@ -9,14 +9,21 @@
 
 O hotfix #406 está integrado e publicado. A investigação autorizada continua no
 [PR #407](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/407), **Draft**:
-reproduzir uso sustentado e explicar amplificação de leituras e reconstrução da
-interface antes de decidir novas correções. Backup/snapshot são instrumentos,
+três mecanismos atuais foram reproduzidos e corrigidos no candidato: retry
+rearmado por interação após abort, replay de fadeIn no Prontuário e prazo remoto
+calculado durante RPC lenta. O gate do SHA `a652b410...` passou com cinco browsers,
+1.106 gestos concorrentes, erro/reconexão e reload. O resultado e os limites
+estão no handoff corrente; isso não certifica toda a operação prolongada ou cloud.
+Backup/snapshot são instrumentos,
 não pré-requisitos automáticos. Nenhuma publicação nova foi autorizada nesta frente.
 
 Handoff corrente desta investigação:
 [`2026-10-03-operational-instability.md`](handoff/2026-10-03-operational-instability.md).
 O encerramento das fases funcionais anteriores permanece histórico válido.
 O manifesto consultado em 03/10 aponta `62fe000c...`, com comportamento do #406.
+Main foi revalidada e permanece nesse SHA. Os checks gerais ainda rejeitam um
+advisory sem patch na cadeia Stylelint/braces; não foram relaxados. O PR continua
+Draft e nenhuma correção candidata desta frente está publicada em Production.
 
 **As Fases A, B e C estão encerradas. A Fase D ainda não foi iniciada.**
 

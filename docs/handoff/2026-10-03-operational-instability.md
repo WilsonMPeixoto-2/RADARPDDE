@@ -14,6 +14,10 @@ Não escrever em Production nem promover o #407 nesta etapa.
 
 ## Fatos revalidados
 
+- Código candidato testado: `a652b410509ee8bbbc2a24372010abc7a879c58d`.
+  Gate final `37097052464` concluído, quatro jobs aprovados. Três mecanismos
+  reproduzidos/corrigidos, resultados finais ao término deste handoff.
+  Commits posteriores de evidência/docs não modificam esse runtime.
 - `main` e manifesto de Production: `62fe000c7253bb97a31091f1c7dc33407906d554`.
 - Hotfix #406 integrado em `24f51fbcce413069287236fa78418465df08d267`;
   deployment marcado success em 02/10 às 20:29:48 UTC.
@@ -56,7 +60,7 @@ container. A prova visual ao final deste checkpoint confirma replay de fadeIn
 no painel durante refresh. Medir substituição de DOM, foco, scroll e convergência;
 não chamar toda invocação de renderer de reconstrução efetiva.
 
-## Estado das provas e ferramentas
+## Inventário inicial das provas e ferramentas — registro histórico da retomada
 
 - Documentos canônicos, matriz e ADR-054 lidos antes da análise.
 - 22 testes dirigidos do #407 passaram, sem skips. São controles unitários,
@@ -78,19 +82,28 @@ não chamar toda invocação de renderer de reconstrução efetiva.
 
 ## Próximo passo executável
 
-1. Corrigir somente o replay da animação do painel do Prontuário reproduzido
-   no RED visual. A primeira correção de releituras já passou na comparação real.
-2. Reexecutar a jornada inteira com amostragem de opacidade por frame e
-   aumentar a duração/quantidade de operações para investigar estado acumulado.
-3. Confrontar SQL efetivo, tentativas abortadas, observadores, estabilidade,
-   convergência e reload. Não afirmar redução global de RPC sem essa separação.
-4. Preservar checkpoint remoto após cada etapa, incluindo falhas e lacunas.
+1. Não recriar as três correções já comprovadas: comparar qualquer relato novo
+   com o SHA atual e identificar a jornada ainda problemática. Pergunta opcional
+   sobre tela/ação/perfil atual foi enviada; não houve resposta específica.
+2. Para avançar além deste candidato, aproveitar os testes reais existentes de
+   Pendências/patrimônio e investigar jornadas concorrentes/prolongadas relevantes.
+   Não abrir refatoração geral de app.js nem escolher backup como tarefa principal.
+3. A avaliação cloud ainda falta: list_branches confirmou somente main/Production;
+   não havia Supabase de staging já disponível. Não usar Preview local-mode como
+   prova remota. Qualquer novo recurso com custo precisa do fluxo do provedor.
+4. Preservar resultados remotamente. Três checks de dependência e o agregador
+   final estão bloqueados por advisory sem patch; não suprimir esse impedimento.
 
-Houve uma correção funcional candidata no controller de refresh, ainda Draft.
+Há três correções candidatas nos controllers/CSS existentes, ainda Draft.
 Não afirmar solução definitiva,
 homologação de staging ou canário sem execução e evidência.
 
-## Checkpoint: preparação da reprodução comparativa
+## Cronologia histórica — estados intermediários superados pelas conclusões finais
+
+As instruções e pendências abaixo descrevem seus checkpoints, não uma fila atual.
+O próximo trabalho vigente consta em “Retomada após revisão enviada pelo usuário”.
+
+### Checkpoint: preparação da reprodução comparativa
 
 - Primeiro checkpoint publicado: `641dd7e504462b6b973bdbaff4a2421094eb638d`.
 - CI seguinte, run `37092832359`, job `111116611086`, passou a executar psql
@@ -376,6 +389,85 @@ Relatórios integrais e resumo em `long-before-window-*.json`.
 ZIPs integrais de ~65 MB foram recuperados por referência de download autorizada
 do conector; métricas, SQL e screenshots extraídos. O limite do download_file
 não impediu esta recuperação; a publicação compacta facilita agentes futuros.
-A próxima prova de runtime é o run `37097052464`, head `a652b410...`, em execução,
-com a janela corrigida e tetos de leitura. Este checkpoint contém só evidências,
+Naquele checkpoint o run `37097052464`, head `a652b410...`, ainda executava.
+Ele terminou; o resultado abaixo substitui esse status anterior. Este checkpoint contém só evidências,
 sem nova alteração funcional; [skip ci] evita repetir os mesmos testes por JSON/docs.
+
+
+## Comparação final concluída — janela corrigida, ainda sem homologação de custo
+
+Run [37097052464](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37097052464),
+SHA funcional `a652b410509ee8bbbc2a24372010abc7a879c58d`: quatro jobs aprovados.
+400 rodadas / 1.106 gestos por variante, cinco sessões, ~470 s baseline e ~501 s
+candidato. JSON completos selecionados, resumo, screenshot após reload e manifesto
+com hashes estão em `../evidence/2026-10-03-operational-instability/final-*`.
+
+| Sessão | Baseline leituras / escritas | Candidato leituras / escritas | DOM baseline / candidato |
+| --- | --- | --- | --- |
+| Escritor A | 406 / 404 | 125 / 404 | 5 / 3 |
+| Fiscal | 305 / 300 | 108 / 300 | 305 / 303 |
+| Escritor C | 407 / 402 | 128 / 402 | 5 / 3 |
+| Observador | 5 / 0 | 70 / 0 | 4 / 69 |
+| Segunda aba | 5 / 0 | 69 / 0 | 5 / 69 |
+
+| Custo agregado observado | Baseline #406 | Candidato #407 |
+| --- | --- | --- |
+| Tentativas HTTP contextuais | 1.128 | 500 |
+| Payload recebido | 39.880.237 bytes | 199.475.408 bytes |
+| Execuções SQL autenticadas (inclui bootstrap) | 52 | 169 |
+| Tempo SQL acumulado | 15.020,13 ms | 24.773,93 ms |
+| Remoções/substituições principais observadas | 324 | 447 |
+| Registros de mutação DOM observados | 88.279 | 102.057 |
+| Frames do painel com opacity < 0,95 | 769 | 0 |
+
+A redução de 55,7% nas tentativas HTTP **não é redução global do custo**.
+Baseline cancela muitas tentativas antes do banco e seu debounce trailing deixa
+observadores sem releitura durante a rajada. O candidato atualiza durante a
+atividade, mas transfere ~92 MB por observador e executa 3,25× mais SQL total.
+O gate verde prova os contratos que mediu, não que esse custo seja aceitável.
+
+Em relação ao candidato anterior (`37096698975`), a correção da janela reduziu
+observadores de 137/136 para 70/69 leituras e SQL de 309 para 169. Mesmo workload,
+runners diferentes: contagens e RED determinístico sustentam a correção, sem
+atribuir ganho de latência SQL isoladamente a ela.
+
+Todas as cinco sessões candidatas tiveram zero amostras com opacidade reduzida
+no painel observado. A coleta sob CI ficou em ~4–5 fps e ignora painel ausente/oculto;
+isso não equivale a provar ausência universal de flicker.
+Um HTTP 500 e disconnect/connect do socket via SDK foram induzidos; estado final
+convergiu antes e depois de F5 no mesmo contexto. Os 1.106 gestos resultaram em
+1.106 escritas observadas. p95 clique → estável das **últimas 100 avaliações**:
+A 624,7 ms / C 598,3 ms; não representa todo o workload nem CRUD fiscal.
+A captura final confirma contexto legível após reload; é evidência pontual.
+
+Limites: massa sintética calibrada, ~8 minutos reais, sem jornada sustentada de
+Pendências/patrimônio e sem staging cloud. O detector visual mede opacidade de
+um painel; não todas as causas de instabilidade. O gate exige convergência final, mas ainda
+não um prazo máximo de atualização durante a rajada. Render wrappers e observer DOM
+não contam necessariamente referências capturadas ou toda reconstrução interna.
+
+Checks do SHA: 30 success, quatro failure, dois skipped. Três falhas são o advisory
+`GHSA-vfj7-8cjw-p6xm` em braces/Stylelint sem patch disponível na consulta feita;
+a quarta é o agregador pré-Production. Preview Supabase/Auth remoto foram skipped.
+Nenhuma dependência/gate de segurança foi relaxada. Production permanece `62fe...`;
+#407 continua Draft.
+
+## Retomada após revisão enviada pelo usuário
+
+O texto anexado foi confrontado com o código e os artefatos acima. Seus totais
+confirmam o custo residual; recomendações continuam hipóteses, não nova especificação.
+Próximas ações autorizadas nesta retomada:
+
+1. Reproduzir foco/visibility durante leitura bem-sucedida em voo; só corrigir se
+   evento de lifecycle sem nova invalidação estiver criando leitura redundante.
+2. Acrescentar comparação automática dos artefatos baseline/candidato, expondo
+   bytes, SQL efetivo, DOM, aborts e estabilidade. Tetos derivados de timers não
+   substituem orçamento de produto; não inventar limiar verde para os números atuais.
+3. Investigar o escopo canônico da leitura e das projeções antes de chamar um
+   Broadcast de outra escola de irrelevante. Contexto mensal, Pendências e bens
+   podem atravessar a escola visível; filtro ingênuo pode perder convergência.
+4. Preservar checkpoints no remoto a cada etapa. Em caso de interrupção, retomar
+   deste handoff, revalidar SHA remoto e não repetir REDs/fixtures já comprovados.
+
+Este checkpoint fecha a medição do candidato a652; não encerra a investigação do
+custo residual nem autoriza publicação em Production.
