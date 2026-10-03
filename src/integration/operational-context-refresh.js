@@ -124,10 +124,27 @@
         let pendingRefreshCanForce = false;
         let cooldownTimer = null;
 
+        function remainingCooldownMs() {
+            const cooldownAnchor = Math.max(lastRefreshAt, lastAttemptAt);
+            if (cooldownAnchor <= 0) return 0;
+            return Math.max(0, minIntervalMs - (Date.now() - cooldownAnchor));
+        }
+
         function scheduleCooldownFlush(delayMs) {
             if (cooldownTimer != null || typeof root.setTimeout !== 'function') return;
             cooldownTimer = root.setTimeout(() => {
                 cooldownTimer = null;
+                // O timer pode expirar enquanto um retry já está em voo. Nesse
+                // caso a leitura atual consome a pendência anterior; se ela terminar
+                // stale/falhar e recriar a pendência, reagendamos uma única drenagem.
+                if (refreshPromise) {
+                    const currentRefresh = refreshPromise;
+                    void currentRefresh.finally(() => {
+                        if (!pendingRefreshReason || cooldownTimer != null) return;
+                        scheduleCooldownFlush(remainingCooldownMs());
+                    });
+                    return;
+                }
                 void flushPending('cooldown-expired');
             }, Math.max(0, Number(delayMs) || 0) + 50);
         }
