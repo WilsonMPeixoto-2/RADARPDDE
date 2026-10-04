@@ -146,6 +146,7 @@
         const currentState = normalizeNavigationState(root.history.state);
         const url = routes.buildRoute(normalizedRoute);
 
+        const routeChanged = !sameNavigationState(currentState, nextState);
         if (replace) {
             if (!sameNavigationState(currentState, nextState)) {
                 root.history.replaceState(nextState, '', url);
@@ -154,7 +155,8 @@
             root.history.pushState(nextState, '', url);
         }
         controller.currentRoute = normalizedRoute;
-        emitCommittedRoute(root, normalizedRoute);
+        // Reaplicar a mesma tela após leitura não constitui navegação nem invalidação.
+        if (routeChanged) emitCommittedRoute(root, normalizedRoute);
         return normalizedRoute;
     }
 
