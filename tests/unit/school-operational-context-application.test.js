@@ -213,6 +213,8 @@ test('fallback declarado pela RPC escolar nunca aplica coleções parciais', asy
 
 test('resposta escolar antiga não sobrescreve leitura escolar posterior', async () => {
     let resolveFirst;
+    let markFirstStarted;
+    const firstStarted = new Promise(resolve => { markFirstStarted = resolve; });
     let calls = 0;
     const harness = makeHarness({
         globalEntities: {
@@ -221,6 +223,7 @@ test('resposta escolar antiga não sobrescreve leitura escolar posterior', async
         schoolReader: async () => {
             calls += 1;
             if (calls === 1) {
+                markFirstStarted();
                 return new Promise(resolve => { resolveFirst = resolve; });
             }
             return schoolEnvelope('S1', {
@@ -233,6 +236,7 @@ test('resposta escolar antiga não sobrescreve leitura escolar posterior', async
     const first = harness.service.loadSchoolOperationalContext('S1', '2026-08', {
         historyStatuses: ['Resolvida']
     });
+    await firstStarted;
     const second = await harness.service.loadSchoolOperationalContext('S1', '2026-08', {
         historyStatuses: ['Resolvida']
     });
