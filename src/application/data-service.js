@@ -601,6 +601,46 @@
                 };
             }
 
+            const previousContactIds = new Set(previousCoverage.pendencyContacts || []);
+            const incomingContactIds = new Set(
+                normalizedRecords(envelope.entities?.pendencyContacts).map(recordId).filter(Boolean)
+            );
+            const contactAuthorityNeeded = [...previousContactIds].some(id => !incomingContactIds.has(id));
+            let authoritativeSchoolContacts = null;
+            if (contactAuthorityNeeded) {
+                if (typeof this.repository.querySchoolContacts !== 'function') {
+                    return {
+                        schoolId, competenceId, stale: false, applied: false,
+                        fallback: { kind: 'global', reason: 'SCHOOL_CONTACT_AUTHORITY_UNAVAILABLE' }
+                    };
+                }
+                authoritativeSchoolContacts = await this.repository.querySchoolContacts(schoolId);
+                if (!canApply()) {
+                    return { schoolId, competenceId, stale: true, applied: false };
+                }
+                if (!Array.isArray(authoritativeSchoolContacts)) {
+                    throw new RepositoryError(
+                        'INVALID_SCHOOL_CONTACT_CONTEXT',
+                        'A autoridade de contatos da escola deve retornar uma coleção.',
+                        { operation: 'loadSchoolOperationalContext' }
+                    );
+                }
+                const contactIds = new Set();
+                for (const contact of authoritativeSchoolContacts) {
+                    const id = recordId(contact);
+                    if (!id || contactIds.has(id)
+                        || String(contact?.school_id || '').trim() !== schoolId) {
+                        throw new RepositoryError(
+                            'INVALID_SCHOOL_CONTACT_CONTEXT',
+                            'A autoridade de contatos retornou identidade inválida ou outra escola.',
+                            { operation: 'loadSchoolOperationalContext' }
+                        );
+                    }
+                    contactIds.add(id);
+                }
+                authoritativeSchoolContacts = cloneValue(authoritativeSchoolContacts);
+            }
+
             const current = typeof this.statePort.exportCanonicalEntities === 'function'
                 ? await this.statePort.exportCanonicalEntities(REMOTE_CONTEXT_ENTITIES, {
                     version: '1', importId: 'school-context-' + Date.now(),
@@ -610,7 +650,16 @@
             if (!canApply()) {
                 return { schoolId, competenceId, stale: true, applied: false };
             }
-            const next = replaceSchoolOperationalSlice(current, envelope, previousCoverage);
+            let next = replaceSchoolOperationalSlice(current, envelope, previousCoverage);
+            if (authoritativeSchoolContacts) {
+                const otherSchoolContacts = normalizedRecords(next.entities?.pendencyContacts)
+                    .filter(contact => String(contact?.school_id || '').trim() !== schoolId);
+                next.entities.pendencyContacts = [
+                    ...otherSchoolContacts,
+                    ...cloneValue(authoritativeSchoolContacts)
+                ];
+                next = assertSnapshotJson(next, 'replaceSchoolOperationalContacts');
+            }
             await this.applyRemoteState(
                 next, REMOTE_CONTEXT_ENTITIES, options.source || 'remote-school-operational-context'
             );

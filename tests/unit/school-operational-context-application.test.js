@@ -51,6 +51,7 @@ function makeHarness(options = {}) {
     const globalEntities = entities(options.globalEntities || {});
     let current = snapshot(globalEntities);
     let schoolReader = options.schoolReader || (async () => schoolEnvelope('S1', {}));
+    let schoolContactsReader = options.schoolContactsReader || (async () => []);
     const applied = [];
 
     const repository = {
@@ -67,7 +68,8 @@ function makeHarness(options = {}) {
         restoreSnapshot: async () => undefined,
         healthCheck: async () => ({ ok: true }),
         queryOperationalContext: async () => ({ entities: clone(globalEntities) }),
-        querySchoolOperationalContext: async request => schoolReader(request)
+        querySchoolOperationalContext: async request => schoolReader(request),
+        querySchoolContacts: async schoolId => schoolContactsReader(schoolId)
     };
 
     const statePort = {
@@ -92,7 +94,8 @@ function makeHarness(options = {}) {
         applied,
         getCurrent: () => clone(current),
         setCurrent: value => { current = clone(value); },
-        setSchoolReader: reader => { schoolReader = reader; }
+        setSchoolReader: reader => { schoolReader = reader; },
+        setSchoolContactsReader: reader => { schoolContactsReader = reader; }
     };
 }
 
@@ -140,6 +143,14 @@ test('aplicação escolar substitui somente a cobertura anterior e preserva outr
         id: 'cg', school_id: 'S1', pendency_id: null, channel: 'geral'
     });
     harness.setCurrent(withGeneralContact);
+
+    harness.setSchoolContactsReader(async schoolId => {
+        assert.equal(schoolId, 'S1');
+        return [
+            { id: 'c3', school_id: 'S1', pendency_id: 'p3' },
+            { id: 'cg', school_id: 'S1', pendency_id: null, channel: 'geral' }
+        ];
+    });
 
     harness.setSchoolReader(async () => schoolEnvelope('S1', {
         verifications: [{ id: 'v1', school_id: 'S1', competence_id: '2026-08', program_id: 'BASIC', row_version: 2 }],
