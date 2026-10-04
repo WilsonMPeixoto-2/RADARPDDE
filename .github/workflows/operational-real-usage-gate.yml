@@ -55,7 +55,7 @@ concurrency:
 
 jobs:
   sustained-browser-comparison:
-    name: Cinco sessões reais (${{ matrix.variant }})
+    name: Stress sustentado legado (${{ matrix.variant }})
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     strategy:
@@ -86,9 +86,9 @@ jobs:
           set -euo pipefail
           if [[ "$RADAR_OPERATIONAL_VARIANT" == baseline ]]; then
             runtime_root="${GITHUB_WORKSPACE}/.operational-baseline"
-            git worktree add --detach "$runtime_root" 62fe000c7253bb97a31091f1c7dc33407906d554
-            # Produto baseline conserva seu lockfile; o harness comparativo é
-            # o mesmo candidato para ambas as variantes.
+            # A comparação corrente parte da versão realmente publicada após o
+            # PR #408, não da antiga baseline #406 usada na descoberta inicial.
+            git worktree add --detach "$runtime_root" d9bf67f7d8a1ce2e468ec3c793ff992d8e10dfd6
             npm ci --prefix "$runtime_root"
           else
             runtime_root="$GITHUB_WORKSPACE"
@@ -104,9 +104,9 @@ jobs:
           npm run supabase:reset
       - name: Preparar volume calibrado
         run: docker exec -i supabase_db_radar-pdde psql -X -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/fixtures/operational-production-shape.sql
-      - name: Preparar cadastros institucionais locais
+      - name: Preparar seis escolas e carteiras distintas
         run: docker exec -i supabase_db_radar-pdde psql -X -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/fixtures/operational-session-contexts.sql
-      - name: Preparar Controladores reais sem credenciais Production
+      - name: Preparar seis Controladores e Assistente sem credenciais Production
         working-directory: ${{ env.RADAR_OPERATIONAL_ROOT }}
         shell: bash
         run: |
@@ -131,7 +131,7 @@ jobs:
         run: |
           docker exec supabase_db_radar-pdde psql -X -q -U postgres -d postgres -v ON_ERROR_STOP=1 -c 'create extension if not exists pg_stat_statements'
           docker exec -i supabase_db_radar-pdde psql -X -qAt -U postgres -d postgres -v ON_ERROR_STOP=1 < scripts/operational-stat-snapshot.sql > "$RUNNER_TEMP/operational-pg-stat-before.json"
-      - name: Executar gestos concorrentes e medir a cadeia completa
+      - name: Executar stress histórico e medir a cadeia completa
         run: npx playwright test tests/e2e/operational-sustained-sessions.spec.js --project=desktop-chromium --workers=1 --retries=0
       - name: Preservar delta SQL e separar aborts de execução no banco
         if: ${{ always() && steps.sql-baseline.outcome == 'success' }}
@@ -139,8 +139,8 @@ jobs:
           mkdir -p test-results/operational-sustained
           cp "$RUNNER_TEMP/operational-pg-stat-before.json" test-results/operational-sustained/pg-stat-before.json
           docker exec -i supabase_db_radar-pdde psql -X -qAt -U postgres -d postgres -v ON_ERROR_STOP=1 < scripts/operational-stat-snapshot.sql > test-results/operational-sustained/pg-stat-after.json
-      - name: Isolar atualização de outra escola e navegação sem reload
-        # Executar após o snapshot SQL mantém a comparação longa inalterada.
+      - name: Provar relevância entre escolas, pico realista e colaboração Controlador-Assistente
+        # Executar após o snapshot SQL mantém a comparação longa histórica inalterada.
         run: npx playwright test tests/e2e/operational-cross-school-refresh.spec.js --project=desktop-chromium --workers=1 --retries=0 --output=test-results/cross-school-browser
       - name: Preservar resultados mesmo se a jornada falhar
         if: always()
