@@ -17,6 +17,7 @@ async function session(t) {
     const renders = [];
     let canonical = 1;
     let projected = 0;
+    let nextRead = async () => {};
     Object.assign(root, {
         CustomEvent,
         setTimeout: (...args) => setTimeout(...args),
@@ -44,9 +45,13 @@ async function session(t) {
     navigation.applyPendingRoute(root);
     const controller = context.createController(root, {
         async loadOperationalContext(_key, options) {
-            reads.push(canonical);
+            const snapshot = canonical;
+            reads.push(snapshot);
+            const wait = nextRead;
+            nextRead = async () => {};
+            await wait();
             if (!options.shouldApply()) return { stale: true };
-            projected = canonical;
+            projected = snapshot;
             return { stale: false };
         }
     });
@@ -61,7 +66,13 @@ async function session(t) {
     await sync.start();
     onStatus('SUBSCRIBED');
     return {
-        root, reads, renders, sync,
+        root, reads, renders, sync, controller,
+        holdRead() {
+            let release;
+            nextRead = () => new Promise(resolve => { release = resolve; });
+            return () => release();
+        },
+        failRead() { nextRead = async () => { throw new Error("induced timeout"); }; },
         change(school) { canonical += 1; onBroadcast({ payload: { entity: 'verifications', schoolId: school } }); },
         navigate(view, school) { root.switchView(view, school); },
         async advance(ms = 2000) { t.mock.timers.tick(ms); await settle(); }
@@ -85,3 +96,53 @@ for (const route of [{ view: 'prontuario', school: 'SCHOOL-B' }, { view: 'dashbo
         await tab.sync.stop();
     });
 }
+
+
+test('geração recebida durante leitura de A sobrevive para reconciliação posterior de B', async t => {
+    const tab = await session(t);
+    const release = tab.holdRead();
+    tab.change('SCHOOL-A');
+    await tab.advance();
+    tab.change('SCHOOL-B');
+    release();
+    await settle();
+    assert.deepEqual(tab.sync.getMetrics().dirtySchoolIds, ['SCHOOL-B']);
+    tab.navigate('prontuario', 'SCHOOL-B');
+    await tab.advance();
+    assert.deepEqual(tab.reads, [2, 3]);
+    assert.equal(tab.renders.at(-1).projected, 3);
+    await tab.sync.stop();
+});
+
+test('navegação durante edição adia aplicação e o controlador do #408 drena a pendência', async t => {
+    const tab = await session(t);
+    tab.change('SCHOOL-B');
+    tab.root.document.activeElement = { matches: () => true };
+    tab.navigate('prontuario', 'SCHOOL-B');
+    await tab.advance();
+    assert.equal(tab.reads.length, 0);
+    assert.equal(tab.controller.hasPendingRefresh(), true);
+    tab.root.document.activeElement = null;
+    await tab.controller.flushPending('editing-ended');
+    await tab.advance(31000);
+    assert.deepEqual(tab.reads, [2]);
+    assert.equal(tab.renders.at(-1).projected, 2);
+    assert.equal(tab.controller.hasPendingRefresh(), false);
+    await tab.sync.stop();
+});
+
+test('falha na reconciliação de navegação preserva a alteração e recupera sem outro gesto', async t => {
+    const tab = await session(t);
+    tab.change('SCHOOL-B');
+    tab.failRead();
+    tab.navigate('dashboard');
+    await tab.advance();
+    assert.deepEqual(tab.sync.getMetrics().dirtySchoolIds, ['SCHOOL-B']);
+    await tab.advance();
+    assert.deepEqual(tab.reads, [2, 2]);
+    assert.equal(tab.renders.at(-1).projected, 2);
+    await tab.advance(31000);
+    assert.equal(tab.reads.length, 2);
+    assert.deepEqual(tab.sync.getMetrics().dirtySchoolIds, []);
+    await tab.sync.stop();
+});

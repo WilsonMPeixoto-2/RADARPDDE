@@ -7,6 +7,10 @@ on:
     paths:
       - 'src/application/data-service.js'
       - 'src/integration/operational-realtime-invalidation.js'
+      - 'src/integration/navigation-history.js'
+      - 'supabase/migrations/**'
+      - 'supabase/tests/database/realtime-operational-invalidation.test.sql'
+      - 'tests/unit/operational-school*.test.js'
       - 'src/integration/operational-write-feedback.js'
       - 'src/integration/product-extensions-bootstrap.js'
       - 'src/styles/operational-write-feedback.css'
@@ -55,7 +59,9 @@ jobs:
           node --check tests/e2e/supabase-realtime-invalidation.spec.js
 
       - name: Provar contratos específicos da correção
-        run: npm run test:sync-hardening
+        run: |
+          npm run test:sync-hardening
+          node --test tests/unit/operational-school*.test.js tests/unit/navigation-history.test.js tests/unit/operational-resume-completion.test.js
 
   realtime-composition:
     name: Duas sessões, Realtime real e degradação visível
@@ -126,6 +132,16 @@ jobs:
           --workers=1
           --max-failures=1
           --timeout=90000
+
+      - name: Publicar evidências da sincronização
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: sync-hardening-${{ github.run_id }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
 
       - name: Restaurar configuração e encerrar Supabase
         if: always()

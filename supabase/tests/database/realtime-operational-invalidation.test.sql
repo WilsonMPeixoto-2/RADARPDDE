@@ -3,7 +3,7 @@ set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(14);
+select plan(20);
 
 select ok(
     to_regprocedure('radar_private.broadcast_operational_invalidation()') is not null,
@@ -88,6 +88,54 @@ select has_trigger('public', 'pendency_contacts', 'pendency_contacts_operational
     'contatos invalidam outras sessões');
 select has_trigger('public', 'assets', 'assets_operational_invalidation',
     'bens invalidam outras sessões');
+
+-- Execute a função real e o realtime.send real, sem substituir funções do
+-- schema gerenciado. Tudo, inclusive mensagens, é revertido no final do pgTAP.
+create temporary table pr409_relevance_rows (school_id text, business_detail text);
+create trigger pr409_relevance_test after insert or update or delete on pr409_relevance_rows
+for each row execute function radar_private.broadcast_operational_invalidation();
+insert into pr409_relevance_rows values ('PR409-SCHOOL', 'nao-transmitir');
+update pr409_relevance_rows set business_detail = 'alterado';
+delete from pr409_relevance_rows;
+
+select ok(exists (select 1 from realtime.messages where topic = 'radar:operational'
+    and event = 'operational-change' and private and payload @>
+    '{"entity":"pr409_relevance_rows","operation":"insert","schoolId":"PR409-SCHOOL"}'::jsonb),
+    'INSERT emite escola no Broadcast privado real');
+select ok(exists (select 1 from realtime.messages where payload @>
+    '{"entity":"pr409_relevance_rows","operation":"update","schoolId":"PR409-SCHOOL"}'::jsonb),
+    'UPDATE emite escola no Broadcast real');
+select ok(exists (select 1 from realtime.messages where payload @>
+    '{"entity":"pr409_relevance_rows","operation":"delete","schoolId":"PR409-SCHOOL"}'::jsonb),
+    'DELETE usa OLD e preserva escola no Broadcast real');
+select ok(not exists (select 1 from realtime.messages where payload->>'entity' = 'pr409_relevance_rows'
+    and (payload ? 'business_detail' or payload::text like '%nao-transmitir%')),
+    'metadado de relevância não transporta o registro de negócio');
+
+insert into public.competences(id,label,exercise) values ('2026-11','Novembro',2026) on conflict(id) do nothing;
+insert into public.programs(id,name) values ('PR409_TEST','Programa teste relevância');
+insert into public.schools(id,designation,denomination,cre,initial_competence)
+values ('PR409-SCHOOL','04.99.409','Escola teste relevância','4ª CRE','2026-11');
+insert into public.pendencies(id,school_id,competence_origin,program_id,document_key,status,
+    responsible_area,next_actor,reason,notes,payload)
+values ('pr409-pendency','PR409-SCHOOL','2026-11','PR409_TEST','extCC','Aberta',
+    'GAD','Escola','Teste relevância','','{}'::jsonb);
+-- A tabela temporária isola o contrato do trigger da criação de tentativa pela
+-- RPC. O lookup deve continuar usando public.pendencies, nunca o search_path.
+create temporary table pendency_attempts (pendency_id text);
+create trigger pr409_attempt_test after insert on pg_temp.pendency_attempts
+for each row execute function radar_private.broadcast_operational_invalidation();
+insert into pg_temp.pendency_attempts values ('pr409-pendency');
+select ok(exists (select 1 from realtime.messages where payload @>
+    '{"entity":"pendency_attempts","operation":"insert","schoolId":"PR409-SCHOOL"}'::jsonb),
+    'tentativa sem school_id deriva escola da Pendência canônica');
+create temporary table pr409_unknown_before as select count(*) as n from realtime.messages
+where payload @> '{"entity":"pendency_attempts","operation":"insert"}'::jsonb and not payload ? 'schoolId';
+insert into pg_temp.pendency_attempts values ('pr409-parent-already-deleted');
+select is((select count(*) from realtime.messages where payload @>
+    '{"entity":"pendency_attempts","operation":"insert"}'::jsonb and not payload ? 'schoolId'),
+    (select n + 1 from pr409_unknown_before),
+    'pai ausente emite invalidação global conservadora, sem escola inventada');
 
 select * from finish();
 rollback;

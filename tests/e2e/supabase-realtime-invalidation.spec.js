@@ -404,3 +404,72 @@ test('degradação Realtime fica visível, não bloqueia interação e desaparec
   await expect(status).toBeHidden();
   await expect(status).toHaveAttribute('data-radar-realtime-status', 'subscribed');
 });
+
+test('escola alheia não reconstrói Prontuário; navegação e mesma escola convergem com Broadcast real', async ({ browser }, testInfo) => {
+  const contextA = await browser.newContext();
+  const contextB = await browser.newContext();
+  const pageA = await contextA.newPage();
+  const pageB = await contextB.newPage();
+  let reads = 0;
+  try {
+    await signInInstitutional(pageA);
+    await openSchool(pageA);
+    await signInInstitutional(pageB, 'federal_assistant');
+    await pageB.goto('/escolas/ESC-OTHER');
+    await pageB.waitForFunction(() => window.RadarDataContext?.ready === true);
+    await Promise.all([waitRealtimeSubscribed(pageA), waitRealtimeSubscribed(pageB)]);
+    await pageB.evaluate(() => {
+      window.__schoolRelevanceRows = document.querySelector('#prontuario-verif-rows');
+      window.__schoolRelevancePayloads = [];
+      window.RadarOperationalRealtimeInvalidationController.getChannel()
+        .on('broadcast', { event: 'operational-change' }, message => {
+          window.__schoolRelevancePayloads.push(message.payload);
+        });
+    });
+    pageB.on('request', request => {
+      if (request.method() === 'POST' && request.url().includes('/rpc/read_operational_context')) reads += 1;
+    });
+    const original = await currentExtCC(pageA);
+    const changed = original === 'Sim' ? 'Não' : 'Sim';
+    await extCCRow(pageA).getByRole('button', { name: changed, exact: true }).click();
+    await pageA.evaluate(() => window.RadarApplicationServices.data.remoteExecutionTail);
+    await expect.poll(() => pageB.evaluate(() => window.__schoolRelevancePayloads.some(payload => (
+      payload.entity === 'verifications' && payload.schoolId === 'ESC-LOCAL'
+    )))).toBe(true);
+    // Observar também depois da janela real de Broadcast: ausência de request
+    // imediatamente após a escrita seria uma prova vazia do debounce.
+    await pageB.evaluate(() => new Promise(resolve => setTimeout(resolve, 2500)));
+    expect(reads).toBe(0);
+    expect(await pageB.evaluate(() => document.querySelector('#prontuario-verif-rows') === window.__schoolRelevanceRows)).toBe(true);
+    expect(await pageB.evaluate(() => window.RadarOperationalRealtimeInvalidationController.getMetrics().dirtySchoolIds))
+      .toContain('ESC-LOCAL');
+
+    await pageB.locator('#nav-dashboard').click();
+    await expect.poll(() => currentExtCC(pageB)).toBe(changed);
+    await pageB.evaluate(() => new Promise(resolve => setTimeout(resolve, 2500)));
+    expect(reads).toBe(1, 'uma navegação exige uma leitura; a renderização não agenda uma segunda');
+    await pageB.locator('#nav-escolas').click();
+    await pageB.getByRole('row').filter({ hasText: 'Escola Local Autorizada' })
+      .getByRole('link', { name: 'Ver Unidade', exact: true }).click();
+    await expectVisibleExtCC(pageB, changed);
+
+    await extCCRow(pageA).getByRole('button', { name: original || 'N/A', exact: true }).click();
+    await pageA.evaluate(() => window.RadarApplicationServices.data.remoteExecutionTail);
+    await expect.poll(() => currentExtCC(pageB)).toBe(original || 'N/A');
+    await expectVisibleExtCC(pageB, original || 'N/A');
+    const beforeReload = reads;
+    await pageB.reload();
+    await expect.poll(() => currentExtCC(pageB)).toBe(original || 'N/A');
+    await expectVisibleExtCC(pageB, original || 'N/A');
+    await testInfo.attach('school-relevance.json', {
+      body: Buffer.from(JSON.stringify({ crossSchoolReads: 0, navigationReads: 1, beforeReload }, null, 2)),
+      contentType: 'application/json'
+    });
+    await testInfo.attach('school-relevance-converged', {
+      body: await extCCRow(pageB).screenshot({ animations: 'disabled' }), contentType: 'image/png'
+    });
+  } finally {
+    await contextA.close();
+    await contextB.close();
+  }
+});
