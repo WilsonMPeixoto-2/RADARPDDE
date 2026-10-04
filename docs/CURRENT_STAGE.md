@@ -11,7 +11,8 @@ O handoff corrente é [início do #410](handoff/2026-10-04-pr410-start.md). O [p
 
 O incremento de rota `d4a37d79...` concluiu 16 workflows verdes. A [caracterização
 das seis coleções](evidence/2026-10-04-pr410-school-scope/README.md) avançou com
-35 pgTAP locais, metadados/contagens somente de leitura em Production e mapa de
+35 pgTAP locais e na pilha Supabase real (run `37200758428`, 566 pgTAP totais),
+metadados/contagens somente de leitura em Production e mapa de
 históricos, exclusões e projeções. Há contraprova de FK entre escolas permitida
 pelo schema; não truncar esse vínculo na RPC futura. Contatos gerais têm cobertura
 própria. Próximo passo: envelope e RPC escolar com recuperação explícita, RLS,

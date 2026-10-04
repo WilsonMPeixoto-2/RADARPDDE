@@ -78,6 +78,8 @@ para o histórico inteiro de contatos. O carregamento específico da aba permane
 Contadores/Timeline também consomem `contatos` em memória. Esta caracterização
 não certifica que todos representam o histórico completo: é preciso manter
 explícita a cobertura atual e testar as superfícies quando a aplicação mudar.
+Incluir a jornada de alteração remota de contato geral com a aba Contatos já
+aberta: aplicar as seis coleções não substitui a atualização dessa consulta própria.
 
 ## Fronteira escolar: evidência favorável e contraprova
 
@@ -121,6 +123,7 @@ desta etapa, sem evidência de falha atual em Production.
 | Pendências/drawer | `task-9-pendencias-page.getPageModel`, pais/filhos/contatos e históricos | fila transversal; abertura de histórico amplia H |
 | Inventário/Capital | índices `_bensByEscolaId` e vínculos com NFs/avaliações | histórico ativo e irmãos terminais continuam relevantes |
 | Timeline | `school-timeline.timelineInput`: avaliações, Pendências, contatos, NFs, bens e logs | logs/contatos específicos não viram completos pela RPC das seis coleções |
+| Alertas | `task-10-alerts-competence.getLatestContact` e ações/antiguidade das Pendências ativas | manter contato ligado/status da fila corretos; não limitar à unidade visível |
 | Exportação de Pendências | carrega contexto com H=`Resolvida,Cancelada` antes de exportar | tratar ampliação de H como contexto novo; não misturar resposta antiga |
 | Próxima unidade | lista estrutural de escolas; rota canônica corrigida em d4a37d79 | decidir nova sincronização pela rota; globais só compatibilidade |
 
@@ -165,12 +168,22 @@ como no smoke genérico do projeto.
 
 Auth e jsonschema usam o bootstrap simplificado desse smoke. São testes reais de
 SQL/FKs/RLS/RPC, não prova do gateway HTTP, JWT emitido por Auth, Broadcast,
-pg_jsonschema nativo, multiusuário ou performance. A execução em Supabase
-descartável continua sendo o gate apropriado e deve ser conferida no novo SHA.
+pg_jsonschema nativo, multiusuário ou performance.
+
+**Prova posterior em Supabase real descartável:** run
+[37200758428](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37200758428),
+checkout `1d13b02c1455be7fae8628f6b40df67c70713f1c`, três jobs concluídos com
+sucesso. O job Supabase executou **38 arquivos/566 verificações pgTAP**, incluindo
+as 35 desta suíte. Auth, RLS, extensions/migrations nativas, frontend e primeira
+despesa em duas sessões também passaram nesse gate existente. IDs, trecho de log,
+hashes e limites estão em [supabase-ci.json](supabase-ci.json). Isso certifica a
+caracterização do contrato vigente; RPC escolar e jornada sustentada não existem
+nesta etapa. Os nove controles unitários relacionados também passaram.
 
 Não foi alterado código do produto, schema ou configuração de Production.
 Não foi criado ambiente pago. Não há ganho de performance novo para relatar.
-A CI do incremento d4a37d79 está concluída; não confundir com a CI deste checkpoint.
+A CI do incremento d4a37d79 está concluída. A CI do checkpoint 1d13b02c é uma
+execução separada; conferir [registro por SHA](checkpoint-ci.json).
 
 ## Próximo passo e fronteira
 
