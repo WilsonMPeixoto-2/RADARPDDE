@@ -133,14 +133,20 @@ test('cinco sessões reais medem escrita, observação, edição e falha durante
     await expect.poll(() => pages[4].evaluate(() =>
       window.RadarOperationalContextRefreshController.hasPendingRefresh()), { timeout: 20000 }).toBe(true);
     await expect(focused).toBeFocused();
+    // O erro induzido deve ocorrer em uma atualização que continua relevante no
+    // novo modelo: escritor e observador estão na mesma escola. Uma alteração em
+    // outra escola é deliberadamente adiada pelo candidato e não serve mais como
+    // gatilho válido para testar recuperação de falha.
+    await expect(row(pages[3]).getByRole('button', { name: 'Sim', exact: true }))
+      .toHaveClass(/active-sim/, { timeout: 60000 });
     await focused.blur();
     faults.readLatencyMs = 1000;
     faults.failObserverRead = true;
-    await setDelivery(pages[2], 'Sim');
-    gestures[2] += 1;
+    await setDelivery(pages[0], 'Não');
+    gestures[0] += 1;
     await expect.poll(() => faults.failuresInjected, { timeout: 20000 }).toBe(1);
-    await expect(row(pages[3]).getByRole('button', { name: 'Sim', exact: true }))
-      .toHaveClass(/active-sim/, { timeout: 60000 });
+    await expect(row(pages[3]).getByRole('button', { name: 'Não', exact: true }))
+      .toHaveClass(/active-nao/, { timeout: 60000 });
     faults.readLatencyMs = 2000;
     await pages[3].bringToFront();
     await pages[0].bringToFront();
