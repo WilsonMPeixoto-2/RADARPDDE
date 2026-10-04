@@ -686,6 +686,13 @@
                         persistence.invoiceId,
                         'registerInvoiceDocumentAttempt'
                     );
+                    if (isUnidentifiedExpense(invoice) !== Boolean(identification)) {
+                        fail(
+                            'OPTIMISTIC_CONFLICT',
+                            'A nota foi alterada por outra operação em andamento. Recarregue antes de registrar o novo envio.',
+                            'registerInvoiceDocumentAttempt'
+                        );
+                    }
                     const { verification } = this.verificationFor(
                         state,
                         pendency,

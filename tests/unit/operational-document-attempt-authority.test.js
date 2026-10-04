@@ -7,8 +7,6 @@ const { createStatePort } = require('../../src/application/state-port.js');
 const { PendencyService } = require('../../src/application/pendency-service.js');
 const pendencyDomain = require('../../src/domain/pendencias.js');
 
-// Real services, UnitOfWork, StatePort and canonical bridge. Only Auth/SQL/clock
-// are controlled at the boundary; the RPC shape matches register_invoice_document_attempt.
 function createHarness({ type = 'consumo', priorAsset = false, omitVerification = false } = {}) {
     const schoolId = 'ESC-DOCUMENT-ATTEMPT';
     const competence = '2026-05';
@@ -143,7 +141,7 @@ function assertImmediateState(harness, result) {
     assert.equal(result.stateSync.status, 'applied');
     assert.equal(result.stateSync.remoteCommitConfirmed, true);
     assert.equal(invoice.analiseDocumentoFiscal, 'Não analisado');
-    assert.equal(invoice.rowVersion, 3, 'Apply actual RPC result, not just optimistic mutation');
+    assert.equal(invoice.rowVersion, 3);
     assert.equal(pendency.status, 'Aguardando reanálise');
     assert.equal(pendency.rowVersion, 4);
     assert.equal(pendency.tentativas.length, 1);
@@ -162,7 +160,7 @@ test('novo envio de NF de consumo aplica retorno e derivados sem baixar contexto
     assert.equal(invoice.tipo, 'consumo');
     assert.equal(state.assets.length, 0);
     assert.equal(harness.calls.rpc[0].p_asset, null);
-    assert.equal(harness.calls.context.length, 0, 'No asset changed; complete authoritative result must suffice');
+    assert.equal(harness.calls.context.length, 0);
 });
 
 test('identificação como serviço aplica Assessoria derivada imediatamente sem contexto completo', async () => {
@@ -175,7 +173,7 @@ test('identificação como serviço aplica Assessoria derivada imediatamente sem
     assert.equal(verification.bonificacao.consAssessoria, 'Não');
     assert.equal(verification.analise.consAssessoria, 'Não analisado');
     assert.equal(state.assets.length, 0);
-    assert.equal(harness.calls.context.length, 0, 'Service identification creates no asset');
+    assert.equal(harness.calls.context.length, 0);
 });
 
 test('identificação como permanente aplica patrimônio retornado e resumo sem perder sincronização', async () => {
@@ -190,7 +188,7 @@ test('identificação como permanente aplica patrimônio retornado e resumo sem 
     assert.equal(verification.bonificacao.encampInventario, 'Não');
     assert.equal(verification.analise.encampInventario, 'Não analisado');
     assert.equal(harness.calls.rpc[0].p_asset.id, state.assets[0].id);
-    assert.equal(harness.calls.context.length, 0, 'Created asset is included in authoritative RPC return');
+    assert.equal(harness.calls.context.length, 0);
 });
 
 test('rejeição remota de identificação com patrimônio anterior restaura estado e vínculo', async () => {
@@ -207,12 +205,12 @@ test('novo envio de NF permanente identificada preserva bem sem reler contexto',
     assert.equal(invoice.bemId, 'prior-asset');
     assert.deepEqual(state.assets, harness.before.assets);
     assert.equal(harness.calls.rpc[0].p_asset, null);
-    assert.equal(harness.calls.context.length, 0, 'Existing permanent document resend mutates no asset');
+    assert.equal(harness.calls.context.length, 0);
 });
 
 test('retorno incompleto continua exigindo reconciliação canônica imediata', async () => {
     const harness = createHarness({ omitVerification: true });
     const result = await submit(harness);
     assertImmediateState(harness, result);
-    assert.equal(harness.calls.context.length, 1, 'Missing changed verification must still be read safely');
+    assert.equal(harness.calls.context.length, 1);
 });

@@ -55,58 +55,8 @@
         return Boolean(root.RadarAuthContext);
     }
 
-    const FOCUS_CONTROLS = 'button, a[href], [role="button"], [role="tab"]';
-    const FOCUS_ROWS = '[data-invoice-id], [data-pendency-ref], [data-program-id][data-document-key]';
-
-    function focusAttributes(element, names) {
-        return names.filter(name => element?.hasAttribute?.(name))
-            .map(name => [name, element.getAttribute(name)]);
-    }
-
-    function captureViewFocus(root) {
-        const element = root.document?.activeElement;
-        const main = root.document?.getElementById?.('main-container');
-        if (!main?.contains?.(element) || !element?.matches?.(FOCUS_CONTROLS)) return null;
-        const snapshot = { element, tag: element.tagName, id: element.id };
-        if (snapshot.id) return snapshot;
-        snapshot.row = focusAttributes(element.closest(FOCUS_ROWS), [
-            'data-invoice-id', 'data-pendency-ref', 'data-program-id', 'data-document-key'
-        ]);
-        snapshot.action = focusAttributes(element, ['data-action', 'onclick', 'href', 'aria-controls']);
-        return snapshot.row.length && snapshot.action.length ? snapshot : null;
-    }
-
-    function restoreViewFocus(root, snapshot) {
-        if (!snapshot || snapshot.element.isConnected) return;
-        const document = root.document;
-        const current = document.activeElement;
-        // Um renderer que moveu foco deliberadamente tem precedência sobre o
-        // fallback. Só restauramos o foco perdido pela substituição do DOM.
-        if (current && current !== document.body && current !== document.documentElement) return;
-        const matchesAttributes = (element, attributes) => attributes.every(([name, value]) => (
-            element?.getAttribute(name) === value
-        ));
-        const main = document.getElementById('main-container');
-        const matches = Array.from(main?.querySelectorAll(FOCUS_CONTROLS) || []).filter(element => {
-            if (element.tagName !== snapshot.tag) return false;
-            if (snapshot.id) return element.id === snapshot.id;
-            return matchesAttributes(element, snapshot.action)
-                && matchesAttributes(element.closest(FOCUS_ROWS), snapshot.row);
-        });
-        if (matches.length !== 1) return;
-        const target = matches[0];
-        if (target.matches(':disabled') || target.getAttribute('aria-disabled') === 'true'
-            || hiddenByState(target) || !target.getClientRects().length) return;
-        const style = root.getComputedStyle?.(target);
-        if (style?.display === 'none' || ['hidden', 'collapse'].includes(style?.visibility)) return;
-        target.focus({ preventScroll: true });
-    }
-
     function refreshCurrentView(root) {
         const scrollSnapshot = root.RadarProntuarioScrollPreservation?.capture?.(root) || null;
-        // Capturar depois da leitura respeita qualquer movimento de foco que o
-        // operador tenha feito enquanto aguardava a resposta.
-        const focusSnapshot = captureViewFocus(root);
         try {
             if (typeof root.RadarGlobalCompetenceSelector?.refreshCurrentView === 'function') {
                 root.RadarGlobalCompetenceSelector.refreshCurrentView();
@@ -119,7 +69,6 @@
             root.switchView(view, schoolId || undefined);
             return true;
         } finally {
-            restoreViewFocus(root, focusSnapshot);
             root.RadarProntuarioScrollPreservation?.restore?.(root, scrollSnapshot);
         }
     }
@@ -173,42 +122,34 @@
         let refreshPromise = null;
         let pendingRefreshReason = '';
         let pendingRefreshCanForce = false;
-        const metrics = {
-            requests: 0,
-            attempts: 0,
-            succeeded: 0,
-            failed: 0,
-            stale: 0,
-            rerenders: 0,
-            pendingMarked: 0,
-            pendingFlushed: 0,
-            lastDurationMs: 0,
-            lastReason: '',
-            lastRequestAt: null,
-            lastAttemptAt: null,
-            byReason: Object.create(null),
-            skipped: Object.create(null)
-        };
+        let cooldownTimer = null;
 
-        function increment(map, key) {
-            const normalized = text(key) || 'unknown';
-            map[normalized] = (map[normalized] || 0) + 1;
+        function remainingCooldownMs() {
+            const cooldownAnchor = Math.max(lastRefreshAt, lastAttemptAt);
+            if (cooldownAnchor <= 0) return 0;
+            return Math.max(0, minIntervalMs - (Date.now() - cooldownAnchor));
         }
 
-        function metricsSnapshot() {
-            return Object.freeze({
-                ...metrics,
-                byReason: Object.freeze({ ...metrics.byReason }),
-                skipped: Object.freeze({ ...metrics.skipped })
-            });
-        }
-
-        function recordSkipped(reason) {
-            increment(metrics.skipped, reason);
+        function scheduleCooldownFlush(delayMs) {
+            if (cooldownTimer != null || typeof root.setTimeout !== 'function') return;
+            cooldownTimer = root.setTimeout(() => {
+                cooldownTimer = null;
+                // O timer pode expirar enquanto um retry já está em voo. Nesse
+                // caso a leitura atual consome a pendência anterior; se ela terminar
+                // stale/falhar e recriar a pendência, reagendamos uma única drenagem.
+                if (refreshPromise) {
+                    const currentRefresh = refreshPromise;
+                    void currentRefresh.finally(() => {
+                        if (!pendingRefreshReason || cooldownTimer != null) return;
+                        scheduleCooldownFlush(remainingCooldownMs());
+                    });
+                    return;
+                }
+                void flushPending('cooldown-expired');
+            }, Math.max(0, Number(delayMs) || 0) + 50);
         }
 
         function markPending(reason, { canForce = false } = {}) {
-            metrics.pendingMarked += 1;
             pendingRefreshReason = text(reason) || pendingRefreshReason || 'editing';
             // Uma invalidação nova adiada por edição/leitura pode exigir drenagem
             // imediata. Recuperar uma leitura abortada não cria outra invalidação.
@@ -217,38 +158,34 @@
         }
 
         async function refresh(reason = 'resume', refreshOptions = {}) {
-            reason = text(reason) || 'resume';
-            metrics.requests += 1;
-            metrics.lastReason = reason;
-            metrics.lastRequestAt = new Date().toISOString();
-            increment(metrics.byReason, reason);
-
             if (refreshPromise) {
-                recordSkipped('inflight');
-                // Foco/visibilidade apenas retomam a leitura em andamento. Não
-                // anunciam alteração canônica posterior que exija nova consulta.
-                if (refreshOptions.force !== true) return refreshPromise;
-                markPending(reason, { canForce: refreshOptions.force === true });
+                // Eventos repetidos do mesmo ciclo apenas retomam a leitura em
+                // andamento. Um ciclo real hidden→visible ou blur→focus, porém,
+                // pode ter perdido alterações posteriores ao snapshot já capturado.
+                const queueAfterInflight = refreshOptions.force === true
+                    || refreshOptions.resumeAfterHidden === true
+                    || refreshOptions.resumeAfterBlur === true;
+                if (!queueAfterInflight) return refreshPromise;
+                markPending(reason, { canForce: true });
                 const currentRefresh = refreshPromise;
                 return currentRefresh.then(result => flushPending('inflight-finished', {
                     force: result?.ok !== false && result?.stale !== true
                 }));
             }
             if (!authenticated(root)) {
-                recordSkipped('unauthenticated');
                 pendingRefreshReason = '';
                 pendingRefreshCanForce = false;
                 return { skipped: true, reason: 'unauthenticated' };
             }
             if (editing(root)) {
-                recordSkipped('editing');
                 markPending(reason, { canForce: /^realtime(?:-|$)/.test(reason)
-                    || refreshOptions.force === true });
+                    || refreshOptions.force === true
+                    || refreshOptions.resumeAfterHidden === true
+                    || refreshOptions.resumeAfterBlur === true });
                 return { skipped: true, reason: 'editing', pending: true };
             }
             const competenceKey = activeCompetence(root);
             if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(competenceKey)) {
-                recordSkipped('invalid-competence');
                 return { skipped: true, reason: 'invalid-competence' };
             }
             const now = Date.now();
@@ -258,21 +195,28 @@
                 && cooldownAnchor > 0
                 && (now - cooldownAnchor) < minIntervalMs
             ) {
-                recordSkipped('throttled');
+                const retryAfterMs = Math.max(0, minIntervalMs - (now - cooldownAnchor));
+                // O segundo sinal de uma retomada pode chegar após a resposta do
+                // primeiro. Uma oportunidade sem pendência nem nova suspensão
+                // não cria trabalho futuro sobre o contexto que já está atual.
+                if (!pendingRefreshReason
+                    && refreshOptions.resumeAfterHidden !== true
+                    && refreshOptions.resumeAfterBlur !== true) {
+                    return { skipped: true, reason: 'throttled', pending: false, retryAfterMs };
+                }
                 markPending(reason);
+                scheduleCooldownFlush(retryAfterMs);
                 return {
                     skipped: true,
                     reason: 'throttled',
                     pending: true,
-                    retryAfterMs: Math.max(0, minIntervalMs - (now - cooldownAnchor))
+                    retryAfterMs
                 };
             }
 
             // Registra a tentativa, inclusive quando a RPC falhar. Assim uma falha
             // de infraestrutura não transforma cliques/focusout em loop de retry.
             lastAttemptAt = now;
-            metrics.attempts += 1;
-            metrics.lastAttemptAt = new Date(now).toISOString();
 
             // Este refresh consome qualquer pendência já conhecida. Invalidações
             // que chegarem depois deste ponto voltam a preencher pendingRefreshReason
@@ -290,45 +234,36 @@
                         && activeCompetence(root) === competenceKey
                 });
                 if (result?.stale === true) {
-                    metrics.stale += 1;
-                    metrics.lastDurationMs = Math.max(0, Date.now() - startedAt);
                     if (authenticated(root) && activeCompetence(root) === competenceKey) {
                         markPending(reason);
+                        // O Realtime possui somente um retry imediato. Se esse retry
+                        // também ficar stale, deixamos uma única reconciliação futura
+                        // já agendada para não depender de outro gesto/Broadcast.
+                        if (reason === 'realtime-retry') {
+                            scheduleCooldownFlush(remainingCooldownMs());
+                        }
                     }
                     return result;
                 }
-                if (!authenticated(root)) {
-                    metrics.stale += 1;
-                    metrics.lastDurationMs = Math.max(0, Date.now() - startedAt);
-                    return { ...result, stale: true };
-                }
+                if (!authenticated(root)) return { ...result, stale: true };
                 if (editing(root)) {
-                    metrics.stale += 1;
-                    metrics.lastDurationMs = Math.max(0, Date.now() - startedAt);
                     markPending(reason);
                     return { ...result, stale: true, pending: true };
                 }
-                if (activeCompetence(root) !== competenceKey) {
-                    metrics.stale += 1;
-                    metrics.lastDurationMs = Math.max(0, Date.now() - startedAt);
-                    return { ...result, stale: true };
-                }
+                if (activeCompetence(root) !== competenceKey) return { ...result, stale: true };
 
                 // Uma leitura aplicada com sucesso encerra qualquer cooldown de falha
                 // anterior. O throttle normal de foco/visibilidade continua ancorado
                 // em lastRefreshAt/lastAttemptAt.
                 lastFailureAt = 0;
                 refreshCurrentView(root);
-                metrics.rerenders += 1;
-                metrics.succeeded += 1;
                 lastRefreshAt = Date.now();
-                metrics.lastDurationMs = Math.max(0, lastRefreshAt - startedAt);
                 if (typeof root.dispatchEvent === 'function' && typeof root.CustomEvent === 'function') {
                     root.dispatchEvent(new root.CustomEvent('radar:operational-context-refreshed', {
                         detail: {
                             competenceKey,
                             source: `session-${reason}-refresh`,
-                            durationMs: metrics.lastDurationMs,
+                            durationMs: Math.max(0, lastRefreshAt - startedAt),
                             refreshedAt: new Date(lastRefreshAt).toISOString()
                         }
                     }));
@@ -336,9 +271,10 @@
                 return result;
             }).catch(error => {
                 lastFailureAt = Date.now();
-                metrics.failed += 1;
-                metrics.lastDurationMs = Math.max(0, lastFailureAt - startedAt);
                 markPending(reason);
+                if (reason === 'realtime-retry') {
+                    scheduleCooldownFlush(remainingCooldownMs());
+                }
                 root.console?.warn?.('Não foi possível atualizar o contexto operacional ao retomar a sessão.', error);
                 return { ok: false, error, pending: true };
             }).finally(() => {
@@ -362,9 +298,8 @@
 
             const pendingReason = pendingRefreshReason;
             const pendingCanForce = pendingRefreshCanForce;
-            pendingRefreshReason = '';
-            pendingRefreshCanForce = false;
-            metrics.pendingFlushed += 1;
+            // A pendência só é consumida quando refresh inicia a leitura. Mantê-la
+            // até lá distingue recuperação necessária de mera oportunidade de foco.
             const now = Date.now();
             const failureCooldownActive = lastFailureAt > 0 && (now - lastFailureAt) < minIntervalMs;
 
@@ -390,8 +325,7 @@
             hasPendingRefresh: () => Boolean(pendingRefreshReason),
             getLastRefreshAt: () => lastRefreshAt,
             getLastAttemptAt: () => lastAttemptAt,
-            getLastFailureAt: () => lastFailureAt,
-            getMetrics: metricsSnapshot
+            getLastFailureAt: () => lastFailureAt
         });
     }
 
@@ -413,6 +347,8 @@
 
         const controller = createController(root, service);
         root.RadarOperationalContextRefreshController = controller;
+        let hiddenSinceVisible = root.document.visibilityState === 'hidden';
+        let blurredSinceFocus = false;
 
         const flushPending = reason => {
             if (!controller.hasPendingRefresh()) return;
@@ -424,12 +360,32 @@
             }, 0);
         };
 
+        root.addEventListener?.('blur', () => {
+            blurredSinceFocus = true;
+        });
         root.addEventListener?.('focus', () => {
-            void controller.refresh('focus');
+            const resumeAfterBlur = blurredSinceFocus;
+            blurredSinceFocus = false;
+            // Alguns navegadores entregam focus antes de visibilitychange ao
+            // retornar à mesma aba. Se ambos os sinais pertencem ao mesmo afastamento,
+            // o primeiro a chegar assume a única reconciliação desse ciclo.
+            if (resumeAfterBlur && hiddenSinceVisible && root.document.visibilityState === 'visible') {
+                hiddenSinceVisible = false;
+            }
+            void controller.refresh('focus', { resumeAfterBlur });
         });
         root.document.addEventListener?.('visibilitychange', () => {
-            if (root.document.visibilityState !== 'visible') return;
-            void controller.refresh('visibility');
+            if (root.document.visibilityState !== 'visible') {
+                hiddenSinceVisible = true;
+                return;
+            }
+            const resumeAfterHidden = hiddenSinceVisible;
+            hiddenSinceVisible = false;
+            // visibilitychange e focus costumam chegar como o mesmo retorno ao app.
+            // Se a transição hidden→visible já assumiu a reconciliação, o blur
+            // correspondente não pode agendar uma segunda leitura do mesmo ciclo.
+            if (resumeAfterHidden) blurredSinceFocus = false;
+            void controller.refresh('visibility', { resumeAfterHidden });
         });
         root.document.addEventListener?.('focusout', () => flushPending('focusout'));
         root.document.addEventListener?.('click', () => flushPending('click'));

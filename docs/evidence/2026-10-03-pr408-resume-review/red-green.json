@@ -1,0 +1,54 @@
+{
+  "reviewedHead": "d863f86450caec9746f6eb9f836d877f7ad81034",
+  "base": "62fe000c7253bb97a31091f1c7dc33407906d554",
+  "checksOnReviewedHead": {
+    "success": 33,
+    "skipped": 2,
+    "failure": 0
+  },
+  "red": {
+    "tests": 3,
+    "passed": 1,
+    "failed": 2
+  },
+  "directedGreen": {
+    "tests": 69,
+    "passed": 69,
+    "failed": 0,
+    "skipped": 0
+  },
+  "fullUnitGreen": {
+    "tests": 1250,
+    "passed": 1250,
+    "failed": 0,
+    "skipped": 0
+  },
+  "sameResumeBothEventOrders": {
+    "baseline": {
+      "reads": 1,
+      "renders": 1,
+      "pending": true
+    },
+    "reviewedHead": {
+      "reads": 2,
+      "renders": 2,
+      "pending": false
+    },
+    "corrected": {
+      "reads": 1,
+      "renders": 1,
+      "pending": false
+    }
+  },
+  "sha256": {
+    "red": "e22734ffbd2badf112e952eab0b8975e2679d62eb1634e6f52ccb53a9dea576a",
+    "directedGreen": "5da23ecd0eb97263d04fe1b76c23972691ca2590f9b88a121abbc7ac87986781",
+    "fullUnitGreen": "fa5c76491b0ce850d4453c62920808a1feda688ff959c8ca15959ea552016e63",
+    "controller": "f7a3103350968f1048fd40f0f438214234f9b9db0a4b43addb29cae11107822c",
+    "test": "f10541e338a551e6a99aae2cae0d07bab14f89da4c4c43519f91c352e657d21e"
+  },
+  "limitations": [
+    "Controlled repository and clock with real installer/controller; no Production frequency measurement.",
+    "Full CI of corrected commit must be verified separately; predecessor checks do not certify changed runtime."
+  ]
+}
