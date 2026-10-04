@@ -24,6 +24,13 @@
     const DEFAULT_DEBOUNCE_MS = 2000;
     const DEFAULT_REMOTE_MIN_INTERVAL_MS = 5000;
     const DEFAULT_OWN_RECONCILE_MS = 30000;
+    const DEFERRED_NAVIGATION_BLOCKED_EVENTS = Object.freeze([
+        'click',
+        'submit',
+        'change',
+        'beforeinput',
+        'keydown'
+    ]);
 
     function text(value) {
         return value == null ? '' : String(value).trim();
@@ -78,6 +85,7 @@
         let lastStatus = 'IDLE';
         let lastSuccessfulRealtimeRefreshAt = 0;
         let dirtyGeneration = 0;
+        let deferredNavigationGateSchoolId = '';
         const dirtySchools = new Map();
         const metrics = {
             broadcastsReceived: 0,
@@ -94,6 +102,7 @@
             reconnectRefreshes: 0,
             deferredSchoolInvalidations: 0,
             deferredSchoolReconciliations: 0,
+            deferredNavigationGates: 0,
             lastBroadcastAt: null,
             lastRefreshAt: null,
             byEntity: Object.create(null)
@@ -102,6 +111,7 @@
         function metricsSnapshot() {
             return Object.freeze({
                 ...metrics,
+                deferredNavigationGateSchoolId,
                 dirtySchoolIds: Object.freeze([...dirtySchools.keys()].sort()),
                 byEntity: Object.freeze({ ...metrics.byEntity })
             });
@@ -117,6 +127,44 @@
             if (ownReconcileTimer == null) return;
             root.clearTimeout?.(ownReconcileTimer);
             ownReconcileTimer = null;
+        }
+
+        function setDeferredNavigationGate(schoolId = '') {
+            const normalized = text(schoolId);
+            const main = root.document?.getElementById?.('main-container');
+            deferredNavigationGateSchoolId = normalized;
+            if (!main) return false;
+
+            if (normalized) {
+                metrics.deferredNavigationGates += 1;
+                main.dataset.radarDeferredSyncGate = 'true';
+                main.dataset.radarDeferredSyncSchool = normalized;
+                main.setAttribute?.('aria-busy', 'true');
+                if (main.contains?.(root.document?.activeElement)) {
+                    root.document.activeElement?.blur?.();
+                }
+                return true;
+            }
+
+            if (main.dataset?.radarDeferredSyncGate === 'true') {
+                delete main.dataset.radarDeferredSyncGate;
+                delete main.dataset.radarDeferredSyncSchool;
+                main.removeAttribute?.('aria-busy');
+            }
+            return true;
+        }
+
+        function blockDeferredNavigationInteraction(event) {
+            if (!deferredNavigationGateSchoolId) return;
+            const main = root.document?.getElementById?.('main-container');
+            if (!main?.contains?.(event?.target)) return;
+            // Tab/Escape continuam disponíveis para que o usuário possa sair da
+            // área bloqueada. Ações que poderiam editar dados ainda não reconciliados
+            // são impedidas até a leitura atual terminar.
+            if (event?.type === 'keydown' && ['Tab', 'Escape'].includes(String(event?.key || ''))) return;
+            event.preventDefault?.();
+            event.stopImmediatePropagation?.();
+            event.stopPropagation?.();
         }
 
         function remoteIntervalRemaining(now = Date.now()) {
@@ -164,9 +212,10 @@
             return Boolean(schoolId && dirtySchools.has(schoolId));
         }
 
-        function scheduleRefresh(reason = 'realtime') {
+        function scheduleRefresh(reason = 'realtime', scheduleOptions = {}) {
             if (destroyed) return false;
             const realtimeBroadcast = reason === 'realtime';
+            const immediate = scheduleOptions.immediate === true;
 
             if (realtimeBroadcast && timer != null) {
                 metrics.coalescedBroadcasts += 1;
@@ -180,13 +229,13 @@
             const schedule = typeof root.setTimeout === 'function'
                 ? root.setTimeout.bind(root)
                 : setTimeout;
-            const delay = realtimeBroadcast ? remoteRefreshDelay() : debounceMs;
-            if (realtimeBroadcast && delay > debounceMs) {
+            const delay = immediate ? 0 : (realtimeBroadcast ? remoteRefreshDelay() : debounceMs);
+            if (realtimeBroadcast && !immediate && delay > debounceMs) {
                 metrics.remoteRefreshesRateLimited += 1;
             }
             timer = schedule(() => {
                 timer = null;
-                if (realtimeBroadcast && remoteIntervalRemaining() > 0) {
+                if (realtimeBroadcast && !immediate && remoteIntervalRemaining() > 0) {
                     scheduleRefresh(reason);
                     return;
                 }
@@ -204,6 +253,7 @@
                             lastSuccessfulRealtimeRefreshAt = completedAt;
                             acknowledgeDirtySchools(dirtyAtAttempt);
                             clearOwnReconciliation();
+                            setDeferredNavigationGate('');
                         }
                         if (!needsRetry || reason === 'realtime-retry') return;
                         scheduleRefresh('realtime-retry');
@@ -273,10 +323,40 @@
 
         function handleNavigationCommitted(event) {
             const route = event?.detail?.route || currentRoute(root);
+            const routeView = text(route?.view);
+            const routeSchoolId = routeView === 'prontuario' ? text(route?.param) : '';
+
+            if (deferredNavigationGateSchoolId
+                && routeSchoolId !== deferredNavigationGateSchoolId) {
+                setDeferredNavigationGate('');
+            }
             if (!routeNeedsDeferredRefresh(route)) return;
+
             metrics.deferredSchoolReconciliations += 1;
             clearOwnReconciliation();
-            scheduleRefresh('realtime-deferred-navigation');
+            if (routeView === 'prontuario' && routeSchoolId && dirtySchools.has(routeSchoolId)) {
+                setDeferredNavigationGate(routeSchoolId);
+            }
+            // Se o usuário acabou de entrar em uma escola que sabemos estar
+            // desatualizada, não faz sentido aguardar o debounce de tráfego remoto.
+            // A consulta começa imediatamente; apenas a escola relevante é bloqueada
+            // contra edição até a reconciliação terminar.
+            scheduleRefresh('realtime-deferred-navigation', { immediate: true });
+        }
+
+        function handleOperationalContextRefreshed() {
+            if (!deferredNavigationGateSchoolId) return;
+            const route = currentRoute(root);
+            const currentSchoolId = text(route?.view) === 'prontuario' ? text(route?.param) : '';
+            if (currentSchoolId !== deferredNavigationGateSchoolId) {
+                setDeferredNavigationGate('');
+                return;
+            }
+            // Uma atualização completa do contexto, ainda que tenha sido concluída
+            // por um retry interno do controlador, já contém a versão corrente da
+            // escola aberta e pode liberar a edição com segurança.
+            dirtySchools.delete(currentSchoolId);
+            setDeferredNavigationGate('');
         }
 
         function handleStatus(status, error) {
@@ -297,6 +377,10 @@
         }
 
         root.addEventListener?.('radar:navigation-committed', handleNavigationCommitted);
+        root.addEventListener?.('radar:operational-context-refreshed', handleOperationalContextRefreshed);
+        for (const eventName of DEFERRED_NAVIGATION_BLOCKED_EVENTS) {
+            root.document?.addEventListener?.(eventName, blockDeferredNavigationInteraction, true);
+        }
 
         function start() {
             if (destroyed || channel) return Promise.resolve(Boolean(channel));
@@ -350,7 +434,12 @@
             destroyed = true;
             clearScheduledRefresh();
             clearOwnReconciliation();
+            setDeferredNavigationGate('');
             root.removeEventListener?.('radar:navigation-committed', handleNavigationCommitted);
+            root.removeEventListener?.('radar:operational-context-refreshed', handleOperationalContextRefreshed);
+            for (const eventName of DEFERRED_NAVIGATION_BLOCKED_EVENTS) {
+                root.document?.removeEventListener?.(eventName, blockDeferredNavigationInteraction, true);
+            }
             const current = channel;
             channel = null;
             if (!current) return true;
