@@ -114,8 +114,8 @@ select ok(not exists (select 1 from realtime.messages where payload->>'entity' =
 
 insert into public.competences(id,label,exercise) values ('2026-11','Novembro',2026) on conflict(id) do nothing;
 insert into public.programs(id,name) values ('PR409_TEST','Programa teste relevância');
-insert into public.schools(id,designation,denomination,cre,initial_competence)
-values ('PR409-SCHOOL','04.99.409','Escola teste relevância','4ª CRE','2026-11');
+insert into public.schools(id,designation,denomination,cre,initial_competence,inep,cnpj,sici)
+values ('PR409-SCHOOL','04.99.409','Escola teste relevância','4ª CRE','2026-11','33999409','99.999.409/0001-09','SICI-PR409');
 insert into public.pendencies(id,school_id,competence_origin,program_id,document_key,status,
     responsible_area,next_actor,reason,notes,payload)
 values ('pr409-pendency','PR409-SCHOOL','2026-11','PR409_TEST','extCC','Aberta',

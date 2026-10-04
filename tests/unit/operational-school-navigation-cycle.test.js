@@ -75,6 +75,7 @@ async function session(t) {
         failRead() { nextRead = async () => { throw new Error("induced timeout"); }; },
         change(school) { canonical += 1; onBroadcast({ payload: { entity: 'verifications', schoolId: school } }); },
         navigate(view, school) { root.switchView(view, school); },
+        navigateRoute(route) { navigation.navigate(root, route); },
         async advance(ms = 2000) { t.mock.timers.tick(ms); await settle(); }
     };
 }
@@ -143,6 +144,42 @@ test('falha na reconciliação de navegação preserva a alteração e recupera 
     assert.equal(tab.renders.at(-1).projected, 2);
     await tab.advance(31000);
     assert.equal(tab.reads.length, 2);
+    assert.deepEqual(tab.sync.getMetrics().dirtySchoolIds, []);
+    await tab.sync.stop();
+});
+
+
+test('reaplicação de rota com seção durante leitura lenta não cria outra invalidação', async t => {
+    const tab = await session(t);
+    tab.change('SCHOOL-B');
+    tab.navigateRoute({ view: 'prontuario', param: 'SCHOOL-B', section: 'pendencias' });
+    const release = tab.holdRead();
+    await tab.advance();
+    // A mesma superfície pode reafirmar sua rota durante montagem assíncrona.
+    tab.navigateRoute({ view: 'prontuario', param: 'SCHOOL-B', section: null });
+    await tab.advance();
+    release();
+    await settle();
+    await tab.advance(31000);
+    assert.deepEqual(tab.reads, [2], 'a leitura em andamento já cobre essa geração e essa escola');
+    await tab.sync.stop();
+});
+
+
+test('navegação não absorve uma geração posterior ao snapshot ainda em voo', async t => {
+    const tab = await session(t);
+    tab.change('SCHOOL-B');
+    const release = tab.holdRead();
+    tab.change('SCHOOL-A');
+    await tab.advance();
+    tab.change('SCHOOL-B');
+    tab.navigate('prontuario', 'SCHOOL-B');
+    await tab.advance();
+    release();
+    await settle();
+    await tab.advance(31000);
+    assert.deepEqual(tab.reads, [3, 4], 'a nova geração exige outra leitura e não pode ser descartada');
+    assert.equal(tab.renders.at(-1).projected, 4);
     assert.deepEqual(tab.sync.getMetrics().dirtySchoolIds, []);
     await tab.sync.stop();
 });

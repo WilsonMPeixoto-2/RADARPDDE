@@ -59,3 +59,22 @@ Não extrapolar este microexperimento para custo global de Production.
   ainda sem causa fechada; não há evidência suficiente para alterar CSS do produto.
 - Consulta read-only confirmou Production ainda em 58 migrations, última
   `20260930003000`, trigger sem schoolId. Publicação exige a migration candidata.
+
+## Segunda intercalação e correção de fixture
+
+A variação com leitura lenta e mudança de seção da mesma escola também produziu
+RED: `[2,2]` em vez de `[2]`. Deduplicar somente rotas idênticas não cobria essa
+intercalação. O Realtime agora acompanha as gerações incluídas na reconciliação
+em andamento: navegação só solicita outra leitura se houver geração relevante
+não coberta. Broadcast e reconexão continuam com sua autoridade original.
+Contraprova positiva preservada: se B muda novamente durante a leitura de A e o
+usuário navega para B, acontecem duas leituras, e a segunda aplica a nova revisão.
+41/41 controles dirigidos passaram. Nove E2E locais de URL, histórico, filtro,
+retorno com scroll/foco, busca e transição também passaram.
+
+A CI de `2b59278e` executou 18 asserções SQL sem falha, mas a fixture de escola
+adicionada nesta revisão violou `schools_institutional_identity_nonempty` antes
+das duas asserções de tentativa. Corrigidos INEP/CNPJ/SICI da fixture. Não foi
+alterada constraint nem migration do produto. Run `37179113038`, job
+`111367865701`. A nova jornada de browser ainda não executou nesse job devido ao
+bloqueio anterior do pgTAP.

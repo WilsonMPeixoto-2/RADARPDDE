@@ -72,6 +72,7 @@
         let lastStatus = 'IDLE';
         let dirtyGeneration = 0;
         const dirtySchools = new Map();
+        let reconcilingSchools = null;
         const metrics = {
             broadcastsReceived: 0,
             coalescedBroadcasts: 0,
@@ -149,6 +150,7 @@
                 timer = null;
                 metrics.refreshAttempts += 1;
                 const dirtyAtAttempt = captureDirtySchools();
+                reconcilingSchools = dirtyAtAttempt;
                 void Promise.resolve()
                     .then(() => refreshController.refresh(reason, { force: true }))
                     .then(result => {
@@ -167,6 +169,8 @@
                         metrics.refreshFailed += 1;
                         root.console?.warn?.('Falha ao reler contexto após invalidação Realtime.', error);
                         if (reason !== 'realtime-retry') scheduleRefresh('realtime-retry');
+                    }).finally(() => {
+                        if (reconcilingSchools === dirtyAtAttempt) reconcilingSchools = null;
                     });
             }, debounceMs);
             return true;
@@ -188,6 +192,14 @@
         function handleNavigationCommitted(event) {
             const route = event?.detail?.route || currentRoute(root);
             if (!routeNeedsDeferredRefresh(route)) return;
+            // Navegar é uma oportunidade de aplicar gerações conhecidas, não uma
+            // nova invalidação. A leitura já em curso pode cobrir essa rota mesmo
+            // quando a montagem reafirma filtros/seções antes de sua conclusão.
+            const schoolId = text(route?.view) === 'prontuario' ? text(route.param) : '';
+            const uncovered = [...dirtySchools].some(([id, generation]) => (
+                (!schoolId || id === schoolId) && reconcilingSchools?.get(id) !== generation
+            ));
+            if (!uncovered) return;
             metrics.deferredSchoolReconciliations += 1;
             scheduleRefresh('realtime-deferred-navigation');
         }
