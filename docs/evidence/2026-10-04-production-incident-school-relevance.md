@@ -136,3 +136,104 @@ Mesmo que a relevância por escola produza ganho substancial, ainda devem ser co
 - outras causas independentes ainda não identificadas.
 
 A correção será promovida somente se melhorar o cenário realista sem mascarar ou piorar essas outras dimensões.
+
+## Implementação candidata versionada no PR #409
+
+A frente está no PR `#409`, branch `fix/operational-peak-school-relevance-2026-10-04`, criada sobre a `main` pós-#408. A baseline de abertura do PR foi `d9bf67f7d8a1ce2e468ec3c793ff992d8e10dfd6`; o primeiro HEAD integralmente exercitado antes do fechamento documental foi `5266b6b13ed959162d280c5f42f63532b4f3bab7`. O HEAD corrente deve ser lido diretamente no PR, porque as correções documentais e de readiness posteriores avançam a branch sem alterar a semântica funcional descrita aqui.
+
+Arquivos funcionais principais:
+
+- `src/integration/operational-realtime-invalidation.js`: classificação por relevância escolar, `dirtySchools`, métricas e drenagem ao navegar;
+- `src/integration/navigation-history.js`: emissão de `radar:navigation-committed` somente após rota efetivamente confirmada;
+- `supabase/migrations/20261004040500_realtime_school_relevance.sql`: `schoolId` mínimo no Broadcast quando determinável;
+- `tests/unit/operational-school-relevance.test.js`: RED/GREEN e stress acelerado de seis sessões/escolas;
+- `supabase/tests/database/realtime-operational-invalidation.test.sql`: contrato pgTAP do Broadcast, incluindo derivação da escola para `pendency_attempts`.
+
+A alteração **não** usa carteira como autorização, não transmite registro de negócio pelo Broadcast, não altera RLS de leitura/escrita e não troca o Supabase como fonte canônica.
+
+## Mapa de testes e contraprovas reutilizáveis
+
+### Teste causal novo
+
+`tests/unit/operational-school-relevance.test.js` cobre seis invariantes:
+
+1. alteração conhecida em escola diferente não relê imediatamente o Prontuário corrente;
+2. navegar depois para a escola marcada força reconciliação automática;
+3. mudança na escola aberta continua chegando rapidamente;
+4. superfície global continua conservadora e reconcilia mudança escolar;
+5. Broadcast sem escola conhecida continua global/conservador;
+6. stress acelerado com seis sessões, 120 rodadas e 720 invalidações por sessão resulta em uma releitura coalescida da rajada relevante, em vez de multiplicar leituras completas pelas outras cinco escolas.
+
+### Banco/Realtime
+
+`supabase/tests/database/realtime-operational-invalidation.test.sql` possui `plan(14)` e preserva os contratos anteriores de canal privado, ausência de INSERT para o cliente e triggers das seis entidades, acrescentando prova de `schoolId` e de derivação da escola para `pendency_attempts`.
+
+### Proteções do #408 que precisam permanecer verdes
+
+A suíte unitária continua carregando os testes causais introduzidos/fortalecidos no #408, entre eles:
+
+- invalidação Realtime durante refresh que falha é drenada após cooldown;
+- duas leituras Realtime abortadas por escrita recuperam sem depender de clique/foco;
+- retry Realtime stale deixa recuperação futura limitada;
+- timer de cooldown não consome a única recuperação durante retry em voo;
+- ordens `hidden+blur → visible+focus` e `hidden+blur → focus+visible` não duplicam leitura;
+- envios fiscais sobrepostos não deixam patrimônio órfão;
+- política de `npm audit` permanece fail-closed e restringe a exceção `braces` à cadeia autorizada.
+
+Esses testes não devem ser removidos ou afrouxados para acomodar o #409.
+
+## CI observado no HEAD 5266b6b1 antes da correção de readiness
+
+No HEAD `5266b6b13ed959162d280c5f42f63532b4f3bab7`, a maior parte da bateria já estava verde:
+
+- `Validar RADAR PDDE` run `37175840440`: sucesso;
+- `Retificação auditável direcionada` run `37175840418`: sucesso;
+- `CodeQL` run `37175840435`: sucesso;
+- `Lighthouse CI` run `37175840430`: sucesso;
+- `Regressão visual desktop` run `37175840409`: sucesso;
+- `Hardening específico de sincronização operacional` run `37175840405`: sucesso;
+- `Backup e restauração descartáveis` run `37175840397`: sucesso;
+- `Confiabilidade funcional com Supabase real` run `37175840438`: sucesso;
+- `Gate remoto de perfis e viewports` run `37175840407`: sucesso;
+- `Ciclos funcionais reais com Supabase` run `37175840433`: sucesso;
+- `Testes E2E Playwright` run `37175840398`: sucesso.
+
+A execução de readiness mostrou `1.256/1.256` testes unitários aprovados e `8/8` testes de integração aprovados antes de parar no verificador de migrations.
+
+Dois workflows ficaram vermelhos, ambos pela mesma causa documental/contratual e não por falha funcional observada:
+
+- `Supabase readiness` run `37175840427` encontrou **59 migrations no diretório**, enquanto `docs/runbooks/SUPABASE_CONNECTION.md` ainda declarava 58;
+- `Homologação integral pré-production` run `37175840429` aplicou corretamente a migration `20261004040500_realtime_school_relevance`, mas `supabase/verification/remote-post-apply.sql` ainda terminava a lista esperada em `20260930003000`, produzindo `MIGRATION_HISTORY_MISMATCH`.
+
+A raiz foi corrigida na própria branch por dois commits explícitos:
+
+- `b9a45fce4d07e36546417b0c337711bfab8c140d`: inclui `20261004040500` no contrato pós-apply;
+- `a5a8a1be67c6a45315acb7a8239aba89c598cdf9`: atualiza o runbook para 59 migrations e registra a migration do #409 como **candidata**, não publicada.
+
+Essas correções precisam ser confirmadas pela CI do **HEAD final** do PR antes de qualquer merge; o registro acima explica o vermelho anterior e não o transforma artificialmente em verde.
+
+## Revisão esperada pelo Codex
+
+O Codex deve tratar este documento e o handoff corrente como contexto, não como conclusão. A revisão deve procurar contraprovas, especialmente:
+
+- perda de convergência quando várias escolas ficam dirty e uma leitura global/same-school ocorre no meio da rajada;
+- geração/ack de `dirtySchools` diante de invalidação nova durante uma leitura em voo;
+- navegação, `popstate`, troca de competência e superfícies globais que dependam de mais de uma escola;
+- Controlador + Assistente atuando na mesma escola;
+- Broadcast de `pendency_attempts` em INSERT/UPDATE/DELETE e fallback quando a Pendência já não puder ser derivada;
+- possibilidade de o identificador escolar no Broadcast criar exposição indevida ou custo de RLS/trigger;
+- regressões das garantias do #408;
+- custo real da trigger adicional e do caminho `read_operational_context` sob concorrência;
+- qualquer diferença entre o teste acelerado e o comportamento de navegador/Supabase real que seja material para o incidente.
+
+Não aprovar por contagem de testes. Se um achado material surgir, produzir reprodução causal antes da correção. Se não houver contraprova, registrar a evidência que sustenta a ausência de bloqueio.
+
+## Limites e não-afirmações
+
+- o #409 continua Draft durante a preparação para revisão;
+- nenhuma migration do #409 foi aplicada em Production por esta frente;
+- nenhum deployment Production é afirmado por este documento;
+- a melhoria de relevância por escola não é apresentada como explicação completa do incidente de 02/10;
+- o harness amplo de cinco sessões do #407 não é automaticamente herdado como prova do #409;
+- o stress unitário acelerado é prova causal de amplificação, não substituto para todo cenário de banco/navegador real;
+- qualquer HEAD, workflow ou deployment citado deve ser revalidado ao vivo quando usado para decisão de merge.
