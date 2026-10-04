@@ -2,7 +2,7 @@
 
 **Status:** Aprovada, implementada e publicada
 **Data:** 19 de setembro de 2026
-**Atualizada em:** 20 de setembro de 2026
+**Atualizada em:** 4 de outubro de 2026
 
 ## Contexto
 
@@ -27,6 +27,20 @@ Tópico canônico: radar:operational
 Evento canônico: operational-change
 
 O payload não transporta dados de negócio. Contém apenas informação mínima de entidade/operação.
+
+### Adendo candidato do PR #409: relevância por escola
+
+O PR #409, ainda em revisão e **não publicado**, propõe refinar a invalidação sem mudar esta decisão arquitetural:
+
+- o Broadcast pode acrescentar `schoolId` como metadado mínimo de roteamento quando a escola afetada é determinável;
+- `schoolId` não carrega conteúdo operacional da escola e não concede acesso;
+- uma sessão que esteja no Prontuário de outra escola pode adiar a releitura completa e marcar a escola alterada como desatualizada;
+- ao navegar para a escola marcada, a reconciliação deve ocorrer automaticamente, sem Ctrl+F5;
+- superfícies globais continuam conservadoras e reconciliam mudanças escolares porque podem depender de várias escolas;
+- evento sem escola conhecida e reconexão continuam seguindo o caminho global/conservador;
+- toda leitura continua passando pela RLS vigente.
+
+Enquanto o #409 não for integrado e publicado, este adendo registra apenas o contrato candidato e os critérios de revisão. O comportamento canônico de Production continua sendo o efetivamente publicado.
 
 ## Entidades que invalidam o contexto
 
@@ -97,6 +111,8 @@ Custos:
 - foco/reconexão continuam úteis como fallback;
 - a convergência não depende apenas desses eventos incidentais: pendências causadas por escrita são drenadas no pós-write.
 
+O candidato #409 tenta reduzir especificamente o primeiro custo quando a escola afetada é conhecida e irrelevante para o Prontuário aberto. Esse refinamento só é aceitável se não reduzir a convergência posterior nem transformar o metadado de escola em mecanismo de autorização.
+
 ## Evidência
 
 O PR #332 adicionou gate E2E obrigatório com duas sessões autenticadas:
@@ -117,6 +133,10 @@ A prova roda dentro da pilha Supabase local com Auth, RLS, Realtime e frontend r
 
 Os PRs #338–#341 ampliaram a evidência com testes RED → GREEN de interleavings. Foram reproduzidos e corrigidos: Broadcast durante refresh em voo, falha da releitura, Abort causado por escrita e pendência sem drenagem pós-write. Nos PRs #340 e #341, os commits GREEN passaram 10/10 workflows, incluindo Supabase real, E2E, readiness e homologação integral.
 
+O PR #408 reforçou o contrato de recuperação com cooldown limitado, ordenações de foco/visibilidade e proteção contra perda de invalidação em leituras stale/abortadas. Esses testes permanecem regressões obrigatórias para qualquer refinamento posterior.
+
+O PR #409 acrescenta, como evidência candidata, `tests/unit/operational-school-relevance.test.js` e o contrato pgTAP atualizado em `supabase/tests/database/realtime-operational-invalidation.test.sql`. A evidência consolidada e os limites estão em `docs/evidence/2026-10-04-production-incident-school-relevance.md`.
+
 ## Relações
 
 - PR #329: RLS set-based;
@@ -126,5 +146,8 @@ Os PRs #338–#341 ampliaram a evidência com testes RED → GREEN de interleavi
 - PR #338: preservação de invalidação durante refresh em voo;
 - PR #339: retenção e retry controlada após falha de releitura;
 - PR #340: convergência quando gravação aborta leitura Realtime;
-- PR #341: drenagem pós-write de refresh pendente.
+- PR #341: drenagem pós-write de refresh pendente;
+- PR #408: hardening seletivo de recuperação, concorrência e gates;
+- PR #409: candidato de relevância por escola, ainda em revisão.
+
 O PR #342 acrescentou prova pela UI com duas identidades distintas: Broadcast → leitura real retida → escrita auditável → Abort → releitura → convergência antes de navegar, sem reload. HEAD `065f53013edb1626ac95b17d387716dfe65850cf` aprovado em 7 workflows; screenshots inspecionadas no run `35526578564`. A prova complementa #338–#341, sem nova mudança arquitetural.
