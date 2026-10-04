@@ -15,21 +15,37 @@ eco próprio, replay de fadeIn, focus/visibility em voo, continuidade do foco de
 teclado e escopo autoritativo do novo envio fiscal. Comparador automático e
 métricas de CPU expõem o custo residual; não existe budget de produto inventado.
 
-A prova anterior de `a652b410...` passou com 1.106 gestos, mas o candidato atual
-exige nova certificação. Run operacional `37144801308` e lifecycle `37144801361`
-estão em andamento no último checkpoint; contratos+frontend e volume já passaram.
-1.246 unitários locais passaram. O usuário autorizou merge/publicação se as
-provas e riscos justificarem; Draft não é proibição permanente. Antes de decidir,
-consultar os runs reais e o resumo do handoff, sem repetir testes já concluídos.
-Backup/snapshot são instrumentos, não pré-requisitos automáticos.
+O run operacional `37144801308` concluiu com cinco jobs aprovados; o lifecycle
+`37144801361` concluiu com 21 testes aprovados. A árvore do merge de CI
+`37bc4aea...` é idêntica à de `818678a4...`. A comparação automática confirmou
+1.128 → 491 tentativas, mas payload 42,5 → 190,2 MB, SQL 61 → 169 execuções,
+DOM 324 → 441 substituições e Long Tasks 166,5 → 198,7 s somados nas sessões.
+Faded frames amostrados: 801 → 0. Isso confirma ganhos e custo residual;
+workflow verde não aprova a arquitetura para publicação.
+
+O [#408](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/408) extraiu correções
+de refresh e escopo fiscal diretamente da main, acrescentando controles de retry,
+retomada real e escrita concorrente. Sua revisão encontrou mais uma borda: resposta
+concluída entre focus/visibility da mesma retomada produzia outra leitura após
+30 s. Correção e RED/GREEN publicados no #408 em `b1b12bcc...`: 69 controles e
+1.250 unitários locais aprovados; conferir os checks desse SHA. A implementação
+posterior do #408 ainda precisa ser incorporada ao #407 após a integração do
+hotfix, preservando a instrumentação e o foco lógico experimentais deste PR.
+
+O usuário autorizou merge/publicação quando provas e riscos justificarem;
+Draft não é proibição permanente. Backup/snapshot são instrumentos, não
+pré-requisitos automáticos. A [síntese consolidada](evidence/2026-10-03-operational-instability/consolidated-run-37144801308-summary.json)
+preserva métricas e hashes sem copiar a telemetria bruta para o Git.
 
 Handoff corrente desta investigação:
 [`2026-10-03-operational-instability.md`](handoff/2026-10-03-operational-instability.md).
 O encerramento das fases funcionais anteriores permanece histórico válido.
 O manifesto consultado em 03/10 aponta `62fe000c...`, com comportamento do #406.
-Main foi revalidada e permanece nesse SHA. Os checks gerais ainda rejeitam um
-advisory sem patch na cadeia Stylelint/braces; não foram relaxados. O PR continua
-Draft e nenhuma correção candidata desta frente está publicada em Production.
+Main foi revalidada e permanece nesse SHA. A política antiga do #407 ainda
+rejeita o advisory Stylelint/braces; a exceção estreita revisada está no #408,
+junto com auditoria separada do runtime. Os dois PRs e suas provas não são
+intercambiáveis. O #407 continua Draft pelo custo residual e validação hospedada
+pendente; não houve publicação nesta retomada.
 
 **As Fases A, B e C estão encerradas. A Fase D ainda não foi iniciada.**
 

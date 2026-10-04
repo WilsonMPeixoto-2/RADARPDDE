@@ -1,0 +1,552 @@
+{
+  "runId": 37144801308,
+  "candidateSha": "818678a4b4ed21c67e323dc2f5e7d0a42681010e",
+  "workflowMergeSha": "37bc4aea52010c54bbb817ed37b44017423699ad",
+  "treeIdentityVerified": "55f33cf5a54b2d4f94040302530e82baad9a8c8c",
+  "baselineSha": "62fe000c7253bb97a31091f1c7dc33407906d554",
+  "comparisonArtifactId": 11281343903,
+  "artifactSha256": "b6fb32fcb8de794b027e0ac5a2706ffead1971864d0d13bb07f0a434581063e7",
+  "comparisonJsonSha256": "93ce358ea4a8cbe91e7de2a7f4c4c7c800c1b5832c875137e504daabbc3cfcb7",
+  "costBudgets": {
+    "status": "not-established",
+    "mode": "report-only",
+    "note": "No operational cost SLO is established here. Timer-derived read limits are not cost acceptance criteria; a completed comparison is not release approval."
+  },
+  "baseline": {
+    "totals": {
+      "gestures": 1106,
+      "writeAttempts": 1106,
+      "successfulWrites": 1106,
+      "readAttempts": 1128,
+      "successfulReadResponses": 32,
+      "abortedReadAttempts": 1095,
+      "readHttpErrors": 1,
+      "readNetworkErrors": 0,
+      "payloadBytes": 42535823,
+      "staleLoads": 1103,
+      "abortedLoads": 1096,
+      "failedLoads": 1,
+      "stateApplies": 1130,
+      "renderCalls": 1130,
+      "domReplacements": 324,
+      "domMutations": 91419,
+      "sampledOpacityFrames": 10509,
+      "fadedOpacityFrames": 801,
+      "nearlyInvisibleFrames": 707,
+      "pageErrors": 0,
+      "elapsedMs": 466533.800557,
+      "readsPerWrite": 1.0198915009041591,
+      "readsPerMinute": 145.06987472118007,
+      "pendingRefreshSessions": 0,
+      "longTaskCount": 1878,
+      "longTaskTotalMs": 166467,
+      "longTaskBlockingMs": 72568,
+      "applyMeasuredCount": 1130,
+      "applyTotalMs": 28560.100000002538,
+      "renderMeasuredCount": 1130,
+      "renderTotalMs": 5427.599999999744,
+      "longTasksPerMinute": 241.52590844536897
+    },
+    "sql": {
+      "calls": 61,
+      "totalExecMs": 17718.426736,
+      "meanExecMs": 290.4660120655738,
+      "rows": 61,
+      "signatures": [
+        {
+          "queryId": "7145021936814103127",
+          "role": "authenticated",
+          "before": null,
+          "after": {
+            "role": "authenticated",
+            "rows": 61,
+            "calls": 61,
+            "queryId": "7145021936814103127",
+            "maxExecMs": 1127.171952,
+            "meanExecMs": 290.466012065574,
+            "totalExecMs": 17718.426736
+          },
+          "delta": {
+            "calls": 61,
+            "rows": 61,
+            "totalExecMs": 17718.426736,
+            "meanExecMs": 290.4660120655738
+          }
+        }
+      ],
+      "maxDeltaExecMs": null,
+      "note": "Completed calls recorded by pg_stat_statements; not HTTP attempts. Snapshot max is not an interval maximum when a prior baseline exists. Reset epoch is not recorded by this artifact schema; counter regression/disappearance is rejected, but reset followed by regrowth cannot be excluded."
+    },
+    "sessions": [
+      {
+        "session": 1,
+        "gestures": 404,
+        "readAttempts": 406,
+        "successfulReadResponses": 5,
+        "abortedReadAttempts": 401,
+        "payloadBytes": 6645507,
+        "readsPerMinute": 52.214866256027584,
+        "domReplacements": 5,
+        "domMutations": 27224,
+        "fadedOpacityFrames": 12
+      },
+      {
+        "session": 2,
+        "gestures": 300,
+        "readAttempts": 305,
+        "successfulReadResponses": 13,
+        "abortedReadAttempts": 292,
+        "payloadBytes": 17281560,
+        "readsPerMinute": 39.230802199444916,
+        "domReplacements": 305,
+        "domMutations": 36005,
+        "fadedOpacityFrames": 756
+      },
+      {
+        "session": 3,
+        "gestures": 402,
+        "readAttempts": 407,
+        "successfulReadResponses": 5,
+        "abortedReadAttempts": 402,
+        "payloadBytes": 6647063,
+        "readsPerMinute": 52.34809523235046,
+        "domReplacements": 5,
+        "domMutations": 27092,
+        "fadedOpacityFrames": 10
+      },
+      {
+        "session": 4,
+        "gestures": 0,
+        "readAttempts": 5,
+        "successfulReadResponses": 4,
+        "abortedReadAttempts": 0,
+        "payloadBytes": 5316219,
+        "readsPerMinute": 0.6431854645222269,
+        "domReplacements": 4,
+        "domMutations": 488,
+        "fadedOpacityFrames": 10
+      },
+      {
+        "session": 5,
+        "gestures": 0,
+        "readAttempts": 5,
+        "successfulReadResponses": 5,
+        "abortedReadAttempts": 0,
+        "payloadBytes": 6645474,
+        "readsPerMinute": 0.6431918931295408,
+        "domReplacements": 5,
+        "domMutations": 610,
+        "fadedOpacityFrames": 13
+      }
+    ]
+  },
+  "candidate": {
+    "totals": {
+      "gestures": 1106,
+      "writeAttempts": 1106,
+      "successfulWrites": 1106,
+      "readAttempts": 491,
+      "successfulReadResponses": 143,
+      "abortedReadAttempts": 347,
+      "readHttpErrors": 1,
+      "readNetworkErrors": 0,
+      "payloadBytes": 190165786,
+      "staleLoads": 349,
+      "abortedLoads": 347,
+      "failedLoads": 1,
+      "stateApplies": 1247,
+      "renderCalls": 1247,
+      "domReplacements": 441,
+      "domMutations": 103702,
+      "sampledOpacityFrames": 11055,
+      "fadedOpacityFrames": 0,
+      "nearlyInvisibleFrames": 0,
+      "pageErrors": 0,
+      "elapsedMs": 485483.754336,
+      "readsPerWrite": 0.44394213381555153,
+      "readsPerMinute": 60.681742152819666,
+      "pendingRefreshSessions": 0,
+      "longTaskCount": 2143,
+      "longTaskTotalMs": 198684,
+      "longTaskBlockingMs": 91534,
+      "applyMeasuredCount": 1247,
+      "applyTotalMs": 36447.300000000745,
+      "renderMeasuredCount": 1247,
+      "renderTotalMs": 6874.099999998434,
+      "longTasksPerMinute": 264.84923306210294
+    },
+    "sql": {
+      "calls": 169,
+      "totalExecMs": 27523.886349,
+      "meanExecMs": 162.86323283431952,
+      "rows": 169,
+      "signatures": [
+        {
+          "queryId": "7145021936814103127",
+          "role": "authenticated",
+          "before": null,
+          "after": {
+            "role": "authenticated",
+            "rows": 169,
+            "calls": 169,
+            "queryId": "7145021936814103127",
+            "maxExecMs": 996.994768,
+            "meanExecMs": 162.86323283432,
+            "totalExecMs": 27523.886349
+          },
+          "delta": {
+            "calls": 169,
+            "rows": 169,
+            "totalExecMs": 27523.886349,
+            "meanExecMs": 162.86323283431952
+          }
+        }
+      ],
+      "maxDeltaExecMs": null,
+      "note": "Completed calls recorded by pg_stat_statements; not HTTP attempts. Snapshot max is not an interval maximum when a prior baseline exists. Reset epoch is not recorded by this artifact schema; counter regression/disappearance is rejected, but reset followed by regrowth cannot be excluded."
+    },
+    "sessions": [
+      {
+        "session": 1,
+        "gestures": 404,
+        "readAttempts": 123,
+        "successfulReadResponses": 3,
+        "abortedReadAttempts": 120,
+        "payloadBytes": 3988352,
+        "readsPerMinute": 15.201332555594336,
+        "domReplacements": 3,
+        "domMutations": 28646,
+        "fadedOpacityFrames": 0
+      },
+      {
+        "session": 2,
+        "gestures": 300,
+        "readAttempts": 109,
+        "successfulReadResponses": 4,
+        "abortedReadAttempts": 105,
+        "payloadBytes": 5315504,
+        "readsPerMinute": 13.47200294438724,
+        "domReplacements": 302,
+        "domMutations": 32622,
+        "fadedOpacityFrames": 0
+      },
+      {
+        "session": 3,
+        "gestures": 402,
+        "readAttempts": 125,
+        "successfulReadResponses": 3,
+        "abortedReadAttempts": 122,
+        "payloadBytes": 3987411,
+        "readsPerMinute": 15.449583491116917,
+        "domReplacements": 3,
+        "domMutations": 26868,
+        "fadedOpacityFrames": 0
+      },
+      {
+        "session": 4,
+        "gestures": 0,
+        "readAttempts": 68,
+        "successfulReadResponses": 67,
+        "abortedReadAttempts": 0,
+        "payloadBytes": 89105743,
+        "readsPerMinute": 8.404523777991745,
+        "domReplacements": 67,
+        "domMutations": 8174,
+        "fadedOpacityFrames": 0
+      },
+      {
+        "session": 5,
+        "gestures": 0,
+        "readAttempts": 66,
+        "successfulReadResponses": 66,
+        "abortedReadAttempts": 0,
+        "payloadBytes": 87768776,
+        "readsPerMinute": 8.157428733648711,
+        "domReplacements": 66,
+        "domMutations": 7392,
+        "fadedOpacityFrames": 0
+      }
+    ]
+  },
+  "deltas": {
+    "readAttempts": {
+      "baseline": 1128,
+      "candidate": 491,
+      "absolute": -637,
+      "percent": -56.47163120567376,
+      "percentUnavailableReason": null
+    },
+    "payloadBytes": {
+      "baseline": 42535823,
+      "candidate": 190165786,
+      "absolute": 147629963,
+      "percent": 347.07207381411195,
+      "percentUnavailableReason": null
+    },
+    "sqlCalls": {
+      "baseline": 61,
+      "candidate": 169,
+      "absolute": 108,
+      "percent": 177.04918032786884,
+      "percentUnavailableReason": null
+    },
+    "sqlTotalExecMs": {
+      "baseline": 17718.426736,
+      "candidate": 27523.886349,
+      "absolute": 9805.459612999999,
+      "percent": 55.34046424718641,
+      "percentUnavailableReason": null
+    },
+    "domReplacements": {
+      "baseline": 324,
+      "candidate": 441,
+      "absolute": 117,
+      "percent": 36.111111111111114,
+      "percentUnavailableReason": null
+    },
+    "longTaskTotalMs": {
+      "baseline": 166467,
+      "candidate": 198684,
+      "absolute": 32217,
+      "percent": 19.353385355656076,
+      "percentUnavailableReason": null
+    },
+    "longTaskBlockingMs": {
+      "baseline": 72568,
+      "candidate": 91534,
+      "absolute": 18966,
+      "percent": 26.135486715907838,
+      "percentUnavailableReason": null
+    },
+    "fadedOpacityFrames": {
+      "baseline": 801,
+      "candidate": 0,
+      "absolute": -801,
+      "percent": -100,
+      "percentUnavailableReason": null
+    }
+  },
+  "sourceHashes": [
+    {
+      "variant": "baseline",
+      "path": "operational-sustained/baseline/session-report.json",
+      "sha256": "8580cba77f017cd8c8584a722678f96a24013c860c9808ce0c187f19e34b78a7"
+    },
+    {
+      "variant": "baseline",
+      "path": "operational-sustained/pg-stat-before.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "variant": "baseline",
+      "path": "operational-sustained/pg-stat-after.json",
+      "sha256": "f6ff5460b2cb60ce807a26fcc512fe2f271120207be3bc456d31ed48aa0d1b8c"
+    },
+    {
+      "variant": "candidate",
+      "path": "operational-sustained/candidate/session-report.json",
+      "sha256": "3b8f3b5ed3848df87f344ccaef9c8e2e58abeb7f1db13cf4d257a8b069918669"
+    },
+    {
+      "variant": "candidate",
+      "path": "operational-sustained/pg-stat-before.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "variant": "candidate",
+      "path": "operational-sustained/pg-stat-after.json",
+      "sha256": "19c368e8aebada442edda4260fce78652245562c1ab1eecaaf02273b4e11777c"
+    }
+  ],
+  "lifecycle": {
+    "runId": 37144801361,
+    "jobId": 111266422954,
+    "passed": 21
+  },
+  "limits": [
+    "Browser read attempts include aborts before or after sending; they are not completed database statements.",
+    "pg_stat_statements spans a different interval, including bootstrap/reload outside browser observation; SQL cannot be assigned to individual sessions from these snapshots.",
+    "Payload is observed read response body bytes, including observed error bodies; it excludes unknown bodies, protocol overhead, writes and other endpoints.",
+    "DOM replacement/mutation counts are distinct from render calls. Sampled panel opacity is not comprehensive flicker or layout stability measurement.",
+    "Read durations use successful responses only (nearest-rank percentiles), include induced transport latency and exclude aborted requests.",
+    "Write HTTP durations cover observed successful write requests. UI write/apply summaries are copied from the instrumented subset (currently at most the last 100 evaluation samples); they are not all gestures. Null RPC/UI timing is unavailable, not zero. Aggregate p95/p99 cannot be reconstructed from session percentiles.",
+    "Browser long-task/apply/render timing is optional: older artifacts report not-recorded, not zero. Long-task availability depends on browser support; synchronous render duration does not include subsequent asynchronous rendering/paint.",
+    "Session indices follow the same workload order. Samples end before reload; the passed report attests reload assertions separately.",
+    "Completed observation records do not include requests still in flight at snapshot time. Absence of recorded errors does not certify unobserved intervals.",
+    "Massa sintética calibrada; não clone de Production.",
+    "Cinco sessões/quatro usuários Controladores, incluindo duas abas da mesma identidade.",
+    "Esta jornada mede avaliações e CRUD fiscal; não certifica patrimônio, Pendências, horas de uso ou staging.",
+    "Latência e HTTP 500 são induzidos no transporte; dados e Realtime são reais.",
+    "Um socket Realtime real é desconectado; alteração durante a interrupção deve convergir após reconexão."
+  ],
+  "crossSchool": {
+    "baseline": {
+      "sha256": "2033311edd28ffbdb8e57d1c68ee2bb3a3ce7736fd72878e5731f16358d17940",
+      "outcome": "passed",
+      "stages": {
+        "before": {
+          "focus": {
+            "tag": "BUTTON",
+            "id": null,
+            "role": null,
+            "label": null,
+            "text": "Sim",
+            "program": "BASIC",
+            "document": "extCC",
+            "withinMonthlyPanel": true
+          },
+          "sameFocusedNode": true,
+          "sameWorkspace": true,
+          "samePanel": true,
+          "sameRow": true,
+          "scroll": {
+            "top": 195,
+            "left": 0,
+            "maxTop": 789,
+            "windowX": 0,
+            "windowY": 0,
+            "rowTop": 394.84375
+          },
+          "reads": 0,
+          "domReplacements": 0
+        },
+        "afterRemoteB": {
+          "focus": {
+            "tag": "BODY",
+            "id": null,
+            "role": null,
+            "label": null,
+            "text": "",
+            "program": null,
+            "document": null,
+            "withinMonthlyPanel": false
+          },
+          "sameFocusedNode": false,
+          "sameWorkspace": false,
+          "samePanel": false,
+          "sameRow": false,
+          "scroll": {
+            "top": 195,
+            "left": 0,
+            "maxTop": 789,
+            "windowX": 0,
+            "windowY": 0,
+            "rowTop": 394.84375
+          },
+          "reads": 1,
+          "domReplacements": 1
+        },
+        "relevantA": {
+          "focus": {
+            "tag": "BODY",
+            "id": null,
+            "role": null,
+            "label": null,
+            "text": "",
+            "program": null,
+            "document": null,
+            "withinMonthlyPanel": false
+          },
+          "sameFocusedNode": false,
+          "sameWorkspace": false,
+          "samePanel": false,
+          "sameRow": false,
+          "scroll": {
+            "top": 195,
+            "left": 0,
+            "maxTop": 789,
+            "windowX": 0,
+            "windowY": 0,
+            "rowTop": 394.84375
+          },
+          "reads": 2,
+          "domReplacements": 6
+        }
+      }
+    },
+    "candidate": {
+      "sha256": "c62c684ae3ad2ea91b37a2a7e7f459701493602c61edc32171fa92221ab642c3",
+      "outcome": "passed",
+      "stages": {
+        "before": {
+          "focus": {
+            "tag": "BUTTON",
+            "id": null,
+            "role": null,
+            "label": null,
+            "text": "Sim",
+            "program": "BASIC",
+            "document": "extCC",
+            "withinMonthlyPanel": true
+          },
+          "sameFocusedNode": true,
+          "sameWorkspace": true,
+          "samePanel": true,
+          "sameRow": true,
+          "scroll": {
+            "top": 242,
+            "left": 0,
+            "maxTop": 836,
+            "windowX": 0,
+            "windowY": 0,
+            "rowTop": 394.90625
+          },
+          "reads": 0,
+          "domReplacements": 0
+        },
+        "afterRemoteB": {
+          "focus": {
+            "tag": "BUTTON",
+            "id": null,
+            "role": null,
+            "label": null,
+            "text": "Sim",
+            "program": "BASIC",
+            "document": "extCC",
+            "withinMonthlyPanel": true
+          },
+          "sameFocusedNode": false,
+          "sameWorkspace": false,
+          "samePanel": false,
+          "sameRow": false,
+          "scroll": {
+            "top": 242,
+            "left": 0,
+            "maxTop": 836,
+            "windowX": 0,
+            "windowY": 0,
+            "rowTop": 394.90625
+          },
+          "reads": 1,
+          "domReplacements": 1
+        },
+        "relevantA": {
+          "focus": {
+            "tag": "BUTTON",
+            "id": null,
+            "role": null,
+            "label": null,
+            "text": "Sim",
+            "program": "BASIC",
+            "document": "extCC",
+            "withinMonthlyPanel": true
+          },
+          "sameFocusedNode": false,
+          "sameWorkspace": false,
+          "samePanel": false,
+          "sameRow": false,
+          "scroll": {
+            "top": 222,
+            "left": 0,
+            "maxTop": 836,
+            "windowX": 0,
+            "windowY": 0,
+            "rowTop": 414.90625
+          },
+          "reads": 2,
+          "domReplacements": 6
+        }
+      }
+    }
+  }
+}

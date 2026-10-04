@@ -14,7 +14,113 @@ A autorização mais recente permite merge/publicação quando as evidências fo
 suficientes. A investigação usa ambientes descartáveis; qualquer promoção depende
 da avaliação dos riscos, checks e jornada do SHA efetivamente candidato.
 
-## Fatos revalidados
+## Checkpoint vigente — retomada e revisão do #408
+
+Esta seção substitui a fila de trabalho e os estados temporais dos checkpoints
+abaixo. A revalidação encontrou workspace limpo em `cdaa5f33`, #407 Draft no mesmo
+HEAD e main em `62fe000c`. Nenhum trabalho local anterior foi descartado.
+
+### Prova consolidada já concluída: não executar novamente por falta de leitura
+
+Run `37144801308`: cinco jobs aprovados (baseline, candidato, contratos/frontend,
+volume e comparação). Run `37144801361`: 21 testes de lifecycle aprovados,
+incluindo identificação remota com retorno derivado imediato sem leitura ampla.
+O merge sintético `37bc4aea52010c54bbb817ed37b44017423699ad` e o candidato
+`818678a4b4ed21c67e323dc2f5e7d0a42681010e` possuem a mesma árvore
+`55f33cf5a54b2d4f94040302530e82baad9a8c8c`.
+
+| Métrica | Baseline #406 | Candidato #407 |
+|---|---:|---:|
+| Gestos/escritas bem-sucedidas | 1.106 | 1.106 |
+| Tentativas contextuais | 1.128 | 491 |
+| Tentativas abortadas no navegador | 1.095 | 347 |
+| Resultados stale | 1.103 | 349 |
+| Payload observado, bytes | 42.535.823 | 190.165.786 |
+| SQL contextual autenticado, chamadas | 61 | 169 |
+| SQL, execução agregada em ms | 17.718,43 | 27.523,89 |
+| Substituições principais do DOM | 324 | 441 |
+| Long Tasks, tempo total em ms | 166.467 | 198.684 |
+| Long Tasks, blocking time em ms | 72.568 | 91.534 |
+| Frames amostrados com opacity reduzida | 801 | 0 |
+
+Escritores: 406/305/407 → 123/109/125 tentativas. Observadores: 5/5 → 68/66,
+com 89,1/87,8 MB transferidos pelo candidato. A duração foi 466,5 s contra
+485,5 s. Não interpretar diferenças de runners/cache/duração como aceleração
+causal da RPC. SQL inclui uma janela diferente da coleta no navegador.
+
+A conclusão permanece mista: menos tentativas, aborts e flicker comprovado;
+mais payload, SQL, DOM e trabalho do cliente. O baseline trailing não fornece
+a mesma atualização durante atividade contínua; menor custo não é prova de
+mesmo frescor. O comparador detectou esses aumentos e não os esconde sob seu
+status verde. Budgets de custo continuam report-only, sem SLO de produto definido.
+
+Artefato do comparador: `11281343903`. Métricas: baseline `11280969741`, candidato
+`11281189354`; vídeos completos permanecem no Actions com retenção de 30 dias.
+[Resumo agregado com hashes das fontes](../evidence/2026-10-03-operational-instability/consolidated-run-37144801308-summary.json).
+
+### Relevância entre escolas e foco — evidência adicional lida
+
+O diagnóstico cross-school passou nas duas variantes. Uma alteração exclusiva
+em B atualizou o estado global e foi reencontrada ao navegar para B, sem novo
+carregamento contextual. A superfície visível de A continuou com os mesmos dados,
+mas seu workspace/painel/linha foram substituídos. A unidade de consistência é
+maior que a escola aberta; ignorar B seria incorreto, reconstruir A é custo a
+investigar separadamente da atualização global.
+
+No baseline, o foco saiu do botão Sim de A para BODY. No candidato, voltou ao
+botão lógico Sim de `BASIC/extCC`, embora o nó original tenha sido substituído.
+Scroll e posição da linha permaneceram iguais antes/depois da alteração de B.
+A captura `observer-A-after-B.png` foi inspecionada: escola/competência e linha
+continuam visíveis, com anel de foco no botão. São observações do artefato; o
+teste cross-school ainda não transforma preservação de foco/scroll em asserts.
+Os seis E2E dirigidos de foco continuam sendo a proteção automática específica.
+
+### Relação com o backport #408 e revisão desta retomada
+
+O #408 nasceu da main e não contém a arquitetura ampliada do #407. Conferido
+no HEAD `d863f864`: 33 checks aprovados, dois Previews pulados, 1.247 unitários
+aprovados no CI. Confirmados os controles acrescentados durante a ausência:
+recuperação após retry, coordenação hidden/blur/visible/focus, conflito fiscal
+dentro da fila e auditoria fail-closed com caminho de dependências validado.
+
+A revisão encontrou uma regressão adicional no próprio #408: quando a leitura
+termina entre os dois sinais da mesma retomada, o timer de cooldown gera outra
+leitura/render depois de 30 s sem alteração nova. Contraprova: main 1/1,
+`d863f864` 2/2, em ambas as ordens dos eventos. Dois REDs foram executados antes
+da correção. O controlador agora só agenda cooldown se já existe reconciliação
+pendente ou ocorreu nova suspensão; a pendência é consumida no início da leitura,
+não antes de avaliar o throttle.
+
+Publicado no #408: `b1b12bcc9419b55f8bfe9717f4a1c2e5c1bee255`, com prova
+versionada em `docs/evidence/2026-10-03-pr408-resume-review/`, 69 controles e
+1.250 unitários locais aprovados. A descrição do PR foi atualizada. As oito
+threads antigas estão resolvidas após confronto com o código/testes, sem apagar
+reviews. CI novo: homologação `37163218140`, validação `37163218065`, E2E
+`37163218064`; conferir conclusão no SHA real antes de merge. Nenhum merge ou
+deployment ocorreu neste checkpoint.
+
+### Continuação concreta
+
+1. Fechar os gates de `b1b12bcc` no #408 e registrar o parecer de merge no SHA
+   efetivamente certificado; não usar somente o verde de `d863f864`.
+2. Após a integração do #408, sincronizar o #407 com a main. Preservar os novos
+   controles de retry/retomada e conflito fiscal: copiar apenas a versão antiga
+   do #407 reintroduziria defeitos já reproduzidos. Resolver a composição com
+   métricas/foco lógico nesta branch e executar regressões proporcionais.
+3. Próxima investigação ampla: distinguir estado global atualizado da projeção
+   realmente alterada na superfície visível. Medir a aplicação/normalização e
+   o render antes de escolher revision token, delta ou outro recorte de dados.
+   Não filtrar Broadcast pela escola aberta nem ajustar timers às cegas.
+4. Manter o gate sustentado como comparação de correção e custo, com controles
+   de frescor durante a atividade. Calibrar budgets de produto com evidência;
+   o timer de cinco segundos não é SLO.
+5. Staging Supabase ainda não existe. Organização informada pelo usuário:
+   `buycxqbdkbxgouvcxtgt`. Consulta anterior: branch 0,01344/h e projeto cotado
+   0/mês; isso não autoriza criação. O usuário exige opções/custo/consequências
+   e confirmação antes de criar infraestrutura. Preview Vercel ainda requer
+   prova de SHA/runtime remoto; nenhuma escrita de teste em Production.
+
+## Fatos revalidados no checkpoint inicial — histórico
 
 - Código candidato testado: `a652b410509ee8bbbc2a24372010abc7a879c58d`.
   Gate final `37097052464` concluído, quatro jobs aprovados. Três mecanismos
@@ -82,7 +188,7 @@ não chamar toda invocação de renderer de reconstrução efetiva.
   Chave privada indisponível. Recuperação do arquivo não equivale a restauração.
   Não é bloqueador da investigação de amplificação/DOM.
 
-## Próximo passo executável
+## Próximo passo do checkpoint inicial — histórico, superado pela seção vigente
 
 1. Não recriar as três correções já comprovadas: comparar qualquer relato novo
    com o SHA atual e identificar a jornada ainda problemática. Pergunta opcional
