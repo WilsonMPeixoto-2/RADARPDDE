@@ -169,6 +169,10 @@ test('pico acelerado de seis escolas não transforma alterações alheias em rel
         const metrics = harness.controller.getMetrics();
         assert.equal(metrics.broadcastsReceived, 720);
         assert.equal(metrics.deferredSchoolInvalidations, 600);
-        assert.deepEqual(metrics.dirtySchoolIds, schools.filter((_, schoolIndex) => schoolIndex !== index));
+        assert.deepEqual(
+            metrics.dirtySchoolIds,
+            [],
+            'a única leitura completa da própria sessão também reconcilia as escolas que estavam marcadas como alteradas'
+        );
     }
 });
