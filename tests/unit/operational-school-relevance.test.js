@@ -139,3 +139,36 @@ test('Broadcast sem escola conhecida mantém o caminho conservador e não perde 
 
     assert.equal(harness.refreshes.length, 1);
 });
+
+test('pico acelerado de seis escolas não transforma alterações alheias em releituras completas de todas as sessões', async () => {
+    const schools = Array.from({ length: 6 }, (_, index) => `SCHOOL-${index + 1}`);
+    const harnesses = schools.map(schoolId => createHarness({
+        route: { view: 'prontuario', param: schoolId }
+    }));
+    await Promise.all(harnesses.map(harness => harness.start()));
+
+    // 120 rodadas x 6 escolas = 720 invalidações entregues a cada sessão.
+    // Cada sessão deve reagir somente às mudanças da própria escola; as outras
+    // cinco não podem multiplicar leituras completas do contexto.
+    for (let round = 0; round < 120; round += 1) {
+        for (const changedSchool of schools) {
+            for (const harness of harnesses) {
+                harness.broadcast({ entity: 'verifications', schoolId: changedSchool });
+            }
+        }
+    }
+    await settle(25);
+
+    for (const [index, harness] of harnesses.entries()) {
+        assert.equal(
+            harness.refreshes.length,
+            1,
+            `sessão da ${schools[index]} deve coalescer a própria rajada e ignorar releituras completas das outras cinco escolas`
+        );
+        assert.equal(harness.refreshes[0].reason, 'realtime');
+        const metrics = harness.controller.getMetrics();
+        assert.equal(metrics.broadcastsReceived, 720);
+        assert.equal(metrics.deferredSchoolInvalidations, 600);
+        assert.deepEqual(metrics.dirtySchoolIds, schools.filter((_, schoolIndex) => schoolIndex !== index));
+    }
+});
