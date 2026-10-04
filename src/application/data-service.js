@@ -273,6 +273,78 @@
         return assertSnapshotJson(next, 'mergeOperationalContext');
     }
 
+    function normalizedHistoryStatuses(values = []) {
+        return [...new Set((Array.isArray(values) ? values : [])
+            .map(value => String(value || '').trim())
+            .filter(Boolean))].sort();
+    }
+
+    function emptySchoolCoverage() {
+        return Object.fromEntries(REMOTE_CONTEXT_ENTITIES.map(entity => [entity, []]));
+    }
+
+    function schoolCoverageForSnapshot(snapshotValue, schoolId) {
+        const id = String(schoolId || '').trim();
+        const source = snapshotValue?.entities || {};
+        const directIds = entity => normalizedRecords(source[entity])
+            .filter(record => String(record?.school_id || '').trim() === id)
+            .map(recordId)
+            .filter(Boolean);
+        const pendencyIds = new Set(directIds('pendencies'));
+        return {
+            verifications: directIds('verifications'),
+            pendencies: [...pendencyIds],
+            pendencyAttempts: normalizedRecords(source.pendencyAttempts)
+                .filter(record => pendencyIds.has(String(record?.pendency_id || '')))
+                .map(recordId).filter(Boolean),
+            pendencyContacts: normalizedRecords(source.pendencyContacts)
+                .filter(record => pendencyIds.has(String(record?.pendency_id || '')))
+                .map(recordId).filter(Boolean),
+            assets: directIds('assets'),
+            registeredInvoices: directIds('registeredInvoices')
+        };
+    }
+
+    function createOperationalCoverage(snapshotValue, competenceId, historyStatuses = []) {
+        const schoolIds = new Set();
+        ['verifications', 'pendencies', 'pendencyContacts', 'assets', 'registeredInvoices']
+            .forEach(entity => normalizedRecords(snapshotValue?.entities?.[entity]).forEach(record => {
+                const id = String(record?.school_id || '').trim();
+                if (id) schoolIds.add(id);
+            }));
+        const bySchool = {};
+        schoolIds.forEach(schoolId => {
+            bySchool[schoolId] = schoolCoverageForSnapshot(snapshotValue, schoolId);
+        });
+        return {
+            competenceId: String(competenceId || ''),
+            historyStatuses: normalizedHistoryStatuses(historyStatuses),
+            bySchool
+        };
+    }
+
+    function coverageMatches(baseline, competenceId, historyStatuses = []) {
+        return Boolean(baseline)
+            && baseline.competenceId === String(competenceId || '')
+            && JSON.stringify(baseline.historyStatuses)
+                === JSON.stringify(normalizedHistoryStatuses(historyStatuses));
+    }
+
+    function replaceSchoolOperationalSlice(currentSnapshot, envelope, previousCoverage) {
+        const next = cloneValue(currentSnapshot);
+        REMOTE_CONTEXT_ENTITIES.forEach(entity => {
+            const removeIds = new Set(previousCoverage?.[entity] || []);
+            const incoming = normalizedRecords(envelope?.entities?.[entity]).map(cloneValue);
+            const incomingIds = new Set(incoming.map(recordId).filter(Boolean));
+            const kept = normalizedRecords(next.entities?.[entity]).filter(record => {
+                const id = recordId(record);
+                return !id || (!removeIds.has(id) && !incomingIds.has(id));
+            });
+            next.entities[entity] = [...kept, ...incoming];
+        });
+        return assertSnapshotJson(next, 'replaceSchoolOperationalSlice');
+    }
+
     class DataService {
         constructor(options = {}) {
             this.repository = assertRepositoryContract(options.repository);
@@ -295,6 +367,10 @@
             this.operationalContextSequence = 0;
             this.operationalContextAbortController = null;
             this.currentOperationalCompetence = '';
+            this.schoolOperationalContextSequence = 0;
+            this.schoolOperationalContextAbortController = null;
+            this.schoolOperationalCoverage = null;
+            this.schoolOperationalCoverageGeneration = 0;
         }
 
         async bootstrap(options = {}) {
@@ -374,6 +450,9 @@
                         persistStorage: false,
                         source: 'remote-bootstrap'
                     });
+                    if (operationalCompetence) {
+                        this.establishSchoolOperationalCoverage(hydrated, operationalCompetence, []);
+                    }
                 } else {
                     await this.statePort.applyCanonical(hydrated);
                 }
@@ -403,6 +482,154 @@
             return true;
         }
 
+        abortSchoolOperationalContextRead() {
+            const controller = this.schoolOperationalContextAbortController;
+            if (!controller) return false;
+            this.schoolOperationalContextAbortController = null;
+            if (!controller.signal?.aborted) controller.abort();
+            return true;
+        }
+
+        invalidateSchoolOperationalCoverage() {
+            this.abortSchoolOperationalContextRead();
+            this.schoolOperationalContextSequence += 1;
+            this.schoolOperationalCoverage = null;
+            this.schoolOperationalCoverageGeneration += 1;
+        }
+
+        establishSchoolOperationalCoverage(snapshotValue, competenceId, historyStatuses = []) {
+            this.schoolOperationalCoverage = createOperationalCoverage(
+                snapshotValue, competenceId, historyStatuses
+            );
+            this.schoolOperationalCoverageGeneration += 1;
+            return this.schoolOperationalCoverageGeneration;
+        }
+
+        schoolOperationalCoverageFor(schoolId, competenceId, historyStatuses = []) {
+            if (!coverageMatches(this.schoolOperationalCoverage, competenceId, historyStatuses)) return null;
+            return cloneValue(
+                this.schoolOperationalCoverage.bySchool?.[String(schoolId || '').trim()]
+                || emptySchoolCoverage()
+            );
+        }
+
+        async loadSchoolOperationalContext(schoolId, competenceId, options = {}) {
+            const capabilities = this.repository.capabilities();
+            const targetSchool = String(schoolId || '').trim();
+            const targetCompetence = normalizedCompetence(competenceId);
+            const historyStatuses = normalizedHistoryStatuses(options.historyStatuses);
+            if (capabilities.remote !== true) {
+                throw new RepositoryError('REMOTE_CONTEXT_UNAVAILABLE',
+                    'A leitura escolar é exclusiva do modo Supabase.',
+                    { operation: 'loadSchoolOperationalContext' });
+            }
+            if (!targetSchool || !targetCompetence) {
+                throw new RepositoryError('INVALID_OPERATIONAL_CONTEXT',
+                    'Informe escola e competência válidas para a leitura escolar.',
+                    { operation: 'loadSchoolOperationalContext' });
+            }
+            if (capabilities.schoolOperationalContext !== true
+                || typeof this.repository.querySchoolOperationalContext !== 'function') {
+                throw new RepositoryError('MISSING_REMOTE_CAPABILITY',
+                    'O repositório remoto não oferece leitura operacional por escola.',
+                    { operation: 'loadSchoolOperationalContext' });
+            }
+
+            const previousCoverage = this.schoolOperationalCoverageFor(
+                targetSchool, targetCompetence, historyStatuses
+            );
+            if (!previousCoverage) {
+                return {
+                    schoolId: targetSchool, competenceId: targetCompetence,
+                    stale: false, applied: false,
+                    fallback: { kind: 'global', reason: 'MISSING_BASELINE_COVERAGE' }
+                };
+            }
+
+            this.abortSchoolOperationalContextRead();
+            const AbortControllerCtor = typeof AbortController === 'function' ? AbortController : null;
+            const controller = AbortControllerCtor ? new AbortControllerCtor() : null;
+            this.schoolOperationalContextAbortController = controller;
+            const sequence = ++this.schoolOperationalContextSequence;
+            const coverageGeneration = this.schoolOperationalCoverageGeneration;
+            const writeBarrier = this.remoteWriteTail;
+            const readOptions = controller ? { ...options, signal: controller.signal } : options;
+            const run = writeBarrier.then(() => this.readSchoolOperationalContext(
+                targetSchool, targetCompetence, historyStatuses, previousCoverage,
+                readOptions, sequence, coverageGeneration
+            ));
+            return run.finally(() => {
+                if (this.schoolOperationalContextAbortController === controller) {
+                    this.schoolOperationalContextAbortController = null;
+                }
+            });
+        }
+
+        async readSchoolOperationalContext(
+            schoolId, competenceId, historyStatuses, previousCoverage, options, sequence, coverageGeneration
+        ) {
+            const canApply = () => sequence === this.schoolOperationalContextSequence
+                && coverageGeneration === this.schoolOperationalCoverageGeneration
+                && !options.signal?.aborted
+                && this.currentOperationalCompetence === competenceId
+                && JSON.stringify(normalizedHistoryStatuses(this.currentHistoricalStatuses))
+                    === JSON.stringify(historyStatuses)
+                && (typeof options.shouldApply !== 'function' || options.shouldApply());
+            if (!canApply()) {
+                return { schoolId, competenceId, stale: true, applied: false };
+            }
+
+            let envelope;
+            try {
+                envelope = await this.repository.querySchoolOperationalContext({
+                    schoolId, competenceId, historyStatuses,
+                    ...(options.signal ? { signal: options.signal } : {})
+                });
+            } catch (error) {
+                if (options.signal?.aborted) {
+                    return { schoolId, competenceId, stale: true, aborted: true, applied: false };
+                }
+                throw error;
+            }
+            if (!canApply()) {
+                return { schoolId, competenceId, stale: true, applied: false };
+            }
+            if (envelope?.coverage?.complete !== true || envelope?.fallback) {
+                return {
+                    schoolId, competenceId, stale: false, applied: false,
+                    fallback: cloneValue(envelope?.fallback || { kind: 'global', reason: 'INCOMPLETE_COVERAGE' })
+                };
+            }
+
+            const current = typeof this.statePort.exportCanonicalEntities === 'function'
+                ? await this.statePort.exportCanonicalEntities(REMOTE_CONTEXT_ENTITIES, {
+                    version: '1', importId: 'school-context-' + Date.now(),
+                    exportedAt: new Date().toISOString()
+                })
+                : await this.statePort.exportCanonical();
+            if (!canApply()) {
+                return { schoolId, competenceId, stale: true, applied: false };
+            }
+            const next = replaceSchoolOperationalSlice(current, envelope, previousCoverage);
+            await this.applyRemoteState(
+                next, REMOTE_CONTEXT_ENTITIES, options.source || 'remote-school-operational-context'
+            );
+            if (!canApply()) {
+                return { schoolId, competenceId, stale: true, applied: true, snapshot: cloneValue(next) };
+            }
+
+            const updatedCoverage = cloneValue(this.schoolOperationalCoverage);
+            updatedCoverage.bySchool = { ...(updatedCoverage.bySchool || {}) };
+            updatedCoverage.bySchool[schoolId] = schoolCoverageForSnapshot(
+                { entities: envelope.entities }, schoolId
+            );
+            this.schoolOperationalCoverage = updatedCoverage;
+            this.schoolOperationalCoverageGeneration += 1;
+            return {
+                schoolId, competenceId, stale: false, applied: true, snapshot: cloneValue(next)
+            };
+        }
+
         async loadOperationalContext(competenceId, options = {}) {
             const capabilities = this.repository.capabilities();
             const target = normalizedCompetence(competenceId);
@@ -428,6 +655,7 @@
                 );
             }
 
+            this.invalidateSchoolOperationalCoverage();
             this.abortOperationalContextRead();
             const AbortControllerCtor = typeof AbortController === 'function' ? AbortController : null;
             const controller = AbortControllerCtor ? new AbortControllerCtor() : null;
@@ -496,7 +724,10 @@
                 options.source || 'remote-operational-context'
             );
             this.currentOperationalCompetence = target;
-            this.currentHistoricalStatuses = historyStatuses;
+            this.currentHistoricalStatuses = normalizedHistoryStatuses(historyStatuses);
+            this.establishSchoolOperationalCoverage(
+                snapshot, target, this.currentHistoricalStatuses
+            );
             return {
                 competenceId: target,
                 stale: false,
@@ -658,6 +889,7 @@
 
             // Qualquer contexto iniciado antes desta intenção de escrita passa a ser obsoleto.
             // Além de invalidar a resposta, cancela fisicamente a leitura PostgREST ainda em voo.
+            this.invalidateSchoolOperationalCoverage();
             this.abortOperationalContextRead();
             this.operationalContextSequence += 1;
 
