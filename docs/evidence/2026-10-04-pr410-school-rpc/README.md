@@ -91,6 +91,26 @@ migration, todos os pgTAP, geração dos tipos e os gates existentes. O workflow
 readiness agora reproduz benchmark/EXPLAIN e preserva JSON/SQL/logs por 30 dias.
 Git recebe agregados, hashes, conclusões e IDs, sem milhares de eventos brutos.
 
+## Primeira prova Supabase nativa — resultado parcial explícito
+
+Run `37207136161`, job `111450566879`, SHA `27821dad...`: **39 arquivos/647 pgTAP
+aprovados**, incluindo os 81 escolares. Benchmark, 489 equivalências, EXPLAIN,
+concorrência da primeira despesa e lint SQL passaram. [Métricas nativas](supabase-benchmark-first-run.json).
+Artefato `11305740693`, SHA-256 `77a18b0071ae09e3cce019c709cfa25682aa0973f21ddb87329498c1bd0f1f53`.
+
+Na mesma execução: global p50 32,686 ms / 1.324.699 bytes; escola densa 17,290 ms /
+51.599 bytes (−47,1% no p50, −96,1% em bytes); mediana 10,238 ms / 5.131 bytes;
+leve 8,483 ms / 1.191 bytes. Usar comparação dentro da mesma execução; não comparar
+diretamente com tempos do contêiner genérico.
+
+O job ficou vermelho **depois dessas provas**, no diff dos tipos gerados: uma única
+linha em branco no EOF havia sido removida na edição local. O arquivo foi recuperado
+integralmente do artifact do gerador; bundles Ajv/Supabase coincidem byte a byte.
+Não se alterou checker nem formato do gerador para aceitar divergência. Os passos
+Auth/frontend posteriores foram pulados nessa execução, portanto a certificação
+completa precisa da nova CI no SHA com o artifact corrigido. Não chamar este run de
+“Supabase readiness verde”.
+
 ## Reprodução
 
 1. Recriar Supabase descartável com migrations e seed local (59 nesta branch).

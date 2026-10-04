@@ -17,7 +17,7 @@
     "sha256": "11e8a71121b978af951faf3fdd23a46dab126e65097fd4708d386a8b81a2deeb"
   },
   "relatedUnitControls": {
-    "passed": 5,
+    "passed": 20,
     "failed": 0
   },
   "staticChecks": [
@@ -27,5 +27,5 @@
     "architecture",
     "workflow references"
   ],
-  "nativeSupabase": "pending CI for this functional candidate"
+  "nativeSupabase": "First run 37207136161: 647 pgTAP and benchmark passed, later type EOF drift failed job; subsequent CI still required."
 }
