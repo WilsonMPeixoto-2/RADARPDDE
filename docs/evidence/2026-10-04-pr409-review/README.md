@@ -78,3 +78,20 @@ das duas asserções de tentativa. Corrigidos INEP/CNPJ/SICI da fixture. Não fo
 alterada constraint nem migration do produto. Run `37179113038`, job
 `111367865701`. A nova jornada de browser ainda não executou nesse job devido ao
 bloqueio anterior do pgTAP.
+
+## Navegação humana que não atualizava a autoridade da rota
+
+A inspeção dos caminhos concretos encontrou `navigateToNextProntuarioSchool`:
+chamava `renderProntuario` diretamente, sem atualizar URL/histórico. O #409 usa a
+rota para decidir relevância, portanto a tela B podia continuar sendo classificada
+como A. O RED Playwright, clicando em **Próxima unidade**, confirmou a URL antiga
+(`/escolas/04.10.001`) depois de exibir a próxima escola.
+
+Correção mínima em app.js: substituir a chamada direta ao renderer por
+`switchView('prontuario', nextSchool.id)`, mantendo competência e scroll já
+preservados pelo fluxo. Nenhum wrapper ou autoridade adicional.
+GREEN: **7/7 E2E de rotas**, incluindo o novo teste, Voltar, filtros, deep links,
+foco/scroll e competência. **12/12** controles unitários de navegação/relevância.
+A suíte unitária completa anterior a essa mudança de uma linha passou **1263/1263**.
+Foi acrescentada prova com duas identidades e Broadcast real para o botão Próxima
+unidade; depende da CI do candidato consolidado.

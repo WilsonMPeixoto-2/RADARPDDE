@@ -1,3 +1,10 @@
+> **Retomada Codex em 04/10:** ler primeiro a evidência incremental em
+> [revisão causal](../evidence/2026-10-04-pr409-review/README.md). Foram reproduzidas
+> duas leituras redundantes por navegação/render e uma rota escolar desatualizada
+> pelo botão Próxima unidade. Correções e RED/GREEN publicados em checkpoints.
+> O histórico abaixo permanece como contexto do candidato d46, não como estado
+> final. Conferir HEAD/CI ao vivo. Nenhum merge/migration de Production nesta etapa.
+
 # Handoff corrente — revisão adversarial do PR #409 pelo Codex
 
 **Classe documental:** Handoff corrente  

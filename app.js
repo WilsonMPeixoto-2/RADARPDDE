@@ -9531,7 +9531,7 @@ function navigateToNextProntuarioSchool(escolaId) {
     const preservedCompetence = activeProntuarioCompetencia;
     activeSchoolId = nextSchool.id;
     activeProntuarioCompetencia = preservedCompetence;
-    renderProntuario(nextSchool.id);
+    switchView('prontuario', nextSchool.id);
     resetContentAreaScroll();
     return true;
 }

@@ -34,8 +34,8 @@ async function signInInstitutional(page, profileId = 'controller') {
   ), profileId);
 }
 
-async function openSchool(page) {
-  await page.goto('/escolas/ESC-LOCAL');
+async function openSchool(page, schoolId = 'ESC-LOCAL') {
+  await page.goto(`/escolas/${schoolId}`);
   await page.waitForFunction(() => (
     window.RadarDataContext?.ready === true
     && window.RadarAuthContext?.authorization?.role === 'controller'
@@ -50,10 +50,10 @@ async function waitRealtimeSubscribed(page) {
   ), null, { timeout: 15000 });
 }
 
-async function currentExtCC(page) {
-  return page.evaluate(() => (
-    verificacoes?.['ESC-LOCAL']?.['2026-05_BASIC']?.bonificacao?.extCC || ''
-  ));
+async function currentExtCC(page, schoolId = 'ESC-LOCAL') {
+  return page.evaluate(id => (
+    verificacoes?.[id]?.['2026-05_BASIC']?.bonificacao?.extCC || ''
+  ), schoolId);
 }
 
 function extCCRow(page) {
@@ -471,5 +471,47 @@ test('escola alheia não reconstrói Prontuário; navegação e mesma escola con
   } finally {
     await contextA.close();
     await contextB.close();
+  }
+});
+
+
+test('Próxima unidade reconcilia escola adiada e mantém a verdade após reload', async ({ browser }, testInfo) => {
+  const writer = await browser.newContext();
+  const observer = await browser.newContext();
+  const pageA = await writer.newPage();
+  const pageB = await observer.newPage();
+  let reads = 0;
+  try {
+    await signInInstitutional(pageA);
+    await openSchool(pageA, 'ESC-OTHER');
+    await signInInstitutional(pageB, 'federal_assistant');
+    await pageB.goto('/escolas/ESC-LOCAL');
+    await pageB.waitForFunction(() => window.RadarDataContext?.ready === true);
+    await Promise.all([waitRealtimeSubscribed(pageA), waitRealtimeSubscribed(pageB)]);
+    pageB.on('request', request => {
+      if (request.method() === 'POST' && request.url().includes('/rpc/read_operational_context')) reads += 1;
+    });
+    const original = await currentExtCC(pageA, 'ESC-OTHER');
+    const changed = original === 'Sim' ? 'Não' : 'Sim';
+    await extCCRow(pageA).getByRole('button', { name: changed, exact: true }).click();
+    await pageA.evaluate(() => window.RadarApplicationServices.data.remoteExecutionTail);
+    await expect.poll(() => pageB.evaluate(() => window.RadarOperationalRealtimeInvalidationController.getMetrics().dirtySchoolIds))
+      .toContain('ESC-OTHER');
+    await pageB.evaluate(() => new Promise(resolve => setTimeout(resolve, 2500)));
+    expect(reads).toBe(0);
+    await pageB.locator('.prontuario-next-school').click();
+    await expect(pageB).toHaveURL(/\/escolas\/ESC-OTHER$/);
+    await expect.poll(() => currentExtCC(pageB, 'ESC-OTHER')).toBe(changed);
+    await expectVisibleExtCC(pageB, changed);
+    await pageB.evaluate(() => new Promise(resolve => setTimeout(resolve, 2500)));
+    expect(reads).toBe(1);
+    await pageB.reload();
+    await expectVisibleExtCC(pageB, changed);
+    await testInfo.attach('next-school-reconciled', {
+      body: await pageB.screenshot({ animations: 'disabled' }), contentType: 'image/png'
+    });
+  } finally {
+    await writer.close();
+    await observer.close();
   }
 });
