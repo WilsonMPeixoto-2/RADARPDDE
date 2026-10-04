@@ -3,6 +3,9 @@
 Evidência do incremento SQL, em 04/10/2026. Base: `8a7906ed...` sobre main
 `d9bf67f7...` pós-#408. Não incorpora o runtime experimental do #407/#409.
 A nova migration foi criada pelo Supabase CLI fixado; a leitura global não muda.
+Certificação final deste incremento: `c29b1d55888ad36eab6f4c4f3ccb1d027df8e0a8`,
+[18 workflows verdes](checkpoint-ci.json), Supabase nativo com 647 pgTAP/39 arquivos,
+16 E2E Auth/RLS/frontend, tipos reproduzíveis e 489 coberturas escolares equivalentes.
 Não há conexão ao frontend nem aplicação em Production neste incremento.
 
 ## Contrato e fronteira de aplicação
@@ -86,8 +89,8 @@ O ganho medido inclui o guard; planos instrumentados têm outro custo e não dev
 ser somados ou comparados diretamente aos percentis do benchmark.
 
 O banco local genérico é PostgreSQL 17.11/pgTAP 1.3.4 com bootstrap compatível,
-sem pilha Realtime/JSONSchema/Auth nativa. A CI Supabase local real deve provar a
-migration, todos os pgTAP, geração dos tipos e os gates existentes. O workflow de
+sem pilha Realtime/JSONSchema/Auth nativa. A CI Supabase local real posteriormente
+provou a migration, pgTAP, geração dos tipos e gates existentes. O workflow de
 readiness agora reproduz benchmark/EXPLAIN e preserva JSON/SQL/logs por 30 dias.
 Git recebe agregados, hashes, conclusões e IDs, sem milhares de eventos brutos.
 
@@ -111,6 +114,34 @@ Auth/frontend posteriores foram pulados nessa execução, portanto a certificaç
 completa precisa da nova CI no SHA com o artifact corrigido. Não chamar este run de
 “Supabase readiness verde”.
 
+## Certificação final — Supabase nativo e CI completa
+
+Run `37207524394`, job `111451730919`, SHA `c29b1d55...`: três jobs de readiness
+verdes. As mesmas 647 provas pgTAP passaram, assim como 489 coberturas, benchmark,
+EXPLAIN, lint SQL, concorrência fiscal, geração reproduzível dos artifacts e 16 E2E
+da pilha Auth/RLS/frontend. [JSON quantitativo](supabase-benchmark.json),
+[planos nativos agregados](supabase-plan-summary.json), [18 workflows](checkpoint-ci.json).
+Artifact `11305895956`, SHA-256 `4929e76cfda177c21affd7adc8e03137055c3b081b39960af9eea9fd9d6137be`.
+
+| SQL, mesma execução final | p50 ms | p95 ms | JSON sem compressão, bytes |
+|---|---:|---:|---:|
+| Global | 48,647 | 49,773 | 1.327.478 |
+| Escola densa | 28,700 | 29,757 | 51.699 |
+| Escola mediana | 18,117 | 18,378 | 5.141 |
+| Escola leve | 15,258 | 15,516 | 1.193 |
+
+Redução da escola densa: **41,0% no p50**, **96,1% no JSON**. O custo do guard está
+incluído. A variação entre runners reforça usar comparação pareada, sem afirmar
+um tempo absoluto de Production ou um p99 de produto com vinte amostras.
+
+Limite adicional da fixture reaproveitada: ela reproduz agregados/fechamento por
+contexto, mas não a densidade atual de FKs NF/bem e Pendência/NF de Production.
+Os casos relacionais específicos são exercitados pelos 81 pgTAP; os números de
+performance se referem a esta massa, não a um clone completo. Antes da jornada
+sustentada da arquitetura integrada, confrontar distribuição de relações e o
+volume então vigente, ampliando a fixture ou usando uma cópia real conforme a
+evidência justificar. Não interpretar 489 equivalências como 489 browsers/gestos.
+
 ## Reprodução
 
 1. Recriar Supabase descartável com migrations e seed local (59 nesta branch).
@@ -126,7 +157,7 @@ reproduzível. Mudança no formato que invalide a extração falha explicitament
 
 ## Próxima fronteira
 
-Antes de integrar: certificar o SHA no Supabase nativo e revisar este envelope.
+Endpoint certificado isoladamente; antes de integrar, preservar este envelope.
 Depois: capacidade explícita no Repository; aplicação escolar atômica no DataService/
 StatePort; exclusão por cobertura, filhos do snapshot anterior, preservação de outras
 escolas, resposta obsoleta/escrita/contexto e rollback. Não enviar a fatia à aplicação

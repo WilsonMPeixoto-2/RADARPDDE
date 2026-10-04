@@ -27,5 +27,5 @@
     "architecture",
     "workflow references"
   ],
-  "nativeSupabase": "First run 37207136161: 647 pgTAP and benchmark passed, later type EOF drift failed job; subsequent CI still required."
+  "nativeSupabase": "Final c29b1d55: run 37207524394 success, 647 pgTAP and 16 native frontend E2E; 18/18 workflows green. First-run EOF failure separately recorded."
 }

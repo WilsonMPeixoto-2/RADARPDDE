@@ -21,9 +21,11 @@ Incremento escolar candidato: migration `20261004132755`, RPC invoker sem consum
 no frontend, envelope/completude e fallback global para referências não isoláveis
 nos dois sentidos. Provas locais: 81 pgTAP e 489 coberturas equivalentes sobre a
 fixture de agregados históricos. [Evidências e limites](evidence/2026-10-04-pr410-school-rpc/README.md).
-SQL/payload melhoraram no ensaio local; a prova Supabase nativa/CI deste incremento
-ainda deve ser conferida no SHA publicado. Próximo passo depende dessa prova, antes
-da aplicação de fatia e do novo Realtime.
+Certificação final no SHA `c29b1d55...`: **18 workflows verdes**, Supabase nativo
+647 pgTAP/39 arquivos, 16 E2E Auth/RLS/frontend e 489 equivalências. Na comparação
+final pareada, escola densa reduz p50 SQL em 41,0% e JSON em 96,1%. Os limites da
+fixture e do custo SQL versus UI estão explícitos no relatório. Próximo incremento:
+capacidade Repository e aplicação atômica por escola; novo Realtime ainda pendente.
 
 #407 e #409 permanecem fontes de evidência. O #409 continua Draft: novos E2E de Realtime falharam no candidato `5553f130...`; o checkpoint `2d7706f3...` guarda erros e instruções. Não é base de implementação do #410. A aprovação da direção arquitetural não aprova migrations, cortes de recuperação ou merge antecipado.
 

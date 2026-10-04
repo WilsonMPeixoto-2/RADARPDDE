@@ -80,8 +80,8 @@ global. EXPLAIN/payload por escola e global em base representativa descartável.
 **Incremento SQL candidato:** migration `20261004132755`, envelope v1 e guard
 bidirecional sob RLS, com fallback sem coleções aplicáveis. Provas locais: 81 pgTAP,
 489 coberturas equivalentes e benchmark/EXPLAIN. [Evidência](../../evidence/2026-10-04-pr410-school-rpc/README.md).
-CI Supabase nativa deve certificar esse SHA antes da integração; Repository/StatePort
-permanecem no caminho atual. O custo da guarda e dos subplanos RLS está explicitado,
+Certificado em `c29b1d55...`: 18 workflows verdes, 647 pgTAP e 16 E2E da pilha nativa.
+Repository/StatePort permanecem no caminho atual. O custo da guarda e dos subplanos RLS está explicitado,
 sem afirmar que todo o trabalho virou estritamente proporcional à escola.
 
 ## 3. Aplicação da fatia — autoridade DataService/StatePort
