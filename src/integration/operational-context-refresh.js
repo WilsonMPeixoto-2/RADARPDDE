@@ -55,8 +55,58 @@
         return Boolean(root.RadarAuthContext);
     }
 
+    const FOCUS_CONTROLS = 'button, a[href], [role="button"], [role="tab"]';
+    const FOCUS_ROWS = '[data-invoice-id], [data-pendency-ref], [data-program-id][data-document-key]';
+
+    function focusAttributes(element, names) {
+        return names.filter(name => element?.hasAttribute?.(name))
+            .map(name => [name, element.getAttribute(name)]);
+    }
+
+    function captureViewFocus(root) {
+        const element = root.document?.activeElement;
+        const main = root.document?.getElementById?.('main-container');
+        if (!main?.contains?.(element) || !element?.matches?.(FOCUS_CONTROLS)) return null;
+        const snapshot = { element, tag: element.tagName, id: element.id };
+        if (snapshot.id) return snapshot;
+        snapshot.row = focusAttributes(element.closest(FOCUS_ROWS), [
+            'data-invoice-id', 'data-pendency-ref', 'data-program-id', 'data-document-key'
+        ]);
+        snapshot.action = focusAttributes(element, ['data-action', 'onclick', 'href', 'aria-controls']);
+        return snapshot.row.length && snapshot.action.length ? snapshot : null;
+    }
+
+    function restoreViewFocus(root, snapshot) {
+        if (!snapshot || snapshot.element.isConnected) return;
+        const document = root.document;
+        const current = document.activeElement;
+        // Se o próprio renderer moveu deliberadamente o foco, essa decisão vence.
+        // Só restauramos foco perdido pela substituição do DOM.
+        if (current && current !== document.body && current !== document.documentElement) return;
+        const matchesAttributes = (element, attributes) => attributes.every(([name, value]) => (
+            element?.getAttribute(name) === value
+        ));
+        const main = document.getElementById('main-container');
+        const matches = Array.from(main?.querySelectorAll(FOCUS_CONTROLS) || []).filter(element => {
+            if (element.tagName !== snapshot.tag) return false;
+            if (snapshot.id) return element.id === snapshot.id;
+            return matchesAttributes(element, snapshot.action)
+                && matchesAttributes(element.closest(FOCUS_ROWS), snapshot.row);
+        });
+        if (matches.length !== 1) return;
+        const target = matches[0];
+        if (target.matches(':disabled') || target.getAttribute('aria-disabled') === 'true'
+            || hiddenByState(target) || !target.getClientRects().length) return;
+        const style = root.getComputedStyle?.(target);
+        if (style?.display === 'none' || ['hidden', 'collapse'].includes(style?.visibility)) return;
+        target.focus({ preventScroll: true });
+    }
+
     function refreshCurrentView(root) {
         const scrollSnapshot = root.RadarProntuarioScrollPreservation?.capture?.(root) || null;
+        // A captura ocorre depois da leitura, imediatamente antes da reconstrução.
+        // Assim respeita qualquer movimento de foco feito enquanto a RPC aguardava.
+        const focusSnapshot = captureViewFocus(root);
         try {
             if (typeof root.RadarGlobalCompetenceSelector?.refreshCurrentView === 'function') {
                 root.RadarGlobalCompetenceSelector.refreshCurrentView();
@@ -69,6 +119,7 @@
             root.switchView(view, schoolId || undefined);
             return true;
         } finally {
+            restoreViewFocus(root, focusSnapshot);
             root.RadarProntuarioScrollPreservation?.restore?.(root, scrollSnapshot);
         }
     }
@@ -123,6 +174,39 @@
         let pendingRefreshReason = '';
         let pendingRefreshCanForce = false;
         let cooldownTimer = null;
+        const metrics = {
+            requests: 0,
+            attempts: 0,
+            succeeded: 0,
+            failed: 0,
+            stale: 0,
+            rerenders: 0,
+            pendingMarked: 0,
+            pendingFlushed: 0,
+            lastDurationMs: 0,
+            lastReason: '',
+            lastRequestAt: null,
+            lastAttemptAt: null,
+            byReason: Object.create(null),
+            skipped: Object.create(null)
+        };
+
+        function increment(map, key) {
+            const normalized = text(key) || 'unknown';
+            map[normalized] = (map[normalized] || 0) + 1;
+        }
+
+        function metricsSnapshot() {
+            return Object.freeze({
+                ...metrics,
+                byReason: Object.freeze({ ...metrics.byReason }),
+                skipped: Object.freeze({ ...metrics.skipped })
+            });
+        }
+
+        function recordSkipped(reason) {
+            increment(metrics.skipped, reason);
+        }
 
         function remainingCooldownMs() {
             const cooldownAnchor = Math.max(lastRefreshAt, lastAttemptAt);
@@ -150,6 +234,7 @@
         }
 
         function markPending(reason, { canForce = false } = {}) {
+            metrics.pendingMarked += 1;
             pendingRefreshReason = text(reason) || pendingRefreshReason || 'editing';
             // Uma invalidação nova adiada por edição/leitura pode exigir drenagem
             // imediata. Recuperar uma leitura abortada não cria outra invalidação.
@@ -158,7 +243,14 @@
         }
 
         async function refresh(reason = 'resume', refreshOptions = {}) {
+            reason = text(reason) || 'resume';
+            metrics.requests += 1;
+            metrics.lastReason = reason;
+            metrics.lastRequestAt = new Date().toISOString();
+            increment(metrics.byReason, reason);
+
             if (refreshPromise) {
+                recordSkipped('inflight');
                 // Eventos repetidos do mesmo ciclo apenas retomam a leitura em
                 // andamento. Um ciclo real hidden→visible ou blur→focus, porém,
                 // pode ter perdido alterações posteriores ao snapshot já capturado.
@@ -173,11 +265,13 @@
                 }));
             }
             if (!authenticated(root)) {
+                recordSkipped('unauthenticated');
                 pendingRefreshReason = '';
                 pendingRefreshCanForce = false;
                 return { skipped: true, reason: 'unauthenticated' };
             }
             if (editing(root)) {
+                recordSkipped('editing');
                 markPending(reason, { canForce: /^realtime(?:-|$)/.test(reason)
                     || refreshOptions.force === true
                     || refreshOptions.resumeAfterHidden === true
@@ -186,6 +280,7 @@
             }
             const competenceKey = activeCompetence(root);
             if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(competenceKey)) {
+                recordSkipped('invalid-competence');
                 return { skipped: true, reason: 'invalid-competence' };
             }
             const now = Date.now();
@@ -196,6 +291,7 @@
                 && (now - cooldownAnchor) < minIntervalMs
             ) {
                 const retryAfterMs = Math.max(0, minIntervalMs - (now - cooldownAnchor));
+                recordSkipped('throttled');
                 // O segundo sinal de uma retomada pode chegar após a resposta do
                 // primeiro. Uma oportunidade sem pendência nem nova suspensão
                 // não cria trabalho futuro sobre o contexto que já está atual.
@@ -217,6 +313,8 @@
             // Registra a tentativa, inclusive quando a RPC falhar. Assim uma falha
             // de infraestrutura não transforma cliques/focusout em loop de retry.
             lastAttemptAt = now;
+            metrics.attempts += 1;
+            metrics.lastAttemptAt = new Date(now).toISOString();
 
             // Este refresh consome qualquer pendência já conhecida. Invalidações
             // que chegarem depois deste ponto voltam a preencher pendingRefreshReason
@@ -234,6 +332,8 @@
                         && activeCompetence(root) === competenceKey
                 });
                 if (result?.stale === true) {
+                    metrics.stale += 1;
+                    metrics.lastDurationMs = Math.max(0, Date.now() - startedAt);
                     if (authenticated(root) && activeCompetence(root) === competenceKey) {
                         markPending(reason);
                         // O Realtime possui somente um retry imediato. Se esse retry
@@ -245,25 +345,38 @@
                     }
                     return result;
                 }
-                if (!authenticated(root)) return { ...result, stale: true };
+                if (!authenticated(root)) {
+                    metrics.stale += 1;
+                    metrics.lastDurationMs = Math.max(0, Date.now() - startedAt);
+                    return { ...result, stale: true };
+                }
                 if (editing(root)) {
+                    metrics.stale += 1;
+                    metrics.lastDurationMs = Math.max(0, Date.now() - startedAt);
                     markPending(reason);
                     return { ...result, stale: true, pending: true };
                 }
-                if (activeCompetence(root) !== competenceKey) return { ...result, stale: true };
+                if (activeCompetence(root) !== competenceKey) {
+                    metrics.stale += 1;
+                    metrics.lastDurationMs = Math.max(0, Date.now() - startedAt);
+                    return { ...result, stale: true };
+                }
 
                 // Uma leitura aplicada com sucesso encerra qualquer cooldown de falha
                 // anterior. O throttle normal de foco/visibilidade continua ancorado
                 // em lastRefreshAt/lastAttemptAt.
                 lastFailureAt = 0;
                 refreshCurrentView(root);
+                metrics.rerenders += 1;
+                metrics.succeeded += 1;
                 lastRefreshAt = Date.now();
+                metrics.lastDurationMs = Math.max(0, lastRefreshAt - startedAt);
                 if (typeof root.dispatchEvent === 'function' && typeof root.CustomEvent === 'function') {
                     root.dispatchEvent(new root.CustomEvent('radar:operational-context-refreshed', {
                         detail: {
                             competenceKey,
                             source: `session-${reason}-refresh`,
-                            durationMs: Math.max(0, lastRefreshAt - startedAt),
+                            durationMs: metrics.lastDurationMs,
                             refreshedAt: new Date(lastRefreshAt).toISOString()
                         }
                     }));
@@ -271,6 +384,8 @@
                 return result;
             }).catch(error => {
                 lastFailureAt = Date.now();
+                metrics.failed += 1;
+                metrics.lastDurationMs = Math.max(0, lastFailureAt - startedAt);
                 markPending(reason);
                 if (reason === 'realtime-retry') {
                     scheduleCooldownFlush(remainingCooldownMs());
@@ -307,6 +422,7 @@
             // usuário encerra o campo. Se a própria leitura falhou recentemente,
             // preservamos o cooldown para não recriar a tempestade de retries.
             const force = flushOptions.force === true || (pendingCanForce && !failureCooldownActive);
+            metrics.pendingFlushed += 1;
             const result = await refresh(`${pendingReason}-${reason}`, { force });
             if (
                 result?.ok === false
@@ -325,7 +441,8 @@
             hasPendingRefresh: () => Boolean(pendingRefreshReason),
             getLastRefreshAt: () => lastRefreshAt,
             getLastAttemptAt: () => lastAttemptAt,
-            getLastFailureAt: () => lastFailureAt
+            getLastFailureAt: () => lastFailureAt,
+            getMetrics: metricsSnapshot
         });
     }
 
@@ -340,7 +457,8 @@
             root.RadarOperationalContextRefreshController = Object.freeze({
                 refresh: async () => ({ skipped: true, reason: 'local-mode' }),
                 flushPending: async () => ({ skipped: true, reason: 'local-mode' }),
-                hasPendingRefresh: () => false
+                hasPendingRefresh: () => false,
+                getMetrics: () => Object.freeze({})
             });
             return true;
         }
