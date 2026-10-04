@@ -1,25 +1,17 @@
 # RADAR PDDE — estado atual e retomada
 
 **Classe documental:** Canônico — estado mutável  
-**Atualizado em:** 3 de outubro de 2026
+**Atualizado em:** 4 de outubro de 2026
 
-## Frente operacional — #408 e #407
+## Frente operacional corrente — PR #410
 
-O hotfix seletivo [#408](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/408)
-separa correções comprovadas da investigação arquitetural ampla do #407.
-A revisão do HEAD `d863f864` confirmou 33 checks aprovados e dois Previews
-condicionais pulados, mas encontrou uma leitura redundante quando a resposta
-termina entre os sinais de foco/visibilidade da mesma retomada. Esta entrega
-corrige a causa e acrescenta RED/GREEN determinístico; 1.250 unitários locais
-passaram. Conferir os checks do novo SHA antes de promover o hotfix.
+O usuário autorizou seguir a simplificação incremental em 04/10/2026. O [#410](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/410) parte da main pós-#408 (`d9bf67f7...`), também confirmada no manifesto Production. Continua Draft; não altera o ambiente publicado nesta etapa.
 
-[Evidência, contraprova na main e instruções de continuidade](evidence/2026-10-03-pr408-resume-review/README.md).
+O handoff corrente é [início do #410](handoff/2026-10-04-pr410-start.md). O [plano executável](superpowers/plans/2026-10-04-operational-sync-simplification-implementation.md) registra caracterização, autoridade de rota, leitura/aplicação por escola, Realtime, fallback e remoção gradual de mecanismos. Primeiro incremento: Próxima unidade deve atualizar rota e escola visível pelo caminho canônico, com RED/GREEN de navegador.
 
-Na revisão, a main continuava em `62fe000c7253bb97a31091f1c7dc33407906d554`.
-O #407 permanece em investigação de custo das sessões observadoras (payload,
-SQL, aplicação de estado e DOM). O #408 não encerra essa investigação nem
-incorpora as mudanças experimentais de Broadcast e banco. Revalidar PRs,
-commits e deployment ao retomar; este registro não afirma publicação.
+#407 e #409 permanecem fontes de evidência. O #409 continua Draft: novos E2E de Realtime falharam no candidato `5553f130...`; o checkpoint `2d7706f3...` guarda erros e instruções. Não é base de implementação do #410. A aprovação da direção arquitetural não aprova migrations, cortes de recuperação ou merge antecipado.
+
+As proteções do #408 são regressões obrigatórias. Os detalhes do design precisam provar escopo/históricos, exclusões, retorno autoritativo, origem da escrita e recuperação após suspensão. RPC/flag/sincronização dirigida ainda não estão implementados neste checkpoint.
 
 ## 1. Estado funcional corrente
 
@@ -27,7 +19,7 @@ commits e deployment ao retomar; este registro não afirma publicação.
 
 **A Fase 2 de autonomia dos Controladores e UX da retificação está encerrada, integrada e publicada.** O PR #404 foi mergeado em `de7bebb06b867ebd557ff83cd9194fe3d45f5903` e publicado no deployment Production `dpl_CLYY92KojCXpmQcL8xXQkmc3TdgG`, `READY`, com smoke HTTP 200 na raiz e em `/escolas/04.31.001`. A retificação de classificação permanece limitada ao histórico exclusivamente fiscal encerrado/cancelado e falha fechada diante de Pendência ativa, atividade/histórico de Assessoria, `a_identificar`, bem `Inventariada` ou versionamento desconhecido.
 
-**Não há handoff corrente desta frente e nenhuma nova fase foi iniciada automaticamente.** A proteção patrimonial adicional, anulação/transferência auditável, `PROD-UX-08`, NAV-01/UX-04 e Fase D permanecem decisões/frentes separadas.
+**O handoff corrente operacional é o do #410; nenhuma nova fase funcional foi iniciada automaticamente.** A proteção patrimonial adicional, anulação/transferência auditável, `PROD-UX-08`, NAV-01/UX-04 e Fase D permanecem decisões/frentes separadas.
 
 **O PR #397 — independência entre despesas e bonificação — permanece integrado e publicado.** A ADR-055 e a leitura contextual do #396 são preservadas. A [continuidade após o #397](handoff/2026-09-30-pos-publicacao-pr397-retomada.md) passou a contexto histórico desta entrega.
 

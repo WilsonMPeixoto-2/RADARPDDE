@@ -341,3 +341,20 @@ test('escola inexistente e telas proibidas recebem fallback autorizado', async (
   await expect(page).toHaveURL(/\/gestao-sme$/);
   await expect(page.getByRole('heading', { name: /Parâmetros da SME/i })).toBeVisible();
 });
+
+test('Próxima unidade atualiza a rota canônica usada pela sincronização entre escolas', async ({ page }) => {
+  const schoolLink = await openCarteira(page);
+  await schoolLink.click();
+  await expect(page.locator('.prontuario-next-school')).toBeEnabled();
+  const before = await page.evaluate(() => {
+    const route = window.RadarNavigationHistory.currentRoute(window);
+    return { next: getNextProntuarioSchool(route.param).id, competence: activeCompetenciaKey };
+  });
+  await page.locator('.prontuario-next-school').click();
+  await expect(page).toHaveURL(new RegExp(`/escolas/${escapeRegExp(before.next)}$`));
+  await waitForRadarRoute(page, { view: 'prontuario', param: before.next });
+  await expect(page.locator('#global-competence-select')).toHaveValue(before.competence);
+  await page.goBack();
+  await expect(page.locator('.prontuario-next-school')).toBeEnabled();
+  expect(await page.evaluate(() => window.RadarNavigationHistory.currentRoute(window).param)).not.toBe(before.next);
+});

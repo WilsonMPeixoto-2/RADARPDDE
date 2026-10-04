@@ -1,7 +1,7 @@
 # Matriz de validade documental
 
 **Classe documental:** Canônico  
-**Atualizado em:** 2 de outubro de 2026
+**Atualizado em:** 4 de outubro de 2026
 
 ## 1. Finalidade e precedência
 
@@ -22,6 +22,9 @@ PR aberto, Preview ou documento antigo não altera Production.
 | Arquivo | Classe | Uso |
 |---|---|---|
 | AGENTS.md | Canônico | roteador obrigatório |
+| docs/handoff/2026-10-04-pr410-start.md | Handoff corrente do #410 | direção autorizada, início, provas e próximos passos; revalidar HEAD/CI |
+| docs/superpowers/specs/2026-10-04-operational-sync-simplification-design.md | Design em execução | direção arquitetural; detalhes sujeitos a prova, sem alterar Production |
+| docs/superpowers/plans/2026-10-04-operational-sync-simplification-implementation.md | Plano em execução | checkpoints e critérios para substituir mecanismos gradualmente |
 | docs/reference/SYSTEM_CANONICAL_MODEL.md | Canônico | autoridades, fluxos e invariantes |
 | docs/reference/PRODUCT_SURFACE_CATALOG.md | Referência vigente | superfícies e jornadas |
 | docs/CURRENT_STAGE.md | Canônico | estado funcional e prioridade; head/deployment exatos devem ser revalidados ao vivo quando relevantes |

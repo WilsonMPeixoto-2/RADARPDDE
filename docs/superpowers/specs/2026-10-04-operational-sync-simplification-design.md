@@ -1,6 +1,6 @@
 # Design — simplificação arquitetural da sincronização operacional
 
-**Status:** proposta para revisão antes de implementação  
+**Status:** direção autorizada em 04/10/2026; execução incremental iniciada, detalhes sujeitos a prova  
 **Data:** 04/10/2026  
 **Branch:** `refactor/simplify-operational-sync-2026-10-04`  
 **Baseline obrigatória:** `main` em `d9bf67f7d8a1ce2e468ec3c793ff992d8e10dfd6` (#408)  
