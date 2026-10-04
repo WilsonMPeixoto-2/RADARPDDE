@@ -77,6 +77,13 @@ aplicar. Contatos gerais consultados separadamente não são completos na RPC at
 NF ligada a patrimônio/Pendência e equivalência com a fatia correspondente da leitura
 global. EXPLAIN/payload por escola e global em base representativa descartável.
 
+**Incremento SQL candidato:** migration `20261004132755`, envelope v1 e guard
+bidirecional sob RLS, com fallback sem coleções aplicáveis. Provas locais: 81 pgTAP,
+489 coberturas equivalentes e benchmark/EXPLAIN. [Evidência](../../evidence/2026-10-04-pr410-school-rpc/README.md).
+CI Supabase nativa deve certificar esse SHA antes da integração; Repository/StatePort
+permanecem no caminho atual. O custo da guarda e dos subplanos RLS está explicitado,
+sem afirmar que todo o trabalho virou estritamente proporcional à escola.
+
 ## 3. Aplicação da fatia — autoridade DataService/StatePort
 
 - Inspecionar `DataService.loadOperationalContext/readOperationalContext` e

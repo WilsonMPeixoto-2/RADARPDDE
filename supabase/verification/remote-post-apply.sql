@@ -59,7 +59,8 @@ declare
         '20260922234500',
         '20260929143215',
         '20260929213000',
-        '20260930003000'
+        '20260930003000',
+        '20261004132755'
     ];
     v_actual text[];
     v_missing_extensions text[];
@@ -113,6 +114,24 @@ begin
        or not has_function_privilege('authenticated', 'public.read_operational_context(text,text[])', 'EXECUTE')
        or not has_function_privilege('service_role', 'public.read_operational_context(text,text[])', 'EXECUTE') then
         raise exception 'OPERATIONAL_CONTEXT_READ_PRIVILEGES_INVALID';
+    end if;
+
+    if to_regprocedure('public.read_school_operational_context(text,text,text[])') is null then
+        raise exception 'SCHOOL_OPERATIONAL_CONTEXT_READ_MISSING';
+    end if;
+    if has_function_privilege('anon', 'public.read_school_operational_context(text,text,text[])', 'EXECUTE')
+       or not has_function_privilege('authenticated', 'public.read_school_operational_context(text,text,text[])', 'EXECUTE')
+       or not has_function_privilege('service_role', 'public.read_school_operational_context(text,text,text[])', 'EXECUTE')
+       or exists (select 1 from pg_proc p, lateral aclexplode(p.proacl) a
+           where p.oid = 'public.read_school_operational_context(text,text,text[])'::regprocedure
+               and a.grantee = 0 and a.privilege_type = 'EXECUTE') then
+        raise exception 'SCHOOL_OPERATIONAL_CONTEXT_READ_PRIVILEGES_INVALID';
+    end if;
+    if exists (select 1 from pg_proc p
+        where p.oid = 'public.read_school_operational_context(text,text,text[])'::regprocedure
+          and (p.prosecdef or p.provolatile <> 's'
+            or p.proconfig is distinct from array['search_path=pg_catalog, public']::text[])) then
+        raise exception 'SCHOOL_OPERATIONAL_CONTEXT_READ_CONFIGURATION_INVALID';
     end if;
 
     if to_regprocedure('public.upsert_team_member_account(jsonb,uuid,text,uuid,jsonb)') is null

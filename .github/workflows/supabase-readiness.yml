@@ -213,6 +213,46 @@ jobs:
       - name: Executar testes pgTAP
         run: npm run supabase:test:db
 
+      - name: Medir leitura escolar e equivalência sob RLS em volume histórico
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql 'postgresql://postgres:postgres@127.0.0.1:54322/postgres' -X -qAt -v ON_ERROR_STOP=1 \
+            -f supabase/tests/benchmarks/read-school-operational-context.sql > school-read-benchmark.log 2>&1
+          node scripts/explain-school-operational-read.mjs > school-read-explain.sql
+          psql 'postgresql://postgres:postgres@127.0.0.1:54322/postgres' -X -qAt -v ON_ERROR_STOP=1 \
+            -f school-read-explain.sql > school-read-explain.log 2>&1
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          rows = [json.loads(line) for line in Path('school-read-benchmark.log').read_text().splitlines()
+                  if line.startswith('{"role":')]
+          assert len(rows) == 1, 'Benchmark precisa produzir exatamente um resultado estruturado'
+          report = rows[0]
+          assert report['equivalentSchoolCoverages'] == 489
+          assert len(report['results']) == 4 and all(r['samples'] == 20 for r in report['results'])
+          Path('school-read-benchmark.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as out:
+              out.write('\n### Leitura escolar: SQL/RLS, sem conexão ao frontend\n\n')
+              out.write('489 coberturas escolares equivalentes; 20 amostras por variante. Custos informativos, sem budget de produto presumido.\n\n')
+              out.write('| Leitura | p50 ms | p95 ms | p99 ms | JSON sem compressão (bytes) |\n|---|---:|---:|---:|---:|\n')
+              for r in report['results']:
+                  out.write(f"| {r['school_id'] or 'global'} | {r['p50_ms']} | {r['p95_ms']} | {r['p99_ms']} | {r['payload_max_bytes']} |\n")
+          PY
+
+      - name: Preservar métricas e planos da leitura escolar
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: school-operational-read-${{ github.run_id }}
+          path: |
+            school-read-benchmark.json
+            school-read-benchmark.log
+            school-read-explain.sql
+            school-read-explain.log
+          if-no-files-found: warn
+          retention-days: 30
+
       - name: Provar primeira despesa em duas sessões com barreira controlada
         run: node scripts/test-first-expense-concurrency.mjs
 

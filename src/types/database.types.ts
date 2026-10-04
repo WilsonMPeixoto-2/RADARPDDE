@@ -1181,6 +1181,14 @@ export type Database = {
         Args: { p_competence_id: string; p_history_statuses?: string[] }
         Returns: Json
       }
+      read_school_operational_context: {
+        Args: {
+          p_competence_id: string
+          p_history_statuses?: string[]
+          p_school_id: string
+        }
+        Returns: Json
+      }
       reanalyze_invoice_document_pendency: {
         Args: {
           p_administrative_log: Json
@@ -1550,4 +1558,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-

@@ -15,13 +15,19 @@ das seis coleções](evidence/2026-10-04-pr410-school-scope/README.md) avançou 
 metadados/contagens somente de leitura em Production e mapa de
 históricos, exclusões e projeções. Há contraprova de FK entre escolas permitida
 pelo schema; não truncar esse vínculo na RPC futura. Contatos gerais têm cobertura
-própria. Próximo passo: envelope e RPC escolar com recuperação explícita, RLS,
-equivalência e custo provados. O checkpoint de testes `1d13b02c...` concluiu 17 workflows com sucesso. Commits
-posteriores só consolidam a evidência documental.
+própria. O checkpoint de testes `1d13b02c...` concluiu 17 workflows com sucesso.
+
+Incremento escolar candidato: migration `20261004132755`, RPC invoker sem consumo
+no frontend, envelope/completude e fallback global para referências não isoláveis
+nos dois sentidos. Provas locais: 81 pgTAP e 489 coberturas equivalentes sobre a
+fixture de agregados históricos. [Evidências e limites](evidence/2026-10-04-pr410-school-rpc/README.md).
+SQL/payload melhoraram no ensaio local; a prova Supabase nativa/CI deste incremento
+ainda deve ser conferida no SHA publicado. Próximo passo depende dessa prova, antes
+da aplicação de fatia e do novo Realtime.
 
 #407 e #409 permanecem fontes de evidência. O #409 continua Draft: novos E2E de Realtime falharam no candidato `5553f130...`; o checkpoint `2d7706f3...` guarda erros e instruções. Não é base de implementação do #410. A aprovação da direção arquitetural não aprova migrations, cortes de recuperação ou merge antecipado.
 
-As proteções do #408 são regressões obrigatórias. Os detalhes do design precisam provar escopo/históricos, exclusões, retorno autoritativo, origem da escrita e recuperação após suspensão. RPC/flag/sincronização dirigida ainda não estão implementados neste checkpoint.
+As proteções do #408 são regressões obrigatórias. Os detalhes do design precisam provar escopo/históricos, exclusões, retorno autoritativo, origem da escrita e recuperação após suspensão. A RPC escolar é candidata; aplicação da fatia, flag e sincronização dirigida ainda não estão implementadas.
 
 ## 1. Estado funcional corrente
 
