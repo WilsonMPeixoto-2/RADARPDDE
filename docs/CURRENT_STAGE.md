@@ -1,25 +1,21 @@
 # RADAR PDDE — estado atual e retomada
 
 **Classe documental:** Canônico — estado mutável  
-**Atualizado em:** 3 de outubro de 2026
+**Atualizado em:** 4 de outubro de 2026
 
-## Frente operacional — #408 e #407
+## Frente operacional corrente — PR #409
 
-O hotfix seletivo [#408](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/408)
-separa correções comprovadas da investigação arquitetural ampla do #407.
-A revisão do HEAD `d863f864` confirmou 33 checks aprovados e dois Previews
-condicionais pulados, mas encontrou uma leitura redundante quando a resposta
-termina entre os sinais de foco/visibilidade da mesma retomada. Esta entrega
-corrige a causa e acrescenta RED/GREEN determinístico; 1.250 unitários locais
-passaram. Conferir os checks do novo SHA antes de promover o hotfix.
+O [PR #409](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/409), branch `fix/operational-peak-school-relevance-2026-10-04`, é a frente corrente de hardening do incidente operacional de 02/10/2026. Foi aberto a partir da `main` pós-#408 (`d9bf67f7d8a1ce2e468ec3c793ff992d8e10dfd6`) e permanece **Draft** até revisão adversarial e CI final do HEAD corrente.
 
-[Evidência, contraprova na main e instruções de continuidade](evidence/2026-10-03-pr408-resume-review/README.md).
+O objetivo limitado do #409 é reduzir amplificação entre escolas: um Broadcast operacional passa a carregar `schoolId` quando determinável; alteração conhecida de outra escola pode ser adiada enquanto o usuário permanece em um Prontuário não relacionado; a escola fica marcada como desatualizada e deve reconciliar automaticamente quando se tornar relevante. Superfícies globais, reconexões e eventos sem escola conhecida permanecem conservadores. Carteira continua sem efeito de autorização e RLS continua sendo a barreira de acesso.
 
-Na revisão, a main continuava em `62fe000c7253bb97a31091f1c7dc33407906d554`.
-O #407 permanece em investigação de custo das sessões observadoras (payload,
-SQL, aplicação de estado e DOM). O #408 não encerra essa investigação nem
-incorpora as mudanças experimentais de Broadcast e banco. Revalidar PRs,
-commits e deployment ao retomar; este registro não afirma publicação.
+A evidência do incidente, contraprovas, métricas, mapa de testes e CI está em [incidente real e relevância por escola](evidence/2026-10-04-production-incident-school-relevance.md). O handoff corrente para revisão pelo Codex é [2026-10-04-pr409-codex-review.md](handoff/2026-10-04-pr409-codex-review.md).
+
+No HEAD funcional `5266b6b13ed959162d280c5f42f63532b4f3bab7`, 11 workflows relevantes já estavam verdes, incluindo validação geral, E2E, CodeQL, Lighthouse, regressão visual, hardening de sincronização, backup/restauração e ciclos Supabase reais. A execução de readiness atingiu `1.256/1.256` unitários e `8/8` integrações antes de parar em duas referências desatualizadas da nova migration. A causa foi diagnosticada e corrigida na branch: `supabase/verification/remote-post-apply.sql` passou a esperar `20261004040500` e `docs/runbooks/SUPABASE_CONNECTION.md` passou a declarar 59 migrations. Esses commits não autorizam merge por si; conferir a CI do HEAD final ao vivo.
+
+O #408 permanece a baseline de proteções contra perda de invalidação, retries indevidos, ordenações de foco/visibilidade, concorrência fiscal e gates fail-closed. O #407 permanece laboratório e fonte de evidências de carga, payload, SQL e DOM, mas **não** é pacote de implementação a ser absorvido pelo #409.
+
+Nenhuma mudança do #409 foi aplicada em Production por esta frente.
 
 ## 1. Estado funcional corrente
 
@@ -27,7 +23,7 @@ commits e deployment ao retomar; este registro não afirma publicação.
 
 **A Fase 2 de autonomia dos Controladores e UX da retificação está encerrada, integrada e publicada.** O PR #404 foi mergeado em `de7bebb06b867ebd557ff83cd9194fe3d45f5903` e publicado no deployment Production `dpl_CLYY92KojCXpmQcL8xXQkmc3TdgG`, `READY`, com smoke HTTP 200 na raiz e em `/escolas/04.31.001`. A retificação de classificação permanece limitada ao histórico exclusivamente fiscal encerrado/cancelado e falha fechada diante de Pendência ativa, atividade/histórico de Assessoria, `a_identificar`, bem `Inventariada` ou versionamento desconhecido.
 
-**Não há handoff corrente desta frente e nenhuma nova fase foi iniciada automaticamente.** A proteção patrimonial adicional, anulação/transferência auditável, `PROD-UX-08`, NAV-01/UX-04 e Fase D permanecem decisões/frentes separadas.
+**O handoff corrente é o do PR #409.** A proteção patrimonial adicional, anulação/transferência auditável, `PROD-UX-08`, NAV-01/UX-04 e Fase D permanecem decisões/frentes separadas e não entram automaticamente no escopo do #409.
 
 **O PR #397 — independência entre despesas e bonificação — permanece integrado e publicado.** A ADR-055 e a leitura contextual do #396 são preservadas. A [continuidade após o #397](handoff/2026-09-30-pos-publicacao-pr397-retomada.md) passou a contexto histórico desta entrega.
 
@@ -60,7 +56,7 @@ Baseline funcional que encerrou a Fase C:
 
 Esse SHA e esse deployment são a **evidência de encerramento funcional da Fase C**. Commits posteriores exclusivamente documentais podem avançar a `main` e gerar novo deployment sem constituir nova versão funcional do produto. Por isso, o SHA exato do head corrente e o deployment ativo devem ser conferidos ao vivo no GitHub/Vercel quando forem materialmente relevantes, em vez de serem tratados como constantes dentro deste documento.
 
-Não existe PR, branch ou handoff corrente da Fase D neste momento.
+Não existe PR, branch ou handoff corrente da Fase D neste momento. O #409 é hardening de incidente operacional e não inicia formalmente a Fase D.
 
 ## 2. Histórico de encerramento das fases
 
@@ -97,7 +93,7 @@ Registro técnico da correção final da C3: [correções CodeQL e validação C
 
 Os documentos de handoff de A/B e das frentes anteriores permanecem **históricos concluídos**. Não reabrir PRs #375/#376/#377/#378 ou textos pré-merge como fila de implementação.
 
-Não há handoff corrente. [Retificação de classificação e UX](handoff/2026-10-01-controller-type-retification.md) passa a histórico concluído da Fase 2, assim como os handoffs de candidato/publicação do #397. [PROD-UX-08](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) continua uma pendência separada de retomada visual. A investigação de `PROD-FUNC-09` está encerrada.
+O handoff corrente é [revisão adversarial do PR #409 pelo Codex](handoff/2026-10-04-pr409-codex-review.md). [Retificação de classificação e UX](handoff/2026-10-01-controller-type-retification.md) permanece histórico concluído da Fase 2, assim como os handoffs de candidato/publicação do #397. [PROD-UX-08](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) continua uma pendência separada de retomada visual. A investigação de `PROD-FUNC-09` está encerrada.
 
 Para retomada, a ordem de leitura continua sendo:
 
@@ -123,9 +119,9 @@ A aba autenticada foi recarregada e o mesmo registro sintético, sem nova escrit
 
 A investigação de **`PROD-UX-08` — clipping e sobreposição do drawer global em desktop** permanece pendente. As publicações de #392 e #397 não homologam a composição inteira do drawer. Esse achado não deve ser confundido com UX-04, que trata da largura mobile e integra a rodada limitada de Preview solicitada pelo usuário.
 
-O registro de retomada dessa pendência visual é [`docs/handoff/2026-09-28-prod-ux-08-drawer-clipping.md`](handoff/2026-09-28-prod-ux-08-drawer-clipping.md). Ele permanece como pendência separada; não há handoff corrente.
+O registro de retomada dessa pendência visual é [`docs/handoff/2026-09-28-prod-ux-08-drawer-clipping.md`](handoff/2026-09-28-prod-ux-08-drawer-clipping.md). Ele permanece como pendência separada e não substitui o handoff corrente do #409.
 
-A **Fase D — hardening e performance permanece planejada, mas não iniciada**. O encerramento da Fase 2 não a inicia automaticamente nem transforma outras pendências visuais/funcionais em fila implícita.
+A **Fase D — hardening e performance permanece planejada, mas não iniciada**. O encerramento da Fase 2 não a inicia automaticamente nem transforma outras pendências visuais/funcionais em fila implícita. O #409 deve permanecer limitado ao incidente operacional comprovado, salvo nova evidência que justifique ampliar o escopo.
 
 A avaliação separada de ferramentas para evolução visual permanece em [DESIGN_TOOLING.md](evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md): Figma conectado e provas isoladas de Sharp/SVGO/Lucide/Fontsource. Nenhuma biblioteca nova dessa avaliação foi adicionada ao runtime.
 
