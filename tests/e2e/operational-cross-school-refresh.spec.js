@@ -93,9 +93,6 @@ test('mudança em outra escola não interrompe o Prontuário atual e é buscada 
 
     await setDelivery(writer, targetB);
 
-    // A escola 1 é o trabalho corrente do observador. Uma alteração remota na
-    // escola 2 deve ser lembrada como informação nova, não forçar a releitura
-    // completa e reconstrução do Prontuário 1.
     await new Promise(resolve => setTimeout(resolve, 8000));
     expect(await currentDelivery(observer)).toBe(beforeA);
     expect(getReads(), 'alteração de outra escola não deve iniciar leitura contextual completa').toBe(0);
@@ -142,5 +139,50 @@ test('Assistente e Controlador na mesma escola recebem a correção automaticame
     expect(focus).toEqual({ inRow: true, text: 'Sim' });
   } finally {
     await Promise.all([controllerContext.close(), assistantContext.close()]);
+  }
+});
+
+test('pico realista: seis Controladores alteram seis escolas diferentes sem provocar releituras cruzadas completas', async ({ browser }) => {
+  test.setTimeout(240000);
+  const contexts = await Promise.all(Array.from({ length: 6 }, () => browser.newContext({
+    viewport: { width: 1440, height: 900 }
+  })));
+  const pages = await Promise.all(contexts.map(context => context.newPage()));
+  try {
+    await Promise.all(pages.map((page, index) => signIn(
+      page,
+      `operational-${index + 1}@radar.local`,
+      school(index + 1),
+      'controller'
+    )));
+    const getReads = pages.map(page => observeContextReads(page));
+
+    const writer = async (page, offset) => {
+      for (let round = 0; round < 12; round += 1) {
+        const value = (round + offset) % 2 === 0 ? 'Sim' : 'Não';
+        await setDelivery(page, value);
+        await new Promise(resolve => setTimeout(resolve, 250));
+      }
+    };
+    await Promise.all(pages.map((page, index) => writer(page, index)));
+
+    // Dá tempo para qualquer atualização remota agendada se manifestar. Cada
+    // pessoa continuou na própria escola; mudanças alheias não justificam uma
+    // leitura completa do contexto enquanto essa tela continua em uso.
+    await new Promise(resolve => setTimeout(resolve, 8000));
+    const reads = getReads.map(read => read());
+    expect(reads, 'escritas em cinco outras escolas não devem multiplicar leituras completas em cada sessão')
+      .toEqual([0, 0, 0, 0, 0, 0]);
+
+    // Convergência continua obrigatória: ao entrar depois em uma escola alterada,
+    // o usuário deve receber o estado atual sem Ctrl+F5.
+    const readsBeforeNavigation = getReads[0]();
+    const expectedSchool6 = await currentDelivery(pages[5]);
+    await navigateSchool(pages[0], 6);
+    await expect(extCCRow(pages[0]).getByRole('button', { name: expectedSchool6, exact: true }))
+      .toHaveClass(expectedSchool6 === 'Sim' ? /active-sim/ : /active-nao/, { timeout: 30000 });
+    expect(getReads[0]() - readsBeforeNavigation).toBe(1);
+  } finally {
+    await Promise.all(contexts.map(context => context.close()));
   }
 });
