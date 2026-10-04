@@ -1,0 +1,35 @@
+name: PR410 temporary contact authority RED
+
+on:
+  push:
+    branches:
+      - refactor/simplify-operational-sync-2026-10-04
+    paths:
+      - .github/workflows/pr410-contact-authority-temp.yml
+
+permissions:
+  contents: read
+
+jobs:
+  prove-contact-red:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: refactor/simplify-operational-sync-2026-10-04
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Provar RED causal
+        shell: bash
+        run: |
+          set +e
+          node --test tests/unit/school-operational-context-contact-authority.test.js > /tmp/contact-red.log 2>&1
+          status=$?
+          set -e
+          cat /tmp/contact-red.log
+          test "$status" -ne 0
+          grep -Fq "quando um contato sai da cobertura operacional" /tmp/contact-red.log
+          echo "RED confirmado: a fatia operacional ainda não consulta a autoridade completa quando um contato sai da cobertura selecionada."
