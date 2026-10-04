@@ -183,7 +183,9 @@ nesta etapa. Os nove controles unitários relacionados também passaram.
 Não foi alterado código do produto, schema ou configuração de Production.
 Não foi criado ambiente pago. Não há ganho de performance novo para relatar.
 A CI do incremento d4a37d79 está concluída. A CI do checkpoint 1d13b02c é uma
-execução separada; conferir [registro por SHA](checkpoint-ci.json).
+execução separada: **17 workflows concluídos com sucesso**, inclusive E2E e
+homologação pré-production. Conferir [registro por SHA](checkpoint-ci.json). Os
+commits posteriores só consolidam documentação/evidência, sem alterar runtime ou testes.
 
 ## Próximo passo e fronteira
 

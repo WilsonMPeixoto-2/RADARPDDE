@@ -16,7 +16,8 @@ metadados/contagens somente de leitura em Production e mapa de
 históricos, exclusões e projeções. Há contraprova de FK entre escolas permitida
 pelo schema; não truncar esse vínculo na RPC futura. Contatos gerais têm cobertura
 própria. Próximo passo: envelope e RPC escolar com recuperação explícita, RLS,
-equivalência e custo provados. A CI do checkpoint posterior é uma prova separada.
+equivalência e custo provados. O checkpoint de testes `1d13b02c...` concluiu 17 workflows com sucesso. Commits
+posteriores só consolidam a evidência documental.
 
 #407 e #409 permanecem fontes de evidência. O #409 continua Draft: novos E2E de Realtime falharam no candidato `5553f130...`; o checkpoint `2d7706f3...` guarda erros e instruções. Não é base de implementação do #410. A aprovação da direção arquitetural não aprova migrations, cortes de recuperação ou merge antecipado.
 

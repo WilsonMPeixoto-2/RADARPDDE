@@ -1,7 +1,7 @@
 {
-  "observedAt": "2026-10-04T12:11:58.372424+00:00",
+  "observedAt": "2026-10-04T12:15:58.276231+00:00",
   "headSha": "1d13b02c1455be7fae8628f6b40df67c70713f1c",
-  "allSuccessful": false,
+  "allSuccessful": true,
   "workflowCount": 17,
   "runs": [
     {
@@ -13,11 +13,11 @@
       "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37200758448"
     },
     {
-      "conclusion": "",
+      "conclusion": "success",
       "databaseId": 37200758474,
       "headSha": "1d13b02c1455be7fae8628f6b40df67c70713f1c",
       "name": "Testes E2E Playwright",
-      "status": "in_progress",
+      "status": "completed",
       "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37200758474"
     },
     {
@@ -53,11 +53,11 @@
       "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37200758419"
     },
     {
-      "conclusion": "",
+      "conclusion": "success",
       "databaseId": 37200758417,
       "headSha": "1d13b02c1455be7fae8628f6b40df67c70713f1c",
       "name": "Homologação integral pré-production",
-      "status": "in_progress",
+      "status": "completed",
       "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37200758417"
     },
     {
