@@ -50,6 +50,11 @@ jobs:
               "        '20261004132755',\n        '20261004210000'\n    ];"
           )
           replace_once(
+              'supabase/tests/database/schema.test.sql',
+              "    (select count(*) = 59 from supabase_migrations.schema_migrations),\n    'cinquenta e nove migrations foram registradas'",
+              "    (select count(*) = 60 from supabase_migrations.schema_migrations),\n    'sessenta migrations foram registradas'"
+          )
+          replace_once(
               'docs/runbooks/SUPABASE_CONNECTION.md',
               'O conjunto versionado contém atualmente **59** migrations.',
               'O conjunto versionado contém atualmente **60** migrations.'
@@ -77,6 +82,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add scripts/check-supabase-final-alignment-current.js supabase/verification/remote-post-apply.sql docs/runbooks/SUPABASE_CONNECTION.md
+          git add scripts/check-supabase-final-alignment-current.js supabase/verification/remote-post-apply.sql supabase/tests/database/schema.test.sql docs/runbooks/SUPABASE_CONNECTION.md
           git commit -m "chore: alinhar inventário da migration Realtime escolar"
           git push origin HEAD:refactor/simplify-operational-sync-2026-10-04
