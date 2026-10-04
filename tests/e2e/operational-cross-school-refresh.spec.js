@@ -7,6 +7,8 @@ const enabled = process.env.RADAR_E2E_SUPABASE_LOCAL === '1'
 test.skip(!enabled, 'Exige Supabase local descartável e as identidades da jornada operacional.');
 const password = process.env.RADAR_AUTH_FIXTURE_PASSWORD || '';
 if (enabled && password.length < 24) throw new Error('Credencial efêmera de teste incompleta.');
+const variant = process.env.RADAR_OPERATIONAL_VARIANT || 'candidate';
+const candidate = variant === 'candidate';
 
 const competence = '2026-08';
 const school = index => `OPS-SESSION-${index}`;
@@ -95,14 +97,27 @@ test('mudança em outra escola não interrompe o Prontuário atual e é buscada 
 
     await new Promise(resolve => setTimeout(resolve, 8000));
     expect(await currentDelivery(observer)).toBe(beforeA);
-    expect(getReads(), 'alteração de outra escola não deve iniciar leitura contextual completa').toBe(0);
+    const unrelatedReads = getReads();
+    if (candidate) {
+      expect(unrelatedReads, 'candidato não deve baixar contexto completo por alteração conhecida de outra escola').toBe(0);
+    } else {
+      expect(unrelatedReads,
+        'baseline publicado deve documentar a releitura cruzada que o candidato pretende eliminar').toBeGreaterThan(0);
+    }
 
     const readsBeforeNavigation = getReads();
     await navigateSchool(observer, 2);
     await expect(extCCRow(observer).getByRole('button', { name: targetB, exact: true }))
       .toHaveClass(targetB === 'Sim' ? /active-sim/ : /active-nao/, { timeout: 30000 });
-    expect(getReads() - readsBeforeNavigation,
-      'ao entrar na escola alterada o RADAR deve buscar a versão atual automaticamente').toBe(1);
+    const navigationReads = getReads() - readsBeforeNavigation;
+    if (candidate) {
+      expect(navigationReads,
+        'ao entrar na escola alterada o candidato deve buscar a versão atual automaticamente').toBe(1);
+    } else {
+      expect(navigationReads,
+        'baseline pode já ter baixado o contexto alheio antes da navegação, mas não deve criar uma tempestade adicional')
+        .toBeLessThanOrEqual(1);
+    }
   } finally {
     await Promise.all([writerContext.close(), observerContext.close()]);
   }
@@ -171,8 +186,13 @@ test('pico realista: seis Controladores alteram seis escolas diferentes sem prov
     // leitura completa do contexto enquanto essa tela continua em uso.
     await new Promise(resolve => setTimeout(resolve, 8000));
     const reads = getReads.map(read => read());
-    expect(reads, 'escritas em cinco outras escolas não devem multiplicar leituras completas em cada sessão')
-      .toEqual([0, 0, 0, 0, 0, 0]);
+    if (candidate) {
+      expect(reads, 'escritas em cinco outras escolas não devem multiplicar leituras completas em cada sessão')
+        .toEqual([0, 0, 0, 0, 0, 0]);
+    } else {
+      expect(reads.some(value => value > 0),
+        'baseline publicado deve tornar visível a amplificação cruzada que motivou esta correção').toBe(true);
+    }
 
     // Convergência continua obrigatória: ao entrar depois em uma escola alterada,
     // o usuário deve receber o estado atual sem Ctrl+F5.
@@ -181,7 +201,9 @@ test('pico realista: seis Controladores alteram seis escolas diferentes sem prov
     await navigateSchool(pages[0], 6);
     await expect(extCCRow(pages[0]).getByRole('button', { name: expectedSchool6, exact: true }))
       .toHaveClass(expectedSchool6 === 'Sim' ? /active-sim/ : /active-nao/, { timeout: 30000 });
-    expect(getReads[0]() - readsBeforeNavigation).toBe(1);
+    const navigationReads = getReads[0]() - readsBeforeNavigation;
+    if (candidate) expect(navigationReads).toBe(1);
+    else expect(navigationReads).toBeLessThanOrEqual(1);
   } finally {
     await Promise.all(contexts.map(context => context.close()));
   }
