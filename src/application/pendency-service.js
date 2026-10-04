@@ -655,9 +655,28 @@
                 pendencyId: String(targetPendency.id),
                 invoiceId: text(targetPendency.registeredInvoiceId || targetPendency.registered_invoice_id)
             };
+            const currentInvoice = this.findLinkedInvoice(
+                this.getState(),
+                persistence.invoiceId,
+                'registerInvoiceDocumentAttempt'
+            );
+            const identification = isUnidentifiedExpense(currentInvoice)
+                ? this.validateInvoiceIdentification(
+                    input, currentInvoice, targetPendency, 'registerInvoiceDocumentAttempt'
+                )
+                : null;
+            // Novo envio de documento identificado não altera patrimônio. Na
+            // identificação, só permanente cria bem; vínculo anterior anômalo
+            // conserva o escopo de rollback até a rejeição da RPC canônica.
+            const changesAssets = Boolean(identification)
+                && (identification.expenseType === 'permanente' || Boolean(currentInvoice.bemId));
             return this.dataService.execute({
                 name: 'invoice:register-document-attempt',
-                changedEntities: ['registeredInvoices', 'assets', 'pendencies', 'pendencyAttempts', 'verifications', 'administrativeLogs'],
+                changedEntities: [
+                    'registeredInvoices',
+                    ...(changesAssets ? ['assets'] : []),
+                    'pendencies', 'pendencyAttempts', 'verifications', 'administrativeLogs'
+                ],
                 remoteResultIsAuthoritative: true,
                 mutate: () => {
                     const state = this.getState();
@@ -667,6 +686,13 @@
                         persistence.invoiceId,
                         'registerInvoiceDocumentAttempt'
                     );
+                    if (isUnidentifiedExpense(invoice) !== Boolean(identification)) {
+                        fail(
+                            'OPTIMISTIC_CONFLICT',
+                            'A nota foi alterada por outra operação em andamento. Recarregue antes de registrar o novo envio.',
+                            'registerInvoiceDocumentAttempt'
+                        );
+                    }
                     const { verification } = this.verificationFor(
                         state,
                         pendency,

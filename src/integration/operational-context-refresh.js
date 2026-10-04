@@ -121,26 +121,67 @@
         let lastFailureAt = 0;
         let refreshPromise = null;
         let pendingRefreshReason = '';
+        let pendingRefreshCanForce = false;
+        let cooldownTimer = null;
 
-        function markPending(reason) {
+        function remainingCooldownMs() {
+            const cooldownAnchor = Math.max(lastRefreshAt, lastAttemptAt);
+            if (cooldownAnchor <= 0) return 0;
+            return Math.max(0, minIntervalMs - (Date.now() - cooldownAnchor));
+        }
+
+        function scheduleCooldownFlush(delayMs) {
+            if (cooldownTimer != null || typeof root.setTimeout !== 'function') return;
+            cooldownTimer = root.setTimeout(() => {
+                cooldownTimer = null;
+                // O timer pode expirar enquanto um retry já está em voo. Nesse
+                // caso a leitura atual consome a pendência anterior; se ela terminar
+                // stale/falhar e recriar a pendência, reagendamos uma única drenagem.
+                if (refreshPromise) {
+                    const currentRefresh = refreshPromise;
+                    void currentRefresh.finally(() => {
+                        if (!pendingRefreshReason || cooldownTimer != null) return;
+                        scheduleCooldownFlush(remainingCooldownMs());
+                    });
+                    return;
+                }
+                void flushPending('cooldown-expired');
+            }, Math.max(0, Number(delayMs) || 0) + 50);
+        }
+
+        function markPending(reason, { canForce = false } = {}) {
             pendingRefreshReason = text(reason) || pendingRefreshReason || 'editing';
+            // Uma invalidação nova adiada por edição/leitura pode exigir drenagem
+            // imediata. Recuperar uma leitura abortada não cria outra invalidação.
+            pendingRefreshCanForce = pendingRefreshCanForce || canForce;
             return pendingRefreshReason;
         }
 
         async function refresh(reason = 'resume', refreshOptions = {}) {
             if (refreshPromise) {
-                markPending(reason);
+                // Eventos repetidos do mesmo ciclo apenas retomam a leitura em
+                // andamento. Um ciclo real hidden→visible ou blur→focus, porém,
+                // pode ter perdido alterações posteriores ao snapshot já capturado.
+                const queueAfterInflight = refreshOptions.force === true
+                    || refreshOptions.resumeAfterHidden === true
+                    || refreshOptions.resumeAfterBlur === true;
+                if (!queueAfterInflight) return refreshPromise;
+                markPending(reason, { canForce: true });
                 const currentRefresh = refreshPromise;
                 return currentRefresh.then(result => flushPending('inflight-finished', {
-                    force: result?.ok !== false
+                    force: result?.ok !== false && result?.stale !== true
                 }));
             }
             if (!authenticated(root)) {
                 pendingRefreshReason = '';
+                pendingRefreshCanForce = false;
                 return { skipped: true, reason: 'unauthenticated' };
             }
             if (editing(root)) {
-                markPending(reason);
+                markPending(reason, { canForce: /^realtime(?:-|$)/.test(reason)
+                    || refreshOptions.force === true
+                    || refreshOptions.resumeAfterHidden === true
+                    || refreshOptions.resumeAfterBlur === true });
                 return { skipped: true, reason: 'editing', pending: true };
             }
             const competenceKey = activeCompetence(root);
@@ -154,12 +195,22 @@
                 && cooldownAnchor > 0
                 && (now - cooldownAnchor) < minIntervalMs
             ) {
+                const retryAfterMs = Math.max(0, minIntervalMs - (now - cooldownAnchor));
+                // O segundo sinal de uma retomada pode chegar após a resposta do
+                // primeiro. Uma oportunidade sem pendência nem nova suspensão
+                // não cria trabalho futuro sobre o contexto que já está atual.
+                if (!pendingRefreshReason
+                    && refreshOptions.resumeAfterHidden !== true
+                    && refreshOptions.resumeAfterBlur !== true) {
+                    return { skipped: true, reason: 'throttled', pending: false, retryAfterMs };
+                }
                 markPending(reason);
+                scheduleCooldownFlush(retryAfterMs);
                 return {
                     skipped: true,
                     reason: 'throttled',
                     pending: true,
-                    retryAfterMs: Math.max(0, minIntervalMs - (now - cooldownAnchor))
+                    retryAfterMs
                 };
             }
 
@@ -171,6 +222,7 @@
             // que chegarem depois deste ponto voltam a preencher pendingRefreshReason
             // e serão relidas quando a consulta em voo terminar.
             pendingRefreshReason = '';
+            pendingRefreshCanForce = false;
 
             const startedAt = now;
             let run = null;
@@ -184,6 +236,12 @@
                 if (result?.stale === true) {
                     if (authenticated(root) && activeCompetence(root) === competenceKey) {
                         markPending(reason);
+                        // O Realtime possui somente um retry imediato. Se esse retry
+                        // também ficar stale, deixamos uma única reconciliação futura
+                        // já agendada para não depender de outro gesto/Broadcast.
+                        if (reason === 'realtime-retry') {
+                            scheduleCooldownFlush(remainingCooldownMs());
+                        }
                     }
                     return result;
                 }
@@ -214,6 +272,9 @@
             }).catch(error => {
                 lastFailureAt = Date.now();
                 markPending(reason);
+                if (reason === 'realtime-retry') {
+                    scheduleCooldownFlush(remainingCooldownMs());
+                }
                 root.console?.warn?.('Não foi possível atualizar o contexto operacional ao retomar a sessão.', error);
                 return { ok: false, error, pending: true };
             }).finally(() => {
@@ -227,27 +288,33 @@
             if (!pendingRefreshReason) return { skipped: true, reason: 'no-pending-refresh' };
             if (!authenticated(root)) {
                 pendingRefreshReason = '';
+                pendingRefreshCanForce = false;
                 return { skipped: true, reason: 'unauthenticated' };
             }
             if (editing(root)) return { skipped: true, reason: 'editing', pending: true };
+            // Clique, focusout e fim de escrita apenas tentam drenar a pendência.
+            // Durante uma leitura não representam nova alteração canônica.
+            if (refreshPromise) return refreshPromise;
 
             const pendingReason = pendingRefreshReason;
-            pendingRefreshReason = '';
-            const realtimePending = /^realtime(?:-|$)/.test(pendingReason);
+            const pendingCanForce = pendingRefreshCanForce;
+            // A pendência só é consumida quando refresh inicia a leitura. Mantê-la
+            // até lá distingue recuperação necessária de mera oportunidade de foco.
             const now = Date.now();
             const failureCooldownActive = lastFailureAt > 0 && (now - lastFailureAt) < minIntervalMs;
 
             // Pendência Realtime bloqueada apenas por edição pode drenar assim que o
             // usuário encerra o campo. Se a própria leitura falhou recentemente,
             // preservamos o cooldown para não recriar a tempestade de retries.
-            const force = flushOptions.force === true || (realtimePending && !failureCooldownActive);
+            const force = flushOptions.force === true || (pendingCanForce && !failureCooldownActive);
             const result = await refresh(`${pendingReason}-${reason}`, { force });
             if (
                 result?.ok === false
                 || result?.stale === true
                 || (result?.skipped === true && ['editing', 'throttled'].includes(result.reason))
             ) {
-                markPending(pendingReason);
+                markPending(pendingReason, { canForce: pendingCanForce
+                    && result?.skipped === true && ['editing', 'throttled'].includes(result.reason) });
             }
             return result;
         }
@@ -280,6 +347,8 @@
 
         const controller = createController(root, service);
         root.RadarOperationalContextRefreshController = controller;
+        let hiddenSinceVisible = root.document.visibilityState === 'hidden';
+        let blurredSinceFocus = false;
 
         const flushPending = reason => {
             if (!controller.hasPendingRefresh()) return;
@@ -291,12 +360,32 @@
             }, 0);
         };
 
+        root.addEventListener?.('blur', () => {
+            blurredSinceFocus = true;
+        });
         root.addEventListener?.('focus', () => {
-            void controller.refresh('focus');
+            const resumeAfterBlur = blurredSinceFocus;
+            blurredSinceFocus = false;
+            // Alguns navegadores entregam focus antes de visibilitychange ao
+            // retornar à mesma aba. Se ambos os sinais pertencem ao mesmo afastamento,
+            // o primeiro a chegar assume a única reconciliação desse ciclo.
+            if (resumeAfterBlur && hiddenSinceVisible && root.document.visibilityState === 'visible') {
+                hiddenSinceVisible = false;
+            }
+            void controller.refresh('focus', { resumeAfterBlur });
         });
         root.document.addEventListener?.('visibilitychange', () => {
-            if (root.document.visibilityState !== 'visible') return;
-            void controller.refresh('visibility');
+            if (root.document.visibilityState !== 'visible') {
+                hiddenSinceVisible = true;
+                return;
+            }
+            const resumeAfterHidden = hiddenSinceVisible;
+            hiddenSinceVisible = false;
+            // visibilitychange e focus costumam chegar como o mesmo retorno ao app.
+            // Se a transição hidden→visible já assumiu a reconciliação, o blur
+            // correspondente não pode agendar uma segunda leitura do mesmo ciclo.
+            if (resumeAfterHidden) blurredSinceFocus = false;
+            void controller.refresh('visibility', { resumeAfterHidden });
         });
         root.document.addEventListener?.('focusout', () => flushPending('focusout'));
         root.document.addEventListener?.('click', () => flushPending('click'));

@@ -36,8 +36,14 @@ jobs:
       - name: Validar referências locais dos workflows
         run: node scripts/check-workflow-references.mjs
 
-      - name: Auditar dependências npm
-        run: npm audit --audit-level=high
+      - name: Auditar dependências npm com política fail-closed
+        shell: bash
+        run: |
+          mkdir -p dependency-health
+          set +e
+          npm audit --json > dependency-health/npm-audit.json
+          set -e
+          npm run audit:exceljs-policy
 
       - name: Verificar sintaxe da aplicação e infraestrutura
         run: npm run check

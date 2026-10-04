@@ -1,7 +1,25 @@
 # RADAR PDDE — estado atual e retomada
 
 **Classe documental:** Canônico — estado mutável  
-**Atualizado em:** 2 de outubro de 2026
+**Atualizado em:** 3 de outubro de 2026
+
+## Frente operacional — #408 e #407
+
+O hotfix seletivo [#408](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/408)
+separa correções comprovadas da investigação arquitetural ampla do #407.
+A revisão do HEAD `d863f864` confirmou 33 checks aprovados e dois Previews
+condicionais pulados, mas encontrou uma leitura redundante quando a resposta
+termina entre os sinais de foco/visibilidade da mesma retomada. Esta entrega
+corrige a causa e acrescenta RED/GREEN determinístico; 1.250 unitários locais
+passaram. Conferir os checks do novo SHA antes de promover o hotfix.
+
+[Evidência, contraprova na main e instruções de continuidade](evidence/2026-10-03-pr408-resume-review/README.md).
+
+Na revisão, a main continuava em `62fe000c7253bb97a31091f1c7dc33407906d554`.
+O #407 permanece em investigação de custo das sessões observadoras (payload,
+SQL, aplicação de estado e DOM). O #408 não encerra essa investigação nem
+incorpora as mudanças experimentais de Broadcast e banco. Revalidar PRs,
+commits e deployment ao retomar; este registro não afirma publicação.
 
 ## 1. Estado funcional corrente
 
