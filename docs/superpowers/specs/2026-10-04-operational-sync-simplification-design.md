@@ -81,7 +81,8 @@ O #409 permanece laboratório/evidência. Esta frente parte da `main`, não do #
 
 `OperationalSupabaseRepository.queryOperationalContext()` chama a RPC `read_operational_context`.
 
-A RPC retorna, para uma competência, seis coleções operacionais completas sob RLS:
+A RPC retorna, para uma competência e históricos solicitados, seis coleções
+completas para sua cobertura operacional sob RLS:
 
 - `verifications`;
 - `registeredInvoices`;
@@ -91,6 +92,13 @@ A RPC retorna, para uma competência, seis coleções operacionais completas sob
 - `assets`.
 
 A RPC inclui dependências históricas necessárias e é correta como leitura global. O problema é usá-la como resposta padrão para eventos locais frequentes.
+
+A [caracterização de 04/10](../../evidence/2026-10-04-pr410-school-scope/README.md)
+delimita essa cobertura: não equivale a todas as linhas da escola ou ao histórico
+inteiro de contatos. FKs por ID admitem vínculos inconsistentes entre escolas;
+RLS pode esconder a dependência. A leitura por escola precisa detectar contexto
+não isolável/incompleto e declarar recuperação/falha, sem truncar dados para
+parecer equivalente. Zero casos encontrados em Production não é garantia estrutural.
 
 ### 4.2 Escritas
 

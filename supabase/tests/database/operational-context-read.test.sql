@@ -4,7 +4,7 @@ set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(15);
+select plan(35);
 
 insert into auth.users (id, email)
 values ('00000000-0000-0000-0000-000000000995', 'operational-context@example.test');
@@ -234,6 +234,238 @@ select throws_ok(
     'P0001',
     'INVALID_OPERATIONAL_CONTEXT: estado histórico de Pendência inválido',
     'estado histórico inválido é rejeitado no banco'
+);
+
+-- Caracterização #410: cobertura histórica não equivale a todos os registros
+-- da escola. Estas contraprovas exercitam a RPC existente, sem criar a nova RPC.
+insert into public.pendencies (
+    id, school_id, competence_origin, program_id, document_key,
+    status, responsible_area, next_actor, reason, notes, payload
+) values (
+    'pendency-all-programs', '04.99.995', '2026-03', null, 'extCC',
+    'Aberta', 'GAD', 'Escola', 'Escopo sem programa', '', '{}'::jsonb
+);
+
+set local role authenticated;
+create temporary table context_all_programs as
+select public.read_operational_context('2026-09') as value;
+reset role;
+
+select ok(
+    exists (select 1 from context_all_programs,
+        jsonb_array_elements(value -> 'entities' -> 'verifications') item
+        where item ->> 'id' = 'v-other-program'),
+    'Pendência histórica sem programa inclui avaliações de todos os programas do contexto'
+);
+select ok(
+    exists (select 1 from context_all_programs,
+        jsonb_array_elements(value -> 'entities' -> 'registeredInvoices') item
+        where item ->> 'id' = 'invoice-other-program'),
+    'Pendência histórica sem programa inclui NFs de todos os programas do contexto'
+);
+delete from public.pendencies where id = 'pendency-all-programs';
+
+insert into public.pendency_contacts (
+    id, school_id, pendency_id, contact_type, contact_date, description, payload
+) values ('contact-general', '04.99.995', null, 'E-mail', '2026-09-21', 'Contato da escola', '{}'::jsonb);
+
+set local role authenticated;
+create temporary table context_general_contact as
+select public.read_operational_context('2026-09') as value;
+create temporary table school_all_contacts as
+select id from public.pendency_contacts where school_id = '04.99.995';
+reset role;
+
+select ok(
+    not exists (select 1 from context_general_contact,
+        jsonb_array_elements(value -> 'entities' -> 'pendencyContacts') item
+        where item ->> 'id' = 'contact-general'),
+    'RPC operacional não inclui contato geral sem Pendência'
+);
+select ok(
+    exists (select 1 from school_all_contacts where id = 'contact-general'),
+    'consulta escolar de contatos inclui contato geral autorizado'
+);
+
+update public.pendencies set status = 'Resolvida' where id = 'pendency-old-open';
+set local role authenticated;
+create temporary table context_after_resolution as
+select public.read_operational_context('2026-09') as value;
+reset role;
+
+select ok(
+    not exists (
+        select 1 from context_after_resolution,
+            jsonb_each(value -> 'entities') entity,
+            jsonb_array_elements(entity.value) item
+        where item ->> 'id' = any(array['pendency-old-open', 'attempt-open', 'contact-open'])
+    ),
+    'resolver Pendência histórica remove pai, tentativa e contato da cobertura regular'
+);
+select is(
+    (select count(*) from public.pendencies p
+        join public.pendency_attempts a on a.pendency_id = p.id
+        join public.pendency_contacts c on c.pendency_id = p.id
+        where p.id = 'pendency-old-open'),
+    1::bigint,
+    'saída da cobertura não apaga os três registros do banco'
+);
+
+update public.assets set status = 'Inventariada' where id = 'asset-feb-active';
+set local role authenticated;
+create temporary table context_after_inventory as
+select public.read_operational_context('2026-09') as value;
+create temporary table context_resolved_history as
+select public.read_operational_context('2026-09', array['Resolvida']::text[]) as value;
+reset role;
+
+select ok(
+    not exists (
+        select 1 from context_after_inventory,
+            jsonb_each(value -> 'entities') entity,
+            jsonb_array_elements(entity.value) item
+        where item ->> 'id' = any(array[
+            'v-feb', 'invoice-feb-active', 'invoice-feb-done', 'asset-feb-active', 'asset-feb-done'
+        ])
+    ),
+    'inventariar o último bem ativo histórico retira todo o fechamento dependente de fevereiro'
+);
+select is(
+    (select count(*) from public.assets where id = 'asset-feb-active')
+        + (select count(*) from public.registered_invoices where competence_id = '2026-02'),
+    3::bigint,
+    'bem e NFs históricas continuam persistidos depois de sair da cobertura'
+);
+select ok(
+    exists (select 1 from context_resolved_history,
+        jsonb_array_elements(value -> 'entities' -> 'pendencyAttempts') item
+        where item ->> 'id' = 'attempt-open'),
+    'solicitar histórico Resolvida recupera tentativa que saiu da cobertura regular'
+);
+
+delete from public.pendencies where id = 'pendency-old-open';
+select is(
+    (select count(*) from public.pendency_attempts where id = 'attempt-open'),
+    0::bigint,
+    'exclusão de pai apaga tentativa por CASCADE'
+);
+select ok(
+    exists (select 1 from public.pendency_contacts where id = 'contact-open' and pendency_id is null),
+    'exclusão de pai preserva contato escolar e põe vínculo em NULL'
+);
+set local role authenticated;
+create temporary table context_after_parent_delete as
+select public.read_operational_context('2026-09', array['Resolvida']::text[]) as value;
+reset role;
+select ok(
+    not exists (select 1 from context_after_parent_delete,
+        jsonb_array_elements(value -> 'entities' -> 'pendencyContacts') item
+        where item ->> 'id' = 'contact-open'),
+    'contato preservado sem pai sai da RPC mesmo com histórico solicitado'
+);
+
+-- Dados inconsistentes construídos somente na transação descartável. A FK por ID
+-- não prova escola comum; aceitar a fixture não legitima o vínculo no produto.
+update public.registered_invoices set linked_asset_id = 'asset-other-school' where id = 'invoice-sep';
+select is(
+    (select count(*) from public.registered_invoices i join public.assets a on a.id = i.linked_asset_id
+        where i.id = 'invoice-sep' and i.school_id <> a.school_id),
+    1::bigint,
+    'schema permite vínculo NF/bem entre escolas sem constraint composta'
+);
+set local role authenticated;
+create temporary table context_cross_school_link as
+select public.read_operational_context('2026-09') as value;
+reset role;
+select ok(
+    exists (select 1 from context_cross_school_link,
+        jsonb_array_elements(value -> 'entities' -> 'assets') item
+        where item ->> 'id' = 'asset-other-school'),
+    'RPC global segue bem de outra escola quando ambos os registros são autorizados'
+);
+
+insert into auth.users (id, email)
+values ('00000000-0000-0000-0000-000000000997', 'context-controller@example.test');
+insert into public.controllers (id, name, user_id)
+values ('CTX-CONTROLLER', 'Controlador contexto', '00000000-0000-0000-0000-000000000997');
+insert into public.user_profiles (user_id, profile_id, controller_id, cre_scope)
+values ('00000000-0000-0000-0000-000000000997', 'controller', 'CTX-CONTROLLER', '4ª CRE');
+update public.schools set cre = '5ª CRE' where id = '04.99.996';
+insert into public.pendencies (
+    id, school_id, competence_origin, program_id, document_key,
+    status, responsible_area, next_actor, reason, notes, payload
+) values ('pendency-forbidden', '04.99.996', '2026-03', 'CTX_BASIC', 'extCC',
+    'Aberta', 'GAD', 'Escola', 'Escola fora do escopo', '', '{}'::jsonb);
+insert into public.pendency_attempts (id, pendency_id, attempt_number, observation, drive_url, errors, payload)
+values ('attempt-forbidden', 'pendency-forbidden', 1, '', '', '[]'::jsonb, '{}'::jsonb);
+insert into public.pendency_contacts (id, school_id, pendency_id, contact_type, contact_date, description, payload)
+values ('contact-forbidden', '04.99.996', 'pendency-forbidden', 'E-mail', '2026-03-20', 'Contato fora do escopo', '{}'::jsonb);
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000997', true);
+create temporary table context_restricted as
+select public.read_operational_context('2026-09', array['Resolvida']::text[]) as value;
+reset role;
+select ok(
+    not exists (
+        select 1 from context_restricted,
+            jsonb_each(value -> 'entities') entity,
+            jsonb_array_elements(entity.value) item
+        where item ->> 'school_id' = '04.99.996'
+            or item ->> 'id' = 'attempt-forbidden'
+    ),
+    'RLS exclui todas as linhas da escola proibida, inclusive tentativa sem school_id'
+);
+select ok(
+    exists (select 1 from context_restricted,
+        jsonb_array_elements(value -> 'entities' -> 'registeredInvoices') item
+        where item ->> 'id' = 'invoice-sep' and item ->> 'linked_asset_id' = 'asset-other-school'),
+    'RLS não torna íntegro o vínculo: NF autorizada pode referenciar bem que foi ocultado'
+);
+
+update public.user_profiles set active = false
+where user_id = '00000000-0000-0000-0000-000000000997';
+set local role authenticated;
+create temporary table context_inactive as
+select public.read_operational_context('2026-09', array['Resolvida']::text[]) as value;
+reset role;
+select is(
+    (select sum(jsonb_array_length(entity.value)) from context_inactive, jsonb_each(value -> 'entities') entity),
+    0::bigint,
+    'perfil inativo sem escopos explícitos não recebe dados das seis coleções'
+);
+
+-- DELETE técnico da fixture caracteriza remoção da última linha; não substitui
+-- os contratos próprios das RPCs de exclusão de NF com histórico/efeitos derivados.
+delete from public.pendencies where id = 'pendency-sep-resolved';
+delete from public.registered_invoices where id = 'invoice-sep';
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000995', true);
+create temporary table context_after_last_invoice_delete as
+select public.read_operational_context('2026-09') as value;
+reset role;
+select is(
+    (select coalesce(jsonb_agg(item), '[]'::jsonb)
+        from context_after_last_invoice_delete,
+            jsonb_array_elements(value -> 'entities' -> 'registeredInvoices') item
+        where item ->> 'school_id' = '04.99.995'),
+    '[]'::jsonb,
+    'apagar última NF coberta da escola deixa sua fatia vazia'
+);
+select ok(
+    exists (select 1 from context_after_last_invoice_delete,
+        jsonb_array_elements(value -> 'entities' -> 'verifications') item
+        where item ->> 'id' = 'v-sep')
+    and exists (select 1 from context_after_last_invoice_delete,
+        jsonb_array_elements(value -> 'entities' -> 'assets') item
+        where item ->> 'id' = 'asset-sep-done'),
+    'remoção da última NF mantém avaliação e bem mensal que continuam cobertos'
+);
+select ok(
+    exists (select 1 from context_after_last_invoice_delete,
+        jsonb_array_elements(value -> 'entities' -> 'registeredInvoices') item
+        where item ->> 'id' = 'invoice-other-school'),
+    'fatia vazia da escola não apaga a NF coberta de outra escola'
 );
 
 select * from finish();

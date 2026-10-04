@@ -9,6 +9,14 @@ O usuário autorizou seguir a simplificação incremental em 04/10/2026. O [#410
 
 O handoff corrente é [início do #410](handoff/2026-10-04-pr410-start.md). O [plano executável](superpowers/plans/2026-10-04-operational-sync-simplification-implementation.md) registra caracterização, autoridade de rota, leitura/aplicação por escola, Realtime, fallback e remoção gradual de mecanismos. Primeiro incremento: Próxima unidade deve atualizar rota e escola visível pelo caminho canônico, com RED/GREEN de navegador.
 
+O incremento de rota `d4a37d79...` concluiu 16 workflows verdes. A [caracterização
+das seis coleções](evidence/2026-10-04-pr410-school-scope/README.md) avançou com
+35 pgTAP locais, metadados/contagens somente de leitura em Production e mapa de
+históricos, exclusões e projeções. Há contraprova de FK entre escolas permitida
+pelo schema; não truncar esse vínculo na RPC futura. Contatos gerais têm cobertura
+própria. Próximo passo: envelope e RPC escolar com recuperação explícita, RLS,
+equivalência e custo provados. A CI do checkpoint posterior é uma prova separada.
+
 #407 e #409 permanecem fontes de evidência. O #409 continua Draft: novos E2E de Realtime falharam no candidato `5553f130...`; o checkpoint `2d7706f3...` guarda erros e instruções. Não é base de implementação do #410. A aprovação da direção arquitetural não aprova migrations, cortes de recuperação ou merge antecipado.
 
 As proteções do #408 são regressões obrigatórias. Os detalhes do design precisam provar escopo/históricos, exclusões, retorno autoritativo, origem da escrita e recuperação após suspensão. RPC/flag/sincronização dirigida ainda não estão implementados neste checkpoint.

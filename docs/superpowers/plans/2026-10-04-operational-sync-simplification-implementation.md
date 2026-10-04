@@ -56,6 +56,13 @@ em `app.js`, sem importar runtime experimental do #409.
 
 ## 2. Leitura por escola — contrato antes de SQL
 
+Caracterização salva em [escopo escolar](../../evidence/2026-10-04-pr410-school-scope/README.md):
+35 pgTAP locais; fechamento histórico/NFs irmãs, programa nulo, saída de cobertura,
+contatos sem pai, CASCADE/SET NULL, última NF e RLS. Produção apresenta zero relações
+cruzadas nas quatro medições, mas o schema admite NF/bem entre escolas. A nova RPC
+deve detectar contexto não isolável/incompleto e sinalizar fallback/falha antes de
+aplicar. Contatos gerais consultados separadamente não são completos na RPC atual.
+
 - Examinar `20260929143215_read_operational_context.sql`: mantém Pendências ativas
   e históricos solicitados, bens ativos e contextos ligados, além do mês atual.
 - Caracterizar as seis entidades e suas dependências antes de restringir por escola.

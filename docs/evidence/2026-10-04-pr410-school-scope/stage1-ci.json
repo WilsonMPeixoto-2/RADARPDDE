@@ -1,0 +1,135 @@
+{
+  "headSha": "d4a37d7993804135619609f5ccec4adfe1d3871d",
+  "allSuccessful": true,
+  "workflowCount": 16,
+  "runs": [
+    {
+      "conclusion": "success",
+      "databaseId": 37197140884,
+      "headSha": "d4a37d7993804135619609f5ccec4adfe1d3871d",
+      "name": "Contratos-fonte do Excel SME",
+      "status": "completed",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37197140884"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 37197140898,
+      "headSha": "d4a37d7993804135619609f5ccec4adfe1d3871d",
+      "name": "Validar RADAR PDDE",
+      "status": "completed",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37197140898"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 37197140881,
+      "headSha": "d4a37d7993804135619609f5ccec4adfe1d3871d",
+      "name": "Validar snapshot canônico do RADAR",
+      "status": "completed",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37197140881"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 37197140860,
+      "headSha": "d4a37d7993804135619609f5ccec4adfe1d3871d",
+      "name": "CodeQL",
+      "status": "completed",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37197140860"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 37197140847,
+      "headSha": "d4a37d7993804135619609f5ccec4adfe1d3871d",
+      "name": "Retificação auditável direcionada",
+      "status": "completed",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37197140847"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 37197140851,
+      "headSha": "d4a37d7993804135619609f5ccec4adfe1d3871d",
+      "name": "Homologação integral pré-production",
+      "status": "completed",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37197140851"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 37197140924,
+      "headSha": "d4a37d7993804135619609f5ccec4adfe1d3871d",
+      "name": "Estabilidade de posição do Prontuário",
+      "status": "completed",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37197140924"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 37197140880,
+      "headSha": "d4a37d7993804135619609f5ccec4adfe1d3871d",
+      "name": "Lighthouse CI",
+      "status": "completed",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37197140880"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 37197140862,
+      "headSha": "d4a37d7993804135619609f5ccec4adfe1d3871d",
+      "name": "Confiabilidade funcional com Supabase real",
+      "status": "completed",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37197140862"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 37197140858,
+      "headSha": "d4a37d7993804135619609f5ccec4adfe1d3871d",
+      "name": "Regressões específicas do help desk",
+      "status": "completed",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37197140858"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 37197140911,
+      "headSha": "d4a37d7993804135619609f5ccec4adfe1d3871d",
+      "name": "Identificação de Despesa a identificar",
+      "status": "completed",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37197140911"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 37197140887,
+      "headSha": "d4a37d7993804135619609f5ccec4adfe1d3871d",
+      "name": "Regressão visual desktop",
+      "status": "completed",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37197140887"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 37197140925,
+      "headSha": "d4a37d7993804135619609f5ccec4adfe1d3871d",
+      "name": "Supabase readiness",
+      "status": "completed",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37197140925"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 37197140852,
+      "headSha": "d4a37d7993804135619609f5ccec4adfe1d3871d",
+      "name": "Gate remoto de perfis e viewports",
+      "status": "completed",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37197140852"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 37197140906,
+      "headSha": "d4a37d7993804135619609f5ccec4adfe1d3871d",
+      "name": "Testes E2E Playwright",
+      "status": "completed",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37197140906"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 37197140873,
+      "headSha": "d4a37d7993804135619609f5ccec4adfe1d3871d",
+      "name": "Ciclos funcionais reais com Supabase",
+      "status": "completed",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37197140873"
+    }
+  ]
+}

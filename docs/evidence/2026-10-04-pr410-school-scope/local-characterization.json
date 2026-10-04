@@ -1,0 +1,165 @@
+{
+  "observedAt": "2026-10-04T12:00:03.615496+00:00",
+  "analyzedBaseSha": "d4a37d7993804135619609f5ccec4adfe1d3871d",
+  "suite": "supabase/tests/database/operational-context-read.test.sql",
+  "suiteSha256": "354b72e428791eada137815b47d9c5cc86ccf939af9681a1faea50f90797d18c",
+  "engine": "PostgreSQL 17.11",
+  "pgTapVersion": "1.3.4",
+  "image": "postgres:17-bookworm",
+  "imageDigest": "sha256:639ab7ceb90e13123085b741fb31ef493fba25463002f6da665352e7b534b652",
+  "bootstrap": "supabase/tests/bootstrap.sql",
+  "appliedMigrations": 57,
+  "omittedMigrations": [
+    "20260920013656_realtime_operational_invalidation.sql"
+  ],
+  "limitations": [
+    "Auth helpers and jsonschema use generic smoke bootstrap",
+    "No PostgREST/Auth-issued JWT/Realtime path",
+    "No production-shaped load or sustained multiuser proof"
+  ],
+  "passed": 35,
+  "failed": 0,
+  "logSha256": "9a0e4cfef3ebc6ed1524450a0ffe3517eac9a1a1217f0e661327414733ebd5c7",
+  "cases": [
+    {
+      "number": 1,
+      "name": "RPC set-based de contexto operacional existe"
+    },
+    {
+      "number": 2,
+      "name": "RPC de contexto é SECURITY INVOKER"
+    },
+    {
+      "number": 3,
+      "name": "authenticated pode executar a leitura contextual"
+    },
+    {
+      "number": 4,
+      "name": "anon não pode executar a leitura contextual"
+    },
+    {
+      "number": 5,
+      "name": "contexto devolve a competência solicitada"
+    },
+    {
+      "number": 6,
+      "name": "verificações mensais e dependências históricas mínimas são preservadas"
+    },
+    {
+      "number": 7,
+      "name": "notas mensais, ligadas e irmãs necessárias ao agregado são preservadas"
+    },
+    {
+      "number": 8,
+      "name": "contexto regular inclui pendências ativas históricas e pendências do mês"
+    },
+    {
+      "number": 9,
+      "name": "tentativas são limitadas às pendências incluídas"
+    },
+    {
+      "number": 10,
+      "name": "contatos são limitados às pendências incluídas"
+    },
+    {
+      "number": 11,
+      "name": "bem ativo histórico, irmão vinculado e bem mensal são preservados"
+    },
+    {
+      "number": 12,
+      "name": "histórico encerrado só entra quando solicitado"
+    },
+    {
+      "number": 13,
+      "name": "tentativas históricas acompanham o histórico solicitado"
+    },
+    {
+      "number": 14,
+      "name": "contatos históricos acompanham o histórico solicitado"
+    },
+    {
+      "number": 15,
+      "name": "estado histórico inválido é rejeitado no banco"
+    },
+    {
+      "number": 16,
+      "name": "Pendência histórica sem programa inclui avaliações de todos os programas do contexto"
+    },
+    {
+      "number": 17,
+      "name": "Pendência histórica sem programa inclui NFs de todos os programas do contexto"
+    },
+    {
+      "number": 18,
+      "name": "RPC operacional não inclui contato geral sem Pendência"
+    },
+    {
+      "number": 19,
+      "name": "consulta escolar de contatos inclui contato geral autorizado"
+    },
+    {
+      "number": 20,
+      "name": "resolver Pendência histórica remove pai, tentativa e contato da cobertura regular"
+    },
+    {
+      "number": 21,
+      "name": "saída da cobertura não apaga os três registros do banco"
+    },
+    {
+      "number": 22,
+      "name": "inventariar o último bem ativo histórico retira todo o fechamento dependente de fevereiro"
+    },
+    {
+      "number": 23,
+      "name": "bem e NFs históricas continuam persistidos depois de sair da cobertura"
+    },
+    {
+      "number": 24,
+      "name": "solicitar histórico Resolvida recupera tentativa que saiu da cobertura regular"
+    },
+    {
+      "number": 25,
+      "name": "exclusão de pai apaga tentativa por CASCADE"
+    },
+    {
+      "number": 26,
+      "name": "exclusão de pai preserva contato escolar e põe vínculo em NULL"
+    },
+    {
+      "number": 27,
+      "name": "contato preservado sem pai sai da RPC mesmo com histórico solicitado"
+    },
+    {
+      "number": 28,
+      "name": "schema permite vínculo NF/bem entre escolas sem constraint composta"
+    },
+    {
+      "number": 29,
+      "name": "RPC global segue bem de outra escola quando ambos os registros são autorizados"
+    },
+    {
+      "number": 30,
+      "name": "RLS exclui todas as linhas da escola proibida, inclusive tentativa sem school_id"
+    },
+    {
+      "number": 31,
+      "name": "RLS não torna íntegro o vínculo: NF autorizada pode referenciar bem que foi ocultado"
+    },
+    {
+      "number": 32,
+      "name": "perfil inativo sem escopos explícitos não recebe dados das seis coleções"
+    },
+    {
+      "number": 33,
+      "name": "apagar última NF coberta da escola deixa sua fatia vazia"
+    },
+    {
+      "number": 34,
+      "name": "remoção da última NF mantém avaliação e bem mensal que continuam cobertos"
+    },
+    {
+      "number": 35,
+      "name": "fatia vazia da escola não apaga a NF coberta de outra escola"
+    }
+  ]
+}
