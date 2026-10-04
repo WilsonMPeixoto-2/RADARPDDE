@@ -21,17 +21,8 @@
 
     const TOPIC = 'radar:operational';
     const EVENT = 'operational-change';
-    // A leitura contextual pode transportar ~1 MB e é compartilhada por todas as
-    // sessões. Agrupamos rajadas de escrita para evitar thundering herd e rerenders
-    // sucessivos sem sacrificar a convergência rápida entre usuários.
     const DEFAULT_DEBOUNCE_MS = 2000;
-    // A primeira mudança remota continua sendo percebida rapidamente. Depois de uma
-    // tentativa de leitura, invalidações contínuas compartilham uma janela mínima
-    // entre releituras completas, com reconciliação trailing no fim da janela.
     const DEFAULT_REMOTE_MIN_INTERVAL_MS = 5000;
-    // O resultado autoritativo de uma escrita já é aplicado localmente. O Broadcast
-    // emitido pela própria transação não precisa reler imediatamente o mesmo contexto.
-    // Mantemos, porém, uma reconciliação de quietude para garantir convergência eventual.
     const DEFAULT_OWN_RECONCILE_MS = 30000;
 
     function text(value) {
@@ -40,6 +31,20 @@
 
     function authenticated(root) {
         return Boolean(root?.RadarAuthContext?.user || root?.RadarAuthContext?.authorization);
+    }
+
+    function currentRoute(root) {
+        try {
+            return root?.RadarNavigationHistory?.currentRoute?.(root) || null;
+        } catch (_error) {
+            return null;
+        }
+    }
+
+    function currentProntuarioSchoolId(root) {
+        const route = currentRoute(root);
+        if (text(route?.view) !== 'prontuario') return '';
+        return text(route?.param);
     }
 
     function emitStatus(root, status, error = null) {
@@ -72,6 +77,8 @@
         let startPromise = null;
         let lastStatus = 'IDLE';
         let lastSuccessfulRealtimeRefreshAt = 0;
+        let dirtyGeneration = 0;
+        const dirtySchools = new Map();
         const metrics = {
             broadcastsReceived: 0,
             ownBroadcastsIgnored: 0,
@@ -85,6 +92,8 @@
             refreshFailed: 0,
             retriesScheduled: 0,
             reconnectRefreshes: 0,
+            deferredSchoolInvalidations: 0,
+            deferredSchoolReconciliations: 0,
             lastBroadcastAt: null,
             lastRefreshAt: null,
             byEntity: Object.create(null)
@@ -93,6 +102,7 @@
         function metricsSnapshot() {
             return Object.freeze({
                 ...metrics,
+                dirtySchoolIds: Object.freeze([...dirtySchools.keys()].sort()),
                 byEntity: Object.freeze({ ...metrics.byEntity })
             });
         }
@@ -110,9 +120,6 @@
         }
 
         function remoteIntervalRemaining(now = Date.now()) {
-            // A autoridade de refresh inclui reads ainda em voo, abortados e
-            // drenados após edição. O horário do último callback Realtime não
-            // representa sozinho o trabalho realmente iniciado pela sessão.
             const anchor = Math.max(lastSuccessfulRealtimeRefreshAt,
                 Number(refreshController.getLastAttemptAt?.()) || 0,
                 Number(refreshController.getLastRefreshAt?.()) || 0);
@@ -124,12 +131,43 @@
             return Math.max(debounceMs, remoteIntervalRemaining());
         }
 
+        function captureDirtySchools() {
+            return new Map(dirtySchools);
+        }
+
+        function acknowledgeDirtySchools(snapshot) {
+            for (const [schoolId, generation] of snapshot.entries()) {
+                if (dirtySchools.get(schoolId) === generation) dirtySchools.delete(schoolId);
+            }
+        }
+
+        function markSchoolDirty(schoolId) {
+            const normalized = text(schoolId);
+            if (!normalized) return false;
+            dirtyGeneration += 1;
+            dirtySchools.set(normalized, dirtyGeneration);
+            metrics.deferredSchoolInvalidations += 1;
+            return true;
+        }
+
+        function shouldDeferSchool(payload = {}) {
+            const schoolId = text(payload.schoolId);
+            if (!schoolId) return false;
+            const currentSchoolId = currentProntuarioSchoolId(root);
+            return Boolean(currentSchoolId && currentSchoolId !== schoolId);
+        }
+
+        function routeNeedsDeferredRefresh(route = currentRoute(root)) {
+            if (!dirtySchools.size || !route) return false;
+            if (text(route.view) !== 'prontuario') return true;
+            const schoolId = text(route.param);
+            return Boolean(schoolId && dirtySchools.has(schoolId));
+        }
+
         function scheduleRefresh(reason = 'realtime') {
             if (destroyed) return false;
             const realtimeBroadcast = reason === 'realtime';
 
-            // O primeiro evento abre a janela. Eventos seguintes não empurram o
-            // timer indefinidamente: ficam coalescidos na mesma reconciliação.
             if (realtimeBroadcast && timer != null) {
                 metrics.coalescedBroadcasts += 1;
                 return true;
@@ -148,14 +186,12 @@
             }
             timer = schedule(() => {
                 timer = null;
-                // Outra leitura pode ter começado/concluído desde o agendamento.
-                // Conservar a invalidação e recalcular antes de chegar ao controller,
-                // evitando uma pendência forçada que drene imediatamente após a RPC.
                 if (realtimeBroadcast && remoteIntervalRemaining() > 0) {
                     scheduleRefresh(reason);
                     return;
                 }
                 metrics.refreshAttempts += 1;
+                const dirtyAtAttempt = captureDirtySchools();
                 void Promise.resolve()
                     .then(() => refreshController.refresh(reason, { force: true }))
                     .then(result => {
@@ -166,6 +202,7 @@
                         else {
                             metrics.refreshSucceeded += 1;
                             lastSuccessfulRealtimeRefreshAt = completedAt;
+                            acknowledgeDirtySchools(dirtyAtAttempt);
                             clearOwnReconciliation();
                         }
                         if (!needsRetry || reason === 'realtime-retry') return;
@@ -218,17 +255,28 @@
         function handleBroadcast(message = {}) {
             metrics.broadcastsReceived += 1;
             metrics.lastBroadcastAt = new Date().toISOString();
-            const entity = String(message?.payload?.entity || message?.entity || 'unknown');
+            const payload = message?.payload || message || {};
+            const entity = String(payload.entity || 'unknown');
             metrics.byEntity[entity] = (metrics.byEntity[entity] || 0) + 1;
             if (isOwnBroadcast(message)) {
                 metrics.ownBroadcastsIgnored += 1;
                 scheduleOwnReconciliation();
                 return;
             }
-            // Uma mudança realmente remota torna a reconciliação de quietude redundante:
-            // a leitura rápida de Realtime já trará também os efeitos da escrita local.
+            if (shouldDeferSchool(payload)) {
+                markSchoolDirty(payload.schoolId);
+                return;
+            }
             clearOwnReconciliation();
             scheduleRefresh('realtime');
+        }
+
+        function handleNavigationCommitted(event) {
+            const route = event?.detail?.route || currentRoute(root);
+            if (!routeNeedsDeferredRefresh(route)) return;
+            metrics.deferredSchoolReconciliations += 1;
+            clearOwnReconciliation();
+            scheduleRefresh('realtime-deferred-navigation');
         }
 
         function handleStatus(status, error) {
@@ -247,6 +295,8 @@
                 root.console?.warn?.('Canal de sincronização operacional indisponível.', error || lastStatus);
             }
         }
+
+        root.addEventListener?.('radar:navigation-committed', handleNavigationCommitted);
 
         function start() {
             if (destroyed || channel) return Promise.resolve(Boolean(channel));
@@ -300,6 +350,7 @@
             destroyed = true;
             clearScheduledRefresh();
             clearOwnReconciliation();
+            root.removeEventListener?.('radar:navigation-committed', handleNavigationCommitted);
             const current = channel;
             channel = null;
             if (!current) return true;
@@ -363,6 +414,8 @@
         DEFAULT_REMOTE_MIN_INTERVAL_MS,
         DEFAULT_OWN_RECONCILE_MS,
         authenticated,
+        currentRoute,
+        currentProntuarioSchoolId,
         createController,
         install
     });
