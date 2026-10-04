@@ -208,3 +208,61 @@ test('pico realista: seis Controladores alteram seis escolas diferentes sem prov
     await Promise.all(contexts.map(context => context.close()));
   }
 });
+
+test('candidato bloqueia edição ao abrir escola conhecida como alterada até a reconciliação terminar', async ({ browser }) => {
+  test.skip(!candidate, 'Proteção de escola adiada pertence somente ao candidato #407.');
+  test.setTimeout(180000);
+  const writerContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const observerContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const writer = await writerContext.newPage();
+  const observer = await observerContext.newPage();
+  let releaseRead;
+  let readStarted = false;
+  let blockedWriteRequests = 0;
+  try {
+    await Promise.all([
+      signIn(writer, 'operational-2@radar.local', school(2)),
+      signIn(observer, 'operational-1@radar.local', school(1))
+    ]);
+    const beforeB = await currentDelivery(writer);
+    const targetB = beforeB === 'Sim' ? 'Não' : 'Sim';
+    await setDelivery(writer, targetB);
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const readBarrier = new Promise(resolve => { releaseRead = resolve; });
+    await observer.route('**/rest/v1/rpc/read_operational_context', async route => {
+      readStarted = true;
+      await readBarrier;
+      await route.continue();
+    });
+    observer.on('request', request => {
+      if (new URL(request.url()).pathname === '/rest/v1/rpc/save_verification_with_log') {
+        blockedWriteRequests += 1;
+      }
+    });
+
+    await navigateSchool(observer, 2);
+    await expect.poll(() => readStarted, { timeout: 5000 }).toBe(true);
+    await expect(observer.locator('#main-container'))
+      .toHaveAttribute('data-radar-deferred-sync-gate', 'true');
+    await expect(observer.locator('#main-container')).toHaveAttribute('aria-busy', 'true');
+
+    // A tela antiga de B pode estar visível enquanto a leitura está propositalmente
+    // presa. Clicar nela não pode gerar uma gravação sobre esse estado antigo.
+    const staleValue = await currentDelivery(observer);
+    const attemptedValue = staleValue === 'Sim' ? 'Não' : 'Sim';
+    await extCCRow(observer).getByRole('button', { name: attemptedValue, exact: true }).click({ force: true });
+    await new Promise(resolve => setTimeout(resolve, 250));
+    expect(blockedWriteRequests).toBe(0);
+
+    releaseRead();
+    await expect(extCCRow(observer).getByRole('button', { name: targetB, exact: true }))
+      .toHaveClass(targetB === 'Sim' ? /active-sim/ : /active-nao/, { timeout: 30000 });
+    await expect(observer.locator('#main-container'))
+      .not.toHaveAttribute('data-radar-deferred-sync-gate', 'true');
+    await expect(observer.locator('#main-container')).not.toHaveAttribute('aria-busy', 'true');
+  } finally {
+    releaseRead?.();
+    await Promise.all([writerContext.close(), observerContext.close()]);
+  }
+});
