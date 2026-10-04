@@ -125,6 +125,15 @@
         }
     }
 
+    function emitCommittedRoute(root, route) {
+        if (typeof root?.dispatchEvent !== 'function' || typeof root?.CustomEvent !== 'function') return;
+        root.dispatchEvent(new root.CustomEvent('radar:navigation-committed', {
+            detail: Object.freeze({
+                route: Object.freeze({ ...route, filters: Object.freeze({ ...(route.filters || {}) }) })
+            })
+        }));
+    }
+
     function commitRoute(root, controller, route, { replace = false } = {}) {
         const routes = requireRoutes();
         const normalizedRoute = routes.normalizeRoute(route);
@@ -145,6 +154,7 @@
             root.history.pushState(nextState, '', url);
         }
         controller.currentRoute = normalizedRoute;
+        emitCommittedRoute(root, normalizedRoute);
         return normalizedRoute;
     }
 
@@ -238,6 +248,7 @@
                 return;
             }
             controller.currentRoute = applyRouteWithController(controller, route);
+            emitCommittedRoute(root, controller.currentRoute);
         });
 
         root.__radarNavigationHistoryInstalled = true;
