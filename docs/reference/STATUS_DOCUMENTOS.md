@@ -1,7 +1,7 @@
 # Matriz de validade documental
 
 **Classe documental:** Canônico  
-**Atualizado em:** 2 de outubro de 2026
+**Atualizado em:** 4 de outubro de 2026
 
 ## 1. Finalidade e precedência
 
@@ -25,6 +25,8 @@ PR aberto, Preview ou documento antigo não altera Production.
 | docs/reference/SYSTEM_CANONICAL_MODEL.md | Canônico | autoridades, fluxos e invariantes |
 | docs/reference/PRODUCT_SURFACE_CATALOG.md | Referência vigente | superfícies e jornadas |
 | docs/CURRENT_STAGE.md | Canônico | estado funcional e prioridade; head/deployment exatos devem ser revalidados ao vivo quando relevantes |
+| docs/handoff/2026-10-04-pr409-codex-review.md | **Handoff corrente** | revisão adversarial do PR #409, riscos, contraprovas, mapa de testes e critério de merge |
+| docs/evidence/2026-10-04-production-incident-school-relevance.md | Evidência corrente do candidato | incidente real de 02/10, métricas, contraprovas, implementação, CI e limites do #409 |
 | docs/handoff/2026-10-01-controller-type-retification.md | Histórico concluído | Fase 2 de autonomia e UX, integrada pelo #404 e publicada em Production em 02/10/2026 |
 | docs/handoff/2026-09-30-pos-publicacao-pr397-retomada.md | Histórico concluído da publicação | provas do #397 e limites do smoke; prioridade superada pela frente autorizada em 01/10 |
 | docs/handoff/2026-09-30-pr397-independencia-despesas-bonificacao.md | Histórico concluído do candidato | checkpoints anteriores à publicação; bloqueios e instruções pré-merge foram superados pelo encerramento |
@@ -37,7 +39,7 @@ PR aberto, Preview ou documento antigo não altera Production.
 | docs/handoff/2026-09-26-tooling-modernization-a-b.md | Histórico concluído A/B | integrado e publicado pelo PR #378; não é handoff corrente |
 | docs/handoff/2026-09-25-desktop-expense-journey.md | Handoff histórico concluído | checkpoints preservados e adendo de encerramento |
 | docs/handoff/2026-09-19-performance-sync-modernization.md | Handoff histórico concluído | modernização de performance/sincronização encerrada em 21/09 |
-| docs/decisions/ADR-054-sincronizacao-operacional-realtime.md | Decisão vigente | contrato de sincronização entre sessões |
+| docs/decisions/ADR-054-sincronizacao-operacional-realtime.md | Decisão vigente + adendo candidato | contrato de sincronização entre sessões; adendo do #409 é candidato e não afirma publicação |
 | docs/reference/ENGINEERING_METHOD.md | Canônico | método de engenharia |
 | docs/reference/FRONTEND_USER_VALIDATION_GATE.md | Canônico | prova de interface real |
 | docs/reference/TEST_GOVERNANCE.md | Canônico | interpretação de testes |
@@ -58,13 +60,15 @@ A baseline funcional que comprovou o encerramento da C3 é:
 
 Commits posteriores exclusivamente documentais não reabrem uma fase encerrada nem representam, por si, mudança funcional do RADAR. Como a `main` pode avançar por manutenção documental e a Vercel pode publicar esses commits, o head e o deployment exatos devem ser consultados ao vivo quando forem necessários para uma nova entrega.
 
-A **Fase D ainda não foi iniciada**. O encerramento da Fase 2 não a inicia automaticamente; `PROD-UX-08`, NAV-01/UX-04 e demais refinamentos eventualmente mantidos permanecem frentes separadas até decisão explícita de retomada.
+A **Fase D ainda não foi iniciada**. O PR #409 é hardening dirigido por incidente real e não inicia formalmente a Fase D. `PROD-UX-08`, NAV-01/UX-04 e demais refinamentos eventualmente mantidos permanecem frentes separadas até decisão explícita de retomada.
 
 A baseline principal dessa jornada foi homologada. `PROD-FUNC-09` foi encerrado pelo PR #392 e confirmado em Production no merge `8284a02faf3d9381ad42e66b6d93677d396e8515`; a data civil e o instante técnico ficaram coerentes na tentativa original, sem escrita. O #397 foi integrado no merge `a5e200e5c3d7955cea0a6122bde1904469771ac3` e publicado com SQL compatível, preservando a leitura contextual do #396. A evidência de publicação está em `docs/evidence/2026-09-30-pr397-production-release/`; a retomada pós-publicação foi encerrada e preservada em `docs/handoff/2026-09-30-pos-publicacao-pr397-retomada.md`. A CI de 45 checks e os 20 ciclos reais descartáveis pertencem ao candidato `0e149e1...`; o smoke do novo deployment em Production foi observacional, sem CRUD.
 
-A Fase 2 de autonomia/UX também está encerrada: PR #404, merge `de7bebb06b867ebd557ff83cd9194fe3d45f5903`, deployment Production `dpl_CLYY92KojCXpmQcL8xXQkmc3TdgG` `READY`, com smoke HTTP 200 na raiz e na rota profunda `/escolas/04.31.001`, sem escrita real. Seu handoff e relatório passam a histórico/evidência concluída. **Não há handoff corrente.** `PROD-UX-08` e NAV-01/UX-04 permanecem frentes separadas e não são encerradas por esta entrega.
+A Fase 2 de autonomia/UX também está encerrada: PR #404, merge `de7bebb06b867ebd557ff83cd9194fe3d45f5903`, deployment Production `dpl_CLYY92KojCXpmQcL8xXQkmc3TdgG` `READY`, com smoke HTTP 200 na raiz e na rota profunda `/escolas/04.31.001`, sem escrita real. Seu handoff e relatório permanecem histórico/evidência concluída.
 
-O servidor canônico e suas correções não alteraram schema, migrations, RPCs, RLS, serviços de domínio, layout ou persistência canônica.
+A frente corrente é o **PR #409**, que tenta reduzir amplificação de leituras completas entre escolas sem mudar autorização. A evidência real do incidente e o handoff de revisão estão explicitamente versionados. Nenhuma migration do #409 é tratada como publicada em Production enquanto o PR estiver Draft.
+
+O servidor canônico e suas correções históricas não alteraram schema, migrations, RPCs, RLS, serviços de domínio, layout ou persistência canônica. O #409, por outro lado, contém uma migration candidata específica de Broadcast escolar e deve ser avaliado nos próprios limites documentados.
 
 **Sucessão prevista:** com `PROD-FUNC-09` já encerrado, depois de encerrar `PROD-UX-08` e os refinamentos imediatos que permanecerem válidos, a próxima decisão de produto deve recuperar `docs/evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md` antes de abrir uma frente ampla de layout/design. Essa obrigação preserva o debate sobre Figma, design system, tokens, componentização, iconografia, tipografia, galeria de estados e tooling visual sem transformar a avaliação datada em adoção automática.
 
@@ -72,9 +76,13 @@ O servidor canônico e suas correções não alteraram schema, migrations, RPCs,
 
 Handoff corrente:
 
-- **nenhum**.
+- `docs/handoff/2026-10-04-pr409-codex-review.md` — revisão adversarial do PR #409; contém missão, escopo, arquivos prioritários, testes, contraprovas e critério de aceitação.
 
-Pendência separada de retomada: `docs/handoff/2026-09-28-prod-ux-08-drawer-clipping.md` — diagnóstico visual dirigido do clipping desktop. Não foi encerrada pelos PRs #397 ou #404 e só deve ser retomada por decisão explícita.
+Evidência corrente associada:
+
+- `docs/evidence/2026-10-04-production-incident-school-relevance.md` — incidente real, comparação de janelas, hipótese limitada, CI observado, correções de readiness e não-afirmações.
+
+Pendência separada de retomada: `docs/handoff/2026-09-28-prod-ux-08-drawer-clipping.md` — diagnóstico visual dirigido do clipping desktop. Não foi encerrada pelos PRs #397 ou #404 e só deve ser retomada por decisão explícita; não pertence ao escopo do #409.
 
 Handoffs históricos concluídos:
 
@@ -116,6 +124,8 @@ A ADR-054 permanece referência vigente para sincronização operacional:
 - término da escrita drena refresh pendente quando necessário;
 - Postgres Changes não é a estratégia principal desta frente.
 
+O adendo candidato do #409 preserva esses princípios e testa um refinamento: `schoolId` pode ser usado como metadado mínimo de relevância para adiar leitura de outra escola em um Prontuário específico, desde que a escola dirty reconcilie automaticamente quando se tornar relevante. Enquanto Draft, isso não redefine o comportamento publicado de Production.
+
 ## 7. Contrato atual de persistência e convergência
 
     Supabase = fonte canônica persistente
@@ -145,6 +155,15 @@ Interleavings adicionais protegidos:
     escrita aborta leitura Realtime
     → stale/aborted preserva pendência
     → retry e drenagem pós-write restauram convergência
+
+Candidato #409:
+
+    Broadcast com escola conhecida diferente do Prontuário aberto
+    → marca escola dirty
+    → evita releitura imediata não relacionada
+    → navegação/superfície global torna a alteração relevante
+    → releitura pela própria RLS
+    → dirty state é reconhecido somente após sucesso
 
 ## 8. Documentos históricos
 
