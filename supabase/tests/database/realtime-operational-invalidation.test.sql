@@ -3,7 +3,7 @@ set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(12);
+select plan(14);
 
 select ok(
     to_regprocedure('radar_private.broadcast_operational_invalidation()') is not null,
@@ -58,6 +58,22 @@ select ok(
     and pg_get_functiondef('radar_private.broadcast_operational_invalidation()'::regprocedure)
         ilike '%operational-change%',
     'função emite Broadcast privado no tópico/evento canônicos'
+);
+
+select ok(
+    pg_get_functiondef('radar_private.broadcast_operational_invalidation()'::regprocedure)
+        ilike '%schoolId%',
+    'Broadcast informa a escola afetada quando ela é determinável'
+);
+
+select ok(
+    pg_get_functiondef('radar_private.broadcast_operational_invalidation()'::regprocedure)
+        ilike '%pendency_attempts%'
+    and pg_get_functiondef('radar_private.broadcast_operational_invalidation()'::regprocedure)
+        ilike '%pendency_id%'
+    and pg_get_functiondef('radar_private.broadcast_operational_invalidation()'::regprocedure)
+        ilike '%public.pendencies%',
+    'tentativas de Pendência derivam a escola pela Pendência de origem quando possível'
 );
 
 select has_trigger('public', 'verifications', 'verifications_operational_invalidation',
