@@ -1,0 +1,260 @@
+{
+  "functionalHead": "5553f130705fa660dcae069ba3fe5f863a5d2664",
+  "draft": true,
+  "mergeable": "MERGEABLE",
+  "checkedAt": "2026-10-04",
+  "checks": [
+    {
+      "name": "Dump, restauração e equivalência",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179425955/job/111368844994"
+    },
+    {
+      "name": "Criar editar converter excluir avaliar e reanalisar",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179425923/job/111368854391"
+    },
+    {
+      "name": "CodeQL — javascript-typescript",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179426018/job/111368780344"
+    },
+    {
+      "name": "Salvar, recarregar e reler fluxos críticos",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179426008/job/111368811258"
+    },
+    {
+      "name": "validar",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179425976/job/111368779990"
+    },
+    {
+      "name": "Contratos de posição e composição",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179425974/job/111368780130"
+    },
+    {
+      "name": "Perfis × Desktop, Android e iPhone",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179425925/job/111368856776"
+    },
+    {
+      "name": "Contratos exatos do hardening",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179426045/job/111372620456"
+    },
+    {
+      "name": "Prontidão completa",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179426029/job/111368974411"
+    },
+    {
+      "name": "Contrato de opções identificáveis",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179425941/job/111368780413"
+    },
+    {
+      "name": "Baseline desktop",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179425938/job/111368780215"
+    },
+    {
+      "name": "Seis baselines críticos",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179426061/job/111368823026"
+    },
+    {
+      "name": "Autoria real do Histórico de Contatos",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179426014/job/111368780516"
+    },
+    {
+      "name": "targeted-retification",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179425972/job/111368780167"
+    },
+    {
+      "name": "Vulnerabilidades, integridade e inventário",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179426162/job/111368780702"
+    },
+    {
+      "name": "readiness",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179426064/job/111370000549"
+    },
+    {
+      "name": "Desktop homologado",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179426009/job/111368819767"
+    },
+    {
+      "name": "Sintaxe, auditoria e testes de domínio",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179426015/job/111368780415"
+    },
+    {
+      "name": "snapshot-canonico",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179426027/job/111368780257"
+    },
+    {
+      "name": "CodeQL — actions",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179426018/job/111368780354"
+    },
+    {
+      "name": "Duas sessões, Realtime real e degradação visível",
+      "status": "COMPLETED",
+      "conclusion": "FAILURE",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179426045/job/111372619311"
+    },
+    {
+      "name": "Auth, perfis, RLS e persistência no Preview",
+      "status": "COMPLETED",
+      "conclusion": "SKIPPED",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179426015/job/111368781111"
+    },
+    {
+      "name": "Jornadas reais sem salto de tela",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179425974/job/111368780296"
+    },
+    {
+      "name": "Migrations em PostgreSQL limpo",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179426029/job/111368974535"
+    },
+    {
+      "name": "Bem Permanente pela RPC real",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179425941/job/111368780452"
+    },
+    {
+      "name": "Observação patrimonial sem mudar status",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179426014/job/111368780537"
+    },
+    {
+      "name": "migration-smoke",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179426064/job/111370000379"
+    },
+    {
+      "name": "Supabase local, Auth, RLS e pgTAP",
+      "status": "COMPLETED",
+      "conclusion": "FAILURE",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179426029/job/111368974400"
+    },
+    {
+      "name": "supabase-local",
+      "status": "COMPLETED",
+      "conclusion": "FAILURE",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179426064/job/111369999602"
+    },
+    {
+      "name": "Jornada leiga e identificação por tipo",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179425941/job/111368780266"
+    },
+    {
+      "name": "RPC real da observação patrimonial",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179426014/job/111368780429"
+    },
+    {
+      "name": "Playwright completo desktop",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179426029/job/111368974452"
+    },
+    {
+      "name": "Excel SME, OOXML e rota pública local",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179426029/job/111368974487"
+    },
+    {
+      "name": "Dependências e segurança",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179426029/job/111368974504"
+    },
+    {
+      "name": "Lighthouse CI desktop",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179426029/job/111368974506"
+    },
+    {
+      "name": "Backup e restauração descartáveis",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179426029/job/111368974527"
+    },
+    {
+      "name": "Gate final pré-production",
+      "status": "COMPLETED",
+      "conclusion": "FAILURE",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37179426029/job/111370368977"
+    },
+    {
+      "name": "Supabase Preview",
+      "status": "COMPLETED",
+      "conclusion": "SKIPPED",
+      "url": "https://supabase.com/dashboard/project/scnryinorqeucbfkioxo/branches"
+    },
+    {
+      "name": "CodeQL",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/runs/111368869378"
+    },
+    {
+      "name": "Vercel",
+      "status": null,
+      "conclusion": "SUCCESS",
+      "url": "https://vercel.com/wilson-m-peixotos-projects/radarpdde-fix/6rwviKz3NeAJQPa4ZFpJCGr45W8U"
+    },
+    {
+      "name": "Vercel Deployments – Wilson M Peixoto's projects",
+      "status": null,
+      "conclusion": "SUCCESS",
+      "url": "https://vercel.com/wilson-m-peixotos-projects/~/deployments?repo=github%2FWilsonMPeixoto-2%2FRADARPDDE&filterBranch=fix%2Foperational-peak-school-relevance-2026-10-04&sha=5553f130705fa660dcae069ba3fe5f863a5d2664"
+    },
+    {
+      "name": "Vercel Preview Comments",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "url": "https://vercel.com/github"
+    }
+  ]
+}

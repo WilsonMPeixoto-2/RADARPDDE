@@ -95,3 +95,102 @@ foco/scroll e competência. **12/12** controles unitários de navegação/relev�
 A suíte unitária completa anterior a essa mudança de uma linha passou **1263/1263**.
 Foi acrescentada prova com duas identidades e Broadcast real para o botão Próxima
 unidade; depende da CI do candidato consolidado.
+
+
+## Checkpoint final desta sessão — cota próxima do fim
+
+### Tudo salvo
+
+HEAD funcional: `5553f130705fa660dcae069ba3fe5f863a5d2664`.
+Commits da revisão, já publicados:
+
+- `54f48c0d`: RED/GREEN de resposta emitindo navegação redundante; deduplicação de rota.
+- `2b59278e`: testes SQL comportamentais, navegador real e publicação de artefatos.
+- `4b9acb01`: geração coberta pela reconciliação em voo; fixture SQL completa.
+- `5553f130`: Próxima unidade pela navegação canônica, RED/GREEN local e jornada real.
+
+Nenhum trabalho funcional permanece somente local. node_modules era apenas link
+para dependências idênticas e não faz parte da alteração. O worktree anterior
+#407 e suas evidências foram preservados.
+
+### CI real e bloqueio atual
+
+Snapshot completo e compacto: `checkpoint-ci.json`, 42 checks no HEAD funcional.
+Quatro checks falham, inclusive o agregador, por novas jornadas E2E de Realtime:
+
+- hardening: run **37179426045**, job **111372619311**;
+- homologação: run **37179426029**, job **111368974400**;
+- readiness: run **37179426064**, job **111369999602**;
+- agregador pré-production: job **111370368977**.
+
+**Não atribuir esses vermelhos a migrations/RLS pelo nome do job.** O pgTAP passou
+pela nova fixture e as falhas posteriores são Playwright. Logs mostram timeout /
+encerramento de browser/context e erro de cleanup em linhas 472/514. No retry do
+readiness aparece a espera em `supabase-realtime-invalidation.spec.js:458`.
+
+Foi identificado erro concreto de expectativa no novo teste: o botão é rotulado
+**N/A**, mas `app.js:10831` envia **Não se aplica**. O teste compara o estado com
+`original || 'N/A'` após clicar. Corrigir essa expectativa para o valor canônico e
+preservar o contrato visual do botão. **Ainda não foi corrigido nem retestado**
+neste checkpoint. Esse erro não explica automaticamente todos os timeouts:
+inspecionar traces/screenshots e preservar a falha original quando o cleanup falha.
+
+A próxima unidade também teve timeout no retry do job específico. Não classificar
+como infraestrutura sem localizar a espera original. Os nove controles locais de
+navegação inicial e os sete de rotas com Próxima unidade passaram; isso não substitui
+Auth/RPC/Broadcast reais. Não aumentar timeout nem relaxar assertions por conveniência.
+
+Demais gates relevantes estão verdes no snapshot: validação/unitários, desktop,
+ciclos fiscais reais, confiabilidade, perfis/viewports, retificação, visual, scroll,
+Lighthouse, CodeQL, backup/restauração e checks estáticos/readiness. Não significam
+aprovação das duas jornadas novas. Não há merge/deploy/migration do #409.
+
+### Continuidade e nova direção #410
+
+O usuário informou #410 durante este checkpoint. Estado remoto conferido:
+Draft, mergeável, apenas um arquivo documental, HEAD
+`e562f45928dff869c8055deaa4f757c5f40e3ba0`.
+
+Especificação:
+`docs/superpowers/specs/2026-10-04-operational-sync-simplification-design.md`
+na branch do #410. Ela parte de `d9bf67f7...`, não do #409, e propõe leitura/aplicação
+por escola, resposta autoritativa para própria escrita e fallback global.
+A direção é plausível e aborda custo residual, mas não está validada como produto.
+Reutilizar os REDs temporais e a correção de Próxima unidade quando pertinentes;
+não copiar automaticamente todo o controlador experimental do #409.
+
+Antes de assumir simplificação, provar: dependências históricas/cross-school,
+remoções ao substituir fatia, efeitos derivados dos writers, Dashboard/Carteira/
+alertas/exportação, navegação por todos os caminhos, geração posterior durante
+leitura, recuperação de Realtime e saldo final de mecanismos/estados. Uma nova RPC
+por escola por si só não resolve reconstrução de DOM ou autoridade concorrente.
+
+O #410 não foi editado pelo Codex nesta sessão. Sua especificação afirma que o #409
+é laboratório; tratar isso como proposta de sequência e avaliar com o estado real,
+sem promover/encerrar PR por essa afirmação documental.
+
+### Ambiente e eventual publicação
+
+- main/Production confirmado: `d9bf67f7...`; Supabase `scnryinorqeucbfkioxo`,
+  58 migrations, última `20260930003000`, trigger anterior sem schoolId.
+- Não há staging disponível confirmado. Não criar ambiente pago sem opções/custo
+  e confirmação explícita do usuário; não usar Production para testes de escrita.
+- Docker local falhou antes por limite de armazenamento; CI possui Supabase real
+  descartável. Não repetir instalação volumosa sem reavaliar espaço/capacidade.
+- A migration ainda é candidata `20261004040500_realtime_school_relevance.sql`.
+  Nenhuma aplicação remota. A API oficial/MCP gera versão; verificar como manter
+  arquivo e histórico alinhados antes de publicar. Não editar histórico manualmente.
+  CLI não tem credenciais de banco disponibilizadas neste workspace.
+- Security Advisor read-only mostrou um aviso preexistente de leaked-password
+  protection desabilitado; nenhum achado novo atribuído ao #409. Não abrir alteração
+  de Auth incidental nesta retomada.
+- Publicar checkpoints na branch existente, verificando primeiro seu novo HEAD;
+  outro agente pode avançá-la. Neste workspace foi necessário usar GitHub REST
+  (push Git retornava 401). O script local
+  `/workspace/scratch/publish-radar-pr409-checkpoint.py` exige que o remoto seja o
+  primeiro pai e confere árvore/SHA antes de avançar a referência. Não depende do
+  script para retomar: um agente com git push normal pode publicar normalmente.
+
+Próximo passo curto: corrigir/provar o valor canônico do teste N/A, examinar os dois
+traces de Realtime, decidir o destino do #409 à luz do #410 e salvar a decisão no
+remoto. Nenhum desses passos está aprovado antecipadamente por um check verde.

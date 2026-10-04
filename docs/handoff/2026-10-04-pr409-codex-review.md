@@ -1,3 +1,14 @@
+> **CHECKPOINT DE COTA — 04/10/2026, após revisão Codex**
+> HEAD funcional remoto: `5553f130705fa660dcae069ba3fe5f863a5d2664`.
+> #409 permanece Draft/mergeável. **Não aprovado para merge**: novas jornadas de
+> Realtime falham. Código, testes e evidências foram salvos no remoto.
+> Consultar primeiro a seção “Checkpoint final desta sessão” em
+> [revisão causal](../evidence/2026-10-04-pr409-review/README.md) e
+> [CI do candidato](../evidence/2026-10-04-pr409-review/checkpoint-ci.json).
+> O usuário informou nova direção em #410, Draft documental independente, HEAD
+> `e562f45928dff869c8055deaa4f757c5f40e3ba0`, baseado na main pós-#408.
+> Não fundir as duas frentes nem tratar a especificação como implementação provada.
+
 > **Retomada Codex em 04/10:** ler primeiro a evidência incremental em
 > [revisão causal](../evidence/2026-10-04-pr409-review/README.md). Foram reproduzidas
 > duas leituras redundantes por navegação/render e uma rota escolar desatualizada
