@@ -71,6 +71,8 @@ function makeHarness(options = {}) {
     };
 
     const statePort = {
+        capture: async () => clone(current),
+        restore: async captured => { current = clone(captured); },
         exportCanonical: async () => clone(current),
         applyCanonical: async next => { current = clone(next); },
         exportCanonicalEntities: async requested => snapshot(Object.fromEntries(
