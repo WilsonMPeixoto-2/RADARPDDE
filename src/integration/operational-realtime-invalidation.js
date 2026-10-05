@@ -25,6 +25,27 @@
     // sessões. Agrupamos rajadas de escrita para evitar thundering herd e rerenders
     // sucessivos sem sacrificar a convergência rápida entre usuários.
     const DEFAULT_DEBOUNCE_MS = 2000;
+    const SCHOOL_SCOPED_ENTITIES = new Set([
+        'verifications',
+        'registered_invoices',
+        'pendencies',
+        'pendency_attempts',
+        'assets'
+    ]);
+
+    function text(value) {
+        return value == null ? '' : String(value).trim();
+    }
+
+    function decideInvalidationAction({ route = null, payload = null } = {}) {
+        const entity = text(payload?.entity);
+        const schoolId = text(payload?.schoolId);
+        if (!schoolId || !SCHOOL_SCOPED_ENTITIES.has(entity)) return 'global';
+        if (text(route?.view) !== 'prontuario') return 'global';
+        const currentSchoolId = text(route?.param);
+        if (!currentSchoolId) return 'global';
+        return currentSchoolId === schoolId ? 'school' : 'defer';
+    }
 
     function authenticated(root) {
         return Boolean(root?.RadarAuthContext?.user || root?.RadarAuthContext?.authorization);
@@ -246,6 +267,7 @@
         EVENT,
         DEFAULT_DEBOUNCE_MS,
         authenticated,
+        decideInvalidationAction,
         createController,
         install
     });
