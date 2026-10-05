@@ -21,9 +21,6 @@
 
     const TOPIC = 'radar:operational';
     const EVENT = 'operational-change';
-    // A leitura contextual pode transportar ~1 MB e é compartilhada por todas as
-    // sessões. Agrupamos rajadas de escrita para evitar thundering herd e rerenders
-    // sucessivos sem sacrificar a convergência rápida entre usuários.
     const DEFAULT_DEBOUNCE_MS = 2000;
     const SCHOOL_SCOPED_ENTITIES = new Set([
         'verifications',
@@ -81,6 +78,9 @@
         let destroyed = false;
         let startPromise = null;
         let lastStatus = 'IDLE';
+        let dirtyGeneration = 0;
+        const dirtySchools = new Map();
+        const reconcilingSchools = new Map();
         const metrics = {
             broadcastsReceived: 0,
             coalescedBroadcasts: 0,
@@ -91,6 +91,8 @@
             retriesScheduled: 0,
             reconnectRefreshes: 0,
             schoolRefreshesScheduled: 0,
+            deferredSchoolInvalidations: 0,
+            deferredSchoolReconciliations: 0,
             lastBroadcastAt: null,
             lastRefreshAt: null,
             byEntity: Object.create(null)
@@ -99,8 +101,54 @@
         function metricsSnapshot() {
             return Object.freeze({
                 ...metrics,
+                dirtySchoolIds: Object.freeze([...dirtySchools.keys()].sort()),
                 byEntity: Object.freeze({ ...metrics.byEntity })
             });
+        }
+
+        function markSchoolDirty(schoolId) {
+            const normalized = text(schoolId);
+            if (!normalized) return 0;
+            dirtyGeneration += 1;
+            dirtySchools.set(normalized, dirtyGeneration);
+            metrics.deferredSchoolInvalidations += 1;
+            return dirtyGeneration;
+        }
+
+        function captureDirtySnapshot(schoolId = '') {
+            const normalized = text(schoolId);
+            if (!normalized) return new Map(dirtySchools);
+            const generation = dirtySchools.get(normalized);
+            return generation == null ? new Map() : new Map([[normalized, generation]]);
+        }
+
+        function beginReconciliation(snapshot) {
+            for (const [schoolId, generation] of snapshot.entries()) {
+                reconcilingSchools.set(schoolId, generation);
+            }
+        }
+
+        function endReconciliation(snapshot) {
+            for (const [schoolId, generation] of snapshot.entries()) {
+                if (reconcilingSchools.get(schoolId) === generation) {
+                    reconcilingSchools.delete(schoolId);
+                }
+            }
+        }
+
+        function acknowledgeDirty(snapshot) {
+            for (const [schoolId, generation] of snapshot.entries()) {
+                if (dirtySchools.get(schoolId) === generation) {
+                    dirtySchools.delete(schoolId);
+                }
+            }
+        }
+
+        function resultIsAuthoritative(result) {
+            return result?.ok !== false
+                && result?.stale !== true
+                && result?.skipped !== true
+                && result?.applied !== false;
         }
 
         function clearScheduledRefresh() {
@@ -124,6 +172,8 @@
             timer = schedule(() => {
                 timer = null;
                 metrics.refreshAttempts += 1;
+                const dirtyAtAttempt = captureDirtySnapshot(schoolId);
+                beginReconciliation(dirtyAtAttempt);
                 const runRefresh = schoolId && typeof refreshController.refreshSchool === 'function'
                     ? () => refreshController.refreshSchool(schoolId, reason, { force: true })
                     : () => refreshController.refresh(reason, { force: true });
@@ -134,6 +184,7 @@
                         const needsRetry = result?.ok === false || result?.stale === true;
                         if (needsRetry) metrics.refreshFailed += 1;
                         else metrics.refreshSucceeded += 1;
+                        if (resultIsAuthoritative(result)) acknowledgeDirty(dirtyAtAttempt);
                         if (!needsRetry || /-retry$/.test(reason)) return;
                         scheduleRefresh(
                             schoolId ? 'realtime-school-retry' : 'realtime-retry',
@@ -150,7 +201,8 @@
                                 schoolId ? { schoolId } : {}
                             );
                         }
-                    });
+                    })
+                    .finally(() => endReconciliation(dirtyAtAttempt));
             }, debounceMs);
             return true;
         }
@@ -162,14 +214,36 @@
             const entity = String(payload.entity || 'unknown');
             metrics.byEntity[entity] = (metrics.byEntity[entity] || 0) + 1;
             const action = decideInvalidationAction({ route: currentRoute(root), payload });
+            if (action === 'defer') {
+                markSchoolDirty(payload.schoolId);
+                return;
+            }
             if (action === 'school' && typeof refreshController.refreshSchool === 'function') {
                 scheduleRefresh('realtime-school', { schoolId: payload.schoolId });
                 return;
             }
-            // O ramo `defer` ainda permanece conservador nesta fase. Ele só poderá
-            // deixar de reler globalmente depois que a navegação para escola suja
-            // tiver reconciliação automática causalmente provada.
             scheduleRefresh('realtime');
+        }
+
+        function handleNavigationCommitted(event) {
+            if (!dirtySchools.size) return;
+            const route = event?.detail?.route || currentRoute(root);
+            if (!route) return;
+            if (text(route.view) === 'prontuario') {
+                const schoolId = text(route.param);
+                const generation = dirtySchools.get(schoolId);
+                if (generation == null) return;
+                if (reconcilingSchools.get(schoolId) === generation) return;
+                metrics.deferredSchoolReconciliations += 1;
+                scheduleRefresh('realtime-deferred-navigation', { schoolId });
+                return;
+            }
+            const hasUncoveredDirty = [...dirtySchools].some(([schoolId, generation]) => (
+                reconcilingSchools.get(schoolId) !== generation
+            ));
+            if (!hasUncoveredDirty) return;
+            metrics.deferredSchoolReconciliations += 1;
+            scheduleRefresh('realtime-deferred-navigation');
         }
 
         function handleStatus(status, error) {
@@ -185,6 +259,8 @@
                 root.console?.warn?.('Canal de sincronização operacional indisponível.', error || lastStatus);
             }
         }
+
+        root.addEventListener?.('radar:navigation-committed', handleNavigationCommitted);
 
         function start() {
             if (destroyed || channel) return Promise.resolve(Boolean(channel));
@@ -237,6 +313,7 @@
         async function stop() {
             destroyed = true;
             clearScheduledRefresh();
+            root.removeEventListener?.('radar:navigation-committed', handleNavigationCommitted);
             const current = channel;
             channel = null;
             if (!current) return true;
