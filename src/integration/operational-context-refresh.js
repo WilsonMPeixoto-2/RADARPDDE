@@ -134,9 +134,6 @@
             if (cooldownTimer != null || typeof root.setTimeout !== 'function') return;
             cooldownTimer = root.setTimeout(() => {
                 cooldownTimer = null;
-                // O timer pode expirar enquanto um retry já está em voo. Nesse
-                // caso a leitura atual consome a pendência anterior; se ela terminar
-                // stale/falhar e recriar a pendência, reagendamos uma única drenagem.
                 if (refreshPromise) {
                     const currentRefresh = refreshPromise;
                     void currentRefresh.finally(() => {
@@ -151,17 +148,12 @@
 
         function markPending(reason, { canForce = false } = {}) {
             pendingRefreshReason = text(reason) || pendingRefreshReason || 'editing';
-            // Uma invalidação nova adiada por edição/leitura pode exigir drenagem
-            // imediata. Recuperar uma leitura abortada não cria outra invalidação.
             pendingRefreshCanForce = pendingRefreshCanForce || canForce;
             return pendingRefreshReason;
         }
 
         async function refresh(reason = 'resume', refreshOptions = {}) {
             if (refreshPromise) {
-                // Eventos repetidos do mesmo ciclo apenas retomam a leitura em
-                // andamento. Um ciclo real hidden→visible ou blur→focus, porém,
-                // pode ter perdido alterações posteriores ao snapshot já capturado.
                 const queueAfterInflight = refreshOptions.force === true
                     || refreshOptions.resumeAfterHidden === true
                     || refreshOptions.resumeAfterBlur === true;
@@ -196,9 +188,6 @@
                 && (now - cooldownAnchor) < minIntervalMs
             ) {
                 const retryAfterMs = Math.max(0, minIntervalMs - (now - cooldownAnchor));
-                // O segundo sinal de uma retomada pode chegar após a resposta do
-                // primeiro. Uma oportunidade sem pendência nem nova suspensão
-                // não cria trabalho futuro sobre o contexto que já está atual.
                 if (!pendingRefreshReason
                     && refreshOptions.resumeAfterHidden !== true
                     && refreshOptions.resumeAfterBlur !== true) {
@@ -214,13 +203,7 @@
                 };
             }
 
-            // Registra a tentativa, inclusive quando a RPC falhar. Assim uma falha
-            // de infraestrutura não transforma cliques/focusout em loop de retry.
             lastAttemptAt = now;
-
-            // Este refresh consome qualquer pendência já conhecida. Invalidações
-            // que chegarem depois deste ponto voltam a preencher pendingRefreshReason
-            // e serão relidas quando a consulta em voo terminar.
             pendingRefreshReason = '';
             pendingRefreshCanForce = false;
 
@@ -236,9 +219,6 @@
                 if (result?.stale === true) {
                     if (authenticated(root) && activeCompetence(root) === competenceKey) {
                         markPending(reason);
-                        // O Realtime possui somente um retry imediato. Se esse retry
-                        // também ficar stale, deixamos uma única reconciliação futura
-                        // já agendada para não depender de outro gesto/Broadcast.
                         if (reason === 'realtime-retry') {
                             scheduleCooldownFlush(remainingCooldownMs());
                         }
@@ -252,9 +232,6 @@
                 }
                 if (activeCompetence(root) !== competenceKey) return { ...result, stale: true };
 
-                // Uma leitura aplicada com sucesso encerra qualquer cooldown de falha
-                // anterior. O throttle normal de foco/visibilidade continua ancorado
-                // em lastRefreshAt/lastAttemptAt.
                 lastFailureAt = 0;
                 refreshCurrentView(root);
                 lastRefreshAt = Date.now();
@@ -291,7 +268,8 @@
             }
             if (refreshPromise) {
                 markPending(reason, { canForce: true });
-                return refreshPromise;
+                const currentRefresh = refreshPromise;
+                return currentRefresh.then(() => refreshSchool(targetSchool, reason, refreshOptions));
             }
             if (!authenticated(root)) {
                 pendingRefreshReason = '';
@@ -361,20 +339,12 @@
                 return { skipped: true, reason: 'unauthenticated' };
             }
             if (editing(root)) return { skipped: true, reason: 'editing', pending: true };
-            // Clique, focusout e fim de escrita apenas tentam drenar a pendência.
-            // Durante uma leitura não representam nova alteração canônica.
             if (refreshPromise) return refreshPromise;
 
             const pendingReason = pendingRefreshReason;
             const pendingCanForce = pendingRefreshCanForce;
-            // A pendência só é consumida quando refresh inicia a leitura. Mantê-la
-            // até lá distingue recuperação necessária de mera oportunidade de foco.
             const now = Date.now();
             const failureCooldownActive = lastFailureAt > 0 && (now - lastFailureAt) < minIntervalMs;
-
-            // Pendência Realtime bloqueada apenas por edição pode drenar assim que o
-            // usuário encerra o campo. Se a própria leitura falhou recentemente,
-            // preservamos o cooldown para não recriar a tempestade de retries.
             const force = flushOptions.force === true || (pendingCanForce && !failureCooldownActive);
             const result = await refresh(`${pendingReason}-${reason}`, { force });
             if (
@@ -437,9 +407,6 @@
         root.addEventListener?.('focus', () => {
             const resumeAfterBlur = blurredSinceFocus;
             blurredSinceFocus = false;
-            // Alguns navegadores entregam focus antes de visibilitychange ao
-            // retornar à mesma aba. Se ambos os sinais pertencem ao mesmo afastamento,
-            // o primeiro a chegar assume a única reconciliação desse ciclo.
             if (resumeAfterBlur && hiddenSinceVisible && root.document.visibilityState === 'visible') {
                 hiddenSinceVisible = false;
             }
@@ -452,9 +419,6 @@
             }
             const resumeAfterHidden = hiddenSinceVisible;
             hiddenSinceVisible = false;
-            // visibilitychange e focus costumam chegar como o mesmo retorno ao app.
-            // Se a transição hidden→visible já assumiu a reconciliação, o blur
-            // correspondente não pode agendar uma segunda leitura do mesmo ciclo.
             if (resumeAfterHidden) blurredSinceFocus = false;
             void controller.refresh('visibility', { resumeAfterHidden });
         });
