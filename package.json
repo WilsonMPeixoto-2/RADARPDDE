@@ -112,7 +112,7 @@
     "fast-check": "4.10.2",
     "fuse.js": "7.5.0",
     "knip": "6.39.0",
-    "lighthouse": "13.4.1",
+    "lighthouse": "13.5.0",
     "msw": "2.15.0",
     "prettier": "3.9.9",
     "supabase": "2.114.0",
