@@ -98,7 +98,7 @@ test('visão global continua usando refresh global mesmo com schoolId conhecido'
     assert.equal(harness.globalRefreshes[0].reason, 'realtime');
 });
 
-test('outra escola ainda usa caminho global até existir reconciliação diferida comprovada', async () => {
+test('outra escola é adiada sem refresh da tela atual', async () => {
     const harness = createHarness({ route: { view: 'prontuario', param: 'school-a' } });
     await harness.controller.start();
 
@@ -106,5 +106,6 @@ test('outra escola ainda usa caminho global até existir reconciliação diferid
     await new Promise(resolve => setTimeout(resolve, 10));
 
     assert.equal(harness.schoolRefreshes.length, 0);
-    assert.equal(harness.globalRefreshes.length, 1);
+    assert.equal(harness.globalRefreshes.length, 0);
+    assert.deepEqual(harness.controller.getMetrics().dirtySchoolIds, ['school-b']);
 });
