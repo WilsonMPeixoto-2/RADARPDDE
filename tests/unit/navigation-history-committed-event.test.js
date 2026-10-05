@@ -54,7 +54,8 @@ test('rota interna confirmada publica radar:navigation-committed com a rota canÃ
         view: 'prontuario',
         param: 'school-b',
         section: null,
-        filters: {}
+        filters: {},
+        canonicalPath: '/escolas/school-b'
     });
 });
 
@@ -70,4 +71,5 @@ test('popstate tambÃ©m publica a rota efetivamente restaurada', () => {
     assert.ok(event);
     assert.equal(event.detail.route.view, 'prontuario');
     assert.equal(event.detail.route.param, 'school-c');
+    assert.equal(event.detail.route.canonicalPath, '/escolas/school-c');
 });
