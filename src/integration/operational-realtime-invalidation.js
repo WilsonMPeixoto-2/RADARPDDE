@@ -47,6 +47,14 @@
         return currentSchoolId === schoolId ? 'school' : 'defer';
     }
 
+    function currentRoute(root) {
+        try {
+            return root?.RadarNavigationHistory?.currentRoute?.(root) || null;
+        } catch (_error) {
+            return null;
+        }
+    }
+
     function authenticated(root) {
         return Boolean(root?.RadarAuthContext?.user || root?.RadarAuthContext?.authorization);
     }
@@ -82,6 +90,7 @@
             refreshFailed: 0,
             retriesScheduled: 0,
             reconnectRefreshes: 0,
+            schoolRefreshesScheduled: 0,
             lastBroadcastAt: null,
             lastRefreshAt: null,
             byEntity: Object.create(null)
@@ -100,12 +109,14 @@
             timer = null;
         }
 
-        function scheduleRefresh(reason = 'realtime') {
+        function scheduleRefresh(reason = 'realtime', options = {}) {
             if (destroyed) return false;
-            if (timer != null && reason === 'realtime') metrics.coalescedBroadcasts += 1;
+            const schoolId = text(options.schoolId);
+            if (timer != null && /^realtime(?:-school)?$/.test(reason)) metrics.coalescedBroadcasts += 1;
             clearScheduledRefresh();
             metrics.refreshesScheduled += 1;
-            if (reason === 'realtime-retry') metrics.retriesScheduled += 1;
+            if (schoolId) metrics.schoolRefreshesScheduled += 1;
+            if (/-retry$/.test(reason)) metrics.retriesScheduled += 1;
             if (reason === 'realtime-reconnect') metrics.reconnectRefreshes += 1;
             const schedule = typeof root.setTimeout === 'function'
                 ? root.setTimeout.bind(root)
@@ -113,21 +124,32 @@
             timer = schedule(() => {
                 timer = null;
                 metrics.refreshAttempts += 1;
+                const runRefresh = schoolId && typeof refreshController.refreshSchool === 'function'
+                    ? () => refreshController.refreshSchool(schoolId, reason, { force: true })
+                    : () => refreshController.refresh(reason, { force: true });
                 void Promise.resolve()
-                    .then(() => refreshController.refresh(reason, { force: true }))
+                    .then(runRefresh)
                     .then(result => {
                         metrics.lastRefreshAt = new Date().toISOString();
                         const needsRetry = result?.ok === false || result?.stale === true;
                         if (needsRetry) metrics.refreshFailed += 1;
                         else metrics.refreshSucceeded += 1;
-                        if (!needsRetry || reason === 'realtime-retry') return;
-                        scheduleRefresh('realtime-retry');
+                        if (!needsRetry || /-retry$/.test(reason)) return;
+                        scheduleRefresh(
+                            schoolId ? 'realtime-school-retry' : 'realtime-retry',
+                            schoolId ? { schoolId } : {}
+                        );
                     })
                     .catch(error => {
                         metrics.lastRefreshAt = new Date().toISOString();
                         metrics.refreshFailed += 1;
                         root.console?.warn?.('Falha ao reler contexto após invalidação Realtime.', error);
-                        if (reason !== 'realtime-retry') scheduleRefresh('realtime-retry');
+                        if (!/-retry$/.test(reason)) {
+                            scheduleRefresh(
+                                schoolId ? 'realtime-school-retry' : 'realtime-retry',
+                                schoolId ? { schoolId } : {}
+                            );
+                        }
                     });
             }, debounceMs);
             return true;
@@ -136,8 +158,17 @@
         function handleBroadcast(message = {}) {
             metrics.broadcastsReceived += 1;
             metrics.lastBroadcastAt = new Date().toISOString();
-            const entity = String(message?.payload?.entity || message?.entity || 'unknown');
+            const payload = message?.payload || message || {};
+            const entity = String(payload.entity || 'unknown');
             metrics.byEntity[entity] = (metrics.byEntity[entity] || 0) + 1;
+            const action = decideInvalidationAction({ route: currentRoute(root), payload });
+            if (action === 'school' && typeof refreshController.refreshSchool === 'function') {
+                scheduleRefresh('realtime-school', { schoolId: payload.schoolId });
+                return;
+            }
+            // O ramo `defer` ainda permanece conservador nesta fase. Ele só poderá
+            // deixar de reler globalmente depois que a navegação para escola suja
+            // tiver reconciliação automática causalmente provada.
             scheduleRefresh('realtime');
         }
 
