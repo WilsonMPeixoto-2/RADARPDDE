@@ -101,3 +101,13 @@ local iniciada em e38e91c3, que foi superada pela implementação atual do #410.
 23 testes dirigidos passaram nesse arquivo; não houve certificação E2E dessa
 alternativa. Não fazer cherry-pick automático nem retomar aquela branch como
 candidato. Ela existe para rastreabilidade e reaproveitamento de contraprovas.
+
+## Remediação das dependências — continuação autorizada
+
+Atualização restrita do lockfile: smol-toml 1.8.0 → 1.9.0 e source-map-js
+1.2.1 → 1.2.2. Nenhuma dependência direta, override, runtime ou política alterada.
+Instalação limpa `npm ci` aprovada; auditoria atual aceita somente a cadeia
+Stylelint já documentada (seis ocorrências do advisory anterior), sem
+vulnerabilidade bloqueante de runtime. Stylelint, Knip no escopo do CI e os
+14 testes da política passaram. O relatório bruto permanece fora do Git.
+A certificação sustentada/visual e o CI do próximo candidato ainda são pendentes.
