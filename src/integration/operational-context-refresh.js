@@ -55,8 +55,58 @@
         return Boolean(root.RadarAuthContext);
     }
 
+    const FOCUS_CONTROLS = 'button, a[href], [role="button"], [role="tab"]';
+    const FOCUS_ROWS = '[data-invoice-id], [data-pendency-ref], [data-program-id][data-document-key]';
+
+    function focusAttributes(element, names) {
+        return names.filter(name => element?.hasAttribute?.(name))
+            .map(name => [name, element.getAttribute(name)]);
+    }
+
+    function captureViewFocus(root) {
+        const element = root.document?.activeElement;
+        const main = root.document?.getElementById?.('main-container');
+        if (!main?.contains?.(element) || !element?.matches?.(FOCUS_CONTROLS)) return null;
+        const snapshot = { element, tag: element.tagName, id: element.id };
+        if (snapshot.id) return snapshot;
+        snapshot.row = focusAttributes(element.closest(FOCUS_ROWS), [
+            'data-invoice-id', 'data-pendency-ref', 'data-program-id', 'data-document-key'
+        ]);
+        snapshot.action = focusAttributes(element, ['data-action', 'onclick', 'href', 'aria-controls']);
+        return snapshot.row.length && snapshot.action.length ? snapshot : null;
+    }
+
+    function restoreViewFocus(root, snapshot) {
+        if (!snapshot || snapshot.element.isConnected) return;
+        const document = root.document;
+        const current = document.activeElement;
+        // Um renderer que moveu foco deliberadamente tem precedência sobre o
+        // fallback. Só restauramos o foco perdido pela substituição do DOM.
+        if (current && current !== document.body && current !== document.documentElement) return;
+        const matchesAttributes = (element, attributes) => attributes.every(([name, value]) => (
+            element?.getAttribute(name) === value
+        ));
+        const main = document.getElementById('main-container');
+        const matches = Array.from(main?.querySelectorAll(FOCUS_CONTROLS) || []).filter(element => {
+            if (element.tagName !== snapshot.tag) return false;
+            if (snapshot.id) return element.id === snapshot.id;
+            return matchesAttributes(element, snapshot.action)
+                && matchesAttributes(element.closest(FOCUS_ROWS), snapshot.row);
+        });
+        if (matches.length !== 1) return;
+        const target = matches[0];
+        if (target.matches(':disabled') || target.getAttribute('aria-disabled') === 'true'
+            || hiddenByState(target) || !target.getClientRects().length) return;
+        const style = root.getComputedStyle?.(target);
+        if (style?.display === 'none' || ['hidden', 'collapse'].includes(style?.visibility)) return;
+        target.focus({ preventScroll: true });
+    }
+
     function refreshCurrentView(root) {
         const scrollSnapshot = root.RadarProntuarioScrollPreservation?.capture?.(root) || null;
+        // Capturar depois da leitura respeita qualquer movimento de foco que o
+        // operador tenha feito enquanto aguardava a resposta.
+        const focusSnapshot = captureViewFocus(root);
         try {
             if (typeof root.RadarGlobalCompetenceSelector?.refreshCurrentView === 'function') {
                 root.RadarGlobalCompetenceSelector.refreshCurrentView();
@@ -69,6 +119,7 @@
             root.switchView(view, schoolId || undefined);
             return true;
         } finally {
+            restoreViewFocus(root, focusSnapshot);
             root.RadarProntuarioScrollPreservation?.restore?.(root, scrollSnapshot);
         }
     }

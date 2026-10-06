@@ -82,7 +82,7 @@ jobs:
           bash "$GITHUB_WORKSPACE/scripts/start-disposable-supabase-ci.sh"
           npm run supabase:reset
       - name: Preparar volume calibrado
-        run: docker exec -i supabase_db_radar-pdde psql -X -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/fixtures/operational-production-shape.sql
+        run: node scripts/prepare-operational-session-volume.mjs
       - name: Preparar cadastros institucionais locais
         run: docker exec -i supabase_db_radar-pdde psql -X -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/fixtures/operational-session-contexts.sql
       - name: Preparar Controladores reais sem credenciais Production

@@ -137,3 +137,26 @@ A execução ainda deve ser concluída e interpretada; instrumentação não é 
 O início local do Supabase falhou por espaço insuficiente na imagem PostgreSQL.
 Não é falha do produto. Usar o runner nativo descartável e seus artifacts; não
 substituir por banco de Production nem considerar a jornada pulada como verde.
+
+
+## Foco lógico e primeira execução sustentada
+
+Três REDs de foco confirmados no candidato: aba com ID, ação de NF sem ID e
+movimento de foco durante leitura terminavam sem foco lógico. Dois controles
+(remoção e desabilitação) passaram; o sexto caso inicialmente falhou por referência
+a métrica inexistente no harness importado, corrigida para observar a UI — não é
+um quarto defeito do produto. Captura imediatamente antes de render e restauração
+por identidade de registro/ação agora preservam foco; não restauram elemento
+removido, oculto, desabilitado, ambíguo ou foco deliberadamente movido. Sem timer
+novo. Seis E2E e 34 testes relacionados GREEN. Instrumentação original do #407
+foi adaptada ao contrato atual, sem seus controllers/métricas experimentais.
+
+Run sustentado inicial `37471844633` falhou antes do browser: fixture do #410
+exige transação com `radar.disposable_benchmark=on`; o harness antigo não a abria.
+Wrapper local explícito agora abre transação, respeita o guard de tabelas vazias,
+carrega a fixture e reabilita os seis triggers antes de COMMIT. Sem relaxar guard.
+Não interpretar esse run como medição de performance.
+
+A criação de branch hospedada autorizada foi rejeitada pelo Supabase: branching
+exige Pro. Nenhuma branch criada. Alternativa consultada: projeto separado gratuito
+(US$0/mês); confirmação específica solicitada, mantendo limite de 24h/exclusão.
