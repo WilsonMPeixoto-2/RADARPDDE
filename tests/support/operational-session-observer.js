@@ -38,6 +38,10 @@ async function observeOperationalSession(page) {
   });
   await page.evaluate(() => {
     const data = window.RadarApplicationServices.data;
+    const initialProntuarioPanel = document.getElementById('tab-verificacoes');
+    const visualTargetId = initialProntuarioPanel?.classList.contains('active') && !initialProntuarioPanel.hidden
+      ? 'tab-verificacoes'
+      : 'main-container';
     const counters = { loads: [], applies: 0, renderCalls: 0, mainReplacements: 0,
       mutations: 0, lastMutationAt: performance.now(),
       performance: {
@@ -46,7 +50,7 @@ async function observeOperationalSession(page) {
         applyRemoteState: { count: 0, totalMs: 0, maxMs: 0, samplesMs: [] },
         renderProntuario: { count: 0, totalMs: 0, maxMs: 0 }
       },
-      visual: { sampledFrames: 0, fadedFrames: 0, nearlyInvisibleFrames: 0,
+      visual: { targetId: visualTargetId, sampledFrames: 0, fadedFrames: 0, nearlyInvisibleFrames: 0,
         minOpacity: 1, firstFadedFrames: [] } };
     const recordDuration = (metric, start) => {
       const duration = performance.now() - start;
@@ -111,13 +115,14 @@ async function observeOperationalSession(page) {
       counters.lastMutationAt = performance.now();
     }).observe(main, { childList: true, subtree: true, attributes: true, characterData: true });
     window.__RADAR_OPERATIONAL_SESSION_OBSERVATION__ = counters;
-    // O observador não navega nem troca de aba do Prontuário durante a coleta.
-    // Uma nova animação de entrada após refresh é perceptível mesmo se o DOM
-    // já contiver todos os dados. Ler opacity não modifica a apresentação.
+    // A superfície visual é fixada no início da observação para não mascarar
+    // transições durante reconstruções. No Prontuário mede-se a aba de verificações;
+    // na sessão agregada (Dashboard), mede-se o contêiner principal visível.
+    // Ler opacity não modifica a apresentação.
     const sampleFrame = () => {
-      const panel = document.getElementById('tab-verificacoes');
-      if (panel?.classList.contains('active') && !panel.hidden) {
-        const style = getComputedStyle(panel);
+      const target = document.getElementById(counters.visual.targetId);
+      if (target && !target.hidden) {
+        const style = getComputedStyle(target);
         const opacity = Number(style.opacity);
         counters.visual.sampledFrames += 1;
         counters.visual.minOpacity = Math.min(counters.visual.minOpacity, opacity);
