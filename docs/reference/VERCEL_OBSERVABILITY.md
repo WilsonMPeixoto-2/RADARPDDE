@@ -60,7 +60,7 @@ A CI canônica detectou `@vercel/speed-insights` como **Unused dependency** pelo
 
 Quando a coleta estiver ativa, usar Speed Insights para orientar otimizações por dados de campo, priorizando FCP, LCP, INP, CLS e TTFB. Não interpretar uma única visita como baseline estável; preferir percentis e janela com volume representativo.
 
-Web Analytics deve apoiar leitura de pageviews/rotas/dispositivos sem carregar dados de negócio do RADAR. Não enviar escola, usuário, NF, Pendência ou qualquer dado operacional identificável como evento customizado sem decisão explícita de privacidade/governança.
+Web Analytics pode apoiar leitura de pageviews, rotas, dispositivos e eventos operacionais do RADAR conforme a necessidade do produto. Não há restrição documental adicional específica para escola, usuário, NF ou Pendência além das regras de acesso e segurança já vigentes no próprio sistema.
 
 ## 7. Relação com próximas otimizações
 
