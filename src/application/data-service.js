@@ -44,7 +44,9 @@
         isSnapshotEmpty,
         ENTITY_LIFECYCLE,
         REMOTE_BOOTSTRAP_ENTITIES,
-        REMOTE_CONTEXT_ENTITIES
+        REMOTE_CONTEXT_ENTITIES,
+        schoolOperationalRequest,
+        validateSchoolOperationalContext
     } = contract;
     const { toRepositoryError } = errorMapper;
     const { UnitOfWork } = unitOfWorkApi;
@@ -273,6 +275,35 @@
         return assertSnapshotJson(next, 'mergeOperationalContext');
     }
 
+    function schoolCoverageEnvelope(request, entities) {
+        return { schemaVersion: 1, ...request,
+            coverage: { kind: 'competence-and-dependencies', complete: true,
+                contacts: 'selected-pendencies', collections: [...REMOTE_CONTEXT_ENTITIES] },
+            fallback: null, entities };
+    }
+
+    // Guarda somente identidades/cobertura, nunca uma segunda cópia dos fatos.
+    // Não inferir escopo de tentativa sem o pai nem reconstruir a SQL no cliente.
+    function operationalCoverageBySchool(entities) {
+        const scopes = new Map();
+        const parents = new Map((entities.pendencies || []).map(row => [row.id, row.school_id]));
+        for (const entity of REMOTE_CONTEXT_ENTITIES) {
+            if (!Array.isArray(entities[entity])) return null;
+            for (const row of entities[entity]) {
+                const schoolId = entity === 'pendencyAttempts' ? parents.get(row.pendency_id) : row.school_id;
+                if (!schoolId || !row.id
+                    || (entity === 'pendencyContacts' && parents.get(row.pendency_id) !== schoolId)) return null;
+                if (!scopes.has(schoolId)) scopes.set(schoolId,
+                    Object.fromEntries(REMOTE_CONTEXT_ENTITIES.map(name => [name, []])));
+                scopes.get(schoolId)[entity].push({ id: row.id,
+                    ...(entity !== 'pendencyAttempts' ? { school_id: schoolId } : {}),
+                    ...(entity === 'verifications' ? { competence_id: row.competence_id, program_id: row.program_id } : {}),
+                    ...(['pendencyAttempts', 'pendencyContacts'].includes(entity) ? { pendency_id: row.pendency_id } : {}) });
+            }
+        }
+        return scopes;
+    }
+
     class DataService {
         constructor(options = {}) {
             this.repository = assertRepositoryContract(options.repository);
@@ -295,6 +326,10 @@
             this.operationalContextSequence = 0;
             this.operationalContextAbortController = null;
             this.currentOperationalCompetence = '';
+            // Só habilitado pelo consumidor explícito da nova API; bootstrap/refresh
+            // de Production mantêm o custo/caminho atual enquanto não houver integração.
+            this.schoolCoverageEnabled = false;
+            this.schoolOperationalCoverage = null;
         }
 
         async bootstrap(options = {}) {
@@ -428,6 +463,11 @@
                 );
             }
 
+            return this.scheduleOperationalRead(target, options,
+                (readOptions, sequence) => this.readOperationalContext(target, readOptions, sequence));
+        }
+
+        scheduleOperationalRead(target, options, read) {
             this.abortOperationalContextRead();
             const AbortControllerCtor = typeof AbortController === 'function' ? AbortController : null;
             const controller = AbortControllerCtor ? new AbortControllerCtor() : null;
@@ -443,13 +483,73 @@
                 if (controller?.signal?.aborted) {
                     return { competenceId: target, stale: true, aborted: true };
                 }
-                return this.readOperationalContext(target, readOptions, sequence);
+                return read(readOptions, sequence);
             });
             return run.finally(() => {
                 if (this.operationalContextAbortController === controller) {
                     this.operationalContextAbortController = null;
                 }
             });
+        }
+
+        async loadSchoolOperationalContext(schoolId, competenceId, options = {}) {
+            const request = schoolOperationalRequest({ schoolId, competenceId, historyStatuses: options.historyStatuses });
+            if (this.repository.capabilities().remote !== true
+                || this.repository.capabilities().schoolOperationalContext !== true
+                || typeof this.repository.querySchoolOperationalContext !== 'function') {
+                throw new RepositoryError('MISSING_REMOTE_CAPABILITY', 'Leitura escolar remota indisponível.',
+                    { operation: 'loadSchoolOperationalContext' });
+            }
+            if (typeof options.shouldApply !== 'function') {
+                throw new RepositoryError('INVALID_SCHOOL_OPERATIONAL_CONTEXT',
+                    'A leitura escolar exige confirmação da rota/geração vigente na aplicação.',
+                    { operation: 'loadSchoolOperationalContext' });
+            }
+            this.schoolCoverageEnabled = true;
+            return this.scheduleOperationalRead(request.competenceId, options,
+                (readOptions, sequence) => this.readSchoolOperationalContext(request, readOptions, sequence));
+        }
+
+        async readSchoolOperationalContext(request, options, sequence) {
+            const canApply = () => sequence === this.operationalContextSequence
+                && !options.signal?.aborted && options.shouldApply();
+            const stale = () => ({ schoolId: request.schoolId, competenceId: request.competenceId,
+                stale: true, aborted: Boolean(options.signal?.aborted) });
+            const globalFallback = async reason => {
+                if (!canApply()) return stale();
+                const result = await this.readOperationalContext(request.competenceId,
+                    { ...options, historyStatuses: request.historyStatuses }, sequence);
+                return { ...result, schoolId: request.schoolId, fallback: true, fallbackReason: reason };
+            };
+            if (!canApply()) return stale();
+            if (!this.schoolOperationalCoverage
+                || this.currentOperationalCompetence !== request.competenceId
+                || JSON.stringify([...this.currentHistoricalStatuses].sort()) !== JSON.stringify(request.historyStatuses)
+                || this.statePort.supportsSchoolOperationalContext?.() !== true) {
+                return globalFallback('UNTRUSTED_LOCAL_COVERAGE');
+            }
+            let received;
+            try {
+                received = await this.repository.querySchoolOperationalContext({ ...request, signal: options.signal });
+            } catch (error) {
+                if (!canApply()) return stale();
+                throw error;
+            }
+            if (!canApply()) return stale();
+            const context = validateSchoolOperationalContext(received, request);
+            if (!context.coverage.complete) return globalFallback(context.fallback.reason);
+            assertSnapshotJson(operationalSnapshot(context, options), 'loadSchoolOperationalContext');
+            const covered = this.schoolOperationalCoverage.get(request.schoolId)
+                || Object.fromEntries(REMOTE_CONTEXT_ENTITIES.map(entity => [entity, []]));
+            const previous = schoolCoverageEnvelope(request, covered);
+            const applied = this.statePort.applySchoolOperationalContext(context, previous, { shouldApply: canApply });
+            if (applied.fallback) return globalFallback('NON_ISOLATABLE_LOCAL_STATE');
+            if (applied.stale || !canApply()) return stale();
+            const nextCoverage = operationalCoverageBySchool(context.entities);
+            this.schoolOperationalCoverage.set(request.schoolId,
+                nextCoverage.get(request.schoolId) || Object.fromEntries(REMOTE_CONTEXT_ENTITIES.map(entity => [entity, []])));
+            return { schoolId: request.schoolId, competenceId: request.competenceId,
+                stale: false, fallback: false };
         }
 
         async readOperationalContext(target, options, sequence) {
@@ -495,8 +595,10 @@
                 REMOTE_CONTEXT_ENTITIES,
                 options.source || 'remote-operational-context'
             );
+            if (!canApply()) return { competenceId: target, stale: true, aborted: Boolean(options.signal?.aborted) };
             this.currentOperationalCompetence = target;
             this.currentHistoricalStatuses = historyStatuses;
+            if (this.schoolCoverageEnabled) this.schoolOperationalCoverage = operationalCoverageBySchool(context.entities);
             return {
                 competenceId: target,
                 stale: false,
@@ -660,6 +762,9 @@
             // Além de invalidar a resposta, cancela fisicamente a leitura PostgREST ainda em voo.
             this.abortOperationalContextRead();
             this.operationalContextSequence += 1;
+            // Até integrar cobertura dos efeitos autoritativos dos writers, não
+            // assumir que IDs antigos descrevem a projeção depois de uma escrita.
+            this.schoolOperationalCoverage = null;
 
             const run = this.remoteWriteTail.then(
                 () => this.executeCommand(command),

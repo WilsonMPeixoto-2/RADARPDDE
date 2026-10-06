@@ -26,7 +26,7 @@
         throw new Error('RadarRepositoryContract deve ser carregado antes da porta de estado.');
     }
 
-    const { RepositoryError, cloneValue } = contract;
+    const { RepositoryError, cloneValue, validateSchoolOperationalContext } = contract;
     const RADAR_PREFIX = 'radar_pdde_';
     const INCREMENTAL_MEMORY_ENTITY_MAP = Object.freeze({
         appConfig: 'config',
@@ -159,6 +159,34 @@
         };
     }
 
+    // A fatia usa uma transação síncrona de memória. Preparação, inclusive índices,
+    // termina antes da primeira atribuição; nenhum await/render observa meio estado.
+    function createBrowserSchoolMemory() {
+        if (typeof document === 'undefined') return null;
+        return {
+            read: () => ({ verifications: verificacoes, pendencies: pendencias,
+                contacts: contatos, assets: bens, registeredInvoices: notasRegistradas }),
+            patch: patch => {
+                const pendencyIndex = new Map(), assetIndex = new Map();
+                for (const row of patch.pendencies) {
+                    if (!pendencyIndex.has(row.escolaId)) pendencyIndex.set(row.escolaId, []);
+                    pendencyIndex.get(row.escolaId).push(row);
+                }
+                for (const row of patch.assets) {
+                    if (!assetIndex.has(row.escolaId)) assetIndex.set(row.escolaId, []);
+                    assetIndex.get(row.escolaId).push(row);
+                }
+                verificacoes = patch.verifications;
+                pendencias = patch.pendencies;
+                contatos = patch.contacts;
+                bens = patch.assets;
+                notasRegistradas = patch.registeredInvoices;
+                _pendenciasByEscolaId = pendencyIndex;
+                _bensByEscolaId = assetIndex;
+            }
+        };
+    }
+
     function assertStorage(storage) {
         if (!storage
             || typeof storage.getItem !== 'function'
@@ -263,6 +291,13 @@
         const patchMemory = typeof options.patchMemory === 'function'
             ? options.patchMemory
             : createBrowserMemoryPatch();
+        const browserSchoolMemory = createBrowserSchoolMemory();
+        // Adaptadores externos devem fornecer um commit síncrono/atômico explícito.
+        // Não reutilizar um patch assíncrono desconhecido depois da checagem de geração.
+        const patchSchoolMemory = typeof options.patchSchoolMemory === 'function'
+            && options.patchSchoolMemory.constructor.name !== 'AsyncFunction'
+            ? options.patchSchoolMemory
+            : (!options.patchMemory && browserSchoolMemory?.patch);
         const configuredDataVersion = String(options.dataVersion || '').trim();
         const configuredPendencyVersion = String(options.pendencySchemaVersion || '').trim();
 
@@ -462,6 +497,51 @@
             return cloneValue(memoryPatch);
         }
 
+        function supportsSchoolOperationalContext() {
+            return Boolean(patchSchoolMemory && typeof bridge.canonicalEntitiesToLegacyState === 'function');
+        }
+
+        function applySchoolOperationalContext(received, previous, applyOptions = {}) {
+            const context = validateSchoolOperationalContext(received, received);
+            if (!context.coverage.complete || !supportsSchoolOperationalContext()) return { fallback: true };
+            const covered = validateSchoolOperationalContext(previous, context);
+            if (!covered.coverage.complete) return { fallback: true };
+            const canApply = () => typeof applyOptions.shouldApply !== 'function' || applyOptions.shouldApply();
+            if (!canApply()) return { stale: true };
+
+            const memory = assertSynchronous(browserSchoolMemory && !options.readMemoryEntities && !options.patchSchoolMemory
+                ? browserSchoolMemory.read() : readMemory(), 'applySchoolOperationalContext');
+            const projected = bridge.canonicalEntitiesToLegacyState(context.entities, {
+                dataVersion: configuredDataVersion, pendencySchemaVersion: configuredPendencyVersion
+            });
+            const patch = {};
+            for (const entity of ['pendencies', 'pendencyContacts', 'assets', 'registeredInvoices']) {
+                const key = INCREMENTAL_MEMORY_ENTITY_MAP[entity];
+                const removed = new Set([...covered.entities[entity], ...context.entities[entity]].map(row => row.id));
+                const current = memory[key];
+                if (!Array.isArray(current) || current.some(row => !row || typeof row !== 'object')
+                    || current.some(row => removed.has(row.id) && row.escolaId !== context.schoolId)) {
+                    return { fallback: true };
+                }
+                patch[key] = [...current.filter(row => !removed.has(row.id)), ...projected[key]];
+            }
+            const currentVerifications = memory.verifications;
+            if (!currentVerifications || typeof currentVerifications !== 'object' || Array.isArray(currentVerifications)) {
+                return { fallback: true };
+            }
+            patch.verifications = { ...currentVerifications };
+            const schoolVerifications = { ...(currentVerifications[context.schoolId] || {}) };
+            covered.entities.verifications.forEach(row => delete schoolVerifications[`${row.competence_id}_${row.program_id}`]);
+            Object.assign(schoolVerifications, projected.verifications[context.schoolId] || {});
+            if (Object.keys(schoolVerifications).length) patch.verifications[context.schoolId] = schoolVerifications;
+            else delete patch.verifications[context.schoolId];
+
+            // A transformação pode executar código do bridge: revalidar no commit real.
+            if (!canApply()) return { stale: true };
+            assertSynchronous(patchSchoolMemory(patch), 'applySchoolOperationalContext');
+            return { stale: false };
+        }
+
         function validateCapture(captured) {
             if (!captured || typeof captured !== 'object' || !captured.storage) {
                 throw new RepositoryError(
@@ -511,6 +591,8 @@
             exportCanonicalEntities,
             applyCanonical,
             applyEntities,
+            supportsSchoolOperationalContext,
+            applySchoolOperationalContext,
             commitCurrent,
             restore,
             restoreSync,

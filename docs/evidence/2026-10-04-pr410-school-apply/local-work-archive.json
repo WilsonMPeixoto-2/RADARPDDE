@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-06",
+  "base": "e38e91c3c88be660a72e1cd76ec63c419b32cdf1",
+  "currentPrHead": "d571a26afdc7e443df096564b7db951a58abfc37",
+  "status": "Superseded local exploration; do not integrate automatically",
+  "directedTests": {
+    "passed": 23,
+    "failed": 0
+  },
+  "previousFullUnitRun": {
+    "passed": 1273,
+    "failed": 0,
+    "note": "ESM resolution required node_modules symlink to identical package-lock dependencies"
+  },
+  "logsSha256": {
+    "pr410-school-repository-red.log": "6be69c98017e6d5a2d65785c87bea28b5b7d8ce1a3c1b8ebd5040cc8f74c24eb",
+    "pr410-school-repository-green.log": "968cbbf8ddf088ecc4dfec4ce880cb17ce5ee0242432880bcdf4a0899d21eb2b",
+    "pr410-school-state-red.log": "5ea284ea8727ee8729cbe3cb3684961bbce3786102a0300aaf83c5356444033a",
+    "pr410-school-data-service-red.log": "893dc45d8beb67a11f36c094f6b32cd3e574b06c079f4debb77033a564fead43",
+    "pr410-school-application-green.log": "338d42b1045c5279743d86a0da979d5adefbb8def5da61feb50834cbe50d622f",
+    "pr410-school-all-unit-linked.log": "fa00865993e7d452fb71c2d32110c7afa86408139d8aa40034f7fa0022752580",
+    "pr410-archived-directed-tests.log": "c489d0ae516caf5f598fa30e904592d0a72be0b7848df9ec593a498af7ee3037"
+  }
+}
