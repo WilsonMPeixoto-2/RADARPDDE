@@ -65,6 +65,11 @@ test('Production ignora qualquer tentativa de fallback local e publica somente S
     });
     assert.match(runtimeSource, /["']?deploymentTarget["']?\s*:\s*["']production["']/);
     assert.match(publicIndex, /RADAR_PDDE_RUNTIME_INPUT=Object\.freeze\(\{deploymentTarget:["']production["']\}\)/);
+    assert.match(publicIndex, /data-radar-vercel-observability=["']bootstrap["']/);
+    assert.match(publicIndex, /window\.va\s*=\s*window\.va/);
+    assert.match(publicIndex, /window\.si\s*=\s*window\.si/);
+    assert.match(publicIndex, /\/_vercel\/insights\/script\.js/);
+    assert.match(publicIndex, /\/_vercel\/speed-insights\/script\.js/);
     assert.match(publicApp, /INITIAL_CONTROLADORES\s*=\s*\[\]\s*[,;]/);
     assert.match(publicApp, /INITIAL_ESCOLAS\s*=\s*\[\]\s*[,;]/);
     assert.doesNotMatch(publicApp, /Escola Municipal Ema Negrão de Lima|Érika Reis/);
@@ -125,6 +130,8 @@ test('gera artefato de Preview com configuração pública, marcador e manifesto
     assert.match(runtimeSource, /["']?deploymentTarget["']?\s*:\s*["']preview["']/);
     assert.match(runtimeSource, new RegExp(publishableKey));
     assert.match(publicIndex, /RADAR_PDDE_RUNTIME_INPUT=Object\.freeze\(\{deploymentTarget:["']preview["']\}\)/);
+    assert.doesNotMatch(publicIndex, /data-radar-vercel-observability/);
+    assert.doesNotMatch(publicIndex, /\/_vercel\/(?:insights|speed-insights)\//);
     assert.doesNotMatch(manifestSource, new RegExp(publishableKey));
     assert.doesNotMatch(manifestSource, /supabase\.co/);
 });
