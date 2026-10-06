@@ -1,0 +1,150 @@
+{
+  "baseline": "d571a26afdc7e443df096564b7db951a58abfc37",
+  "newTests": {
+    "passed": 0,
+    "failed": 5
+  },
+  "existingHardening": {
+    "passed": 57,
+    "failed": 0
+  },
+  "logsSha256": {
+    "pr410-d571-recovery-red.log": "7646cc2438bcd63898130aa8cfd9a8a696eb4d5f73ac5cdcfeede33318866c0f",
+    "pr410-d571-existing-hardening.log": "48ef4b4770abd0a0fde4c9ac5b12396125f45e28f2258ce08cfdccc7000b62e3"
+  },
+  "workflows": [
+    {
+      "conclusion": "success",
+      "head_sha": "d571a26afdc7e443df096564b7db951a58abfc37",
+      "id": 37453538415,
+      "name": "Contratos-fonte do Excel SME",
+      "status": "completed"
+    },
+    {
+      "conclusion": "failure",
+      "head_sha": "d571a26afdc7e443df096564b7db951a58abfc37",
+      "id": 37453538324,
+      "name": "Sa\u00fade das depend\u00eancias",
+      "status": "completed"
+    },
+    {
+      "conclusion": "failure",
+      "head_sha": "d571a26afdc7e443df096564b7db951a58abfc37",
+      "id": 37453538487,
+      "name": "Validar RADAR PDDE",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "d571a26afdc7e443df096564b7db951a58abfc37",
+      "id": 37453538469,
+      "name": "Validar snapshot can\u00f4nico do RADAR",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "d571a26afdc7e443df096564b7db951a58abfc37",
+      "id": 37453538379,
+      "name": "Lighthouse CI",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "d571a26afdc7e443df096564b7db951a58abfc37",
+      "id": 37453538366,
+      "name": "CodeQL",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "d571a26afdc7e443df096564b7db951a58abfc37",
+      "id": 37453538327,
+      "name": "Estabilidade de posi\u00e7\u00e3o do Prontu\u00e1rio",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "d571a26afdc7e443df096564b7db951a58abfc37",
+      "id": 37453538486,
+      "name": "Regress\u00f5es espec\u00edficas do help desk",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "d571a26afdc7e443df096564b7db951a58abfc37",
+      "id": 37453538394,
+      "name": "Gate remoto de perfis e viewports",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "d571a26afdc7e443df096564b7db951a58abfc37",
+      "id": 37453538439,
+      "name": "Retifica\u00e7\u00e3o audit\u00e1vel direcionada",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "d571a26afdc7e443df096564b7db951a58abfc37",
+      "id": 37453538607,
+      "name": "Identifica\u00e7\u00e3o de Despesa a identificar",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "d571a26afdc7e443df096564b7db951a58abfc37",
+      "id": 37453538359,
+      "name": "Confiabilidade funcional com Supabase real",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "d571a26afdc7e443df096564b7db951a58abfc37",
+      "id": 37453538425,
+      "name": "Regress\u00e3o visual desktop",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "d571a26afdc7e443df096564b7db951a58abfc37",
+      "id": 37453538358,
+      "name": "Backup e restaura\u00e7\u00e3o descart\u00e1veis",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "d571a26afdc7e443df096564b7db951a58abfc37",
+      "id": 37453538505,
+      "name": "Hardening espec\u00edfico de sincroniza\u00e7\u00e3o operacional",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "d571a26afdc7e443df096564b7db951a58abfc37",
+      "id": 37453538457,
+      "name": "Supabase readiness",
+      "status": "completed"
+    },
+    {
+      "conclusion": "failure",
+      "head_sha": "d571a26afdc7e443df096564b7db951a58abfc37",
+      "id": 37453538489,
+      "name": "Homologa\u00e7\u00e3o integral pr\u00e9-production",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "d571a26afdc7e443df096564b7db951a58abfc37",
+      "id": 37453538334,
+      "name": "Ciclos funcionais reais com Supabase",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "d571a26afdc7e443df096564b7db951a58abfc37",
+      "id": 37453538640,
+      "name": "Testes E2E Playwright",
+      "status": "completed"
+    }
+  ]
+}
