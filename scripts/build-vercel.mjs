@@ -304,6 +304,34 @@ async function injectDeploymentTargetMarker(outputDir, vercelEnvironment) {
     return true;
 }
 
+const VERCEL_OBSERVABILITY_BOOTSTRAP_MARKER = 'data-radar-vercel-observability="bootstrap"';
+const VERCEL_ANALYTICS_PATH = '/_vercel/insights/script.js';
+const VERCEL_SPEED_INSIGHTS_PATH = '/_vercel/speed-insights/script.js';
+
+async function injectVercelObservability(outputDir, vercelEnvironment) {
+    if (String(vercelEnvironment || '').trim() !== 'production') return false;
+
+    const indexPath = path.join(outputDir, 'index.html');
+    const html = await fs.readFile(indexPath, 'utf8');
+    if (html.includes(VERCEL_OBSERVABILITY_BOOTSTRAP_MARKER)) return false;
+    if (!/<\/head>/iu.test(html)) {
+        throw new Error('index.html público não possui fechamento de head para instrumentação da Vercel.');
+    }
+
+    const tags = [
+        '    <script ' + VERCEL_OBSERVABILITY_BOOTSTRAP_MARKER + '>',
+        '        window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };',
+        '        window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };',
+        '    </script>',
+        '    <script defer src="' + VERCEL_ANALYTICS_PATH + '" data-radar-vercel-observability="analytics"></script>',
+        '    <script defer src="' + VERCEL_SPEED_INSIGHTS_PATH + '" data-radar-vercel-observability="speed-insights"></script>'
+    ].join('\n');
+
+    const updated = html.replace(/<\/head>/iu, tags + '\n</head>');
+    await fs.writeFile(indexPath, updated, 'utf8');
+    return true;
+}
+
 async function injectExcelBootstrapGuard(outputDir) {
     const indexPath = path.join(outputDir, 'index.html');
     const html = await fs.readFile(indexPath, 'utf8');
@@ -342,6 +370,7 @@ async function buildVercelArtifact({
         await sanitizeProductionApp(resolvedOutput);
     }
     await injectDeploymentTargetMarker(resolvedOutput, vercelEnvironment);
+    await injectVercelObservability(resolvedOutput, vercelEnvironment);
     await injectExcelBootstrapGuard(resolvedOutput);
 
     await fs.writeFile(
@@ -420,6 +449,9 @@ export {
     PRODUCTION_SUPABASE_URL,
     RADAR_RUNTIME_VARIABLES,
     RUNTIME_ENTRIES,
+    VERCEL_ANALYTICS_PATH,
+    VERCEL_OBSERVABILITY_BOOTSTRAP_MARKER,
+    VERCEL_SPEED_INSIGHTS_PATH,
     assertProductionAppSanitized,
     assertSafeOutputDirectory,
     assertDeploymentTargetCompatibility,
@@ -428,6 +460,7 @@ export {
     findArrayDeclarationRange,
     hasExplicitRadarRuntime,
     injectDeploymentTargetMarker,
+    injectVercelObservability,
     injectExcelBootstrapGuard,
     normalizeVercelEnvironment,
     resolveVercelRuntimeEnvironment,
