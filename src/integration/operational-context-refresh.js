@@ -122,6 +122,7 @@
         let refreshPromise = null;
         let pendingRefreshReason = '';
         let pendingRefreshCanForce = false;
+        let pendingRefreshSchoolId = '';
         let cooldownTimer = null;
 
         function remainingCooldownMs() {
@@ -146,8 +147,30 @@
             }, Math.max(0, Number(delayMs) || 0) + 50);
         }
 
-        function markPending(reason, { canForce = false } = {}) {
-            pendingRefreshReason = text(reason) || pendingRefreshReason || 'editing';
+        function clearPending() {
+            pendingRefreshReason = '';
+            pendingRefreshCanForce = false;
+            pendingRefreshSchoolId = '';
+        }
+
+        function markPending(reason, { canForce = false, schoolId = '' } = {}) {
+            const normalizedReason = text(reason);
+            const normalizedSchoolId = text(schoolId);
+            const hadPending = Boolean(pendingRefreshReason);
+
+            if (!hadPending) {
+                pendingRefreshReason = normalizedReason || 'editing';
+                pendingRefreshSchoolId = normalizedSchoolId;
+            } else {
+                pendingRefreshReason = normalizedReason || pendingRefreshReason;
+                if (
+                    !pendingRefreshSchoolId
+                    || !normalizedSchoolId
+                    || pendingRefreshSchoolId !== normalizedSchoolId
+                ) {
+                    pendingRefreshSchoolId = '';
+                }
+            }
             pendingRefreshCanForce = pendingRefreshCanForce || canForce;
             return pendingRefreshReason;
         }
@@ -165,8 +188,7 @@
                 }));
             }
             if (!authenticated(root)) {
-                pendingRefreshReason = '';
-                pendingRefreshCanForce = false;
+                clearPending();
                 return { skipped: true, reason: 'unauthenticated' };
             }
             if (editing(root)) {
@@ -204,8 +226,7 @@
             }
 
             lastAttemptAt = now;
-            pendingRefreshReason = '';
-            pendingRefreshCanForce = false;
+            clearPending();
 
             const startedAt = now;
             let run = null;
@@ -267,17 +288,16 @@
                 return refresh(`${reason}-fallback`, { force: true });
             }
             if (refreshPromise) {
-                markPending(reason, { canForce: true });
+                markPending(reason, { canForce: true, schoolId: targetSchool });
                 const currentRefresh = refreshPromise;
                 return currentRefresh.then(() => refreshSchool(targetSchool, reason, refreshOptions));
             }
             if (!authenticated(root)) {
-                pendingRefreshReason = '';
-                pendingRefreshCanForce = false;
+                clearPending();
                 return { skipped: true, reason: 'unauthenticated' };
             }
             if (editing(root)) {
-                markPending(reason, { canForce: true });
+                markPending(reason, { canForce: true, schoolId: targetSchool });
                 return { skipped: true, reason: 'editing', pending: true };
             }
             const competenceKey = activeCompetence(root);
@@ -286,8 +306,7 @@
             }
 
             lastAttemptAt = Date.now();
-            pendingRefreshReason = '';
-            pendingRefreshCanForce = false;
+            clearPending();
             let run = null;
             run = Promise.resolve().then(async () => {
                 const result = await service.loadSchoolOperationalContext(targetSchool, competenceKey, {
@@ -300,13 +319,13 @@
                 if (result?.fallback) return result;
                 if (result?.stale === true) {
                     if (authenticated(root) && activeCompetence(root) === competenceKey) {
-                        markPending(reason, { canForce: true });
+                        markPending(reason, { canForce: true, schoolId: targetSchool });
                     }
                     return result;
                 }
                 if (!authenticated(root)) return { ...result, stale: true };
                 if (editing(root)) {
-                    markPending(reason, { canForce: true });
+                    markPending(reason, { canForce: true, schoolId: targetSchool });
                     return { ...result, stale: true, pending: true };
                 }
                 if (activeCompetence(root) !== competenceKey) return { ...result, stale: true };
@@ -317,7 +336,7 @@
                 return result;
             }).catch(error => {
                 lastFailureAt = Date.now();
-                markPending(reason, { canForce: true });
+                markPending(reason, { canForce: true, schoolId: targetSchool });
                 root.console?.warn?.('Não foi possível atualizar a escola após invalidação Realtime.', error);
                 return { ok: false, error, pending: true };
             }).finally(() => {
@@ -334,8 +353,7 @@
         async function flushPending(reason = 'editing-ended', flushOptions = {}) {
             if (!pendingRefreshReason) return { skipped: true, reason: 'no-pending-refresh' };
             if (!authenticated(root)) {
-                pendingRefreshReason = '';
-                pendingRefreshCanForce = false;
+                clearPending();
                 return { skipped: true, reason: 'unauthenticated' };
             }
             if (editing(root)) return { skipped: true, reason: 'editing', pending: true };
@@ -343,17 +361,25 @@
 
             const pendingReason = pendingRefreshReason;
             const pendingCanForce = pendingRefreshCanForce;
+            const pendingSchoolId = pendingRefreshSchoolId;
             const now = Date.now();
             const failureCooldownActive = lastFailureAt > 0 && (now - lastFailureAt) < minIntervalMs;
             const force = flushOptions.force === true || (pendingCanForce && !failureCooldownActive);
-            const result = await refresh(`${pendingReason}-${reason}`, { force });
+            const scopedReason = `${pendingReason}-${reason}`;
+            const result = pendingSchoolId
+                ? await refreshSchool(pendingSchoolId, scopedReason, { force })
+                : await refresh(scopedReason, { force });
             if (
                 result?.ok === false
                 || result?.stale === true
                 || (result?.skipped === true && ['editing', 'throttled'].includes(result.reason))
             ) {
-                markPending(pendingReason, { canForce: pendingCanForce
-                    && result?.skipped === true && ['editing', 'throttled'].includes(result.reason) });
+                markPending(pendingReason, {
+                    canForce: pendingCanForce
+                        && result?.skipped === true
+                        && ['editing', 'throttled'].includes(result.reason),
+                    schoolId: pendingSchoolId
+                });
             }
             return result;
         }
