@@ -21,10 +21,36 @@
 
     const TOPIC = 'radar:operational';
     const EVENT = 'operational-change';
-    // A leitura contextual pode transportar ~1 MB e é compartilhada por todas as
-    // sessões. Agrupamos rajadas de escrita para evitar thundering herd e rerenders
-    // sucessivos sem sacrificar a convergência rápida entre usuários.
     const DEFAULT_DEBOUNCE_MS = 2000;
+    const SCHOOL_SCOPED_ENTITIES = new Set([
+        'verifications',
+        'registered_invoices',
+        'pendencies',
+        'pendency_attempts',
+        'assets'
+    ]);
+
+    function text(value) {
+        return value == null ? '' : String(value).trim();
+    }
+
+    function decideInvalidationAction({ route = null, payload = null } = {}) {
+        const entity = text(payload?.entity);
+        const schoolId = text(payload?.schoolId);
+        if (!schoolId || !SCHOOL_SCOPED_ENTITIES.has(entity)) return 'global';
+        if (text(route?.view) !== 'prontuario') return 'global';
+        const currentSchoolId = text(route?.param);
+        if (!currentSchoolId) return 'global';
+        return currentSchoolId === schoolId ? 'school' : 'defer';
+    }
+
+    function currentRoute(root) {
+        try {
+            return root?.RadarNavigationHistory?.currentRoute?.(root) || null;
+        } catch (_error) {
+            return null;
+        }
+    }
 
     function authenticated(root) {
         return Boolean(root?.RadarAuthContext?.user || root?.RadarAuthContext?.authorization);
@@ -48,10 +74,14 @@
             : DEFAULT_DEBOUNCE_MS;
         let channel = null;
         let timer = null;
+        let scheduledSchoolId = '';
         let everSubscribed = false;
         let destroyed = false;
         let startPromise = null;
         let lastStatus = 'IDLE';
+        let dirtyGeneration = 0;
+        const dirtySchools = new Map();
+        const reconcilingSchools = new Map();
         const metrics = {
             broadcastsReceived: 0,
             coalescedBroadcasts: 0,
@@ -61,6 +91,9 @@
             refreshFailed: 0,
             retriesScheduled: 0,
             reconnectRefreshes: 0,
+            schoolRefreshesScheduled: 0,
+            deferredSchoolInvalidations: 0,
+            deferredSchoolReconciliations: 0,
             lastBroadcastAt: null,
             lastRefreshAt: null,
             byEntity: Object.create(null)
@@ -69,8 +102,54 @@
         function metricsSnapshot() {
             return Object.freeze({
                 ...metrics,
+                dirtySchoolIds: Object.freeze([...dirtySchools.keys()].sort()),
                 byEntity: Object.freeze({ ...metrics.byEntity })
             });
+        }
+
+        function markSchoolDirty(schoolId) {
+            const normalized = text(schoolId);
+            if (!normalized) return 0;
+            dirtyGeneration += 1;
+            dirtySchools.set(normalized, dirtyGeneration);
+            metrics.deferredSchoolInvalidations += 1;
+            return dirtyGeneration;
+        }
+
+        function captureDirtySnapshot(schoolId = '') {
+            const normalized = text(schoolId);
+            if (!normalized) return new Map(dirtySchools);
+            const generation = dirtySchools.get(normalized);
+            return generation == null ? new Map() : new Map([[normalized, generation]]);
+        }
+
+        function beginReconciliation(snapshot) {
+            for (const [schoolId, generation] of snapshot.entries()) {
+                reconcilingSchools.set(schoolId, generation);
+            }
+        }
+
+        function endReconciliation(snapshot) {
+            for (const [schoolId, generation] of snapshot.entries()) {
+                if (reconcilingSchools.get(schoolId) === generation) {
+                    reconcilingSchools.delete(schoolId);
+                }
+            }
+        }
+
+        function acknowledgeDirty(snapshot) {
+            for (const [schoolId, generation] of snapshot.entries()) {
+                if (dirtySchools.get(schoolId) === generation) {
+                    dirtySchools.delete(schoolId);
+                }
+            }
+        }
+
+        function resultIsAuthoritative(result) {
+            return result?.ok !== false
+                && result?.stale !== true
+                && result?.skipped !== true
+                && result?.applied !== false;
         }
 
         function clearScheduledRefresh() {
@@ -79,12 +158,18 @@
             timer = null;
         }
 
-        function scheduleRefresh(reason = 'realtime') {
+        function scheduleRefresh(reason = 'realtime', options = {}) {
             if (destroyed) return false;
-            if (timer != null && reason === 'realtime') metrics.coalescedBroadcasts += 1;
+            let schoolId = text(options.schoolId);
+            // Um debounce agrupa todas as invalidações ainda não executadas.
+            // Global domina escola; duas escolas exigem a cobertura global.
+            if (timer != null && scheduledSchoolId !== schoolId) schoolId = '';
+            if (timer != null && /^realtime(?:-school)?$/.test(reason)) metrics.coalescedBroadcasts += 1;
             clearScheduledRefresh();
+            scheduledSchoolId = schoolId;
             metrics.refreshesScheduled += 1;
-            if (reason === 'realtime-retry') metrics.retriesScheduled += 1;
+            if (schoolId) metrics.schoolRefreshesScheduled += 1;
+            if (/-retry$/.test(reason)) metrics.retriesScheduled += 1;
             if (reason === 'realtime-reconnect') metrics.reconnectRefreshes += 1;
             const schedule = typeof root.setTimeout === 'function'
                 ? root.setTimeout.bind(root)
@@ -92,22 +177,37 @@
             timer = schedule(() => {
                 timer = null;
                 metrics.refreshAttempts += 1;
+                const dirtyAtAttempt = captureDirtySnapshot(schoolId);
+                beginReconciliation(dirtyAtAttempt);
+                const runRefresh = schoolId && typeof refreshController.refreshSchool === 'function'
+                    ? () => refreshController.refreshSchool(schoolId, reason, { force: true })
+                    : () => refreshController.refresh(reason, { force: true });
                 void Promise.resolve()
-                    .then(() => refreshController.refresh(reason, { force: true }))
+                    .then(runRefresh)
                     .then(result => {
                         metrics.lastRefreshAt = new Date().toISOString();
                         const needsRetry = result?.ok === false || result?.stale === true;
                         if (needsRetry) metrics.refreshFailed += 1;
                         else metrics.refreshSucceeded += 1;
-                        if (!needsRetry || reason === 'realtime-retry') return;
-                        scheduleRefresh('realtime-retry');
+                        if (resultIsAuthoritative(result)) acknowledgeDirty(dirtyAtAttempt);
+                        if (!needsRetry || /-retry$/.test(reason)) return;
+                        scheduleRefresh(
+                            schoolId ? 'realtime-school-retry' : 'realtime-retry',
+                            schoolId ? { schoolId } : {}
+                        );
                     })
                     .catch(error => {
                         metrics.lastRefreshAt = new Date().toISOString();
                         metrics.refreshFailed += 1;
                         root.console?.warn?.('Falha ao reler contexto após invalidação Realtime.', error);
-                        if (reason !== 'realtime-retry') scheduleRefresh('realtime-retry');
-                    });
+                        if (!/-retry$/.test(reason)) {
+                            scheduleRefresh(
+                                schoolId ? 'realtime-school-retry' : 'realtime-retry',
+                                schoolId ? { schoolId } : {}
+                            );
+                        }
+                    })
+                    .finally(() => endReconciliation(dirtyAtAttempt));
             }, debounceMs);
             return true;
         }
@@ -115,9 +215,40 @@
         function handleBroadcast(message = {}) {
             metrics.broadcastsReceived += 1;
             metrics.lastBroadcastAt = new Date().toISOString();
-            const entity = String(message?.payload?.entity || message?.entity || 'unknown');
+            const payload = message?.payload || message || {};
+            const entity = String(payload.entity || 'unknown');
             metrics.byEntity[entity] = (metrics.byEntity[entity] || 0) + 1;
+            const action = decideInvalidationAction({ route: currentRoute(root), payload });
+            if (action === 'defer') {
+                markSchoolDirty(payload.schoolId);
+                return;
+            }
+            if (action === 'school' && typeof refreshController.refreshSchool === 'function') {
+                scheduleRefresh('realtime-school', { schoolId: payload.schoolId });
+                return;
+            }
             scheduleRefresh('realtime');
+        }
+
+        function handleNavigationCommitted(event) {
+            if (!dirtySchools.size) return;
+            const route = event?.detail?.route || currentRoute(root);
+            if (!route) return;
+            if (text(route.view) === 'prontuario') {
+                const schoolId = text(route.param);
+                const generation = dirtySchools.get(schoolId);
+                if (generation == null) return;
+                if (reconcilingSchools.get(schoolId) === generation) return;
+                metrics.deferredSchoolReconciliations += 1;
+                scheduleRefresh('realtime-deferred-navigation', { schoolId });
+                return;
+            }
+            const hasUncoveredDirty = [...dirtySchools].some(([schoolId, generation]) => (
+                reconcilingSchools.get(schoolId) !== generation
+            ));
+            if (!hasUncoveredDirty) return;
+            metrics.deferredSchoolReconciliations += 1;
+            scheduleRefresh('realtime-deferred-navigation');
         }
 
         function handleStatus(status, error) {
@@ -133,6 +264,8 @@
                 root.console?.warn?.('Canal de sincronização operacional indisponível.', error || lastStatus);
             }
         }
+
+        root.addEventListener?.('radar:navigation-committed', handleNavigationCommitted);
 
         function start() {
             if (destroyed || channel) return Promise.resolve(Boolean(channel));
@@ -185,6 +318,7 @@
         async function stop() {
             destroyed = true;
             clearScheduledRefresh();
+            root.removeEventListener?.('radar:navigation-committed', handleNavigationCommitted);
             const current = channel;
             channel = null;
             if (!current) return true;
@@ -246,6 +380,7 @@
         EVENT,
         DEFAULT_DEBOUNCE_MS,
         authenticated,
+        decideInvalidationAction,
         createController,
         install
     });

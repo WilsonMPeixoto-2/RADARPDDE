@@ -1,0 +1,95 @@
+{
+  "role": "authenticated/controller/4ª CRE",
+  "timing": "RPC execution, excluding serialization/network/UI",
+  "fixture": "production-aggregates-2026-10-02",
+  "payload": "octet_length(jsonb::text), uncompressed; not measured HTTP bytes",
+  "results": [
+    {
+      "mode": "global",
+      "counts": {
+        "assets": 21,
+        "pendencies": 329,
+        "verifications": 473,
+        "pendencyAttempts": 48,
+        "pendencyContacts": 5,
+        "registeredInvoices": 193
+      },
+      "max_ms": 43.596,
+      "p50_ms": 42.498,
+      "p95_ms": 43.53,
+      "p99_ms": 43.583,
+      "samples": 20,
+      "school_id": null,
+      "payload_max_bytes": 1327478,
+      "payload_min_bytes": 1327478
+    },
+    {
+      "mode": "school",
+      "counts": {
+        "assets": 1,
+        "pendencies": 14,
+        "verifications": 9,
+        "pendencyAttempts": 3,
+        "pendencyContacts": 1,
+        "registeredInvoices": 8
+      },
+      "max_ms": 21.207,
+      "p50_ms": 20.606,
+      "p95_ms": 21.154,
+      "p99_ms": 21.196,
+      "samples": 20,
+      "school_id": "ESC-LOCAL",
+      "payload_max_bytes": 51699,
+      "payload_min_bytes": 51699
+    },
+    {
+      "mode": "school",
+      "counts": {
+        "assets": 0,
+        "pendencies": 1,
+        "verifications": 2,
+        "pendencyAttempts": 0,
+        "pendencyContacts": 0,
+        "registeredInvoices": 1
+      },
+      "max_ms": 13.008,
+      "p50_ms": 12.759,
+      "p95_ms": 12.945,
+      "p99_ms": 12.995,
+      "samples": 20,
+      "school_id": "PERF-ESC-080",
+      "payload_max_bytes": 5141,
+      "payload_min_bytes": 5141
+    },
+    {
+      "mode": "school",
+      "counts": {
+        "assets": 0,
+        "pendencies": 0,
+        "verifications": 1,
+        "pendencyAttempts": 0,
+        "pendencyContacts": 0,
+        "registeredInvoices": 0
+      },
+      "max_ms": 10.944,
+      "p50_ms": 10.776,
+      "p95_ms": 10.923,
+      "p99_ms": 10.94,
+      "samples": 20,
+      "school_id": "PERF-ESC-161",
+      "payload_max_bytes": 1193,
+      "payload_min_bytes": 1193
+    }
+  ],
+  "competenceId": "2026-08",
+  "postgresVersion": "PostgreSQL 17.11 (Debian 17.11-1.pgdg12+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 12.2.0-14+deb12u1) 12.2.0, 64-bit",
+  "samplesPerVariant": 20,
+  "equivalentSchoolCoverages": 489,
+  "environment": "Disposable PostgreSQL 17 container; Auth bootstrap compatibility, not native Supabase",
+  "sqlSources": {
+    "supabase/migrations/20261004132755_read_school_operational_context.sql": "6e9d822e6bbffe47ca2ec8641d004fe04f1360ea5f6ce8cbf82d2196478e81f5",
+    "supabase/migrations/20260929143215_read_operational_context.sql": "98ac0b1f2ab6639061064fe5988d6957ed72e0e44a05a1cb83aae2da7cdb07a5",
+    "supabase/fixtures/operational-production-shape.sql": "c78ab0628c56f287e6ad838623a9f6b3958d4ff6d4d79c1d6d82eb2f9278361e",
+    "supabase/tests/benchmarks/read-school-operational-context.sql": "c0f072072373ca12854b1d4667de75f7fb8dbba24769519e8b262d0b81d0f062"
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "role": "authenticated/controller/4ª CRE",
+  "timing": "RPC execution, excluding serialization/network/UI",
+  "fixture": "production-aggregates-2026-10-02",
+  "payload": "octet_length(jsonb::text), uncompressed; not measured HTTP bytes",
+  "results": [
+    {
+      "mode": "global",
+      "counts": {
+        "assets": 21,
+        "pendencies": 329,
+        "verifications": 473,
+        "pendencyAttempts": 48,
+        "pendencyContacts": 5,
+        "registeredInvoices": 193
+      },
+      "max_ms": 33.959,
+      "p50_ms": 32.686,
+      "p95_ms": 33.889,
+      "p99_ms": 33.945,
+      "samples": 20,
+      "school_id": null,
+      "payload_max_bytes": 1324699,
+      "payload_min_bytes": 1324699
+    },
+    {
+      "mode": "school",
+      "counts": {
+        "assets": 1,
+        "pendencies": 14,
+        "verifications": 9,
+        "pendencyAttempts": 3,
+        "pendencyContacts": 1,
+        "registeredInvoices": 8
+      },
+      "max_ms": 21.714,
+      "p50_ms": 17.29,
+      "p95_ms": 18.287,
+      "p99_ms": 21.029,
+      "samples": 20,
+      "school_id": "ESC-LOCAL",
+      "payload_max_bytes": 51599,
+      "payload_min_bytes": 51599
+    },
+    {
+      "mode": "school",
+      "counts": {
+        "assets": 0,
+        "pendencies": 1,
+        "verifications": 2,
+        "pendencyAttempts": 0,
+        "pendencyContacts": 0,
+        "registeredInvoices": 1
+      },
+      "max_ms": 13.234,
+      "p50_ms": 10.238,
+      "p95_ms": 10.57,
+      "p99_ms": 12.701,
+      "samples": 20,
+      "school_id": "PERF-ESC-080",
+      "payload_max_bytes": 5131,
+      "payload_min_bytes": 5131
+    },
+    {
+      "mode": "school",
+      "counts": {
+        "assets": 0,
+        "pendencies": 0,
+        "verifications": 1,
+        "pendencyAttempts": 0,
+        "pendencyContacts": 0,
+        "registeredInvoices": 0
+      },
+      "max_ms": 9.291,
+      "p50_ms": 8.483,
+      "p95_ms": 8.746,
+      "p99_ms": 9.182,
+      "samples": 20,
+      "school_id": "PERF-ESC-161",
+      "payload_max_bytes": 1191,
+      "payload_min_bytes": 1191
+    }
+  ],
+  "competenceId": "2026-08",
+  "postgresVersion": "PostgreSQL 17.6 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit",
+  "samplesPerVariant": 20,
+  "equivalentSchoolCoverages": 489,
+  "sourceRunId": 37207136161,
+  "sourceJobId": 111450566879,
+  "testedSha": "27821dad91a0f6eb7cb4d7fef4ae9f0894915daf",
+  "artifactId": 11305740693,
+  "artifactZipSha256": "77a18b0071ae09e3cce019c709cfa25682aa0973f21ddb87329498c1bd0f1f53",
+  "ciOutcome": "SQL/pgTAP/benchmark/EXPLAIN/lint passed; job failed later on generated-type EOF drift. Auth/frontend steps skipped."
+}

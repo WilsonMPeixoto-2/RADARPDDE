@@ -1,0 +1,31 @@
+{
+  "environment": "Disposable PostgreSQL 17 container; Auth bootstrap compatibility, not native Supabase",
+  "red": {
+    "reason": "New API absent on baseline; four assertions failed, then missing-function error. No claim of new baseline product defect.",
+    "sha256": "fb18d8b72fb1d7532d758a815ccb2fdf6581ee22db5863a6e67828b1ff057aa8",
+    "excerpt": [
+      "not ok 1 - RPC escolar existe antes de qualquer integração frontend",
+      "not ok 2 - RPC escolar é SECURITY INVOKER",
+      "not ok 3 - guard e fechamento usam o snapshot de uma leitura STABLE",
+      "not ok 4 - search_path explícito e restrito",
+      "ERROR:  function \"public.read_school_operational_context(text,text,text[])\" does not exist"
+    ]
+  },
+  "green": {
+    "passed": 81,
+    "failed": 0,
+    "sha256": "11e8a71121b978af951faf3fdd23a46dab126e65097fd4708d386a8b81a2deeb"
+  },
+  "relatedUnitControls": {
+    "passed": 20,
+    "failed": 0
+  },
+  "staticChecks": [
+    "Supabase readiness",
+    "generated artifacts present",
+    "database types TypeScript",
+    "architecture",
+    "workflow references"
+  ],
+  "nativeSupabase": "Final c29b1d55: run 37207524394 success, 647 pgTAP and 16 native frontend E2E; 18/18 workflows green. First-run EOF failure separately recorded."
+}

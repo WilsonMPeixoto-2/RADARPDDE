@@ -1,0 +1,127 @@
+{
+  "testedSha": "c29b1d55888ad36eab6f4c4f3ccb1d027df8e0a8",
+  "functionalSqlSha": "27821dad91a0f6eb7cb4d7fef4ae9f0894915daf",
+  "workflows": [
+    {
+      "name": "Contratos-fonte do Excel SME",
+      "runId": 37207524382,
+      "conclusion": "success"
+    },
+    {
+      "name": "Saúde das dependências",
+      "runId": 37207524317,
+      "conclusion": "success"
+    },
+    {
+      "name": "Validar RADAR PDDE",
+      "runId": 37207524361,
+      "conclusion": "success"
+    },
+    {
+      "name": "Validar snapshot canônico do RADAR",
+      "runId": 37207524452,
+      "conclusion": "success"
+    },
+    {
+      "name": "CodeQL",
+      "runId": 37207524401,
+      "conclusion": "success"
+    },
+    {
+      "name": "Lighthouse CI",
+      "runId": 37207524359,
+      "conclusion": "success"
+    },
+    {
+      "name": "Regressões específicas do help desk",
+      "runId": 37207524326,
+      "conclusion": "success"
+    },
+    {
+      "name": "Estabilidade de posição do Prontuário",
+      "runId": 37207524529,
+      "conclusion": "success"
+    },
+    {
+      "name": "Retificação auditável direcionada",
+      "runId": 37207524385,
+      "conclusion": "success"
+    },
+    {
+      "name": "Identificação de Despesa a identificar",
+      "runId": 37207524433,
+      "conclusion": "success"
+    },
+    {
+      "name": "Confiabilidade funcional com Supabase real",
+      "runId": 37207524335,
+      "conclusion": "success"
+    },
+    {
+      "name": "Backup e restauração descartáveis",
+      "runId": 37207524437,
+      "conclusion": "success"
+    },
+    {
+      "name": "Regressão visual desktop",
+      "runId": 37207524395,
+      "conclusion": "success"
+    },
+    {
+      "name": "Supabase readiness",
+      "runId": 37207524394,
+      "conclusion": "success"
+    },
+    {
+      "name": "Gate remoto de perfis e viewports",
+      "runId": 37207524396,
+      "conclusion": "success"
+    },
+    {
+      "name": "Testes E2E Playwright",
+      "runId": 37207524476,
+      "conclusion": "success"
+    },
+    {
+      "name": "Ciclos funcionais reais com Supabase",
+      "runId": 37207524362,
+      "conclusion": "success"
+    },
+    {
+      "name": "Homologação integral pré-production",
+      "runId": 37207524357,
+      "conclusion": "success"
+    }
+  ],
+  "nativeReadiness": {
+    "runId": 37207524394,
+    "jobs": [
+      {
+        "id": 111451730697,
+        "name": "readiness",
+        "conclusion": "success"
+      },
+      {
+        "id": 111451730842,
+        "name": "migration-smoke",
+        "conclusion": "success"
+      },
+      {
+        "id": 111451730919,
+        "name": "supabase-local",
+        "conclusion": "success"
+      }
+    ],
+    "pgtapFiles": 39,
+    "pgtapTests": 647,
+    "schoolPgtapSubset": 81,
+    "equivalentSchoolCoverages": 489,
+    "authRlsFrontendE2ePassed": 16,
+    "generatedArtifactsReproducible": true
+  },
+  "initialRunFailure": {
+    "runId": 37207136161,
+    "jobId": 111450566879,
+    "reason": "Generated types EOF blank line missing; SQL/tests/benchmark already passed, later Auth/frontend skipped. Corrected using full generated artifact, checker preserved."
+  }
+}

@@ -1,25 +1,46 @@
 # RADAR PDDE — estado atual e retomada
 
 **Classe documental:** Canônico — estado mutável  
-**Atualizado em:** 3 de outubro de 2026
+**Atualizado em:** 6 de outubro de 2026
 
-## Frente operacional — #408 e #407
+## Frente operacional corrente — PR #410
 
-O hotfix seletivo [#408](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/408)
-separa correções comprovadas da investigação arquitetural ampla do #407.
-A revisão do HEAD `d863f864` confirmou 33 checks aprovados e dois Previews
-condicionais pulados, mas encontrou uma leitura redundante quando a resposta
-termina entre os sinais de foco/visibilidade da mesma retomada. Esta entrega
-corrige a causa e acrescenta RED/GREEN determinístico; 1.250 unitários locais
-passaram. Conferir os checks do novo SHA antes de promover o hotfix.
+**Retomada vigente:** candidato remoto `d571a26a`, com aplicação e sincronização
+escolar já implementadas. A revisão de 06/10 reproduziu cinco falhas de recuperação
+e preservação do escopo global, mesmo com 57 contratos anteriores verdes.
+[Evidência/decisão](evidence/2026-10-06-pr410-review/README.md). RED publicado em
+`da5174ec`, seguido de GREEN local com política compartilhada de refresh e união
+de escopos. GREEN funcional `a6a02120`: 1.294 unitários; 63 contratos + quatro E2E
+reais no CI; readiness com 655 pgTAP e 17 Auth/RLS/frontend. Dois advisories de
+desenvolvimento continuam bloqueando gates, com correções disponíveis. PR continua
+Draft; ainda confrontar demais jobs e custo sustentado/cliente. Os parágrafos seguintes descrevem checkpoints
+anteriores e não devem ser usados para reimplementar as etapas já entregues.
 
-[Evidência, contraprova na main e instruções de continuidade](evidence/2026-10-03-pr408-resume-review/README.md).
+O usuário autorizou seguir a simplificação incremental em 04/10/2026. O [#410](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/410) parte da main pós-#408 (`d9bf67f7...`), também confirmada no manifesto Production. Continua Draft; não altera o ambiente publicado nesta etapa.
 
-Na revisão, a main continuava em `62fe000c7253bb97a31091f1c7dc33407906d554`.
-O #407 permanece em investigação de custo das sessões observadoras (payload,
-SQL, aplicação de estado e DOM). O #408 não encerra essa investigação nem
-incorpora as mudanças experimentais de Broadcast e banco. Revalidar PRs,
-commits e deployment ao retomar; este registro não afirma publicação.
+O handoff corrente é [início do #410](handoff/2026-10-04-pr410-start.md). O [plano executável](superpowers/plans/2026-10-04-operational-sync-simplification-implementation.md) registra caracterização, autoridade de rota, leitura/aplicação por escola, Realtime, fallback e remoção gradual de mecanismos. Primeiro incremento: Próxima unidade deve atualizar rota e escola visível pelo caminho canônico, com RED/GREEN de navegador.
+
+O incremento de rota `d4a37d79...` concluiu 16 workflows verdes. A [caracterização
+das seis coleções](evidence/2026-10-04-pr410-school-scope/README.md) avançou com
+35 pgTAP locais e na pilha Supabase real (run `37200758428`, 566 pgTAP totais),
+metadados/contagens somente de leitura em Production e mapa de
+históricos, exclusões e projeções. Há contraprova de FK entre escolas permitida
+pelo schema; não truncar esse vínculo na RPC futura. Contatos gerais têm cobertura
+própria. O checkpoint de testes `1d13b02c...` concluiu 17 workflows com sucesso.
+
+Incremento escolar candidato: migration `20261004132755`, RPC invoker sem consumo
+no frontend, envelope/completude e fallback global para referências não isoláveis
+nos dois sentidos. Provas locais: 81 pgTAP e 489 coberturas equivalentes sobre a
+fixture de agregados históricos. [Evidências e limites](evidence/2026-10-04-pr410-school-rpc/README.md).
+Certificação final no SHA `c29b1d55...`: **18 workflows verdes**, Supabase nativo
+647 pgTAP/39 arquivos, 16 E2E Auth/RLS/frontend e 489 equivalências. Na comparação
+final pareada, escola densa reduz p50 SQL em 41,0% e JSON em 96,1%. Os limites da
+fixture e do custo SQL versus UI estão explícitos no relatório. Próximo incremento:
+capacidade Repository e aplicação atômica por escola; novo Realtime ainda pendente.
+
+#407 e #409 permanecem fontes de evidência. O #409 continua Draft: novos E2E de Realtime falharam no candidato `5553f130...`; o checkpoint `2d7706f3...` guarda erros e instruções. Não é base de implementação do #410. A aprovação da direção arquitetural não aprova migrations, cortes de recuperação ou merge antecipado.
+
+As proteções do #408 são regressões obrigatórias. Os detalhes do design precisam provar escopo/históricos, exclusões, retorno autoritativo, origem da escrita e recuperação após suspensão. RPC, aplicação da fatia e sincronização dirigida já existem no candidato atual. Os checkpoints anteriores não certificam automaticamente sua composição final ou a prontidão de publicação.
 
 ## 1. Estado funcional corrente
 
@@ -27,7 +48,7 @@ commits e deployment ao retomar; este registro não afirma publicação.
 
 **A Fase 2 de autonomia dos Controladores e UX da retificação está encerrada, integrada e publicada.** O PR #404 foi mergeado em `de7bebb06b867ebd557ff83cd9194fe3d45f5903` e publicado no deployment Production `dpl_CLYY92KojCXpmQcL8xXQkmc3TdgG`, `READY`, com smoke HTTP 200 na raiz e em `/escolas/04.31.001`. A retificação de classificação permanece limitada ao histórico exclusivamente fiscal encerrado/cancelado e falha fechada diante de Pendência ativa, atividade/histórico de Assessoria, `a_identificar`, bem `Inventariada` ou versionamento desconhecido.
 
-**Não há handoff corrente desta frente e nenhuma nova fase foi iniciada automaticamente.** A proteção patrimonial adicional, anulação/transferência auditável, `PROD-UX-08`, NAV-01/UX-04 e Fase D permanecem decisões/frentes separadas.
+**O handoff corrente operacional é o do #410; nenhuma nova fase funcional foi iniciada automaticamente.** A proteção patrimonial adicional, anulação/transferência auditável, `PROD-UX-08`, NAV-01/UX-04 e Fase D permanecem decisões/frentes separadas.
 
 **O PR #397 — independência entre despesas e bonificação — permanece integrado e publicado.** A ADR-055 e a leitura contextual do #396 são preservadas. A [continuidade após o #397](handoff/2026-09-30-pos-publicacao-pr397-retomada.md) passou a contexto histórico desta entrega.
 
@@ -97,7 +118,7 @@ Registro técnico da correção final da C3: [correções CodeQL e validação C
 
 Os documentos de handoff de A/B e das frentes anteriores permanecem **históricos concluídos**. Não reabrir PRs #375/#376/#377/#378 ou textos pré-merge como fila de implementação.
 
-Não há handoff corrente. [Retificação de classificação e UX](handoff/2026-10-01-controller-type-retification.md) passa a histórico concluído da Fase 2, assim como os handoffs de candidato/publicação do #397. [PROD-UX-08](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) continua uma pendência separada de retomada visual. A investigação de `PROD-FUNC-09` está encerrada.
+O handoff corrente é o do #410 indicado no início deste documento. [Retificação de classificação e UX](handoff/2026-10-01-controller-type-retification.md) é histórico concluído da Fase 2, assim como os handoffs de candidato/publicação do #397. [PROD-UX-08](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) continua uma pendência separada de retomada visual. A investigação de `PROD-FUNC-09` está encerrada.
 
 Para retomada, a ordem de leitura continua sendo:
 

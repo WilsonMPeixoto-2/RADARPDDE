@@ -6,11 +6,14 @@ on:
       - main
     paths:
       - 'src/application/data-service.js'
+      - 'src/integration/operational-context-refresh.js'
       - 'src/integration/operational-realtime-invalidation.js'
       - 'src/integration/operational-write-feedback.js'
       - 'src/integration/product-extensions-bootstrap.js'
       - 'src/styles/operational-write-feedback.css'
       - 'tests/unit/incremental-state-application.test.js'
+      - 'tests/unit/operational-context-school-pending-scope.test.js'
+      - 'tests/unit/operational-school-recovery-invariants.test.js'
       - 'tests/unit/operational-realtime-invalidation.test.js'
       - 'tests/unit/realtime-status-feedback-composition.test.js'
       - 'tests/unit/operational-write-feedback.test.js'
@@ -49,13 +52,18 @@ jobs:
       - name: Validar sintaxe somente dos módulos alterados
         run: |
           node --check src/application/data-service.js
+          node --check src/integration/operational-context-refresh.js
           node --check src/integration/operational-realtime-invalidation.js
           node --check src/integration/operational-write-feedback.js
           node --check src/integration/product-extensions-bootstrap.js
+          node --check tests/unit/operational-context-school-pending-scope.test.js
+          node --check tests/unit/operational-school-recovery-invariants.test.js
           node --check tests/e2e/supabase-realtime-invalidation.spec.js
 
       - name: Provar contratos específicos da correção
-        run: npm run test:sync-hardening
+        run: |
+          npm run test:sync-hardening
+          node --test tests/unit/operational-context-school-pending-scope.test.js tests/unit/operational-school-recovery-invariants.test.js
 
   realtime-composition:
     name: Duas sessões, Realtime real e degradação visível

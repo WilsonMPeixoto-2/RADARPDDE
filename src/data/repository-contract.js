@@ -187,6 +187,76 @@
         );
     }
 
+    function schoolContextError(message) {
+        return new RepositoryError('INVALID_SCHOOL_OPERATIONAL_CONTEXT', message,
+            { operation: 'querySchoolOperationalContext' });
+    }
+
+    function schoolOperationalRequest(options = {}) {
+        const schoolId = typeof options.schoolId === 'string' ? options.schoolId.trim() : '';
+        const competenceId = String(options.competenceId || '').trim();
+        const statuses = options.historyStatuses == null ? [] : options.historyStatuses;
+        if (!schoolId || !/^\d{4}-(0[1-9]|1[0-2])$/.test(competenceId)
+            || !Array.isArray(statuses)
+            || statuses.some(status => !['Resolvida', 'Cancelada'].includes(status))) {
+            throw schoolContextError('Escola, competência ou histórico inválido para leitura escolar.');
+        }
+        return { schoolId, competenceId, historyStatuses: [...new Set(statuses)].sort() };
+    }
+
+    // Validação compartilhada: mocks, Repository e StatePort obedecem ao mesmo envelope.
+    // Não reconstruir o fechamento SQL no navegador nem inventar novas regras de FK.
+    function validateSchoolOperationalContext(value, request) {
+        const expected = schoolOperationalRequest(request);
+        const coverage = value?.coverage;
+        if (value?.schemaVersion !== 1 || value.schoolId !== expected.schoolId
+            || value.competenceId !== expected.competenceId
+            || JSON.stringify(value.historyStatuses) !== JSON.stringify(expected.historyStatuses)
+            || coverage?.kind !== 'competence-and-dependencies'
+            || coverage.contacts !== 'selected-pendencies'
+            || typeof coverage.complete !== 'boolean'
+            || !Array.isArray(coverage.collections)
+            || coverage.collections.length !== REMOTE_CONTEXT_ENTITIES.length
+            || new Set(coverage.collections).size !== REMOTE_CONTEXT_ENTITIES.length
+            || !REMOTE_CONTEXT_ENTITIES.every(entity => coverage.collections.includes(entity))) {
+            throw schoolContextError('Identidade ou cobertura inválida na resposta escolar.');
+        }
+        if (!coverage.complete || value.fallback != null) {
+            if (value.fallback != null && value.fallback.kind !== 'global') {
+                throw schoolContextError('Fallback escolar desconhecido.');
+            }
+            return { ...cloneValue(value), coverage: { ...coverage, complete: false }, entities: null,
+                fallback: value.fallback || { kind: 'global', reason: 'INCOMPLETE_COVERAGE' } };
+        }
+        if (value.fallback !== null) throw schoolContextError('Resposta escolar sem declaração de fallback.');
+        if (!REMOTE_CONTEXT_ENTITIES.every(entity => Array.isArray(value.entities?.[entity]))) {
+            throw schoolContextError('Resposta escolar sem as seis coleções completas.');
+        }
+        const parents = new Set(value.entities.pendencies.map(row => row?.id));
+        const verificationKeys = new Set();
+        for (const entity of REMOTE_CONTEXT_ENTITIES) {
+            const rows = value.entities?.[entity];
+            if (!Array.isArray(rows)) throw schoolContextError(`Coleção escolar ausente: ${entity}.`);
+            const ids = new Set();
+            for (const row of rows) {
+                if (!row || typeof row.id !== 'string' || !row.id.trim() || ids.has(row.id)
+                    || (entity !== 'pendencyAttempts' && row.school_id !== expected.schoolId)
+                    || (['pendencyAttempts', 'pendencyContacts'].includes(entity) && !parents.has(row.pendency_id))) {
+                    throw schoolContextError(`Registro ou vínculo inválido em ${entity}.`);
+                }
+                ids.add(row.id);
+                if (entity === 'verifications') {
+                    const key = `${row.competence_id}_${row.program_id}`;
+                    if (!row.competence_id || !row.program_id || verificationKeys.has(key)) {
+                        throw schoolContextError('Contexto de avaliação escolar ambíguo.');
+                    }
+                    verificationKeys.add(key);
+                }
+            }
+        }
+        return cloneValue(value);
+    }
+
     return Object.freeze({
         SNAPSHOT_FORMAT,
         RADAR_ENTITIES,
@@ -201,6 +271,8 @@
         createSnapshotEnvelope,
         assertRepositoryContract,
         assertLocalPersistenceFallback,
-        isSnapshotEmpty
+        isSnapshotEmpty,
+        schoolOperationalRequest,
+        validateSchoolOperationalContext
     });
 }));

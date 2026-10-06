@@ -7,7 +7,10 @@
     const supabaseApi = typeof module !== 'undefined' && module.exports
         ? require('./supabase-repository.js')
         : root.RadarSupabaseRepository;
-    const api = factory(localApi, supabaseApi);
+    const contract = typeof module !== 'undefined' && module.exports
+        ? require('./repository-contract.js')
+        : root.RadarRepositoryContract;
+    const api = factory(localApi, supabaseApi, contract);
 
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = api;
@@ -16,7 +19,7 @@
     if (root) {
         root.RadarRepositoryFactory = Object.freeze(api);
     }
-}(typeof window !== 'undefined' ? window : globalThis, function createRepositoryFactoryApi(localApi, supabaseApi) {
+}(typeof window !== 'undefined' ? window : globalThis, function createRepositoryFactoryApi(localApi, supabaseApi, contract) {
     'use strict';
 
     if (!localApi || !supabaseApi) {
@@ -144,6 +147,22 @@
     }
 
     class OperationalSupabaseRepository extends supabaseApi.SupabaseRepository {
+        capabilities() {
+            return Object.freeze({ ...super.capabilities(), schoolOperationalContext: true });
+        }
+
+        async querySchoolOperationalContext(options = {}) {
+            const request = contract.schoolOperationalRequest(options);
+            throwIfAborted(options.signal);
+            const result = await this.executeRpc('read_school_operational_context', {
+                p_school_id: request.schoolId,
+                p_competence_id: request.competenceId,
+                p_history_statuses: request.historyStatuses
+            }, 'querySchoolOperationalContext', options.signal ? { signal: options.signal } : {});
+            throwIfAborted(options.signal);
+            return contract.validateSchoolOperationalContext(result, request);
+        }
+
         async querySchoolContacts(schoolId) {
             const id = String(schoolId || '').trim();
             if (!id) throw operationalContextError('Informe a escola para consultar o histórico de contatos.');

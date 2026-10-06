@@ -1,0 +1,91 @@
+{
+  "repository": "WilsonMPeixoto-2/RADARPDDE",
+  "projectRef": "scnryinorqeucbfkioxo",
+  "method": "read-only schema metadata and aggregate counts; no operational writes",
+  "sourceMainSha": "d9bf67f7d8a1ce2e468ec3c793ff992d8e10dfd6",
+  "rpc": {
+    "body_md5": "40d613a3fa7b30e677d41c1b40a6dcd6",
+    "settings": [
+      "search_path=pg_catalog, public"
+    ],
+    "signature": "read_operational_context(text,text[])",
+    "security_definer": false
+  },
+  "links": {
+    "invoice_asset": {
+      "total": 22,
+      "cross_school": 0
+    },
+    "contact_parent": {
+      "total": 5,
+      "cross_school": 0
+    },
+    "pendency_invoice": {
+      "total": 125,
+      "cross_school": 0
+    },
+    "invoice_verification": {
+      "total": 233,
+      "cross_school": 0,
+      "different_context": 0
+    },
+    "contacts_without_parent": 94
+  },
+  "migrations": {
+    "count": 58,
+    "latest": "20260930003000"
+  },
+  "observed_at": "2026-10-04T11:56:55.469882+00:00",
+  "relation_foreign_keys": [
+    {
+      "name": "assets_school_id_fkey",
+      "relation": "assets",
+      "definition": "FOREIGN KEY (school_id) REFERENCES schools(id) ON UPDATE CASCADE ON DELETE CASCADE"
+    },
+    {
+      "name": "pendencies_registered_invoice_id_fkey",
+      "relation": "pendencies",
+      "definition": "FOREIGN KEY (registered_invoice_id) REFERENCES registered_invoices(id) ON UPDATE CASCADE ON DELETE RESTRICT"
+    },
+    {
+      "name": "pendencies_school_id_fkey",
+      "relation": "pendencies",
+      "definition": "FOREIGN KEY (school_id) REFERENCES schools(id) ON UPDATE CASCADE ON DELETE CASCADE"
+    },
+    {
+      "name": "pendency_attempts_pendency_id_fkey",
+      "relation": "pendency_attempts",
+      "definition": "FOREIGN KEY (pendency_id) REFERENCES pendencies(id) ON UPDATE CASCADE ON DELETE CASCADE"
+    },
+    {
+      "name": "pendency_contacts_pendency_id_fkey",
+      "relation": "pendency_contacts",
+      "definition": "FOREIGN KEY (pendency_id) REFERENCES pendencies(id) ON UPDATE CASCADE ON DELETE SET NULL"
+    },
+    {
+      "name": "pendency_contacts_school_id_fkey",
+      "relation": "pendency_contacts",
+      "definition": "FOREIGN KEY (school_id) REFERENCES schools(id) ON UPDATE CASCADE ON DELETE CASCADE"
+    },
+    {
+      "name": "registered_invoices_linked_asset_id_fkey",
+      "relation": "registered_invoices",
+      "definition": "FOREIGN KEY (linked_asset_id) REFERENCES assets(id) ON UPDATE CASCADE ON DELETE SET NULL"
+    },
+    {
+      "name": "registered_invoices_school_id_fkey",
+      "relation": "registered_invoices",
+      "definition": "FOREIGN KEY (school_id) REFERENCES schools(id) ON UPDATE CASCADE ON DELETE CASCADE"
+    },
+    {
+      "name": "registered_invoices_verification_id_fkey",
+      "relation": "registered_invoices",
+      "definition": "FOREIGN KEY (verification_id) REFERENCES verifications(id) ON UPDATE CASCADE ON DELETE SET NULL"
+    },
+    {
+      "name": "verifications_school_id_fkey",
+      "relation": "verifications",
+      "definition": "FOREIGN KEY (school_id) REFERENCES schools(id) ON UPDATE CASCADE ON DELETE CASCADE"
+    }
+  ]
+}

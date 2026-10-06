@@ -1,0 +1,44 @@
+{
+  "observedAt": "2026-10-04T12:08:25.815469+00:00",
+  "headSha": "1d13b02c1455be7fae8628f6b40df67c70713f1c",
+  "runId": 37200758428,
+  "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37200758428",
+  "workflow": "Supabase readiness",
+  "jobs": [
+    {
+      "id": 111431779105,
+      "name": "readiness",
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37200758428/job/111431779105"
+    },
+    {
+      "id": 111431779224,
+      "name": "supabase-local",
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37200758428/job/111431779224"
+    },
+    {
+      "id": 111431779302,
+      "name": "migration-smoke",
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37200758428/job/111431779302"
+    }
+  ],
+  "pgTap": {
+    "files": 38,
+    "tests": 566,
+    "result": "PASS",
+    "schoolScopeSuiteTests": 35,
+    "suiteSha256": "354b72e428791eada137815b47d9c5cc86ccf939af9681a1faea50f90797d18c"
+  },
+  "localJobId": 111431779224,
+  "jobLogSha256": "269616d7b4add7783bef2d6047f098397252cb4b0559d2140ec8684b8e74c1d8",
+  "logExcerpt": [
+    "2026-10-04T12:04:34.3398223Z psql:/home/runner/work/RADARPDDE/RADARPDDE/supabase/tests/database/operational-context-read.test.sql:4: NOTICE:  extension \"pgtap\" already exists, skipping",
+    "2026-10-04T12:04:34.5764699Z /home/runner/work/RADARPDDE/RADARPDDE/supabase/tests/database/operational-context-read.test.sql ................ ok",
+    "2026-10-04T12:04:35.6624931Z All tests successful.",
+    "2026-10-04T12:04:35.6625950Z Files=38, Tests=566,  3 wallclock secs ( 0.12 usr  0.06 sys +  0.22 cusr  0.16 csys =  0.56 CPU)",
+    "2026-10-04T12:04:35.6626572Z Result: PASS"
+  ],
+  "scope": "Existing global RPC characterization in disposable Supabase, native migrations/extensions and RLS; does not certify a future school RPC or sustained operational budgets."
+}

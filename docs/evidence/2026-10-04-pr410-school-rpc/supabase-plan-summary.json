@@ -1,0 +1,385 @@
+{
+  "sourceArtifactId": 11305895956,
+  "testedSha": "c29b1d55888ad36eab6f4c4f3ccb1d027df8e0a8",
+  "rawPlanLogSha256": "385b5a57316e4bc4206f564c7c131da0e7c9cfdc69e6d0573a83c6c082333042",
+  "source": "Migration SQLs extracted and bound ESC-LOCAL/2026-08/empty history; native authenticated/controller RLS",
+  "plans": [
+    {
+      "query": "school_guard",
+      "planningMs": 1.355,
+      "executionMs": 14.588,
+      "relationNodes": [
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "registered_invoices",
+          "Index Name": "registered_invoices_context_idx",
+          "Index Cond": "((school_id = ANY ((InitPlan 11).col1)) AND (school_id = 'ESC-LOCAL'::text))",
+          "Filter": "(((linked_asset_id IS NOT NULL) AND (NOT (ANY (linked_asset_id = (hashed SubPlan 6).col1)))) OR ((verification_id IS NOT NULL) AND (NOT EXISTS(SubPlan 8))))",
+          "Actual Rows": 0,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Seq Scan",
+          "Relation Name": "assets",
+          "Filter": "((school_id = 'ESC-LOCAL'::text) AND ((school_id = ANY ((InitPlan 4).col1)) OR (school_id = ANY ((InitPlan 5).col1))))",
+          "Actual Rows": 0,
+          "Actual Loops": 0
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "verifications",
+          "Index Name": "verifications_pkey",
+          "Index Cond": "(id = i.verification_id)",
+          "Filter": "((school_id = 'ESC-LOCAL'::text) AND (school_id = ANY ((InitPlan 7).col1)))",
+          "Actual Rows": 1,
+          "Actual Loops": 10
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "pendencies",
+          "Index Name": "pendencies_registered_invoice_idx",
+          "Filter": "((school_id = 'ESC-LOCAL'::text) AND (school_id = ANY ((InitPlan 13).col1)))",
+          "Actual Rows": 0,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "registered_invoices",
+          "Index Name": "registered_invoices_context_idx",
+          "Index Cond": "((school_id = ANY ((InitPlan 14).col1)) AND (school_id = 'ESC-LOCAL'::text))",
+          "Actual Rows": 0,
+          "Actual Loops": 0
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "pendency_contacts",
+          "Index Name": "pendency_contacts_school_date_idx",
+          "Index Cond": "((school_id = ANY ((InitPlan 16).col1)) AND (school_id = 'ESC-LOCAL'::text))",
+          "Filter": "(pendency_id IS NOT NULL)",
+          "Actual Rows": 1,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "pendencies",
+          "Index Name": "pendencies_school_status_idx",
+          "Index Cond": "((school_id = ANY ((InitPlan 17).col1)) AND (school_id = 'ESC-LOCAL'::text))",
+          "Actual Rows": 1,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Seq Scan",
+          "Relation Name": "assets",
+          "Filter": "((school_id = 'ESC-LOCAL'::text) AND ((school_id = ANY ((InitPlan 19).col1)) OR (school_id = ANY ((InitPlan 20).col1))))",
+          "Actual Rows": 1,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "registered_invoices",
+          "Index Name": "registered_invoices_asset_idx",
+          "Index Cond": "(linked_asset_id = a_1.id)",
+          "Filter": "((school_id <> 'ESC-LOCAL'::text) AND (school_id = ANY ((InitPlan 21).col1)))",
+          "Actual Rows": 0,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "verifications",
+          "Index Name": "verifications_school_id_competence_id_program_id_key",
+          "Index Cond": "((school_id = ANY ((InitPlan 23).col1)) AND (school_id = 'ESC-LOCAL'::text))",
+          "Actual Rows": 11,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "registered_invoices",
+          "Index Name": "registered_invoices_verification_idx",
+          "Index Cond": "(verification_id = v_1.id)",
+          "Filter": "((school_id <> 'ESC-LOCAL'::text) AND (school_id = ANY ((InitPlan 24).col1)))",
+          "Actual Rows": 0,
+          "Actual Loops": 11
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "registered_invoices",
+          "Index Name": "registered_invoices_context_idx",
+          "Index Cond": "((school_id = ANY ((InitPlan 26).col1)) AND (school_id = 'ESC-LOCAL'::text))",
+          "Actual Rows": 10,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "pendencies",
+          "Index Name": "pendencies_registered_invoice_idx",
+          "Index Cond": "(registered_invoice_id = i_4.id)",
+          "Filter": "((school_id <> 'ESC-LOCAL'::text) AND (school_id = ANY ((InitPlan 27).col1)))",
+          "Actual Rows": 0,
+          "Actual Loops": 10
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "pendencies",
+          "Index Name": "pendencies_school_status_idx",
+          "Index Cond": "((school_id = ANY ((InitPlan 29).col1)) AND (school_id = 'ESC-LOCAL'::text))",
+          "Actual Rows": 14,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "pendency_contacts",
+          "Index Name": "pendency_contacts_pendency_id_idx",
+          "Index Cond": "(pendency_id = p_3.id)",
+          "Filter": "((school_id <> 'ESC-LOCAL'::text) AND (school_id = ANY ((InitPlan 30).col1)))",
+          "Actual Rows": 0,
+          "Actual Loops": 14
+        }
+      ]
+    },
+    {
+      "query": "school_closure",
+      "planningMs": 3.179,
+      "executionMs": 22.023,
+      "relationNodes": [
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "pendencies",
+          "Index Name": "pendencies_school_status_idx",
+          "Index Cond": "((school_id = ANY ((InitPlan 1).col1)) AND (school_id = 'ESC-LOCAL'::text))",
+          "Filter": "((competence_origin = '2026-08'::text) OR (status = ANY ('{Aberta,\"Aguardando reanálise\"}'::text[])) OR (status = ANY ('{}'::text[])))",
+          "Actual Rows": 14,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Seq Scan",
+          "Relation Name": "assets",
+          "Filter": "((status = ANY ('{\"Não encaminhada\",Encaminhada}'::text[])) AND (school_id = 'ESC-LOCAL'::text) AND ((school_id = ANY ((InitPlan 3).col1)) OR (school_id = ANY ((InitPlan 4).col1))))",
+          "Actual Rows": 1,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "registered_invoices",
+          "Index Name": "registered_invoices_asset_idx",
+          "Filter": "((school_id = 'ESC-LOCAL'::text) AND (school_id = ANY ((InitPlan 6).col1)))",
+          "Actual Rows": 0,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "registered_invoices",
+          "Index Name": "registered_invoices_context_idx",
+          "Index Cond": "((school_id = ANY ((InitPlan 8).col1)) AND (school_id = 'ESC-LOCAL'::text))",
+          "Filter": "(competence_id = '2026-08'::text)",
+          "Actual Rows": 1,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "registered_invoices",
+          "Index Name": "registered_invoices_context_idx",
+          "Index Cond": "((school_id = ANY ((InitPlan 9).col1)) AND (school_id = 'ESC-LOCAL'::text))",
+          "Actual Rows": 10,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "registered_invoices",
+          "Index Name": "registered_invoices_school_competence_idx",
+          "Index Cond": "((school_id = ANY ((InitPlan 10).col1)) AND (school_id = 'ESC-LOCAL'::text))",
+          "Actual Rows": 10,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "verifications",
+          "Index Name": "verifications_school_id_competence_id_program_id_key",
+          "Index Cond": "((school_id = ANY ((InitPlan 12).col1)) AND (school_id = 'ESC-LOCAL'::text) AND (competence_id = '2026-08'::text))",
+          "Actual Rows": 2,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "verifications",
+          "Index Name": "verifications_school_id_competence_id_program_id_key",
+          "Index Cond": "((school_id = ANY ((InitPlan 13).col1)) AND (school_id = 'ESC-LOCAL'::text))",
+          "Actual Rows": 11,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "verifications",
+          "Index Name": "verifications_school_id_competence_id_program_id_key",
+          "Index Cond": "((school_id = ANY ((InitPlan 14).col1)) AND (school_id = 'ESC-LOCAL'::text))",
+          "Actual Rows": 11,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "pendency_attempts",
+          "Index Name": "pendency_attempts_pendency_idx",
+          "Index Cond": "(pendency_id = p_6.id)",
+          "Filter": "EXISTS(SubPlan 20)",
+          "Actual Rows": 0,
+          "Actual Loops": 14
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "pendencies",
+          "Index Name": "pendencies_pkey",
+          "Index Cond": "(id = pa.pendency_id)",
+          "Filter": "((school_id = ANY ((InitPlan 19).col1)) AND (school_id = ANY ((InitPlan 18).col1)))",
+          "Actual Rows": 1,
+          "Actual Loops": 3
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "pendency_contacts",
+          "Index Name": "pendency_contacts_school_date_idx",
+          "Index Cond": "((school_id = ANY ((InitPlan 25).col1)) AND (school_id = 'ESC-LOCAL'::text))",
+          "Actual Rows": 1,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Seq Scan",
+          "Relation Name": "assets",
+          "Filter": "((school_id = 'ESC-LOCAL'::text) AND (competence_id = '2026-08'::text) AND ((school_id = ANY ((InitPlan 27).col1)) OR (school_id = ANY ((InitPlan 28).col1))))",
+          "Actual Rows": 0,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Seq Scan",
+          "Relation Name": "assets",
+          "Filter": "((school_id = 'ESC-LOCAL'::text) AND ((school_id = ANY ((InitPlan 29).col1)) OR (school_id = ANY ((InitPlan 30).col1))))",
+          "Actual Rows": 1,
+          "Actual Loops": 1
+        }
+      ]
+    },
+    {
+      "query": "global_closure",
+      "planningMs": 3.335,
+      "executionMs": 51.525,
+      "relationNodes": [
+        {
+          "Node Type": "Bitmap Heap Scan",
+          "Relation Name": "pendencies",
+          "Actual Rows": 115,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Bitmap Heap Scan",
+          "Relation Name": "pendencies",
+          "Actual Rows": 306,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "pendencies",
+          "Index Name": "pendencies_active_invoice_document_uidx",
+          "Index Cond": "(school_id = ANY ((InitPlan 3).col1))",
+          "Filter": "(status = ANY ('{}'::text[]))",
+          "Actual Rows": 0,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Seq Scan",
+          "Relation Name": "assets",
+          "Filter": "((status = ANY ('{\"Não encaminhada\",Encaminhada}'::text[])) AND ((school_id = ANY ((InitPlan 5).col1)) OR (school_id = ANY ((InitPlan 6).col1))))",
+          "Actual Rows": 21,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "registered_invoices",
+          "Index Name": "registered_invoices_asset_idx",
+          "Filter": "(school_id = ANY ((InitPlan 8).col1))",
+          "Actual Rows": 0,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Bitmap Heap Scan",
+          "Relation Name": "registered_invoices",
+          "Actual Rows": 112,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Bitmap Heap Scan",
+          "Relation Name": "registered_invoices",
+          "Actual Rows": 0,
+          "Actual Loops": 0
+        },
+        {
+          "Node Type": "Bitmap Heap Scan",
+          "Relation Name": "registered_invoices",
+          "Actual Rows": 239,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "verifications",
+          "Index Name": "verifications_school_id_competence_id_program_id_key",
+          "Index Cond": "((school_id = ANY ((InitPlan 14).col1)) AND (competence_id = '2026-08'::text))",
+          "Actual Rows": 293,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "verifications",
+          "Index Name": "verifications_school_id_competence_id_program_id_key",
+          "Index Cond": "(school_id = ANY ((InitPlan 15).col1))",
+          "Actual Rows": 455,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "verifications",
+          "Index Name": "verifications_school_id_competence_id_program_id_key",
+          "Index Cond": "((school_id = ri_5.school_id) AND (school_id = ANY ((InitPlan 16).col1)) AND (competence_id = ri_5.competence_id))",
+          "Filter": "((ri_5.program_id IS NULL) OR (ri_5.program_id = program_id))",
+          "Actual Rows": 1,
+          "Actual Loops": 81
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "pendency_attempts",
+          "Index Name": "pendency_attempts_pendency_idx",
+          "Index Cond": "(pendency_id = p_8.id)",
+          "Filter": "EXISTS(SubPlan 22)",
+          "Actual Rows": 0,
+          "Actual Loops": 329
+        },
+        {
+          "Node Type": "Index Scan",
+          "Relation Name": "pendencies",
+          "Index Name": "pendencies_pkey",
+          "Index Cond": "(id = pa.pendency_id)",
+          "Filter": "((school_id = ANY ((InitPlan 21).col1)) AND (school_id = ANY ((InitPlan 20).col1)))",
+          "Actual Rows": 1,
+          "Actual Loops": 48
+        },
+        {
+          "Node Type": "Seq Scan",
+          "Relation Name": "pendency_contacts",
+          "Filter": "(school_id = ANY ((InitPlan 27).col1))",
+          "Actual Rows": 99,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Seq Scan",
+          "Relation Name": "assets",
+          "Filter": "((competence_id = '2026-08'::text) AND ((school_id = ANY ((InitPlan 29).col1)) OR (school_id = ANY ((InitPlan 30).col1))))",
+          "Actual Rows": 0,
+          "Actual Loops": 1
+        },
+        {
+          "Node Type": "Seq Scan",
+          "Relation Name": "assets",
+          "Filter": "((school_id = ANY ((InitPlan 31).col1)) OR (school_id = ANY ((InitPlan 32).col1)))",
+          "Actual Rows": 22,
+          "Actual Loops": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1254,6 +1254,12 @@ textarea.form-control {
     animation: fadeIn 0.3s ease;
 }
 
+/* O Prontuário é reconstruído também em refresh silencioso. A animação de
+   entrada reapresentava dados já visíveis a partir de opacity zero. */
+#main-container .school-workspace > .tab-content-panel.active {
+    animation: none;
+}
+
 /* Área de Configuração SME */
 .config-section {
     background-color: var(--bg-card);

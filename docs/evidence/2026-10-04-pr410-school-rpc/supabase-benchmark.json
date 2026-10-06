@@ -1,0 +1,94 @@
+{
+  "role": "authenticated/controller/4ª CRE",
+  "timing": "RPC execution, excluding serialization/network/UI",
+  "fixture": "production-aggregates-2026-10-02",
+  "payload": "octet_length(jsonb::text), uncompressed; not measured HTTP bytes",
+  "results": [
+    {
+      "mode": "global",
+      "counts": {
+        "assets": 21,
+        "pendencies": 329,
+        "verifications": 473,
+        "pendencyAttempts": 48,
+        "pendencyContacts": 5,
+        "registeredInvoices": 193
+      },
+      "max_ms": 51.018,
+      "p50_ms": 48.647,
+      "p95_ms": 49.773,
+      "p99_ms": 50.769,
+      "samples": 20,
+      "school_id": null,
+      "payload_max_bytes": 1327478,
+      "payload_min_bytes": 1327478
+    },
+    {
+      "mode": "school",
+      "counts": {
+        "assets": 1,
+        "pendencies": 14,
+        "verifications": 9,
+        "pendencyAttempts": 3,
+        "pendencyContacts": 1,
+        "registeredInvoices": 8
+      },
+      "max_ms": 30.292,
+      "p50_ms": 28.7,
+      "p95_ms": 29.757,
+      "p99_ms": 30.185,
+      "samples": 20,
+      "school_id": "ESC-LOCAL",
+      "payload_max_bytes": 51699,
+      "payload_min_bytes": 51699
+    },
+    {
+      "mode": "school",
+      "counts": {
+        "assets": 0,
+        "pendencies": 1,
+        "verifications": 2,
+        "pendencyAttempts": 0,
+        "pendencyContacts": 0,
+        "registeredInvoices": 1
+      },
+      "max_ms": 19.024,
+      "p50_ms": 18.117,
+      "p95_ms": 18.378,
+      "p99_ms": 18.895,
+      "samples": 20,
+      "school_id": "PERF-ESC-080",
+      "payload_max_bytes": 5141,
+      "payload_min_bytes": 5141
+    },
+    {
+      "mode": "school",
+      "counts": {
+        "assets": 0,
+        "pendencies": 0,
+        "verifications": 1,
+        "pendencyAttempts": 0,
+        "pendencyContacts": 0,
+        "registeredInvoices": 0
+      },
+      "max_ms": 15.963,
+      "p50_ms": 15.258,
+      "p95_ms": 15.516,
+      "p99_ms": 15.874,
+      "samples": 20,
+      "school_id": "PERF-ESC-161",
+      "payload_max_bytes": 1193,
+      "payload_min_bytes": 1193
+    }
+  ],
+  "competenceId": "2026-08",
+  "postgresVersion": "PostgreSQL 17.6 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit",
+  "samplesPerVariant": 20,
+  "equivalentSchoolCoverages": 489,
+  "testedSha": "c29b1d55888ad36eab6f4c4f3ccb1d027df8e0a8",
+  "runId": 37207524394,
+  "jobId": 111451730919,
+  "artifactId": 11305895956,
+  "artifactZipSha256": "4929e76cfda177c21affd7adc8e03137055c3b081b39960af9eea9fd9d6137be",
+  "ciOutcome": "success; all three readiness jobs passed, including Auth/RLS/frontend after artifact reproducibility"
+}
