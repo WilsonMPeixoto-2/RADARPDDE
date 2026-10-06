@@ -1,24 +1,47 @@
 # Revisão causal do candidato d571a26a
 
-## Checkpoint GREEN local
+## Checkpoint GREEN certificado
 
 Os cinco REDs foram corrigidos no mesmo mecanismo de refresh existente. A leitura
 escolar passa pelo mesmo fluxo de cooldown/edição/inflight/fallback da global.
 O debounce conserva a união de escopos. Duas fontes alteradas: saldo de **45 linhas
 removidas**; nenhum novo timer. 44 testes escolares/Realtime passaram, assim como
 os 57 controles do hardening anterior. Sintaxe, lint das fontes e referências dos
-workflows passaram. A suíte completa passou **1.294/1.294, zero skips**. A prova nativa do candidato
-será registrada quando concluir; não herda a certificação de d571.
+workflows passaram. A suíte completa passou **1.294/1.294, zero skips**.
+O candidato funcional é `a6a021203f508bc4fbccd65cb014c12fd600d138`.
 
 O gate específico inclui agora as cinco contraprovas permanentes. A suíte nativa
 ganhou um cenário com duas sessões, escrita real, primeiro request escolar falhando
 por HTTP 500 induzido e 30 eventos DOM de clique antes da convergência. Esperado:
-uma tentativa com falha + um retry real, sem avalanche. Esse cenário ainda precisa
-ser executado no CI; não foi declarado verde com base apenas nos testes locais.
+uma tentativa com falha + um retry real, sem avalanche. **Comprovado no CI:**
+run [37464186737](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37464186737),
+63 contratos + quatro E2E reais aprovados. O run de readiness
+[37464186471](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37464186471)
+também passou (três jobs): **655 pgTAP/40 arquivos, 17 Auth/RLS/frontend**, incluindo
+o E2E novo. Attachment real registra 30 gestos, duas tentativas escolares, intervalo
+de 2.006 ms; a segunda percorreu o Supabase real. Não confundir esse retry explícito
+com os 30 gestos, que não dispararam outras tentativas. Identificadores, resumo,
+artifact/hash em [native-ci.json](native-ci.json).
 
-Continuam pendentes para decisão final: CI do novo SHA, diagnóstico exato das
-dependências, jornada sustentada/medição do cliente e homologação hospedada quando
-necessária. Nenhum merge/deploy foi feito.
+Continuam pendentes para decisão final: demais jobs em andamento no último
+checkpoint, remediação isolada das dependências, jornada sustentada/medição do
+cliente e homologação hospedada quando necessária. Nenhum merge/deploy foi feito.
+
+As duas imagens do artifact nativo foram abertas: `realtime-write-abort-prontuario`
+mostra escola/competência e resultado aplicado; o recorte anterior
+`realtime-write-abort-extcc-row` aparece atenuado. Isso não mede a duração da
+transição nem autoriza afirmar ausência de flicker. Antes de certificar essa
+dimensão, capturar frames/opacidade durante refresh silencioso no candidato e
+contrastar com navegação intencional. Não importar o CSS experimental do #407
+sem essa contraprova. O artifact acima preserva as capturas para reprodução.
+
+Os logs confirmam a causa do bloqueio de dependências: `smol-toml@1.8.0` via Knip
+(`GHSA-r4xh-jqrq-34v2`) e `source-map-js@1.2.1` via Stylelint/PostCSS/css-tree
+(`GHSA-68fv-2mgg-jv7q`). Audit runtime sem vulnerabilidades bloqueantes. Em 06/10,
+ambos têm `fixAvailable:true`; registro público consultado oferece 1.9.0 e 1.2.2.
+Orientação: atualizar somente a resolução transitiva em checkout separado, conferir
+diff do lock e validar ferramentas/auditoria; não liberar advisory nem mudar regras
+do produto. Não foi alterado package-lock ou instalada versão nova nesta rodada.
 
 ## Estado observado em 06/10/2026
 

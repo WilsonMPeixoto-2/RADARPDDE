@@ -1,0 +1,189 @@
+{
+  "candidate": "a6a021203f508bc4fbccd65cb014c12fd600d138",
+  "checkedAt": "2026-10-06",
+  "hardening": {
+    "runId": 37464186737,
+    "contractJobId": 112270949326,
+    "contractsPassed": 63,
+    "nativeJobId": 112270949762,
+    "nativeTestsPassed": 4,
+    "nativeLogSummary": [
+      "2026-10-06T12:37:50.2791353Z [1/4] [desktop-chromium] › tests/e2e/supabase-realtime-invalidation.spec.js:128:1 › falha escolar após Broadcast resiste a 30 gestos e converge pelo retry real",
+      "2026-10-06T12:38:22.6735187Z   4 passed (33.7s)"
+    ]
+  },
+  "readiness": {
+    "runId": 37464186471,
+    "nativeJobId": 112270948143,
+    "pgTapFiles": 40,
+    "pgTapTests": 655,
+    "authRlsFrontendTestsPassed": 17,
+    "summary": [
+      "2026-10-06T12:37:39.2809621Z All tests successful.",
+      "2026-10-06T12:37:39.2810129Z Files=40, Tests=655,  4 wallclock secs ( 0.13 usr  0.03 sys +  0.29 cusr  0.14 csys =  0.59 CPU)",
+      "2026-10-06T12:39:08.7363811Z   17 passed (51.8s)"
+    ],
+    "artifactId": 11413343539,
+    "artifactSha256": "4dfe732c8085bdbdb5f82af5d90ddba82f20929d37d6e8b430a191c775a3324d",
+    "schoolRecovery": {
+      "gestures": 30,
+      "schoolReads": 2,
+      "firstFailureInjected": true,
+      "secondReadReal": true,
+      "retryIntervalMs": 2006
+    }
+  },
+  "dependencies": {
+    "jobId": 112270947920,
+    "runId": 37464186409,
+    "summary": [
+      "2026-10-06T12:34:30.1895514Z Auditoria de dependências de runtime: sem vulnerabilidades bloqueantes",
+      "2026-10-06T12:34:30.1909404Z A política de alcance rejeitou a auditoria: [{\"code\":\"NEW_ADVISORY\",\"packageName\":\"smol-toml\",\"severity\":\"moderate\",\"advisory\":\"GHSA-R4XH-JQRQ-34V2\"},{\"code\":\"NEW_ADVISORY\",\"packageName\":\"source-map-js\",\"severity\":\"high\",\"advisory\":\"GHSA-68FV-2MGG-JV7Q\"}]"
+    ],
+    "fixesAvailable": true,
+    "installed": {
+      "smol-toml": "1.8.0",
+      "source-map-js": "1.2.1"
+    },
+    "registryLatestReadOnly": {
+      "smol-toml": "1.9.0",
+      "source-map-js": "1.2.2"
+    },
+    "mutationPerformed": false
+  },
+  "otherWorkflowsAtCheckpoint": [
+    {
+      "conclusion": "success",
+      "head_sha": "a6a021203f508bc4fbccd65cb014c12fd600d138",
+      "id": 37464186803,
+      "name": "Contratos-fonte do Excel SME",
+      "status": "completed"
+    },
+    {
+      "conclusion": null,
+      "head_sha": "a6a021203f508bc4fbccd65cb014c12fd600d138",
+      "id": 37464186544,
+      "name": "Homologação integral pré-production",
+      "status": "in_progress"
+    },
+    {
+      "conclusion": null,
+      "head_sha": "a6a021203f508bc4fbccd65cb014c12fd600d138",
+      "id": 37464186654,
+      "name": "Testes E2E Playwright",
+      "status": "in_progress"
+    },
+    {
+      "conclusion": null,
+      "head_sha": "a6a021203f508bc4fbccd65cb014c12fd600d138",
+      "id": 37464186573,
+      "name": "Ciclos funcionais reais com Supabase",
+      "status": "in_progress"
+    },
+    {
+      "conclusion": "failure",
+      "head_sha": "a6a021203f508bc4fbccd65cb014c12fd600d138",
+      "id": 37464186409,
+      "name": "Saúde das dependências",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "a6a021203f508bc4fbccd65cb014c12fd600d138",
+      "id": 37464186631,
+      "name": "Validar snapshot canônico do RADAR",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "a6a021203f508bc4fbccd65cb014c12fd600d138",
+      "id": 37464186617,
+      "name": "Lighthouse CI",
+      "status": "completed"
+    },
+    {
+      "conclusion": "failure",
+      "head_sha": "a6a021203f508bc4fbccd65cb014c12fd600d138",
+      "id": 37464186847,
+      "name": "Validar RADAR PDDE",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "a6a021203f508bc4fbccd65cb014c12fd600d138",
+      "id": 37464186912,
+      "name": "Regressão visual desktop",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "a6a021203f508bc4fbccd65cb014c12fd600d138",
+      "id": 37464186588,
+      "name": "Retificação auditável direcionada",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "a6a021203f508bc4fbccd65cb014c12fd600d138",
+      "id": 37464186770,
+      "name": "Regressões específicas do help desk",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "a6a021203f508bc4fbccd65cb014c12fd600d138",
+      "id": 37464186510,
+      "name": "Estabilidade de posição do Prontuário",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "a6a021203f508bc4fbccd65cb014c12fd600d138",
+      "id": 37464186380,
+      "name": "CodeQL",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "a6a021203f508bc4fbccd65cb014c12fd600d138",
+      "id": 37464186622,
+      "name": "Identificação de Despesa a identificar",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "a6a021203f508bc4fbccd65cb014c12fd600d138",
+      "id": 37464186438,
+      "name": "Confiabilidade funcional com Supabase real",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "a6a021203f508bc4fbccd65cb014c12fd600d138",
+      "id": 37464186918,
+      "name": "Backup e restauração descartáveis",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "a6a021203f508bc4fbccd65cb014c12fd600d138",
+      "id": 37464186737,
+      "name": "Hardening específico de sincronização operacional",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "a6a021203f508bc4fbccd65cb014c12fd600d138",
+      "id": 37464186471,
+      "name": "Supabase readiness",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "a6a021203f508bc4fbccd65cb014c12fd600d138",
+      "id": 37464186420,
+      "name": "Gate remoto de perfis e viewports",
+      "status": "completed"
+    }
+  ]
+}

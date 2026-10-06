@@ -10,8 +10,10 @@ escolar já implementadas. A revisão de 06/10 reproduziu cinco falhas de recupe
 e preservação do escopo global, mesmo com 57 contratos anteriores verdes.
 [Evidência/decisão](evidence/2026-10-06-pr410-review/README.md). RED publicado em
 `da5174ec`, seguido de GREEN local com política compartilhada de refresh e união
-de escopos. 44 testes relacionados e 57 controles anteriores passaram. CI/E2E do
-novo SHA ainda pendentes; PR continua Draft. Os parágrafos seguintes descrevem checkpoints
+de escopos. GREEN funcional `a6a02120`: 1.294 unitários; 63 contratos + quatro E2E
+reais no CI; readiness com 655 pgTAP e 17 Auth/RLS/frontend. Dois advisories de
+desenvolvimento continuam bloqueando gates, com correções disponíveis. PR continua
+Draft; ainda confrontar demais jobs e custo sustentado/cliente. Os parágrafos seguintes descrevem checkpoints
 anteriores e não devem ser usados para reimplementar as etapas já entregues.
 
 O usuário autorizou seguir a simplificação incremental em 04/10/2026. O [#410](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/410) parte da main pós-#408 (`d9bf67f7...`), também confirmada no manifesto Production. Continua Draft; não altera o ambiente publicado nesta etapa.
@@ -38,7 +40,7 @@ capacidade Repository e aplicação atômica por escola; novo Realtime ainda pen
 
 #407 e #409 permanecem fontes de evidência. O #409 continua Draft: novos E2E de Realtime falharam no candidato `5553f130...`; o checkpoint `2d7706f3...` guarda erros e instruções. Não é base de implementação do #410. A aprovação da direção arquitetural não aprova migrations, cortes de recuperação ou merge antecipado.
 
-As proteções do #408 são regressões obrigatórias. Os detalhes do design precisam provar escopo/históricos, exclusões, retorno autoritativo, origem da escrita e recuperação após suspensão. A RPC escolar é candidata; aplicação da fatia, flag e sincronização dirigida ainda não estão implementadas.
+As proteções do #408 são regressões obrigatórias. Os detalhes do design precisam provar escopo/históricos, exclusões, retorno autoritativo, origem da escrita e recuperação após suspensão. RPC, aplicação da fatia e sincronização dirigida já existem no candidato atual. Os checkpoints anteriores não certificam automaticamente sua composição final ou a prontidão de publicação.
 
 ## 1. Estado funcional corrente
 
@@ -116,7 +118,7 @@ Registro técnico da correção final da C3: [correções CodeQL e validação C
 
 Os documentos de handoff de A/B e das frentes anteriores permanecem **históricos concluídos**. Não reabrir PRs #375/#376/#377/#378 ou textos pré-merge como fila de implementação.
 
-Não há handoff corrente. [Retificação de classificação e UX](handoff/2026-10-01-controller-type-retification.md) passa a histórico concluído da Fase 2, assim como os handoffs de candidato/publicação do #397. [PROD-UX-08](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) continua uma pendência separada de retomada visual. A investigação de `PROD-FUNC-09` está encerrada.
+O handoff corrente é o do #410 indicado no início deste documento. [Retificação de classificação e UX](handoff/2026-10-01-controller-type-retification.md) é histórico concluído da Fase 2, assim como os handoffs de candidato/publicação do #397. [PROD-UX-08](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) continua uma pendência separada de retomada visual. A investigação de `PROD-FUNC-09` está encerrada.
 
 Para retomada, a ordem de leitura continua sendo:
 
