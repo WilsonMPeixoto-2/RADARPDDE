@@ -111,3 +111,29 @@ Stylelint já documentada (seis ocorrências do advisory anterior), sem
 vulnerabilidade bloqueante de runtime. Stylelint, Knip no escopo do CI e os
 14 testes da política passaram. O relatório bruto permanece fora do Git.
 A certificação sustentada/visual e o CI do próximo candidato ainda são pendentes.
+
+
+## Flicker e gate sustentado — RED/GREEN de 06/10
+
+O teste de frames reaproveitado como contraprova do #407 falhou no #410 atual:
+refresh do mesmo Prontuário teve opacidade mínima **0**, esperado >=0,95.
+A causa atual é `.tab-content-panel.active` reaplicar `fadeIn` quando o renderer
+recria o painel. Override restrito aos painéis diretos do workspace escolar remove
+a animação; não altera navegação, dados ou outras superfícies. GREEN: teste de
+frames/troca de abas + dois testes de scroll (3/3). Screenshot final aberta:
+escola, competência, abas e avaliação permanecem legíveis e sem cortes novos.
+
+Adicionado gate sustentado baseado somente nos instrumentos/fixtures do #407,
+sem trazer seu runtime experimental. Seis sessões: três escritores (avaliação,
+CRUD fiscal, avaliação), dois observadores escolares e Dashboard; quatro identidades
+Controlador. Contabiliza RPC global **e escolar**, payload, SQL baseline/delta,
+Long Tasks, apply/render, DOM, frames, erros, reconexão e reload. Removidos os
+orçamentos baseados nos timers experimentais de 5s/2s; o comparador mantém custos
+explícitos e invariantes funcionais. O erro induzido agora segue uma mudança na
+escola realmente observada, pois mudança em outra escola deve ser diferida.
+Baseline comparativa passa a main pós-#408 `d9bf67f7`, com seu próprio lockfile.
+A execução ainda deve ser concluída e interpretada; instrumentação não é prova.
+
+O início local do Supabase falhou por espaço insuficiente na imagem PostgreSQL.
+Não é falha do produto. Usar o runner nativo descartável e seus artifacts; não
+substituir por banco de Production nem considerar a jornada pulada como verde.

@@ -1,0 +1,171 @@
+name: Uso real operacional com volume semelhante a Production
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'app.js'
+      - 'src/**'
+      - 'styles.css'
+      - 'supabase/**'
+      - 'tests/e2e/operational-*.spec.js'
+      - 'tests/support/operational-session-observer.js'
+      - 'scripts/compare-operational-sessions.mjs'
+      - 'scripts/operational-stat-snapshot.sql'
+      - 'scripts/bootstrap-operational-session-fixtures.mjs'
+      - 'package-lock.json'
+      - '.github/workflows/operational-real-usage-gate.yml'
+  workflow_dispatch:
+    inputs:
+      rounds:
+        description: Rodadas por escritor (40 diagnóstico curto; 400 estado acumulado)
+        type: choice
+        options: ['400', '40']
+        default: '400'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: operational-real-usage-${{ github.ref }}
+  # Checkpoints de análise não devem apagar uma reprodução ainda em andamento.
+  cancel-in-progress: false
+
+jobs:
+  sustained-browser-comparison:
+    name: Seis sessões reais (${{ matrix.variant }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [baseline, candidate]
+    env:
+      SUPABASE_TELEMETRY_DISABLED: '1'
+      RADAR_OPERATIONAL_VARIANT: ${{ matrix.variant }}
+      RADAR_E2E_SUPABASE_LOCAL: '1'
+      RADAR_E2E_SUSTAINED_OPERATIONAL: '1'
+      RADAR_OPERATIONAL_ROUNDS: ${{ inputs.rounds || '400' }}
+    steps:
+      - name: Obter candidato e baseline fixo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: npm
+      - name: Instalar ferramentas fixadas
+        run: npm ci
+      - name: Fixar a raiz do produto testado
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$RADAR_OPERATIONAL_VARIANT" == baseline ]]; then
+            runtime_root="${GITHUB_WORKSPACE}/.operational-baseline"
+            git worktree add --detach "$runtime_root" d9bf67f7d8a1ce2e468ec3c793ff992d8e10dfd6
+            # Produto baseline conserva seu lockfile; o harness comparativo é
+            # o mesmo candidato para ambas as variantes.
+            npm ci --prefix "$runtime_root"
+          else
+            runtime_root="$GITHUB_WORKSPACE"
+          fi
+          printf 'RADAR_OPERATIONAL_ROOT=%s\n' "$runtime_root" >> "$GITHUB_ENV"
+          printf 'RADAR_SERVE_ROOT=%s\n' "$runtime_root" >> "$GITHUB_ENV"
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Iniciar backend correspondente ao produto
+        working-directory: ${{ env.RADAR_OPERATIONAL_ROOT }}
+        run: |
+          bash "$GITHUB_WORKSPACE/scripts/start-disposable-supabase-ci.sh"
+          npm run supabase:reset
+      - name: Preparar volume calibrado
+        run: docker exec -i supabase_db_radar-pdde psql -X -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/fixtures/operational-production-shape.sql
+      - name: Preparar cadastros institucionais locais
+        run: docker exec -i supabase_db_radar-pdde psql -X -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/fixtures/operational-session-contexts.sql
+      - name: Preparar Controladores reais sem credenciais Production
+        working-directory: ${{ env.RADAR_OPERATIONAL_ROOT }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          eval "$(npx --no-install supabase status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
+          FIXTURE_PASSWORD="$(node --input-type=module -e "import { randomBytes } from 'node:crypto'; process.stdout.write(randomBytes(32).toString('base64url') + 'A1!')")"
+          echo "::add-mask::${FIXTURE_PASSWORD}"
+          echo "::add-mask::${SERVICE_ROLE_KEY}"
+          export RADAR_ALLOW_LOCAL_AUTH_BOOTSTRAP=true
+          export RADAR_SUPABASE_URL="$API_URL"
+          export RADAR_SUPABASE_ADMIN_KEY="$SERVICE_ROLE_KEY"
+          export RADAR_AUTH_FIXTURE_PASSWORD="$FIXTURE_PASSWORD"
+          node "$GITHUB_WORKSPACE/scripts/bootstrap-local-auth-fixtures.mjs"
+          node "$GITHUB_WORKSPACE/scripts/bootstrap-operational-session-fixtures.mjs"
+          unset RADAR_SUPABASE_ADMIN_KEY
+          RADAR_DATA_MODE=supabase-preview RADAR_ENVIRONMENT=test \
+          RADAR_SUPABASE_REPOSITORY_ENABLED=true RADAR_SUPABASE_PUBLISHABLE_KEY="$ANON_KEY" \
+          node "$GITHUB_WORKSPACE/scripts/generate-runtime-config.mjs" --output "$RADAR_OPERATIONAL_ROOT/config.runtime.js"
+          printf 'RADAR_AUTH_FIXTURE_PASSWORD=%s\n' "$FIXTURE_PASSWORD" >> "$GITHUB_ENV"
+      - name: Registrar baseline SQL sem reset
+        id: sql-baseline
+        run: |
+          docker exec supabase_db_radar-pdde psql -X -q -U postgres -d postgres -v ON_ERROR_STOP=1 -c 'create extension if not exists pg_stat_statements'
+          docker exec -i supabase_db_radar-pdde psql -X -qAt -U postgres -d postgres -v ON_ERROR_STOP=1 < scripts/operational-stat-snapshot.sql > "$RUNNER_TEMP/operational-pg-stat-before.json"
+      - name: Executar gestos concorrentes e medir a cadeia completa
+        run: npx playwright test tests/e2e/operational-sustained-sessions.spec.js --project=desktop-chromium --workers=1 --retries=0
+      - name: Preservar delta SQL e separar aborts de execução no banco
+        if: ${{ always() && steps.sql-baseline.outcome == 'success' }}
+        run: |
+          mkdir -p test-results/operational-sustained
+          cp "$RUNNER_TEMP/operational-pg-stat-before.json" test-results/operational-sustained/pg-stat-before.json
+          docker exec -i supabase_db_radar-pdde psql -X -qAt -U postgres -d postgres -v ON_ERROR_STOP=1 < scripts/operational-stat-snapshot.sql > test-results/operational-sustained/pg-stat-after.json
+      - name: Preservar resultados mesmo se a jornada falhar
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: operational-sustained-${{ matrix.variant }}-${{ github.run_id }}
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Preservar métricas pequenas separadas dos vídeos
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: operational-metrics-${{ matrix.variant }}-${{ github.run_id }}
+          path: |
+            test-results/operational-sustained/
+            test-results/**/observer-*.png
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Encerrar pilha descartável
+        if: always()
+        working-directory: ${{ env.RADAR_OPERATIONAL_ROOT }}
+        run: npx --no-install supabase stop --no-backup
+
+
+  comparison:
+    name: Comparação de custo e invariantes
+    needs: sustained-browser-comparison
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: operational-metrics-*
+          path: comparison-input
+      - name: Conferir comparador e produzir deltas
+        run: |
+          node --test tests/unit/operational-session-comparison.test.js
+          node scripts/compare-operational-sessions.mjs --baseline "comparison-input/operational-metrics-baseline-${GITHUB_RUN_ID}" --candidate "comparison-input/operational-metrics-candidate-${GITHUB_RUN_ID}" --output comparison-output
+          cat comparison-output/comparison.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: operational-comparison-${{ github.run_id }}
+          path: comparison-output/
+          retention-days: 30
