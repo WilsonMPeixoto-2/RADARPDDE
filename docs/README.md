@@ -1,7 +1,7 @@
 # Documentação do RADAR PDDE
 
 **Classe documental:** Canônico — índice e rota de leitura  
-**Atualizado em:** 2 de outubro de 2026
+**Atualizado em:** 7 de outubro de 2026
 
 ## 1. Rota obrigatória
 
@@ -103,6 +103,7 @@ Consultar conforme a área materialmente afetada:
 - [`DECISION_LOG.md`](DECISION_LOG.md) — decisões duradouras;
 - [`architecture/`](architecture/) — contratos arquiteturais específicos;
 - [`decisions/`](decisions/) — ADRs;
+- [`reference/VERCEL_OBSERVABILITY.md`](reference/VERCEL_OBSERVABILITY.md) — integração e validação de Web Analytics/Speed Insights em Production; registra também o fechamento do #416 e evita reintrodução de dependência redundante;
 - [`reference/SUPABASE_DATA_DICTIONARY.md`](reference/SUPABASE_DATA_DICTIONARY.md) — dicionário de dados;
 - [`reference/SUPABASE_PERMISSIONS_MATRIX.md`](reference/SUPABASE_PERMISSIONS_MATRIX.md) — matriz de permissões;
 - [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md) — interpretação dos testes.
