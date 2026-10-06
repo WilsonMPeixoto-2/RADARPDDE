@@ -10,7 +10,10 @@
   },
   "logsSha256": {
     "pr410-d571-recovery-red.log": "7646cc2438bcd63898130aa8cfd9a8a696eb4d5f73ac5cdcfeede33318866c0f",
-    "pr410-d571-existing-hardening.log": "48ef4b4770abd0a0fde4c9ac5b12396125f45e28f2258ce08cfdccc7000b62e3"
+    "pr410-d571-existing-hardening.log": "48ef4b4770abd0a0fde4c9ac5b12396125f45e28f2258ce08cfdccc7000b62e3",
+    "pr410-school-recovery-green.log": "c02a55dc79532fff0aa81070a31bfa4e3dc19811e6761ff49b20b4e86735d3fc",
+    "pr410-shared-recovery-hardening.log": "20660b3b836ec0030061674bb6a0df1eb73b5b82db6f5caccadb3b2c2e019e72",
+    "pr410-shared-recovery-all-unit.log": "5844a87f29336369ac8786d19e0e93b8a4a433af62e56c804dc99fa4c8ae8af8"
   },
   "workflows": [
     {
@@ -146,5 +149,22 @@
       "name": "Testes E2E Playwright",
       "status": "completed"
     }
-  ]
+  ],
+  "greenLocal": {
+    "related": {
+      "passed": 44,
+      "failed": 0
+    },
+    "existingHardening": {
+      "passed": 57,
+      "failed": 0
+    },
+    "fullUnit": {
+      "passed": 1294,
+      "failed": 0,
+      "skipped": 0
+    },
+    "nativeE2E": "pending CI",
+    "netSourceLinesRemoved": 45
+  }
 }

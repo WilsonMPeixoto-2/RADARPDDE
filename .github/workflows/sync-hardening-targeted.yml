@@ -13,6 +13,7 @@ on:
       - 'src/styles/operational-write-feedback.css'
       - 'tests/unit/incremental-state-application.test.js'
       - 'tests/unit/operational-context-school-pending-scope.test.js'
+      - 'tests/unit/operational-school-recovery-invariants.test.js'
       - 'tests/unit/operational-realtime-invalidation.test.js'
       - 'tests/unit/realtime-status-feedback-composition.test.js'
       - 'tests/unit/operational-write-feedback.test.js'
@@ -56,12 +57,13 @@ jobs:
           node --check src/integration/operational-write-feedback.js
           node --check src/integration/product-extensions-bootstrap.js
           node --check tests/unit/operational-context-school-pending-scope.test.js
+          node --check tests/unit/operational-school-recovery-invariants.test.js
           node --check tests/e2e/supabase-realtime-invalidation.spec.js
 
       - name: Provar contratos específicos da correção
         run: |
           npm run test:sync-hardening
-          node --test tests/unit/operational-context-school-pending-scope.test.js
+          node --test tests/unit/operational-context-school-pending-scope.test.js tests/unit/operational-school-recovery-invariants.test.js
 
   realtime-composition:
     name: Duas sessões, Realtime real e degradação visível

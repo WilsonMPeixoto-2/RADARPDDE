@@ -1,5 +1,25 @@
 # Revisão causal do candidato d571a26a
 
+## Checkpoint GREEN local
+
+Os cinco REDs foram corrigidos no mesmo mecanismo de refresh existente. A leitura
+escolar passa pelo mesmo fluxo de cooldown/edição/inflight/fallback da global.
+O debounce conserva a união de escopos. Duas fontes alteradas: saldo de **45 linhas
+removidas**; nenhum novo timer. 44 testes escolares/Realtime passaram, assim como
+os 57 controles do hardening anterior. Sintaxe, lint das fontes e referências dos
+workflows passaram. A suíte completa passou **1.294/1.294, zero skips**. A prova nativa do candidato
+será registrada quando concluir; não herda a certificação de d571.
+
+O gate específico inclui agora as cinco contraprovas permanentes. A suíte nativa
+ganhou um cenário com duas sessões, escrita real, primeiro request escolar falhando
+por HTTP 500 induzido e 30 eventos DOM de clique antes da convergência. Esperado:
+uma tentativa com falha + um retry real, sem avalanche. Esse cenário ainda precisa
+ser executado no CI; não foi declarado verde com base apenas nos testes locais.
+
+Continuam pendentes para decisão final: CI do novo SHA, diagnóstico exato das
+dependências, jornada sustentada/medição do cliente e homologação hospedada quando
+necessária. Nenhum merge/deploy foi feito.
+
 ## Estado observado em 06/10/2026
 
 #410 aberto, Draft, mergeável, HEAD `d571a26afdc7e443df096564b7db951a58abfc37`.

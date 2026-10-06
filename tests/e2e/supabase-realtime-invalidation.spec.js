@@ -125,6 +125,47 @@ async function prepareInstitutionalExportFixture(page) {
   });
 }
 
+test('falha escolar após Broadcast resiste a 30 gestos e converge pelo retry real', async ({ browser }, testInfo) => {
+  test.setTimeout(60000);
+  const contextA = await browser.newContext();
+  const contextB = await browser.newContext();
+  const pageA = await contextA.newPage();
+  const pageB = await contextB.newPage();
+  const reads = [];
+  try {
+    await Promise.all([signInInstitutional(pageA), signInInstitutional(pageB)]);
+    await Promise.all([openSchool(pageA), openSchool(pageB)]);
+    await Promise.all([waitRealtimeSubscribed(pageA), waitRealtimeSubscribed(pageB)]);
+    const original = await currentExtCC(pageB);
+    const changed = original === 'Sim' ? 'Não' : 'Sim';
+    await pageB.route('**/rest/v1/rpc/read_school_operational_context', async route => {
+      reads.push({ at: Date.now(), injectedFailure: reads.length === 0 });
+      if (reads.length === 1) {
+        await route.fulfill({ status: 500, contentType: 'application/json',
+          body: JSON.stringify({ code: '57014', message: 'Induced statement timeout for disposable E2E' }) });
+      } else {
+        await route.continue();
+      }
+    });
+    await setExtCC(pageA, changed);
+    await expect.poll(() => reads.length).toBeGreaterThanOrEqual(1);
+    await pageB.waitForFunction(() => window.RadarOperationalContextRefreshController?.getLastFailureAt?.() > 0);
+    await pageB.evaluate(() => {
+      // Exercita o listener DOM real sem acionar 30 comandos de negócio.
+      for (let index = 0; index < 30; index += 1) document.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+    await expect.poll(() => currentExtCC(pageB), { timeout: 10000 }).toBe(changed);
+    await expectVisibleExtCC(pageB, changed);
+    expect(reads).toHaveLength(2);
+    expect(await pageB.evaluate(() => window.RadarOperationalContextRefreshController.hasPendingRefresh())).toBe(false);
+    await testInfo.attach('school-timeout-recovery.json', { body: JSON.stringify({ reads, gestures: 30 }), contentType: 'application/json' });
+    await setExtCC(pageA, original);
+  } finally {
+    await contextA.close();
+    await contextB.close();
+  }
+});
+
 test('Broadcast atualiza outra sessão sem F5 e respeita edição em andamento', async ({ browser }) => {
   test.setTimeout(60000);
 

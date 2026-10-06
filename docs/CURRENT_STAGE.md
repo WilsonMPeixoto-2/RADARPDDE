@@ -8,8 +8,10 @@
 **Retomada vigente:** candidato remoto `d571a26a`, com aplicação e sincronização
 escolar já implementadas. A revisão de 06/10 reproduziu cinco falhas de recuperação
 e preservação do escopo global, mesmo com 57 contratos anteriores verdes.
-[Evidência/decisão](evidence/2026-10-06-pr410-review/README.md). PR continua Draft;
-não recomendar merge no estado RED. Os parágrafos seguintes descrevem checkpoints
+[Evidência/decisão](evidence/2026-10-06-pr410-review/README.md). RED publicado em
+`da5174ec`, seguido de GREEN local com política compartilhada de refresh e união
+de escopos. 44 testes relacionados e 57 controles anteriores passaram. CI/E2E do
+novo SHA ainda pendentes; PR continua Draft. Os parágrafos seguintes descrevem checkpoints
 anteriores e não devem ser usados para reimplementar as etapas já entregues.
 
 O usuário autorizou seguir a simplificação incremental em 04/10/2026. O [#410](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/410) parte da main pós-#408 (`d9bf67f7...`), também confirmada no manifesto Production. Continua Draft; não altera o ambiente publicado nesta etapa.

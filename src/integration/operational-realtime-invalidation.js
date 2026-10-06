@@ -74,6 +74,7 @@
             : DEFAULT_DEBOUNCE_MS;
         let channel = null;
         let timer = null;
+        let scheduledSchoolId = '';
         let everSubscribed = false;
         let destroyed = false;
         let startPromise = null;
@@ -159,9 +160,13 @@
 
         function scheduleRefresh(reason = 'realtime', options = {}) {
             if (destroyed) return false;
-            const schoolId = text(options.schoolId);
+            let schoolId = text(options.schoolId);
+            // Um debounce agrupa todas as invalidações ainda não executadas.
+            // Global domina escola; duas escolas exigem a cobertura global.
+            if (timer != null && scheduledSchoolId !== schoolId) schoolId = '';
             if (timer != null && /^realtime(?:-school)?$/.test(reason)) metrics.coalescedBroadcasts += 1;
             clearScheduledRefresh();
+            scheduledSchoolId = schoolId;
             metrics.refreshesScheduled += 1;
             if (schoolId) metrics.schoolRefreshesScheduled += 1;
             if (/-retry$/.test(reason)) metrics.retriesScheduled += 1;

@@ -176,12 +176,16 @@
         }
 
         async function refresh(reason = 'resume', refreshOptions = {}) {
+            let schoolId = typeof service.loadSchoolOperationalContext === 'function'
+                ? text(refreshOptions.schoolId) : '';
+            // O pedido novo não pode estreitar uma pendência já mais ampla.
+            if (pendingRefreshReason && pendingRefreshSchoolId !== schoolId) schoolId = '';
             if (refreshPromise) {
                 const queueAfterInflight = refreshOptions.force === true
                     || refreshOptions.resumeAfterHidden === true
                     || refreshOptions.resumeAfterBlur === true;
                 if (!queueAfterInflight) return refreshPromise;
-                markPending(reason, { canForce: true });
+                markPending(reason, { canForce: true, schoolId });
                 const currentRefresh = refreshPromise;
                 return currentRefresh.then(result => flushPending('inflight-finished', {
                     force: result?.ok !== false && result?.stale !== true
@@ -195,7 +199,7 @@
                 markPending(reason, { canForce: /^realtime(?:-|$)/.test(reason)
                     || refreshOptions.force === true
                     || refreshOptions.resumeAfterHidden === true
-                    || refreshOptions.resumeAfterBlur === true });
+                    || refreshOptions.resumeAfterBlur === true, schoolId });
                 return { skipped: true, reason: 'editing', pending: true };
             }
             const competenceKey = activeCompetence(root);
@@ -215,7 +219,7 @@
                     && refreshOptions.resumeAfterBlur !== true) {
                     return { skipped: true, reason: 'throttled', pending: false, retryAfterMs };
                 }
-                markPending(reason);
+                markPending(reason, { schoolId });
                 scheduleCooldownFlush(retryAfterMs);
                 return {
                     skipped: true,
@@ -231,16 +235,25 @@
             const startedAt = now;
             let run = null;
             run = Promise.resolve().then(async () => {
-                const result = await service.loadOperationalContext(competenceKey, {
+                const readOptions = {
                     source: `session-${reason}-refresh`,
                     historyStatuses: root.RadarTask9PendencyPage?.requestedHistoryStatuses?.() || [],
                     shouldApply: () => authenticated(root) && !editing(root)
                         && activeCompetence(root) === competenceKey
-                });
+                        && (typeof refreshOptions.shouldApply !== 'function' || refreshOptions.shouldApply())
+                };
+                let result;
+                if (schoolId) {
+                    result = await service.loadSchoolOperationalContext(schoolId, competenceKey, readOptions);
+                }
+                if (!schoolId || result?.fallback) {
+                    schoolId = '';
+                    result = await service.loadOperationalContext(competenceKey, readOptions);
+                }
                 if (result?.stale === true) {
                     if (authenticated(root) && activeCompetence(root) === competenceKey) {
-                        markPending(reason);
-                        if (reason === 'realtime-retry') {
+                        markPending(reason, { schoolId });
+                        if (/^realtime(?:-school)?-retry(?:-|$)/.test(reason)) {
                             scheduleCooldownFlush(remainingCooldownMs());
                         }
                     }
@@ -248,7 +261,7 @@
                 }
                 if (!authenticated(root)) return { ...result, stale: true };
                 if (editing(root)) {
-                    markPending(reason);
+                    markPending(reason, { schoolId });
                     return { ...result, stale: true, pending: true };
                 }
                 if (activeCompetence(root) !== competenceKey) return { ...result, stale: true };
@@ -256,7 +269,7 @@
                 lastFailureAt = 0;
                 refreshCurrentView(root);
                 lastRefreshAt = Date.now();
-                if (typeof root.dispatchEvent === 'function' && typeof root.CustomEvent === 'function') {
+                if (!schoolId && typeof root.dispatchEvent === 'function' && typeof root.CustomEvent === 'function') {
                     root.dispatchEvent(new root.CustomEvent('radar:operational-context-refreshed', {
                         detail: {
                             competenceKey,
@@ -269,8 +282,8 @@
                 return result;
             }).catch(error => {
                 lastFailureAt = Date.now();
-                markPending(reason);
-                if (reason === 'realtime-retry') {
+                markPending(reason, { schoolId });
+                if (/^realtime(?:-school)?-retry(?:-|$)/.test(reason)) {
                     scheduleCooldownFlush(remainingCooldownMs());
                 }
                 root.console?.warn?.('Não foi possível atualizar o contexto operacional ao retomar a sessão.', error);
@@ -282,72 +295,9 @@
             return run;
         }
 
-        async function refreshSchool(schoolId, reason = 'realtime-school', refreshOptions = {}) {
-            const targetSchool = text(schoolId);
-            if (!targetSchool || typeof service.loadSchoolOperationalContext !== 'function') {
-                return refresh(`${reason}-fallback`, { force: true });
-            }
-            if (refreshPromise) {
-                markPending(reason, { canForce: true, schoolId: targetSchool });
-                const currentRefresh = refreshPromise;
-                return currentRefresh.then(() => refreshSchool(targetSchool, reason, refreshOptions));
-            }
-            if (!authenticated(root)) {
-                clearPending();
-                return { skipped: true, reason: 'unauthenticated' };
-            }
-            if (editing(root)) {
-                markPending(reason, { canForce: true, schoolId: targetSchool });
-                return { skipped: true, reason: 'editing', pending: true };
-            }
-            const competenceKey = activeCompetence(root);
-            if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(competenceKey)) {
-                return { skipped: true, reason: 'invalid-competence' };
-            }
-
-            lastAttemptAt = Date.now();
-            clearPending();
-            let run = null;
-            run = Promise.resolve().then(async () => {
-                const result = await service.loadSchoolOperationalContext(targetSchool, competenceKey, {
-                    source: `session-${reason}-refresh`,
-                    historyStatuses: root.RadarTask9PendencyPage?.requestedHistoryStatuses?.() || [],
-                    shouldApply: () => authenticated(root) && !editing(root)
-                        && activeCompetence(root) === competenceKey
-                        && (typeof refreshOptions.shouldApply !== 'function' || refreshOptions.shouldApply())
-                });
-                if (result?.fallback) return result;
-                if (result?.stale === true) {
-                    if (authenticated(root) && activeCompetence(root) === competenceKey) {
-                        markPending(reason, { canForce: true, schoolId: targetSchool });
-                    }
-                    return result;
-                }
-                if (!authenticated(root)) return { ...result, stale: true };
-                if (editing(root)) {
-                    markPending(reason, { canForce: true, schoolId: targetSchool });
-                    return { ...result, stale: true, pending: true };
-                }
-                if (activeCompetence(root) !== competenceKey) return { ...result, stale: true };
-
-                lastFailureAt = 0;
-                refreshCurrentView(root);
-                lastRefreshAt = Date.now();
-                return result;
-            }).catch(error => {
-                lastFailureAt = Date.now();
-                markPending(reason, { canForce: true, schoolId: targetSchool });
-                root.console?.warn?.('Não foi possível atualizar a escola após invalidação Realtime.', error);
-                return { ok: false, error, pending: true };
-            }).finally(() => {
-                if (refreshPromise === run) refreshPromise = null;
-            });
-            refreshPromise = run;
-            const result = await run;
-            if (result?.fallback) {
-                return refresh(`${reason}-fallback`, { force: true });
-            }
-            return result;
+        function refreshSchool(schoolId, reason = 'realtime-school', refreshOptions = {}) {
+            // A seleção da leitura muda; a política de recuperação é a mesma do #408.
+            return refresh(reason, { force: true, ...refreshOptions, schoolId });
         }
 
         async function flushPending(reason = 'editing-ended', flushOptions = {}) {
