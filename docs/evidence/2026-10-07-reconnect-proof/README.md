@@ -30,3 +30,13 @@ Nenhuma mudança em produto, migrations, Auth/RLS, dependências ou Production.
 O-1/O-2/O-3 são observações, não implementação autorizada automaticamente. Os
 60% pertencem à fixture pareada; deltas do gate pré-#410 não isolam o #427. As
 observações externas de Production são datadas e não foram reexecutadas aqui.
+
+## RED nativo confirmado
+
+Run [37654112405](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37654112405),
+SHA `b686c438`, seis sessões/40 rodadas. Baseline passou; candidato falhou na
+asserção causal adicionada. Com a leitura de recovery suprimida no harness, a
+asserção original `Sim` e `reconnectRefreshes > 0` passaram por causa da request
+antiga invisível à drenagem. O resumo/hash do artefato estão em `red.json`.
+A sabotagem é temporária e será removida do candidato final. Não é falha nova de
+Production nem justificativa para alterar o controlador.

@@ -10,7 +10,7 @@ on:
       - 'styles.css'
       - 'supabase/**'
       - 'tests/e2e/operational-*.spec.js'
-      - 'tests/support/operational-session-observer.js'
+      - 'tests/support/operational-*.js'
       - 'scripts/compare-operational-sessions.mjs'
       - 'scripts/operational-stat-snapshot.sql'
       - 'scripts/bootstrap-operational-session-fixtures.mjs'

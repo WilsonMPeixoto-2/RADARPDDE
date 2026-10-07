@@ -1,0 +1,48 @@
+{
+  "generatedAt": "2026-10-07T16:46:11.718Z",
+  "variant": "candidate",
+  "stage": "reconnect-counterproof",
+  "outcome": "failed",
+  "rounds": 40,
+  "faults": {
+    "readLatencyMs": 0,
+    "failObserverRead": false,
+    "failuresInjected": 1,
+    "pauseObserverReads": false,
+    "retainedObserverReads": 1,
+    "counterproof": {
+      "hiddenReadPassedDrain": true,
+      "originalUiAssertionPassed": true,
+      "recoveryReadsSuppressed": 1
+    }
+  },
+  "runId": 37654112405,
+  "candidateJobId": 112904743021,
+  "commit": "b686c438b7b5a9f0f027e89d93f97cc839d59d46",
+  "artifactId": 11497023708,
+  "artifactSha256": "5301e2ce64ccb7e75079ba3aefe5415a25ea545b7b6dfdd4cc613fc9d7e43aa3",
+  "observerRealtime": {
+    "broadcastsReceived": 146,
+    "coalescedBroadcasts": 40,
+    "refreshesScheduled": 46,
+    "refreshAttempts": 6,
+    "refreshSucceeded": 5,
+    "refreshFailed": 1,
+    "retriesScheduled": 1,
+    "reconnectRefreshes": 1,
+    "schoolRefreshesScheduled": 45,
+    "deferredSchoolInvalidations": 102,
+    "deferredSchoolReconciliations": 0,
+    "lastBroadcastAt": "2026-10-07T16:46:02.350Z",
+    "lastRefreshAt": "2026-10-07T16:46:06.281Z",
+    "byEntity": {
+      "verifications": 116,
+      "registered_invoices": 30
+    },
+    "dirtySchoolIds": [
+      "OPS-SESSION-2",
+      "OPS-SESSION-3"
+    ]
+  },
+  "interpretation": "RED esperado: asserção original Sim e contador de reconnect passaram mesmo com leitura de recovery suprimida; asserção causal Não falhou. Produto não modificado."
+}
