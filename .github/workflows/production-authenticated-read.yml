@@ -111,7 +111,8 @@ jobs:
         id: smoke
         env:
           RADAR_E2E_PRODUCTION_AUTHENTICATED_READ: '1'
-          RADAR_PRODUCTION_WRITE_SMOKE_REQUIRED: '1'
+          RADAR_PRODUCTION_WRITE_SMOKE_ENABLED: ${{ github.event_name == 'workflow_dispatch' && '1' || '0' }}
+          RADAR_PRODUCTION_WRITE_SMOKE_REQUIRED: ${{ github.event_name == 'workflow_dispatch' && '1' || '0' }}
           RADAR_PRODUCTION_READ_ACCOUNTS_FILE: ${{ steps.credentials.outputs.accounts_file }}
         run: npx playwright test --config=playwright.production-authenticated-read.config.js
 
@@ -137,7 +138,7 @@ jobs:
             echo
             echo "- Resultado: ${SMOKE_OUTCOME:-não executado}"
             echo '- Leitura: login, sessão, busca, dashboard, carteira autorizada, prontuário e pendências para todas as contas fornecidas.'
-            echo '- Escrita: exatamente uma conta Controlador ou Assistente marcada com allowWrite=true executa criar -> editar -> reler -> excluir uma NF sintética TESTE_AUTOMACAO.'
+            echo '- Escrita: somente em workflow_dispatch; uma conta Controlador ou Assistente marcada com allowWrite=true executa criar -> editar -> reler -> excluir uma NF sintética TESTE_AUTOMACAO.'
             echo '- Cleanup: a NF sintética deve desaparecer do banco e os campos funcionais da verificação devem retornar ao snapshot anterior.'
             echo '- Auditoria: logs administrativos do ciclo permanecem por desenho, identificando a operação de teste.'
             echo '- Artefatos: nenhum trace, screenshot ou vídeo de Production é publicado.'
@@ -162,7 +163,7 @@ jobs:
             echo
             echo '- Estado: aguardando habilitação do monitor e as contas reais autorizadas.'
             echo '- Aceita de uma a cinco contas, uma por perfil.'
-            echo '- Exatamente uma conta Controlador ou Assistente deve usar allowWrite=true para o ciclo CRUD reversível.'
+            echo '- Para a execução manual com CRUD, exatamente uma conta Controlador ou Assistente deve usar allowWrite=true.'
             echo '- Segredo preferencial: RADAR_PRODUCTION_AUTH_ACCOUNTS_JSON.'
             echo '- Variável preferencial: RADAR_PRODUCTION_AUTH_SMOKE_ENABLED=true.'
           } >> "${GITHUB_STEP_SUMMARY}"
