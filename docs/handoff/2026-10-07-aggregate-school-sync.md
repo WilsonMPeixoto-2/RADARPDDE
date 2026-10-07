@@ -1,6 +1,10 @@
 # Dashboard/Carteira — sincronização escolar residual
 
-Classe: handoff da frente, sem criar regra funcional nova.
+Classe: histórico concluído da frente, sem criar regra funcional nova.
+
+**Validade:** #427 integrado e publicado em 07/10, com autorização posterior do
+usuário após o relatório final. Checkpoints/instruções abaixo preservam seu
+momento e não são tarefas pendentes. Ver o adendo de encerramento no fim.
 
 ## Baseline e objetivo
 
@@ -205,3 +209,28 @@ Conferir o CI do HEAD final, abrir essas capturas, atualizar estado/descrição 
 PR e apresentar relatório ao usuário. **Não fazer merge automático.** Riscos
 remanescentes: fallback conservador multiescola/contatos/cobertura invalidada e
 custo de reconstrução da UI ainda existentes; não ampliar esta frente para redesenho.
+
+
+## Encerramento — merge autorizado e publicação
+
+- Candidato final `90414a8056bb5ac706a925376ead48681e014ec6`: 14/14 workflows
+  concluídos com sucesso; 30 checks aprovados e dois skips condicionais de Preview.
+- O relatório foi apresentado e o usuário autorizou o merge. #427 integrado em
+  `09083d91227e3f136496e34a5eef3a0c1158fa78`; árvore idêntica à do candidato.
+- Production `dpl_5L41YQCcnLHnbE5kT4s5UtG6cvvg`, `READY`, alias oficial e manifesto
+  no merge. O asset escolar publicado coincide com a minificação canônica do SHA.
+- Smoke público `37626582810` aprovado: 52 assets e leitura anônima `blocked-401`;
+  preflight das Edge Functions aprovado. Os oito workflows pós-merge concluíram
+  com sucesso, incluindo login público/RLS/responsividade. Nenhuma escrita em Production.
+- Medição do HEAD final: oito escolares/zero globais e 53.362 bytes por observador,
+  contra oito globais/133.356 bytes na main anterior com a mesma fixture/gestos.
+  Dom/mutações mantidos; não declarar ganho de CPU nem extrapolar para Production.
+- [Registro estruturado da publicação](../evidence/2026-10-07-aggregate-school-sync/release.json)
+  e [relatório de evidências](../evidence/2026-10-07-aggregate-school-sync/README.md).
+
+Frente encerrada. Global conservador multiescola/contatos/cobertura invalidada e
+custo de reconstrução da UI são limites preservados, não novas correções pendentes
+a executar automaticamente. Não reiniciar #407/#409/#410 nem ampliar para Auth,
+smoke autenticado, tooling, migrations ou observabilidade. A prova nativa de
+sincronização permanece no CI; o smoke público de publicação não substitui uma
+jornada autenticada com escritas em Production.

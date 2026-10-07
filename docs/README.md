@@ -23,9 +23,11 @@ Ordem:
 
 **Estado funcional corrente:** A + B + C, #397, Fases 1/2 de autonomia/retificação e
 #410 estão concluídos. Fase D, NAV-01/UX-04 e `PROD-UX-08` permanecem separados.
-A frente autorizada de otimização residual de Dashboard/Carteira é detalhada no
-[handoff corrente de 07/10](handoff/2026-10-07-aggregate-school-sync.md), apontado
-por `CURRENT_STAGE.md`. O handoff do #410 preserva somente seu histórico.
+A otimização residual de Dashboard/Carteira/Competências foi integrada e publicada
+pelo #427. O [registro de 07/10](handoff/2026-10-07-aggregate-school-sync.md) e o
+handoff do #410 são históricos concluídos; não há handoff corrente dessas entregas.
+A [evidência de publicação](evidence/2026-10-07-aggregate-school-sync/README.md)
+preserva certificação, benchmark e limites.
 
 O [PR #386](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/386) e o merge funcional `e6b692a97dd5148877c788da11e0c8ae4c8fcd19` registram o encerramento da C3. Commits posteriores exclusivamente documentais podem avançar a `main` e gerar novo deployment sem reabrir a Fase C. Quando o SHA do head ou o deployment ativo importarem para uma nova entrega, verificá-los ao vivo.
 

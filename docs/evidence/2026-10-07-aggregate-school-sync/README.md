@@ -104,5 +104,30 @@ de seis sessões/400 rodadas e a comparação. [Certificação e IDs](ci-4d948a4
 O checkpoint seguinte acrescenta documentos/capturas de rolagem interna, sem
 alterar produto. Conferir seus checks antes de recomendar merge.
 
-PR #427, sem merge/deploy. Main/Production mantidas em `2cb4fb35`. O relatório
-deve ser apresentado ao usuário antes de merge. [Handoff corrente](../../handoff/2026-10-07-aggregate-school-sync.md).
+Checkpoint pré-merge: main/Production estavam em `2cb4fb35`. O relatório foi
+apresentado antes da autorização posterior de integração. O [registro da frente](../../handoff/2026-10-07-aggregate-school-sync.md) é agora histórico concluído.
+
+
+## Publicação e encerramento
+
+O HEAD final `90414a8056bb5ac706a925376ead48681e014ec6` concluiu os 14 workflows
+aplicáveis e as seis jornadas nativas sem retries. A medição desse run
+(`37623372852`) foi 53.362 bytes por observador, oito RPCs escolares e zero tentativas
+globais/falhas, com DOM/mutações mantidos. As capturas superiores e das linhas após
+rolagem interna foram inspecionadas. O artifact compacto `11482643902` tem SHA-256
+`302c0c3b56c47b1e2b66479e4e39cc35e648c2793311861c776b6bc251733346`.
+
+Após apresentar o relatório e receber autorização, o #427 foi integrado em
+`09083d91227e3f136496e34a5eef3a0c1158fa78`, com árvore idêntica à do candidato.
+Deployment `dpl_5L41YQCcnLHnbE5kT4s5UtG6cvvg`, `READY`; manifesto oficial no merge,
+`supabase-production`. O arquivo publicado possui SHA-256
+`01171478aff8d0402e424d83cd0b3a36ed5ea765ae6a613834a9db3d7bd2338a` e coincide
+com a saída esbuild canônica (não com o fonte anterior à minificação).
+
+O [monitor público](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37626582810)
+aprovou 52 assets, bloqueio anônimo `blocked-401` e preflight das Edge Functions.
+Os **8/8 workflows disparados na main** concluíram com sucesso, incluindo o
+contrato público de login/RLS/responsividade. Não foram feitas escritas nem
+afirmada homologação autenticada em Production.
+[Proveniência estruturada e CI pós-merge](release.json). Handoff reclassificado
+como histórico concluído; não restam tarefas desta entrega.

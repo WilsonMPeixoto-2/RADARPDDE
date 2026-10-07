@@ -1,0 +1,221 @@
+{
+  "observedAt": "2026-10-07T13:18:42.014086+00:00",
+  "pr": 427,
+  "userAuthorizedMergeAfterReport": true,
+  "baselineMain": "2cb4fb359ff9614ebd7fdf824e297f22ebcb025f",
+  "certifiedCandidate": "90414a8056bb5ac706a925376ead48681e014ec6",
+  "mergeCommit": "09083d91227e3f136496e34a5eef3a0c1158fa78",
+  "tree": "9a2693c09b29e2efe0f47a33e8e5f31569025381",
+  "mergeTreeEqualsCertifiedCandidate": true,
+  "candidateCi": {
+    "successfulWorkflows": 14,
+    "successfulChecks": 30,
+    "conditionalSkippedChecks": 2,
+    "runs": [
+      {
+        "id": 37623372649,
+        "name": "Ciclos funcionais reais com Supabase",
+        "conclusion": "success",
+        "html_url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37623372649"
+      },
+      {
+        "id": 37623372636,
+        "name": "CodeQL",
+        "conclusion": "success",
+        "html_url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37623372636"
+      },
+      {
+        "id": 37623372601,
+        "name": "Confiabilidade funcional com Supabase real",
+        "conclusion": "success",
+        "html_url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37623372601"
+      },
+      {
+        "id": 37623372662,
+        "name": "Gate remoto de perfis e viewports",
+        "conclusion": "success",
+        "html_url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37623372662"
+      },
+      {
+        "id": 37623372852,
+        "name": "Hardening específico de sincronização operacional",
+        "conclusion": "success",
+        "html_url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37623372852"
+      },
+      {
+        "id": 37623372657,
+        "name": "Homologação integral pré-production",
+        "conclusion": "success",
+        "html_url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37623372657"
+      },
+      {
+        "id": 37623372524,
+        "name": "Lighthouse CI",
+        "conclusion": "success",
+        "html_url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37623372524"
+      },
+      {
+        "id": 37623372511,
+        "name": "Regressão visual desktop",
+        "conclusion": "success",
+        "html_url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37623372511"
+      },
+      {
+        "id": 37623372612,
+        "name": "Retificação auditável direcionada",
+        "conclusion": "success",
+        "html_url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37623372612"
+      },
+      {
+        "id": 37623372681,
+        "name": "Saúde das dependências",
+        "conclusion": "success",
+        "html_url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37623372681"
+      },
+      {
+        "id": 37623372675,
+        "name": "Supabase readiness",
+        "conclusion": "success",
+        "html_url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37623372675"
+      },
+      {
+        "id": 37623372508,
+        "name": "Testes E2E Playwright",
+        "conclusion": "success",
+        "html_url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37623372508"
+      },
+      {
+        "id": 37623372618,
+        "name": "Uso real operacional com volume semelhante a Production",
+        "conclusion": "success",
+        "html_url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37623372618"
+      },
+      {
+        "id": 37623372686,
+        "name": "Validar RADAR PDDE",
+        "conclusion": "success",
+        "html_url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37623372686"
+      }
+    ]
+  },
+  "mainCi": {
+    "successfulWorkflows": 8,
+    "runs": [
+      {
+        "id": 37626582656,
+        "name": "CodeQL",
+        "conclusion": "success",
+        "html_url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37626582656"
+      },
+      {
+        "id": 37626582982,
+        "name": "Homologar Production Supabase",
+        "conclusion": "success",
+        "html_url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37626582982"
+      },
+      {
+        "id": 37626582816,
+        "name": "Lighthouse CI",
+        "conclusion": "success",
+        "html_url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37626582816"
+      },
+      {
+        "id": 37626582810,
+        "name": "Monitoramento contínuo de Production",
+        "conclusion": "success",
+        "html_url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37626582810"
+      },
+      {
+        "id": 37626582586,
+        "name": "Regressão visual desktop",
+        "conclusion": "success",
+        "html_url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37626582586"
+      },
+      {
+        "id": 37626582813,
+        "name": "Saúde das dependências",
+        "conclusion": "success",
+        "html_url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37626582813"
+      },
+      {
+        "id": 37626582789,
+        "name": "Supabase readiness",
+        "conclusion": "success",
+        "html_url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37626582789"
+      },
+      {
+        "id": 37626582652,
+        "name": "Validar RADAR PDDE",
+        "conclusion": "success",
+        "html_url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37626582652"
+      }
+    ]
+  },
+  "production": {
+    "deploymentId": "dpl_5L41YQCcnLHnbE5kT4s5UtG6cvvg",
+    "state": "READY",
+    "alias": "https://radarpdde-fix.vercel.app",
+    "manifest": {
+      "commitSha": "09083d91227e3f136496e34a5eef3a0c1158fa78",
+      "vercelEnvironment": "production",
+      "runtimeEnvironment": "production",
+      "dataMode": "supabase-production",
+      "supabaseRepositoryEnabled": true,
+      "productionActivationApproved": true
+    },
+    "integrationAsset": {
+      "path": "src/integration/operational-realtime-invalidation.js",
+      "httpStatus": 200,
+      "bytes": 9929,
+      "sha256": "01171478aff8d0402e424d83cd0b3a36ed5ea765ae6a613834a9db3d7bd2338a",
+      "matchesCanonicalBuild": true
+    }
+  },
+  "publicSmoke": {
+    "runId": 37626582810,
+    "approved": true,
+    "assetsChecked": 52,
+    "anonymousRlsEvidence": "blocked-401",
+    "edgeFunctionsPreflightApproved": true
+  },
+  "pairedBenchmark": {
+    "fixture": "2 escolas autorizadas; 25 NFs preexistentes na outra escola; 8 gestos reais",
+    "baselineRunId": 37615549972,
+    "candidateRunId": 37623372852,
+    "perObserver": {
+      "before": {
+        "globalReads": 8,
+        "schoolReads": 0,
+        "bodyBytes": 133356,
+        "mainDomReplacements": 8
+      },
+      "after": {
+        "globalReadAttempts": 0,
+        "schoolReadAttempts": 8,
+        "failedRequests": 0,
+        "bodyBytes": 53362,
+        "mainDomReplacements": 8
+      }
+    },
+    "limits": [
+      "Redução de bytes medida em fixture sintética; não é percentual de Production.",
+      "Nenhuma redução de DOM/mutações ou melhoria de CPU demonstrada.",
+      "Delta do gate sustentado usa baseline pré-#410 e não é ganho atribuível só ao #427."
+    ]
+  },
+  "nativeEvidenceArtifact": {
+    "id": 11482643902,
+    "sha256": "302c0c3b56c47b1e2b66479e4e39cc35e648c2793311861c776b6bc251733346"
+  },
+  "productionOperationalWritesPerformed": false,
+  "productionAuthenticatedCrudPerformed": false,
+  "remainingConservativeGlobalScopes": [
+    "bootstrap/login",
+    "troca de competência",
+    "reconexão/perda possível de eventos",
+    "evento desconhecido",
+    "contatos gerais",
+    "envelope incompleto/cobertura invalidada",
+    "união de várias escolas"
+  ]
+}
