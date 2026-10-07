@@ -1,11 +1,15 @@
 'use strict';
 
-const REQUIRED_PROFILES = Object.freeze([
+const SUPPORTED_PROFILES = Object.freeze([
   'controller',
   'federal_assistant',
   'inventory',
   'sme_management',
   'technical_admin'
+]);
+const WRITE_PROFILES = Object.freeze([
+  'controller',
+  'federal_assistant'
 ]);
 const ALLOWED_READ_RPC_PATHS = Object.freeze(new Set([
   '/rest/v1/rpc/current_app_role'
@@ -15,7 +19,7 @@ function text(value) {
   return value == null ? '' : String(value).trim();
 }
 
-function validateAccountsDocument(document) {
+function validateAccountsDocument(document, options = {}) {
   const accounts = Array.isArray(document)
     ? document
     : (Array.isArray(document?.accounts) ? document.accounts : []);
@@ -23,44 +27,56 @@ function validateAccountsDocument(document) {
   const normalized = [];
   const seenProfiles = new Set();
   const seenEmails = new Set();
+  const writeProfiles = [];
+  const requireWrite = options.requireWrite === true;
 
-  if (accounts.length !== REQUIRED_PROFILES.length) {
-    errors.push(`São exigidas ${REQUIRED_PROFILES.length} contas técnicas.`);
+  if (accounts.length < 1 || accounts.length > SUPPORTED_PROFILES.length) {
+    errors.push(`São aceitas de 1 a ${SUPPORTED_PROFILES.length} contas reais, uma por perfil.`);
   }
 
   for (const account of accounts) {
     const profileId = text(account?.profileId);
     const email = text(account?.email).toLowerCase();
     const password = text(account?.password);
+    const allowWrite = account?.allowWrite === true;
 
-    if (!REQUIRED_PROFILES.includes(profileId)) {
-      errors.push(`Perfil técnico inválido: ${profileId || '(vazio)'}.`);
+    if (!SUPPORTED_PROFILES.includes(profileId)) {
+      errors.push(`Perfil inválido: ${profileId || '(vazio)'}.`);
       continue;
     }
     if (seenProfiles.has(profileId)) {
-      errors.push(`Perfil técnico duplicado: ${profileId}.`);
+      errors.push(`Perfil duplicado: ${profileId}.`);
     }
     seenProfiles.add(profileId);
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errors.push(`E-mail técnico inválido para ${profileId}.`);
+      errors.push(`E-mail inválido para ${profileId}.`);
     }
     if (seenEmails.has(email)) {
-      errors.push(`E-mail técnico duplicado para ${profileId}.`);
+      errors.push(`E-mail duplicado para ${profileId}.`);
     }
     seenEmails.add(email);
 
-    if (password.length < 24) {
-      errors.push(`Senha técnica insuficiente para ${profileId}.`);
+    if (!password) {
+      errors.push(`Senha ausente para ${profileId}.`);
     }
 
-    normalized.push(Object.freeze({ profileId, email, password }));
+    if (allowWrite) {
+      if (!WRITE_PROFILES.includes(profileId)) {
+        errors.push(`O perfil ${profileId} não pode ser escolhido para o ciclo reversível de escrita.`);
+      } else {
+        writeProfiles.push(profileId);
+      }
+    }
+
+    normalized.push(Object.freeze({ profileId, email, password, allowWrite }));
   }
 
-  for (const requiredProfile of REQUIRED_PROFILES) {
-    if (!seenProfiles.has(requiredProfile)) {
-      errors.push(`Conta técnica ausente para ${requiredProfile}.`);
-    }
+  if (writeProfiles.length > 1) {
+    errors.push('Apenas uma conta deve executar o ciclo reversível de escrita em cada execução.');
+  }
+  if (requireWrite && writeProfiles.length !== 1) {
+    errors.push('É exigida exatamente uma conta Controlador ou Assistente com allowWrite=true.');
   }
 
   return Object.freeze({
@@ -99,7 +115,8 @@ function sanitizeObservedError(value) {
 }
 
 module.exports = Object.freeze({
-  REQUIRED_PROFILES,
+  SUPPORTED_PROFILES,
+  WRITE_PROFILES,
   ALLOWED_READ_RPC_PATHS,
   validateAccountsDocument,
   isSuspiciousMutationRequest,
