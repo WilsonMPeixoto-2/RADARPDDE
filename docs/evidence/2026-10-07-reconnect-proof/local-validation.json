@@ -1,0 +1,46 @@
+{
+  "candidate": "829c3d1043b6cfa49e6c31f0bc78c99b6a8ede1f",
+  "unit": {
+    "passed": 1323,
+    "failed": 0,
+    "skipped": 0
+  },
+  "trackerUnit": {
+    "passed": 5,
+    "failed": 0
+  },
+  "integration": {
+    "passed": 8,
+    "failed": 0,
+    "skipped": 0
+  },
+  "workflowReferences": {
+    "workflows": 38,
+    "references": 342,
+    "passed": true
+  },
+  "e2eLint": {
+    "errors": 0,
+    "warnings": 224
+  },
+  "specLint": {
+    "errors": 0,
+    "warnings": 9
+  },
+  "specSyntax": "passed",
+  "nativeGreen": "pending; runs 37655737551 and 37655886850 queued at checkpoint",
+  "logs": {
+    "reconnect-unit.log": {
+      "bytes": 124065,
+      "sha256": "aaa5eedc5abde3b7239ae2cb2dc2404420fc3c63b275bbeb30c951456332bb50"
+    },
+    "reconnect-lint-e2e.log": {
+      "bytes": 26668,
+      "sha256": "ae261c65ddb98696832691e28ca1309f89ba57f2c3ddaad8fc90a5edbcc2603a"
+    },
+    "reconnect-red.log": {
+      "bytes": 288616,
+      "sha256": "02461d8334c49faf58ea7ddf46f2b469f156e68b377efd31ad781d49c5515112"
+    }
+  }
+}

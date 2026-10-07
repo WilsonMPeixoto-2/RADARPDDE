@@ -40,3 +40,11 @@ asserção original `Sim` e `reconnectRefreshes > 0` passaram por causa da reque
 antiga invisível à drenagem. O resumo/hash do artefato estão em `red.json`.
 A sabotagem é temporária e será removida do candidato final. Não é falha nova de
 Production nem justificativa para alterar o controlador.
+
+## Checkpoint #429
+
+Correção do harness publicada em `829c3d10`; 1323 unitários e oito integrações
+aprovados. GREEN nativo ainda pendente: diagnóstico `37655737551` e sustentado
+400 rodadas `37655886850`. [Continuidade completa](../../handoff/2026-10-07-pr429-reconnect-proof.md).
+PR #429 aberto/Draft; nenhum merge ou alteração de Production. A sabotagem do RED
+foi removida do candidato. Resultado local detalhado em `local-validation.json`.
