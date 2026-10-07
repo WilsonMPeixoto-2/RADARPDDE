@@ -103,7 +103,7 @@ test('navegar depois para escola suja reconcilia automaticamente só aquela esco
     assert.deepEqual(harness.controller.getMetrics().dirtySchoolIds, []);
 });
 
-test('entrar em visão global reconcilia globalmente escolas diferidas', async () => {
+test('entrar no Dashboard reconcilia a escola diferida sem releitura global', async () => {
     const harness = createHarness();
     await harness.controller.start();
     harness.emitBroadcast({ entity: 'pendencies', operation: 'UPDATE', schoolId: 'school-b' });
@@ -112,9 +112,10 @@ test('entrar em visão global reconcilia globalmente escolas diferidas', async (
     harness.navigate({ view: 'dashboard', param: null });
     await waitTimers();
 
-    assert.equal(harness.schoolRefreshes.length, 0);
-    assert.equal(harness.globalRefreshes.length, 1);
-    assert.equal(harness.globalRefreshes[0].reason, 'realtime-deferred-navigation');
+    assert.deepEqual(harness.schoolRefreshes, [{
+        schoolId: 'school-b', reason: 'realtime-deferred-navigation', options: { force: true }
+    }]);
+    assert.equal(harness.globalRefreshes.length, 0);
     assert.deepEqual(harness.controller.getMetrics().dirtySchoolIds, []);
 });
 

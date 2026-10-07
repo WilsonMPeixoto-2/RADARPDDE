@@ -6,7 +6,8 @@ const { test, expect } = require('@playwright/test');
 
 test.skip(process.env.RADAR_E2E_SUPABASE_LOCAL !== '1',
   'Exige Supabase descartável, Auth/RLS e Broadcast reais.');
-test.describe.configure({ mode: 'serial' });
+// Uma repetição sem reset do banco não representa o mesmo agregado inicial.
+test.describe.configure({ mode: 'serial', retries: 0 });
 const fixtures = JSON.parse(fs.readFileSync(
   path.resolve(__dirname, '../../supabase/fixtures/auth-users.json'), 'utf8'
 ));
@@ -153,7 +154,7 @@ test('Dashboard e Carteira convergem por escola em criação, edição, exclusã
     const [invoice] = await invoiceInDatabase(writer, description);
     expect(invoice).toMatchObject({ amount: 123.45, expense_type: 'a_identificar' });
     await Promise.all([dashboard, wallet].map(page => waitInvoice(page, invoice.id, 123.45)));
-    await expect(dashboardPendencies).toHaveText(`${beforeCount + 1} Escolas`);
+    await expect(dashboardPendencies).toHaveText(new RegExp(`^${beforeCount + 1} Escolas?$`));
     await expect(walletRow).toContainText('1 ativa(s)');
     expect(await Promise.all([dashboard, wallet].map(page => localSchool(page, 'ESC-OTHER')))).toEqual(otherBefore);
 
@@ -172,7 +173,7 @@ test('Dashboard e Carteira convergem por escola em criação, edição, exclusã
     await settleWrites(writer);
     expect(await invoiceInDatabase(writer, description)).toEqual([]);
     await Promise.all([dashboard, wallet].map(page => waitInvoice(page, invoice.id, null)));
-    await expect(dashboardPendencies).toHaveText(`${beforeCount} Escolas`);
+    await expect(dashboardPendencies).toHaveText(new RegExp(`^${beforeCount} Escolas?$`));
     await expect(walletRow).toContainText('Sem pendência ativa');
     expect(await Promise.all([dashboard, wallet].map(page => localSchool(page, 'ESC-OTHER')))).toEqual(otherBefore);
 

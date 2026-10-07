@@ -31,14 +31,21 @@ test('outra escola no Prontuário é adiada sem reconstruir a tela atual', () =>
     );
 });
 
-test('visão global continua conservadora mesmo quando o Broadcast conhece a escola', () => {
-    assert.equal(
-        decideInvalidationAction({
-            route: { view: 'dashboard', param: null },
+for (const view of ['dashboard', 'escolas', 'competencias']) {
+    test(`${view} recalcula a projeção usando somente a escola alterada`, () => {
+        assert.equal(decideInvalidationAction({
+            route: { view, param: null },
             payload: payload('pendencies', 'school-a')
-        }),
-        'global'
-    );
+        }), 'school');
+    });
+}
+
+test('rota ausente ou superfície sem contrato agregado mantém fallback global', () => {
+    for (const route of [null, { view: 'future_view' }, { view: 'inventario' }]) {
+        assert.equal(decideInvalidationAction({
+            route, payload: payload('assets', 'school-a')
+        }), 'global');
+    }
 });
 
 test('evento sem schoolId continua no fallback global', () => {

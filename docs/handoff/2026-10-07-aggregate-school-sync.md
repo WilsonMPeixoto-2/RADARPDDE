@@ -45,6 +45,12 @@ Não adaptar CLI nem enfraquecer RLS para contornar capacidade do workspace.
 
 ## Continuidade
 
+Primeiro run `37613255984` (`350dec11`) não certificou RED: a expectativa do
+teste ignorou a pluralização vigente (`1 Escola`) e o retry reutilizou o banco
+já modificado. A correção é no teste, sem mudar produto: aceitar singular/plural
+e não repetir esta jornada sem reset. Sete REDs unitários de roteamento/navegação
+confirmaram a fronteira; ainda aguardar a contraprova completa de navegador.
+
 1. Executar workflow `sync-hardening-targeted.yml` nesta branch e abrir artifact.
 2. Diferenciar eventual erro de fixture/seletor do RED de produto.
 3. Salvar números e run/SHA do RED antes de modificar implementação.
