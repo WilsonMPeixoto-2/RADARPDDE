@@ -102,3 +102,56 @@ test('escolar que termina enquanto há pendência global não consome o escopo g
     await Promise.all([first, school, global]);
     assert.deepEqual(h.calls, ['S', 'global']);
 });
+
+for (const view of ['dashboard', 'escolas', 'competencias']) {
+    test(`${view}: edição adia a leitura escolar sem ampliar o escopo`, async t => {
+        const h = harness(t);
+        h.root.RadarNavigationHistory.currentRoute = () => ({ view, param: null });
+        let editing = true;
+        h.root.document.activeElement = { matches: () => editing };
+        await h.realtime.start();
+        h.emit({ entity: 'registered_invoices', schoolId: 'S', operation: 'DELETE' });
+        await h.advance(2100);
+        assert.deepEqual(h.calls, []);
+        assert.equal(h.refresh.hasPendingRefresh(), true);
+        editing = false;
+        await h.refresh.flushPending('editing-ended');
+        assert.deepEqual(h.calls, ['S']);
+        assert.equal(h.refresh.hasPendingRefresh(), false);
+    });
+
+    test(`${view}: nova invalidação em voo converge sem transformar a leitura em global`, async t => {
+        const h = harness(t);
+        h.root.RadarNavigationHistory.currentRoute = () => ({ view, param: null });
+        let resolveFirst;
+        h.service.loadSchoolOperationalContext = async school => {
+            h.calls.push(school);
+            if (h.calls.length === 1) await new Promise(resolve => { resolveFirst = resolve; });
+            return { stale: false, applied: true };
+        };
+        await h.realtime.start();
+        h.emit({ entity: 'verifications', schoolId: 'S', operation: 'UPDATE' });
+        await h.advance(2100);
+        h.emit({ entity: 'verifications', schoolId: 'S', operation: 'UPDATE' });
+        await h.advance(2100);
+        assert.equal(h.refresh.hasPendingRefresh(), true);
+        resolveFirst();
+        await settle();
+        assert.deepEqual(h.calls, ['S', 'S']);
+        await h.advance(60000);
+        assert.deepEqual(h.calls, ['S', 'S'], 'não há polling ou reconciliação adicional');
+    });
+}
+
+test('Dashboard mantém recuperação global quando o envelope escolar exige fallback', async t => {
+    const h = harness(t);
+    h.root.RadarNavigationHistory.currentRoute = () => ({ view: 'dashboard', param: null });
+    h.service.loadSchoolOperationalContext = async school => {
+        h.calls.push(school);
+        return { applied: false, fallback: { kind: 'global', reason: 'INCOMPLETE_COVERAGE' } };
+    };
+    await h.realtime.start();
+    h.emit({ entity: 'assets', schoolId: 'S', operation: 'UPDATE' });
+    await h.advance(2100);
+    assert.deepEqual(h.calls, ['S', 'global']);
+});

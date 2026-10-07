@@ -30,6 +30,8 @@ PR aberto, Preview ou documento antigo não altera Production.
 | docs/reference/PRODUCT_SURFACE_CATALOG.md | Referência vigente | superfícies e jornadas |
 | docs/reference/VERCEL_OBSERVABILITY.md | Referência operacional vigente | contrato de instrumentação Web Analytics/Speed Insights, estado de ativação, validação de campo e decisão de não usar o pacote redundante do #416 |
 | docs/CURRENT_STAGE.md | Canônico | estado funcional e prioridade; head/deployment exatos devem ser revalidados ao vivo quando relevantes |
+| docs/handoff/2026-10-07-aggregate-school-sync.md | Handoff corrente | otimização residual agregada após #410; RED/GREEN, métricas e continuidade da branch isolada |
+| docs/handoff/2026-10-04-pr410-start.md | Histórico concluído | #410 integrado; checkpoints pré-merge não abrem novamente a implementação |
 | docs/handoff/2026-10-01-controller-type-retification.md | Histórico concluído | Fase 2 de autonomia e UX, integrada pelo #404 e publicada em Production em 02/10/2026 |
 | docs/handoff/2026-09-30-pos-publicacao-pr397-retomada.md | Histórico concluído da publicação | provas do #397 e limites do smoke; prioridade superada pela frente autorizada em 01/10 |
 | docs/handoff/2026-09-30-pr397-independencia-despesas-bonificacao.md | Histórico concluído do candidato | checkpoints anteriores à publicação; bloqueios e instruções pré-merge foram superados pelo encerramento |

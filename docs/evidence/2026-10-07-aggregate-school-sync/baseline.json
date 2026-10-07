@@ -1,0 +1,111 @@
+{
+  "sha": "23ce32de52db59780412718b732f21f067966ae1",
+  "runId": 37615549972,
+  "artifactSha256": "40dd02e3b65b68c9752950c922d162c98442a6d4c271b21d1404485ad97067ef",
+  "fixture": {
+    "schools": 2,
+    "unrelatedInvoices": 25
+  },
+  "gestures": 8,
+  "competence": "2026-05",
+  "sessions": {
+    "dashboard": {
+      "globalReads": 8,
+      "schoolReads": 0,
+      "payloadBytes": 133356,
+      "applications": 8,
+      "applicationSources": [
+        "session-realtime-refresh",
+        "session-realtime-refresh",
+        "session-realtime-refresh",
+        "session-realtime-refresh",
+        "session-realtime-refresh",
+        "session-realtime-refresh",
+        "session-realtime-refresh",
+        "session-realtime-refresh"
+      ],
+      "applyMs": 5.5,
+      "mainReplacements": 8,
+      "mutationRecords": 144,
+      "renders": {
+        "dashboard": 8,
+        "escolas": 0
+      },
+      "longTasks": 0,
+      "longTaskMs": 0,
+      "fadedFrames": 0,
+      "frames": 1002,
+      "errors": [],
+      "realtime": {
+        "broadcastsReceived": 15,
+        "coalescedBroadcasts": 7,
+        "refreshesScheduled": 15,
+        "refreshAttempts": 8,
+        "refreshSucceeded": 8,
+        "refreshFailed": 0,
+        "retriesScheduled": 0,
+        "reconnectRefreshes": 0,
+        "schoolRefreshesScheduled": 0,
+        "deferredSchoolInvalidations": 0,
+        "deferredSchoolReconciliations": 0,
+        "lastBroadcastAt": "2026-10-07T11:41:51.508Z",
+        "lastRefreshAt": "2026-10-07T11:41:53.533Z",
+        "byEntity": {
+          "verifications": 8,
+          "registered_invoices": 5,
+          "pendencies": 2
+        },
+        "dirtySchoolIds": []
+      }
+    },
+    "wallet": {
+      "globalReads": 8,
+      "schoolReads": 0,
+      "payloadBytes": 133356,
+      "applications": 8,
+      "applicationSources": [
+        "session-realtime-refresh",
+        "session-realtime-refresh",
+        "session-realtime-refresh",
+        "session-realtime-refresh",
+        "session-realtime-refresh",
+        "session-realtime-refresh",
+        "session-realtime-refresh",
+        "session-realtime-refresh"
+      ],
+      "applyMs": 5.700000000069849,
+      "mainReplacements": 8,
+      "mutationRecords": 74,
+      "renders": {
+        "dashboard": 0,
+        "escolas": 8
+      },
+      "longTasks": 0,
+      "longTaskMs": 0,
+      "fadedFrames": 0,
+      "frames": 1004,
+      "errors": [],
+      "realtime": {
+        "broadcastsReceived": 15,
+        "coalescedBroadcasts": 7,
+        "refreshesScheduled": 15,
+        "refreshAttempts": 8,
+        "refreshSucceeded": 8,
+        "refreshFailed": 0,
+        "retriesScheduled": 0,
+        "reconnectRefreshes": 0,
+        "schoolRefreshesScheduled": 0,
+        "deferredSchoolInvalidations": 0,
+        "deferredSchoolReconciliations": 0,
+        "lastBroadcastAt": "2026-10-07T11:41:51.508Z",
+        "lastRefreshAt": "2026-10-07T11:41:53.535Z",
+        "byEntity": {
+          "verifications": 8,
+          "registered_invoices": 5,
+          "pendencies": 2
+        },
+        "dirtySchoolIds": []
+      }
+    }
+  }
+}

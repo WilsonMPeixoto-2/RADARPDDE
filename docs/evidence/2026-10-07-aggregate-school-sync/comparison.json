@@ -1,0 +1,149 @@
+{
+  "baseline": {
+    "sha": "23ce32de52db59780412718b732f21f067966ae1",
+    "runId": 37615549972
+  },
+  "candidate": {
+    "sha": "4d948a40e1031672d04ebc4d7ce64df73b675cbe",
+    "runId": 37620876619
+  },
+  "sameWorkload": {
+    "schools": 2,
+    "unrelatedInvoices": 25,
+    "gestures": 8,
+    "competence": "2026-05"
+  },
+  "sessions": {
+    "dashboard": {
+      "globalReads": {
+        "before": 8,
+        "after": 0,
+        "delta": -8,
+        "deltaPercent": -100.0
+      },
+      "schoolReads": {
+        "before": 0,
+        "after": 8,
+        "delta": 8,
+        "deltaPercent": null
+      },
+      "payloadBytes": {
+        "before": 133356,
+        "after": 53351,
+        "delta": -80005,
+        "deltaPercent": -59.993551096313624
+      },
+      "applications": {
+        "before": 8,
+        "after": 8,
+        "delta": 0,
+        "deltaPercent": 0.0
+      },
+      "applyMs": {
+        "before": 5.5,
+        "after": 10.499999999970896,
+        "delta": 4.999999999970896,
+        "deltaPercent": 90.90909090856175
+      },
+      "mainReplacements": {
+        "before": 8,
+        "after": 8,
+        "delta": 0,
+        "deltaPercent": 0.0
+      },
+      "mutationRecords": {
+        "before": 144,
+        "after": 144,
+        "delta": 0,
+        "deltaPercent": 0.0
+      },
+      "longTasks": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "deltaPercent": null
+      },
+      "longTaskMs": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "deltaPercent": null
+      },
+      "fadedFrames": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "deltaPercent": null
+      }
+    },
+    "wallet": {
+      "globalReads": {
+        "before": 8,
+        "after": 0,
+        "delta": -8,
+        "deltaPercent": -100.0
+      },
+      "schoolReads": {
+        "before": 0,
+        "after": 8,
+        "delta": 8,
+        "deltaPercent": null
+      },
+      "payloadBytes": {
+        "before": 133356,
+        "after": 53351,
+        "delta": -80005,
+        "deltaPercent": -59.993551096313624
+      },
+      "applications": {
+        "before": 8,
+        "after": 8,
+        "delta": 0,
+        "deltaPercent": 0.0
+      },
+      "applyMs": {
+        "before": 5.700000000069849,
+        "after": 11.099999999976717,
+        "delta": 5.399999999906868,
+        "deltaPercent": 94.73684210246833
+      },
+      "mainReplacements": {
+        "before": 8,
+        "after": 8,
+        "delta": 0,
+        "deltaPercent": 0.0
+      },
+      "mutationRecords": {
+        "before": 74,
+        "after": 74,
+        "delta": 0,
+        "deltaPercent": 0.0
+      },
+      "longTasks": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "deltaPercent": null
+      },
+      "longTaskMs": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "deltaPercent": null
+      },
+      "fadedFrames": {
+        "before": 0,
+        "after": 0,
+        "delta": 0,
+        "deltaPercent": null
+      }
+    }
+  },
+  "limits": [
+    "Response body bytes exclude writes, protocol overhead and other endpoints.",
+    "Baseline records completed responses; the final candidate also counts attempts and request failures.",
+    "Small fixture, not Production. No extrapolated Production percentage.",
+    "Eight renders and DOM replacements remain; small timing samples do not establish a CPU improvement.",
+    "The broader sustained workflow uses a fixed pre-410 baseline; its delta is not attributed to this residual fix."
+  ]
+}

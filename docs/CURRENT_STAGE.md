@@ -1,9 +1,22 @@
 # RADAR PDDE — estado atual e retomada
 
-## Atualização canônica — pós-#410 e observabilidade Vercel
+## Atualização canônica — pós-#426 e sincronização agregada em revisão
 
-**Main atual:** `e78a0e68c3b8d88303209549852d6d705d355421`.  
-**Último deployment Production observado:** `dpl_FGMwjSLDyN4So1xz3FkeGo6EVtdS`, estado `READY`.
+**Main verificada em 07/10:** `2cb4fb359ff9614ebd7fdf824e297f22ebcb025f`.  
+**Deployment Production informado:** `dpl_2vcHWT84M6JoXgUbhsfpmpmfUxmn`, `READY`.
+O manifesto público foi conferido nesta frente e confirma essa main em
+`supabase-production`; não houve publicação desta otimização.
+
+**Frente ativa:** [PR #427](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/427),
+otimização residual de Dashboard/Carteira/Competências, na branch
+`fix/aggregate-school-sync-2026-10-07`. O [handoff corrente](handoff/2026-10-07-aggregate-school-sync.md)
+registra RED nativo, medição, escopo e continuidade. O #410 está encerrado;
+seu handoff e checkpoints abaixo são históricos. #415, #422 e #426 estão integrados
+e não são reimplementados nesta frente. Candidato `4d948a40` certificado em 14/14
+workflows, seis E2E nativos e medição pareada: oito escolares/zero globais, cerca
+de 60% menos bytes no cenário sintético. [Evidências e limites](evidence/2026-10-07-aggregate-school-sync/README.md).
+O checkpoint seguinte consolida documentos e capturas da rolagem interna; conferir
+seu CI antes do relatório final. Apresentar esse relatório ao usuário antes de merge.
 
 - **PR #410** permanece integrado no merge `33ebbf7310898e025a3ec2edc198d6ecd4ea40ac`. A simplificação de sincronização operacional por escola está publicada; validações pós-merge com perfil Controlador não detectaram regressão funcional conhecida.
 - **PR #415** permanece a implementação canônica de observabilidade. O build Production injeta Vercel Web Analytics e Speed Insights sem framework adicional nem dependência de runtime. Preview/local não recebem a instrumentação.
@@ -69,7 +82,7 @@ As proteções do #408 são regressões obrigatórias. Os detalhes do design pre
 
 **A Fase 2 de autonomia dos Controladores e UX da retificação está encerrada, integrada e publicada.** O PR #404 foi mergeado em `de7bebb06b867ebd557ff83cd9194fe3d45f5903` e publicado no deployment Production `dpl_CLYY92KojCXpmQcL8xXQkmc3TdgG`, `READY`, com smoke HTTP 200 na raiz e em `/escolas/04.31.001`. A retificação de classificação permanece limitada ao histórico exclusivamente fiscal encerrado/cancelado e falha fechada diante de Pendência ativa, atividade/histórico de Assessoria, `a_identificar`, bem `Inventariada` ou versionamento desconhecido.
 
-**O handoff corrente operacional é o do #410; nenhuma nova fase funcional foi iniciada automaticamente.** A proteção patrimonial adicional, anulação/transferência auditável, `PROD-UX-08`, NAV-01/UX-04 e Fase D permanecem decisões/frentes separadas.
+**O handoff corrente operacional é o da sincronização agregada de 07/10, apontado acima.** A proteção patrimonial adicional, anulação/transferência auditável, `PROD-UX-08`, NAV-01/UX-04 e Fase D permanecem decisões/frentes separadas.
 
 **O PR #397 — independência entre despesas e bonificação — permanece integrado e publicado.** A ADR-055 e a leitura contextual do #396 são preservadas. A [continuidade após o #397](handoff/2026-09-30-pos-publicacao-pr397-retomada.md) passou a contexto histórico desta entrega.
 
@@ -139,7 +152,7 @@ Registro técnico da correção final da C3: [correções CodeQL e validação C
 
 Os documentos de handoff de A/B e das frentes anteriores permanecem **históricos concluídos**. Não reabrir PRs #375/#376/#377/#378 ou textos pré-merge como fila de implementação.
 
-O handoff corrente é o do #410 indicado no início deste documento. [Retificação de classificação e UX](handoff/2026-10-01-controller-type-retification.md) é histórico concluído da Fase 2, assim como os handoffs de candidato/publicação do #397. [PROD-UX-08](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) continua uma pendência separada de retomada visual. A investigação de `PROD-FUNC-09` está encerrada.
+O handoff corrente é o da sincronização agregada de 07/10 indicado no início deste documento. O handoff do #410 e [Retificação de classificação e UX](handoff/2026-10-01-controller-type-retification.md) são históricos concluídos, assim como os handoffs de candidato/publicação do #397. [PROD-UX-08](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) continua uma pendência separada de retomada visual. A investigação de `PROD-FUNC-09` está encerrada.
 
 Para retomada, a ordem de leitura continua sendo:
 

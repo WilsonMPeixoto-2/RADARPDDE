@@ -100,6 +100,9 @@ test('seis sessões reais medem escrita, observação, edição e falha durante 
   const observations = [];
   const gestures = [0, 0, 0, 0, 0, 0];
   const faults = { readLatencyMs: 0, failObserverRead: false, failuresInjected: 0 };
+  const observerReadsInTransport = new Set();
+  let releaseReconnectReads = () => {};
+  const reconnectReadsReleased = new Promise(resolve => { releaseReconnectReads = resolve; });
   let stage = 'login';
   let outcome = 'incomplete';
   let report;
@@ -114,6 +117,10 @@ test('seis sessões reais medem escrita, observação, edição e falha durante 
     // O fault injector altera apenas a fronteira de transporte. O produto,
     // Auth, RLS, RPC, retorno autoritativo e Broadcast permanecem reais.
     for (let i = 0; i < pages.length; i += 1) {
+      if (i === 3) {
+        pages[i].on('requestfinished', request => observerReadsInTransport.delete(request));
+        pages[i].on('requestfailed', request => observerReadsInTransport.delete(request));
+      }
       await pages[i].route(/\/rest\/v1\/rpc\/read_(?:school_)?operational_context$/, async route => {
         if (i === 3 && faults.failObserverRead) {
           faults.failObserverRead = false;
@@ -124,7 +131,10 @@ test('seis sessões reais medem escrita, observação, edição e falha durante 
         }
         const delay = faults.readLatencyMs;
         if (delay) await pause(delay);
-        await route.continue().catch(() => {}); // Abort da leitura é concorrência prevista.
+        if (i === 3 && faults.pauseObserverReads) await reconnectReadsReleased;
+        if (i === 3) observerReadsInTransport.add(route.request());
+        // Um abort pode preceder o fim da latência induzida, antes da adição ao Set.
+        await route.continue().catch(() => observerReadsInTransport.delete(route.request()));
       });
     }
     stage = 'editing-and-fault';
@@ -188,15 +198,22 @@ test('seis sessões reais medem escrita, observação, edição e falha durante 
       window.RadarOperationalRealtimeInvalidationController.getMetrics?.().reconnectRefreshes || 0);
     // Desconecta o socket real, mantendo HTTP/Auth e o browser utilizáveis.
     // A alteração durante a interrupção precisa chegar pela leitura de recuperação.
+    // Uma resposta HTTP anterior pode chegar mesmo com o socket desligado. Para
+    // isolar a perda de evento, drenamos esse transporte e retemos leituras novas
+    // até a reconexão. Escritas, Auth, SQL e o canal continuam reais.
+    faults.pauseObserverReads = true;
     await pages[3].evaluate(async () => {
       await window.RadarSessionContext.service.client.realtime.disconnect();
     });
     await pages[3].waitForFunction(() =>
       !window.RadarSessionContext.service.client.realtime.isConnected());
+    await expect.poll(() => observerReadsInTransport.size).toBe(0);
     await setDelivery(pages[0], 'Sim');
     gestures[0] += 1;
     await expect(row(pages[3]).getByRole('button', { name: 'Não', exact: true }))
       .toHaveClass(/active-nao/);
+    faults.pauseObserverReads = false;
+    releaseReconnectReads();
     await pages[3].evaluate(() => window.RadarSessionContext.service.client.realtime.connect());
     await pages[3].waitForFunction(() =>
       window.RadarOperationalRealtimeInvalidationController.getStatus() === 'SUBSCRIBED');
@@ -252,6 +269,7 @@ test('seis sessões reais medem escrita, observação, edição e falha durante 
     failure = { name: error.name, message: error.message };
     throw error;
   } finally {
+    releaseReconnectReads();
     if (!report) report = { samples: await Promise.all(observations.map(observer => observer.snapshot().catch(() => null))), gestures, faults };
     const serialized = JSON.stringify({ schemaVersion: 1, generatedAt: new Date().toISOString(),
       variant: process.env.RADAR_OPERATIONAL_VARIANT || 'candidate', stage, outcome, failure,
@@ -259,7 +277,7 @@ test('seis sessões reais medem escrita, observação, edição e falha durante 
         'Seis sessões/quatro Controladores: três escritores, dois observadores escolares e um Dashboard; inclui abas da mesma identidade.',
         'Esta jornada mede avaliações e CRUD fiscal; não certifica patrimônio, Pendências, horas de uso ou staging.',
         'Latência e HTTP 500 são induzidos no transporte; dados e Realtime são reais.',
-        'Um socket Realtime real é desconectado; alteração durante a interrupção deve convergir após reconexão.'] }, null, 2);
+        'Um socket Realtime real é desconectado; leituras HTTP anteriores são drenadas e novas são retidas até a reconexão para isolar a perda do evento.'] }, null, 2);
     expect(serialized).not.toContain(password);
     const target = path.resolve('test-results/operational-sustained', process.env.RADAR_OPERATIONAL_VARIANT || 'candidate');
     fs.mkdirSync(target, { recursive: true });

@@ -86,17 +86,18 @@ test('contato da escola aberta continua no refresh global conservador', async ()
     }]);
 });
 
-test('visão global continua usando refresh global mesmo com schoolId conhecido', async () => {
-    const harness = createHarness({ route: { view: 'dashboard', param: null } });
-    await harness.controller.start();
-
-    harness.emit({ entity: 'assets', operation: 'INSERT', schoolId: 'school-a' });
-    await new Promise(resolve => setTimeout(resolve, 10));
-
-    assert.equal(harness.schoolRefreshes.length, 0);
-    assert.equal(harness.globalRefreshes.length, 1);
-    assert.equal(harness.globalRefreshes[0].reason, 'realtime');
-});
+for (const view of ['dashboard', 'escolas', 'competencias']) {
+    test(`${view} encaminha Broadcast escolar à aplicação existente da fatia`, async () => {
+        const harness = createHarness({ route: { view, param: null } });
+        await harness.controller.start();
+        harness.emit({ entity: 'assets', operation: 'INSERT', schoolId: 'school-a' });
+        await new Promise(resolve => setTimeout(resolve, 10));
+        assert.equal(harness.globalRefreshes.length, 0);
+        assert.deepEqual(harness.schoolRefreshes, [{
+            schoolId: 'school-a', reason: 'realtime-school', options: { force: true }
+        }]);
+    });
+}
 
 test('outra escola é adiada sem refresh da tela atual', async () => {
     const harness = createHarness({ route: { view: 'prontuario', param: 'school-a' } });

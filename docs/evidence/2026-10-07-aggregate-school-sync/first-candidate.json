@@ -1,0 +1,114 @@
+{
+  "sha": "c0552659ff08f784e6e7911183981b76087b505f",
+  "runId": 37616935756,
+  "artifactSha256": "bbd7008ad72923e917976cbb4be0ed751a166552e86e65ffe5b023f97f553f2d",
+  "fixture": {
+    "schools": 2,
+    "unrelatedInvoices": 25
+  },
+  "gestures": 8,
+  "competence": "2026-05",
+  "sessions": {
+    "dashboard": {
+      "globalReads": 0,
+      "schoolReads": 8,
+      "payloadBytes": 53362,
+      "applications": 8,
+      "applicationSources": [
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh"
+      ],
+      "applyMs": 12.900000000023283,
+      "mainReplacements": 8,
+      "mutationRecords": 144,
+      "renders": {
+        "dashboard": 8,
+        "escolas": 0
+      },
+      "longTasks": 0,
+      "longTaskMs": 0,
+      "fadedFrames": 0,
+      "frames": 816,
+      "errors": [],
+      "realtime": {
+        "broadcastsReceived": 15,
+        "coalescedBroadcasts": 7,
+        "refreshesScheduled": 15,
+        "refreshAttempts": 8,
+        "refreshSucceeded": 8,
+        "refreshFailed": 0,
+        "retriesScheduled": 0,
+        "reconnectRefreshes": 0,
+        "schoolRefreshesScheduled": 15,
+        "deferredSchoolInvalidations": 0,
+        "deferredSchoolReconciliations": 0,
+        "lastBroadcastAt": "2026-10-07T11:54:29.870Z",
+        "lastRefreshAt": "2026-10-07T11:54:31.908Z",
+        "byEntity": {
+          "verifications": 8,
+          "registered_invoices": 5,
+          "pendencies": 2
+        },
+        "dirtySchoolIds": []
+      }
+    },
+    "wallet": {
+      "globalReads": 0,
+      "schoolReads": 8,
+      "payloadBytes": 53362,
+      "applications": 8,
+      "applicationSources": [
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh"
+      ],
+      "applyMs": 8.999999999883585,
+      "mainReplacements": 8,
+      "mutationRecords": 74,
+      "renders": {
+        "dashboard": 0,
+        "escolas": 8
+      },
+      "longTasks": 0,
+      "longTaskMs": 0,
+      "fadedFrames": 0,
+      "frames": 819,
+      "errors": [],
+      "realtime": {
+        "broadcastsReceived": 15,
+        "coalescedBroadcasts": 7,
+        "refreshesScheduled": 15,
+        "refreshAttempts": 8,
+        "refreshSucceeded": 8,
+        "refreshFailed": 0,
+        "retriesScheduled": 0,
+        "reconnectRefreshes": 0,
+        "schoolRefreshesScheduled": 15,
+        "deferredSchoolInvalidations": 0,
+        "deferredSchoolReconciliations": 0,
+        "lastBroadcastAt": "2026-10-07T11:54:29.870Z",
+        "lastRefreshAt": "2026-10-07T11:54:31.916Z",
+        "byEntity": {
+          "verifications": 8,
+          "registered_invoices": 5,
+          "pendencies": 2
+        },
+        "dirtySchoolIds": []
+      }
+    }
+  },
+  "primaryJourney": "passed",
+  "workflowConclusion": "failure",
+  "workflowFailure": "The second (dirty/inflight) test measured responses before the final response completed. This primary benchmark does not certify the whole workflow."
+}

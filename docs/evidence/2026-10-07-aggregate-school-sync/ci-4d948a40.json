@@ -1,0 +1,98 @@
+{
+  "sha": "4d948a40e1031672d04ebc4d7ce64df73b675cbe",
+  "productModuleSha256": "82ef451c21ab3651a0d8f5c3adc48344157135d17f5234b1122ef2ae125c958a",
+  "workflows": [
+    {
+      "id": 37620876553,
+      "name": "Supabase readiness",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 37620876836,
+      "name": "Gate remoto de perfis e viewports",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 37620876388,
+      "name": "Ciclos funcionais reais com Supabase",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 37620876441,
+      "name": "Testes E2E Playwright",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 37620876518,
+      "name": "Regress\u00e3o visual desktop",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 37620876389,
+      "name": "Confiabilidade funcional com Supabase real",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 37620876619,
+      "name": "Hardening espec\u00edfico de sincroniza\u00e7\u00e3o operacional",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 37620876575,
+      "name": "Sa\u00fade das depend\u00eancias",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 37620876590,
+      "name": "Validar RADAR PDDE",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 37620876597,
+      "name": "Retifica\u00e7\u00e3o audit\u00e1vel direcionada",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 37620876664,
+      "name": "CodeQL",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 37620876459,
+      "name": "Lighthouse CI",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 37620876433,
+      "name": "Homologa\u00e7\u00e3o integral pr\u00e9-production",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 37620876372,
+      "name": "Uso real operacional com volume semelhante a Production",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "checks": {
+    "success": 30,
+    "skipped": 2
+  },
+  "skippedChecks": [
+    "Auth, perfis, RLS e persist\u00eancia no Preview",
+    "Supabase Preview"
+  ]
+}
