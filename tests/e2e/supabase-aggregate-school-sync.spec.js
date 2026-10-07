@@ -8,6 +8,7 @@ test.skip(process.env.RADAR_E2E_SUPABASE_LOCAL !== '1',
   'Exige Supabase descartável, Auth/RLS e Broadcast reais.');
 // Uma repetição sem reset do banco não representa o mesmo agregado inicial.
 test.describe.configure({ mode: 'serial', retries: 0 });
+test.use({ actionTimeout: 15000 });
 const fixtures = JSON.parse(fs.readFileSync(
   path.resolve(__dirname, '../../supabase/fixtures/auth-users.json'), 'utf8'
 ));
@@ -55,7 +56,8 @@ async function observe(page) {
     const record = { rpc: match[1], status: response.status(), bytes: 0,
       schoolId: response.request().postDataJSON()?.p_school_id || null };
     network.push(record);
-    bodies.push(response.body().then(body => { record.bytes = body.length; }));
+    bodies.push(response.body().then(body => { record.bytes = body.length; })
+      .catch(error => { record.bodyError = error.message; }));
   });
   await page.evaluate(() => {
     const trace = window.__aggregateSyncTrace = {
@@ -93,7 +95,10 @@ async function observe(page) {
   return {
     async report() {
       await Promise.all(bodies);
-      return { network, errors, ...await page.evaluate(() => window.__aggregateSyncTrace) };
+      return { network: network.map(item => ({ ...item })), errors: [...errors],
+        ...await page.evaluate(() => ({ ...window.__aggregateSyncTrace,
+          realtime: window.RadarOperationalRealtimeInvalidationController.getMetrics()
+        })) };
     }
   };
 }
@@ -121,6 +126,7 @@ test('Dashboard e Carteira convergem por escola em criação, edição, exclusã
   })));
   const [dashboard, wallet, writer] = await Promise.all(contexts.map(context => context.newPage()));
   const reports = {};
+  let watchers = [];
   try {
     await Promise.all([login(dashboard), login(wallet, 'federal_assistant'), login(writer)]);
     await dashboard.locator('#nav-dashboard').click();
@@ -134,7 +140,7 @@ test('Dashboard e Carteira convergem por escola em criação, edição, exclusã
     await expect(documentRow(writer, 'notaFiscal')).toBeVisible();
     await Promise.all([dashboard, wallet, writer].map(subscribed));
     const otherBefore = await Promise.all([dashboard, wallet].map(page => localSchool(page, 'ESC-OTHER')));
-    const watchers = await Promise.all([dashboard, wallet].map(observe));
+    watchers = await Promise.all([dashboard, wallet].map(observe));
     const dashboardPendencies = dashboard.locator('.card-stat').filter({ hasText: 'Pendências ativas' }).locator('.stat-value');
     const walletRow = wallet.locator('.data-table tbody tr').filter({ hasText: 'Escola Local Autorizada' });
     const beforeCount = Number((await dashboardPendencies.innerText()).match(/\d+/)[0]);
@@ -169,12 +175,54 @@ test('Dashboard e Carteira convergem por escola em criação, edição, exclusã
     await settleWrites(writer);
     expect((await invoiceInDatabase(writer, description))[0].amount).toBe(175.5);
     await Promise.all([dashboard, wallet].map(page => waitInvoice(page, invoice.id, 175.5)));
-    await card.getByRole('button', { name: /^(?:Excluir NF:|Excluir lançamento:|Excluir Despesa)/ }).click();
+
+    // Histórico fiscal não pode ser apagado. Cancelar a ocorrência indevida
+    // reduz o agregado pelo fluxo autorizado; o teste não burla essa regra.
+    const pendencyId = await writer.evaluate(id =>
+      pendencias.find(item => item.registeredInvoiceId === id)?.id, invoice.id);
+    await writer.locator('#nav-pendencias').click();
+    await writer.getByRole('tab', { name: /^Abertas/ }).click();
+    await writer.locator(`#p-abertas [data-pendency-id="${pendencyId}"]`).filter({ visible: true })
+      .first().getByRole('button', { name: 'Ver detalhes', exact: true }).click();
+    await writer.locator('#pendency-detail-drawer').getByRole('button', {
+      name: 'Cancelar pendência', exact: true
+    }).click();
+    const cancel = writer.getByRole('dialog', { name: 'Cancelar pendência', exact: true });
+    await cancel.locator('#pendency-cancel-justification').fill('Lançamento indevido na homologação descartável.');
+    await cancel.getByRole('button', { name: 'Confirmar cancelamento', exact: true }).click();
+    await expect(cancel).toBeHidden();
     await settleWrites(writer);
-    expect(await invoiceInDatabase(writer, description)).toEqual([]);
-    await Promise.all([dashboard, wallet].map(page => waitInvoice(page, invoice.id, null)));
     await expect(dashboardPendencies).toHaveText(new RegExp(`^${beforeCount} Escolas?$`));
     await expect(walletRow).toContainText('Sem pendência ativa');
+
+    // Criação/edição/exclusão de uma NF sem histórico: exclusão precisa substituir
+    // a fatia, preservando a despesa e a Pendência cancelada que continuam canônicas.
+    await writer.locator('#nav-escolas').click();
+    await writer.locator('.data-table tbody tr').filter({ hasText: 'Escola Local Autorizada' })
+      .getByRole('link', { name: 'Ver Unidade', exact: true }).click();
+    await documentRow(writer, 'notaFiscal').getByRole('button', { name: 'Adicionar Nota', exact: true }).click();
+    await modal.locator('#nota-tipo').selectOption('consumo');
+    await modal.locator('#nota-numero').fill('AGGREGATE-NF');
+    await modal.locator('#nota-desc').fill('AGGREGATE-CONSUMO');
+    await modal.locator('#nota-valor').fill('250');
+    await modal.locator('button[type="submit"]').click();
+    await expect(modal).not.toHaveClass(/show/);
+    await settleWrites(writer);
+    const [consumption] = await invoiceInDatabase(writer, 'AGGREGATE-CONSUMO');
+    await Promise.all([dashboard, wallet].map(page => waitInvoice(page, consumption.id, 250)));
+    const consumptionCard = writer.locator(`.invoice-document-row[data-invoice-id="${consumption.id}"]`);
+    await consumptionCard.getByRole('button', { name: /^Editar (?:lançamento:|NF:)/ }).click();
+    await modal.locator('#nota-valor').fill('315.50');
+    await modal.locator('button[type="submit"]').click();
+    await expect(modal).not.toHaveClass(/show/);
+    await settleWrites(writer);
+    expect((await invoiceInDatabase(writer, 'AGGREGATE-CONSUMO'))[0].amount).toBe(315.5);
+    await Promise.all([dashboard, wallet].map(page => waitInvoice(page, consumption.id, 315.5)));
+    await consumptionCard.getByRole('button', { name: /^Excluir NF:/ }).click();
+    await settleWrites(writer);
+    expect(await invoiceInDatabase(writer, 'AGGREGATE-CONSUMO')).toEqual([]);
+    await Promise.all([dashboard, wallet].map(page => waitInvoice(page, consumption.id, null)));
+    await Promise.all([dashboard, wallet].map(page => waitInvoice(page, invoice.id, 175.5)));
     expect(await Promise.all([dashboard, wallet].map(page => localSchool(page, 'ESC-OTHER')))).toEqual(otherBefore);
 
     // A unidade alterada não é a antiga activeSchoolId das superfícies agregadas.
@@ -199,24 +247,31 @@ test('Dashboard e Carteira convergem por escola em criação, edição, exclusã
     await testInfo.attach('wallet-after.png', { body: await wallet.screenshot(), contentType: 'image/png' });
     reports.dashboard = await watchers[0].report();
     reports.wallet = await watchers[1].report();
-    reports.gestures = 5;
+    reports.gestures = 8;
     reports.competence = '2026-05';
     await testInfo.attach('aggregate-school-sync.json', { body: JSON.stringify(reports, null, 2), contentType: 'application/json' });
 
-    // RED de produto: main ainda faz cinco leituras globais para cada observador.
+    // RED de produto: main relê todas as escolas para cada uma destas oito ações.
     for (const report of [reports.dashboard, reports.wallet]) {
       expect(report.errors).toEqual([]);
       expect(report.network.filter(item => item.rpc === 'read_operational_context')).toHaveLength(0);
-      expect(report.network.filter(item => item.rpc === 'read_school_operational_context')).toHaveLength(5);
+      expect(report.network.filter(item => item.rpc === 'read_school_operational_context')).toHaveLength(8);
     }
 
     // Navegar/recarregar recupera a mesma verdade; bootstrap continua legitimamente global.
-    await walletRow.getByRole('button', { name: 'Ver Unidade', exact: true }).click();
+    await walletRow.getByRole('link', { name: 'Ver Unidade', exact: true }).click();
     await expect(wallet).toHaveURL(/\/escolas\/ESC-LOCAL$/);
     await wallet.reload();
     await expect(documentRow(wallet, 'notaFiscal')).toBeVisible();
-    await waitInvoice(wallet, invoice.id, null);
+    await waitInvoice(wallet, consumption.id, null);
+    await waitInvoice(wallet, invoice.id, 175.5);
   } finally {
-    await Promise.all(contexts.map(context => context.close()));
+    if (watchers.length && !reports.dashboard) {
+      const partial = await Promise.allSettled(watchers.map(watcher => watcher.report()));
+      await testInfo.attach('aggregate-partial.json', {
+        body: JSON.stringify(partial, null, 2), contentType: 'application/json'
+      }).catch(() => {});
+    }
+    await Promise.all(contexts.map(context => context.close().catch(() => {})));
   }
 });
