@@ -45,6 +45,9 @@ Não adaptar CLI nem enfraquecer RLS para contornar capacidade do workspace.
 
 ## Continuidade
 
+Este bloco conserva a sequência inicial. O checkpoint candidato abaixo é o
+ponto de retomada vigente; não reiniciar a investigação nem reimplementar #410.
+
 Primeiro run `37613255984` (`350dec11`) não certificou RED: a expectativa do
 teste ignorou a pluralização vigente (`1 Escola`) e o retry reutilizou o banco
 já modificado. A correção é no teste, sem mudar produto: aceitar singular/plural
@@ -108,3 +111,45 @@ GREEN local: 40 controles focados; 1.310 unitários; oito integrações; sintaxe
 lint de segurança sem novos erros. O manifesto Production conferido permanece
 na main `2cb4fb35`. Ainda medir candidato no Supabase nativo e confrontar CI final,
 capturas e navegação/reconexão. Não confundir GREEN local com conclusão.
+
+## Primeiro GREEN da jornada alvo e revisão de intercalações
+
+Run `37616935756`, SHA `c0552659ff08f784e6e7911183981b76087b505f`:
+a jornada principal passou com oito leituras escolares, zero globais e 53.362
+bytes por observador. A fixture é a mesma do RED pareado: duas escolas, 25 NFs
+preexistentes na outra escola e oito gestos. Foram preservadas as seis coleções
+da escola não alterada, filtros, competência, UI e conferência após reload.
+[Resumo e hash](../evidence/2026-10-07-aggregate-school-sync/first-candidate.json).
+O workflow inteiro ainda falhou no segundo caso; este resultado não o certifica.
+
+Comparação medida por observador: 133.356 → 53.362 bytes (−79.994); oito aplicações
+globais → oito escolares. DOM permanece com oito substituições e 144/74 registros
+de mutação (Dashboard/Carteira). Zero pageerrors, opacity reduzida ou long tasks
+nesta massa. O tempo total de aplicação foi 5,5/5,7 → 12,9/9,0 ms; não alegar ganho
+de CPU/DOM nem extrapolar percentual de Production. Capturas desktop foram abertas:
+contexto Maio/2026, escopo, filtros, estados e ações legíveis; sem alteração de CSS
+ou atualização de goldens. A próxima certificação conserva inspeção de CI visual.
+
+Três problemas nos próprios testes foram confrontados sem mudar o produto:
+
+- Segundo caso novo media contagem antes da última resposta terminar:
+  `hasPendingRefresh() === false` também ocorre quando a leitura começa. Agora
+  espera a resposta efetiva e compara `row_version` com SQL autenticado; a resposta
+  retida é produzida antes da segunda escrita para não mascarar estado antigo.
+- O E2E auditável do #410 retinha apenas `read_operational_context` no Dashboard.
+  A chamada dirigida correta jamais chegava à barreira, causando timeout em
+  readiness/homologação. A barreira passa à RPC escolar, mantendo prova de snapshot
+  real, AbortSignal, recuperação sem gesto/navegação e acrescentando zero globais.
+- Run sustentado `37616251842` falhou no teste que exigia estado antigo depois de
+  desconectar somente WebSocket: HTTP em voo podia legitimamente trazer o novo
+  estado. O mesmo produto passou a prova e comparação no run `37616935595`.
+  Para remover essa dependência de ordem, o transporte anterior é drenado e
+  leituras novas são retidas apenas durante a contraprova de evento perdido;
+  reconexão continua real, SQL/Auth não são simulados e ambas variantes usam o
+  mesmo harness. Não alterar recuperação do produto para bloquear HTTP saudável.
+
+Produto segue exatamente `57b8e64b`; mudanças posteriores são evidência, docs e
+testes. Próximo agente: concluir native hardening (seis casos), readiness e
+homologação pré-production no novo SHA, confrontar todos os checks e nova comparação
+sustentada. Não fazer merge automaticamente. PR #427 permanece Draft até relatório
+com CI aplicável, ganhos medidos e limites. Dados brutos continuam nos artifacts.

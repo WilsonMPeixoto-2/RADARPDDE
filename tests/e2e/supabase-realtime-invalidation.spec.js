@@ -297,10 +297,14 @@ test('gravação auditável pela UI aborta leitura do Broadcast sem perder a atu
     const readReleased = new Promise(resolve => { releaseRead = resolve; });
     let heldRequest = null;
     let contextualReads = 0;
+    let globalReads = 0;
     let reloads = 0;
     pageB.on('load', () => { reloads += 1; });
+    pageB.on('request', request => {
+      if (new URL(request.url()).pathname === '/rest/v1/rpc/read_operational_context') globalReads += 1;
+    });
 
-    await pageB.route('**/rest/v1/rpc/read_operational_context', async route => {
+    await pageB.route('**/rest/v1/rpc/read_school_operational_context', async route => {
       const request = route.request();
       if (request.method() !== 'POST') {
         await route.continue();
@@ -313,7 +317,7 @@ test('gravação auditável pela UI aborta leitura do Broadcast sem perder a atu
       } catch (_error) {
         body = {};
       }
-      if (body.p_competence_id !== '2026-05') {
+      if (body.p_competence_id !== '2026-05' || body.p_school_id !== 'ESC-LOCAL') {
         await route.continue();
         return;
       }
@@ -324,7 +328,7 @@ test('gravação auditável pela UI aborta leitura do Broadcast sem perder a atu
         return;
       }
       heldRequest = request;
-      // O Broadcast de A inicia a leitura contextual canônica. Retemos só a
+      // O Dashboard usa a mesma fatia escolar canônica do Prontuário. Retemos só a
       // entrega HTTP, depois de o Supabase já ter produzido o snapshot com a alteração.
       const response = await route.fetch();
       captureRead({ status: response.status(), body: await response.json() });
@@ -339,6 +343,8 @@ test('gravação auditável pela UI aborta leitura do Broadcast sem perder a atu
     const snapshot = await capturedRead;
     expect(snapshot.status).toBe(200);
     expect(snapshot.body?.competenceId).toBe('2026-05');
+    expect(snapshot.body?.schoolId).toBe('ESC-LOCAL');
+    expect(snapshot.body?.coverage?.complete).toBe(true);
     expect(Array.isArray(snapshot.body?.entities?.verifications)).toBe(true);
     expect(snapshot.body.entities.verifications.find(row => (
       row.school_id === 'ESC-LOCAL' && row.program_id === 'BASIC'
@@ -373,6 +379,7 @@ test('gravação auditável pela UI aborta leitura do Broadcast sem perder a atu
       message: 'B perdeu a invalidação cujo refresh foi abortado pela própria gravação.'
     }).toBe(changed);
     expect(contextualReads).toBeGreaterThanOrEqual(2);
+    expect(globalReads).toBe(0);
     expect(await pageB.evaluate(() => (
       window.RadarOperationalContextRefreshController.hasPendingRefresh()
     ))).toBe(false);

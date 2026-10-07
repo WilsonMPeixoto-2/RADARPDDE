@@ -335,8 +335,13 @@ test('escola dirty converge na Carteira e invalidação em voo preserva escopo e
     await observer.route('**/rest/v1/rpc/read_school_operational_context', async route => {
       if (!intercepted) {
         intercepted = true;
+        // SQL lê o estado intermediário antes da segunda escrita. Retemos só a
+        // entrega ao navegador, garantindo que a resposta anterior não baste.
+        const response = await route.fetch();
         startedRead();
         await heldRead;
+        await route.fulfill({ response });
+        return;
       }
       await route.continue();
     });
@@ -353,6 +358,20 @@ test('escola dirty converge na Carteira e invalidação em voo preserva escopo e
       verificacoes['ESC-OTHER']?.['2026-05_BASIC']?.bonificacao?.extCC)).toBe(changed);
     await observer.waitForFunction(() =>
       !window.RadarOperationalContextRefreshController.hasPendingRefresh());
+    // Pending=false também acontece ao iniciar a leitura seguinte. Esperar sua
+    // resposta evita medir a fila ainda em voo como se a jornada tivesse acabado.
+    await expect.poll(async () => (await watcher.report()).network.filter(item =>
+      item.rpc === 'read_school_operational_context').length, { timeout: 15000 }).toBe(3);
+    const persisted = await writer.evaluate(async () => {
+      const result = await window.RadarSessionContext.service.client.from('verifications')
+        .select('bonification,row_version').eq('school_id', 'ESC-OTHER').eq('competence_id', '2026-05')
+        .eq('program_id', 'BASIC').single();
+      if (result.error) throw new Error(result.error.message);
+      return result.data;
+    });
+    expect(persisted.bonification.extCC).toBe(changed);
+    await expect.poll(() => observer.evaluate(() =>
+      verificacoes['ESC-OTHER']?.['2026-05_BASIC']?.rowVersion)).toBe(persisted.row_version);
     const afterInflight = await watcher.report();
     expect(afterInflight.network.filter(item => item.rpc === 'read_operational_context')).toHaveLength(0);
     expect(afterInflight.network.filter(item => item.rpc === 'read_school_operational_context')).toHaveLength(3);
