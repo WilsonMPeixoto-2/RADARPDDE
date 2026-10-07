@@ -54,3 +54,18 @@ Disparei de novo `gh run rerun 37667249912 --failed` (tentativa 3, job `11296909
 
 - **Se passar:** merge do #429, porque todos os demais critérios já estão atendidos.
 - **Se falhar outra vez no mesmo ponto:** **não faço o merge**. Nesse caso a instabilidade deixa de ser pontual e precisa ser tratada à parte, com espera mais robusta no `signIn`, num PR próprio.
+
+## 6. Tarefa pausada a pedido do mantenedor (22:37 +03)
+
+- **Tentativa 3:** às 22:36, depois de cerca de 21 min, o baseline continuava parado em `Instalar Chromium`. É o mesmo travamento do `apt` da tentativa 1. O provável é que o job seja cancelado pelo limite de 35 min. Deixei o run seguir sozinho: ele não altera nada além do próprio resultado.
+- **Merge do #429:** **não foi feito**. O PR continua aberto, fora de Draft, `MERGEABLE`, head `d0d4739c`. O único bloqueio é o check "Uso real operacional" (run 37667249912).
+- **Já concluído e preservado no remoto:**
+  - contraprova (run 37665993736);
+  - documentação do #429 (commit `d0d4739c`);
+  - thread P2 do #427 respondida e resolvida;
+  - relatórios desta pasta (branch `docs/auditoria-manus-2026-10-07`).
+- **Para retomar:**
+  1. Consultar o resultado da tentativa 3 do run 37667249912.
+  2. Se o baseline ficou verde e a comparação passou, fazer o merge (merge commit, como no #427 e no #428).
+  3. Se houve nova falha de infraestrutura ou de login, escolher entre rodar de novo (`gh run rerun 37667249912 --failed`) e corrigir a fragilidade num PR próprio.
+  4. Em qualquer caso, depois abrir PR da branch `docs/auditoria-manus-2026-10-07` (somente documentação) ou incorporá-la aos documentos.
