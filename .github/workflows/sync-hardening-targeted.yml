@@ -14,6 +14,9 @@ on:
       - 'tests/unit/incremental-state-application.test.js'
       - 'tests/unit/operational-context-school-pending-scope.test.js'
       - 'tests/unit/operational-school-recovery-invariants.test.js'
+      - 'tests/unit/operational-realtime-school-decision.test.js'
+      - 'tests/unit/operational-realtime-school-routing.test.js'
+      - 'tests/unit/operational-realtime-deferred-school.test.js'
       - 'tests/unit/operational-realtime-invalidation.test.js'
       - 'tests/unit/realtime-status-feedback-composition.test.js'
       - 'tests/unit/operational-write-feedback.test.js'
@@ -66,6 +69,7 @@ jobs:
         run: |
           npm run test:sync-hardening
           node --test tests/unit/operational-context-school-pending-scope.test.js tests/unit/operational-school-recovery-invariants.test.js
+          node --test tests/unit/operational-realtime-school-decision.test.js tests/unit/operational-realtime-school-routing.test.js tests/unit/operational-realtime-deferred-school.test.js tests/unit/operational-realtime-deferred-generation.test.js
 
   realtime-composition:
     name: Duas sessões, Realtime real e degradação visível

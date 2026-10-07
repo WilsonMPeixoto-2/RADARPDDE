@@ -32,6 +32,22 @@ async function settleWrites(page) {
   await page.evaluate(() => window.RadarApplicationServices.data.remoteExecutionTail);
 }
 
+async function prepareUnrelatedSchool(page) {
+  // Estado prévio sintético, autorizado pela identidade real, antes de abrir os
+  // observadores. Não simula nenhuma resposta nem substitui as mutações da UI.
+  await page.evaluate(async () => {
+    const invoices = Array.from({ length: 25 }, (_, index) => ({
+      id: `AGG-UNRELATED-${index}`,
+      school_id: 'ESC-OTHER', competence_id: '2026-05', program_id: 'BASIC',
+      invoice_number: `PREEXISTENTE-${index}`, expense_type: 'consumo', amount: 50,
+      description: `Material previamente registrado ${index}`,
+      payload: { aggregate_sync_fixture: true }
+    }));
+    const result = await window.RadarSessionContext.service.client.from('registered_invoices').upsert(invoices);
+    if (result.error) throw new Error(result.error.message);
+  });
+}
+
 function documentRow(page, key) {
   return page.locator(`#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="${key}"]`);
 }
@@ -128,7 +144,9 @@ test('Dashboard e Carteira convergem por escola em criação, edição, exclusã
   const reports = {};
   let watchers = [];
   try {
-    await Promise.all([login(dashboard), login(wallet, 'federal_assistant'), login(writer)]);
+    await login(writer);
+    await prepareUnrelatedSchool(writer);
+    await Promise.all([login(dashboard), login(wallet, 'federal_assistant')]);
     await dashboard.locator('#nav-dashboard').click();
     await dashboard.getByRole('button', { name: 'Todas da CRE', exact: true }).click();
     await wallet.locator('#nav-escolas').click();
@@ -140,6 +158,7 @@ test('Dashboard e Carteira convergem por escola em criação, edição, exclusã
     await expect(documentRow(writer, 'notaFiscal')).toBeVisible();
     await Promise.all([dashboard, wallet, writer].map(subscribed));
     const otherBefore = await Promise.all([dashboard, wallet].map(page => localSchool(page, 'ESC-OTHER')));
+    expect(otherBefore.map(state => state.invoices.length)).toEqual([25, 25]);
     watchers = await Promise.all([dashboard, wallet].map(observe));
     const dashboardPendencies = dashboard.locator('.card-stat').filter({ hasText: 'Pendências ativas' }).locator('.stat-value');
     const walletRow = wallet.locator('.data-table tbody tr').filter({ hasText: 'Escola Local Autorizada' });
@@ -272,6 +291,83 @@ test('Dashboard e Carteira convergem por escola em criação, edição, exclusã
         body: JSON.stringify(partial, null, 2), contentType: 'application/json'
       }).catch(() => {});
     }
+    await Promise.all(contexts.map(context => context.close().catch(() => {})));
+  }
+});
+
+test('escola dirty converge na Carteira e invalidação em voo preserva escopo e recuperação', async ({ browser }, testInfo) => {
+  test.setTimeout(90000);
+  const contexts = await Promise.all([0, 1].map(() => browser.newContext({ viewport: { width: 1440, height: 900 } })));
+  const [observer, writer] = await Promise.all(contexts.map(context => context.newPage()));
+  let releaseRead = () => {};
+  try {
+    await Promise.all([login(observer), login(writer)]);
+    await observer.goto('/escolas/ESC-LOCAL');
+    await writer.goto('/escolas/ESC-OTHER');
+    await Promise.all([observer, writer].map(subscribed));
+    const watcher = await observe(observer);
+    const otherValue = await writer.evaluate(() => verificacoes['ESC-OTHER']?.['2026-05_BASIC']?.bonificacao?.extCC || '');
+    const changed = otherValue === 'Sim' ? 'Não' : 'Sim';
+    await documentRow(writer, 'extCC').getByRole('button', { name: changed, exact: true }).click();
+    await settleWrites(writer);
+    await observer.waitForFunction(() =>
+      window.RadarOperationalRealtimeInvalidationController.getMetrics().dirtySchoolIds.includes('ESC-OTHER'));
+    await observer.locator('#nav-escolas').click();
+    await expect.poll(() => observer.evaluate(() =>
+      verificacoes['ESC-OTHER']?.['2026-05_BASIC']?.bonificacao?.extCC)).toBe(changed);
+    const afterNavigation = await watcher.report();
+    expect(afterNavigation.network.filter(item => item.rpc === 'read_operational_context')).toHaveLength(0);
+    expect(afterNavigation.network.filter(item => item.rpc === 'read_school_operational_context')).toHaveLength(1);
+    expect(afterNavigation.realtime.dirtySchoolIds).toEqual([]);
+
+    // Duas alterações canônicas enquanto a primeira leitura ainda não terminou.
+    let startedRead;
+    const readStarted = new Promise(resolve => { startedRead = resolve; });
+    const heldRead = new Promise(resolve => { releaseRead = resolve; });
+    let intercepted = false;
+    await observer.route('**/rest/v1/rpc/read_school_operational_context', async route => {
+      if (!intercepted) {
+        intercepted = true;
+        startedRead();
+        await heldRead;
+      }
+      await route.continue();
+    });
+    const intermediate = changed === 'Sim' ? 'Não' : 'Sim';
+    await documentRow(writer, 'extCC').getByRole('button', { name: intermediate, exact: true }).click();
+    await settleWrites(writer);
+    await readStarted;
+    await documentRow(writer, 'extCC').getByRole('button', { name: changed, exact: true }).click();
+    await settleWrites(writer);
+    await observer.waitForFunction(() =>
+      window.RadarOperationalContextRefreshController.hasPendingRefresh());
+    releaseRead();
+    await expect.poll(() => observer.evaluate(() =>
+      verificacoes['ESC-OTHER']?.['2026-05_BASIC']?.bonificacao?.extCC)).toBe(changed);
+    await observer.waitForFunction(() =>
+      !window.RadarOperationalContextRefreshController.hasPendingRefresh());
+    const afterInflight = await watcher.report();
+    expect(afterInflight.network.filter(item => item.rpc === 'read_operational_context')).toHaveLength(0);
+    expect(afterInflight.network.filter(item => item.rpc === 'read_school_operational_context')).toHaveLength(3);
+    await observer.unroute('**/rest/v1/rpc/read_school_operational_context');
+
+    // Uma perda real de conexão continua exigindo leitura global conservadora.
+    await observer.evaluate(() => window.RadarSessionContext.service.client.realtime.disconnect());
+    await observer.waitForFunction(() =>
+      window.RadarOperationalRealtimeInvalidationController.getStatus() !== 'SUBSCRIBED');
+    await observer.evaluate(() => window.RadarSessionContext.service.client.realtime.connect());
+    await subscribed(observer);
+    await expect.poll(async () => (await watcher.report()).network.filter(item =>
+      item.rpc === 'read_operational_context').length, { timeout: 15000 }).toBe(1);
+    await observer.waitForFunction(() => !window.RadarOperationalContextRefreshController.hasPendingRefresh());
+    await expect(observer.locator('#carteira-competencia-select')).toHaveValue('2026-05');
+    const final = await watcher.report();
+    expect(final.errors).toEqual([]);
+    await testInfo.attach('aggregate-navigation-inflight-reconnect.json', {
+      body: JSON.stringify({ afterNavigation, afterInflight, final }, null, 2), contentType: 'application/json'
+    });
+  } finally {
+    releaseRead();
     await Promise.all(contexts.map(context => context.close().catch(() => {})));
   }
 });

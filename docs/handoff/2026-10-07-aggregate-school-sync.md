@@ -60,3 +60,22 @@ confirmaram a fronteira; ainda aguardar a contraprova completa de navegador.
 
 Dados brutos ficam nos artifacts; resumo, hashes, decisões e orientação ficam no
 Git. Nenhuma escrita nem teste destrutivo em Production foi realizado.
+## RED real certificado
+
+Run `37614827962`, SHA `8c0bf804`: oito ações pelas interfaces reais; oito leituras
+globais e zero escolares por observador (Dashboard/controlador e Carteira/assistente).
+Estado/UI corretos inclusive no aumento e redução de Pendências, edição e exclusão
+de NF sem histórico, filtros e outra escola. O teste falha precisamente em
+`globalReads === 0`. Cada observador recebeu 33.395 bytes, fez oito aplicações e
+oito substituições principais; zero pageerrors/faded frames/long tasks nesta base
+mínima. [Resumo/hashes](../evidence/2026-10-07-aggregate-school-sync/minimal-baseline.json).
+
+O teste respeita o contrato fiscal: despesa com Pendência não pode ser excluída.
+Cancela a ocorrência indevida pelo drawer para medir redução do agregado e usa
+outra NF sem histórico para provar exclusão real. Não alterar essa regra de negócio.
+
+Para comparar custo remoto e preservação sobre dados não vazios, a próxima base
+inclui 25 NFs sintéticas preexistentes em ESC-OTHER, preparadas com a identidade
+autenticada antes de abrir observadores. O volume é controlado, não alegadamente
+um clone de Production. A jornada/contagens são as mesmas; a base mínima anterior
+permanece registrada e não deve ser comparada em bytes com essa nova base.

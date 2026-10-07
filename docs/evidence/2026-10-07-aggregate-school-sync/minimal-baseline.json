@@ -1,0 +1,46 @@
+{
+  "sha": "8c0bf804d3af7d73571531711935db58906cde2c",
+  "runId": 37614827962,
+  "artifactId": 11479273786,
+  "artifactSha256": "2ff1cab898487c145de6e50807ffbcd9458983a52287d0a4d84294226e8d28c9",
+  "fixture": "two schools, initially no unrelated invoices",
+  "gestures": 8,
+  "sessions": {
+    "dashboard": {
+      "globalReads": 8,
+      "schoolReads": 0,
+      "payloadBytes": 33395,
+      "applications": 8,
+      "applyMs": 7.299999999930151,
+      "mainReplacements": 8,
+      "mutationRecords": 144,
+      "renders": {
+        "dashboard": 8,
+        "escolas": 0
+      },
+      "longTasks": 0,
+      "longTaskMs": 0,
+      "fadedFrames": 0,
+      "frames": 788,
+      "errors": []
+    },
+    "wallet": {
+      "globalReads": 8,
+      "schoolReads": 0,
+      "payloadBytes": 33395,
+      "applications": 8,
+      "applyMs": 5.800000000017462,
+      "mainReplacements": 8,
+      "mutationRecords": 74,
+      "renders": {
+        "dashboard": 0,
+        "escolas": 8
+      },
+      "longTasks": 0,
+      "longTaskMs": 0,
+      "fadedFrames": 0,
+      "frames": 792,
+      "errors": []
+    }
+  }
+}
