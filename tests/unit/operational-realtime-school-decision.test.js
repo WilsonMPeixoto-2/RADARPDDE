@@ -68,6 +68,15 @@ test('contatos gerais continuam globais até existir contrato escolar próprio',
     );
 });
 
+test('superfícies agregadas preservam evento incerto e contato geral no escopo global', () => {
+    for (const view of ['dashboard', 'escolas', 'competencias']) {
+        for (const event of [payload('pendency_contacts', 'school-a'),
+            payload('registered_invoices', ''), payload('future_entity', 'school-a')]) {
+            assert.equal(decideInvalidationAction({ route: { view }, payload: event }), 'global');
+        }
+    }
+});
+
 test('entidade desconhecida não é otimizada por escola', () => {
     assert.equal(
         decideInvalidationAction({

@@ -22,6 +22,7 @@
     const TOPIC = 'radar:operational';
     const EVENT = 'operational-change';
     const DEFAULT_DEBOUNCE_MS = 2000;
+    const SCHOOL_AGGREGATE_VIEWS = new Set(['dashboard', 'escolas', 'competencias']);
     const SCHOOL_SCOPED_ENTITIES = new Set([
         'verifications',
         'registered_invoices',
@@ -38,6 +39,9 @@
         const entity = text(payload?.entity);
         const schoolId = text(payload?.schoolId);
         if (!schoolId || !SCHOOL_SCOPED_ENTITIES.has(entity)) return 'global';
+        // A superfície agregada é uma projeção da memória já carregada. A fatia
+        // completa da escola atualiza essa projeção pelo refresh compartilhado.
+        if (SCHOOL_AGGREGATE_VIEWS.has(text(route?.view))) return 'school';
         if (text(route?.view) !== 'prontuario') return 'global';
         const currentSchoolId = text(route?.param);
         if (!currentSchoolId) return 'global';
@@ -243,12 +247,14 @@
                 scheduleRefresh('realtime-deferred-navigation', { schoolId });
                 return;
             }
-            const hasUncoveredDirty = [...dirtySchools].some(([schoolId, generation]) => (
+            const uncoveredSchoolIds = [...dirtySchools].filter(([schoolId, generation]) => (
                 reconcilingSchools.get(schoolId) !== generation
-            ));
-            if (!hasUncoveredDirty) return;
+            )).map(([schoolId]) => schoolId);
+            if (!uncoveredSchoolIds.length) return;
             metrics.deferredSchoolReconciliations += 1;
-            scheduleRefresh('realtime-deferred-navigation');
+            const schoolId = SCHOOL_AGGREGATE_VIEWS.has(text(route.view))
+                && uncoveredSchoolIds.length === 1 ? uncoveredSchoolIds[0] : '';
+            scheduleRefresh('realtime-deferred-navigation', schoolId ? { schoolId } : {});
         }
 
         function handleStatus(status, error) {

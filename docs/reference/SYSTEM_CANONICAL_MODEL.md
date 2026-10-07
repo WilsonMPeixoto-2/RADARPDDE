@@ -694,6 +694,12 @@ mudança persistida no PostgreSQL
 
 O Broadcast não transporta registros operacionais. A fonte canônica continua sendo o Supabase.
 
+Para entidade coberta e `schoolId` conhecido, Dashboard, Carteira e Competências
+recalculam a projeção sobre a fatia escolar canônica atualizada. A natureza
+agregada da tela não exige, por si só, uma leitura global. A cobertura validada
+pelo Repository/DataService decide se a fatia pode ser aplicada; bootstrap,
+competência, reconexão e invalidade/incerteza do contexto mantêm fallback global.
+
 Se a invalidação chegar durante edição, o refresh fica pendente e só é aplicado quando a superfície volta a ser segura.
 
 O contrato detalhado está em `docs/decisions/ADR-054-sincronizacao-operacional-realtime.md`.

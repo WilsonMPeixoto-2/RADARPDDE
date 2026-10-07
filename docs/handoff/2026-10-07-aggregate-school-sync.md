@@ -28,16 +28,16 @@ Contatos gerais (`pendency_contacts`) não têm a mesma cobertura das seis cole�
 operacionais: a presença de schoolId por si só não permite trocar seu fallback.
 Evento desconhecido, reconexão e competência/bootstrap continuam conservadores.
 
-## Checkpoint inicial — apenas teste, nenhuma correção de produto
+## Checkpoint inicial — histórico anterior à correção
 
 `supabase-aggregate-school-sync.spec.js` autentica três sessões reais:
 Dashboard/controlador, Carteira/assistente e escritor/controlador. O escritor usa
-controles reais para criar, editar e excluir Despesa a identificar e alterar outra
-escola. Observadores conferem agregados crescentes/decrescentes, estado da outra
-escola, filtros e competência. O contrato final exige cinco leituras escolares e
-zero globais por observador. O benchmark registra respostas/bytes, aplicações,
-renders, DOM, long tasks, erros e capturas em artifact. Ainda executar para provar
-RED; leitura de código não substitui resultado de navegador.
+controles reais para criar/editar Despesa a identificar, cancelar sua Pendência,
+criar/editar/excluir outra NF elegível e alterar outra escola. Observadores conferem
+agregados crescentes/decrescentes, estado não vazio da outra escola, filtros e
+competência. O contrato final exige oito leituras escolares e zero globais por
+observador. O benchmark registra respostas/bytes, aplicações, renders, DOM,
+long tasks, erros e capturas em artifact. O RED nativo está certificado abaixo.
 
 Supabase local canônico 2.114.0 não pôde subir: a imagem Postgres excedeu o disco
 de 32 GB. A prova usará o Supabase descartável do workflow de hardening existente.
@@ -49,7 +49,9 @@ Primeiro run `37613255984` (`350dec11`) não certificou RED: a expectativa do
 teste ignorou a pluralização vigente (`1 Escola`) e o retry reutilizou o banco
 já modificado. A correção é no teste, sem mudar produto: aceitar singular/plural
 e não repetir esta jornada sem reset. Sete REDs unitários de roteamento/navegação
-confirmaram a fronteira; ainda aguardar a contraprova completa de navegador.
+confirmaram a fronteira; a contraprova completa veio no run abaixo. Run
+`37613789796` parou em ação fiscal inelegível no teste; a jornada foi corrigida
+sem alterar permissões nem código do produto.
 
 1. Executar workflow `sync-hardening-targeted.yml` nesta branch e abrir artifact.
 2. Diferenciar eventual erro de fixture/seletor do RED de produto.
@@ -60,6 +62,7 @@ confirmaram a fronteira; ainda aguardar a contraprova completa de navegador.
 
 Dados brutos ficam nos artifacts; resumo, hashes, decisões e orientação ficam no
 Git. Nenhuma escrita nem teste destrutivo em Production foi realizado.
+
 ## RED real certificado
 
 Run `37614827962`, SHA `8c0bf804`: oito ações pelas interfaces reais; oito leituras
@@ -79,3 +82,17 @@ inclui 25 NFs sintéticas preexistentes em ESC-OTHER, preparadas com a identidad
 autenticada antes de abrir observadores. O volume é controlado, não alegadamente
 um clone de Production. A jornada/contagens são as mesmas; a base mínima anterior
 permanece registrada e não deve ser comparada em bytes com essa nova base.
+
+## Implementação candidata e limites
+
+Somente `operational-realtime-invalidation.js` muda no produto: três rotas
+agregadas passam a `refreshSchool`, e navegação com uma escola dirty preserva o
+mesmo escopo. Repository, DataService, StatePort, renderizadores, RPCs, Auth/RLS,
+schema, dependencies e timers não mudaram. A união de escopos multiescola do #410
+foi preservada deliberadamente, assim como contatos gerais e recuperação global.
+Esta frente não promete zero leituras globais em todos os cenários.
+
+GREEN local: 40 controles focados; 1.310 unitários; oito integrações; sintaxe e
+lint de segurança sem novos erros. O manifesto Production conferido permanece
+na main `2cb4fb35`. Ainda medir candidato no Supabase nativo e confrontar CI final,
+capturas e navegação/reconexão. Não confundir GREEN local com conclusão.

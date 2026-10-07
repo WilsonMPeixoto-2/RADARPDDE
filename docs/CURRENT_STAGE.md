@@ -1,9 +1,18 @@
 # RADAR PDDE — estado atual e retomada
 
-## Atualização canônica — pós-#410 e observabilidade Vercel
+## Atualização canônica — pós-#426 e sincronização agregada em revisão
 
-**Main atual:** `e78a0e68c3b8d88303209549852d6d705d355421`.  
-**Último deployment Production observado:** `dpl_FGMwjSLDyN4So1xz3FkeGo6EVtdS`, estado `READY`.
+**Main verificada em 07/10:** `2cb4fb359ff9614ebd7fdf824e297f22ebcb025f`.  
+**Deployment Production informado:** `dpl_2vcHWT84M6JoXgUbhsfpmpmfUxmn`, `READY`.
+O manifesto público foi conferido nesta frente e confirma essa main em
+`supabase-production`; não houve publicação desta otimização.
+
+**Frente ativa:** otimização residual de Dashboard/Carteira/Competências, na branch
+`fix/aggregate-school-sync-2026-10-07`. O [handoff corrente](handoff/2026-10-07-aggregate-school-sync.md)
+registra RED nativo, medição, escopo e continuidade. O #410 está encerrado;
+seu handoff e checkpoints abaixo são históricos. #415, #422 e #426 estão integrados
+e não são reimplementados nesta frente. A entrega depende de GREEN nativo, CI e
+inspeção visual; apresentar relatório ao usuário antes de merge.
 
 - **PR #410** permanece integrado no merge `33ebbf7310898e025a3ec2edc198d6ecd4ea40ac`. A simplificação de sincronização operacional por escola está publicada; validações pós-merge com perfil Controlador não detectaram regressão funcional conhecida.
 - **PR #415** permanece a implementação canônica de observabilidade. O build Production injeta Vercel Web Analytics e Speed Insights sem framework adicional nem dependência de runtime. Preview/local não recebem a instrumentação.
@@ -69,7 +78,7 @@ As proteções do #408 são regressões obrigatórias. Os detalhes do design pre
 
 **A Fase 2 de autonomia dos Controladores e UX da retificação está encerrada, integrada e publicada.** O PR #404 foi mergeado em `de7bebb06b867ebd557ff83cd9194fe3d45f5903` e publicado no deployment Production `dpl_CLYY92KojCXpmQcL8xXQkmc3TdgG`, `READY`, com smoke HTTP 200 na raiz e em `/escolas/04.31.001`. A retificação de classificação permanece limitada ao histórico exclusivamente fiscal encerrado/cancelado e falha fechada diante de Pendência ativa, atividade/histórico de Assessoria, `a_identificar`, bem `Inventariada` ou versionamento desconhecido.
 
-**O handoff corrente operacional é o do #410; nenhuma nova fase funcional foi iniciada automaticamente.** A proteção patrimonial adicional, anulação/transferência auditável, `PROD-UX-08`, NAV-01/UX-04 e Fase D permanecem decisões/frentes separadas.
+**O handoff corrente operacional é o da sincronização agregada de 07/10, apontado acima.** A proteção patrimonial adicional, anulação/transferência auditável, `PROD-UX-08`, NAV-01/UX-04 e Fase D permanecem decisões/frentes separadas.
 
 **O PR #397 — independência entre despesas e bonificação — permanece integrado e publicado.** A ADR-055 e a leitura contextual do #396 são preservadas. A [continuidade após o #397](handoff/2026-09-30-pos-publicacao-pr397-retomada.md) passou a contexto histórico desta entrega.
 

@@ -21,7 +21,11 @@ Ordem:
 10. ADRs e referências especializadas da área afetada;
 11. planos, auditorias, demais handoffs e evidências históricas apenas para compreender o seu momento/SHA.
 
-**Estado funcional corrente:** A + B + C e #397 estão concluídos; Fase D permanece não iniciada. As Fases 1 e 2 de autonomia/retificação também estão concluídas e publicadas: #403 introduziu a descobribilidade da edição e #404 integrou a correção segura de classificação com UX assistida no merge `de7bebb06b867ebd557ff83cd9194fe3d45f5903`, publicado no deployment `dpl_CLYY92KojCXpmQcL8xXQkmc3TdgG`. O [handoff da Fase 2](handoff/2026-10-01-controller-type-retification.md) e seu [relatório de evidências](evidence/2026-10-01-controller-type-retification/REPORT.md) são históricos concluídos. **Não há handoff corrente.** NAV-01/UX-04 e `PROD-UX-08` permanecem separados e nenhuma nova frente é aberta automaticamente.
+**Estado funcional corrente:** A + B + C, #397, Fases 1/2 de autonomia/retificação e
+#410 estão concluídos. Fase D, NAV-01/UX-04 e `PROD-UX-08` permanecem separados.
+A frente autorizada de otimização residual de Dashboard/Carteira é detalhada no
+[handoff corrente de 07/10](handoff/2026-10-07-aggregate-school-sync.md), apontado
+por `CURRENT_STAGE.md`. O handoff do #410 preserva somente seu histórico.
 
 O [PR #386](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/386) e o merge funcional `e6b692a97dd5148877c788da11e0c8ae4c8fcd19` registram o encerramento da C3. Commits posteriores exclusivamente documentais podem avançar a `main` e gerar novo deployment sem reabrir a Fase C. Quando o SHA do head ou o deployment ativo importarem para uma nova entrega, verificá-los ao vivo.
 

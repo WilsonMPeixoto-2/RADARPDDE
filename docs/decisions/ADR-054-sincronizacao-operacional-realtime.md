@@ -2,7 +2,7 @@
 
 **Status:** Aprovada, implementada e publicada
 **Data:** 19 de setembro de 2026
-**Atualizada em:** 20 de setembro de 2026
+**Atualizada em:** 7 de outubro de 2026
 
 ## Contexto
 
@@ -26,7 +26,17 @@ O RADAR usa Supabase Realtime Broadcast privado somente como mecanismo de invali
 Tópico canônico: radar:operational
 Evento canônico: operational-change
 
-O payload não transporta dados de negócio. Contém apenas informação mínima de entidade/operação.
+O payload não transporta registros de negócio. Contém entidade/operação e, desde
+o #410, `schoolId` quando o trigger pode identificar o contexto escolar.
+
+Dashboard, Carteira e Competências usam a leitura escolar existente para uma
+invalidação conhecida/coberta, aplicam a fatia e recalculam a projeção local pelo
+refresh compartilhado. Navegar para uma dessas telas com uma escola dirty também
+mantém esse escopo. Não há novo scheduler, fonte de estado ou regra de negócio.
+Contatos gerais, evento incerto, reconexão, troca de competência, bootstrap e
+envelope incompleto continuam globais. A união conservadora multiescola do #410
+permanece; uma rajada não pode perder parte da invalidação para evitar uma RPC.
+Estado de homologação/publicação da otimização residual: `CURRENT_STAGE.md`.
 
 ## Entidades que invalidam o contexto
 
