@@ -29,6 +29,7 @@ PR aberto, Preview ou documento antigo não altera Production.
 | docs/reference/PRODUCT_SURFACE_CATALOG.md | Referência vigente | superfícies e jornadas |
 | docs/reference/VERCEL_OBSERVABILITY.md | Referência operacional vigente | contrato de instrumentação Web Analytics/Speed Insights, estado de ativação, validação de campo e decisão de não usar o pacote redundante do #416 |
 | docs/CURRENT_STAGE.md | Canônico | estado funcional e prioridade; head/deployment exatos devem ser revalidados ao vivo quando relevantes |
+| docs/handoff/2026-10-07-pr429-reconnect-proof.md | Handoff do follow-up de testes | #429; RED confirmado, GREEN nativo em seis execuções e contraprova do mecanismo final registrados; não reabre produto/performance |
 | docs/handoff/2026-10-07-aggregate-school-sync.md | Histórico concluído | #427 integrado e publicado; RED/GREEN, métricas e registro de encerramento |
 | docs/evidence/2026-10-07-aggregate-school-sync/README.md e JSONs | Evidência concluída | certificação #427, benchmark pareado, merge/deployment e limites do smoke público |
 | docs/handoff/2026-10-04-pr410-start.md | Histórico concluído | #410 integrado; checkpoints pré-merge não abrem novamente a implementação |

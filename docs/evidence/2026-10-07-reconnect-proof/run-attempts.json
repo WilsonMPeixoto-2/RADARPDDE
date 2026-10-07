@@ -1,0 +1,346 @@
+[
+  {
+    "attempt": 1,
+    "jobs": [
+      {
+        "id": 112949520753,
+        "name": "Seis sessões reais (candidate)",
+        "conclusion": "success",
+        "started_at": "2026-10-07T18:29:41Z",
+        "completed_at": "2026-10-07T18:39:33Z",
+        "steps": [
+          {
+            "name": "Instalar Chromium",
+            "conclusion": "success",
+            "started_at": "2026-10-07T18:29:55Z",
+            "completed_at": "2026-10-07T18:30:20Z"
+          },
+          {
+            "name": "Iniciar backend correspondente ao produto",
+            "conclusion": "success",
+            "started_at": "2026-10-07T18:30:20Z",
+            "completed_at": "2026-10-07T18:31:41Z"
+          },
+          {
+            "name": "Preparar Controladores reais sem credenciais Production",
+            "conclusion": "success",
+            "started_at": "2026-10-07T18:31:41Z",
+            "completed_at": "2026-10-07T18:31:44Z"
+          },
+          {
+            "name": "Executar gestos concorrentes e medir a cadeia completa",
+            "conclusion": "success",
+            "started_at": "2026-10-07T18:31:44Z",
+            "completed_at": "2026-10-07T18:39:12Z"
+          }
+        ]
+      },
+      {
+        "id": 112949521276,
+        "name": "Seis sessões reais (baseline)",
+        "conclusion": "cancelled",
+        "started_at": "2026-10-07T18:29:41Z",
+        "completed_at": "2026-10-07T19:05:02Z",
+        "steps": [
+          {
+            "name": "Instalar Chromium",
+            "conclusion": "cancelled",
+            "started_at": "2026-10-07T18:30:09Z",
+            "completed_at": "2026-10-07T19:04:57Z"
+          },
+          {
+            "name": "Iniciar backend correspondente ao produto",
+            "conclusion": "skipped",
+            "started_at": "2026-10-07T19:04:57Z",
+            "completed_at": "2026-10-07T19:04:57Z"
+          },
+          {
+            "name": "Preparar Controladores reais sem credenciais Production",
+            "conclusion": "skipped",
+            "started_at": "2026-10-07T19:04:57Z",
+            "completed_at": "2026-10-07T19:04:57Z"
+          },
+          {
+            "name": "Executar gestos concorrentes e medir a cadeia completa",
+            "conclusion": "skipped",
+            "started_at": "2026-10-07T19:04:57Z",
+            "completed_at": "2026-10-07T19:04:57Z"
+          }
+        ]
+      },
+      {
+        "id": 112965078256,
+        "name": "Comparação de custo e invariantes",
+        "conclusion": "failure",
+        "started_at": "2026-10-07T19:05:04Z",
+        "completed_at": "2026-10-07T19:05:17Z",
+        "steps": [
+          {
+            "name": "Conferir comparador e produzir deltas",
+            "conclusion": "failure",
+            "started_at": "2026-10-07T19:05:14Z",
+            "completed_at": "2026-10-07T19:05:14Z"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "attempt": 2,
+    "jobs": [
+      {
+        "id": 112966118714,
+        "name": "Seis sessões reais (baseline)",
+        "conclusion": "failure",
+        "started_at": "2026-10-07T19:07:27Z",
+        "completed_at": "2026-10-07T19:11:45Z",
+        "steps": [
+          {
+            "name": "Instalar Chromium",
+            "conclusion": "success",
+            "started_at": "2026-10-07T19:07:56Z",
+            "completed_at": "2026-10-07T19:09:31Z"
+          },
+          {
+            "name": "Iniciar backend correspondente ao produto",
+            "conclusion": "success",
+            "started_at": "2026-10-07T19:09:31Z",
+            "completed_at": "2026-10-07T19:10:59Z"
+          },
+          {
+            "name": "Preparar Controladores reais sem credenciais Production",
+            "conclusion": "success",
+            "started_at": "2026-10-07T19:11:00Z",
+            "completed_at": "2026-10-07T19:11:03Z"
+          },
+          {
+            "name": "Executar gestos concorrentes e medir a cadeia completa",
+            "conclusion": "failure",
+            "started_at": "2026-10-07T19:11:03Z",
+            "completed_at": "2026-10-07T19:11:23Z"
+          }
+        ]
+      },
+      {
+        "id": 112966120630,
+        "name": "Seis sessões reais (candidate)",
+        "conclusion": "success",
+        "started_at": "2026-10-07T18:29:41Z",
+        "completed_at": "2026-10-07T18:39:33Z",
+        "steps": [
+          {
+            "name": "Instalar Chromium",
+            "conclusion": "success",
+            "started_at": "2026-10-07T18:29:55Z",
+            "completed_at": "2026-10-07T18:30:20Z"
+          },
+          {
+            "name": "Iniciar backend correspondente ao produto",
+            "conclusion": "success",
+            "started_at": "2026-10-07T18:30:20Z",
+            "completed_at": "2026-10-07T18:31:41Z"
+          },
+          {
+            "name": "Preparar Controladores reais sem credenciais Production",
+            "conclusion": "success",
+            "started_at": "2026-10-07T18:31:41Z",
+            "completed_at": "2026-10-07T18:31:44Z"
+          },
+          {
+            "name": "Executar gestos concorrentes e medir a cadeia completa",
+            "conclusion": "success",
+            "started_at": "2026-10-07T18:31:44Z",
+            "completed_at": "2026-10-07T18:39:12Z"
+          }
+        ]
+      },
+      {
+        "id": 112967989323,
+        "name": "Comparação de custo e invariantes",
+        "conclusion": "failure",
+        "started_at": "2026-10-07T19:11:48Z",
+        "completed_at": "2026-10-07T19:11:59Z",
+        "steps": [
+          {
+            "name": "Conferir comparador e produzir deltas",
+            "conclusion": "failure",
+            "started_at": "2026-10-07T19:11:56Z",
+            "completed_at": "2026-10-07T19:11:56Z"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "attempt": 3,
+    "jobs": [
+      {
+        "id": 112969095865,
+        "name": "Seis sessões reais (baseline)",
+        "conclusion": "cancelled",
+        "started_at": "2026-10-07T19:14:20Z",
+        "completed_at": "2026-10-07T19:49:41Z",
+        "steps": [
+          {
+            "name": "Instalar Chromium",
+            "conclusion": "cancelled",
+            "started_at": "2026-10-07T19:14:44Z",
+            "completed_at": "2026-10-07T19:49:36Z"
+          },
+          {
+            "name": "Iniciar backend correspondente ao produto",
+            "conclusion": "skipped",
+            "started_at": "2026-10-07T19:49:36Z",
+            "completed_at": "2026-10-07T19:49:36Z"
+          },
+          {
+            "name": "Preparar Controladores reais sem credenciais Production",
+            "conclusion": "skipped",
+            "started_at": "2026-10-07T19:49:36Z",
+            "completed_at": "2026-10-07T19:49:36Z"
+          },
+          {
+            "name": "Executar gestos concorrentes e medir a cadeia completa",
+            "conclusion": "skipped",
+            "started_at": "2026-10-07T19:49:36Z",
+            "completed_at": "2026-10-07T19:49:36Z"
+          }
+        ]
+      },
+      {
+        "id": 112969098963,
+        "name": "Seis sessões reais (candidate)",
+        "conclusion": "success",
+        "started_at": "2026-10-07T18:29:41Z",
+        "completed_at": "2026-10-07T18:39:33Z",
+        "steps": [
+          {
+            "name": "Instalar Chromium",
+            "conclusion": "success",
+            "started_at": "2026-10-07T18:29:55Z",
+            "completed_at": "2026-10-07T18:30:20Z"
+          },
+          {
+            "name": "Iniciar backend correspondente ao produto",
+            "conclusion": "success",
+            "started_at": "2026-10-07T18:30:20Z",
+            "completed_at": "2026-10-07T18:31:41Z"
+          },
+          {
+            "name": "Preparar Controladores reais sem credenciais Production",
+            "conclusion": "success",
+            "started_at": "2026-10-07T18:31:41Z",
+            "completed_at": "2026-10-07T18:31:44Z"
+          },
+          {
+            "name": "Executar gestos concorrentes e medir a cadeia completa",
+            "conclusion": "success",
+            "started_at": "2026-10-07T18:31:44Z",
+            "completed_at": "2026-10-07T18:39:12Z"
+          }
+        ]
+      },
+      {
+        "id": 112984404567,
+        "name": "Comparação de custo e invariantes",
+        "conclusion": "failure",
+        "started_at": "2026-10-07T19:49:44Z",
+        "completed_at": "2026-10-07T19:49:59Z",
+        "steps": [
+          {
+            "name": "Conferir comparador e produzir deltas",
+            "conclusion": "failure",
+            "started_at": "2026-10-07T19:49:55Z",
+            "completed_at": "2026-10-07T19:49:55Z"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "attempt": 4,
+    "jobs": [
+      {
+        "id": 113009055254,
+        "name": "Seis sessões reais (baseline)",
+        "conclusion": "success",
+        "started_at": "2026-10-07T20:46:44Z",
+        "completed_at": "2026-10-07T21:00:08Z",
+        "steps": [
+          {
+            "name": "Instalar Chromium",
+            "conclusion": "success",
+            "started_at": "2026-10-07T20:47:16Z",
+            "completed_at": "2026-10-07T20:49:46Z"
+          },
+          {
+            "name": "Iniciar backend correspondente ao produto",
+            "conclusion": "success",
+            "started_at": "2026-10-07T20:49:46Z",
+            "completed_at": "2026-10-07T20:51:08Z"
+          },
+          {
+            "name": "Preparar Controladores reais sem credenciais Production",
+            "conclusion": "success",
+            "started_at": "2026-10-07T20:51:09Z",
+            "completed_at": "2026-10-07T20:51:12Z"
+          },
+          {
+            "name": "Executar gestos concorrentes e medir a cadeia completa",
+            "conclusion": "success",
+            "started_at": "2026-10-07T20:51:12Z",
+            "completed_at": "2026-10-07T20:59:44Z"
+          }
+        ]
+      },
+      {
+        "id": 113009058363,
+        "name": "Seis sessões reais (candidate)",
+        "conclusion": "success",
+        "started_at": "2026-10-07T18:29:41Z",
+        "completed_at": "2026-10-07T18:39:33Z",
+        "steps": [
+          {
+            "name": "Instalar Chromium",
+            "conclusion": "success",
+            "started_at": "2026-10-07T18:29:55Z",
+            "completed_at": "2026-10-07T18:30:20Z"
+          },
+          {
+            "name": "Iniciar backend correspondente ao produto",
+            "conclusion": "success",
+            "started_at": "2026-10-07T18:30:20Z",
+            "completed_at": "2026-10-07T18:31:41Z"
+          },
+          {
+            "name": "Preparar Controladores reais sem credenciais Production",
+            "conclusion": "success",
+            "started_at": "2026-10-07T18:31:41Z",
+            "completed_at": "2026-10-07T18:31:44Z"
+          },
+          {
+            "name": "Executar gestos concorrentes e medir a cadeia completa",
+            "conclusion": "success",
+            "started_at": "2026-10-07T18:31:44Z",
+            "completed_at": "2026-10-07T18:39:12Z"
+          }
+        ]
+      },
+      {
+        "id": 113014666464,
+        "name": "Comparação de custo e invariantes",
+        "conclusion": "success",
+        "started_at": "2026-10-07T21:00:11Z",
+        "completed_at": "2026-10-07T21:00:36Z",
+        "steps": [
+          {
+            "name": "Conferir comparador e produzir deltas",
+            "conclusion": "success",
+            "started_at": "2026-10-07T21:00:32Z",
+            "completed_at": "2026-10-07T21:00:32Z"
+          }
+        ]
+      }
+    ]
+  }
+]

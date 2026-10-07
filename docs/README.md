@@ -1,5 +1,7 @@
 # Documentação do RADAR PDDE
 
+Follow-up de testes pós-merge: [PR #429 — prova causal de reconexão (GREEN e contraprova registrados)](handoff/2026-10-07-pr429-reconnect-proof.md). A entrega funcional #427/#428 permanece encerrada.
+
 **Classe documental:** Canônico — índice e rota de leitura  
 **Atualizado em:** 7 de outubro de 2026
 

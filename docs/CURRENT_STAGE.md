@@ -1,5 +1,16 @@
 # RADAR PDDE — estado atual e retomada
 
+## Follow-up restrito de testes/documentação — PR #429
+
+A entrega funcional #427/#428 permanece encerrada. O #429 fortalece exclusivamente
+a prova de reconexão e alinha duas referências do smoke #426. RED nativo confirmou
+falso positivo no teste antigo; candidato `829c3d10` tem 1323 unitários/8 integrações
+verdes e GREEN nativo em seis execuções (runs `37655737551`, `37655886850` e
+`37656306919`, baseline e candidato). A contraprova do mecanismo final (run
+`37665993736`, recovery suprimido só no harness) falhou como exigido na espera da
+resposta de recovery. Sem mudança em produto ou Production. Handoff **deste follow-up de testes**:
+[checkpoint #429](handoff/2026-10-07-pr429-reconnect-proof.md).
+
 ## Atualização canônica — sincronização agregada integrada e publicada
 
 **Integração funcional verificada em 07/10:** [PR #427](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/427),
