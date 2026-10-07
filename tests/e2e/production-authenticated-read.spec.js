@@ -10,7 +10,8 @@ const {
 } = require('../support/production-authenticated-read.js');
 
 const enabled = process.env.RADAR_E2E_PRODUCTION_AUTHENTICATED_READ === '1';
-const requireWrite = process.env.RADAR_PRODUCTION_WRITE_SMOKE_REQUIRED === '1';
+const writeEnabled = process.env.RADAR_PRODUCTION_WRITE_SMOKE_ENABLED === '1';
+const requireWrite = writeEnabled && process.env.RADAR_PRODUCTION_WRITE_SMOKE_REQUIRED === '1';
 test.skip(!enabled, 'Esta suíte exige contas reais autorizadas de Production.');
 
 const accountsFile = process.env.RADAR_PRODUCTION_READ_ACCOUNTS_FILE || '';
@@ -390,7 +391,7 @@ for (const account of accounts) {
 }
 
 test('conta real autorizada conclui ciclo fiscal criar, editar, reler e excluir em Production', async ({ browser }) => {
-  test.skip(!writer, 'Nenhuma conta foi marcada com allowWrite=true.');
+  test.skip(!writeEnabled || !writer, 'Ciclo de escrita habilitado apenas na execução manual autorizada.');
   const browserContext = await browser.newContext();
   const page = await browserContext.newPage();
   const errors = observeErrors(page);
