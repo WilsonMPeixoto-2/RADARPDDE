@@ -7,7 +7,8 @@
 O manifesto público foi conferido nesta frente e confirma essa main em
 `supabase-production`; não houve publicação desta otimização.
 
-**Frente ativa:** otimização residual de Dashboard/Carteira/Competências, na branch
+**Frente ativa:** [PR #427](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/427),
+otimização residual de Dashboard/Carteira/Competências, na branch
 `fix/aggregate-school-sync-2026-10-07`. O [handoff corrente](handoff/2026-10-07-aggregate-school-sync.md)
 registra RED nativo, medição, escopo e continuidade. O #410 está encerrado;
 seu handoff e checkpoints abaixo são históricos. #415, #422 e #426 estão integrados

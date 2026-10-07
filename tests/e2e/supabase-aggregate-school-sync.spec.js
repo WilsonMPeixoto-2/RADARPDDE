@@ -120,13 +120,20 @@ async function observe(page) {
 }
 
 async function localSchool(page, schoolId) {
-  return page.evaluate(id => ({
-    verification: verificacoes[id] || {},
-    invoices: notasRegistradas.filter(item => item.escolaId === id),
-    pendencies: pendencias.filter(item => item.escolaId === id),
-    assets: bens.filter(item => item.escolaId === id),
-    contacts: contatos.filter(item => item.escolaId === id)
-  }), schoolId);
+  return page.evaluate(async id => {
+    // Compara o contrato canônico completo, inclusive filhos. A projeção legada
+    // admite datas PostgreSQL (+00:00/µs) e ISO JavaScript (Z/ms) equivalentes;
+    // diferenças de representação não são perda de uma outra escola.
+    const entities = ['verifications', 'registeredInvoices', 'pendencies',
+      'pendencyAttempts', 'pendencyContacts', 'assets'];
+    const snapshot = await window.RadarApplicationServices.data.statePort.exportCanonicalEntities(entities);
+    const parentIds = new Set(snapshot.entities.pendencies.filter(item => item.school_id === id).map(item => item.id));
+    return Object.fromEntries(entities.map(entity => [entity,
+      snapshot.entities[entity].filter(item => item.school_id === id
+        || (entity === 'pendencyAttempts' && parentIds.has(item.pendency_id)))
+        .sort((left, right) => left.id.localeCompare(right.id))
+    ]));
+  }, schoolId);
 }
 
 async function waitInvoice(page, invoiceId, amount) {
@@ -158,7 +165,7 @@ test('Dashboard e Carteira convergem por escola em criação, edição, exclusã
     await expect(documentRow(writer, 'notaFiscal')).toBeVisible();
     await Promise.all([dashboard, wallet, writer].map(subscribed));
     const otherBefore = await Promise.all([dashboard, wallet].map(page => localSchool(page, 'ESC-OTHER')));
-    expect(otherBefore.map(state => state.invoices.length)).toEqual([25, 25]);
+    expect(otherBefore.map(state => state.registeredInvoices.length)).toEqual([25, 25]);
     watchers = await Promise.all([dashboard, wallet].map(observe));
     const dashboardPendencies = dashboard.locator('.card-stat').filter({ hasText: 'Pendências ativas' }).locator('.stat-value');
     const walletRow = wallet.locator('.data-table tbody tr').filter({ hasText: 'Escola Local Autorizada' });

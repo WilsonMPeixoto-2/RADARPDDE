@@ -85,6 +85,18 @@ permanece registrada e não deve ser comparada em bytes com essa nova base.
 
 ## Implementação candidata e limites
 
+PR remoto: [#427](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/427), Draft.
+Produto candidato `57b8e64b`. A primeira prova do candidato (`37616251841`) parou
+na comparação da outra escola: timestamps legados PostgreSQL com microssegundos
+e `+00:00` foram normalizados pelo codec vigente para ISO JavaScript (`Z`, ms).
+Nenhum campo de negócio divergente foi identificado. O teste agora compara todas
+as seis coleções pela porta canônica, incluindo filhos, sem omitir datas/campos;
+não se altera o codec correto do #410 para satisfazer igualdade textual legada.
+
+RED pareado com 25 NFs: `37615549972`, produto main inalterado (`23ce32de`), oito
+globais por observador, 133.356 bytes cada. O resumo está em `baseline.json`;
+comparar somente com candidato que use essa mesma fixture.
+
 Somente `operational-realtime-invalidation.js` muda no produto: três rotas
 agregadas passam a `refreshSchool`, e navegação com uma escola dirty preserva o
 mesmo escopo. Repository, DataService, StatePort, renderizadores, RPCs, Auth/RLS,
