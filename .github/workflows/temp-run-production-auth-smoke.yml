@@ -11,9 +11,12 @@ permissions:
 jobs:
   smoke:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 30
     env:
       RADAR_PRODUCTION_URL: https://radarpdde-fix.vercel.app
+      RADAR_SUPABASE_URL: ${{ secrets.RADAR_SUPABASE_URL }}
+      RADAR_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.RADAR_SUPABASE_SERVICE_ROLE_KEY }}
+      RADAR_ALLOW_REMOTE_HOMOLOGATION: 'true'
 
     steps:
       - name: Obter código
@@ -35,46 +38,54 @@ jobs:
       - name: Instalar Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Preparar contas autorizadas
-        id: credentials
+      - name: Criar identidades reais temporárias em Production
+        id: identities
         shell: bash
-        env:
-          ACCOUNTS_JSON: ${{ secrets.RADAR_PRODUCTION_AUTH_ACCOUNTS_JSON || secrets.RADAR_PRODUCTION_READ_ACCOUNTS_JSON }}
         run: |
           set -euo pipefail
-          umask 077
-          if [ -z "${ACCOUNTS_JSON:-}" ]; then
-            echo 'NO_AUTH_ACCOUNTS_SECRET' >&2
-            exit 2
-          fi
-          RAW="${RUNNER_TEMP}/accounts-raw.json"
-          OUT="${RUNNER_TEMP}/accounts.json"
-          printf '%s' "${ACCOUNTS_JSON}" > "${RAW}"
-          jq '
-            .accounts as $a
-            | ($a | map(.profileId == "controller" or .profileId == "federal_assistant") | index(true)) as $writer
-            | if $writer == null then error("NO_ELIGIBLE_WRITER") else
-                .accounts = [
-                  range(0; ($a|length)) as $i
-                  | ($a[$i] + {allowWrite: ($i == $writer)})
-                ]
-              end
-          ' "${RAW}" > "${OUT}"
-          rm -f "${RAW}"
-          chmod 600 "${OUT}"
-          printf 'accounts_file=%s\n' "${OUT}" >> "${GITHUB_OUTPUT}"
+          test -n "${RADAR_SUPABASE_URL:-}"
+          test -n "${RADAR_SUPABASE_SERVICE_ROLE_KEY:-}"
+          PASSWORD="$(node --input-type=module -e "import { randomBytes } from 'node:crypto'; process.stdout.write(randomBytes(32).toString('base64url') + 'A1!')")"
+          echo "::add-mask::${PASSWORD}"
+          RUN_ID="prod-smoke-${GITHUB_RUN_ID}"
+          FIXTURE="${RUNNER_TEMP}/prod-smoke-fixture.json"
+          ACCOUNTS="${RUNNER_TEMP}/prod-smoke-accounts.json"
+          export RADAR_HML_PASSWORD="${PASSWORD}"
+          export RADAR_HML_RUN_ID="${RUN_ID}"
+          export RADAR_HML_FIXTURE_FILE="${FIXTURE}"
+          node scripts/ops/prepare-remote-homologation-users.mjs
+          jq --arg password "${PASSWORD}" '
+            {
+              accounts: [
+                (.users[] | select(.key=="controllerTuane") | {profileId:.profileId,email:.email,password:$password,allowWrite:true}),
+                (.users[] | select(.key=="assistant") | {profileId:.profileId,email:.email,password:$password}),
+                (.users[] | select(.key=="inventory") | {profileId:.profileId,email:.email,password:$password}),
+                (.users[] | select(.key=="sme") | {profileId:.profileId,email:.email,password:$password}),
+                (.users[] | select(.key=="technicalAdmin") | {profileId:.profileId,email:.email,password:$password})
+              ]
+            }
+          ' "${FIXTURE}" > "${ACCOUNTS}"
+          chmod 600 "${FIXTURE}" "${ACCOUNTS}"
+          printf 'fixture=%s\naccounts=%s\n' "${FIXTURE}" "${ACCOUNTS}" >> "${GITHUB_OUTPUT}"
 
       - name: Executar leitura real e CRUD reversível
         env:
           RADAR_E2E_PRODUCTION_AUTHENTICATED_READ: '1'
           RADAR_PRODUCTION_WRITE_SMOKE_ENABLED: '1'
           RADAR_PRODUCTION_WRITE_SMOKE_REQUIRED: '1'
-          RADAR_PRODUCTION_READ_ACCOUNTS_FILE: ${{ steps.credentials.outputs.accounts_file }}
+          RADAR_PRODUCTION_READ_ACCOUNTS_FILE: ${{ steps.identities.outputs.accounts }}
         run: npx playwright test --config=playwright.production-authenticated-read.config.js
 
-      - name: Remover credenciais temporárias
+      - name: Limpar identidades temporárias de Production
         if: always()
+        shell: bash
         env:
-          ACCOUNTS_FILE: ${{ steps.credentials.outputs.accounts_file }}
+          RADAR_HML_FIXTURE_FILE: ${{ steps.identities.outputs.fixture }}
         run: |
-          if [ -n "${ACCOUNTS_FILE:-}" ]; then rm -f -- "${ACCOUNTS_FILE}"; fi
+          set -euo pipefail
+          if [ -n "${RADAR_HML_FIXTURE_FILE:-}" ] && [ -f "${RADAR_HML_FIXTURE_FILE}" ]; then
+            node scripts/ops/cleanup-remote-homologation-users.mjs
+            rm -f -- "${RADAR_HML_FIXTURE_FILE}"
+          fi
+          ACCOUNTS="${{ steps.identities.outputs.accounts }}"
+          if [ -n "${ACCOUNTS:-}" ]; then rm -f -- "${ACCOUNTS}"; fi
