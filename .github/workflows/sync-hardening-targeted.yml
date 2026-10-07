@@ -19,6 +19,7 @@ on:
       - 'tests/unit/operational-write-feedback.test.js'
       - 'tests/unit/product-extensions-loader-resilience.test.js'
       - 'tests/e2e/supabase-realtime-invalidation.spec.js'
+      - 'tests/e2e/supabase-aggregate-school-sync.spec.js'
       - 'package.json'
       - '.github/workflows/sync-hardening-targeted.yml'
   workflow_dispatch:
@@ -59,6 +60,7 @@ jobs:
           node --check tests/unit/operational-context-school-pending-scope.test.js
           node --check tests/unit/operational-school-recovery-invariants.test.js
           node --check tests/e2e/supabase-realtime-invalidation.spec.js
+          node --check tests/e2e/supabase-aggregate-school-sync.spec.js
 
       - name: Provar contratos específicos da correção
         run: |
@@ -130,10 +132,22 @@ jobs:
           RADAR_E2E_SUPABASE_LOCAL: '1'
         run: >-
           npx playwright test tests/e2e/supabase-realtime-invalidation.spec.js
+          tests/e2e/supabase-aggregate-school-sync.spec.js
           --project=desktop-chromium
           --workers=1
           --max-failures=1
           --timeout=90000
+
+      - name: Preservar jornadas, métricas e capturas
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: aggregate-school-sync-${{ github.run_id }}
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: warn
+          retention-days: 30
 
       - name: Restaurar configuração e encerrar Supabase
         if: always()
