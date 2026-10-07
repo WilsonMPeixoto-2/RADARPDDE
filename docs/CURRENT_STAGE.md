@@ -2,23 +2,28 @@
 
 ## Atualização canônica — pós-#410 e observabilidade Vercel
 
-**Baseline Production atual:** main `0d54bdec5639f19e362e5fbcc2dcf0ab790f5696`, após os merges #410 e #415.
+**Main atual:** `f205ee1e279c0881b6af0bdeb8c90232fd2a47ef`.  
+**Último deployment Production observado:** `dpl_EGSnij3e9tXPeAwsRxGr4DAaUSdA`, estado `READY`.
 
-- **PR #410** foi integrado com sucesso no merge `33ebbf7310898e025a3ec2edc198d6ecd4ea40ac`. A simplificação de sincronização operacional por escola está publicada; validações pós-merge com perfil Controlador não detectaram regressão funcional conhecida. A leitura dirigida por escola é a autoridade preferencial no Prontuário; visões agregadas ainda conservam refresh global em alguns caminhos, registrado como otimização futura não bloqueante.
-- **PR #415** foi integrado no merge `0d54bdec5639f19e362e5fbcc2dcf0ab790f5696`. O build Production injeta Vercel Web Analytics e Speed Insights sem framework adicional nem dependência de runtime. Preview/local não recebem a instrumentação.
-- deployment Production correspondente: `dpl_3zLtsHxVBsb7RksDBZdKE1vqFQw4`, estado `READY` no momento da validação.
-- `/_vercel/speed-insights/script.js` e `/_vercel/insights/script.js` responderam HTTP 200 em Production.
-- o script oficial de Speed Insights ignora automação/headless (`navigator.webdriver`/Headless); portanto Playwright e sandboxes não devem ser usados para fabricar a primeira amostra de campo. A coleta deve ser confirmada com navegação humana real.
-- **Web Analytics:** instrumentação publicada, mas a API da Vercel ainda retornava `Web Analytics not found` em 07/10/2026. Não tratar como ativo até confirmação administrativa + primeira coleta.
-- **Speed Insights:** instrumentação Production confirmada; painel ainda sem eventos no último checkpoint. Não tratar ausência inicial de eventos como falha enquanto não houver visita humana real e tempo de ingestão.
-- **PR #416 do Vercel Agent:** fechado sem merge. Ele adicionava `@vercel/speed-insights` sem importação/uso; Knip o classificou como dependência não utilizada e derrubou os gates de saúde das dependências/homologação integral. Não reintroduzir esse pacote enquanto a integração HTML/vanilla vigente permanecer suficiente.
+- **PR #410** permanece integrado no merge `33ebbf7310898e025a3ec2edc198d6ecd4ea40ac`. A simplificação de sincronização operacional por escola está publicada; validações pós-merge com perfil Controlador não detectaram regressão funcional conhecida.
+- **PR #415** permanece a implementação canônica de observabilidade. O build Production injeta Vercel Web Analytics e Speed Insights sem framework adicional nem dependência de runtime. Preview/local não recebem a instrumentação.
+- `/_vercel/speed-insights/script.js` e `/_vercel/insights/script.js` estão presentes no HTML de Production e responderam HTTP 200.
+- **Web Analytics:** **ativo**. Em 07/10/2026, o painel autenticado da Vercel confirmou **1 visitante e 1 visualização de página nos últimos 7 dias**. A coleta já começou.
+- **Speed Insights:** configurado e ativo para coleta de dados de campo. Os Core Web Vitals passarão a ganhar representatividade conforme usuários reais utilizem o RADAR; ausência de volume inicial não é pendência de configuração.
+- O script oficial de Speed Insights ignora automação/headless (`navigator.webdriver`/Headless); Playwright e sandboxes não devem ser usados para fabricar amostras de campo.
+- **Divergência conhecida do conector:** a chamada `count_pageviews` deste ambiente ainda pode responder `404 Web Analytics not found` mesmo com o painel Vercel mostrando Analytics ativo e dados registrados. Não interpretar esse erro isolado como desativação; enquanto persistir a divergência, o painel autenticado é a autoridade para o estado administrativo.
+- **PR #416 do Vercel Agent:** permanece fechado sem merge. A dependência `@vercel/speed-insights` era redundante e não deve ser reintroduzida enquanto a integração HTML/vanilla vigente permanecer suficiente.
+
+**Resultado operacional:** a frente de observabilidade Vercel está concluída em configuração. Web Analytics já registra tráfego real; Speed Insights está apto a registrar métricas reais de performance à medida que houver navegação humana.
 
 Referência operacional durável: [observabilidade Vercel](reference/VERCEL_OBSERVABILITY.md).
 
 **Classe documental:** Canônico — estado mutável  
 **Atualizado em:** 7 de outubro de 2026
 
-## Frente operacional corrente — PR #410
+## Histórico técnico do PR #410 — encerrado
+
+> **Nota de validade:** esta seção preserva checkpoints anteriores ao merge do #410. Menções abaixo a PR em Draft, candidato remoto, handoff corrente ou etapas ainda pendentes pertencem ao histórico de execução e **não representam o estado atual**. O estado vigente está no bloco canônico acima.
 
 **Retomada vigente:** candidato remoto `d571a26a`, com aplicação e sincronização
 escolar já implementadas. A revisão de 06/10 reproduziu cinco falhas de recuperação
