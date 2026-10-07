@@ -11,7 +11,7 @@ confrontadas com código, workflow, referências e threads atuais.
   que ela busque o estado novo sem que a recuperação da reconexão o tenha obtido.
 - A-2/P1: STATUS_DOCUMENTOS e a rota canônica já foram corrigidos pelo #428.
   Thread `PRRT_kwDOTSIJkc6p63HP` respondida com a evidência e resolvida. A thread P2
-  `PRRT_kwDOTSIJkc6p63HK` permanece aberta até a correção/prova do teste.
+  `PRRT_kwDOTSIJkc6p63HK` é respondida com link ao #429 após GREEN e contraprova.
 - A-3: duas referências do smoke ainda exigem identidades técnicas exclusivas.
   #426 e seu workflow aceitam de uma a cinco contas reais autorizadas; agendamento
   somente leitura e escrita manual reversível explicitamente habilitada.
@@ -44,7 +44,44 @@ Production nem justificativa para alterar o controlador.
 ## Checkpoint #429
 
 Correção do harness publicada em `829c3d10`; 1323 unitários e oito integrações
-aprovados. GREEN nativo ainda pendente: diagnóstico `37655737551` e sustentado
-400 rodadas `37655886850`. [Continuidade completa](../../handoff/2026-10-07-pr429-reconnect-proof.md).
-PR #429 aberto/Draft; nenhum merge ou alteração de Production. A sabotagem do RED
-foi removida do candidato. Resultado local detalhado em `local-validation.json`.
+aprovados. [Continuidade completa](../../handoff/2026-10-07-pr429-reconnect-proof.md).
+A sabotagem do RED foi removida do candidato. Resultado local em `local-validation.json`.
+
+## GREEN nativo confirmado
+
+Seis execuções verdes da prova causal, zero falhas (baseline e candidato em cada run):
+
+- [37655737551](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37655737551):
+  dispatch diagnóstico, 40 rodadas, SHA `829c3d10`; old `Não`/v44, recovery `Sim`/v45.
+- [37655886850](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37655886850):
+  gate do PR, 400 rodadas, SHA `829c3d10`; old `Não`/v404, recovery `Sim`/v405.
+- [37656306919](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37656306919):
+  gate do PR, 400 rodadas, SHA `4f87ef1c` (só docs sobre `829c3d10`); old `Não`/v404,
+  recovery `Sim`/v405.
+
+Em todas: `oldHeldThroughReconnect`, `uiOldBeforeRecovery` e `uiConvergedAfterRecovery`
+verdadeiros; RPC de recovery `read_operational_context`; origem
+`session-realtime-reconnect-inflight-finished-refresh`. A reconexão ocorre uma vez por
+variante por execução; as 400 rodadas medem a carga sustentada, não 400 reconexões.
+A prova é um invariante de recuperação e não diferencia baseline de candidato.
+
+## Contraprova do mecanismo final
+
+Run [37665993736](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/37665993736),
+branch descartável sobre `4f87ef1c` (commit `700f7af9`, branch já removida), 40 rodadas.
+Mesma sabotagem do RED, só no candidato: `loadOperationalContext` com source contendo
+`realtime-reconnect` retorna `skipped`; socket, SUBSCRIBED e métricas permanecem reais.
+
+- Baseline: passou (old `Não`/v44, recovery `Sim`/v45, reload concluído).
+- Candidato: **falhou como exigido** em `stage: reconnect-counterproof`, na espera da
+  resposta de recovery (`Expected "Sim"`, `Received undefined`, timeout de 60 s);
+  `recoveryReadsSuppressed: 1`. A resposta antiga `Não`/v44 foi liberada e não
+  produziu convergência.
+- O job de comparação falhou por consequência (`candidate: experiment is incomplete
+  or failed (requires passed reload)`), comportamento fail-closed esperado.
+- Artefato pequeno do candidato `11502977073`, sha256
+  `abf1a5530945e2041553fadee532c28bd42c1ca9217362857e74eee57f150225`.
+
+Conclusão: o novo harness não aprova a reconexão sem a leitura real de recovery; o
+falso positivo apontado no P2 do #427 está sanado. Produto, Auth/RLS, banco e
+Production não foram alterados.

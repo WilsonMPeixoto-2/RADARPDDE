@@ -28,7 +28,33 @@
     "warnings": 9
   },
   "specSyntax": "passed",
-  "nativeGreen": "pending; runs 37655737551 and 37655886850 queued at checkpoint",
+  "nativeGreen": {
+    "status": "passed",
+    "runs": {
+      "37655737551": {
+        "event": "workflow_dispatch",
+        "sha": "829c3d10",
+        "rounds": 40,
+        "conclusion": "success"
+      },
+      "37655886850": {
+        "event": "pull_request",
+        "sha": "829c3d10",
+        "rounds": 400,
+        "conclusion": "success"
+      },
+      "37656306919": {
+        "event": "pull_request",
+        "sha": "4f87ef1c",
+        "rounds": 400,
+        "conclusion": "success"
+      }
+    },
+    "causalProofExecutions": {
+      "passed": 6,
+      "failed": 0
+    }
+  },
   "logs": {
     "reconnect-unit.log": {
       "bytes": 124065,
@@ -42,5 +68,19 @@
       "bytes": 288616,
       "sha256": "02461d8334c49faf58ea7ddf46f2b469f156e68b377efd31ad781d49c5515112"
     }
+  },
+  "counterproof": {
+    "run": 37665993736,
+    "sha": "700f7af9",
+    "base": "4f87ef1c",
+    "rounds": 40,
+    "baseline": "passed",
+    "candidate": "failed as required at reconnect-counterproof (recovery response never arrived)",
+    "recoveryReadsSuppressed": 1,
+    "candidateMetricsArtifact": {
+      "id": 11502977073,
+      "sha256": "abf1a5530945e2041553fadee532c28bd42c1ca9217362857e74eee57f150225"
+    },
+    "temporaryBranchDeleted": true
   }
 }

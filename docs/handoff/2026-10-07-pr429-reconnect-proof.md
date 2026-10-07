@@ -1,6 +1,7 @@
 # PR #429 — continuidade da prova causal de reconexão
 
-**Checkpoint de 07/10/2026, antes de interrupção por cota.**
+**Checkpoint de 07/10/2026, antes de interrupção por cota; atualizado no mesmo dia
+com GREEN nativo e contraprova do mecanismo final (seção "Encerramento").**
 Escopo exclusivo de testes/documentação; não é nova frente de performance do produto.
 
 ## Estado remoto
@@ -11,7 +12,7 @@ Escopo exclusivo de testes/documentação; não é nova frente de performance do
 - Candidato de testes: `829c3d1043b6cfa49e6c31f0bc78c99b6a8ede1f`.
 - O commit deste handoff somente acrescenta documentação; não muda o teste candidato.
 - Nenhuma alteração em produto, banco, Auth/RLS, dependências ou Production.
-- Não houve merge/deploy deste PR. Não considerar a implementação do teste certificada antes do GREEN nativo.
+- GREEN nativo e contraprova registrados abaixo; merge do PR somente com checks verdes.
 
 ## Pedido e decisões
 
@@ -90,7 +91,8 @@ Não confundir esses controles com a prova GREEN do novo E2E.
 
 ## CI disparada, ainda sem resultado neste checkpoint
 
-No SHA `829c3d10`, última consulta retornou **queued**:
+Registro original do checkpoint. No SHA `829c3d10`, última consulta retornou **queued**
+(resultados finais na seção "Encerramento"):
 
 - `37655737551`: dispatch diagnóstico 40 rodadas, baseline e candidato.
 - `37655886850`: PR gate sustentado 400 rodadas, baseline e candidato.
@@ -126,7 +128,7 @@ O workflow usa concurrency por ref; dispatches da mesma branch podem enfileirar.
 
 - P1 #427, thread `PRRT_kwDOTSIJkc6p63HP`, comentário raiz `4207328078`:
   respondida citando #428 e resolvida. Reply `4209494668`.
-- P2 #427, thread `PRRT_kwDOTSIJkc6p63HK`, raiz `4207328068`: **ainda aberta**.
+- P2 #427, thread `PRRT_kwDOTSIJkc6p63HK`, raiz `4207328068`: respondida (reply `4210508192`) e resolvida após GREEN e contraprova.
 - `SUPABASE_INTEGRATION_AUDIT.md` e `SUPABASE_FUNCTIONAL_COVERAGE.md` atualizados
   no commit `8e741d98`: #426 aceita 1–5 contas reais autorizadas, agendamento read-only,
   CRUD manual reversível explicitamente autorizado. Não provisionamos credenciais.
@@ -152,3 +154,27 @@ abrir #429 e disparar CI. Não interpretar erros como rejeição de segurança.
 
 **Não há correção nova de runtime proposta. O objetivo restante é tornar a evidência
 causal mais forte e encerrar este pequeno follow-up, não reabrir performance por estética.**
+
+## Encerramento — GREEN nativo e contraprova (07/10/2026)
+
+Resultados reconsultados no GitHub e nos artefatos `operational-metrics-*`:
+
+- `37655737551` (dispatch, 40 rodadas, `829c3d10`): **success**; baseline e candidato
+  com old `Não`/v44 retido, recovery `Sim`/v45 e UI convergida só após recovery.
+- `37655886850` (PR, 400 rodadas, `829c3d10`): **success**; old `Não`/v404, recovery `Sim`/v405.
+- `37656306919` (PR, 400 rodadas, head `4f87ef1c`): **success**; mesmos valores.
+- Os nove workflows do head `4f87ef1c` concluíram com sucesso. Runs de `829c3d10`
+  cancelados foram substituídos pelo push seguinte (concorrência), não falharam.
+- O código de teste é idêntico em `829c3d10` e `4f87ef1c`; as três execuções do
+  passo 3 ficam cumpridas (seis execuções verdes, zero falhas).
+
+Contraprova do passo 5: branch descartável `tmp/counterproof-pr429-2026-10-07`
+(commit `700f7af9` sobre `4f87ef1c`), mesma supressão do RED somente no candidato,
+run `37665993736` (40 rodadas). Baseline passou; candidato **falhou como exigido** em
+`reconnect-counterproof`, aguardando a resposta de recovery (`Expected "Sim"`,
+`Received undefined`, 60 s), com `recoveryReadsSuppressed: 1`. A comparação falhou
+por consequência (`requires passed reload`). Branch removida após registrar o run.
+Detalhes e hash do artefato em `docs/evidence/2026-10-07-reconnect-proof/README.md`.
+
+Hardening (`sync-hardening-targeted.yml`) não foi executado: o PR não altera produto.
+Thread P2 `PRRT_kwDOTSIJkc6p63HK` do #427 respondida com link ao #429 (reply `4210508192`) e resolvida.
