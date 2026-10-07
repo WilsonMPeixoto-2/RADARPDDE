@@ -10,22 +10,24 @@ const {
 } = require('../support/production-authenticated-read.js');
 
 const enabled = process.env.RADAR_E2E_PRODUCTION_AUTHENTICATED_READ === '1';
-test.skip(!enabled, 'Esta suíte exige identidades técnicas dedicadas de Production.');
+const requireWrite = process.env.RADAR_PRODUCTION_WRITE_SMOKE_REQUIRED === '1';
+test.skip(!enabled, 'Esta suíte exige contas reais autorizadas de Production.');
 
 const accountsFile = process.env.RADAR_PRODUCTION_READ_ACCOUNTS_FILE || '';
 if (enabled && (!accountsFile || !fs.existsSync(accountsFile))) {
-  throw new Error('Arquivo protegido de contas técnicas não foi disponibilizado.');
+  throw new Error('Arquivo protegido de contas reais não foi disponibilizado.');
 }
 
 const parsedAccounts = enabled
   ? JSON.parse(fs.readFileSync(path.resolve(accountsFile), 'utf8'))
   : { accounts: [] };
-const validation = validateAccountsDocument(parsedAccounts);
+const validation = validateAccountsDocument(parsedAccounts, { requireWrite });
 if (enabled && !validation.ok) {
-  throw new Error(`Configuração das contas técnicas inválida: ${validation.errors.join(' ')}`);
+  throw new Error(`Configuração das contas reais inválida: ${validation.errors.join(' ')}`);
 }
 
 const accounts = validation.accounts;
+const writer = accounts.find(account => account.allowWrite) || null;
 const EXPECTED_ENVIRONMENT = 'production';
 const EXPECTED_DATA_MODE = 'supabase-production';
 
@@ -57,6 +59,19 @@ function observePage(page) {
   return { errors, mutations };
 }
 
+function observeErrors(page) {
+  const errors = [];
+  page.on('pageerror', error => {
+    errors.push(`pageerror: ${sanitizeObservedError(error.message)}`);
+  });
+  page.on('console', message => {
+    if (message.type() === 'error') {
+      errors.push(`console: ${sanitizeObservedError(message.text())}`);
+    }
+  });
+  return errors;
+}
+
 async function waitForApplication(page, expectedRole) {
   await page.waitForFunction(role => (
     window.RadarDataContext?.ready === true
@@ -74,6 +89,13 @@ async function signIn(page, account) {
   await page.locator('#radar-auth-password').fill(account.password);
   await page.locator('#radar-auth-form button[type="submit"]').click();
   await waitForApplication(page, account.profileId);
+}
+
+async function settleRemote(page) {
+  await page.evaluate(async () => {
+    const tail = window.RadarApplicationServices?.data?.remoteExecutionTail;
+    if (tail && typeof tail.then === 'function') await tail;
+  });
 }
 
 async function readAuthorizedProjection(page, profileId) {
@@ -180,8 +202,141 @@ async function provePendencies(page) {
   await expect(page.getByRole('heading', { name: /Pendências operacionais/i })).toBeVisible();
 }
 
+async function chooseWriteContext(page) {
+  return page.evaluate(async () => {
+    const client = window.RadarSessionContext?.service?.client;
+    if (!client) throw new Error('Cliente Supabase autenticado indisponível.');
+
+    const invoices = await client
+      .from('registered_invoices')
+      .select('school_id,competence_id,program_id')
+      .order('registered_at', { ascending: false })
+      .limit(100);
+    if (invoices.error) throw new Error(invoices.error.message);
+
+    const schools = await client
+      .from('schools')
+      .select('id')
+      .limit(200);
+    if (schools.error) throw new Error(schools.error.message);
+    const allowedSchools = new Set((schools.data || []).map(row => row.id));
+
+    const context = (invoices.data || []).find(row => (
+      allowedSchools.has(row.school_id)
+      && row.competence_id
+      && row.program_id
+    ));
+    if (!context) {
+      throw new Error('Nenhum contexto fiscal existente e autorizado foi localizado para o smoke reversível.');
+    }
+
+    const verification = await client
+      .from('verifications')
+      .select('id,analysis,bonification,bonus_result,row_version')
+      .eq('school_id', context.school_id)
+      .eq('competence_id', context.competence_id)
+      .eq('program_id', context.program_id)
+      .limit(1)
+      .maybeSingle();
+    if (verification.error) throw new Error(verification.error.message);
+    if (!verification.data) throw new Error('Verificação do contexto de escrita não foi localizada.');
+
+    return {
+      schoolId: context.school_id,
+      competenceId: context.competence_id,
+      programId: context.program_id,
+      businessSnapshot: {
+        analysis: verification.data.analysis,
+        bonification: verification.data.bonification,
+        bonusResult: verification.data.bonus_result
+      }
+    };
+  });
+}
+
+async function readRemoteInvoice(page, schoolId, invoiceNumber) {
+  return page.evaluate(async ({ schoolId: targetSchool, invoiceNumber: targetNumber }) => {
+    const client = window.RadarSessionContext?.service?.client;
+    const result = await client
+      .from('registered_invoices')
+      .select('id,school_id,competence_id,program_id,invoice_number,description,expense_type,amount,row_version')
+      .eq('school_id', targetSchool)
+      .eq('invoice_number', targetNumber)
+      .limit(2);
+    if (result.error) throw new Error(result.error.message);
+    return result.data || [];
+  }, { schoolId, invoiceNumber });
+}
+
+async function readVerificationBusinessState(page, context) {
+  return page.evaluate(async input => {
+    const client = window.RadarSessionContext?.service?.client;
+    const result = await client
+      .from('verifications')
+      .select('analysis,bonification,bonus_result')
+      .eq('school_id', input.schoolId)
+      .eq('competence_id', input.competenceId)
+      .eq('program_id', input.programId)
+      .limit(1)
+      .maybeSingle();
+    if (result.error) throw new Error(result.error.message);
+    return {
+      analysis: result.data?.analysis ?? null,
+      bonification: result.data?.bonification ?? null,
+      bonusResult: result.data?.bonus_result ?? null
+    };
+  }, context);
+}
+
+async function openWriteContext(page, context, expectedRole) {
+  await page.goto(`/escolas/${encodeURIComponent(context.schoolId)}`);
+  await waitForApplication(page, expectedRole);
+  const competence = page.locator('#global-competence-select');
+  await competence.selectOption(context.competenceId);
+  const row = page.locator(
+    `#prontuario-verif-rows tr[data-program-id="${context.programId}"][data-document-key="notaFiscal"]`
+  );
+  await expect(row).toBeVisible({ timeout: 45000 });
+  return row;
+}
+
+async function cleanupResidualInvoice(page, account, context, invoiceNumber) {
+  const residual = await readRemoteInvoice(page, context.schoolId, invoiceNumber);
+  if (residual.length === 0) return;
+
+  await openWriteContext(page, context, account.profileId);
+  const invoiceId = residual[0].id;
+  await page.waitForFunction(id => (
+    Array.isArray(window.notasRegistradas)
+      ? window.notasRegistradas.some(item => item.id === id)
+      : typeof notasRegistradas !== 'undefined' && notasRegistradas.some(item => item.id === id)
+  ), invoiceId, { timeout: 30000 }).catch(() => {});
+
+  const cleanup = await page.evaluate(async ({ invoiceId: targetId, schoolId }) => {
+    const list = typeof notasRegistradas !== 'undefined' ? notasRegistradas : [];
+    if (!list.some(item => item.id === targetId)) {
+      return { ok: false, reason: 'invoice-not-loaded' };
+    }
+    try {
+      await radarInvoiceService.remove({
+        id: targetId,
+        schoolId,
+        profile: getRadarAccessProfile()
+      });
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, reason: error?.message || 'cleanup-failed' };
+    }
+  }, { invoiceId, schoolId: context.schoolId });
+  if (!cleanup.ok) {
+    throw new Error(`Falha no cleanup do registro de teste: ${sanitizeObservedError(cleanup.reason)}`);
+  }
+  await settleRemote(page);
+  expect(await readRemoteInvoice(page, context.schoolId, invoiceNumber)).toEqual([]);
+}
+
 for (const account of accounts) {
-  test(`${account.profileId} conclui as leituras autorizadas sem mutação`, async ({ browser }) => {
+  test(`${account.profileId} conclui as leituras autorizadas com conta real`, async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
     const observation = observePage(page);
@@ -228,8 +383,81 @@ for (const account of accounts) {
     await page.locator('#auth-logout-button').click();
     await expect(page.locator('#radar-auth-gate')).toBeVisible();
 
-    expect(observation.mutations, 'O smoke emitiu requisição potencialmente mutante.').toEqual([]);
+    expect(observation.mutations, 'A etapa de leitura emitiu requisição potencialmente mutante.').toEqual([]);
     expect(observation.errors, 'O navegador registrou erros durante a leitura.').toEqual([]);
     await context.close();
   });
 }
+
+test('conta real autorizada conclui ciclo fiscal criar, editar, reler e excluir em Production', async ({ browser }) => {
+  test.skip(!writer, 'Nenhuma conta foi marcada com allowWrite=true.');
+  const browserContext = await browser.newContext();
+  const page = await browserContext.newPage();
+  const errors = observeErrors(page);
+  const runSuffix = String(process.env.GITHUB_RUN_ID || Date.now()).slice(-10);
+  const invoiceNumber = `SMOKE-${runSuffix}`;
+  const description = `TESTE_AUTOMACAO ${invoiceNumber}`;
+  let writeContext = null;
+
+  try {
+    await signIn(page, writer);
+    writeContext = await chooseWriteContext(page);
+    const row = await openWriteContext(page, writeContext, writer.profileId);
+
+    await row.getByRole('button', { name: 'Adicionar Nota', exact: true }).click();
+    const modal = page.locator('#modal-dados-nota');
+    await expect(modal).toHaveClass(/show/);
+    await modal.locator('#nota-tipo').selectOption('consumo');
+    await modal.locator('#nota-numero').fill(invoiceNumber);
+    await modal.locator('#nota-desc').fill(description);
+    await modal.locator('#nota-valor').fill('1.23');
+    await modal.locator('button[type="submit"]').click();
+    await expect(modal).not.toHaveClass(/show/);
+    await settleRemote(page);
+
+    let remote = await readRemoteInvoice(page, writeContext.schoolId, invoiceNumber);
+    expect(remote).toHaveLength(1);
+    expect(remote[0]).toMatchObject({
+      school_id: writeContext.schoolId,
+      competence_id: writeContext.competenceId,
+      program_id: writeContext.programId,
+      invoice_number: invoiceNumber,
+      description,
+      expense_type: 'consumo',
+      amount: 1.23
+    });
+
+    let card = page.locator(`.invoice-document-row[data-invoice-id="${remote[0].id}"]`);
+    await expect(card).toBeVisible();
+    await card.getByRole('button', { name: /^Editar (?:lançamento:|NF:)/ }).click();
+    await modal.locator('#nota-valor').fill('2.34');
+    await modal.locator('button[type="submit"]').click();
+    await expect(modal).not.toHaveClass(/show/);
+    await settleRemote(page);
+
+    remote = await readRemoteInvoice(page, writeContext.schoolId, invoiceNumber);
+    expect(remote).toHaveLength(1);
+    expect(remote[0].amount).toBe(2.34);
+
+    await page.reload();
+    await waitForApplication(page, writer.profileId);
+    await page.locator('#global-competence-select').selectOption(writeContext.competenceId);
+    card = page.locator(`.invoice-document-row[data-invoice-id="${remote[0].id}"]`);
+    await expect(card).toBeVisible();
+
+    page.once('dialog', dialog => dialog.accept());
+    await card.getByRole('button', { name: /^Excluir NF:/ }).click();
+    await settleRemote(page);
+    await expect(card).toHaveCount(0);
+    expect(await readRemoteInvoice(page, writeContext.schoolId, invoiceNumber)).toEqual([]);
+
+    const after = await readVerificationBusinessState(page, writeContext);
+    expect(after).toEqual(writeContext.businessSnapshot);
+    expect(errors, 'O navegador registrou erros durante o ciclo reversível.').toEqual([]);
+  } finally {
+    if (writeContext) {
+      await cleanupResidualInvoice(page, writer, writeContext, invoiceNumber);
+    }
+    await browserContext.close();
+  }
+});
