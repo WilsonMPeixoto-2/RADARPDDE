@@ -12,8 +12,11 @@ otimização residual de Dashboard/Carteira/Competências, na branch
 `fix/aggregate-school-sync-2026-10-07`. O [handoff corrente](handoff/2026-10-07-aggregate-school-sync.md)
 registra RED nativo, medição, escopo e continuidade. O #410 está encerrado;
 seu handoff e checkpoints abaixo são históricos. #415, #422 e #426 estão integrados
-e não são reimplementados nesta frente. A entrega depende de GREEN nativo, CI e
-inspeção visual; apresentar relatório ao usuário antes de merge.
+e não são reimplementados nesta frente. Candidato `4d948a40` certificado em 14/14
+workflows, seis E2E nativos e medição pareada: oito escolares/zero globais, cerca
+de 60% menos bytes no cenário sintético. [Evidências e limites](evidence/2026-10-07-aggregate-school-sync/README.md).
+O checkpoint seguinte consolida documentos e capturas da rolagem interna; conferir
+seu CI antes do relatório final. Apresentar esse relatório ao usuário antes de merge.
 
 - **PR #410** permanece integrado no merge `33ebbf7310898e025a3ec2edc198d6ecd4ea40ac`. A simplificação de sincronização operacional por escola está publicada; validações pós-merge com perfil Controlador não detectaram regressão funcional conhecida.
 - **PR #415** permanece a implementação canônica de observabilidade. O build Production injeta Vercel Web Analytics e Speed Insights sem framework adicional nem dependência de runtime. Preview/local não recebem a instrumentação.

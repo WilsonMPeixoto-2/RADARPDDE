@@ -1,0 +1,113 @@
+{
+  "sha": "4d948a40e1031672d04ebc4d7ce64df73b675cbe",
+  "runId": 37620876619,
+  "artifactId": 11481643947,
+  "artifactSha256": "6b01efb9642fd6b90db9e84c483963f778b2d6204f829af51749228befb2bd48",
+  "nativeWorkflow": "success (6/6; no retries)",
+  "fixture": {
+    "schools": 2,
+    "unrelatedInvoices": 25
+  },
+  "gestures": 8,
+  "competence": "2026-05",
+  "sessions": {
+    "dashboard": {
+      "globalAttempts": 0,
+      "schoolAttempts": 8,
+      "failedAttempts": 0,
+      "globalReads": 0,
+      "schoolReads": 8,
+      "payloadBytes": 53351,
+      "applications": 8,
+      "applicationSources": [
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh"
+      ],
+      "applyMs": 10.499999999970896,
+      "mainReplacements": 8,
+      "mutationRecords": 144,
+      "renders": {
+        "dashboard": 8,
+        "escolas": 0
+      },
+      "longTasks": 0,
+      "longTaskMs": 0,
+      "fadedFrames": 0,
+      "frames": 781,
+      "errors": []
+    },
+    "wallet": {
+      "globalAttempts": 0,
+      "schoolAttempts": 8,
+      "failedAttempts": 0,
+      "globalReads": 0,
+      "schoolReads": 8,
+      "payloadBytes": 53351,
+      "applications": 8,
+      "applicationSources": [
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh",
+        "session-realtime-school-refresh"
+      ],
+      "applyMs": 11.099999999976717,
+      "mainReplacements": 8,
+      "mutationRecords": 74,
+      "renders": {
+        "dashboard": 0,
+        "escolas": 8
+      },
+      "longTasks": 0,
+      "longTaskMs": 0,
+      "fadedFrames": 0,
+      "frames": 780,
+      "errors": []
+    }
+  },
+  "auditRecovery": {
+    "contextualReads": 1,
+    "globalReads": 1,
+    "schoolRecoveryReads": [
+      {
+        "stale": true,
+        "aborted": true,
+        "fallback": null
+      },
+      {
+        "stale": false,
+        "aborted": false,
+        "fallback": "MISSING_BASELINE_COVERAGE"
+      }
+    ]
+  },
+  "navigationInflightReconnect": {
+    "afterNavigation": {
+      "globalReads": 0,
+      "schoolReads": 1,
+      "errors": [],
+      "dirtySchools": []
+    },
+    "afterInflight": {
+      "globalReads": 0,
+      "schoolReads": 3,
+      "errors": [],
+      "dirtySchools": []
+    },
+    "final": {
+      "globalReads": 1,
+      "schoolReads": 3,
+      "errors": [],
+      "dirtySchools": []
+    }
+  }
+}

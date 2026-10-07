@@ -305,6 +305,16 @@ test('Dashboard e Carteira convergem por escola em criação, edição, exclusã
       expect(report.network.filter(item => item.rpc === 'read_school_operational_context')).toHaveLength(8);
     }
 
+    // O conteúdo rola dentro da aplicação; fullPage sozinho não expõe as linhas
+    // inferiores. Capturar a ação da outra escola também permite inspeção humana.
+    for (const [name, page] of [['dashboard', dashboard], ['wallet', wallet]]) {
+      const otherRow = page.getByRole('row').filter({ hasText: 'Escola Local de Outro Controlador' });
+      await otherRow.getByRole('link', { name: 'Ver Unidade', exact: true }).scrollIntoViewIfNeeded();
+      const screenshotPath = testInfo.outputPath(`${name}-school-row.png`);
+      await page.screenshot({ path: screenshotPath });
+      await testInfo.attach(`${name}-school-row.png`, { path: screenshotPath, contentType: 'image/png' });
+    }
+
     // Navegar/recarregar recupera a mesma verdade; bootstrap continua legitimamente global.
     await walletRow.getByRole('link', { name: 'Ver Unidade', exact: true }).click();
     await expect(wallet).toHaveURL(/\/escolas\/ESC-LOCAL$/);

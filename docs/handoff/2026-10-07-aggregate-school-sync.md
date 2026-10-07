@@ -174,8 +174,34 @@ antes de o singleton de competência existir. O helper passa a aguardar a API j�
 existente `isInitialized()`; nenhum bootstrap/readiness do produto foi alterado.
 
 O benchmark novo registra tentativas além de respostas, para que um global
-abortado não seja escondido na contagem. Capturas passam a cobrir a página inteira.
+abortado não seja escondido na contagem. Capturas cobrem topo e rolagem interna.
 JSONs/capturas são gravados em arquivo e preservados num artifact pequeno separado
 de vídeo/trace: `aggregate-school-sync-metrics-<run>`. Isso permite recuperar a
 evidência sem depender de baixar centenas de MB. Todos os 1.318 unitários atuais
 passaram localmente; os 39 controles de roteamento/recuperação selecionados também.
+
+## Candidato certificado — ponto atual de retomada
+
+SHA `4d948a40e1031672d04ebc4d7ce64df73b675cbe`: **14/14 workflows concluídos com
+sucesso**, incluindo hardening de seis jornadas sem retries, readiness/Auth/RLS/pgTAP,
+homologação integral, E2E completo, visual, perfis/viewports, ciclos reais,
+retificação, backup/restauração, dependências, CodeQL, Lighthouse e prova sustentada
+de seis sessões/400 rodadas com comparação. [IDs e hash do módulo](../evidence/2026-10-07-aggregate-school-sync/ci-4d948a40.json).
+
+Medição final certificada: 133.356 → 53.351 bytes por observador; oito globais →
+oito escolares; **zero tentativas globais e zero requests com falha**. DOM/mutações
+continuam iguais e o apply medido é 5,5/5,7 → 10,5/11,1 ms. O ganho demonstrado é
+remoto; não vender como melhoria de CPU nem como percentual de Production.
+[Relatório, deltas, artifacts e limites](../evidence/2026-10-07-aggregate-school-sync/README.md).
+
+A contraprova auditável confirma uma escolar abortada + uma global por
+`MISSING_BASELINE_COVERAGE`, sem nova navegação necessária. Dirty/inflight converge
+na versão SQL final; reconexão exige uma global e conserva Maio/2026.
+
+Este checkpoint posterior salva a certificação e acrescenta capturas da linha
+da outra escola após rolagem interna (fullPage não percorre esse contêiner).
+Produto continua exatamente `57b8e64b`; não reiniciar RED/correção nem refazer #410.
+Conferir o CI do HEAD final, abrir essas capturas, atualizar estado/descrição do
+PR e apresentar relatório ao usuário. **Não fazer merge automático.** Riscos
+remanescentes: fallback conservador multiescola/contatos/cobertura invalidada e
+custo de reconstrução da UI ainda existentes; não ampliar esta frente para redesenho.

@@ -160,8 +160,8 @@ jobs:
           name: aggregate-school-sync-metrics-${{ github.run_id }}
           path: |
             test-results/**/aggregate-*.json
-            test-results/**/dashboard-after.png
-            test-results/**/wallet-after.png
+            test-results/**/dashboard-*.png
+            test-results/**/wallet-*.png
           if-no-files-found: warn
           retention-days: 30
 
