@@ -1,5 +1,7 @@
 # Plano — Smoke autenticado de leitura em Production
 
+> **Histórico / substituído em 07/10/2026.** A política abaixo foi superada por autorização expressa para uso de contas reais e por um ciclo manual reversível de escrita em Production. Plano vigente: [`2026-10-07-smoke-autenticado-real-production.md`](2026-10-07-smoke-autenticado-real-production.md). Não usar as proibições abaixo como regra corrente.
+
 **Data:** 5 de agosto de 2026  
 **Baseline reconciliado:** `4c182a318ef6a2037af7358bbfe52a77543cc769`  
 **Baseline funcional publicado:** `2ae98da8a547d46cd7e8e64977b855b1a90a2495`  

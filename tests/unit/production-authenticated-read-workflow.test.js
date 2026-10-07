@@ -23,17 +23,22 @@ test('workflow valida contratos em PR e só acessa Production quando explicitame
   assert.match(workflow, /pull_request:/);
   assert.match(workflow, /schedule:/);
   assert.match(workflow, /workflow_dispatch:/);
-  assert.match(workflow, /vars\.RADAR_PRODUCTION_AUTH_READ_ENABLED == 'true'/);
-  assert.match(workflow, /secrets\.RADAR_PRODUCTION_READ_ACCOUNTS_JSON/);
+  assert.match(workflow, /RADAR_PRODUCTION_AUTH_SMOKE_ENABLED/);
+  assert.match(workflow, /RADAR_PRODUCTION_AUTH_READ_ENABLED/);
+  assert.match(workflow, /RADAR_PRODUCTION_AUTH_ACCOUNTS_JSON/);
+  assert.match(workflow, /RADAR_PRODUCTION_READ_ACCOUNTS_JSON/);
   assert.match(workflow, /github\.event_name != 'pull_request'/);
 });
 
-test('workflow não usa service role nem publica artefatos com dados de Production', () => {
+test('workflow usa contas reais sem service role e não publica artefatos sensíveis', () => {
   assert.doesNotMatch(workflow, /SERVICE_ROLE/i);
   assert.doesNotMatch(workflow, /upload-artifact/i);
   assert.doesNotMatch(workflow, /actions\/cache/i);
   assert.match(workflow, /rm -f -- "\$\{ACCOUNTS_FILE\}"/);
   assert.match(workflow, /persist-credentials: false/);
+  assert.match(workflow, /RADAR_PRODUCTION_WRITE_SMOKE_ENABLED:/);
+  assert.match(workflow, /RADAR_PRODUCTION_WRITE_SMOKE_REQUIRED:/);
+  assert.match(workflow, /github\.event_name == 'workflow_dispatch'/);
 });
 
 test('configuração remota desabilita trace, screenshot e vídeo', () => {
@@ -43,14 +48,20 @@ test('configuração remota desabilita trace, screenshot e vídeo', () => {
   assert.doesNotMatch(config, /webServer/);
 });
 
-test('suíte cobre as seis operações de leitura sem chamadas de escrita', () => {
+test('suíte mantém as leituras e adiciona CRUD fiscal reversível pelo produto', () => {
   assert.match(spec, /signIn\(/);
   assert.match(spec, /proveGlobalSearch\(/);
   assert.match(spec, /proveDashboard\(/);
   assert.match(spec, /provePortfolio\(/);
   assert.match(spec, /proveSchoolRecord\(/);
   assert.match(spec, /provePendencies\(/);
-  assert.match(spec, /page\.reload\(\)/);
+  assert.match(spec, /allowWrite/);
+  assert.match(spec, /RADAR_PRODUCTION_WRITE_SMOKE_ENABLED/);
+  assert.match(spec, /Adicionar Nota/);
+  assert.match(spec, /TESTE_AUTOMACAO/);
+  assert.match(spec, /Excluir NF:/);
+  assert.match(spec, /cleanupResidualInvoice/);
+  assert.match(spec, /businessSnapshot/);
   assert.doesNotMatch(spec, /\.insert\(/);
   assert.doesNotMatch(spec, /\.update\(/);
   assert.doesNotMatch(spec, /\.upsert\(/);

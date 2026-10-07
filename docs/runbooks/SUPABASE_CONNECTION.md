@@ -279,11 +279,15 @@ Não aceitar geradores artificiais como identidade definitiva. Duplicidades norm
 
 A exportação deve passar por auditoria inicial via `AuditService` antes do download. Falha dessa auditoria bloqueia o arquivo. O filtro de compatibilidade impede duplicação do log legado.
 
-## 15. Smoke autenticado de leitura
+## 15. Smoke autenticado real de Production
 
-A infraestrutura de smoke autenticado usa identidades técnicas/fixtures conforme o ambiente de validação. Não reutilizar contas reais em testes automatizados e não expor credenciais, screenshots, traces ou vídeos contendo sessão.
+A política vigente permite usar **contas reais autorizadas** no monitor de Production. O workflow `.github/workflows/production-authenticated-read.yml` aceita de uma a cinco contas, uma por perfil, e mantém credenciais fora do repositório e dos artefatos.
 
-A cobertura de Preview/Supabase descartável não deve ser apresentada como prova de Production. Production requer verificação própria após publicação.
+A execução agendada permanece somente leitura. A execução manual (`workflow_dispatch`) pode habilitar um único ciclo fiscal reversível com uma conta `controller` ou `federal_assistant` marcada com `allowWrite: true`: criar, editar, reler e excluir uma NF sintética identificada como `TESTE_AUTOMACAO`.
+
+O cleanup deve confirmar ausência da NF sintética e retorno dos campos funcionais da verificação ao snapshot anterior. Logs administrativos do ciclo permanecem por desenho e não são apagados.
+
+A cobertura de Preview/Supabase descartável não deve ser apresentada como prova de Production. Production requer sua própria verificação. Plano vigente: [smoke autenticado real em Production](../superpowers/plans/2026-10-07-smoke-autenticado-real-production.md).
 
 ## 16. Backup e recuperação
 

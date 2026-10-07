@@ -189,9 +189,9 @@ O monitor geral verifica SHA quando aplicável, manifesto, shell, assets, gate d
 
 A auditoria agregada chama `production_integrity_check()` e valida vinte invariantes sem publicar identificadores de registros. O estado atual deve ser consultado em `CURRENT_STAGE.md` e no próprio Supabase.
 
-### Leitura autenticada
+### Smoke autenticado real
 
-A infraestrutura de smoke autenticado está integrada, mas permanece desativada até provisionamento autorizado de cinco identidades técnicas exclusivas.
+A infraestrutura aceita contas reais autorizadas de Production. O agendamento é somente leitura; uma execução manual pode acrescentar um ciclo fiscal reversível criar → editar → reler → excluir com uma conta Controlador ou Assistente. A prova só é considerada limpa quando a NF sintética não permanece no banco e os campos funcionais da verificação retornam ao snapshot anterior.
 
 ## 13. Prontidão funcional
 
