@@ -102,3 +102,11 @@ test('remove e-mails e tokens de erros observados', () => {
   assert.match(result, /email oculto/);
   assert.match(result, /token oculto/);
 });
+
+test('leituras operacionais canônicas do bootstrap e navegação não são confundidas com escrita', () => {
+  for (const rpc of ['read_operational_context', 'read_school_operational_context']) {
+    assert.equal(isSuspiciousMutationRequest('POST', `https://example.test/rest/v1/rpc/${rpc}`), false);
+  }
+  assert.equal(isSuspiciousMutationRequest('POST', 'https://example.test/rest/v1/rpc/read_unknown_context'), true);
+  assert.equal(isSuspiciousMutationRequest('POST', 'https://example.test/rest/v1/rpc/save_registered_invoice'), true);
+});

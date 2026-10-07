@@ -41,6 +41,17 @@ test('workflow usa contas reais sem service role e não publica artefatos sensí
   assert.match(workflow, /github\.event_name == 'workflow_dispatch'/);
 });
 
+test('disparo manual começa somente leitura e exige escolha explícita para habilitar CRUD', () => {
+  assert.match(workflow, /mode:\s*\n\s+description:/);
+  assert.match(workflow, /default: read-only/);
+  assert.match(workflow, /options:\s*\n\s+- read-only\s*\n\s+- read-and-crud/);
+  for (const flag of ['ENABLED', 'REQUIRED']) {
+    const line = workflow.split('\n').find(value => value.includes(`RADAR_PRODUCTION_WRITE_SMOKE_${flag}:`));
+    assert.ok(line, `flag ${flag} ausente`);
+    assert.match(line, /github\.event_name == 'workflow_dispatch' && inputs\.mode == 'read-and-crud' && '1' \|\| '0'/);
+  }
+});
+
 test('configuração remota desabilita trace, screenshot e vídeo', () => {
   assert.match(config, /trace: 'off'/);
   assert.match(config, /screenshot: 'off'/);
