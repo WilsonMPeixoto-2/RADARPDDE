@@ -27,13 +27,17 @@ Preview e desenvolvimento não recebem esses scripts. Essa separação evita con
 | Recurso | Estado comprovado |
 |---|---|
 | Build Production | instrumentação injetada e publicada |
-| Deployment observado | `dpl_3zLtsHxVBsb7RksDBZdKE1vqFQw4` — `READY` |
+| Deployment Production observado | `dpl_EGSnij3e9tXPeAwsRxGr4DAaUSdA` — `READY` |
 | Speed Insights script | HTTP 200 em Production |
 | Web Analytics script | HTTP 200 em Production |
-| Speed Insights dados de campo | primeira coleta humana ainda não comprovada no checkpoint |
-| Web Analytics administrativo | ainda não confirmado; API retornava `Web Analytics not found` |
+| Speed Insights | configurado e ativo para coleta de dados de campo; o checkpoint ainda não exige volume mínimo como condição de configuração |
+| Web Analytics | **ativo no projeto**; painel autenticado da Vercel confirmou **1 visitante e 1 visualização de página nos últimos 7 dias** |
 
-Não confundir **script disponível** com **produto administrativo habilitado e recebendo eventos**.
+O Web Analytics está, portanto, administrativamente habilitado e já recebeu dado real. O Speed Insights está publicado e habilitado para coletar Core Web Vitals à medida que usuários reais naveguem pelo RADAR.
+
+### Observação sobre a API do conector
+
+No mesmo dia, a chamada `count_pageviews` do conector Vercel deste ambiente ainda retornou `404 Web Analytics not found`, apesar de o painel autenticado da própria Vercel exibir o recurso ativo e dados já registrados. Tratar isso como divergência/atraso do endpoint do conector, **não** como prova de que o Web Analytics esteja desativado. Para estado administrativo, prevalece a confirmação do painel enquanto essa divergência persistir.
 
 ## 4. Regra de validação
 
@@ -46,7 +50,7 @@ Para confirmar Speed Insights:
 
 O script oficial da Vercel aborta coleta quando detecta `navigator.webdriver` ou user-agent Headless. Playwright, sandboxes e CI **não são prova de coleta de campo** e não devem ser usados para gerar a primeira amostra.
 
-Para Web Analytics, exigir duas provas: habilitação administrativa do projeto e consulta real de pageviews/eventos sem erro `not_found`.
+Para Web Analytics, a confirmação canônica atual é a do painel autenticado da Vercel, que já mostrou o recurso ativo e dados reais. Enquanto o endpoint `count_pageviews` do conector continuar divergente, não usar o erro `not_found` isoladamente para rebaixar o estado do recurso.
 
 ## 5. PR #416 — decisão preservada
 
@@ -58,7 +62,7 @@ A CI canônica detectou `@vercel/speed-insights` como **Unused dependency** pelo
 
 ## 6. Uso futuro das métricas
 
-Quando a coleta estiver ativa, usar Speed Insights para orientar otimizações por dados de campo, priorizando FCP, LCP, INP, CLS e TTFB. Não interpretar uma única visita como baseline estável; preferir percentis e janela com volume representativo.
+Com a coleta ativa, usar Speed Insights para orientar otimizações por dados de campo, priorizando FCP, LCP, INP, CLS e TTFB. Não interpretar uma única visita como baseline estável; preferir percentis e janela com volume representativo.
 
 Web Analytics pode apoiar leitura de pageviews, rotas, dispositivos e eventos operacionais do RADAR conforme a necessidade do produto. Não há restrição documental adicional específica para escola, usuário, NF ou Pendência além das regras de acesso e segurança já vigentes no próprio sistema.
 
