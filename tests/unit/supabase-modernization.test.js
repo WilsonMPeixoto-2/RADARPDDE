@@ -24,7 +24,7 @@ test('ferramentas Supabase modernas estão fixadas e reproduzíveis', () => {
     });
 
     assert.equal(pkg.devDependencies['@supabase/supabase-js'], '2.117.2');
-    assert.equal(pkg.devDependencies.supabase, '2.120.0');
+    assert.equal(pkg.devDependencies.supabase, '2.114.0');
     assert.equal(pkg.scripts['supabase:start'], 'supabase start');
     assert.equal(pkg.scripts['supabase:stop'], 'supabase stop --no-backup');
     assert.equal(pkg.scripts['supabase:test:db'], 'supabase test db supabase/tests/database');
