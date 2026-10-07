@@ -244,7 +244,7 @@ A auditoria agregada de vinte invariantes está integrada. O estado atual é reg
 
 ### Leitura autenticada
 
-A infraestrutura foi integrada, mas permanece desativada sem identidades técnicas exclusivas.
+A infraestrutura vigente, integrada pelo [PR #426](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/426), aceita de uma a cinco contas reais autorizadas, conforme os perfis fornecidos e a habilitação explícita do monitor. A execução agendada é somente leitura; a execução manual habilita o ciclo fiscal reversível para uma conta autorizada. A exigência anterior de cinco identidades técnicas exclusivas é histórica. Ver o [plano vigente](../superpowers/plans/2026-10-07-smoke-autenticado-real-production.md) e conferir o job efetivamente executado antes de afirmar cobertura: aguardar provisionamento não equivale a uma jornada autenticada aprovada.
 
 ## 15. Matriz funcional
 

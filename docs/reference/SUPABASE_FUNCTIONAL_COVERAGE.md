@@ -153,7 +153,7 @@ As seguintes lacunas técnicas foram corrigidas, mas as operações corresponden
 
 ## 8. Smoke autenticado
 
-A infraestrutura do PR #148 está integrada e protegida, mas não executa jornadas reais sem cinco identidades técnicas exclusivas e habilitação explícita. Essa ausência mantém seis operações de leitura como `partial`.
+O [PR #426](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/426) substituiu a política do #148: o smoke aceita de uma a cinco contas reais autorizadas, com provisionamento e habilitação explícitos. A execução agendada é somente leitura; a manual inclui o ciclo fiscal reversível autorizado. A cobertura de cada operação/perfil depende da evidência da jornada efetivamente executada; essa mudança de política não promove automaticamente operações `partial` para comprovadas. Ver o [plano vigente](../superpowers/plans/2026-10-07-smoke-autenticado-real-production.md) e a matriz funcional canônica.
 
 ## 9. Auditoria funcional histórica
 
