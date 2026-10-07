@@ -3,42 +3,84 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  REQUIRED_PROFILES,
+  SUPPORTED_PROFILES,
+  WRITE_PROFILES,
   ALLOWED_READ_RPC_PATHS,
   validateAccountsDocument,
   isSuspiciousMutationRequest,
   sanitizeObservedError
 } = require('../support/production-authenticated-read.js');
 
-function validAccounts() {
+function account(profileId, index = 0, overrides = {}) {
   return {
-    accounts: REQUIRED_PROFILES.map((profileId, index) => ({
-      profileId,
-      email: `radar-smoke-${index}@example.invalid`,
-      password: `Senha-Tecnica-${index}-Com-24-Caracteres!`
-    }))
+    profileId,
+    email: `usuario-${index}@rioeduca.net`,
+    password: `senha-real-${index}`,
+    ...overrides
   };
 }
 
-test('aceita exatamente uma conta técnica por perfil', () => {
-  const result = validateAccountsDocument(validAccounts());
-  assert.equal(result.ok, true);
-  assert.deepEqual(result.errors, []);
-  assert.deepEqual(result.accounts.map(account => account.profileId), REQUIRED_PROFILES);
+function allProfiles() {
+  return {
+    accounts: SUPPORTED_PROFILES.map((profileId, index) => account(profileId, index))
+  };
+}
+
+test('aceita de uma a cinco contas reais com perfis distintos', () => {
+  const one = validateAccountsDocument({ accounts: [account('controller')] });
+  assert.equal(one.ok, true);
+  assert.deepEqual(one.accounts.map(item => item.profileId), ['controller']);
+
+  const all = validateAccountsDocument(allProfiles());
+  assert.equal(all.ok, true);
+  assert.deepEqual(all.accounts.map(item => item.profileId), SUPPORTED_PROFILES);
 });
 
-test('rejeita perfil ausente, duplicidade e senha insuficiente sem expor a senha', () => {
-  const document = validAccounts();
-  document.accounts.pop();
-  document.accounts[1] = {
-    ...document.accounts[0],
-    password: 'curta'
-  };
+test('não impõe política de tamanho à senha real e exige apenas credencial presente', () => {
+  const valid = validateAccountsDocument({
+    accounts: [account('controller', 0, { password: 'abc' })]
+  });
+  assert.equal(valid.ok, true);
 
+  const invalid = validateAccountsDocument({
+    accounts: [account('controller', 0, { password: '' })]
+  });
+  assert.equal(invalid.ok, false);
+  assert.match(invalid.errors.join(' '), /senha ausente/i);
+});
+
+test('rejeita perfil/e-mail duplicado sem expor a senha', () => {
+  const document = {
+    accounts: [
+      account('controller', 0, { password: 'segredo-um' }),
+      account('controller', 0, { password: 'segredo-dois' })
+    ]
+  };
   const result = validateAccountsDocument(document);
   assert.equal(result.ok, false);
-  assert.match(result.errors.join(' '), /contas técnicas|duplicado|ausente|insuficiente/i);
-  assert.doesNotMatch(result.errors.join(' '), /curta/);
+  assert.match(result.errors.join(' '), /perfil duplicado|e-mail duplicado/i);
+  assert.doesNotMatch(result.errors.join(' '), /segredo-/);
+});
+
+test('ciclo de escrita exige exatamente um Controlador ou Assistente marcado', () => {
+  assert.deepEqual(WRITE_PROFILES, ['controller', 'federal_assistant']);
+
+  const controller = validateAccountsDocument({
+    accounts: [account('controller', 0, { allowWrite: true })]
+  }, { requireWrite: true });
+  assert.equal(controller.ok, true);
+
+  const inventory = validateAccountsDocument({
+    accounts: [account('inventory', 0, { allowWrite: true })]
+  }, { requireWrite: true });
+  assert.equal(inventory.ok, false);
+  assert.match(inventory.errors.join(' '), /não pode ser escolhido/i);
+
+  const missing = validateAccountsDocument({
+    accounts: [account('controller')]
+  }, { requireWrite: true });
+  assert.equal(missing.ok, false);
+  assert.match(missing.errors.join(' '), /allowWrite=true/i);
 });
 
 test('classifica somente autenticação e RPC expressamente somente leitura como POST permitido', () => {
