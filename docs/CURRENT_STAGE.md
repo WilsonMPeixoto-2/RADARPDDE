@@ -2,8 +2,8 @@
 
 ## Atualização canônica — pós-#410 e observabilidade Vercel
 
-**Main atual:** `f205ee1e279c0881b6af0bdeb8c90232fd2a47ef`.  
-**Último deployment Production observado:** `dpl_EGSnij3e9tXPeAwsRxGr4DAaUSdA`, estado `READY`.
+**Main atual:** `e78a0e68c3b8d88303209549852d6d705d355421`.  
+**Último deployment Production observado:** `dpl_FGMwjSLDyN4So1xz3FkeGo6EVtdS`, estado `READY`.
 
 - **PR #410** permanece integrado no merge `33ebbf7310898e025a3ec2edc198d6ecd4ea40ac`. A simplificação de sincronização operacional por escola está publicada; validações pós-merge com perfil Controlador não detectaram regressão funcional conhecida.
 - **PR #415** permanece a implementação canônica de observabilidade. O build Production injeta Vercel Web Analytics e Speed Insights sem framework adicional nem dependência de runtime. Preview/local não recebem a instrumentação.
@@ -13,6 +13,7 @@
 - O script oficial de Speed Insights ignora automação/headless (`navigator.webdriver`/Headless); Playwright e sandboxes não devem ser usados para fabricar amostras de campo.
 - **Divergência conhecida do conector:** a chamada `count_pageviews` deste ambiente ainda pode responder `404 Web Analytics not found` mesmo com o painel Vercel mostrando Analytics ativo e dados registrados. Não interpretar esse erro isolado como desativação; enquanto persistir a divergência, o painel autenticado é a autoridade para o estado administrativo.
 - **PR #416 do Vercel Agent:** permanece fechado sem merge. A dependência `@vercel/speed-insights` era redundante e não deve ser reintroduzida enquanto a integração HTML/vanilla vigente permanecer suficiente.
+- **PR #422 — tooling/CI:** integrado em `e78a0e68c3b8d88303209549852d6d705d355421`. Foram atualizados ESLint `10.12.0`, Lighthouse `13.5.0`, Knip `6.40.0`, Acorn `8.19.0`, Stylelint `17.16.0` e eslint-plugin-playwright `2.12.1`. MSW permanece `2.15.0` e `@types/node` permanece na linha 24. O Supabase CLI `2.120.0` foi homologado e **reprovado** por repetir exatamente os testes pgTAP/RLS 32–33 de `service_role`; a versão canônica continua `2.114.0` e `2.120.0` foi adicionada ao bloqueio exato do Dependabot. Todos os 18 workflows do candidato final #422 concluíram verdes após a retirada da CLI reprovada.
 
 **Resultado operacional:** a frente de observabilidade Vercel está concluída em configuração. Web Analytics já registra tráfego real; Speed Insights está apto a registrar métricas reais de performance à medida que houver navegação humana.
 
