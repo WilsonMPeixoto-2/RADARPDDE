@@ -1,0 +1,44 @@
+name: TEMP regenerar lockfile de tooling
+
+on:
+  push:
+    branches:
+      - chore/tooling-updates-2026-10-07
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-lock:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Obter branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+
+      - name: Fixar npm 11
+        run: npm install --global npm@11.19.0
+
+      - name: Regenerar package-lock
+        run: npm install --package-lock-only --ignore-scripts
+
+      - name: Registrar lockfile
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          if git diff --cached --quiet; then
+            echo "package-lock.json já está atualizado."
+            exit 0
+          fi
+          git commit -m "chore: atualizar lockfile das ferramentas"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
