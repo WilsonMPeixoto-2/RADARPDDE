@@ -21,7 +21,9 @@ Referência operacional durável: [observabilidade Vercel](reference/VERCEL_OBSE
 **Classe documental:** Canônico — estado mutável  
 **Atualizado em:** 7 de outubro de 2026
 
-## Frente operacional corrente — PR #410
+## Histórico técnico do PR #410 — encerrado
+
+> **Nota de validade:** esta seção preserva checkpoints anteriores ao merge do #410. Menções abaixo a PR em Draft, candidato remoto, handoff corrente ou etapas ainda pendentes pertencem ao histórico de execução e **não representam o estado atual**. O estado vigente está no bloco canônico acima.
 
 **Retomada vigente:** candidato remoto `d571a26a`, com aplicação e sincronização
 escolar já implementadas. A revisão de 06/10 reproduziu cinco falhas de recuperação
