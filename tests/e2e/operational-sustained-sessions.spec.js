@@ -131,7 +131,10 @@ test('seis sessões reais medem escrita, observação, edição e falha durante 
         }
         const delay = faults.readLatencyMs;
         if (delay) await pause(delay);
-        if (i === 3 && faults.pauseObserverReads) await reconnectReadsReleased;
+        if (i === 3 && faults.pauseObserverReads) {
+          faults.retainedObserverReads = (faults.retainedObserverReads || 0) + 1;
+          await reconnectReadsReleased;
+        }
         if (i === 3) observerReadsInTransport.add(route.request());
         // Um abort pode preceder o fim da latência induzida, antes da adição ao Set.
         await route.continue().catch(() => observerReadsInTransport.delete(route.request()));
@@ -196,6 +199,22 @@ test('seis sessões reais medem escrita, observação, edição e falha durante 
     stage = 'realtime-reconnect';
     const reconnectsBefore = await pages[3].evaluate(() =>
       window.RadarOperationalRealtimeInvalidationController.getMetrics?.().reconnectRefreshes || 0);
+    // Contraprova temporária: suprime somente a leitura de recovery, mantendo
+    // socket, SUBSCRIBED e incremento de reconnectRefreshes reais.
+    if (process.env.RADAR_OPERATIONAL_VARIANT === 'candidate') {
+      await pages[3].evaluate(() => {
+        const data = window.RadarApplicationServices.data;
+        const original = data.loadOperationalContext.bind(data);
+        window.__suppressedReconnectReads = 0;
+        data.loadOperationalContext = (competence, options = {}) => {
+          if (String(options.source).includes('realtime-reconnect')) {
+            window.__suppressedReconnectReads += 1;
+            return Promise.resolve({ ok: true, skipped: true, applied: false });
+          }
+          return original(competence, options);
+        };
+      });
+    }
     // Desconecta o socket real, mantendo HTTP/Auth e o browser utilizáveis.
     // A alteração durante a interrupção precisa chegar pela leitura de recuperação.
     // Uma resposta HTTP anterior pode chegar mesmo com o socket desligado. Para
@@ -207,6 +226,12 @@ test('seis sessões reais medem escrita, observação, edição e falha durante 
     });
     await pages[3].waitForFunction(() =>
       !window.RadarSessionContext.service.client.realtime.isConnected());
+    if (process.env.RADAR_OPERATIONAL_VARIANT === 'candidate') {
+      await pages[3].evaluate(() => {
+        void window.RadarOperationalContextRefreshController.refresh('counterproof-old-read', { force: true });
+      });
+      await expect.poll(() => faults.retainedObserverReads || 0).toBeGreaterThan(0);
+    }
     await expect.poll(() => observerReadsInTransport.size).toBe(0);
     await setDelivery(pages[0], 'Sim');
     gestures[0] += 1;
@@ -223,6 +248,16 @@ test('seis sessões reais medem escrita, observação, edição e falha durante 
       await expect.poll(() => pages[3].evaluate(() =>
         window.RadarOperationalRealtimeInvalidationController.getMetrics().reconnectRefreshes))
         .toBeGreaterThan(reconnectsBefore);
+      await expect.poll(() => pages[3].evaluate(() => window.__suppressedReconnectReads),
+        { timeout: 20000 }).toBeGreaterThan(0);
+      faults.counterproof = {
+        hiddenReadPassedDrain: true,
+        originalUiAssertionPassed: true,
+        recoveryReadsSuppressed: await pages[3].evaluate(() => window.__suppressedReconnectReads)
+      };
+      stage = 'reconnect-counterproof';
+      await expect(row(pages[3]).getByRole('button', { name: 'Não', exact: true }),
+        'Sem recovery, a leitura antiga não pode produzir a convergência certificada').toHaveClass(/active-nao/);
     }
     faults.realtimeDisconnects = 1;
     faults.realtimeRecovered = true;
