@@ -12,7 +12,7 @@
 | 2 | Verificação do ganho com uso real (consultas somente leitura no Supabase e logs) | resumo abaixo (o arquivo original se perdeu) |
 | 3 | O que o Codex fez no #429, o que descobriu e o que faltava | [etapa-03-pr429-trabalho-do-codex.md](etapa-03-pr429-trabalho-do-codex.md) |
 | 4 | Contraprova, documentação do #429 e thread P2 do #427 | [etapa-04-pr429-contraprova-docs-thread.md](etapa-04-pr429-contraprova-docs-thread.md) |
-| 5 | Checks finais e merge do #429 | etapa-05 (acrescentada após o merge) |
+| 5 | Checks finais e merge do #429 | [etapa-05-pr429-checks-finais-merge.md](etapa-05-pr429-checks-finais-merge.md) |
 
 Script reutilizável: [resumo-prova-causal.sh](resumo-prova-causal.sh). Ele baixa os artefatos `operational-metrics-*` de um run e resume a prova de reconexão.
 
