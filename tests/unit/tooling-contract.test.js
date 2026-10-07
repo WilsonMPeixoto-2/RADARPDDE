@@ -32,11 +32,11 @@ test('mantém o renderer institucional interno e fixa ExcelJS somente para o pro
     assert.equal(packageJson.scripts['format:check'], 'prettier . --check --ignore-unknown');
     const prettierIgnore = read('.prettierignore');
     assert.match(prettierIgnore, /^vendor\/$/m);
-    assert.equal(packageJson.devDependencies.eslint, '10.11.0');
-    assert.equal(packageJson.devDependencies.knip, '6.39.0');
+    assert.equal(packageJson.devDependencies.eslint, '10.12.0');
+    assert.equal(packageJson.devDependencies.knip, '6.40.0');
     assert.equal(packageJson.devDependencies['eslint-plugin-no-unsanitized'], '4.1.5');
-    assert.equal(packageJson.devDependencies['eslint-plugin-playwright'], '2.12.0');
-    assert.equal(packageJson.devDependencies.lighthouse, '13.4.1');
+    assert.equal(packageJson.devDependencies['eslint-plugin-playwright'], '2.12.1');
+    assert.equal(packageJson.devDependencies.lighthouse, '13.5.0');
     assert.equal(packageJson.devDependencies['@lhci/cli'], undefined);
     assert.equal(packageJson.overrides['brace-expansion@^1.0.0'], '1.1.21');
     assert.equal(packageJson.overrides['brace-expansion@^2.0.0'], '2.1.7');
@@ -251,7 +251,7 @@ test('tooling A/B fixa ambiente, qualidade CSS, revisão de dependências e regr
     const visualConfig = read('playwright.visual.config.js');
 
     assert.equal(packageJson.devDependencies['@supabase/supabase-js'], '2.117.2');
-    assert.equal(packageJson.devDependencies.stylelint, '17.15.0');
+    assert.equal(packageJson.devDependencies.stylelint, '17.16.0');
     assert.equal(packageJson.devDependencies['stylelint-config-recommended'], '18.0.0');
     assert.equal(packageJson.scripts['lint:css'], 'stylelint "styles.css" "src/styles/**/*.css"');
     assert.match(packageJson.scripts['test:readiness'], /lint:css/);
