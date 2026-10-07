@@ -178,3 +178,19 @@ Detalhes e hash do artefato em `docs/evidence/2026-10-07-reconnect-proof/README.
 
 Hardening (`sync-hardening-targeted.yml`) não foi executado: o PR não altera produto.
 Thread P2 `PRRT_kwDOTSIJkc6p63HK` do #427 respondida com link ao #429 (reply `4210508192`) e resolvida.
+
+## Verificação da retomada após o Manus
+
+O diagnóstico `b0442990` foi confrontado com as quatro tentativas do run
+`37667249912`. A quarta concluiu baseline e comparação; candidato aprovado desde a
+primeira tentativa. Ambos completaram 400 rodadas, 1.107 gestos, prova causal e reload.
+Artefatos finais e contraprova baixados/abertos novamente, hashes registrados em
+`docs/evidence/2026-10-07-reconnect-proof/final-artifact-verification.json`.
+Estágios/timestamps em `run-attempts.json`; interpretação no README da mesma pasta.
+
+Não reabrir a implementação: tentativas 1/3 não chegaram ao backend/spec do baseline;
+tentativa 2 chegou ao login, com zero gestos e sem reconexão. A ocorrência de opacity
+no login fica registrada, sem atribuir causa não provada ou relaxar o teste.
+HEAD revisado `d0d4739c`: 9/9 workflows verdes, PR não Draft/mergeável, P1/P2 resolvidas.
+A revisão não fez merge. O commit documental seguinte preserva esta verificação;
+consultar checks atuais antes de integrar. Não repetir a contraprova já confirmada.

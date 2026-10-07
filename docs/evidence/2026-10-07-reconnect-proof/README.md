@@ -85,3 +85,41 @@ Mesma sabotagem do RED, só no candidato: `loadOperationalContext` com source co
 Conclusão: o novo harness não aprova a reconexão sem a leitura real de recovery; o
 falso positivo apontado no P2 do #427 está sanado. Produto, Auth/RLS, banco e
 Production não foram alterados.
+
+## Retomada: confronto com os artefatos finais
+
+Revisão independente do HEAD `d0d4739c` após o diagnóstico do Manus (branch
+`docs/auditoria-manus-2026-10-07`, checkpoint `b0442990`). Não foi necessário alterar
+produto nem harness. O relato estava temporalmente superado: a **tentativa 4** do
+run `37667249912` terminou com sucesso, inclusive comparação, às 21:00:36 UTC.
+
+| Tentativa | Baseline | Candidato | Interpretação |
+| --- | --- | --- | --- |
+| 1 | cancelado em Instalar Chromium, ~35 min | passou 400 rodadas/reload | backend/spec do baseline não iniciaram; timeout do job, não concorrência de pushes |
+| 2 | falhou no login, opacity esperada 1/recebida 0, 5 s | resultado aprovado da tentativa 1 preservado | spec iniciou, mas zero gestos e reconnectProof vazio; não chegou às rodadas/reconexão |
+| 3 | cancelado em Instalar Chromium, ~35 min | resultado aprovado preservado | mesmo estágio de preparação da tentativa 1 |
+| 4 | passou 400 rodadas/reload | resultado aprovado preservado | comparação aprovada, sem mudança do teste |
+
+A falha de login permanece registrada; não comprovamos que sua causa foi apenas
+animação lenta. A linha antecede o #429 e não foi modificada. Uma passagem posterior
+não apaga essa ocorrência, mas ela não reproduziu defeito do recovery. Não houve
+relaxamento de asserções ou aumento de timeout para produzir verde.
+
+Os artifacts pequenos foram baixados por ID, abertos e conferidos: ambos os
+resultados finais têm seis sessões, 400 rodadas, 1.107 gestos, `stage=reload` e
+`outcome=passed`. Tempos observados por sessão: aproximadamente 466,5 s baseline e
+417,6 s candidato. Não interpretar esses tempos como ganho deste PR: o runtime é
+inalterado e as variantes foram executadas em momentos/runners distintos.
+
+Em ambos, snapshot antigo Não/v404 foi retido durante reconnect; a nova RPC global
+obteve Sim/v405; UI permaneceu antiga antes da entrega e convergiu depois. Também
+reabrimos o artifact da contraprova `37665993736`: recovery suprimido uma vez,
+nenhuma resposta nova e falha esperada após 60 s. Seu hash coincide com o publicado.
+O commit descartável `700f7af9` modifica somente o harness; essa sabotagem não está
+no HEAD do PR. Threads P1/P2 do #427 confirmadas resolvidas; #429 sem threads abertas.
+
+`final-artifact-verification.json` preserva resultados/hashes; `run-attempts.json`
+preserva estágios e timestamps sem logs brutos. No HEAD revisado `d0d4739c`, **9/9
+workflows concluíram verdes**, PR aberto, não Draft e mergeável. A descrição antiga
+que ainda dizia GREEN pendente foi corrigida. Esta revisão apresenta prontidão;
+não executa merge automaticamente nem altera Production.

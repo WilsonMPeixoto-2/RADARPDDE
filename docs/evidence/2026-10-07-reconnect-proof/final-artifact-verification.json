@@ -1,0 +1,197 @@
+{
+  "reviewedHead": "d0d4739c971d2ea4c76bfd250d21dcc471c0b02e",
+  "run": 37667249912,
+  "finalAttempt": 4,
+  "conclusion": "success",
+  "artifacts": [
+    {
+      "variant": "baseline",
+      "stage": "reload",
+      "outcome": "passed",
+      "rounds": 400,
+      "gestures": [
+        406,
+        300,
+        401,
+        0,
+        0,
+        0
+      ],
+      "faults": {
+        "readLatencyMs": 0,
+        "failObserverRead": false,
+        "failuresInjected": 1,
+        "reconnectProof": {
+          "old": {
+            "startedAt": 1791406744942,
+            "capturedAt": 1791406745138,
+            "rpc": "/rest/v1/rpc/read_operational_context",
+            "value": "Não",
+            "rowVersion": 404,
+            "releasedAt": 1791406751311
+          },
+          "connectedAt": 1791406748273,
+          "oldHeldThroughReconnect": true,
+          "recovery": {
+            "startedAt": 1791406751509,
+            "capturedAt": 1791406751697,
+            "rpc": "/rest/v1/rpc/read_operational_context",
+            "value": "Sim",
+            "rowVersion": 405,
+            "releasedAt": 1791406752199
+          },
+          "uiOldBeforeRecovery": true,
+          "recoverySource": "session-realtime-reconnect-inflight-finished-refresh",
+          "uiConvergedAfterRecovery": true
+        },
+        "realtimeDisconnects": 1,
+        "realtimeRecovered": true
+      },
+      "failure": null,
+      "artifactId": 11510982048,
+      "sha256": "c411f42b8280305bc489c471a229c84dad9df5ec14731229cd9f91300afc17ec",
+      "sessionCount": 6,
+      "elapsedMs": [
+        466545.948483,
+        466525.96199399995,
+        466529.52325200004,
+        466519.770552,
+        466520.481206,
+        466513.905701
+      ]
+    },
+    {
+      "variant": "candidate",
+      "stage": "reload",
+      "outcome": "passed",
+      "rounds": 400,
+      "gestures": [
+        406,
+        300,
+        401,
+        0,
+        0,
+        0
+      ],
+      "faults": {
+        "readLatencyMs": 0,
+        "failObserverRead": false,
+        "failuresInjected": 1,
+        "reconnectProof": {
+          "old": {
+            "startedAt": 1791398326935,
+            "capturedAt": 1791398327047,
+            "rpc": "/rest/v1/rpc/read_operational_context",
+            "value": "Não",
+            "rowVersion": 404,
+            "releasedAt": 1791398330724
+          },
+          "connectedAt": 1791398327701,
+          "oldHeldThroughReconnect": true,
+          "recovery": {
+            "startedAt": 1791398330930,
+            "capturedAt": 1791398331073,
+            "rpc": "/rest/v1/rpc/read_operational_context",
+            "value": "Sim",
+            "rowVersion": 405,
+            "releasedAt": 1791398331099
+          },
+          "uiOldBeforeRecovery": true,
+          "recoverySource": "session-realtime-reconnect-inflight-finished-refresh",
+          "uiConvergedAfterRecovery": true
+        },
+        "realtimeDisconnects": 1,
+        "realtimeRecovered": true
+      },
+      "failure": null,
+      "artifactId": 11503812854,
+      "sha256": "ab898c3b6299b9d0681b74f717e6d353673a838d1708a167e283255bd7c294a1",
+      "sessionCount": 6,
+      "elapsedMs": [
+        417621.956145,
+        417611.227081,
+        417603.002117,
+        417596.19980099995,
+        417595.432457,
+        417590.89414999995
+      ]
+    },
+    {
+      "variant": "baseline",
+      "stage": "login",
+      "outcome": "failed",
+      "rounds": 400,
+      "gestures": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "faults": {
+        "readLatencyMs": 0,
+        "failObserverRead": false,
+        "failuresInjected": 0,
+        "reconnectProof": {}
+      },
+      "failure": {
+        "name": "Error",
+        "message": "expect(locator).toHaveCSS(expected) failed\n\nLocator:  locator('#tab-verificacoes')\nExpected: \"1\"\nReceived: \"0\"\nTimeout:  5000ms\n\nCall log:\n  - Expect \"toHaveCSS\" locator('#tab-verificacoes') with timeout 5000ms\n  - waiting for locator('#tab-verificacoes')\n    12 × locator resolved to <div role=\"tabpanel\" id=\"tab-verificacoes\" class=\"tab-content-panel active\" aria-labelledby=\"prontuario-tab-verificacoes\">…</div>\n       - unexpected value \"0\"\n"
+      },
+      "artifactId": 11504703997,
+      "sha256": "3af193c33b153ac9b46502ef3b65df8f65a34fea9256859bbc08f51c2c8d1ea5",
+      "sessionCount": 0,
+      "elapsedMs": []
+    },
+    {
+      "variant": "candidate",
+      "stage": "reconnect-counterproof",
+      "outcome": "failed",
+      "rounds": 40,
+      "gestures": [
+        45,
+        30,
+        41,
+        0,
+        0,
+        0
+      ],
+      "faults": {
+        "readLatencyMs": 0,
+        "failObserverRead": false,
+        "failuresInjected": 1,
+        "reconnectProof": {
+          "old": {
+            "startedAt": 1791397393672,
+            "capturedAt": 1791397393857,
+            "rpc": "/rest/v1/rpc/read_operational_context",
+            "value": "Não",
+            "rowVersion": 44,
+            "releasedAt": 1791397397305
+          },
+          "connectedAt": 1791397394337,
+          "oldHeldThroughReconnect": true
+        },
+        "counterproof": {
+          "recoveryReadsSuppressed": 1
+        }
+      },
+      "failure": {
+        "name": "Error",
+        "message": "expect(received).toBe(expected) // Object.is equality\n\nExpected: \"Sim\"\nReceived: undefined\n\nCall Log:\n- Timeout 60000ms exceeded while waiting on the predicate"
+      },
+      "artifactId": 11502977073,
+      "sha256": "abf1a5530945e2041553fadee532c28bd42c1ca9217362857e74eee57f150225",
+      "sessionCount": 6,
+      "elapsedMs": [
+        118523.389425,
+        118513.20616900001,
+        118513.644403,
+        118507.48731299999,
+        118505.933578,
+        118501.92551199999
+      ]
+    }
+  ]
+}
