@@ -38,3 +38,19 @@ PR fora de Draft: `MERGEABLE`, sem revisões bloqueantes.
 ## 3. Ação tomada
 
 Executei `gh run rerun 37667249912 --failed`, que repete só o job com falha. A tentativa 2 refaz o baseline e a comparação; o candidato aprovado na tentativa 1 é mantido. O merge só será feito se a tentativa 2 terminar com sucesso.
+
+## 4. Tentativa 2: nova falha do baseline, em outro ponto
+
+- **Job:** `112966118714`. A instalação do Chromium funcionou em 1 min 35 s e o backend subiu normalmente.
+- **Falha:** 20 s depois do início do teste, ainda no login (`signIn`, linha 46 do spec). A regra `expect('#tab-verificacoes').toHaveCSS('opacity', '1')` recebeu `"0"` durante os 5 s de espera.
+- **Captura de tela:** a unidade "Jornada operacional 1" está carregada e a tabela já aparece. Os botões de competência ainda estão esmaecidos, ou seja, a transição visual não tinha terminado.
+- **Origem da linha:** commit `df4c0d68`, de 06/10, anterior ao #429. O #429 não alterou essa linha nem o login.
+- **Histórico:** a mesma regra passou nas 6 execuções anteriores do baseline (runs 37655737551, 37655886850, 37656306919 e 37665993736) e no candidato deste mesmo run.
+- **Leitura:** é uma instabilidade de tempo na preparação da sessão, antes de qualquer etapa de reconexão. Não indica regressão. Artefatos: `11505068769` (vídeos e capturas) e `11504703997` (métricas).
+
+## 5. Tentativa 3 e critério de decisão
+
+Disparei de novo `gh run rerun 37667249912 --failed` (tentativa 3, job `112969095865`).
+
+- **Se passar:** merge do #429, porque todos os demais critérios já estão atendidos.
+- **Se falhar outra vez no mesmo ponto:** **não faço o merge**. Nesse caso a instabilidade deixa de ser pontual e precisa ser tratada à parte, com espera mais robusta no `signIn`, num PR próprio.
