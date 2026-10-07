@@ -153,6 +153,18 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
 
+      - name: Preservar benchmark pequeno sem vídeos ou traces
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: aggregate-school-sync-metrics-${{ github.run_id }}
+          path: |
+            test-results/**/aggregate-*.json
+            test-results/**/dashboard-after.png
+            test-results/**/wallet-after.png
+          if-no-files-found: warn
+          retention-days: 30
+
       - name: Restaurar configuração e encerrar Supabase
         if: always()
         run: |

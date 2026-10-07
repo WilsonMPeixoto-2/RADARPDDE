@@ -63,9 +63,22 @@ async function invoiceInDatabase(page, description) {
 
 async function observe(page) {
   const network = [];
+  const attempts = [];
+  const startedRequests = new Map();
   const bodies = [];
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
+  page.on('request', request => {
+    const match = request.url().match(/\/rpc\/(read_operational_context|read_school_operational_context)(?:\?|$)/);
+    if (!match || request.method() !== 'POST') return;
+    const record = { rpc: match[1], schoolId: request.postDataJSON()?.p_school_id || null };
+    attempts.push(record);
+    startedRequests.set(request, record);
+  });
+  page.on('requestfailed', request => {
+    const record = startedRequests.get(request);
+    if (record) record.error = request.failure()?.errorText || 'requestfailed';
+  });
   page.on('response', response => {
     const match = response.url().match(/\/rpc\/(read_operational_context|read_school_operational_context)(?:\?|$)/);
     if (!match) return;
@@ -111,7 +124,7 @@ async function observe(page) {
   return {
     async report() {
       await Promise.all(bodies);
-      return { network: network.map(item => ({ ...item })), errors: [...errors],
+      return { network: network.map(item => ({ ...item })), attempts: attempts.map(item => ({ ...item })), errors: [...errors],
         ...await page.evaluate(() => ({ ...window.__aggregateSyncTrace,
           realtime: window.RadarOperationalRealtimeInvalidationController.getMetrics()
         })) };
@@ -269,17 +282,25 @@ test('Dashboard e Carteira convergem por escola em criação, edição, exclusã
     await expect(wallet.locator('#escola-search-input')).toHaveValue('Escola Local');
     await expect(wallet.locator('#carteira-competencia-select')).toHaveValue('2026-05');
     await expect(dashboard.getByRole('button', { name: 'Todas da CRE', exact: true })).toHaveClass(/active/);
-    await testInfo.attach('dashboard-after.png', { body: await dashboard.screenshot(), contentType: 'image/png' });
-    await testInfo.attach('wallet-after.png', { body: await wallet.screenshot(), contentType: 'image/png' });
+    for (const [name, page] of [['dashboard', dashboard], ['wallet', wallet]]) {
+      const screenshotPath = testInfo.outputPath(`${name}-after.png`);
+      await page.screenshot({ path: screenshotPath, fullPage: true });
+      await testInfo.attach(`${name}-after.png`, { path: screenshotPath, contentType: 'image/png' });
+    }
     reports.dashboard = await watchers[0].report();
     reports.wallet = await watchers[1].report();
     reports.gestures = 8;
     reports.competence = '2026-05';
-    await testInfo.attach('aggregate-school-sync.json', { body: JSON.stringify(reports, null, 2), contentType: 'application/json' });
+    const reportPath = testInfo.outputPath('aggregate-school-sync.json');
+    fs.writeFileSync(reportPath, JSON.stringify(reports, null, 2));
+    await testInfo.attach('aggregate-school-sync.json', { path: reportPath, contentType: 'application/json' });
 
     // RED de produto: main relê todas as escolas para cada uma destas oito ações.
     for (const report of [reports.dashboard, reports.wallet]) {
       expect(report.errors).toEqual([]);
+      expect(report.attempts.filter(item => item.rpc === 'read_operational_context')).toHaveLength(0);
+      expect(report.attempts.filter(item => item.rpc === 'read_school_operational_context')).toHaveLength(8);
+      expect(report.attempts.filter(item => item.error)).toEqual([]);
       expect(report.network.filter(item => item.rpc === 'read_operational_context')).toHaveLength(0);
       expect(report.network.filter(item => item.rpc === 'read_school_operational_context')).toHaveLength(8);
     }
@@ -389,9 +410,9 @@ test('escola dirty converge na Carteira e invalidação em voo preserva escopo e
     await expect(observer.locator('#carteira-competencia-select')).toHaveValue('2026-05');
     const final = await watcher.report();
     expect(final.errors).toEqual([]);
-    await testInfo.attach('aggregate-navigation-inflight-reconnect.json', {
-      body: JSON.stringify({ afterNavigation, afterInflight, final }, null, 2), contentType: 'application/json'
-    });
+    const reportPath = testInfo.outputPath('aggregate-navigation-inflight-reconnect.json');
+    fs.writeFileSync(reportPath, JSON.stringify({ afterNavigation, afterInflight, final }, null, 2));
+    await testInfo.attach('aggregate-navigation-inflight-reconnect.json', { path: reportPath, contentType: 'application/json' });
   } finally {
     releaseRead();
     await Promise.all(contexts.map(context => context.close().catch(() => {})));

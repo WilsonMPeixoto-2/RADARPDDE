@@ -153,3 +153,29 @@ testes. Próximo agente: concluir native hardening (seis casos), readiness e
 homologação pré-production no novo SHA, confrontar todos os checks e nova comparação
 sustentada. Não fazer merge automaticamente. PR #427 permanece Draft até relatório
 com CI aplicável, ganhos medidos e limites. Dados brutos continuam nos artifacts.
+
+## Recuperação após escrita — fronteira global legítima
+
+Checkpoint `1fc6b653`, native hardening `37619349287`: ambas as novas jornadas
+passaram, incluindo school dirty, navegação, versão SQL durante inflight e reconexão
+global. O E2E antigo auditável falhou ao exigir duas RPCs escolares: recebeu uma.
+Readiness/homologação reproduziram a mesma diferença. O produto continuou convergindo.
+
+Diagnóstico no DataService vigente: `execute()` chama
+`invalidateSchoolOperationalCoverage()` antes de qualquer escrita, inclusive
+`audit:record`. A leitura escolar é abortada; a nova tentativa sem cobertura pede
+`MISSING_BASELINE_COVERAGE` e o shared refresh usa global. Essa proteção do #410 não
+é a leitura global residual por superfície agregada. O teste auditável agora exige
+escolar inicial abortada + recuperação global + estado remoto correto antes de
+navegar. Não remover essa cobertura conservadora nesta frente.
+
+Também houve corrida no helper antigo de deep link: `getState()` podia ser chamado
+antes de o singleton de competência existir. O helper passa a aguardar a API já
+existente `isInitialized()`; nenhum bootstrap/readiness do produto foi alterado.
+
+O benchmark novo registra tentativas além de respostas, para que um global
+abortado não seja escondido na contagem. Capturas passam a cobrir a página inteira.
+JSONs/capturas são gravados em arquivo e preservados num artifact pequeno separado
+de vídeo/trace: `aggregate-school-sync-metrics-<run>`. Isso permite recuperar a
+evidência sem depender de baixar centenas de MB. Todos os 1.318 unitários atuais
+passaram localmente; os 39 controles de roteamento/recuperação selecionados também.

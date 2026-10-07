@@ -39,6 +39,7 @@ async function openSchool(page) {
   await page.waitForFunction(() => (
     window.RadarDataContext?.ready === true
     && window.RadarAuthContext?.authorization?.role === 'controller'
+    && window.RadarCompetenceContext?.isInitialized?.() === true
     && window.RadarCompetenceContext?.getState?.()?.activeKey === '2026-05'
   ));
   await expect(page.locator('#global-competence-select')).toHaveValue('2026-05');
@@ -283,6 +284,17 @@ test('gravação auditável pela UI aborta leitura do Broadcast sem perder a atu
     // frames binários, portanto JSON.parse no WebSocket não é um observador válido.
     await pageB.evaluate(() => {
       window.__e2eOperationalInvalidations = 0;
+      window.__e2eSchoolRecoveryReads = [];
+      const data = window.RadarApplicationServices.data;
+      const loadSchool = data.loadSchoolOperationalContext.bind(data);
+      data.loadSchoolOperationalContext = async (...args) => {
+        const result = await loadSchool(...args);
+        window.__e2eSchoolRecoveryReads.push({
+          stale: result.stale === true, aborted: result.aborted === true,
+          fallback: result.fallback?.reason || null
+        });
+        return result;
+      };
       window.RadarOperationalRealtimeInvalidationController.getChannel()
         .on('broadcast', { event: 'operational-change' }, () => {
           window.__e2eOperationalInvalidations += 1;
@@ -378,8 +390,16 @@ test('gravação auditável pela UI aborta leitura do Broadcast sem perder a atu
       timeout: 10000,
       message: 'B perdeu a invalidação cujo refresh foi abortado pela própria gravação.'
     }).toBe(changed);
-    expect(contextualReads).toBeGreaterThanOrEqual(2);
-    expect(globalReads).toBe(0);
+    // O execute auditável também invalida a cobertura escolar no DataService do
+    // #410. Sem essa baseline segura, a recuperação deve usar o fallback global.
+    expect(contextualReads).toBe(1);
+    expect(globalReads).toBeGreaterThanOrEqual(1);
+    const schoolRecoveryReads = await pageB.evaluate(() => window.__e2eSchoolRecoveryReads);
+    expect(schoolRecoveryReads.some(read => read.aborted && read.stale)).toBe(true);
+    expect(schoolRecoveryReads.some(read => read.fallback === 'MISSING_BASELINE_COVERAGE')).toBe(true);
+    const evidencePath = testInfo.outputPath('aggregate-audit-abort-recovery.json');
+    fs.writeFileSync(evidencePath, JSON.stringify({ contextualReads, globalReads, schoolRecoveryReads }, null, 2));
+    await testInfo.attach('aggregate-audit-abort-recovery.json', { path: evidencePath, contentType: 'application/json' });
     expect(await pageB.evaluate(() => (
       window.RadarOperationalContextRefreshController.hasPendingRefresh()
     ))).toBe(false);

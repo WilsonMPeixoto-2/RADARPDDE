@@ -133,7 +133,8 @@ test('seis sessões reais medem escrita, observação, edição e falha durante 
         if (delay) await pause(delay);
         if (i === 3 && faults.pauseObserverReads) await reconnectReadsReleased;
         if (i === 3) observerReadsInTransport.add(route.request());
-        await route.continue().catch(() => {}); // Abort da leitura é concorrência prevista.
+        // Um abort pode preceder o fim da latência induzida, antes da adição ao Set.
+        await route.continue().catch(() => observerReadsInTransport.delete(route.request()));
       });
     }
     stage = 'editing-and-fault';
