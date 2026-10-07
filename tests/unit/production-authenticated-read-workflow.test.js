@@ -36,7 +36,9 @@ test('workflow usa contas reais sem service role e não publica artefatos sensí
   assert.doesNotMatch(workflow, /actions\/cache/i);
   assert.match(workflow, /rm -f -- "\$\{ACCOUNTS_FILE\}"/);
   assert.match(workflow, /persist-credentials: false/);
-  assert.match(workflow, /RADAR_PRODUCTION_WRITE_SMOKE_REQUIRED: '1'/);
+  assert.match(workflow, /RADAR_PRODUCTION_WRITE_SMOKE_ENABLED:/);
+  assert.match(workflow, /RADAR_PRODUCTION_WRITE_SMOKE_REQUIRED:/);
+  assert.match(workflow, /github\.event_name == 'workflow_dispatch'/);
 });
 
 test('configuração remota desabilita trace, screenshot e vídeo', () => {
@@ -54,6 +56,7 @@ test('suíte mantém as leituras e adiciona CRUD fiscal reversível pelo produto
   assert.match(spec, /proveSchoolRecord\(/);
   assert.match(spec, /provePendencies\(/);
   assert.match(spec, /allowWrite/);
+  assert.match(spec, /RADAR_PRODUCTION_WRITE_SMOKE_ENABLED/);
   assert.match(spec, /Adicionar Nota/);
   assert.match(spec, /TESTE_AUTOMACAO/);
   assert.match(spec, /Excluir NF:/);
