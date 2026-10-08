@@ -1,6 +1,6 @@
 # Documentação do RADAR PDDE
 
-Retomada: reconciliação documental e avaliação dirigida, conforme [CURRENT_STAGE.md](CURRENT_STAGE.md). #410/#427/#429 estão encerrados. O [relatório de 08/10](audits/2026-10-08-reconciliacao-planos-demandas.md) preserva a classificação das demandas e seus limites.
+**Reconciliação documental e saneamento de PRs concluídos em 08/10/2026.** O [PR #431](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/431) foi integrado; [CURRENT_STAGE.md](CURRENT_STAGE.md) descreve a prioridade atual de verificação do produto. O [relatório original](audits/2026-10-08-reconciliacao-planos-demandas.md) e o [checkpoint de governança](audits/2026-10-08-governanca-prs-pos431.md) preservam critérios, históricos e limites.
 
 **Classe documental:** Canônico — índice e rota de leitura  
 **Atualizado em:** 8 de outubro de 2026
