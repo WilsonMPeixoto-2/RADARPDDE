@@ -1,8 +1,15 @@
 # Retificações administrativas
 
-## Regra provisória de permissão
+**Escopo:** bonificação e resultado consolidado; não descreve todas as
+correções de dados de Notas Fiscais e despesas. A independência entre
+bonificação e despesa está na
+[ADR-055](../decisions/ADR-055-independencia-despesas-bonificacao.md).
+Consultar as autorizações efetivas na implementação atual.
 
-Nesta fase do protótipo, somente o perfil `assistente` pode retificar uma consolidação. A autorização fica centralizada em `RadarRetificacoes.canRetify`, permitindo expansão futura sem alterar cada tela.
+
+## Histórico de permissão do protótipo
+
+Na fase inicial do protótipo, somente o perfil `assistente` podia retificar uma consolidação via `RadarRetificacoes.canRetify`. Esse registro histórico não define quem pode corrigir despesas, mudar tipos ou excluir notas no sistema atual.
 
 ## Fluxo
 

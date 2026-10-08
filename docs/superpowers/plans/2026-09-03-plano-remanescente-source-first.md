@@ -1,7 +1,13 @@
 # Plano remanescente source-first — pós-hotfixes e pós-reauditoria do código
 
+> **Sucessão documental (08/10):** histórico datado, não fila executável.
+> R1, idempotência fiscal e convergência remota tiveram entregas posteriores;
+> IDs por horário e polling residual exigem avaliação de risco, não execução
+> automática de R1–R9. Ver [auditoria de reconciliação](../../audits/2026-10-08-reconciliacao-planos-documentos.md).
+
+
 **Data:** 3 de setembro de 2026  
-**Classe documental:** Canônico — plano executável corrente  
+**Classe documental:** Histórico — plano superado como fila executável  
 **Baseline de planejamento:** `main` em `18150cc9ef7e15e2e777041fce541b847af517e1`  
 **Último baseline funcional:** `75237c6ec5c22e8f7be9eb39fd21481f6d608010` (PR #249)  
 **Auditoria-fonte:** `docs/audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`

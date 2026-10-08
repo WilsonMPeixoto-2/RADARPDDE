@@ -124,7 +124,7 @@ A arquitetura possui:
 - trace enriquecido e locks por recurso;
 - Playwright MCP versionado para agentes.
 
-A última permanece deliberadamente desativada até provisionamento autorizado de identidades técnicas.
+O smoke autenticado possui infraestrutura integrada, mas o uso de credenciais reais foi adiado por decisão operacional; gate verde com etapa autenticada ignorada não equivale a prova autenticada real. A ferramenta Playwright MCP para agentes é distinta do provisionamento de contas para esse smoke.
 
 ## 8. Matriz funcional
 
@@ -135,7 +135,7 @@ A fonte JSON executável diferencia:
 - `gap`: lacuna técnica comprovada;
 - `decision`: implementação existente cuja regra ainda precisa de decisão.
 
-Estado corrente: 19 `covered`, 25 `partial`, 0 `gap`, 0 `decision`.
+Contagem da fonte gerada na auditoria de 08/10: 18 `covered`, 26 `partial`, 0 `gap`, 0 `decision` (44 operações). `partial` não significa defeito automático; a matriz gerada será atualizada apenas depois de conferir as fontes das operações.
 
 Correção implementada não é sinônimo de cobertura total. `ASSET-02`, por exemplo, migra de lacuna para parcial.
 

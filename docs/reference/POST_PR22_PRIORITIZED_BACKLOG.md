@@ -1,5 +1,11 @@
 # Backlog priorizado pós-PR 22
 
+> **Classificação (08/10):** backlog histórico anterior à arquitetura
+> Supabase e a #376/#397/#404/#410/#427/#429. Prioridades P0/P1 abaixo
+> valiam no checkpoint original, não representam automaticamente defeitos
+> atuais. Requalificar por evidência recente antes de implementar.
+
+
 ## Método
 
 - **P0** — risco crítico atual comprovado;

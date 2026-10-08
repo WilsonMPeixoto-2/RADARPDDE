@@ -1,5 +1,10 @@
 # Continuidade após a publicação do PR #397
 
+> **Reconciliação (08/10):** este registro é histórico. O escopo NAV-01/UX-04
+> do antigo #375 entrou pelo #376; referências abaixo a essa entrega como
+> trabalho futuro são anteriores ao merge e não reabrem o escopo original.
+
+
 **Classe:** histórico da publicação do #397; substituído como corrente pela [frente de retificação](2026-10-01-controller-type-retification.md) em 01/10/2026.
 **Atualizado em:** 30/09/2026.  
 **Objetivo:** permitir a troca de agente sem reconstruir a investigação, repetir a publicação ou expandir o escopo.

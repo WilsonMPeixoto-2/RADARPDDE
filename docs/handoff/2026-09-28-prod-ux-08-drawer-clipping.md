@@ -1,6 +1,11 @@
-# Handoff corrente — PROD-UX-08: composição do drawer global
+# Handoff histórico — PROD-UX-08: composição do drawer global
 
-**Estado:** corrente; investigação visual ainda não iniciada.
+> **Reclassificação (08/10):** demanda visual antiga ainda não reproduzida
+> no estado atual. Conferir desktop largo e estreito, com conteúdo suficiente.
+> Este checkpoint não é handoff corrente; não restaurar WIP anterior às cegas.
+
+
+**Estado original:** investigação visual ainda não iniciada; verificação atual pendente.
 **Data:** 28 de setembro de 2026.
 **Frente anterior:** PROD-FUNC-09 encerrado pelo PR #392.
 **Fase D:** adiada.
