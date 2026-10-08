@@ -1,6 +1,18 @@
 # RADAR PDDE — estado atual e retomada
 
-## Retomada — reconciliação documental e avaliação dirigida do produto
+## Estado vigente após saneamento documental — 08/10/2026
+
+**Reconciliação formalmente encerrada:** o [PR #431](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/431) foi integrado na `main` em
+`6e3b611698a024c6799aa377544961e5c2d1b0e3`, após seis workflows verdes.
+O deployment Vercel Production `dpl_BLJAtPbhEoMDnxfnS3t4Q7zGggSY` está `READY` no mesmo SHA. O PR alterou apenas documentos e fontes da matriz funcional; **não modificou runtime, SQL, Auth/RLS, CSS ou regras de negócio**.
+
+**Saneamento administrativo efetuado sem merge de código:** [#430](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/430) (duplicado documental), [#292](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/292) (diagnóstico visual histórico), [#395](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/395) (plano superado), [#407](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/407) e [#409](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/409) (candidatos experimentais substituídos pela arquitetura posterior). Os respectivos comentários preservam justificativas e evidências. **Fechar um PR não equivale a homologar hipóteses ou executar seu conteúdo.**
+
+**PRs abertos que não devem ser encerrados por antiguidade:** #264 (manutenção ampla a reavaliar), #284 (readiness antigo pausado, com risco residual a examinar), #394 (indicadores históricos a reproduzir), #324 (Skill opcional a avaliar), #379/#414/#423/#424 (dependências a testar individualmente). A [classificação de 08/10](audits/2026-10-08-governanca-prs-pos431.md) é um checkpoint datado.
+
+**Próxima prioridade de produto:** observação autenticada *somente de leitura*, em desktop, do drawer `PROD-UX-08` e dos indicadores históricos #394; documentar evidências e distinguir falha atual, já resolvida ou ainda não reproduzida. Depois qualificar risco efetivo de IDs gerados por horário/readiness e avaliar jornadas antes de propor melhorias. Não usar login incompleto, tela de acesso ou testes antigos como prova visual.
+
+## Histórico da retomada documental anterior à integração do #431
 
 **Base conferida em 08/10/2026:** main `a5a67d34b6dcab04903b6657fb9fa01f0aba9d11`,
 merge do [PR #429](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/429).
@@ -15,7 +27,7 @@ incluindo o gate sustentado `37691286270`. O RED original e a contraprova
 o PR não mudou runtime, schema, Auth/RLS ou dependências.
 O [handoff #429](handoff/2026-10-07-pr429-reconnect-proof.md) é histórico concluído.
 
-**Prioridade atual autorizada:** reconciliar planos, demandas e documentação,
+**Prioridade daquele checkpoint (já concluída pelo #431):** reconciliar planos, demandas e documentação,
 preservando regras posteriores e entregas já concluídas. O
 [relatório de reconciliação](audits/2026-10-08-reconciliacao-planos-demandas.md)
 registra evidências, limites e classificação dos PRs; não cria autoridade de negócio.
@@ -27,10 +39,10 @@ registra evidências, limites e classificação dos PRs; não cria autoridade de
 | #394 — indicadores mensais históricos | Draft não integrado; verificar a leitura dos meses fora do contexto operacional atual antes de reaproveitar o candidato. |
 | IDs persistentes e readiness sistêmico | Existem geradores por horário em DirectoryService e polling de instalação. Qualificar alcance e risco; não há incidente atual demonstrado nesta análise. A idempotência de NF já foi entregue. |
 | Smoke autenticado #426 | Infraestrutura integrada; execução manual específica com conta real permanece adiada. Success de workflow não prova sozinho a identidade usada. |
-| Fase D / planos antigos / Draft #395 | Requalificar objetivos por entrega e residual. Não iniciar refatoração ou repetir performance por checklist histórico. |
+| Fase D / planos antigos / #395 encerrado como histórico | Requalificar objetivos por entrega e residual. Não iniciar refatoração ou repetir performance por checklist histórico. |
 | Evolução visual | Após a triagem, recuperar DESIGN_TOOLING.md e avaliar jornadas reais antes de escolher um piloto de superfície completa. |
 
-Sequência: concluir atualização documental → observar drawer e indicadores
+Sequência posterior ao encerramento documental: observar drawer e indicadores
 históricos → qualificar residuais técnicos → avaliar jornadas do produto e
 selecionar a próxima entrega pelo impacto atual. Nenhuma alteração funcional
 decorre apenas da existência de um documento antigo. Proteção patrimonial
