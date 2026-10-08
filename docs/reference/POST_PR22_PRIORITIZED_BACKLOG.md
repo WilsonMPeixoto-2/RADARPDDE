@@ -1,5 +1,7 @@
 # Backlog priorizado pós-PR 22
 
+**Classificação em 08/10/2026:** histórico de planejamento. Premissas pré-Supabase e prioridades deste checkpoint foram substituídas por entregas e decisões posteriores. Não executar os itens como fila atual nem inferir incidente atual a partir de uma antiga marcação P0. Requalificar cada demanda com [CURRENT_STAGE.md](../CURRENT_STAGE.md), [política de dados vigente](DATA_CLASSIFICATION_AND_ENVIRONMENTS.md) e [reconciliação de 08/10](../audits/2026-10-08-reconciliacao-planos-demandas.md). O conteúdo original abaixo é preservado para rastreabilidade.
+
 ## Método
 
 - **P0** — risco crítico atual comprovado;

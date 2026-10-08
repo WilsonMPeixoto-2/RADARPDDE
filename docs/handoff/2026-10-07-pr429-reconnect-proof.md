@@ -1,4 +1,6 @@
-# PR #429 — continuidade da prova causal de reconexão
+# PR #429 — histórico concluído da prova causal de reconexão
+
+> **Encerramento confirmado em 08/10/2026:** PR #429 integrado em 07/10 às 22:00:57 UTC, merge `a5a67d34b6dcab04903b6657fb9fa01f0aba9d11`. Candidato final `761560c056845f8b9dcaa017853d52f6dbfba76f`, nove workflows verdes, inclusive gate sustentado `37691286270`. Production `dpl_BW2hefHBNgc7Aq1R4j7wEBsfYE9K`, READY, no merge. Este handoff não é corrente; Draft, candidato anterior e espera de merge abaixo são checkpoints históricos. Preservar RED, GREEN e contraprova; não repetir a certificação para encerrar uma entrega já concluída. A retomada pertence a [CURRENT_STAGE.md](../CURRENT_STAGE.md).
 
 **Checkpoint de 07/10/2026, antes de interrupção por cota; atualizado no mesmo dia
 com GREEN nativo e contraprova do mecanismo final (seção "Encerramento").**

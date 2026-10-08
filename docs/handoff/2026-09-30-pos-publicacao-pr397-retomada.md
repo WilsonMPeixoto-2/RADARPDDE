@@ -1,5 +1,7 @@
 # Continuidade após a publicação do PR #397
 
+> **Reconciliação de 08/10/2026:** a sequência de retomada abaixo é histórica. O escopo original NAV-01/UX-04 do #375 já havia entrado pelo #376, integrado em 26/09; não permanece como implementação pendente. A Fase 2 posterior #404 também foi concluída. PROD-UX-08 e os indicadores históricos do #394 exigem verificação atual, conforme [CURRENT_STAGE.md](../CURRENT_STAGE.md). Preservar as evidências do #397 sem executar novamente esta fila antiga.
+
 **Classe:** histórico da publicação do #397; substituído como corrente pela [frente de retificação](2026-10-01-controller-type-retification.md) em 01/10/2026.
 **Atualizado em:** 30/09/2026.  
 **Objetivo:** permitir a troca de agente sem reconstruir a investigação, repetir a publicação ou expandir o escopo.
