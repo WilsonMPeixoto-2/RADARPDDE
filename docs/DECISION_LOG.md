@@ -1,6 +1,6 @@
 # RADAR PDDE — Registro de decisões
 
-**Atualizado em:** 29 de setembro de 2026
+**Atualizado em:** 8 de outubro de 2026
 
 Este documento registra decisões duradouras. Não é diário de commits. Uma decisão somente é substituída por decisão expressa com impacto e status documentados.
 
@@ -8,7 +8,7 @@ Este documento registra decisões duradouras. Não é diário de commits. Uma de
 
 O contrato terminal de Inventário está vigente e implementado pelo #265: salvar/editar NF preserva Inventariada e metadados históricos; forward rejeita esse estado; o banco impede UPDATE que o rebaixe. As transições legítimas anteriores e row_version permanecem. Não criar uma segunda correção para as mesmas rotas.
 
-As menções seguintes ao plano R1–R9 registram o planejamento de 03/09. A fila atual depende do código e de CURRENT_STAGE.md. PRs #271/#272 continuam candidatos e seus testes isolados não comprovam todas as fronteiras de commit/sincronização/compensação. Ver [evidências e lacunas](audits/2026-09-06-pr272-inventory-auth-review.md); não converter intenção de um PR aberto em regra implementada.
+As menções seguintes ao plano R1–R9 registram o planejamento de 03/09. A fila atual depende do código e de CURRENT_STAGE.md. Os PRs #272 (merge `54fa1ddf`, em 06/09) e #271 (merge `c8549f61`, em 06/09) foram integrados. Testes isolados dos candidatos não substituem evidência posterior nem cobrem necessariamente todas as fronteiras de commit/sincronização/compensação. Ver [auditoria histórica](audits/2026-09-06-pr272-inventory-auth-review.md); não converter lacuna antiga em defeito atual sem reprodução.
 
 ## Convenções
 

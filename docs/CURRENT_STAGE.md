@@ -1,6 +1,34 @@
 # RADAR PDDE — estado atual e retomada
 
-## Follow-up restrito de testes/documentação — PR #429
+## Retomada vigente — reconciliação documental (08/10/2026)
+
+A [auditoria datada de 08/10](audits/2026-10-08-reconciliacao-planos-documentos.md)
+confrontou documentação, PRs, regras e a `main` no SHA `a5a67d34b6dcab04903b6657fb9fa01f0aba9d11`,
+com Production `READY`. É a baseline da auditoria, não um HEAD permanente.
+
+**Encerrados:** tooling A+B+C; autonomia e retificação fiscal #397/#403/#404;
+sincronização #410/#427/#428 e prova de reconexão #429 (merge de 07/10).
+O escopo original NAV-01/UX-04 do antigo #375 foi entregue pelo #376.
+
+**A verificar antes de corrigir:** clipping/sobreposição do drawer desktop
+`PROD-UX-08`, inclusive com conteúdo populado e largura restrita; indicadores
+de competências históricas do Prontuário, discutidos no Draft #394.
+
+**Residuais a avaliar por risco:** alguns IDs gerados por horário em
+DirectoryService e polling remanescente de instalação. A idempotência fiscal
+está entregue; existência desses trechos não prova incidente atual.
+
+**Adiados ou separados:** smoke autenticado real, proteção patrimonial extra,
+anulação/transferência auditável, modernização visual e majors de dependências.
+A antiga “Fase D” exige requalificação item a item; #396/#410/#427 já
+atenderam parte de sua intenção. Os 12 PRs abertos não são 12 defeitos.
+
+**Próxima sequência:** reconciliar documentos, verificar as duas demandas
+visuais em tela real, avaliar os residuais e então priorizar melhorias por
+jornada do usuário. O desktop é foco inicial. **Não há handoff de
+implementação corrente.** Planos históricos não autorizam mudanças de regras.
+
+## Histórico concluído — follow-up de testes/documentação do PR #429
 
 A entrega funcional #427/#428 permanece encerrada. O #429 fortalece exclusivamente
 a prova de reconexão e alinha duas referências do smoke #426. RED nativo confirmou
@@ -53,7 +81,7 @@ reconexão/eventos perdidos e união conservadora de várias escolas.
 Referência operacional durável: [observabilidade Vercel](reference/VERCEL_OBSERVABILITY.md).
 
 **Classe documental:** Canônico — estado mutável  
-**Atualizado em:** 7 de outubro de 2026
+**Atualizado em:** 8 de outubro de 2026
 
 ## Histórico técnico do PR #410 — encerrado
 

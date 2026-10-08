@@ -1,9 +1,9 @@
 # Documentação do RADAR PDDE
 
-Follow-up de testes pós-merge: [PR #429 — prova causal de reconexão (GREEN e contraprova registrados)](handoff/2026-10-07-pr429-reconnect-proof.md). A entrega funcional #427/#428 permanece encerrada.
+Retomada vigente: [auditoria de reconciliação de 08/10](audits/2026-10-08-reconciliacao-planos-documentos.md). O [PR #429](handoff/2026-10-07-pr429-reconnect-proof.md) está integrado; seu handoff é histórico concluído.
 
 **Classe documental:** Canônico — índice e rota de leitura  
-**Atualizado em:** 7 de outubro de 2026
+**Atualizado em:** 8 de outubro de 2026
 
 ## 1. Rota obrigatória
 
@@ -23,8 +23,10 @@ Ordem:
 10. ADRs e referências especializadas da área afetada;
 11. planos, auditorias, demais handoffs e evidências históricas apenas para compreender o seu momento/SHA.
 
-**Estado funcional corrente:** A + B + C, #397, Fases 1/2 de autonomia/retificação e
-#410 estão concluídos. Fase D, NAV-01/UX-04 e `PROD-UX-08` permanecem separados.
+**Estado funcional corrente:** A + B + C, #397, autonomia Fases 1/2, #410,
+#427 e #429 estão concluídos. NAV-01/UX-04 do #375 entrou pelo #376.
+A Fase D exige requalificação; `PROD-UX-08` e indicadores #394 aguardam
+verificação atual antes de correção.
 A otimização residual de Dashboard/Carteira/Competências foi integrada e publicada
 pelo #427. O [registro de 07/10](handoff/2026-10-07-aggregate-school-sync.md) e o
 handoff do #410 são históricos concluídos; não há handoff corrente dessas entregas.

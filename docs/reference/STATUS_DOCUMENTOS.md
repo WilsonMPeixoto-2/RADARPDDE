@@ -1,7 +1,7 @@
 # Matriz de validade documental
 
 **Classe documental:** Canônico  
-**Atualizado em:** 7 de outubro de 2026
+**Atualizado em:** 8 de outubro de 2026
 
 ## 1. Finalidade e precedência
 
@@ -27,9 +27,10 @@ PR aberto, Preview ou documento antigo não altera Production.
 | docs/evidence/2026-10-04-pr410-school-scope/README.md e JSONs | Evidência da caracterização | cobertura, exclusões, RLS, relações entre escolas e limites das provas locais; não certifica a RPC futura |
 | docs/reference/SYSTEM_CANONICAL_MODEL.md | Canônico | autoridades, fluxos e invariantes |
 | docs/reference/PRODUCT_SURFACE_CATALOG.md | Referência vigente | superfícies e jornadas |
+| docs/audits/2026-10-08-reconciliacao-planos-documentos.md | Auditoria datada | reconciliação dos planos, 12 PRs, documentos e residuais; não cria regra nova |
 | docs/reference/VERCEL_OBSERVABILITY.md | Referência operacional vigente | contrato de instrumentação Web Analytics/Speed Insights, estado de ativação, validação de campo e decisão de não usar o pacote redundante do #416 |
 | docs/CURRENT_STAGE.md | Canônico | estado funcional e prioridade; head/deployment exatos devem ser revalidados ao vivo quando relevantes |
-| docs/handoff/2026-10-07-pr429-reconnect-proof.md | Handoff do follow-up de testes | #429; RED confirmado, GREEN nativo em seis execuções e contraprova do mecanismo final registrados; não reabre produto/performance |
+| docs/handoff/2026-10-07-pr429-reconnect-proof.md | Histórico concluído | #429 integrado em 07/10 no merge a5a67d34; RED/GREEN e contraprova preservados |
 | docs/handoff/2026-10-07-aggregate-school-sync.md | Histórico concluído | #427 integrado e publicado; RED/GREEN, métricas e registro de encerramento |
 | docs/evidence/2026-10-07-aggregate-school-sync/README.md e JSONs | Evidência concluída | certificação #427, benchmark pareado, merge/deployment e limites do smoke público |
 | docs/handoff/2026-10-04-pr410-start.md | Histórico concluído | #410 integrado; checkpoints pré-merge não abrem novamente a implementação |
@@ -66,11 +67,11 @@ A baseline funcional que comprovou o encerramento da C3 é:
 
 Commits posteriores exclusivamente documentais não reabrem uma fase encerrada nem representam, por si, mudança funcional do RADAR. Como a `main` pode avançar por manutenção documental e a Vercel pode publicar esses commits, o head e o deployment exatos devem ser consultados ao vivo quando forem necessários para uma nova entrega.
 
-A **Fase D ainda não foi iniciada**. O encerramento da Fase 2 não a inicia automaticamente; `PROD-UX-08`, NAV-01/UX-04 e demais refinamentos eventualmente mantidos permanecem frentes separadas até decisão explícita de retomada.
+A **Fase D não foi iniciada como pacote**, mas parte da intenção foi atendida por #396/#410/#427. NAV-01/UX-04 do antigo #375 foi entregue pelo #376; nova rodada visual é distinta. `PROD-UX-08` e indicadores históricos #394 aguardam reprodução atual, não correção presumida.
 
 A baseline principal dessa jornada foi homologada. `PROD-FUNC-09` foi encerrado pelo PR #392 e confirmado em Production no merge `8284a02faf3d9381ad42e66b6d93677d396e8515`; a data civil e o instante técnico ficaram coerentes na tentativa original, sem escrita. O #397 foi integrado no merge `a5e200e5c3d7955cea0a6122bde1904469771ac3` e publicado com SQL compatível, preservando a leitura contextual do #396. A evidência de publicação está em `docs/evidence/2026-09-30-pr397-production-release/`; a retomada pós-publicação foi encerrada e preservada em `docs/handoff/2026-09-30-pos-publicacao-pr397-retomada.md`. A CI de 45 checks e os 20 ciclos reais descartáveis pertencem ao candidato `0e149e1...`; o smoke do novo deployment em Production foi observacional, sem CRUD.
 
-A Fase 2 de autonomia/UX também está encerrada: PR #404, merge `de7bebb06b867ebd557ff83cd9194fe3d45f5903`, deployment Production `dpl_CLYY92KojCXpmQcL8xXQkmc3TdgG` `READY`, com smoke HTTP 200 na raiz e na rota profunda `/escolas/04.31.001`, sem escrita real. Seu handoff e relatório passam a histórico/evidência concluída. Os handoffs de #410 e #427 são históricos concluídos; não há handoff corrente dessas entregas. `PROD-UX-08` e NAV-01/UX-04 permanecem frentes separadas e não são encerradas por esta entrega.
+A Fase 2 de autonomia/UX também está encerrada: PR #404, merge `de7bebb06b867ebd557ff83cd9194fe3d45f5903`, deployment Production `dpl_CLYY92KojCXpmQcL8xXQkmc3TdgG` `READY`, com smoke HTTP 200 na raiz e na rota profunda `/escolas/04.31.001`, sem escrita real. Seu handoff e relatório passam a histórico/evidência concluída. Os handoffs de #410, #427 e #429 são históricos concluídos. `PROD-UX-08` e indicadores do #394 exigem verificação; NAV-01/UX-04 do #375 entrou pelo #376.
 
 O servidor canônico e suas correções não alteraram schema, migrations, RPCs, RLS, serviços de domínio, layout ou persistência canônica.
 
@@ -78,7 +79,7 @@ O servidor canônico e suas correções não alteraram schema, migrations, RPCs,
 
 ## 4. Handoff corrente e histórico
 
-Não há handoff corrente das frentes #410/#427. A sincronização agregada foi
+Não há handoff corrente das frentes #410/#427/#429. A sincronização agregada foi
 integrada em `09083d91` e publicada no deployment `dpl_5L41YQCcnLHnbE5kT4s5UtG6cvvg`.
 O estado vigente pertence a `CURRENT_STAGE.md`; os checkpoints preservados não
 reabrem essas entregas.

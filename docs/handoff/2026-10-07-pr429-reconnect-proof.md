@@ -1,5 +1,10 @@
 # PR #429 — continuidade da prova causal de reconexão
 
+> **Encerramento posterior ao checkpoint:** #429 integrado em 07/10/2026,
+> merge `a5a67d34b6dcab04903b6657fb9fa01f0aba9d11`. RED/GREEN e contraprova foram preservados.
+> Referências abaixo a Draft e próximos passos são pré-merge, não status
+> atual. Ver [CURRENT_STAGE](../CURRENT_STAGE.md).
+
 **Checkpoint de 07/10/2026, antes de interrupção por cota; atualizado no mesmo dia
 com GREEN nativo e contraprova do mecanismo final (seção "Encerramento").**
 Escopo exclusivo de testes/documentação; não é nova frente de performance do produto.
