@@ -505,7 +505,7 @@
     "evidence": "invoice",
     "coverage": "partial",
     "gaps": [
-      "Fase 2: testes locais de retificação e UX aprovados; confirmar Auth/RLS, versões, efeitos e reload no CI descartável do candidato."
+      "Fase 2/#404 encerrada: Auth/RLS, row_version, efeitos patrimoniais e reload aprovados no CI com Supabase descartável do candidato final (docs/evidence/2026-10-01-controller-type-retification/REPORT.md). Production recebeu smoke HTTP observacional, sem CRUD. A cobertura permanece parcial por não incluir prova autorizada de escrita/releitura autenticada no ambiente publicado; essa validação não está automaticamente aprovada como próxima intervenção."
     ],
     "next": "controlled-write"
   },
