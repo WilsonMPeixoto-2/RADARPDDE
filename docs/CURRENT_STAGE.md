@@ -1,15 +1,41 @@
 # RADAR PDDE — estado atual e retomada
 
-## Follow-up restrito de testes/documentação — PR #429
+## Retomada — reconciliação documental e avaliação dirigida do produto
 
-A entrega funcional #427/#428 permanece encerrada. O #429 fortalece exclusivamente
-a prova de reconexão e alinha duas referências do smoke #426. RED nativo confirmou
-falso positivo no teste antigo; candidato `829c3d10` tem 1323 unitários/8 integrações
-verdes e GREEN nativo em seis execuções (runs `37655737551`, `37655886850` e
-`37656306919`, baseline e candidato). A contraprova do mecanismo final (run
-`37665993736`, recovery suprimido só no harness) falhou como exigido na espera da
-resposta de recovery. Sem mudança em produto ou Production. Handoff **deste follow-up de testes**:
-[checkpoint #429](handoff/2026-10-07-pr429-reconnect-proof.md).
+**Base conferida em 08/10/2026:** main `a5a67d34b6dcab04903b6657fb9fa01f0aba9d11`,
+merge do [PR #429](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/429).
+Production `dpl_BW2hefHBNgc7Aq1R4j7wEBsfYE9K`, `READY`, no mesmo SHA.
+São fatos datados, não constantes para futuras entregas.
+
+**#410/#427/#428 e #429 estão encerrados.** O candidato final do #429,
+`761560c056845f8b9dcaa017853d52f6dbfba76f`, concluiu nove workflows verdes,
+incluindo o gate sustentado `37691286270`. O RED original e a contraprova
+`37665993736` provaram a força causal do novo teste. A integração ocorreu em
+07/10/2026 às 22:00:57 UTC. O deployment posterior publicou o merge normalmente;
+o PR não mudou runtime, schema, Auth/RLS ou dependências.
+O [handoff #429](handoff/2026-10-07-pr429-reconnect-proof.md) é histórico concluído.
+
+**Prioridade atual autorizada:** reconciliar planos, demandas e documentação,
+preservando regras posteriores e entregas já concluídas. O
+[relatório de reconciliação](audits/2026-10-08-reconciliacao-planos-demandas.md)
+registra evidências, limites e classificação dos PRs; não cria autoridade de negócio.
+
+| Item | Situação e próximo passo |
+|---|---|
+| NAV-01/UX-04 do antigo #375 | Escopo original incorporado integralmente pelo #376, integrado em 26/09. Uma rodada de revalidação posterior não equivale a implementação pendente. |
+| PROD-UX-08 — drawer desktop | Achado histórico a reproduzir na versão atual antes de corrigir. Não foi novamente homologado nesta reconciliação. |
+| #394 — indicadores mensais históricos | Draft não integrado; verificar a leitura dos meses fora do contexto operacional atual antes de reaproveitar o candidato. |
+| IDs persistentes e readiness sistêmico | Existem geradores por horário em DirectoryService e polling de instalação. Qualificar alcance e risco; não há incidente atual demonstrado nesta análise. A idempotência de NF já foi entregue. |
+| Smoke autenticado #426 | Infraestrutura integrada; execução manual específica com conta real permanece adiada. Success de workflow não prova sozinho a identidade usada. |
+| Fase D / planos antigos / Draft #395 | Requalificar objetivos por entrega e residual. Não iniciar refatoração ou repetir performance por checklist histórico. |
+| Evolução visual | Após a triagem, recuperar DESIGN_TOOLING.md e avaliar jornadas reais antes de escolher um piloto de superfície completa. |
+
+Sequência: concluir atualização documental → observar drawer e indicadores
+históricos → qualificar residuais técnicos → avaliar jornadas do produto e
+selecionar a próxima entrega pelo impacto atual. Nenhuma alteração funcional
+decorre apenas da existência de um documento antigo. Proteção patrimonial
+adicional e anulação/transferência auditável continuam decisões separadas.
+Não há handoff corrente de implementação; a retomada é controlada por este documento.
 
 ## Atualização canônica — sincronização agregada integrada e publicada
 
@@ -53,13 +79,13 @@ reconexão/eventos perdidos e união conservadora de várias escolas.
 Referência operacional durável: [observabilidade Vercel](reference/VERCEL_OBSERVABILITY.md).
 
 **Classe documental:** Canônico — estado mutável  
-**Atualizado em:** 7 de outubro de 2026
+**Atualizado em:** 8 de outubro de 2026
 
 ## Histórico técnico do PR #410 — encerrado
 
 > **Nota de validade:** esta seção preserva checkpoints anteriores ao merge do #410. Menções abaixo a PR em Draft, candidato remoto, handoff corrente ou etapas ainda pendentes pertencem ao histórico de execução e **não representam o estado atual**. O estado vigente está no bloco canônico acima.
 
-**Retomada vigente:** candidato remoto `d571a26a`, com aplicação e sincronização
+**Retomada naquele checkpoint:** candidato remoto `d571a26a`, com aplicação e sincronização
 escolar já implementadas. A revisão de 06/10 reproduziu cinco falhas de recuperação
 e preservação do escopo global, mesmo com 57 contratos anteriores verdes.
 [Evidência/decisão](evidence/2026-10-06-pr410-review/README.md). RED publicado em
@@ -98,15 +124,15 @@ As proteções do #408 são regressões obrigatórias. Os detalhes do design pre
 
 ## 1. Estado funcional corrente
 
-**As Fases A, B e C estão encerradas. A Fase D ainda não foi iniciada.**
+**As Fases A, B e C estão encerradas.** A antiga Fase D não foi iniciada como pacote; seus objetivos devem ser reconciliados com #396/#410/#427 e os residuais descritos na retomada acima.
 
 **A Fase 2 de autonomia dos Controladores e UX da retificação está encerrada, integrada e publicada.** O PR #404 foi mergeado em `de7bebb06b867ebd557ff83cd9194fe3d45f5903` e publicado no deployment Production `dpl_CLYY92KojCXpmQcL8xXQkmc3TdgG`, `READY`, com smoke HTTP 200 na raiz e em `/escolas/04.31.001`. A retificação de classificação permanece limitada ao histórico exclusivamente fiscal encerrado/cancelado e falha fechada diante de Pendência ativa, atividade/histórico de Assessoria, `a_identificar`, bem `Inventariada` ou versionamento desconhecido.
 
-**A sincronização agregada está encerrada; não há handoff corrente operacional desta entrega.** A proteção patrimonial adicional, anulação/transferência auditável, `PROD-UX-08`, NAV-01/UX-04 e Fase D permanecem decisões/frentes separadas.
+**A sincronização agregada está encerrada; não há handoff corrente operacional desta entrega.** Proteção patrimonial adicional e anulação/transferência auditável não integram essa entrega. As demandas de interface e os planos antigos seguem a classificação da retomada acima.
 
 **O PR #397 — independência entre despesas e bonificação — permanece integrado e publicado.** A ADR-055 e a leitura contextual do #396 são preservadas. A [continuidade após o #397](handoff/2026-09-30-pos-publicacao-pr397-retomada.md) passou a contexto histórico desta entrega.
 
-`PROD-UX-08` e a rodada NAV-01/UX-04 permanecem separadas; não foram homologadas pela Fase 2. #394, planos amplos do #395 e Fase D continuam fora do recorte. O encerramento da Fase 2 não autoriza automaticamente essas frentes.
+O encerramento da Fase 2 não homologa novamente PROD-UX-08 nem uma rodada posterior de navegação. O escopo original NAV-01/UX-04 entrou antes, pelo #376. #394, #395 e Fase D não são abertos automaticamente por aquela entrega.
 
 Registro da publicação de 30/09/2026:
 
@@ -186,7 +212,7 @@ Para retomada, a ordem de leitura continua sendo:
 8. `docs/reference/STATUS_DOCUMENTOS.md`;
 9. matriz funcional e ADRs da área afetada.
 
-## 5. Pendências separadas e Fase D
+## 5. Demandas a verificar e planos a requalificar
 
 A baseline principal da jornada desktop de **Despesa a identificar / Pendências / novo envio / reanálise / navegação** foi homologada por evidências complementares em ambiente local, Supabase descartável no CI e Production autenticada.
 
@@ -196,11 +222,11 @@ A auditoria histórica anterior à publicação do #397 confirmou em Production 
 
 A aba autenticada foi recarregada e o mesmo registro sintético, sem nova escrita, mostrou **Disponibilização 27/09/2026** e **Registro 27/09/2026, 23:12**. O CI do candidato terminou com **28 checks concluídos: 26 aprovados e 2 ignorados, sem falhas ou pendências**. [Evidência de encerramento](evidence/2026-09-28-prod-func-09-date-business/README.md).
 
-A investigação de **`PROD-UX-08` — clipping e sobreposição do drawer global em desktop** permanece pendente. As publicações de #392 e #397 não homologam a composição inteira do drawer. Esse achado não deve ser confundido com UX-04, que trata da largura mobile e integra a rodada limitada de Preview solicitada pelo usuário.
+A investigação de **`PROD-UX-08` — clipping e sobreposição do drawer global em desktop** aguarda reprodução na versão atual. As publicações de #392 e #397 não homologam a composição inteira do drawer. Esse achado é diferente do escopo original UX-04 de largura mobile, incorporado pelo #376; uma revalidação posterior deve ter motivo e condições atuais explícitos.
 
-O registro de retomada dessa pendência visual é [`docs/handoff/2026-09-28-prod-ux-08-drawer-clipping.md`](handoff/2026-09-28-prod-ux-08-drawer-clipping.md). Ele permanece como pendência separada; não há handoff corrente.
+O [registro de setembro](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) é histórico da demanda e ponto de reprodução, não handoff corrente nem prova de persistência da falha em outubro.
 
-A **Fase D — hardening e performance permanece planejada, mas não iniciada**. O encerramento da Fase 2 não a inicia automaticamente nem transforma outras pendências visuais/funcionais em fila implícita.
+A **Fase D — hardening e performance** era um pacote de planejamento. Parte importante de sua intenção foi atendida por entregas posteriores; seus residuais precisam de decisão própria. Os Planos A–D do Draft #395 são outra família de planos: A evoluiu por #396/#410/#427; B conserva residuais a qualificar; C é PROD-UX-08; D trata rebaseline/evidência. Nenhuma dessas nomenclaturas constitui fila automática.
 
 A avaliação separada de ferramentas para evolução visual permanece em [DESIGN_TOOLING.md](evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md): Figma conectado e provas isoladas de Sharp/SVGO/Lucide/Fontsource. Nenhuma biblioteca nova dessa avaliação foi adicionada ao runtime.
 

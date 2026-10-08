@@ -1,8 +1,10 @@
-# Retificações administrativas
+# Retificação administrativa da bonificação/consolidação
 
-## Regra provisória de permissão
+**Escopo:** este documento trata a retificação de respostas de bonificação e do resultado consolidado. Correção dos dados de uma despesa, retificação de tipo e retificação de análise técnica possuem contratos próprios no [modelo canônico](../reference/SYSTEM_CANONICAL_MODEL.md) e na [matriz funcional](../reference/FUNCTIONAL_CONTRACT_MATRIX.md). Não usar a permissão abaixo como bloqueio genérico da edição fiscal autorizada por #397/#403/#404.
 
-Nesta fase do protótipo, somente o perfil `assistente` pode retificar uma consolidação. A autorização fica centralizada em `RadarRetificacoes.canRetify`, permitindo expansão futura sem alterar cada tela.
+## Permissão da superfície de consolidação
+
+Nesta superfície, somente o perfil funcional `assistente` pode retificar uma consolidação, conforme `RadarRetificacoes.canRetify`. Esta regra da superfície não substitui a autorização efetiva de Auth/RLS nem transforma simulação visual de perfil em identidade autenticada.
 
 ## Fluxo
 

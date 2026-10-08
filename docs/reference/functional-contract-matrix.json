@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-09-09",
-  "sourceCommit": "6b40922afcd2793ad685c27994dc405d5d5aa141",
+  "updatedAt": "2026-10-08",
+  "sourceCommit": "a5a67d34b6dcab04903b6657fb9fa01f0aba9d11",
   "profiles": [
     {
       "id": "anonymous",
@@ -298,6 +298,8 @@
         "tests/unit/functional-integrity-migration.test.js",
         "tests/unit/invoice-document-analysis.test.js",
         "tests/unit/invoice-service.test.js",
+        "tests/unit/invoice-type-retification.test.js",
+        "tests/unit/invoice-type-retification-advisory-state.test.js",
         "tests/unit/pendency-service.test.js",
         "tests/pendency-invoice-context.test.js",
         "tests/unit/service-advisory-corrective-submission.test.js",
@@ -314,7 +316,9 @@
         "tests/e2e/internet-bill-document.spec.js",
         "tests/e2e/critical-product-extensions.spec.js",
         "tests/e2e/supabase-functional-reliability.spec.js",
-        "tests/e2e/supabase-invoice-lifecycle-reliability.spec.js"
+        "tests/e2e/supabase-invoice-lifecycle-reliability.spec.js",
+        "tests/e2e/invoice-type-retification.spec.js",
+        "tests/e2e/supabase-invoice-type-retification.spec.js"
       ],
       "database": [
         "supabase/tests/database/invoice-rpc.test.sql",

@@ -1,9 +1,9 @@
 # Documentação do RADAR PDDE
 
-Follow-up de testes pós-merge: [PR #429 — prova causal de reconexão (GREEN e contraprova registrados)](handoff/2026-10-07-pr429-reconnect-proof.md). A entrega funcional #427/#428 permanece encerrada.
+Retomada: reconciliação documental e avaliação dirigida, conforme [CURRENT_STAGE.md](CURRENT_STAGE.md). #410/#427/#429 estão encerrados. O [relatório de 08/10](audits/2026-10-08-reconciliacao-planos-demandas.md) preserva a classificação das demandas e seus limites.
 
 **Classe documental:** Canônico — índice e rota de leitura  
-**Atualizado em:** 7 de outubro de 2026
+**Atualizado em:** 8 de outubro de 2026
 
 ## 1. Rota obrigatória
 
@@ -24,12 +24,13 @@ Ordem:
 11. planos, auditorias, demais handoffs e evidências históricas apenas para compreender o seu momento/SHA.
 
 **Estado funcional corrente:** A + B + C, #397, Fases 1/2 de autonomia/retificação e
-#410 estão concluídos. Fase D, NAV-01/UX-04 e `PROD-UX-08` permanecem separados.
-A otimização residual de Dashboard/Carteira/Competências foi integrada e publicada
-pelo #427. O [registro de 07/10](handoff/2026-10-07-aggregate-school-sync.md) e o
-handoff do #410 são históricos concluídos; não há handoff corrente dessas entregas.
+#410/#427 estão concluídos. O follow-up de testes #429 também foi integrado.
+O escopo original NAV-01/UX-04 entrou pelo #376. PROD-UX-08 e os indicadores do
+#394 aguardam verificação na versão atual; IDs/readiness e objetivos antigos da
+Fase D devem ser qualificados individualmente. Os handoffs #410/#427/#429 são
+históricos concluídos; não há handoff corrente de implementação.
 A [evidência de publicação](evidence/2026-10-07-aggregate-school-sync/README.md)
-preserva certificação, benchmark e limites.
+preserva certificação, benchmark e limites da sincronização agregada.
 
 O [PR #386](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/386) e o merge funcional `e6b692a97dd5148877c788da11e0c8ae4c8fcd19` registram o encerramento da C3. Commits posteriores exclusivamente documentais podem avançar a `main` e gerar novo deployment sem reabrir a Fase C. Quando o SHA do head ou o deployment ativo importarem para uma nova entrega, verificá-los ao vivo.
 
@@ -97,7 +98,7 @@ Consultar conforme a área materialmente afetada:
 - [`evidence/2026-09-30-pr397-production-release/README.md`](evidence/2026-09-30-pr397-production-release/README.md) — evidência concluída de merge, SQL, deployment, smoke e restauração; JSONs sem dados operacionais ou segredos;
 - [`handoff/2026-09-30-pr397-independencia-despesas-bonificacao.md`](handoff/2026-09-30-pr397-independencia-despesas-bonificacao.md) — histórico do candidato #397, com reclassificação após a publicação;
 - [`decisions/ADR-055-independencia-despesas-bonificacao.md`](decisions/ADR-055-independencia-despesas-bonificacao.md) — decisão vigente sobre independência dos ciclos e propriedade de campos;
-- [`handoff/2026-09-28-prod-ux-08-drawer-clipping.md`](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) — pendência separada da investigação visual PROD-UX-08;
+- [`handoff/2026-09-28-prod-ux-08-drawer-clipping.md`](handoff/2026-09-28-prod-ux-08-drawer-clipping.md) — histórico da demanda PROD-UX-08, a reproduzir na versão atual antes de correção;
 - [`handoff/2026-09-28-prod-func-09-date-business-investigation.md`](handoff/2026-09-28-prod-func-09-date-business-investigation.md) — handoff histórico concluído de PROD-FUNC-09, integrado pelo PR #392 e confirmado em Production sem nova escrita;
 - [`handoff/2026-09-27-post-abc-expense-baseline-audit.md`](handoff/2026-09-27-post-abc-expense-baseline-audit.md) — handoff histórico concluído da baseline pós-A+B+C da jornada Despesa a identificar/Pendências;
 

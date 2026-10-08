@@ -1,12 +1,14 @@
 # Plano remanescente source-first — pós-hotfixes e pós-reauditoria do código
 
 **Data:** 3 de setembro de 2026  
-**Classe documental:** Canônico — plano executável corrente  
+**Classe documental:** Histórico — planejamento de 03/09, substituído como fila corrente  
 **Baseline de planejamento:** `main` em `18150cc9ef7e15e2e777041fce541b847af517e1`  
 **Último baseline funcional:** `75237c6ec5c22e8f7be9eb39fd21481f6d608010` (PR #249)  
 **Auditoria-fonte:** `docs/audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`
 
 > **Este plano substitui a sequência executável do plano de 26/08.** O documento de 26/08 permanece histórico/canônico para contexto, riscos, testes e decisões de sua época, mas seus números PR3/PR5/PR6/PR8/PR9 não devem ser usados como fila cega.
+
+> **Reconciliação de 08/10/2026:** a sequência abaixo descreve o plano daquele checkpoint. R1 foi entregue pelo #282; idempotência de NF pelo #276; convergência remota evoluiu pelo #300 e sucessores; performance/sincronização culminaram em #410/#427. IDs por horário e readiness têm residuais a qualificar. R4 não autoriza apagar diferenças deliberadas de projeção. Consultar [CURRENT_STAGE.md](../../CURRENT_STAGE.md) e o [mapa de demandas](../../audits/2026-10-08-reconciliacao-planos-demandas.md). Nomes de arquivos/RPCs previstos e checkboxes antigos não provam ausência de solução atual.
 
 ## 1. Objetivo
 

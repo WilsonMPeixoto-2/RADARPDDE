@@ -505,7 +505,7 @@
     "evidence": "invoice",
     "coverage": "partial",
     "gaps": [
-      "Fase 2: testes locais de retificação e UX aprovados; confirmar Auth/RLS, versões, efeitos e reload no CI descartável do candidato."
+      "A prova da Fase 2 com Auth/RLS, versões, efeitos e reload foi concluída no candidato final do #404, conforme docs/evidence/2026-10-01-controller-type-retification/REPORT.md. O smoke publicado foi observacional, sem CRUD em Production. Cobertura parcial preservada: a reconciliação documental de 08/10 não reavaliou a cobertura integral de INV-01 nem executou nova prova controlada."
     ],
     "next": "controlled-write"
   },

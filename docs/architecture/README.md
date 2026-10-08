@@ -124,7 +124,7 @@ A arquitetura possui:
 - trace enriquecido e locks por recurso;
 - Playwright MCP versionado para agentes.
 
-A última permanece deliberadamente desativada até provisionamento autorizado de identidades técnicas.
+O smoke autenticado do #426 admite de uma a cinco contas reais autorizadas; não exige identidades técnicas exclusivas. A execução manual específica com credencial real permanece adiada. O sucesso de um workflow deve ser confrontado com seus passos e a autenticação efetiva antes de ser declarado prova de login real. O Playwright MCP é tooling de navegação para agentes, distinto desse smoke.
 
 ## 8. Matriz funcional
 
@@ -135,7 +135,7 @@ A fonte JSON executável diferencia:
 - `gap`: lacuna técnica comprovada;
 - `decision`: implementação existente cuja regra ainda precisa de decisão.
 
-Estado corrente: 19 `covered`, 25 `partial`, 0 `gap`, 0 `decision`.
+Estado conferido na reconciliação de 08/10/2026: 18 `covered`, 26 `partial`, 0 `gap`, 0 `decision`. Consultar a fonte JSON e o Markdown gerado para contagens posteriores.
 
 Correção implementada não é sinônimo de cobertura total. `ASSET-02`, por exemplo, migra de lacuna para parcial.
 

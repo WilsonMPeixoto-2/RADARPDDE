@@ -1,7 +1,7 @@
 # Matriz funcional ponta a ponta
 
-**Atualizado em:** 2026-09-09  
-**Baseline de origem:** `6b40922afcd2793ad685c27994dc405d5d5aa141`  
+**Atualizado em:** 2026-10-08  
+**Baseline de origem:** `a5a67d34b6dcab04903b6657fb9fa01f0aba9d11`  
 **Fonte canônica:** `functional-contract-matrix.json` e arquivos JSON do diretório `functional-contract-matrix/`
 
 > Arquivo gerado por `scripts/check-functional-contract-matrix.mjs`. Não editar manualmente.
@@ -167,7 +167,7 @@ A matriz contém **44 operações** distribuídas entre 13 superfícies.
 - **PEND-04 — Cancelar pendência com justificativa:** Falta prova controlada de justificativa, autoria e releitura.
 - **PEND-05 — Reabrir pendência cancelada ou resolvida:** Falta prova controlada da transição, autoria e releitura.
 - **PEND-06 — Registrar contato ou cobrança associado à pendência:** Falta prova controlada de idempotência, associação e releitura.
-- **INV-01 — Cadastrar Nota Fiscal/despesa e retificar dados editáveis do mesmo lançamento independentemente da bonificação/consolidação; A identificar nasce atomicamente; corrigir classificação com histórico exclusivamente fiscal encerrado/cancelado, sem Assessoria ou patrimônio terminal:** Fase 2: testes locais de retificação e UX aprovados; confirmar Auth/RLS, versões, efeitos e reload no CI descartável do candidato.
+- **INV-01 — Cadastrar Nota Fiscal/despesa e retificar dados editáveis do mesmo lançamento independentemente da bonificação/consolidação; A identificar nasce atomicamente; corrigir classificação com histórico exclusivamente fiscal encerrado/cancelado, sem Assessoria ou patrimônio terminal:** A prova da Fase 2 com Auth/RLS, versões, efeitos e reload foi concluída no candidato final do #404, conforme docs/evidence/2026-10-01-controller-type-retification/REPORT.md. O smoke publicado foi observacional, sem CRUD em Production. Cobertura parcial preservada: a reconciliação documental de 08/10 não reavaliou a cobertura integral de INV-01 nem executou nova prova controlada.
 - **INV-03 — Registrar envio, análise, pendência, novo envio e reanálise da Assessoria por nota fiscal de serviço sem depender nem reabrir bonificação/consolidação:** Abertura, novo envio e reanálise individual, isolamento entre NFs, tentativa imutável, bootstrap crítico e RPCs possuem regressões unitárias/E2E/pgTAP; falta apenas a homologação autenticada final da interface publicada com refresh/releitura.
 - **INV-04 — Analisar cada documento fiscal, abrir Pendência por invoice e manter resumo técnico derivado sem depender nem reabrir bonificação/consolidação:** Análise individual, resumo derivado, Pendência por invoice, a_identificar, patrimônio, legado, fronteira rowVersion e RPC de abertura possuem regressões e smoke transacional real; falta homologação autenticada final da interface publicada com refresh/releitura.
 - **ASSET-01 — Cadastrar bem permanente manualmente:** Falta prova controlada de criação, status inicial e releitura.

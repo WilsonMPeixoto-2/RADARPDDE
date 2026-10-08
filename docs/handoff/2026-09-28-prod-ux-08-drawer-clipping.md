@@ -1,9 +1,11 @@
-# Handoff corrente — PROD-UX-08: composição do drawer global
+# Demanda histórica a verificar — PROD-UX-08: composição do drawer global
 
-**Estado:** corrente; investigação visual ainda não iniciada.
+**Estado em 08/10/2026:** histórico da demanda; reprodução na versão atual ainda necessária. Não é handoff corrente nem prova de persistência da falha em outubro.
 **Data:** 28 de setembro de 2026.
 **Frente anterior:** PROD-FUNC-09 encerrado pelo PR #392.
 **Fase D:** adiada.
+
+> **Reconciliação:** os fatos e registros de setembro abaixo são pontos de referência. Conferir se o registro sintético ainda existe antes de usá-lo; não recriar dados de Production para reproduzir layout sem contexto autorizado. A triagem atual está em [CURRENT_STAGE.md](../CURRENT_STAGE.md). NAV-01/UX-04 do antigo #375 foram incorporados pelo #376 e não equivalem a esta demanda desktop.
 
 ## 1. Ponto de partida confirmado
 
