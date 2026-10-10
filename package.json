@@ -98,7 +98,7 @@
     "@axe-core/playwright": "4.13.0",
     "@eslint/js": "10.0.1",
     "@floating-ui/dom": "1.8.0",
-    "@playwright/test": "1.63.0",
+    "@playwright/test": "1.64.0",
     "@supabase/supabase-js": "2.117.3",
     "@types/node": "24.19.2",
     "acorn": "8.19.0",
