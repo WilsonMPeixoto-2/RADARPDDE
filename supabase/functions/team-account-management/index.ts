@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient, type User } from "npm:@supabase/supabase-js@2.117.2";
+import { createClient, type User } from "npm:@supabase/supabase-js@2.117.3";
 import {
   buildInviteMetadata,
   canCompensateAmbiguousInvite,
