@@ -17,7 +17,7 @@ async function clientWith(fetchImpl) {
     });
 }
 
-test('supabase-js 2.117.2 repete GET PostgREST em HTTP 503 pela política nativa', async () => {
+test('supabase-js 2.117.3 repete GET PostgREST em HTTP 503 pela política nativa', async () => {
     let calls = 0;
     const client = await clientWith(async () => {
         calls += 1;
@@ -44,7 +44,7 @@ test('supabase-js 2.117.2 repete GET PostgREST em HTTP 503 pela política nativa
     assert.equal(calls, 2);
 });
 
-test('supabase-js 2.117.2 não repete escrita POST em HTTP 503', async () => {
+test('supabase-js 2.117.3 não repete escrita POST em HTTP 503', async () => {
     let calls = 0;
     const client = await clientWith(async () => {
         calls += 1;
