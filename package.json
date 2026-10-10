@@ -111,7 +111,7 @@
     "eslint-plugin-playwright": "2.12.1",
     "fast-check": "4.10.2",
     "fuse.js": "7.5.0",
-    "knip": "6.40.0",
+    "knip": "6.41.0",
     "lighthouse": "13.5.0",
     "msw": "2.15.0",
     "prettier": "3.9.9",
