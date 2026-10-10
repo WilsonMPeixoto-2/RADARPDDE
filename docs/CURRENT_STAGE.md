@@ -1,5 +1,24 @@
 # RADAR PDDE — estado atual e retomada
 
+## Atualização de dependências — 10/10/2026 (checkpoint atual)
+
+**Etapas 0–4 encerradas e integradas à `main`, em PRs independentes:**
+[#433](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/433) Knip `6.41.0`;
+[#434](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/434) `@types/node` `24.19.2`;
+[#435](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/435) `@supabase/supabase-js` `2.117.3` (bundle do navegador e import da Edge Function alinhados);
+[#436](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/436) Playwright `1.64.0` (`@playwright/test`, `playwright` e `playwright-core`).
+Todas as alterações foram integradas em **10/10/2026**; não houve mudança oportunista em regras de negócio, CSS, SQL ou permissões.
+
+**Baseline técnica após o PR #436:** `main` `7fa7089e139bc6c96600d27642802aea0943d349`. **Production verificada:** deployment Vercel `dpl_CwjyM6xsLZhJeAikcWwG3wTsTvAW` (SHA `7fa7089e139bc6c96600d27642802aea0943d349`), `READY` no domínio `radarpdde-fix.vercel.app`. Node `24.x`, Supabase CLI `2.114.0` e MSW `2.15.0` mantidos.
+
+**Ativações:** Knip já roda no workflow de dependências; TypeScript continua limitado ao escopo configurado; SDK do navegador usa o bundle regenerado; Playwright já instala o Chromium correspondente e produz traces/screenshots/vídeos. Novidades experimentais/opt-in não foram habilitadas sem necessidade comprovada. **Edge Function confirmada diretamente no Supabase Production**: `team-account-management` ACTIVE v323, import SDK `2.117.3` e `index.ts` idêntico ao da `main` (leitura em 10/10/2026).
+
+**Documento de evidência e decisões:** [modernização de dependências 10/10/2026](audits/2026-10-10-modernizacao-dependencias-etapas-0-4.md), incluindo inventário integral das 25 dependências diretas, contagem da CI, diferenças entre benefícios automáticos e recursos opcionais, ressalvas e próximos passos.
+
+**Próxima frente independente:** homologação das jornadas reais (Etapa 5), especialmente NF, Pendência, novo envio, reanálise, perfis simultâneos e persistência. A avaliação da eventual migração para **Node 26** ficará para depois, com experimento isolado. Não reabrir os PRs antigos de dependências para essa modernização.
+
+---
+
 ## Estado vigente após saneamento documental — 08/10/2026
 
 **Reconciliação formalmente encerrada:** o [PR #431](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/431) foi integrado na `main` em
