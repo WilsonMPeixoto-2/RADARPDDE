@@ -11,7 +11,7 @@ Todas as alterações foram integradas em **10/10/2026**; não houve mudança op
 
 **Baseline técnica após o PR #436:** `main` `7fa7089e139bc6c96600d27642802aea0943d349`. **Production verificada:** deployment Vercel `dpl_CwjyM6xsLZhJeAikcWwG3wTsTvAW` (SHA `7fa7089e139bc6c96600d27642802aea0943d349`), `READY` no domínio `radarpdde-fix.vercel.app`. Node `24.x`, Supabase CLI `2.114.0` e MSW `2.15.0` mantidos.
 
-**Ativações:** Knip já roda no workflow de dependências; TypeScript continua limitado ao escopo configurado; SDK do navegador usa o bundle regenerado; Playwright já instala o Chromium correspondente e produz traces/screenshots/vídeos. Novidades experimentais/opt-in não foram habilitadas sem necessidade comprovada. O alinhamento de import da **Edge Function não substitui prova de deploy específico dessa função**.
+**Ativações:** Knip já roda no workflow de dependências; TypeScript continua limitado ao escopo configurado; SDK do navegador usa o bundle regenerado; Playwright já instala o Chromium correspondente e produz traces/screenshots/vídeos. Novidades experimentais/opt-in não foram habilitadas sem necessidade comprovada. **Edge Function confirmada diretamente no Supabase Production**: `team-account-management` ACTIVE v323, import SDK `2.117.3` e `index.ts` idêntico ao da `main` (leitura em 10/10/2026).
 
 **Documento de evidência e decisões:** [modernização de dependências 10/10/2026](audits/2026-10-10-modernizacao-dependencias-etapas-0-4.md), incluindo inventário integral das 25 dependências diretas, contagem da CI, diferenças entre benefícios automáticos e recursos opcionais, ressalvas e próximos passos.
 
