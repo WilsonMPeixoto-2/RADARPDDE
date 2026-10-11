@@ -1,0 +1,14 @@
+[
+  {
+    "name": "controller-auth-delayed-red.log",
+    "bytes": 3603,
+    "sha256": "8f937dc1b4a05e47b6fb6e173c054960065069f2a33d2619f5f4aa34feffad9c",
+    "status": "expected failure on baseline; full logs private"
+  },
+  {
+    "name": "controller-identity-red-causal.log",
+    "bytes": 25132,
+    "sha256": "b07589d29019c95b7c7a57b7f2bc3c59c888e93a9f69ecfe8b0d202d7aa52701",
+    "status": "expected failure on baseline; full logs private"
+  }
+]

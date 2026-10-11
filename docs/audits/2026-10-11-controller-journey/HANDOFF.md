@@ -136,3 +136,8 @@ protegida, contexto/navegação/agregados/concorrência e clareza dos modais fis
 MCP auxiliar apresentou limite de continuidade de modal; usar Playwright nativo do
 lockfile no cloud para prosseguir, sem alterar runtime/Auth/RLS. A habilidade do
 navegador integrado foi lida, mas sua ferramenta continua indisponível no catálogo.
+
+Achados prioritários: [CAUSAL_FINDINGS.md](CAUSAL_FINDINGS.md). RED real de login
+tardio: ações de Pendência/retificação não se instalam após expirar 10s pré-auth.
+RED de identidade documental: seis cenários de apresentação. Não confundir RED
+com implementação concluída. Revisão independente da instalação em andamento.

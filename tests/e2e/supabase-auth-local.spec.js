@@ -39,6 +39,49 @@ async function waitForApplication(page, role) {
     await expect(page.locator('#auth-logout-button')).toBeVisible();
 }
 
+test('login tardio preserva contato, cancelamento e retificação na interface real', async ({ page }) => {
+    const controller = fixtures.find(fixture => fixture.profileId === 'controller' && fixture.active);
+    await page.clock.install();
+    await page.goto('/');
+    await expect(page.locator('#radar-auth-gate')).toBeVisible();
+    await page.waitForFunction(() => Boolean(window.RadarTask9PendencyPage));
+    // Simula tempo humano na tela de login; não atrasa o servidor nem muda Auth/RLS.
+    await page.clock.fastForward(11000);
+    await page.locator('#radar-auth-email').fill(controller.email);
+    await page.locator('#radar-auth-password').fill(fixturePassword);
+    await page.locator('#radar-auth-form button[type="submit"]').click();
+    await waitForApplication(page, 'controller');
+    await page.clock.resume();
+    await page.locator('#nav-escolas').click();
+    await page.getByRole('row').filter({ hasText: 'Escola Local Autorizada' })
+        .getByRole('link', { name: 'Ver Unidade', exact: true }).click();
+    const fiscal = page.locator('tr[data-program-id="BASIC"][data-document-key="notaFiscal"]');
+    await fiscal.getByRole('button', { name: 'Adicionar Nota', exact: true }).click();
+    const expense = page.locator('#modal-dados-nota');
+    await expense.getByLabel('Tipo de Gasto', { exact: true }).selectOption('consumo');
+    await expense.locator('#nota-numero').fill('AUD-LATE-AUTH');
+    await expense.locator('#nota-desc').fill('Documento para acesso tardio');
+    await expense.getByLabel('Valor do Gasto (R$)', { exact: true }).fill('42');
+    await expense.getByRole('button', { name: 'Salvar Gasto', exact: true }).click();
+    await expect(expense).not.toHaveClass(/show/);
+    const invoice = fiscal.locator('.invoice-document-row').filter({ hasText: 'AUD-LATE-AUTH' });
+    await invoice.getByRole('combobox').selectOption('Incorreto');
+    const opening = page.locator('#modal-nova-pendencia');
+    await opening.getByLabel('Documento ausente', { exact: true }).check();
+    await opening.getByLabel('Observações / Detalhes', { exact: true }).fill('Auditoria de login tardio.');
+    await opening.getByRole('button', { name: 'Criar Pendência', exact: true }).click();
+    await expect(opening).not.toHaveClass(/show/);
+    await page.locator('#pendency-preview-drawer .pendency-preview-close').click();
+    await page.locator('#nav-pendencias').click();
+    const row = page.locator('tr[data-pendency-id]').filter({ hasText: 'Documento para acesso tardio' });
+    await row.getByRole('button', { name: 'Ver detalhes', exact: true }).click();
+    const drawer = page.getByRole('complementary', { name: 'Detalhes da pendência' });
+    await expect(drawer.getByRole('button', { name: 'Registrar contato', exact: true })).toBeVisible();
+    await expect(drawer.getByRole('button', { name: 'Cancelar pendência', exact: true })).toBeVisible();
+    // Não recarregar a página: uma sessão restaurada rapidamente esconderia o defeito.
+    await expect.poll(() => page.evaluate(() => Boolean(window.RadarTask1213Retifications))).toBe(true);
+});
+
 for (const [email, role] of identities) {
     test(`${role} autentica, recebe contexto seguro e encerra a sessão`, async ({ browser }) => {
         const context = await browser.newContext();
