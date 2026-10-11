@@ -127,3 +127,9 @@ Próximo passo: retomar A–N pela UI do Controlador local, registrar capturas
 examinadas, rede e persistência; corrigir somente defeitos atuais reproduzidos.
 Manter checkpoints remotos por avanço material e preservar a massa/resíduos locais
 documentados em LOCAL_PREPARATION.md até conferência/cleanup.
+
+Checkpoint de jornadas: [JOURNEYS.md](JOURNEYS.md). Consumo/novo envio/reanálise
+conferidos com reload e SQL; B/H ainda parciais. Nenhum defeito funcional confirmado.
+MCP auxiliar apresentou limite de continuidade de modal; usar Playwright nativo do
+lockfile no cloud para prosseguir, sem alterar runtime/Auth/RLS. A habilidade do
+navegador integrado foi lida, mas sua ferramenta continua indisponível no catálogo.
