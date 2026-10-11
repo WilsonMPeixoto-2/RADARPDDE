@@ -32,9 +32,9 @@ O trabalho anterior `7ca3d736` permanece na branch
 1. Anexos da missão e diretriz sistêmica lidos; branch nova criada da main atual.
 2. Dependências do lockfile instaladas sem upgrade; Chromium correspondente instalado.
 3. Xvfb auxiliar e Chromium headed/CDP/ARIA provados com página de diagnóstico.
-4. MCPs registrados no Codex CLI; falta provar cliente/processo para esta sessão.
+4. MCP registrado e servidor/cliente JSON-RPC provados; login Production e Dashboard local capturados e examinados. Chrome pessoal não conectado à máquina cloud.
 5. GitHub/Vercel/Supabase SQL e smoke público revalidados sem escrita.
-6. Startup Supabase descartável iniciado com configuração copiada para
+6. Startup Supabase descartável e incidentes de infraestrutura registrados em ENVIRONMENT.md; configuração copiada para
    `/workspace/scratch/controller-supabase`, project_id próprio; nenhum projeto
    remoto alterado. Excluídos somente serviços auxiliares não necessários à jornada.
 
@@ -42,7 +42,7 @@ O trabalho anterior `7ca3d736` permanece na branch
 
 1. Conferir `/workspace/scratch/controller-supabase-start.log`, redigindo tokens
    antes de imprimir; não versionar status env/credenciais locais.
-2. Provar MCP isolado com snapshot + screenshot e medir recursos disponíveis.
+2. MCP isolado já provado. Servidor localhost:8931, display :99; não reinstalar. Cliente auxiliar `/workspace/scratch/controller-mcp.mjs`.
 3. Preparar identidades locais pelo bootstrap já existente e build Preview contra
    localhost; serviços/Admin são preparação, todas as ações de jornada pela UI.
 4. Começar por A (orientação) com screenshot examinado antes de DOM/código; depois
@@ -54,3 +54,15 @@ O trabalho anterior `7ca3d736` permanece na branch
 
 Preservar commits/push por avanço material. Dados brutos ficam fora do Git;
 versionar síntese, índices, hashes e capturas representativas sem credenciais.
+
+## Atualização de preparação
+
+O usuário escolheu conectar Chrome pessoal; foi orientado a usar extensão oficial
+Playwright MCP + servidor `playwright-session` no Codex Desktop **na mesma máquina**
+e entrar no RADAR diretamente. A sessão cloud não passou a controlar esse Chrome.
+Não solicitar senha/token; continuar trabalho independente no descartável.
+
+Ferramentas auxiliares estão em `/workspace/scratch/controller-tools`.
+O servidor local de orientação usa 4175 em modo local, sem Auth; a árvore isolada
+real da auditoria `.radar-snapshot/controller-ui` será servida em 4176 com configuração
+Supabase localhost. Não alterar o config.runtime.js versionado para essa preparação.

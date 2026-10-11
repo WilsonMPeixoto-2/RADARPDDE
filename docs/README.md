@@ -2,6 +2,10 @@
 
 **Reconciliação documental e saneamento de PRs concluídos em 08/10/2026.** O [PR #431](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/431) foi integrado; [CURRENT_STAGE.md](CURRENT_STAGE.md) descreve a prioridade atual de verificação do produto. O [relatório original](audits/2026-10-08-reconciliacao-planos-demandas.md) e o [checkpoint de governança](audits/2026-10-08-governanca-prs-pos431.md) preservam critérios, históricos e limites.
 
+**Etapa 5 em andamento (11/10):** auditoria operacional imersiva, na baseline pós-#437.
+O [handoff corrente](audits/2026-10-11-controller-journey/HANDOFF.md) registra ambiente,
+limites, jornadas e próximos passos. Não equivale a homologação concluída.
+
 **Classe documental:** Canônico — índice e rota de leitura  
 **Atualizado em:** 8 de outubro de 2026
 
@@ -28,7 +32,7 @@ Ordem:
 O escopo original NAV-01/UX-04 entrou pelo #376. PROD-UX-08 e os indicadores do
 #394 aguardam verificação na versão atual; IDs/readiness e objetivos antigos da
 Fase D devem ser qualificados individualmente. Os handoffs #410/#427/#429 são
-históricos concluídos; não há handoff corrente de implementação.
+históricos concluídos; o handoff corrente único é o da Etapa 5 indicado acima.
 A [evidência de publicação](evidence/2026-10-07-aggregate-school-sync/README.md)
 preserva certificação, benchmark e limites da sincronização agregada.
 

@@ -25,9 +25,14 @@ Branch: `audit/controller-journey-2026-10-11`.
 | Cloud plugin | ambiente conectado/running, política unrestricted/enforced; nenhuma credencial de conta RADAR injetada | diagnóstico de rede; manter proxy e TLS |
 | FFmpeg | instalado | examinar transições e vídeo |
 
-As configurações globais MCP foram registradas, mas isso **não injeta ferramentas
-novas automaticamente no turno já aberto**. O processo MCP será provado por cliente
-local; não declarar sua conexão verificada apenas pela existência do arquivo.
+As configurações globais MCP **não injetam ferramentas automaticamente no turno
+aberto**. Foi iniciado e provado um servidor Playwright MCP local em
+`http://localhost:8931/mcp`, Chromium headed em :99 e cliente JSON-RPC local.
+Navegação, ARIA, screenshot e redimensionamento foram executados. Screenshots do
+login de Production e Dashboard local foram **abertos e examinados**. O servidor
+habilita `vision,devtools`, mantém WebMCP desativado e permite rede, console, traces
+e vídeo. O MCP fixado usa seu engine Playwright 1.64.0-alpha; as jornadas nativas
+do projeto usam Playwright 1.64.0 do lockfile. Não confundir essas versões.
 
 ## Production revalidada sem escrita
 
@@ -54,3 +59,43 @@ sua implementação com a auditoria imersiva.
 Não houve alteração em Production, regras, dependências, schema, Auth ou RLS.
 Preparação local Supabase está em andamento; não declarar pronta antes de Auth/API/
 Realtime e persistência funcionarem.
+
+## Preparação Supabase: limites encontrados, sem alteração do produto
+
+O daemon Docker usa VFS. A extração multicamada de
+`public.ecr.aws/supabase/postgres:17.6.1.158` excedia o espaço desta máquina.
+As duas tentativas de pull foram interrompidas; não houve mudança em SQL/RLS.
+A solução local usa **o filesystem completo da mesma imagem oficial**, exportado
+com Crane 0.20.6 (download com checksum verificado), importado em uma camada e
+com ENV/Entrypoint/Cmd/WorkingDir/portas e healthcheck/StopSignal preservados.
+Não é uma imagem Postgres genérica com funções Supabase simuladas.
+
+- Manifest digest oficial: `sha256:99b1729aeb0bac314445024fc149fbd39306170b61dd50800ccf180327ab3459`.
+- Imagem local achatada: `sha256:aa2b5f3bbb6aa37646f4660c81ba8e041692dcebd035aca60b48245ed460e81c`.
+- Database iniciou saudável e aplicou migrations até `20261004210000` + seed.
+- Primeiro startup completo parou no healthcheck Auth: wget tentou passar pelo
+  proxy para um endpoint local, recebeu 403 e a CLI encerrou a pilha corretamente.
+  Não usar `--ignore-health-check`. Investigação do healthcheck em andamento.
+- Causa confirmada: BusyBox wget ignora `no_proxy`; o healthcheck oficial
+  `wget ... http://127.0.0.1:9999/health` recebeu 403 do proxy, enquanto o mesmo
+  comando com `-Y off` respondeu “remote file exists”. Acrescentar bypass ao
+  Docker não resolveu; a configuração original foi restaurada.
+- Proxy/TLS externos e configuração Docker originais preservados. A imagem local
+  GoTrue v2.195.0 recebe somente um wrapper wget: para **esse endpoint localhost
+  exato** usa `-Y off`; qualquer outro URL usa o wget original sem alteração.
+  O binário GoTrue, Auth, banco, RLS e resposta/asserção do healthcheck continuam
+  reais. Não é `--ignore-health-check` nem bypass de destino externo.
+- Imagens cache não utilizadas de logflare/vector/edge-runtime foram removidas
+  sem force; são baixáveis novamente. Container/volume histórico de caracterização
+  do #410 preservado. Nenhum projeto cloud criado ou serviço pago ativado.
+
+A árvore estática da baseline foi copiada para `.radar-snapshot/controller-ui`
+(ignorada pelo Git), permitindo configuração localhost sem modificar o
+`config.runtime.js` versionado. Credenciais locais ficam fora do Git, em arquivos
+protegidos; nunca exportar service role para o frontend.
+
+O smoke autenticado de Production de 11/10 (run `38141455147`) teve o job real
+**skipped**, com o job “Credenciais Production pendentes” aprovado. Workflow verde
+não representa login feito. O usuário escolheu Chrome pessoal: requer extensão
+Playwright MCP e servidor `playwright-session` no Codex Desktop **na mesma máquina**;
+a presente sessão cloud não alcança o Chrome pessoal por configuração implícita.

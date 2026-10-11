@@ -21,6 +21,8 @@ PR aberto, Preview ou documento antigo não altera Production.
 
 | Arquivo | Classe | Uso |
 |---|---|---|
+| docs/audits/2026-10-11-controller-journey/HANDOFF.md | Handoff corrente da Etapa 5 | contexto temporário da auditoria imersiva; não define regra funcional |
+| docs/audits/2026-10-11-controller-journey/ENVIRONMENT.md e CONTEXT.md | Evidência datada em desenvolvimento | recursos realmente preparados, limites e invariantes; não homologação de jornadas |
 | AGENTS.md | Canônico | roteador obrigatório |
 | docs/superpowers/specs/2026-10-04-operational-sync-simplification-design.md | Design de referência do #410 | direção implementada; confrontar capacidades e limites com código/ADRs vigentes |
 | docs/superpowers/plans/2026-10-04-operational-sync-simplification-implementation.md | Plano histórico do #410 | checkpoints preservados; não forma fila de reimplementação |
@@ -79,10 +81,10 @@ O servidor canônico e suas correções não alteraram schema, migrations, RPCs,
 
 ## 4. Handoff corrente e histórico
 
-Não há handoff corrente de implementação. #410/#427/#429 estão encerrados.
-A retomada documental e a avaliação dirigida são controladas por `CURRENT_STAGE.md`;
-o relatório de 08/10 é evidência da reconciliação. Checkpoints preservados não
-reabrem as entregas concluídas.
+O handoff corrente único é `docs/audits/2026-10-11-controller-journey/HANDOFF.md`,
+indicado no topo de `CURRENT_STAGE.md`. #410/#427/#429 estão encerrados.
+O relatório de 08/10 é evidência da reconciliação; checkpoints preservados não
+reabrem as entregas concluídas. A Etapa 5 executa jornadas, não novas regras canônicas.
 
 Demanda histórica a verificar: `docs/handoff/2026-09-28-prod-ux-08-drawer-clipping.md` — ponto de reprodução do clipping desktop. A triagem atual prevê observação da versão vigente antes de qualquer correção; #397/#404 não comprovam seu encerramento.
 

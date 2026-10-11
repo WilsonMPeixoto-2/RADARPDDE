@@ -1,5 +1,32 @@
 # RADAR PDDE — estado atual e retomada
 
+## Etapa 5 — auditoria operacional imersiva iniciada em 11/10/2026
+
+**Frente corrente:** jornadas A–N do Controlador, orientadas pela UI e experiência
+real, após a modernização #433–#437. Não repetir certificação histórica nem
+reimplementar #408/#410/#427/#429. **Handoff corrente único:**
+[controller-journey/HANDOFF.md](audits/2026-10-11-controller-journey/HANDOFF.md).
+
+Baseline revalidada: main `113841bda52ce3bbda228524daf9a7464f12b462`;
+Production `dpl_Az4q8VTqmWdT8e5tMxYTGyKv7SHo`, READY no mesmo SHA;
+Supabase Production com última migration `20261004210000`. Smoke público aprovado,
+52 assets, leitura anônima bloqueada (401). Isso **não prova jornada autenticada**.
+
+Preparação e limites: [ENVIRONMENT.md](audits/2026-10-11-controller-journey/ENVIRONMENT.md).
+Contexto/invariantes dos PRs: [CONTEXT.md](audits/2026-10-11-controller-journey/CONTEXT.md).
+Navegador real headed/ARIA/screenshot/CDP/MCP preparados em executor cloud;
+Chrome pessoal depende de conexão no Desktop. Supabase descartável em preparação
+para históricos e patrimônio terminal; nenhum fluxo autenticado é declarado pronto
+apenas pelo Dashboard em modo local. Sem alteração funcional ou de Production
+neste checkpoint. Branch dedicada `audit/controller-journey-2026-10-11`.
+
+Os blocos seguintes são checkpoints datados anteriores. Prioridade “somente leitura”
+do saneamento de 08/10 é contextualizada pela autorização superveniente da Etapa 5:
+CRUD sintético reversível apenas com conta legitimamente autorizada; efeitos
+irreversíveis permanecem no ambiente descartável. Não alterar registros reais.
+
+---
+
 ## Atualização de dependências — 10/10/2026 (checkpoint atual)
 
 **Etapas 0–4 encerradas e integradas à `main`, em PRs independentes:**
@@ -66,7 +93,7 @@ históricos → qualificar residuais técnicos → avaliar jornadas do produto e
 selecionar a próxima entrega pelo impacto atual. Nenhuma alteração funcional
 decorre apenas da existência de um documento antigo. Proteção patrimonial
 adicional e anulação/transferência auditável continuam decisões separadas.
-Não há handoff corrente de implementação; a retomada é controlada por este documento.
+Naquele checkpoint não havia handoff corrente; a Etapa 5 indicada no topo é agora a frente ativa.
 
 ## Atualização canônica — sincronização agregada integrada e publicada
 
