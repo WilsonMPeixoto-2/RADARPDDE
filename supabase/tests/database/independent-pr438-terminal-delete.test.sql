@@ -4,7 +4,7 @@ begin;
 set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
-select plan(14);
+select plan(16);
 
 insert into auth.users(id,email) values
 ('00000000-0000-0000-0000-000000008438','independent-terminal-438@example.test');
@@ -98,5 +98,22 @@ select ok(
     and (select bonus_result from public.verifications where id='04.99.438::2028-11::INDEP438')='inapta',
     'remoção pré-terminal funciona e a bonificação consolidada não muda'
 );
+
+-- 5. Sem NF: a própria linha Inventariada deve resistir a DELETE direto.
+-- Diferencia proteção patrimonial real de bloqueio indireto gerado pela FK.
+insert into public.assets(id,school_id,competence_id,description,expense_type,invoice_number,amount,status,inventory_process)
+values ('audit-ind438-asset-standalone','04.99.438','2028-11','Patrimônio terminal isolado',
+'permanente','NF-LEGADO-AUD',650,'Inventariada','PROC-AUD-438');
+select throws_ok(
+    $q$delete from public.assets where id='audit-ind438-asset-standalone'$q$,
+    'P0001','ASSET_ALREADY_INVENTORIED: assets/audit-ind438-asset-standalone',
+    'DELETE direto de Inventariada sem NF também deve ser recusado'
+);
+select is(
+    (select count(*)::int from public.assets where id='audit-ind438-asset-standalone' and status='Inventariada'),
+    1,
+    'bem terminal sem NF deve permanecer intacto'
+);
+
 select * from finish();
 rollback;
