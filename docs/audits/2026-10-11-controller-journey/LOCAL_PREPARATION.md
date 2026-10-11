@@ -5,6 +5,10 @@ observar um Controlador legitimamente autenticado na interface real. As jornadas
 locais foram pausadas. O ambiente descartável permanece apenas como instrumento
 para efeitos irreversíveis e contraprovas, sem substituir a sessão real.
 
+**Autorização superveniente:** o usuário permitiu continuar no ambiente cloud.
+As jornadas locais serão retomadas como auditoria controlada da interface; a pausa
+acima preserva o histórico, não é impedimento atual. Não equivale a Production.
+
 ## O que chegou a ser executado antes da pausa
 
 - Login via formulário real com `controller@radar.local`, Auth local e RLS vigentes;

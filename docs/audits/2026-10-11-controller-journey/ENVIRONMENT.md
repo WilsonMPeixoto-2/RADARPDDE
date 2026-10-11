@@ -9,7 +9,7 @@ Branch: `audit/controller-journey-2026-10-11`.
 | Recurso | Estado observado | Uso |
 |---|---|---|
 | Codex | executor Linux cloud; CLI e shell ativos; configuração inicialmente vazia | inspeção, automação, revisão e checkpoints |
-| Desktop/navegador integrado | sessão pessoal não exposta ao executor; nenhuma ferramenta nativa de browser nesta sessão | não afirmar controle do Desktop ou login já existente |
+| Desktop/navegador integrado | habilidade Browser encontrada e lida; sua ferramenta exigida ausente após duas buscas; socket de gerenciamento ausente; flags browser já ativas | capacidade instalada não equivale a transporte de controle disponível |
 | Node/npm | 24.19.0 / 11.9.0 | ferramentas do lockfile; sem upgrade |
 | Dependências RADAR | `npm ci` da main atual concluído; Playwright 1.64.0, Supabase JS 2.117.3 | jornadas, arquivos, acessibilidade, medições e regressões dirigidas |
 | Chromium | binário correspondente ao Playwright instalado; 156.0.8078.4 | interface real, cliques, screenshots e vídeo |
@@ -111,7 +111,10 @@ Config.runtime.js versionado, dependências, hooks e Production permanecem intac
 Limite: Edge Runtime não ativado (Gestão de Equipe não foi exercitada); nem navegador
 pessoal, integração Desktop ou sessão institucional foram obtidos por essa preparação.
 
-**A auditoria principal está aguardando o navegador pessoal.** A abertura do GitHub
+**A pausa pelo navegador pessoal foi posteriormente levantada pelo usuário:**
+“pode continuar neste ambiente mesmo”. A auditoria prossegue no cloud, pela UI
+autenticada local, sem alegar observação de dados/uso pessoal de Production.
+A abertura do GitHub
 na aba embutida do usuário informa uma URL, mas nenhuma ferramenta para controlar
 essa aba foi disponibilizada ao executor. O único `run_code_in_browser` encontrado
 é específico do app Floot e não controla RADAR; não foi usado.
@@ -122,3 +125,14 @@ Instalação oficial:
 https://chromewebstore.google.com/detail/playwright-extension/mmlmfjhmonkocbjadbfplnigmagldckm
 O primeiro acesso pelo cliente MCP pede seleção/aprovação da aba. Manter essa
 aprovação; não solicitar ou publicar o token de conexão.
+
+Extensão confirmada instalada pelo usuário. `.codex/config.toml` agora oferece os
+mesmos dois servidores de `.mcp.json`; TOML e equivalência validados, versões
+preservadas. O cliente precisa carregar configuração de projeto confiável.
+Registro CLI global confirmado; configuração do Desktop de outra máquina e
+ativação de ferramentas no turno atual não foram comprovadas por esse registro.
+
+Documentação oficial consultada:
+https://developers.openai.com/codex/config-basic — configurações por projeto são
+carregadas somente para projetos confiáveis. Nenhuma autenticação/política de
+aprovação foi alterada para tentar fabricar acesso ao navegador pessoal.

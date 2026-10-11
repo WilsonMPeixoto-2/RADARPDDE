@@ -20,8 +20,10 @@ O trabalho anterior `7ca3d736` permanece na branch
 - Respeitar independência fiscal/bonificação, identidade da NF, histórico individual,
   patrimônio terminal, autoridade de rota/competência, RLS e recuperação global.
 - Usuário autoriza ciclos sintéticos reversíveis em Production **autenticada**.
-  Sem sessão legítima, usar Supabase descartável; não criar usuário/resetar senha de
-  Production nem acessar a UI com service role.
+  Não criar usuário/resetar senha de Production nem acessar a UI com service role.
+  Após a pausa para navegador pessoal, o usuário autorizou expressamente continuar
+  **neste ambiente cloud**; executar a UI autenticada do descartável e distinguir
+  seus resultados de observação de Production.
 - Histórico imutável, Pendências e patrimônio terminal: somente descartável.
 - Capturas/trace/vídeo devem ser abertos e examinados, não apenas produzidos.
 - Analisar impactos transversais; duas tentativas sem convergência exigem reavaliar.
@@ -60,7 +62,8 @@ versionar síntese, índices, hashes e capturas representativas sem credenciais.
 O usuário escolheu conectar Chrome pessoal; foi orientado a usar extensão oficial
 Playwright MCP + servidor `playwright-session` no Codex Desktop **na mesma máquina**
 e entrar no RADAR diretamente. A sessão cloud não passou a controlar esse Chrome.
-Não solicitar senha/token; continuar trabalho independente no descartável.
+Não solicitar senha/token. Essa orientação foi seguida por pausa e, depois, pela
+autorização de continuidade no cloud descrita no último bloco deste documento.
 
 Ferramentas auxiliares estão em `/workspace/scratch/controller-tools`.
 O servidor local de orientação usa 4175 em modo local, sem Auth; a árvore isolada
@@ -83,9 +86,10 @@ PR de continuidade: [#438](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/43
 1. Abrir o repositório em ambiente **local** do Codex Desktop; obter a branch
    `audit/controller-journey-2026-10-11` sem descartar mudanças locais. Usar worktree
    separada quando necessário. A sessão atual /workspace é cloud.
-2. Instalar a extensão oficial Playwright MCP no Chrome/Edge do mesmo computador:
+2. A extensão foi **confirmada instalada pelo usuário**. Link oficial:
    https://chromewebstore.google.com/detail/playwright-extension/mmlmfjhmonkocbjadbfplnigmagldckm
-3. Configurar no cliente local:
+3. A branch contém `.codex/config.toml`, equivalente a `.mcp.json`, para clientes
+   Codex que carreguem configuração de projetos confiáveis. Se não carregarem:
    `codex mcp add playwright-session -- npx -y @playwright/mcp@0.0.82 --extension`
    e conferir `codex mcp list`. Reabrir a sessão se necessário para as ferramentas
    aparecerem no turno. Não presumir ativação por arquivo ou por registro CLI.
@@ -98,5 +102,28 @@ PR de continuidade: [#438](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/43
    em Production exigem estado anterior e cleanup; irreversíveis no descartável.
 
 Não expor CDP/browser pessoal à Internet para contornar a separação cloud/Desktop.
-O usuário ainda não confirmou instalação/seleção de aba; o estado ambient de uma
-aba GitHub aberta não equivale a conexão MCP estabelecida.
+Instalação foi confirmada; seleção de aba/conexão ainda não. O estado ambient de
+uma aba aberta não equivale a conexão MCP estabelecida.
+
+## Direção vigente — continuidade cloud autorizada
+
+Após confirmar a extensão, o usuário instruiu: **“pode continuar neste ambiente
+mesmo”**. Portanto a pausa principal foi levantada para jornadas na interface
+autenticada local preparada. Não esperar migração ao Desktop para prosseguir,
+nem chamar os resultados sintéticos de homologação da sessão pessoal/Production.
+
+Recurso integrado encontrado: habilidade Browser do executor. Foi lida antes de
+qualquer nova automação; exige ferramenta de execução específica que não consta
+do catálogo após duas buscas. Flags de navegador já ativas, socket de gerenciamento
+ausente; não há conexão integrada provada. A preparação Playwright MCP isolada
+continua disponível como instrumento auxiliar para a UI cloud.
+
+Configuração portátil adicionada: `.codex/config.toml`, mesmos comandos/argumentos
+fixados de `.mcp.json`, sem credenciais, hooks ou alterações de políticas. TOML e
+equivalência verificados. `codex mcp get` confirma o registro global; não comprova
+carregamento do arquivo no Desktop pessoal ou ferramentas no turno aberto.
+
+Próximo passo: retomar A–N pela UI do Controlador local, registrar capturas
+examinadas, rede e persistência; corrigir somente defeitos atuais reproduzidos.
+Manter checkpoints remotos por avanço material e preservar a massa/resíduos locais
+documentados em LOCAL_PREPARATION.md até conferência/cleanup.

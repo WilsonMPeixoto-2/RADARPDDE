@@ -16,9 +16,11 @@ Preparação e limites: [ENVIRONMENT.md](audits/2026-10-11-controller-journey/EN
 Contexto/invariantes dos PRs: [CONTEXT.md](audits/2026-10-11-controller-journey/CONTEXT.md).
 Navegador real headed/ARIA/screenshot/CDP/MCP preparados em executor cloud;
 Chrome pessoal depende de conexão no Desktop. Supabase descartável preparado,
-com login local real, para históricos e patrimônio terminal. **Após correção de
-direção pelo usuário, a auditoria principal aguarda a sessão real no Desktop**;
-a exploração local foi pausada e não certifica Production. Sem alteração funcional ou de Production
+com login local real, para históricos e patrimônio terminal. Após pausa para o
+Chrome pessoal (extensão confirmada instalada), o usuário autorizou **continuar
+neste ambiente cloud**: jornadas locais retomadas sem certificação de Production.
+Configuração Codex portátil adicionada; transporte do navegador pessoal continua
+não confirmado. Sem alteração funcional ou de Production
 neste checkpoint. Branch dedicada `audit/controller-journey-2026-10-11`.
 
 Os blocos seguintes são checkpoints datados anteriores. Prioridade “somente leitura”
