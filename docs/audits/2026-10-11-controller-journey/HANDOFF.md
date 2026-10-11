@@ -38,7 +38,7 @@ O trabalho anterior `7ca3d736` permanece na branch
    `/workspace/scratch/controller-supabase`, project_id próprio; nenhum projeto
    remoto alterado. Excluídos somente serviços auxiliares não necessários à jornada.
 
-## Próximas ações concretas
+## Próximas ações da preparação original — superadas pela correção abaixo
 
 1. Conferir `/workspace/scratch/controller-supabase-start.log`, redigindo tokens
    antes de imprimir; não versionar status env/credenciais locais.
@@ -66,3 +66,37 @@ Ferramentas auxiliares estão em `/workspace/scratch/controller-tools`.
 O servidor local de orientação usa 4175 em modo local, sem Auth; a árvore isolada
 real da auditoria `.radar-snapshot/controller-ui` será servida em 4176 com configuração
 Supabase localhost. Não alterar o config.runtime.js versionado para essa preparação.
+
+## Direção vigente após intervenção do usuário — 11/10
+
+**Prioridade absoluta agora: conectar o navegador pessoal autenticado.** O usuário
+apontou o desvio: a missão não é substituir o operador real por uma auditoria cloud
+com fixtures. As jornadas locais foram pausadas e não serão utilizadas como prova
+de Production. Não retomar a lista local A–N como se fosse o pedido corrente.
+
+Preparação concluída e observações limitadas: [LOCAL_PREPARATION.md](LOCAL_PREPARATION.md).
+Nenhum defeito do produto foi confirmado ou corrigido; não houve escrita de Production.
+PR de continuidade: [#438](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/438), Draft.
+
+### Retomada pelo Codex Desktop local
+
+1. Abrir o repositório em ambiente **local** do Codex Desktop; obter a branch
+   `audit/controller-journey-2026-10-11` sem descartar mudanças locais. Usar worktree
+   separada quando necessário. A sessão atual /workspace é cloud.
+2. Instalar a extensão oficial Playwright MCP no Chrome/Edge do mesmo computador:
+   https://chromewebstore.google.com/detail/playwright-extension/mmlmfjhmonkocbjadbfplnigmagldckm
+3. Configurar no cliente local:
+   `codex mcp add playwright-session -- npx -y @playwright/mcp@0.0.82 --extension`
+   e conferir `codex mcp list`. Reabrir a sessão se necessário para as ferramentas
+   aparecerem no turno. Não presumir ativação por arquivo ou por registro CLI.
+4. O responsável entra em https://radarpdde-fix.vercel.app diretamente no Chrome.
+   Na primeira chamada MCP, aprova a conexão e seleciona essa aba. Nunca enviar
+   senha, cookies, storageState, JWT ou token da extensão pelo chat/Git.
+5. Provar conexão com snapshot + screenshot **examinado** da tela autenticada,
+   identificando perfil, rota, competência e SHA. Não usar tela de login como prova.
+6. Iniciar A e prosseguir pelas jornadas reais autorizadas. Reversíveis sintéticas
+   em Production exigem estado anterior e cleanup; irreversíveis no descartável.
+
+Não expor CDP/browser pessoal à Internet para contornar a separação cloud/Desktop.
+O usuário ainda não confirmou instalação/seleção de aba; o estado ambient de uma
+aba GitHub aberta não equivale a conexão MCP estabelecida.

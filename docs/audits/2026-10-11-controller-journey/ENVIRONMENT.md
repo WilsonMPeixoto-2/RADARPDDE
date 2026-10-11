@@ -57,8 +57,9 @@ O RED antigo `7ca3d736` foi preservado em sua branch; não misturar automaticame
 sua implementação com a auditoria imersiva.
 
 Não houve alteração em Production, regras, dependências, schema, Auth ou RLS.
-Preparação local Supabase está em andamento; não declarar pronta antes de Auth/API/
-Realtime e persistência funcionarem.
+Preparação local Supabase concluída: Database/Auth/Kong/Realtime saudáveis, PostgREST ativo,
+bootstrap de sete identidades aprovado e login real pela UI local funcionando.
+Sessão de Production continua indisponível nesta máquina.
 
 ## Preparação Supabase: limites encontrados, sem alteração do produto
 
@@ -75,7 +76,7 @@ Não é uma imagem Postgres genérica com funções Supabase simuladas.
 - Database iniciou saudável e aplicou migrations até `20261004210000` + seed.
 - Primeiro startup completo parou no healthcheck Auth: wget tentou passar pelo
   proxy para um endpoint local, recebeu 403 e a CLI encerrou a pilha corretamente.
-  Não usar `--ignore-health-check`. Investigação do healthcheck em andamento.
+  Não foi usado `--ignore-health-check`. Causa confirmada e corrigida localmente como abaixo.
 - Causa confirmada: BusyBox wget ignora `no_proxy`; o healthcheck oficial
   `wget ... http://127.0.0.1:9999/health` recebeu 403 do proxy, enquanto o mesmo
   comando com `-Y off` respondeu “remote file exists”. Acrescentar bypass ao
@@ -99,3 +100,25 @@ O smoke autenticado de Production de 11/10 (run `38141455147`) teve o job real
 não representa login feito. O usuário escolheu Chrome pessoal: requer extensão
 Playwright MCP e servidor `playwright-session` no Codex Desktop **na mesma máquina**;
 a presente sessão cloud não alcança o Chrome pessoal por configuração implícita.
+
+## Estado final da preparação e direção corrigida
+
+Supabase descartável preparado com **60 registros de migrations**, última
+`20261004210000`; DB/Auth/Kong/Realtime healthy, PostgREST ativo.
+Sete identidades locais foram provisionadas pelo bootstrap canônico e o Controlador
+entrou pela UI. A árvore isolada está em 4176, modo `supabase-preview/test`.
+Config.runtime.js versionado, dependências, hooks e Production permanecem intactos.
+Limite: Edge Runtime não ativado (Gestão de Equipe não foi exercitada); nem navegador
+pessoal, integração Desktop ou sessão institucional foram obtidos por essa preparação.
+
+**A auditoria principal está aguardando o navegador pessoal.** A abertura do GitHub
+na aba embutida do usuário informa uma URL, mas nenhuma ferramenta para controlar
+essa aba foi disponibilizada ao executor. O único `run_code_in_browser` encontrado
+é específico do app Floot e não controla RADAR; não foi usado.
+
+Documentação oficial da extensão atual:
+https://github.com/microsoft/playwright/tree/main/packages/extension#readme
+Instalação oficial:
+https://chromewebstore.google.com/detail/playwright-extension/mmlmfjhmonkocbjadbfplnigmagldckm
+O primeiro acesso pelo cliente MCP pede seleção/aprovação da aba. Manter essa
+aprovação; não solicitar ou publicar o token de conexão.
