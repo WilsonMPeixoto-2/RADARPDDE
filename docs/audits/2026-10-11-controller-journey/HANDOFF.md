@@ -72,7 +72,7 @@ Supabase localhost. Não alterar o config.runtime.js versionado para essa prepar
 
 ## Direção vigente após intervenção do usuário — 11/10
 
-**Prioridade absoluta agora: conectar o navegador pessoal autenticado.** O usuário
+**Direção histórica, superada pela autorização cloud no bloco seguinte.** O usuário
 apontou o desvio: a missão não é substituir o operador real por uma auditoria cloud
 com fixtures. As jornadas locais foram pausadas e não serão utilizadas como prova
 de Production. Não retomar a lista local A–N como se fosse o pedido corrente.
@@ -128,8 +128,11 @@ examinadas, rede e persistência; corrigir somente defeitos atuais reproduzidos.
 Manter checkpoints remotos por avanço material e preservar a massa/resíduos locais
 documentados em LOCAL_PREPARATION.md até conferência/cleanup.
 
-Checkpoint de jornadas: [JOURNEYS.md](JOURNEYS.md). Consumo/novo envio/reanálise
-conferidos com reload e SQL; B/H ainda parciais. Nenhum defeito funcional confirmado.
+Checkpoint de jornadas: [JOURNEYS.md](JOURNEYS.md). Consumo/novo envio/reanálise,
+Inventário terminal em segunda sessão, Assessoria e contexto histórico, boleto e
+duplo clique de despesa provisória conferidos. A–N ainda parciais. Nenhuma alteração
+funcional realizada. Próximas ações: identificação mantendo IDs, ação terminal
+protegida, contexto/navegação/agregados/concorrência e clareza dos modais fiscais.
 MCP auxiliar apresentou limite de continuidade de modal; usar Playwright nativo do
 lockfile no cloud para prosseguir, sem alterar runtime/Auth/RLS. A habilidade do
 navegador integrado foi lida, mas sua ferramenta continua indisponível no catálogo.

@@ -55,3 +55,65 @@ Após duas tentativas de confirmar a exclusão pelo harness MCP, foram detectado
 estado de modal perdido por inicialização de sessões e timeout de backend. Parar
 essa abordagem, preservar o banco e preparar controle Playwright nativo do lockfile
 para continuação, em vez de modificar o produto para satisfazer a ferramenta.
+
+## Continuação nativa — C, D, E, F/G e I
+
+O Playwright do lockfile passou a controlar um Chromium headed persistente, com
+login pelo formulário e credenciais privadas do descartável. A exclusão da
+`AUD-CONS-01` foi concluída pela UI e confirmação nativa; SQL confirmou a remoção.
+Isso supera a limitação do harness anterior, sem alteração do produto.
+
+### Permanente / Inventário
+
+Criada `AUD-PERM-01` (R$900), com bem vinculado. Controlador adicionou observação;
+uma sessão separada, legitimamente autenticada como Inventário Local, confirmou
+inventariação. Banco: bem `bem-ce545fc6-8a48-415e-a2cf-076cf5356b0c`, status
+`Inventariada`, autoria `inventory-local`. A sessão do Controlador recebeu o novo
+estado sem F5. Não restou ação Marcar como inventariado na fila.
+
+Edição da NF terminal: classificação indisponível, campos ordinários como valor
+continuam editáveis conforme a regra vigente. A presença do ícone de exclusão
+ainda não prova que uma exclusão terminal seja permitida; testar a proteção antes
+de classificar. Não houve reset de terminal nem escrita em Production.
+
+### Serviço / Assessoria e competência histórica
+
+Criada `AUD-SERV-01` (R$300); consulta enviada e análise Incorreto abriram Pendência
+individual de Assessoria. Novo envio e reanálise Correto resolveram a Pendência;
+`analiseConsultaAssessoria=Correto (Atrasado)`, enquanto a análise fiscal permaneceu
+Não analisado. A operação de Assessoria não confundiu as duas análises.
+
+Novo envio e reanálise foram feitos com competência global Junho e origem Maio;
+o modal mostrou a origem e a competência global permaneceu Junho. A hipótese de
+que a página de Pendências perderia as resolvidas de Maio em Junho foi refutada:
+a aba Resolvidas carregou o registro histórico. A página é transversal entre
+competências; diferença de contagem na aba Abertas não constitui perda de histórico.
+
+### Boleto Internet
+
+Tipo disponível no formulário de Educação Conectada e ausente das opções
+acessíveis de PDDE Básico. Criada `AUD-NET-01` (R$120), análise Correto. SQL confirmou
+`boleto_internet`, `CONECTADA`, sem bem vinculado. Nenhuma Consulta Assessoria
+apareceu para o boleto. O formulário ainda pede “Número da Nota Fiscal” nesse tipo:
+achado de clareza a reproduzir/testar, sem falha de regra demonstrada.
+
+### Despesa a identificar / repetição de gesto
+
+Duplo clique em Registrar Despesa produziu **uma** chamada
+`save_unidentified_expense_with_pendency` (HTTP 200, corpo de resposta 3.960 bytes),
+uma NF de R$85 e uma Pendência Aberta/Incorreto. Referência `AUD-EXP-PROV-01`.
+IDs: NF `nota-5cd420ef-619b-4230-87b0-1f83f45bcdb5`, Pendência
+`pend-f431efed-0482-4c27-a452-9dfe035506fb`. Identificação/reanálise ainda pendentes.
+
+## Limites adicionais e continuidade
+
+Primeira autenticação nativa apresentou `PGRST303: JWT issued at future` numa
+consulta de papel; nova autenticação legítima funcionou. Tratar como ocorrência
+de relógio/ambiente, sem relaxar RLS ou inventar uma sessão. Nenhum pageerror foi
+capturado no checkpoint (43 respostas REST observadas, não um benchmark isolado).
+
+Capturas novas examinadas: fila terminal de Inventário, histórico Resolvidas em
+Junho e drawer da despesa provisória. Recursos com trace/vídeo bruto permanecem
+privados porque podem conter autenticação; o índice de rede versionado contém
+somente horário, rota, status e bytes. Os testes A–N continuam parciais; esta
+rodada não certifica todos os perfis, exports, falhas e operações concorrentes.
