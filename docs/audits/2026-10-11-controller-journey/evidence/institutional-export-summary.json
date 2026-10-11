@@ -1,0 +1,95 @@
+{
+  "filename": "RADAR_PDDE_BONIFICACOES_05-2026.xlsx",
+  "failure": null,
+  "bytes": 41021,
+  "sheets": [
+    {
+      "name": "BONIFICACOES",
+      "rows": 9,
+      "columns": 12,
+      "first": [
+        null,
+        "RADAR PDDE — BONIFICAÇÕES CONSOLIDADAS",
+        "RADAR PDDE — BONIFICAÇÕES CONSOLIDADAS",
+        "RADAR PDDE — BONIFICAÇÕES CONSOLIDADAS",
+        "RADAR PDDE — BONIFICAÇÕES CONSOLIDADAS",
+        "RADAR PDDE — BONIFICAÇÕES CONSOLIDADAS",
+        "RADAR PDDE — BONIFICAÇÕES CONSOLIDADAS",
+        "RADAR PDDE — BONIFICAÇÕES CONSOLIDADAS",
+        "RADAR PDDE — BONIFICAÇÕES CONSOLIDADAS",
+        "RADAR PDDE — BONIFICAÇÕES CONSOLIDADAS",
+        "RADAR PDDE — BONIFICAÇÕES CONSOLIDADAS",
+        "RADAR PDDE — BONIFICAÇÕES CONSOLIDADAS",
+        "RADAR PDDE — BONIFICAÇÕES CONSOLIDADAS"
+      ],
+      "schoolRows": [
+        [
+          null,
+          "33900999",
+          "TESTE AUDITORIA — Segunda unidade",
+          "04.10.002",
+          "05-2026",
+          "PDDE Básico",
+          "Sim",
+          "Não",
+          "Não se aplica",
+          "Não se aplica",
+          "Não se aplica",
+          "Não se aplica",
+          "INAPTA"
+        ]
+      ]
+    },
+    {
+      "name": "SINTESE",
+      "rows": 11,
+      "columns": 9,
+      "first": [
+        null,
+        "SÍNTESE OPCIONAL — BONIFICAÇÕES CONSOLIDADAS",
+        "SÍNTESE OPCIONAL — BONIFICAÇÕES CONSOLIDADAS",
+        "SÍNTESE OPCIONAL — BONIFICAÇÕES CONSOLIDADAS",
+        "SÍNTESE OPCIONAL — BONIFICAÇÕES CONSOLIDADAS",
+        "SÍNTESE OPCIONAL — BONIFICAÇÕES CONSOLIDADAS",
+        "SÍNTESE OPCIONAL — BONIFICAÇÕES CONSOLIDADAS",
+        "SÍNTESE OPCIONAL — BONIFICAÇÕES CONSOLIDADAS",
+        "SÍNTESE OPCIONAL — BONIFICAÇÕES CONSOLIDADAS",
+        "SÍNTESE OPCIONAL — BONIFICAÇÕES CONSOLIDADAS"
+      ],
+      "schoolRows": []
+    },
+    {
+      "name": "QUALIDADE_DADOS",
+      "rows": 6,
+      "columns": 8,
+      "first": [
+        null,
+        "QUALIDADE DOS DADOS — VERIFICAÇÃO OPCIONAL",
+        "QUALIDADE DOS DADOS — VERIFICAÇÃO OPCIONAL",
+        "QUALIDADE DOS DADOS — VERIFICAÇÃO OPCIONAL",
+        "QUALIDADE DOS DADOS — VERIFICAÇÃO OPCIONAL",
+        "QUALIDADE DOS DADOS — VERIFICAÇÃO OPCIONAL",
+        "QUALIDADE DOS DADOS — VERIFICAÇÃO OPCIONAL",
+        "QUALIDADE DOS DADOS — VERIFICAÇÃO OPCIONAL",
+        "QUALIDADE DOS DADOS — VERIFICAÇÃO OPCIONAL"
+      ],
+      "schoolRows": []
+    },
+    {
+      "name": "METADADOS",
+      "rows": 24,
+      "columns": 4,
+      "first": [
+        null,
+        "METADADOS E CONTRATO DO RELATÓRIO",
+        "METADADOS E CONTRATO DO RELATÓRIO",
+        "METADADOS E CONTRATO DO RELATÓRIO",
+        "METADADOS E CONTRATO DO RELATÓRIO"
+      ],
+      "schoolRows": []
+    }
+  ],
+  "sha256": "8402eb3229a0286d3194dbe8dc82f0a4171b1b6ab365080047ce3d4c88dac8b6",
+  "scope": "Download pela UI do Assistente com Auth/RLS descartáveis; conteúdo reaberto com ExcelJS, sem aplicativo Excel; não Production",
+  "competence": "2026-05"
+}

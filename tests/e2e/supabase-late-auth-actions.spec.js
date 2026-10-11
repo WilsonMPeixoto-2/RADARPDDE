@@ -30,7 +30,7 @@ async function waitForApplication(page, role) {
 // Esta jornada cria histórico protegido de NF/Pendência. Os gates a executam
 // depois do contrato de import/rollback, em processo separado, sem apagar o histórico.
 test('login tardio preserva ações de Pendência na interface real', async ({ page }) => {
-    // Auth + criação + contato + cancelamento + reabertura usam cinco commits reais.
+    // Auth, NF/Pendência, dois contatos, cancelamento e reabertura usam o backend real.
     test.setTimeout(90000);
     const controller = fixtures.find(fixture => fixture.profileId === 'controller' && fixture.active);
     const invoiceNumber = `AUD-LATE-AUTH-${Date.now()}`;
@@ -75,9 +75,35 @@ test('login tardio preserva ações de Pendência na interface real', async ({ p
     await drawer.getByRole('button', { name: 'Registrar contato', exact: true }).click();
     const contact = page.getByRole('dialog', { name: 'Registrar contato da pendência' });
     await contact.getByLabel('Descrição do contato').fill('Contato interno após login tardio.');
+    const contactRequests = [];
+    page.on('request', request => {
+        if (request.url().endsWith('/rest/v1/rpc/save_pendency_contact_with_log')) {
+            contactRequests.push(request);
+        }
+    });
+    // Dois cliques físicos na mesma intenção não podem criar dois históricos.
+    await contact.getByRole('button', { name: 'Salvar contato', exact: true }).dblclick();
+    await expect(contact).toBeHidden();
+    await page.evaluate(() => window.RadarApplicationServices.data.remoteExecutionTail);
+    await expect(drawer).toContainText('Contato interno após login tardio.');
+    expect(contactRequests).toHaveLength(1);
+    const pendencyId = await row.getAttribute('data-pendency-id');
+    const savedContacts = await page.evaluate(async id => {
+        const result = await window.RadarSessionContext.service.client
+            .from('pendency_contacts').select('id, description').eq('pendency_id', id);
+        if (result.error) throw new Error(result.error.message);
+        return result.data;
+    }, pendencyId);
+    expect(savedContacts).toHaveLength(1);
+    expect(savedContacts[0].description).toBe('Contato interno após login tardio.');
+
+    // Uma nova intenção deliberada permanece permitida depois do primeiro commit.
+    await drawer.getByRole('button', { name: 'Registrar contato', exact: true }).click();
+    await contact.getByLabel('Descrição do contato').fill('Segundo contato deliberado após o commit.');
     await contact.getByRole('button', { name: 'Salvar contato', exact: true }).click();
     await expect(contact).toBeHidden();
-    await expect(drawer).toContainText('Contato interno após login tardio.');
+    await expect(drawer).toContainText('Segundo contato deliberado após o commit.');
+    expect(contactRequests).toHaveLength(2);
     await drawer.getByRole('button', { name: 'Cancelar pendência', exact: true }).click();
     const cancellation = page.getByRole('dialog', { name: 'Cancelar pendência', exact: true });
     await cancellation.getByLabel('Justificativa do cancelamento').fill('Registro sintético da auditoria.');
@@ -92,5 +118,19 @@ test('login tardio preserva ações de Pendência na interface real', async ({ p
     await expect(reopening).toBeHidden();
     await expect(drawer).toContainText('Aberta');
     // Nenhuma recarga entre Auth e ações: uma sessão restaurada esconderia o defeito.
+    await page.reload();
+    await waitForApplication(page, 'controller');
+    await page.locator('#nav-pendencias').click();
+    await page.locator(`tr[data-pendency-id="${pendencyId}"]`)
+        .getByRole('button', { name: 'Ver detalhes', exact: true }).click();
+    await expect(drawer).toContainText('Contato interno após login tardio.');
+    await expect(drawer).toContainText('Segundo contato deliberado após o commit.');
+    const contactsAfterReload = await page.evaluate(async id => {
+        const result = await window.RadarSessionContext.service.client
+            .from('pendency_contacts').select('id').eq('pendency_id', id);
+        if (result.error) throw new Error(result.error.message);
+        return result.data;
+    }, pendencyId);
+    expect(contactsAfterReload).toHaveLength(2);
 });
 

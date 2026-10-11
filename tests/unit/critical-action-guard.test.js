@@ -165,3 +165,54 @@ test('instalação é idempotente e não empilha wrappers', () => {
     assert.equal(install(h.root), true);
     assert.equal(h.root.confirmarRegistrarNovoEnvio, firstWrapper);
 });
+
+test('contato instalado depois do guard usa a mesma autoridade e contém a intenção repetida', async () => {
+    const h = createRoot();
+    install(h.root);
+    const contact = deferred();
+    const form = createForm('Salvar contato');
+    let calls = 0;
+    h.root.savePendencyContact = async () => { calls++; return contact.promise; };
+    const options = { key: () => 'pendency:contact:PEND-1', form: () => form, busyLabel: 'Registrando…' };
+    assert.equal(require('../../src/integration/critical-action-guard.js').wrapAction(h.root, 'savePendencyContact', options), true);
+    const wrapper = h.root.savePendencyContact;
+    assert.equal(require('../../src/integration/critical-action-guard.js').wrapAction(h.root, 'savePendencyContact', options), true);
+    assert.equal(h.root.savePendencyContact, wrapper);
+    const first = h.root.savePendencyContact(fakeEvent(form));
+    const duplicate = await h.root.savePendencyContact(fakeEvent(form));
+    assert.equal(duplicate, false);
+    assert.equal(calls, 1);
+    assert.equal(form.submit.disabled, true);
+    assert.equal(form.submit.textContent, 'Registrando…');
+    contact.resolve(true);
+    await first;
+    assert.equal(form.submit.disabled, false);
+    assert.equal(form.submit.textContent, 'Salvar contato');
+    assert.equal(h.root.__radarCriticalActionGuardInstalled.inFlight.size, 0);
+    await h.root.savePendencyContact(fakeEvent(form));
+    assert.equal(calls, 2, 'Uma intenção posterior é legítima depois do commit');
+});
+
+test('contato disponível antes da instalação libera o formulário após falha e permite retry', async () => {
+    const h = createRoot();
+    const form = createForm('Salvar contato');
+    let calls = 0;
+    h.root.savePendencyContact = async () => {
+        calls++;
+        if (calls === 1) throw new Error('Rejeição comprovada antes do commit');
+        return true;
+    };
+    const { wrapAction } = require('../../src/integration/critical-action-guard.js');
+    assert.equal(wrapAction(h.root, 'savePendencyContact', { form: () => form }), true);
+    await assert.rejects(h.root.savePendencyContact(fakeEvent(form)), /Rejeição comprovada/);
+    assert.equal(form.submit.disabled, false);
+    assert.equal(form.getAttribute('aria-busy'), null);
+    assert.equal(await h.root.savePendencyContact(fakeEvent(form)), true);
+    assert.equal(calls, 2);
+});
+
+test('guard de ação tardia falha fechado se a função não existe', () => {
+    const { wrapAction } = require('../../src/integration/critical-action-guard.js');
+    assert.equal(wrapAction(null, 'savePendencyContact'), false);
+    assert.equal(wrapAction({}, 'savePendencyContact'), false);
+});

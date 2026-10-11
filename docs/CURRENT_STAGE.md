@@ -27,6 +27,14 @@ GREEN Auth/RLS/RPC e revisão independente registrados em
 **Main e Production permanecem intactas.** A auditoria A–N e a certificação
 visual/CI final continuam em andamento. Branch `audit/controller-journey-2026-10-11`.
 
+Checkpoint de 11/10, 19:40 UTC: proteção de submit concorrente de contato e ajuste
+dos três rodapés corretivos foram verificados em testes focados e UI Auth do
+descartável. CI `6139fe79`: 18/19 verdes, um timeout legado não reproduzido em
+main/candidato isolados. A auditoria confirmou exclusão de NF e bem Inventariada
+pela ação ordinária; falha herdada da main e bloqueio para conclusão desta frente.
+RED, logs sanitizados, novas jornadas e próximos passos constam do handoff único.
+O PR #438 permanece Draft; nenhum merge/deploy desta auditoria foi realizado.
+
 Os blocos seguintes são checkpoints datados anteriores. Prioridade “somente leitura”
 do saneamento de 08/10 é contextualizada pela autorização superveniente da Etapa 5:
 CRUD sintético reversível apenas com conta legitimamente autorizada; efeitos

@@ -1,0 +1,387 @@
+{
+  "date": "2026-10-11",
+  "classification": "Dated local presentation evidence; not Production certification",
+  "candidateBaseCommit": "6139fe79d7e3cbab86d432684231418c9daad876",
+  "workingTree": true,
+  "environment": {
+    "origin": "http://127.0.0.1:4175",
+    "dataMode": "local fixture",
+    "browser": "Chromium from locked Playwright 1.64.0",
+    "authenticated": false,
+    "databaseAccess": false
+  },
+  "scope": {
+    "changedModalIds": [
+      "modal-registrar-envio",
+      "modal-cobranca"
+    ],
+    "retainedExistingException": "modal-reanalisar-pendencia",
+    "change": "Extend the existing sticky footer bottom:0 override to the two proven modals with no bottom body padding.",
+    "sourceFiles": [
+      "src/styles/global-visual-polish.css",
+      "tests/e2e/corrective-document-identity.spec.js"
+    ],
+    "sourceHashes": {
+      "src/styles/global-visual-polish.css": "3701b49bbcb9eaadcdd1015893e4afedc85781caf38a52bd789964fe6d99f297",
+      "tests/e2e/corrective-document-identity.spec.js": "06ce39755c4edc32489d91381c1313f7ee3c59160c9af342d530b049b34c50ac"
+    },
+    "excludedPaddedModalIds": [
+      "modal-contato",
+      "modal-escola-edit",
+      "modal-nova-pendencia",
+      "modal-dados-nota"
+    ]
+  },
+  "causalProof": [
+    {
+      "surface": "submission",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "bodyPadding": "0px",
+      "bodyBottom": 695,
+      "buttonBottom": 704,
+      "beforeOffset": "-24px",
+      "initialButtonEdgeHits": [
+        false,
+        false
+      ],
+      "endScrollButtonEdgeHits": [
+        true,
+        true
+      ],
+      "inMemoryBottomZeroInitialHits": [
+        true,
+        true
+      ],
+      "inMemoryBottomZeroEndScrollHits": [
+        true,
+        true
+      ]
+    },
+    {
+      "surface": "communication",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "bodyPadding": "22px 0px 0px",
+      "bodyBottom": 695,
+      "buttonBottom": 704,
+      "beforeOffset": "-24px",
+      "initialButtonEdgeHits": [
+        false,
+        false
+      ],
+      "endScrollButtonEdgeHits": [
+        true,
+        true
+      ],
+      "inMemoryBottomZeroInitialHits": [
+        true,
+        true
+      ],
+      "inMemoryBottomZeroEndScrollHits": [
+        true,
+        true
+      ]
+    },
+    {
+      "surface": "submission",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "bodyPadding": "0px",
+      "bodyBottom": 860.25,
+      "buttonBottom": 845.25,
+      "beforeOffset": "-24px",
+      "initialButtonEdgeHits": [
+        true,
+        true
+      ],
+      "endScrollButtonEdgeHits": [
+        true,
+        true
+      ],
+      "inMemoryBottomZeroInitialHits": [
+        true,
+        true
+      ],
+      "inMemoryBottomZeroEndScrollHits": [
+        true,
+        true
+      ]
+    },
+    {
+      "surface": "communication",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "bodyPadding": "22px 0px 0px",
+      "bodyBottom": 875,
+      "buttonBottom": 884,
+      "beforeOffset": "-24px",
+      "initialButtonEdgeHits": [
+        false,
+        false
+      ],
+      "endScrollButtonEdgeHits": [
+        true,
+        true
+      ],
+      "inMemoryBottomZeroInitialHits": [
+        true,
+        true
+      ],
+      "inMemoryBottomZeroEndScrollHits": [
+        true,
+        true
+      ]
+    }
+  ],
+  "regressions": {
+    "firstRed": {
+      "cases": 4,
+      "failed": 3,
+      "passed": 1,
+      "failure": "Lower button edge hit-tests before body scrolling; ordinary 1440×900 submission is the passing control."
+    },
+    "identificationRed": {
+      "cases": 1,
+      "failed": 1,
+      "failure": "Both lower button edge hit-tests failed in the taller a_identificar form at 1280×720 before extending the selector."
+    },
+    "finalGreen": {
+      "cases": 17,
+      "passed": 17,
+      "failed": 0,
+      "skipped": 0
+    },
+    "testDevelopmentCorrections": "Intermediate GREEN runs passed the geometry checks but exposed incorrect new close assertions. Opacity-zero closed overlays still satisfy locator visibility; role locators stop matching after aria-hidden. Tests now inspect the stable modal ID, show class removal and aria-hidden=true. No product close handler changed.",
+    "cssLint": "passed",
+    "focusedE2ELint": "passed",
+    "goldensChanged": false,
+    "deadlinesChanged": false,
+    "trace": "off",
+    "video": "off"
+  },
+  "renderedChecks": [
+    {
+      "surface": "submission",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "initialButtonEdgeHits": [
+        true,
+        true
+      ],
+      "endScrollButtonEdgeHits": [
+        true,
+        true
+      ],
+      "bodyScrollTop": 151,
+      "bodyMaximumScroll": 151,
+      "closedThroughFooterControl": true,
+      "screenshots": [
+        {
+          "name": "controller-corrective-footer-green-submission-1280-top.png",
+          "sha256": "798ca5491c1920a32b763916bd30f891f9e82264514031b251e10b153e90a91f"
+        },
+        {
+          "name": "controller-corrective-footer-green-submission-1280-scrolled.png",
+          "sha256": "f80c2e5137626aaf5d4d4fbf5ff0a01b7d9a24c69e3eb5f84547f78d87d1d8f5"
+        }
+      ]
+    },
+    {
+      "surface": "communication",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "initialButtonEdgeHits": [
+        true,
+        true
+      ],
+      "endScrollButtonEdgeHits": [
+        true,
+        true
+      ],
+      "bodyScrollTop": 289,
+      "bodyMaximumScroll": 289,
+      "closedThroughFooterControl": true,
+      "screenshots": [
+        {
+          "name": "controller-corrective-footer-green-communication-1280-top.png",
+          "sha256": "22d3b5490c981462c84860183b56c67fcad5c9d89943f1aca303d3dc1c569cda"
+        },
+        {
+          "name": "controller-corrective-footer-green-communication-1280-scrolled.png",
+          "sha256": "5652da06b480dc6ece648def8f35c8776dc9d168afed13e857331debba5085b9"
+        }
+      ]
+    },
+    {
+      "surface": "identification",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "initialButtonEdgeHits": [
+        true,
+        true
+      ],
+      "endScrollButtonEdgeHits": [
+        true,
+        true
+      ],
+      "bodyScrollTop": 513,
+      "bodyMaximumScroll": 513,
+      "closedThroughFooterControl": true,
+      "screenshots": [
+        {
+          "name": "controller-corrective-footer-green-identification-1280-top.png",
+          "sha256": "dcee60130177b1b0d443e83630d690c70097d07efa047ab66264f5486f1f21e1"
+        },
+        {
+          "name": "controller-corrective-footer-green-identification-1280-scrolled.png",
+          "sha256": "ce439b9ef93b7fc05b4473a27d22f0641db8c8eba31bb74489b6d5f29c226472"
+        }
+      ]
+    },
+    {
+      "surface": "submission",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "initialButtonEdgeHits": [
+        true,
+        true
+      ],
+      "endScrollButtonEdgeHits": [
+        true,
+        true
+      ],
+      "bodyScrollTop": 0,
+      "bodyMaximumScroll": 0,
+      "closedThroughFooterControl": true,
+      "screenshots": [
+        {
+          "name": "controller-corrective-footer-green-submission-1440-top.png",
+          "sha256": "e52c043bc6a426311d57eed0982cd08f1d93c1fb70ab40b0b5f97a128311fe7a"
+        },
+        {
+          "name": "controller-corrective-footer-green-submission-1440-scrolled.png",
+          "sha256": "4c29d71b14dc08f9a71fa8e7c1fb97c034831bca798c556a804207bbb8b24815"
+        }
+      ]
+    },
+    {
+      "surface": "communication",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "initialButtonEdgeHits": [
+        true,
+        true
+      ],
+      "endScrollButtonEdgeHits": [
+        true,
+        true
+      ],
+      "bodyScrollTop": 109,
+      "bodyMaximumScroll": 109,
+      "closedThroughFooterControl": true,
+      "screenshots": [
+        {
+          "name": "controller-corrective-footer-green-communication-1440-top.png",
+          "sha256": "9ef46e2cc967fa645b36998208bf50edfb0029c72cbb90a82b8845671fe72880"
+        },
+        {
+          "name": "controller-corrective-footer-green-communication-1440-scrolled.png",
+          "sha256": "fb717e6b0111238d36814f3f157412661f5e549af5a2142bc22b018c05368dd7"
+        }
+      ]
+    },
+    {
+      "surface": "identification",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "initialButtonEdgeHits": [
+        true,
+        true
+      ],
+      "endScrollButtonEdgeHits": [
+        true,
+        true
+      ],
+      "bodyScrollTop": 333,
+      "bodyMaximumScroll": 333,
+      "closedThroughFooterControl": true,
+      "screenshots": [
+        {
+          "name": "controller-corrective-footer-green-identification-1440-top.png",
+          "sha256": "b81b8f65833bd1489c5ec67a952e5871df8828ca5a1fdf30f1a7b026eb03c84f"
+        },
+        {
+          "name": "controller-corrective-footer-green-identification-1440-scrolled.png",
+          "sha256": "66b728e3d2f52332aaea843d3646db28a451fee59713cf3390c406bc23148e87"
+        }
+      ]
+    }
+  ],
+  "outsideIn": {
+    "before": "The submission shows school, month, program and the individual document before the fields. The communication draft separates selected pendencies and message preview. At the failing openings, the bottom edges of both footer buttons are cut off.",
+    "after": "In ordinary submission, identification and communication at both desktop sizes, the title and context remain readable, both footer buttons are fully drawn and the primary action is clear. The body scroll reaches the last submission field or communication preview without losing the footer actions. Closing returns to the surrounding surface.",
+    "screenshotsOpenedAndInspected": true
+  },
+  "independentReview": {
+    "status": "no blocking issue",
+    "scope": "Source/test review confirmed the two zero-bottom-padding modal selectors, preserved padded neighbors and recommended identification plus explicit body scroll checks."
+  },
+  "artifacts": [
+    {
+      "name": "controller-corrective-footer-red.log",
+      "sha256": "361e08b0f64eb3f09116314dc9e50c3d395d6bd28d2df7d503f33cdb91f8be60"
+    },
+    {
+      "name": "controller-corrective-footer-identification-red.log",
+      "sha256": "b34548deeb7fb832ba9a2b8cc63e600227fb5c1a3e82527b50f853f706d31f20"
+    },
+    {
+      "name": "controller-corrective-footer-green-complete.log",
+      "sha256": "903d83627f2fad92e7df76d8d5d80c40cb9467415afa958d72f631470b25055a"
+    },
+    {
+      "name": "controller-corrective-footer-causal.json",
+      "sha256": "eb0c94d5fcfac3fc337e64a45e5e2729a80fabbd2c904b74773b421993f8941e"
+    },
+    {
+      "name": "controller-corrective-footer-green.json",
+      "sha256": "8df34a568368d0f5b0155695e597be2fbae3c41cd8118d71a39d2c14b3351622"
+    },
+    {
+      "name": "controller-corrective-footer-stylelint-final.log",
+      "sha256": "fd168d0b9b3e3765795ae8cafd066f44c746f1c2800cb6e249b4179838186064"
+    },
+    {
+      "name": "controller-corrective-footer-eslint-complete.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "limits": [
+    "Local fixtures isolate presentation; this evidence does not certify Auth/RLS/RPC, persistence or Production.",
+    "Mobile widths and the four padded neighboring modal surfaces were not rendered in this task; their selectors were not changed.",
+    "The communication draft was opened and closed; Copy text and external delivery were not executed.",
+    "No local Auth worker, authenticated snapshot on port4176, DB, main or Production was modified.",
+    "The root agent owns final commit, final candidate SHA validation and publication."
+  ]
+}

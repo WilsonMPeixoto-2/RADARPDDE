@@ -2,6 +2,46 @@
 
 ## Missão e ponto de partida
 
+**Checkpoint superveniente — 11/10, 19:40 UTC:** salvar este estado antes de
+qualquer validação longa. Contato interno recebeu proteção contra submit
+concorrente reutilizando `critical-action-guard`: RED com duas RPCs/dois contatos
+para um duplo clique; GREEN com uma RPC/um contato, segundo contato legítimo e
+reload. Foram aprovados 18 unitários focados, oito E2E de Pendências e uma jornada
+Auth real (38,6 s). Isso não garante idempotência de retry após commit remoto com
+resposta perdida. Evidência: `evidence/contact-submit-guard.json`.
+
+O mesmo corte do footer foi reproduzido em novo envio e cobrança; a correção
+`bottom:0` ficou restrita aos três corpos sem padding, na folha vigente. **17/17**
+E2E de identidade/rodapé passaram, com inspeção visual. A reanálise autenticada em
+1280×720 persistiu o resultado incorreto e preservou NF/Pendência/tentativa após
+reload. Evidência: `evidence/corrective-footer-scope.json`.
+
+Bonificação/retificação tardia, edição/exclusão de consumo após retificação,
+exportação institucional XLSX e recuperação após perda real de Realtime foram
+executadas em sessões legítimas do descartável. A reconexão produziu uma leitura
+global HTTP 200 de 49.605 bytes, sem F5; Dashboard convergiu de uma para duas escolas
+com Pendências. A exportação da Assistente tem quatro planilhas e 41.021 bytes;
+ExcelJS conferiu competência, dados e metadados. Resumos sanitizados estão em
+`evidence/`; não são observação de Production nem inspeção do Excel nativo.
+
+**Bloqueio novo confirmado:** exclusão ordinária de `AUD-PERM-01` apagou a NF e o
+bem Inventariada no descartável, HTTP 200. O `audit_events.old_record` comprova
+estado terminal no DELETE, sem downgrade. Falha herdada da main, não causada por
+este PR. Trigger terminal cobre apenas UPDATE; serviço/planner/RPC não negam essa
+exclusão. Evidência durável: `evidence/terminal-inventory-delete-red.json`.
+Proteções local serializada e backend estão em investigação; ainda não aplicadas.
+Não recriar os registros perdidos para mascarar o RED. Production permaneceu intacta.
+
+CI do HEAD publicado `6139fe79`: **18/19 workflows verdes**, incluindo readiness,
+Supabase real, ciclos, uso sustentado e pré-production. E2E desktop ficou vermelho:
+212 aprovados, 65 pulados, um timeout no caso legado
+`unidentified-expense-user-journey.spec.js:27`. O mesmo teste original passou
+isoladamente na main (12,60 s) e candidato (12,72 s), sem alterar deadline ou
+asserções. A causa exata do timeout CI não foi reproduzida; acesso ao trace remoto
+falhou por proxy. Preservar esse vermelho e repetir CI proporcionalmente; não
+aumentar timer para fabricar GREEN. Evidências `ci-6139.json` e
+`legacy-ci-duration-review.json`. Os parágrafos seguintes são checkpoints históricos.
+
 **Checkpoint corrente de continuação:** UI cloud autenticada autorizada. PR #438
 Draft; main/Production intactas. Duas correções candidatas e seus REDs estão no
 worktree: identidade documental e readiness após login tardio. Ciclo real tardio

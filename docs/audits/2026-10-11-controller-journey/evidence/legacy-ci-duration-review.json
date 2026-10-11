@@ -1,0 +1,220 @@
+{
+  "date": "2026-10-11",
+  "scope": "Read-only isolated original test27 against frozen main/candidate local-mode snapshots. No runtime/test/workflow changes, no timeout relaxation, retries0, worker1; 4175/4176/nativeworker and disposable DB untouched.",
+  "ciRed": {
+    "run": 38167247729,
+    "sha": "6139fe79d7e3cbab86d432684231418c9daad876",
+    "onlyFailure": "Test27 long local unidentified-expense journey reached settleVisualState wait350 line154 when standard30s whole-test deadline expired; original and retry both timeout.",
+    "desktopResult": {
+      "passed": 212,
+      "skipped": 65,
+      "failed": 1
+    },
+    "mustRemainRecordedAsFailure": true
+  },
+  "localInitialMainAttempt": {
+    "status": "failed",
+    "durationMs": 17489,
+    "cause": "Sequential boundingBox assertions during reanalysis modal animation: guidanceY106.33235 compared with headerBottom111.50751 at line218. Not the CI timeout; initial run reached beyond line154.",
+    "log": "/workspace/scratch/controller-legacy-main-original.log"
+  },
+  "localCompleteOriginalRuns": [
+    {
+      "variant": "main",
+      "status": "passed",
+      "durationMs": 12604,
+      "retry": 0,
+      "operationTimes": [
+        {
+          "title": "Before Hooks",
+          "durationMs": 331
+        },
+        {
+          "title": "Navigate",
+          "durationMs": 632
+        },
+        {
+          "title": "Evaluate",
+          "durationMs": 612
+        },
+        {
+          "title": "Screenshot",
+          "durationMs": 1583
+        },
+        {
+          "title": "Hover",
+          "durationMs": 433
+        },
+        {
+          "title": "Screenshot",
+          "durationMs": 820
+        },
+        {
+          "title": "Click",
+          "durationMs": 562
+        },
+        {
+          "title": "Screenshot",
+          "durationMs": 693
+        },
+        {
+          "title": "Wait for timeout",
+          "durationMs": 352
+        },
+        {
+          "title": "Screenshot",
+          "durationMs": 452
+        },
+        {
+          "title": "Wait for timeout",
+          "durationMs": 351
+        },
+        {
+          "title": "Screenshot",
+          "durationMs": 680
+        },
+        {
+          "title": "Wait for timeout",
+          "durationMs": 352
+        },
+        {
+          "title": "Screenshot",
+          "durationMs": 751
+        },
+        {
+          "title": "Wait for timeout",
+          "durationMs": 351
+        },
+        {
+          "title": "Screenshot",
+          "durationMs": 666
+        },
+        {
+          "title": "After Hooks",
+          "durationMs": 666
+        }
+      ],
+      "screenshots": {
+        "count": 7,
+        "totalMs": 5645
+      },
+      "fixedWaits": {
+        "count": 4,
+        "totalMs": 1406
+      },
+      "report": "/workspace/scratch/controller-legacy-main-report/index.html"
+    },
+    {
+      "variant": "candidate",
+      "status": "passed",
+      "durationMs": 12723,
+      "retry": 0,
+      "operationTimes": [
+        {
+          "title": "Navigate",
+          "durationMs": 555
+        },
+        {
+          "title": "Wait for function",
+          "durationMs": 912
+        },
+        {
+          "title": "Screenshot",
+          "durationMs": 1633
+        },
+        {
+          "title": "Screenshot",
+          "durationMs": 664
+        },
+        {
+          "title": "Click",
+          "durationMs": 871
+        },
+        {
+          "title": "Screenshot",
+          "durationMs": 520
+        },
+        {
+          "title": "Wait for timeout",
+          "durationMs": 353
+        },
+        {
+          "title": "Screenshot",
+          "durationMs": 925
+        },
+        {
+          "title": "Wait for timeout",
+          "durationMs": 351
+        },
+        {
+          "title": "Screenshot",
+          "durationMs": 382
+        },
+        {
+          "title": "Wait for timeout",
+          "durationMs": 508
+        },
+        {
+          "title": "Screenshot",
+          "durationMs": 819
+        },
+        {
+          "title": "Click",
+          "durationMs": 413
+        },
+        {
+          "title": "Wait for timeout",
+          "durationMs": 350
+        },
+        {
+          "title": "Screenshot",
+          "durationMs": 740
+        },
+        {
+          "title": "After Hooks",
+          "durationMs": 390
+        }
+      ],
+      "screenshots": {
+        "count": 7,
+        "totalMs": 5683
+      },
+      "fixedWaits": {
+        "count": 4,
+        "totalMs": 1562
+      },
+      "report": "/workspace/scratch/controller-legacy-candidate-report/index.html"
+    }
+  ],
+  "sources": [
+    {
+      "path": "tests/e2e/unidentified-expense-user-journey.spec.js",
+      "identicalMainCandidate": true,
+      "sha256": "88fde018e39fbf80e592d6fb5773603cb95991b37331ef3bac0ad6923bbb191a"
+    },
+    {
+      "path": "tests/support/unidentified-expense-fixture.js",
+      "identicalMainCandidate": true,
+      "sha256": "1642a4da6c2d05928713ec7e630a542b031f51a4ef5489ba994e9c5fb5802ae0"
+    }
+  ],
+  "artifactLimitation": {
+    "artifactId": 11712399503,
+    "bytesReportedByGitHub": 43639375,
+    "downloadAvailable": false,
+    "proxyFailure": "Azure artifact host tunnel403; direct fetch URLError. No CI trace successfully retrieved, so no conclusive attribution of CI stage durations."
+  },
+  "assessment": [
+    "Candidate original full test passed in12.723s; main rerun original full test passed within30s. No timeout or assertion change needed locally.",
+    "A fixed350ms wait marks the deadline location; it does not show that this wait caused the30s duration.",
+    "Screenshots/animation and fixture/bootstrap overhead contribute measurable time; quantified native timings must not be represented as CI trace measurements.",
+    "One main run revealed preexisting geometry measurement during animation, which demonstrates a separate harness sensitivity.",
+    "The isolated test does not reproduce a candidate functional regression or the CI slowdown. Exact CI environmental/load cause remains unproven.",
+    "Reasonable next action: rerun failed desktop job on exact unchanged SHA after preserving the RED. If repeated, retrieve CI API-step timing trace before changing timeout or test."
+  ],
+  "logs": [
+    "/workspace/scratch/controller-legacy-main-original.log",
+    "/workspace/scratch/controller-legacy-main-second.log",
+    "/workspace/scratch/controller-legacy-candidate-original.log"
+  ]
+}

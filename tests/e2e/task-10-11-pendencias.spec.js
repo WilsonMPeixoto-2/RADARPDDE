@@ -56,6 +56,163 @@ async function seedOperations(page) {
 }
 
 test.describe('Tasks 10–11 — contatos, cancelamento e reabertura', () => {
+  test('contato em voo contém duplo clique e submit repetido, mas aceita uma intenção posterior', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário desktop.');
+    await page.goto('/');
+    await seedOperations(page);
+    await page.locator('[data-pendency-id="task10-open"]:visible').first()
+      .getByRole('button', { name: 'Ver detalhes' }).click();
+    const drawer = page.getByRole('complementary', { name: 'Detalhes da pendência' });
+    await drawer.getByRole('button', { name: 'Registrar contato' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Registrar contato da pendência' });
+    await dialog.getByLabel('Descrição do contato').fill('Uma intenção de contato.');
+    await page.evaluate(() => {
+      const service = RadarApplicationServices.pendencies;
+      const original = service.registerContact.bind(service);
+      window.__contactCalls = 0;
+      const pending = new Promise(resolve => { window.__releaseContact = resolve; });
+      // Retém só a fronteira assíncrona; a gravação usa o serviço real ao liberar.
+      service.registerContact = async input => {
+        window.__contactCalls++;
+        await pending;
+        return original(input);
+      };
+    });
+    const submit = dialog.locator('button[type="submit"]');
+    await submit.dblclick();
+    await expect(submit).toBeDisabled();
+    await expect(submit).toHaveText('Registrando…');
+    await page.locator('#form-pendency-contact').dispatchEvent('submit');
+    expect(await page.evaluate(() => window.__contactCalls)).toBe(1);
+    await page.evaluate(() => window.__releaseContact());
+    await expect(dialog).toBeHidden();
+    await expect(drawer).toContainText('Uma intenção de contato.');
+    expect(await page.evaluate(() => contatos.filter(item => item.pendenciaId === 'task10-open').length)).toBe(1);
+    await drawer.getByRole('button', { name: 'Registrar contato' }).click();
+    await dialog.getByLabel('Descrição do contato').fill('Contato posterior deliberado.');
+    await expect(submit).toBeEnabled();
+    // Enter no botão é o mesmo submit acessível, sem depender apenas de mouse.
+    await submit.focus();
+    await page.keyboard.press('Enter');
+    await expect(dialog).toBeHidden();
+    await expect(drawer).toContainText('Contato posterior deliberado.');
+    expect(await page.evaluate(() => contatos.filter(item => item.pendenciaId === 'task10-open').length)).toBe(2);
+  });
+
+  test('falha comprovada do contato preserva dados, libera o formulário e permite nova tentativa', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário desktop.');
+    await page.goto('/');
+    await seedOperations(page);
+    await page.locator('[data-pendency-id="task10-open"]:visible').first()
+      .getByRole('button', { name: 'Ver detalhes' }).click();
+    const drawer = page.getByRole('complementary', { name: 'Detalhes da pendência' });
+    await drawer.getByRole('button', { name: 'Registrar contato' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Registrar contato da pendência' });
+    await dialog.getByLabel('Descrição do contato').fill('Descrição preservada após rejeição.');
+    await page.evaluate(() => {
+      const service = RadarApplicationServices.pendencies;
+      const original = service.registerContact.bind(service);
+      let first = true;
+      service.registerContact = input => {
+        if (first) {
+          first = false;
+          return Promise.reject(new Error('Rejeição antes da gravação.'));
+        }
+        return original(input);
+      };
+    });
+    const submit = dialog.getByRole('button', { name: 'Salvar contato' });
+    await submit.click();
+    await expect(page.locator('#task-10-11-live-region')).toContainText('Rejeição antes da gravação.');
+    await expect(dialog).toBeVisible();
+    await expect(submit).toBeEnabled();
+    await expect(submit).toHaveText('Salvar contato');
+    await expect(dialog.getByLabel('Descrição do contato')).toHaveValue('Descrição preservada após rejeição.');
+    expect(await page.evaluate(() => contatos.length)).toBe(0);
+    await submit.click();
+    await expect(dialog).toBeHidden();
+    await expect(drawer).toContainText('Descrição preservada após rejeição.');
+    expect(await page.evaluate(() => contatos.length)).toBe(1);
+  });
+
+  test('contato em andamento não permite substituir o formulário por outra pendência', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário desktop.');
+    await page.goto('/');
+    await seedOperations(page);
+    await page.evaluate(() => {
+      const originalPendency = pendencias.find(item => item.id === 'task10-open');
+      pendencias.push(RadarPendencias.createDocumentPendency({
+        id: 'task10-other-open', escolaId: originalPendency.escolaId,
+        competenciaOrigem: '2026-05', programaId: 'BASIC', documentoKey: 'encamp',
+        item: 'PDDE Básico - Encaminhamento', errosAtuais: ['Documento incompleto'],
+        observacao: 'Outra pendência ativa.', dataAbertura: '2026-06-01'
+      }, { eventId: 'task10-other-open-event', at: '2026-06-01T12:00:00.000Z', usuario: 'Controlador', perfil: 'controlador' }));
+      rebuildOperationalIndexes();
+      renderPendencias();
+    });
+    await page.locator('[data-pendency-id="task10-open"]:visible').first()
+      .getByRole('button', { name: 'Ver detalhes' }).click();
+    const drawer = page.getByRole('complementary', { name: 'Detalhes da pendência' });
+    await drawer.getByRole('button', { name: 'Registrar contato' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Registrar contato da pendência' });
+    await dialog.getByLabel('Descrição do contato').fill('Primeiro contato retido em gravação.');
+    await page.evaluate(() => {
+      const service = RadarApplicationServices.pendencies;
+      const original = service.registerContact.bind(service);
+      const pending = new Promise(resolve => { window.__releaseContact = resolve; });
+      service.registerContact = async input => { await pending; return original(input); };
+    });
+    await dialog.getByRole('button', { name: 'Salvar contato' }).click();
+    await expect(dialog.locator('button[type="submit"]')).toBeDisabled();
+    await dialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
+    await expect(dialog).toBeHidden();
+    await drawer.getByRole('button', { name: 'Fechar detalhes', exact: true }).click();
+    await page.locator('[data-pendency-id="task10-other-open"]:visible').first()
+      .getByRole('button', { name: 'Ver detalhes' }).click();
+    await drawer.getByRole('button', { name: 'Registrar contato' }).click();
+    await expect(dialog).toBeHidden();
+    await expect(page.locator('#task-10-11-live-region')).toContainText('Aguarde o registro do contato em andamento.');
+    await page.evaluate(() => window.__releaseContact());
+    await expect(drawer).toContainText('Primeiro contato retido em gravação.');
+    expect(await page.evaluate(() => contatos.map(item => item.pendenciaId))).toEqual(['task10-open']);
+    // Depois de concluir a primeira gravação, outra pendência pode receber contato.
+    await drawer.getByRole('button', { name: 'Fechar detalhes', exact: true }).click();
+    await page.locator('[data-pendency-id="task10-other-open"]:visible').first()
+      .getByRole('button', { name: 'Ver detalhes' }).click();
+    await drawer.getByRole('button', { name: 'Registrar contato' }).click();
+    await expect(dialog).toBeVisible();
+    await dialog.getByLabel('Descrição do contato').fill('Contato da segunda pendência.');
+    await dialog.getByRole('button', { name: 'Salvar contato' }).click();
+    await expect(dialog).toBeHidden();
+    expect(await page.evaluate(() => contatos.map(item => item.pendenciaId))).toEqual(['task10-open', 'task10-other-open']);
+  });
+
+  test('guard crítico indisponível bloqueia contato com orientação e preserva o formulário', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário desktop.');
+    await page.goto('/');
+    await seedOperations(page);
+    await page.locator('[data-pendency-id="task10-open"]:visible').first()
+      .getByRole('button', { name: 'Ver detalhes' }).click();
+    const drawer = page.getByRole('complementary', { name: 'Detalhes da pendência' });
+    await drawer.getByRole('button', { name: 'Registrar contato' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Registrar contato da pendência' });
+    await dialog.getByLabel('Descrição do contato').fill('Contato ainda não gravado.');
+    await page.evaluate(() => {
+      window.__savedCriticalGuard = window.RadarCriticalActionGuard;
+      window.RadarCriticalActionGuard = {};
+    });
+    await dialog.getByRole('button', { name: 'Salvar contato' }).click();
+    await expect(page.locator('#task-10-11-live-region')).toContainText('Recarregue a página e tente novamente.');
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole('button', { name: 'Salvar contato' })).toBeEnabled();
+    await expect(dialog.getByLabel('Descrição do contato')).toHaveValue('Contato ainda não gravado.');
+    expect(await page.evaluate(() => contatos.length)).toBe(0);
+    await page.evaluate(() => { window.RadarCriticalActionGuard = window.__savedCriticalGuard; });
+    await dialog.getByRole('button', { name: 'Salvar contato' }).click();
+    await expect(dialog).toBeHidden();
+    expect(await page.evaluate(() => contatos.length)).toBe(1);
+  });
+
   test('registra contato em pendência aberta sem alterar o status', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário desktop.');
     await page.goto('/');

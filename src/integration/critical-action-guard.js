@@ -114,9 +114,17 @@
         return true;
     }
 
+    function wrapAction(root, name, options = {}) {
+        if (!root || typeof root[name] !== 'function') return false;
+        install(root);
+        root[INSTALL_FLAG].wrap(name, options);
+        return root[name].__radarCriticalActionGuard === true;
+    }
+
     return Object.freeze({
         createGuard,
         install,
+        wrapAction,
         setFormBusy
     });
 }));

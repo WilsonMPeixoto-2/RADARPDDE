@@ -704,7 +704,9 @@ textarea.form-control {
     box-shadow: 0 -8px 20px rgba(45, 28, 72, 0.045);
 }
 
-#modal-reanalisar-pendencia .modal-footer {
+#modal-registrar-envio .modal-footer,
+#modal-reanalisar-pendencia .modal-footer,
+#modal-cobranca .modal-footer {
     bottom: 0;
 }
 

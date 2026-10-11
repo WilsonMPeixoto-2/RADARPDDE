@@ -76,6 +76,30 @@ function pendencyRow(page, id) {
   return page.locator(`[data-pendency-id="${id}"]`).filter({ visible: true }).first();
 }
 
+// A button can satisfy Playwright's visible/viewport checks while an ancestor
+// clips its lower edge. Check the actual painted/hit-test area of each control.
+function completeFooterButtons(dialog) {
+  return dialog.locator('.modal-footer button').evaluateAll(buttons => (
+    buttons.map(button => {
+      const rect = button.getBoundingClientRect();
+      const points = [rect.top + 1, rect.bottom - 1].map(y => [rect.x + rect.width / 2, y]);
+      return { name: button.textContent.trim(), fullyVisible: points.every(([x, y]) => {
+        const target = document.elementFromPoint(x, y);
+        return Boolean(target && button.contains(target));
+      }) };
+    })
+  ));
+}
+
+async function scrollModalBodyToEnd(page, dialog) {
+  const body = dialog.locator('.modal-body');
+  await body.hover();
+  await page.mouse.wheel(0, 2000);
+  await expect.poll(() => body.evaluate(element => (
+    element.scrollHeight - element.clientHeight - element.scrollTop <= 1
+  ))).toBe(true);
+}
+
 test('novo envio identifica a NF entre duas despesas com descrição e valor iguais', async ({ page }) => {
   const [first, second] = await prepareDocuments(page);
   await pendencyRow(page, first.id).getByRole('button', { name: 'Registrar novo envio', exact: true }).click();
@@ -186,18 +210,7 @@ test('reanálise mantém botões inteiros visíveis em desktop de 1280×720', as
   const dialog = page.getByRole('dialog', { name: 'Reanalisar pendência documental' });
   await expect(dialog).toBeVisible();
 
-  // A button can satisfy Playwright's visible/viewport checks while an ancestor
-  // clips its lower edge. Check the actual painted/hit-test area of each control.
-  const completeButtons = () => dialog.locator('.modal-footer button').evaluateAll(buttons => (
-    buttons.map(button => {
-      const rect = button.getBoundingClientRect();
-      const points = [rect.top + 1, rect.bottom - 1].map(y => [rect.x + rect.width / 2, y]);
-      return { name: button.textContent.trim(), fullyVisible: points.every(([x, y]) => {
-        const target = document.elementFromPoint(x, y);
-        return Boolean(target && button.contains(target));
-      }) };
-    })
-  ));
+  const completeButtons = () => completeFooterButtons(dialog);
   const expected = [
     { name: 'Cancelar', fullyVisible: true },
     { name: 'Confirmar reanálise', fullyVisible: true }
@@ -207,4 +220,67 @@ test('reanálise mantém botões inteiros visíveis em desktop de 1280×720', as
   await page.mouse.wheel(0, 2000);
   await expect(dialog.getByLabel('Resultado da reanálise', { exact: true })).toBeVisible();
   await expect.poll(completeButtons).toEqual(expected);
+});
+
+for (const viewport of [{ width: 1280, height: 720 }, { width: 1440, height: 900 }]) {
+  test(`novo envio mantém botões inteiros em desktop de ${viewport.width}×${viewport.height}`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    const [first] = await prepareDocuments(page);
+    await pendencyRow(page, first.id).getByRole('button', { name: 'Registrar novo envio', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: 'Registrar novo envio para conferência' });
+    await expect(dialog).toBeVisible();
+    const expected = [
+      { name: 'Cancelar', fullyVisible: true },
+      { name: 'Registrar e enviar para reanálise', fullyVisible: true }
+    ];
+    await expect.poll(() => completeFooterButtons(dialog)).toEqual(expected);
+    await scrollModalBodyToEnd(page, dialog);
+    await expect(dialog.locator('#envio-link')).toBeVisible();
+    await expect.poll(() => completeFooterButtons(dialog)).toEqual(expected);
+    await dialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
+    await expect(page.locator('#modal-registrar-envio')).not.toHaveClass(/show/);
+    await expect(page.locator('#modal-registrar-envio')).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  test(`comunicação mantém botões inteiros em desktop de ${viewport.width}×${viewport.height}`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await prepareDocuments(page);
+    await page.evaluate(() => switchView('prontuario', pendencias[0].escolaId));
+    await page.getByRole('button', { name: 'Gerar comunicação', exact: true }).click();
+    const dialog = page.locator('#modal-cobranca');
+    await expect(dialog).toBeVisible();
+    const expected = [
+      { name: 'Fechar', fullyVisible: true },
+      { name: 'Copiar texto', fullyVisible: true }
+    ];
+    await expect.poll(() => completeFooterButtons(dialog)).toEqual(expected);
+    await scrollModalBodyToEnd(page, dialog);
+    await expect(dialog.getByText('Pré-visualização da mensagem', { exact: true })).toBeVisible();
+    await expect.poll(() => completeFooterButtons(dialog)).toEqual(expected);
+    await dialog.getByRole('button', { name: 'Fechar', exact: true }).click();
+    await expect(dialog).not.toHaveClass(/show/);
+    await expect(dialog).toHaveAttribute('aria-hidden', 'true');
+  });
+}
+
+test('identificação mantém botões inteiros em desktop de 1280×720', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  const [first] = await prepareDocuments(page, { invoiceType: 'a_identificar' });
+  await pendencyRow(page, first.id).getByRole('button', {
+    name: 'Registrar envio / identificação da despesa', exact: true
+  }).click();
+  const dialog = page.getByRole('dialog', { name: 'Registrar envio e identificar despesa' });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.locator('#envio-identificacao')).toBeVisible();
+  const expected = [
+    { name: 'Cancelar', fullyVisible: true },
+    { name: 'Registrar e enviar para reanálise', fullyVisible: true }
+  ];
+  await expect.poll(() => completeFooterButtons(dialog)).toEqual(expected);
+  await scrollModalBodyToEnd(page, dialog);
+  await expect(dialog.locator('#envio-link')).toBeVisible();
+  await expect.poll(() => completeFooterButtons(dialog)).toEqual(expected);
+  await dialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
+  await expect(page.locator('#modal-registrar-envio')).not.toHaveClass(/show/);
+  await expect(page.locator('#modal-registrar-envio')).toHaveAttribute('aria-hidden', 'true');
 });
