@@ -1287,6 +1287,9 @@
         document.addEventListener('keydown', handleGlobalDrawerKeydown);
         root.addEventListener('resize', syncDrawerSemantics);
         installed = true;
+        // app.js can become available after authentication/DOM readiness events.
+        // Only this page authority can confirm that its dependent UI is now ready.
+        root.dispatchEvent?.(new root.CustomEvent('radar:pendency-page-ready'));
 
         if (typeof currentView !== 'undefined' && currentView === 'pendencias') {
             renderPendenciasTask9();

@@ -2,6 +2,23 @@
 
 ## Missão e ponto de partida
 
+**Checkpoint corrente de continuação:** UI cloud autenticada autorizada. PR #438
+Draft; main/Production intactas. Duas correções candidatas e seus REDs estão no
+worktree: identidade documental e readiness após login tardio. Ciclo real tardio
+criou NF/Pendência, registrou contato, cancelou e reabriu sem reload: GREEN (1 min).
+Suíte unitária completa: **1.333 aprovados, zero falhas/skips**. Não confundir
+esse checkpoint com certificação integral A–N ou com observação autenticada de
+Production. Ler primeiro [CAUSAL_FINDINGS.md](CAUSAL_FINDINGS.md) e
+[JOURNEYS.md](JOURNEYS.md); os blocos antigos abaixo preservam a sequência da
+investigação e contêm afirmações temporais já superadas.
+
+Pendências atuais: inspeção Auth de modais em 1280×720, repetição dos dois E2E
+legados que excederam 30s sob carga, bonificação/consolidação/retificação tardia,
+reconexão e exportação institucional. Não aumentar deadlines dos testes legados
+nem declarar falso positivo corrigido sem prova. O teste Auth novo usa 90s porque
+inclui Auth e cinco commits reais, além das interações; seu RED original terminou
+na ausência de contato, antes de acrescentar esse ciclo completo.
+
 Etapa 5 autorizada em 11/10/2026: explorar jornadas A–N pela UI real, observar
 fora para dentro, conferir persistência/reload/projeções e corrigir achados
 fundamentados. Testes históricos verdes não encerram a missão.

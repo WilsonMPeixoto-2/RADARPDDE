@@ -1,0 +1,74 @@
+{
+  "date": "2026-10-11",
+  "environment": "local disposable; not Production",
+  "baseline": "113841bd",
+  "candidate": "local working tree; parent checkpoint records commit",
+  "viewport": "1440x900",
+  "artifacts": [
+    {
+      "file": "document-identity-new-submission.png",
+      "bytes": 201936,
+      "sha256": "a7c69d11728df980012b6ed38f670bda846f7b90a8c73b0ef5604f5113fc8b63"
+    },
+    {
+      "file": "document-identity-reanalysis.png",
+      "bytes": 224930,
+      "sha256": "0ede2b2c52a04ed32ff54692db1d98f462851666c57454199abf9dc0c18e1532"
+    },
+    {
+      "file": "pendency-export-summary.json",
+      "bytes": 1453,
+      "sha256": "b0b0eb99b3b7108db66005f73e7881670a408953cb229a09dc806613998e74dd"
+    }
+  ],
+  "logs": [
+    {
+      "file": "controller-identity-green-extended.log",
+      "bytes": 2117,
+      "sha256": "34fa2686ff52f663b60c5babd116ae1fa8df044a818b043668d39c60b8148e13",
+      "outcome": "11 passed; 1.0m",
+      "rawLogLocation": "/workspace/scratch/controller-identity-green-extended.log"
+    },
+    {
+      "file": "controller-identity-unit.log",
+      "bytes": 1775,
+      "sha256": "3d9b891647ed5fe40288331d60e3f0ad60a11868c4fc80227cacadc9e3efa797",
+      "outcome": "19 passed; 0 failed",
+      "rawLogLocation": "/workspace/scratch/controller-identity-unit.log"
+    },
+    {
+      "file": "controller-auth-delayed-green-full-cycle.log",
+      "bytes": 355,
+      "sha256": "08a5440e3cbfa3379f159c2db4a8d6f65c5120c6c81084fbf23b682335844f94",
+      "outcome": "1 passed; 1.0m; Auth/RLS/RPC disposable, no reload",
+      "rawLogLocation": "/workspace/scratch/controller-auth-delayed-green-full-cycle.log"
+    },
+    {
+      "file": "controller-identity-regression.log",
+      "bytes": 10699,
+      "sha256": "720afca9e4b6066d5ae5706bf40fbbe1d4a8f58630866f397fcf8e1ed2a8853f",
+      "outcome": "28 passed; 2 timed out at 30s; 5.8m; not certified",
+      "rawLogLocation": "/workspace/scratch/controller-identity-regression.log"
+    },
+    {
+      "file": "controller-identity-isolated.log",
+      "bytes": 8374,
+      "sha256": "24a82eea43e044affe4f4dd53cdefd9b3f1af01dca94068898432c9afa11be4a",
+      "outcome": "2 timed out at 30s again; not certified",
+      "rawLogLocation": "/workspace/scratch/controller-identity-isolated.log"
+    },
+    {
+      "file": "controller-identity-lint.log",
+      "bytes": 4940,
+      "sha256": "5dfa3698c98e7aec74104bb02c1bb3d6b0a8d3479d9d59f606c4ecddde6de247",
+      "outcome": "0 errors; 25 existing innerHTML warnings",
+      "rawLogLocation": "/workspace/scratch/controller-identity-lint.log"
+    }
+  ],
+  "limits": [
+    "Identity screenshots certify visible document context, not complete modal footer or responsive behavior.",
+    "Two legacy cases remain uncertified after timeout; no test expectation or timeout relaxed.",
+    "Raw Auth traces, sessions and XLSX workbook excluded from Git.",
+    "A–N audit remains partial; no Production behavior or performance conclusion."
+  ]
+}

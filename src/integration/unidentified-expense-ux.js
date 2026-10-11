@@ -196,7 +196,7 @@
         if (label) {
             label.textContent = unidentified
                 ? 'Referência provisória (opcional)'
-                : 'Número da Nota Fiscal';
+                : 'Número ou referência do documento';
         }
         if (descriptionLabel) {
             descriptionLabel.textContent = unidentified

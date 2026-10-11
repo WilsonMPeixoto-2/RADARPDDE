@@ -659,6 +659,13 @@ No baseline atual:
 - `operational-context-refresh.js` controla releitura contextual, throttle, refresh pendente e proteção durante edição;
 - `operational-realtime-invalidation.js` depende do controlador de refresh e apenas transforma Broadcast em invalidação/releitura segura.
 
+Instalações dependentes de autenticação não podem expirar pelo tempo gasto na
+tela de login. Ações de contato/cancelamento/reabertura e retificação aguardam
+`radar:application-services-ready`; a ponte operacional aguarda também a
+competência canônica. Task 9 publica `radar:pendency-page-ready` ao concluir sua
+instalação para os dependentes que ainda aguardam a página. Instalação é idempotente;
+os sinais de readiness não concedem capacidades nem substituem Auth/RLS.
+
 ### 11.1 Fila de leitura e gravação
 
 Escritas remotas são serializadas entre si. Leitura operacional de background não pode permanecer na frente de uma ação explícita de persistência.

@@ -1,7 +1,8 @@
 # Jornadas observadas — checkpoint controlado
 
-11/10/2026; runtime `113841bd`, UI http://127.0.0.1:4176, Chromium headed
+11/10/2026; baseline `113841bd`, UI http://127.0.0.1:4176, Chromium headed
 1440×900, Controlador Local, Supabase/Auth/RLS reais **descartáveis**.
+As verificações posteriores no candidato estão identificadas abaixo.
 O usuário autorizou continuidade no cloud; não é observação de Production.
 
 ## Consumo / Pendência individual — B e parte de H
@@ -25,14 +26,18 @@ IDs para continuidade local:
 - Pendência: `pend-cca6893b-e886-4779-9d4c-65347f974ecd`.
 
 Bonificação não foi lançada/alterada pelo ciclo. Nenhum ativo foi criado por consumo.
-Não declarar B/H completos: exclusão, outras variantes e histórico/contacto ainda faltam.
+Não declarar B/H completos nesse primeiro checkpoint; as continuações abaixo
+registram exclusão, identificação, histórico e contato efetivamente observados.
 
-## Clareza a confrontar — sem classificação causal concluída
+## Clareza documental — observação inicial e prova posterior
 
 O drawer identifica `NF: AUD-CONS-02`. O modal de novo envio mostra apenas
 Documento: Notas Fiscais; o modal de reanálise destaca descrição/tipo/valor, não
-o número da NF. Investigar relevância para NFs parecidas e contrato visual vigente
-antes de corrigir. Nenhuma gravação na NF errada foi observada.
+o número da NF. Nenhuma gravação na NF errada foi observada.
+O defeito de apresentação foi posteriormente reproduzido por seis REDs e corrigido
+no candidato, com 11 GREENs dirigidos; ver `CAUSAL_FINDINGS.md`. A prova conserva
+dimensão, descrição, tipo, valor e legado. Não certifica toda a tabela nem o footer
+da reanálise; as capturas representativas não substituem essa inspeção.
 
 ## Evidência e limites de medição
 
@@ -94,8 +99,9 @@ competências; diferença de contagem na aba Abertas não constitui perda de his
 Tipo disponível no formulário de Educação Conectada e ausente das opções
 acessíveis de PDDE Básico. Criada `AUD-NET-01` (R$120), análise Correto. SQL confirmou
 `boleto_internet`, `CONECTADA`, sem bem vinculado. Nenhuma Consulta Assessoria
-apareceu para o boleto. O formulário ainda pede “Número da Nota Fiscal” nesse tipo:
-achado de clareza a reproduzir/testar, sem falha de regra demonstrada.
+apareceu para o boleto. Na baseline, o formulário pede “Número da Nota Fiscal”.
+O candidato corrige somente esse rótulo para “Número ou referência do documento”,
+com RED/GREEN dirigido, sem alterar as opções ou regras do boleto.
 
 ### Despesa a identificar / repetição de gesto
 
@@ -103,7 +109,65 @@ Duplo clique em Registrar Despesa produziu **uma** chamada
 `save_unidentified_expense_with_pendency` (HTTP 200, corpo de resposta 3.960 bytes),
 uma NF de R$85 e uma Pendência Aberta/Incorreto. Referência `AUD-EXP-PROV-01`.
 IDs: NF `nota-5cd420ef-619b-4230-87b0-1f83f45bcdb5`, Pendência
-`pend-f431efed-0482-4c27-a452-9dfe035506fb`. Identificação/reanálise ainda pendentes.
+`pend-f431efed-0482-4c27-a452-9dfe035506fb`.
+
+Continuação F: identificação pela UI como consumo, número `AUD-IDENT-01`, seguida
+de envio e reanálise Correto. NF e Pendência conservaram esses mesmos IDs, R$85,
+uma tentativa e estado final Resolvida/Correto (Atrasado), confirmado no banco.
+A requisição `register_invoice_document_attempt` respondeu HTTP 200, 5.864 bytes;
+o fluxo também realizou uma leitura global HTTP 200 de 19.001 bytes. Não confundir
+essa leitura pós-comando com a amostra dirigida de Realtime descrita a seguir.
+Boleto permaneceu ausente das opções acessíveis de identificação em BASIC.
+
+## Dashboard com segunda sessão real — K
+
+Controlador permanece no Dashboard, Maio/2026, escopo Todas da CRE. Assistente
+legitimamente autenticado em outra sessão abre Pendência de Extrato Conta Corrente
+da Escola Local Autorizada. O observador recebe a mudança e executa **1
+`read_school_operational_context`, 0 `read_operational_context`**, HTTP 200, resposta
+**21.318 bytes**. Pendências abertas passa de 0 para 1 escola; as três escolas do
+recorte continuam presentes. Amostra única, sem baseline pareado ou percentual de
+ganho. A análise de extrato sem entrega preenchida foi impedida com explicação;
+marcar entrega Sim permitiu o comando, conforme a regra vigente.
+
+## Contato, cancelamento e reabertura — continuação H
+
+Na baseline, uma sessão de Assistente com login rápido instalou as ações e registrou
+contato interno pela UI (`save_pendency_contact_with_log`, HTTP 200, 1.891 bytes).
+O drawer mostrou texto, autoria Assistente Local, data e histórico; nenhuma
+mensagem externa foi enviada. Cancelar com justificativa mostrou Cancelada,
+sem ação pendente. Reabrir com Documento ilegível e justificativa retornou Aberta
+e preservou contato/histórico. Isso é uma contraprova de funcionamento das ações
+quando os instaladores rodam a tempo, não prova de que o login tardio da baseline
+funcionasse.
+
+No candidato, o E2E Auth/RLS real de login tardio passou **1/1 em 1,0 minuto**:
+aguardar 11 segundos antes de autenticar, criar NF/Pendência, contato, cancelamento
+e reabertura, sem reload entre Auth e ações. A causa e a revisão independente estão
+em `CAUSAL_FINDINGS.md`.
+
+## Origem, competência e navegação — I/J
+
+Partindo da página transversal de Pendências em Junho, Abrir Prontuário de um
+registro originado em Maio levou a `/escolas/ESC-LOCAL` e selecionou Maio/2026.
+Essa navegação recupera o contexto do registro; não contradiz a preservação de
+Junho durante o novo envio/reanálise no próprio modal, observada anteriormente.
+
+No candidato, Próxima unidade levou a `/escolas/ESC-OTHER`, mostrando Escola Local
+de Outro Controlador (04.00.002), e manteve Maio/2026. Escola exibida e rota canônica
+concordam. Retorno à Carteira preservou busca; a busca global encontrou escola e
+Pendências relacionadas. Não foi certificada toda combinação de filtros/histórico.
+
+## Exportação XLSX real — parte de M
+
+Exportação de Pendências efetivamente baixada e aberta com leitor XLSX: **11.161
+bytes**, SHA-256 `05697aaf6890ba96383a42d1b9008aca914fad1fea0a83d046050d98fffdfd0b`.
+Abas RESUMO (23 linhas/12 colunas) e PENDÊNCIAS (9 linhas/23 colunas); cinco
+registros operacionais conferidos, incluindo duas Abertas e três Resolvidas,
+origem Maio/2026, Assessoria de `AUD-SERV-01`, `AUD-CONS-02` e `AUD-IDENT-01`, cada
+resolvida com uma tentativa. O resumo sanitizado está em
+`evidence/pendency-export-summary.json`; o workbook e os traces Auth permanecem
+privados. Isso não certifica exports de todos os perfis/formatos nem Excel instalado.
 
 ## Limites adicionais e continuidade
 
@@ -117,3 +181,6 @@ Junho e drawer da despesa provisória. Recursos com trace/vídeo bruto permanece
 privados porque podem conter autenticação; o índice de rede versionado contém
 somente horário, rota, status e bytes. Os testes A–N continuam parciais; esta
 rodada não certifica todos os perfis, exports, falhas e operações concorrentes.
+O índice `evidence/green-index.json` distingue os 11 GREENs de identidade, 19
+unitários e o GREEN Auth tardio dos dois cenários legados que terminaram em timeout
+e permanecem não certificados; nenhuma expectativa ou deadline foi afrouxada.

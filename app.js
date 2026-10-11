@@ -8681,6 +8681,12 @@ function abrirModalRegistrarNovoEnvio(pendencySource) {
     const documentName = VERIFICATION_DOCUMENT_LABELS[pendency.documentoKey]
         || pendency.documentoKey;
     const schoolName = school.denominação || school.denominacao || school.denominaçao || '';
+    const documentMeta = ['notaFiscal', 'consAssessoria'].includes(pendency.documentoKey)
+        ? pendencyDrawerDocumentMeta(pendency)
+        : null;
+    const documentIdentity = documentMeta
+        ? `${documentName} — ${documentMeta.title}`
+        : documentName;
     const trigger = getPendencyActionTrigger(pendencySource);
     const sourceContext = capturePendencyActionSourceContext(pendency, trigger);
 
@@ -8727,7 +8733,7 @@ function abrirModalRegistrarNovoEnvio(pendencySource) {
                         <path d="M6 3h8l4 4v14H6z"></path><path d="M14 3v5h5"></path>
                     </svg>
                 </span>
-                <span class="corrective-context-copy"><dt>Documento</dt><dd>${escapeHtml(documentName)}</dd></span>
+                <span class="corrective-context-copy"><dt>Documento</dt><dd>${escapeHtml(documentIdentity)}</dd></span>
             </div>
         </dl>
     `;
@@ -9005,13 +9011,18 @@ function renderReanalysisAttemptSummary(pendency, attempt, school) {
     const invoice = getPendencyLinkedInvoice(pendency);
     const snapshot = pendency.documentSnapshot || {};
     const expenseDescription = invoice?.desc || invoice?.descricao || snapshot.desc || snapshot.descricao;
+    const documentMeta = ['notaFiscal', 'consAssessoria'].includes(pendency.documentoKey)
+        ? pendencyDrawerDocumentMeta(pendency)
+        : null;
 
     const identity = document.createElement('div');
     identity.className = 'reanalysis-document-identity';
     const identityLabel = document.createElement('span');
     identityLabel.textContent = 'Documento em reanálise';
     const identityTitle = document.createElement('strong');
-    identityTitle.textContent = expenseDescription || pendency.item || documentName;
+    identityTitle.textContent = documentMeta
+        ? [documentMeta.title, expenseDescription].filter(Boolean).join(' — ')
+        : expenseDescription || pendency.item || documentName;
     identity.append(identityLabel, identityTitle);
     if (invoice || snapshot.valor != null) {
         const identityDetail = document.createElement('small');

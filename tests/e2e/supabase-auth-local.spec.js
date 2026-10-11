@@ -39,8 +39,12 @@ async function waitForApplication(page, role) {
     await expect(page.locator('#auth-logout-button')).toBeVisible();
 }
 
-test('login tardio preserva contato, cancelamento e retificação na interface real', async ({ page }) => {
+test('login tardio preserva ações de Pendência na interface real', async ({ page }) => {
+    // Auth + criação + contato + cancelamento + reabertura usam cinco commits reais.
+    test.setTimeout(90000);
     const controller = fixtures.find(fixture => fixture.profileId === 'controller' && fixture.active);
+    const invoiceNumber = `AUD-LATE-AUTH-${Date.now()}`;
+    const description = `Documento para acesso tardio ${invoiceNumber}`;
     await page.clock.install();
     await page.goto('/');
     await expect(page.locator('#radar-auth-gate')).toBeVisible();
@@ -59,12 +63,12 @@ test('login tardio preserva contato, cancelamento e retificação na interface r
     await fiscal.getByRole('button', { name: 'Adicionar Nota', exact: true }).click();
     const expense = page.locator('#modal-dados-nota');
     await expense.getByLabel('Tipo de Gasto', { exact: true }).selectOption('consumo');
-    await expense.locator('#nota-numero').fill('AUD-LATE-AUTH');
-    await expense.locator('#nota-desc').fill('Documento para acesso tardio');
+    await expense.locator('#nota-numero').fill(invoiceNumber);
+    await expense.locator('#nota-desc').fill(description);
     await expense.getByLabel('Valor do Gasto (R$)', { exact: true }).fill('42');
     await expense.getByRole('button', { name: 'Salvar Gasto', exact: true }).click();
     await expect(expense).not.toHaveClass(/show/);
-    const invoice = fiscal.locator('.invoice-document-row').filter({ hasText: 'AUD-LATE-AUTH' });
+    const invoice = fiscal.locator('.invoice-document-row').filter({ hasText: invoiceNumber });
     await invoice.getByRole('combobox').selectOption('Incorreto');
     const opening = page.locator('#modal-nova-pendencia');
     await opening.getByLabel('Documento ausente', { exact: true }).check();
@@ -73,13 +77,31 @@ test('login tardio preserva contato, cancelamento e retificação na interface r
     await expect(opening).not.toHaveClass(/show/);
     await page.locator('#pendency-preview-drawer .pendency-preview-close').click();
     await page.locator('#nav-pendencias').click();
-    const row = page.locator('tr[data-pendency-id]').filter({ hasText: 'Documento para acesso tardio' });
+    const row = page.locator('tr[data-pendency-id]').filter({ hasText: description });
     await row.getByRole('button', { name: 'Ver detalhes', exact: true }).click();
     const drawer = page.getByRole('complementary', { name: 'Detalhes da pendência' });
     await expect(drawer.getByRole('button', { name: 'Registrar contato', exact: true })).toBeVisible();
     await expect(drawer.getByRole('button', { name: 'Cancelar pendência', exact: true })).toBeVisible();
-    // Não recarregar a página: uma sessão restaurada rapidamente esconderia o defeito.
-    await expect.poll(() => page.evaluate(() => Boolean(window.RadarTask1213Retifications))).toBe(true);
+    await drawer.getByRole('button', { name: 'Registrar contato', exact: true }).click();
+    const contact = page.getByRole('dialog', { name: 'Registrar contato da pendência' });
+    await contact.getByLabel('Descrição do contato').fill('Contato interno após login tardio.');
+    await contact.getByRole('button', { name: 'Salvar contato', exact: true }).click();
+    await expect(contact).toBeHidden();
+    await expect(drawer).toContainText('Contato interno após login tardio.');
+    await drawer.getByRole('button', { name: 'Cancelar pendência', exact: true }).click();
+    const cancellation = page.getByRole('dialog', { name: 'Cancelar pendência', exact: true });
+    await cancellation.getByLabel('Justificativa do cancelamento').fill('Registro sintético da auditoria.');
+    await cancellation.getByRole('button', { name: 'Confirmar cancelamento', exact: true }).click();
+    await expect(cancellation).toBeHidden();
+    await expect(drawer).toContainText('Cancelada');
+    await drawer.getByRole('button', { name: 'Reabrir pendência', exact: true }).click();
+    const reopening = page.getByRole('dialog', { name: 'Reabrir pendência', exact: true });
+    await reopening.getByLabel('Documento ilegível', { exact: true }).check();
+    await reopening.getByLabel('Justificativa da reabertura').fill('Reabertura sintética após login tardio.');
+    await reopening.getByRole('button', { name: 'Confirmar reabertura', exact: true }).click();
+    await expect(reopening).toBeHidden();
+    await expect(drawer).toContainText('Aberta');
+    // Nenhuma recarga entre Auth e ações: uma sessão restaurada esconderia o defeito.
 });
 
 for (const [email, role] of identities) {

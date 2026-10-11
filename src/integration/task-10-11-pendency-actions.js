@@ -587,10 +587,21 @@
         return true;
     }
 
-    if (!install()) {
-        const interval = root.setInterval(() => {
-            if (install()) root.clearInterval(interval);
-        }, 20);
-        root.setTimeout(() => root.clearInterval(interval), 10000);
+    function installWhenReady() {
+        if (!installed && !install()) return false;
+        root.removeEventListener?.('radar:application-services-ready', installWhenReady);
+        root.removeEventListener?.('radar:pendency-page-ready', installWhenReady);
+        document.removeEventListener?.('DOMContentLoaded', installWhenReady);
+        return true;
+    }
+
+    // Authentication may legitimately finish long after the login form appears.
+    // Service readiness, rather than time spent on that form, owns installation.
+    if (!installWhenReady()) {
+        root.addEventListener?.('radar:application-services-ready', installWhenReady);
+        root.addEventListener?.('radar:pendency-page-ready', installWhenReady);
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', installWhenReady, { once: true });
+        }
     }
 }(window));

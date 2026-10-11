@@ -525,10 +525,19 @@
         return true;
     }
 
-    if (!install()) {
-        const interval = root.setInterval(() => {
-            if (install()) root.clearInterval(interval);
-        }, 20);
-        root.setTimeout(() => root.clearInterval(interval), 10000);
+    function installWhenReady() {
+        if (!installed && !install()) return false;
+        root.removeEventListener?.('radar:application-services-ready', installWhenReady);
+        document.removeEventListener?.('DOMContentLoaded', installWhenReady);
+        return true;
+    }
+
+    // The same authorized session must retain retification regardless of how
+    // long its user took to sign in; repeated readiness events do not rewrap it.
+    if (!installWhenReady()) {
+        root.addEventListener?.('radar:application-services-ready', installWhenReady);
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', installWhenReady, { once: true });
+        }
     }
 }(window));

@@ -20,8 +20,12 @@ com login local real, para históricos e patrimônio terminal. Após pausa para 
 Chrome pessoal (extensão confirmada instalada), o usuário autorizou **continuar
 neste ambiente cloud**: jornadas locais retomadas sem certificação de Production.
 Configuração Codex portátil adicionada; transporte do navegador pessoal continua
-não confirmado. Sem alteração funcional ou de Production
-neste checkpoint. Branch dedicada `audit/controller-journey-2026-10-11`.
+não confirmado. No PR #438 há correções candidatas de identificação do documento
+nos modais corretivos e instalação de ações após login tardio. RED causal,
+GREEN Auth/RLS/RPC e revisão independente registrados em
+[CAUSAL_FINDINGS.md](audits/2026-10-11-controller-journey/CAUSAL_FINDINGS.md).
+**Main e Production permanecem intactas.** A auditoria A–N e a certificação
+visual/CI final continuam em andamento. Branch `audit/controller-journey-2026-10-11`.
 
 Os blocos seguintes são checkpoints datados anteriores. Prioridade “somente leitura”
 do saneamento de 08/10 é contextualizada pela autorização superveniente da Etapa 5:
