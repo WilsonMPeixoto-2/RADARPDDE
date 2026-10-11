@@ -36,8 +36,11 @@ Documento: Notas Fiscais; o modal de reanálise destaca descrição/tipo/valor, 
 o número da NF. Nenhuma gravação na NF errada foi observada.
 O defeito de apresentação foi posteriormente reproduzido por seis REDs e corrigido
 no candidato, com 11 GREENs dirigidos; ver `CAUSAL_FINDINGS.md`. A prova conserva
-dimensão, descrição, tipo, valor e legado. Não certifica toda a tabela nem o footer
-da reanálise; as capturas representativas não substituem essa inspeção.
+dimensão, descrição, tipo, valor e legado. Não certifica toda a tabela; a inspeção
+pareada posterior a 1280×720 mostrou corte preexistente e idêntico no footer da
+reanálise. O candidato recebeu correção CSS isolada, com 12/12 GREENs e inspeção
+1280×720/1440×900 antes/depois da rolagem, sem corte dos botões ou dos últimos
+campos. Ver a cronologia, evidências e limites em `CAUSAL_FINDINGS.md`.
 
 ## Evidência e limites de medição
 

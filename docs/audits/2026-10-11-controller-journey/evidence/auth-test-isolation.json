@@ -1,0 +1,85 @@
+{
+  "date": "2026-10-11",
+  "scope": "Harness isolation only; no product, import, history, Auth/RLS or DB changes",
+  "red": {
+    "runId": 38165985127,
+    "headSha": "a596194401b7f67cffe50c50dd0be37132b553c1",
+    "jobId": 114548528495,
+    "lateAuth": "passed before full-contract",
+    "passed": 17,
+    "failed": 1,
+    "failure": "promoteImportSnapshot: INTEGRITY_CONFLICT: Nota Fiscal possui histórico de pendência individual e não pode ser excluída",
+    "cause": "Late-auth journey leaves NF linked to pendency/contact history; subsequent whole-snapshot replacement tries deleting it, correctly rejected by business integrity protection."
+  },
+  "decision": "Move full late-auth journey unchanged to isolated spec and execute as final dedicated step in the disposable DB jobs after import/rollback and existing Auth/RLS/Realtime suites; gate profiles runs it after viewport validation too. No SQL deletion of history.",
+  "proofPreserved": {
+    "journeyBlockByteIdenticalToOriginal": true,
+    "blockSHA256": "40c6ed90ebefb75226ce8d9668d7774c7bfeb6dd5e4b8c1ca56de4997facecb0",
+    "millisecondsBeforeLogin": 11000,
+    "clockFastForward": true,
+    "fiveRealCommits": true,
+    "reloadBetweenAuthAndActions": false,
+    "sameAuthFlag": "RADAR_E2E_SUPABASE_LOCAL=1",
+    "noContinueOnError": true,
+    "noConditionSuppressingStep": true
+  },
+  "artifactIsolation": {
+    "newReport": "playwright-report-late-auth/",
+    "newResults": "test-results-late-auth/",
+    "originalArtifactsRetained": true
+  },
+  "validation": {
+    "nodeChecks": "passed for both specs",
+    "gitDiffCheck": "passed",
+    "focusedUnits": {
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0
+    },
+    "eslint": {
+      "errors": 0,
+      "warnings": 2,
+      "reason": "Existing conditional skip for environments without disposable Supabase, preserved in both suites; all native late-auth steps explicitly enable real Auth."
+    },
+    "workflowReferences": {
+      "workflows": 38,
+      "references": 345,
+      "valid": true
+    },
+    "yamlParseAndOrder": "passed all three workflows; trigger paths and final ordering checked",
+    "enabledTestDiscovery": {
+      "previousBatch": 17,
+      "lateAuth": 1,
+      "testsLost": 0
+    },
+    "nativeSupabaseBatchGreen": "pending clean CI rerun; shared local DB already has immutable audit history and must not be cleared to manufacture GREEN"
+  },
+  "files": [
+    {
+      "path": "tests/e2e/supabase-auth-local.spec.js",
+      "sha256": "1cd1df9e239d77dab9f7f4a9611e5b832f88e03cdb28012e5df4a0cb8a3406ce"
+    },
+    {
+      "path": "tests/e2e/supabase-late-auth-actions.spec.js",
+      "sha256": "5d65565210738f052e8fc8c49d004b33d9d4ced6bf45b5cdc7db77c2ef781ab8"
+    },
+    {
+      "path": ".github/workflows/supabase-readiness.yml",
+      "sha256": "3852413477b439eb6c3906b6b1c5b9b311ba7da295099cdd207e34138e42254b"
+    },
+    {
+      "path": ".github/workflows/preproduction-full-validation.yml",
+      "sha256": "c6e3370befa64e371251243323568f6fdc93456431f43bba474430332f3f30f3"
+    },
+    {
+      "path": ".github/workflows/gate-remoto-perfis-viewports.yml",
+      "sha256": "39203cffc443d4a975abff362310a40ffc728956531a9cbf3eae1753507905e4"
+    }
+  ],
+  "handoff": [
+    "Update audit documentation commands from old supabase-auth-local --grep login tardio to supabase-late-auth-actions.spec.js.",
+    "Run native readiness/ preproduction/ profile gates from a clean disposable DB.",
+    "Do not run new spec before an import-replaces-all snapshot suite sharing the DB.",
+    "Do not change import or history protection to address fixture contamination."
+  ]
+}

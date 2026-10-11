@@ -177,3 +177,34 @@ test('formulário de boleto pede número ou referência de documento', async ({ 
   await dialog.getByLabel('Tipo de Gasto', { exact: true }).selectOption('boleto_internet');
   await expect(dialog.getByRole('textbox', { name: 'Número ou referência do documento', exact: true })).toBeVisible();
 });
+
+test('reanálise mantém botões inteiros visíveis em desktop de 1280×720', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  const [, second] = await prepareDocuments(page, { awaiting: true });
+  await page.getByRole('tab', { name: /^Aguardando/ }).click();
+  await pendencyRow(page, second.id).getByRole('button', { name: 'Reanalisar', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Reanalisar pendência documental' });
+  await expect(dialog).toBeVisible();
+
+  // A button can satisfy Playwright's visible/viewport checks while an ancestor
+  // clips its lower edge. Check the actual painted/hit-test area of each control.
+  const completeButtons = () => dialog.locator('.modal-footer button').evaluateAll(buttons => (
+    buttons.map(button => {
+      const rect = button.getBoundingClientRect();
+      const points = [rect.top + 1, rect.bottom - 1].map(y => [rect.x + rect.width / 2, y]);
+      return { name: button.textContent.trim(), fullyVisible: points.every(([x, y]) => {
+        const target = document.elementFromPoint(x, y);
+        return Boolean(target && button.contains(target));
+      }) };
+    })
+  ));
+  const expected = [
+    { name: 'Cancelar', fullyVisible: true },
+    { name: 'Confirmar reanálise', fullyVisible: true }
+  ];
+  await expect.poll(completeButtons).toEqual(expected);
+  await dialog.locator('.modal-body').hover();
+  await page.mouse.wheel(0, 2000);
+  await expect(dialog.getByLabel('Resultado da reanálise', { exact: true })).toBeVisible();
+  await expect.poll(completeButtons).toEqual(expected);
+});

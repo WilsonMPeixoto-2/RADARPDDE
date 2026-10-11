@@ -19,6 +19,11 @@
       "file": "pendency-export-summary.json",
       "bytes": 1453,
       "sha256": "b0b0eb99b3b7108db66005f73e7881670a408953cb229a09dc806613998e74dd"
+    },
+    {
+      "file": "reanalysis-footer-comparison.json",
+      "bytes": 4109,
+      "sha256": "858439728c9536f2f0701f280239a520dc52772b394b720edbf21e4d9eb77920"
     }
   ],
   "logs": [
@@ -66,7 +71,7 @@
     }
   ],
   "limits": [
-    "Identity screenshots certify visible document context, not complete modal footer or responsive behavior.",
+    "Identity screenshots certify visible document context; paired 1280x720 inspection found identical preexisting footer clipping in baseline and candidate.",
     "Two legacy cases remain uncertified after timeout; no test expectation or timeout relaxed.",
     "Raw Auth traces, sessions and XLSX workbook excluded from Git.",
     "A–N audit remains partial; no Production behavior or performance conclusion."

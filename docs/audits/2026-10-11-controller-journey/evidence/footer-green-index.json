@@ -1,0 +1,54 @@
+{
+  "date": "2026-10-11",
+  "environment": "Local fixture; Chromium; not Production",
+  "outcome": "12 passed; 36.5s; no timeout or golden relaxed",
+  "implementation": "Only bottom:0 on reanalysis modal footer in global-visual-polish.css",
+  "log": {
+    "file": "/workspace/scratch/controller-footer-green.log",
+    "bytes": 2111,
+    "sha256": "40dea91c4f6844a4ce52eccbc10347666fa25aa942195677a7530b35268776c7"
+  },
+  "artifacts": [
+    {
+      "file": "reanalysis-footer-baseline-1280.png",
+      "bytes": 182594,
+      "sha256": "2dbc68bfd738200729fb52f3552fc491c088cf19d31dd341ca71aa6d08ab4b17"
+    },
+    {
+      "file": "reanalysis-footer-candidate-1280.png",
+      "bytes": 183411,
+      "sha256": "1cb94c08491aa231f630ca7a8b2a9ca6e01f5c657d69e81b70e61b6df9588277"
+    },
+    {
+      "file": "reanalysis-footer-green-visual.json",
+      "bytes": 12908,
+      "sha256": "7110dcc0a5bf86ad98290cc82c6b6f35846a8959da784d35d07665a212f4676b"
+    }
+  ],
+  "visuals": [
+    {
+      "file": "/workspace/scratch/controller-footer-candidate-1280-scrolled.png",
+      "bytes": 146803,
+      "sha256": "5e78347b66b6c6caf4c64c2bb3935fdfc6b14b7acd26cdb8c2cb0a46cc3a53d6",
+      "stored": "local scratch only; representative pair committed as artifacts above"
+    },
+    {
+      "file": "/workspace/scratch/controller-footer-candidate-1440-initial.png",
+      "bytes": 225832,
+      "sha256": "bcf007adfe854d979769fa27dfc882c45c7846f1be57da951f1aefb7b8f68c9b",
+      "stored": "local scratch only; representative pair committed as artifacts above"
+    },
+    {
+      "file": "/workspace/scratch/controller-footer-candidate-1440-scrolled.png",
+      "bytes": 182349,
+      "sha256": "0f5d3b51059bfda067a81e87ec6f58780913b7e00f3b2437b9d550cd03dc38e7",
+      "stored": "local scratch only; representative pair committed as artifacts above"
+    }
+  ],
+  "independentReview": "readiness_adversarial: selector/order/position/form/submit/other modals checked; no blocker found",
+  "limits": [
+    "Local fixture visual/hit-test at1280x720 and1440x900, before and after scroll.",
+    "Auth real verification is tracked by root; not covered by this fixture evidence.",
+    "No all-content or all-viewport certification."
+  ]
+}

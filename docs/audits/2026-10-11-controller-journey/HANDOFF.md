@@ -12,6 +12,22 @@ Production. Ler primeiro [CAUSAL_FINDINGS.md](CAUSAL_FINDINGS.md) e
 [JOURNEYS.md](JOURNEYS.md); os blocos antigos abaixo preservam a sequência da
 investigação e contêm afirmações temporais já superadas.
 
+Checkpoint seguinte: rodapé da reanálise corrigido após RED de hit-test em
+1280×720 e comparação baseline/candidato; **12/12** contratos de identidade/rodapé
+passaram. A inspeção autenticada desse CSS ainda está pendente. A CI do
+`a5961944` passou a jornada tardia, mas a importação posterior tentou excluir sua
+NF com histórico protegido e foi corretamente rejeitada. A jornada foi movida,
+sem alterar asserções, para `supabase-late-auth-actions.spec.js`, executada como
+último passo dedicado depois de import/rollback em três gates. Não apagar
+histórico nem mudar a regra de importação para fabricar GREEN. Diagnóstico em
+`evidence/auth-test-isolation.json`; a nova CI limpa ainda precisa confirmar.
+
+Outro vermelho de `a5961944`, run `38165984970`: o caso Conectada persistiu,
+recarregou e passou os contratos funcionais; falhou ao exigir painel inteiro
+no viewport (ratio 0,94886893). O retry serial encontrou os dados legítimos já
+gravados e falhou na expectativa inicial vazia. Investigar a captura original
+antes de modificar produto ou teste. Não considerar esse retry causa-raiz.
+
 Pendências atuais: inspeção Auth de modais em 1280×720, repetição dos dois E2E
 legados que excederam 30s sob carga, bonificação/consolidação/retificação tardia,
 reconexão e exportação institucional. Não aumentar deadlines dos testes legados
