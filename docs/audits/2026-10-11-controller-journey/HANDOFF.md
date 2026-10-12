@@ -2,6 +2,44 @@
 
 ## Missão e ponto de partida
 
+**Checkpoint superveniente — 11/10, 22:45 Brasília:** proteção terminal implementada
+no candidato, aplicada somente no Supabase descartável. `InvoiceService.remove`
+nega a remoção conhecida antes da fila e revalida o bem/vínculo atuais dentro da
+mutação. Migration 61 reutiliza a função terminal para DELETE de bem e acrescenta
+proteção da NF com lock patrimonial, inclusive RPC com `p_delete_linked_asset=false`.
+Sem mudança de Auth/RLS/perfis. Prova antes/depois:
+
+- três REDs unitários (terminal conhecido, inventariação durante espera, troca de
+  vínculo durante espera); **58 testes relacionados GREEN**;
+- quatro REDs SQL, agora **18/18 GREEN**; **41 arquivos pgTAP GREEN** com seed
+  pré-Auth isolado por transação, sem desabilitar triggers;
+- duas sessões PostgreSQL: DELETE espera inventariação em voo e é recusado após
+  commit, NF e bem preservados (`terminal-lock-proof.json`);
+- E2E novo com dois perfis reais: Controller cria NF, Inventário conclui pela UI,
+  Controller recebe atualização, exclusão recusada com **zero RPC de remoção**,
+  edição de valor permitida, reload conserva NF/bem/autoria/data; **1/1, 14,6 s** na versão final, incluindo valor do bem e processo patrimonial.
+
+`terminal-deletion-green.json` indexa logs/hashes e limites. O pgTAP inicial amplo
+em base já usada pela auditoria falhou por dados extras/seed pós-Auth e pela fixture
+de exclusão terminal; foi preservado. Contexto agora testa NF de consumo em escola
+separada, mantendo intacta a contraprova de vínculo cruzado. Import/rollback usa
+bem pré-terminal; não criar bypass para apagar patrimônio inventariado. Os três
+gates executam a nova jornada depois de import/rollback, junto ao login tardio.
+
+Todos os gates aplicáveis do checkpoint **52efc260** ficaram verdes, inclusive o
+E2E legado. Isso supera o vermelho de 6139 sem mudança de deadline/asserções.
+A nova CI com migration 61 ainda precisa certificar o candidato final. A rodada
+unitária ampla local terminou com **1.341 aprovados, zero falhas/skips** após incluir
+a migration no índice Git. Antes disso o inventário comparava 60 arquivos tracked
+com 61 no diretório; esse erro foi preservado e resolvido sem alterar o teste.
+
+Próximo agente: conferir HEAD/CI reais; não reaplicar a migration no descartável
+sem consultar `schema_migrations`. Production segue na migration 60. Antes de
+publicar, homologar a migration pelo fluxo normal, revisar diff exato e contratos
+de importação/backup. A missão A–N continua parcialmente caracterizada; CI verde
+não representa observação autenticada de Production nem encerra todos os itens
+visuais residuais. Os registros sintéticos terminais novos foram conservados.
+
 **Checkpoint superveniente — 11/10, 19:40 UTC:** salvar este estado antes de
 qualquer validação longa. Contato interno recebeu proteção contra submit
 concorrente reutilizando `critical-action-guard`: RED com duas RPCs/dois contatos

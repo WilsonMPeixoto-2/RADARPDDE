@@ -26,6 +26,7 @@ on:
       - 'tests/e2e/supabase-local-mode.spec.js'
       - 'tests/e2e/supabase-auth-local.spec.js'
       - 'tests/e2e/supabase-late-auth-actions.spec.js'
+      - 'tests/e2e/supabase-inventory-terminal-delete.spec.js'
       - 'tests/e2e/exercise-management.spec.js'
       - 'tests/e2e/frontend-contract.spec.js'
       - 'docs/architecture/supabase-readiness.md'
@@ -62,6 +63,7 @@ on:
       - 'tests/e2e/supabase-local-mode.spec.js'
       - 'tests/e2e/supabase-auth-local.spec.js'
       - 'tests/e2e/supabase-late-auth-actions.spec.js'
+      - 'tests/e2e/supabase-inventory-terminal-delete.spec.js'
       - 'tests/e2e/exercise-management.spec.js'
       - 'tests/e2e/frontend-contract.spec.js'
       - 'docs/architecture/supabase-readiness.md'
@@ -386,6 +388,7 @@ jobs:
           PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report-late-auth
         run: >-
           npx playwright test tests/e2e/supabase-late-auth-actions.spec.js
+          tests/e2e/supabase-inventory-terminal-delete.spec.js
           --project=desktop-chromium --output=test-results-late-auth
 
       - name: Publicar relatório do contrato Supabase local

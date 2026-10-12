@@ -642,6 +642,18 @@
             );
         }
 
+        assertDeletionAssetSafe(state, invoice) {
+            const assetId = text(invoice.bemId || invoice.linked_asset_id);
+            const asset = assetId && state.assets.find(item => text(item.id) === assetId);
+            if (!asset || text(asset.status) !== 'Inventariada') return true;
+            fail(
+                'ASSET_ALREADY_INVENTORIED',
+                'Esta Nota Fiscal está vinculada a um bem já inventariado e não pode ser excluída. Os dados cadastrais continuam editáveis.',
+                'invoice:remove',
+                { invoiceId: text(invoice.id), assetId }
+            );
+        }
+
         assertOrdinaryUnidentifiedMutationAllowed(invoice, operation) {
             if (!isUnidentifiedExpense(invoice)) return true;
             fail(
@@ -1283,6 +1295,7 @@
             const initialInvoice = initialState.registeredInvoices[initialIndex];
             this.assertOrdinaryUnidentifiedMutationAllowed(initialInvoice, 'invoice:remove');
             this.assertDeletionHistorySafe(initialState, invoiceId);
+            this.assertDeletionAssetSafe(initialState, initialInvoice);
             const initialContext = this.getContext(initialState, {
                 schoolId: input.schoolId || initialInvoice.escolaId,
                 compKey: initialInvoice.compKey
@@ -1338,6 +1351,10 @@
                         );
                     }
                     const invoice = state.registeredInvoices[index];
+                    // A inventariação pode ter sido aplicada enquanto esta
+                    // remoção aguardava a fila de escrita. Conferir o estado
+                    // atual antes de qualquer mutação ou log otimista.
+                    this.assertDeletionAssetSafe(state, invoice);
                     const context = this.getContext(state, {
                         schoolId: input.schoolId || invoice.escolaId,
                         compKey: invoice.compKey

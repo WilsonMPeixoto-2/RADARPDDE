@@ -4,7 +4,7 @@ set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(35);
+select plan(36);
 
 insert into auth.users (id, email)
 values ('00000000-0000-0000-0000-000000000995', 'operational-context@example.test');
@@ -435,10 +435,31 @@ select is(
     'perfil inativo sem escopos explícitos não recebe dados das seis coleções'
 );
 
--- DELETE técnico da fixture caracteriza remoção da última linha; não substitui
--- os contratos próprios das RPCs de exclusão de NF com histórico/efeitos derivados.
-delete from public.pendencies where id = 'pendency-sep-resolved';
-delete from public.registered_invoices where id = 'invoice-sep';
+-- A remoção usa outra escola e uma NF de consumo elegível. A corrupção
+-- cruzada exercitada acima conserva seu patrimônio terminal e não é apagada
+-- artificialmente para comprovar cobertura vazia.
+insert into public.schools (
+    id, designation, denomination, cre, initial_competence, inep, cnpj, sici
+) values ('04.99.993', '04.99.993', 'Escola remoção elegível', '4ª CRE', '2026-09',
+    '33999993', '99.999.993/0001-93', 'SICI-CTX-993');
+insert into public.verifications (id, school_id, competence_id, program_id, bonification, analysis)
+values ('v-delete', '04.99.993', '2026-09', 'CTX_BASIC', '{}', '{}');
+insert into public.registered_invoices (
+    id, school_id, competence_id, program_id, verification_id, source_context_key,
+    description, expense_type, invoice_number, amount
+) values ('invoice-delete', '04.99.993', '2026-09', 'CTX_BASIC', 'v-delete',
+    '2026-09_CTX_BASIC', 'Consumo elegível', 'consumo', 'NF-DELETE', 10);
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000995', true);
+select is(
+    (select count(*) from jsonb_array_elements(
+        public.read_operational_context('2026-09')->'entities'->'registeredInvoices') item
+     where item->>'school_id' = '04.99.993'),
+    1::bigint,
+    'escola elegível tem uma NF coberta antes da exclusão'
+);
+reset role;
+delete from public.registered_invoices where id = 'invoice-delete';
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000995', true);
 create temporary table context_after_last_invoice_delete as
@@ -448,14 +469,14 @@ select is(
     (select coalesce(jsonb_agg(item), '[]'::jsonb)
         from context_after_last_invoice_delete,
             jsonb_array_elements(value -> 'entities' -> 'registeredInvoices') item
-        where item ->> 'school_id' = '04.99.995'),
+        where item ->> 'school_id' = '04.99.993'),
     '[]'::jsonb,
     'apagar última NF coberta da escola deixa sua fatia vazia'
 );
 select ok(
     exists (select 1 from context_after_last_invoice_delete,
         jsonb_array_elements(value -> 'entities' -> 'verifications') item
-        where item ->> 'id' = 'v-sep')
+        where item ->> 'id' = 'v-delete')
     and exists (select 1 from context_after_last_invoice_delete,
         jsonb_array_elements(value -> 'entities' -> 'assets') item
         where item ->> 'id' = 'asset-sep-done'),

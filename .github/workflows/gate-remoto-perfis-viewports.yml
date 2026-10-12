@@ -19,6 +19,7 @@ on:
       - 'scripts/generate-runtime-config.mjs'
       - 'tests/e2e/supabase-auth-local.spec.js'
       - 'tests/e2e/supabase-late-auth-actions.spec.js'
+      - 'tests/e2e/supabase-inventory-terminal-delete.spec.js'
       - 'tests/e2e/supabase-full-contract.spec.js'
       - 'tests/e2e/pendency-reanalysis-auth.spec.js'
       - 'tests/e2e/supabase-preview-profile-viewport.spec.js'
@@ -47,6 +48,7 @@ on:
       - 'scripts/generate-runtime-config.mjs'
       - 'tests/e2e/supabase-auth-local.spec.js'
       - 'tests/e2e/supabase-late-auth-actions.spec.js'
+      - 'tests/e2e/supabase-inventory-terminal-delete.spec.js'
       - 'tests/e2e/supabase-full-contract.spec.js'
       - 'tests/e2e/pendency-reanalysis-auth.spec.js'
       - 'tests/e2e/supabase-preview-profile-viewport.spec.js'
@@ -161,6 +163,7 @@ jobs:
           PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report-late-auth
         run: >-
           npx playwright test tests/e2e/supabase-late-auth-actions.spec.js
+          tests/e2e/supabase-inventory-terminal-delete.spec.js
           --project=desktop-chromium --output=test-results-late-auth
 
       - name: Publicar evidências do gate

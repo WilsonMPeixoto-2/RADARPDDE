@@ -35,6 +35,12 @@ pela ação ordinária; falha herdada da main e bloqueio para conclusão desta f
 RED, logs sanitizados, novas jornadas e próximos passos constam do handoff único.
 O PR #438 permanece Draft; nenhum merge/deploy desta auditoria foi realizado.
 
+Checkpoint posterior, 11/10 às 22:45 Brasília: proteção terminal implementada no
+serviço e na migration candidata 61, com 58 unitários dirigidos, 18 pgTAP causais,
+41 arquivos pgTAP isolados, concorrência SQL e duas sessões Auth/UI aprovados.
+CI do checkpoint 52efc260 terminou verde; a CI do novo candidato com migration
+ainda precisa concluir. Handoff acima contém caminhos, limites e publicação pendente.
+
 Os blocos seguintes são checkpoints datados anteriores. Prioridade “somente leitura”
 do saneamento de 08/10 é contextualizada pela autorização superveniente da Etapa 5:
 CRUD sintético reversível apenas com conta legitimamente autorizada; efeitos

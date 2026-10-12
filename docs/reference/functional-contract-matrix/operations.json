@@ -444,7 +444,7 @@
     "evidence": "pendency",
     "coverage": "partial",
     "gaps": [
-      "Falta prova controlada de idempotência, associação e releitura."
+      "Duplo clique concorrente, associação, segundo contato legítimo e releitura foram provados no descartável da auditoria de 11/10. Falta contrato durável de idempotência para retry após commit remoto com resposta perdida; a proteção de gesto não cobre essa situação."
     ],
     "next": "controlled-write"
   },
@@ -512,7 +512,7 @@
   {
     "id": "INV-02",
     "surface": "school-record",
-    "action": "Excluir documento fiscal sem qualquer histórico de Pendência individual e reverter efeitos vinculados, preservando bonificação/consolidação; operação separada da retificação",
+    "action": "Excluir documento fiscal sem histórico de Pendência individual nem bem Inventariada e reverter efeitos vinculados, preservando bonificação/consolidação; operação separada da retificação",
     "mode": "write",
     "criticality": "P0",
     "allow": [
@@ -541,10 +541,18 @@
       [
         "supabase/migrations/20260823045000_service_advisory_corrective_submission.sql",
         "protect_service_advisory_invoice_history"
+      ],
+      [
+        "src/application/invoice-service.js",
+        "assertDeletionAssetSafe"
+      ],
+      [
+        "supabase/migrations/20261011193500_inventory_terminal_delete_protection.sql",
+        "registered_invoices_protect_inventoried_delete"
       ]
     ],
-    "service": "InvoiceService.remove + proteção histórica individual",
-    "repository": "deleteInvoiceWithEffects + advisory history trigger",
+    "service": "InvoiceService.remove + proteção histórica e patrimonial terminal",
+    "repository": "deleteInvoiceWithEffects + triggers de histórico e patrimônio terminal",
     "resources": [
       "registered_invoices",
       "assets",
