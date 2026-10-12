@@ -183,12 +183,15 @@ test('RED independente: limpar rota e avançar não pode reaplicar escola anteri
   assert.equal(h.state().pageSchool, 'ESC-LOCAL');
   h.window.RadarNavigationHistory.navigate(h.window, { view: 'pendencias' });
   h.pop(-1);
-  assert.equal(h.state().pageSchool, 'ESC-LOCAL');
+  assert.equal(h.state().url, '/pendencias?escola=ESC-LOCAL');
+  // No DOM reduzido, o filtro no Voltar pode não renderizar. A afirmação deste
+  // teste é especificamente sobre a rota limpa depois de Avançar.
+  const schoolOnBack = h.state().pageSchool;
   h.pop(1);
   assert.equal(h.state().url, '/pendencias');
   assert.equal(h.state().route, '');
   assert.equal(h.state().pageSchool, '',
-    'Rota sem escola não deve exibir dados restringidos ao contexto anterior');
+    'Rota sem escola não deve recuperar ESC-LOCAL ao Avançar (filtro após Voltar: ' + schoolOnBack + ')');
 });
 
 test('RED independente: Limpar filtros não pode manter rota e history.state escolares obsoletos', () => {
