@@ -2,6 +2,12 @@
 
 ## Etapa 5 — auditoria operacional imersiva iniciada em 11/10/2026
 
+**Checkpoint 12/10:** baseline do #438 `3fcaeada` com 21 workflows success.
+Nova reprodução de app.js lento confirmou perda da página Task9; correção candidata
+com 16 unitários e E2E inicial verdes, mas E2E ampliado voltar/avançar falha e ainda
+exige diagnóstico. PR permanece Draft, sem merge/deploy. Ler primeiro o checkpoint
+prioritário do handoff abaixo; os blocos anteriores não são certificação atual.
+
 **Frente corrente:** jornadas A–N do Controlador, orientadas pela UI e experiência
 real, após a modernização #433–#437. Não repetir certificação histórica nem
 reimplementar #408/#410/#427/#429. **Handoff corrente único:**

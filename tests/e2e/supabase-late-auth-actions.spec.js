@@ -27,6 +27,46 @@ async function waitForApplication(page, role) {
     await expect(page.locator('#auth-logout-button')).toBeVisible();
 }
 
+test('carregamento tardio do app preserva a página operacional de Pendências', async ({ page }) => {
+    test.setTimeout(60000);
+    const controller = fixtures.find(fixture => fixture.profileId === 'controller' && fixture.active);
+    let releaseApp;
+    const appReleased = new Promise(resolve => { releaseApp = resolve; });
+    await page.route('**/app.js', async route => {
+        await appReleased;
+        await route.continue();
+    });
+    const extensionLoaded = page.waitForResponse(response =>
+        response.url().endsWith('/src/integration/task-9-pendencias-page.js') && response.ok());
+    const navigation = page.goto('/pendencias?escola=ESC-LOCAL');
+    try {
+        await extensionLoaded;
+        // Rede lenta do script principal, sem modificar globals, Auth ou dados.
+        // O deadline histórico da extensão expira enquanto app.js está em trânsito.
+        await new Promise(resolve => setTimeout(resolve, 11000));
+    } finally {
+        releaseApp();
+    }
+    await navigation;
+    await page.locator('#radar-auth-email').fill(controller.email);
+    await page.locator('#radar-auth-password').fill(fixturePassword);
+    await page.locator('#radar-auth-form button[type="submit"]').click();
+    await waitForApplication(page, 'controller');
+    await expect(page.getByRole('heading', { name: 'Pendências operacionais', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Baixar planilha de pendências em formato Excel' })).toBeVisible();
+    await expect(page.getByRole('tablist', { name: 'Situações das pendências' })).toBeVisible();
+    await expect(page.locator('#pendency-filter-school')).toHaveValue('ESC-LOCAL');
+    await expect(page.getByRole('region', { name: 'Filtro ativo por unidade escolar' }))
+        .toContainText('Escola Local Autorizada');
+    await page.getByRole('button', { name: 'Limpar filtro de unidade' }).click();
+    await expect(page).toHaveURL(/\/pendencias$/);
+    await expect(page.locator('#pendency-filter-school')).toHaveValue('');
+    await page.goBack();
+    await expect(page.locator('#pendency-filter-school')).toHaveValue('ESC-LOCAL');
+    await page.goForward();
+    await expect(page.locator('#pendency-filter-school')).toHaveValue('');
+});
+
 // Esta jornada cria histórico protegido de NF/Pendência. Os gates a executam
 // depois do contrato de import/rollback, em processo separado, sem apagar o histórico.
 test('login tardio preserva ações de Pendência na interface real', async ({ page }) => {

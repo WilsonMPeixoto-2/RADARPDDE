@@ -108,12 +108,7 @@ test('Pendency page installed after DOM/services restores its dependent capabili
     harness.finishDom();
     harness.publishServices();
     harness.publishCompetence();
-    assert.equal(harness.root.RadarTask9PendencyPage, undefined);
-    assert.equal(harness.root.RadarTask1011PendencyActions, undefined);
-    assert.equal(harness.root.RadarOperationalReadinessBridge, undefined);
-
-    // The existing Task 9 timer discovers app.js after all earlier lifecycle events.
-    harness.tickInstallationIntervals();
+    // Readiness now installs the page directly; no discovery timer is required.
     assert.ok(harness.root.RadarTask9PendencyPage);
     assert.ok(harness.root.RadarTask1011PendencyActions,
         'The page authority must notify actions that could not install at the services event');

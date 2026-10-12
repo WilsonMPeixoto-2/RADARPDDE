@@ -148,3 +148,31 @@ e cobertura operacional A–N ainda parcial. A tabela de Pendências continua a 
 descrição como título em alguns registros, sem número visível na linha; a correção
 de identidade desta rodada se restringe aos dois modais e ao rótulo de documento.
 Não há comprovação nova de fluidez, DOM/CPU ou efeito em Production.
+
+
+## Retomada 12/10 — atraso de script e validação ainda incompleta
+
+**Novo defeito reproduzido na interface autenticada:** reter somente `app.js` por
+11s faz os três módulos Task9 desistirem da instalação. Após login, a interface
+abre “Passivo e Regularizações de Pendências”, em vez da página operacional atual;
+ações de contato e pontes dependentes ficam ausentes. Isso é atraso de script,
+não o login tardio já corrigido. RED externo em `73597753` confirmado; revisão
+independente desta retomada concordou com a causa e alertou para os dependentes.
+
+Correção candidata salva: os três instaladores Task9 usam lifecycle existente,
+sem polling/deadline, incluindo DOMContentLoaded durante `interactive`. **16/16
+unitários focados verdes** e prova Auth inicial **1/1, 17s** (heading, exportação,
+abas). O controle unitário antigo esperava ausência até um tick de polling: foi
+atualizado para exigir instalação direta nos eventos, preservando delegação única.
+
+**Não está pronto para merge.** Ao ampliar o E2E para rota escolar → limpar filtro
+→ voltar → avançar, surgiu falha: depois de avançar o filtro continua ESC-LOCAL.
+Ainda não foi distinguido defeito de navegação de expectativa incorreta sobre
+replaceState/pushState. Não relaxar a asserção nem empilhar patch: verificar URL,
+rota, histórico e controle sem atraso. A jornada longa de login/contatos passou; a rodada final teve uma aprovação
+e uma falha, em um minuto. O novo CI ainda não certificou o
+candidato. O JSON `evidence/task9-delayed-app-checkpoint.json` guarda causa,
+limites, runs e hashes. Logs privados em `/workspace/scratch/controller-private/`.
+
+
+Ver o checkpoint prioritário do HANDOFF e `evidence/task9-delayed-app-checkpoint.json`.

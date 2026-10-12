@@ -1,0 +1,194 @@
+{
+  "recordedAt": "2026-10-12T13:51:03.539520+00:00",
+  "baseline": "3fcaeadaee8794a782483b17b547b427b4c3dec3",
+  "environment": "Supabase local descartável + Auth real + Chromium Playwright 1.64.0; não Production",
+  "independentReviews": {
+    "terminal": "PR440, 63f69a13, contraprova SQL sem modificar asserções do PR439; readiness verde",
+    "task9": "PR439 73597753 e revisão somente leitura task9_review_oct12"
+  },
+  "confirmedCause": "config.js injeta Task9 antes de app.js defer. Após 10s os três instaladores abandonam descoberta; rede lenta deixa Pendências no renderer legado mesmo após Auth. Login tardio sozinho é outro cenário.",
+  "red": {
+    "network": "app.js retido 11s, sem modificar globals, Auth ou dados",
+    "authenticated": true,
+    "expectedHeading": "Pendências operacionais",
+    "actualHeading": "Passivo e Regularizações de Pendências",
+    "missing": [
+      "RadarTask9PendencyPage",
+      "RadarTask9FocusBridge",
+      "RadarTask9CrossView",
+      "RadarTask1011PendencyActions",
+      "RadarOperationalReadinessBridge"
+    ],
+    "e2e": "delayed-app-causal-red.log: falha na expectativa do heading operacional após login bem-sucedido"
+  },
+  "candidate": "Tentativa imediata e lifecycle DOMContentLoaded/application-services-ready; dependentes também pendency-page-ready. Remove três pollings/deadlines. Escuta DOM durante interactive, idempotente, listeners removidos.",
+  "verification": {
+    "focusedUnit": {
+      "passed": 16,
+      "failed": 0
+    },
+    "initialAuthE2E": {
+      "passed": 1,
+      "seconds": 17.0,
+      "coverage": "atraso app, login, heading/exportação/abas"
+    },
+    "expandedAuthE2E": {
+      "status": "NÃO VERDE",
+      "failure": "Após filtro escolar, limpar, voltar e avançar, expected filtro vazio mas ESC-LOCAL. Causa não investigada; verificar semântica replace/push do histórico e controle sem atraso antes de alterar produto/teste.",
+      "otherTest": "Login tardio/contatos passou; resultado total 1 passou, 1 falhou, duração 1 minuto."
+    }
+  },
+  "environmentFailure": "Primeira execução ficou no login por perfil indisponível. Worker nativo com proxy explícito confirmou Auth saudável; configurado proxy somente no config privado do harness e RED repetido atingiu a UI autenticada. Falha inicial não usada como RED do produto.",
+  "relatedRisk": "Outros módulos do loader têm deadline similar. Não alterados sem prova específica; não expandir correção genericamente.",
+  "baselineCI": [
+    {
+      "name": "Uso real operacional com volume semelhante a Production",
+      "id": 38193591608,
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38193591608"
+    },
+    {
+      "name": "CodeQL",
+      "id": 38193591687,
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38193591687"
+    },
+    {
+      "name": "Saúde das dependências",
+      "id": 38193591667,
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38193591667"
+    },
+    {
+      "name": "Nomenclatura Painel",
+      "id": 38193591692,
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38193591692"
+    },
+    {
+      "name": "Estabilidade de posição do Prontuário",
+      "id": 38193591706,
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38193591706"
+    },
+    {
+      "name": "Confiabilidade funcional com Supabase real",
+      "id": 38193591609,
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38193591609"
+    },
+    {
+      "name": "Regressão visual desktop",
+      "id": 38193591681,
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38193591681"
+    },
+    {
+      "name": "Identificação de Despesa a identificar",
+      "id": 38193591728,
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38193591728"
+    },
+    {
+      "name": "Regressões específicas do help desk",
+      "id": 38193591713,
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38193591713"
+    },
+    {
+      "name": "Backup e restauração descartáveis",
+      "id": 38193591642,
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38193591642"
+    },
+    {
+      "name": "Supabase readiness",
+      "id": 38193591689,
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38193591689"
+    },
+    {
+      "name": "Gate remoto de perfis e viewports",
+      "id": 38193591654,
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38193591654"
+    },
+    {
+      "name": "Ciclos funcionais reais com Supabase",
+      "id": 38193591699,
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38193591699"
+    },
+    {
+      "name": "Lighthouse CI",
+      "id": 38193591621,
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38193591621"
+    },
+    {
+      "name": "Contratos-fonte do Excel SME",
+      "id": 38193591833,
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38193591833"
+    },
+    {
+      "name": "Smoke autenticado real em Production",
+      "id": 38193591729,
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38193591729"
+    },
+    {
+      "name": "Validar snapshot canônico do RADAR",
+      "id": 38193591637,
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38193591637"
+    },
+    {
+      "name": "Validar RADAR PDDE",
+      "id": 38193591734,
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38193591734"
+    },
+    {
+      "name": "Retificação auditável direcionada",
+      "id": 38193591632,
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38193591632"
+    },
+    {
+      "name": "Testes E2E Playwright",
+      "id": 38193591641,
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38193591641"
+    },
+    {
+      "name": "Homologação integral pré-production",
+      "id": 38193591643,
+      "conclusion": "success",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38193591643"
+    }
+  ],
+  "ciLimit": "21 workflows success em3fca; job autenticado Production desabilitado/skipped não comprova sessão real. CI da nova correção ainda pendente.",
+  "privateLogIndex": {
+    "delayed-app-red.log": {
+      "sha256": "cff3f823828eff50a370efcb57f601ebb057d23fa0e86ee07d8c46251d248ed3",
+      "bytes": 2823
+    },
+    "delayed-app-causal-red.log": {
+      "sha256": "d2462e805505cc924deb118ac5a6a7079e53e9d26639df554d22a2f30fe23eb8",
+      "bytes": 3312
+    },
+    "delayed-app-green.log": {
+      "sha256": "7bc6198f4460551d81ef0993bda68b2020bfdbe3fddc2b0feac55aea456cccc7",
+      "bytes": 374
+    },
+    "task9-unit-green.log": {
+      "sha256": "d0749a195b56095d7494e3e272d6919107e3645cdaa000598c6eb1951ec9a593",
+      "bytes": 1791
+    },
+    "late-readiness-full-green.log": {
+      "sha256": "626758828d152d7f2ad9292b98bb5f8f398f85256396e679c4fa638aaeddce1a",
+      "bytes": 3534
+    }
+  }
+}

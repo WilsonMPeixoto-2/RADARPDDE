@@ -1,6 +1,54 @@
 # Handoff — auditoria imersiva do Controlador
 
-## Missão e ponto de partida
+## Checkpoint prioritário — 12/10/2026, retomada e salvamento por cota
+
+Remoto foi incorporado por fast-forward de `0ee97f50` para **`3fcaeada`**:
+única diferença era a 61ª migration na verificação pós-aplicação. **21 workflows
+terminaram success** nesse SHA; smoke autenticado Production continua desabilitado
+no job, portanto não representa uso real. Main segue `113841bd`; nenhum merge,
+deploy ou alteração em Production nesta retomada. O #440 repetiu as contraprovas
+SQL independentes do #439 sobre a proteção terminal e seu readiness ficou verde.
+
+**Novo defeito reproduzido na interface autenticada:** reter somente `app.js` por
+11s faz os três módulos Task9 desistirem da instalação. Após login, a interface
+abre “Passivo e Regularizações de Pendências”, em vez da página operacional atual;
+ações de contato e pontes dependentes ficam ausentes. Isso é atraso de script,
+não o login tardio já corrigido. RED externo em `73597753` confirmado; revisão
+independente desta retomada concordou com a causa e alertou para os dependentes.
+
+Correção candidata salva: os três instaladores Task9 usam lifecycle existente,
+sem polling/deadline, incluindo DOMContentLoaded durante `interactive`. **16/16
+unitários focados verdes** e prova Auth inicial **1/1, 17s** (heading, exportação,
+abas). O controle unitário antigo esperava ausência até um tick de polling: foi
+atualizado para exigir instalação direta nos eventos, preservando delegação única.
+
+**Não está pronto para merge.** Ao ampliar o E2E para rota escolar → limpar filtro
+→ voltar → avançar, surgiu falha: depois de avançar o filtro continua ESC-LOCAL.
+Ainda não foi distinguido defeito de navegação de expectativa incorreta sobre
+replaceState/pushState. Não relaxar a asserção nem empilhar patch: verificar URL,
+rota, histórico e controle sem atraso. A jornada longa de login/contatos passou; a rodada final teve uma aprovação
+e uma falha, em um minuto. O novo CI ainda não certificou o
+candidato. O JSON `evidence/task9-delayed-app-checkpoint.json` guarda causa,
+limites, runs e hashes. Logs privados em `/workspace/scratch/controller-private/`.
+
+Próximos passos, nesta ordem:
+1. Revalidar HEAD/worktree/CI e ler resultado `late-readiness-full-green.log`.
+2. Investigar a asserção voltar/avançar, confrontando navegação normal e lenta.
+3. Verificar foco/filtro/atalhos cross-view e contato no cenário lento; rodar
+   regressões relacionadas e depois CI do candidato consolidado.
+4. Reconciliar JOURNEYS/CAUSAL_FINDINGS antigos com as provas de patrimônio,
+   bonificação, exportações e reconexão já registradas. A–N ainda não concluída.
+5. Prosseguir com boleto incorreto/correção, navegação e medidas de tempo percebido,
+   sem reabrir alterações históricas ou declarar fluidez Production comprovada.
+
+Ambiente: servidor snapshot em4176, Supabase descartável saudável, migration61
+já aplicada. Config Playwright privado recebeu proxy com bypass localhost para
+reproduzir Auth neste executor; nenhuma credencial foi versionada. Não imprimir
+error-context de login: snapshots ARIA podem incluir valor de campo password.
+Outros deadlines no loader são risco relacionado ainda não reproduzido por
+superfície; não ampliar automaticamente esta correção.
+
+## Checkpoints anteriores — históricos
 
 **Checkpoint superveniente — 11/10, 22:45 Brasília:** proteção terminal implementada
 no candidato, aplicada somente no Supabase descartável. `InvoiceService.remove`
