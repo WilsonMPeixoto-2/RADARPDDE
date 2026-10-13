@@ -2,6 +2,10 @@
 
 ## Fechamento delimitado após revisão do usuário
 
+Escopo funcional **congelado** nas sete entregas de RELEASE_SCOPE. Não ampliar
+Realtime/performance/design/arquitetura nem exigir cobertura universal A–N. Só
+defeito crítico comprovadamente causado pelo diff justifica nova correção.
+
 [Escopo e requisitos de publicação](RELEASE_SCOPE_2026-10-13.md). A comparação de
 frescor não demonstrou regressão do #438 e não reabre #406/#408/#410/#427.
 Reutilizar as provas existentes; não iniciar outra bateria de estresse nem mudar

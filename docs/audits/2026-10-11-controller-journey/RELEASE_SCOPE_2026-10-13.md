@@ -4,6 +4,27 @@ Este registro delimita o fechamento do PR; não substitui o método canônico ne
 certifica toda a auditoria A–N. Incorpora a revisão enviada pelo usuário após a
 comparação de frescor. Agente principal, sem delegação.
 
+## Escopo funcional congelado por orientação do usuário
+
+O #438 entrega somente: (1) ações após login/carregamento tardio; (2) identidade
+fiscal nos modais corretivos; (3) rodapés desses modais sem corte; (4) prevenção
+de contatos duplicados; (5) navegação, filtros, histórico e competência coerentes;
+(6) seleção de escolas do catálogo sem Pendências; (7) proteção contra exclusão
+de patrimônio inventariado, incluindo a NF vinculada.
+
+Nenhuma nova melhoria de Realtime, performance, arquitetura, design ou
+funcionalidade entra neste PR. Exceção: defeito crítico diretamente causado pelo
+próprio diff, comprovado por evidência. Testes, documentação e publicação ficam
+limitados à certificação e entrega dessas sete correções. O ajuste de segurança
+do script auxiliar em 77ef3ef1 já está concluído e não inicia outra frente.
+
+Encerramento da Etapa 5: concluir a decisão e publicação deste escopo, registrar
+as jornadas efetivamente verificadas e seus limites e retirar o handoff do papel
+corrente quando a etapa encerrar. Não exigir cobertura de todas as combinações
+imagináveis de A–N. Qualquer melhoria futura fica em demanda separada, com problema,
+prioridade e aceitação próprios; não é obrigação automática nem motivo para reabrir
+esta homologação. Não disparar outra bateria manual de estresse por commit documental.
+
 ## Correções e evidência já disponível
 
 | Grupo alterado | Evidência aproveitada | Situação |
@@ -61,6 +82,6 @@ Production nem devem receber a referência de Production como alvo descartável.
 A sequência de publicação exige o procedimento autorizado e o alvo correto.
 
 Estado: PR aberto/Draft; nenhuma mudança em Production. Não há nova correção de
-sincronização proposta. Critérios acima são finitos: só nova evidência material
-sobre o diff pode ampliar a homologação do PR. A auditoria geral permanece
+sincronização proposta. Critérios acima são finitos: só defeito crítico comprovadamente causado
+pelo diff pode justificar nova correção funcional neste PR. A auditoria geral permanece
 registrada separadamente, sem alegação de sistema perfeito ou fluidez encerrada.
