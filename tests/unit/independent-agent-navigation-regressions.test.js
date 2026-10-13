@@ -229,3 +229,13 @@ test('CONTROLE: eventos de prontidão repetidos não reinstalam wrappers Task9/F
   assert.equal(h.window.RadarTask9FocusBridge, focus);
   assert.equal(h.window.renderPendencias, render);
 });
+
+// Revisão principal: redirecionamento autorizado é navegação tratada, não fallback
+// para aplicar localmente um schoolId que a política recusou.
+test('seleção manual de escola fora do catálogo mantém o redirecionamento da política', () => {
+  const h = harness({ pageBeforeNavigation: true });
+  h.window.changePendencyFilter('schoolId', 'ESC-INEXISTENTE');
+  assert.equal(h.state().view, 'escolas');
+  assert.equal(h.state().url, '/carteira');
+  assert.equal(h.state().pageSchool, '');
+});

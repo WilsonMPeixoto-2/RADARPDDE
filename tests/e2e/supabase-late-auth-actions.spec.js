@@ -68,6 +68,7 @@ test('carregamento tardio do app preserva a página operacional de Pendências',
 });
 
 test('filtro escolar da fila tem uma única rota ao selecionar e limpar', async ({ page }) => {
+    test.setTimeout(60000);
     const controller = fixtures.find(fixture => fixture.profileId === 'controller' && fixture.active);
     await page.goto('/pendencias?escola=ESC-LOCAL');
     await page.locator('#radar-auth-email').fill(controller.email);
@@ -76,26 +77,35 @@ test('filtro escolar da fila tem uma única rota ao selecionar e limpar', async 
     await waitForApplication(page, 'controller');
     const school = page.getByLabel('Unidade escolar', { exact: true });
     const query = page.getByRole('searchbox', { name: 'Buscar pendências' });
-    await expect(school).toHaveValue('ESC-LOCAL');
-    await query.fill('Escola');
-    await page.locator('.pendency-filter-header').getByRole('button', { name: 'Limpar filtros' }).click();
-    await expect(school).toHaveValue('');
-    await expect(query).toHaveValue('');
-    await expect(page).toHaveURL(/\/pendencias$/);
-    await expect.poll(() => page.evaluate(() =>
-        window.RadarNavigationHistory.currentRoute(window).filters.escola || '')).toBe('');
+    const competence = await page.locator('#global-competence-select').inputValue();
+    for (const schoolId of ['ESC-LOCAL', 'ESC-OTHER']) {
+        await school.selectOption(schoolId);
+        await expect(school).toHaveValue(schoolId);
+        await query.fill('Escola');
+        await page.locator('.pendency-filter-header').getByRole('button', { name: 'Limpar filtros' }).click();
+        await expect(school).toHaveValue('');
+        await expect(query).toHaveValue('');
+        await expect(page).toHaveURL(/\/pendencias$/);
+        await expect.poll(() => page.evaluate(() =>
+            window.RadarNavigationHistory.currentRoute(window).filters.escola || '')).toBe('');
 
-    await school.selectOption('ESC-LOCAL');
-    await expect(page).toHaveURL(/\/pendencias\?escola=ESC-LOCAL$/);
-    await query.fill('Escola');
-    await page.getByRole('button', { name: /^Remover filtro Unidade:/ }).click();
-    await expect(school).toHaveValue('');
-    await expect(query).toHaveValue('Escola');
-    await expect(page).toHaveURL(/\/pendencias$/);
-    await school.selectOption('ESC-LOCAL');
-    await page.reload();
-    await waitForApplication(page, 'controller');
-    await expect(school).toHaveValue('ESC-LOCAL');
+        await school.selectOption(schoolId);
+        await expect(page).toHaveURL(new RegExp(`/pendencias\\?escola=${schoolId}$`));
+        await page.goBack();
+        await expect(school).toHaveValue('');
+        await page.goForward();
+        await expect(school).toHaveValue(schoolId);
+        await query.fill('Escola');
+        await page.getByRole('button', { name: /^Remover filtro Unidade:/ }).click();
+        await expect(school).toHaveValue('');
+        await expect(query).toHaveValue('Escola');
+        await expect(page).toHaveURL(/\/pendencias$/);
+        await school.selectOption(schoolId);
+        await page.reload();
+        await waitForApplication(page, 'controller');
+        await expect(school).toHaveValue(schoolId);
+        await expect(page.locator('#global-competence-select')).toHaveValue(competence);
+    }
 });
 
 // Esta jornada cria histórico protegido de NF/Pendência. Os gates a executam

@@ -1,5 +1,15 @@
 # Handoff — auditoria imersiva do Controlador
 
+## Checkpoint vigente13/10 — preservação antes de continuar
+
+Correção do catálogo escolar e evidências Auth foram salvas antes da próxima
+investigação. Ver [classificação de cada falha](DIAGNOSTIC_CLASSIFICATION_2026-10-13.md).
+3/3 Auth e16dirigidos passaram. Rodada ampla1359/1360 teve falha de retry baseada
+em15ms reais; causa pendente. E2E desktop teve count2 obsoleto, já reconciliado com
+catálogo completo, repetição pendente. Baseline38325720764 incompleta na preparação:
+sem comparação de performance e sem ajuste de opacidade. Nada pronto para merge.
+
+
 ## Checkpoint vigente — revisão individual de 12/10
 
 Correções locais anteriores preservadas no remoto em06ab5d7f. A proposta do outro

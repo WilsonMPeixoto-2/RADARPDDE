@@ -3,7 +3,8 @@
 /*
  * AUDITORIA INDEPENDENTE — OUTRO AGENTE (não Codex).
  * Evidência comportamental: opções do filtro escolar com/sem registros de Pendência.
- * IMPORTANTE: REDs intencionais para PR #438, não alterar implementações.
+ * Origem: contraprovas do PR #441. Contrato de opções reconciliado pelo agente
+ * principal: catálogo completo da sessão, inclusive escolas sem Pendências.
  * Usa a função renderFilters ORIGINAL em VM Node, expondo-a exclusivamente
  * em memória. DOM/Authorization são simulados; Auth real em E2E separado.
  *
@@ -77,7 +78,9 @@ function schoolOptions(html) {
 
 test('CONTROLE: sem filtro ativo e sem Pendências exibe Todas selecionada', () => {
   const output = buildInput()({ records: [] }, '');
-  assert.deepEqual(schoolOptions(output), [{ value: '', selected: true }]);
+  const options = schoolOptions(output);
+  assert.equal(options[0].selected, true);
+  assert.deepEqual(options.map(option => option.value).sort(), ['', 'ESC-LOCAL', 'ESC-OTHER']);
 });
 
 test('CONTROLE: escola com Pendência é listada e selecionada', () => {
@@ -86,10 +89,10 @@ test('CONTROLE: escola com Pendência é listada e selecionada', () => {
   assert.equal(options.find(option => option.value === 'ESC-LOCAL')?.selected, true);
 });
 
-test('CONTROLE: escola sem registro não aparece como opção quando não há filtro ativo', () => {
+test('contrato reconciliado: escola sem registro continua selecionável depois de limpar', () => {
   const output = buildInput()({ records: [record('ESC-OTHER')] }, '');
   const options = schoolOptions(output);
-  assert.equal(options.some(option => option.value === 'ESC-LOCAL'), false);
+  assert.equal(options.some(option => option.value === 'ESC-LOCAL'), true);
   assert.equal(options[0].selected, true);
 });
 
@@ -116,4 +119,10 @@ test('catálogo não inventa opção para identificador ausente', () => {
 test('escola selecionada já representada não ganha opção duplicada', () => {
   const options = schoolOptions(buildInput()({ records: [record('ESC-LOCAL')] }, 'ESC-LOCAL'));
   assert.equal(options.filter(option => option.value === 'ESC-LOCAL').length, 1);
+});
+
+// O catálogo da sessão é a autoridade das opções, não o histórico de registros.
+test('registro sem escola no catálogo não amplia as opções', () => {
+  const options = schoolOptions(buildInput()({ records: [record('ESC-FORA')] }, ''));
+  assert.equal(options.some(option => option.value === 'ESC-FORA'), false);
 });

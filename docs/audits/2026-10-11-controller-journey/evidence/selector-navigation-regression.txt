@@ -1,0 +1,64 @@
+[WebServer] (node:1038798) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 14 tests using 1 worker
+
+(node:1038916) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [desktop-chromium] › tests/e2e/canonical-routes.spec.js:51:1 › rota de escola, aba de pendências, filtro e histórico permanecem estáveis (12.0s)
+  ✘   2 [desktop-chromium] › tests/e2e/canonical-routes.spec.js:117:1 › filtro escolar permanece ao abrir e fechar o detalhe da Pendência (10.3s)
+(node:1039826) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   3 [desktop-chromium] › tests/e2e/canonical-routes.spec.js:187:1 › limpar o filtro escolar da rota devolve a lista transversal (10.1s)
+  ✓   4 [desktop-chromium] › tests/e2e/canonical-routes.spec.js:246:1 › botão Voltar restaura a origem contextual, competência, rolagem e foco (7.0s)
+  ✓   5 [desktop-chromium] › tests/e2e/canonical-routes.spec.js:304:1 › link de escola abre em nova aba usando a própria URL (7.4s)
+  ✓   6 [desktop-chromium] › tests/e2e/canonical-routes.spec.js:322:1 › escola inexistente e telas proibidas recebem fallback autorizado (6.7s)
+  ✓   7 [desktop-chromium] › tests/e2e/canonical-routes.spec.js:345:1 › Próxima unidade atualiza a rota canônica usada pela sincronização entre escolas (5.0s)
+  ✓   8 [desktop-chromium] › tests/e2e/task-9-pendencias.spec.js:135:3 › Task 9 — página de Pendências Operacionais › separa as quatro situações canônicas em abas acessíveis (3.1s)
+  ✓   9 [desktop-chromium] › tests/e2e/task-9-pendencias.spec.js:154:3 › Task 9 — página de Pendências Operacionais › baixa planilha editorial respeitando a busca e os filtros da fila (4.6s)
+  ✓  10 [desktop-chromium] › tests/e2e/task-9-pendencias.spec.js:194:3 › Task 9 — página de Pendências Operacionais › aplica busca global sem perder a separação das quatro filas (3.8s)
+  ✓  11 [desktop-chromium] › tests/e2e/task-9-pendencias.spec.js:217:3 › Task 9 — página de Pendências Operacionais › abre o drawer com erros, tentativas, contatos e timeline e restaura o foco (4.5s)
+  ✓  12 [desktop-chromium] › tests/e2e/task-9-pendencias.spec.js:240:3 › Task 9 — página de Pendências Operacionais › preserva busca, aba, seleção e rolagem ao retornar do Prontuário (6.2s)
+  ✓  13 [desktop-chromium] › tests/e2e/task-9-pendencias.spec.js:279:3 › Task 9 — página de Pendências Operacionais › permite percorrer as abas pelo teclado (4.2s)
+  -  14 [desktop-chromium] › tests/e2e/task-9-pendencias.spec.js:293:3 › Task 9 — página de Pendências Operacionais › substitui a tabela por cartões e abre o detalhe em tela inteira no celular
+
+
+  1) [desktop-chromium] › tests/e2e/canonical-routes.spec.js:117:1 › filtro escolar permanece ao abrir e fechar o detalhe da Pendência 
+
+    Error: expect(locator).toHaveCount(expected) failed
+
+    Locator:  locator('#pendency-filter-school option')
+    Expected: 2
+    Received: 164
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveCount" locator('#pendency-filter-school option') with timeout 5000ms
+      - waiting for locator('#pendency-filter-school option')
+        12 × locator resolved to 164 elements
+           - unexpected value "164"
+
+
+      149 |     return school.id;
+      150 |   });
+    > 151 |   await expect(page.locator('#pendency-filter-school option')).toHaveCount(2);
+          |                                                                ^
+      152 |
+      153 |   await page.evaluate(id => {
+      154 |     window.RadarNavigationHistory.navigate(window, {
+        at /workspace/RADARPDDE-controller-journey/tests/e2e/canonical-routes.spec.js:151:64
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/canonical-routes-filtro-es-2cc96-char-o-detalhe-da-Pendência-desktop-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/canonical-routes-filtro-es-2cc96-char-o-detalhe-da-Pendência-desktop-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/canonical-routes-filtro-es-2cc96-char-o-detalhe-da-Pendência-desktop-chromium/error-context.md
+
+  1 failed
+    [desktop-chromium] › tests/e2e/canonical-routes.spec.js:117:1 › filtro escolar permanece ao abrir e fechar o detalhe da Pendência 
+  1 skipped
+  12 passed (1.6m)

@@ -1,0 +1,16 @@
+✔ CONTROLE: sem filtro ativo e sem Pendências exibe Todas selecionada (17.040144ms)
+✔ CONTROLE: escola com Pendência é listada e selecionada (2.686404ms)
+✔ contrato reconciliado: escola sem registro continua selecionável depois de limpar (4.314391ms)
+✔ RED: escola do filtro autorizado não pode sumir do seletor quando não possui Pendências (4.991252ms)
+✔ RED: escola do filtro não pode sumir quando há Pendências apenas de outras escolas (2.039618ms)
+✔ catálogo não inventa opção para identificador ausente (2.322565ms)
+✔ escola selecionada já representada não ganha opção duplicada (2.098677ms)
+✔ registro sem escola no catálogo não amplia as opções (2.148502ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 124.240766

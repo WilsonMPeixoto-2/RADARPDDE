@@ -1,0 +1,84 @@
+✖ CONTROLE: sem filtro ativo e sem Pendências exibe Todas selecionada (11.425482ms)
+✔ CONTROLE: escola com Pendência é listada e selecionada (8.248703ms)
+✖ contrato reconciliado: escola sem registro continua selecionável depois de limpar (2.475586ms)
+✔ RED: escola do filtro autorizado não pode sumir do seletor quando não possui Pendências (2.428124ms)
+✔ RED: escola do filtro não pode sumir quando há Pendências apenas de outras escolas (13.28627ms)
+✔ catálogo não inventa opção para identificador ausente (2.66402ms)
+✔ escola selecionada já representada não ganha opção duplicada (2.490358ms)
+✖ registro sem escola no catálogo não amplia as opções (2.560524ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 5
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 172.880797
+
+✖ failing tests:
+
+test at tests/unit/independent-agent-pendency-select-options.test.js:79:1
+✖ CONTROLE: sem filtro ativo e sem Pendências exibe Todas selecionada (11.425482ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      '',
+  -   'ESC-LOCAL',
+  -   'ESC-OTHER'
+    ]
+  
+      at TestContext.<anonymous> (/workspace/RADARPDDE-controller-journey/tests/unit/independent-agent-pendency-select-options.test.js:83:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ '' ],
+    expected: [ '', 'ESC-LOCAL', 'ESC-OTHER' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/unit/independent-agent-pendency-select-options.test.js:92:1
+✖ contrato reconciliado: escola sem registro continua selecionável depois de limpar (2.475586ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (/workspace/RADARPDDE-controller-journey/tests/unit/independent-agent-pendency-select-options.test.js:95:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/unit/independent-agent-pendency-select-options.test.js:125:1
+✖ registro sem escola no catálogo não amplia as opções (2.560524ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (/workspace/RADARPDDE-controller-journey/tests/unit/independent-agent-pendency-select-options.test.js:127:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

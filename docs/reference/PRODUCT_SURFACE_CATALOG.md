@@ -194,6 +194,12 @@ Se o comportamento estiver correto e o problema for apenas de compreensão, loca
 | Persistência | pendência, tentativa, contato, verificação e log |
 | Leitura humana | visão completa do passivo: origem, antiguidade, erros, tentativas, contatos, histórico, responsável atual e próxima ação |
 
+O filtro de unidade oferece o catálogo escolar disponível à sessão, inclusive
+escolas sem Pendências. Limpar filtros não remove escolas desse catálogo: deve ser
+possível selecioná-las novamente e obter uma fila vazia. Registros históricos não
+ampliam as opções para identificadores ausentes do catálogo. A navegação continua
+sujeita à política autorizada; esse seletor não concede acesso nem altera RLS.
+
 Nos modais de novo envio e reanálise, uma Pendência individual identifica o
 número/referência da NF ou boleto, mantendo a dimensão fiscal ou Assessoria.
 Reanálise preserva também descrição, tipo e valor. Snapshot pode identificar o

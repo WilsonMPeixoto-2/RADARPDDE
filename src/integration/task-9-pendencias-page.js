@@ -426,18 +426,13 @@
     }
 
     function getFilterOptions(model) {
-        const schools = model.records.map(record => ({
-            value: record.schoolId,
-            label: `${record.schoolName} · ${record.schoolDesignation}`
-        }));
-        // The authorized catalog, not an arbitrary route identifier, supplies
-        // the selected school even when it has no pendency records.
-        const selected = escolas.find(school => String(school.id) === String(pageState.filters.schoolId));
-        if (selected) {
-            const name = selected.denominação || selected.denominacao || selected.denominaçao || selected.name || selected.id;
-            const designation = selected.designação || selected.designacao || selected.id;
-            schools.push({ value: String(selected.id), label: `${name} · ${designation}` });
-        }
+        // A school query must remain possible after clearing, including zero
+        // results. Use the session catalog, already bounded by remote access.
+        const schools = escolas.map(school => {
+            const name = school.denominação || school.denominacao || school.denominaçao || school.name || school.id;
+            const designation = school.designação || school.designacao || school.id;
+            return { value: String(school.id), label: `${name} · ${designation}` };
+        });
         return {
             schools: uniqueSorted(schools),
             competences: uniqueSorted(model.records, record => ({
