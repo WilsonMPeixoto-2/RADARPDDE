@@ -1,0 +1,35 @@
+[WebServer] (node:1013082) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 25 tests using 1 worker
+
+(node:1013094) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [desktop-chromium] › tests/e2e/canonical-routes.spec.js:51:1 › rota de escola, aba de pendências, filtro e histórico permanecem estáveis (6.2s)
+  ✓   2 [desktop-chromium] › tests/e2e/canonical-routes.spec.js:117:1 › filtro escolar permanece ao abrir e fechar o detalhe da Pendência (1.9s)
+  ✓   3 [desktop-chromium] › tests/e2e/canonical-routes.spec.js:187:1 › limpar o filtro escolar da rota devolve a lista transversal (2.3s)
+  ✓   4 [desktop-chromium] › tests/e2e/canonical-routes.spec.js:246:1 › botão Voltar restaura a origem contextual, competência, rolagem e foco (2.3s)
+  ✓   5 [desktop-chromium] › tests/e2e/canonical-routes.spec.js:304:1 › link de escola abre em nova aba usando a própria URL (4.0s)
+  ✓   6 [desktop-chromium] › tests/e2e/canonical-routes.spec.js:322:1 › escola inexistente e telas proibidas recebem fallback autorizado (2.0s)
+  ✓   7 [desktop-chromium] › tests/e2e/canonical-routes.spec.js:345:1 › Próxima unidade atualiza a rota canônica usada pela sincronização entre escolas (2.5s)
+  ✓   8 [desktop-chromium] › tests/e2e/sme-access-governance.spec.js:19:3 › governança de acesso da Gestão SME › visão mensal e prontuário exibem bonificação sem análise técnica ou ações (2.5s)
+  ✓   9 [desktop-chromium] › tests/e2e/sme-access-governance.spec.js:78:3 › governança de acesso da Gestão SME › pendências permanecem consultáveis, mas não oferecem nem executam mutações (2.9s)
+  ✓  10 [desktop-chromium] › tests/e2e/sme-access-governance.spec.js:187:3 › governança de acesso da Gestão SME › administrador técnico mantém autoridade integral ao simular SME e preserva identidade real (2.1s)
+  ✓  11 [desktop-chromium] › tests/e2e/task-10-11-pendencias.spec.js:59:3 › Tasks 10–11 — contatos, cancelamento e reabertura › contato em voo contém duplo clique e submit repetido, mas aceita uma intenção posterior (11.3s)
+  ✓  12 [desktop-chromium] › tests/e2e/task-10-11-pendencias.spec.js:102:3 › Tasks 10–11 — contatos, cancelamento e reabertura › falha comprovada do contato preserva dados, libera o formulário e permite nova tentativa (6.2s)
+  ✓  13 [desktop-chromium] › tests/e2e/task-10-11-pendencias.spec.js:138:3 › Tasks 10–11 — contatos, cancelamento e reabertura › contato em andamento não permite substituir o formulário por outra pendência (20.4s)
+  ✓  14 [desktop-chromium] › tests/e2e/task-10-11-pendencias.spec.js:190:3 › Tasks 10–11 — contatos, cancelamento e reabertura › guard crítico indisponível bloqueia contato com orientação e preserva o formulário (12.4s)
+  ✓  15 [desktop-chromium] › tests/e2e/task-10-11-pendencias.spec.js:216:3 › Tasks 10–11 — contatos, cancelamento e reabertura › registra contato em pendência aberta sem alterar o status (11.3s)
+  ✓  16 [desktop-chromium] › tests/e2e/task-10-11-pendencias.spec.js:239:3 › Tasks 10–11 — contatos, cancelamento e reabertura › cancela uma pendência ativa e a move para Canceladas (9.7s)
+  ✓  17 [desktop-chromium] › tests/e2e/task-10-11-pendencias.spec.js:257:3 › Tasks 10–11 — contatos, cancelamento e reabertura › reabre pendência cancelada sem manter marcador terminal de cancelamento (16.1s)
+  ✓  18 [desktop-chromium] › tests/e2e/task-10-11-pendencias.spec.js:300:3 › Tasks 10–11 — contatos, cancelamento e reabertura › reabre pendência resolvida preservando o histórico (8.4s)
+  ✓  19 [desktop-chromium] › tests/e2e/task-9-pendencias.spec.js:135:3 › Task 9 — página de Pendências Operacionais › separa as quatro situações canônicas em abas acessíveis (2.9s)
+  ✓  20 [desktop-chromium] › tests/e2e/task-9-pendencias.spec.js:154:3 › Task 9 — página de Pendências Operacionais › baixa planilha editorial respeitando a busca e os filtros da fila (4.4s)
+  ✓  21 [desktop-chromium] › tests/e2e/task-9-pendencias.spec.js:194:3 › Task 9 — página de Pendências Operacionais › aplica busca global sem perder a separação das quatro filas (4.0s)
+  ✓  22 [desktop-chromium] › tests/e2e/task-9-pendencias.spec.js:217:3 › Task 9 — página de Pendências Operacionais › abre o drawer com erros, tentativas, contatos e timeline e restaura o foco (4.3s)
+  ✓  23 [desktop-chromium] › tests/e2e/task-9-pendencias.spec.js:240:3 › Task 9 — página de Pendências Operacionais › preserva busca, aba, seleção e rolagem ao retornar do Prontuário (6.3s)
+  ✓  24 [desktop-chromium] › tests/e2e/task-9-pendencias.spec.js:279:3 › Task 9 — página de Pendências Operacionais › permite percorrer as abas pelo teclado (4.2s)
+  -  25 [desktop-chromium] › tests/e2e/task-9-pendencias.spec.js:293:3 › Task 9 — página de Pendências Operacionais › substitui a tabela por cartões e abre o detalhe em tela inteira no celular
+
+  1 skipped
+  24 passed (2.6m)

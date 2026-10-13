@@ -1,0 +1,89 @@
+✔ CONTROLE: rota escolar pré-inicializada é preservada se Task9 estiver disponível (10.227394ms)
+✔ CONTROLE: política impede escola não autorizada durante restauração tardia (3.067149ms)
+✖ RED independente: rota autorizada antes de Task9 precisa ser refletida na página tardia (5.492329ms)
+✔ RED independente: limpar rota e avançar não pode reaplicar escola anterior (4.746478ms)
+✔ RED independente: Limpar filtros não pode manter rota e history.state escolares obsoletos (3.434653ms)
+✔ RED independente: remover chip de escola precisa remover também o contexto de rota (2.375645ms)
+✔ CONTROLE: eventos de prontidão repetidos não reinstalam wrappers Task9/Focus (2.722879ms)
+✔ CONTROLE: sem filtro ativo e sem Pendências exibe Todas selecionada (5.289822ms)
+✔ CONTROLE: escola com Pendência é listada e selecionada (1.879656ms)
+✔ CONTROLE: escola sem registro não aparece como opção quando não há filtro ativo (2.529537ms)
+✖ RED: escola do filtro autorizado não pode sumir do seletor quando não possui Pendências (3.774706ms)
+✖ RED: escola do filtro não pode sumir quando há Pendências apenas de outras escolas (1.44501ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 9
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 192.881307
+
+✖ failing tests:
+
+test at tests/unit/independent-agent-navigation-regressions.test.js:174:1
+✖ RED independente: rota autorizada antes de Task9 precisa ser refletida na página tardia (5.492329ms)
+  AssertionError [ERR_ASSERTION]: O instalador tardio deve consumir a rota já autorizada, sem reabrir autorização
+  
+  '' !== 'ESC-LOCAL'
+  
+      at TestContext.<anonymous> (/workspace/RADARPDDE-controller-journey/tests/unit/independent-agent-navigation-regressions.test.js:177:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '',
+    expected: 'ESC-LOCAL',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/unit/independent-agent-pendency-select-options.test.js:96:1
+✖ RED: escola do filtro autorizado não pode sumir do seletor quando não possui Pendências (3.774706ms)
+  AssertionError [ERR_ASSERTION]: Escola selecionada deve ser representada como option mesmo com zero Pendências
+  + actual - expected
+  
+  + undefined
+  - true
+  
+      at TestContext.<anonymous> (/workspace/RADARPDDE-controller-journey/tests/unit/independent-agent-pendency-select-options.test.js:99:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/unit/independent-agent-pendency-select-options.test.js:103:1
+✖ RED: escola do filtro não pode sumir quando há Pendências apenas de outras escolas (1.44501ms)
+  AssertionError [ERR_ASSERTION]: Opções calculadas de model.records não incluem a escola selecionada sem registros
+  + actual - expected
+  
+  + undefined
+  - true
+  
+      at TestContext.<anonymous> (/workspace/RADARPDDE-controller-journey/tests/unit/independent-agent-pendency-select-options.test.js:106:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

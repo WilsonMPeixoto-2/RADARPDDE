@@ -1,0 +1,20 @@
+
+> radar-pdde@1.0.0 test:integration
+> node --test tests/integration/*.test.js
+
+✔ build público gera manifesto coerente e injeta proteção do bootstrap Excel (1032.261471ms)
+✔ gerador rejeita asset obrigatório ausente (3.844617ms)
+✔ fluxo local exporta, valida, importa, reconcilia e reverte sem dados sensíveis no relatório (26.352108ms)
+✔ reconcilia e permite reexecução idempotente (5.730989ms)
+✔ atravessa SupabaseRepository com metadados e auditoria gerada sem upsert (87.758231ms)
+✔ normaliza user_id ausente e null somente nos defaults remotos permitidos (5.769637ms)
+✔ bootstrap reconcilia todas as páginas por cursor e repete sem perder, duplicar ou sobrescrever escolas (5.4803ms)
+✔ converte colisao insert-only do SupabaseRepository em conflito sem sobrescrever (1.760236ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1419.055611

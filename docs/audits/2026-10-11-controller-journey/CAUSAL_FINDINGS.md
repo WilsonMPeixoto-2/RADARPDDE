@@ -176,3 +176,12 @@ limites, runs e hashes. Logs privados em `/workspace/scratch/controller-private/
 
 
 Ver o checkpoint prioritário do HANDOFF e `evidence/task9-delayed-app-checkpoint.json`.
+
+## Revisão superveniente — 12/10, navegação e investigação de performance
+
+A correção de navegação foi confrontada com o PR independente441 e regressões
+reais; ver [avaliação individual](INDEPENDENT_REVIEW_2026-10-12.md) e checkpoint
+vigente do HANDOFF. Seis contraprovas externas incorporadas; a cadeia adicional
+competência→refresh como navegação→perda de filtro foi identificada e corrigida.
+1.359 unitários,24 E2E e3 Auth verdes não demonstram ganho global de fluidez.
+As medições de startup e leituras duplicadas ficam em evidence/, com limites.

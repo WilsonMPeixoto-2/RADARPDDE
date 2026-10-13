@@ -1,17 +1,13 @@
 # RADAR PDDE — estado atual e retomada
 
-> Retomada 12/10: ver checkpoint de continuidade no handoff corrente da auditoria.
-> Navegação candidata ainda tem uma regressão Prontuário → Pendências (23/25
-> aprovados, um pulado). 1.344 unitários verdes não encerram o gate de jornada.
-> Proposta independente #441 em revisão pelo agente principal; sem merge/deploy.
-
 ## Etapa 5 — auditoria operacional imersiva iniciada em 11/10/2026
 
-**Checkpoint 12/10:** baseline do #438 `3fcaeada` com 21 workflows success.
-Nova reprodução de app.js lento confirmou perda da página Task9; correção candidata
-com 16 unitários e E2E inicial verdes, mas E2E ampliado voltar/avançar falha e ainda
-exige diagnóstico. PR permanece Draft, sem merge/deploy. Ler primeiro o checkpoint
-prioritário do handoff abaixo; os blocos anteriores não são certificação atual.
+**Checkpoint vigente 12/10:** revisão do PR independente441 pelo agente principal,
+sem subagentes. Correções de navegação, página tardia e seletor sem Pendências
+consolidadas:1.359 unitários,24 E2E dirigidos (1skip mobile),3 jornadas Auth reais
+aprovados. Retorno ao Prontuário corrigido causalmente. CI final pendente,438 Draft,
+sem merge/deploy. Lentidão sistêmica e jornadas A–N não estão encerradas. Ler o
+checkpoint vigente do handoff único abaixo; detalhes históricos não certificam HEAD.
 
 **Frente corrente:** jornadas A–N do Controlador, orientadas pela UI e experiência
 real, após a modernização #433–#437. Não repetir certificação histórica nem

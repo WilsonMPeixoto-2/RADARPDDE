@@ -1,0 +1,15 @@
+
+/workspace/RADARPDDE-controller-journey/tests/e2e/supabase-late-auth-actions.spec.js
+  6:1  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+/workspace/RADARPDDE-controller-journey/tests/e2e/task-9-pendencias.spec.js
+  136:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  155:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  195:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  218:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  241:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  280:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  294:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+✖ 8 problems (0 errors, 8 warnings)
+

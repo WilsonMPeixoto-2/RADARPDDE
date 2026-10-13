@@ -1,0 +1,99 @@
+{
+  "scope": "Supabase descartável; baseline main113841bd; candidato53f mais patch local de navegação; instrumentação separada, não benchmark de Production",
+  "cause": "bootstrap pré-carrega competência solicitada2026-09; catálogo da fixture resolve2026-05; resultado antecipado descartado e segunda RPC executada",
+  "limitation": "Frequência em Production desconhecida. Não corrigido nesta rodada. Não atribuir lentidão total a esta causa.",
+  "samples": [
+    {
+      "label": "baseline-cold-0",
+      "rpc": [
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "parameters": {
+            "p_competence_id": "2026-09",
+            "p_history_statuses": []
+          },
+          "bytes": 59814
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "parameters": {
+            "p_competence_id": "2026-05",
+            "p_history_statuses": []
+          },
+          "bytes": 73353
+        }
+      ]
+    },
+    {
+      "label": "baseline-warm-0",
+      "rpc": [
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "parameters": {
+            "p_competence_id": "2026-09",
+            "p_history_statuses": []
+          },
+          "bytes": 59814
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "parameters": {
+            "p_competence_id": "2026-05",
+            "p_history_statuses": []
+          },
+          "bytes": 73353
+        }
+      ]
+    },
+    {
+      "label": "candidate-cold-0",
+      "rpc": [
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "parameters": {
+            "p_competence_id": "2026-09",
+            "p_history_statuses": []
+          },
+          "bytes": 59814
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "parameters": {
+            "p_competence_id": "2026-05",
+            "p_history_statuses": []
+          },
+          "bytes": 73353
+        }
+      ]
+    },
+    {
+      "label": "candidate-warm-0",
+      "rpc": [
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "parameters": {
+            "p_competence_id": "2026-09",
+            "p_history_statuses": []
+          },
+          "bytes": 59814
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "parameters": {
+            "p_competence_id": "2026-05",
+            "p_history_statuses": []
+          },
+          "bytes": 73353
+        }
+      ]
+    }
+  ]
+}

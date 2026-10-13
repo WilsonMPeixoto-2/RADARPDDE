@@ -195,7 +195,13 @@
         if (typeof updateGlobalCompetenceIndicator === 'function') {
             updateGlobalCompetenceIndicator();
         }
-        if (typeof switchView === 'function' && typeof currentView !== 'undefined') {
+        const navigation = root.RadarNavigationHistory;
+        const route = navigation?.currentRoute?.(root);
+        if (route && typeof navigation.navigate === 'function') {
+            // Repaint the authorized current context; a competence change is
+            // not a new unfiltered navigation to the same surface.
+            navigation.navigate(root, route, { replace: true });
+        } else if (typeof switchView === 'function' && typeof currentView !== 'undefined') {
             switchView(currentView, typeof activeSchoolId !== 'undefined' ? activeSchoolId : null);
         }
         removeLocalCompetenceControl();

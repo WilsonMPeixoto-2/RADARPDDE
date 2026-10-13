@@ -1,0 +1,20 @@
+✔ CONTROLE: rota escolar pré-inicializada é preservada se Task9 estiver disponível (21.350578ms)
+✔ CONTROLE: política impede escola não autorizada durante restauração tardia (7.604035ms)
+✔ RED independente: rota autorizada antes de Task9 precisa ser refletida na página tardia (5.215491ms)
+✔ RED independente: limpar rota e avançar não pode reaplicar escola anterior (5.983279ms)
+✔ RED independente: Limpar filtros não pode manter rota e history.state escolares obsoletos (7.292415ms)
+✔ RED independente: remover chip de escola precisa remover também o contexto de rota (15.013722ms)
+✔ CONTROLE: eventos de prontidão repetidos não reinstalam wrappers Task9/Focus (3.651631ms)
+✔ CONTROLE: sem filtro ativo e sem Pendências exibe Todas selecionada (8.009437ms)
+✔ CONTROLE: escola com Pendência é listada e selecionada (2.360853ms)
+✔ CONTROLE: escola sem registro não aparece como opção quando não há filtro ativo (7.43535ms)
+✔ RED: escola do filtro autorizado não pode sumir do seletor quando não possui Pendências (2.180991ms)
+✔ RED: escola do filtro não pode sumir quando há Pendências apenas de outras escolas (11.789441ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 318.090283

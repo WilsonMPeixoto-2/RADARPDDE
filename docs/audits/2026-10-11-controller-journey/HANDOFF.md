@@ -1,5 +1,39 @@
 # Handoff — auditoria imersiva do Controlador
 
+## Checkpoint vigente — revisão individual de 12/10
+
+Correções locais anteriores preservadas no remoto em06ab5d7f. A proposta do outro
+agente (#441,7221811d) foi revisada **somente pelo agente principal**, sem subagentes.
+Ver [avaliação e limites](INDEPENDENT_REVIEW_2026-10-12.md).
+
+As seis contraprovas externas foram aproveitadas com autoria identificada. Na
+árvore local inicial restaram três REDs; as12 provas/controles importadas passaram
+após correção. Acrescentados dois controles do catálogo e um da hidratação remota.
+
+Correções consolidadas: filtros manuais usam navegação autorizada; render não
+reaplica rota anterior; página tardia recebe filtro autorizado do bootstrap;
+seletor mantém escola do catálogo mesmo sem Pendências; refresh de competência
+reaplica rota atual com replace, preservando contexto antes de abrir Prontuário.
+Não houve novo controller/timer/estado temporal, dependência ou mudança Auth/RLS.
+
+**Validação final local:**1.359/1.359 unitários;24 E2E dirigidos aprovados,1 pulado
+(exclusivo mobile no projeto desktop);3/3 Auth/Supabase reais, incluindo app.js
+retido11s, seleção/limpeza/reload e contatos/cancelar/reabrir. A falha anterior de
+retorno Prontuário→Pendências passou sem relaxar sua asserção. Sintaxe verde; lint
+E2E0erros/8warnings de skips existentes. Captura da escola autorizada sem Pendências
+inspecionada em1440×900, seletor/rota/URL iguais e0pageerrors.
+
+**Ainda Draft, sem merge/deploy.** Conferir CI do novo HEAD; resultados de53f ou3fca
+não certificam esta árvore. A–N continua parcial. Não afirmar ganho de velocidade:
+as medidas e fronteira do PR de performance estão na avaliação vinculada acima.
+O desperdício de bootstrap observado no catálogo sintético está documentado, não
+corrigido nem demonstrado como causa principal em Production.
+
+Próximo agente: conferir CI exata; investigar falhas reais sem relaxar contratos;
+completar jornadas/inspeções remanescentes do438 e homologação da migration61 antes
+de merge. Não reaplicar mudanças do441 nem repetir seus experimentos já incorporados.
+
+
 ## Checkpoint de continuidade — 12/10, revisão pessoal da proposta externa
 
 O trabalho local anterior foi recuperado intacto. A correção candidata remove da

@@ -1,0 +1,9 @@
+{
+  "command": "npm run test:unit",
+  "tests": 1359,
+  "pass": 1359,
+  "fail": 0,
+  "skipped": 0,
+  "logSha256": "6aa590a218c6793e21c68100afb72bffbec69a7905fc1a8c7af765ebd77da633",
+  "source": "execução local após correções de rota, lifecycle e seletor; CI do commit publicado ainda pendente"
+}
