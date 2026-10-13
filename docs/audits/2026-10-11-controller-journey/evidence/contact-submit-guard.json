@@ -1,0 +1,136 @@
+{
+  "finding": "PEND-06 repeated physical contact submission creates duplicate durable histories",
+  "environment": "isolated Supabase local; real controller Auth/RLS/RPC; Production unchanged",
+  "causalChain": [
+    "Task1011 form submits lexical savePendencyContact directly",
+    "shared critical action guard never intercepts this listener",
+    "each unguarded invocation creates a fresh contact and operation id",
+    "two physical clicks create two RPC commits and two contacts"
+  ],
+  "red": {
+    "nativeObservation": {
+      "rpcCalls": 2,
+      "httpStatuses": [
+        200,
+        200
+      ],
+      "persistedContacts": 2
+    },
+    "browserRegression": {
+      "file": "tests/e2e/supabase-late-auth-actions.spec.js",
+      "expectedContactRpcCalls": 1,
+      "actualContactRpcCalls": 2
+    },
+    "sharedFormContraproof": "closing an in-flight contact and opening another Pendency previously replaced the form before the old completion"
+  },
+  "correction": {
+    "authority": "existing RadarCriticalActionGuard installed instance and inFlight map",
+    "newApi": "wrapAction(root, name, options); no new map, scheduler or timer",
+    "entryPoint": "Task1011 submit prevents default and dynamically calls the guarded published handler",
+    "singleFormKey": "pendency:contact",
+    "busyOpenProtection": "existing form aria-busy prevents changing its Pendency/draft until the current write settles",
+    "missingApi": "visible reload-and-retry guidance; no write"
+  },
+  "green": {
+    "units": {
+      "passed": 18,
+      "failed": 0,
+      "includes": "8 guard contracts + 10 authenticated lifecycle contracts"
+    },
+    "localBrowser": {
+      "passed": 8,
+      "failed": 0,
+      "elapsedSeconds": 52,
+      "contracts": [
+        "physical double click",
+        "programmatic repeated submit while held",
+        "keyboard Enter for later deliberate intent",
+        "known rejection before commit, retained fields and retry",
+        "missing/incomplete guard API blocks write",
+        "shared form cannot become a new Pendency draft while busy",
+        "existing contact/cancel/reopen flow"
+      ]
+    },
+    "realAuthFirstCandidate": {
+      "passed": 1,
+      "elapsedSeconds": 55.3,
+      "firstPhysicalDoubleClickRpcCalls": 1,
+      "firstPersistedContacts": 1,
+      "laterDeliberateContactRpcCalls": 1,
+      "contactsAfterCancelReopenReload": 2
+    },
+    "realAuthFinalCandidate": {
+      "passed": 1,
+      "failed": 0,
+      "elapsedSeconds": 38.6,
+      "firstPhysicalDoubleClickRpcCalls": 1,
+      "firstPersistedContacts": 1,
+      "laterDeliberateContactRpcCalls": 1,
+      "contactsAfterCancelReopenReload": 2,
+      "allActionsBeforeReload": "legitimate late controller UI login, NF/Pendency creation, two contact intentions, cancel, reopen"
+    },
+    "lint": {
+      "errors": 0,
+      "warnings": 9,
+      "warningKind": "existing conditional desktop/Supabase skip annotations"
+    }
+  },
+  "review": {
+    "independent": "guard_integration_review",
+    "verdict": "no blocker in duplicate-submit fix; independent units 18/18"
+  },
+  "limits": [
+    "Guard contains repeated in-flight browser intention; it does not claim durable idempotence for ambiguous network commit/retry",
+    "Closing the saving contact and navigating elsewhere can still be followed by the pre-existing handler returning to the original Pendency on completion; no newer contact draft can be created while busy",
+    "No Auth/RLS/schema/domain change; no external communication",
+    "CI and final audit certification owned by root; tests alone do not complete A-N audit"
+  ],
+  "artifacts": [
+    {
+      "file": "controller-contact-real-red.log",
+      "bytes": 3023,
+      "sha256": "61ebc6868aca3c0186c21927dfd87d970de98497ec88d3d9575e510e76e91e19",
+      "storage": "private workspace; summary only versioned"
+    },
+    {
+      "file": "controller-contact-cross-form-red.log",
+      "bytes": 2909,
+      "sha256": "0127d89615a109f3706dfe775f34fabc5ad675093c2c50bdc54e44a500913cf8",
+      "storage": "private workspace; summary only versioned"
+    },
+    {
+      "file": "controller-contact-unit-red.log",
+      "bytes": 3042,
+      "sha256": "93d50852263c48a20aeb3f8f9a82e6ba2a514781360a759eb60c1b9e4e38c8ff",
+      "storage": "private workspace; summary only versioned"
+    },
+    {
+      "file": "controller-contact-unit-final-green.log",
+      "bytes": 1941,
+      "sha256": "4468b7b62ce9e4636c26e511cc5983937005643b1dcf5fd7e646c2f2e5b76499",
+      "storage": "private workspace; summary only versioned"
+    },
+    {
+      "file": "controller-contact-fixture-final-green.log",
+      "bytes": 1902,
+      "sha256": "c79842149fb3443842535f817e692d0d0e376ccce6a7ddb8d9a8f95387c55daf",
+      "storage": "private workspace; summary only versioned"
+    },
+    {
+      "file": "controller-contact-real-green.log",
+      "bytes": 363,
+      "sha256": "988fc1109e58cad5035c92ca9d769482caf61d9592c856817e448db5617126de",
+      "storage": "private workspace; summary only versioned"
+    },
+    {
+      "file": "controller-contact-real-final-green.log",
+      "bytes": 363,
+      "sha256": "f54e12fb419fff2dd131c1e93fc875a29b285ecd2ad6f6e8c7957c1af3c74ae6",
+      "storage": "private workspace; summary only versioned"
+    }
+  ],
+  "runtimeSha256": {
+    "src/integration/critical-action-guard.js": "1d1f730c0a58e2fd2889a74a39033126314fb9ce2ac4a9c2d13134ed8e5bd765",
+    "src/integration/task-10-11-pendency-actions.js": "ad38d89427b27ee982a83e26cac3b6d058d3ef497706bf0c4990714ae5cfc895"
+  }
+}

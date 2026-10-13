@@ -1,0 +1,223 @@
+{
+  "date": "2026-10-11",
+  "baseline": "113841bda52ce3bbda228524daf9a7464f12b462",
+  "candidate": "6139fe79d7e3cbab86d432684231418c9daad876",
+  "scope": "Read-only actual Auth/RLS on existing disposable DB, then browser-memory-only presentation fixture. No writes/resets/new identities. Own snapshot servers4177/4178 and independent Chromium; root4175/4176/nativeworker untouched.",
+  "firstProbe": "Initial attempt timed out at waitForFunction; no success claimed. Second complete run succeeded; diagnostic stage logs preserved for the successful run.",
+  "actualStateMatched": true,
+  "frontendFixtureRemoteStateMatched": true,
+  "measurements": [
+    {
+      "mode": "actual",
+      "label": "main",
+      "sha": "113841bda52ce3bbda228524daf9a7464f12b462",
+      "program": "BASIC",
+      "panel": {
+        "x": 498,
+        "y": -47.5,
+        "width": 806,
+        "height": 863.09375,
+        "bottom": 815.59375
+      },
+      "intersectionRatio": 0.889822244644165,
+      "controls": 21,
+      "failedControlHitTests": [
+        "Sim",
+        "Não",
+        "N/A",
+        "Editar lançamento",
+        "Visualizar pendência",
+        "Adicionar Nota",
+        "Registrar despesa a identificar"
+      ],
+      "screenshot": "/workspace/scratch/controller-panel-main-basic-1366.png",
+      "screenshotSHA256": "f87b9a844e47e0188d98ed4155550a7e37b691b4361ddca75d843a96f43c1a67",
+      "stateHash": "c33ae8f6812467d8ddddeb5c0aa9d213058519f4a795dc2f478b67e632dbefd0",
+      "blockedWrites": []
+    },
+    {
+      "mode": "actual",
+      "label": "main",
+      "sha": "113841bda52ce3bbda228524daf9a7464f12b462",
+      "program": "CONECTADA",
+      "panel": {
+        "x": 498,
+        "y": 222.9375,
+        "width": 806,
+        "height": 323.09375,
+        "bottom": 546.03125
+      },
+      "intersectionRatio": 1,
+      "controls": 8,
+      "failedControlHitTests": [],
+      "screenshot": "/workspace/scratch/controller-panel-main-conectada-1366.png",
+      "screenshotSHA256": "c12691f4a761c4d113415c94ace12bb0b5a98a33ba7f25de39a4433f67fcbdcb",
+      "stateHash": "c33ae8f6812467d8ddddeb5c0aa9d213058519f4a795dc2f478b67e632dbefd0",
+      "blockedWrites": []
+    },
+    {
+      "mode": "actual",
+      "label": "candidate",
+      "sha": "6139fe79d7e3cbab86d432684231418c9daad876",
+      "program": "BASIC",
+      "panel": {
+        "x": 498,
+        "y": 18.5,
+        "width": 806,
+        "height": 863.09375,
+        "bottom": 881.59375
+      },
+      "intersectionRatio": 0.8683876991271973,
+      "controls": 21,
+      "failedControlHitTests": [
+        "Sim",
+        "Não",
+        "N/A",
+        "Editar NF: AUD-PERM-01",
+        "Excluir NF: AUD-PERM-01",
+        "Não analisado\nCorreto\nCorreto (Atrasado)\nIncorreto",
+        "Adicionar Nota",
+        "Registrar despesa a identificar"
+      ],
+      "screenshot": "/workspace/scratch/controller-panel-candidate-basic-1366.png",
+      "screenshotSHA256": "15b1b27df360dc4ccfadd41f9626e9c4528d4a08c682d53e8a3537d77b446c35",
+      "stateHash": "c33ae8f6812467d8ddddeb5c0aa9d213058519f4a795dc2f478b67e632dbefd0",
+      "blockedWrites": []
+    },
+    {
+      "mode": "actual",
+      "label": "candidate",
+      "sha": "6139fe79d7e3cbab86d432684231418c9daad876",
+      "program": "CONECTADA",
+      "panel": {
+        "x": 498,
+        "y": 222.9375,
+        "width": 806,
+        "height": 323.09375,
+        "bottom": 546.03125
+      },
+      "intersectionRatio": 1,
+      "controls": 8,
+      "failedControlHitTests": [],
+      "screenshot": "/workspace/scratch/controller-panel-candidate-conectada-1366.png",
+      "screenshotSHA256": "53bdec7a2d3594b76b0e0e10594d25babad7f70e4cff9b0519bba4674bfa2ff2",
+      "stateHash": "c33ae8f6812467d8ddddeb5c0aa9d213058519f4a795dc2f478b67e632dbefd0",
+      "blockedWrites": []
+    },
+    {
+      "mode": "frontendFixture",
+      "label": "main",
+      "sha": "113841bda52ce3bbda228524daf9a7464f12b462",
+      "program": "CONECTADA",
+      "panel": {
+        "x": 498,
+        "y": 216.78125,
+        "width": 806,
+        "height": 334.3125,
+        "bottom": 551.09375
+      },
+      "intersectionRatio": 1,
+      "controls": 7,
+      "failedControlHitTests": [],
+      "screenshot": "/workspace/scratch/controller-panel-fixture-main-conectada-1366.png",
+      "screenshotSHA256": "96be0e89c0f44eb0c31aa7525c7fd255aed27b78ec3d9c6cb9ff23eea7b74955",
+      "stateHash": "3f9317b2263682700076d1aa7790462f6780f176e4ff71cfd1507bdc61a4d065",
+      "blockedWrites": []
+    },
+    {
+      "mode": "frontendFixture",
+      "label": "main",
+      "sha": "113841bda52ce3bbda228524daf9a7464f12b462",
+      "program": "BASIC",
+      "panel": {
+        "x": 498,
+        "y": 222.5,
+        "width": 806,
+        "height": 323.09375,
+        "bottom": 545.59375
+      },
+      "intersectionRatio": 1,
+      "controls": 8,
+      "failedControlHitTests": [],
+      "screenshot": "/workspace/scratch/controller-panel-fixture-main-basic-1366.png",
+      "screenshotSHA256": "87b113d8e2070a079e55fac0d1a2f4dcd4457d66730c2cbd0d4744d353fee675",
+      "stateHash": "3f9317b2263682700076d1aa7790462f6780f176e4ff71cfd1507bdc61a4d065",
+      "blockedWrites": []
+    },
+    {
+      "mode": "frontendFixture",
+      "label": "candidate",
+      "sha": "6139fe79d7e3cbab86d432684231418c9daad876",
+      "program": "CONECTADA",
+      "panel": {
+        "x": 498,
+        "y": 216.78125,
+        "width": 806,
+        "height": 334.3125,
+        "bottom": 551.09375
+      },
+      "intersectionRatio": 1,
+      "controls": 7,
+      "failedControlHitTests": [],
+      "screenshot": "/workspace/scratch/controller-panel-fixture-candidate-conectada-1366.png",
+      "screenshotSHA256": "c2551626919bf582b996a0910bde9dc838e0660d604c5187c2d650afefb0cb0f",
+      "stateHash": "3f9317b2263682700076d1aa7790462f6780f176e4ff71cfd1507bdc61a4d065",
+      "blockedWrites": []
+    },
+    {
+      "mode": "frontendFixture",
+      "label": "candidate",
+      "sha": "6139fe79d7e3cbab86d432684231418c9daad876",
+      "program": "BASIC",
+      "panel": {
+        "x": 498,
+        "y": 222.5,
+        "width": 806,
+        "height": 323.09375,
+        "bottom": 545.59375
+      },
+      "intersectionRatio": 1,
+      "controls": 8,
+      "failedControlHitTests": [],
+      "screenshot": "/workspace/scratch/controller-panel-fixture-candidate-basic-1366.png",
+      "screenshotSHA256": "f12b1f0cd7333940115ed8a4e023e2e711c867d8d14e5b2107c91de3ec759962",
+      "stateHash": "3f9317b2263682700076d1aa7790462f6780f176e4ff71cfd1507bdc61a4d065",
+      "blockedWrites": []
+    }
+  ],
+  "derivedCIPlacement": {
+    "assumption": "Same panel height as matching one-expense fixture; inference, not CI DOM measurement.",
+    "height": 334.3125,
+    "reportedRatio": 0.9488689303398132,
+    "inferredTop": 450.7812557257712,
+    "inferredBottom": 785.0937557257712,
+    "offsetFromSettledCapture": 234.0000057257712
+  },
+  "conclusions": [
+    "Conectada existing one-boleto state has identical geometry and all controls accessible in both main/candidate.",
+    "CI-shaped one-a_identificar presentation has identical geometry and all controls accessible in both main/candidate.",
+    "BASIC panel with7 real invoices is taller than viewport even on main, so whole-container ratio1 is not a general accessibility/product invariant.",
+    "Original CI partial ratio is consistent with approximately234px scroll displacement rather than larger panel geometry.",
+    "Exact CI scroll timing/restore interleaving remains unproven; do not lower ratio blindly or assert observed regression/preexisting cause without stronger evidence.",
+    "Production untouched; final native CI remains authoritative."
+  ],
+  "fixtureScreenshotPixelComparison": {
+    "BASIC": {
+      "differenceBoundingBox": [
+        20,
+        22,
+        207,
+        98
+      ]
+    },
+    "CONECTADA": {
+      "differenceBoundingBox": [
+        20,
+        22,
+        207,
+        98
+      ]
+    },
+    "explanation": "Only animated RADAR logo in upper-left sidebar differs. All pixels outside logo bounds, including invoice panels and controls, are identical main/candidate."
+  }
+}

@@ -1,0 +1,2893 @@
+{
+  "environment": "cloud local HTTP/no network throttle; disposable Supabase migration61; same account/data; read-only UI",
+  "baseline": "113841bda52ce3bbda228524daf9a7464f12b462",
+  "candidate": "53f2fe991f0c4460576346cbca3a2375bf8c9890",
+  "method": "3 alternating fresh contexts per variant, then authenticated reload in same context. Click->ready includes visible h1 and two animation frames, not full visual/interaction stability. 500ms additional observation excluded from elapsed. HTTP no-store: warm means restored session, NOT warm HTTP cache. UI read-only, same disposable database; synthetic volume. Browser resource and CDP counters not mutually additive.",
+  "limits": [
+    "n=3, fixed baseline-first order and cloud host variance; not statistical performance certification or Production observation",
+    "LCP on login before first input is not Dashboard LCP; not used to claim Dashboard UX",
+    "No synthetic 11s delay included in normal timing samples",
+    "CPU counters include instrumentation and page work through the observation window",
+    "Database has migration61 for both variants, so runtime comparison is not a historical full-stack replay"
+  ],
+  "normal": [
+    {
+      "label": "baseline-cold-0",
+      "elapsedMs": 2105.3,
+      "loginVisibleMs": 907.7,
+      "cpu": {
+        "Nodes": 5158,
+        "LayoutDuration": 0.257199,
+        "RecalcStyleDuration": 0.210367,
+        "ScriptDuration": 0.446275,
+        "TaskDuration": 1.413276,
+        "JSHeapUsedSize": 9622296
+      },
+      "events": [
+        {
+          "name": "DOMContentLoaded",
+          "start": 479.5
+        },
+        {
+          "name": "radar:auth-resolved",
+          "start": 1786.300000011921
+        },
+        {
+          "name": "radar:application-services-ready",
+          "start": 2059.1000000089407
+        },
+        {
+          "name": "radar:navigation-committed",
+          "start": 2173
+        }
+      ],
+      "longTasks": {
+        "count": 6,
+        "totalMs": 639,
+        "maxMs": 196
+      },
+      "appJs": {
+        "path": "/app.js",
+        "type": "script",
+        "start": 23.5,
+        "duration": 269.20000000298023,
+        "transferBytes": 562746,
+        "decodedBytes": 562446
+      },
+      "resourceCount": 163,
+      "resourceTransferBytes": 3287466,
+      "restResourceTimings": [
+        {
+          "path": "/rest/v1/user_profiles",
+          "type": "fetch",
+          "start": 1642.4000000059605,
+          "duration": 140.29999999701977,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/current_app_role",
+          "type": "fetch",
+          "start": 1643.2000000029802,
+          "duration": 122.29999999701977,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/user_school_scopes",
+          "type": "fetch",
+          "start": 1644.5,
+          "duration": 138.40000000596046,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "type": "fetch",
+          "start": 1790.2000000029802,
+          "duration": 193.29999999701977,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/app_config",
+          "type": "fetch",
+          "start": 1790.6000000089407,
+          "duration": 81.79999999701977,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/programs",
+          "type": "fetch",
+          "start": 1791.5,
+          "duration": 71.30000001192093,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/controllers",
+          "type": "fetch",
+          "start": 1791.6000000089407,
+          "duration": 73,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/inventory_team_members",
+          "type": "fetch",
+          "start": 1791.800000011921,
+          "duration": 77.09999999403954,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/schools",
+          "type": "fetch",
+          "start": 1791.800000011921,
+          "duration": 106.5,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/school_programs",
+          "type": "fetch",
+          "start": 1792,
+          "duration": 101,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/competences",
+          "type": "fetch",
+          "start": 1881.2000000029802,
+          "duration": 25.299999997019768,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "type": "fetch",
+          "start": 1912,
+          "duration": 129.1000000089407,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        }
+      ],
+      "network": [
+        {
+          "path": "/rest/v1/rpc/current_app_role",
+          "status": 200,
+          "at": 1791831148704,
+          "bytes": 12
+        },
+        {
+          "path": "/rest/v1/user_profiles",
+          "status": 200,
+          "at": 1791831148719,
+          "bytes": 248
+        },
+        {
+          "path": "/rest/v1/user_school_scopes",
+          "status": 200,
+          "at": 1791831148731,
+          "bytes": 45
+        },
+        {
+          "path": "/rest/v1/programs",
+          "status": 200,
+          "at": 1791831148811,
+          "bytes": 467
+        },
+        {
+          "path": "/rest/v1/controllers",
+          "status": 200,
+          "at": 1791831148814,
+          "bytes": 487
+        },
+        {
+          "path": "/rest/v1/inventory_team_members",
+          "status": 200,
+          "at": 1791831148819,
+          "bytes": 260
+        },
+        {
+          "path": "/rest/v1/app_config",
+          "status": 200,
+          "at": 1791831148820,
+          "bytes": 247
+        },
+        {
+          "path": "/rest/v1/school_programs",
+          "status": 200,
+          "at": 1791831148829,
+          "bytes": 967
+        },
+        {
+          "path": "/rest/v1/schools",
+          "status": 200,
+          "at": 1791831148834,
+          "bytes": 1674
+        },
+        {
+          "path": "/rest/v1/competences",
+          "status": 200,
+          "at": 1791831148847,
+          "bytes": 525
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "at": 1791831148921,
+          "bytes": 59814
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "at": 1791831148984,
+          "bytes": 73353
+        }
+      ],
+      "errors": []
+    },
+    {
+      "label": "baseline-warm-0",
+      "elapsedMs": 1478.5,
+      "loginVisibleMs": 0,
+      "cpu": {
+        "Nodes": 10245,
+        "LayoutDuration": 0.195289,
+        "RecalcStyleDuration": 0.104924,
+        "ScriptDuration": 0.296957,
+        "TaskDuration": 1.052926,
+        "JSHeapUsedSize": 14371492
+      },
+      "events": [
+        {
+          "name": "DOMContentLoaded",
+          "start": 523
+        },
+        {
+          "name": "radar:auth-resolved",
+          "start": 707.7000000029802
+        },
+        {
+          "name": "radar:application-services-ready",
+          "start": 1117.6000000089407
+        },
+        {
+          "name": "radar:navigation-committed",
+          "start": 1129.7000000029802
+        }
+      ],
+      "longTasks": {
+        "count": 2,
+        "totalMs": 166,
+        "maxMs": 114
+      },
+      "appJs": {
+        "path": "/app.js",
+        "type": "script",
+        "start": 79.20000000298023,
+        "duration": 214.90000000596046,
+        "transferBytes": 562746,
+        "decodedBytes": 562446
+      },
+      "resourceCount": 164,
+      "resourceTransferBytes": 3226315,
+      "restResourceTimings": [
+        {
+          "path": "/rest/v1/user_profiles",
+          "type": "fetch",
+          "start": 628.2999999970198,
+          "duration": 56.20000000298023,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/current_app_role",
+          "type": "fetch",
+          "start": 629.2000000029802,
+          "duration": 55.099999994039536,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/user_school_scopes",
+          "type": "fetch",
+          "start": 629.4000000059605,
+          "duration": 54.79999999701977,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "type": "fetch",
+          "start": 711.2000000029802,
+          "duration": 126.20000000298023,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/app_config",
+          "type": "fetch",
+          "start": 712,
+          "duration": 87.1000000089407,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/programs",
+          "type": "fetch",
+          "start": 712.2000000029802,
+          "duration": 103.09999999403954,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/controllers",
+          "type": "fetch",
+          "start": 713.2999999970198,
+          "duration": 101.70000000298023,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/inventory_team_members",
+          "type": "fetch",
+          "start": 713.4000000059605,
+          "duration": 101.79999999701977,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/schools",
+          "type": "fetch",
+          "start": 713.6000000089407,
+          "duration": 101.79999999701977,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/school_programs",
+          "type": "fetch",
+          "start": 714.6000000089407,
+          "duration": 168.09999999403954,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/competences",
+          "type": "fetch",
+          "start": 808.9000000059605,
+          "duration": 28.099999994039536,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "type": "fetch",
+          "start": 891.9000000059605,
+          "duration": 147.29999999701977,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        }
+      ],
+      "network": [
+        {
+          "path": "/rest/v1/user_school_scopes",
+          "status": 200,
+          "at": 1791831151332,
+          "bytes": 45
+        },
+        {
+          "path": "/rest/v1/rpc/current_app_role",
+          "status": 200,
+          "at": 1791831151336,
+          "bytes": 12
+        },
+        {
+          "path": "/rest/v1/user_profiles",
+          "status": 200,
+          "at": 1791831151337,
+          "bytes": 248
+        },
+        {
+          "path": "/rest/v1/app_config",
+          "status": 200,
+          "at": 1791831151420,
+          "bytes": 247
+        },
+        {
+          "path": "/rest/v1/controllers",
+          "status": 200,
+          "at": 1791831151458,
+          "bytes": 487
+        },
+        {
+          "path": "/rest/v1/inventory_team_members",
+          "status": 200,
+          "at": 1791831151458,
+          "bytes": 260
+        },
+        {
+          "path": "/rest/v1/programs",
+          "status": 200,
+          "at": 1791831151460,
+          "bytes": 467
+        },
+        {
+          "path": "/rest/v1/schools",
+          "status": 200,
+          "at": 1791831151490,
+          "bytes": 1674
+        },
+        {
+          "path": "/rest/v1/competences",
+          "status": 200,
+          "at": 1791831151495,
+          "bytes": 525
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "at": 1791831151498,
+          "bytes": 59814
+        },
+        {
+          "path": "/rest/v1/school_programs",
+          "status": 200,
+          "at": 1791831151509,
+          "bytes": 967
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "at": 1791831151710,
+          "bytes": 73353
+        }
+      ],
+      "errors": []
+    },
+    {
+      "label": "candidate-cold-0",
+      "elapsedMs": 1187.5,
+      "loginVisibleMs": 633.0,
+      "cpu": {
+        "Nodes": 5161,
+        "LayoutDuration": 0.11499,
+        "RecalcStyleDuration": 0.128408,
+        "ScriptDuration": 0.259981,
+        "TaskDuration": 0.964712,
+        "JSHeapUsedSize": 9597320
+      },
+      "events": [
+        {
+          "name": "DOMContentLoaded",
+          "start": 228.90000000596046
+        },
+        {
+          "name": "radar:pendency-page-ready",
+          "start": 294.90000000596046
+        },
+        {
+          "name": "radar:auth-resolved",
+          "start": 987.6000000089407
+        },
+        {
+          "name": "radar:application-services-ready",
+          "start": 1126.5
+        },
+        {
+          "name": "radar:navigation-committed",
+          "start": 1195.4000000059605
+        }
+      ],
+      "longTasks": {
+        "count": 2,
+        "totalMs": 152,
+        "maxMs": 86
+      },
+      "appJs": {
+        "path": "/app.js",
+        "type": "script",
+        "start": 28.80000001192093,
+        "duration": 139.09999999403954,
+        "transferBytes": 563280,
+        "decodedBytes": 562980
+      },
+      "resourceCount": 163,
+      "resourceTransferBytes": 3294498,
+      "restResourceTimings": [
+        {
+          "path": "/rest/v1/user_profiles",
+          "type": "fetch",
+          "start": 932.7000000029802,
+          "duration": 46,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/current_app_role",
+          "type": "fetch",
+          "start": 933.8000000119209,
+          "duration": 53,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/user_school_scopes",
+          "type": "fetch",
+          "start": 934.4000000059605,
+          "duration": 50.5,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "type": "fetch",
+          "start": 991.2000000029802,
+          "duration": 100.79999999701977,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/app_config",
+          "type": "fetch",
+          "start": 992.3000000119209,
+          "duration": 20.599999994039536,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/programs",
+          "type": "fetch",
+          "start": 992.9000000059605,
+          "duration": 65.09999999403954,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/controllers",
+          "type": "fetch",
+          "start": 994.7000000029802,
+          "duration": 27.100000008940697,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/inventory_team_members",
+          "type": "fetch",
+          "start": 995.4000000059605,
+          "duration": 28.400000005960464,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/schools",
+          "type": "fetch",
+          "start": 996.3000000119209,
+          "duration": 33.3999999910593,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/school_programs",
+          "type": "fetch",
+          "start": 996.4000000059605,
+          "duration": 65.5,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/competences",
+          "type": "fetch",
+          "start": 1015.6000000089407,
+          "duration": 42.8999999910593,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "type": "fetch",
+          "start": 1064.5,
+          "duration": 47.1000000089407,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        }
+      ],
+      "network": [
+        {
+          "path": "/rest/v1/user_profiles",
+          "status": 200,
+          "at": 1791831156413,
+          "bytes": 248
+        },
+        {
+          "path": "/rest/v1/user_school_scopes",
+          "status": 200,
+          "at": 1791831156416,
+          "bytes": 45
+        },
+        {
+          "path": "/rest/v1/rpc/current_app_role",
+          "status": 200,
+          "at": 1791831156418,
+          "bytes": 12
+        },
+        {
+          "path": "/rest/v1/app_config",
+          "status": 200,
+          "at": 1791831156446,
+          "bytes": 247
+        },
+        {
+          "path": "/rest/v1/controllers",
+          "status": 200,
+          "at": 1791831156456,
+          "bytes": 487
+        },
+        {
+          "path": "/rest/v1/inventory_team_members",
+          "status": 200,
+          "at": 1791831156458,
+          "bytes": 260
+        },
+        {
+          "path": "/rest/v1/schools",
+          "status": 200,
+          "at": 1791831156489,
+          "bytes": 1674
+        },
+        {
+          "path": "/rest/v1/programs",
+          "status": 200,
+          "at": 1791831156491,
+          "bytes": 467
+        },
+        {
+          "path": "/rest/v1/competences",
+          "status": 200,
+          "at": 1791831156493,
+          "bytes": 525
+        },
+        {
+          "path": "/rest/v1/school_programs",
+          "status": 200,
+          "at": 1791831156494,
+          "bytes": 967
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "at": 1791831156524,
+          "bytes": 59814
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "at": 1791831156543,
+          "bytes": 73353
+        }
+      ],
+      "errors": []
+    },
+    {
+      "label": "candidate-warm-0",
+      "elapsedMs": 1436.0,
+      "loginVisibleMs": 0,
+      "cpu": {
+        "Nodes": 10276,
+        "LayoutDuration": 0.051951,
+        "RecalcStyleDuration": 0.127013,
+        "ScriptDuration": 0.262546,
+        "TaskDuration": 0.911244,
+        "JSHeapUsedSize": 11647392
+      },
+      "events": [
+        {
+          "name": "DOMContentLoaded",
+          "start": 353
+        },
+        {
+          "name": "radar:pendency-page-ready",
+          "start": 371
+        },
+        {
+          "name": "radar:auth-resolved",
+          "start": 544.6000000089407
+        },
+        {
+          "name": "radar:application-services-ready",
+          "start": 789.7000000029802
+        },
+        {
+          "name": "radar:navigation-committed",
+          "start": 878.1000000089407
+        }
+      ],
+      "longTasks": {
+        "count": 2,
+        "totalMs": 184,
+        "maxMs": 115
+      },
+      "appJs": {
+        "path": "/app.js",
+        "type": "script",
+        "start": 42.900000005960464,
+        "duration": 136.09999999403954,
+        "transferBytes": 563280,
+        "decodedBytes": 562980
+      },
+      "resourceCount": 164,
+      "resourceTransferBytes": 3233347,
+      "restResourceTimings": [
+        {
+          "path": "/rest/v1/user_profiles",
+          "type": "fetch",
+          "start": 407.70000000298023,
+          "duration": 63.20000000298023,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/current_app_role",
+          "type": "fetch",
+          "start": 408.20000000298023,
+          "duration": 96.09999999403954,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/user_school_scopes",
+          "type": "fetch",
+          "start": 408.40000000596046,
+          "duration": 102.8999999910593,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "type": "fetch",
+          "start": 546.1000000089407,
+          "duration": 56.29999999701977,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/app_config",
+          "type": "fetch",
+          "start": 547.2999999970198,
+          "duration": 23.200000002980232,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/programs",
+          "type": "fetch",
+          "start": 547.4000000059605,
+          "duration": 23,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/controllers",
+          "type": "fetch",
+          "start": 547.6000000089407,
+          "duration": 22.69999998807907,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/inventory_team_members",
+          "type": "fetch",
+          "start": 547.7999999970198,
+          "duration": 25,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/schools",
+          "type": "fetch",
+          "start": 547.9000000059605,
+          "duration": 31.399999991059303,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/school_programs",
+          "type": "fetch",
+          "start": 548.1000000089407,
+          "duration": 40.5,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/competences",
+          "type": "fetch",
+          "start": 598,
+          "duration": 48.70000000298023,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "type": "fetch",
+          "start": 661.4000000059605,
+          "duration": 100.09999999403954,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        }
+      ],
+      "network": [
+        {
+          "path": "/rest/v1/user_profiles",
+          "status": 200,
+          "at": 1791831158323,
+          "bytes": 248
+        },
+        {
+          "path": "/rest/v1/rpc/current_app_role",
+          "status": 200,
+          "at": 1791831158350,
+          "bytes": 12
+        },
+        {
+          "path": "/rest/v1/user_school_scopes",
+          "status": 200,
+          "at": 1791831158399,
+          "bytes": 45
+        },
+        {
+          "path": "/rest/v1/app_config",
+          "status": 200,
+          "at": 1791831158440,
+          "bytes": 247
+        },
+        {
+          "path": "/rest/v1/programs",
+          "status": 200,
+          "at": 1791831158444,
+          "bytes": 467
+        },
+        {
+          "path": "/rest/v1/controllers",
+          "status": 200,
+          "at": 1791831158449,
+          "bytes": 487
+        },
+        {
+          "path": "/rest/v1/inventory_team_members",
+          "status": 200,
+          "at": 1791831158450,
+          "bytes": 260
+        },
+        {
+          "path": "/rest/v1/schools",
+          "status": 200,
+          "at": 1791831158450,
+          "bytes": 1674
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "at": 1791831158487,
+          "bytes": 59814
+        },
+        {
+          "path": "/rest/v1/school_programs",
+          "status": 200,
+          "at": 1791831158487,
+          "bytes": 967
+        },
+        {
+          "path": "/rest/v1/competences",
+          "status": 200,
+          "at": 1791831158509,
+          "bytes": 525
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "at": 1791831158616,
+          "bytes": 73353
+        }
+      ],
+      "errors": []
+    },
+    {
+      "label": "baseline-cold-1",
+      "elapsedMs": 1046.6,
+      "loginVisibleMs": 741.8,
+      "cpu": {
+        "Nodes": 5161,
+        "LayoutDuration": 0.142203,
+        "RecalcStyleDuration": 0.124908,
+        "ScriptDuration": 0.317857,
+        "TaskDuration": 1.087556,
+        "JSHeapUsedSize": 9638580
+      },
+      "events": [
+        {
+          "name": "DOMContentLoaded",
+          "start": 231.1000000089407
+        },
+        {
+          "name": "radar:auth-resolved",
+          "start": 1118.4000000059605
+        },
+        {
+          "name": "radar:application-services-ready",
+          "start": 1275.5
+        },
+        {
+          "name": "radar:navigation-committed",
+          "start": 1376.7000000029802
+        }
+      ],
+      "longTasks": {
+        "count": 4,
+        "totalMs": 309,
+        "maxMs": 125
+      },
+      "appJs": {
+        "path": "/app.js",
+        "type": "script",
+        "start": 14.900000005960464,
+        "duration": 99.29999999701977,
+        "transferBytes": 562746,
+        "decodedBytes": 562446
+      },
+      "resourceCount": 163,
+      "resourceTransferBytes": 3287466,
+      "restResourceTimings": [
+        {
+          "path": "/rest/v1/user_profiles",
+          "type": "fetch",
+          "start": 1038.7000000029802,
+          "duration": 66.29999999701977,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/current_app_role",
+          "type": "fetch",
+          "start": 1039,
+          "duration": 69.6000000089407,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/user_school_scopes",
+          "type": "fetch",
+          "start": 1039.4000000059605,
+          "duration": 67,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "type": "fetch",
+          "start": 1123.7999999970198,
+          "duration": 96.40000000596046,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/app_config",
+          "type": "fetch",
+          "start": 1128.1000000089407,
+          "duration": 23.799999997019768,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/programs",
+          "type": "fetch",
+          "start": 1128.4000000059605,
+          "duration": 60.29999999701977,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/controllers",
+          "type": "fetch",
+          "start": 1131.7000000029802,
+          "duration": 24.700000002980232,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/inventory_team_members",
+          "type": "fetch",
+          "start": 1131.9000000059605,
+          "duration": 71.3999999910593,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/schools",
+          "type": "fetch",
+          "start": 1135.7000000029802,
+          "duration": 65.5,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/school_programs",
+          "type": "fetch",
+          "start": 1136.5,
+          "duration": 51.20000000298023,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/competences",
+          "type": "fetch",
+          "start": 1153.7999999970198,
+          "duration": 44.20000000298023,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "type": "fetch",
+          "start": 1205.7999999970198,
+          "duration": 46.900000005960464,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        }
+      ],
+      "network": [
+        {
+          "path": "/rest/v1/user_profiles",
+          "status": 200,
+          "at": 1791831164010,
+          "bytes": 248
+        },
+        {
+          "path": "/rest/v1/user_school_scopes",
+          "status": 200,
+          "at": 1791831164017,
+          "bytes": 45
+        },
+        {
+          "path": "/rest/v1/rpc/current_app_role",
+          "status": 200,
+          "at": 1791831164022,
+          "bytes": 12
+        },
+        {
+          "path": "/rest/v1/app_config",
+          "status": 200,
+          "at": 1791831164057,
+          "bytes": 247
+        },
+        {
+          "path": "/rest/v1/controllers",
+          "status": 200,
+          "at": 1791831164059,
+          "bytes": 487
+        },
+        {
+          "path": "/rest/v1/school_programs",
+          "status": 200,
+          "at": 1791831164092,
+          "bytes": 967
+        },
+        {
+          "path": "/rest/v1/programs",
+          "status": 200,
+          "at": 1791831164093,
+          "bytes": 467
+        },
+        {
+          "path": "/rest/v1/competences",
+          "status": 200,
+          "at": 1791831164100,
+          "bytes": 525
+        },
+        {
+          "path": "/rest/v1/schools",
+          "status": 200,
+          "at": 1791831164102,
+          "bytes": 1674
+        },
+        {
+          "path": "/rest/v1/inventory_team_members",
+          "status": 200,
+          "at": 1791831164105,
+          "bytes": 260
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "at": 1791831164124,
+          "bytes": 59814
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "at": 1791831164156,
+          "bytes": 73353
+        }
+      ],
+      "errors": []
+    },
+    {
+      "label": "baseline-warm-1",
+      "elapsedMs": 1521.3,
+      "loginVisibleMs": 0,
+      "cpu": {
+        "Nodes": 10276,
+        "LayoutDuration": 0.086174,
+        "RecalcStyleDuration": 0.108851,
+        "ScriptDuration": 0.286485,
+        "TaskDuration": 0.987589,
+        "JSHeapUsedSize": 14390872
+      },
+      "events": [
+        {
+          "name": "DOMContentLoaded",
+          "start": 409.30000001192093
+        },
+        {
+          "name": "radar:auth-resolved",
+          "start": 610.5
+        },
+        {
+          "name": "radar:application-services-ready",
+          "start": 831.4000000059605
+        },
+        {
+          "name": "radar:navigation-committed",
+          "start": 938.1000000089407
+        }
+      ],
+      "longTasks": {
+        "count": 2,
+        "totalMs": 224,
+        "maxMs": 169
+      },
+      "appJs": {
+        "path": "/app.js",
+        "type": "script",
+        "start": 38.5,
+        "duration": 101.70000000298023,
+        "transferBytes": 562746,
+        "decodedBytes": 562446
+      },
+      "resourceCount": 164,
+      "resourceTransferBytes": 3226315,
+      "restResourceTimings": [
+        {
+          "path": "/rest/v1/user_profiles",
+          "type": "fetch",
+          "start": 540,
+          "duration": 66.6000000089407,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/current_app_role",
+          "type": "fetch",
+          "start": 540.4000000059605,
+          "duration": 68.59999999403954,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/user_school_scopes",
+          "type": "fetch",
+          "start": 540.6000000089407,
+          "duration": 66.20000000298023,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "type": "fetch",
+          "start": 612.1000000089407,
+          "duration": 79.59999999403954,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/app_config",
+          "type": "fetch",
+          "start": 612.4000000059605,
+          "duration": 13,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/programs",
+          "type": "fetch",
+          "start": 618.6000000089407,
+          "duration": 11.899999991059303,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/controllers",
+          "type": "fetch",
+          "start": 618.9000000059605,
+          "duration": 10.200000002980232,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/inventory_team_members",
+          "type": "fetch",
+          "start": 619.1000000089407,
+          "duration": 13.099999994039536,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/schools",
+          "type": "fetch",
+          "start": 619.1000000089407,
+          "duration": 11.799999997019768,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/school_programs",
+          "type": "fetch",
+          "start": 619.2000000029802,
+          "duration": 18.299999997019768,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/competences",
+          "type": "fetch",
+          "start": 685.1000000089407,
+          "duration": 26.299999997019768,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "type": "fetch",
+          "start": 730.2000000029802,
+          "duration": 73.79999999701977,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        }
+      ],
+      "network": [
+        {
+          "path": "/rest/v1/user_profiles",
+          "status": 200,
+          "at": 1791831165924,
+          "bytes": 248
+        },
+        {
+          "path": "/rest/v1/user_school_scopes",
+          "status": 200,
+          "at": 1791831165924,
+          "bytes": 45
+        },
+        {
+          "path": "/rest/v1/rpc/current_app_role",
+          "status": 200,
+          "at": 1791831165925,
+          "bytes": 12
+        },
+        {
+          "path": "/rest/v1/app_config",
+          "status": 200,
+          "at": 1791831165997,
+          "bytes": 247
+        },
+        {
+          "path": "/rest/v1/programs",
+          "status": 200,
+          "at": 1791831166012,
+          "bytes": 467
+        },
+        {
+          "path": "/rest/v1/controllers",
+          "status": 200,
+          "at": 1791831166012,
+          "bytes": 487
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "at": 1791831166024,
+          "bytes": 59814
+        },
+        {
+          "path": "/rest/v1/inventory_team_members",
+          "status": 200,
+          "at": 1791831166024,
+          "bytes": 260
+        },
+        {
+          "path": "/rest/v1/schools",
+          "status": 200,
+          "at": 1791831166025,
+          "bytes": 1674
+        },
+        {
+          "path": "/rest/v1/school_programs",
+          "status": 200,
+          "at": 1791831166025,
+          "bytes": 967
+        },
+        {
+          "path": "/rest/v1/competences",
+          "status": 200,
+          "at": 1791831166033,
+          "bytes": 525
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "at": 1791831166124,
+          "bytes": 73353
+        }
+      ],
+      "errors": []
+    },
+    {
+      "label": "candidate-cold-1",
+      "elapsedMs": 1126.8,
+      "loginVisibleMs": 921.8,
+      "cpu": {
+        "Nodes": 5145,
+        "LayoutDuration": 0.122112,
+        "RecalcStyleDuration": 0.114751,
+        "ScriptDuration": 0.512161,
+        "TaskDuration": 1.27319,
+        "JSHeapUsedSize": 9640424
+      },
+      "events": [
+        {
+          "name": "DOMContentLoaded",
+          "start": 532.7999999970198
+        },
+        {
+          "name": "radar:pendency-page-ready",
+          "start": 605
+        },
+        {
+          "name": "radar:auth-resolved",
+          "start": 1384.7999999970198
+        },
+        {
+          "name": "radar:application-services-ready",
+          "start": 1515.5999999940395
+        },
+        {
+          "name": "radar:navigation-committed",
+          "start": 1613.2999999970198
+        }
+      ],
+      "longTasks": {
+        "count": 3,
+        "totalMs": 463,
+        "maxMs": 327
+      },
+      "appJs": {
+        "path": "/app.js",
+        "type": "script",
+        "start": 29.099999994039536,
+        "duration": 155.6000000089407,
+        "transferBytes": 563280,
+        "decodedBytes": 562980
+      },
+      "resourceCount": 163,
+      "resourceTransferBytes": 3294498,
+      "restResourceTimings": [
+        {
+          "path": "/rest/v1/user_profiles",
+          "type": "fetch",
+          "start": 1307.0999999940395,
+          "duration": 55.70000000298023,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/current_app_role",
+          "type": "fetch",
+          "start": 1307.7999999970198,
+          "duration": 59.900000005960464,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/user_school_scopes",
+          "type": "fetch",
+          "start": 1308.0999999940395,
+          "duration": 74.90000000596046,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "type": "fetch",
+          "start": 1392.5,
+          "duration": 77.29999999701977,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/app_config",
+          "type": "fetch",
+          "start": 1393.0999999940395,
+          "duration": 30.700000002980232,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/programs",
+          "type": "fetch",
+          "start": 1393.2999999970198,
+          "duration": 30.400000005960464,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/controllers",
+          "type": "fetch",
+          "start": 1393.5999999940395,
+          "duration": 60.80000001192093,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/inventory_team_members",
+          "type": "fetch",
+          "start": 1393.7999999970198,
+          "duration": 37,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/schools",
+          "type": "fetch",
+          "start": 1393.9000000059605,
+          "duration": 68.5,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/school_programs",
+          "type": "fetch",
+          "start": 1394.0999999940395,
+          "duration": 69.1000000089407,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/competences",
+          "type": "fetch",
+          "start": 1426.5999999940395,
+          "duration": 30.30000001192093,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "type": "fetch",
+          "start": 1465,
+          "duration": 36.79999999701977,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        }
+      ],
+      "network": [
+        {
+          "path": "/rest/v1/user_profiles",
+          "status": 200,
+          "at": 1791831168800,
+          "bytes": 248
+        },
+        {
+          "path": "/rest/v1/rpc/current_app_role",
+          "status": 200,
+          "at": 1791831168802,
+          "bytes": 12
+        },
+        {
+          "path": "/rest/v1/user_school_scopes",
+          "status": 200,
+          "at": 1791831168819,
+          "bytes": 45
+        },
+        {
+          "path": "/rest/v1/programs",
+          "status": 200,
+          "at": 1791831168854,
+          "bytes": 467
+        },
+        {
+          "path": "/rest/v1/app_config",
+          "status": 200,
+          "at": 1791831168856,
+          "bytes": 247
+        },
+        {
+          "path": "/rest/v1/inventory_team_members",
+          "status": 200,
+          "at": 1791831168863,
+          "bytes": 260
+        },
+        {
+          "path": "/rest/v1/controllers",
+          "status": 200,
+          "at": 1791831168890,
+          "bytes": 487
+        },
+        {
+          "path": "/rest/v1/competences",
+          "status": 200,
+          "at": 1791831168892,
+          "bytes": 525
+        },
+        {
+          "path": "/rest/v1/schools",
+          "status": 200,
+          "at": 1791831168898,
+          "bytes": 1674
+        },
+        {
+          "path": "/rest/v1/school_programs",
+          "status": 200,
+          "at": 1791831168898,
+          "bytes": 967
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "at": 1791831168904,
+          "bytes": 59814
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "at": 1791831168937,
+          "bytes": 73353
+        }
+      ],
+      "errors": []
+    },
+    {
+      "label": "candidate-warm-1",
+      "elapsedMs": 1187.2,
+      "loginVisibleMs": 0,
+      "cpu": {
+        "Nodes": 10243,
+        "LayoutDuration": 0.080776,
+        "RecalcStyleDuration": 0.174067,
+        "ScriptDuration": 0.236978,
+        "TaskDuration": 1.139983,
+        "JSHeapUsedSize": 11658588
+      },
+      "events": [
+        {
+          "name": "DOMContentLoaded",
+          "start": 380.80000001192093
+        },
+        {
+          "name": "radar:pendency-page-ready",
+          "start": 399.90000000596046
+        },
+        {
+          "name": "radar:auth-resolved",
+          "start": 585.3000000119209
+        },
+        {
+          "name": "radar:application-services-ready",
+          "start": 972.9000000059605
+        },
+        {
+          "name": "radar:navigation-committed",
+          "start": 1003
+        }
+      ],
+      "longTasks": {
+        "count": 3,
+        "totalMs": 195,
+        "maxMs": 81
+      },
+      "appJs": {
+        "path": "/app.js",
+        "type": "script",
+        "start": 69.6000000089407,
+        "duration": 126.59999999403954,
+        "transferBytes": 563280,
+        "decodedBytes": 562980
+      },
+      "resourceCount": 164,
+      "resourceTransferBytes": 3233347,
+      "restResourceTimings": [
+        {
+          "path": "/rest/v1/user_profiles",
+          "type": "fetch",
+          "start": 477,
+          "duration": 6.100000008940697,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/current_app_role",
+          "type": "fetch",
+          "start": 480.6000000089407,
+          "duration": 7.700000002980232,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/user_school_scopes",
+          "type": "fetch",
+          "start": 482.90000000596046,
+          "duration": 7.5,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "type": "fetch",
+          "start": 592.2000000029802,
+          "duration": 174,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/app_config",
+          "type": "fetch",
+          "start": 592.5,
+          "duration": 62,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/programs",
+          "type": "fetch",
+          "start": 592.6000000089407,
+          "duration": 59.599999994039536,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/controllers",
+          "type": "fetch",
+          "start": 592.8000000119209,
+          "duration": 61.3999999910593,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/inventory_team_members",
+          "type": "fetch",
+          "start": 592.9000000059605,
+          "duration": 105,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/schools",
+          "type": "fetch",
+          "start": 595.2000000029802,
+          "duration": 88.20000000298023,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/school_programs",
+          "type": "fetch",
+          "start": 595.6000000089407,
+          "duration": 159.09999999403954,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/competences",
+          "type": "fetch",
+          "start": 666.8000000119209,
+          "duration": 17.399999991059303,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "type": "fetch",
+          "start": 763.2000000029802,
+          "duration": 144.79999999701977,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        }
+      ],
+      "network": [
+        {
+          "path": "/rest/v1/user_profiles",
+          "status": 200,
+          "at": 1791831170636,
+          "bytes": 248
+        },
+        {
+          "path": "/rest/v1/rpc/current_app_role",
+          "status": 200,
+          "at": 1791831170711,
+          "bytes": 12
+        },
+        {
+          "path": "/rest/v1/user_school_scopes",
+          "status": 200,
+          "at": 1791831170712,
+          "bytes": 45
+        },
+        {
+          "path": "/rest/v1/programs",
+          "status": 200,
+          "at": 1791831170806,
+          "bytes": 467
+        },
+        {
+          "path": "/rest/v1/controllers",
+          "status": 200,
+          "at": 1791831170810,
+          "bytes": 487
+        },
+        {
+          "path": "/rest/v1/app_config",
+          "status": 200,
+          "at": 1791831170810,
+          "bytes": 247
+        },
+        {
+          "path": "/rest/v1/schools",
+          "status": 200,
+          "at": 1791831170832,
+          "bytes": 1674
+        },
+        {
+          "path": "/rest/v1/competences",
+          "status": 200,
+          "at": 1791831170833,
+          "bytes": 525
+        },
+        {
+          "path": "/rest/v1/inventory_team_members",
+          "status": 200,
+          "at": 1791831170844,
+          "bytes": 260
+        },
+        {
+          "path": "/rest/v1/school_programs",
+          "status": 200,
+          "at": 1791831170914,
+          "bytes": 967
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "at": 1791831170926,
+          "bytes": 59814
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "at": 1791831171088,
+          "bytes": 73353
+        }
+      ],
+      "errors": []
+    },
+    {
+      "label": "baseline-cold-2",
+      "elapsedMs": 1342.0,
+      "loginVisibleMs": 765.6,
+      "cpu": {
+        "Nodes": 5172,
+        "LayoutDuration": 0.114199,
+        "RecalcStyleDuration": 0.137841,
+        "ScriptDuration": 0.28988,
+        "TaskDuration": 1.125008,
+        "JSHeapUsedSize": 9634536
+      },
+      "events": [
+        {
+          "name": "DOMContentLoaded",
+          "start": 366.59999999403954
+        },
+        {
+          "name": "radar:auth-resolved",
+          "start": 1288.5
+        },
+        {
+          "name": "radar:application-services-ready",
+          "start": 1448.7000000029802
+        },
+        {
+          "name": "radar:navigation-committed",
+          "start": 1566.0999999940395
+        }
+      ],
+      "longTasks": {
+        "count": 4,
+        "totalMs": 288,
+        "maxMs": 95
+      },
+      "appJs": {
+        "path": "/app.js",
+        "type": "script",
+        "start": 66.20000000298023,
+        "duration": 178.59999999403954,
+        "transferBytes": 562746,
+        "decodedBytes": 562446
+      },
+      "resourceCount": 163,
+      "resourceTransferBytes": 3287466,
+      "restResourceTimings": [
+        {
+          "path": "/rest/v1/user_profiles",
+          "type": "fetch",
+          "start": 1158.2999999970198,
+          "duration": 98.5,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/current_app_role",
+          "type": "fetch",
+          "start": 1158.7000000029802,
+          "duration": 93,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/user_school_scopes",
+          "type": "fetch",
+          "start": 1168.0999999940395,
+          "duration": 114.1000000089407,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "type": "fetch",
+          "start": 1295.4000000059605,
+          "duration": 97.8999999910593,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/app_config",
+          "type": "fetch",
+          "start": 1295.7000000029802,
+          "duration": 61.8999999910593,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/programs",
+          "type": "fetch",
+          "start": 1295.7999999970198,
+          "duration": 59.6000000089407,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/controllers",
+          "type": "fetch",
+          "start": 1296,
+          "duration": 60.70000000298023,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/inventory_team_members",
+          "type": "fetch",
+          "start": 1296.2000000029802,
+          "duration": 71.29999999701977,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/schools",
+          "type": "fetch",
+          "start": 1296.2999999970198,
+          "duration": 64.6000000089407,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/school_programs",
+          "type": "fetch",
+          "start": 1296.5,
+          "duration": 82.20000000298023,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/competences",
+          "type": "fetch",
+          "start": 1358.9000000059605,
+          "duration": 12.699999988079071,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "type": "fetch",
+          "start": 1382.7999999970198,
+          "duration": 46.70000000298023,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        }
+      ],
+      "network": [
+        {
+          "path": "/rest/v1/rpc/current_app_role",
+          "status": 200,
+          "at": 1791831173500,
+          "bytes": 12
+        },
+        {
+          "path": "/rest/v1/user_profiles",
+          "status": 200,
+          "at": 1791831173505,
+          "bytes": 248
+        },
+        {
+          "path": "/rest/v1/user_school_scopes",
+          "status": 200,
+          "at": 1791831173530,
+          "bytes": 45
+        },
+        {
+          "path": "/rest/v1/programs",
+          "status": 200,
+          "at": 1791831173603,
+          "bytes": 467
+        },
+        {
+          "path": "/rest/v1/controllers",
+          "status": 200,
+          "at": 1791831173606,
+          "bytes": 487
+        },
+        {
+          "path": "/rest/v1/app_config",
+          "status": 200,
+          "at": 1791831173606,
+          "bytes": 247
+        },
+        {
+          "path": "/rest/v1/schools",
+          "status": 200,
+          "at": 1791831173607,
+          "bytes": 1674
+        },
+        {
+          "path": "/rest/v1/inventory_team_members",
+          "status": 200,
+          "at": 1791831173612,
+          "bytes": 260
+        },
+        {
+          "path": "/rest/v1/competences",
+          "status": 200,
+          "at": 1791831173619,
+          "bytes": 525
+        },
+        {
+          "path": "/rest/v1/school_programs",
+          "status": 200,
+          "at": 1791831173624,
+          "bytes": 967
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "at": 1791831173640,
+          "bytes": 59814
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "at": 1791831173674,
+          "bytes": 73353
+        }
+      ],
+      "errors": []
+    },
+    {
+      "label": "baseline-warm-2",
+      "elapsedMs": 1483.0,
+      "loginVisibleMs": 0,
+      "cpu": {
+        "Nodes": 10287,
+        "LayoutDuration": 0.063112,
+        "RecalcStyleDuration": 0.098252,
+        "ScriptDuration": 0.26164,
+        "TaskDuration": 1.003052,
+        "JSHeapUsedSize": 14377128
+      },
+      "events": [
+        {
+          "name": "DOMContentLoaded",
+          "start": 339.40000000596046
+        },
+        {
+          "name": "radar:auth-resolved",
+          "start": 621.7999999970198
+        },
+        {
+          "name": "radar:application-services-ready",
+          "start": 878.7999999970198
+        },
+        {
+          "name": "radar:navigation-committed",
+          "start": 922.6000000089407
+        }
+      ],
+      "longTasks": {
+        "count": 5,
+        "totalMs": 359,
+        "maxMs": 97
+      },
+      "appJs": {
+        "path": "/app.js",
+        "type": "script",
+        "start": 53.20000000298023,
+        "duration": 113.70000000298023,
+        "transferBytes": 562746,
+        "decodedBytes": 562446
+      },
+      "resourceCount": 164,
+      "resourceTransferBytes": 3226315,
+      "restResourceTimings": [
+        {
+          "path": "/rest/v1/user_profiles",
+          "type": "fetch",
+          "start": 454.79999999701977,
+          "duration": 78.80000001192093,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/current_app_role",
+          "type": "fetch",
+          "start": 455.1000000089407,
+          "duration": 94.09999999403954,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/user_school_scopes",
+          "type": "fetch",
+          "start": 455.40000000596046,
+          "duration": 78.20000000298023,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "type": "fetch",
+          "start": 640.6000000089407,
+          "duration": 126.19999998807907,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/app_config",
+          "type": "fetch",
+          "start": 641.2999999970198,
+          "duration": 80.70000000298023,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/programs",
+          "type": "fetch",
+          "start": 641.5,
+          "duration": 36.20000000298023,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/controllers",
+          "type": "fetch",
+          "start": 641.7000000029802,
+          "duration": 76.5,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/inventory_team_members",
+          "type": "fetch",
+          "start": 641.7999999970198,
+          "duration": 80.1000000089407,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/schools",
+          "type": "fetch",
+          "start": 642,
+          "duration": 124.1000000089407,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/school_programs",
+          "type": "fetch",
+          "start": 642.2000000029802,
+          "duration": 124.20000000298023,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/competences",
+          "type": "fetch",
+          "start": 727.7000000029802,
+          "duration": 39,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "type": "fetch",
+          "start": 783,
+          "duration": 70.20000000298023,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        }
+      ],
+      "network": [
+        {
+          "path": "/rest/v1/rpc/current_app_role",
+          "status": 200,
+          "at": 1791831175556,
+          "bytes": 12
+        },
+        {
+          "path": "/rest/v1/user_profiles",
+          "status": 200,
+          "at": 1791831175558,
+          "bytes": 248
+        },
+        {
+          "path": "/rest/v1/user_school_scopes",
+          "status": 200,
+          "at": 1791831175558,
+          "bytes": 45
+        },
+        {
+          "path": "/rest/v1/programs",
+          "status": 200,
+          "at": 1791831175705,
+          "bytes": 467
+        },
+        {
+          "path": "/rest/v1/controllers",
+          "status": 200,
+          "at": 1791831175734,
+          "bytes": 487
+        },
+        {
+          "path": "/rest/v1/inventory_team_members",
+          "status": 200,
+          "at": 1791831175734,
+          "bytes": 260
+        },
+        {
+          "path": "/rest/v1/app_config",
+          "status": 200,
+          "at": 1791831175735,
+          "bytes": 247
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "at": 1791831175743,
+          "bytes": 59814
+        },
+        {
+          "path": "/rest/v1/schools",
+          "status": 200,
+          "at": 1791831175748,
+          "bytes": 1674
+        },
+        {
+          "path": "/rest/v1/school_programs",
+          "status": 200,
+          "at": 1791831175748,
+          "bytes": 967
+        },
+        {
+          "path": "/rest/v1/competences",
+          "status": 200,
+          "at": 1791831175748,
+          "bytes": 525
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "at": 1791831175848,
+          "bytes": 73353
+        }
+      ],
+      "errors": []
+    },
+    {
+      "label": "candidate-cold-2",
+      "elapsedMs": 1261.0,
+      "loginVisibleMs": 565.1,
+      "cpu": {
+        "Nodes": 5161,
+        "LayoutDuration": 0.089132,
+        "RecalcStyleDuration": 0.096955,
+        "ScriptDuration": 0.249797,
+        "TaskDuration": 0.841245,
+        "JSHeapUsedSize": 9869620
+      },
+      "events": [
+        {
+          "name": "DOMContentLoaded",
+          "start": 238.1000000089407
+        },
+        {
+          "name": "radar:pendency-page-ready",
+          "start": 268
+        },
+        {
+          "name": "radar:auth-resolved",
+          "start": 905.7000000029802
+        },
+        {
+          "name": "radar:application-services-ready",
+          "start": 1064.2999999970198
+        },
+        {
+          "name": "radar:navigation-committed",
+          "start": 1147.7000000029802
+        }
+      ],
+      "longTasks": {
+        "count": 2,
+        "totalMs": 139,
+        "maxMs": 72
+      },
+      "appJs": {
+        "path": "/app.js",
+        "type": "script",
+        "start": 23.299999997019768,
+        "duration": 109,
+        "transferBytes": 563280,
+        "decodedBytes": 562980
+      },
+      "resourceCount": 163,
+      "resourceTransferBytes": 3294498,
+      "restResourceTimings": [
+        {
+          "path": "/rest/v1/user_profiles",
+          "type": "fetch",
+          "start": 812.5,
+          "duration": 67.5,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/current_app_role",
+          "type": "fetch",
+          "start": 813.1000000089407,
+          "duration": 60.099999994039536,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/user_school_scopes",
+          "type": "fetch",
+          "start": 813.6000000089407,
+          "duration": 39.19999998807907,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "type": "fetch",
+          "start": 910,
+          "duration": 120,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/app_config",
+          "type": "fetch",
+          "start": 910.7000000029802,
+          "duration": 22.200000002980232,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/programs",
+          "type": "fetch",
+          "start": 910.9000000059605,
+          "duration": 17.700000002980232,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/controllers",
+          "type": "fetch",
+          "start": 911.6000000089407,
+          "duration": 42.8999999910593,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/inventory_team_members",
+          "type": "fetch",
+          "start": 912,
+          "duration": 33.900000005960464,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/schools",
+          "type": "fetch",
+          "start": 912.2999999970198,
+          "duration": 45.1000000089407,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/school_programs",
+          "type": "fetch",
+          "start": 912.5,
+          "duration": 49.6000000089407,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/competences",
+          "type": "fetch",
+          "start": 931.7999999970198,
+          "duration": 11.300000011920929,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "type": "fetch",
+          "start": 967.9000000059605,
+          "duration": 76.59999999403954,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        }
+      ],
+      "network": [
+        {
+          "path": "/rest/v1/user_school_scopes",
+          "status": 200,
+          "at": 1791831177945,
+          "bytes": 45
+        },
+        {
+          "path": "/rest/v1/rpc/current_app_role",
+          "status": 200,
+          "at": 1791831177961,
+          "bytes": 12
+        },
+        {
+          "path": "/rest/v1/user_profiles",
+          "status": 200,
+          "at": 1791831177991,
+          "bytes": 248
+        },
+        {
+          "path": "/rest/v1/programs",
+          "status": 200,
+          "at": 1791831178021,
+          "bytes": 467
+        },
+        {
+          "path": "/rest/v1/app_config",
+          "status": 200,
+          "at": 1791831178023,
+          "bytes": 247
+        },
+        {
+          "path": "/rest/v1/competences",
+          "status": 200,
+          "at": 1791831178030,
+          "bytes": 525
+        },
+        {
+          "path": "/rest/v1/inventory_team_members",
+          "status": 200,
+          "at": 1791831178033,
+          "bytes": 260
+        },
+        {
+          "path": "/rest/v1/controllers",
+          "status": 200,
+          "at": 1791831178042,
+          "bytes": 487
+        },
+        {
+          "path": "/rest/v1/schools",
+          "status": 200,
+          "at": 1791831178044,
+          "bytes": 1674
+        },
+        {
+          "path": "/rest/v1/school_programs",
+          "status": 200,
+          "at": 1791831178052,
+          "bytes": 967
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "at": 1791831178117,
+          "bytes": 59814
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "at": 1791831178132,
+          "bytes": 73353
+        }
+      ],
+      "errors": []
+    },
+    {
+      "label": "candidate-warm-2",
+      "elapsedMs": 1516.7,
+      "loginVisibleMs": 0,
+      "cpu": {
+        "Nodes": 10275,
+        "LayoutDuration": 0.067257,
+        "RecalcStyleDuration": 0.148659,
+        "ScriptDuration": 0.197488,
+        "TaskDuration": 0.905521,
+        "JSHeapUsedSize": 11444588
+      },
+      "events": [
+        {
+          "name": "DOMContentLoaded",
+          "start": 262.09999999403954
+        },
+        {
+          "name": "radar:pendency-page-ready",
+          "start": 286.5
+        },
+        {
+          "name": "radar:auth-resolved",
+          "start": 441.59999999403954
+        },
+        {
+          "name": "radar:application-services-ready",
+          "start": 734.1999999880791
+        },
+        {
+          "name": "radar:navigation-committed",
+          "start": 804.7999999970198
+        }
+      ],
+      "longTasks": {
+        "count": 2,
+        "totalMs": 224,
+        "maxMs": 143
+      },
+      "appJs": {
+        "path": "/app.js",
+        "type": "script",
+        "start": 30.19999998807907,
+        "duration": 61.1000000089407,
+        "transferBytes": 563280,
+        "decodedBytes": 562980
+      },
+      "resourceCount": 164,
+      "resourceTransferBytes": 3233347,
+      "restResourceTimings": [
+        {
+          "path": "/rest/v1/user_profiles",
+          "type": "fetch",
+          "start": 342.8999999910593,
+          "duration": 93.20000000298023,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/current_app_role",
+          "type": "fetch",
+          "start": 344.09999999403954,
+          "duration": 91.90000000596046,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/user_school_scopes",
+          "type": "fetch",
+          "start": 345.69999998807907,
+          "duration": 90.6000000089407,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "type": "fetch",
+          "start": 444.3999999910593,
+          "duration": 135.79999999701977,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/app_config",
+          "type": "fetch",
+          "start": 444.69999998807907,
+          "duration": 113.30000001192093,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/controllers",
+          "type": "fetch",
+          "start": 444.8999999910593,
+          "duration": 112.70000000298023,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/programs",
+          "type": "fetch",
+          "start": 444.8999999910593,
+          "duration": 113.29999999701977,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/inventory_team_members",
+          "type": "fetch",
+          "start": 445.19999998807907,
+          "duration": 119.1000000089407,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/schools",
+          "type": "fetch",
+          "start": 445.29999999701977,
+          "duration": 134.70000000298023,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/school_programs",
+          "type": "fetch",
+          "start": 445.29999999701977,
+          "duration": 143.29999999701977,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/competences",
+          "type": "fetch",
+          "start": 569.5,
+          "duration": 18.69999998807907,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "type": "fetch",
+          "start": 628.1999999880791,
+          "duration": 55,
+          "transferBytes": 0,
+          "decodedBytes": 0
+        }
+      ],
+      "network": [
+        {
+          "path": "/rest/v1/rpc/current_app_role",
+          "status": 200,
+          "at": 1791831179892,
+          "bytes": 12
+        },
+        {
+          "path": "/rest/v1/user_profiles",
+          "status": 200,
+          "at": 1791831179900,
+          "bytes": 248
+        },
+        {
+          "path": "/rest/v1/user_school_scopes",
+          "status": 200,
+          "at": 1791831179901,
+          "bytes": 45
+        },
+        {
+          "path": "/rest/v1/controllers",
+          "status": 200,
+          "at": 1791831180034,
+          "bytes": 487
+        },
+        {
+          "path": "/rest/v1/app_config",
+          "status": 200,
+          "at": 1791831180035,
+          "bytes": 247
+        },
+        {
+          "path": "/rest/v1/programs",
+          "status": 200,
+          "at": 1791831180035,
+          "bytes": 467
+        },
+        {
+          "path": "/rest/v1/inventory_team_members",
+          "status": 200,
+          "at": 1791831180035,
+          "bytes": 260
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "at": 1791831180047,
+          "bytes": 59814
+        },
+        {
+          "path": "/rest/v1/schools",
+          "status": 200,
+          "at": 1791831180049,
+          "bytes": 1674
+        },
+        {
+          "path": "/rest/v1/competences",
+          "status": 200,
+          "at": 1791831180086,
+          "bytes": 525
+        },
+        {
+          "path": "/rest/v1/school_programs",
+          "status": 200,
+          "at": 1791831180087,
+          "bytes": 967
+        },
+        {
+          "path": "/rest/v1/rpc/read_operational_context",
+          "status": 200,
+          "at": 1791831180153,
+          "bytes": 73353
+        }
+      ],
+      "errors": []
+    }
+  ],
+  "navigation": [
+    {
+      "label": "baseline-route-initial",
+      "url": "/pendencias?escola=ESC-LOCAL",
+      "route": {
+        "valid": true,
+        "view": "pendencias",
+        "param": null,
+        "section": null,
+        "filters": {
+          "escola": "ESC-LOCAL"
+        },
+        "canonicalPath": "/pendencias?escola=ESC-LOCAL"
+      },
+      "history": {
+        "radarNavigation": true,
+        "view": "pendencias",
+        "param": null,
+        "section": null,
+        "filters": {
+          "escola": "ESC-LOCAL"
+        }
+      },
+      "visibleFilter": "ESC-LOCAL",
+      "heading": "Pendências operacionais"
+    },
+    {
+      "label": "baseline-route-clear",
+      "url": "/pendencias",
+      "route": {
+        "valid": true,
+        "view": "pendencias",
+        "param": null,
+        "section": null,
+        "filters": {},
+        "canonicalPath": "/pendencias"
+      },
+      "history": {
+        "radarNavigation": true,
+        "view": "pendencias",
+        "param": null,
+        "section": null,
+        "filters": {}
+      },
+      "visibleFilter": "",
+      "heading": "Pendências operacionais"
+    },
+    {
+      "label": "baseline-route-back",
+      "url": "/pendencias?escola=ESC-LOCAL",
+      "route": {
+        "valid": true,
+        "view": "pendencias",
+        "param": null,
+        "section": null,
+        "filters": {
+          "escola": "ESC-LOCAL"
+        },
+        "canonicalPath": "/pendencias?escola=ESC-LOCAL"
+      },
+      "history": {
+        "radarNavigation": true,
+        "view": "pendencias",
+        "param": null,
+        "section": null,
+        "filters": {
+          "escola": "ESC-LOCAL"
+        }
+      },
+      "visibleFilter": "ESC-LOCAL",
+      "heading": "Pendências operacionais"
+    },
+    {
+      "label": "baseline-route-forward",
+      "url": "/pendencias",
+      "route": {
+        "valid": true,
+        "view": "pendencias",
+        "param": null,
+        "section": null,
+        "filters": {},
+        "canonicalPath": "/pendencias"
+      },
+      "history": {
+        "radarNavigation": true,
+        "view": "pendencias",
+        "param": null,
+        "section": null,
+        "filters": {}
+      },
+      "visibleFilter": "ESC-LOCAL",
+      "heading": "Pendências operacionais"
+    },
+    {
+      "label": "candidate-route-initial",
+      "url": "/pendencias",
+      "route": {
+        "valid": true,
+        "view": "pendencias",
+        "param": null,
+        "section": null,
+        "filters": {},
+        "canonicalPath": "/pendencias"
+      },
+      "history": {
+        "radarNavigation": true,
+        "view": "pendencias",
+        "param": null,
+        "section": null,
+        "filters": {}
+      },
+      "visibleFilter": "ESC-LOCAL",
+      "heading": "Pendências operacionais"
+    },
+    {
+      "label": "candidate-route-clear",
+      "url": "/pendencias",
+      "route": {
+        "valid": true,
+        "view": "pendencias",
+        "param": null,
+        "section": null,
+        "filters": {},
+        "canonicalPath": "/pendencias"
+      },
+      "history": {
+        "radarNavigation": true,
+        "view": "pendencias",
+        "param": null,
+        "section": null,
+        "filters": {}
+      },
+      "visibleFilter": "",
+      "heading": "Pendências operacionais"
+    },
+    {
+      "label": "candidate-route-back",
+      "url": "/pendencias?escola=ESC-LOCAL",
+      "route": {
+        "valid": true,
+        "view": "pendencias",
+        "param": null,
+        "section": null,
+        "filters": {
+          "escola": "ESC-LOCAL"
+        },
+        "canonicalPath": "/pendencias?escola=ESC-LOCAL"
+      },
+      "history": {
+        "radarNavigation": true,
+        "view": "pendencias",
+        "param": null,
+        "section": null,
+        "filters": {
+          "escola": "ESC-LOCAL"
+        }
+      },
+      "visibleFilter": "ESC-LOCAL",
+      "heading": "Pendências operacionais"
+    },
+    {
+      "label": "candidate-route-forward",
+      "url": "/pendencias",
+      "route": {
+        "valid": true,
+        "view": "pendencias",
+        "param": null,
+        "section": null,
+        "filters": {},
+        "canonicalPath": "/pendencias"
+      },
+      "history": {
+        "radarNavigation": true,
+        "view": "pendencias",
+        "param": null,
+        "section": null,
+        "filters": {}
+      },
+      "visibleFilter": "ESC-LOCAL",
+      "heading": "Pendências operacionais"
+    }
+  ],
+  "slowApp": [
+    {
+      "label": "baseline-slow-app",
+      "artificialAppDelayMs": 11000,
+      "apis": {
+        "RadarTask9PendencyPage": false,
+        "RadarTask9FocusBridge": false,
+        "RadarTask9CrossView": false,
+        "RadarTask1011PendencyActions": false,
+        "RadarOperationalReadinessBridge": false,
+        "RadarCycleBDashboard": false,
+        "RadarCycleBCarteira": false,
+        "RadarTask10Alerts": false,
+        "RadarModalAccessibility": false,
+        "__radarNavigationHistoryInstalled": true
+      },
+      "errors": [],
+      "heading": "Painel do Controlador"
+    },
+    {
+      "label": "candidate-slow-app",
+      "artificialAppDelayMs": 11000,
+      "apis": {
+        "RadarTask9PendencyPage": true,
+        "RadarTask9FocusBridge": true,
+        "RadarTask9CrossView": true,
+        "RadarTask1011PendencyActions": true,
+        "RadarOperationalReadinessBridge": true,
+        "RadarCycleBDashboard": false,
+        "RadarCycleBCarteira": false,
+        "RadarTask10Alerts": false,
+        "RadarModalAccessibility": false,
+        "__radarNavigationHistoryInstalled": true
+      },
+      "errors": [],
+      "heading": "Painel do Controlador"
+    }
+  ],
+  "interpretation": [
+    "Forward mismatch is reproduced in main and candidate under normal script loading: URL and canonical route clear, UI filter ESC-LOCAL. Pre-existing causal conflict, not a new Task9 regression.",
+    "Both variants perform two global operational reads in every normal sample. Need trace parameters/callers before classifying redundancy; not attributed to this PR.",
+    "Candidate fixes Task9 family under delayed app, but cycle-b Dashboard/Carteira, alerts and modal accessibility capabilities are absent in both delayed variants. This is a related system-wide readiness risk confirmed at capability level; each visible consequence still requires inspection.",
+    "No claim of latency improvement from Task9 fix. Main+candidate medians are descriptive only; current evidence cannot identify dominant Production bottleneck."
+  ]
+}

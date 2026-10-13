@@ -1,0 +1,524 @@
+[
+  {
+    "name": "candidate-1280",
+    "initial": {
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "modal": {
+        "x": 0,
+        "y": 0,
+        "width": 1280,
+        "height": 720,
+        "bottom": 720,
+        "scrollHeight": 720,
+        "clientHeight": 720,
+        "overflow": "visible",
+        "overflowY": "visible",
+        "scrollTop": 0,
+        "computedBottom": "0px"
+      },
+      "content": {
+        "x": 250,
+        "y": 24,
+        "width": 780,
+        "height": 672,
+        "bottom": 696,
+        "scrollHeight": 670,
+        "clientHeight": 670,
+        "overflow": "hidden",
+        "overflowY": "hidden",
+        "scrollTop": 0,
+        "computedBottom": "auto"
+      },
+      "body": {
+        "x": 251,
+        "y": 106,
+        "width": 778,
+        "height": 589,
+        "bottom": 695,
+        "scrollHeight": 1049,
+        "clientHeight": 589,
+        "overflow": "auto",
+        "overflowY": "auto",
+        "scrollTop": 0,
+        "computedBottom": "auto"
+      },
+      "footer": {
+        "x": 251,
+        "y": 624,
+        "width": 778,
+        "height": 71,
+        "bottom": 695,
+        "scrollHeight": 70,
+        "clientHeight": 70,
+        "overflow": "visible",
+        "overflowY": "visible",
+        "scrollTop": 0,
+        "computedBottom": "0px"
+      },
+      "identity": "DOCUMENTO EM REANÁLISE\nNF: AUD-ID-B — Materiais de mesma descrição\nMaterial de consumo · R$ 100,00",
+      "result": {
+        "x": 299,
+        "y": 848.71875,
+        "width": 682,
+        "height": 44,
+        "bottom": 892.71875,
+        "scrollHeight": 42,
+        "clientHeight": 42,
+        "overflow": "clip",
+        "overflowY": "clip",
+        "scrollTop": 0,
+        "computedBottom": "auto"
+      },
+      "observation": {
+        "x": 299,
+        "y": 932.328125,
+        "width": 682,
+        "height": 106,
+        "bottom": 1038.328125,
+        "scrollHeight": 104,
+        "clientHeight": 104,
+        "overflow": "auto",
+        "overflowY": "auto",
+        "scrollTop": 0,
+        "computedBottom": "auto"
+      },
+      "buttons": [
+        {
+          "text": "Cancelar",
+          "rect": {
+            "x": 739,
+            "y": 640,
+            "width": 93,
+            "height": 40,
+            "bottom": 680,
+            "scrollHeight": 38,
+            "clientHeight": 38,
+            "overflow": "visible",
+            "overflowY": "visible",
+            "scrollTop": 0,
+            "computedBottom": "auto"
+          }
+        },
+        {
+          "text": "Confirmar reanálise",
+          "rect": {
+            "x": 842,
+            "y": 640,
+            "width": 163,
+            "height": 40,
+            "bottom": 680,
+            "scrollHeight": 38,
+            "clientHeight": 38,
+            "overflow": "visible",
+            "overflowY": "visible",
+            "scrollTop": 0,
+            "computedBottom": "auto"
+          }
+        }
+      ]
+    },
+    "scrolled": {
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "modal": {
+        "x": 0,
+        "y": 0,
+        "width": 1280,
+        "height": 720,
+        "bottom": 720,
+        "scrollHeight": 720,
+        "clientHeight": 720,
+        "overflow": "visible",
+        "overflowY": "visible",
+        "scrollTop": 0,
+        "computedBottom": "0px"
+      },
+      "content": {
+        "x": 250,
+        "y": 24,
+        "width": 780,
+        "height": 672,
+        "bottom": 696,
+        "scrollHeight": 670,
+        "clientHeight": 670,
+        "overflow": "hidden",
+        "overflowY": "hidden",
+        "scrollTop": 0,
+        "computedBottom": "auto"
+      },
+      "body": {
+        "x": 251,
+        "y": 106,
+        "width": 778,
+        "height": 589,
+        "bottom": 695,
+        "scrollHeight": 1049,
+        "clientHeight": 589,
+        "overflow": "auto",
+        "overflowY": "auto",
+        "scrollTop": 460,
+        "computedBottom": "auto"
+      },
+      "footer": {
+        "x": 251,
+        "y": 624,
+        "width": 778,
+        "height": 71,
+        "bottom": 695,
+        "scrollHeight": 70,
+        "clientHeight": 70,
+        "overflow": "visible",
+        "overflowY": "visible",
+        "scrollTop": 0,
+        "computedBottom": "0px"
+      },
+      "identity": "DOCUMENTO EM REANÁLISE\nNF: AUD-ID-B — Materiais de mesma descrição\nMaterial de consumo · R$ 100,00",
+      "result": {
+        "x": 299,
+        "y": 388.71875,
+        "width": 682,
+        "height": 44,
+        "bottom": 432.71875,
+        "scrollHeight": 42,
+        "clientHeight": 42,
+        "overflow": "clip",
+        "overflowY": "clip",
+        "scrollTop": 0,
+        "computedBottom": "auto"
+      },
+      "observation": {
+        "x": 299,
+        "y": 472.328125,
+        "width": 682,
+        "height": 106,
+        "bottom": 578.328125,
+        "scrollHeight": 104,
+        "clientHeight": 104,
+        "overflow": "auto",
+        "overflowY": "auto",
+        "scrollTop": 0,
+        "computedBottom": "auto"
+      },
+      "buttons": [
+        {
+          "text": "Cancelar",
+          "rect": {
+            "x": 739,
+            "y": 640,
+            "width": 93,
+            "height": 40,
+            "bottom": 680,
+            "scrollHeight": 38,
+            "clientHeight": 38,
+            "overflow": "visible",
+            "overflowY": "visible",
+            "scrollTop": 0,
+            "computedBottom": "auto"
+          }
+        },
+        {
+          "text": "Confirmar reanálise",
+          "rect": {
+            "x": 842,
+            "y": 640,
+            "width": 163,
+            "height": 40,
+            "bottom": 680,
+            "scrollHeight": 38,
+            "clientHeight": 38,
+            "overflow": "visible",
+            "overflowY": "visible",
+            "scrollTop": 0,
+            "computedBottom": "auto"
+          }
+        }
+      ]
+    },
+    "initialScreenshot": "/workspace/scratch/controller-footer-candidate-1280-initial.png",
+    "scrolledScreenshot": "/workspace/scratch/controller-footer-candidate-1280-scrolled.png",
+    "controls": [
+      {
+        "control": "reanalisar-resultado",
+        "fullVertical": true
+      },
+      {
+        "control": "reanalisar-observacao",
+        "fullVertical": true
+      },
+      {
+        "control": "Cancelar",
+        "fullVertical": true
+      },
+      {
+        "control": "Confirmar reanálise",
+        "fullVertical": true
+      }
+    ]
+  },
+  {
+    "name": "candidate-1440",
+    "initial": {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "modal": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 900,
+        "bottom": 900,
+        "scrollHeight": 900,
+        "clientHeight": 900,
+        "overflow": "visible",
+        "overflowY": "visible",
+        "scrollTop": 0,
+        "computedBottom": "0px"
+      },
+      "content": {
+        "x": 330,
+        "y": 24,
+        "width": 780,
+        "height": 852,
+        "bottom": 876,
+        "scrollHeight": 850,
+        "clientHeight": 850,
+        "overflow": "hidden",
+        "overflowY": "hidden",
+        "scrollTop": 0,
+        "computedBottom": "auto"
+      },
+      "body": {
+        "x": 331,
+        "y": 106,
+        "width": 778,
+        "height": 769,
+        "bottom": 875,
+        "scrollHeight": 1049,
+        "clientHeight": 769,
+        "overflow": "auto",
+        "overflowY": "auto",
+        "scrollTop": 0,
+        "computedBottom": "auto"
+      },
+      "footer": {
+        "x": 331,
+        "y": 804,
+        "width": 778,
+        "height": 71,
+        "bottom": 875,
+        "scrollHeight": 70,
+        "clientHeight": 70,
+        "overflow": "visible",
+        "overflowY": "visible",
+        "scrollTop": 0,
+        "computedBottom": "0px"
+      },
+      "identity": "DOCUMENTO EM REANÁLISE\nNF: AUD-ID-B — Materiais de mesma descrição\nMaterial de consumo · R$ 100,00",
+      "result": {
+        "x": 379,
+        "y": 848.71875,
+        "width": 682,
+        "height": 44,
+        "bottom": 892.71875,
+        "scrollHeight": 42,
+        "clientHeight": 42,
+        "overflow": "clip",
+        "overflowY": "clip",
+        "scrollTop": 0,
+        "computedBottom": "auto"
+      },
+      "observation": {
+        "x": 379,
+        "y": 932.328125,
+        "width": 682,
+        "height": 106,
+        "bottom": 1038.328125,
+        "scrollHeight": 104,
+        "clientHeight": 104,
+        "overflow": "auto",
+        "overflowY": "auto",
+        "scrollTop": 0,
+        "computedBottom": "auto"
+      },
+      "buttons": [
+        {
+          "text": "Cancelar",
+          "rect": {
+            "x": 819,
+            "y": 820,
+            "width": 93,
+            "height": 40,
+            "bottom": 860,
+            "scrollHeight": 38,
+            "clientHeight": 38,
+            "overflow": "visible",
+            "overflowY": "visible",
+            "scrollTop": 0,
+            "computedBottom": "auto"
+          }
+        },
+        {
+          "text": "Confirmar reanálise",
+          "rect": {
+            "x": 922,
+            "y": 820,
+            "width": 163,
+            "height": 40,
+            "bottom": 860,
+            "scrollHeight": 38,
+            "clientHeight": 38,
+            "overflow": "visible",
+            "overflowY": "visible",
+            "scrollTop": 0,
+            "computedBottom": "auto"
+          }
+        }
+      ]
+    },
+    "scrolled": {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "modal": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 900,
+        "bottom": 900,
+        "scrollHeight": 900,
+        "clientHeight": 900,
+        "overflow": "visible",
+        "overflowY": "visible",
+        "scrollTop": 0,
+        "computedBottom": "0px"
+      },
+      "content": {
+        "x": 330,
+        "y": 24,
+        "width": 780,
+        "height": 852,
+        "bottom": 876,
+        "scrollHeight": 850,
+        "clientHeight": 850,
+        "overflow": "hidden",
+        "overflowY": "hidden",
+        "scrollTop": 0,
+        "computedBottom": "auto"
+      },
+      "body": {
+        "x": 331,
+        "y": 106,
+        "width": 778,
+        "height": 769,
+        "bottom": 875,
+        "scrollHeight": 1049,
+        "clientHeight": 769,
+        "overflow": "auto",
+        "overflowY": "auto",
+        "scrollTop": 280,
+        "computedBottom": "auto"
+      },
+      "footer": {
+        "x": 331,
+        "y": 804,
+        "width": 778,
+        "height": 71,
+        "bottom": 875,
+        "scrollHeight": 70,
+        "clientHeight": 70,
+        "overflow": "visible",
+        "overflowY": "visible",
+        "scrollTop": 0,
+        "computedBottom": "0px"
+      },
+      "identity": "DOCUMENTO EM REANÁLISE\nNF: AUD-ID-B — Materiais de mesma descrição\nMaterial de consumo · R$ 100,00",
+      "result": {
+        "x": 379,
+        "y": 568.71875,
+        "width": 682,
+        "height": 44,
+        "bottom": 612.71875,
+        "scrollHeight": 42,
+        "clientHeight": 42,
+        "overflow": "clip",
+        "overflowY": "clip",
+        "scrollTop": 0,
+        "computedBottom": "auto"
+      },
+      "observation": {
+        "x": 379,
+        "y": 652.328125,
+        "width": 682,
+        "height": 106,
+        "bottom": 758.328125,
+        "scrollHeight": 104,
+        "clientHeight": 104,
+        "overflow": "auto",
+        "overflowY": "auto",
+        "scrollTop": 0,
+        "computedBottom": "auto"
+      },
+      "buttons": [
+        {
+          "text": "Cancelar",
+          "rect": {
+            "x": 819,
+            "y": 820,
+            "width": 93,
+            "height": 40,
+            "bottom": 860,
+            "scrollHeight": 38,
+            "clientHeight": 38,
+            "overflow": "visible",
+            "overflowY": "visible",
+            "scrollTop": 0,
+            "computedBottom": "auto"
+          }
+        },
+        {
+          "text": "Confirmar reanálise",
+          "rect": {
+            "x": 922,
+            "y": 820,
+            "width": 163,
+            "height": 40,
+            "bottom": 860,
+            "scrollHeight": 38,
+            "clientHeight": 38,
+            "overflow": "visible",
+            "overflowY": "visible",
+            "scrollTop": 0,
+            "computedBottom": "auto"
+          }
+        }
+      ]
+    },
+    "initialScreenshot": "/workspace/scratch/controller-footer-candidate-1440-initial.png",
+    "scrolledScreenshot": "/workspace/scratch/controller-footer-candidate-1440-scrolled.png",
+    "controls": [
+      {
+        "control": "reanalisar-resultado",
+        "fullVertical": true
+      },
+      {
+        "control": "reanalisar-observacao",
+        "fullVertical": true
+      },
+      {
+        "control": "Cancelar",
+        "fullVertical": true
+      },
+      {
+        "control": "Confirmar reanálise",
+        "fullVertical": true
+      }
+    ]
+  }
+]

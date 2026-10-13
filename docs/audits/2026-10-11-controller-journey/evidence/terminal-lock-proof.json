@@ -1,0 +1,14 @@
+{
+  "environment": "Supabase descart\u00e1vel local",
+  "method": "Two PostgreSQL sessions; uncommitted inventory UPDATE holds asset lock; authenticated delete RPC with p_delete_linked_asset=false starts before inventory commit.",
+  "deleteObservedWaitingForLock": true,
+  "inventoryCommitExit": 0,
+  "deleteRejected": "ASSET_ALREADY_INVENTORIED",
+  "final": {
+    "invoiceCount": 1,
+    "status": "Inventariada"
+  },
+  "invoiceId": "invoice-terminal-race-1791769389",
+  "assetId": "asset-terminal-race-1791769389",
+  "fixture": "Synthetic records created expressly for concurrency proof and retained after terminal commit; not presented as UI actions."
+}

@@ -1,0 +1,24 @@
+[WebServer] (node:1205377) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 14 tests using 1 worker
+
+(node:1205389) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [desktop-chromium] › tests/e2e/canonical-routes.spec.js:51:1 › rota de escola, aba de pendências, filtro e histórico permanecem estáveis (4.4s)
+  ✓   2 [desktop-chromium] › tests/e2e/canonical-routes.spec.js:117:1 › filtro escolar permanece ao abrir e fechar o detalhe da Pendência (1.9s)
+  ✓   3 [desktop-chromium] › tests/e2e/canonical-routes.spec.js:191:1 › limpar o filtro escolar da rota devolve a lista transversal (2.3s)
+  ✓   4 [desktop-chromium] › tests/e2e/canonical-routes.spec.js:250:1 › botão Voltar restaura a origem contextual, competência, rolagem e foco (2.5s)
+  ✓   5 [desktop-chromium] › tests/e2e/canonical-routes.spec.js:308:1 › link de escola abre em nova aba usando a própria URL (3.7s)
+  ✓   6 [desktop-chromium] › tests/e2e/canonical-routes.spec.js:326:1 › escola inexistente e telas proibidas recebem fallback autorizado (2.1s)
+  ✓   7 [desktop-chromium] › tests/e2e/canonical-routes.spec.js:349:1 › Próxima unidade atualiza a rota canônica usada pela sincronização entre escolas (2.5s)
+  ✓   8 [desktop-chromium] › tests/e2e/task-9-pendencias.spec.js:135:3 › Task 9 — página de Pendências Operacionais › separa as quatro situações canônicas em abas acessíveis (2.5s)
+  ✓   9 [desktop-chromium] › tests/e2e/task-9-pendencias.spec.js:154:3 › Task 9 — página de Pendências Operacionais › baixa planilha editorial respeitando a busca e os filtros da fila (3.0s)
+  ✓  10 [desktop-chromium] › tests/e2e/task-9-pendencias.spec.js:194:3 › Task 9 — página de Pendências Operacionais › aplica busca global sem perder a separação das quatro filas (2.3s)
+  ✓  11 [desktop-chromium] › tests/e2e/task-9-pendencias.spec.js:217:3 › Task 9 — página de Pendências Operacionais › abre o drawer com erros, tentativas, contatos e timeline e restaura o foco (2.2s)
+  ✓  12 [desktop-chromium] › tests/e2e/task-9-pendencias.spec.js:240:3 › Task 9 — página de Pendências Operacionais › preserva busca, aba, seleção e rolagem ao retornar do Prontuário (3.3s)
+  ✓  13 [desktop-chromium] › tests/e2e/task-9-pendencias.spec.js:279:3 › Task 9 — página de Pendências Operacionais › permite percorrer as abas pelo teclado (2.3s)
+  -  14 [desktop-chromium] › tests/e2e/task-9-pendencias.spec.js:293:3 › Task 9 — página de Pendências Operacionais › substitui a tabela por cartões e abre o detalhe em tela inteira no celular
+
+  1 skipped
+  13 passed (38.3s)

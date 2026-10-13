@@ -1,0 +1,59 @@
+{
+  "file": "pendency-export.xlsx",
+  "sha256": "05697aaf6890ba96383a42d1b9008aca914fad1fea0a83d046050d98fffdfd0b",
+  "bytes": 11161,
+  "sheets": [
+    {
+      "name": "RESUMO",
+      "rows": 23,
+      "columns": 12
+    },
+    {
+      "name": "PENDÊNCIAS",
+      "rows": 9,
+      "columns": 23
+    }
+  ],
+  "rows": [
+    {
+      "state": "Aberta",
+      "school": "Escola Local Autorizada",
+      "competence": "05/2026",
+      "document": "Notas Fiscais",
+      "item": "PDDE Básico - NF: AUD-LATE-AUTH",
+      "attempts": 0
+    },
+    {
+      "state": "Aberta",
+      "school": "Escola Local Autorizada",
+      "competence": "05/2026",
+      "document": "Extrato Conta Corrente",
+      "item": "PDDE Básico - Extrato Conta Corrente",
+      "attempts": 0
+    },
+    {
+      "state": "Resolvida",
+      "school": "Escola Local Autorizada",
+      "competence": "05/2026",
+      "document": "Consulta Assessoria",
+      "item": "PDDE Básico - Consulta Assessoria — NF AUD-SERV-01",
+      "attempts": 1
+    },
+    {
+      "state": "Resolvida",
+      "school": "Escola Local Autorizada",
+      "competence": "05/2026",
+      "document": "Notas Fiscais",
+      "item": "PDDE Básico - NF: AUD-CONS-02",
+      "attempts": 1
+    },
+    {
+      "state": "Resolvida",
+      "school": "Escola Local Autorizada",
+      "competence": "05/2026",
+      "document": "Notas Fiscais",
+      "item": "Notas Fiscais — AUD-IDENT-01",
+      "attempts": 1
+    }
+  ]
+}

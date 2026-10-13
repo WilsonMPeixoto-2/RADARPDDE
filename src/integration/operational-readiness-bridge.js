@@ -200,10 +200,23 @@
         return true;
     }
 
-    if (!install()) {
-        const interval = root.setInterval(() => {
-            if (install()) root.clearInterval(interval);
-        }, 20);
-        root.setTimeout(() => root.clearInterval(interval), 10000);
+    function installWhenReady() {
+        if (!installed && !install()) return false;
+        root.removeEventListener?.('radar:application-services-ready', installWhenReady);
+        root.removeEventListener?.('radar:competence-change', installWhenReady);
+        root.removeEventListener?.('radar:pendency-page-ready', installWhenReady);
+        root.document.removeEventListener?.('DOMContentLoaded', installWhenReady);
+        return true;
+    }
+
+    // Services are published before the canonical competence is initialized.
+    // Either lifecycle order remains valid without a login-time deadline.
+    if (!installWhenReady()) {
+        root.addEventListener?.('radar:application-services-ready', installWhenReady);
+        root.addEventListener?.('radar:competence-change', installWhenReady);
+        root.addEventListener?.('radar:pendency-page-ready', installWhenReady);
+        if (root.document.readyState === 'loading') {
+            root.document.addEventListener('DOMContentLoaded', installWhenReady, { once: true });
+        }
     }
 }(typeof window !== 'undefined' ? window : globalThis));

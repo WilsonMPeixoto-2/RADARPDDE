@@ -1,0 +1,114 @@
+{
+  "observedAt": "2026-10-11T19:30:44Z",
+  "environment": "disposable local Supabase; legitimate Controller and Inventory Auth UI sessions",
+  "productionWrites": false,
+  "baselineMain": "113841bda52ce3bbda228524daf9a7464f12b462",
+  "finding": "ordinary invoice deletion removes an inventoried terminal asset and its linked NF",
+  "severityProposal": "P1: terminal inventory and fiscal document can disappear through an ordinary authorized action; no Production incident proven",
+  "syntheticFixture": {
+    "invoiceId": "nota-ce545fc6-8a48-415e-a2cf-076cf5356b0c",
+    "assetId": "bem-ce545fc6-8a48-415e-a2cf-076cf5356b0c",
+    "invoiceNumber": "AUD-PERM-01",
+    "amount": 900,
+    "schoolId": "ESC-LOCAL",
+    "competence": "2026-05"
+  },
+  "assetAuditEvents": [
+    {
+      "action": "INSERT",
+      "newStatus": "Encaminhada",
+      "oldStatus": null,
+      "occurredAt": "2026-10-11T17:03:57.696106+00:00",
+      "oldRowVersion": null,
+      "oldInventoriedAt": null,
+      "oldInventoriedBy": null,
+      "oldInvoiceNumber": null
+    },
+    {
+      "action": "UPDATE",
+      "newStatus": "Encaminhada",
+      "oldStatus": "Encaminhada",
+      "occurredAt": "2026-10-11T17:05:38.350624+00:00",
+      "oldRowVersion": "1",
+      "oldInventoriedAt": null,
+      "oldInventoriedBy": null,
+      "oldInvoiceNumber": "AUD-PERM-01"
+    },
+    {
+      "action": "UPDATE",
+      "newStatus": "Inventariada",
+      "oldStatus": "Encaminhada",
+      "occurredAt": "2026-10-11T17:06:53.402434+00:00",
+      "oldRowVersion": "2",
+      "oldInventoriedAt": null,
+      "oldInventoriedBy": null,
+      "oldInvoiceNumber": "AUD-PERM-01"
+    },
+    {
+      "action": "DELETE",
+      "newStatus": null,
+      "oldStatus": "Inventariada",
+      "occurredAt": "2026-10-11T19:30:44.846679+00:00",
+      "oldRowVersion": "3",
+      "oldInventoriedAt": "2026-10-11T17:06:53.38+00:00",
+      "oldInventoriedBy": "inventory-local",
+      "oldInvoiceNumber": "AUD-PERM-01"
+    }
+  ],
+  "deleteHttpEvidence": [
+    {
+      "time": "2026-10-11T19:16:26.143Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/delete_invoice_with_effects",
+      "status": 200,
+      "requestBytes": 2021,
+      "responseBytes": 1744
+    },
+    {
+      "time": "2026-10-11T19:30:44.917Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/delete_invoice_with_effects",
+      "status": 200,
+      "requestBytes": 1065,
+      "responseBytes": 779
+    }
+  ],
+  "afterDeletion": {
+    "canonicalInvoiceCount": 0,
+    "canonicalAssetCount": 0,
+    "authProjectionInvoiceCount": 0,
+    "authProjectionAssetCount": 0
+  },
+  "introducedByCandidate": false,
+  "unchangedSinceBaseline": {
+    "src/application/invoice-service.js": true,
+    "src/domain/invoice-effects.js": true,
+    "supabase/migrations/20260905231000_inventory_terminal_state.sql": true,
+    "supabase/migrations/20260930003000_expense_verification_field_ownership.sql": true
+  },
+  "causes": [
+    "InvoiceService.remove checks individual Pendency history, but does not reject an Inventariada linked asset before scheduling or during serialized mutate.",
+    "planInvoiceRemoval unconditionally returns currentAsset as removedAsset; no terminal policy on removal.",
+    "delete_invoice_with_effects_impl locks and versions the asset but deletes it irrespective of status.",
+    "assets_protect_inventoried_terminal_state fires only BEFORE UPDATE OF status; DELETE bypasses it."
+  ],
+  "contraproofs": [
+    "Audit DELETE old_record itself contains Inventariada, inventory-local, inventoried timestamp and row_version=3.",
+    "No state reset or downgrade between completion and deletion in immutable audit_events.",
+    "Same relevant application/domain files and migrations as current main."
+  ],
+  "coverageGap": {
+    "pgtap": "inventory-terminal-state.test.sql has seven assertions covering reforward and resave downgrade only",
+    "unit": "invoice-inventoried-preservation.test.js covers save/edit/process preservation only; no ordinary terminal deletion case"
+  },
+  "proposedContractClarification": "Canonical docs explicitly forbid type conversion removing Inventariada; terminal deletion is not explicitly listed in the deletion section although it violates preservation of terminal inventory. Root must align the guard and durable contract, not present an undocumented new business rule as preexisting implementation.",
+  "minimalNextSteps": [
+    "Preserve this native UI RED as causal evidence, then add a deterministic service remove RED that proves no persistence/mutation on Inventariada.",
+    "Database RED must cover delete_invoice_with_effects(true), delete_invoice_with_effects(false), direct invoice DELETE, and direct asset DELETE; rejection preserves NF, asset, versions, verification and logs.",
+    "Use existing InvoiceService authority for local refusal and recheck at serialized mutation; no wrapper/scheduler.",
+    "A backend migration is necessary: reject removal of terminal assets and invoices linked to them, with row locking for concurrent inventory; status-only UPDATE trigger cannot ensure DELETE safety.",
+    "Preserve eligible pre-terminal deletion, ordinary editable fields of inventoried NF, and existing protected-Pendency behavior.",
+    "Run UI create -> forward -> real inventory -> Controller delete attempt -> reload, with separate Inventory observer and native confirmation/feedback; no Production writes."
+  ],
+  "scope": "Diagnosis only. No product, migration, business data or canonical rules changed by investigating agent."
+}

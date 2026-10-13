@@ -1,0 +1,2 @@
+{"schoolWithoutPendencies":"ESC-OTHER"}
+{"url":"http://127.0.0.1:4176/pendencias?escola=ESC-OTHER","school":"ESC-OTHER","filter":"ESC-OTHER","route":{"valid":true,"view":"pendencias","param":null,"section":null,"filters":{"escola":"ESC-OTHER"},"canonicalPath":"/pendencias?escola=ESC-OTHER"},"errors":[]}

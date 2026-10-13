@@ -1,0 +1,71 @@
+{
+  "environment": "Supabase descartável local; nenhuma escrita em Production",
+  "red": {
+    "unitFailures": 3,
+    "unitControlsPassed": 2,
+    "pgtapFailures": 4,
+    "pgtapControlsPassed": 14,
+    "uiOriginal": "terminal-inventory-delete-red.json"
+  },
+  "green": {
+    "relatedUnitTests": 58,
+    "pgtapTerminal": 18,
+    "pgtapFilesIsolated": 41,
+    "twoAuthenticatedBrowserSessions": {
+      "tests": 1,
+      "durationSeconds": 14.6,
+      "deleteRPC": 0,
+      "afterReload": "NF e bem com valor 950; Inventariada, processo PROC-LOCAL-1, autoria inventory-local e data preservados"
+    },
+    "sqlConcurrency": "terminal-lock-proof.json",
+    "fullUnitTests": 1341
+  },
+  "fixtureChanges": [
+    "Import/rollback usa bem Encaminhada elegível, pois apagar Inventariada não é mais permitido.",
+    "Contexto operacional conserva vínculos terminais/corrupção cruzada e testa última NF de consumo em escola separada (36 asserções)."
+  ],
+  "limitations": [
+    "Primeiro pgTAP amplo usou base com dados da auditoria/Auth provisionado e falhou em expectativas de seed; essa tentativa foi preservada.",
+    "Repetição aplicou TRUNCATE+seed somente dentro da transação de cada teste, sem desabilitar triggers, e o ROLLBACK preservou os dados da auditoria.",
+    "CI final após esta migration ainda pendente.",
+    "Proteção não cria procedimento excepcional de baixa patrimonial nem amplia permissões."
+  ],
+  "logs": {
+    "unitRed": {
+      "name": "controller-terminal-unit-red.log",
+      "sha256": "2da30ee5e0538a994ea6f39ff747059334738f205e27a115645922921a9cf9f9"
+    },
+    "unitFocusedGreen": {
+      "name": "controller-terminal-unit-green.log",
+      "sha256": "e110ca4aa8a811281b66741cc9a7f2f039faba22243385a4c4db6224da0f8f61"
+    },
+    "sqlRed": {
+      "name": "controller-terminal-sql-red.log",
+      "sha256": "a994165ded1cd09674e30ba718d0da19197ce24b22b3704e6323ffad849a457a"
+    },
+    "sqlGreen": {
+      "name": "controller-terminal-sql-green.log",
+      "sha256": "dcb098545ea66021104dc52c0462de284d2f169ad89a0df6bc575eb7286c5356"
+    },
+    "authGreen": {
+      "name": "controller-terminal-auth-green.log",
+      "sha256": "24f8f6082182f4c74768f95ecf96f8869af60dbc7bf82649ce53cf5105c5f4b9"
+    },
+    "pgtapFirstAttempt": {
+      "name": "controller-terminal-pgtap-all.log",
+      "sha256": "f678b71af8aa03cd48b7e2ef96b7ca8c943c851e246adaf31594d18ba520e587"
+    },
+    "contextIsolatedGreen": {
+      "name": "controller-terminal-context-isolated.log",
+      "sha256": "debba92fbc67a074516a161fbd868166124b206e3c09eeaa9d0cea8a7cbf617f"
+    },
+    "unitFullGreen": {
+      "name": "controller-terminal-full-unit-final.log",
+      "sha256": "9c7084524f6724a1015a3b5ca207080f31a2914204f099261a1b9b619678c8e3"
+    },
+    "authFinalGreen": {
+      "name": "controller-terminal-auth-final.log",
+      "sha256": "f341e9d1526f5c41822165fc2c8dc70f8752e0100f7493b4f0cf2f02349f444d"
+    }
+  }
+}

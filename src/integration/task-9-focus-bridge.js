@@ -1,8 +1,6 @@
 (function installTask9FocusBridge(root) {
     'use strict';
 
-    let lastRouteSchoolId = '';
-
     function install() {
         if (typeof root.getPendencyActionFocusScope !== 'function') return false;
         if (!root.RadarTask9PendencyPage
@@ -34,51 +32,12 @@
             return root.RadarTask9PendencyPage?.getState?.() || null;
         }
 
-        function getCurrentRoute() {
-            try {
-                return root.RadarNavigationHistory?.currentRoute?.(root) || null;
-            } catch (_error) {
-                return null;
-            }
-        }
-
-        function getRouteSchoolId() {
-            const route = getCurrentRoute();
-            if (route?.view === 'pendencias') {
-                return String(route.filters?.escola || '').trim();
-            }
-            try {
-                if (root.location?.pathname !== '/pendencias') return '';
-                return String(new URLSearchParams(root.location.search || '').get('escola') || '').trim();
-            } catch (_error) {
-                return '';
-            }
-        }
-
-        function setFilterIfNeeded(name, value) {
-            const state = getTask9State();
-            if (!state?.filters || String(state.filters[name] || '') === String(value || '')) {
-                return false;
-            }
-            task9ChangePendencyFilter(name, value || '');
-            return true;
-        }
-
-        function synchronizeContextBeforeRender() {
-            const route = getCurrentRoute();
-            const routeSchoolId = getRouteSchoolId();
-            if (route?.view === 'pendencias' || root.location?.pathname === '/pendencias') {
-                if (routeSchoolId) {
-                    setFilterIfNeeded('schoolId', routeSchoolId);
-                    lastRouteSchoolId = routeSchoolId;
-                } else if (lastRouteSchoolId) {
-                    const state = getTask9State();
-                    if (String(state?.filters?.schoolId || '') === lastRouteSchoolId) {
-                        task9ChangePendencyFilter('schoolId', '');
-                    }
-                    lastRouteSchoolId = '';
-                }
-            }
+        function navigateSchoolFilter(schoolId) {
+            if (typeof root.RadarNavigationHistory?.navigate !== 'function') return false;
+            return root.RadarNavigationHistory.navigate(root, {
+                view: 'pendencias',
+                filters: schoolId ? { escola: String(schoolId) } : {}
+            }) !== false;
         }
 
         function schoolLabel(schoolId) {
@@ -97,26 +56,10 @@
         }
 
         function clearSchoolRouteContext() {
-            const route = getCurrentRoute();
-            if (route?.view === 'pendencias' && route.filters?.escola
-                && root.RadarNavigationHistory?.navigate) {
-                root.RadarNavigationHistory.navigate(root, { view: 'pendencias' });
-                lastRouteSchoolId = '';
-                task9ChangePendencyFilter('schoolId', '');
-                ensureSchoolFilterBanner();
-                return true;
-            }
-            lastRouteSchoolId = '';
-            task9ChangePendencyFilter('schoolId', '');
-            try {
-                if (root.location?.pathname === '/pendencias' && root.location?.search) {
-                    root.history?.replaceState?.(root.history.state, '', '/pendencias');
-                }
-            } catch (_error) {
-                // A limpeza visual continua válida mesmo sem History API.
-            }
+            if (navigateSchoolFilter('')) return true;
+            const result = task9ChangePendencyFilter('schoolId', '');
             ensureSchoolFilterBanner();
-            return true;
+            return result;
         }
 
         function ensureSchoolFilterBanner() {
@@ -165,13 +108,15 @@
         }
 
         function renderPendenciasContextStable(options) {
-            synchronizeContextBeforeRender();
+            // Navigation bootstrap has already applied the authorized target filter.
+            // Reading the previously committed route here would undo it on popstate.
             const result = task9RenderPendencias(options);
             ensureSchoolFilterBanner();
             return result;
         }
 
         function changePendencyFilterContextStable(name, value) {
+            if (name === 'schoolId' && navigateSchoolFilter(value)) return true;
             const result = task9ChangePendencyFilter(name, value);
             ensureSchoolFilterBanner();
             return result;
@@ -179,23 +124,17 @@
 
         function clearPendencyFiltersContextStable() {
             if (!task9ClearPendencyFilters) return false;
-            const result = task9ClearPendencyFilters();
-            lastRouteSchoolId = '';
-            try {
-                if (root.location?.pathname === '/pendencias' && root.location?.search) {
-                    root.history?.replaceState?.(root.history.state, '', '/pendencias');
-                }
-            } catch (_error) {
-                // Sem efeito sobre a limpeza dos filtros.
-            }
+            // Clear local filters without an intermediate render; navigation owns school.
+            const result = task9ClearPendencyFilters({ render: false });
+            if (!navigateSchoolFilter('')) task9RenderPendencias();
             ensureSchoolFilterBanner();
             return result;
         }
 
         function removePendencyFilterContextStable(name) {
+            if (name === 'schoolId' && navigateSchoolFilter('')) return true;
             if (!task9RemovePendencyFilter) return false;
             const result = task9RemovePendencyFilter(name);
-            if (name === 'schoolId') lastRouteSchoolId = '';
             ensureSchoolFilterBanner();
             return result;
         }
@@ -208,17 +147,27 @@
         if (task9ClearPendencyFilters) root.clearPendencyFilters = clearPendencyFiltersContextStable;
         if (task9RemovePendencyFilter) root.removePendencyFilter = removePendencyFilterContextStable;
         root.RadarTask9FocusBridge = Object.freeze({
-            VERSION: '1.2.0',
-            ensureSchoolFilterBanner,
-            synchronizeContextBeforeRender
+            VERSION: '1.3.0',
+            ensureSchoolFilterBanner
         });
         return true;
     }
 
-    if (!install()) {
-        const interval = root.setInterval(() => {
-            if (install()) root.clearInterval(interval);
-        }, 10);
-        root.setTimeout(() => root.clearInterval(interval), 10000);
+    function installWhenReady() {
+        if (!install()) return false;
+        root.removeEventListener?.('radar:application-services-ready', installWhenReady);
+        root.removeEventListener?.('radar:pendency-page-ready', installWhenReady);
+        document.removeEventListener?.('DOMContentLoaded', installWhenReady);
+        return true;
+    }
+
+    // Dynamic extensions may arrive before the deferred app, including while
+    // readyState is interactive. Installation follows readiness, not a deadline.
+    if (!installWhenReady()) {
+        root.addEventListener?.('radar:application-services-ready', installWhenReady);
+        root.addEventListener?.('radar:pendency-page-ready', installWhenReady);
+        if (document.readyState !== 'complete') {
+            document.addEventListener('DOMContentLoaded', installWhenReady, { once: true });
+        }
     }
 }(window));

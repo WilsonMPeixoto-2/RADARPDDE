@@ -1,0 +1,579 @@
+{
+  "kind": "diagnostic, single sequential run per variant, not performance certification",
+  "main": "113841bda52ce3bbda228524daf9a7464f12b462",
+  "candidate": "99fa423cba56caa3eda38de58e05bc48eddcf9c0",
+  "readDelayMs": 600,
+  "samplingIntervalMs": 100,
+  "variants": {
+    "main": {
+      "sourceSha256": "1b590c33fca4524ba56359d0ed45dafa5a44c755a9c83170cd57ebd10e5bc25d",
+      "commits": 44,
+      "successfulCommits": 44,
+      "samples": 291,
+      "activityEndedMs": 21404,
+      "durationMs": 29425,
+      "errors": [],
+      "finalDatabaseValue": "Não",
+      "sessions": [
+        {
+          "session": 0,
+          "reads": [
+            {
+              "path": "/rest/v1/rpc/read_operational_context",
+              "start": 23048,
+              "status": 200,
+              "end": 23737
+            }
+          ],
+          "broadcastCount": 44,
+          "versionCatchup": [
+            {
+              "committedVersion": 62,
+              "commitAtMs": 208,
+              "firstSampleAtMs": 254,
+              "lagMs": 46
+            },
+            {
+              "committedVersion": 63,
+              "commitAtMs": 1951,
+              "firstSampleAtMs": 1951,
+              "lagMs": 0
+            },
+            {
+              "committedVersion": 64,
+              "commitAtMs": 3409,
+              "firstSampleAtMs": 3425,
+              "lagMs": 16
+            },
+            {
+              "committedVersion": 65,
+              "commitAtMs": 4943,
+              "firstSampleAtMs": 4947,
+              "lagMs": 4
+            },
+            {
+              "committedVersion": 66,
+              "commitAtMs": 6465,
+              "firstSampleAtMs": 6471,
+              "lagMs": 6
+            },
+            {
+              "committedVersion": 67,
+              "commitAtMs": 7856,
+              "firstSampleAtMs": 7861,
+              "lagMs": 5
+            },
+            {
+              "committedVersion": 68,
+              "commitAtMs": 9389,
+              "firstSampleAtMs": 9465,
+              "lagMs": 76
+            },
+            {
+              "committedVersion": 69,
+              "commitAtMs": 10797,
+              "firstSampleAtMs": 10871,
+              "lagMs": 74
+            },
+            {
+              "committedVersion": 70,
+              "commitAtMs": 12433,
+              "firstSampleAtMs": 12482,
+              "lagMs": 49
+            },
+            {
+              "committedVersion": 71,
+              "commitAtMs": 13969,
+              "firstSampleAtMs": 14007,
+              "lagMs": 38
+            },
+            {
+              "committedVersion": 72,
+              "commitAtMs": 15504,
+              "firstSampleAtMs": 15513,
+              "lagMs": 9
+            },
+            {
+              "committedVersion": 73,
+              "commitAtMs": 16930,
+              "firstSampleAtMs": 16941,
+              "lagMs": 11
+            }
+          ],
+          "finalSample": {
+            "visible": "Não",
+            "version": 73,
+            "state": "Não"
+          }
+        },
+        {
+          "session": 1,
+          "reads": [
+            {
+              "path": "/rest/v1/rpc/read_operational_context",
+              "start": 23071,
+              "status": 200,
+              "end": 23746
+            }
+          ],
+          "broadcastCount": 44,
+          "versionCatchup": [
+            {
+              "committedVersion": 62,
+              "commitAtMs": 208,
+              "firstSampleAtMs": 23878,
+              "lagMs": 23670
+            },
+            {
+              "committedVersion": 63,
+              "commitAtMs": 1951,
+              "firstSampleAtMs": 23878,
+              "lagMs": 21927
+            },
+            {
+              "committedVersion": 64,
+              "commitAtMs": 3409,
+              "firstSampleAtMs": 23878,
+              "lagMs": 20469
+            },
+            {
+              "committedVersion": 65,
+              "commitAtMs": 4943,
+              "firstSampleAtMs": 23878,
+              "lagMs": 18935
+            },
+            {
+              "committedVersion": 66,
+              "commitAtMs": 6465,
+              "firstSampleAtMs": 23878,
+              "lagMs": 17413
+            },
+            {
+              "committedVersion": 67,
+              "commitAtMs": 7856,
+              "firstSampleAtMs": 23878,
+              "lagMs": 16022
+            },
+            {
+              "committedVersion": 68,
+              "commitAtMs": 9389,
+              "firstSampleAtMs": 23878,
+              "lagMs": 14489
+            },
+            {
+              "committedVersion": 69,
+              "commitAtMs": 10797,
+              "firstSampleAtMs": 23878,
+              "lagMs": 13081
+            },
+            {
+              "committedVersion": 70,
+              "commitAtMs": 12433,
+              "firstSampleAtMs": 23878,
+              "lagMs": 11445
+            },
+            {
+              "committedVersion": 71,
+              "commitAtMs": 13969,
+              "firstSampleAtMs": 23878,
+              "lagMs": 9909
+            },
+            {
+              "committedVersion": 72,
+              "commitAtMs": 15504,
+              "firstSampleAtMs": 23878,
+              "lagMs": 8374
+            },
+            {
+              "committedVersion": 73,
+              "commitAtMs": 16930,
+              "firstSampleAtMs": 23878,
+              "lagMs": 6948
+            }
+          ],
+          "finalSample": {
+            "visible": "Não",
+            "version": 73,
+            "state": "Não"
+          }
+        },
+        {
+          "session": 2,
+          "reads": [
+            {
+              "path": "/rest/v1/rpc/read_school_operational_context",
+              "start": 23049,
+              "status": 200,
+              "end": 23731
+            }
+          ],
+          "broadcastCount": 44,
+          "versionCatchup": [
+            {
+              "committedVersion": 62,
+              "commitAtMs": 208,
+              "firstSampleAtMs": 23878,
+              "lagMs": 23670
+            },
+            {
+              "committedVersion": 63,
+              "commitAtMs": 1951,
+              "firstSampleAtMs": 23878,
+              "lagMs": 21927
+            },
+            {
+              "committedVersion": 64,
+              "commitAtMs": 3409,
+              "firstSampleAtMs": 23878,
+              "lagMs": 20469
+            },
+            {
+              "committedVersion": 65,
+              "commitAtMs": 4943,
+              "firstSampleAtMs": 23878,
+              "lagMs": 18935
+            },
+            {
+              "committedVersion": 66,
+              "commitAtMs": 6465,
+              "firstSampleAtMs": 23878,
+              "lagMs": 17413
+            },
+            {
+              "committedVersion": 67,
+              "commitAtMs": 7856,
+              "firstSampleAtMs": 23878,
+              "lagMs": 16022
+            },
+            {
+              "committedVersion": 68,
+              "commitAtMs": 9389,
+              "firstSampleAtMs": 23878,
+              "lagMs": 14489
+            },
+            {
+              "committedVersion": 69,
+              "commitAtMs": 10797,
+              "firstSampleAtMs": 23878,
+              "lagMs": 13081
+            },
+            {
+              "committedVersion": 70,
+              "commitAtMs": 12433,
+              "firstSampleAtMs": 23878,
+              "lagMs": 11445
+            },
+            {
+              "committedVersion": 71,
+              "commitAtMs": 13969,
+              "firstSampleAtMs": 23878,
+              "lagMs": 9909
+            },
+            {
+              "committedVersion": 72,
+              "commitAtMs": 15504,
+              "firstSampleAtMs": 23878,
+              "lagMs": 8374
+            },
+            {
+              "committedVersion": 73,
+              "commitAtMs": 16930,
+              "firstSampleAtMs": 23878,
+              "lagMs": 6948
+            }
+          ],
+          "finalSample": {
+            "visible": "Não",
+            "version": 73,
+            "state": "Não"
+          }
+        }
+      ]
+    },
+    "candidate": {
+      "sourceSha256": "a9630143225e50fcd725eb6c3f7a85ee71d5ff720aa9909f89fccf7b25c5f3a0",
+      "commits": 44,
+      "successfulCommits": 44,
+      "samples": 301,
+      "activityEndedMs": 22498,
+      "durationMs": 30533,
+      "errors": [],
+      "finalDatabaseValue": "Não",
+      "sessions": [
+        {
+          "session": 0,
+          "reads": [
+            {
+              "path": "/rest/v1/rpc/read_operational_context",
+              "start": 24166,
+              "status": 200,
+              "end": 24852
+            }
+          ],
+          "broadcastCount": 44,
+          "versionCatchup": [
+            {
+              "committedVersion": 50,
+              "commitAtMs": 236,
+              "firstSampleAtMs": 243,
+              "lagMs": 7
+            },
+            {
+              "committedVersion": 51,
+              "commitAtMs": 1859,
+              "firstSampleAtMs": 1913,
+              "lagMs": 54
+            },
+            {
+              "committedVersion": 52,
+              "commitAtMs": 3438,
+              "firstSampleAtMs": 3441,
+              "lagMs": 3
+            },
+            {
+              "committedVersion": 53,
+              "commitAtMs": 5037,
+              "firstSampleAtMs": 5040,
+              "lagMs": 3
+            },
+            {
+              "committedVersion": 54,
+              "commitAtMs": 6540,
+              "firstSampleAtMs": 6542,
+              "lagMs": 2
+            },
+            {
+              "committedVersion": 55,
+              "commitAtMs": 7921,
+              "firstSampleAtMs": 7938,
+              "lagMs": 17
+            },
+            {
+              "committedVersion": 56,
+              "commitAtMs": 9476,
+              "firstSampleAtMs": 9540,
+              "lagMs": 64
+            },
+            {
+              "committedVersion": 57,
+              "commitAtMs": 11017,
+              "firstSampleAtMs": 11039,
+              "lagMs": 22
+            },
+            {
+              "committedVersion": 58,
+              "commitAtMs": 12651,
+              "firstSampleAtMs": 12652,
+              "lagMs": 1
+            },
+            {
+              "committedVersion": 59,
+              "commitAtMs": 14272,
+              "firstSampleAtMs": 14281,
+              "lagMs": 9
+            },
+            {
+              "committedVersion": 60,
+              "commitAtMs": 15897,
+              "firstSampleAtMs": 15977,
+              "lagMs": 80
+            },
+            {
+              "committedVersion": 61,
+              "commitAtMs": 17343,
+              "firstSampleAtMs": 17347,
+              "lagMs": 4
+            }
+          ],
+          "finalSample": {
+            "visible": "Não",
+            "version": 61,
+            "state": "Não"
+          }
+        },
+        {
+          "session": 1,
+          "reads": [
+            {
+              "path": "/rest/v1/rpc/read_operational_context",
+              "start": 24167,
+              "status": 200,
+              "end": 24852
+            }
+          ],
+          "broadcastCount": 44,
+          "versionCatchup": [
+            {
+              "committedVersion": 50,
+              "commitAtMs": 236,
+              "firstSampleAtMs": 25081,
+              "lagMs": 24845
+            },
+            {
+              "committedVersion": 51,
+              "commitAtMs": 1859,
+              "firstSampleAtMs": 25081,
+              "lagMs": 23222
+            },
+            {
+              "committedVersion": 52,
+              "commitAtMs": 3438,
+              "firstSampleAtMs": 25081,
+              "lagMs": 21643
+            },
+            {
+              "committedVersion": 53,
+              "commitAtMs": 5037,
+              "firstSampleAtMs": 25081,
+              "lagMs": 20044
+            },
+            {
+              "committedVersion": 54,
+              "commitAtMs": 6540,
+              "firstSampleAtMs": 25081,
+              "lagMs": 18541
+            },
+            {
+              "committedVersion": 55,
+              "commitAtMs": 7921,
+              "firstSampleAtMs": 25081,
+              "lagMs": 17160
+            },
+            {
+              "committedVersion": 56,
+              "commitAtMs": 9476,
+              "firstSampleAtMs": 25081,
+              "lagMs": 15605
+            },
+            {
+              "committedVersion": 57,
+              "commitAtMs": 11017,
+              "firstSampleAtMs": 25081,
+              "lagMs": 14064
+            },
+            {
+              "committedVersion": 58,
+              "commitAtMs": 12651,
+              "firstSampleAtMs": 25081,
+              "lagMs": 12430
+            },
+            {
+              "committedVersion": 59,
+              "commitAtMs": 14272,
+              "firstSampleAtMs": 25081,
+              "lagMs": 10809
+            },
+            {
+              "committedVersion": 60,
+              "commitAtMs": 15897,
+              "firstSampleAtMs": 25081,
+              "lagMs": 9184
+            },
+            {
+              "committedVersion": 61,
+              "commitAtMs": 17343,
+              "firstSampleAtMs": 25081,
+              "lagMs": 7738
+            }
+          ],
+          "finalSample": {
+            "visible": "Não",
+            "version": 61,
+            "state": "Não"
+          }
+        },
+        {
+          "session": 2,
+          "reads": [
+            {
+              "path": "/rest/v1/rpc/read_school_operational_context",
+              "start": 24167,
+              "status": 200,
+              "end": 24897
+            }
+          ],
+          "broadcastCount": 44,
+          "versionCatchup": [
+            {
+              "committedVersion": 50,
+              "commitAtMs": 236,
+              "firstSampleAtMs": 25081,
+              "lagMs": 24845
+            },
+            {
+              "committedVersion": 51,
+              "commitAtMs": 1859,
+              "firstSampleAtMs": 25081,
+              "lagMs": 23222
+            },
+            {
+              "committedVersion": 52,
+              "commitAtMs": 3438,
+              "firstSampleAtMs": 25081,
+              "lagMs": 21643
+            },
+            {
+              "committedVersion": 53,
+              "commitAtMs": 5037,
+              "firstSampleAtMs": 25081,
+              "lagMs": 20044
+            },
+            {
+              "committedVersion": 54,
+              "commitAtMs": 6540,
+              "firstSampleAtMs": 25081,
+              "lagMs": 18541
+            },
+            {
+              "committedVersion": 55,
+              "commitAtMs": 7921,
+              "firstSampleAtMs": 25081,
+              "lagMs": 17160
+            },
+            {
+              "committedVersion": 56,
+              "commitAtMs": 9476,
+              "firstSampleAtMs": 25081,
+              "lagMs": 15605
+            },
+            {
+              "committedVersion": 57,
+              "commitAtMs": 11017,
+              "firstSampleAtMs": 25081,
+              "lagMs": 14064
+            },
+            {
+              "committedVersion": 58,
+              "commitAtMs": 12651,
+              "firstSampleAtMs": 25081,
+              "lagMs": 12430
+            },
+            {
+              "committedVersion": 59,
+              "commitAtMs": 14272,
+              "firstSampleAtMs": 25081,
+              "lagMs": 10809
+            },
+            {
+              "committedVersion": 60,
+              "commitAtMs": 15897,
+              "firstSampleAtMs": 25081,
+              "lagMs": 9184
+            },
+            {
+              "committedVersion": 61,
+              "commitAtMs": 17343,
+              "firstSampleAtMs": 25081,
+              "lagMs": 7738
+            }
+          ],
+          "finalSample": {
+            "visible": "Não",
+            "version": 61,
+            "state": "Não"
+          }
+        }
+      ]
+    }
+  }
+}

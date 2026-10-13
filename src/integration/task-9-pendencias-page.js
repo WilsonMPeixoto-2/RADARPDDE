@@ -426,11 +426,15 @@
     }
 
     function getFilterOptions(model) {
+        // A school query must remain possible after clearing, including zero
+        // results. Use the session catalog, already bounded by remote access.
+        const schools = escolas.map(school => {
+            const name = school.denominação || school.denominacao || school.denominaçao || school.name || school.id;
+            const designation = school.designação || school.designacao || school.id;
+            return { value: String(school.id), label: `${name} · ${designation}` };
+        });
         return {
-            schools: uniqueSorted(model.records, record => ({
-                value: record.schoolId,
-                label: `${record.schoolName} · ${record.schoolDesignation}`
-            })),
+            schools: uniqueSorted(schools),
             competences: uniqueSorted(model.records, record => ({
                 value: record.competence,
                 label: formatCompetenciaText(record.competence)
@@ -999,9 +1003,9 @@
         return true;
     }
 
-    function clearPendencyFilters() {
+    function clearPendencyFilters(options = {}) {
         pageState.filters = { ...DEFAULT_FILTERS };
-        renderPendenciasTask9();
+        if (options.render !== false) renderPendenciasTask9();
         root.requestAnimationFrame(() => {
             const input = document.getElementById('pendency-search-input');
             if (input) input.focus({ preventScroll: true });
@@ -1287,6 +1291,9 @@
         document.addEventListener('keydown', handleGlobalDrawerKeydown);
         root.addEventListener('resize', syncDrawerSemantics);
         installed = true;
+        // app.js can become available after authentication/DOM readiness events.
+        // Only this page authority can confirm that its dependent UI is now ready.
+        root.dispatchEvent?.(new root.CustomEvent('radar:pendency-page-ready'));
 
         if (typeof currentView !== 'undefined' && currentView === 'pendencias') {
             renderPendenciasTask9();
@@ -1294,10 +1301,19 @@
         return true;
     }
 
-    if (!install()) {
-        const interval = root.setInterval(() => {
-            if (install()) root.clearInterval(interval);
-        }, 10);
-        root.setTimeout(() => root.clearInterval(interval), 10000);
+    function installWhenReady() {
+        if (!installed && !install()) return false;
+        root.removeEventListener?.('radar:application-services-ready', installWhenReady);
+        document.removeEventListener?.('DOMContentLoaded', installWhenReady);
+        return true;
+    }
+
+    // Dynamic extensions may arrive before the deferred app, including while
+    // readyState is interactive. Installation follows readiness, not a deadline.
+    if (!installWhenReady()) {
+        root.addEventListener?.('radar:application-services-ready', installWhenReady);
+        if (document.readyState !== 'complete') {
+            document.addEventListener('DOMContentLoaded', installWhenReady, { once: true });
+        }
     }
 }(window));

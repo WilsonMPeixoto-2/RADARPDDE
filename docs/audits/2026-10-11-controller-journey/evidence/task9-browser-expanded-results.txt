@@ -1,0 +1,52 @@
+
+Running 2 tests using 1 worker
+
+(node:699686) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/2] [desktop-chromium] › tests/e2e/supabase-late-auth-actions.spec.js:30:1 › carregamento tardio do app preserva a página operacional de Pendências
+  1) [desktop-chromium] › tests/e2e/supabase-late-auth-actions.spec.js:30:1 › carregamento tardio do app preserva a página operacional de Pendências 
+
+    Error: expect(locator).toHaveValue(expected) failed
+
+    Locator:  locator('#pendency-filter-school')
+    Expected: ""
+    Received: "ESC-LOCAL"
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveValue" locator('#pendency-filter-school') with timeout 5000ms
+      - waiting for locator('#pendency-filter-school')
+        13 × locator resolved to <select class="form-control" id="pendency-filter-school" onchange="changePendencyFilter('schoolId', this.value)">…</select>
+           - unexpected value "ESC-LOCAL"
+
+
+      65 |     await expect(page.locator('#pendency-filter-school')).toHaveValue('ESC-LOCAL');
+      66 |     await page.goForward();
+    > 67 |     await expect(page.locator('#pendency-filter-school')).toHaveValue('');
+         |                                                           ^
+      68 | });
+      69 |
+      70 | // Esta jornada cria histórico protegido de NF/Pendência. Os gates a executam
+        at /workspace/RADARPDDE-controller-journey/tests/e2e/supabase-late-auth-actions.spec.js:67:59
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../scratch/controller-private/auth-test-results/supabase-late-auth-actions-fbb3f-a-operacional-de-Pendências-desktop-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../scratch/controller-private/auth-test-results/supabase-late-auth-actions-fbb3f-a-operacional-de-Pendências-desktop-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../scratch/controller-private/auth-test-results/supabase-late-auth-actions-fbb3f-a-operacional-de-Pendências-desktop-chromium/error-context.md
+
+
+(node:699972) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[2/2] [desktop-chromium] › tests/e2e/supabase-late-auth-actions.spec.js:72:1 › login tardio preserva ações de Pendência na interface real
+  1 failed
+    [desktop-chromium] › tests/e2e/supabase-late-auth-actions.spec.js:30:1 › carregamento tardio do app preserva a página operacional de Pendências 
+  1 passed (1.0m)

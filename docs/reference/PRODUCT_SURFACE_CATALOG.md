@@ -194,6 +194,18 @@ Se o comportamento estiver correto e o problema for apenas de compreensão, loca
 | Persistência | pendência, tentativa, contato, verificação e log |
 | Leitura humana | visão completa do passivo: origem, antiguidade, erros, tentativas, contatos, histórico, responsável atual e próxima ação |
 
+O filtro de unidade oferece o catálogo escolar disponível à sessão, inclusive
+escolas sem Pendências. Limpar filtros não remove escolas desse catálogo: deve ser
+possível selecioná-las novamente e obter uma fila vazia. Registros históricos não
+ampliam as opções para identificadores ausentes do catálogo. A navegação continua
+sujeita à política autorizada; esse seletor não concede acesso nem altera RLS.
+
+Nos modais de novo envio e reanálise, uma Pendência individual identifica o
+número/referência da NF ou boleto, mantendo a dimensão fiscal ou Assessoria.
+Reanálise preserva também descrição, tipo e valor. Snapshot pode identificar o
+documento histórico ausente da coleção corrente; legado sem vínculo não recebe
+uma NF inventada. Documentos genéricos continuam com seus rótulos próprios.
+
 ### Edição explícita no Prontuário (restauração autorizada em 13/09/2026)
 
 A **bonificação é editada diretamente pelos próprios controles Sim/Não/N/A**, sem botão ou modal separado: selecionar outra opção substitui o valor atual e clicar novamente na opção já selecionada volta ao estado não preenchido quando a regra do documento permitir. O resultado recebe feedback visual de sucesso. A ação **Editar análise** permanece explícita para correção da análise técnica. Quando a correção de um `Incorreto` possui Pendência ativa, o formulário mostra documento, escola, programa, mês e mudança proposta, exige confirmação e justificativa e diferencia a correção do operador do fluxo de novo envio/reanálise da escola. O histórico identifica **Anulada por edição da avaliação**. Durante a gravação os controles ficam bloqueados; falha permanece visível; commit confirmado com projeção pendente pede atualização da página sem anunciar sucesso completo. Edição individual das notas e Assessoria permanece nas próprias notas.

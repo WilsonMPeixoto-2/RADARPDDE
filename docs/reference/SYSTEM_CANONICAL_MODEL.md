@@ -542,6 +542,8 @@ Proteções atuais:
 
 - `InventoryService.forward()` rejeita reencaminhamento indevido;
 - trigger `assets_protect_inventoried_terminal_state` impede rebaixamento de status;
+- `assets_protect_inventoried_terminal_delete` preserva o bem terminal contra DELETE;
+- `registered_invoices_protect_inventoried_delete` preserva sua NF, inclusive quando a chamada pede manter o bem; a decisão trava a linha patrimonial para serializar com inventariação concorrente;
 - edição posterior da NF vinculada deve preservar status, processo e metadados da inventariação.
 
 Nota permanente e bem derivado devem permanecer coerentes no mesmo contexto.
@@ -554,12 +556,14 @@ Nota permanente e bem derivado devem permanecer coerentes no mesmo contexto.
 
 ## 9.10 Excluir Nota Fiscal
 
-A exclusão comum só é permitida quando não existe histórico individual de Pendência que precise ser preservado.
+A exclusão comum só é permitida quando não existe histórico individual de Pendência que precise ser preservado nem vínculo com bem `Inventariada`. `InvoiceService.remove` confere o patrimônio antes do planejamento e novamente dentro da mutação serializada, usando o vínculo e o bem atuais. Edição cadastral permitida continua disponível.
+
+A recusa é também transacional no banco: excluir a NF sem pedir remoção do bem não contorna a proteção. Importações substitutivas que tentem apagar patrimônio terminal também são recusadas; testes de importação/rollback devem usar registros elegíveis. Isso não substitui o procedimento próprio de recuperação por backup.
 
 ```text
 usuário exclui NF elegível
 → InvoiceService.remove
-→ proteção histórica
+→ proteção histórica e patrimonial terminal
 → deleteInvoiceWithEffects
 → remoção/ajuste do bem vinculado quando aplicável
 → recálculo das projeções da verification
@@ -658,6 +662,13 @@ No baseline atual:
 - `operational-write-performance.js` envolve somente medição/tracing e **não decide consistência funcional**;
 - `operational-context-refresh.js` controla releitura contextual, throttle, refresh pendente e proteção durante edição;
 - `operational-realtime-invalidation.js` depende do controlador de refresh e apenas transforma Broadcast em invalidação/releitura segura.
+
+Instalações dependentes de autenticação não podem expirar pelo tempo gasto na
+tela de login. Ações de contato/cancelamento/reabertura e retificação aguardam
+`radar:application-services-ready`; a ponte operacional aguarda também a
+competência canônica. Task 9 publica `radar:pendency-page-ready` ao concluir sua
+instalação para os dependentes que ainda aguardam a página. Instalação é idempotente;
+os sinais de readiness não concedem capacidades nem substituem Auth/RLS.
 
 ### 11.1 Fila de leitura e gravação
 

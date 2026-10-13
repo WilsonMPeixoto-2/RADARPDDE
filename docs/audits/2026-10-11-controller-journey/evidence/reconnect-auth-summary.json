@@ -1,0 +1,62 @@
+{
+  "reconnectAt": "2026-10-11T19:28:29.354Z",
+  "controllerMetrics": {
+    "broadcastsReceived": 9,
+    "coalescedBroadcasts": 6,
+    "refreshesScheduled": 10,
+    "refreshAttempts": 4,
+    "refreshSucceeded": 4,
+    "refreshFailed": 0,
+    "retriesScheduled": 0,
+    "reconnectRefreshes": 1,
+    "schoolRefreshesScheduled": 0,
+    "deferredSchoolInvalidations": 0,
+    "deferredSchoolReconciliations": 0,
+    "lastBroadcastAt": "2026-10-11T19:25:21.727Z",
+    "lastRefreshAt": "2026-10-11T19:28:31.619Z",
+    "byEntity": {
+      "pendency_contacts": 4,
+      "registered_invoices": 2,
+      "verifications": 2,
+      "pendencies": 1
+    },
+    "dirtySchoolIds": []
+  },
+  "before": {
+    "broadcastsReceived": 9,
+    "coalescedBroadcasts": 6,
+    "refreshesScheduled": 9,
+    "refreshAttempts": 3,
+    "refreshSucceeded": 3,
+    "refreshFailed": 0,
+    "retriesScheduled": 0,
+    "reconnectRefreshes": 0,
+    "schoolRefreshesScheduled": 0,
+    "deferredSchoolInvalidations": 0,
+    "deferredSchoolReconciliations": 0,
+    "lastBroadcastAt": "2026-10-11T19:25:21.727Z",
+    "lastRefreshAt": "2026-10-11T19:25:23.864Z",
+    "byEntity": {
+      "pendency_contacts": 4,
+      "registered_invoices": 2,
+      "verifications": 2,
+      "pendencies": 1
+    },
+    "dirtySchoolIds": []
+  },
+  "requests": [
+    {
+      "time": "2026-10-11T19:28:31.587Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/read_operational_context",
+      "status": 200,
+      "requestBytes": 53,
+      "responseBytes": 49605
+    }
+  ],
+  "schoolRows": [
+    "\n                                            \n                                                TESTE AUDITORIA — Segunda unidade\n                                                04.10.002 • 10ª R.A.\n                                                Sua Carteira\n                                            \n                                            33900999\n                                            0 Contatos\n                                            \n                                            PDDE Básico:\n                                            INAPTA\n                                        \n                                            \n                                                Ver Unidade\n                                            \n                                        ",
+    "\n                                            \n                                                Escola Local Autorizada\n                                                04.00.001 • 0ª R.A.\n                                                Sua Carteira\n                                            \n                                            33900001\n                                            7 Contatos\n                                            \n                                            PDDE Básico:\n                                            Em apuração\n                                        \n                                            PDDE Educação Conectada:\n                                            Não lançada\n                                        \n                                            \n                                                Ver Unidade\n                                            \n                                        "
+  ],
+  "competence": "2026-05"
+}

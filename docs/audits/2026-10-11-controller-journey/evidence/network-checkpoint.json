@@ -1,0 +1,352 @@
+{
+  "environment": "discardable-local",
+  "runtime": "113841bda52ce3bbda228524daf9a7464f12b462",
+  "scope": "one controller session; auxiliary inventory session not instrumented",
+  "requests": [
+    {
+      "time": "2026-10-11T16:58:47.256Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/current_app_role",
+      "status": 401,
+      "requestBytes": 2,
+      "responseBytes": 79
+    },
+    {
+      "time": "2026-10-11T16:58:47.394Z",
+      "method": "GET",
+      "path": "/rest/v1/user_school_scopes",
+      "status": 200,
+      "requestBytes": 0,
+      "responseBytes": 45
+    },
+    {
+      "time": "2026-10-11T16:58:47.399Z",
+      "method": "GET",
+      "path": "/rest/v1/user_profiles",
+      "status": 200,
+      "requestBytes": 0,
+      "responseBytes": 248
+    },
+    {
+      "time": "2026-10-11T17:00:25.506Z",
+      "method": "GET",
+      "path": "/rest/v1/user_profiles",
+      "status": 200,
+      "requestBytes": 0,
+      "responseBytes": 248
+    },
+    {
+      "time": "2026-10-11T17:00:25.522Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/current_app_role",
+      "status": 200,
+      "requestBytes": 2,
+      "responseBytes": 12
+    },
+    {
+      "time": "2026-10-11T17:00:25.523Z",
+      "method": "GET",
+      "path": "/rest/v1/user_school_scopes",
+      "status": 200,
+      "requestBytes": 0,
+      "responseBytes": 45
+    },
+    {
+      "time": "2026-10-11T17:00:25.593Z",
+      "method": "GET",
+      "path": "/rest/v1/app_config",
+      "status": 200,
+      "requestBytes": 0,
+      "responseBytes": 247
+    },
+    {
+      "time": "2026-10-11T17:00:25.625Z",
+      "method": "GET",
+      "path": "/rest/v1/schools",
+      "status": 200,
+      "requestBytes": 0,
+      "responseBytes": 1674
+    },
+    {
+      "time": "2026-10-11T17:00:25.626Z",
+      "method": "GET",
+      "path": "/rest/v1/programs",
+      "status": 200,
+      "requestBytes": 0,
+      "responseBytes": 467
+    },
+    {
+      "time": "2026-10-11T17:00:25.626Z",
+      "method": "GET",
+      "path": "/rest/v1/inventory_team_members",
+      "status": 200,
+      "requestBytes": 0,
+      "responseBytes": 260
+    },
+    {
+      "time": "2026-10-11T17:00:25.645Z",
+      "method": "GET",
+      "path": "/rest/v1/competences",
+      "status": 200,
+      "requestBytes": 0,
+      "responseBytes": 525
+    },
+    {
+      "time": "2026-10-11T17:00:25.661Z",
+      "method": "GET",
+      "path": "/rest/v1/school_programs",
+      "status": 200,
+      "requestBytes": 0,
+      "responseBytes": 967
+    },
+    {
+      "time": "2026-10-11T17:00:25.698Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/read_operational_context",
+      "status": 200,
+      "requestBytes": 53,
+      "responseBytes": 168
+    },
+    {
+      "time": "2026-10-11T17:00:25.702Z",
+      "method": "GET",
+      "path": "/rest/v1/controllers",
+      "status": 200,
+      "requestBytes": 0,
+      "responseBytes": 487
+    },
+    {
+      "time": "2026-10-11T17:00:25.776Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/read_operational_context",
+      "status": 200,
+      "requestBytes": 53,
+      "responseBytes": 6786
+    },
+    {
+      "time": "2026-10-11T17:03:10.640Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/delete_invoice_with_effects",
+      "status": 200,
+      "requestBytes": 1074,
+      "responseBytes": 744
+    },
+    {
+      "time": "2026-10-11T17:03:57.730Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+      "status": 200,
+      "requestBytes": 2632,
+      "responseBytes": 3223
+    },
+    {
+      "time": "2026-10-11T17:03:58.027Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/read_operational_context",
+      "status": 200,
+      "requestBytes": 53,
+      "responseBytes": 7692
+    },
+    {
+      "time": "2026-10-11T17:04:00.089Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/read_school_operational_context",
+      "status": 200,
+      "requestBytes": 79,
+      "responseBytes": 8004
+    },
+    {
+      "time": "2026-10-11T17:05:38.440Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/save_asset_with_log",
+      "status": 200,
+      "requestBytes": 1329,
+      "responseBytes": 1531
+    },
+    {
+      "time": "2026-10-11T17:06:20.834Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/read_operational_context",
+      "status": 200,
+      "requestBytes": 53,
+      "responseBytes": 7841
+    },
+    {
+      "time": "2026-10-11T17:06:55.569Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/read_operational_context",
+      "status": 200,
+      "requestBytes": 53,
+      "responseBytes": 7999
+    },
+    {
+      "time": "2026-10-11T17:08:19.125Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+      "status": 200,
+      "requestBytes": 1983,
+      "responseBytes": 2411
+    },
+    {
+      "time": "2026-10-11T17:08:21.402Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/read_operational_context",
+      "status": 200,
+      "requestBytes": 53,
+      "responseBytes": 9026
+    },
+    {
+      "time": "2026-10-11T17:09:38.712Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/save_invoice_with_effects",
+      "status": 200,
+      "requestBytes": 1897,
+      "responseBytes": 1728
+    },
+    {
+      "time": "2026-10-11T17:10:57.037Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/save_service_advisory_with_pendency",
+      "status": 200,
+      "requestBytes": 3307,
+      "responseBytes": 3834
+    },
+    {
+      "time": "2026-10-11T17:12:02.873Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/read_operational_context",
+      "status": 200,
+      "requestBytes": 53,
+      "responseBytes": 10613
+    },
+    {
+      "time": "2026-10-11T17:12:05.938Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/read_operational_context",
+      "status": 200,
+      "requestBytes": 53,
+      "responseBytes": 6575
+    },
+    {
+      "time": "2026-10-11T17:13:24.402Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/read_operational_context",
+      "status": 200,
+      "requestBytes": 64,
+      "responseBytes": 10613
+    },
+    {
+      "time": "2026-10-11T17:13:25.609Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/read_operational_context",
+      "status": 200,
+      "requestBytes": 53,
+      "responseBytes": 10613
+    },
+    {
+      "time": "2026-10-11T17:13:25.703Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/read_operational_context",
+      "status": 200,
+      "requestBytes": 64,
+      "responseBytes": 10613
+    },
+    {
+      "time": "2026-10-11T17:14:39.625Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/read_operational_context",
+      "status": 200,
+      "requestBytes": 53,
+      "responseBytes": 6575
+    },
+    {
+      "time": "2026-10-11T17:14:39.801Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/read_operational_context",
+      "status": 200,
+      "requestBytes": 64,
+      "responseBytes": 10613
+    },
+    {
+      "time": "2026-10-11T17:14:42.828Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/register_service_advisory_attempt",
+      "status": 200,
+      "requestBytes": 4808,
+      "responseBytes": 5554
+    },
+    {
+      "time": "2026-10-11T17:14:45.022Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/read_operational_context",
+      "status": 200,
+      "requestBytes": 53,
+      "responseBytes": 8322
+    },
+    {
+      "time": "2026-10-11T17:15:45.941Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/reanalyze_service_advisory_pendency",
+      "status": 200,
+      "requestBytes": 5402,
+      "responseBytes": 6109
+    },
+    {
+      "time": "2026-10-11T17:15:46.414Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/read_operational_context",
+      "status": 200,
+      "requestBytes": 64,
+      "responseBytes": 12871
+    },
+    {
+      "time": "2026-10-11T17:15:46.686Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/read_operational_context",
+      "status": 200,
+      "requestBytes": 53,
+      "responseBytes": 12871
+    },
+    {
+      "time": "2026-10-11T17:15:46.861Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/read_operational_context",
+      "status": 200,
+      "requestBytes": 64,
+      "responseBytes": 12871
+    },
+    {
+      "time": "2026-10-11T17:15:48.237Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/read_operational_context",
+      "status": 200,
+      "requestBytes": 53,
+      "responseBytes": 12871
+    },
+    {
+      "time": "2026-10-11T17:18:42.138Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/save_invoice_with_effects_v2",
+      "status": 200,
+      "requestBytes": 1956,
+      "responseBytes": 2394
+    },
+    {
+      "time": "2026-10-11T17:18:42.624Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/save_invoice_with_effects",
+      "status": 200,
+      "requestBytes": 1907,
+      "responseBytes": 1690
+    },
+    {
+      "time": "2026-10-11T17:20:32.903Z",
+      "method": "POST",
+      "path": "/rest/v1/rpc/save_unidentified_expense_with_pendency",
+      "status": 200,
+      "requestBytes": 3372,
+      "responseBytes": 3960
+    }
+  ],
+  "pageErrors": []
+}

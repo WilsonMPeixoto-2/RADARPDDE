@@ -1,5 +1,78 @@
 # RADAR PDDE — estado atual e retomada
 
+> Fechamento delimitado: requisitos e evidências no RELEASE_SCOPE_2026-10-13.md
+> da pasta do handoff único. Frescor herdado não constitui regressão demonstrada
+> do #438. Preservar sincronização vigente; próxima decisão é publicação das
+> correções verificadas, com migration 61 controlada e CI final, sem nova bateria
+> exploratória. Ajuste adicional apenas na saída temporária do script de auditoria.
+
+> Checkpoint superveniente 13/10: comparação curta main/candidato concluída.
+> Ambas convergem após 44 gravações; atualização remota chega a 23,67/24,85 s
+> durante atividade contínua. Não demonstra regressão do #438. CI 99fa: 22 verdes;
+> gate longo concluído com advertências, sem homologação geral de performance.
+> Ver conclusão e limites no handoff único. PR permanece Draft, sem deploy.
+
+> Checkpoint superveniente13/10: catálogo escolar permanece selecionável após
+> limpar. Auth3/3,13E2E navegação (1skip mobile) e1.361 unitários aprovados.
+> Três testes de retry tornados determinísticos após contraprova do relógio real;
+> runtime Realtime intacto. CI/ comparação sustentada ainda pendentes; falha Docker
+> separada de produto. Ler handoff único e classificação. PR438 Draft, sem merge.
+
+## Etapa 5 — auditoria operacional imersiva iniciada em 11/10/2026
+
+**Checkpoint vigente 12/10:** revisão do PR independente441 pelo agente principal,
+sem subagentes. Correções de navegação, página tardia e seletor sem Pendências
+consolidadas:1.359 unitários,24 E2E dirigidos (1skip mobile),3 jornadas Auth reais
+aprovados. Retorno ao Prontuário corrigido causalmente. CI final pendente,438 Draft,
+sem merge/deploy. Lentidão sistêmica e jornadas A–N não estão encerradas. Ler o
+checkpoint vigente do handoff único abaixo; detalhes históricos não certificam HEAD.
+
+**Frente corrente:** jornadas A–N do Controlador, orientadas pela UI e experiência
+real, após a modernização #433–#437. Não repetir certificação histórica nem
+reimplementar #408/#410/#427/#429. **Handoff corrente único:**
+[controller-journey/HANDOFF.md](audits/2026-10-11-controller-journey/HANDOFF.md).
+
+Baseline revalidada: main `113841bda52ce3bbda228524daf9a7464f12b462`;
+Production `dpl_Az4q8VTqmWdT8e5tMxYTGyKv7SHo`, READY no mesmo SHA;
+Supabase Production com última migration `20261004210000`. Smoke público aprovado,
+52 assets, leitura anônima bloqueada (401). Isso **não prova jornada autenticada**.
+
+Preparação e limites: [ENVIRONMENT.md](audits/2026-10-11-controller-journey/ENVIRONMENT.md).
+Contexto/invariantes dos PRs: [CONTEXT.md](audits/2026-10-11-controller-journey/CONTEXT.md).
+Navegador real headed/ARIA/screenshot/CDP/MCP preparados em executor cloud;
+Chrome pessoal depende de conexão no Desktop. Supabase descartável preparado,
+com login local real, para históricos e patrimônio terminal. Após pausa para o
+Chrome pessoal (extensão confirmada instalada), o usuário autorizou **continuar
+neste ambiente cloud**: jornadas locais retomadas sem certificação de Production.
+Configuração Codex portátil adicionada; transporte do navegador pessoal continua
+não confirmado. No PR #438 há correções candidatas de identificação do documento
+nos modais corretivos e instalação de ações após login tardio. RED causal,
+GREEN Auth/RLS/RPC e revisão independente registrados em
+[CAUSAL_FINDINGS.md](audits/2026-10-11-controller-journey/CAUSAL_FINDINGS.md).
+**Main e Production permanecem intactas.** A auditoria A–N e a certificação
+visual/CI final continuam em andamento. Branch `audit/controller-journey-2026-10-11`.
+
+Checkpoint de 11/10, 19:40 UTC: proteção de submit concorrente de contato e ajuste
+dos três rodapés corretivos foram verificados em testes focados e UI Auth do
+descartável. CI `6139fe79`: 18/19 verdes, um timeout legado não reproduzido em
+main/candidato isolados. A auditoria confirmou exclusão de NF e bem Inventariada
+pela ação ordinária; falha herdada da main e bloqueio para conclusão desta frente.
+RED, logs sanitizados, novas jornadas e próximos passos constam do handoff único.
+O PR #438 permanece Draft; nenhum merge/deploy desta auditoria foi realizado.
+
+Checkpoint posterior, 11/10 às 22:45 Brasília: proteção terminal implementada no
+serviço e na migration candidata 61, com 58 unitários dirigidos, 18 pgTAP causais,
+41 arquivos pgTAP isolados, concorrência SQL e duas sessões Auth/UI aprovados.
+CI do checkpoint 52efc260 terminou verde; a CI do novo candidato com migration
+ainda precisa concluir. Handoff acima contém caminhos, limites e publicação pendente.
+
+Os blocos seguintes são checkpoints datados anteriores. Prioridade “somente leitura”
+do saneamento de 08/10 é contextualizada pela autorização superveniente da Etapa 5:
+CRUD sintético reversível apenas com conta legitimamente autorizada; efeitos
+irreversíveis permanecem no ambiente descartável. Não alterar registros reais.
+
+---
+
 ## Atualização de dependências — 10/10/2026 (checkpoint atual)
 
 **Etapas 0–4 encerradas e integradas à `main`, em PRs independentes:**
@@ -66,7 +139,7 @@ históricos → qualificar residuais técnicos → avaliar jornadas do produto e
 selecionar a próxima entrega pelo impacto atual. Nenhuma alteração funcional
 decorre apenas da existência de um documento antigo. Proteção patrimonial
 adicional e anulação/transferência auditável continuam decisões separadas.
-Não há handoff corrente de implementação; a retomada é controlada por este documento.
+Naquele checkpoint não havia handoff corrente; a Etapa 5 indicada no topo é agora a frente ativa.
 
 ## Atualização canônica — sincronização agregada integrada e publicada
 

@@ -306,7 +306,7 @@
         document.querySelectorAll('[data-close-dialog]').forEach(button => {
             button.addEventListener('click', () => closeDialog(button.dataset.closeDialog));
         });
-        document.getElementById('form-pendency-contact').addEventListener('submit', savePendencyContact);
+        document.getElementById('form-pendency-contact').addEventListener('submit', submitPendencyContact);
         document.getElementById('form-pendency-cancel').addEventListener('submit', confirmCancelPendency);
         document.getElementById('form-pendency-reopen').addEventListener('submit', confirmReopenPendency);
         errorContainer.addEventListener('change', enforceAbsentExclusivity);
@@ -348,6 +348,10 @@
         if (!requireCapability(
             root.RadarAccessPolicy.CAPABILITIES.REGISTER_PENDENCY_CONTACT
         )) return false;
+        if (document.getElementById('form-pendency-contact')?.getAttribute('aria-busy') === 'true') {
+            announce('Aguarde o registro do contato em andamento.', 'error');
+            return false;
+        }
         const id = resolveId(source);
         const pendency = findPendency(id);
         if (!pendency || !root.RadarPendencias.isActivePendency(pendency)) {
@@ -389,6 +393,23 @@
             if (typeof reportRadarPersistenceError === 'function') reportRadarPersistenceError(error);
             announce(error.message || 'Não foi possível registrar o contato.', 'error');
         }
+    }
+
+    function submitPendencyContact(event) {
+        event.preventDefault();
+        // Extensions may load before or after Auth. Attach the action to the
+        // existing guard when used, rather than capture an unguarded handler.
+        const guard = root.RadarCriticalActionGuard;
+        const guarded = typeof guard?.wrapAction === 'function' && guard.wrapAction(root, 'savePendencyContact', {
+            key: () => 'pendency:contact',
+            form: () => document.getElementById('form-pendency-contact'),
+            busyLabel: 'Registrando…'
+        });
+        if (!guarded) {
+            announce('Não foi possível preparar o registro do contato. Recarregue a página e tente novamente.', 'error');
+            return false;
+        }
+        return root.savePendencyContact(event);
     }
 
     function openCancelPendencyModal(source) {
@@ -587,10 +608,21 @@
         return true;
     }
 
-    if (!install()) {
-        const interval = root.setInterval(() => {
-            if (install()) root.clearInterval(interval);
-        }, 20);
-        root.setTimeout(() => root.clearInterval(interval), 10000);
+    function installWhenReady() {
+        if (!installed && !install()) return false;
+        root.removeEventListener?.('radar:application-services-ready', installWhenReady);
+        root.removeEventListener?.('radar:pendency-page-ready', installWhenReady);
+        document.removeEventListener?.('DOMContentLoaded', installWhenReady);
+        return true;
+    }
+
+    // Authentication may legitimately finish long after the login form appears.
+    // Service readiness, rather than time spent on that form, owns installation.
+    if (!installWhenReady()) {
+        root.addEventListener?.('radar:application-services-ready', installWhenReady);
+        root.addEventListener?.('radar:pendency-page-ready', installWhenReady);
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', installWhenReady, { once: true });
+        }
     }
 }(window));

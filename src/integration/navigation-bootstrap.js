@@ -195,6 +195,12 @@
 
         root.applyAuthorizedNavigationRoute = applyAuthorizedNavigationRoute;
 
+        // This value is set only by authorized navigation. A page installed
+        // afterwards must receive the same filter before its initial render.
+        root.addEventListener('radar:pendency-page-ready', () => {
+            syncPendencyPageSchoolFilter(root, activePendencySchoolFilter);
+        });
+
         root.switchView = function navigationAwareSwitchView(view, param = null) {
             if (!navigationApplying) {
                 activePendencySchoolFilter = null;

@@ -1,0 +1,10 @@
+{
+  "tests": 1361,
+  "pass": 1361,
+  "fail": 0,
+  "skipped": 0,
+  "durationMs": 44749.517378,
+  "logSha256": "1a7e7a2f6fccc345ba364f034543459aec73136e7efd2f4e9beebba4d9197e19",
+  "command": "npm run test:unit",
+  "runtime": "730d5d99; somente testes de relógio e documentação posteriores"
+}

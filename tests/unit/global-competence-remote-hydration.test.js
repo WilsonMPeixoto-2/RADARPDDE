@@ -82,3 +82,19 @@ test('falha em outro exercício restaura competência confirmada e libera a inte
     assert.equal(h.alerts.length, 1);
     assert.equal(h.nodes.get('main-container').inert, false);
 });
+
+test('hidratação de competência reaplica rota canônica sem apagar filtro escolar nem empilhar histórico', async () => {
+    const h = harness();
+    const route = { view: 'pendencias', filters: { escola: 'school-1' } };
+    const navigations = [];
+    h.context.RadarNavigationHistory = {
+        currentRoute: () => route,
+        navigate: (_root, target, options) => navigations.push({ target, replace: options.replace })
+    };
+    h.context.RadarCompetenceContext.select('2026-08');
+    assert.equal(navigations.length, 0);
+    h.requests[0].resolve({ stale: false });
+    await h.context.RadarGlobalCompetenceSelector.whenHydrated();
+    assert.deepEqual(navigations, [{ target: route, replace: true }]);
+    assert.equal(h.renders.length, 0);
+});

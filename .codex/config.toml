@@ -1,0 +1,13 @@
+# Configuração portátil do Codex, equivalente a .mcp.json.
+# Carregada somente em projetos confiáveis; não contém credenciais.
+# A sessão pessoal exige execução no computador do Chrome e aprovação da aba.
+
+[mcp_servers.playwright]
+command = "npx"
+args = ["-y", "@playwright/mcp@0.0.82"]
+startup_timeout_sec = 45
+
+[mcp_servers.playwright-session]
+command = "npx"
+args = ["-y", "@playwright/mcp@0.0.82", "--extension"]
+startup_timeout_sec = 45

@@ -18,6 +18,8 @@ on:
       - 'scripts/check-local-auth-fixtures.mjs'
       - 'scripts/generate-runtime-config.mjs'
       - 'tests/e2e/supabase-auth-local.spec.js'
+      - 'tests/e2e/supabase-late-auth-actions.spec.js'
+      - 'tests/e2e/supabase-inventory-terminal-delete.spec.js'
       - 'tests/e2e/supabase-full-contract.spec.js'
       - 'tests/e2e/pendency-reanalysis-auth.spec.js'
       - 'tests/e2e/supabase-preview-profile-viewport.spec.js'
@@ -45,6 +47,8 @@ on:
       - 'scripts/check-local-auth-fixtures.mjs'
       - 'scripts/generate-runtime-config.mjs'
       - 'tests/e2e/supabase-auth-local.spec.js'
+      - 'tests/e2e/supabase-late-auth-actions.spec.js'
+      - 'tests/e2e/supabase-inventory-terminal-delete.spec.js'
       - 'tests/e2e/supabase-full-contract.spec.js'
       - 'tests/e2e/pendency-reanalysis-auth.spec.js'
       - 'tests/e2e/supabase-preview-profile-viewport.spec.js'
@@ -152,6 +156,16 @@ jobs:
       - name: Validar papéis e viewports
         run: npx playwright test --config=playwright.supabase-preview.config.js
 
+      # Cria histórico protegido: executar só após as suítes que substituem a base.
+      - name: Exercitar login tardio e ações com histórico protegido
+        env:
+          RADAR_E2E_SUPABASE_LOCAL: '1'
+          PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report-late-auth
+        run: >-
+          npx playwright test tests/e2e/supabase-late-auth-actions.spec.js
+          tests/e2e/supabase-inventory-terminal-delete.spec.js
+          --project=desktop-chromium --output=test-results-late-auth
+
       - name: Publicar evidências do gate
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -159,8 +173,10 @@ jobs:
           name: gate-remoto-perfis-viewports-${{ github.run_id }}
           path: |
             playwright-report/
+            playwright-report-late-auth/
             playwright-report-profile-viewport/
             test-results/
+            test-results-late-auth/
           if-no-files-found: warn
           retention-days: 14
 

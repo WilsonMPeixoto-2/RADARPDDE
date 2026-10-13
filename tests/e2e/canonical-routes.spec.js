@@ -148,7 +148,11 @@ test('filtro escolar permanece ao abrir e fechar o detalhe da Pendência', async
     window.RadarTask9PendencyPage.render();
     return school.id;
   });
-  await expect(page.locator('#pendency-filter-school option')).toHaveCount(2);
+  // O catálogo inteiro continua consultável, mesmo com uma única Pendência.
+  const expectedOptions = await page.evaluate(() => ['', ...escolas.map(school => String(school.id))].sort());
+  await expect.poll(() => page.locator('#pendency-filter-school option').evaluateAll(
+    options => options.map(option => option.value).sort()
+  )).toEqual(expectedOptions);
 
   await page.evaluate(id => {
     window.RadarNavigationHistory.navigate(window, {

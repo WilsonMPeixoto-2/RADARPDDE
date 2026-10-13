@@ -23,13 +23,24 @@ Um teste antigo não prevalece sobre código e regra funcional posteriores.
 
 ## 3. Classificação obrigatória de falha
 
-Toda falha relevante deve ser classificada uma única vez antes de qualquer correção:
+Toda falha relevante deve receber diagnóstico explícito antes de qualquer correção.
+A classificação pode ser revista quando surgirem novas evidências:
 
 - **Defeito de produto:** comportamento atual viola o contrato vigente ou prejudica o usuário. Corrigir o produto e manter regressão adequada.
 - **Teste com contrato superado:** a expectativa representa uma regra substituída. Atualizar, remover ou retirar o teste da execução; nunca reverter o produto para satisfazê-lo.
 - **Defeito do próprio teste:** fixture, seleção de registro, ordem, timing ou premissa artificial produz falso negativo. Corrigir o teste.
 - **Infraestrutura/ambiente:** falha de runner, rede, navegador, serviço temporário ou ferramenta. Não tratar como defeito funcional sem reprodução no produto.
 - **Flaky não reproduzível:** falha isolada que passa na repetição já prevista pela própria suíte e não apresenta consequência observável. Registrar apenas se ganhar recorrência.
+
+- **Resultado inconclusivo:** não há evidência suficiente para distinguir produto,
+  teste, fixture, ambiente ou interleaving. Preservar o resultado e indicar a
+  contraprova necessária; não anunciar sucesso ou regressão nem relaxar a asserção.
+
+O registro da frente deve ligar comportamento esperado, fonte do contrato,
+evidência observável e decisão de alterar produto/teste ou continuar investigando.
+Mudar uma expectativa exige explicar por que a anterior não representa mais a
+jornada vigente. Comparações de performance exigem baseline e candidato completos
+e comparáveis; preparação incompleta de um lado invalida os deltas daquele run.
 
 ## 4. Estratégia proporcional
 

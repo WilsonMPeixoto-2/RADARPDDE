@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-11",
+  "environment": "local fixture, Chromium 1280x720; not Production",
+  "test": "corrective-document-identity.spec.js: reanálise mantém botões inteiros visíveis em desktop de 1280×720",
+  "outcome": "RED expected: both button lower edges clipped; no CSS implementation yet",
+  "log": {
+    "file": "/workspace/scratch/controller-footer-red.log",
+    "bytes": 3103,
+    "sha256": "3d3a38dff466882b725a971fc2e6e3560c97b9ca8e843aed96bc7b7b279f3406"
+  },
+  "probe": {
+    "file": "reanalysis-footer-bottom-zero-probe.json",
+    "bytes": 4574,
+    "sha256": "f1388e4460fcd833a37ee02e303775a51509bc685c571f53ad5aae8b692dede1",
+    "scope": "Temporary inline bottom:0 in isolated browser page only; repository CSS untouched"
+  }
+}

@@ -1,0 +1,11 @@
+
+Running 3 tests using 1 worker
+
+(node:1037700) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/3] [desktop-chromium] › tests/e2e/supabase-late-auth-actions.spec.js:30:1 › carregamento tardio do app preserva a página operacional de Pendências
+[2/3] [desktop-chromium] › tests/e2e/supabase-late-auth-actions.spec.js:70:1 › filtro escolar da fila tem uma única rota ao selecionar e limpar
+[3/3] [desktop-chromium] › tests/e2e/supabase-late-auth-actions.spec.js:113:1 › login tardio preserva ações de Pendência na interface real
+  3 passed (1.4m)

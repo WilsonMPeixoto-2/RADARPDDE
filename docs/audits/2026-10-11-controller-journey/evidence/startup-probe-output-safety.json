@@ -1,0 +1,13 @@
+{
+  "scope": "auxiliary audit script, no product runtime changes",
+  "reportedBy": "CodeQL PR438 comment, startup-probe.mjs",
+  "syntax": "pass",
+  "checks": {
+    "symlinkRefused": true,
+    "targetUnchanged": true,
+    "successiveCheckpointsValid": true,
+    "fileMode": "0600",
+    "defaultDirectoryMode": "0700"
+  },
+  "method": "execute the actual output setup/checkpoint source fragments in Node vm with disposable filesystem; no browser or credentials"
+}

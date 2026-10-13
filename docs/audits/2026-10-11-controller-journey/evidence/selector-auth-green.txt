@@ -1,0 +1,2 @@
+{"schoolWithoutPendencies":"ESC-OTHER"}
+{"reselection":"PASS","school":"ESC-OTHER","url":"http://127.0.0.1:4176/pendencias?escola=ESC-OTHER"}

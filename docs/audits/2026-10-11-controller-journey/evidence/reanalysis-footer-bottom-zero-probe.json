@@ -1,0 +1,186 @@
+[
+  {
+    "name": "probe-current",
+    "port": 4175,
+    "screenshot": "/workspace/scratch/controller-footer-probe-current-1280.png",
+    "dimensions": {
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "modal": {
+        "x": 0,
+        "y": 0,
+        "width": 1280,
+        "height": 720,
+        "bottom": 720,
+        "scrollHeight": 720,
+        "clientHeight": 720,
+        "overflow": "visible",
+        "overflowY": "visible",
+        "computedBottom": "0px"
+      },
+      "content": {
+        "x": 250,
+        "y": 24,
+        "width": 780,
+        "height": 672,
+        "bottom": 696,
+        "scrollHeight": 670,
+        "clientHeight": 670,
+        "overflow": "hidden",
+        "overflowY": "hidden",
+        "computedBottom": "auto"
+      },
+      "body": {
+        "x": 251,
+        "y": 106,
+        "width": 778,
+        "height": 589,
+        "bottom": 695,
+        "scrollHeight": 1049,
+        "clientHeight": 589,
+        "overflow": "auto",
+        "overflowY": "auto",
+        "computedBottom": "auto"
+      },
+      "footer": {
+        "x": 251,
+        "y": 648,
+        "width": 778,
+        "height": 71,
+        "bottom": 719,
+        "scrollHeight": 70,
+        "clientHeight": 70,
+        "overflow": "visible",
+        "overflowY": "visible",
+        "computedBottom": "-24px"
+      },
+      "identity": "DOCUMENTO EM REANÁLISE\nNF: AUD-ID-B — Materiais de mesma descrição\nMaterial de consumo · R$ 100,00",
+      "buttons": [
+        {
+          "text": "Cancelar",
+          "rect": {
+            "x": 739,
+            "y": 664,
+            "width": 93,
+            "height": 40,
+            "bottom": 704,
+            "scrollHeight": 38,
+            "clientHeight": 38,
+            "overflow": "visible",
+            "overflowY": "visible",
+            "computedBottom": "auto"
+          }
+        },
+        {
+          "text": "Confirmar reanálise",
+          "rect": {
+            "x": 842,
+            "y": 664,
+            "width": 163,
+            "height": 40,
+            "bottom": 704,
+            "scrollHeight": 38,
+            "clientHeight": 38,
+            "overflow": "visible",
+            "overflowY": "visible",
+            "computedBottom": "auto"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "probe-bottom-zero",
+    "port": 4175,
+    "screenshot": "/workspace/scratch/controller-footer-probe-bottom-zero-1280.png",
+    "dimensions": {
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "modal": {
+        "x": 0,
+        "y": 0,
+        "width": 1280,
+        "height": 720,
+        "bottom": 720,
+        "scrollHeight": 720,
+        "clientHeight": 720,
+        "overflow": "visible",
+        "overflowY": "visible",
+        "computedBottom": "0px"
+      },
+      "content": {
+        "x": 250,
+        "y": 24,
+        "width": 780,
+        "height": 672,
+        "bottom": 696,
+        "scrollHeight": 670,
+        "clientHeight": 670,
+        "overflow": "hidden",
+        "overflowY": "hidden",
+        "computedBottom": "auto"
+      },
+      "body": {
+        "x": 251,
+        "y": 106,
+        "width": 778,
+        "height": 589,
+        "bottom": 695,
+        "scrollHeight": 1049,
+        "clientHeight": 589,
+        "overflow": "auto",
+        "overflowY": "auto",
+        "computedBottom": "auto"
+      },
+      "footer": {
+        "x": 251,
+        "y": 624,
+        "width": 778,
+        "height": 71,
+        "bottom": 695,
+        "scrollHeight": 70,
+        "clientHeight": 70,
+        "overflow": "visible",
+        "overflowY": "visible",
+        "computedBottom": "0px"
+      },
+      "identity": "DOCUMENTO EM REANÁLISE\nNF: AUD-ID-B — Materiais de mesma descrição\nMaterial de consumo · R$ 100,00",
+      "buttons": [
+        {
+          "text": "Cancelar",
+          "rect": {
+            "x": 739,
+            "y": 640,
+            "width": 93,
+            "height": 40,
+            "bottom": 680,
+            "scrollHeight": 38,
+            "clientHeight": 38,
+            "overflow": "visible",
+            "overflowY": "visible",
+            "computedBottom": "auto"
+          }
+        },
+        {
+          "text": "Confirmar reanálise",
+          "rect": {
+            "x": 842,
+            "y": 640,
+            "width": 163,
+            "height": 40,
+            "bottom": 680,
+            "scrollHeight": 38,
+            "clientHeight": 38,
+            "overflow": "visible",
+            "overflowY": "visible",
+            "computedBottom": "auto"
+          }
+        }
+      ]
+    }
+  }
+]

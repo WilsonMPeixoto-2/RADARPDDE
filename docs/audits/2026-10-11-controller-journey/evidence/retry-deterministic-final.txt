@@ -1,0 +1,20 @@
+✔ assina canal privado canônico sem publicar mensagens pelo cliente (2.681065ms)
+✔ primeira assinatura não recarrega; reconexão força uma releitura canônica (15.683785ms)
+✔ rajada de Broadcast é coalescida e força somente um refresh (6.890517ms)
+✔ stop remove o canal e impede novas atualizações agendadas (1.184457ms)
+✔ install reutiliza cliente autenticado e controlador de refresh existentes (3.967016ms)
+✔ falha da releitura disparada por Broadcast não perde a invalidação e faz uma nova tentativa controlada (1.734627ms)
+✔ nova falha no retry Realtime não cria loop de tentativas (1.13272ms)
+✔ resultado stale do refresh Realtime recebe uma única segunda tentativa controlada (1.029553ms)
+✔ install publica estado UNAVAILABLE quando o canal privado não pode ser criado (0.940399ms)
+✔ falha de setAuth persiste CHANNEL_ERROR e não simula assinatura saudável (1.150506ms)
+✔ starts concorrentes compartilham uma única tentativa e um único canal (0.361977ms)
+✔ install recupera falha inicial de setAuth quando a conexão volta sem exigir reload (1.691983ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 132.178913

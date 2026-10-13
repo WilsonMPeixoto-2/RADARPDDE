@@ -1,0 +1,76 @@
+{
+  "reviewDate": "2026-10-11",
+  "scope": "Read-only independent lifecycle CI and Auth test isolation review",
+  "artifactSHA256": "c09a831de2b009442ee0d34e3e9f9d53d0b74e9fa9d8a39de917ddf681862d97",
+  "originalCases": [
+    {
+      "line": 71,
+      "outcome": "flaky",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed",
+          "durationMs": 4790,
+          "errorHeadline": null
+        },
+        {
+          "retry": 1,
+          "status": "failed",
+          "durationMs": 6940,
+          "errorHeadline": "Error: expect(received).toEqual(expected) // deep equality"
+        }
+      ]
+    },
+    {
+      "line": 96,
+      "outcome": "unexpected",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed",
+          "durationMs": 9789,
+          "errorHeadline": "Error: expect(locator).toBeInViewport() failed"
+        },
+        {
+          "retry": 1,
+          "status": "skipped",
+          "durationMs": 0,
+          "errorHeadline": null
+        }
+      ]
+    }
+  ],
+  "failureStage": {
+    "original96": "Final screenshot capture, after successful create, atomic NF/Pendência assertions, competence assertions and reload convergence.",
+    "viewport": {
+      "width": 1366,
+      "height": 768,
+      "wholePanelIntersectionRatio": 0.9488689303398132,
+      "requiredRatio": 1
+    },
+    "serialRetry": "Retries entire serial group; case71 then wrongly expects empty ESC-INDEP verifications although earlier real writes remain. Case96 retry is skipped, not an independently failed domain operation."
+  },
+  "runtimeComparison": {
+    "baseline": "113841bda52ce3bbda228524daf9a7464f12b462",
+    "task1213RenderEnhanceAndInstallBodyByteIdentical": true,
+    "changedAuthority": "Readiness dispatch/listeners only",
+    "noConsolidationCase": "resultadoBonif null/empty: enhanceRetificationControls adds neither administrative button nor history; wrapper delegates original renderer.",
+    "cssChangedByPR": "Reanalysis modal footer bottom only; that modal is closed in this failure screenshot.",
+    "noDirectPanelGeometryChange": "No changed selectors/content target the NF panel used by the failing capture."
+  },
+  "visualInspection": {
+    "original96Png": "/workspace/scratch/controller-private/lifecycle-original96.png",
+    "visible": "Correct school ESC-INDEP, competence Maio2026, Conectada, one NF a_identificar R$123.45, Incorreto, one Pendência and visible operational buttons. Panel lower container edge lies beyond viewport; screenshot alone cannot prove lower-edge hit-testing or exact scroll geometry."
+  },
+  "assessment": {
+    "functionalRegression": "No evidence in this run. Domain persistence and the following real lifecycle tests pass.",
+    "primaryFailure": "Whole-container screenshot framing assertion, then dirty shared DB on serial retry.",
+    "certaintyLimit": "No clean same-fixture main-versus-candidate browser geometry comparison executed by this reviewer. Cannot prove preexisting behavior solely from unchanged Task1213 render code.",
+    "recommendedCounterproof": "On clean isolated fixtures, run case96 main and candidate with measurement of panel/control rectangles, scroll ancestors, sticky header and hit-testing. Check capture framing independently of correct persistence; do not lower ratio blindly or alter domain cleanup to satisfy retry."
+  },
+  "testIsolationReview": {
+    "nativeLateAuth": "Separate final step in all three jobs, real Auth enabled, no suppressed failure, separate artifacts, same journey block; no test removals.",
+    "runtimeChangedForIsolation": false,
+    "remainingVerification": "Clean native CI should execute original Auth/full-contract/Realtime and final late-auth spec. Shared dirty DB should not be cleared through domain history deletion."
+  }
+}
