@@ -58,6 +58,20 @@ jobs:
         run: npm ci
       - name: Vincular Production explicitamente autorizada
         run: npx --no-install supabase link --project-ref "$PROJECT_REF" --password "$PGPASS_REMOTE"
+      - name: Consultar backups gerenciados sem alterar configurações
+        run: |
+          python3 - <<'PYCODE'
+          import urllib.request,json,os,pathlib
+          req=urllib.request.Request('https://api.supabase.com/v1/projects/'+os.environ['PROJECT_REF']+'/database/backups',headers={'Authorization':'Bearer '+os.environ['SUPABASE_ACCESS_TOKEN']})
+          try:
+            with urllib.request.urlopen(req,timeout=30) as r: d=json.load(r)
+            summary={k:d.get(k) for k in ('region','pitr_enabled','walg_enabled','physical_backup_data') if k in d}
+            summary['response_keys']=list(d.keys())
+            summary['backups']=[{k:b.get(k) for k in ('status','inserted_at','updated_at','created_at','is_physical_backup') if k in b} for b in d.get('backups',[])]
+          except urllib.error.HTTPError as e: summary={'http_status':e.code,'available':False}
+          pathlib.Path('release-evidence/managed-backups.json').write_text(json.dumps(summary,indent=2))
+          print(json.dumps(summary))
+          PYCODE
       - name: Preflight e cópia das definições afetadas
         run: |
           set -euo pipefail
