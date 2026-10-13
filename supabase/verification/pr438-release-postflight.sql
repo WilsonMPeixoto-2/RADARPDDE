@@ -1,0 +1,8 @@
+-- Read-only postconditions, never attempt a real institutional DELETE.
+do $$ begin
+ if (select count(*) from supabase_migrations.schema_migrations)<>61 or not exists(select 1 from supabase_migrations.schema_migrations where version='20261011193500' and name='inventory_terminal_delete_protection') then raise exception 'PR438_POST_MIGRATION_HISTORY_MISMATCH'; end if;
+ if (select count(*) from pg_trigger where (tgrelid='public.assets'::regclass and tgname='assets_protect_inventoried_terminal_delete' or tgrelid='public.registered_invoices'::regclass and tgname='registered_invoices_protect_inventoried_delete') and tgenabled='O')<>2 then raise exception 'PR438_MISSING_ENABLED_GUARDS'; end if;
+ if has_function_privilege('anon','radar_private.protect_inventoried_invoice_delete()','EXECUTE') or has_function_privilege('authenticated','radar_private.protect_inventoried_invoice_delete()','EXECUTE') then raise exception 'PR438_TRIGGER_FUNCTION_EXPOSED'; end if;
+ if exists(select 1 from pg_class where oid in ('public.assets'::regclass,'public.registered_invoices'::regclass) and not relrowsecurity) then raise exception 'PR438_RLS_DISABLED'; end if;
+end $$;
+select jsonb_build_object('migration','20261011193500','verified_at',now(),'enabled_guards',2,'rls_unchanged',true,'assets',(select count(*) from public.assets),'invoices',(select count(*) from public.registered_invoices),'inventoried',(select count(*) from public.assets where status='Inventariada'),'policy_fingerprint',(select md5(string_agg(row_to_json(p)::text,'' order by tablename,policyname)) from pg_policies p where schemaname='public' and tablename in ('assets','registered_invoices'))) as result;
