@@ -1,5 +1,17 @@
 # Handoff — auditoria imersiva do Controlador
 
+## Checkpoint superveniente — comparação encerrada em 13/10
+
+[Conclusão e limites](FRESHNESS_COMPARISON_2026-10-13.md): 44 gravações confirmadas
+em cada versão; main/candidato convergem, mas atualização remota durante atividade
+chega a 23,67/24,85 s. Uma leitura por sessão, zero aborts em ambas. Não demonstra
+regressão do #438 nem explica os 46 cancelamentos do gate histórico. Runtime de
+sincronização idêntico à main. Não alterar timers a partir deste ensaio.
+22 workflows de 99fa423c verdes; comparação longa concluída com quatro advertências,
+baseline #408, sem certificação de superioridade de custo. Supersede os estados
+"em andamento" abaixo. Sem merge/deploy, migration 61 ainda pendente em Production.
+
+
 ## Checkpoint final desta rodada13/10 — diagnóstico e salvamento
 
 Runtime do seletor publicado em730d5d99: catálogo completo da sessão, Auth3/3,

@@ -1,5 +1,11 @@
 # RADAR PDDE — estado atual e retomada
 
+> Checkpoint superveniente 13/10: comparação curta main/candidato concluída.
+> Ambas convergem após 44 gravações; atualização remota chega a 23,67/24,85 s
+> durante atividade contínua. Não demonstra regressão do #438. CI 99fa: 22 verdes;
+> gate longo concluído com advertências, sem homologação geral de performance.
+> Ver conclusão e limites no handoff único. PR permanece Draft, sem deploy.
+
 > Checkpoint superveniente13/10: catálogo escolar permanece selecionável após
 > limpar. Auth3/3,13E2E navegação (1skip mobile) e1.361 unitários aprovados.
 > Três testes de retry tornados determinísticos após contraprova do relógio real;
