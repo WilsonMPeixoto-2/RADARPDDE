@@ -5,7 +5,7 @@ on:
       phase:
         type: choice
         required: true
-        options: [preflight, apply]
+        options: [preflight, backup, apply]
       confirmation:
         type: string
         required: true
@@ -18,6 +18,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   release:
+    if: inputs.phase != 'backup'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
@@ -110,3 +111,61 @@ jobs:
           path: release-evidence/
           retention-days: 90
           if-no-files-found: warn
+
+  backup:
+    if: inputs.phase == 'backup'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Conferir autorização e candidato
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$CONFIRMATION" = 'PUBLICAR_PR438_EM_SCNRYINORQEUCBFKIOXO'
+          test "$(gh api repos/WilsonMPeixoto-2/RADARPDDE/pulls/438 --jq .head.sha)" = '61e93b7fda69a51d592e5e5c9056f0d16d82c4d5'
+          test "$(gh api repos/WilsonMPeixoto-2/RADARPDDE/branches/main --jq .commit.sha)" = '113841bda52ce3bbda228524daf9a7464f12b462'
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: node --test ops/pr397-backup/backup-snapshot.test.mjs
+      - name: Iniciar apenas PostgreSQL descartável
+        run: npx --no-install supabase start --exclude gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+      - name: Gerar destinatário com chave privada cifrada
+        env:
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          BACKUP_OUTPUT_DIR: ${{ runner.temp }}/pr438-backup-sealed
+        run: node ops/pr438-release/backup-key.mjs prepare
+      - name: Backup somente leitura e restauração isolada — procedimento do PR397
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_TELEMETRY_DISABLED: '1'
+          BACKUP_PUBLIC_KEY: ${{ runner.temp }}/pr438-backup-sealed/recipient-public.pem
+          BACKUP_OUTPUT_DIR: ${{ runner.temp }}/pr438-backup-sealed
+          BACKUP_PRIVATE_DIR: ${{ runner.temp }}/pr438-backup-private
+        run: node ops/pr397-backup/backup-production.mjs
+      - name: Conferir descriptografia autenticada e hash do arquivo
+        env:
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          BACKUP_OUTPUT_DIR: ${{ runner.temp }}/pr438-backup-sealed
+        run: node ops/pr438-release/backup-key.mjs verify
+      - name: Preservar somente backup cifrado, chave cifrada e evidência sanitizada
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: pr438-production-backup-encrypted-${{ github.run_id }}
+          path: ${{ runner.temp }}/pr438-backup-sealed/
+          retention-days: 90
+          if-no-files-found: error
+      - name: Remover cópia em claro e banco descartável
+        if: always()
+        run: |
+          rm -rf -- "${RUNNER_TEMP}/pr438-backup-private"
+          rm -f -- "${RUNNER_TEMP}/pr397-backup.tar.gz"
+          npx --no-install supabase stop --no-backup
