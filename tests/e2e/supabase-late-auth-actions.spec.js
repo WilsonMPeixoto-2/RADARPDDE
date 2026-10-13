@@ -67,6 +67,37 @@ test('carregamento tardio do app preserva a página operacional de Pendências',
     await expect(page.locator('#pendency-filter-school')).toHaveValue('');
 });
 
+test('filtro escolar da fila tem uma única rota ao selecionar e limpar', async ({ page }) => {
+    const controller = fixtures.find(fixture => fixture.profileId === 'controller' && fixture.active);
+    await page.goto('/pendencias?escola=ESC-LOCAL');
+    await page.locator('#radar-auth-email').fill(controller.email);
+    await page.locator('#radar-auth-password').fill(fixturePassword);
+    await page.locator('#radar-auth-form button[type="submit"]').click();
+    await waitForApplication(page, 'controller');
+    const school = page.getByLabel('Unidade escolar', { exact: true });
+    const query = page.getByRole('searchbox', { name: 'Buscar pendências' });
+    await expect(school).toHaveValue('ESC-LOCAL');
+    await query.fill('Escola');
+    await page.locator('.pendency-filter-header').getByRole('button', { name: 'Limpar filtros' }).click();
+    await expect(school).toHaveValue('');
+    await expect(query).toHaveValue('');
+    await expect(page).toHaveURL(/\/pendencias$/);
+    await expect.poll(() => page.evaluate(() =>
+        window.RadarNavigationHistory.currentRoute(window).filters.escola || '')).toBe('');
+
+    await school.selectOption('ESC-LOCAL');
+    await expect(page).toHaveURL(/\/pendencias\?escola=ESC-LOCAL$/);
+    await query.fill('Escola');
+    await page.getByRole('button', { name: /^Remover filtro Unidade:/ }).click();
+    await expect(school).toHaveValue('');
+    await expect(query).toHaveValue('Escola');
+    await expect(page).toHaveURL(/\/pendencias$/);
+    await school.selectOption('ESC-LOCAL');
+    await page.reload();
+    await waitForApplication(page, 'controller');
+    await expect(school).toHaveValue('ESC-LOCAL');
+});
+
 // Esta jornada cria histórico protegido de NF/Pendência. Os gates a executam
 // depois do contrato de import/rollback, em processo separado, sem apagar o histórico.
 test('login tardio preserva ações de Pendência na interface real', async ({ page }) => {

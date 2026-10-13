@@ -1,6 +1,51 @@
 # Handoff — auditoria imersiva do Controlador
 
-## Checkpoint prioritário — 12/10/2026, retomada e salvamento por cota
+## Checkpoint de continuidade — 12/10, revisão pessoal da proposta externa
+
+O trabalho local anterior foi recuperado intacto. A correção candidata remove da
+ponte de foco a leitura da rota antiga durante render e encaminha seleção/limpeza
+escolar para a navegação autorizada existente; não publica rota antes de autorizar.
+Foi demonstrada a divergência de rota também na main 113841bd, sem atraso artificial.
+
+Validação desta árvore: **1.344/1.344 unitários**, 16 controles dirigidos, duas
+jornadas autenticadas de filtro/Voltar/Avançar aprovadas. **Regressão ampliada NÃO
+concluída: 23 aprovados, 1 pulado, 1 falha** no retorno Prontuário → Pendências
+(escola não aparece na URL). Evidências completas pequenas em evidence/*results.txt
+ e navigation-focused-e2e.txt. Não classificar o candidato como pronto.
+
+O PR independente #441, HEAD 7221811d, foi produzido por OUTRO agente. Seu relatório
+foi lido: quatro contraprovas de navegação e duas do seletor sem registros. Os testes
+VM e timelines Auth serão confrontados com o código atual; não incorporados como
+certificação própria nem repetidos integralmente sem necessidade. A hipótese de
+página tardia NÃO explicou o seletor vazio nas timelines desse agente: o estado
+interno estava certo e faltava a opção HTML. Esta nova revisão é feita somente pelo
+agente principal, conforme pedido explícito do usuário.
+
+### Lentidão: conclusões limitadas, investigação não encerrada
+
+`evidence/startup-navigation-comparison.json` contém três amostras por fase/variante:
+login até UI básica mediana main 1342 ms / candidato 1187,5 ms; reload autenticado
+1483 / 1436 ms. Amostra pequena, executor variável, HTTP sem cache: **não prova ganho
+de fluidez**. Ambas executam 12 REST e duas RPC globais (59.814 + 73.353 bytes).
+Rastreamento separado e DataService.bootstrap mostram prefetch de 2026-09 e leitura
+posterior de 2026-05, resolvida pelo catálogo da fixture. É desperdício causal no
+caso calendário/catálogo divergentes, não demonstra frequência em Production.
+
+Com app.js retido 11s, ambas as variantes perderam APIs CycleBDashboard,
+CycleBCarteira, Task10Alerts e ModalAccessibility. Isso comprova ausência de
+capacidades sob atraso, não seu impacto visual nem causa de lentidão normal.
+Não corrigir esses módulos em lote. O caminho de performance requer jornada,
+profiler da aplicação de estado/render e dados representativos, possivelmente
+em PR separado. Instalação resiliente não equivale a aplicação mais rápida.
+
+### Próximo passo
+
+Confrontar proposta do seletor com catálogo autorizado; resolver causalmente a
+regressão de retorno antes de CI final. Preservar as garantias de patrimônio,
+contatos, autorização e contexto transversal. PR #438 permanece Draft, sem merge
+ou deploy. A auditoria A–N e a causa principal da lentidão continuam abertas.
+
+## Checkpoint anterior — 12/10/2026, retomada e salvamento por cota
 
 Remoto foi incorporado por fast-forward de `0ee97f50` para **`3fcaeada`**:
 única diferença era a 61ª migration na verificação pós-aplicação. **21 workflows

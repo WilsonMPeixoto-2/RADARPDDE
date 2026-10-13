@@ -1,0 +1,24 @@
+✔ Pendency page installed after DOM/services restores its dependent capabilities (181.075745ms)
+✔ task-10-11-pendency-actions.js: late authentication installs once and delegates the original renderer once (53.84895ms)
+✔ task-10-11-pendency-actions.js: script loaded after services are ready installs immediately (14.870301ms)
+✔ task-10-11-pendency-actions.js: DOM readiness can complete dependencies after a services event (27.627044ms)
+✔ task-12-13-retificacoes.js: late authentication installs once and delegates the original renderer once (67.363926ms)
+✔ task-12-13-retificacoes.js: script loaded after services are ready installs immediately (9.889729ms)
+✔ task-12-13-retificacoes.js: DOM readiness can complete dependencies after a services event (11.110209ms)
+✔ late installation preserves denied Pendency mutations for a read-only profile (10.749636ms)
+✔ operational bridge waits for the actual competence in services-first lifecycle order (48.22406ms)
+✔ operational bridge waits for the actual competence in competence-first lifecycle order (36.350749ms)
+✔ rota de Pendências sincroniza a escola com o estado real da Task 9 sem render intermediário (4.119734ms)
+✔ sincronização não rerenderiza nem repete alteração quando a escola já é a mesma (0.92835ms)
+✔ Task 9 expõe setter dedicado para o filtro escolar da rota (4.352736ms)
+✔ controle: Task 9 instala quando serviços tornam as dependências disponíveis (14.526272ms)
+✔ app defer termina após readyState interactive e instala antes da autenticação (7.52398ms)
+✔ contraprova: Task 9 deve recuperar-se se o renderizador aparecer DEPOIS dos 10 segundos (2.523086ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4289.795797

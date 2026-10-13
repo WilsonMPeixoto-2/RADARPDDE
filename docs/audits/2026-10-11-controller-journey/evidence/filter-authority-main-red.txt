@@ -1,0 +1,40 @@
+
+Running 1 test using 1 worker
+
+(node:853802) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/1] [desktop-chromium] › tests/e2e/supabase-late-auth-actions.spec.js:70:1 › filtro escolar da fila tem uma única rota ao selecionar e limpar
+  1) [desktop-chromium] › tests/e2e/supabase-late-auth-actions.spec.js:70:1 › filtro escolar da fila tem uma única rota ao selecionar e limpar 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: ""
+    Received: "ESC-LOCAL"
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      84 |     await expect(page).toHaveURL(/\/pendencias$/);
+      85 |     await expect.poll(() => page.evaluate(() =>
+    > 86 |         window.RadarNavigationHistory.currentRoute(window).filters.escola || '')).toBe('');
+         |                                                                                   ^
+      87 |
+      88 |     await school.selectOption('ESC-LOCAL');
+      89 |     await expect(page).toHaveURL(/\/pendencias\?escola=ESC-LOCAL$/);
+        at /workspace/RADARPDDE-controller-journey/tests/e2e/supabase-late-auth-actions.spec.js:86:83
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../scratch/controller-private/auth-main-test-results/supabase-late-auth-actions-3e24e-rota-ao-selecionar-e-limpar-desktop-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../scratch/controller-private/auth-main-test-results/supabase-late-auth-actions-3e24e-rota-ao-selecionar-e-limpar-desktop-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../scratch/controller-private/auth-main-test-results/supabase-late-auth-actions-3e24e-rota-ao-selecionar-e-limpar-desktop-chromium/error-context.md
+
+
+  1 failed
+    [desktop-chromium] › tests/e2e/supabase-late-auth-actions.spec.js:70:1 › filtro escolar da fila tem uma única rota ao selecionar e limpar 

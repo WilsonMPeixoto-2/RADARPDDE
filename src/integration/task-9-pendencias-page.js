@@ -999,9 +999,9 @@
         return true;
     }
 
-    function clearPendencyFilters() {
+    function clearPendencyFilters(options = {}) {
         pageState.filters = { ...DEFAULT_FILTERS };
-        renderPendenciasTask9();
+        if (options.render !== false) renderPendenciasTask9();
         root.requestAnimationFrame(() => {
             const input = document.getElementById('pendency-search-input');
             if (input) input.focus({ preventScroll: true });

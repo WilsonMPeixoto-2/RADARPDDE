@@ -1,5 +1,10 @@
 # RADAR PDDE — estado atual e retomada
 
+> Retomada 12/10: ver checkpoint de continuidade no handoff corrente da auditoria.
+> Navegação candidata ainda tem uma regressão Prontuário → Pendências (23/25
+> aprovados, um pulado). 1.344 unitários verdes não encerram o gate de jornada.
+> Proposta independente #441 em revisão pelo agente principal; sem merge/deploy.
+
 ## Etapa 5 — auditoria operacional imersiva iniciada em 11/10/2026
 
 **Checkpoint 12/10:** baseline do #438 `3fcaeada` com 21 workflows success.
