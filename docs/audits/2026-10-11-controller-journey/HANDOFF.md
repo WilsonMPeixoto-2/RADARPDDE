@@ -1,5 +1,16 @@
 # Handoff — auditoria imersiva do Controlador
 
+## Fechamento delimitado após revisão do usuário
+
+[Escopo e requisitos de publicação](RELEASE_SCOPE_2026-10-13.md). A comparação de
+frescor não demonstrou regressão do #438 e não reabre #406/#408/#410/#427.
+Reutilizar as provas existentes; não iniciar outra bateria de estresse nem mudar
+Realtime. Ajuste novo somente no script auxiliar de medição: saída temporária
+privada/exclusiva, com contraprovas de filesystem aprovadas. CI funcional 99fa
+permanece referência; conferir CodeQL/CI do novo SHA e preparar migration 61 pelo
+procedimento de publicação correto. Production intacta. Auditoria A–N mais ampla
+continua parcial, separada da conclusão das correções delimitadas.
+
 ## Checkpoint superveniente — comparação encerrada em 13/10
 
 [Conclusão e limites](FRESHNESS_COMPARISON_2026-10-13.md): 44 gravações confirmadas

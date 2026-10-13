@@ -1,5 +1,11 @@
 # RADAR PDDE — estado atual e retomada
 
+> Fechamento delimitado: requisitos e evidências no RELEASE_SCOPE_2026-10-13.md
+> da pasta do handoff único. Frescor herdado não constitui regressão demonstrada
+> do #438. Preservar sincronização vigente; próxima decisão é publicação das
+> correções verificadas, com migration 61 controlada e CI final, sem nova bateria
+> exploratória. Ajuste adicional apenas na saída temporária do script de auditoria.
+
 > Checkpoint superveniente 13/10: comparação curta main/candidato concluída.
 > Ambas convergem após 44 gravações; atualização remota chega a 23,67/24,85 s
 > durante atividade contínua. Não demonstra regressão do #438. CI 99fa: 22 verdes;

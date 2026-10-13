@@ -1,10 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import { createRequire } from 'node:module';
 const { chromium } = createRequire(path.resolve('package.json'))('playwright');
 if (!process.env.RADAR_AUDIT_ACCOUNTS_FILE) throw new Error('Provide private RADAR_AUDIT_ACCOUNTS_FILE; never commit credentials.');
 const credentials=JSON.parse(fs.readFileSync(process.env.RADAR_AUDIT_ACCOUNTS_FILE,'utf8'));
-const output=process.env.RADAR_AUDIT_OUTPUT || '/tmp/radar-startup-probe.json';
+const output=process.env.RADAR_AUDIT_OUTPUT || path.join(fs.mkdtempSync(path.join(os.tmpdir(),'radar-startup-')),'probe.json');
+// Exclusive creation refuses existing files/symlinks; retain the descriptor for checkpoints.
+const outputFd=fs.openSync(output,'wx',0o600);
 const result={environment:'cloud local HTTP/no network throttle; disposable Supabase migration61; same account/data; read-only UI',baseline:'113841bda52ce3bbda228524daf9a7464f12b462',candidate:'53f2fe991f0c4460576346cbca3a2375bf8c9890',samples:[]};
 const browser=await chromium.launch({headless:true,proxy:process.env.HTTPS_PROXY?{server:process.env.HTTPS_PROXY,bypass:'127.0.0.1,localhost'}:undefined});
 const apis=['RadarTask9PendencyPage','RadarTask9FocusBridge','RadarTask9CrossView','RadarTask1011PendencyActions','RadarOperationalReadinessBridge','RadarCycleBDashboard','RadarCycleBCarteira','RadarTask10Alerts','RadarModalAccessibility','__radarNavigationHistoryInstalled'];
@@ -28,7 +31,7 @@ async function ready(page){await page.waitForFunction(()=>window.RadarDataContex
 async function snapshot(h,label,extra={}){
  const state=await h.page.evaluate(names=>({now:performance.now(),url:location.pathname+location.search,heading:document.querySelector('#main-container h1')?.textContent,history:history.state,route:window.RadarNavigationHistory?.currentRoute?.(window),filter:document.querySelector('#pendency-filter-school')?.value,apis:Object.fromEntries(names.map(n=>[n,!!window[n]])),probe:window.__startupProbe,navigation:performance.getEntriesByType('navigation').map(e=>({domInteractive:e.domInteractive,domContentLoaded:e.domContentLoadedEventEnd,load:e.loadEventEnd,transferSize:e.transferSize})),resources:performance.getEntriesByType('resource').map(e=>({path:new URL(e.name).pathname,type:e.initiatorType,start:e.startTime,duration:e.duration,transferBytes:e.transferSize,decodedBytes:e.decodedBodySize}))}),apis);
  const perf=await h.cdp.send('Performance.getMetrics'); const cpu=Object.fromEntries(perf.metrics.filter(m=>['ScriptDuration','TaskDuration','LayoutDuration','RecalcStyleDuration','JSHeapUsedSize','Nodes'].includes(m.name)).map(m=>[m.name,m.value]));
- const row={label,...extra,state,cpu,network:[...h.net],errors:[...h.errors]};result.samples.push(row);fs.writeFileSync(output,JSON.stringify(result,null,2));console.log(JSON.stringify({label,elapsed:extra.elapsedMs,heading:state.heading,filter:state.filter,route:state.route,apis:state.apis,requests:h.net.length,errors:h.errors}));
+ const row={label,...extra,state,cpu,network:[...h.net],errors:[...h.errors]};result.samples.push(row);const json=Buffer.from(JSON.stringify(result,null,2));fs.writeSync(outputFd,json,0,json.length,0);fs.ftruncateSync(outputFd,json.length);console.log(JSON.stringify({label,elapsed:extra.elapsedMs,heading:state.heading,filter:state.filter,route:state.route,apis:state.apis,requests:h.net.length,errors:h.errors}));
 }
 for(let round=0;round<3;round++)for(const [variant,base] of [['baseline','http://127.0.0.1:4177'],['candidate','http://127.0.0.1:4176']]){
  const h=await setup();let t=performance.now();await h.page.goto(base);await h.page.locator('#radar-auth-form button[type=submit]').waitFor({state:'visible'});const loginVisibleMs=performance.now()-t;
@@ -46,3 +49,4 @@ for(const [variant,base] of [['baseline','http://127.0.0.1:4177'],['candidate','
  const h=await setup();let release;const barrier=new Promise(r=>release=r);await h.page.route('**/app.js',async r=>{await barrier;await r.continue()});const extension=h.page.waitForResponse(r=>r.url().endsWith('/src/integration/task-9-pendencias-page.js'));const nav=h.page.goto(base);try{await extension;await h.page.waitForTimeout(11000);}finally{release();}await nav;await h.page.locator('#radar-auth-email').fill(credentials.controllerEmail);await h.page.locator('#radar-auth-password').fill(credentials.password);await h.page.locator('#radar-auth-form button[type=submit]').click();await ready(h.page);await h.page.waitForTimeout(500);await snapshot(h,variant+'-slow-app',{artificialAppDelayMs:11000});await h.context.close();
 }
 await browser.close();
+fs.closeSync(outputFd);
