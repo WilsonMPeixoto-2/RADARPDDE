@@ -159,6 +159,26 @@ pilha de origem
 
 O gate não usa Production e não substitui DR institucional.
 
+## 10-A. Backup cifrado da Production no release do PR #438
+
+**Registro pontual de 13/10/2026, diferente do gate descartável do item 10.** Não pressupor validade após o prazo de retenção.
+
+- **Origem:** Supabase Production `scnryinorqeucbfkioxo`. Snapshot de leitura consistente, sem escrita remota; os schemas `public`, `radar_private`, `auth`, `storage` e `supabase_migrations` foram contemplados.
+- **Evidência:** [run `38471486995`](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38471486995), sucesso; `evidence.json` contém `restoreVerified=true`, `sourceReadOnly=true`, `authenticatedDecryptionVerified=true`. A restauração foi em PostgreSQL isolado com comparação de fingerprints.
+- **Artefato:** `pr438-production-backup-encrypted-38471486995` (ID **`11852510513`**), **3.220.222 bytes**. SHA-256 **do ZIP inteiro**: `740895ff27ce3decd3b5b9b2c8a253957595e2ffacc70835796ac45736184185`. Expiração informada pelo GitHub: **11/01/2027, 21:33:22 UTC**.
+- **Formato:** `backup.tar.gz.enc` com AES-256-GCM; `envelope.json`, `recipient-private.encrypted.pem` (chave privada PKCS#8 cifrada), `recipient-public.pem`, `evidence.json` e `RECOVERY.txt`. Nenhum dump em claro deve ser enviado a PRs, anexos públicos ou logs.
+- **Senha histórica obrigatória:** a chave PKCS#8 foi cifrada com a variável `SUPABASE_DB_PASSWORD` **da hora da criação do backup**. Se houver rotação, a senha nova não abre esse arquivo. O responsável deve preservar separadamente a **senha histórica**, em cofre seguro sob controle institucional; credenciais não são recuperáveis a partir dos segredos mascarados do GitHub. Sem acesso a essa senha, a recuperabilidade deste ZIP é incerta.
+- **Limitações:** no preflight, `pitr_enabled=false` e a consulta de backups gerenciados retornou lista vazia. Trata-se de backup lógico em momento específico, não de PITR ou de recuperação de alterações posteriores. Storage e Vault estavam vazios na verificação.
+- **Custódia externa:** a existência de cópia além do GitHub e a disponibilidade da senha histórica **ainda não foram certificadas por este documento**. Os mecanismos criptográficos e de restauração, sim.
+
+**Procedimento do custodiante autorizado:**
+
+1. Baixar o ZIP do run antes do vencimento e guardar cópia **cifrada**, com acesso restrito e retenção própria, fora do GitHub Actions. Um arquivo temporário do ChatGPT não substitui armazenamento institucional permanente.
+2. Conferir os **3.220.222 bytes** e o SHA-256 integral informado acima; registrar local e responsável pela custódia em controle privado, sem publicar nomes de usuários, segredos ou dados.
+3. Preservar a **senha de banco de 13/10/2026** em cofre independente do ZIP. Não enviá-la por chat ou a commits, logs ou artifacts.
+4. Em recuperação, seguir `RECOVERY.txt`: decifrar a PKCS#8 com a senha histórica, obter a chave AES via RSA-OAEP-SHA256 do `envelope.json`, decifrar o ZIP interno por AES-256-GCM e comparar `envelope.archiveSha256`.
+5. Restaurar primeiro em ambiente **isolado** compatível com PostgreSQL 17/Supabase; comparar schema, dados, Auth, migrations, grants/RLS e integridade, antes de qualquer plano para Production. Não executar restauração direta ou rollback destrutivo sem autorização específica.
+
 ## 11. Importação
 
 Registrar origem, responsável, formato, `importId`, contagens, hash e snapshot anterior fora do GitHub quando houver dados sensíveis.
