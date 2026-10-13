@@ -181,7 +181,8 @@ test('install reutiliza cliente autenticado e controlador de refresh existentes'
 });
 
 
-test('falha da releitura disparada por Broadcast não perde a invalidação e faz uma nova tentativa controlada', async () => {
+test('falha da releitura disparada por Broadcast não perde a invalidação e faz uma nova tentativa controlada', async t => {
+    t.mock.timers.enable({ apis: ['setTimeout'] });
     let attempts = 0;
     const harness = createHarness();
     const originalRefresh = harness.refreshes;
@@ -205,7 +206,12 @@ test('falha da releitura disparada por Broadcast não perde a invalidação e fa
     harness.emitStatus('SUBSCRIBED');
     // O callback do primeiro controller não é usado; emitimos pelo canal compartilhado já configurado.
     harness.emitBroadcast({ entity: 'verifications' });
-    await new Promise(resolve => setTimeout(resolve, 15));
+    // O teste governa os dois timers; carga do runner não vira prazo do produto.
+    t.mock.timers.tick(1);
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(attempts, 1);
+    t.mock.timers.tick(1);
+    await new Promise(resolve => setImmediate(resolve));
 
     assert.equal(attempts, 2);
     assert.equal(originalRefresh[0].reason, 'realtime');
@@ -214,7 +220,8 @@ test('falha da releitura disparada por Broadcast não perde a invalidação e fa
 });
 
 
-test('nova falha no retry Realtime não cria loop de tentativas', async () => {
+test('nova falha no retry Realtime não cria loop de tentativas', async t => {
+    t.mock.timers.enable({ apis: ['setTimeout'] });
     let attempts = 0;
     const harness = createHarness();
     const refreshController = {
@@ -232,14 +239,22 @@ test('nova falha no retry Realtime não cria loop de tentativas', async () => {
     assert.equal(await controller.start(), true);
     harness.emitStatus('SUBSCRIBED');
     harness.emitBroadcast({ entity: 'pendencies' });
-    await new Promise(resolve => setTimeout(resolve, 20));
+    t.mock.timers.tick(1);
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(attempts, 1);
+    t.mock.timers.tick(1);
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(attempts, 2);
+    t.mock.timers.tick(1000);
+    await new Promise(resolve => setImmediate(resolve));
 
     assert.equal(attempts, 2);
     await controller.stop();
 });
 
 
-test('resultado stale do refresh Realtime recebe uma única segunda tentativa controlada', async () => {
+test('resultado stale do refresh Realtime recebe uma única segunda tentativa controlada', async t => {
+    t.mock.timers.enable({ apis: ['setTimeout'] });
     let attempts = 0;
     const harness = createHarness();
     const reasons = [];
@@ -260,7 +275,14 @@ test('resultado stale do refresh Realtime recebe uma única segunda tentativa co
     assert.equal(await controller.start(), true);
     harness.emitStatus('SUBSCRIBED');
     harness.emitBroadcast({ entity: 'verifications' });
-    await new Promise(resolve => setTimeout(resolve, 20));
+    t.mock.timers.tick(1);
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(attempts, 1);
+    t.mock.timers.tick(1);
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(attempts, 2);
+    t.mock.timers.tick(1000);
+    await new Promise(resolve => setImmediate(resolve));
 
     assert.equal(attempts, 2);
     assert.deepEqual(reasons, ['realtime', 'realtime-retry']);

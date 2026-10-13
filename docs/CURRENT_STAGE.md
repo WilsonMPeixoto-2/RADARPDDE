@@ -1,9 +1,10 @@
 # RADAR PDDE — estado atual e retomada
 
-> Checkpoint superveniente13/10: seletor usa catálogo da sessão também após limpar.
-> Auth3/3 e16dirigidos verdes; rodada ampla com falha temporal ainda em investigação.
-> Comparação sustentada anterior inválida por baseline incompleta. Ler checkpoint
-> vigente13/10 no handoff único. PR438 Draft, sem merge/deploy.
+> Checkpoint superveniente13/10: catálogo escolar permanece selecionável após
+> limpar. Auth3/3,13E2E navegação (1skip mobile) e1.361 unitários aprovados.
+> Três testes de retry tornados determinísticos após contraprova do relógio real;
+> runtime Realtime intacto. CI/ comparação sustentada ainda pendentes; falha Docker
+> separada de produto. Ler handoff único e classificação. PR438 Draft, sem merge.
 
 ## Etapa 5 — auditoria operacional imersiva iniciada em 11/10/2026
 

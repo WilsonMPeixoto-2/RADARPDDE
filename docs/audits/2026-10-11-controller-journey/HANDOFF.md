@@ -1,5 +1,21 @@
 # Handoff — auditoria imersiva do Controlador
 
+## Checkpoint final desta rodada13/10 — diagnóstico e salvamento
+
+Runtime do seletor publicado em730d5d99: catálogo completo da sessão, Auth3/3,
+13E2E navegação aprovados (1skip mobile). Contratos antigos reconciliados com
+justificativa individual. A última rodada unitária terminou1.361/1.361, após provar
+e corrigir somente o relógio dos três testes de retry; runtime Realtime intacto.
+Ver DIAGNOSTIC_CLASSIFICATION_2026-10-13.md para causas, REDs e decisões.
+
+CI730:15success/1falha de preparação Docker/5em andamento na última consulta.
+Comparação38355640318 ainda executa baseline/candidate. O run anterior38325720764
+falhou em signIn opacity0 e permanece inconclusivo, artefatos indisponíveis ao
+executor (Forbidden). Não modificar asserção nem publicar deltas daquela execução.
+Próximo passo: conferir resultados/artefatos do38355640318 e CI final; tratar
+preparação Docker separadamente de produto. Sem merge/deploy; performance aberta.
+
+
 ## Checkpoint vigente13/10 — preservação antes de continuar
 
 Correção do catálogo escolar e evidências Auth foram salvas antes da próxima

@@ -38,3 +38,29 @@ criar outro método concorrente: aplicá-la por escrito nesta tabela e no handof
 O defeito de seletor foi confirmado antes de corrigir. As outras falhas não serão
 convertidas em defeitos de produto ou sucessos sem contraprova. Performance segue
 aberta; comparação anterior inválida não será usada para atribuir ganho.
+
+## Contraprovas posteriores ao checkpoint730d5d99
+
+- E2E de navegação reconciliado:13pass/1skip mobile,38,3s; limpar/detalhe/retorno
+  Prontuário/exportação continuam aprovados. Sem alteração do produto adicional.
+- Retry:12/12 passam isolados. Contraprova controlada usa o harness e controller
+  reais com event loop ocupado50ms:1tentativa no prazo original,2após drenar timers.
+  Classificação: dependência de relógio real no teste, não ausência de retry.
+  Outra rodada ampla revelou a mesma fragilidade no caso stale (1360/1361).
+  Os três testes de retry (falha, falha repetida, stale) agora governam o relógio
+  e drenam microtasks, verificando primeira tentativa, segunda e ausência de loop.
+  Nenhum controller/runtime foi modificado. Nova rodada ampla ainda em execução.
+- Run38355640291 falhou ANTES dos E2E: Docker toomanyrequests/Data limit exceeded,
+  depois bind54322/address already in use. Classificação: preparação/infraestrutura;
+  não atribuir ao seletor. Não foram alteradas regras nem removidos gates.
+- Artefato da baseline38325720764 teve download recusado Forbidden neste executor.
+  Logs delimitam a etapa, mas não explicam opacity0. Nova comparação38355640318
+  está executando as duas variantes. Não usar um eventual rerun verde para inventar
+  causa do vermelho anterior; registrar ambos. Nenhum teste de opacidade alterado.
+
+Resultado final local:1.361/1.361 unitários, zero skips/falhas,44,75s. A rodada
+inclui os16controles dirigidos. Mantidas as evidências anteriores vermelhas;
+a causa temporal dos três testes foi tratada no harness, sem relaxar tentativas.
+3/3 jornadas Auth e13E2E de navegação continuam válidos: runtime idêntico ao730d5d99.
+CI observada neste checkpoint:15success/1failure de preparação/5em andamento.
+Não é status final; consultar runs ao retomar. Comparação38355640318 pendente.
