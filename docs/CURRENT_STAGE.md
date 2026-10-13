@@ -1,5 +1,21 @@
 # RADAR PDDE — estado atual e retomada
 
+## Estado canônico após o PR #438 — publicado em 13/10/2026
+
+**Etapa 5 encerrada no escopo delimitado das sete correções do Controlador.** Este bloco prevalece sobre checkpoints históricos abaixo. Não confundir a auditoria ampla A–N ou desempenho global com as sete entregas certificadas.
+
+- **GitHub:** [PR #438](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/438) integrado. `main` em `05b27fcdd523dd42d33935d96a1a68314a2513ac`; árvore Git idêntica ao candidato homologado `61e93b7fda69a51d592e5e5c9056f0d16d82c4d5`.
+- **CI:** 22/22 workflows de homologação aprovados no candidato; **11/11 pós-merge aprovados**. O fluxo Auth/CRUD completo foi testado em Supabase descartável, não com escrita institucional em Production.
+- **Supabase Production (`scnryinorqeucbfkioxo`):** 61ª migration `20261011193500_inventory_terminal_delete_protection` aplicada previamente ao merge, [run `38472434475`](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38472434475). Dois triggers novos mais o trigger anterior ativos; RLS e políticas preservadas; 163 escolas, zero vínculos NF–patrimônio órfãos; `production_integrity_check()` = `healthy`, zero inconsistências em 19 controles.
+- **Vercel Production:** [deployment `dpl_8hczsN9GeFyq3PBL5fo526gQi3VG`](https://vercel.com/wilson-m-peixotos-projects/radarpdde-fix/8hczsN9GeFyq3PBL5fo526gQi3VG), estado `READY`. Alias [radarpdde-fix.vercel.app](https://radarpdde-fix.vercel.app) e manifesto público confirmaram `05b27fcd...` e `supabase-production`.
+- **Recuperação:** [backup lógico cifrado, restauração e descriptografia verificados no run `38471486995`](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38471486995). Artefato `11852510513`, expira em **11/01/2027 às 21:33 UTC**; exige a **senha de banco vigente na data do backup**, também após eventual rotação. Custódia externa e posse da senha histórica ainda requerem confirmação operacional; detalhes no [runbook](runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md#10-a-backup-cifrado-da-production-no-release-do-pr-438).
+
+**Importante:** as frases “Draft”, “sem merge”, “migration pendente”, “Production intacta” e “CI em andamento” nos checkpoints datados a seguir são **históricas e não descrevem o estado atual**. Nenhum teste adicional de performance/Realtime nem alteração funcional está autorizado por este encerramento.
+
+---
+
+## Histórico anterior ao merge do PR #438 (não vigente)
+
 > Fechamento delimitado: requisitos e evidências no RELEASE_SCOPE_2026-10-13.md
 > da pasta do handoff único. Frescor herdado não constitui regressão demonstrada
 > do #438. Preservar sincronização vigente; próxima decisão é publicação das
@@ -18,16 +34,16 @@
 > runtime Realtime intacto. CI/ comparação sustentada ainda pendentes; falha Docker
 > separada de produto. Ler handoff único e classificação. PR438 Draft, sem merge.
 
-## Etapa 5 — auditoria operacional imersiva iniciada em 11/10/2026
+## Histórico da Etapa 5 — auditoria operacional iniciada em 11/10/2026
 
-**Checkpoint vigente 12/10:** revisão do PR independente441 pelo agente principal,
+**Checkpoint histórico de 12/10:** revisão do PR independente441 pelo agente principal,
 sem subagentes. Correções de navegação, página tardia e seletor sem Pendências
 consolidadas:1.359 unitários,24 E2E dirigidos (1skip mobile),3 jornadas Auth reais
 aprovados. Retorno ao Prontuário corrigido causalmente. CI final pendente,438 Draft,
 sem merge/deploy. Lentidão sistêmica e jornadas A–N não estão encerradas. Ler o
 checkpoint vigente do handoff único abaixo; detalhes históricos não certificam HEAD.
 
-**Frente corrente:** jornadas A–N do Controlador, orientadas pela UI e experiência
+**Frente descrita naquele checkpoint:** jornadas A–N do Controlador, orientadas pela UI e experiência
 real, após a modernização #433–#437. Não repetir certificação histórica nem
 reimplementar #408/#410/#427/#429. **Handoff corrente único:**
 [controller-journey/HANDOFF.md](audits/2026-10-11-controller-journey/HANDOFF.md).
@@ -49,7 +65,7 @@ não confirmado. No PR #438 há correções candidatas de identificação do doc
 nos modais corretivos e instalação de ações após login tardio. RED causal,
 GREEN Auth/RLS/RPC e revisão independente registrados em
 [CAUSAL_FINDINGS.md](audits/2026-10-11-controller-journey/CAUSAL_FINDINGS.md).
-**Main e Production permanecem intactas.** A auditoria A–N e a certificação
+**Naquele checkpoint, main e Production ainda estavam intactas.** A auditoria A–N e a certificação
 visual/CI final continuam em andamento. Branch `audit/controller-journey-2026-10-11`.
 
 Checkpoint de 11/10, 19:40 UTC: proteção de submit concorrente de contato e ajuste
