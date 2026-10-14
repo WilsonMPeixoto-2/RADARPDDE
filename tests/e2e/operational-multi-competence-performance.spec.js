@@ -50,7 +50,7 @@ test('mede alternância real entre três competências na mesma escola com volum
     page.on('request', request => {
         if (request.method() !== 'POST') return;
         const match = new URL(request.url()).pathname.match(
-            /\\/rest\\/v1\\/rpc\\/(read_(?:school_)?operational_context)$/
+            /\/rest\/v1\/rpc\/(read_(?:school_)?operational_context)$/
         );
         if (!match) return;
         const body = request.postDataJSON() || {};
@@ -64,7 +64,7 @@ test('mede alternância real entre três competências na mesma escola com volum
     await signIn(page);
     await page.goto('/escolas/OPS-SESSION-1');
     await ready(page);
-    await expect(page).toHaveURL(/\\/escolas\\/OPS-SESSION-1/);
+    await expect(page).toHaveURL(/\/escolas\/OPS-SESSION-1/);
 
     const selector = page.locator('#global-competence-select');
     for (const month of ['2026-08', '2026-09', '2026-10']) {
