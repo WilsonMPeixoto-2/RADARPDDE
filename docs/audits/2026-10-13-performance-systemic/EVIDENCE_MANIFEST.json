@@ -62,6 +62,19 @@
       "status": "failure-infrastructure",
       "cause": "Docker Hub toomanyrequests e porta 54322 ocupada",
       "note": "não é prova de bug nem de regressão do RADAR"
+    },
+    {
+      "id": 38500456162,
+      "purpose": "clone amplification 1/163/1630/16300 five repetitions, UnitOfWork and StatePort, single record mutation",
+      "status": "success",
+      "artifactId": 11864979495,
+      "preserved": "docs/audits/2026-10-13-performance-systemic/STATE_CLONE_VOLUME_RUN_38500456162.json"
+    },
+    {
+      "id": 38500456205,
+      "purpose": "Pure render Prontuário versus CPU writer gesture in disposable browser",
+      "statusAtRecording": "pending",
+      "source": "tests/e2e/operational-write-cpu-performance.spec.js"
     }
   ],
   "sustainedComparison": {
@@ -200,5 +213,29 @@
     "mechanism": "escopo de capture/export por entidade, não por schoolId ou invoiceId; snapshots incluem registros não alterados",
     "certainty": "mecanismo reproduzido, custo em Production não quantificado",
     "safety": "preservar cópias essenciais para rollback, concorrência e estado autoritativo"
+  },
+  "stateCloneVolumeEvidence": {
+    "source": "docs/audits/2026-10-13-performance-systemic/STATE_CLONE_VOLUME_RUN_38500456162.json",
+    "runsPerVolume": 5,
+    "volume": [
+      1,
+      163,
+      1630,
+      16300
+    ],
+    "medianMs": [
+      0.39,
+      5.41,
+      53.39,
+      523.07
+    ],
+    "cloneEvents": [
+      6,
+      978,
+      9780,
+      97800
+    ],
+    "interpretation": "synthetic single-record write; full entity cloned 6 times; CPU scaling approximately linear; not Production UI latency",
+    "caution": "Do not remove transaction snapshots/rollback before equivalent safety under concurrency and failed writes is verified"
   }
 }
