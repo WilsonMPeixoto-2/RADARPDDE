@@ -180,3 +180,47 @@ Artefato real `pr438-final-operational-comparison.zip`, `comparison.json`, run `
 - Crescimento dos históricos: medir custo de gravação/autorização e consultas administrativas nas escalas 1x/3x/10x em base descartável; nenhum efeito sobre a Production durante a investigação.
 
 **Critério de parada:** não aceitar uma sequência de hotfixes que ganhe velocidade em apenas uma tela; exigir comparação transversal antes/depois e um teste durável que falhe se a causa-raiz voltar. A própria indisponibilidade da métrica (como troca de competência no relatório de 21/09) é uma lacuna a corrigir na estratégia de teste, não motivo para concluir que aquele fluxo já está rápido.
+
+---
+
+## Quarto checkpoint — reprodução automatizada e priorização de CPU — 13/10/2026 BRT
+
+### Testes adicionais **executados**, sem alteração funcional
+
+PR [#447](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/447), branch `test/perf-school-event-coalescence-20261013`, só adiciona `tests/unit/systemic-performance-characterization.test.js`. CI [`Validar RADAR PDDE` run 38492452052](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38492452052) **sucesso**; downloaded o artifact `unit-tests-report` 11862765397, abri `unit-tests.xml` e conferi **3 casos executados, 0 falhas**:
+
+1. Avisos A+A com 1 segundo de intervalo → **uma atualização escolar**, disparada no segundo 3.
+2. Avisos A+B com 1 segundo de intervalo → **uma atualização global**, disparada no segundo 3, apesar de os dois eventos trazerem escola conhecida.
+3. Avisos A repetidos em t=0,1,2,3,4s → **nenhuma atualização até t=6s**. A ação original precisou aguardar 6s mesmo com janela nominal de 2s.
+
+Os testes usam scheduler/relógio determinístico e o controlador **real** de Realtime, mas substituem a rede pelo registro de solicitações. Esses resultados **provam a política de agendamento atual**, NÃO o atraso de 6s no navegador real nem que a política seja segura para ser alterada sem ensaio integrado. São caracterizações temporárias, não padrões desejados de produto.
+
+### Atenção: trabalho excessivo concentra-se nas sessões que fazem lançamentos
+
+Inspecionei os artefatos originais dos ensaios de seis sessões em 13/10, sem depender de sumário anterior:
+
+- Run [38427914654](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38427914654), `operational-comparison-38427914654`: **96,5%** do tempo agregado em tarefas longas da variante candidata está nas três sessões que fizeram **1.107 lançamentos** (156.138 ms dos 161.848 ms). Na variante controle, **98,2%** (158.575 de 161.563 ms).
+- Run [38356122131](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38356122131): na candidata, **97,6%** (158.198 de 162.095 ms); no controle, **97,7%** (73.084 de 74.827 ms).
+- No run mais recente, cada sessão escritora somou aproximadamente **50–54 segundos** de tarefas longas durante todo o experimento. As três observadoras, que não gravavam, somaram aproximadamente **1–2 segundos cada**.
+
+**Limites:** seis navegadores, carga sintética de 400 rodadas, instrumentação, servidor de teste e perfis desiguais; a concentração é **correlação de sessões escritoras**, não custo por salvamento nem prova de regressão atual. Ainda assim, é um sinal forte para priorizar **aplicação de estado, componentes/observadores DOM, renderizações e feedback visual no navegador escritor**, sem abandonar investigação de SQL.
+
+### Repriorização causal baseada nos dados
+
+**Frente principal:** medir *um lançamento real* (bonificação e análise técnica) com CPU profiler, número de renderizações/DOM e cronograma clique→feedback→commit→pintura, controlando sequência/volume, antes de qualquer otimização. O próprio benchmark mostrou que baixar bytes em ~67% sem reduzir o trabalho de renderização não trouxe ganho global demonstrado.
+
+**Frente concomitante:** testar o agendamento multi-escola A+A versus A+B nas condições de quatro Controladores, garantindo frescor máximo e custo SQL controlado. Um simples encurtamento do timer de 2s não resolve que múltiplas escolas conhecidas são tratadas como consulta global.
+
+**Frente de resguardo:** preservar cobertura segura depois das escritas, recuperações e política conservadora em perdas de eventos; evitar cache/reuso inválido. O mecanismo `invalidateSchoolOperationalCoverage()` no início de `DataService.execute()` explica a rota de fallback existente, mas a proporção de operações que percorre essa rota permanece por medir.
+
+**Históricos:** resultado negativo parcial para hipótese de “27 mil eventos carregados em toda tela”; auditoria paginada funciona e não há UPDATE de auditoria com snapshots idênticos. `audit_events` ainda requer ensaio de crescimento 1x/3x/10x fora de Production, mas não merece ser removida nem tratada como causa principal sem contraprova.
+
+### Escopo efetivo realizado até aqui
+
+- Código atual e histórico confrontados.
+- Logs recentes de Production consultados somente por leitura.
+- Índices e planos de consultas read-only avaliados.
+- Dois artifacts originais do Codex reabertos e verificados.
+- Testes diagnósticos reproduzidos e confirmados por JUnit no PR #447.
+- **Não houve** navegação autenticada de Controlador em Production, reprodução real de CPU/DOM por clique, fixture de três competências nem stress histórico 10x; esses são os próximos ensaios, não conquistas alegadas.
+
