@@ -36,6 +36,32 @@
       "id": 38496306947,
       "purpose": "perfil CPU por clique em bonificação/análise técnica/NF",
       "statusAtRecording": "não concluído/verificar GitHub Actions; não declarar métricas"
+    },
+    {
+      "id": 38496306947,
+      "purpose": "perfil Chromium CDP em bonificação, análise técnica e NF + seis sessões / três competências",
+      "status": "success",
+      "artifactIds": {
+        "baseline": 11864693873,
+        "candidate": 11864219267,
+        "comparison": 11864414518
+      },
+      "report": "docs/audits/2026-10-13-performance-systemic/CPU_PROFILE_RUN_38496306947.json"
+    },
+    {
+      "id": 38499041481,
+      "purpose": "execução de diagnóstico de amplificação por entidade StatePort/UnitOfWork",
+      "status": "success",
+      "testName": "diagnóstico: gravação escolar ainda percorre coleções inteiras de verificações",
+      "artifactId": 11865300928,
+      "testCasesInJUnit": 1365
+    },
+    {
+      "id": 38499041317,
+      "purpose": "Supabase readiness independente, sem alterações de runtime",
+      "status": "failure-infrastructure",
+      "cause": "Docker Hub toomanyrequests e porta 54322 ocupada",
+      "note": "não é prova de bug nem de regressão do RADAR"
     }
   ],
   "sustainedComparison": {
@@ -160,5 +186,19 @@
     "sourceRunId": 38495224625,
     "sourceArtifactId": 11864340261,
     "scope": "6 sessões, 3 escritoras e 3 observadoras, totais de DOM, long tasks e refresh por variante"
+  },
+  "cpuReview": "docs/audits/2026-10-13-performance-systemic/CPU_AND_SNAPSHOT_CAUSAL_REVIEW.md",
+  "cpuGestureMeasurements": "docs/audits/2026-10-13-performance-systemic/CPU_PROFILE_RUN_38496306947.json",
+  "cloneAmplificationEvidence": {
+    "method": "UnitOfWork e StatePort reais, memória sintética; changedEntities=[verifications,administrativeLogs], uma escola alterada",
+    "groups": [
+      1,
+      163,
+      1630
+    ],
+    "verifiedVia": "CI Validar RADAR PDDE run 38499041481, JUnit unit-tests.xml; caso presente sem falha",
+    "mechanism": "escopo de capture/export por entidade, não por schoolId ou invoiceId; snapshots incluem registros não alterados",
+    "certainty": "mecanismo reproduzido, custo em Production não quantificado",
+    "safety": "preservar cópias essenciais para rollback, concorrência e estado autoritativo"
   }
 }
