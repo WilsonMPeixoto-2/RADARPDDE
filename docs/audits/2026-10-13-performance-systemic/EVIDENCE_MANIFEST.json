@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "title": "RADAR PDDE — Evidências persistentes do diagnóstico sistêmico de performance",
+  "recordedAt": "2026-10-13 (America/Sao_Paulo), testes executados em 2026-10-14 UTC",
+  "repository": "WilsonMPeixoto-2/RADARPDDE",
+  "investigationPR": "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/446",
+  "testPR": "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/447",
+  "productionChanges": false,
+  "baselineMain": "1a1cda117e31f84647bf4591e4d6db899ef231f1",
+  "runs": [
+    {
+      "id": 38492452052,
+      "purpose": "testes unitários de coalescência Realtime",
+      "verified": "3 casos passados; 0 falhas",
+      "artifactId": 11862765397
+    },
+    {
+      "id": 38493158276,
+      "purpose": "primeira prova multicompetência",
+      "status": "falha apenas no comparador por apagamento de test-results na segunda execução Playwright; jobs de navegador passaram",
+      "correctiveCommit": "13538fbb00b4225b18bedc8e45308f7226389b59"
+    },
+    {
+      "id": 38495224625,
+      "purpose": "comparação sustentada + multicompetência; repetição após correção do harness",
+      "status": "success",
+      "artifactId": 11864340261,
+      "sourceFiles": [
+        "comparison.json",
+        "comparison.md"
+      ],
+      "artifactRetentionDays": 30,
+      "workflowSha": "a8690c2a790219b0844595533b30d4ab1185c9c4"
+    },
+    {
+      "id": 38496306947,
+      "purpose": "perfil CPU por clique em bonificação/análise técnica/NF",
+      "statusAtRecording": "não concluído/verificar GitHub Actions; não declarar métricas"
+    }
+  ],
+  "sustainedComparison": {
+    "provenance": "GitHub Actions 38495224625, artifact 11864340261, comparação baseline/candidate no ambiente descartável",
+    "testSessions": 6,
+    "rounds": 400,
+    "successfulWrites": {
+      "baseline": 1107,
+      "candidate": 1107
+    },
+    "measurements": {
+      "receivedReadBytes": {
+        "baseline": 31890681,
+        "candidate": 10646972,
+        "changePercent": -66.6142
+      },
+      "readAttempts": {
+        "baseline": 26,
+        "candidate": 57
+      },
+      "abortedReadAttempts": {
+        "baseline": 1,
+        "candidate": 37
+      },
+      "domReplacements": {
+        "baseline": 324,
+        "candidate": 319
+      },
+      "domMutations": {
+        "baseline": 94445,
+        "candidate": 87507
+      },
+      "longTaskCount": {
+        "baseline": 1820,
+        "candidate": 1841
+      },
+      "longTaskTotalMs": {
+        "baseline": 159061,
+        "candidate": 161469,
+        "changePercent": 1.5139
+      },
+      "elapsedMs": {
+        "baseline": 459969.06,
+        "candidate": 458427.32,
+        "changePercent": -0.3352
+      },
+      "sqlTotalExecMs": {
+        "baseline": 17227.73,
+        "candidate": 10092.49
+      },
+      "fadedOpacityFrames": {
+        "baseline": 754,
+        "candidate": 0
+      }
+    },
+    "conclusion": "A redução de tráfego não demonstrou aceleração total/CPU; nenhum limiar de custo homologado.",
+    "caveats": [
+      "Carga artificialmente intensa; não medir como tempo de espera de pessoa.",
+      "SQL e observações de browser não cobrem exatamente mesma janela.",
+      "Frescor DURANTE a carga não foi certificado por convergência final.",
+      "Artifacts GitHub têm prazo limitado; este JSON é síntese permanente no repositório."
+    ]
+  },
+  "multiCompetenceSample": {
+    "provenance": "GitHub Actions 38493158276, logs de dois jobs de navegador em Supabase descartável",
+    "months": [
+      "2026-08",
+      "2026-09",
+      "2026-10",
+      "2026-08",
+      "2026-09",
+      "2026-10"
+    ],
+    "elapsedBaselineMs": [
+      377,
+      349,
+      339,
+      375,
+      345,
+      365
+    ],
+    "elapsedCandidateMs": [
+      526,
+      385,
+      288,
+      380,
+      293,
+      299
+    ],
+    "contextQueriesPerSwitch": 1,
+    "rootViewReplacementsPerSwitch": 1,
+    "observedDomMutationRecordRange": [
+      112,
+      116
+    ],
+    "conclusion": "Não reproduziu troca de competência multi-segundo na sessão isolada; necessitam-se testes com concorrência, equipamento inferior e uso prolongado.",
+    "caveat": "MutationObserver records ≠ renderizações completas."
+  },
+  "schedulerCharacterization": {
+    "source": "tests/unit/systemic-performance-characterization.test.js",
+    "provenCases": [
+      "A+A (t=0,1s) gera uma leitura escolar em t=3s",
+      "A+B (t=0,1s) gera uma leitura global em t=3s",
+      "A em t=0,1,2,3,4s adia leitura escolar até t=6s"
+    ],
+    "limitation": "Teste determinístico da política; não certifica lentidão real em Production."
+  },
+  "sourceRootCause": {
+    "file": "app.js",
+    "function": "salvarDadosNota",
+    "linesApprox": [
+      11650,
+      11670
+    ],
+    "confirmed": "Após gravação, rebuildOperationalIndexes + renderProntuario; renderProntuario substitui main-container.innerHTML, gerando rebuild de tela.",
+    "benchmarkEvidence": "Sessão de NF teve ~300 escritas e ~301 substituições principais no ensaio sustentado.",
+    "caveat": "Custo percentual específico e segurança de substituição localizada não medidos; não aplicar correção ainda."
+  },
+  "handoff": "docs/audits/2026-10-13-performance-systemic/HANDOFF_AND_TEST_PLAN.md"
+}
