@@ -299,3 +299,54 @@ Causa foi localizada nos logs do job `115629028303`; foi corrigida **somente a i
 4. **Realtime:** capturar custo e frequência de fallback global de múltiplas escolas em rotina humana; preservar invariantes de consistência e evitar timer arbitrariamente mais curto.
 5. **Governança:** a falha do comparador foi autoinduzida por teste: a correção é isolar outputs e validar artifacts, não reabrir o produto. Impedir que esse incidente crie loop de PRs de reparação de harness.
 
+
+---
+
+## Oitavo checkpoint — repetição homologada e perfil de CPU direcionado (13/10 BRT)
+
+### Repetição integral aprovada — workflow 38495224625
+
+A execução [38495224625](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38495224625) terminou **success** após isolamento dos diretórios de resultado do Playwright. **Ambas as variantes** e o comparador concluíram verdes; os artifacts passaram a conter `session-report.json` + medições multicompetência sem sobrescrita.
+
+Artefato: `operational-comparison-38495224625` (artifact id 11864340261, `comparison.json` + `comparison.md`), obtido e lido integralmente nesta rodada.
+
+**Carga idêntica:** 400 rodadas; 1.107/1.107 gravações bem-sucedidas em ambas as versões, validação de convergência final, reconexão real, autorização em Supabase local e screenshots do experimento. Comparação mais importante:
+
+| Indicador | Baseline | Candidate | Interpretação |
+|---|---:|---:|---|
+| Bytes de consultas | 31.890.681 | 10.646.972 | -66,61%; **ganho de tráfego** |
+| Tentativas de leitura | 26 | 57 | +119%, leituras abortadas crescem 1→37 |
+| Atualizações de estado | 1.131 | 1.126 | -0,44%: trabalho quase igual |
+| Reconstruções principais de DOM | 324 | 319 | -1,54%; pouca mudança |
+| Mutações observadas de DOM | 94.445 | 87.507 | -7,35% |
+| Tarefas longas do navegador | 1.820 | 1.841 | +1,15% |
+| Tempo acumulado de tarefas longas | 159.061 ms | 161.469 ms | **+1,51%**, sem ganho CPU demonstrado |
+| Tempo total do experimento | 459.969 ms | 458.427 ms | -0,34%, semelhante |
+| SQL concluído acumulado no ensaio | 17.228 ms | 10.092 ms | -41,42%, períodos de coleta não idênticos |
+| Frames esmaecidos | 754 | 0 | melhoria visual real |
+
+**Reafirmação:** redução de SQL/bytes **não provou** redução do custo percebido ou do trabalho do navegador; +1,51% tampouco prova regressão, considerando variabilidade/teste artificial. Comparador registra explicitamente `diagnostic-comparison-complete` / `not-established` para limiares, e diferença de frescor durante atividade ainda não medido. A transferência de custo para CPU/DOM precisa ser perfilada, **não inferida só pela soma de long tasks**.
+
+### Conexão entre reconstrução do Prontuário e diversas camadas de interface
+
+Inspeção da versão `main` mostrou que vários módulos instalam `MutationObserver` em `#main-container` ou no `document.body`, reagindo a inserções/remoções de elementos, com funções de navegação, realce visual, Pendências, seleção de competência, retornos contextuais e painel. Exemplos concretos:
+- `src/integration/navigation-context.js`: `ensureBackButton()` em mudanças do container;
+- `src/integration/global-competence-selector.js`: `removeLocalCompetenceControl()` em alterações;
+- `src/integration/task-9-cross-view.js`: `syncDrawerDockState()` ao detectar mutação de subtree;
+- `src/integration/painel-controlador-expressiva.js`: agenda enhancer em alterações da página;
+- `src/integration/task-10-11-pendency-actions.js`: agenda enhancement com requestAnimationFrame;
+- `src/integration/evaluation-retification-ui.js`: agenda decoração após mutação;
+- `src/integration/operational-context-refresh.js`: observa alterações relevantes quando há refresh pendente.
+
+**Apenas a existência desses observadores não demonstra custo excessivo.** Alguns verificam a view antes de agir ou agrupam eventos por frame. Entretanto, uma substituição integral de `main-container.innerHTML` dispara o trabalho dos observadores que estiverem ativos; a combinação é candidata a **amplificação da reconstrução**. Na jornada de NF, há 301 substituições principais para 300 operações na variante candidata. Precisa-se de **CPU profiler por função** e de captura de elementos efetivamente reconstruídos para diferenciar observadores baratos de caminhos dispendiosos.
+
+### Experimento novo instrumentado, ainda não certificado
+
+O [PR #447](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/447) ganhou:
+- `tests/e2e/operational-write-cpu-performance.spec.js`, para comparar **três operações reais** em mesmo banco descartável e uma escola: avaliação de bonificação (Não→Sim), análise técnica (sem pendência) e cadastro de NF de consumo;
+- Instrumentação Chromium `Profiler` para amostras de CPU por função, long tasks, mutações DOM, substituição de container, solicitações REST, tempo até mudança **visível e gravada**, screenshots por ação;
+- Execução adicional do teste de CPU após a comparação sustentada e a troca entre meses, com `--output=playwright-results-write-cpu`, sem excluir `test-results/operational-sustained` do comparador. Relatório sanitizado `cpu-write-{baseline,candidate}.json`.
+
+**Limitação deliberada:** somente um clique por ação em cada variante, infraestrutura CI, perfis sem dados reais. Não usar seu tempo para estabelecer SLO de Production. Caso os resultados sejam estáveis, expandir para 3–5 amostras e falhas/revisões de fluxo. O workflow correspondente ao SHA `87c69fb...` foi acionado (run `38496306947`), mas sua conclusão **ainda não foi verificada** neste checkpoint. Não declarar que CPU profiler executou com sucesso até ler artifacts e validação.
+
+**Prevenção de loop:** a correção anterior de harness foi demonstrada pelo workflow verde. Se novo teste CPU falhar, localizar se é fluxo legítimo não previsto, instrumento inconsistente ou regressão **antes** de propor mudanças no produto. Não retirar reconciliação segura, controle de permissões, auditoria ou invalidação por escola para satisfazer métricas.
