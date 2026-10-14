@@ -118,6 +118,12 @@ jobs:
           mkdir -p test-results/operational-sustained
           cp "$RUNNER_TEMP/operational-pg-stat-before.json" test-results/operational-sustained/pg-stat-before.json
           docker exec -i supabase_db_radar-pdde psql -X -qAt -U postgres -d postgres -v ON_ERROR_STOP=1 < scripts/operational-stat-snapshot.sql > test-results/operational-sustained/pg-stat-after.json
+      - name: Medir troca de três competências no navegador autenticado
+        if: ${{ success() }}
+        run: npx playwright test tests/e2e/operational-multi-competence-performance.spec.js --project=desktop-chromium --workers=1 --retries=0 --output=playwright-results-multi-competence
+      - name: Perfilar CPU e reconstruções visuais em três lançamentos reais
+        if: ${{ success() }}
+        run: npx playwright test tests/e2e/operational-write-cpu-performance.spec.js --project=desktop-chromium --workers=1 --retries=0 --output=playwright-results-write-cpu
       - name: Preservar resultados mesmo se a jornada falhar
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
