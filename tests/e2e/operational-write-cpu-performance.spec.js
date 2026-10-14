@@ -172,13 +172,20 @@ test('CPU real após bonificação, análise técnica e NF na mesma escola', asy
     const delivery = row(page, 'extCC');
     const currentSim = await delivery.getByRole('button', { name: 'Sim', exact: true })
       .evaluate(element => element.classList.contains('active-sim'));
-    const next = currentSim ? 'Não' : 'Sim';
+    // Prepare the same legitimate transition in both candidates: Não -> Sim.
+    // The technical assessment must have an actual delivery status; choosing
+    // Não on an already-consolidated month could invalidate a later "Correto".
+    if (currentSim) {
+      await delivery.getByRole('button', { name: 'Não', exact: true }).click();
+      await page.evaluate(() => window.RadarApplicationServices.data.remoteExecutionTail);
+      await expect(row(page, 'extCC').getByRole('button', { name: 'Não', exact: true }))
+        .toHaveClass(/active-nao/);
+    }
     samples.push(await captureGesture({
       page, cdp, label: 'bonification',
-      action: () => delivery.getByRole('button', { name: next, exact: true }).click(),
+      action: () => row(page, 'extCC').getByRole('button', { name: 'Sim', exact: true }).click(),
       visible: async () => expect(row(page, 'extCC')
-        .getByRole('button', { name: next, exact: true }))
-        .toHaveClass(next === 'Sim' ? /active-sim/ : /active-nao/),
+        .getByRole('button', { name: 'Sim', exact: true })).toHaveClass(/active-sim/),
       network
     }));
     await testInfo.attach('profile-bonification', {
