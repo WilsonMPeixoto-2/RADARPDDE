@@ -224,3 +224,23 @@ Inspecionei os artefatos originais dos ensaios de seis sessões em 13/10, sem de
 - Testes diagnósticos reproduzidos e confirmados por JUnit no PR #447.
 - **Não houve** navegação autenticada de Controlador em Production, reprodução real de CPU/DOM por clique, fixture de três competências nem stress histórico 10x; esses são os próximos ensaios, não conquistas alegadas.
 
+
+---
+
+## Quinto checkpoint — contagem dos avisos e custo residual fora dos timers
+
+Foram obtidos e examinados os **artefatos brutos** do run [38427914654](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38427914654): `operational-metrics-candidate-38427914654` (artifact id `11830622134`) e `operational-metrics-baseline-38427914654` (`11831505131`). Valores abaixo extraídos de `operational-sustained/{candidate,baseline}/session-report.json`, NÃO apenas do comparador.
+
+**Caracterização candidata na carga artificial de 1.107 escritas:**
+- Cada uma das seis sessões recebeu ~**1.407–1.408 Broadcasts** (incluindo 300 relativos a despesas). É uma carga deliberadamente muito acima da rotina usual do Controlador.
+- Sessão escritora 1: **409 atualizações agendadas**, **6 tentativas efetivas**, 17 leituras abortadas, **51,591 s** de tarefas longas.
+- Sessão escritora 2: **601 agendamentos**, **18 tentativas efetivas**, 24 leituras abortadas, **54,331 s** de tarefas longas.
+- Sessão escritora 3: **401 agendamentos**, **1 tentativa efetiva**, **50,216 s** de tarefas longas.
+- Sessão observadora 6 (Dashboard): **1.408 atualizações agendadas**, **5 tentativas efetivas**, **1,889 s** de tarefas longas.
+
+Essas contagens fornecem uma prova **mais específica** do efeito dos timers de adiamento: o aviso é recebido/agendado inúmeras vezes, mas as leituras efetivas ficam concentradas em intervalos de quietude. A consistência **final** foi comprovada no benchmark, mas a **rapidez com que cada alteração aparece durante a sequência** não foi certificada. Essa distinção é essencial para uma operação administrativa em que “parece que não salvou” é problema de uso.
+
+**O trabalho de CPU não se resume ao render principal:** nas três sessões escritoras candidatas, o tempo agregado das tarefas longas foi ~**156,1 s**, enquanto `applyRemoteState` mediu ~**25,1 s** e `renderProntuario` mediu ~**4,7 s**. Os relógios têm escopos e possíveis sobreposições diferentes: **não subtrair os valores como parcelas exclusivas**, nem atribuir o restante automaticamente a observers. Esses dados demonstram a necessidade de **captura de perfil de CPU** do navegador escritor com atribuição por função, incluindo execução de eventos, geração/aplicação de estado, DOM observers/enhancers, layout, performance probes e trabalho do próprio navegador.
+
+**Próximo ensaio decisivo:** perfil do navegador por janelas de 5–10 gravações e navegação A→B→C, com ferramenta nativa Chromium/Playwright, em massa descartável calibrada. Registrar **tempo de feedback, tempo de persistência, tempo de pintura, contagem de consultas escolares/globais, tarefas longas atribuídas a funções e confirmação após reload**. Depois ensaio de seis sessões com carga *humana* (pausas entre ações), não apenas 400 rodadas intensas. O objetivo é discriminar raiz CPU/UI vs SQL e timer sem criar novas camadas de sincronização.
+
