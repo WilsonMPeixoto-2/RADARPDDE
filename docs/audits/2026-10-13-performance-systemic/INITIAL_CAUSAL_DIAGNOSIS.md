@@ -256,3 +256,46 @@ O teste roda **depois de o workflow preservar as métricas SQL do teste sustenta
 No SHA anterior do PR #447, três testes determinísticos de Realtime foram executados no CI e confirmados individualmente no JUnit (run 38492452052, sem falhas). Após a inclusão do teste de navegador, é necessário revalidar esse novo SHA. O PR segue em Draft: caracterização e medição, não correção de performance.
 
 **Ação seguinte ao obter os artifacts:** comparar mês 08 (mais dados) com 09/10 (menos dados), ida e volta e baseline/candidate, sem inferir ganho com uma única amostra; classificar eventuais RPC duplicadas e long tasks por componente. Se a versão baseline divergir funcionalmente, registrar limite em vez de suavizar o teste.
+
+---
+
+## Sétimo checkpoint — resultados de multicompetência, falha induzida pelo próprio teste e raiz identificada nas NFs (13/10 BRT, 14/10 UTC)
+
+### O que os testes realmente mediram
+
+Workflow `Uso real operacional com volume semelhante a Production`, run [38493158276](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38493158276), em duas pilhas Supabase **descartáveis** distintas (baseline/candidate). Ambos os jobs dos navegadores concluíram **success**; a etapa final de comparação concluiu **failure por artefato ausente**, explicado abaixo. Os artifacts do run foram baixados e comparados diretamente; os testes de alternância passaram.
+
+| Mês / abertura | Baseline | Candidate | Chamadas globais em ambas | Recriações principais por troca |
+|---|---:|---:|---:|---:|
+| Agosto 1ª | 377 ms | 526 ms | 1 | 1 |
+| Setembro 1ª | 349 ms | 385 ms | 1 | 1 |
+| Outubro 1ª | 339 ms | 288 ms | 1 | 1 |
+| Agosto 2ª | 375 ms | 380 ms | 1 | 1 |
+| Setembro 2ª | 345 ms | 293 ms | 1 | 1 |
+| Outubro 2ª | 365 ms | 299 ms | 1 | 1 |
+
+- O teste usou três competências com volumes diferentes, dentro de um ambiente com 163 escolas e 430 vínculos; autenticou Controlador sintético e abriu a mesma escola.
+- **Nenhuma multiplicação de RPC por troca nesse cenário**; seis RPC globais em seis alternâncias. Cada mudança recriou a raiz do Prontuário **uma vez**, e gerou **112–116 registros de mutação do DOM**. Registros de mutação não são 112 redesenhos completos; a raiz mudou uma vez.
+- Todas as transições medidas ficaram abaixo de 600 ms, inclusive com instrumentação; as diferenças entre duas versões não são estáveis por mês ou um ganho geral demonstrado. Isso **não reproduz** a lentidão percebida em condições institucionais: navegador CI rápido, único Controlador, poucos minutos, sem atividade concorrente no momento da troca; a interface deveria ser perfilada também em hardware similar ao equipamento de trabalho.
+- Agosto tinha mais registros que setembro/outubro na fixture, mas não houve crescimento monotônico da duração; **não inferir correlação simples de tamanho de mês com atraso** a partir desta amostra.
+
+### Causa-raiz isolada de um *fluxo*: notas fiscais fazem reconstrução integral
+
+No produto atual, `app.js`, função `salvarDadosNota`, após `radarInvoiceService.save()` ou `saveUnidentifiedExpenseWithPendency()`, chama `rebuildOperationalIndexes()` e, depois de fechar modal, chama **`renderProntuario(escolaId)`** (~L11653 e L11663). `renderProntuario` executa `container.innerHTML = ...` (~L9580), reconstruindo a raiz da view inteira; a proteção `prontuario-conditional-reconciler.js` é voltada para handlers de bonificação/análise, não transforma automaticamente esse caminho de salvamento de NF em patch localizado. No artifact bruto do ensaio com seis sessões ([run 38427914654](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38427914654)), sessão escritora de NF teve **300 escritas, 301 aplicações, 301 chamadas de renderização principal e 301 substituições de `main-container`**. Em contraste, escritores de avaliação tiveram **406/401 escritas**, **409/402 render calls**, mas somente **3/1 substituições principais** no candidato, indicando reconciliação parcial já eficaz nos seus caminhos. A sessão de NF gerou **35.518 mutações observadas** durante o ensaio e 54,3 segundos agregados em long tasks, mas não é possível atribuir esses 54,3 s exclusivamente à reconstrução, porque outros trabalhos e instrumentos ocorrem no mesmo processo.
+
+**Veredito delimitado:** reconstrução integral pós-NF é uma causa **comprovada de trabalho evitável potencial**, não necessariamente de lentidão perceptível máxima; otimização requer inventário de dependências (resumo da escola, bonificação, verificação técnica, pendências, patrimônio, Assessoria, F5, aviso/scroll/foco) e um teste visual+funcional que demonstre quais regiões devem mudar. Não tirar o `renderProntuario` nem trocar por `innerHTML` parcial às cegas.
+
+### Erro introduzido pelo harness de benchmark, não por RADAR
+
+Na primeira tentativa, foi acrescentado segundo comando Playwright ao mesmo job. Por padrão, cada invocação limpa `test-results/` antes de iniciar. A segunda execução apagou `operational-sustained/{baseline,candidate}/session-report.json` que a primeira havia gravado. Portanto, os dois E2Es passaram, mas o comparador final falhou com `ENOENT: .../operational-sustained/baseline/session-report.json`. O artifact pequeno `operational-metrics` tinha somente o novo JSON multicompetência. **Não confundir CI vermelha com regressão do RADAR**; não houve bug funcional detectado por esse comparador.
+
+Causa foi localizada nos logs do job `115629028303`; foi corrigida **somente a invocação do segundo teste**, agora com `--output=playwright-results-multi-competence` (fora de `test-results/`). Esse isolamento de resultados **não altera qualquer código funcional**, preservando os arquivos do primeiro ensaio. Correção no commit `13538fbb00b4225b18bedc8e45308f7226389b59` do PR [#447](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/447); nova execução workflow [38495224625](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38495224625) iniciada. **Aguardar evidência real da comparação; não declarada aprovada neste checkpoint.**
+
+### Plano causal dirigido, antes de mexer em runtime
+
+1. **Notas fiscais:** caracterizar via trace Chromium a parcela de `renderProntuario` pós-salvamento, efeitos colaterais de reconstrução e listeners/observers disparados, comparando NF nova/editada/excluída, despesa a identificar com Pendência, serviços/Assessoria e permanente/patrimônio. Guardar screenshots e invariantes por ação.
+2. **Bonificação/análise:** perfil de CPU da própria gravação, incluindo `applyRemoteState`, reconciliação, indexação `rebuildOperationalIndexes`, estilos, DOM e pós-clique. Comparar com caminho NF como controle; não generalizar a lentidão de um para o outro.
+3. **Competência:** testar na mesma escola com tráfego de mais de uma sessão, CPU do equipamento mais lento, filtros e rota; não abrir um hotfix com base em <600ms no CI, tampouco considerar fluxo certificado.
+4. **Realtime:** capturar custo e frequência de fallback global de múltiplas escolas em rotina humana; preservar invariantes de consistência e evitar timer arbitrariamente mais curto.
+5. **Governança:** a falha do comparador foi autoinduzida por teste: a correção é isolar outputs e validar artifacts, não reabrir o produto. Impedir que esse incidente crie loop de PRs de reparação de harness.
+
