@@ -83,3 +83,23 @@ O experimento de render sem escrita foi adicionado a `tests/e2e/operational-writ
 
 O workflow `Supabase readiness` [38500456188](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38500456188) encerrou com falha exclusiva no job `supabase-local`, etapa `Regenerar tipos e cliente fixado`; `migration-smoke` e `readiness` passaram. Log original registra repetidamente **`docker: Error response from daemon: toomanyrequests: Data limit exceeded`**. Portanto, **é bloqueio de obtenção de imagem Docker no runner**, não diagnóstico de mudança funcional do RADAR nem da investigação de clones. A estratégia de revalidar é corrigir a capacidade/limite de pulls no ambiente de CI, não mexer em migração ou permissões. Evitar disparar novas execuções em loop. O teste unitário escalonado foi aprovado no workflow independente `Validar RADAR PDDE` [38500456162](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38500456162), com JSON disponível na trilha permanente.
 
+
+
+## Resultado quantitativo de escala confirmado em 13/10 BRT
+
+O workflow [38500456162](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38500456162) concluiu `Validar RADAR PDDE` **success**. Foi recuperado e conferido o arquivo bruto `state-clone-amplification.json`, artifact `systemic-state-clone-diagnostics` ID **11864979495**. Resultados **permanentemente versionados** em [STATE_CLONE_VOLUME_MEASURED.json](STATE_CLONE_VOLUME_MEASURED.json).
+
+Uma única avaliação foi alterada em cada caso, com cinco execuções após aquecimento:
+
+| Registros de verificação em memória | Ocorrências totais de registros clonados | Tempo mediano |
+|---|---:|---:|
+| 1 | 6 | 0,39 ms |
+| 163 | 978 | 5,41 ms |
+| 1.630 | 9.780 | 53,39 ms |
+| 16.300 | 97.800 | 523,07 ms |
+
+**Achado causal reproduzido:** a transação `StatePort + UnitOfWork` clona o conjunto completo por **entidade**, seis vezes nesse caminho, mesmo modificando um registro. Custos crescem aproximadamente com o tamanho da coleção em memória. **Não são latências de Production** (não incluem banco, rede, UI e auditoria). Não pressupor que 16.300 registros estejam carregados atualmente: medir o conjunto real por competência/sessão e o crescimento projetado.
+
+**Ação metodológica:** antes de implementar correção, comparar caminhos com snapshots limitados por *identidade escolar/documental*, sem eliminar rollback, captura prévia, concorrência, sincronização nem registros técnicos. Instrumentar ao mesmo tempo CPU, memória, aplicação de estado e efeito no fluxo visual, com dados descartáveis. Se a otimização reduzir clones mas deslocar custo para merge/rehydration, rejeitar.
+
+A última leitura de CI do SHA `0496913ef70cea4174b45409a203a81373a18ef9` registrou suíte desktop geral **success**, `Validar RADAR PDDE` **success**, e `Supabase readiness` **failure**; a falha de readiness anterior derivou de limite de Docker e conflito de porta, de modo que a causa exata deste novo run ainda precisa ser conferida antes de atribuição. A homologação completa exige avaliar cada job, não inferir aprovação geral de um teste isolado.
