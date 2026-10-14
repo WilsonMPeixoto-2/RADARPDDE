@@ -77,3 +77,9 @@ O experimento de render sem escrita foi adicionado a `tests/e2e/operational-writ
 
 **Conclusão arquitetural provisória:** o código vigente reduz o custo de operações remotas ao trabalhar por entidade, mas ainda pode copiar todos os registros da entidade (não só uma escola), diversas vezes na mesma ação. O próximo desenho deve considerar granularidade e isolamento por registro **sem quebrar** rollback, auditabilidade, autorização, idempotência, reanálise de NF, concorrência e sincronização. Não implementar esse desenho como hotfix até haver teste pareado ponta a ponta e contraprovas.
 
+
+
+### Nota de infraestrutura do run 38500456188
+
+O workflow `Supabase readiness` [38500456188](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38500456188) encerrou com falha exclusiva no job `supabase-local`, etapa `Regenerar tipos e cliente fixado`; `migration-smoke` e `readiness` passaram. Log original registra repetidamente **`docker: Error response from daemon: toomanyrequests: Data limit exceeded`**. Portanto, **é bloqueio de obtenção de imagem Docker no runner**, não diagnóstico de mudança funcional do RADAR nem da investigação de clones. A estratégia de revalidar é corrigir a capacidade/limite de pulls no ambiente de CI, não mexer em migração ou permissões. Evitar disparar novas execuções em loop. O teste unitário escalonado foi aprovado no workflow independente `Validar RADAR PDDE` [38500456162](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38500456162), com JSON disponível na trilha permanente.
+
