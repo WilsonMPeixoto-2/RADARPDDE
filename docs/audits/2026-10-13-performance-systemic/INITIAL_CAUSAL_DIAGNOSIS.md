@@ -244,3 +244,15 @@ Essas contagens fornecem uma prova **mais específica** do efeito dos timers de 
 
 **Próximo ensaio decisivo:** perfil do navegador por janelas de 5–10 gravações e navegação A→B→C, com ferramenta nativa Chromium/Playwright, em massa descartável calibrada. Registrar **tempo de feedback, tempo de persistência, tempo de pintura, contagem de consultas escolares/globais, tarefas longas atribuídas a funções e confirmação após reload**. Depois ensaio de seis sessões com carga *humana* (pausas entre ações), não apenas 400 rodadas intensas. O objetivo é discriminar raiz CPU/UI vs SQL e timer sem criar novas camadas de sincronização.
 
+
+---
+
+## Sexto checkpoint — ensaio multicompetência preparado (resultado ainda pendente)
+
+O PR [#447](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/447) foi ampliado, **sem mudanças em runtime/SQL de negócio**, com o teste Playwright `tests/e2e/operational-multi-competence-performance.spec.js` e uma etapa dedicada no workflow `.github/workflows/operational-real-usage-gate.yml`. O teste usa a fixture descartável já existente, que contém **dez competências, 163 escolas e 430 vínculos escola-programa**. Faz login como Controlador sintético, abre a mesma escola, alterna **agosto→setembro→outubro→agosto→setembro→outubro** e registra, por mudança: espera até interface liberada, quantidade/escopo das RPCs, tarefas longas de navegador, alterações do DOM e ausência de erro. Preserva dados institucionais e não escreve em Production.
+
+O teste roda **depois de o workflow preservar as métricas SQL do teste sustentado**, evitando contaminar a comparação já existente. Resultado em `test-results/operational-sustained/multi-competence-{baseline,candidate}.json`, artifact `operational-metrics-*`. O workflow `Uso real operacional com volume semelhante a Production` foi iniciado no SHA `d6c1a752991532d92e7620f55fb93f1c305ec39e` (run `38493158276`), mas estava **pending** na última consulta deste checkpoint. **Não declarar tempos, aprovação visual ou melhoria até ler os arquivos gerados e verificar ambos os trabalhos do CI.**
+
+No SHA anterior do PR #447, três testes determinísticos de Realtime foram executados no CI e confirmados individualmente no JUnit (run 38492452052, sem falhas). Após a inclusão do teste de navegador, é necessário revalidar esse novo SHA. O PR segue em Draft: caracterização e medição, não correção de performance.
+
+**Ação seguinte ao obter os artifacts:** comparar mês 08 (mais dados) com 09/10 (menos dados), ida e volta e baseline/candidate, sem inferir ganho com uma única amostra; classificar eventuais RPC duplicadas e long tasks por componente. Se a versão baseline divergir funcionalmente, registrar limite em vez de suavizar o teste.
