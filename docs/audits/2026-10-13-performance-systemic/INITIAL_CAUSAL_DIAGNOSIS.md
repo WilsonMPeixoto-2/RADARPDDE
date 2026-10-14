@@ -161,3 +161,22 @@ Artefato real `pr438-final-operational-comparison.zip`, `comparison.json`, run `
 
 **Veredito:** manter a paginação atual e não incluir índice novo só para otimizar um SELECT hipotético. Primeiro inventariar os consumidores reais de `audit_events`; somente criar índice ordenado por data se houver consulta de manutenção ou acesso humano que o justifique, com teste de custo de INSERT/UPDATE e retenção. O crescimento do histórico exige governança, mas não há prova de que seja a raiz principal da lentidão do produto.
 
+
+
+## Terceiro checkpoint — causa metodológica recorrente e UX de confirmação
+
+**Lacuna de representatividade comprovada:** `docs/handoff/evidence/2026-09-21-performance-journeys.json` registra explicitamente: *“Troca de competência não foi medida: fixture expõe somente Maio/2026.”* O E2E `tests/e2e/performance-journeys.spec.js` usa Supabase local e mede login, navegação e avaliações, mas seus números não certificam alternância entre meses. Antes de selecionar correção de `global-competence-selector.js`, criar ensaio real com vários meses autorizados, alternância repetida mês A→B→C→A, volumes desiguais e banco representativo, preservando filtros/rota e os resultados mostrados.
+
+**Observabilidade da resposta visual:** `operational-write-feedback.js` já marca controle `aria-busy` e estilo pendente durante evento de clique/change; `prontuario-conditional-reconciler.js` remove estilo pendente após reconciliação. Logo, não inferir ausência geral de feedback olhando somente para demora pós-salvamento. Entretanto, a lista `SAVE_SUCCESS_MESSAGES` possui confirmação explícita para `verification:set-bonification`, não para `verification:set-technical-analysis`; a análise pode ter outro feedback na UI legada. **Verificar por screenshot/DOM e testes autenticados**, não criar toast duplicado sem confirmar.
+
+**Trabalho de navegador além de rede:** `src/integration/` contém pelo menos 14 arquivos que mencionam `MutationObserver` (diversas superfícies, nem todos necessariamente ativos simultaneamente). Sob atualizações extensas, múltiplos observadores/enhancers podem reagir à mesma substituição de DOM, mas a ocorrência/custo ainda não está quantificada. O benchmark #438 mede ~161,8 s de tarefas longas agregadas entre seis sessões, porém não identifica qual componente as causou. Só priorizar observers mediante perfil de CPU/long tasks relacionado ao evento real e prova de que sua remoção/coalescência preserva navegação, filtros, acessibilidade e ações.
+
+**Matriz de evidência obrigatória antes de correções:**
+- Login: tempo desde clique até primeiro Dashboard **realmente utilizável**, frio/quente; medir 1 ou 2 consultas gerais e duplicações condicionais.
+- Troca de mês: tempos A→B/B→C/C→A + consultas, reaplicação de estado, bloqueio e pixels estáveis; fixture com 3 competências diferentes.
+- Bonificação e análise técnica: clique→feedback imediato→RPC→aplicação→pintura→reload persistente, incluindo estados de erro e concorrência.
+- Navegação/abas: repetição sem chamadas remotas desnecessárias; atraso síncrono (CPU/DOM) separado de banco.
+- Sincronização: duas escolas diferentes, diferentes perfis e várias cadências; tempo máximo até outras sessões exibirem a alteração, não só convergência final.
+- Crescimento dos históricos: medir custo de gravação/autorização e consultas administrativas nas escalas 1x/3x/10x em base descartável; nenhum efeito sobre a Production durante a investigação.
+
+**Critério de parada:** não aceitar uma sequência de hotfixes que ganhe velocidade em apenas uma tela; exigir comparação transversal antes/depois e um teste durável que falhe se a causa-raiz voltar. A própria indisponibilidade da métrica (como troca de competência no relatório de 21/09) é uma lacuna a corrigir na estratégia de teste, não motivo para concluir que aquele fluxo já está rápido.
