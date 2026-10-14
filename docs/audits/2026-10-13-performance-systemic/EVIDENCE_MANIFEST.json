@@ -258,5 +258,22 @@
     "junitFailures": 0,
     "artifactId": 11870525457,
     "resultFile": "docs/audits/2026-10-13-performance-systemic/INTEGRATED_WRITE_PIPELINE_CI_38511334777.json"
+  },
+  "integratedWritePipelineEvidence": {
+    "sourceReport": "docs/audits/2026-10-13-performance-systemic/INTEGRATED_WRITE_PIPELINE_CI_38511334777.json",
+    "ciRun": 38511334777,
+    "ciUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38511334777",
+    "junitCases": 1366,
+    "junitFailures": 0,
+    "testSource": "tests/unit/systemic-write-pipeline-characterization.test.js",
+    "validated": true,
+    "environment": "DataService + UnitOfWork + StatePort + state-bridge reais, RPC I/O controlado, sem Production",
+    "medianMsByVerificationCount": {
+      "1": 1.109,
+      "163": 22.432,
+      "1630": 204.126
+    },
+    "rollbackTested": "antes do commit remoto; concorrência e falhas pós-commit não certificadas",
+    "limitation": "não é benchmark de Production; não demonstra causa única da lentidão"
   }
 }
