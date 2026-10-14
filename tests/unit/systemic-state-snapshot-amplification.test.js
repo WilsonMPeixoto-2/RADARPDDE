@@ -5,6 +5,8 @@
 // entity-wide copies as a future contract.
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const { createStatePort } = require('../../src/application/state-port.js');
 const { UnitOfWork } = require('../../src/application/unit-of-work.js');
 const { createSnapshotEnvelope } = require('../../src/data/repository-contract.js');
@@ -67,17 +69,20 @@ async function characterize(rowCount) {
     const { memory, port } = makeStatePort(rowCount);
     const unitOfWork = new UnitOfWork({ statePort: port });
     const nativeClone = globalThis.structuredClone;
-    const copied = { snapshots: 0, arrays: 0, records: 0 };
+    const copied = { snapshots: 0, arrays: 0, records: 0, memoryCopies: 0 };
     // Records copied are counted without modifying objects or changing
     // persistence semantics. Restore the global in finally.
     globalThis.structuredClone = function diagnosticClone(input, ...rest) {
-        const records = Array.isArray(input) && input[0]?.competence_id
-            ? input
-            : (Array.isArray(input?.entities?.verifications)
-                ? input.entities.verifications : null);
+        const direct = Array.isArray(input) && input[0]?.competence_id;
+        const snapshot = Array.isArray(input?.entities?.verifications);
+        const memory = Array.isArray(input?.verifications);
+        const records = direct ? input
+            : (snapshot ? input.entities.verifications
+                : (memory ? input.verifications : null));
         if (records?.length) {
             copied.records += records.length;
             if (Array.isArray(input)) copied.arrays += 1;
+            else if (memory) copied.memoryCopies += 1;
             else copied.snapshots += 1;
         }
         return nativeClone.call(this, input, ...rest);
@@ -121,19 +126,60 @@ async function characterize(rowCount) {
         mutatedRows: 1,
         snapshotRows: observed.verificationRowsInSnapshot,
         copiesOfSnapshotOrVerificationArray: copied.snapshots + copied.arrays,
+        memoryCopies: copied.memoryCopies,
         cumulativelyCopiedVerificationRows: copied.records,
         elapsedMs: Math.round(elapsedMs * 100) / 100
     };
 }
 
-test('diagnóstico: gravação escolar ainda percorre coleções inteiras de verificações', async () => {
-    const results = [];
-    for (const rowCount of [1, 163, 1630]) {
-        results.push(await characterize(rowCount));
+test('diagnóstico: custo por gravação cresce com registros de outras escolas', async () => {
+    const volumes = [1, 163, 1630, 16300];
+    // Aquecimento não entra no tempo publicado. Vários ensaios delimitam
+    // variação de JIT/GC sem criar um gate baseado em milissegundos.
+    const report = [];
+    for (const rowCount of volumes) {
+        await characterize(rowCount);
+        const attempts = [];
+        for (let run = 0; run < 5; run += 1) {
+            attempts.push(await characterize(rowCount));
+        }
+        const sorted = attempts.map(x => x.elapsedMs).sort((a, b) => a - b);
+        const first = attempts[0];
+        assert(attempts.every(x => x.mutatedRows === 1));
+        assert(attempts.every(x => x.snapshotRows === rowCount));
+        assert(attempts.every(x => x.cumulativelyCopiedVerificationRows > 0));
+        report.push({
+            totalVerificationRows: rowCount,
+            changedRows: 1,
+            unrelatedRows: rowCount - 1,
+            samplesMs: attempts.map(x => x.elapsedMs),
+            medianMs: sorted[2],
+            minMs: sorted[0],
+            maxMs: sorted[4],
+            clonedRecordOccurrences: first.cumulativelyCopiedVerificationRows,
+            cloneOperations: first.copiesOfSnapshotOrVerificationArray + first.memoryCopies,
+            recordsCopiedPerChangedRow: first.cumulativelyCopiedVerificationRows,
+            note: 'Registros clonados são ocorrências com repetição, não IDs únicos.'
+        });
     }
-    assert.deepEqual(results.map(row => row.mutatedRows), [1, 1, 1]);
-    console.log('[state-clone-characterization]', JSON.stringify({
-        caveat: 'Resultado de código sintético e Node.js local; tempos não medem produção.',
-        results
-    }));
+    const evidence = {
+        schemaVersion: 1,
+        kind: 'isolated-state-port-unit-of-work-clone-volume',
+        baseline: 'StatePort + UnitOfWork do PR de testes; escrita remota sintética',
+        runtime: { node: process.version, platform: process.platform },
+        volumeFactors: '1, 163, 1630, 16300 linhas de verificações',
+        caveats: [
+            'Amostras do runner GitHub Actions, não latências de usuário em Production.',
+            'A prova mede somente o processamento local; RPC, DOM, auditoria e RLS não participam.',
+            'Memória instrumentada envolve global structuredClone do processo de teste.',
+            'Nenhum orçamento de tempo máximo é imposto: medir não é exigir rapidez arbitrária.',
+            'Preservar rollback, concorrência e estado autoritativo antes de qualquer otimização.'
+        ],
+        groups: report
+    };
+    const directory = path.join('test-results', 'performance-diagnostics');
+    fs.mkdirSync(directory, { recursive: true });
+    fs.writeFileSync(path.join(directory, 'state-clone-amplification.json'),
+        JSON.stringify(evidence, null, 2) + '\n');
+    console.log('[state-clone-volume]', JSON.stringify(report));
 });
