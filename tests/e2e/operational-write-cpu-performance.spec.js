@@ -260,3 +260,95 @@ test('CPU real após bonificação, análise técnica e NF na mesma escola', asy
     topFunctions: x.cpu.topSelfSampled.slice(0, 5)
   }))));
 });
+
+// Control experiment: explicitly invoke the existing full render with unchanged
+// data. This isolates redraw cost from invoice RPC and transaction cloning.
+// It is NOT a replacement for the invoice save journey, nor a latency SLO.
+test('mede custo visual de reconstruir Prontuário sem alterar nenhum dado', async ({ page }) => {
+  test.setTimeout(120000);
+  const failures = [];
+  const network = [];
+  page.on('pageerror', error => failures.push(error.message));
+  page.on('response', response => {
+    const pathname = new URL(response.url()).pathname;
+    if (pathname.startsWith('/rest/v1/')) network.push({
+      path: pathname, status: response.status(),
+      method: response.request().method()
+    });
+  });
+  await loginAndOpen(page);
+  const baseline = await row(page, 'extCC').getByRole(
+    'button', { name: 'Sim', exact: true }).getAttribute('class');
+  const requested = 'OPS-SESSION-1';
+  const measurements = await page.evaluate(async schoolId => {
+    if (typeof window.renderProntuario !== 'function') {
+      throw new Error('Full render cannot be characterized without the real renderer.');
+    }
+    const main = document.getElementById('main-container');
+    const samples = [];
+    const twoFramesLocally = () => new Promise(resolve =>
+      requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    for (let index = 0; index < 6; index += 1) {
+      const mutation = {records: 0, mainReplacements: 0};
+      const observer = new MutationObserver(records => {
+        mutation.records += records.length;
+        for (const record of records) {
+          if (record.type === 'childList' && record.target === main) {
+            mutation.mainReplacements += 1;
+          }
+        }
+      });
+      observer.observe(main, {childList: true, subtree: true, attributes: true});
+      const before = performance.now();
+      try {
+        window.renderProntuario(schoolId);
+        const synchronousMs = performance.now() - before;
+        await twoFramesLocally();
+        samples.push({
+          index,
+          synchronousMs: Math.round(synchronousMs * 100) / 100,
+          untilTwoFramesMs: Math.round((performance.now() - before) * 100) / 100,
+          domMutationRecords: mutation.records,
+          mainReplacements: mutation.mainReplacements,
+          hasProntuario: main.querySelector('.school-grid') != null,
+          isReady: main.inert !== true
+        });
+      } finally {
+        observer.disconnect();
+      }
+    }
+    return samples;
+  }, requested);
+  await expect(row(page, 'extCC')).toBeVisible();
+  expect(await row(page, 'extCC').getByRole(
+    'button', {name: 'Sim', exact: true}).getAttribute('class')).toBe(baseline);
+  expect(measurements.every(item => item.hasProntuario && item.isReady)).toBe(true);
+  expect(failures).toEqual([]);
+  const report = {
+    schemaVersion: 1,
+    kind: 'render-idempotent-cost',
+    variant: process.env.RADAR_OPERATIONAL_VARIANT || 'unknown',
+    environment: 'disposable-production-shaped',
+    purpose: 'Control of renderProntuario itself, not timing a user action or changing data',
+    samples: measurements,
+    restCalls: network,
+    caveats: [
+      'One warm-up sample at index zero, five subsequent samples.',
+      'Repeated manual redraw is intentionally synthetic and not a user journey.',
+      'DOM MutationObserver records are not rendering frames.',
+      'Two requestAnimationFrame callbacks do not prove final GPU composite.'
+    ]
+  };
+  const folder = path.resolve('test-results/operational-sustained');
+  fs.mkdirSync(folder, {recursive:true});
+  fs.writeFileSync(path.join(folder, 'pure-render-' + report.variant + '.json'),
+    JSON.stringify(report, null, 2));
+  console.log('[pure-render-cost]', JSON.stringify({
+    variant: report.variant,
+    samples: measurements.map(x => ({
+      synchronousMs:x.synchronousMs,
+      mainReplacements:x.mainReplacements,
+      records:x.domMutationRecords
+    }))
+  }));
+});
