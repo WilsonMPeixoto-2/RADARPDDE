@@ -237,5 +237,21 @@
     ],
     "interpretation": "synthetic single-record write; full entity cloned 6 times; CPU scaling approximately linear; not Production UI latency",
     "caution": "Do not remove transaction snapshots/rollback before equivalent safety under concurrency and failed writes is verified"
+  },
+  "codexLocalFollowup": {
+    "context": "Transcrição Codex fornecida pelo usuário em 14/10/2026; teste original local não enviado à branch",
+    "doc": "docs/audits/2026-10-13-performance-systemic/CODEX_LOCAL_PIPELINE_HANDOFF_2026-10-14.md",
+    "reproducedWithIndependentTest": "tests/unit/systemic-write-pipeline-characterization.test.js",
+    "testPR": 447,
+    "testCommit": "145d8ed931542412f1e31e1c593c731738f1a342",
+    "workflowRun": 38511334777,
+    "status": "pending",
+    "productionVerifiedCounts": {
+      "verificationsTotal": 1321,
+      "august2026": 292,
+      "september2026": 181,
+      "october2026": 1
+    },
+    "limitations": "Dados não incluem medição de browser working set; volumes e tempos do Codex ainda local/não homologados por CI."
   }
 }
