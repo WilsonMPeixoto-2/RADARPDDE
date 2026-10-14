@@ -245,13 +245,18 @@
     "testPR": 447,
     "testCommit": "145d8ed931542412f1e31e1c593c731738f1a342",
     "workflowRun": 38511334777,
-    "status": "pending",
+    "status": "independent-reproduction-ci-success",
     "productionVerifiedCounts": {
       "verificationsTotal": 1321,
       "august2026": 292,
       "september2026": 181,
       "october2026": 1
     },
-    "limitations": "Dados não incluem medição de browser working set; volumes e tempos do Codex ainda local/não homologados por CI."
+    "limitations": "Dados não incluem medição de browser working set; volumes e tempos do Codex ainda local/não homologados por CI.",
+    "validationRun": 38511334777,
+    "junitCases": 1366,
+    "junitFailures": 0,
+    "artifactId": 11870525457,
+    "resultFile": "docs/audits/2026-10-13-performance-systemic/INTEGRATED_WRITE_PIPELINE_CI_38511334777.json"
   }
 }
