@@ -121,6 +121,9 @@ jobs:
       - name: Medir troca de três competências no navegador autenticado
         if: ${{ success() }}
         run: npx playwright test tests/e2e/operational-multi-competence-performance.spec.js --project=desktop-chromium --workers=1 --retries=0 --output=playwright-results-multi-competence
+      - name: Perfilar CPU e reconstruções visuais em três lançamentos reais
+        if: ${{ success() }}
+        run: npx playwright test tests/e2e/operational-write-cpu-performance.spec.js --project=desktop-chromium --workers=1 --retries=0 --output=playwright-results-write-cpu
       - name: Preservar resultados mesmo se a jornada falhar
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
