@@ -127,3 +127,14 @@ O teste criado após o material do Codex **passou no GitHub**, run [38511334777]
 **Limites da prova:** rollback foi testado somente após rejeição explícita anterior ao commit remoto. Não prova estado ambíguo de commit, perda de confirmação, concorrência nem idempotência. **Nenhuma otimização funcional foi aplicada.** Outras verificações do SHA do PR #447 estavam em execução na última consulta e não foram antecipadas como verdes.
 
 Próximas decisões: medir a quantidade de registros realmente residentes em sessões do navegador; confrontar o custo local de cópias com CPU/DOM e tempo do banco na **mesma** jornada; só então considerar limitar escopo por identidade escolar/documental, sem perder atomicidade, rollback e invariantes de patrimônio.
+
+
+### Estado de CI no SHA `1a06e6bfcaa88581f7d2b009e6c3e39821d4a43b`
+
+- **Validar RADAR PDDE — [38511334777](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38511334777): success**, 1.366 testes JUnit / 0 falhas; artifact com os tempos integrado e commitado em `INTEGRATED_WRITE_PIPELINE_CI_38511334777.json`.
+- **Confiabilidade funcional com Supabase real — [38511334940](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38511334940): success**, sem alterações de runtime neste PR.
+- **Saúde das dependências e CodeQL:** success.
+- **Supabase readiness — [38511334722](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38511334722): failure apenas no job `supabase-local`, etapa de regeneração de tipos.** `migration-smoke` e `readiness` verdes. Log lido: tentativa de pull `public.ecr.aws/supabase/postgres-meta:v0.97.0` recusada três vezes com `docker: Error response from daemon: toomanyrequests: Data limit exceeded`. **Falha de obtenção de imagem Docker**, não evidência de alteração funcional. **Não acionar retries de CI repetidos** nem “corrigir” schema por esse sintoma.
+- Os workflows longos de experiência com navegador, ciclos funcionais e homologação integral ainda estavam em execução ou pendentes no último checkpoint. **Não afirmar homologação global do PR #447.** Conferir novamente somente se necessário para próxima tomada de decisão.
+
+**Resultado fechado desta rodada:** mecanismo de amplificação de cópias foi reproduzido com mais camadas reais e rollback pré-commit; demonstrou ineficiência, não o peso predominante da lentidão percebida. Os arquivos e SHAs estão versionados em #446/#447; Production não foi alterada.
