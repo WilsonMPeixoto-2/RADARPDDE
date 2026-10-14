@@ -10,7 +10,7 @@
 
 1. `AGENTS.md`, `docs/reference/ENGINEERING_METHOD.md`, `docs/reference/SYSTEM_CANONICAL_MODEL.md`, `docs/reference/PRODUCT_SURFACE_CATALOG.md`.
 2. **[Diagnóstico causal completo](INITIAL_CAUSAL_DIAGNOSIS.md)**, incluindo checkpoints 1–8.
-3. **[Manifesto de evidências persistentes](EVIDENCE_MANIFEST.json)**: runs, métricas consolidadas e ressalvas em formato legível por máquina.
+3. **[Manifesto de evidências persistentes](EVIDENCE_MANIFEST.json)**: runs, métricas consolidadas e ressalvas em formato legível por máquina. Leia também **[medições por sessão](PER_SESSION_SUMMARY.json)**, preservadas do artefato original para evitar perda do detalhe após expiração.
 4. `tests/unit/systemic-performance-characterization.test.js`, `tests/e2e/operational-multi-competence-performance.spec.js`, `tests/e2e/operational-write-cpu-performance.spec.js` da branch do **PR #447**.
 5. Artefatos de origem dos workflows enquanto disponíveis. Eles têm **retenção limitada** (tipicamente 30 dias) e NÃO substituem o manifesto commitado.
 
