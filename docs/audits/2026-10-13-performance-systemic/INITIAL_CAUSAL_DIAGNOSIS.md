@@ -149,3 +149,15 @@ Artefato real `pr438-final-operational-comparison.zip`, `comparison.json`, run `
 6. Não declarar ganho até comparar bytes, SQL, CPU, render, experiência visível, correção funcional e recuperação de erros **na mesma jornada**. Se o remédio desloca a espera para outra fase, parar e rever o desenho.
 
 **Status:** checkpoint documental. Não altera sistema, permissões, Supabase, migrations, produção ou workflows.
+
+
+### Teste direto dos índices do histórico (sem alteração de dados)
+
+`EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)` em Production, executando apenas SELECT com saída agregada do plano, sob o papel da ferramenta (não é prova do plano RLS de um Controlador):
+
+- `administrative_logs ORDER BY event_at DESC,id DESC LIMIT 101`: **0,319 ms**, `Index Only Scan` no `administrative_logs_event_cursor_idx`, **101 linhas**, 8 páginas em cache, zero leitura de disco. O mecanismo de paginação eficiente é real, não apenas intenção documental.
+- `audit_events ORDER BY occurred_at DESC LIMIT 100`: **19,345 ms**, `Seq Scan` em **26.985 linhas** + sort, ~4.365 páginas de cache tocadas. Não existe índice genérico ordenado por `occurred_at` apenas; existem índices por `actor_user_id + occurred_at` e `table_name + record_id + occurred_at`. A consulta genérica é um **risco prospectivo de manutenção** à medida que crescer, mas **não há evidência de que seja executada na abertura normal ou explique a lentidão corrente**.
+- `pg_stat_statements` indica 27 consultas REST a `administrative_logs` filtradas por escola, média ~34,8 ms (estatísticas acumuladas desde 17/09, não 24h); os maiores tempos ligados a `audit_events` são verificações de hashing/cópia de todo o banco (backup/auditoria técnica), que **não devem ser confundidas com gestos de usuários**.
+
+**Veredito:** manter a paginação atual e não incluir índice novo só para otimizar um SELECT hipotético. Primeiro inventariar os consumidores reais de `audit_events`; somente criar índice ordenado por data se houver consulta de manutenção ou acesso humano que o justifique, com teste de custo de INSERT/UPDATE e retenção. O crescimento do histórico exige governança, mas não há prova de que seja a raiz principal da lentidão do produto.
+
