@@ -114,3 +114,16 @@ Foi criado **novo teste independente**, `tests/unit/systemic-write-pipeline-char
 Em paralelo, consultas **somente leitura** à Production mostraram `verifications`: **1.321 linhas totais**, por competência `2026-08`: **292** (108 escolas), `2026-09`: **181** (73 escolas), `2026-10`: **1**. A soma total não é automaticamente o conjunto em memória do navegador. Consequentemente, a simulação com 16.300 verificações deve ser tratada como **ensaio prospectivo de crescimento**, não reflexo da carga presente do RADAR. Investigar o working set realmente carregado antes de atribuir atrasos multissegundo a clones.
 
 **Estado/segurança:** nada em runtime ou Production foi alterado. #446 somente documentação, #447 somente testes e workflow; sem merge. As próximas etapas são aferir a representatividade, verificar o CI e recuperar métricas sanitizadas ao remoto, sem correção prematura por linha ou cache de estado.
+
+
+### Prova integrada independente aprovada no GitHub (run 38511334777)
+
+O teste criado após o material do Codex **passou no GitHub**, run [38511334777](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38511334777), artifact `systemic-write-pipeline-diagnostics` **11870525457**. O JUnit `unit-tests-report` **11870500669** foi inspecionado: **1.366 casos, zero falhas**, incluindo a reprodução integrada.
+
+[**Medições versionadas por grupo e por fase**](INTEGRATED_WRITE_PIPELINE_CI_38511334777.json), com 5 amostras por volume: **1 / 163 / 1.630 avaliações** → mediana **1,109 / 22,432 / 204,126 ms**; apenas uma escola alterada em todos os casos. O caminho inclui `DataService`, `UnitOfWork`, `StatePort` e `state-bridge` reais, com rede simulada na fronteira. Captura/exportação/aplicação são temporizadas individualmente. No caso de falha antes do commit, restaurou o estado e preservou as demais escolas (163 avaliações no teste).
+
+**Não confundir** esses números com os do arquivo local de Codex (0,790 / 11,810 / 199,812 ms), pois os ambientes, instrumentação e desenho do teste diferem. Tampouco afirmar que a operação real demora tanto: o teste não inclui Supabase, DOM, autenticação, timers, concorrência ou fluxo técnico de NF/Pendência. Todos os registros do conjunto sintético permanecem na memória durante o teste, característica a comparar com o navegador real.
+
+**Limites da prova:** rollback foi testado somente após rejeição explícita anterior ao commit remoto. Não prova estado ambíguo de commit, perda de confirmação, concorrência nem idempotência. **Nenhuma otimização funcional foi aplicada.** Outras verificações do SHA do PR #447 estavam em execução na última consulta e não foram antecipadas como verdes.
+
+Próximas decisões: medir a quantidade de registros realmente residentes em sessões do navegador; confrontar o custo local de cópias com CPU/DOM e tempo do banco na **mesma** jornada; só então considerar limitar escopo por identidade escolar/documental, sem perder atomicidade, rollback e invariantes de patrimônio.
