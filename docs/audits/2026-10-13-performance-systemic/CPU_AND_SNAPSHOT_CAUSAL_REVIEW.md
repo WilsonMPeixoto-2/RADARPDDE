@@ -68,3 +68,32 @@ No SHA anterior do PR #447, a suíte `Testes E2E Playwright` run [38496307068](h
 6. Avaliar o E2E geométrico isoladamente. Não reabrir frontend para corrigir ~2px sem evidência de erro real ou consistência com a referência aprovada.
 
 **Status:** relatório versionado, sem modificação de Production. PRs #446 e #447 continuam em Draft, sem merge.
+
+
+## 7. Novo resultado medido — escala de cópias de estado (14/10 UTC)
+
+O run [38500456162](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38500456162), workflow **Validar RADAR PDDE**, concluiu **success** no SHA `0496913ef70cea4174b45409a203a81373a18ef9`. Artefato `systemic-state-clone-diagnostics` ID **11864979495** foi baixado, aberto e conferido (`state-clone-amplification.json`); a evidência sanitizada foi **versionada permanentemente** como [`STATE_CLONE_VOLUME_RUN_38500456162.json`](STATE_CLONE_VOLUME_RUN_38500456162.json).
+
+| Avaliações presentes | Avaliações alteradas | Mediana de cinco amostras* | Ocorrências de registros clonados | Cópias de coleção/snapshot identificadas |
+|---:|---:|---:|---:|---:|
+| 1 | 1 | 0,39 ms | 6 | 6 |
+| 163 | 1 | 5,41 ms | 978 | 6 |
+| 1.630 | 1 | 53,39 ms | 9.780 | 6 |
+| 16.300 | 1 | 523,07 ms | 97.800 | 6 |
+
+*Teste local de processamento no runner Node v24.21.0, após aquecimento, sem banco, rede, autenticação, auditoria SQL ou pintura. Não confundir com tempos de Production. Os objetos têm tamanho e estrutura simplificados. São cinco amostras consecutivas por volume, não amostragem de usuários; não extrair SLO.
+
+**O que está realmente demonstrado:** o custo local de uma transação cuja modificação é de um único registro cresce aproximadamente em função do tamanho da coleção existente. Seis cópias instrumentadas do conjunto incluem registros não alterados. No cenário de 16.300 registros, isso significou 97.800 **ocorrências de cópia**, não 97.800 registros reais independentes. A medição reforça a hipótese compartilhada de amplificação de processamento e a observação `cloneValue` no perfil de CPU do navegador.
+
+**O que NÃO está demonstrado:** que essas seis cópias ocorram exatamente com as mesmas dimensões e frequência em todas as mutações reais; que sejam a maior parte de cada clique na Production; que uma substituição por clonagem por linha esteja segura. O `StatePort` atual usa projeções por **entidade** e a porta de memória legada às vezes agrega conteúdo por competência/programa. Alterar escopo sem rever atomicidade, mudanças multientidade, replay de falha, rollback, proteção contra disputa, logs e reanálise pode corromper registros. Não autorizar mudança funcional antes de comparar um desenho alternativo **com as mesmas garantias de escrita atômica e reconstrução completa em caso de divergência**.
+
+### Linha causal a investigar a seguir
+
+`click → UnitOfWork.captureEntities → mutate → exportCanonicalEntities → persist com clone → mergePersistedResult com clone → applyRemoteState → retorno com clone → render/reconciliação`.
+
+O teste isolado cobre só parte dessas etapas. Prova de causalidade completa exige contagem de clones e tempo **por estágio**, com payloads realistas e mesmas 163 escolas, além do custo visual. Testar explícita edição de NF, bonificação, análise técnica, Pendência e despesas a identificar, não apenas uma operação abstrata.
+
+### Teste de visual puro preparado, ainda não homologado
+
+No PR #447 foi adicionado `render-idempotent-cost` em `tests/e2e/operational-write-cpu-performance.spec.js`: seis chamadas da função **real** `renderProntuario` na mesma escola sem gravação ou troca de mês, descartando primeira amostra de aquecimento; mede duração síncrona, tempo até dois frames e número de substituições DOM. Execução programada no workflow [38500456205](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38500456205), SHA `0496913ef...`, **pending** na última consulta; não há resultado de tempo de render comprovado nesta etapa. A comparação futura permite separar custo de render puro de custo da gravação de NF, mas invocar render manualmente também é um cenário artificial.
+
