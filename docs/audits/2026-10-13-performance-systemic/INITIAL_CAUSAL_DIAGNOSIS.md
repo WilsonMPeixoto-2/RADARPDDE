@@ -89,3 +89,63 @@ O fator recorrente pode ser **amplificação de trabalho por evento**: um clique
 - Comparações antigas de desempenho podem refletir infraestrutura descartável, fixture ou revisão mais antiga; citar proveniência antes de comparar.
 - Um workflow verde comprova as condições testadas, não a fluidez cotidiana.
 - Não propor remover auditoria legal, alterar timers, implantar cache agressivo, reescrever frontend, mudar tamanho da instância ou relaxar políticas sem resultado causal.
+
+---
+
+## Segundo checkpoint — teste de custo das leituras e auditoria — 13/10/2026
+
+**Somente leitura.** Logs do Supabase (janela móvel 24 h, contendo usuários e CI/testes) e SQL agregados em Production; confronto com GitHub Actions run [38427914654](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38427914654), candidato PR438 SHA `61e93b7f`. **Não afirmar que os números isolam o deploy da main nem que toda consulta geral é desnecessária.**
+
+### Medição recente (Supabase Edge, respostas HTTP 200)
+
+| Operação | Chamadas | Média | Mediana | p95 | >1s | >3s |
+|---|---:|---:|---:|---:|---:|---:|
+| Contexto global | 1.102 | 545,8 ms | 412,5 ms | 1.263,5 ms | 88 | 11 |
+| Contexto por escola | 352 | 230,6 ms | 164 ms | 507,2 ms | 5 | 2 |
+| Salvar avaliação | 549 | 229,9 ms | 158 ms | 611,8 ms | 6 | 1 |
+
+Há mais **1 HTTP 502 global** (1.103 tentativas totais). Dados são de população e carga heterogêneas, não benchmark controlado. Contadores cumulativos do banco não cresceram no intervalo quieto observado entre 00:22–00:31Z de 14/10: 14.176 globais, 907 escolares (epoch desde 17/09). Evitar generalizar tempestade atualmente em curso. O log horário mostrou movimentos fortes durante janelas compatíveis com execução de testes, cuja autoria não pôde ser isolada sem credenciais/identificadores adicionais.
+
+### Novo elo estrutural: duas escolas conhecidas podem gerar leitura global
+
+A rotina atual `operational-realtime-invalidation.js` define `scheduledSchoolId` e, se receber outro evento com `schoolId` distinto enquanto o cronômetro de 2 segundos está ativo, promove o pedido para **escopo global**. Reinicia o cronômetro a cada novo aviso. Esse fallback é proposital e protege consistência, mas pode anular a leitura escolar sob múltiplos Controladores trabalhando em escolas diferentes, o cenário institucional normal. Em Pendências e algumas views não cobertas, `decideInvalidationAction` também escolhe global; **não é automaticamente bug**.
+
+Os testes unitários gerais verificam coalescência de eventos sem `schoolId`; falta caracterização pareada específica de A+A versus A+B, normal versus rajada, escola mesma ou outra, com métricas de custo/fluidez. Não remover essa proteção sem alternativa causalmente demonstrada.
+
+### Contraprova do ensaio longo #438 — 1.107 ações e seis sessões
+
+Artefato real `pr438-final-operational-comparison.zip`, `comparison.json`, run `38427914654`. Controle/candidato: mesmas 1.107 escritas bem-sucedidas, convergência final e recuperação de reconexão.
+
+| Indicador | Controle | Candidato | Resultado |
+|---|---:|---:|---|
+| Bytes lidos | 31.890.661 | 10.650.253 | -66,6% |
+| Tentativas de leitura | 26 | 64 | +146,2% |
+| Leituras abortadas | 1 | 41 | maior trabalho descartado |
+| Tarefas longas do navegador | 161.563 ms | 161.848 ms | praticamente iguais |
+| Tempo agregado SQL | 14.963 ms | 17.045 ms | +13,9%, janelas distintas |
+| Tempo total do ensaio | 455.698 ms | 459.991 ms | +0,9%, sem ganho global |
+| Frames com opacidade esmaecida | 757 | 0 | benefício visual |
+
+**Interpretação:** houve menos tráfego e menos esmaecimento, **mas não melhora comprovada do tempo total ou das tarefas longas**. Essa é uma contraprova de simplificação incompleta, **não** demonstra regressão de #438 no uso institucional. A carga do ensaio é artificialmente intensa; as medições de SQL e navegador não abrangem as mesmas janelas perfeitamente. Um ensaio anterior (run `38356122131`) teve resultados de CPU piores ainda, reforçando variabilidade e necessidade de rodadas controladas. Não usar os números como SLO de Production.
+
+### Auditoria: conclusões delimitadas
+
+- `audit_events`: 26.985 linhas / 39 MB; `administrative_logs`: 12.219 linhas / ~7,8 MB. Picos de 2.269 auditorias em 02/10 e 1.558 em 09/10. Não projetar esses picos como crescimento orgânico diário.
+- **23.473 atualizações históricas** examinadas: **0** casos com snapshot `old_record = new_record` ou `changed_fields` vazio. Não há evidência de massa de updates sem alteração de dados. Isso não mede o custo de snapshots antigos/novos.
+- A função `capture_audit_event()` guarda ambos os snapshots JSON em UPDATE, sob 17 triggers ativos. `track_functions=none` e `pg_stat_statements.track=top` impedem atribuição direta do custo de trigger. Não imputar lentidão à auditoria sem microbenchmark comparável e sem sacrificar o histórico.
+- Todos os **3.163 eventos de auditoria dos últimos sete dias** têm `request_id` nulo. O registro de autor continua independente, mas não é possível agrupar diretamente por requisição usando esse campo. Preferir correlação efêmera no ensaio isolado; não mudar logs de Production por hipótese.
+
+### Outro limite das medições atuais: `stable` não é pintura final
+
+`prontuario-conditional-reconciler.js` marca `stable` no callback de **um `requestAnimationFrame`** (ou microtask no fallback). Isso não certifica que pixels foram pintados, que alterações secundárias terminaram nem que a tela está responsiva. `clickToStable` interno é útil, mas insuficiente para aferir a experiência humana. Validar nos próximos ensaios com estado visual concreto, duas frames, janelas de observação e screenshots/traces, sem confundir confirmação imediata de clique com commit remoto final.
+
+### Experimentos necessários antes de qualquer código funcional
+
+1. Comparar uma operação de bonificação com feedback→commit→atualização, com e sem evento Realtime posterior, segregando consulta escolar/global.
+2. Reproduzir `execute -> invalidateSchoolOperationalCoverage -> Broadcast -> MISSING_BASELINE_COVERAGE -> global` no Supabase descartável; diferenciar reconciliação legítima da amplificação dispensável.
+3. Testar coalescência A+A, A+B, A+B+C sob cadência humana e stress, verificando latência visual máxima e consultas globais em cada superfície autorizada.
+4. Medir abertura fria/quente, troca de competências diversas, análise técnica, bonificação, alternância de abas e Prontuário com dados representativos, CPU, DOM, bloqueio visual e tempo até persistência verificada.
+5. Comparar volumes históricos 1x/3x/10x em **banco descartável**, com auditoria integral ativada; nenhum write/load stress em Production.
+6. Não declarar ganho até comparar bytes, SQL, CPU, render, experiência visível, correção funcional e recuperação de erros **na mesma jornada**. Se o remédio desloca a espera para outra fase, parar e rever o desenho.
+
+**Status:** checkpoint documental. Não altera sistema, permissões, Supabase, migrations, produção ou workflows.
