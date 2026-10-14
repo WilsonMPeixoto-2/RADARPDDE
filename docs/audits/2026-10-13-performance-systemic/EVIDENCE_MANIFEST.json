@@ -154,5 +154,11 @@
     "benchmarkEvidence": "Sessão de NF teve ~300 escritas e ~301 substituições principais no ensaio sustentado.",
     "caveat": "Custo percentual específico e segurança de substituição localizada não medidos; não aplicar correção ainda."
   },
-  "handoff": "docs/audits/2026-10-13-performance-systemic/HANDOFF_AND_TEST_PLAN.md"
+  "handoff": "docs/audits/2026-10-13-performance-systemic/HANDOFF_AND_TEST_PLAN.md",
+  "sessionEvidence": {
+    "path": "docs/audits/2026-10-13-performance-systemic/PER_SESSION_SUMMARY.json",
+    "sourceRunId": 38495224625,
+    "sourceArtifactId": 11864340261,
+    "scope": "6 sessões, 3 escritoras e 3 observadoras, totais de DOM, long tasks e refresh por variante"
+  }
 }
