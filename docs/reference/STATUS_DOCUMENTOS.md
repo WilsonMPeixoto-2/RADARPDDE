@@ -25,6 +25,7 @@ PR aberto, Preview ou documento antigo não altera Production.
 | docs/audits/2026-10-11-controller-journey/ENVIRONMENT.md e CONTEXT.md | Evidência histórica datada | limitações e invariantes do experimento A–N em seu SHA; não homologação de novas jornadas nem justificativa para reabrir #438 |
 | AGENTS.md | Canônico | roteador obrigatório |
 | docs/runbooks/CI_TOOLCHAIN_REGISTRY.md | Runbook operacional vigente de infraestrutura de CI | diagnóstico Docker ECR/GHCR, erro postgres-meta, versões de CLI, runner Ubuntu 24/26, atualização segura e roteamento de evidências; leitura obrigatória para agentes que alteram tooling ou workflows |
+| docs/audits/2026-10-18-supabase-cli-rls-parity.md | Auditoria datada com investigação aberta | comparação CLI 2.114/2.121 e metadados de Production; ressalva à leitura automática de pgTAP 32/33 e bloqueio preventivo #453 em HOLD; não autoriza GRANT/REVOKE |
 | docs/superpowers/specs/2026-10-04-operational-sync-simplification-design.md | Design de referência do #410 | direção implementada; confrontar capacidades e limites com código/ADRs vigentes |
 | docs/superpowers/plans/2026-10-04-operational-sync-simplification-implementation.md | Plano histórico do #410 | checkpoints preservados; não forma fila de reimplementação |
 | docs/evidence/2026-10-04-pr410-school-scope/README.md e JSONs | Evidência da caracterização | cobertura, exclusões, RLS, relações entre escolas e limites das provas locais; não certifica a RPC futura |
