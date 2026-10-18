@@ -17,6 +17,7 @@ function harness(programIds) {
         const programRows = [];
         for (const documentKey of ['extCC', 'extINV']) {
             const contextCell = {
+                classList: { add() {} },
                 querySelector() { return null; }
             };
             const row = {
