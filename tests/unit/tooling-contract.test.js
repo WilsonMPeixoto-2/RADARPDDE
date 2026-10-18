@@ -225,6 +225,17 @@ test('Supabase readiness e pré-production toleram apenas falha transitória con
     const preproductionWorkflow = read('.github/workflows/preproduction-full-validation.yml');
 
     for (const workflow of [readinessWorkflow, preproductionWorkflow]) {
+        // A versão homologada da CLI aceita o override somente no passo de typegen.
+        // O registro público ECR frequentemente limita GitHub-hosted runners.
+        assert.match(
+            workflow,
+            /- name: Regenerar[^\n]*\n\s+shell: bash\n(?:\s+#[^\n]*\n)*\s+env:\n\s+SUPABASE_INTERNAL_IMAGE_REGISTRY: 'ghcr\.io'\n\s+run: \|/
+        );
+        assert.doesNotMatch(
+            workflow.split('jobs:')[0],
+            /SUPABASE_INTERNAL_IMAGE_REGISTRY/,
+            'não aplicar o override globalmente à pilha Supabase'
+        );
         assert.match(workflow, /gen_types_with_registry_retry/);
         assert.match(
             workflow,
