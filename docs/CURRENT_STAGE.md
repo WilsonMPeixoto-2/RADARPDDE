@@ -8,6 +8,8 @@
 
 **Futuro próximo:** GitHub [migra `ubuntu-latest` de Ubuntu 24.04 para 26.04 de 19/10 a 19/11/2026](https://github.blog/changelog/2026-09-17-ubuntu-26-generally-available-and-latest-migration/). Auditar os 15 workflows sujeitos ao alias, estabilizar o baseline antes da transição e homologar compatibilidade em PR isolado antes de migrar. Atualizações de CLI após 2.114.0 exigem provas específicas das duas garantias RLS já reprovadas, sem alterar SQL para acomodar ferramenta.
 
+**Contraprova de paridade RLS de 18/10:** [experimento #452](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/452) comparou 2.114.0 (674/674 pgTAP PASS) e 2.121.0 (672/674, testes 32/33 de service_role). **Nova leitura em Supabase Production confirmou que service_role possui DELETE nas duas tabelas**, enquanto os testes exigem ausência do grant. A migration de bootstrap concede SELECT/INSERT/UPDATE, sem REVOKE explícito de DELETE anterior. Logo, o vermelho da 2.121.0 **não comprova regressão da CLI**; há divergência entre teste e grants reais a reconciliar, sem alteração em Production. A CLI 2.114.0 permanece fixa preventivamente; [PR #453](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/453) de bloqueio exato está em **HOLD**. Ler obrigatoriamente [auditoria de paridade](audits/2026-10-18-supabase-cli-rls-parity.md) antes de tentar upgrade, corrigir teste ou modificar RLS. [PR #451](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/451) de runners teve 15/15 workflows aprovados e está aguardando integração, sem afetar a frente Work #448.
+
 ---
 
 ## Estado canônico após o PR #438 — publicado em 13/10/2026
