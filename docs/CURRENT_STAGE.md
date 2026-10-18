@@ -1,5 +1,15 @@
 # RADAR PDDE — estado atual e retomada
 
+## Checkpoint de infraestrutura CI — 18/10/2026 (posterior ao #438)
+
+**Correção já integrada à main:** [PR #449](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/449), commit de merge `aac142453d3fad112e3b3c8caba177aad87d9697`. O erro externo `toomanyrequests` em `postgres-meta:v0.97.0` foi corrigido com `SUPABASE_INTERNAL_IMAGE_REGISTRY: ghcr.io` **somente** nos steps de `gen types --local` dos dois workflows. CLI Supabase 2.114.0, SDK 2.117.3, Node 24, RLS e migrations preservados. Evidências: [readiness completo](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39166595283), [homologação pré-Production](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39166595305), [E2E](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39166595236), todos aprovados (E2E após retry por falha geométrica antiga independente). Ver [runbook canônico de CI](runbooks/CI_TOOLCHAIN_REGISTRY.md).
+
+**Frente visual em andamento e separada:** [PR #448](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/448), reordenação visual dos programas no Prontuário, permanece Draft em 18/10; agente Work está preparando provas de controles/foco/rolagem, algumas ainda não publicadas na branch. **Não tocar nessa branch nem inferir homologação de testes locais não publicados.** A integração do #449 não homologa automaticamente o #448. Nenhum deploy de Production decorre deste checkpoint.
+
+**Futuro próximo:** GitHub [migra `ubuntu-latest` de Ubuntu 24.04 para 26.04 de 19/10 a 19/11/2026](https://github.blog/changelog/2026-09-17-ubuntu-26-generally-available-and-latest-migration/). Auditar os 15 workflows sujeitos ao alias, estabilizar o baseline antes da transição e homologar compatibilidade em PR isolado antes de migrar. Atualizações de CLI após 2.114.0 exigem provas específicas das duas garantias RLS já reprovadas, sem alterar SQL para acomodar ferramenta.
+
+---
+
 ## Estado canônico após o PR #438 — publicado em 13/10/2026
 
 **Etapa 5 encerrada no escopo delimitado das sete correções do Controlador.** Este bloco prevalece sobre checkpoints históricos abaixo. Não confundir a auditoria ampla A–N ou desempenho global com as sete entregas certificadas.
