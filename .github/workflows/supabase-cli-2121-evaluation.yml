@@ -1,0 +1,93 @@
+name: Experimento isolado Supabase CLI 2.121.0
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/supabase-cli-2121-evaluation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  SUPABASE_TELEMETRY_DISABLED: '1'
+
+jobs:
+  compare-cli:
+    name: pgTAP e RLS com CLI ${{ matrix.cli }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        cli: ['2.114.0', '2.121.0']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Node 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências fixadas sem mudar lockfile
+        run: npm ci
+
+      - name: Instalar candidato apenas no node_modules efêmero
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ matrix.cli }}" != '2.114.0' ]; then
+            npm install --no-save --package-lock=false "supabase@${{ matrix.cli }}"
+          fi
+          npx --no-install supabase --version | tee cli-version.log
+          grep -Fx "${{ matrix.cli }}" cli-version.log
+          git diff --exit-code -- package.json package-lock.json
+
+      - name: Iniciar Supabase local descartável
+        run: bash scripts/start-disposable-supabase-ci.sh
+
+      - name: Reset e migrations canônicas
+        run: npm run supabase:reset
+
+      - name: Preflight SQL existente
+        run: |
+          npx --no-install supabase db query --local --file supabase/verification/remote-preflight.sql
+          npx --no-install supabase db query --local --file supabase/verification/remote-post-apply.sql
+
+      - name: Executar todos pgTAP e garantias service_role
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run supabase:test:db 2>&1 | tee cli-pgtap.log
+
+      - name: Executar lint SQL
+        run: npm run supabase:lint:db
+
+      - name: Regenerar tipos pelo GHCR sem trocar a stack
+        shell: bash
+        env:
+          SUPABASE_INTERNAL_IMAGE_REGISTRY: ghcr.io
+        run: |
+          set -euo pipefail
+          npm run supabase:gen:types
+          npm run typecheck:database
+          git diff --exit-code -- src/types/database.types.ts
+
+      - name: Publicar evidência sanitizada de versão e pgTAP
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: cli-${{ matrix.cli }}-pg-tap
+          path: |
+            cli-version.log
+            cli-pgtap.log
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Desligar Supabase descartável
+        if: always()
+        run: npm run supabase:stop || true
