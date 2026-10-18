@@ -19,6 +19,8 @@
 
 O [GitHub anunciou](https://github.blog/changelog/2026-09-17-ubuntu-26-generally-available-and-latest-migration/) que o alias `ubuntu-latest` migrará gradualmente de Ubuntu 24.04 para Ubuntu 26.04 de **19/10 a 19/11/2026**. Em 18/10, a main continha **15 workflows** que utilizavam o alias, enquanto parte dos gates já usava `ubuntu-24.04`. Um mesmo YAML pode rodar em sistemas diferentes durante a transição.
 
+**Prova datada, ainda não integrada:** [PR #451](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/451), [piloto Actions 39170988272](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39170988272): Ubuntu 24.04.5 (ImageVersion 20261012.334.1) e Ubuntu 26.04.1 (20261012.163.1) passaram, cada um com Node 24.21.0, 15 testes de contrato, abertura de Chromium Playwright e download da imagem GHCR postgres-meta:v0.97.0. **Isso não homologa a suite completa de Supabase/Auth/RLS em Ubuntu 26.04.** O PR propõe fixar 15 workflows em Ubuntu 24.04 até migração explícita. Verificar estado do PR antes de presumir que o pin vigora na main.
+
 A migração deve seguir: inventário de todos os runners; teste isolado de Ubuntu 26.04 contra o mesmo SHA; verificação de Node 24/npm ci, Docker, CLI, Chromium/Playwright, bibliotecas nativas, migrations e Auth/RLS quando aplicável; comparação com Ubuntu 24.04; identificação do ImageOS/ImageVersion real no log; atualização gradual e explícita. Fixar temporariamente em `ubuntu-24.04` protege reprodutibilidade, mas **não prova compatibilidade futura**. Não mudar produto/SQL para satisfazer diferenças ambientais.
 
 O cache npm de actions/setup-node **não armazena imagens Docker**. Versão Node do RADAR é diferente da versão Ubuntu do runner. Não atualizar automaticamente para Node 26 porque o runner foi atualizado.
