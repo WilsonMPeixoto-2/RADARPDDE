@@ -6,6 +6,19 @@
 
     const SENT_LABEL_PREFIX = 'Consulta enviada à Assessoria para a NF ';
     const CONSOLIDATED_BONUS_LABELS = new Set(['apta', 'inapta']);
+    // Prioridades somente da grade de avaliação. Não mudar escola.programasIds.
+    // IDs atuais da classificação Básico / Qualidade / Equidade; desconhecidos
+    // permanecem sem categoria presumida, após os grupos conhecidos.
+    const PROGRAM_PRESENTATION_PRIORITY = Object.freeze({
+        BASIC: 0,
+        CONECTADA: 1,
+        PROEC: 1,
+        ED_FAMILIA: 1,
+        ADOLESCENCIAS: 1,
+        LEITURA: 1,
+        TEMPO_APRENDER: 1,
+        RECURSOS: 2
+    });
     let installed = false;
     let originalRenderProntuario = null;
     let renderedSchoolId = '';
@@ -189,6 +202,7 @@
         const rowsContainer = root.document.getElementById('prontuario-verif-rows');
         if (!rowsContainer || groups.length < 2) return groups;
 
+        // Categoria primeiro, preservando a ordem de origem dentro de cada grupo.
         const ordered = groups
             .map((group, sourceIndex) => ({
                 group,
@@ -196,14 +210,62 @@
                 programId: text(group.rows[0]?.dataset?.programId)
             }))
             .sort((left, right) => {
-                const leftPriority = left.programId === 'BASIC' ? 0 : 1;
-                const rightPriority = right.programId === 'BASIC' ? 0 : 1;
+                const leftPriority = PROGRAM_PRESENTATION_PRIORITY[left.programId] ?? 3;
+                const rightPriority = PROGRAM_PRESENTATION_PRIORITY[right.programId] ?? 3;
                 return leftPriority - rightPriority || left.sourceIndex - right.sourceIndex;
             });
 
-        ordered.forEach(({ group }) => {
-            group.rows.forEach(row => rowsContainer.appendChild(row));
-        });
+        // A única exceção à ordem original de Qualidade é a posição relativa
+        // de Educação Conectada antes de Escola das Adolescências.
+        const connectedIndex = ordered.findIndex(item => item.programId === 'CONECTADA');
+        const adolescentsIndex = ordered.findIndex(item => item.programId === 'ADOLESCENCIAS');
+        if (adolescentsIndex >= 0 && connectedIndex > adolescentsIndex) {
+            const [connected] = ordered.splice(connectedIndex, 1);
+            ordered.splice(adolescentsIndex, 0, connected);
+        }
+
+        // enhance() também roda após alterações incrementais: se a grade já
+        // estiver ordenada, não tocar nos nós, nem nos controles em edição.
+        if (ordered.every((item, index) => item.sourceIndex === index)) {
+            return ordered.map(item => item.group);
+        }
+
+        // Preservar a maior subsequência crescente na posição em que já está.
+        // Mover somente os blocos restantes, sempre com todas as suas linhas,
+        // reduz reflow e mantém o foco/estado dos controles existentes.
+        const sourcePositions = ordered.map(item => item.sourceIndex);
+        const longestFrom = sourcePositions.map(() => 1);
+        for (let i = ordered.length - 1; i >= 0; i -= 1) {
+            for (let j = i + 1; j < ordered.length; j += 1) {
+                if (sourcePositions[j] > sourcePositions[i]) {
+                    longestFrom[i] = Math.max(longestFrom[i], longestFrom[j] + 1);
+                }
+            }
+        }
+        const keepPositions = new Set();
+        let remaining = Math.max(...longestFrom);
+        let lastPosition = -1;
+        let lastSource = -1;
+        while (remaining > 0) {
+            let best = -1;
+            for (let i = lastPosition + 1; i < ordered.length; i += 1) {
+                if (sourcePositions[i] > lastSource
+                    && longestFrom[i] >= remaining
+                    && (best === -1 || sourcePositions[i] < sourcePositions[best])) {
+                    best = i;
+                }
+            }
+            keepPositions.add(best);
+            lastPosition = best;
+            lastSource = sourcePositions[best];
+            remaining -= 1;
+        }
+
+        for (let i = ordered.length - 1; i >= 0; i -= 1) {
+            if (keepPositions.has(i)) continue;
+            const reference = ordered[i + 1]?.group.rows[0] || null;
+            ordered[i].group.rows.forEach(row => rowsContainer.insertBefore(row, reference));
+        }
 
         return ordered.map(item => item.group);
     }
