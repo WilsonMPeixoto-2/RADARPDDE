@@ -22,7 +22,7 @@ concurrency:
 jobs:
   desktop:
     name: Desktop homologado
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 35
 
     steps:
