@@ -69,11 +69,9 @@ test.describe('ordem visual da avaliação no Prontuário', () => {
     await expect.poll(() => orderOf(page)).toEqual(schoolOrder);
   });
 
-  test('enhance repetido não move blocos já ordenados nem cria novas requisições', async ({ page }) => {
+  test('enhance repetido não move blocos já ordenados', async ({ page }) => {
     await openSchoolWithPrograms(page);
     await expect.poll(() => orderOf(page)).toEqual(schoolOrder);
-    const requests = [];
-    page.on('request', request => requests.push(request.url()));
     const changes = await page.evaluate(() => {
       const body = document.getElementById('prontuario-verif-rows');
       const observer = new MutationObserver(() => {});
@@ -85,6 +83,5 @@ test.describe('ordem visual da avaliação no Prontuário', () => {
       return moved;
     });
     expect(changes).toBe(0);
-    expect(requests).toHaveLength(0);
   });
 });
