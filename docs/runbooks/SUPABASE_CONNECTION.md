@@ -1,7 +1,7 @@
 # Runbook — conexão e operação controlada do Supabase
 
 **Estado:** vigente; Production conectada  
-**Atualizado em:** 29 de setembro de 2026
+**Atualizado em:** 18 de outubro de 2026
 
 ## 1. Objetivo
 
@@ -13,7 +13,7 @@ Este runbook não autoriza, por si só, migration, importação, alteração de 
 
 Consultar [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md) e revalidar remotamente antes de operação dependente do ambiente.
 
-Por compatibilidade com o verificador de readiness, este runbook mantém um único espelho machine-readable da contagem versionada: O conjunto versionado contém atualmente **61** migrations. A lista e a ordem vêm de `supabase/migrations/` e do histórico do CLI. As migrations escolares 59ª/60ª foram integradas pelo #410; o checkpoint de Production de 11/10 registra a última `20261004210000`. A 61ª, `20261011193500_inventory_terminal_delete_protection`, é candidata do #438, aplicada apenas no descartável durante a auditoria: protege DELETE do bem Inventariada e de sua NF. Revalidar histórico remoto antes de publicação; presença no Git não comprova aplicação em Production.
+Por compatibilidade com o verificador de readiness, este runbook mantém um único espelho machine-readable da contagem versionada: O conjunto versionado contém atualmente **61** migrations. A lista e a ordem vêm de `supabase/migrations/` e do histórico do CLI. As migrations escolares 59ª/60ª foram integradas pelo #410; o checkpoint de Production de 11/10 registra a última `20261004210000`. A 61ª, `20261011193500_inventory_terminal_delete_protection`, foi aplicada e verificada em Production antes do merge #438, conforme o [registro canônico](../CURRENT_STAGE.md) e a [execução 38472434475](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38472434475): protege DELETE do bem Inventariada e de sua NF. Para nova operação, revalidar sempre o histórico de migrations no Supabase; a existência no Git não é prova de aplicação no banco.
 
 Contratos estáveis:
 
@@ -25,6 +25,8 @@ Supabase JS: versão fixada em package.json
 Supabase CLI: versão fixada em package.json
 Node.js: 24.x
 ```
+
+**Falha de CI, imagens ou typegen:** consultar obrigatoriamente [CI_TOOLCHAIN_REGISTRY.md](CI_TOOLCHAIN_REGISTRY.md). O erro `toomanyrequests` da imagem `postgres-meta` foi solucionado no PR #449 com GHCR **somente no step de geração de tipos**, sem alterar a stack Supabase e sem autorizar mudança remota. Não repetir reexecuções cegamente nem mascarar erros de pgTAP/RLS.
 
 ## 3. Regras permanentes
 
