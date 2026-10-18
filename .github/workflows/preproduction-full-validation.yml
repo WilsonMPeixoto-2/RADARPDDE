@@ -120,6 +120,9 @@ jobs:
           npm run supabase:lint:db
       - name: Regenerar e conferir artefatos
         shell: bash
+        # Evita quota do ECR em gen types, sem alterar versões ou ambiente da stack.
+        env:
+          SUPABASE_INTERNAL_IMAGE_REGISTRY: 'ghcr.io'
         run: |
           set -euo pipefail
           mkdir -p src/types
