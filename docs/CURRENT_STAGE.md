@@ -2,7 +2,7 @@
 
 ## Encerramento da ordenação do Prontuário e CI — 19/10/2026
 
-**Checkpoint vigente desta entrega.** Os checkpoints anteriores são históricos e não reabrem frentes concluídas.
+**Checkpoint vigente desta entrega.** Os checkpoints anteriores são históricos e não reabrem frentes concluídas. Não há handoff de execução corrente designado; o handoff da Etapa 5 preserva evidências históricas do #438.
 
 - **Ordenação do Prontuário:** [PR #448](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/448) integrado em `55a3bf8df8e9ff130102bbca681c21d6247c9596`, candidato `d7bcc2f0bf5aec00024a8e8d23fcdf96da08745d`. Básico → Qualidade → Equidade; Conectada antes de Adolescências quando ambas presentes. Critérios de avaliação, persistência, Auth/RLS, SQL e carregamento operacional preservados.
 - **Prova funcional:** 12/12 workflows do candidato concluídos com sucesso; [E2E final](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39231461006), job `118042343723`, com 225 aprovados e 68 ignorados; [ciclo funcional](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39231460958), job `117993810462`, com 21/21 aprovados após repetição isolada. O E2E dirigido usa oito programas sintéticos, opera bonificação/análise, troca competências, verifica foco/rolagem e ausência de novas movimentações em grade já ordenada. Capturas reais dos quatro blocos foram abertas e inspecionadas. Não houve Preview interativo READY; não confundir a inspeção das jornadas Playwright com sessão interativa independente em Preview.
@@ -72,11 +72,11 @@ sem subagentes. Correções de navegação, página tardia e seletor sem Pendên
 consolidadas:1.359 unitários,24 E2E dirigidos (1skip mobile),3 jornadas Auth reais
 aprovados. Retorno ao Prontuário corrigido causalmente. CI final pendente,438 Draft,
 sem merge/deploy. Lentidão sistêmica e jornadas A–N não estão encerradas. Ler o
-checkpoint vigente do handoff único abaixo; detalhes históricos não certificam HEAD.
+checkpoint datado do handoff histórico abaixo; detalhes históricos não certificam HEAD.
 
 **Frente descrita naquele checkpoint:** jornadas A–N do Controlador, orientadas pela UI e experiência
 real, após a modernização #433–#437. Não repetir certificação histórica nem
-reimplementar #408/#410/#427/#429. **Handoff corrente único:**
+reimplementar #408/#410/#427/#429. **Handoff histórico daquela frente:**
 [controller-journey/HANDOFF.md](audits/2026-10-11-controller-journey/HANDOFF.md).
 
 Baseline revalidada: main `113841bda52ce3bbda228524daf9a7464f12b462`;
@@ -186,7 +186,8 @@ históricos → qualificar residuais técnicos → avaliar jornadas do produto e
 selecionar a próxima entrega pelo impacto atual. Nenhuma alteração funcional
 decorre apenas da existência de um documento antigo. Proteção patrimonial
 adicional e anulação/transferência auditável continuam decisões separadas.
-Naquele checkpoint não havia handoff corrente; a Etapa 5 indicada no topo é agora a frente ativa.
+Naquele checkpoint não havia handoff corrente; a Etapa 5 foi designada posteriormente
+e suas sete correções foram encerradas pelo #438. Esse encadeamento é histórico.
 
 ## Atualização canônica — sincronização agregada integrada e publicada
 

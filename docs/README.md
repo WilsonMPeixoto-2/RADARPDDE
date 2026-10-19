@@ -2,12 +2,14 @@
 
 **Reconciliação documental e saneamento de PRs concluídos em 08/10/2026.** O [PR #431](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/431) foi integrado; [CURRENT_STAGE.md](CURRENT_STAGE.md) descreve a prioridade atual de verificação do produto. O [relatório original](audits/2026-10-08-reconciliacao-planos-demandas.md) e o [checkpoint de governança](audits/2026-10-08-governanca-prs-pos431.md) preservam critérios, históricos e limites.
 
-**Etapa 5 em andamento (11/10):** auditoria operacional imersiva, na baseline pós-#437.
-O [handoff corrente](audits/2026-10-11-controller-journey/HANDOFF.md) registra ambiente,
-limites, jornadas e próximos passos. Não equivale a homologação concluída.
+**Encerramento atualizado em 19/10:** as sete correções delimitadas da Etapa 5 foram
+encerradas pelo #438; a ordenação do Prontuário foi integrada e publicada pelo #448.
+O [handoff da Etapa 5](audits/2026-10-11-controller-journey/HANDOFF.md) é histórico.
+[CURRENT_STAGE.md](CURRENT_STAGE.md) registra evidências e residuais; não há handoff
+de execução corrente designado. Isso não encerra a auditoria ampla A–N ou o desempenho sistêmico.
 
 **Classe documental:** Canônico — índice e rota de leitura  
-**Atualizado em:** 8 de outubro de 2026
+**Atualizado em:** 19 de outubro de 2026
 
 ## 1. Rota obrigatória
 
@@ -29,10 +31,12 @@ Ordem:
 
 **Estado funcional corrente:** A + B + C, #397, Fases 1/2 de autonomia/retificação e
 #410/#427 estão concluídos. O follow-up de testes #429 também foi integrado.
-O escopo original NAV-01/UX-04 entrou pelo #376. PROD-UX-08 e os indicadores do
-#394 aguardam verificação na versão atual; IDs/readiness e objetivos antigos da
-Fase D devem ser qualificados individualmente. Os handoffs #410/#427/#429 são
-históricos concluídos; o handoff corrente único é o da Etapa 5 indicado acima.
+O escopo original NAV-01/UX-04 entrou pelo #376. As sete correções do #438 e a
+ordenação do #448 estão encerradas no escopo registrado em CURRENT_STAGE.
+Os indicadores mensais permanecem suspensos; #394 não é uma implementação aprovada.
+PROD-UX-08, IDs/readiness e objetivos antigos da Fase D devem ser qualificados
+individualmente. Os handoffs #410/#427/#429 e da Etapa 5 são históricos;
+não há handoff de execução corrente designado.
 A [evidência de publicação](evidence/2026-10-07-aggregate-school-sync/README.md)
 preserva certificação, benchmark e limites da sincronização agregada.
 
