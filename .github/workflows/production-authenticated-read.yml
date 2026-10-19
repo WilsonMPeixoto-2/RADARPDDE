@@ -30,7 +30,7 @@ env:
 jobs:
   contracts:
     name: Contratos do smoke autenticado
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 8
 
     steps:
@@ -67,7 +67,7 @@ jobs:
       (vars.RADAR_PRODUCTION_AUTH_SMOKE_ENABLED == 'true' ||
        vars.RADAR_PRODUCTION_AUTH_READ_ENABLED == 'true')
     needs: contracts
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 25
 
     steps:
@@ -152,7 +152,7 @@ jobs:
       vars.RADAR_PRODUCTION_AUTH_SMOKE_ENABLED != 'true' &&
       vars.RADAR_PRODUCTION_AUTH_READ_ENABLED != 'true'
     needs: contracts
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 2
 
     steps:
