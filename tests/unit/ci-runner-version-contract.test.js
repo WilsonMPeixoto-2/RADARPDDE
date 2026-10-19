@@ -25,34 +25,29 @@ const auditedFiles = [
     'gate-remoto-perfis-viewports.yml'
 ];
 
-const fullPilotWorkflows = [
-    'preproduction-full-validation.yml',
-    'supabase-readiness.yml',
-    'functional-reliability-supabase.yml',
-    'functional-reliability-lifecycle.yml',
-    'visual-regression.yml',
-    'validate.yml'
-];
-
-test('piloto Ubuntu 26 usa runners explícitos, preservando demais workflows', () => {
+test('todos os runners Ubuntu do RADAR usam explicitamente 26.04', () => {
     const files = fs.readdirSync(workflowsDir).filter(file => /\.ya?ml$/.test(file));
+    let checked = 0;
     for (const file of files) {
         const content = fs.readFileSync(path.join(workflowsDir, file), 'utf8');
-        assert.doesNotMatch(content, /^\s*runs-on:\s*ubuntu-latest\s*$/m,
-            file + ': runner sem versão explícita durante rollout');
+        const lines = content.split('\n').map(line => line.trim())
+            .filter(line => line.startsWith('runs-on:'));
+        if (!lines.length) continue;
+        for (const line of lines) {
+            assert.doesNotMatch(line, /ubuntu-latest|ubuntu-24\.04/,
+                file + ': runner legado não deve continuar após migração');
+            if (/^runs-on:\s*ubuntu-/.test(line)) {
+                assert.equal(line, 'runs-on: ubuntu-26.04',
+                    file + ': runner explícito deve usar Ubuntu 26.04');
+                checked += 1;
+            }
+        }
     }
+    assert.ok(checked >= 35, 'o conjunto de jobs Ubuntu deve ser auditado integralmente');
     for (const file of auditedFiles) {
         const content = fs.readFileSync(path.join(workflowsDir, file), 'utf8');
-        const expected = fullPilotWorkflows.includes(file) ? 'ubuntu-26.04' : 'ubuntu-24.04';
-        assert.ok(content.includes('runs-on: ' + expected),
-            file + ': runner deve ser ' + expected);
-    }
-    for (const file of fullPilotWorkflows) {
-        const content = fs.readFileSync(path.join(workflowsDir, file), 'utf8');
-        const runnerLines = content.split('\n').filter(line => line.trim().startsWith('runs-on:'));
-        assert.ok(runnerLines.length > 0, file + ': sem jobs');
-        assert.ok(runnerLines.every(line => line.trim() === 'runs-on: ubuntu-26.04'),
-            file + ': todos os jobs do piloto devem ser Ubuntu 26.04');
+        assert.match(content, /^\s*runs-on:\s*ubuntu-26\.04\s*$/m,
+            file + ': runner da rotina deve ser Ubuntu 26.04');
     }
 });
 
