@@ -35,7 +35,7 @@ concurrency:
 jobs:
   sustained-browser-comparison:
     name: Seis sessões reais (${{ matrix.variant }})
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 35
     strategy:
       fail-fast: false
@@ -57,6 +57,19 @@ jobs:
         with:
           node-version: 24
           cache: npm
+      - name: Reservar portas do Supabase fora das portas efêmeras do Linux
+        shell: bash
+        run: |
+          set -euo pipefail
+          # No Ubuntu 26, conexões efêmeras podem ocupar 54322 antes do Docker.
+          # Preserva reservas existentes e atua somente neste runner descartável.
+          current="$(sysctl -n net.ipv4.ip_local_reserved_ports)"
+          reservation='54320-54323'
+          if [[ -n "$current" ]]; then
+            reservation="${current},${reservation}"
+          fi
+          sudo sysctl -w "net.ipv4.ip_local_reserved_ports=${reservation}"
+          sysctl -n net.ipv4.ip_local_reserved_ports
       - name: Instalar ferramentas fixadas
         run: npm ci
       - name: Fixar a raiz do produto testado
@@ -148,7 +161,7 @@ jobs:
     name: Comparação de custo e invariantes
     needs: sustained-browser-comparison
     if: always()
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020

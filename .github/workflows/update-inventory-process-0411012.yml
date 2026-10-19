@@ -18,7 +18,7 @@ concurrency:
 jobs:
   update-production:
     name: Atualizar e verificar escola 04.11.012 em Production
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     env:
       SUPABASE_TELEMETRY_DISABLED: '1'

@@ -27,7 +27,7 @@ concurrency:
 jobs:
   integrity-contracts:
     name: Contratos locais da auditoria
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
 
     steps:
@@ -53,7 +53,7 @@ jobs:
     name: Auditar invariantes agregadas em Production
     if: github.event_name != 'pull_request'
     needs: integrity-contracts
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     env:
       SUPABASE_TELEMETRY_DISABLED: '1'
