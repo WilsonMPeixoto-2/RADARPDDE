@@ -40,7 +40,7 @@ concurrency:
 jobs:
   contracts:
     name: Contratos de posição e composição
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 12
 
     steps:
@@ -71,7 +71,7 @@ jobs:
 
   browser:
     name: Jornadas reais sem salto de tela
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 25
 
     steps:
