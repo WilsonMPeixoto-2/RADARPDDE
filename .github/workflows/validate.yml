@@ -16,7 +16,7 @@ permissions:
 jobs:
   validate:
     name: Sintaxe, auditoria e testes de domínio
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
 
     steps:
@@ -93,7 +93,7 @@ jobs:
   homologacao-supabase-preview:
     name: Auth, perfis, RLS e persistência no Preview
     if: ${{ github.event_name == 'pull_request' && github.head_ref == 'qa/supabase-preview-gate-run' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
       RADAR_DEPLOYMENT_URL: https://radarpdde-d5g8j0esm-wilson-m-peixotos-projects.vercel.app
