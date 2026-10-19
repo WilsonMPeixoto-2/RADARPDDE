@@ -50,7 +50,7 @@ env:
 jobs:
   contact-author:
     name: Autoria real do Histórico de Contatos
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -69,7 +69,7 @@ jobs:
 
   inventory-observation:
     name: Observação patrimonial sem mudar status
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -88,7 +88,7 @@ jobs:
 
   inventory-observation-rpc:
     name: RPC real da observação patrimonial
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
