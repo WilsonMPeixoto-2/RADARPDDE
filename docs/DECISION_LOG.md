@@ -749,3 +749,21 @@ Operações de despesa preservam `bonus_result`: não reabrem consolidação. A 
 Quando a primeira despesa antecede qualquer lançamento de bonificação, a operação composta pode materializar atomicamente a `verification` estrutural vazia necessária ao vínculo sem inventar status de bonificação, consolidar ou criar uma segunda ação administrativa.
 
 **Documento integral:** `docs/decisions/ADR-055-independencia-despesas-bonificacao.md`.
+
+---
+
+## ADR-056 — Colaboração transversal entre escolas: carteira não é autorização de acesso
+
+**Data da decisão:** 18/10/2026  
+**Status:** Aprovada expressamente pelo proprietário do RADAR; implementação e testes de cada superfície a reconciliar com esta decisão.  
+**Escopo:** escolas cadastradas no RADAR (atualmente unidades da 4ª CRE); não altera o universo de escolas existentes no cadastro.
+
+O RADAR PDDE é **uma ferramenta interna de organização de trabalho de um pequeno grupo de colegas**, criada e mantida pelo proprietário, e não um sistema oficial de governo. A atribuição de uma escola a um Controlador, uma carteira, um campo `controller_id` ou um filtro **serve exclusivamente para organizar responsabilidade, apresentação, priorização e autoria; não é impedimento para a atuação colaborativa de outros usuários autorizados**.
+
+**Regra funcional autorizada:** os colegas autenticados e habilitados para determinada operação podem realizar **essa operação em todas as escolas cadastradas no RADAR**, independentemente de quem seja o responsável pela carteira. Não é necessário pedir transferência de escola nem atribuição individual para acessar, editar, registrar ou concluir o trabalho que seu perfil funcional já permite realizar. O proprietário não deseja restrições geográficas/escolares artificiais nem testes que reproduzam tais bloqueios. Isto esclarece e prevalece sobre interpretações anteriores de ADR-021 e da matriz de permissões que transformem a carteira em barreira de acesso. **Perfis continuam descrevendo quais operações pertencem a cada fluxo, não quais escolas podem ser trabalhadas.**
+
+Ao auditar Auth/RLS e frontend, comparar regras e testes com a **experiência real e com esta autorização do proprietário**. Atualizar implementação, testes e documentação de forma coordenada somente quando divergência material for demonstrada. Não declarar esta decisão automaticamente aplicada a todas as camadas antes da contraprova. Preservar identificadores, consistência transacional, autoria, integridade do histórico de Pendências/Notas/Inventário, e diferença entre desativação lógica e exclusão irreversível. Isso protege os dados contra acidentes, não é um bloqueio entre colegas.
+
+**Separação técnica importante:** as garantias pgTAP 32/33 sobre o privilégio PostgreSQL DELETE da credencial de servidor `service_role` **não testam atuação colaborativa entre Controladores ou escolas**. O Production real possui esse grant e rotinas restritas de homologação o utilizam para limpar apenas contas de teste. Ver [auditoria de paridade CLI/RLS de 18/10](audits/2026-10-18-supabase-cli-rls-parity.md); não alterar grants em Production nem expor credenciais administrativas no navegador para simplificar colaboração.
+
+**Prova funcional esperada:** autenticar usuários de diferentes carteiras, confirmar atuação cruzada em escolas cadastradas do RADAR para operações do próprio perfil, manter autoria original, testar gravação/releitura e verificar que os filtros de carteira não retiram permissão. Bloqueios por estado documental, concorrência ou integridade continuam sujeitos a seus próprios contratos e não devem ser confundidos com restrição de escola.
