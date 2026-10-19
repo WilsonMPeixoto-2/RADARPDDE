@@ -25,17 +25,34 @@ const auditedFiles = [
     'gate-remoto-perfis-viewports.yml'
 ];
 
-test('nenhum workflow legado muda de Ubuntu 24 para 26 silenciosamente durante rollout', () => {
+const fullPilotWorkflows = [
+    'preproduction-full-validation.yml',
+    'supabase-readiness.yml',
+    'functional-reliability-supabase.yml',
+    'functional-reliability-lifecycle.yml',
+    'visual-regression.yml',
+    'validate.yml'
+];
+
+test('piloto Ubuntu 26 usa runners explícitos, preservando demais workflows', () => {
     const files = fs.readdirSync(workflowsDir).filter(file => /\.ya?ml$/.test(file));
     for (const file of files) {
         const content = fs.readFileSync(path.join(workflowsDir, file), 'utf8');
         assert.doesNotMatch(content, /^\s*runs-on:\s*ubuntu-latest\s*$/m,
-            file + ': runner sem pin explícito durante rollout');
+            file + ': runner sem versão explícita durante rollout');
     }
     for (const file of auditedFiles) {
         const content = fs.readFileSync(path.join(workflowsDir, file), 'utf8');
-        assert.match(content, /^\s*runs-on:\s*ubuntu-24\.04\s*$/m,
-            file + ': baseline Ubuntu 24.04 deve continuar determinístico');
+        const expected = fullPilotWorkflows.includes(file) ? 'ubuntu-26.04' : 'ubuntu-24.04';
+        assert.ok(content.includes('runs-on: ' + expected),
+            file + ': runner deve ser ' + expected);
+    }
+    for (const file of fullPilotWorkflows) {
+        const content = fs.readFileSync(path.join(workflowsDir, file), 'utf8');
+        const runnerLines = content.split('\n').filter(line => line.trim().startsWith('runs-on:'));
+        assert.ok(runnerLines.length > 0, file + ': sem jobs');
+        assert.ok(runnerLines.every(line => line.trim() === 'runs-on: ubuntu-26.04'),
+            file + ': todos os jobs do piloto devem ser Ubuntu 26.04');
     }
 });
 

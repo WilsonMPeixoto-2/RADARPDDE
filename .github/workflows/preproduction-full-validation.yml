@@ -1,4 +1,5 @@
 name: Homologação integral pré-production
+# Piloto controlado: todos os jobs desta suíte usam Ubuntu 26.04 sem alterar produto.
 
 on:
   push:
@@ -22,7 +23,7 @@ concurrency:
 jobs:
   readiness:
     name: Prontidão completa
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
       - name: Checkout
@@ -39,7 +40,7 @@ jobs:
 
   migration-smoke:
     name: Migrations em PostgreSQL limpo
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     services:
       postgres:
@@ -89,7 +90,7 @@ jobs:
 
   supabase-local:
     name: Supabase local, Auth, RLS e pgTAP
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 35
     steps:
       - name: Checkout
@@ -239,7 +240,7 @@ jobs:
 
   e2e:
     name: Playwright completo desktop
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 45
     steps:
       - name: Checkout
@@ -268,7 +269,7 @@ jobs:
 
   excel-sme:
     name: Excel SME, OOXML e rota pública local
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     steps:
       - name: Checkout
@@ -302,7 +303,7 @@ jobs:
 
   dependencies:
     name: Dependências e segurança
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
       - name: Checkout
@@ -334,7 +335,7 @@ jobs:
 
   lighthouse:
     name: Lighthouse CI desktop
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 25
     steps:
       - name: Checkout
@@ -397,7 +398,7 @@ jobs:
 
   backup-restore:
     name: Backup e restauração descartáveis
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 40
     env:
       RADAR_ALLOW_DISPOSABLE_BACKUP_RESTORE: 'true'
@@ -460,7 +461,7 @@ jobs:
       - dependencies
       - lighthouse
       - backup-restore
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - name: Exigir sucesso de todos os testes
         shell: bash

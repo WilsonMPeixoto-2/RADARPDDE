@@ -16,7 +16,7 @@ concurrency:
 jobs:
   lifecycle:
     name: Criar editar converter excluir avaliar e reanalisar
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 45
     env:
       SUPABASE_TELEMETRY_DISABLED: '1'
