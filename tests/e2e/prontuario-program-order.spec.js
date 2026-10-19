@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const { selectFixtureCompetence } = require('../support/e2e-competence');
 
 const schoolOrder = [
   'BASIC', 'CONECTADA', 'ADOLESCENCIAS', 'PROEC',
@@ -7,6 +8,8 @@ const schoolOrder = [
 
 async function openSchoolWithPrograms(page) {
   await page.goto('/');
+  await page.evaluate(() => window.RadarProductExtensionsReady);
+  await selectFixtureCompetence(page);
   await page.waitForFunction(() => (
     window.RadarDataContext?.ready === true
     && typeof window.RadarProntuarioOperationalUx?.enhance === 'function'
@@ -23,6 +26,11 @@ async function openSchoolWithPrograms(page) {
     ];
     school.competenciaInicial = '2026-01';
     const competence = window.RadarCompetenceContext.getState().activeKey;
+    verificacoes[school.id] = verificacoes[school.id] || {};
+    school.programasIds.forEach(programId => {
+      verificacoes[school.id][`${competence}_${programId}`] = RadarFluxoOperacional.createEmptyVerification();
+    });
+    rebuildOperationalIndexes();
     activeProntuarioCompetencia = competence;
     switchView('prontuario', school.id);
     return school.id;
@@ -59,6 +67,8 @@ test.describe('ordem visual da avaliação no Prontuário', () => {
     ));
     expect(controls).toHaveLength(8);
     expect(controls.every(item => item.rowCount >= 2)).toBe(true);
+    expect(controls.every(item => item.hasBonification)).toBe(true);
+    expect(controls.every(item => item.hasTechnical)).toBe(true);
 
     const anotherMonth = page.locator('.comp-sub-tab:not(.disabled):not(.active)').first();
     await expect(anotherMonth).toBeEnabled();
@@ -66,6 +76,47 @@ test.describe('ordem visual da avaliação no Prontuário', () => {
     await anotherMonth.click();
     await expect(page.locator('.comp-sub-tab[data-competence="' + key + '"]'))
       .toHaveAttribute('aria-pressed', 'true');
+    await expect.poll(() => orderOf(page)).toEqual(schoolOrder);
+  });
+
+  test('controles continuam operáveis nos blocos reordenados, sem perder foco ou rolagem', async ({ page }, testInfo) => {
+    await openSchoolWithPrograms(page);
+    await expect.poll(() => orderOf(page)).toEqual(schoolOrder);
+    const contentArea = page.locator('main.content-area');
+
+    for (const programId of ['BASIC', 'CONECTADA', 'ADOLESCENCIAS', 'RECURSOS']) {
+      const row = page.locator(`#prontuario-verif-rows tr[data-program-id="${programId}"][data-document-key="extCC"]`);
+      const yes = row.getByRole('button', { name: 'Sim', exact: true });
+      const analysis = row.locator('select.select-analise');
+      await row.scrollIntoViewIfNeeded();
+      await expect(yes).toBeEnabled();
+      await yes.click();
+      await expect(yes).toHaveClass(/active-sim|is-selected/);
+      await expect(analysis).toBeEnabled();
+      await analysis.selectOption('Correto');
+      await expect(analysis).toHaveValue('Correto');
+      await analysis.focus();
+      const before = await contentArea.evaluate(element => element.scrollTop);
+      await page.evaluate(() => {
+        window.RadarProntuarioOperationalUx.enhance(new Date(), activeSchoolId);
+        window.RadarProntuarioOperationalUx.enhance(new Date(), activeSchoolId);
+      });
+      await expect(analysis).toBeFocused();
+      expect(await contentArea.evaluate(element => element.scrollTop)).toBe(before);
+      await expect.poll(() => orderOf(page)).toEqual(schoolOrder);
+      await testInfo.attach(`programa-${programId}`, {
+        body: await page.screenshot(), contentType: 'image/png'
+      });
+    }
+
+    await page.locator('.comp-sub-tab[data-competence="2026-01"]').click();
+    await expect.poll(() => orderOf(page)).toEqual(schoolOrder);
+    await page.locator('.comp-sub-tab[data-competence="2026-05"]').click();
+    for (const programId of ['BASIC', 'CONECTADA', 'ADOLESCENCIAS', 'RECURSOS']) {
+      const row = page.locator(`#prontuario-verif-rows tr[data-program-id="${programId}"][data-document-key="extCC"]`);
+      await expect(row.getByRole('button', { name: 'Sim', exact: true })).toHaveClass(/active-sim|is-selected/);
+      await expect(row.locator('select.select-analise')).toHaveValue('Correto');
+    }
     await expect.poll(() => orderOf(page)).toEqual(schoolOrder);
   });
 

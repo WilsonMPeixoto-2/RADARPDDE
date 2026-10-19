@@ -19,7 +19,7 @@ concurrency:
 jobs:
   functional-reliability:
     name: Salvar, recarregar e reler fluxos críticos
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 35
     env:
       SUPABASE_TELEMETRY_DISABLED: '1'
