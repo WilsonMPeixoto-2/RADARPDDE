@@ -5,6 +5,8 @@
 
 Esta matriz representa o contrato funcional vigente entre interface, serviços, Auth, RLS, RPCs e Edge Functions. O baseline mutável fica em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md).
 
+**Precedência de decisão de 18/10/2026 (ADR-056):** atribuição de escola e carteira é organização do trabalho, não autorização exclusiva. Usuários do pequeno grupo interno podem exercer as operações para as quais seu perfil funcional está habilitado **em qualquer escola cadastrada no RADAR (atualmente 4ª CRE)**, independentemente de `controller_id` ou carteira individual. Esta declaração prevalece sobre interpretações restritivas desta matriz quanto à escola responsável, mas não significa que toda função possa realizar qualquer tipo de operação, nem autoriza reescrever integridade, autoria ou lógica financeira. O estado efetivo nas camadas de UI/serviço/RLS deve ser verificado e diferenças reconciliadas com prova, sem presumir implementação já completa. A credencial server-side `service_role` é outro mecanismo e não define quem pode acessar a carteira.
+
 ## 1. Papéis
 
 | Papel | Nome exibido | Natureza | Escopo padrão |
