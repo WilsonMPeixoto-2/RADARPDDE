@@ -1,4 +1,5 @@
 name: Homologação integral pré-production
+# Piloto controlado: todos os jobs desta suíte usam Ubuntu 26.04 sem alterar produto.
 
 on:
   push:
