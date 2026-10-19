@@ -70,10 +70,14 @@ test('dados da unidade usam grupos sem colisão com o CSS operacional legado', (
 });
 
 
-test('ordem visual da avaliação prioriza PDDE Básico sem reordenar a fonte de dados', () => {
+test('ordenação da avaliação usa somente IDs canônicos e não modifica programas da escola', () => {
     assert.match(source, /function orderProgramGroupsForPresentation/);
-    assert.match(source, /programId === 'BASIC' \? 0 : 1/);
-    assert.match(source, /leftPriority - rightPriority \|\| left\.sourceIndex - right\.sourceIndex/);
-    assert.match(source, /rowsContainer\.appendChild\(row\)/);
+    assert.match(source, /PROGRAM_PRESENTATION_PRIORITY/);
+    assert.match(source, /CONECTADA:\s*1/);
+    assert.match(source, /ADOLESCENCIAS:\s*1/);
+    assert.match(source, /RECURSOS:\s*2/);
+    assert.match(source, /connectedIndex > adolescentsIndex/);
+    assert.match(source, /ordered\.every\(\(item, index\) => item\.sourceIndex === index\)/);
+    assert.match(source, /rowsContainer\.insertBefore\(row, reference\)/);
     assert.doesNotMatch(source, /programasIds\.sort\(/);
 });
