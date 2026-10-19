@@ -1,7 +1,7 @@
 # AGENTS.md — RADAR PDDE 2026
 
 **Classe documental:** Canônico — roteador obrigatório para agentes e novos chats  
-**Atualizado em:** 28 de setembro de 2026
+**Atualizado em:** 18 de outubro de 2026
 
 ## 1. Leitura obrigatória
 
@@ -17,6 +17,10 @@ Antes de analisar funcionalmente ou alterar o repositório, leia **nesta ordem**
 8. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` e seu JSON fonte quando a frente tocar operação mapeada;
 9. ADRs e referências especializadas da área afetada;
 10. planos, auditorias, evidências e demais handoffs históricos apenas depois da leitura canônica e somente como contexto do seu SHA/momento.
+
+**Decisão funcional obrigatória (ADR-056):** o RADAR é ferramenta interna de equipe pequena. A carteira/atribuição escolar organiza o trabalho, não restringe colegas autenticados que executam uma operação já permitida pelo seu perfil: todas as escolas cadastradas no RADAR são colaborativas, independentemente do responsável. Antes de propor bloqueio por escola, CRE ou carteira, ler [docs/DECISION_LOG.md](docs/DECISION_LOG.md), ADR-056, e [matriz de permissões](docs/reference/SUPABASE_PERMISSIONS_MATRIX.md). Nunca confundir privilégios administrativos server-side `service_role` com atribuição de escolas de colegas; preservar integridade documental, autoria, credenciais e regras operacionais sem criar restrições artificiais de acesso.
+
+**Rota obrigatória de infraestrutura:** para CI/GitHub Actions, troca de runner, Docker/registry, Supabase CLI, geração de tipos ou atualização de tooling, ler [docs/runbooks/CI_TOOLCHAIN_REGISTRY.md](docs/runbooks/CI_TOOLCHAIN_REGISTRY.md) antes de propor alterações. Consultar o SHA, a versão e o log atuais; não confundir falha externa com defeito do produto. Este caminho complementa, não substitui, a leitura canônica acima.
 
 **Nenhuma análise funcional pode começar por um plano histórico, PR antigo, memória de conversa ou arquivo isolado.**
 

@@ -1,7 +1,7 @@
 # Governança de testes do RADAR PDDE
 
 **Estado:** referência operacional vigente  
-**Atualizado em:** 28 de setembro de 2026
+**Atualizado em:** 18 de outubro de 2026
 
 ## 1. Finalidade
 
@@ -41,6 +41,14 @@ evidência observável e decisão de alterar produto/teste ou continuar investig
 Mudar uma expectativa exige explicar por que a anterior não representa mais a
 jornada vigente. Comparações de performance exigem baseline e candidato completos
 e comparáveis; preparação incompleta de um lado invalida os deltas daquele run.
+
+### Evidências de CI e falhas externas (caso GHCR, 18/10/2026)
+
+Um job vermelho por limite do registry Docker não autoriza modificar comportamento, remover gate, desabilitar typegen, atualizar indiscriminadamente dependências nem declarar aprovação de steps pulados. Registrar **SHA + run + job + passo + erro**, distinguir causa externa de falha SQL/RLS, e exigir contraprova na execução que volta a passar. A solução validada no PR #449 usa GHCR exclusivamente na geração local de tipos, documentada no [runbook de CI](../runbooks/CI_TOOLCHAIN_REGISTRY.md). Não generalizar o workaround para outras operações.
+
+**Contraprova obrigatória para contratos de banco:** um pgTAP vermelho não prova, isoladamente, que uma atualização do tooling regrediu o sistema. Em 18/10, os testes 32/33 de service_role reprovaram a CLI 2.121.0, porém consultas somente de leitura constataram que seus resultados coincidiam com os grants efetivos de Production e contrariavam a expectativa do teste. Antes de alterar política, grants, asserção ou bloquear uma versão definitivamente, confrontar **ACL efetiva do banco correto + migration versionada + contrato funcional + bootstrap real**. A [auditoria datada](../audits/2026-10-18-supabase-cli-rls-parity.md) registra as evidências e hipóteses em aberto; ela não autoriza corrigir SQL às cegas.
+
+Um teste E2E que falha em geometria ou timing e passa no retry deve manter a falha inicial rastreável. Passagem posterior não prova inexistência de defeito, assim como a presença do controle no DOM não prova usabilidade ou acionamento efetivo. Separar **resultado automatizado**, **causa classificada** e **homologação outside-in efetivamente realizada**. Nunca rotular skip ou não executado como green.
 
 ## 4. Estratégia proporcional
 
