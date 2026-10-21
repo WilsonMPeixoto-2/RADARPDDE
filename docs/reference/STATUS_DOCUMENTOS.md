@@ -1,7 +1,7 @@
 # Matriz de validade documental
 
 **Classe documental:** Canônico  
-**Atualizado em:** 19 de outubro de 2026
+**Atualizado em:** 21 de outubro de 2026
 
 ## 1. Finalidade e precedência
 
@@ -25,7 +25,7 @@ PR aberto, Preview ou documento antigo não altera Production.
 | docs/audits/2026-10-11-controller-journey/ENVIRONMENT.md e CONTEXT.md | Evidência histórica datada | limitações e invariantes do experimento A–N em seu SHA; não homologação de novas jornadas nem justificativa para reabrir #438 |
 | AGENTS.md | Canônico | roteador obrigatório |
 | docs/runbooks/CI_TOOLCHAIN_REGISTRY.md | Runbook operacional vigente de infraestrutura de CI | diagnóstico Docker ECR/GHCR, erro postgres-meta, versões de CLI, runner Ubuntu 24/26, atualização segura e roteamento de evidências; leitura obrigatória para agentes que alteram tooling ou workflows |
-| docs/audits/2026-10-18-supabase-cli-rls-parity.md | Auditoria datada com investigação aberta | comparação CLI 2.114/2.121 e metadados de Production; ressalva à leitura automática de pgTAP 32/33 e bloqueio preventivo #453 em HOLD; não autoriza GRANT/REVOKE |
+| docs/audits/2026-10-18-supabase-cli-rls-parity.md | Auditoria datada com investigação aberta | comparação CLI 2.114/2.121 e metadados de Production; ressalva à leitura automática de pgTAP 32/33; #453 encerrado sem merge e CLI 2.114.0 preservada preventivamente; não autoriza GRANT/REVOKE |
 | docs/superpowers/specs/2026-10-04-operational-sync-simplification-design.md | Design de referência do #410 | direção implementada; confrontar capacidades e limites com código/ADRs vigentes |
 | docs/superpowers/plans/2026-10-04-operational-sync-simplification-implementation.md | Plano histórico do #410 | checkpoints preservados; não forma fila de reimplementação |
 | docs/evidence/2026-10-04-pr410-school-scope/README.md e JSONs | Evidência da caracterização | cobertura, exclusões, RLS, relações entre escolas e limites das provas locais; não certifica a RPC futura |
@@ -33,6 +33,8 @@ PR aberto, Preview ou documento antigo não altera Production.
 | docs/reference/PRODUCT_SURFACE_CATALOG.md | Referência vigente | superfícies e jornadas |
 | docs/reference/VERCEL_OBSERVABILITY.md | Referência operacional vigente | contrato de instrumentação Web Analytics/Speed Insights, estado de ativação, validação de campo e decisão de não usar o pacote redundante do #416 |
 | docs/CURRENT_STAGE.md | Canônico | estado funcional e prioridade; head/deployment exatos devem ser revalidados ao vivo quando relevantes |
+| docs/evidence/2026-10-21-tooling-mobile-reconciliation.md | Evidência datada de reconciliação | merges #462/#444/#457/#463/#461/#467/#466/#464, CI e limites de publicação; não é handoff corrente nem homologação de desempenho sistêmico |
+| docs/evidence/2026-10-21-tooling-refresh.md e docs/evidence/2026-10-21-supabase-sdk-update.md | Checkpoints históricos de candidatos | preservam RED/GREEN e limites locais; menções a Draft/aguardar CI foram superadas pelos merges de 21/10 e pela evidência de reconciliação |
 | docs/handoff/2026-10-07-pr429-reconnect-proof.md | Histórico concluído | #429 integrado em 07/10; candidato final 761560c0 com nove workflows verdes, RED e contraprova registrados; não reabre produto/performance |
 | docs/audits/2026-10-08-reconciliacao-planos-demandas.md | Evidência datada de reconciliação | planos, demandas, regras posteriores e PRs confrontados na base a5a67d34; não cria regra ou fila independente de CURRENT_STAGE |
 | docs/handoff/2026-10-07-aggregate-school-sync.md | Histórico concluído | #427 integrado e publicado; RED/GREEN, métricas e registro de encerramento |
