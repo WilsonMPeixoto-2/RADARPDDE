@@ -1,5 +1,15 @@
 # RADAR PDDE — estado atual e retomada
 
+## Atualização coordenada do SDK — 21/10/2026 (candidato, sem publicação)
+
+O PR #457 alinha pacote, bundle reproduzível do navegador e import da Edge
+Function em Supabase JS 2.118.0, sobre `main@d1f1dad6`. Unitários locais
+1.368/1.368, integração 8/8, contratos dirigidos e tipagem aprovados. Aguardar
+CI e verificar publicação explícita da Edge Function antes de considerar release.
+[Evidências, RED/GREEN e limites](evidence/2026-10-21-supabase-sdk-update.md).
+CLI 2.114.0, Auth/RLS, regras funcionais e Production preservados. As atualizações
+de Actions (#444), Playwright (#461) e Prettier (#462) permanecem independentes.
+
 ## Encerramento da ordenação do Prontuário e CI — 19/10/2026
 
 **Checkpoint vigente desta entrega.** Os checkpoints anteriores são históricos e não reabrem frentes concluídas. Não há handoff de execução corrente designado; o handoff da Etapa 5 preserva evidências históricas do #438.
