@@ -1,5 +1,10 @@
 # Continuação de tooling e documentação — 21/10/2026
 
+**Estado final:** #464, #468, #469, #470 e #471 integrados; Production confirmada
+em `c480e2445e1ddbdbe91369dfb7f1182a7d73a944`, READY. Os 19 workflows do
+candidato final #471 e os sete workflows de push pós-merge passaram. Esta
+manutenção está concluída; os checkpoints de espera abaixo são históricos.
+
 Classe: evidência datada para continuidade; não é autoridade funcional nem handoff corrente.
 Checkpoint inicial desta evidência: main `6a6dab30e92eb9ae12d9d84b153b68618192fb74`.
 Este arquivo fica em branch documental separada, vinculada pelos PRs, para preservar
@@ -88,7 +93,8 @@ Startup e fixtures concluíram, e o spec foi efetivamente executado.
 no viewport; medição recebida **0.9488689303398132** para ratio esperado 1.
 A mesma assinatura de geometria consta dos registros anteriores da #460.
 O retry serial do primeiro caso encontrou ESC-INDEP já utilizada onde esperava
-tabela vazia; isso não identifica por si só a falha original da primeira tentativa.
+tabela vazia; essa observação no retry não transforma a ocorrência de viewport
+em evidência de perda de persistência. A causa-raiz da recorrência permanece aberta.
 
 Artefato inicial `12382213483`, 43.742.896 bytes, digest SHA-256
 `17b4c10ec49a5a7634c76ffd16d4d43feb02dd1a4ce115c95dcfae3e0d7a8b5c`.
@@ -212,3 +218,29 @@ O agente principal também executou o smoke público canônico
 uma tentativa: **approved**, SHA correto, **52 assets**, leitura anônima
 **blocked-401**. Não confundir esse teste de negação anônima com uma sessão
 autenticada de Controlador; nenhuma credencial pessoal foi utilizada.
+
+Os **sete workflows de push pós-merge** também concluíram com sucesso, sem
+solicitação de repetição nessa etapa:
+
+| Workflow da main c480e244 | Run | Resultado |
+| --- | --- | --- |
+| Saúde das dependências | 39683673941 | success |
+| Validar RADAR PDDE | 39683674190 | success |
+| Lighthouse CI | 39683674041 | success |
+| Monitoramento contínuo de Production | 39683673986 | success |
+| CodeQL | 39683674054 | success |
+| Regressão visual desktop | 39683674118 | success |
+| Supabase readiness | 39683674074 | success |
+
+No readiness, `migration-smoke`, `readiness` e `supabase-local` concluíram com
+sucesso, incluindo frontend/Auth/RLS no ambiente descartável. Os runs foram
+conferidos por SHA e evento `push`; o wrapper MCP de runs por commit filtra
+somente eventos de PR e não serviria para afirmar esta cobertura pós-merge.
+Uma execução dinâmica do Dependabot para MSW não integra essa contagem nem
+autoriza instalar MSW 3 nesta manutenção.
+
+**Encerramento:** ferramentas e documentação corrente reconciliadas, candidatos
+testados no próprio HEAD e publicação verificada. Falhas históricas, avisos do
+comparador e limitações operacionais continuam explícitos. Não há alteração de
+produto pendente desta rodada, nem autorização implícita para reabrir as frentes
+separadas descritas acima.
