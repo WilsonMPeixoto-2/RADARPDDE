@@ -27,7 +27,7 @@ test('mantém o renderer institucional interno e fixa ExcelJS somente para o pro
     assert.doesNotMatch(initialLoader, /vendor\/exceljs\.min\.js/);
     assert.match(runtimeLoader, /\/vendor\/exceljs\.min\.js/);
     assert.doesNotMatch(lockfile, /"node_modules\/@lhci\/cli"/);
-    assert.equal(packageJson.devDependencies.prettier, '3.9.9');
+    assert.equal(packageJson.devDependencies.prettier, '3.9.10');
     assert.equal(packageJson.scripts.format, 'prettier . --write --ignore-unknown');
     assert.equal(packageJson.scripts['format:check'], 'prettier . --check --ignore-unknown');
     const prettierIgnore = read('.prettierignore');
@@ -261,7 +261,7 @@ test('tooling A/B fixa ambiente, qualidade CSS, revisão de dependências e regr
     const dependencyReview = read('.github/workflows/dependency-review.yml');
     const visualConfig = read('playwright.visual.config.js');
 
-    assert.equal(packageJson.devDependencies['@supabase/supabase-js'], '2.117.3');
+    assert.equal(packageJson.devDependencies['@supabase/supabase-js'], '2.118.0');
     assert.equal(packageJson.devDependencies.stylelint, '17.16.0');
     assert.equal(packageJson.devDependencies['stylelint-config-recommended'], '18.0.0');
     assert.equal(packageJson.scripts['lint:css'], 'stylelint "styles.css" "src/styles/**/*.css"');

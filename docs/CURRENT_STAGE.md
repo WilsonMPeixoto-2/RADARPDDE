@@ -1,5 +1,24 @@
 # RADAR PDDE — estado atual e retomada
 
+## Atualização coordenada do SDK — 21/10/2026 (candidato, sem publicação)
+
+O PR #457 alinha pacote, bundle reproduzível do navegador e import da Edge
+Function em Supabase JS 2.118.0, sobre `main@c38c144c`. Unitários locais
+1.368/1.368, integração 8/8, contratos dirigidos e tipagem aprovados. A CI anterior teve 20/20 workflows aprovados; no HEAD reconciliado, revalidar CI e verificar publicação explícita da Edge Function antes de considerar release.
+[Evidências, RED/GREEN e limites](evidence/2026-10-21-supabase-sdk-update.md).
+CLI 2.114.0, Auth/RLS, regras funcionais e Production preservados. As atualizações
+de Actions (#444) e Prettier (#462) já foram integradas; Playwright (#461) permanece independente.
+
+## Manutenção isolada de tooling — 21/10/2026 (Prettier e Actions publicados; Playwright pendente)
+
+Baseline histórico inicial `d1f1dad60778c1b8f67bb660e8ad06736b9ab219`; `main` avançou após #462 (`291ec534`) e #444 (`c38c144c`). As atualizações
+de Playwright (#461), Prettier (#462) e GitHub Actions (#444) são independentes
+das frentes funcionais/diagnósticas abaixo. O #462 concluiu 19 workflows sem falha e foi integrado; o #461 reproduziu a asserção geométrica já registrada na issue #460 e
+permanece Draft. No #444 foram reconciliados dois contratos de SHA, com RED/GREEN
+e 1.368 unitários aprovados; 29 workflows aprovados e merge publicado em Production READY.
+[Evidências e limites](evidence/2026-10-21-tooling-refresh.md). CLI 2.114.0,
+Auth/RLS, runtime do produto e Production preservados neste checkpoint.
+
 ## Encerramento da ordenação do Prontuário e CI — 19/10/2026
 
 **Checkpoint vigente desta entrega.** Os checkpoints anteriores são históricos e não reabrem frentes concluídas. Não há handoff de execução corrente designado; o handoff da Etapa 5 preserva evidências históricas do #438.
