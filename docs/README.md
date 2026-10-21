@@ -8,8 +8,16 @@ O [handoff da Etapa 5](audits/2026-10-11-controller-journey/HANDOFF.md) é hist�
 [CURRENT_STAGE.md](CURRENT_STAGE.md) registra evidências e residuais; não há handoff
 de execução corrente designado. Isso não encerra a auditoria ampla A–N ou o desempenho sistêmico.
 
+**Manutenção de 21/10:** Prettier #462, Actions #444, Supabase JS #457,
+medição E2E #463, Playwright #461, portas de CI #467, acessibilidade #466 e
+Axe #464 foram integrados. A [reconciliação de tooling](evidence/2026-10-21-tooling-mobile-reconciliation.md)
+preserva SHAs, provas, falhas iniciais e limites de publicação. É evidência datada,
+não nova autoridade funcional; [CURRENT_STAGE.md](CURRENT_STAGE.md) mantém o estado
+mutável. A issue #460 continua aberta apenas para os casos não resolvidos, sem
+reabrir a medição geométrica já corrigida no #463.
+
 **Classe documental:** Canônico — índice e rota de leitura  
-**Atualizado em:** 19 de outubro de 2026
+**Atualizado em:** 21 de outubro de 2026
 
 ## 1. Rota obrigatória
 

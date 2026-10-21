@@ -1,27 +1,29 @@
 # RADAR PDDE — estado atual e retomada
 
-## Atualização coordenada do SDK — 21/10/2026 (candidato, sem publicação)
+## Manutenção de tooling e reconciliação — 21/10/2026
 
-O PR #457 alinha pacote, bundle reproduzível do navegador e import da Edge
-Function em Supabase JS 2.118.0, sobre `main@c38c144c`. Unitários locais
-1.368/1.368, integração 8/8, contratos dirigidos e tipagem aprovados. A CI anterior teve 20/20 workflows aprovados; no HEAD reconciliado, revalidar CI e verificar publicação explícita da Edge Function antes de considerar release.
-[Evidências, RED/GREEN e limites](evidence/2026-10-21-supabase-sdk-update.md).
-CLI 2.114.0, Auth/RLS, regras funcionais e Production preservados. As atualizações
-de Actions (#444) e Prettier (#462) já foram integradas; Playwright (#461) permanece independente.
+**Checkpoint corrente desta frente:** `main@855fa0d71322dd133dd9f41ddbf36daba10d513c`, após integração do Axe #464. Prettier #462, Actions #444, SDK #457, medição E2E #463, Playwright #461, reserva de portas #467 e acessibilidade do Dashboard #466 também foram integrados. Não retomar esses PRs como candidatos pendentes.
 
-## Manutenção isolada de tooling — 21/10/2026 (Prettier e Actions publicados; Playwright pendente)
+- **Versões na main:** Prettier 3.9.10, Supabase JS 2.118.0, Playwright 1.64.1 e Axe 4.14.0. Node 24 e CLI Supabase 2.114.0 preservados. As Actions continuam fixadas em SHA.
+- **Publicação verificada em 21/10, após #464:** Vercel `dpl_FGfg4ffwqBXJqN4RW9bVwKMy91bV`, READY às 20:41:41.654 UTC, domínio e manifesto públicos HTTP 200 no SHA `855fa0d71322dd133dd9f41ddbf36daba10d513c`. Bundle público 2.118.0 com hash homologado; Edge Function `team-account-management` ACTIVE v341, SDK 2.118.0 e `verify_jwt=true`, fonte `index.ts` idêntica à main. São leituras de versão/publicação, não jornada autenticada humana nem CRUD institucional. Revalidar esses identificadores antes de depender deles em outra entrega.
+- **CI do Axe:** HEAD `daccec00f795d83f68fd8f57c1e7aeeb84529706`, 19/19 workflows aprovados. [E2E 39666305743](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39666305743): 226 aprovados, 68 pulados, nenhuma falha, incluindo scan Axe 4.14.0 e contrato dos cinco cartões. [Uso real 39666305795](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39666305795): ambas as variantes e comparador concluídos; 10 advertências diagnósticas de custo, sem budgets estabelecidos e com baseline histórica #408. Não atribuir ganho de fluidez ao upgrade do scanner.
+- **Instrumento e produto foram separados:** #463 corrigiu a medição da primeira linha textual do modal, sem CSS/tolerância artificial; #466 corrigiu o nome acessível dos cartões preservando filtros e estilo; #467 reservou portas no runner descartável, sem alteração de banco ou runtime. O Caso B da #460 está resolvido; o Caso A de prontidão/hidratação após reload continua aberto.
+- **Próxima atualização delimitada:** dependency-cruiser, ESLint e Knip estão em avaliação independente, ainda sem homologação neste checkpoint. Não antecipar versões instaladas ou integração. MSW 3, CLI Supabase, PostgreSQL hospedado, credenciais e recursos pagos permanecem frentes separadas.
+- **Frentes preservadas:** #446/#447 continuam diagnósticos Draft, não correções aprovadas de desempenho; indicadores mensais permanecem suspensos. Esta manutenção não reabre auditoria funcional nem encerra as hipóteses sistêmicas.
 
-Baseline histórico inicial `d1f1dad60778c1b8f67bb660e8ad06736b9ab219`; `main` avançou após #462 (`291ec534`) e #444 (`c38c144c`). As atualizações
-de Playwright (#461), Prettier (#462) e GitHub Actions (#444) são independentes
-das frentes funcionais/diagnósticas abaixo. O #462 concluiu 19 workflows sem falha e foi integrado; o #461 reproduziu a asserção geométrica já registrada na issue #460 e
-permanece Draft. No #444 foram reconciliados dois contratos de SHA, com RED/GREEN
-e 1.368 unitários aprovados; 29 workflows aprovados e merge publicado em Production READY.
-[Evidências e limites](evidence/2026-10-21-tooling-refresh.md). CLI 2.114.0,
-Auth/RLS, runtime do produto e Production preservados neste checkpoint.
+[Evidência e proveniência da reconciliação](evidence/2026-10-21-tooling-mobile-reconciliation.md). Não há handoff de execução corrente designado; os checkpoints de candidatos abaixo são históricos, superados pelo código e pelos merges relacionados acima.
+
+## Histórico do candidato SDK — 21/10/2026 (superado pelo merge #457)
+
+O [checkpoint original](evidence/2026-10-21-supabase-sdk-update.md) preserva os RED/GREEN locais e os limites anteriores à publicação. O #457 foi integrado em `3ca37a5d23481f9f2893dade07bb1d415bd15821` após 20/20 workflows do HEAD reconciliado `6e649fc4dae015a49b5691236a2eddf8db4e7065`; a Edge Function hospedada foi conferida explicitamente. Menções a candidato/Draft/aguardar CI nesse arquivo descrevem sua data, não a fila atual.
+
+## Histórico da manutenção inicial — 20–21/10/2026 (superado pelos merges)
+
+A baseline inicial era `d1f1dad60778c1b8f67bb660e8ad06736b9ab219`. [Evidência local original](evidence/2026-10-21-tooling-refresh.md) e [checkpoint remoto imutável `91cc1783`](https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/91cc1783640f5551df34d07b9e74ca563d45aa66/docs/evidence/2026-10-21-tooling-refresh-final.md) preservam os resultados, falhas iniciais e repetições daquela rodada. O Playwright inicialmente permaneceu Draft por #460; após #463, o HEAD reconciliado passou 19/19 workflows e foi integrado em #461. Não repetir as correções nem reutilizar o estado pendente desse momento como descrição da main.
 
 ## Encerramento da ordenação do Prontuário e CI — 19/10/2026
 
-**Checkpoint vigente desta entrega.** Os checkpoints anteriores são históricos e não reabrem frentes concluídas. Não há handoff de execução corrente designado; o handoff da Etapa 5 preserva evidências históricas do #438.
+**Checkpoint histórico de encerramento em 19/10.** A entrega continua encerrada; versões, PRs e publicações posteriores são descritos no checkpoint de 21/10 acima. Não há handoff de execução corrente designado; o handoff da Etapa 5 preserva evidências históricas do #438.
 
 - **Ordenação do Prontuário:** [PR #448](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/448) integrado em `55a3bf8df8e9ff130102bbca681c21d6247c9596`, candidato `d7bcc2f0bf5aec00024a8e8d23fcdf96da08745d`. Básico → Qualidade → Equidade; Conectada antes de Adolescências quando ambas presentes. Critérios de avaliação, persistência, Auth/RLS, SQL e carregamento operacional preservados.
 - **Prova funcional:** 12/12 workflows do candidato concluídos com sucesso; [E2E final](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39231461006), job `118042343723`, com 225 aprovados e 68 ignorados; [ciclo funcional](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39231460958), job `117993810462`, com 21/21 aprovados após repetição isolada. O E2E dirigido usa oito programas sintéticos, opera bonificação/análise, troca competências, verifica foco/rolagem e ausência de novas movimentações em grade já ordenada. Capturas reais dos quatro blocos foram abertas e inspecionadas. Não houve Preview interativo READY; não confundir a inspeção das jornadas Playwright com sessão interativa independente em Preview.
