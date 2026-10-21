@@ -134,3 +134,81 @@ testes de escrita em Production, nem novas regras de negócio.
 Continuidade técnica: o `gh` CLI passou a responder 401 durante a sessão;
 Git e conector GitHub continuaram funcionais. Não houve rotação nem impressão
 de credenciais. Worktrees históricos e arquivos locais de outras frentes foram preservados.
+
+## Resultado superveniente do #471
+
+A única repetição nativa, job `119497541406`, concluiu **21/21**, sem falhas,
+instáveis ou ignorados. O HEAD `780d0daa` terminou **19/19 workflows aprovados**.
+O desktop concluiu **226 aprovados, 68 pulados**, nenhuma falha.
+O vermelho inicial permanece descrito acima; um resultado posterior não
+comprova que a condição intermitente foi corrigida.
+
+O #471 foi integrado em **`c480e2445e1ddbdbe91369dfb7f1182a7d73a944`**,
+em 21/10/2026 às **22:03:40 UTC (19:03:40 de Brasília)**.
+Árvore do merge idêntica à do HEAD homologado:
+`61153dffa7409850ae3533b7bbcae9fea37b0126`.
+O diff contra o candidato é vazio, sem mudança adicional durante o merge.
+
+| Workflow do HEAD integrado | Run | Resultado final |
+| --- | --- | --- |
+| Dependency Review | [39677714887](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39677714887) | success |
+| Reprodutibilidade do bundle Ajv | [39677714853](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39677714853) | success |
+| Saúde das dependências | [39677714862](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39677714862) | success |
+| Validar RADAR PDDE | [39677714768](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39677714768) | success |
+| Lighthouse CI | [39677714854](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39677714854) | success |
+| CodeQL | [39677714899](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39677714899) | success |
+| Compatibilidade controlada Ubuntu 24.04 x 26.04 | [39677715015](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39677715015) | success |
+| Homologação do Excel SME | [39677714765](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39677714765) | success |
+| Confiabilidade funcional com Supabase real | [39677714922](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39677714922) | success |
+| Supabase readiness | [39677714784](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39677714784) | success |
+| Gate remoto de perfis e viewports | [39677714813](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39677714813) | success |
+| Estabilidade de posição do Prontuário | [39677714945](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39677714945) | success |
+| Regressão visual desktop | [39677714792](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39677714792) | success |
+| Backup e restauração descartáveis | [39677715313](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39677715313) | success |
+| Hardening específico de sincronização operacional | [39677714803](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39677714803) | success |
+| Testes E2E Playwright | [39677714832](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39677714832) | success |
+| Homologação integral pré-production | [39677714780](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39677714780) | success |
+| Uso real operacional com volume semelhante a Production | [39677714971](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39677714971) | success |
+| Ciclos funcionais reais com Supabase | [39677714809](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39677714809) | success |
+
+### Comparação sustentada, sem atribuição indevida
+
+O artefato `12383975089` do run `39677714971` foi baixado e aberto:
+16.154 bytes, SHA-256
+`354c9d78576cbe57931d4999430dc393bfde716693ca58062713c497aa3031b1`.
+Status `diagnostic-comparison-complete`, **seis advertências diagnósticas**,
+budgets `not-established/report-only`.
+
+| Observação | Baseline histórica #408 | Candidato atual |
+| --- | --- | --- |
+| Rodadas / gestos / escritas confirmadas | 400 / 1.107 / 1.107 | 400 / 1.107 / 1.107 |
+| Tentativas / abortos de leitura no navegador | 26 / 1 | 82 / 63 |
+| Payload observado | 31.890.675 bytes | 9.317.612 bytes |
+| Execuções SQL concluídas | 46 | 43 |
+| Tempo bloqueante Long Tasks | 65.888 ms | 67.105 ms |
+| Frames amostrados com opacidade reduzida | 767 | 0 |
+| Erros de página | 0 | 0 |
+
+Ambas as variantes completaram a jornada, a reconexão e a comparação final.
+Não é comparação incremental da main anterior com Knip: o histórico inclui as
+mudanças de sincronização anteriores e durações/runners distintos. Tentativas
+HTTP não equivalem a execuções SQL; o frescor durante atividade não é medido por
+essa prova. O aumento de tentativas/aborts e de trabalho bloqueante não foi
+omitido nem tratado como efeito causal deste pacote. Não reabrir arquitetura
+com base apenas nessa comparação histórica de uma atualização de tooling.
+
+### Publicação final do #471 confirmada
+
+Deployment automático **`dpl_3dzovudawxyfkxAugWCsJkTrY7kQ`**, target Production,
+**READY às 22:04:31.671 UTC (19:04:31 de Brasília)**, origem
+`c480e2445e1ddbdbe91369dfb7f1182a7d73a944`.
+Alias oficial associado sem aliasError; página e manifesto HTTP 200, mesmo SHA
+e `dataMode=supabase-production`. Bundle público 2.118.0, 265.570 bytes, mantém
+o hash informado acima. Verificação somente leitura, sem deploy manual,
+sessão humana autenticada ou alteração do Supabase.
+
+O agente principal também executou o smoke público canônico
+`scripts/check-production-system.mjs` com `--expected-commit` no merge final e
+uma tentativa: **approved**, SHA correto, **52 assets**, leitura anônima
+**blocked-401**. Não confundir esse teste de negação anônima com uma sessão
+autenticada de Controlador; nenhuma credencial pessoal foi utilizada.
