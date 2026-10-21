@@ -1,7 +1,7 @@
 # Matriz de validade documental
 
 **Classe documental:** Canônico  
-**Atualizado em:** 18 de outubro de 2026
+**Atualizado em:** 19 de outubro de 2026
 
 ## 1. Finalidade e precedência
 
@@ -83,10 +83,14 @@ O servidor canônico e suas correções não alteraram schema, migrations, RPCs,
 
 ## 4. Handoff corrente e histórico
 
-O handoff corrente único é `docs/audits/2026-10-11-controller-journey/HANDOFF.md`,
-indicado no topo de `CURRENT_STAGE.md`. #410/#427/#429 estão encerrados.
+Não há handoff de execução corrente designado no checkpoint de 19/10 de
+`CURRENT_STAGE.md`. `docs/audits/2026-10-11-controller-journey/HANDOFF.md` é histórico:
+preserva a auditoria A–N e os checkpoints das sete correções encerradas pelo #438,
+sem constituir uma atribuição atual nem certificar o desempenho sistêmico.
+#410/#427/#429 e a ordenação do #448 estão encerrados nos respectivos escopos.
 O relatório de 08/10 é evidência da reconciliação; checkpoints preservados não
-reabrem as entregas concluídas. A Etapa 5 executa jornadas, não novas regras canônicas.
+reabrem as entregas concluídas. Uma futura frente deve ser designada explicitamente
+em `CURRENT_STAGE.md`, sem retomar automaticamente o handoff antigo.
 
 Demanda histórica a verificar: `docs/handoff/2026-09-28-prod-ux-08-drawer-clipping.md` — ponto de reprodução do clipping desktop. A triagem atual prevê observação da versão vigente antes de qualquer correção; #397/#404 não comprovam seu encerramento.
 

@@ -1,6 +1,25 @@
 # RADAR PDDE — estado atual e retomada
 
-## Checkpoint de infraestrutura CI — 18/10/2026 (posterior ao #438)
+## Encerramento da ordenação do Prontuário e CI — 19/10/2026
+
+**Checkpoint vigente desta entrega.** Os checkpoints anteriores são históricos e não reabrem frentes concluídas. Não há handoff de execução corrente designado; o handoff da Etapa 5 preserva evidências históricas do #438.
+
+- **Ordenação do Prontuário:** [PR #448](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/448) integrado em `55a3bf8df8e9ff130102bbca681c21d6247c9596`, candidato `d7bcc2f0bf5aec00024a8e8d23fcdf96da08745d`. Básico → Qualidade → Equidade; Conectada antes de Adolescências quando ambas presentes. Critérios de avaliação, persistência, Auth/RLS, SQL e carregamento operacional preservados.
+- **Prova funcional:** 12/12 workflows do candidato concluídos com sucesso; [E2E final](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39231461006), job `118042343723`, com 225 aprovados e 68 ignorados; [ciclo funcional](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39231460958), job `117993810462`, com 21/21 aprovados após repetição isolada. O E2E dirigido usa oito programas sintéticos, opera bonificação/análise, troca competências, verifica foco/rolagem e ausência de novas movimentações em grade já ordenada. Capturas reais dos quatro blocos foram abertas e inspecionadas. Não houve Preview interativo READY; não confundir a inspeção das jornadas Playwright com sessão interativa independente em Preview.
+- **Publicação da entrega visual:** deployment `dpl_8Gstvi8Z669ocy4v7gYcvn6jVyty`, READY no merge acima. Commits documentais posteriores podem avançar main/manifesto sem mudar o runtime; revalidar o ambiente ao vivo.
+- **CI:** #449, #451, #454, #450 e #455 integrados; #455 em `fcf4eda47196b4e5fd9730d433abe21fa8099edb`, 29/29 workflows concluídos com sucesso, com repetições isoladas documentadas. Runners Ubuntu 26.04; CLI Supabase 2.114.0 preservada. O #455 também reserva 54320–54323 fora das portas efêmeras dos runners descartáveis, preservando reservas existentes.
+- **Residuais dos testes:** prontidão após reload, captura geométrica durante reposicionamento e retry de suíte serial que reencontra fixtures já usadas continuam pontos específicos de fragilidade; não afrouxar asserções nem alterar produto para fazer CI passar. No #448, o primeiro ciclo falhou numa captura com painel parcialmente fora do viewport e o retry serial reencontrou dados anteriores; a repetição do job em ambiente novo passou. O primeiro E2E completo falhou na geometria de um modal de Despesa a identificar e seu retry interno falhou no fechamento do modal; o job final passou sem modificar código, CSS, tolerâncias ou timeouts. Os três testes específicos da ordenação passaram também na execução inicial. Esses resultados não encerram a causa completa das intermitências. O comparativo de volume do #455 registrou nove advertências diagnósticas e orçamentos de custo não estabelecidos; sucesso de workflow não certifica performance global.
+- **Desempenho sistêmico:** os Drafts #446/#447 preservam evidências de clonagem, debounce, fallback por cobertura e renders. São diagnósticos e testes de caracterização, não correções aprovadas. Antes de escolher a primeira otimização, reconciliar os testes úteis com esta base e medir a massa efetivamente residente e o caminho crítico em jornadas equivalentes; não transplantar os workflows antigos nem declarar regressão apenas com ensaios sintéticos.
+- **Paridade service_role:** permanece a decisão pendente descrita na [auditoria](audits/2026-10-18-supabase-cli-rls-parity.md). Não atualizar CLI, alterar grants/RLS ou relaxar pgTAP antes de reconciliar o contrato desejado com o banco efetivo.
+- **Indicadores mensais:** a correção das bolinhas históricas e o novo aviso de Pendências permanecem suspensos e separados. O merge do #448 não autoriza essa implementação.
+
+**Recuperação:** a custódia externa permanente do backup cifrado e a disponibilidade da senha histórica permanecem pendentes de confirmação operacional; não expor credenciais nem presumir posse a partir de um ensaio de restauração aprovado.
+
+Nenhuma escrita de teste em Production, migration ou alteração de privilégios foi feita nesta entrega. A frente visual #448 está encerrada; os handoffs anteriores não constituem autorização para reabrir auditoria ampla ou modificar sincronização.
+
+---
+
+## Histórico de infraestrutura CI — 18/10/2026 (superado pelo encerramento acima)
 
 **Correção já integrada à main:** [PR #449](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/449), commit de merge `aac142453d3fad112e3b3c8caba177aad87d9697`. O erro externo `toomanyrequests` em `postgres-meta:v0.97.0` foi corrigido com `SUPABASE_INTERNAL_IMAGE_REGISTRY: ghcr.io` **somente** nos steps de `gen types --local` dos dois workflows. CLI Supabase 2.114.0, SDK 2.117.3, Node 24, RLS e migrations preservados. Evidências: [readiness completo](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39166595283), [homologação pré-Production](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39166595305), [E2E](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39166595236), todos aprovados (E2E após retry por falha geométrica antiga independente). Ver [runbook canônico de CI](runbooks/CI_TOOLCHAIN_REGISTRY.md).
 
@@ -12,9 +31,9 @@
 
 ---
 
-## Estado canônico após o PR #438 — publicado em 13/10/2026
+## Histórico após o PR #438 — publicado em 13/10/2026
 
-**Etapa 5 encerrada no escopo delimitado das sete correções do Controlador.** Este bloco prevalece sobre checkpoints históricos abaixo. Não confundir a auditoria ampla A–N ou desempenho global com as sete entregas certificadas.
+**Etapa 5 encerrada no escopo delimitado das sete correções do Controlador.** Este bloco registra a entrega do #438 e não substitui o checkpoint de encerramento mais recente no topo. Não confundir a auditoria ampla A–N ou desempenho global com as sete entregas certificadas.
 
 - **GitHub:** [PR #438](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/438) integrado. `main` em `05b27fcdd523dd42d33935d96a1a68314a2513ac`; árvore Git idêntica ao candidato homologado `61e93b7fda69a51d592e5e5c9056f0d16d82c4d5`.
 - **CI:** 22/22 workflows de homologação aprovados no candidato; **11/11 pós-merge aprovados**. O fluxo Auth/CRUD completo foi testado em Supabase descartável, não com escrita institucional em Production.
@@ -53,11 +72,11 @@ sem subagentes. Correções de navegação, página tardia e seletor sem Pendên
 consolidadas:1.359 unitários,24 E2E dirigidos (1skip mobile),3 jornadas Auth reais
 aprovados. Retorno ao Prontuário corrigido causalmente. CI final pendente,438 Draft,
 sem merge/deploy. Lentidão sistêmica e jornadas A–N não estão encerradas. Ler o
-checkpoint vigente do handoff único abaixo; detalhes históricos não certificam HEAD.
+checkpoint datado do handoff histórico abaixo; detalhes históricos não certificam HEAD.
 
 **Frente descrita naquele checkpoint:** jornadas A–N do Controlador, orientadas pela UI e experiência
 real, após a modernização #433–#437. Não repetir certificação histórica nem
-reimplementar #408/#410/#427/#429. **Handoff corrente único:**
+reimplementar #408/#410/#427/#429. **Handoff histórico daquela frente:**
 [controller-journey/HANDOFF.md](audits/2026-10-11-controller-journey/HANDOFF.md).
 
 Baseline revalidada: main `113841bda52ce3bbda228524daf9a7464f12b462`;
@@ -167,7 +186,8 @@ históricos → qualificar residuais técnicos → avaliar jornadas do produto e
 selecionar a próxima entrega pelo impacto atual. Nenhuma alteração funcional
 decorre apenas da existência de um documento antigo. Proteção patrimonial
 adicional e anulação/transferência auditável continuam decisões separadas.
-Naquele checkpoint não havia handoff corrente; a Etapa 5 indicada no topo é agora a frente ativa.
+Naquele checkpoint não havia handoff corrente; a Etapa 5 foi designada posteriormente
+e suas sete correções foram encerradas pelo #438. Esse encadeamento é histórico.
 
 ## Atualização canônica — sincronização agregada integrada e publicada
 
