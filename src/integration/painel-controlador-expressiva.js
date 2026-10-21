@@ -25,7 +25,7 @@
     function enhanceDashboard() {
         const cards = Array.from(document.querySelectorAll('#main-container .cycle-b-dashboard-card'));
         const isControllerDashboard = cards.length === CARD_KINDS.length
-            && cards.some(card => card.getAttribute('aria-label')?.startsWith('Escolas no escopo:'));
+            && cards.some(card => card.dataset.cycleBFilter === 'all');
         document.body.classList.toggle('radar-expressiva-institucional', isControllerDashboard);
         if (!isControllerDashboard) return;
 
