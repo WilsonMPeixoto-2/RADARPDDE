@@ -1,5 +1,16 @@
 # RADAR PDDE — estado atual e retomada
 
+## Manutenção isolada de tooling — 21/10/2026 (candidatos, sem publicação)
+
+Main revalidada em `d1f1dad60778c1b8f67bb660e8ad06736b9ab219`. As atualizações
+de Playwright (#461), Prettier (#462) e GitHub Actions (#444) são independentes
+das frentes funcionais/diagnósticas abaixo. O #462 concluiu os 19 workflows sem
+falha; o #461 reproduziu a asserção geométrica já registrada na issue #460 e
+permanece Draft. No #444 foram reconciliados dois contratos de SHA, com RED/GREEN
+e 1.368 unitários aprovados; aguardar a CI do novo HEAD antes de considerar merge.
+[Evidências e limites](evidence/2026-10-21-tooling-refresh.md). CLI 2.114.0,
+Auth/RLS, runtime do produto e Production preservados neste checkpoint.
+
 ## Encerramento da ordenação do Prontuário e CI — 19/10/2026
 
 **Checkpoint vigente desta entrega.** Os checkpoints anteriores são históricos e não reabrem frentes concluídas. Não há handoff de execução corrente designado; o handoff da Etapa 5 preserva evidências históricas do #438.
