@@ -213,11 +213,24 @@ test.describe('Jornada real — Despesa a identificar', { lock: 'unidentified-ex
     const reanalysisBody = reanalysisModal.locator('.modal-body');
     await expect(reanalysisModal.locator('.reanalysis-guidance')).toBeFocused();
     expect(await reanalysisBody.evaluate(element => element.scrollTop)).toBeLessThanOrEqual(2);
-    const reanalysisHeaderBounds = await reanalysisModal.locator('.modal-header').boundingBox();
-    const reanalysisGuidanceBounds = await reanalysisModal.locator('.reanalysis-guidance').boundingBox();
-    expect(reanalysisGuidanceBounds.y).toBeGreaterThanOrEqual(
-      reanalysisHeaderBounds.y + reanalysisHeaderBounds.height
-    );
+    // A orientação possui padding-top: a borda da caixa pode começar acima
+    // do cabeçalho sem que o texto esteja coberto. Medir a primeira linha de
+    // conteúdo efetivo, não a borda vazia do <p> (issue #460).
+    const { headerBottom, firstGuidanceTextTop } = await reanalysisModal.evaluate(modal => {
+      const header = modal.querySelector('.modal-header');
+      const guidance = modal.querySelector('.reanalysis-guidance');
+      if (!header || !guidance) throw new Error('Estrutura da reanálise incompleta.');
+      const range = document.createRange();
+      range.selectNodeContents(guidance);
+      const firstTextRect = Array.from(range.getClientRects())
+        .find(rect => rect.width > 0 && rect.height > 0);
+      if (!firstTextRect) throw new Error('Orientação sem linha de texto mensurável.');
+      return {
+        headerBottom: header.getBoundingClientRect().bottom,
+        firstGuidanceTextTop: firstTextRect.top
+      };
+    });
+    expect(firstGuidanceTextTop).toBeGreaterThanOrEqual(headerBottom);
 
     // Regressão de hierarquia: documento, tentativa, contexto e decisão devem
     // formar zonas reconhecíveis antes de o Controlador escolher o resultado.
