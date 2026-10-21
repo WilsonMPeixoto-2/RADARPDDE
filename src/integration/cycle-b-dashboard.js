@@ -118,7 +118,7 @@
             <button
                 type="button"
                 class="card-stat cycle-b-dashboard-card ${className || ''} ${selected ? 'is-selected' : ''}"
-                aria-label="${escapeHtml(label)}: ${value} escolas"
+                data-cycle-b-filter="${escapeHtml(filter)}"
                 aria-pressed="${selected ? 'true' : 'false'}"
                 onclick="changeCycleBDashboardFilter('${filter}')"
             >

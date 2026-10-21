@@ -42,6 +42,31 @@ test.describe('Acessibilidade Automatizada (Axe-core)', () => {
       `Violações sérias/críticas do Axe:\n${JSON.stringify(criticalViolations, null, 2)}`
     ).toEqual([]);
   });
+
+  test('cartões do Dashboard têm nome acessível coerente com o texto visível e preservam filtros', async ({ page }) => {
+    await page.goto('/');
+
+    const cards = page.locator('#main-container .cycle-b-dashboard-card');
+    await expect(cards).toHaveCount(5);
+    await expect(page.locator('body')).toHaveClass(/radar-expressiva-institucional/);
+
+    for (const filter of ['all', 'bonus', 'aberta', 'aguardando', 'assets']) {
+      // Validar pelo elemento estável; título, quantidade e detalhe compõem
+      // o nome nativo do botão, sem sobreposição por aria-label resumido.
+      const target = page.locator(`#main-container .cycle-b-dashboard-card[data-cycle-b-filter="${filter}"]`);
+      await expect(target).toHaveCount(1);
+      const parts = await target.locator('.stat-label, .stat-value, .cycle-b-card-detail').allTextContents();
+      expect(parts).toHaveLength(3);
+      const visibleName = parts.map(part => part.trim()).join(' ').replace(/\s+/g, ' ').trim();
+      await expect(target).toHaveAccessibleName(visibleName);
+      await expect(target).not.toHaveAttribute('aria-label');
+    }
+
+    const bonus = page.locator('#main-container .cycle-b-dashboard-card[data-cycle-b-filter="bonus"]');
+    await bonus.click();
+    await expect(bonus).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('body')).toHaveClass(/radar-expressiva-institucional/);
+  });
 });
 
 test.describe('Navegação e Ciclo de Foco com Fallback Lógico', () => {
