@@ -1,5 +1,18 @@
 # RADAR PDDE — estado atual e retomada
 
+## Atualização isolada do MSW — 21/10/2026
+
+**Contrato desta árvore:** MSW **3.0.3** no [PR #443](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/443), sobre `main@c480e244`, após o encerramento de #464/#468/#469/#470/#471. O único consumidor é a suíte Node de falhas remotas; nenhuma fonte de produto, worker de navegador, regra, migration, Auth/RLS ou workflow foi alterado.
+
+- A versão 3 renomeou `onUnhandledRequest` para `onUnhandledFrame`. A chave antiga é silenciosamente ignorada. Uma sonda HTTP local com controle de transporte passou em MSW 2, falhou em MSW 3 sem adaptação e voltou a passar com a nova chave: os quatro cenários originais não detectavam essa perda de proteção.
+- Instalação limpa, **1.369 unitários e 8 integrações** sem falhas/ignorados, lint, tipos, gerados e arquitetura (191 módulos/276 dependências) aprovados localmente. Não transportar esses resultados para outra árvore nem considerar a CI antiga do Dependabot suficiente.
+- [Evidência e limites](evidence/2026-10-21-msw3-network-harness.md). CI final, merge e publicação devem ser conferidos pelo SHA no próprio #443; este bloco não afirma uma publicação ainda não observada.
+- As demais dependências diretas já estão atuais para Node 24, conforme consulta datada. `@types/node` 26 não acompanha o runtime canônico; CLI Supabase/paridade de grants continua separada. Os diagnósticos de desempenho, a #460 e os indicadores mensais não foram retomados.
+
+## Manutenção anterior de tooling — concluída em 21/10/2026
+
+O checkpoint a seguir descreve a rodada integrada em `c480e2445e1ddbdbe91369dfb7f1182a7d73a944`: Production READY, smoke público aprovado e 7/7 workflows de push pós-merge. [Encerramento versionado](https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/00680913ddb0e5e4483c72a4f50be3a0c30c5d4b/docs/evidence/2026-10-21-analysis-tooling-release.md), incluindo os resultados iniciais dos jobs repetidos. As referências abaixo a MSW como frente separada pertencem àquela rodada e não são veto a esta avaliação isolada.
+
 ## Continuação da manutenção de tooling — 21/10/2026
 
 **Versões desta árvore:** dependency-cruiser **18.7.0** (#469), ESLint **10.13.0** (#470) e Knip **6.42.1** (#471), mantendo Prettier 3.9.10, Playwright 1.64.1, Axe 4.14.0, SDK Supabase 2.118.0, CLI 2.114.0 e Node 24. São atualizações de análise, sem alteração nas regras, configurações, scripts, ignores ou runtime do site. Não representam correção nem ganho medido de fluidez.

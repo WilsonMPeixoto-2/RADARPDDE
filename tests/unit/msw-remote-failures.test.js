@@ -93,7 +93,7 @@ test.before(async () => {
     ({ http, HttpResponse, delay, passthrough } = await import('msw'));
     const { setupServer } = await import('msw/node');
     server = setupServer();
-    server.listen({ onUnhandledRequest: 'error' });
+    server.listen({ onUnhandledFrame: 'error' });
 });
 
 test.afterEach(() => server.resetHandlers());
