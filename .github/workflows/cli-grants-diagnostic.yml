@@ -1,8 +1,8 @@
 name: Diagnóstico causal de grants da CLI
 
 on:
-  push:
-    branches: [chore/supabase-cli-2121-explicit-api-grants-20261022]
+  pull_request:
+    branches: [main]
     paths: [.github/workflows/cli-grants-diagnostic.yml]
 
 permissions:
@@ -126,7 +126,8 @@ jobs:
           assert re.search(r'Tests=674\b',log), log[-2000:]
           if inherited:
               assert exit_code!=0 and re.search(r'Failed tests:\s+32-33',log), log[-2000:]
-              assert re.search(r'Failed 2/674 subtests',log), log[-2000:]
+              assert re.findall(r'Failed (\d+)/\d+ subtests',log)==['2'], log[-2000:]
+              assert re.findall(r'Failed tests:\s+([^\n]+)',log)==['32-33'], log[-2000:]
           else:
               assert exit_code==0 and 'Result: PASS' in log, log[-2000:]
           report={'cli':os.environ['CLI_VERSION'],'autoExpose':os.environ['API_EXPOSURE'],'before':before,'after':after,'pgTapExit':exit_code,'pgTapTests':674,'expectedFailures':[32,33] if inherited else [],'causalPredictionMatched':True}
