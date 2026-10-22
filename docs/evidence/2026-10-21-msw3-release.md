@@ -158,3 +158,15 @@ sintético da CI. Sua árvore foi conferida no Git e é idêntica à do candidat
 `5ed6cd8928b122645dd06500d7fe0f6a5e3a4c2c`.
 O diff é vazio. Próximo passo delimitado: integrar o HEAD homologado e verificar
 a publicação automática, sem nova rodada de implementação.
+
+## Integração confirmada
+
+O #443 foi integrado em **`84e793ed42a9139d8f80fcf2a16b868d8bba656e`**,
+em **22/10/2026 às 01:59:35 UTC (21/10 às 22:59:35 de Brasília)**.
+PR fechado/merged, sem Draft. A árvore da main coincide exatamente com a árvore
+homologada `5ed6cd8928b122645dd06500d7fe0f6a5e3a4c2c`; diff vazio.
+
+No checkpoint desta integração, a Vercel iniciou o deployment automático
+`dpl_C5bVMtw36XLVVuEHdkmdVaJZbV2T` em BUILDING, no SHA correto.
+Os sete workflows de push pós-merge também iniciaram. A publicação e seus
+pós-testes só devem ser declarados concluídos após a conferência real abaixo.
