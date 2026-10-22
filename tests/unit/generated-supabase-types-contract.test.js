@@ -17,7 +17,7 @@ test('typegen aceita separadores, aspas de chaves, união inicial, vírgula fina
     'export type Json = string | number | null',
     'export type T = { "public": { Tables: {',
     '"schools": { Row: { "id": (string)[], "payload": NonNullable<Json> }',
-    'ComputedFields: never, Insert: { "id"?: string } Update: {}, Relationships: [] }',
+    'ComputedFields: never, Insert: { "id"?: string }, Update: {}, Relationships: [] }',
     '} } };',
     'export type Table<N extends keyof T> = T[N]'
   ].join('\n');
