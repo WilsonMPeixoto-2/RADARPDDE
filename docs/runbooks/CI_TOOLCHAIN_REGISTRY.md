@@ -33,7 +33,7 @@ O cache npm de actions/setup-node **não armazena imagens Docker**. Node 24 é c
 
 ## 3. Atualização de dependências sem regressões de autorização
 
-**Contrato da candidata #472:** CLI **2.121.0** com `[api] auto_expose_new_tables = false` explícito. A CLI 2.114 tratava chave ausente como `false`; a 2.121 passou a tratá-la como `true`, preservando grants automáticos antes das migrations. A matriz nativa de quatro stacks no [run 39830514391](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39830514391) isolou a causa: 2.121 sem chave falha exatamente 32/33; 2.114 ausente/false e 2.121 false passam **674/674**, com as mesmas ACLs finais nos vínculos administrativos. [Evidência completa](../evidence/2026-10-22-supabase-cli-grants/README.md). O estado de homologação final/merge está no #472 e em CURRENT_STAGE; a matriz causal não substitui Auth, tipos e jornadas.
+**Contrato integrado pelo #472:** CLI **2.121.0** com `[api] auto_expose_new_tables = false` explícito. A CLI 2.114 tratava chave ausente como `false`; a 2.121 passou a tratá-la como `true`, preservando grants automáticos antes das migrations. A matriz nativa de quatro stacks no [run 39830514391](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39830514391) isolou a causa: 2.121 sem chave falha exatamente 32/33; 2.114 ausente/false e 2.121 false passam **674/674**, com as mesmas ACLs finais nos vínculos administrativos. [Evidência completa](../evidence/2026-10-22-supabase-cli-grants/README.md). A homologação final foi **19/19 workflows** no candidato `e44dd96`, seguida de **8/8 workflows de push** no merge `caf2de3e`, incluindo Auth/RLS, tipos, visual, Production e backup. Os detalhes ficam no #472 e em CURRENT_STAGE; a matriz causal não substitui Auth, tipos e jornadas.
 
 **Regra para próximas atualizações:** preservar a configuração explícita e os testes existentes; conferir defaults de bootstrap, imagens e privilégios antes de atribuir regressão à CLI. Não remover a chave por parecer redundante. A configuração local não é autorização para `config push`, GRANT/REVOKE ou mudanças em Production. Production possui DELETE administrativo e rotinas técnicas que o utilizam; isso não exige concedê-lo ao bootstrap descartável.
 
@@ -49,7 +49,7 @@ Atualizações de SDK, TypeScript, Node, Playwright, GitHub Actions e dependênc
 
 ## 5. Adequação do typegen pós-CLI 2.121 e contenção de falhas de runner (22/10)
 
-O gerador da CLI nova modificou a representação TypeScript sem alterar o
+O gerador da CLI 2.121.0 modificou a representação TypeScript sem alterar o
 conjunto de entidades ou RPCs: 48 campos JSON de tabela não-nulos, 20
 `ComputedFields: never` e 3 assinaturas de RPC sem parâmetros foram
 incorporados ao arquivo de tipos versionado. A CI valida a sintaxe com o parser TypeScript do Prettier e compara

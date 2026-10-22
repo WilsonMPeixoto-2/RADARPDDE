@@ -19,6 +19,16 @@ PR aberto, Preview ou documento antigo não altera Production.
 
 ## 2. Rota canônica vigente
 
+**Fronteira atual (22/10, após merge #472):** ler o topo do
+[`CURRENT_STAGE.md`](../CURRENT_STAGE.md). O
+[PR #472](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/472) está **integrado** em `main@caf2de3e`;
+CLI 2.121.0, **19/19 workflows do candidato e 8/8 checks de push pós-merge**,
+Vercel `READY`, banco institucional sem mudanças de schema/grants.
+O [fechamento do MSW #443](https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/678d83692ed526bf01bfedf18eca0b5e227ce96c/docs/evidence/2026-10-21-msw3-release.md)
+é evidência versionada em **commit documental separado**; não presumir
+arquivo na `main`. Não reexecutar matrizes ou ciclos homologados apenas porque
+um checkpoint histórico diz "aguardando", "Draft" ou "candidato".
+
 | Arquivo | Classe | Uso |
 |---|---|---|
 | docs/audits/2026-10-11-controller-journey/HANDOFF.md | Handoff histórico da Etapa 5 | auditoria imersiva A–N de 11–13/10; as sete correções delimitadas foram encerradas pelo PR #438; não tratar checkpoints pré-merge como frente corrente |
@@ -26,15 +36,17 @@ PR aberto, Preview ou documento antigo não altera Production.
 | AGENTS.md | Canônico | roteador obrigatório |
 | docs/runbooks/CI_TOOLCHAIN_REGISTRY.md | Runbook operacional vigente de infraestrutura de CI | diagnóstico Docker ECR/GHCR, erro postgres-meta, versões de CLI, runner Ubuntu 24/26, atualização segura e roteamento de evidências; leitura obrigatória para agentes que alteram tooling ou workflows |
 | docs/audits/2026-10-18-supabase-cli-rls-parity.md | Auditoria histórica com adendo de resolução causal | hipótese explicada pela mudança do default de auto_expose_new_tables no #472; preserva o estado apurado em 18/10, sem autorizar GRANT/REVOKE em Production |
-| docs/evidence/2026-10-22-supabase-cli-grants/README.md e matrix.json | Evidência datada da reconciliação da CLI | matriz nativa 2 × 2 antes/depois das migrations, 674 testes inalterados e configuração local explícita; CI/release final pelo SHA do #472 |
+| docs/evidence/2026-10-22-supabase-cli-grants/README.md e matrix.json | Evidência de release concluído da CLI | matriz causal 2×2, 674 pgTAP originais, 19/19 workflows, 8/8 pós-merge no SHA caf2de3e, Vercel READY; não há migration em Production |
 | docs/superpowers/specs/2026-10-04-operational-sync-simplification-design.md | Design de referência do #410 | direção implementada; confrontar capacidades e limites com código/ADRs vigentes |
 | docs/superpowers/plans/2026-10-04-operational-sync-simplification-implementation.md | Plano histórico do #410 | checkpoints preservados; não forma fila de reimplementação |
 | docs/evidence/2026-10-04-pr410-school-scope/README.md e JSONs | Evidência da caracterização | cobertura, exclusões, RLS, relações entre escolas e limites das provas locais; não certifica a RPC futura |
 | docs/reference/SYSTEM_CANONICAL_MODEL.md | Canônico | autoridades, fluxos e invariantes |
 | docs/reference/PRODUCT_SURFACE_CATALOG.md | Referência vigente | superfícies e jornadas |
+| docs/reference/SUPABASE_INTEGRATION_AUDIT.md | Referência de integração vigente | SDK 2.118.0, PostgreSQL hospedado 17.11 e CLI **2.121.0 integrada no #472**; versões e prova causal em CURRENT_STAGE e evidência do #472 |
 | docs/reference/VERCEL_OBSERVABILITY.md | Referência operacional vigente | contrato de instrumentação Web Analytics/Speed Insights, estado de ativação, validação de campo e decisão de não usar o pacote redundante do #416 |
 | docs/CURRENT_STAGE.md | Canônico | estado funcional e prioridade; head/deployment exatos devem ser revalidados ao vivo quando relevantes |
-| docs/evidence/2026-10-21-msw3-network-harness.md | Evidência datada de migração de ferramenta de teste | MSW 3 e preservação do bloqueio de requisições sem handler, com controle de transporte e RED/GREEN; CI/publicação do HEAD final no #443, sem alteração de produto |
+| docs/evidence/2026-10-21-msw3-network-harness.md | Evidência de migração integrada à main | MSW 3, interceptação RED/GREEN, 19/19 workflows do candidato, 7/7 checks de push pós-merge, sem mudança de produto |
+| [docs/evidence/2026-10-21-msw3-release.md](https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/678d83692ed526bf01bfedf18eca0b5e227ce96c/docs/evidence/2026-10-21-msw3-release.md) | Encerramento em commit documental separado | resultados finais, provas e falhas iniciais do #443; não está automaticamente na main |
 | docs/evidence/2026-10-21-tooling-mobile-reconciliation.md | Evidência datada de reconciliação | merges #462/#444/#457/#463/#461/#467/#466/#464, CI e limites de publicação; não é handoff corrente nem homologação de desempenho sistêmico |
 | docs/evidence/2026-10-21-dependency-cruiser-18-7.md, docs/evidence/2026-10-21-eslint-10-13.md e docs/evidence/2026-10-21-knip-6-42.md | Evidências datadas de candidatos e composição | escopo de lockfiles, contratos, RED/GREEN de versões e provas locais; CI/publicação finais identificados por SHA nos #469/#470/#471, sem homologação geral de fluidez |
 | docs/evidence/2026-10-21-tooling-refresh.md e docs/evidence/2026-10-21-supabase-sdk-update.md | Checkpoints históricos de candidatos | preservam RED/GREEN e limites locais; menções a Draft/aguardar CI foram superadas pelos merges de 21/10 e pela evidência de reconciliação |
@@ -88,8 +100,8 @@ O servidor canônico e suas correções não alteraram schema, migrations, RPCs,
 
 ## 4. Handoff corrente e histórico
 
-Não há handoff de execução corrente designado no checkpoint de 19/10 de
-`CURRENT_STAGE.md`. `docs/audits/2026-10-11-controller-journey/HANDOFF.md` é histórico:
+Não há handoff de execução corrente designado no checkpoint vigente de 22/10 de
+`CURRENT_STAGE.md`. A manutenção CLI #472 está encerrada; não reabrir seus testes sem novo risco. `docs/audits/2026-10-11-controller-journey/HANDOFF.md` é histórico:
 preserva a auditoria A–N e os checkpoints das sete correções encerradas pelo #438,
 sem constituir uma atribuição atual nem certificar o desempenho sistêmico.
 #410/#427/#429 e a ordenação do #448 estão encerrados nos respectivos escopos.

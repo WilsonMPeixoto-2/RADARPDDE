@@ -1,6 +1,65 @@
 # RADAR PDDE — estado atual e retomada
 
-## Reconciliação da CLI Supabase — 22/10/2026
+## Estado vigente após merge do #472 — 22/10/2026
+
+> **PORTA DE ENTRADA PARA AGENTES.** Este checkpoint é posterior aos registros
+> históricos abaixo e prevalece sobre mensagens "Draft", "aguardando CI" ou
+> versões anteriores citadas nesses registros. Em caso de nova alteração na
+> `main`, conferir GitHub, Vercel e Supabase antes de reutilizar SHAs.
+> A documentação é uma fotografia verificável, não uma autorização de escrita.
+
+| Fronteira | Estado conferido no encerramento da CLI |
+|---|---|
+| `main` após [PR #472](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/472) | **`caf2de3e583a75f61ac3bbdaecc4f9827f15bddc`**; 2.121.0 em `package.json` e lockfile |
+| Vercel Production | **`dpl_3yrGPc9tfMyyFsXrMzvRhxJP7dJs`**, `READY`, alias `radarpdde-fix.vercel.app` conferido no mesmo SHA |
+| Supabase institucional | Projeto `scnryinorqeucbfkioxo` **ACTIVE_HEALTHY**, PostgreSQL **17.11.0.003**; **nenhuma migration nem alteração de permissões** nesta manutenção |
+| SDK/runtime | `@supabase/supabase-js` **2.118.0**, Node **24.x**; aplicação permanece HTML/JavaScript vanilla |
+| Runner oficial | Ubuntu **26.04**; a comparação 24/26 é diagnóstica, não o ambiente canônico |
+| CLI local/testes | **2.121.0** com `[api] auto_expose_new_tables = false`; **674/674 pgTAP** na célula homologada, migrations/SQL/Auth/RLS preservados |
+| Próximo trabalho | **Nenhum handoff de execução novo**; as frentes de desempenho e UX são separadas desta manutenção |
+
+**Homologação encerrada:** o commit candidato `e44dd96fbde86c8914838d031a7b7dc853adc33f`
+concluiu **19/19 workflows aprovados, zero falhas**, incluindo Auth/RLS,
+Edge, tipos, 21 ciclos funcionais, backup/restauração, duas sessões/Realtime,
+visual, E2E desktop e benchmark operacional. [Experimento causal 2×2](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39830514391):
+CLI 2.114.0 com chave ausente/false e CLI 2.121.0 com `false` passaram
+**674/674**; 2.121.0 com chave ausente reproduziu **somente as falhas 32/33**.
+A diferença nasce **antes das migrations do RADAR**. Essas provas não devem
+ser refeitas como nova investigação de regressão.
+[Detalhes e limitações](evidence/2026-10-22-supabase-cli-grants/README.md).
+
+**Pós-merge:** os **8/8 workflows de `push`** do SHA `caf2de3e583a75f61ac3bbdaecc4f9827f15bddc`
+aprovaram, incluindo [monitoramento de Production](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39864970805),
+[homologação pública Supabase](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39864970790),
+[Supabase readiness](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39864970808),
+[regressão visual](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39864970756),
+[validação principal](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39864970776), Lighthouse,
+CodeQL e dependências. Vercel confirmou alias/commit `READY` e Supabase
+`ACTIVE_HEALTHY`. **Este é o deployment do merge funcional/tooling**:
+uma atualização documental posterior pode criar outro deployment no mesmo
+código; registrar seu SHA separadamente sem recriar provas de negócio.
+
+**Retomadas indevidas a evitar:** o MSW 3 (#443) já estava integrado, com
+19/19 workflows do candidato e 7/7 checks de push; seu
+[encerramento documental imutável](https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/678d83692ed526bf01bfedf18eca0b5e227ce96c/docs/evidence/2026-10-21-msw3-release.md)
+vive em **commit separado**, não na `main`. O #379 e as investigações antigas
+de grants foram superados pela prova causal do #472.
+Os PRs [#446](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/446)/[#447](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/447)
+continuam diagnósticos Draft sem otimização integrada; na
+[issue #460](https://github.com/WilsonMPeixoto-2/RADARPDDE/issues/460), o Caso B foi corrigido pelo #463,
+mas a hipótese de prontidão/hidratação do Caso A não foi encerrada.
+Indicadores mensais e análise ampla de experiência do usuário não foram
+homologados por esta atualização de tooling.
+
+**Critério operacional:** não inferir que atualização da CLI gerou ganho de
+fluidez, nem concluir UX apenas com CI verde. Preservar a comparação
+semântica do typegen (tipos/colunas/assinaturas/obrigatoriedade) e
+testes pgTAP originais; diferenças cosméticas de geração de tipos não
+justificam mudanças de regras ou permissões de Production.
+
+---
+
+## Histórico do candidato CLI #472 — 22/10/2026 (superado pelo merge acima)
 
 **Candidata desta árvore: CLI 2.121.0, PR #472, sobre main `84e793ed`.** A causa das falhas pgTAP 32/33 foi isolada: a chave `api.auto_expose_new_tables` ausente mudou de comportamento entre 2.114 e 2.121. A matriz nativa de quatro stacks do [run 39830514391](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39830514391) reproduziu 672/674 apenas em 2.121 sem chave; as outras três combinações passaram 674/674.
 
@@ -8,7 +67,7 @@ A candidata explicita `false`, preservando as ACLs locais da baseline e todas as
 
 O MSW #443 já foi integrado em `84e793ed`; seu bloco abaixo preserva a homologação da árvore anterior. Production foi verificada saudável após o upgrade PostgreSQL 17.11 feito pelo proprietário, com [evidência remota](https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/7e2e8812c53e1c8d172dcfb1ee2ebf081b40e7b2/docs/evidence/2026-10-22-supabase-postgres-17-11/README.md). Esta rodada não retoma desempenho, #460 ou indicadores mensais.
 
-## Atualização isolada do MSW — 21/10/2026
+## Histórico da avaliação MSW — 21/10/2026 (superado pelo merge #443)
 
 **Contrato desta árvore:** MSW **3.0.3** no [PR #443](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/443), sobre `main@c480e244`, após o encerramento de #464/#468/#469/#470/#471. O único consumidor é a suíte Node de falhas remotas; nenhuma fonte de produto, worker de navegador, regra, migration, Auth/RLS ou workflow foi alterado.
 
@@ -21,7 +80,7 @@ O MSW #443 já foi integrado em `84e793ed`; seu bloco abaixo preserva a homologa
 
 O checkpoint a seguir descreve a rodada integrada em `c480e2445e1ddbdbe91369dfb7f1182a7d73a944`: Production READY, smoke público aprovado e 7/7 workflows de push pós-merge. [Encerramento versionado](https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/00680913ddb0e5e4483c72a4f50be3a0c30c5d4b/docs/evidence/2026-10-21-analysis-tooling-release.md), incluindo os resultados iniciais dos jobs repetidos. As referências abaixo a MSW como frente separada pertencem àquela rodada e não são veto a esta avaliação isolada.
 
-## Continuação da manutenção de tooling — 21/10/2026
+## Histórico da continuação de tooling — 21/10/2026 (merges concluídos)
 
 **Versões desta árvore:** dependency-cruiser **18.7.0** (#469), ESLint **10.13.0** (#470) e Knip **6.42.1** (#471), mantendo Prettier 3.9.10, Playwright 1.64.1, Axe 4.14.0, SDK Supabase 2.118.0, CLI 2.114.0 e Node 24. São atualizações de análise, sem alteração nas regras, configurações, scripts, ignores ou runtime do site. Não representam correção nem ganho medido de fluidez.
 

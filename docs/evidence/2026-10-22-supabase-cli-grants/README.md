@@ -1,4 +1,4 @@
-# Supabase CLI 2.121: causa dos grants e candidato preservando o contrato local
+# Supabase CLI 2.121: causa dos grants e release concluído preservando o contrato local
 
 **Data:** 22/10/2026. **Classe:** evidência datada do PR #472; não altera política de Production.
 
@@ -56,7 +56,7 @@ Esta escolha não torna a CI uma réplica integral de Production. A stack 2.121 
 - 37 controles focados de tooling/bootstrap/Edge: aprovados. Uma primeira execução em worktree ainda sem `node_modules` teve dois erros de import; após instalar dependências, passou sem alteração das expectativas desses testes.
 - `test:readiness`: 1.369 unitários e 8 integrações, sem falhas/ignorados, lint, tipos, artefatos e auditoria estrutural aprovados.
 - CLI `notebooks --help` confirma `pull`/`push`; não foi executada sincronização de notebooks nem chamada de escrita remota.
-- Homologação completa do SHA final, incluindo Auth, Edge, tipos gerados e restauração descartável: conferir os checks do #472. A prova causal acima não os substitui. Não afirmar merge/publicação antes da verificação remota.
+- **Checkpoint anterior ao merge:** Auth, Edge, tipos gerados e restauração ainda exigiam homologação remota; o encerramento posterior está registrado na seção 7. A prova causal isolada nunca substituiu os gates completos.
 
 O escopo final permitido é dependência/lock, config local explícito, contrato unitário de versão, reserva no runner e documentação. Produto, migrations, RLS, grants hospedados e regras operacionais ficam fora desta manutenção. Novas falhas devem ser classificadas pelo estágio efetivamente executado antes de qualquer alteração.
 
@@ -92,6 +92,60 @@ comparativa de SO volta a verificar somente Node, npm, Docker instalado e
 Chromium real. A prova do banco **permanece obrigatória nos workflows
 Supabase dedicados**, não é substituída por um teste cosmético de pull.
 
-**Ainda não declarar homologação completa por esta edição:** verificar os checks
-do commit posterior; os 15 workflows aprovados do SHA `9a6806be` são
-evidência histórica, não aprovação automática de novos arquivos.
+**Nota histórica da correção pré-merge:** os 15 workflows aprovados do SHA
+`9a6806be` eram evidência anterior; a homologação conclusiva do SHA
+`e44dd96` está registrada a seguir.
+
+## 7. Encerramento, merge e verificações pós-merge (22/10/2026)
+
+**Estado final:** [PR #472](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/472) integrado por merge
+[`caf2de3e583a75f61ac3bbdaecc4f9827f15bddc`](https://github.com/WilsonMPeixoto-2/RADARPDDE/commit/caf2de3e583a75f61ac3bbdaecc4f9827f15bddc),
+baseado no candidato final
+[`e44dd96fbde86c8914838d031a7b7dc853adc33f`](https://github.com/WilsonMPeixoto-2/RADARPDDE/commit/e44dd96fbde86c8914838d031a7b7dc853adc33f).
+`package.json` e lockfile fixam CLI **2.121.0**, SDK **2.118.0**.
+A matriz causal das quatro células está preservada no commit experimental
+`c2df21ee`, run `39830514391`, e em `matrix.json`.
+
+**Pré-merge: 19/19 workflows aprovados**, todos vinculados ao mesmo HEAD,
+sem falhas. Evidências principais:
+
+- [Supabase readiness](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39856991910),
+  [homologação integral pré-Production](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39856992220),
+  [ciclos reais](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39856992041),
+  [backup/restauração](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39856992469);
+- [E2E desktop](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39856991763),
+  [regressão visual](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39856991831),
+  [duas sessões/Realtime](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39856991886),
+  [uso semelhante a Production](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39856992337).
+
+**Pós-merge: 8/8 workflows de `push` concluídos com sucesso** em
+`caf2de3e583a75f61ac3bbdaecc4f9827f15bddc`: [validação principal](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39864970776),
+[readiness com Auth/RLS, seed e migrations](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39864970808),
+[homologação pública de Production Supabase](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39864970790),
+[monitoramento da Production](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39864970805),
+[regressão visual](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39864970756),
+[Lighthouse](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39864970761),
+[CodeQL](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39864970833) e
+[saúde das dependências](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39864970771).
+O GitHub reportou **zero falhas**; os jobs internos de Auth/RLS,
+migrations, prontidão e backup do candidato tinham conclusões `success`.
+
+**Publicação confirmada:** Vercel deployment
+`dpl_3yrGPc9tfMyyFsXrMzvRhxJP7dJs`, `READY`, alias
+`radarpdde-fix.vercel.app` apontando para o commit `caf2de3e583a75f61ac3bbdaecc4f9827f15bddc`
+no momento da verificação. Supabase `scnryinorqeucbfkioxo`
+`ACTIVE_HEALTHY` no PostgreSQL `17.11.0.003`.
+**Nenhuma migration SQL, permissão hospedada, RLS, regra de produto ou dado
+institucional foi modificado para obter a compatibilidade.**
+
+**Interpretação correta:** houve modernização do **tooling**, não ganho
+comprovado de tempo de resposta, redesign ou nova funcionalidade. A diferença
+entre PostgREST local e Production continua documentada e não autoriza
+aplicar migrations ou GRANT/REVOKE. Os testes SQL de 674 asserções permanecem
+inalterados. Browser autenticado humano e observabilidade de campo continuam
+frentes independentes de produto, sem constituírem condição retroativa para
+a integração desta CLI.
+
+As seções 1–6 são preservadas como **histórico de descoberta e pré-merge**.
+Não promover instruções como "não afirmar merge" ou "conferir candidata"
+dessas seções a um impedimento atual; o fechamento aqui prevalece.
