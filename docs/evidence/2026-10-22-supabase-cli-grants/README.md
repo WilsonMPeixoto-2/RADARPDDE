@@ -74,7 +74,7 @@ também mudou.
 
 O arquivo de tipos **continua versionado**, agora com essas definições mais
 precisas e formatação legível. A CI deixou de comparar o arquivo somente byte
-a byte: o verificador dedicado compara a árvore sintática via TypeScript,
+a byte: o verificador dedicado normaliza as duas versões usando o parser TypeScript do Prettier 3.9,
 preservando bloqueio de mudanças reais em campos, tipos ou opcionalidade.
 Bundles Ajv/Supabase e config.runtime.js continuam exigindo igualdade literal.
 Testes unitários específicos distinguem mudança cosmética de mudança real.

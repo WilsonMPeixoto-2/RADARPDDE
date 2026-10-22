@@ -1,53 +1,31 @@
 'use strict';
 
-// Compara a estrutura TypeScript de dois contratos, sem transformar formato em regra de negócio.
-// Mantém diferenças reais de tipo, campo, obrigatoriedade e assinatura como bloqueantes.
+// Mantém diferenças reais de tipo/campo/obrigatoriedade bloqueantes.
+// A CLI 2.121 emite TS sintaticamente válido em outro layout; Prettier
+// já é uma dependência de desenvolvimento do RADAR e analisa TypeScript.
 const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const crypto = require('node:crypto');
-const ts = require('typescript');
+const prettier = require('prettier');
 
 const root = path.resolve(__dirname, '..');
 const typePath = 'src/types/database.types.ts';
+const options = {
+  parser: 'typescript',
+  singleQuote: true,
+  quoteProps: 'as-needed',
+  trailingComma: 'none',
+  printWidth: 100,
+  tabWidth: 2,
+  useTabs: false,
+  endOfLine: 'lf'
+};
 
-function nameOf(node) {
-  if (ts.isIdentifier(node) || ts.isStringLiteral(node) || ts.isNumericLiteral(node)) {
-    return node.text;
-  }
-  return node.getText();
-}
-
-function signatureNode(node) {
-  // Parênteses redundantes em tipos, p.ex. (string)[], não mudam o contrato.
-  if (ts.isParenthesizedTypeNode(node)) return signatureNode(node.type);
-  if (ts.isPropertySignature(node)) {
-    return [
-      'property', nameOf(node.name),
-      Boolean(node.questionToken),
-      (node.modifiers || []).map(signatureNode),
-      node.type ? signatureNode(node.type) : null
-    ];
-  }
-  if (ts.isPropertyAssignment(node)) {
-    return ['property-value', nameOf(node.name), signatureNode(node.initializer)];
-  }
-  if (ts.isIdentifier(node)) return ['identifier', node.text];
-  if (ts.isStringLiteral(node)) return ['string', node.text];
-  if (ts.isNumericLiteral(node)) return ['number', node.text];
-  const children = [];
-  ts.forEachChild(node, child => children.push(signatureNode(child)));
-  return [node.kind, children];
-}
-
-function fingerprint(source) {
-  const parsed = ts.createSourceFile(typePath, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
-  if (parsed.parseDiagnostics.length) {
-    throw new Error('TypeScript inválido: ' + parsed.parseDiagnostics.map(d =>
-      ts.flattenDiagnosticMessageText(d.messageText, '\n')).join('; '));
-  }
-  const shape = JSON.stringify(signatureNode(parsed));
-  return crypto.createHash('sha256').update(shape).digest('hex');
+async function fingerprint(source) {
+  // O parser rejeita TS inválido. Só divergências normalizadas são ignoradas.
+  const normalized = await prettier.format(source, options);
+  return crypto.createHash('sha256').update(normalized).digest('hex');
 }
 
 function trackedVersion() {
@@ -56,7 +34,7 @@ function trackedVersion() {
   return git.stdout;
 }
 
-function run() {
+async function run() {
   const args = process.argv.slice(2);
   let expected;
   let actual;
@@ -69,20 +47,20 @@ function run() {
   } else {
     throw new Error('Uso: check-generated-database-types.js --tracked OU <arquivo-esperado> <arquivo-gerado>');
   }
-  const before = fingerprint(expected);
-  const after = fingerprint(actual);
+  const before = await fingerprint(expected);
+  const after = await fingerprint(actual);
   if (before !== after) {
-    throw new Error('Contrato TypeScript gerado diferente do versionado (estrutura, não formatação). ' +
+    throw new Error('Contrato TypeScript gerado diferente do versionado após formatação estável. ' +
       'Esperado SHA256=' + before + '; gerado SHA256=' + after);
   }
-  console.log('Contrato TypeScript gerado compatível com o versionado (assinatura estrutural SHA256=' + before + ').');
+  console.log('Contrato TypeScript gerado compatível após normalização TypeScript/Prettier (SHA256=' + before + ').');
 }
 
 if (require.main === module) {
-  try { run(); } catch (error) {
+  run().catch(error => {
     console.error('Contratos Supabase: falha - ' + error.message);
     process.exitCode = 1;
-  }
+  });
 }
 
 module.exports = { fingerprint };

@@ -66,7 +66,7 @@ jobs:
         run: |
           set -euo pipefail
           image='ghcr.io/supabase/postgres-meta:v0.97.0'
-          if docker pull "$image" > /tmp/radar-postgres-meta-pull.log 2>&1; then
+          if docker pull ghcr.io/supabase/postgres-meta:v0.97.0 > /tmp/radar-postgres-meta-pull.log 2>&1; then
             docker image inspect "$image" --format '{{.Id}}'
           elif grep -Eiq 'toomanyrequests|rate exceeded|429' /tmp/radar-postgres-meta-pull.log; then
             echo 'GHCR limitou requisições; tentando mirror oficial na mesma versão.'
