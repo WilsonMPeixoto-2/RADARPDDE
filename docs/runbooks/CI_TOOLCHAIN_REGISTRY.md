@@ -52,8 +52,8 @@ Atualizações de SDK, TypeScript, Node, Playwright, GitHub Actions e dependênc
 O gerador da CLI nova modificou a representação TypeScript sem alterar o
 conjunto de entidades ou RPCs: 48 campos JSON de tabela não-nulos, 20
 `ComputedFields: never` e 3 assinaturas de RPC sem parâmetros foram
-incorporados ao arquivo de tipos versionado. A CI compara versões normalizadas pelo parser TypeScript do Prettier,
-via `scripts/check-generated-database-types.js`, para aceitar
+incorporados ao arquivo de tipos versionado. A CI valida a sintaxe com o parser TypeScript do Prettier e compara
+tokens significativos via `scripts/check-generated-database-types.js`, para aceitar
 aspas, espaçamento e agrupamentos não semânticos, **reprovando alterações de
 tipos, campos ou obrigatoriedade**. Arquivos de bundle e runtime continuam
 comparados literalmente. O teste remoto descartável segue o mesmo critério.

@@ -74,8 +74,10 @@ também mudou.
 
 O arquivo de tipos **continua versionado**, agora com essas definições mais
 precisas e formatação legível. A CI deixou de comparar o arquivo somente byte
-a byte: o verificador dedicado normaliza as duas versões usando o parser TypeScript do Prettier 3.9,
-preservando bloqueio de mudanças reais em campos, tipos ou opcionalidade.
+a byte: o verificador dedicado valida a sintaxe com o parser TypeScript do Prettier 3.9,
+e compara tokens significativos, ignorando exclusivamente diferenças cosméticas
+comprovadas. Mudanças reais em campos, nulabilidade, tipos, RPCs e
+opcionalidade continuam bloqueantes.
 Bundles Ajv/Supabase e config.runtime.js continuam exigindo igualdade literal.
 Testes unitários específicos distinguem mudança cosmética de mudança real.
 A verificação equivalente foi aplicada à rotina remota descartável. Esta
