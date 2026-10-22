@@ -58,6 +58,9 @@ test('compatibilidade Ubuntu 26 é testada isoladamente sem operações remotas'
     assert.match(source, /os: \[ubuntu-24\.04, ubuntu-26\.04\]/);
     assert.match(source, /fail-fast:\s*false/);
     assert.match(source, /node-version:\s*'24'/);
-    assert.match(source, /docker pull ghcr\.io\/supabase\/postgres-meta:v0\.97\.0/);
+    assert.match(source, /docker info --format/);
+    assert.match(source, /playwright install --with-deps chromium/);
+    assert.doesNotMatch(source, /docker pull\s/,
+        'a compatibilidade de SO não deve duplicar downloads Docker validados pelos gates Supabase Ubuntu 26');
     assert.doesNotMatch(source, /supabase db push|--linked|--prod|service_role|RADAR_SUPABASE_ADMIN_KEY/);
 });

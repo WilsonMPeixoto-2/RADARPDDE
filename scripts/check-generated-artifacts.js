@@ -88,13 +88,27 @@ if (fs.existsSync(bundleFile)) {
 if (findings.length === 0 && process.env.CI === 'true') {
     const diff = spawnSync(
         'git',
-        ['diff', '--exit-code', '--', 'config.runtime.js', 'src/types/database.types.ts', 'vendor/supabase-client.js', 'vendor/ajv.js'],
+        ['diff', '--exit-code', '--', 'config.runtime.js', 'vendor/supabase-client.js', 'vendor/ajv.js'],
         { cwd: root, encoding: 'utf8' }
     );
     if (diff.status !== 0) {
         findings.push('Artefatos gerados divergem do conteúdo versionado.');
         if (diff.stdout) process.stderr.write(diff.stdout);
         if (diff.stderr) process.stderr.write(diff.stderr);
+    }
+    // O typegen 2.121 alterou apresentação e estreitou JSON não-nulo.
+    // Tipos seguem versionados; rejeitamos mudanças estruturais, não diferenças cosméticas.
+    const typeCheck = spawnSync(
+        process.execPath,
+        [path.join(root, 'scripts/check-generated-database-types.js'), '--tracked'],
+        { cwd: root, encoding: 'utf8' }
+    );
+    if (typeCheck.status !== 0) {
+        findings.push('O contrato de tipos gerados difere estruturalmente da versão controlada.');
+        if (typeCheck.stdout) process.stdout.write(typeCheck.stdout);
+        if (typeCheck.stderr) process.stderr.write(typeCheck.stderr);
+    } else if (typeCheck.stdout) {
+        process.stdout.write(typeCheck.stdout);
     }
 }
 

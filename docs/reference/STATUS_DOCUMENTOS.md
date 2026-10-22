@@ -1,7 +1,7 @@
 # Matriz de validade documental
 
 **Classe documental:** Canônico  
-**Atualizado em:** 21 de outubro de 2026
+**Atualizado em:** 22 de outubro de 2026
 
 ## 1. Finalidade e precedência
 
@@ -25,7 +25,8 @@ PR aberto, Preview ou documento antigo não altera Production.
 | docs/audits/2026-10-11-controller-journey/ENVIRONMENT.md e CONTEXT.md | Evidência histórica datada | limitações e invariantes do experimento A–N em seu SHA; não homologação de novas jornadas nem justificativa para reabrir #438 |
 | AGENTS.md | Canônico | roteador obrigatório |
 | docs/runbooks/CI_TOOLCHAIN_REGISTRY.md | Runbook operacional vigente de infraestrutura de CI | diagnóstico Docker ECR/GHCR, erro postgres-meta, versões de CLI, runner Ubuntu 24/26, atualização segura e roteamento de evidências; leitura obrigatória para agentes que alteram tooling ou workflows |
-| docs/audits/2026-10-18-supabase-cli-rls-parity.md | Auditoria datada com investigação aberta | comparação CLI 2.114/2.121 e metadados de Production; ressalva à leitura automática de pgTAP 32/33; #453 encerrado sem merge e CLI 2.114.0 preservada preventivamente; não autoriza GRANT/REVOKE |
+| docs/audits/2026-10-18-supabase-cli-rls-parity.md | Auditoria histórica com adendo de resolução causal | hipótese explicada pela mudança do default de auto_expose_new_tables no #472; preserva o estado apurado em 18/10, sem autorizar GRANT/REVOKE em Production |
+| docs/evidence/2026-10-22-supabase-cli-grants/README.md e matrix.json | Evidência datada da reconciliação da CLI | matriz nativa 2 × 2 antes/depois das migrations, 674 testes inalterados e configuração local explícita; CI/release final pelo SHA do #472 |
 | docs/superpowers/specs/2026-10-04-operational-sync-simplification-design.md | Design de referência do #410 | direção implementada; confrontar capacidades e limites com código/ADRs vigentes |
 | docs/superpowers/plans/2026-10-04-operational-sync-simplification-implementation.md | Plano histórico do #410 | checkpoints preservados; não forma fila de reimplementação |
 | docs/evidence/2026-10-04-pr410-school-scope/README.md e JSONs | Evidência da caracterização | cobertura, exclusões, RLS, relações entre escolas e limites das provas locais; não certifica a RPC futura |

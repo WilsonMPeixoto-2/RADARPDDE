@@ -1,7 +1,7 @@
 # CI do RADAR: registros Docker, runners e compatibilidade de ferramentas
 
 **Classe:** runbook operacional vigente, não define regra funcional.  
-**Atualizado em:** 21/10/2026.
+**Atualizado em:** 22/10/2026.
 
 **Rota obrigatória para agentes:** ler este documento ao investigar GitHub Actions, imagens Docker, CI Supabase, geração de tipos, runners e atualizações de tooling. Ler também AGENTS.md, docs/reference/TEST_GOVERNANCE.md, docs/runbooks/SUPABASE_CONNECTION.md e verificar a versão, o SHA e o log reais. Este documento não autoriza operações em Production.
 
@@ -33,7 +33,11 @@ O cache npm de actions/setup-node **não armazena imagens Docker**. Node 24 é c
 
 ## 3. Atualização de dependências sem regressões de autorização
 
-A CLI Supabase **2.114.0** permanece homologada. As versões 2.116.0, 2.117.0, 2.118.0 e 2.120.0 foram retidas após falhas nos testes 32/33 de service_role em rls.test.sql e continuam bloqueadas por versão exata no Dependabot. Esse histórico não basta para atribuir causalmente uma regressão à ferramenta: o contrato de grants e a paridade entre bootstrap descartável e Production precisam ser reconciliados conforme a ressalva a seguir. **Nova contraprova em 18/10:** a CLI **2.121.0 reprovou exatamente os testes 32 e 33**, enquanto a 2.114.0 passou **674/674** asserções no mesmo código, Ubuntu e banco descartável; [PR #452](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/452), [run 39171252853](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39171252853). **Ressalva material apurada por consulta somente de leitura a Production:** os dois testes 32/33 exigem que service_role não possua DELETE em user_profiles/user_school_scopes, mas **Production efetivamente possui DELETE em ambas**, com RLS ativa e anon sem DELETE. Isso corresponde ao [comportamento padrão documentado de service_role](https://supabase.com/docs/guides/database/postgres/row-level-security). A migration canônica concede SELECT/INSERT/UPDATE, sem revogar DELETE previamente existente. Portanto, **a falha de pgTAP sozinha não prova regressão da CLI 2.121.0; o contrato e a paridade local × Production estão sob investigação**. Não atualizar CLI, mas também não reclassificar o resultado como defeito do produto até confrontar grants iniciais e rotas de bootstrap. Ver [auditoria de paridade de 18/10](../audits/2026-10-18-supabase-cli-rls-parity.md). O [PR #453](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/453) foi **encerrado sem merge**; não afirmar que seu bloqueio de 2.121.0 está integrado. Versões novas devem ser testadas em branch/PR e banco descartável, com npm ci, start/reset, migrations, pgTAP/RLS, geração de tipos, Auth, E2E e comparação do contrato. Nunca afrouxar RLS ou testes para homologar ferramenta.
+**Contrato da candidata #472:** CLI **2.121.0** com `[api] auto_expose_new_tables = false` explícito. A CLI 2.114 tratava chave ausente como `false`; a 2.121 passou a tratá-la como `true`, preservando grants automáticos antes das migrations. A matriz nativa de quatro stacks no [run 39830514391](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39830514391) isolou a causa: 2.121 sem chave falha exatamente 32/33; 2.114 ausente/false e 2.121 false passam **674/674**, com as mesmas ACLs finais nos vínculos administrativos. [Evidência completa](../evidence/2026-10-22-supabase-cli-grants/README.md). O estado de homologação final/merge está no #472 e em CURRENT_STAGE; a matriz causal não substitui Auth, tipos e jornadas.
+
+**Regra para próximas atualizações:** preservar a configuração explícita e os testes existentes; conferir defaults de bootstrap, imagens e privilégios antes de atribuir regressão à CLI. Não remover a chave por parecer redundante. A configuração local não é autorização para `config push`, GRANT/REVOKE ou mudanças em Production. Production possui DELETE administrativo e rotinas técnicas que o utilizam; isso não exige concedê-lo ao bootstrap descartável.
+
+**Histórico preservado:** 2.116/2.117/2.118/2.120 ficaram retidas por asserções 32/33; #452 reproduziu a diferença na 2.121 em [39171252853](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39171252853), e #453 foi encerrado sem merge. Não extrapolar a causa isolada na 2.121 para todas as versões intermediárias não medidas nesta matriz. A [auditoria de 18/10](../audits/2026-10-18-supabase-cli-rls-parity.md) registra a divergência com Production e agora remete à resolução. A candidata atual não relaxa testes, migrações ou RLS.
 
 Atualizações de SDK, TypeScript, Node, Playwright, GitHub Actions e dependências de lint devem ser independentes, com changelogs primários, lockfile e testes proporcionais. Ver [auditoria de dependências de 10/10](../audits/2026-10-10-modernizacao-dependencias-etapas-0-4.md) e [auditoria Supabase](../reference/SUPABASE_INTEGRATION_AUDIT.md). Resultado verde após retry não elimina do histórico a falha inicial; registrar a causa comprovada.
 
@@ -42,3 +46,24 @@ Atualizações de SDK, TypeScript, Node, Playwright, GitHub Actions e dependênc
 **YAML e contratos automatizados** são a prova executável. Este runbook contém o procedimento durável. **AGENTS.md** e **STATUS_DOCUMENTOS.md** devem rotear até ele; **CURRENT_STAGE.md** registra estado temporal após merge; auditorias datadas preservam tentativas rejeitadas e resultados históricos. Nada disso substitui verificação direta dos SHAs, jobs e Production.
 
 **Não modificar banco Production, permissões, migrations ou deploy para diagnosticar uma quota de imagem no GitHub.**
+
+## 5. Adequação do typegen pós-CLI 2.121 e contenção de falhas de runner (22/10)
+
+O gerador da CLI nova modificou a representação TypeScript sem alterar o
+conjunto de entidades ou RPCs: 48 campos JSON de tabela não-nulos, 20
+`ComputedFields: never` e 3 assinaturas de RPC sem parâmetros foram
+incorporados ao arquivo de tipos versionado. A CI valida a sintaxe com o parser TypeScript do Prettier e compara
+tokens significativos via `scripts/check-generated-database-types.js`, para aceitar
+aspas, espaçamento e agrupamentos não semânticos, **reprovando alterações de
+tipos, campos ou obrigatoriedade**. Arquivos de bundle e runtime continuam
+comparados literalmente. O teste remoto descartável segue o mesmo critério.
+
+Falha de inicialização por porta 54322 no workflow independente de backup é
+tratada com reserva local no runner, sem reduzir a cobertura. Limite `toomanyrequests` simultâneo no GHCR e no mirror ECR revelou que
+um pull de imagem na matriz de comparação Ubuntu 24/26 era redundante: todos
+os runners canônicos usam Ubuntu 26 e executam Supabase real em outros gates.
+A matriz de compatibilidade mantém Node 24, npm, Docker e Chromium real,
+mas não repete download de imagem de terceiro. Os gates de Supabase dedicados
+continuam bloqueantes; não confundir redução de duplicação com aprovação
+simulada. Conferir execução do novo SHA antes de
+considerar essas duas correções homologadas.

@@ -61,9 +61,3 @@ jobs:
           if (await page.title() !== 'CI Ubuntu') throw new Error('Chromium did not render test page');
           await browser.close();
           NODE
-      - name: Verificar imagem postgres-meta no GHCR
-        shell: bash
-        run: |
-          set -euo pipefail
-          docker pull ghcr.io/supabase/postgres-meta:v0.97.0
-          docker image inspect ghcr.io/supabase/postgres-meta:v0.97.0 --format '{{.Id}}'

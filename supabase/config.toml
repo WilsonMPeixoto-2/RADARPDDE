@@ -2,6 +2,9 @@ project_id = "radar-pdde"
 
 [api]
 enabled = true
+# Preserva o bootstrap local homologado: grants são definidos pelas migrations.
+# A CLI 2.121 passou a preservar grants automáticos quando esta opção é omitida.
+auto_expose_new_tables = false
 port = 54321
 schemas = ["public"]
 extra_search_path = ["public", "extensions"]

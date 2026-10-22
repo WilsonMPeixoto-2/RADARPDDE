@@ -166,3 +166,5 @@ Na mesma entrega que criar ou alterar fonte canônica, atualizar quando aplicáv
 7. o vínculo de handoff corrente quando a frente mudar.
 
 Documento histórico não deve ser reescrito para fingir atualidade. Deve ser preservado e, quando necessário, reclassificado por uma fonte canônica posterior.
+
+- [Reconciliação causal da CLI Supabase — 22/10/2026](evidence/2026-10-22-supabase-cli-grants/README.md): defaults de grants, matriz nativa 2 × 2 e candidata #472.
