@@ -1,5 +1,10 @@
 # MSW 3 — validação e publicação, 21/10/2026
 
+**Estado final:** #443 integrado em `84e793ed42a9139d8f80fcf2a16b868d8bba656e`,
+Production READY, smoke aprovado. **19/19 workflows do candidato e 7/7 de push
+pós-merge aprovados.** Esta rodada delimitada está concluída. Checkpoints de
+espera e ocorrências iniciais abaixo são históricos, preservados para rastreabilidade.
+
 Classe: evidência datada de continuidade, não autoridade funcional nem handoff corrente.
 Este arquivo suplementar fica em branch documental separada para registrar
 resultados posteriores à certificação sem disparar novamente a CI de produto.
@@ -170,3 +175,44 @@ No checkpoint desta integração, a Vercel iniciou o deployment automático
 `dpl_C5bVMtw36XLVVuEHdkmdVaJZbV2T` em BUILDING, no SHA correto.
 Os sete workflows de push pós-merge também iniciaram. A publicação e seus
 pós-testes só devem ser declarados concluídos após a conferência real abaixo.
+
+## Publicação e pós-testes concluídos
+
+Deployment automático **`dpl_C5bVMtw36XLVVuEHdkmdVaJZbV2T`**, Production,
+**READY em 22/10 às 02:00:51.123 UTC (21/10 às 23:00:51 de Brasília)**.
+Origem `84e793ed42a9139d8f80fcf2a16b868d8bba656e`, alias oficial associado
+sem erro. Página e `radar-build-manifest.json` HTTP 200, no mesmo SHA e modo
+`supabase-production`.
+
+Bundle público SDK Supabase **2.118.0**, 265.570 bytes, hash inalterado
+`33b09b0db467df88254207a45a76fa6ab293ab1539f76c63683a78d75a7a86eb`.
+O agente principal executou o smoke canônico
+`scripts/check-production-system.mjs`, uma tentativa com `--expected-commit`
+no merge final: **approved, 52 assets, anonymousRlsEvidence=blocked-401**.
+Não houve deploy manual, mudança de configuração ou escrita institucional no
+Supabase. Essas conferências públicas não equivalem a jornada humana autenticada.
+
+Os sete workflows de **push no SHA do merge**, conferidos separadamente dos
+workflows de PR, passaram sem repetição:
+
+| Workflow da main | Run | Resultado |
+| --- | --- | --- |
+| Saúde das dependências | 39708856263 | success |
+| Validar RADAR PDDE | 39708856237 | success |
+| Lighthouse CI | 39708856291 | success |
+| Monitoramento contínuo de Production | 39708856265 | success |
+| CodeQL | 39708856136 | success |
+| Regressão visual desktop | 39708856314 | success |
+| Supabase readiness | 39708856217 | success |
+
+Readiness inclui migrations, prontidão e frontend/Auth/RLS no backend
+descartável. Nenhum resultado de outra árvore substituiu esses checks.
+Não foram somados testes sobrepostos como cobertura única.
+
+**Decisão final:** integração e publicação justificadas pela compatibilidade
+comprovada da API, sonda negativa com controle positivo, preservação dos quatro
+contratos originais, revisão do lock, ausência de mudança em fontes do produto,
+CI do mesmo HEAD, equivalência da árvore mergeada e pós-testes efetivos.
+O incidente inicial da amostra controle não foi apagado nem transformado em
+defeito do produto. Sua causa-raiz não é declarada resolvida. Melhorias de
+desempenho e paridade de privilégios continuam fora desta entrega.
