@@ -61,9 +61,19 @@ jobs:
           if (await page.title() !== 'CI Ubuntu') throw new Error('Chromium did not render test page');
           await browser.close();
           NODE
-      - name: Verificar imagem postgres-meta no GHCR
+      - name: Verificar postgres-meta em registry oficial (fallback apenas por quota)
         shell: bash
         run: |
           set -euo pipefail
-          docker pull ghcr.io/supabase/postgres-meta:v0.97.0
-          docker image inspect ghcr.io/supabase/postgres-meta:v0.97.0 --format '{{.Id}}'
+          image='ghcr.io/supabase/postgres-meta:v0.97.0'
+          if docker pull "$image" > /tmp/radar-postgres-meta-pull.log 2>&1; then
+            docker image inspect "$image" --format '{{.Id}}'
+          elif grep -Eiq 'toomanyrequests|rate exceeded|429' /tmp/radar-postgres-meta-pull.log; then
+            echo 'GHCR limitou requisições; tentando mirror oficial na mesma versão.'
+            mirror='public.ecr.aws/supabase/postgres-meta:v0.97.0'
+            docker pull "$mirror"
+            docker image inspect "$mirror" --format '{{.Id}}'
+          else
+            cat /tmp/radar-postgres-meta-pull.log >&2
+            exit 1
+          fi

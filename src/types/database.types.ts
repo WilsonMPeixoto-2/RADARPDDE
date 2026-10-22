@@ -14,18 +14,19 @@ export type Database = {
           action: string
           actor_user_id: string | null
           created_at: string
-          details: Json
+          details: NonNullable<Json>
           event_at: string
           id: string
           profile_name: string
           school_id: string | null
           user_identifier: string
         }
+        ComputedFields: never
         Insert: {
           action: string
           actor_user_id?: string | null
           created_at?: string
-          details?: Json
+          details?: NonNullable<Json>
           event_at?: string
           id: string
           profile_name?: string
@@ -36,7 +37,7 @@ export type Database = {
           action?: string
           actor_user_id?: string | null
           created_at?: string
-          details?: Json
+          details?: NonNullable<Json>
           event_at?: string
           id?: string
           profile_name?: string
@@ -58,30 +59,31 @@ export type Database = {
           bonus_deadline_extended: string | null
           closing_competence: string | null
           created_at: string
-          exercises: Json
+          exercises: NonNullable<Json>
           id: string
           row_version: number
-          settings: Json
+          settings: NonNullable<Json>
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           bonus_deadline_extended?: string | null
           closing_competence?: string | null
           created_at?: string
-          exercises?: Json
+          exercises?: NonNullable<Json>
           id: string
           row_version?: number
-          settings?: Json
+          settings?: NonNullable<Json>
           updated_at?: string
         }
         Update: {
           bonus_deadline_extended?: string | null
           closing_competence?: string | null
           created_at?: string
-          exercises?: Json
+          exercises?: NonNullable<Json>
           id?: string
           row_version?: number
-          settings?: Json
+          settings?: NonNullable<Json>
           updated_at?: string
         }
         Relationships: [
@@ -107,12 +109,13 @@ export type Database = {
           inventory_process: string
           invoice_number: string
           notes: string
-          payload: Json
+          payload: NonNullable<Json>
           row_version: number
           school_id: string
           status: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           amount?: number
           competence_id?: string | null
@@ -125,7 +128,7 @@ export type Database = {
           inventory_process?: string
           invoice_number?: string
           notes?: string
-          payload?: Json
+          payload?: NonNullable<Json>
           row_version?: number
           school_id: string
           status: string
@@ -143,7 +146,7 @@ export type Database = {
           inventory_process?: string
           invoice_number?: string
           notes?: string
-          payload?: Json
+          payload?: NonNullable<Json>
           row_version?: number
           school_id?: string
           status?: string
@@ -186,6 +189,7 @@ export type Database = {
           request_id: string | null
           table_name: string
         }
+        ComputedFields: never
         Insert: {
           action: string
           actor_user_id?: string | null
@@ -225,6 +229,7 @@ export type Database = {
           starts_on: string | null
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           bonus_deadline?: string | null
           closed_at?: string | null
@@ -262,6 +267,7 @@ export type Database = {
           updated_at: string
           user_id: string | null
         }
+        ComputedFields: never
         Insert: {
           active?: boolean
           created_at?: string
@@ -287,14 +293,14 @@ export type Database = {
       data_import_runs: {
         Row: {
           completed_at: string | null
-          completed_batches: Json
+          completed_batches: NonNullable<Json>
           created_at: string
           created_by: string | null
-          entity_counts: Json
+          entity_counts: NonNullable<Json>
           error_message: string
           id: string
           import_id: string
-          reconciliation_report: Json
+          reconciliation_report: NonNullable<Json>
           rollback_snapshot: Json | null
           snapshot_format: string
           snapshot_version: string
@@ -304,16 +310,17 @@ export type Database = {
           status: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           completed_at?: string | null
-          completed_batches?: Json
+          completed_batches?: NonNullable<Json>
           created_at?: string
           created_by?: string | null
-          entity_counts?: Json
+          entity_counts?: NonNullable<Json>
           error_message?: string
           id?: string
           import_id: string
-          reconciliation_report?: Json
+          reconciliation_report?: NonNullable<Json>
           rollback_snapshot?: Json | null
           snapshot_format: string
           snapshot_version: string
@@ -325,14 +332,14 @@ export type Database = {
         }
         Update: {
           completed_at?: string | null
-          completed_batches?: Json
+          completed_batches?: NonNullable<Json>
           created_at?: string
           created_by?: string | null
-          entity_counts?: Json
+          entity_counts?: NonNullable<Json>
           error_message?: string
           id?: string
           import_id?: string
-          reconciliation_report?: Json
+          reconciliation_report?: NonNullable<Json>
           rollback_snapshot?: Json | null
           snapshot_format?: string
           snapshot_version?: string
@@ -350,17 +357,18 @@ export type Database = {
           created_at: string
           entity: string
           import_id: string
-          payload: Json
+          payload: NonNullable<Json>
           record_id: string
           source_hash: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           batch_index: number
           created_at?: string
           entity: string
           import_id: string
-          payload: Json
+          payload: NonNullable<Json>
           record_id: string
           source_hash: string
           updated_at?: string
@@ -370,7 +378,7 @@ export type Database = {
           created_at?: string
           entity?: string
           import_id?: string
-          payload?: Json
+          payload?: NonNullable<Json>
           record_id?: string
           source_hash?: string
           updated_at?: string
@@ -396,6 +404,7 @@ export type Database = {
           updated_at: string
           user_id: string | null
         }
+        ComputedFields: never
         Insert: {
           active?: boolean
           created_at?: string
@@ -428,7 +437,7 @@ export type Database = {
           next_actor: string
           notes: string
           opened_at: string
-          payload: Json
+          payload: NonNullable<Json>
           program_id: string | null
           reason: string
           registered_invoice_id: string | null
@@ -439,6 +448,7 @@ export type Database = {
           status: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           canceled_at?: string | null
           competence_origin: string
@@ -448,7 +458,7 @@ export type Database = {
           next_actor?: string
           notes?: string
           opened_at?: string
-          payload?: Json
+          payload?: NonNullable<Json>
           program_id?: string | null
           reason?: string
           registered_invoice_id?: string | null
@@ -468,7 +478,7 @@ export type Database = {
           next_actor?: string
           notes?: string
           opened_at?: string
-          payload?: Json
+          payload?: NonNullable<Json>
           program_id?: string | null
           reason?: string
           registered_invoice_id?: string | null
@@ -518,16 +528,17 @@ export type Database = {
           created_at: string
           created_by: string | null
           drive_url: string
-          errors: Json
+          errors: NonNullable<Json>
           id: string
           observation: string
-          payload: Json
+          payload: NonNullable<Json>
           pendency_id: string
           result: string | null
           row_version: number
           submitted_at: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           analyzed_at?: string | null
           attempt_number: number
@@ -535,10 +546,10 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           drive_url?: string
-          errors?: Json
+          errors?: NonNullable<Json>
           id: string
           observation?: string
-          payload?: Json
+          payload?: NonNullable<Json>
           pendency_id: string
           result?: string | null
           row_version?: number
@@ -552,10 +563,10 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           drive_url?: string
-          errors?: Json
+          errors?: NonNullable<Json>
           id?: string
           observation?: string
-          payload?: Json
+          payload?: NonNullable<Json>
           pendency_id?: string
           result?: string | null
           row_version?: number
@@ -582,12 +593,13 @@ export type Database = {
           id: string
           official_charge: boolean
           operation_id: string | null
-          payload: Json
+          payload: NonNullable<Json>
           pendency_id: string | null
           row_version: number
           school_id: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           contact_date: string
           contact_type: string
@@ -597,7 +609,7 @@ export type Database = {
           id: string
           official_charge?: boolean
           operation_id?: string | null
-          payload?: Json
+          payload?: NonNullable<Json>
           pendency_id?: string | null
           row_version?: number
           school_id: string
@@ -612,7 +624,7 @@ export type Database = {
           id?: string
           official_charge?: boolean
           operation_id?: string | null
-          payload?: Json
+          payload?: NonNullable<Json>
           pendency_id?: string | null
           row_version?: number
           school_id?: string
@@ -646,6 +658,7 @@ export type Database = {
           row_version: number
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           active?: boolean
           created_at?: string
@@ -678,6 +691,7 @@ export type Database = {
           row_version: number
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           active?: boolean
           created_at?: string
@@ -708,7 +722,7 @@ export type Database = {
           id: string
           invoice_number: string | null
           linked_asset_id: string | null
-          payload: Json
+          payload: NonNullable<Json>
           program_id: string | null
           registered_at: string | null
           row_version: number
@@ -717,6 +731,7 @@ export type Database = {
           updated_at: string
           verification_id: string | null
         }
+        ComputedFields: never
         Insert: {
           amount: number
           competence_id?: string | null
@@ -726,7 +741,7 @@ export type Database = {
           id: string
           invoice_number?: string | null
           linked_asset_id?: string | null
-          payload?: Json
+          payload?: NonNullable<Json>
           program_id?: string | null
           registered_at?: string | null
           row_version?: number
@@ -744,7 +759,7 @@ export type Database = {
           id?: string
           invoice_number?: string | null
           linked_asset_id?: string | null
-          payload?: Json
+          payload?: NonNullable<Json>
           program_id?: string | null
           registered_at?: string | null
           row_version?: number
@@ -803,6 +818,7 @@ export type Database = {
           starts_on: string | null
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           active?: boolean
           created_at?: string
@@ -867,6 +883,7 @@ export type Database = {
           sici: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           active?: boolean
           cnpj?: string
@@ -945,6 +962,7 @@ export type Database = {
           updated_at: string
           user_id: string
         }
+        ComputedFields: never
         Insert: {
           active?: boolean
           controller_id?: string | null
@@ -1002,6 +1020,7 @@ export type Database = {
           updated_at: string
           user_id: string
         }
+        ComputedFields: never
         Insert: {
           can_write?: boolean
           created_at?: string
@@ -1030,39 +1049,40 @@ export type Database = {
       }
       verifications: {
         Row: {
-          analysis: Json
-          bonification: Json
+          analysis: NonNullable<Json>
+          bonification: NonNullable<Json>
           bonus_result: string | null
           competence_id: string
           created_at: string
           id: string
-          payload: Json
+          payload: NonNullable<Json>
           program_id: string
           row_version: number
           school_id: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
-          analysis?: Json
-          bonification?: Json
+          analysis?: NonNullable<Json>
+          bonification?: NonNullable<Json>
           bonus_result?: string | null
           competence_id: string
           created_at?: string
           id: string
-          payload?: Json
+          payload?: NonNullable<Json>
           program_id: string
           row_version?: number
           school_id: string
           updated_at?: string
         }
         Update: {
-          analysis?: Json
-          bonification?: Json
+          analysis?: NonNullable<Json>
+          bonification?: NonNullable<Json>
           bonus_result?: string | null
           competence_id?: string
           created_at?: string
           id?: string
-          payload?: Json
+          payload?: NonNullable<Json>
           program_id?: string
           row_version?: number
           school_id?: string
@@ -1126,8 +1146,8 @@ export type Database = {
         }
         Returns: Json
       }
-      current_app_role: { Args: never; Returns: string }
-      current_controller_id: { Args: never; Returns: string }
+      current_app_role: { Args: Record<PropertyKey, never>; Returns: string }
+      current_controller_id: { Args: Record<PropertyKey, never>; Returns: string }
       deactivate_controller_account: {
         Args: {
           p_actor_user_id: string
@@ -1162,7 +1182,7 @@ export type Database = {
         Returns: string
       }
       load_staged_import: { Args: { p_import_id: string }; Returns: Json }
-      production_integrity_check: { Args: never; Returns: Json }
+      production_integrity_check: { Args: Record<PropertyKey, never>; Returns: Json }
       promote_data_import: {
         Args: {
           p_entity_counts: Json

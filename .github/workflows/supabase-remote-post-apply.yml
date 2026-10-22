@@ -98,7 +98,7 @@ jobs:
       - name: Comparar tipos remotos com o contrato versionado
         run: |
           npx --no-install supabase gen types typescript --linked --schema public > /tmp/database.remote.types.ts
-          diff --unified src/types/database.types.ts /tmp/database.remote.types.ts
+          node scripts/check-generated-database-types.js src/types/database.types.ts /tmp/database.remote.types.ts
 
       - name: Executar Advisors de segurança e desempenho
         run: |

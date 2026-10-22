@@ -46,3 +46,21 @@ Atualizações de SDK, TypeScript, Node, Playwright, GitHub Actions e dependênc
 **YAML e contratos automatizados** são a prova executável. Este runbook contém o procedimento durável. **AGENTS.md** e **STATUS_DOCUMENTOS.md** devem rotear até ele; **CURRENT_STAGE.md** registra estado temporal após merge; auditorias datadas preservam tentativas rejeitadas e resultados históricos. Nada disso substitui verificação direta dos SHAs, jobs e Production.
 
 **Não modificar banco Production, permissões, migrations ou deploy para diagnosticar uma quota de imagem no GitHub.**
+
+## 5. Adequação do typegen pós-CLI 2.121 e contenção de falhas de runner (22/10)
+
+O gerador da CLI nova modificou a representação TypeScript sem alterar o
+conjunto de entidades ou RPCs: 48 campos JSON de tabela não-nulos, 20
+`ComputedFields: never` e 3 assinaturas de RPC sem parâmetros foram
+incorporados ao arquivo de tipos versionado. A CI compara a árvore de sintaxe
+TypeScript por `scripts/check-generated-database-types.js` para aceitar
+aspas, espaçamento e agrupamentos não semânticos, **reprovando alterações de
+tipos, campos ou obrigatoriedade**. Arquivos de bundle e runtime continuam
+comparados literalmente. O teste remoto descartável segue o mesmo critério.
+
+Falha de inicialização por porta 54322 no workflow independente de backup é
+tratada com reserva local no runner, sem reduzir a cobertura. Limite
+`toomanyrequests` ao consultar GHCR no teste Ubuntu admite uma única rota
+alternativa, imagem Supabase de mesma tag no mirror oficial ECR; qualquer
+outra falha continua bloqueante. Conferir execução do novo SHA antes de
+considerar essas duas correções homologadas.

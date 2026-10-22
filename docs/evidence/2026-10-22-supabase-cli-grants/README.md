@@ -59,3 +59,33 @@ Esta escolha não torna a CI uma réplica integral de Production. A stack 2.121 
 - Homologação completa do SHA final, incluindo Auth, Edge, tipos gerados e restauração descartável: conferir os checks do #472. A prova causal acima não os substitui. Não afirmar merge/publicação antes da verificação remota.
 
 O escopo final permitido é dependência/lock, config local explícito, contrato unitário de versão, reserva no runner e documentação. Produto, migrations, RLS, grants hospedados e regras operacionais ficam fora desta manutenção. Novas falhas devem ser classificadas pelo estágio efetivamente executado antes de qualquer alteração.
+
+## 6. Adequação ao gerador de tipos 2.121 (continuidade focal)
+
+A comparação da CI final revelou saída TypeScript de formato diferente. A
+comparação estrutural dos contratos original e gerado (após normalização apenas
+de sintaxe cosmética) confirmou: 48 campos JSON de tabelas receberam
+`NonNullable<Json>`, 20 tabelas receberam `ComputedFields: never`,
+3 RPCs sem argumentos passaram de `Args: never` para
+`Args: Record<PropertyKey, never>` e 5 arrays de string receberam
+parênteses redundantes no gerador. Não surgiram tabelas, colunas, RPCs ou
+argumentos adicionais nessa comparação. A representação de chaves e aspas
+também mudou.
+
+O arquivo de tipos **continua versionado**, agora com essas definições mais
+precisas e formatação legível. A CI deixou de comparar o arquivo somente byte
+a byte: o verificador dedicado compara a árvore sintática via TypeScript,
+preservando bloqueio de mudanças reais em campos, tipos ou opcionalidade.
+Bundles Ajv/Supabase e config.runtime.js continuam exigindo igualdade literal.
+Testes unitários específicos distinguem mudança cosmética de mudança real.
+A verificação equivalente foi aplicada à rotina remota descartável. Esta
+adaptação não altera JavaScript do produto nem qualquer schema SQL.
+
+O job isolado de backup passa a reservar 54320–54323 como os demais jobs
+Supabase. Na matriz Ubuntu, limite explícito `toomanyrequests` do GHCR
+permite tentar apenas o mirror oficial `public.ecr.aws` com a MESMA tag
+`postgres-meta:v0.97.0`; outras falhas continuam bloqueantes.
+
+**Ainda não declarar homologação completa por esta edição:** verificar os checks
+do commit posterior; os 15 workflows aprovados do SHA `9a6806be` são
+evidência histórica, não aprovação automática de novos arquivos.
