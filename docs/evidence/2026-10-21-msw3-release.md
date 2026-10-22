@@ -93,3 +93,68 @@ diagnósticos do comparador não são um budget de aceitação.
 CLI Supabase 2.114.0/paridade de grants, tipos Node 26, #446/#447, #460 e
 indicadores mensais permanecem separados. Não houve alteração ou escrita
 institucional em Production nesta avaliação.
+
+Consulta final independente do principal, `npm outdated --json`, sobre a árvore
+MSW 3: retornou apenas `@types/node` 24.19.2 → latest 26.6.5 e CLI Supabase
+2.114.0 → latest 2.121.0. `npm view @types/node@24 version` confirma 24.19.2
+como último patch da linha suportada. Não há outro upgrade direto compatível
+pendente no snapshot consultado; não antecipar tipos de APIs Node 26 nem
+alterar contrato de privilégios para aceitar a CLI.
+
+## Homologação concluída — resultado superveniente
+
+No mesmo HEAD `221209da`, a única repetição da baseline, job
+`119590885753`, concluiu **400 rodadas, 1 teste aprovado em 7,5 minutos**.
+O candidato aprovado não foi repetido: a API de jobs reutiliza seu resultado
+na tentativa 2 (ID `119590916963`), mantendo os mesmos instantes de início/fim
+da tentativa 1, **01:34:11–01:43:18 UTC**.
+
+**19/19 workflows aprovados no HEAD final**, sem alterar produto ou testes
+depois da ocorrência inicial:
+
+| Workflow | Run | Resultado |
+| --- | --- | --- |
+| Reprodutibilidade do bundle Ajv | 39706386925 | success |
+| Dependency Review | 39706386921 | success |
+| Saúde das dependências | 39706386991 | success |
+| Validar RADAR PDDE | 39706386928 | success |
+| Homologação do Excel SME | 39706387008 | success |
+| Estabilidade de posição do Prontuário | 39706386975 | success |
+| Lighthouse CI | 39706387045 | success |
+| Compatibilidade controlada Ubuntu 24.04 x 26.04 | 39706387056 | success |
+| CodeQL | 39706386952 | success |
+| Confiabilidade funcional com Supabase real | 39706386965 | success |
+| Regressão visual desktop | 39706387055 | success |
+| Ciclos funcionais reais com Supabase | 39706386986 | success |
+| Homologação integral pré-production | 39706386971 | success |
+| Backup e restauração descartáveis | 39706387110 | success |
+| Hardening específico de sincronização operacional | 39706387054 | success |
+| Supabase readiness | 39706386990 | success |
+| Gate remoto de perfis e viewports | 39706386934 | success |
+| Testes E2E Playwright | 39706386977 | success |
+| Uso real operacional com volume semelhante a Production | 39706387025 | success |
+
+O comparador dependente `119593940725` concluiu com status
+`diagnostic-comparison-complete`. Artefato `12396436082`, 15.740 bytes,
+SHA-256 `6bcdcd94f26a4f504b03beb4db3125f2b7a65e65f582079bbcb217534ab834fb`.
+São **duas advertências diagnósticas** (tentativas de leitura e frescor da
+baseline não comparável), budgets `not-established/report-only`.
+Não representa ganho de fluidez ou atribuição de deltas ao MSW.
+
+Os ZIPs de métricas de **ambas as variantes** foram baixados e abertos.
+Ambos registram `stage=reload`, `outcome=passed`, 400 rodadas, seis sessões,
+1.107 gestos. Baseline válida: artefato `12396346011`, SHA-256
+`7f26d19bac41dc3e0c30dc7ab009e1c624e74326a8f0dec3e1e02a8bd0151c3e`.
+Candidato: o mesmo `12395124341` já conferido acima.
+
+O download do comparador encontrou quatro artefatos de métricas e selecionou
+os dois válidos/atuais, preservando o arquivo inicial incompleto. **Os seis
+hashes de fontes do comparador coincidem exatamente com session-report,
+pg-stat-before e pg-stat-after dos ZIPs válidos**. Não houve mistura com o
+snapshot SQL da referência incompleta.
+
+O SHA de workflow `5dc903b4f16a67402e246f857f0c7c97e727bd68` é o merge
+sintético da CI. Sua árvore foi conferida no Git e é idêntica à do candidato:
+`5ed6cd8928b122645dd06500d7fe0f6a5e3a4c2c`.
+O diff é vazio. Próximo passo delimitado: integrar o HEAD homologado e verificar
+a publicação automática, sem nova rodada de implementação.
