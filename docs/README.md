@@ -16,6 +16,8 @@ não nova autoridade funcional; [CURRENT_STAGE.md](CURRENT_STAGE.md) mantém o e
 mutável. A issue #460 continua aberta apenas para os casos não resolvidos, sem
 reabrir a medição geométrica já corrigida no #463.
 
+**MSW 3, avaliação isolada de 21/10:** [evidência do harness de rede](evidence/2026-10-21-msw3-network-harness.md), incluindo a contraprova da opção renomeada e os quatro cenários originais. CI/publicação do HEAD final no #443; não representa melhoria de runtime ou fluidez.
+
 **Continuação de 21/10:** dependency-cruiser 18.7.0 (#469), ESLint 10.13.0
 (#470) e Knip 6.42.1 (#471) mantêm configurações e runtime. As provas locais,
 falhas iniciais e composição estão indexadas em [CURRENT_STAGE.md](CURRENT_STAGE.md);
