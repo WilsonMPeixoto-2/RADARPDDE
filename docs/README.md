@@ -1,5 +1,10 @@
 # Documentação do RADAR PDDE
 
+**Estudo de oportunidades pós-atualizações — 22/10/2026:**
+[tecnologias disponíveis e benefícios possíveis](audits/2026-10-22-technology-opportunities.md),
+base `7141489e`. Distingue recursos já usados, novidades de plataforma e
+hipóteses que exigem medição. É análise, sem implementação ou novo handoff.
+
 **Estado verificado em 22/10/2026:** [`CURRENT_STAGE.md`](CURRENT_STAGE.md)
 registra o [merge do PR #472](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/472),
 `main@caf2de3e`, CLI Supabase **2.121.0**, 19/19 workflows no candidato,

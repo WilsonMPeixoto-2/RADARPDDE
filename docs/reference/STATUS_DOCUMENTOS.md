@@ -31,6 +31,7 @@ um checkpoint histórico diz "aguardando", "Draft" ou "candidato".
 
 | Arquivo | Classe | Uso |
 |---|---|---|
+| docs/audits/2026-10-22-technology-opportunities.md | Estudo de oportunidades datado, não especificação aprovada | capacidades pós-atualizações confrontadas com a main 7141489e; benefícios esperados, propostas de experimentos e condições de adoção; não homologa performance nem inicia implementação |
 | docs/audits/2026-10-11-controller-journey/HANDOFF.md | Handoff histórico da Etapa 5 | auditoria imersiva A–N de 11–13/10; as sete correções delimitadas foram encerradas pelo PR #438; não tratar checkpoints pré-merge como frente corrente |
 | docs/audits/2026-10-11-controller-journey/ENVIRONMENT.md e CONTEXT.md | Evidência histórica datada | limitações e invariantes do experimento A–N em seu SHA; não homologação de novas jornadas nem justificativa para reabrir #438 |
 | AGENTS.md | Canônico | roteador obrigatório |
