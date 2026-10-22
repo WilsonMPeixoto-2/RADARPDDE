@@ -1,7 +1,7 @@
 # Matriz de validade documental
 
 **Classe documental:** Canônico  
-**Atualizado em:** 21 de outubro de 2026
+**Atualizado em:** 22 de outubro de 2026
 
 ## 1. Finalidade e precedência
 
@@ -19,6 +19,16 @@ PR aberto, Preview ou documento antigo não altera Production.
 
 ## 2. Rota canônica vigente
 
+**Fronteira atual (22/10):** verificar primeiro o resumo no topo de
+[`docs/CURRENT_STAGE.md`](../CURRENT_STAGE.md), que sucede a avaliação pré-merge
+do MSW. A [certificação final do #443](https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/678d83692ed526bf01bfedf18eca0b5e227ce96c/docs/evidence/2026-10-21-msw3-release.md)
+está em **commit documental separado da main**, mas o PR #443 foi integrado
+e a Production correspondente foi conferida. O [PR #472](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/472)
+é **Draft** de atualização da CLI, com seus próprios arquivos de documentação
+e evidência, e não modifica a `main` antes do merge. Não duplicar as
+investigações, modificar suas branches ou reexecutar CI só para atualizar
+registros históricos.
+
 | Arquivo | Classe | Uso |
 |---|---|---|
 | docs/audits/2026-10-11-controller-journey/HANDOFF.md | Handoff histórico da Etapa 5 | auditoria imersiva A–N de 11–13/10; as sete correções delimitadas foram encerradas pelo PR #438; não tratar checkpoints pré-merge como frente corrente |
@@ -31,9 +41,11 @@ PR aberto, Preview ou documento antigo não altera Production.
 | docs/evidence/2026-10-04-pr410-school-scope/README.md e JSONs | Evidência da caracterização | cobertura, exclusões, RLS, relações entre escolas e limites das provas locais; não certifica a RPC futura |
 | docs/reference/SYSTEM_CANONICAL_MODEL.md | Canônico | autoridades, fluxos e invariantes |
 | docs/reference/PRODUCT_SURFACE_CATALOG.md | Referência vigente | superfícies e jornadas |
+| docs/reference/SUPABASE_INTEGRATION_AUDIT.md | Referência de integração vigente | SDK 2.118.0 na main (#457), banco gerenciado em PostgreSQL 17.11 e PostgREST 14.18; CLI 2.114.0 até novo merge, com #472 Draft separado |
 | docs/reference/VERCEL_OBSERVABILITY.md | Referência operacional vigente | contrato de instrumentação Web Analytics/Speed Insights, estado de ativação, validação de campo e decisão de não usar o pacote redundante do #416 |
 | docs/CURRENT_STAGE.md | Canônico | estado funcional e prioridade; head/deployment exatos devem ser revalidados ao vivo quando relevantes |
-| docs/evidence/2026-10-21-msw3-network-harness.md | Evidência datada de migração de ferramenta de teste | MSW 3 e preservação do bloqueio de requisições sem handler, com controle de transporte e RED/GREEN; CI/publicação do HEAD final no #443, sem alteração de produto |
+| docs/evidence/2026-10-21-msw3-network-harness.md | Evidência datada integrada à main | RED/GREEN de interceptação MSW 3; os 19/19 workflows, 7/7 pós-merge e publicação do #443 estão encerrados, não são tarefas pendentes |
+| [docs/evidence/2026-10-21-msw3-release.md](https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/678d83692ed526bf01bfedf18eca0b5e227ce96c/docs/evidence/2026-10-21-msw3-release.md) | Evidência final em commit documental separado | resultados finais e falhas iniciais do #443; disponível por permalink, **não afirmar que o arquivo existe na main** |
 | docs/evidence/2026-10-21-tooling-mobile-reconciliation.md | Evidência datada de reconciliação | merges #462/#444/#457/#463/#461/#467/#466/#464, CI e limites de publicação; não é handoff corrente nem homologação de desempenho sistêmico |
 | docs/evidence/2026-10-21-dependency-cruiser-18-7.md, docs/evidence/2026-10-21-eslint-10-13.md e docs/evidence/2026-10-21-knip-6-42.md | Evidências datadas de candidatos e composição | escopo de lockfiles, contratos, RED/GREEN de versões e provas locais; CI/publicação finais identificados por SHA nos #469/#470/#471, sem homologação geral de fluidez |
 | docs/evidence/2026-10-21-tooling-refresh.md e docs/evidence/2026-10-21-supabase-sdk-update.md | Checkpoints históricos de candidatos | preservam RED/GREEN e limites locais; menções a Draft/aguardar CI foram superadas pelos merges de 21/10 e pela evidência de reconciliação |
@@ -87,8 +99,8 @@ O servidor canônico e suas correções não alteraram schema, migrations, RPCs,
 
 ## 4. Handoff corrente e histórico
 
-Não há handoff de execução corrente designado no checkpoint de 19/10 de
-`CURRENT_STAGE.md`. `docs/audits/2026-10-11-controller-journey/HANDOFF.md` é histórico:
+Não há handoff de execução corrente designado no checkpoint vigente de 22/10 de
+`CURRENT_STAGE.md`. O PR #472 está em avaliação separada, sem substituir o handoff canônico. `docs/audits/2026-10-11-controller-journey/HANDOFF.md` é histórico:
 preserva a auditoria A–N e os checkpoints das sete correções encerradas pelo #438,
 sem constituir uma atribuição atual nem certificar o desempenho sistêmico.
 #410/#427/#429 e a ordenação do #448 estão encerrados nos respectivos escopos.

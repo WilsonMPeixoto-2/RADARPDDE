@@ -1,5 +1,17 @@
 # Documentação do RADAR PDDE
 
+**Checkpoint vigente de 22/10/2026:** [`CURRENT_STAGE.md`](CURRENT_STAGE.md)
+registra `main@84e793ed`, Production READY no mesmo commit, o upgrade
+gerenciado para PostgreSQL 17.11 e a publicação do MSW 3.0.3 (#443),
+com 19/19 workflows do candidato e 7/7 pós-merge. O
+[encerramento do MSW](https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/678d83692ed526bf01bfedf18eca0b5e227ce96c/docs/evidence/2026-10-21-msw3-release.md)
+foi versionado em commit documental separado: não há necessidade de refazer
+essa homologação. CLI da main **2.114.0**; [#472](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/472)
+é candidato Draft independente para CLI 2.121.0 e não altera a baseline
+até integração. Os diagnósticos #446/#447, Caso A da #460 e indicadores
+mensais **não** foram encerrados. Textos antigos abaixo preservam seu momento,
+não formam uma fila adicional.
+
 **Reconciliação documental e saneamento de PRs concluídos em 08/10/2026.** O [PR #431](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/431) foi integrado; [CURRENT_STAGE.md](CURRENT_STAGE.md) descreve a prioridade atual de verificação do produto. O [relatório original](audits/2026-10-08-reconciliacao-planos-demandas.md) e o [checkpoint de governança](audits/2026-10-08-governanca-prs-pos431.md) preservam critérios, históricos e limites.
 
 **Encerramento atualizado em 19/10:** as sete correções delimitadas da Etapa 5 foram
@@ -25,7 +37,7 @@ CI e publicação devem corresponder ao HEAD final de cada PR. Não atribuir
 melhora de fluidez a atualizações de ferramentas de análise.
 
 **Classe documental:** Canônico — índice e rota de leitura  
-**Atualizado em:** 21 de outubro de 2026
+**Atualizado em:** 22 de outubro de 2026
 
 ## 1. Rota obrigatória
 
