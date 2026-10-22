@@ -2,6 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const { createServer } = require('node:http');
 
 const contract = require('../../src/data/repository-contract.js');
 const { DataService } = require('../../src/application/data-service.js');
@@ -10,6 +11,7 @@ let server;
 let http;
 let HttpResponse;
 let delay;
+let passthrough;
 
 const endpoint = 'https://radar.test/rest/v1/rpc/write';
 
@@ -88,7 +90,7 @@ function writeCommand(harness, persist) {
 }
 
 test.before(async () => {
-    ({ http, HttpResponse, delay } = await import('msw'));
+    ({ http, HttpResponse, delay, passthrough } = await import('msw'));
     const { setupServer } = await import('msw/node');
     server = setupServer();
     server.listen({ onUnhandledRequest: 'error' });
@@ -96,6 +98,34 @@ test.before(async () => {
 
 test.afterEach(() => server.resetHandlers());
 test.after(() => server.close());
+
+test('requisição sem handler não alcança transporte real disponível', async () => {
+    let requestsReceived = 0;
+    const transport = createServer((_request, response) => {
+        requestsReceived += 1;
+        response.writeHead(200).end('transporte disponível');
+    });
+    await new Promise((resolve, reject) => {
+        transport.once('error', reject);
+        transport.listen(0, '127.0.0.1', resolve);
+    });
+
+    try {
+        const url = `http://127.0.0.1:${transport.address().port}/unhandled-probe`;
+        server.use(http.get(url, () => passthrough()));
+        const control = await fetch(url, { signal: AbortSignal.timeout(5000) });
+        assert.equal(control.status, 200);
+        assert.equal(await control.text(), 'transporte disponível');
+        assert.equal(requestsReceived, 1, 'o controle deve comprovar acesso ao transporte');
+
+        server.resetHandlers();
+        await assert.rejects(() => fetch(url, { signal: AbortSignal.timeout(5000) }));
+        assert.equal(requestsReceived, 1, 'a requisição sem handler deve ser bloqueada antes do transporte');
+    } finally {
+        transport.closeAllConnections();
+        await new Promise(resolve => transport.close(resolve));
+    }
+});
 
 test('500 remoto restaura o estado local e não confirma interface falsa', async () => {
     server.use(http.post(endpoint, () => HttpResponse.json(
