@@ -1,0 +1,702 @@
+{
+  "schemaVersion": 1,
+  "observedDateUTC": "2026-10-22",
+  "projectId": "scnryinorqeucbfkioxo",
+  "projectName": "RADAR PDDE 2026",
+  "region": "sa-east-1",
+  "projectStatus": "ACTIVE_HEALTHY",
+  "sourceCommit": "84e793ed42a9139d8f80fcf2a16b868d8bba656e",
+  "change": {
+    "performedBy": "user in Supabase Dashboard",
+    "postgresBefore": "17.6.1.166",
+    "postgresAfter": "17.11.0.003",
+    "authBefore": "2.197.0",
+    "authAfter": "2.197.0",
+    "postgrestBefore": "14.17",
+    "postgrestAfter": "14.18",
+    "serviceVersionEvidence": "Postgres from live Management API; Auth from live public health; PostgREST from user-supplied before/after screenshots"
+  },
+  "safety": {
+    "institutionalWrites": 0,
+    "authUsersCreated": 0,
+    "grantsChanged": false,
+    "migrationsApplied": false,
+    "deployed": false,
+    "readRpcTransactions": "BEGIN READ ONLY; SET LOCAL ROLE authenticated; transaction-local claims of one existing active Controller; ROLLBACK. No user UUID/email returned or persisted.",
+    "credentialsRequested": false,
+    "statsResetByThisAudit": false
+  },
+  "database": {
+    "serverVersion": "17.11",
+    "publicTables": 20,
+    "publicTablesWithoutRLS": [],
+    "invalidIndexes": [],
+    "unvalidatedPublicConstraints": [],
+    "postmasterStartedAt": "2026-10-22T03:26:38.722513Z",
+    "pgStatStatementsResetAt": "2026-10-22T03:25:02.644772Z",
+    "extensionVersionsEqualToImmediatelyPreUpgradeObservation": true,
+    "counts": {
+      "assets": 56,
+      "schools": 163,
+      "attempts": 219,
+      "contacts": 128,
+      "invoices": 494,
+      "pendencies": 696,
+      "verifications": 1523
+    },
+    "integrity": {
+      "checks": {
+        "active_inventory_without_user_id": 0,
+        "active_controllers_sharing_user_id": 0,
+        "active_controllers_without_user_id": 0,
+        "inventory_profile_user_id_mismatch": 0,
+        "controller_profile_user_id_mismatch": 0,
+        "users_with_multiple_active_profiles": 0,
+        "linked_invoice_asset_context_mismatch": 0,
+        "active_user_profiles_without_auth_user": 0,
+        "canceled_pendencies_without_canceled_at": 0,
+        "inventory_profiles_without_valid_member": 0,
+        "permanent_invoices_without_linked_asset": 0,
+        "resolved_pendencies_without_resolved_at": 0,
+        "active_inventory_members_sharing_user_id": 0,
+        "active_schools_without_active_controller": 0,
+        "active_user_profiles_with_inactive_profile": 0,
+        "controller_profiles_without_valid_controller": 0,
+        "active_school_programs_with_inactive_endpoint": 0,
+        "inventoried_assets_missing_inventory_metadata": 0,
+        "open_pendencies_on_inactive_school_or_program": 0,
+        "non_inventoried_assets_with_inventory_metadata": 0
+      },
+      "status": "healthy",
+      "totalIssues": 0,
+      "schemaVersion": 1
+    },
+    "additionalOrphans": {
+      "asset_school": 0,
+      "invoice_asset": 0,
+      "contact_school": 0,
+      "attempt_pendency": 0
+    },
+    "migrations": [
+      "202607130001",
+      "202607130002",
+      "202607130003",
+      "202607130004",
+      "202607130005",
+      "202607130006",
+      "202607130007",
+      "202607130008",
+      "202607140009",
+      "20260714180621",
+      "20260714220136",
+      "20260714220146",
+      "202607190001",
+      "20260720030046",
+      "20260720193000",
+      "20260721090000",
+      "20260721152515",
+      "20260721152634",
+      "20260721153758",
+      "20260721160056",
+      "202607220001",
+      "202607220002",
+      "202607230001",
+      "20260723043129",
+      "20260728182226",
+      "202608040001",
+      "202608050001",
+      "202608060001",
+      "202608060002",
+      "202608060003",
+      "20260809165500",
+      "20260811181312",
+      "20260811190712",
+      "20260816205046",
+      "20260816214535",
+      "20260822040642",
+      "20260823003500",
+      "20260823010000",
+      "20260823032000",
+      "20260823045000",
+      "20260823050000",
+      "20260827130000",
+      "20260828023000",
+      "20260830223000",
+      "20260903175000",
+      "20260904040000",
+      "20260905231000",
+      "20260906062000",
+      "20260906065000",
+      "20260906072000",
+      "20260910201500",
+      "20260917011723",
+      "20260919234500",
+      "20260920013656",
+      "20260922234500",
+      "20260929143215",
+      "20260929213000",
+      "20260930003000",
+      "20261004132755",
+      "20261004210000",
+      "20261011193500"
+    ],
+    "terminalTriggers": [
+      {
+        "table": "assets",
+        "enabled": "O",
+        "trigger": "assets_protect_inventoried_terminal_delete"
+      },
+      {
+        "table": "assets",
+        "enabled": "O",
+        "trigger": "assets_protect_inventoried_terminal_state"
+      },
+      {
+        "table": "registered_invoices",
+        "enabled": "O",
+        "trigger": "registered_invoices_protect_inventoried_delete"
+      }
+    ],
+    "rlsPolicyCounts": [
+      {
+        "rls": true,
+        "table": "administrative_logs",
+        "policies": 3
+      },
+      {
+        "rls": true,
+        "table": "app_config",
+        "policies": 4
+      },
+      {
+        "rls": true,
+        "table": "assets",
+        "policies": 4
+      },
+      {
+        "rls": true,
+        "table": "audit_events",
+        "policies": 1
+      },
+      {
+        "rls": true,
+        "table": "competences",
+        "policies": 4
+      },
+      {
+        "rls": true,
+        "table": "controllers",
+        "policies": 4
+      },
+      {
+        "rls": true,
+        "table": "data_import_runs",
+        "policies": 4
+      },
+      {
+        "rls": true,
+        "table": "data_import_staging",
+        "policies": 4
+      },
+      {
+        "rls": true,
+        "table": "inventory_team_members",
+        "policies": 4
+      },
+      {
+        "rls": true,
+        "table": "pendencies",
+        "policies": 4
+      },
+      {
+        "rls": true,
+        "table": "pendency_attempts",
+        "policies": 4
+      },
+      {
+        "rls": true,
+        "table": "pendency_contacts",
+        "policies": 4
+      },
+      {
+        "rls": true,
+        "table": "profiles",
+        "policies": 4
+      },
+      {
+        "rls": true,
+        "table": "programs",
+        "policies": 4
+      },
+      {
+        "rls": true,
+        "table": "registered_invoices",
+        "policies": 4
+      },
+      {
+        "rls": true,
+        "table": "school_programs",
+        "policies": 4
+      },
+      {
+        "rls": true,
+        "table": "schools",
+        "policies": 4
+      },
+      {
+        "rls": true,
+        "table": "user_profiles",
+        "policies": 4
+      },
+      {
+        "rls": true,
+        "table": "user_school_scopes",
+        "policies": 4
+      },
+      {
+        "rls": true,
+        "table": "verifications",
+        "policies": 4
+      }
+    ]
+  },
+  "rpcContracts": [
+    {
+      "rpc": "production_integrity_check",
+      "stable": true,
+      "source_md5": "e3e7209e0b80542cd5080083a297736e",
+      "anon_execute": false,
+      "service_execute": true,
+      "security_invoker": true,
+      "authenticated_execute": false
+    },
+    {
+      "rpc": "read_operational_context",
+      "stable": true,
+      "source_md5": "40d613a3fa7b30e677d41c1b40a6dcd6",
+      "anon_execute": false,
+      "service_execute": true,
+      "security_invoker": true,
+      "authenticated_execute": true
+    },
+    {
+      "rpc": "read_school_operational_context",
+      "stable": true,
+      "source_md5": "70c0ed3a8b5f9984671c76bebf432e15",
+      "anon_execute": false,
+      "service_execute": true,
+      "security_invoker": true,
+      "authenticated_execute": true
+    }
+  ],
+  "criticalTableAcl": [
+    {
+      "table": "assets",
+      "anon_delete": false,
+      "anon_insert": false,
+      "anon_select": false,
+      "anon_update": false,
+      "authenticated_select": true
+    },
+    {
+      "table": "pendencies",
+      "anon_delete": false,
+      "anon_insert": false,
+      "anon_select": false,
+      "anon_update": false,
+      "authenticated_select": true
+    },
+    {
+      "table": "pendency_attempts",
+      "anon_delete": false,
+      "anon_insert": false,
+      "anon_select": false,
+      "anon_update": false,
+      "authenticated_select": true
+    },
+    {
+      "table": "pendency_contacts",
+      "anon_delete": false,
+      "anon_insert": false,
+      "anon_select": false,
+      "anon_update": false,
+      "authenticated_select": true
+    },
+    {
+      "table": "registered_invoices",
+      "anon_delete": false,
+      "anon_insert": false,
+      "anon_select": false,
+      "anon_update": false,
+      "authenticated_select": true
+    },
+    {
+      "table": "schools",
+      "anon_delete": false,
+      "anon_insert": false,
+      "anon_select": false,
+      "anon_update": false,
+      "authenticated_select": true
+    },
+    {
+      "table": "verifications",
+      "anon_delete": false,
+      "anon_insert": false,
+      "anon_select": false,
+      "anon_update": false,
+      "authenticated_select": true
+    }
+  ],
+  "realtimeContract": {
+    "broadcast_function": {
+      "source_md5": "4be2a1473976d82572eb83b14e5f2dfb",
+      "anon_execute": false,
+      "security_definer": true,
+      "authenticated_execute": false
+    },
+    "known_service_role_grants": {
+      "user_profiles_delete": true,
+      "user_school_scopes_delete": true
+    },
+    "logical_replication_slots": 0,
+    "operational_broadcast_triggers": [
+      {
+        "table": "assets",
+        "enabled": "O",
+        "trigger": "assets_operational_invalidation"
+      },
+      {
+        "table": "pendencies",
+        "enabled": "O",
+        "trigger": "pendencies_operational_invalidation"
+      },
+      {
+        "table": "pendency_attempts",
+        "enabled": "O",
+        "trigger": "pendency_attempts_operational_invalidation"
+      },
+      {
+        "table": "pendency_contacts",
+        "enabled": "O",
+        "trigger": "pendency_contacts_operational_invalidation"
+      },
+      {
+        "table": "registered_invoices",
+        "enabled": "O",
+        "trigger": "registered_invoices_operational_invalidation"
+      },
+      {
+        "table": "verifications",
+        "enabled": "O",
+        "trigger": "verifications_operational_invalidation"
+      }
+    ]
+  },
+  "readRpcSmoke": {
+    "check": "authenticated_database_context_readonly",
+    "competence": "2026-09",
+    "school_complete": "true",
+    "school_fallback": null,
+    "visible_schools": 163,
+    "jwt_user_present": true,
+    "real_browser_login": false,
+    "global_payload_bytes": 1939500,
+    "school_payload_bytes": 178612,
+    "school_has_one_context": true,
+    "global_collection_counts": {
+      "assets": 55,
+      "pendencies": 561,
+      "verifications": 575,
+      "pendencyAttempts": 98,
+      "pendencyContacts": 2,
+      "registeredInvoices": 385
+    },
+    "school_collection_counts": {
+      "assets": 0,
+      "pendencies": 98,
+      "verifications": 37,
+      "pendencyAttempts": 0,
+      "pendencyContacts": 0,
+      "registeredInvoices": 0
+    }
+  },
+  "schoolGlobalEquivalence": {
+    "check": "school_slice_matches_global_same_authenticated_database_context",
+    "complete": "true",
+    "fallback": null,
+    "competence": "2026-09",
+    "collections": {
+      "assets": {
+        "equal": true,
+        "school_count": 6,
+        "global_school_projection_count": 6
+      },
+      "pendencies": {
+        "equal": true,
+        "school_count": 24,
+        "global_school_projection_count": 24
+      },
+      "verifications": {
+        "equal": true,
+        "school_count": 6,
+        "global_school_projection_count": 6
+      },
+      "pendencyAttempts": {
+        "equal": true,
+        "school_count": 16,
+        "global_school_projection_count": 16
+      },
+      "pendencyContacts": {
+        "equal": true,
+        "school_count": 1,
+        "global_school_projection_count": 1
+      },
+      "registeredInvoices": {
+        "equal": true,
+        "school_count": 26,
+        "global_school_projection_count": 26
+      }
+    },
+    "all_six_equal": true,
+    "real_browser_login": false,
+    "global_payload_bytes": 1939500,
+    "school_payload_bytes": 120728
+  },
+  "advisors": {
+    "security": [
+      {
+        "name": "auth_leaked_password_protection",
+        "level": "WARN",
+        "count": 1,
+        "remediation": "https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection"
+      }
+    ],
+    "performance": [
+      {
+        "name": "unused_index",
+        "level": "INFO",
+        "count": 40,
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index"
+      }
+    ],
+    "interpretation": "Leaked-password WARN is a pre-existing accepted limitation under ADR-036; no account security setting changed. 40 unused-index INFO findings are not evidence for removal after the statistics reset."
+  },
+  "logReview": {
+    "startUTC": "2026-10-22T03:26:39Z",
+    "endUTC": "2026-10-22T05:27:00Z",
+    "aggregates": [
+      {
+        "events": 1,
+        "first_seen": "2026-10-22T05:24:31.847000",
+        "last_seen": "2026-10-22T05:24:31.847000",
+        "route_or_sqlstate": "/realtime/v1/websocket",
+        "severity_or_status": "101",
+        "source": "edge_logs"
+      },
+      {
+        "events": 1,
+        "first_seen": "2026-10-22T05:19:45.178000",
+        "last_seen": "2026-10-22T05:19:45.178000",
+        "route_or_sqlstate": "/rest-admin/v1/ready",
+        "severity_or_status": "200",
+        "source": "edge_logs"
+      },
+      {
+        "events": 1,
+        "first_seen": "2026-10-22T05:24:31.505000",
+        "last_seen": "2026-10-22T05:24:31.505000",
+        "route_or_sqlstate": "/auth/v1/settings",
+        "severity_or_status": "200",
+        "source": "edge_logs"
+      },
+      {
+        "events": 2,
+        "first_seen": "2026-10-22T05:19:54.920000",
+        "last_seen": "2026-10-22T05:21:42.263000",
+        "route_or_sqlstate": "/admin/v1/service/versions",
+        "severity_or_status": "200",
+        "source": "edge_logs"
+      },
+      {
+        "events": 1,
+        "first_seen": "2026-10-22T05:19:45.112000",
+        "last_seen": "2026-10-22T05:19:45.112000",
+        "route_or_sqlstate": "/admin/v1/network-bans/retrieve",
+        "severity_or_status": "200",
+        "source": "edge_logs"
+      },
+      {
+        "events": 4,
+        "first_seen": "2026-10-22T05:19:45.179000",
+        "last_seen": "2026-10-22T05:24:31.225000",
+        "route_or_sqlstate": "/auth/v1/health",
+        "severity_or_status": "200",
+        "source": "edge_logs"
+      },
+      {
+        "events": 3,
+        "first_seen": "2026-10-22T03:38:10.958000",
+        "last_seen": "2026-10-22T05:24:30.047000",
+        "route_or_sqlstate": "/rest/v1/schools",
+        "severity_or_status": "401",
+        "source": "edge_logs"
+      },
+      {
+        "events": 2,
+        "first_seen": "2026-10-22T03:38:13.742000",
+        "last_seen": "2026-10-22T04:36:17.532000",
+        "route_or_sqlstate": "",
+        "severity_or_status": "error",
+        "source": "function_logs"
+      },
+      {
+        "events": 8,
+        "first_seen": "2026-10-22T03:38:12.944000",
+        "last_seen": "2026-10-22T04:37:32.600000",
+        "route_or_sqlstate": "",
+        "severity_or_status": "log",
+        "source": "function_logs"
+      },
+      {
+        "events": 1,
+        "first_seen": "2026-10-22T05:24:03.143000",
+        "last_seen": "2026-10-22T05:24:03.143000",
+        "route_or_sqlstate": "42704",
+        "severity_or_status": "ERROR",
+        "source": "postgres_logs"
+      },
+      {
+        "events": 3,
+        "first_seen": "2026-10-22T03:38:11.884000",
+        "last_seen": "2026-10-22T05:24:31.016000",
+        "route_or_sqlstate": "42501",
+        "severity_or_status": "ERROR",
+        "source": "postgres_logs"
+      },
+      {
+        "events": 62,
+        "first_seen": "2026-10-22T03:26:39.247000",
+        "last_seen": "2026-10-22T05:24:41.044000",
+        "route_or_sqlstate": "00000",
+        "severity_or_status": "LOG",
+        "source": "postgres_logs"
+      },
+      {
+        "events": 2,
+        "first_seen": "2026-10-22T03:26:52.651000",
+        "last_seen": "2026-10-22T04:48:20.645000",
+        "route_or_sqlstate": "08006",
+        "severity_or_status": "LOG",
+        "source": "postgres_logs"
+      },
+      {
+        "events": 1,
+        "first_seen": "2026-10-22T05:19:45.174000",
+        "last_seen": "2026-10-22T05:19:45.174000",
+        "route_or_sqlstate": "",
+        "severity_or_status": "info",
+        "source": "realtime_logs"
+      },
+      {
+        "events": 3,
+        "first_seen": "2026-10-22T05:19:45.317000",
+        "last_seen": "2026-10-22T05:21:40.085000",
+        "route_or_sqlstate": "",
+        "severity_or_status": "200",
+        "source": "storage_logs"
+      }
+    ],
+    "classifiedDiagnostics": [
+      {
+        "timestamp": "2026-10-22T03:38:13.742000",
+        "source": "function_logs",
+        "eventMessage": "team-account-management { code: \"ORIGIN_DENIED\", status: 403 }\n",
+        "classification": "ORIGIN_DENIED 403 matches deliberate denied-Origin CORS preflight in production-team-account-preflight workflow"
+      },
+      {
+        "timestamp": "2026-10-22T04:36:17.532000",
+        "source": "function_logs",
+        "eventMessage": "team-account-management { code: \"ORIGIN_DENIED\", status: 403 }\n",
+        "classification": "ORIGIN_DENIED 403 matches deliberate denied-Origin CORS preflight in production-team-account-preflight workflow"
+      },
+      {
+        "timestamp": "2026-10-22T05:24:03.143000",
+        "source": "postgres_logs",
+        "eventMessage": "type \"ltree\" does not exist",
+        "classification": "mgmt-api / MCP extension detection cast to ltree::regtype while ltree is not installed; not RADAR runtime SQL"
+      }
+    ],
+    "http5xxInReviewedEdgeRows": 0
+  },
+  "verdict": {
+    "postUpgradeTechnicalHealth": "pass in observed read-only scope",
+    "functionalCertification": "partial",
+    "confirmedProductFailureFound": false,
+    "rollbackIndicationFound": false
+  },
+  "limitations": [
+    "No valid human login/browser session, private Broadcast end-to-end exchange, business writes, or sustained multiuser journey was executed after upgrade.",
+    "Database-context role/claims exercise RPC and RLS but do not certify Auth token issuance or PostgREST HTTP dispatch.",
+    "No immediately pre-upgrade full data fingerprint: current integrity/counts do not prove byte-identical data preservation.",
+    "No before/after comparable performance sample: payload sizes here are two current query scopes, not an upgrade speedup.",
+    "No current backup/restore verification performed by this audit; the documented verified backup is a historical 13 October snapshot.",
+    "Statistics restarted during the maintenance interval; do not compare new cumulative counters with the previous July-origin history."
+  ],
+  "publicChecks": {
+    "observedAt": "2026-10-22T05:24:27.074Z",
+    "scope": "read-only public HTTP/Auth health/Realtime heartbeat",
+    "expectedCommitSha": "84e793ed42a9139d8f80fcf2a16b868d8bba656e",
+    "smoke": {
+      "status": "approved",
+      "baseUrl": "https://radarpdde-fix.vercel.app/",
+      "commitSha": "84e793ed42a9139d8f80fcf2a16b868d8bba656e",
+      "assetCount": 52,
+      "anonymousRls": "approved",
+      "anonymousRlsEvidence": "blocked-401",
+      "durationMs": 4046
+    },
+    "authHealth": {
+      "status": 200,
+      "name": "GoTrue",
+      "version": "v2.197.0"
+    },
+    "authSettings": {
+      "status": 200
+    },
+    "sdkBundle": {
+      "status": 200,
+      "bytes": 265570,
+      "sha256": "33b09b0db467df88254207a45a76fa6ab293ab1539f76c63683a78d75a7a86eb",
+      "contains21180": true
+    },
+    "realtime": {
+      "status": "heartbeat-replied",
+      "opened": true,
+      "replyStatus": "ok",
+      "durationMs": 231
+    },
+    "limits": [
+      "No authenticated user session",
+      "No business writes or RPC mutations",
+      "Realtime transport/heartbeat only; not private Broadcast delivery, RLS channel membership or cross-session convergence"
+    ],
+    "vercel": {
+      "id": "dpl_C5bVMtw36XLVVuEHdkmdVaJZbV2T",
+      "state": "READY",
+      "target": "production",
+      "commitSha": "84e793ed42a9139d8f80fcf2a16b868d8bba656e",
+      "domain": "radarpdde-fix.vercel.app",
+      "readyUTC": "2026-10-22T02:00:51.123Z",
+      "aliasError": null
+    }
+  },
+  "sourceComparison": {
+    "migrationListEqualsMain": true,
+    "expectedAndActualMigrationCount": 61,
+    "globalRpcBodyEqualsMain": true,
+    "schoolRpcBodyEqualsMain": true,
+    "broadcastFunctionBodyEqualsMain": true,
+    "comparisonMethod": "All version IDs compared to supabase/migrations filenames; pg_proc.prosrc MD5 compared with exact $function$ bodies in main migrations. MD5 used only for source equality, not security."
+  },
+  "scopeNote": "Read-only post-upgrade review. This evidence is stored on a documentation branch and does not change main, runtime, or Supabase configuration."
+}
