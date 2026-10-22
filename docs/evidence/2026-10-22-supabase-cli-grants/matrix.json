@@ -1,0 +1,351 @@
+{
+  "runId": 39830514391,
+  "headSha": "c2df21ee77533c3195440545a1d3d086698723d3",
+  "cells": [
+    {
+      "cli": "2.121.0",
+      "autoExpose": "unset",
+      "before": {
+        "stage": "before-radar-migrations",
+        "defaults": [
+          {
+            "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+            "role": "postgres",
+            "type": "r"
+          },
+          {
+            "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+            "role": "postgres",
+            "type": "f"
+          },
+          {
+            "acl": "{postgres=rwU/postgres,anon=rwU/postgres,authenticated=rwU/postgres,service_role=rwU/postgres}",
+            "role": "postgres",
+            "type": "S"
+          },
+          {
+            "acl": "{postgres=rwU/supabase_admin,anon=rwU/supabase_admin,authenticated=rwU/supabase_admin,service_role=rwU/supabase_admin}",
+            "role": "supabase_admin",
+            "type": "S"
+          },
+          {
+            "acl": "{postgres=arwdDxtm/supabase_admin,anon=arwdDxtm/supabase_admin,authenticated=arwdDxtm/supabase_admin,service_role=arwdDxtm/supabase_admin}",
+            "role": "supabase_admin",
+            "type": "r"
+          },
+          {
+            "acl": "{postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}",
+            "role": "supabase_admin",
+            "type": "f"
+          }
+        ],
+        "anonDelete": true,
+        "currentUser": "postgres",
+        "serverVersion": "17.11",
+        "serviceDelete": true,
+        "authenticatedDelete": true
+      },
+      "after": {
+        "stage": "after-radar-migrations",
+        "tables": [
+          {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres,authenticated=arwd/postgres}",
+            "rls": true,
+            "owner": "postgres",
+            "table": "user_profiles"
+          },
+          {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres,authenticated=arwd/postgres}",
+            "rls": true,
+            "owner": "postgres",
+            "table": "user_school_scopes"
+          }
+        ],
+        "migrations": 61,
+        "scopesDelete": true,
+        "profilesDelete": true,
+        "scopesAnonDelete": false,
+        "profilesAnonDelete": false
+      },
+      "pgTapExit": 1,
+      "pgTapTests": 674,
+      "expectedFailures": [
+        32,
+        33
+      ],
+      "causalPredictionMatched": true,
+      "artifact": {
+        "id": 12448342760,
+        "name": "cli-grants-2.121.0-unset",
+        "digest": "sha256:c47d0b9d84d01a01d0698d553b2b108ef63d0096bcd24103b67c5aaf8e202890"
+      },
+      "images": [
+        "supabase_edge_runtime_radar-pdde ghcr.io/supabase/edge-runtime:v1.77.4",
+        "supabase_rest_radar-pdde ghcr.io/supabase/postgrest:v16.4",
+        "supabase_realtime_radar-pdde ghcr.io/supabase/realtime:v2.143.4",
+        "supabase_auth_radar-pdde ghcr.io/supabase/gotrue:v2.197.0",
+        "supabase_kong_radar-pdde ghcr.io/supabase/kong:2.8.1",
+        "supabase_vector_radar-pdde ghcr.io/supabase/vector:0.58.0-alpine",
+        "supabase_analytics_radar-pdde ghcr.io/supabase/logflare:1.53.0",
+        "supabase_db_radar-pdde ghcr.io/supabase/postgres:17.11.0.004"
+      ]
+    },
+    {
+      "cli": "2.114.0",
+      "autoExpose": "false",
+      "before": {
+        "stage": "before-radar-migrations",
+        "defaults": [
+          {
+            "acl": "{postgres=rwU/supabase_admin,anon=rwU/supabase_admin,authenticated=rwU/supabase_admin,service_role=rwU/supabase_admin}",
+            "role": "supabase_admin",
+            "type": "S"
+          },
+          {
+            "acl": "{postgres=arwdDxtm/supabase_admin,anon=arwdDxtm/supabase_admin,authenticated=arwdDxtm/supabase_admin,service_role=arwdDxtm/supabase_admin}",
+            "role": "supabase_admin",
+            "type": "r"
+          },
+          {
+            "acl": "{postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}",
+            "role": "supabase_admin",
+            "type": "f"
+          },
+          {
+            "acl": "{postgres=arwdDxtm/postgres,anon=Dxtm/postgres,authenticated=Dxtm/postgres,service_role=Dxtm/postgres}",
+            "role": "postgres",
+            "type": "r"
+          },
+          {
+            "acl": "{postgres=rwU/postgres,anon=w/postgres,authenticated=w/postgres,service_role=w/postgres}",
+            "role": "postgres",
+            "type": "S"
+          },
+          {
+            "acl": "{postgres=X/postgres}",
+            "role": "postgres",
+            "type": "f"
+          }
+        ],
+        "anonDelete": false,
+        "currentUser": "postgres",
+        "serverVersion": "17.6",
+        "serviceDelete": false,
+        "authenticatedDelete": false
+      },
+      "after": {
+        "stage": "after-radar-migrations",
+        "tables": [
+          {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=arwDxtm/postgres,authenticated=arwd/postgres}",
+            "rls": true,
+            "owner": "postgres",
+            "table": "user_profiles"
+          },
+          {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=arwDxtm/postgres,authenticated=arwd/postgres}",
+            "rls": true,
+            "owner": "postgres",
+            "table": "user_school_scopes"
+          }
+        ],
+        "migrations": 61,
+        "scopesDelete": false,
+        "profilesDelete": false,
+        "scopesAnonDelete": false,
+        "profilesAnonDelete": false
+      },
+      "pgTapExit": 0,
+      "pgTapTests": 674,
+      "expectedFailures": [],
+      "causalPredictionMatched": true,
+      "artifact": {
+        "id": 12448327670,
+        "name": "cli-grants-2.114.0-false",
+        "digest": "sha256:2727f3945f9daaab4c4904ed02a47ce9f31be33fac738a8ac4ea21c2a2c71c6c"
+      },
+      "images": [
+        "supabase_edge_runtime_radar-pdde ghcr.io/supabase/edge-runtime:v1.74.3",
+        "supabase_rest_radar-pdde ghcr.io/supabase/postgrest:v16.1",
+        "supabase_realtime_radar-pdde ghcr.io/supabase/realtime:v2.124.4",
+        "supabase_auth_radar-pdde ghcr.io/supabase/gotrue:v2.195.0",
+        "supabase_kong_radar-pdde ghcr.io/supabase/kong:2.8.1",
+        "supabase_vector_radar-pdde ghcr.io/supabase/vector:0.53.0-alpine",
+        "supabase_analytics_radar-pdde ghcr.io/supabase/logflare:1.50.2",
+        "supabase_db_radar-pdde ghcr.io/supabase/postgres:17.6.1.158"
+      ]
+    },
+    {
+      "cli": "2.121.0",
+      "autoExpose": "false",
+      "before": {
+        "stage": "before-radar-migrations",
+        "defaults": [
+          {
+            "acl": "{postgres=rwU/supabase_admin,anon=rwU/supabase_admin,authenticated=rwU/supabase_admin,service_role=rwU/supabase_admin}",
+            "role": "supabase_admin",
+            "type": "S"
+          },
+          {
+            "acl": "{postgres=arwdDxtm/supabase_admin,anon=arwdDxtm/supabase_admin,authenticated=arwdDxtm/supabase_admin,service_role=arwdDxtm/supabase_admin}",
+            "role": "supabase_admin",
+            "type": "r"
+          },
+          {
+            "acl": "{postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}",
+            "role": "supabase_admin",
+            "type": "f"
+          },
+          {
+            "acl": "{postgres=arwdDxtm/postgres,anon=Dxtm/postgres,authenticated=Dxtm/postgres,service_role=Dxtm/postgres}",
+            "role": "postgres",
+            "type": "r"
+          },
+          {
+            "acl": "{postgres=rwU/postgres,anon=w/postgres,authenticated=w/postgres,service_role=w/postgres}",
+            "role": "postgres",
+            "type": "S"
+          },
+          {
+            "acl": "{postgres=X/postgres}",
+            "role": "postgres",
+            "type": "f"
+          }
+        ],
+        "anonDelete": false,
+        "currentUser": "postgres",
+        "serverVersion": "17.11",
+        "serviceDelete": false,
+        "authenticatedDelete": false
+      },
+      "after": {
+        "stage": "after-radar-migrations",
+        "tables": [
+          {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=arwDxtm/postgres,authenticated=arwd/postgres}",
+            "rls": true,
+            "owner": "postgres",
+            "table": "user_profiles"
+          },
+          {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=arwDxtm/postgres,authenticated=arwd/postgres}",
+            "rls": true,
+            "owner": "postgres",
+            "table": "user_school_scopes"
+          }
+        ],
+        "migrations": 61,
+        "scopesDelete": false,
+        "profilesDelete": false,
+        "scopesAnonDelete": false,
+        "profilesAnonDelete": false
+      },
+      "pgTapExit": 0,
+      "pgTapTests": 674,
+      "expectedFailures": [],
+      "causalPredictionMatched": true,
+      "artifact": {
+        "id": 12448123827,
+        "name": "cli-grants-2.121.0-false",
+        "digest": "sha256:53b74230dfed76f245ec56bcb0ca0cb7d032d7c4d40924cef643f9156ce99459"
+      },
+      "images": [
+        "supabase_edge_runtime_radar-pdde public.ecr.aws/supabase/edge-runtime:v1.77.4",
+        "supabase_rest_radar-pdde public.ecr.aws/supabase/postgrest:v16.4",
+        "supabase_realtime_radar-pdde public.ecr.aws/supabase/realtime:v2.143.4",
+        "supabase_auth_radar-pdde public.ecr.aws/supabase/gotrue:v2.197.0",
+        "supabase_kong_radar-pdde public.ecr.aws/supabase/kong:2.8.1",
+        "supabase_vector_radar-pdde public.ecr.aws/supabase/vector:0.58.0-alpine",
+        "supabase_analytics_radar-pdde public.ecr.aws/supabase/logflare:1.53.0",
+        "supabase_db_radar-pdde public.ecr.aws/supabase/postgres:17.11.0.004"
+      ]
+    },
+    {
+      "cli": "2.114.0",
+      "autoExpose": "unset",
+      "before": {
+        "stage": "before-radar-migrations",
+        "defaults": [
+          {
+            "acl": "{postgres=rwU/supabase_admin,anon=rwU/supabase_admin,authenticated=rwU/supabase_admin,service_role=rwU/supabase_admin}",
+            "role": "supabase_admin",
+            "type": "S"
+          },
+          {
+            "acl": "{postgres=arwdDxtm/supabase_admin,anon=arwdDxtm/supabase_admin,authenticated=arwdDxtm/supabase_admin,service_role=arwdDxtm/supabase_admin}",
+            "role": "supabase_admin",
+            "type": "r"
+          },
+          {
+            "acl": "{postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}",
+            "role": "supabase_admin",
+            "type": "f"
+          },
+          {
+            "acl": "{postgres=arwdDxtm/postgres,anon=Dxtm/postgres,authenticated=Dxtm/postgres,service_role=Dxtm/postgres}",
+            "role": "postgres",
+            "type": "r"
+          },
+          {
+            "acl": "{postgres=rwU/postgres,anon=w/postgres,authenticated=w/postgres,service_role=w/postgres}",
+            "role": "postgres",
+            "type": "S"
+          },
+          {
+            "acl": "{postgres=X/postgres}",
+            "role": "postgres",
+            "type": "f"
+          }
+        ],
+        "anonDelete": false,
+        "currentUser": "postgres",
+        "serverVersion": "17.6",
+        "serviceDelete": false,
+        "authenticatedDelete": false
+      },
+      "after": {
+        "stage": "after-radar-migrations",
+        "tables": [
+          {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=arwDxtm/postgres,authenticated=arwd/postgres}",
+            "rls": true,
+            "owner": "postgres",
+            "table": "user_profiles"
+          },
+          {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=arwDxtm/postgres,authenticated=arwd/postgres}",
+            "rls": true,
+            "owner": "postgres",
+            "table": "user_school_scopes"
+          }
+        ],
+        "migrations": 61,
+        "scopesDelete": false,
+        "profilesDelete": false,
+        "scopesAnonDelete": false,
+        "profilesAnonDelete": false
+      },
+      "pgTapExit": 0,
+      "pgTapTests": 674,
+      "expectedFailures": [],
+      "causalPredictionMatched": true,
+      "artifact": {
+        "id": 12448113487,
+        "name": "cli-grants-2.114.0-unset",
+        "digest": "sha256:605dc241ab55748332611e8855536d564815d5fc966d94e1e64eb9c88b32a1d6"
+      },
+      "images": [
+        "supabase_edge_runtime_radar-pdde ghcr.io/supabase/edge-runtime:v1.74.3",
+        "supabase_rest_radar-pdde ghcr.io/supabase/postgrest:v16.1",
+        "supabase_realtime_radar-pdde ghcr.io/supabase/realtime:v2.124.4",
+        "supabase_auth_radar-pdde ghcr.io/supabase/gotrue:v2.195.0",
+        "supabase_kong_radar-pdde ghcr.io/supabase/kong:2.8.1",
+        "supabase_vector_radar-pdde ghcr.io/supabase/vector:0.53.0-alpine",
+        "supabase_analytics_radar-pdde ghcr.io/supabase/logflare:1.50.2",
+        "supabase_db_radar-pdde ghcr.io/supabase/postgres:17.6.1.158"
+      ]
+    }
+  ],
+  "baseSha": "84e793ed42a9139d8f80fcf2a16b868d8bba656e",
+  "scope": "Ephemeral GitHub-hosted stacks; no hosted database or product mutation. pgTAP 32/33 remain unchanged."
+}

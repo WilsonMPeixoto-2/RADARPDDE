@@ -1,5 +1,7 @@
 # Auditoria de paridade: service_role, pgTAP e Supabase CLI 2.121.0
 
+**Adendo de 22/10/2026:** a hipótese abaixo foi resolvida por comparação nativa no #472. A CLI 2.121 muda o default da chave ausente `api.auto_expose_new_tables`; explicitar `false` reproduz os privilégios locais da 2.114 e passa os 674 testes originais. Ver [evidência causal e limites](../evidence/2026-10-22-supabase-cli-grants/README.md). Não houve mudança de grants hospedados nem necessidade de redesenhar os testes 32/33. O texto a seguir é o registro histórico da investigação em 18/10; não é impedimento à homologação da candidata reconciliada.
+
 **Data:** 18/10/2026  
 **Classe:** achado datado em investigação; não é decisão de alterar SQL/RLS nem autorização de release  
 **Escopo:** somente leitura de Production, análise de código versionado e testes em Supabase descartável. Nenhuma mudança em registros ou privilégios institucionais.

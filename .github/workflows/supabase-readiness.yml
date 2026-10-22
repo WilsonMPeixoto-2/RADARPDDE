@@ -183,6 +183,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Reservar portas do Supabase fora das portas efêmeras do Linux
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Mesma proteção dos gates de confiabilidade e uso real, só neste runner.
+          current="$(sysctl -n net.ipv4.ip_local_reserved_ports)"
+          reservation='54320-54323'
+          if [[ -n "$current" ]]; then
+            reservation="${current},${reservation}"
+          fi
+          sudo sysctl -w "net.ipv4.ip_local_reserved_ports=${reservation}"
+          sysctl -n net.ipv4.ip_local_reserved_ports
+
       - name: Configurar Node.js LTS
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:

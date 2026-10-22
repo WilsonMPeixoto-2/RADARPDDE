@@ -1,5 +1,13 @@
 # RADAR PDDE — estado atual e retomada
 
+## Reconciliação da CLI Supabase — 22/10/2026
+
+**Candidata desta árvore: CLI 2.121.0, PR #472, sobre main `84e793ed`.** A causa das falhas pgTAP 32/33 foi isolada: a chave `api.auto_expose_new_tables` ausente mudou de comportamento entre 2.114 e 2.121. A matriz nativa de quatro stacks do [run 39830514391](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39830514391) reproduziu 672/674 apenas em 2.121 sem chave; as outras três combinações passaram 674/674.
+
+A candidata explicita `false`, preservando as ACLs locais da baseline e todas as asserções SQL. Não altera migrations, permissões hospedadas nem produto. O teste de versão e a reserva de portas do readiness acompanham a dependência. [Causa, fontes, resultados e limites](evidence/2026-10-22-supabase-cli-grants/README.md). Localmente, 1.369 unitários/8 integrações e readiness passaram; homologação remota final, merge e publicação devem ser confirmados no SHA do #472.
+
+O MSW #443 já foi integrado em `84e793ed`; seu bloco abaixo preserva a homologação da árvore anterior. Production foi verificada saudável após o upgrade PostgreSQL 17.11 feito pelo proprietário, com [evidência remota](https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/7e2e8812c53e1c8d172dcfb1ee2ebf081b40e7b2/docs/evidence/2026-10-22-supabase-postgres-17-11/README.md). Esta rodada não retoma desempenho, #460 ou indicadores mensais.
+
 ## Atualização isolada do MSW — 21/10/2026
 
 **Contrato desta árvore:** MSW **3.0.3** no [PR #443](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/443), sobre `main@c480e244`, após o encerramento de #464/#468/#469/#470/#471. O único consumidor é a suíte Node de falhas remotas; nenhuma fonte de produto, worker de navegador, regra, migration, Auth/RLS ou workflow foi alterado.

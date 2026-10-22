@@ -1,0 +1,14 @@
+[
+  {
+    "url": "https://raw.githubusercontent.com/supabase/cli/v2.114.0/apps/cli/src/legacy/shared/db-bootstrap/db-setup.ts",
+    "path": "v2.114.0/apps/cli/src/legacy/shared/db-bootstrap/db-setup.ts",
+    "sha256": "c03e9da31646129c3c488dfd875fd31ecfbf7595df0ac6b1a69f755a2d5f6017",
+    "bytes": 65490
+  },
+  {
+    "url": "https://raw.githubusercontent.com/supabase/cli/v2.121.0/apps/cli/src/command-internal/db-bootstrap/db-setup.ts",
+    "path": "v2.121.0/apps/cli/src/command-internal/db-bootstrap/db-setup.ts",
+    "sha256": "c2cad62501432496cdfc2c5f1ff0da3411c88d2cdfa8748c2f34b46066144b7e",
+    "bytes": 43030
+  }
+]
