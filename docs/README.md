@@ -1,5 +1,18 @@
 # Documentação do RADAR PDDE
 
+**Estado verificado em 22/10/2026:** [`CURRENT_STAGE.md`](CURRENT_STAGE.md)
+registra o [merge do PR #472](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/472),
+`main@caf2de3e`, CLI Supabase **2.121.0**, 19/19 workflows no candidato,
+**8/8 checks de push pós-merge** e Vercel Production `READY` no deployment
+`dpl_3yrGPc9tfMyyFsXrMzvRhxJP7dJs`. Supabase institucional
+`ACTIVE_HEALTHY` (PostgreSQL 17.11.0.003), sem migrations nem mudanças
+de permissões nesta entrega. [Prova causal e encerramento](evidence/2026-10-22-supabase-cli-grants/README.md).
+O MSW 3 (#443), a sincronização escolar #427 e os upgrades do tooling
+estão encerrados em seus escopos. [#446](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/446),
+[#447](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/447) e Caso A da [#460](https://github.com/WilsonMPeixoto-2/RADARPDDE/issues/460)
+continuam em investigação, não constituem melhorias integradas.
+Os blocos datados a seguir preservam história, **não são fila de tarefas**.
+
 **Reconciliação documental e saneamento de PRs concluídos em 08/10/2026.** O [PR #431](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/431) foi integrado; [CURRENT_STAGE.md](CURRENT_STAGE.md) descreve a prioridade atual de verificação do produto. O [relatório original](audits/2026-10-08-reconciliacao-planos-demandas.md) e o [checkpoint de governança](audits/2026-10-08-governanca-prs-pos431.md) preservam critérios, históricos e limites.
 
 **Encerramento atualizado em 19/10:** as sete correções delimitadas da Etapa 5 foram
@@ -16,7 +29,7 @@ não nova autoridade funcional; [CURRENT_STAGE.md](CURRENT_STAGE.md) mantém o e
 mutável. A issue #460 continua aberta apenas para os casos não resolvidos, sem
 reabrir a medição geométrica já corrigida no #463.
 
-**MSW 3, avaliação isolada de 21/10:** [evidência do harness de rede](evidence/2026-10-21-msw3-network-harness.md), incluindo a contraprova da opção renomeada e os quatro cenários originais. CI/publicação do HEAD final no #443; não representa melhoria de runtime ou fluidez.
+**MSW 3, avaliação histórica de 21/10 (integrado no #443):** [evidência do harness de rede](evidence/2026-10-21-msw3-network-harness.md), incluindo a contraprova da opção renomeada e os quatro cenários originais. CI/publicação do HEAD final no #443; não representa melhoria de runtime ou fluidez.
 
 **Continuação de 21/10:** dependency-cruiser 18.7.0 (#469), ESLint 10.13.0
 (#470) e Knip 6.42.1 (#471) mantêm configurações e runtime. As provas locais,
@@ -25,7 +38,7 @@ CI e publicação devem corresponder ao HEAD final de cada PR. Não atribuir
 melhora de fluidez a atualizações de ferramentas de análise.
 
 **Classe documental:** Canônico — índice e rota de leitura  
-**Atualizado em:** 21 de outubro de 2026
+**Atualizado em:** 22 de outubro de 2026
 
 ## 1. Rota obrigatória
 

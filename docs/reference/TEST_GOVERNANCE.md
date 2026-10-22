@@ -1,7 +1,7 @@
 # Governança de testes do RADAR PDDE
 
 **Estado:** referência operacional vigente  
-**Atualizado em:** 18 de outubro de 2026
+**Atualizado em:** 22 de outubro de 2026
 
 ## 1. Finalidade
 
@@ -76,6 +76,8 @@ Regra padrão:
 - para escrita, verificar persistência/releitura apenas onde ela comprova risco real;
 - executar um gate base proporcional ao escopo;
 - não repetir suites já aprovadas se o código coberto por elas não mudou;
+- diante de mudança legítima do gerador (por exemplo, TypeScript da CLI Supabase 2.121), comparar **contrato semântico** e manter testes capazes de reprovar mudanças reais de campo, tipo, opcionalidade ou autorização. Teste antigo não deve exigir igualdade cosmética se isso não é invariância de produto;
+- atualização **somente documental** que reconcilia estado datado deve reaproveitar evidências por SHA/run e os checks automáticos da branch quando houver, sem solicitar manualmente um novo ciclo funcional/CRUD ou uma repetição geral de testes só para mudar o texto;
 - não criar infraestrutura de teste nova sem risco concreto que a justifique;
 - não iniciar uma segunda rodada integral apenas porque um job não relacionado ficou vermelho.
 
@@ -153,7 +155,7 @@ Regras:
 
 ## 10. Locks e paralelismo
 
-Playwright 1.63 permite locks por recurso. O RADAR usa locks somente onde testes compartilham estado material.
+Os locks por recurso introduzidos no Playwright 1.63 seguem disponíveis na versão atual **1.64.1**. O RADAR os utiliza somente onde testes compartilham estado material.
 
 - não elevar paralelismo global de suíte que depende de estado compartilhado;
 - serializar o recurso, não o repositório inteiro;
@@ -163,6 +165,13 @@ Playwright 1.63 permite locks por recurso. O RADAR usa locks somente onde testes
 ## 11. Trace enriquecido
 
 Configs Playwright relevantes preservam screenshots, DOM snapshots, ARIA snapshots, screen snapshots e sources. Nas suítes grandes, a gravação rica ocorre em `on-first-retry` para evitar custo permanente de CPU/memória; o projeto visual pequeno pode usar `retain-on-failure-and-retries`. Trace é instrumento de diagnóstico; não autoriza alterar regra, tolerância ou CSS sem causa reproduzida.
+
+**Oportunidade ainda não implementada:** em diagnóstico pontual da issue #460,
+avaliar captura do trace da **primeira falha** com configuração separada e
+fixtures isoladas. A política atual das suítes grandes é `on-first-retry`
+por custo; não afirmar que já preserva todos os instantes da primeira
+execução, nem alterar globalmente trace, retry, timeout, tolerância ou
+snapshots para satisfazer um job.
 
 ## 12. Navegador MCP para agentes
 

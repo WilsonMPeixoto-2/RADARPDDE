@@ -1,9 +1,21 @@
 # Observabilidade Vercel — RADAR PDDE
 
 **Classe documental:** Referência operacional vigente  
-**Atualizado em:** 7 de outubro de 2026
+**Atualizado em:** 22 de outubro de 2026 (baseline de coleta de 07/10 preservada abaixo)
 
 ## 1. Objetivo
+
+**Complemento de estado em 22/10/2026:** o alias `radarpdde-fix.vercel.app`
+estava ligado, no encerramento do PR #472, ao deployment `dpl_3yrGPc9tfMyyFsXrMzvRhxJP7dJs`,
+`READY`, SHA `caf2de3e...` (CLI 2.121.0, 8/8 pós-merge). Este é um
+checkpoint **datado**: alterações documentais posteriores podem acionar novo
+deployment com SHA distinto sem mudança no produto. Conferir alias ao vivo. O fato de
+Web Analytics/Speed Insights estarem publicados e habilitados foi comprovado
+no histórico de 07/10; **não há nova amostra de campo representativa
+comprovada nesta reconciliação**. O monitor público pós-upgrade do PostgreSQL e o monitor pós-merge do #472
+[passaram](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39864970805) em 22/10. Eles não substituem métricas de
+Core Web Vitals autenticadas nem jornadas de usuário humano.
+Nenhuma integração redundante foi adicionada.
 
 Preservar o contrato de observabilidade Vercel do RADAR sem depender de memória de conversa ou de configuração implícita do painel.
 
@@ -70,7 +82,7 @@ Web Analytics pode apoiar leitura de pageviews, rotas, dispositivos e eventos op
 
 A observabilidade deve preceder novas otimizações amplas. Próximos candidatos conhecidos:
 
-- reduzir refresh global residual em Dashboard/Carteira quando `schoolId` conhecido, em frente separada do #410;
+- **já entregue pelo #427:** Dashboard/Carteira/Competências utilizam leitura escolar para invalidação com `schoolId` conhecido, preservando recuperação global para casos incertos. Não reabrir esse ganho como tarefa pendente. Investigar somente o custo global residual realmente observado, os perfis sem cobertura e a prontidão/hidratação da [issue #460](https://github.com/WilsonMPeixoto-2/RADARPDDE/issues/460), com comparação pareada;
 - avaliar self-host das fontes Outfit/Plus Jakarta Sans para remover dependência de Google Fonts, somente após baseline de campo;
 - avaliar Image Optimization apenas se Speed Insights/Lighthouse mostrarem custo material nos screenshots/ativos.
 
