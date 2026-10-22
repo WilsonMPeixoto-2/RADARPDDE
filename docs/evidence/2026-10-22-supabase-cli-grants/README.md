@@ -82,9 +82,13 @@ A verificação equivalente foi aplicada à rotina remota descartável. Esta
 adaptação não altera JavaScript do produto nem qualquer schema SQL.
 
 O job isolado de backup passa a reservar 54320–54323 como os demais jobs
-Supabase. Na matriz Ubuntu, limite explícito `toomanyrequests` do GHCR
-permite tentar apenas o mirror oficial `public.ecr.aws` com a MESMA tag
-`postgres-meta:v0.97.0`; outras falhas continuam bloqueantes.
+Supabase. Na matriz Ubuntu, a primeira tentativa de fallback manteve a MESMA tag
+`postgres-meta:v0.97.0`, mas **ambos** os registries oficiais limitaram
+requisições no Ubuntu 24. Como o RADAR roda exclusivamente no Ubuntu 26 e
+seus gates reais de Supabase já exercitam as imagens Docker, a matriz
+comparativa de SO volta a verificar somente Node, npm, Docker instalado e
+Chromium real. A prova do banco **permanece obrigatória nos workflows
+Supabase dedicados**, não é substituída por um teste cosmético de pull.
 
 **Ainda não declarar homologação completa por esta edição:** verificar os checks
 do commit posterior; os 15 workflows aprovados do SHA `9a6806be` são

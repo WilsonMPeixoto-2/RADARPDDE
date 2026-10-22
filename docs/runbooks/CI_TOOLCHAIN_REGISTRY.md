@@ -59,8 +59,11 @@ tipos, campos ou obrigatoriedade**. Arquivos de bundle e runtime continuam
 comparados literalmente. O teste remoto descartável segue o mesmo critério.
 
 Falha de inicialização por porta 54322 no workflow independente de backup é
-tratada com reserva local no runner, sem reduzir a cobertura. Limite
-`toomanyrequests` ao consultar GHCR no teste Ubuntu admite uma única rota
-alternativa, imagem Supabase de mesma tag no mirror oficial ECR; qualquer
-outra falha continua bloqueante. Conferir execução do novo SHA antes de
+tratada com reserva local no runner, sem reduzir a cobertura. Limite `toomanyrequests` simultâneo no GHCR e no mirror ECR revelou que
+um pull de imagem na matriz de comparação Ubuntu 24/26 era redundante: todos
+os runners canônicos usam Ubuntu 26 e executam Supabase real em outros gates.
+A matriz de compatibilidade mantém Node 24, npm, Docker e Chromium real,
+mas não repete download de imagem de terceiro. Os gates de Supabase dedicados
+continuam bloqueantes; não confundir redução de duplicação com aprovação
+simulada. Conferir execução do novo SHA antes de
 considerar essas duas correções homologadas.
