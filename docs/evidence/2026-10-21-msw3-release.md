@@ -77,6 +77,14 @@ ainda em execução, PR Draft, sem merge ou deploy desta atualização. Se a
 referência falhar novamente, preservar o bloqueio sem terceiro rerun cego.
 Qualquer resultado superveniente deve ser acrescentado com seu SHA/run real.
 
+**Conferência direta do candidato:** o ZIP de métricas `12395124341` foi
+baixado e aberto; SHA-256 corresponde ao digest acima. O JSON original informa
+`stage=reload`, `outcome=passed`, `rounds=400`, seis amostras de sessão e gestos
+`[406,300,401,0,0,0]` (1.107). A prova de recuperação registra snapshot antigo
+retido na reconexão, UI antiga antes da resposta de recovery, convergência após
+essa resposta e `realtimeRecovered=true`. Isso comprova os contratos exercitados,
+não ausência absoluta de defeitos nem latência de frescor durante escrita contínua.
+
 ## Limites preservados
 
 Não se atribui ganho de fluidez, CPU, rede ou SQL ao MSW, que não compõe o runtime
