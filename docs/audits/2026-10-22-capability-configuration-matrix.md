@@ -14,7 +14,7 @@ A modernização das versões foi concluída e aprovada, mas atualização de de
 3. Axe 4.14: teste central usa tags WCAG 2.0/2.1 e filtro de impacto serious/critical; não inclui explicitamente WCAG 2.2 nem cobre todas as telas/estados operacionais. Já há verificações especializadas de foco, Dashboard e Prontuário.
 4. Lighthouse 13.5: runner lighthouserc.cjs examina a rota inicial em três execuções, separando desktop/mobile. Não há auditoria Lighthouse de fluxos de abrir/recarregar Prontuário e salvar NF; capacidade de user flows antecede a 13.5, cuja correção permite abortar navegações pendentes.
 5. CI: .github/workflows/preproduction-full-validation.yml dispara em qualquer pull_request para main, inclusive docs-only; outros workflows já possuem paths. Isso produziu suites de navegador e Supabase para o PR #473, que só alterou Markdown. Alterar requer inventariar branch protections/status checks antes de configurar filtros; não suprimir gates requeridos.
-6. Supabase: pg_stat_statements, hypopg e index_advisor já instaladas no projeto hospedado; é possível experimentar diagnóstico/índices hipotéticos *sem instalar extensões*. O advisor de segurança informa leaked-password protection desabilitada, recurso condicionado a plano Pro+ e análise do fluxo de autenticação.
+6. Supabase: pg_stat_statements, hypopg e index_advisor já instaladas no projeto hospedado; é possível experimentar diagnóstico/índices hipotéticos *sem instalar extensões*. O aviso do advisor sobre senhas vazadas foi **classificado como conhecido, indisponível no plano contratado e fora de escopo**; não encaminhar nova recomendação de habilitação nem investigação de elegibilidade.
 
 Não foi medida regressão de UX nem melhoria por qualquer ajuste proposto. Nenhuma alteração de produto, testes, CSS, workflows, GitHub Settings, SQL, índices, Auth ou Production foi executada nesta auditoria.
 
@@ -48,7 +48,7 @@ Legenda: **JA** = capacidade já aproveitada; **LC** = lacuna de configuração 
 Conector Supabase, projeto scnryinorqeucbfkioxo:
 - Status ACTIVE_HEALTHY; PostgreSQL 17.11.0.003.
 - Extensões instaladas incluem pg_stat_statements 1.11, hypopg 1.4.1, index_advisor 0.2.0, pg_jsonschema 0.3.3, pgtap 1.3.3, plpgsql_check 2.8, pgcrypto e outras; nenhuma ativação adicional proposta agora.
-- Advisor Segurança: **1 WARN, auth_leaked_password_protection**, proteção contra senhas vazadas está desativada. [Documentação oficial](https://supabase.com/docs/guides/auth/password-security) informa disponibilidade no plano Pro ou superior. Antes de alterar, verificar elegibilidade/configuração, fluxo atual de autenticação e eventual impacto no usuário; não interpretar alerta como evidência de credencial comprometida.
+- Advisor Segurança: **1 WARN, auth_leaked_password_protection**. **Decisão confirmada pelo responsável:** o RADAR utiliza plano sem acesso a esse recurso premium, questão já investigada repetidamente. **Estado: exceção documentada / sem ação / não reabrir ou recomendar upgrade de plano por este alerta.** Não interpretar esse aviso como vulnerabilidade específica ou senha efetivamente comprometida. Rever somente se o plano/funcionalidade mudar por decisão expressa do responsável. Esta exceção não se estende a outros avisos de segurança.
 - Advisor Desempenho: **1 categoria INFO unused_index com 19 findings**. A consulta agregada a pg_stat_user_indexes indicou 78 índices no esquema public, 40 com idx_scan=0 e 120.268 scans cumulativos totais; o número de advisory findings não é igual à quantidade de índices com contador zero porque há critérios de exclusão. stats_reset veio NULL; sem janela confiável ou uso humano representativo, nenhum DROP INDEX é recomendado.
 - pg_stat_statements já responde a consulta agregada: 4.914 fingerprints observados, 10.434 calls, 67.361,1 ms agregados de execução no horizonte estatístico, cujo início não foi determinado aqui. Esses números **não são benchmark de experiência do usuário** nem localizam um gargalo concreto.
 
@@ -92,11 +92,11 @@ Não consultar texto SQL, credenciais ou registros pessoais para compor evidênc
 - Se o índice da pesquisa for custo perceptível, tentar reutilização com invalidação canônica antes de FuseWorker.
 - Não multiplicar etapas de CI com cada experimento. Uma hipótese, uma baseline, uma contraprova e um critério de parada.
 
-### F. Segurança operacional Supabase Auth e índices (P1, somente com verificação administrativa)
+### F. Diagnóstico SQL e índices (P1, somente leitura)
 
-- Analisar primeiro elegibilidade do projeto e impacto de leaked-password protection; exigir configuração Auth aprovada antes de ativar.
 - Avaliar índices hipotéticos via hypopg/index_advisor e estatísticas de workload representativo. Não remover índices pela contagem de 19 advisory INFO.
-- Nenhuma mudança na persistência ou segurança em Production foi autorizada por esta auditoria de capacidades.
+- O aviso de proteção contra senhas vazadas **não é tarefa desta frente**: recurso indisponível no plano existente e decisão já esclarecida pelo responsável.
+- Nenhuma mudança na persistência, autenticação ou segurança de Production foi autorizada por esta auditoria de capacidades.
 
 ## 5. O que NÃO promover a tarefa
 
@@ -142,6 +142,6 @@ Não consultar texto SQL, credenciais ou registros pessoais para compor evidênc
 - PostgreSQL 17.11: https://www.postgresql.org/docs/17/release-17-11.html
 - PostgREST 14.18: https://github.com/PostgREST/postgrest/releases/tag/v14.18
 - Lighthouse 13.5: https://github.com/GoogleChrome/lighthouse/releases/tag/v13.5.0
-- Supabase senhas: https://supabase.com/docs/guides/auth/password-security
+- Documentação de elegibilidade do alerta já encerrado (não constitui pendência): https://supabase.com/docs/guides/auth/password-security
 
 **Limites:** fontes públicas e inspeções estáticas, mais consultas agregadas apenas de leitura aos metadados/estatísticas hospedados. Não foram executados benchmarks novos, scans WCAG 2.2 novos, comparações de Knip ampliadas, piloto de JSDoc ou auditoria autenticada da interface. Essas são fases seguintes, não resultados já comprovados.

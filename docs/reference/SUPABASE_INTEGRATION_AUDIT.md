@@ -278,3 +278,17 @@ A integração está ativa e coerente quanto às camadas principais. Os achados 
 - [`FUNCTIONAL_CONTRACT_MATRIX.md`](FUNCTIONAL_CONTRACT_MATRIX.md);
 - [`../runbooks/SUPABASE_CONNECTION.md`](../runbooks/SUPABASE_CONNECTION.md);
 - [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md).
+
+## Decisão de escopo para o advisor de senhas vazadas (22/10/2026)
+
+O aviso `auth_leaked_password_protection` pode permanecer visível nos
+advisors da plataforma. **O responsável confirmou que o projeto utiliza um
+plano sem acesso ao recurso premium e que a elegibilidade já foi verificada
+repetidamente.** Classificar como **aviso conhecido / não acionável na
+assinatura atual**, sem criar tarefa, sugerir nova investigação do mesmo
+alerta ou propor upgrade de plano. Somente reconsiderar se houver mudança
+expressa de assinatura ou da disponibilidade oficial da funcionalidade.
+
+Esta decisão **não desativa** qualquer proteção, não modifica usuários,
+senhas ou configuração de Auth, e não dispensa a análise de outros alertas
+de segurança.
