@@ -67,3 +67,42 @@ test('nao aceitar comando Knip alterado ou remocao de outros scripts', async () 
   const removed = {...knipAdded,scripts:{'analyze:unused:deep':KNIP_COMMAND}};
   assert.equal((await classify(['package.json'],{beforePackage:original,afterPackage:removed})).scope,'full');
 });
+
+
+test('A6: somente docs/audits/*.md admite atalho de ciclo Supabase', async () => {
+  const {maySkipLifecycleForAuditDocs} = await import('../../scripts/ci/classify-pr-impact.mjs');
+  const files=['docs/audits/2026-10-23-a5-ci-classification.md'];
+  const classified=await classify(files);
+  assert.equal(classified.scope,'docs-only');
+  assert.equal(maySkipLifecycleForAuditDocs({...classified,files}),true);
+  assert.equal(maySkipLifecycleForAuditDocs({...classified,files:[...files,'docs/audits/notes.md']}),true);
+});
+
+test('A6: docs operacionais, scripts e bases incertas mantem Supabase real', async () => {
+  const {maySkipLifecycleForAuditDocs} = await import('../../scripts/ci/classify-pr-impact.mjs');
+  for(const files of [
+    ['README.md'],['docs/reference/TEST_GOVERNANCE.md'],
+    ['docs/runbooks/KNIP_DEEP_DIAGNOSTIC.md'],
+    ['docs/audits/a.md','src/application/invoice-service.js'],
+    ['docs/audits/a.md','supabase/migrations/20261023000000.sql'],
+    ['docs/audits/a.md','.github/workflows/functional-reliability-lifecycle.yml'],
+    ['docs/audits/a.md','package-lock.json'],
+    ['docs/audits/a.md','scripts/audit/inspect-knip-deep.mjs']
+  ]) {
+    const report=await classify(files);
+    assert.equal(maySkipLifecycleForAuditDocs({...report,files}),false,JSON.stringify(files));
+  }
+  assert.equal(maySkipLifecycleForAuditDocs(null),false);
+  assert.equal(maySkipLifecycleForAuditDocs({scope:'docs-only',files:[]}),false);
+  assert.equal(maySkipLifecycleForAuditDocs({scope:'docs-only',files:['docs/audits/../repo.js']}),false);
+  assert.equal(maySkipLifecycleForAuditDocs({scope:'full',files:['docs/audits/a.md']}),false);
+});
+
+test('A6: pathname alterado para nome Markdown nao vira atalho se origem mudou', async () => {
+  const {maySkipLifecycleForAuditDocs} = await import('../../scripts/ci/classify-pr-impact.mjs');
+  // Um rename src -> docs aparece em duas entradas com git diff --no-renames.
+  const files=['src/domain/operation-key.js','docs/audits/operation-key.md'];
+  const report=await classify(files);
+  assert.equal(report.scope,'full');
+  assert.equal(maySkipLifecycleForAuditDocs({...report,files}),false);
+});
