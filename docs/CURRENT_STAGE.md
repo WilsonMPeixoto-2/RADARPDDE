@@ -1,6 +1,53 @@
 # RADAR PDDE — estado atual e retomada
 
-## Estado vigente da modernização — 23/10/2026
+## Estado consolidado após a pesquisa de capacidades — 23/10/2026
+
+> **Leitura de retomada após os merges #482/#483.** A baseline remota conferida antes
+> desta reconciliação documental foi `main@fef3e7834edefbe178e241c4957c52fa781bf877`
+> (merge #483). Este SHA **não** é declaração do HEAD futuro após o próprio
+> merge documental: revalidar `main` e Production ao iniciar nova intervenção.
+> As seções abaixo intituladas **Histórico** preservam momentos anteriores.
+
+**Auditoria aprofundada da continuidade:**
+[decisões, mudanças de direção, contraprovas e testes de 22–23/10](audits/2026-10-23-modernization-decision-trace.md).
+**Leia esse documento antes de reabrir pesquisa ou planejar qualquer nova
+implementação do programa [#481](https://github.com/WilsonMPeixoto-2/RADARPDDE/issues/481).**
+Ele é uma auditoria datada, **não** altera o modelo funcional, as ADRs ou as
+regras dos usuários. A matriz A0–A9 não substitui a ordem das quatro prioridades
+registradas na issue #481.
+
+- **#478 integrado** por `ea00ca5409e24158a904d2a754803f953eeed2a0`,
+  com quatro arquivos Markdown no **diff efetivo da main**, depois de #479/#480.
+  A frase histórica abaixo “#478 em validação” está superada.
+- **#482 integrado** por `c5f6e5afd66a82516461344a92d06cc6ad4c2c4e`:
+  A9 fechado **como pesquisa instrumental**, com três amostras iniciais, seis
+  cliques Event Timing e trace adicional. Nenhuma correção de sincronização,
+  performance, CSS, SQL, Auth/RLS ou lógica fiscal foi implementada.
+- **#483 integrado** por `fef3e7834edefbe178e241c4957c52fa781bf877`:
+  hotfix isolado de Puppeteer/Chromium BiDi/Zod após detecção de advisory
+  de segurança no push posterior ao #482. **19/19 workflows** do candidato
+  aprovados, inclusive saúde de dependências com auditoria fresca e 0
+  vulnerabilidades; sem alteração de produto.
+- **Vercel Production:** consulta de 23/10 confirmou deployment
+  `dpl_5z5FpyX9J2zePoTQAMLAwVSUQx56` **READY**, domínio
+  `radarpdde-fix.vercel.app` ligado ao SHA de #483 naquele momento.
+  Um novo commit meramente documental poderá originar outro deployment.
+  READY não equivale a teste de pessoa autenticada nem a SLO de desempenho.
+- **Pendências autônomas:** [#460 Caso A](https://github.com/WilsonMPeixoto-2/RADARPDDE/issues/460)
+  (prontidão/projeção após reload), [#446](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/446)
+  e [#447](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/447)
+  (diagnósticos Draft). O A9 separou custo de apresentação de clique no
+  SwiftShader da releitura global posterior por `MISSING_BASELINE_COVERAGE`;
+  **não** comprovou correção para nenhum desses temas.
+- **Issue #481 permanece aberta** como roteiro estratégico original. Nenhum
+  handoff funcional novo está designado por esta atualização documental.
+  Limites/suspeitas adicionais, incluindo `artifacts/tooling/` não ignorado
+  pelo Git e incerteza sobre required checks, estão no relatório aprofundado;
+  não os promover a implementação automaticamente.
+
+---
+
+## Histórico da modernização antes dos merges #478/#482/#483 — 23/10/2026
 
 Este checkpoint sucede o encerramento da CLI abaixo. A baseline verificada desta
 retomada avançou até `main@3949c7b89c23901ac84ced2b681a3c3322efb96a`
