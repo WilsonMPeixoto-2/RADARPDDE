@@ -29,7 +29,7 @@ Nunca remover arquivos automaticamente. O flag `RADAR_REQUIRE_ALL_KNIP_REFERENCE
 
 Em 23/10/2026, a [execução A4](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39901370296) identificou 34 candidatos, 34 referências entre seis carregadores e nenhum candidato sem referência identificada. Um arquivo artificialmente órfão, criado e removido pelo runner, foi encontrado como 35º candidato. Essa contagem histórica **não** está embutida no novo comando: o número de arquivos pode variar sem ser automaticamente um defeito.
 
-A4 também provou que TypeScript 7 pode identificar erro de argumento numa chamada real do serviço de despesas, mas a configuração ampla apresentou diagnósticos históricos e **não** foi promovida a gate. Ver [registro técnico A4](../audits/2026-10-23-a4-typecheck-knip-outcome.md) **na branch experimental** `experiment/capabilities-a4-ts-knip-20261023` (não confundir com documentação já integrada).
+A4 também provou que TypeScript 7 pode identificar erro de argumento numa chamada real do serviço de despesas, mas a configuração ampla apresentou diagnósticos históricos e **não** foi promovida a gate. Ver [registro técnico A4](https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/experiment/capabilities-a4-ts-knip-20261023/docs/audits/2026-10-23-a4-typecheck-knip-outcome.md) na branch experimental `experiment/capabilities-a4-ts-knip-20261023` (não confundir com documentação já integrada).
 
 ## Critério para promoção
 
