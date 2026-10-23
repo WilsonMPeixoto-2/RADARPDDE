@@ -1,3 +1,4 @@
+// @ts-check
 (function installRadarInvoiceService(root, factory) {
     'use strict';
 
@@ -23,7 +24,9 @@
 
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     if (root) root.RadarInvoiceService = Object.freeze(api);
-}(typeof window !== 'undefined' ? window : globalThis, function createInvoiceServiceApi(
+}(typeof window !== 'undefined' ? window : globalThis, /**
+ * @param {typeof import('../domain/operation-key.js')} operationKey
+ */ function createInvoiceServiceApi(
     contract,
     serviceAdvisory,
     invoiceEffects,
@@ -80,6 +83,13 @@
         return { competence: match[1], programId: match[2] };
     }
 
+    /**
+     * @param {string} code
+     * @param {string} message
+     * @param {string} operation
+     * @param {Record<string, unknown> | null} [details]
+     * @returns {never}
+     */
     function fail(code, message, operation, details = null) {
         throw new RepositoryError(code, message, { operation, details });
     }
