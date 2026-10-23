@@ -19,6 +19,22 @@ PR aberto, Preview ou documento antigo não altera Production.
 
 ## 2. Rota canônica vigente
 
+**Reconciliação posterior aos merges de 23/10:** a fotografia de referência
+anterior à presente entrega documental é `main@fef3e7834edefbe178e241c4957c52fa781bf877`
+(#483). A [auditoria aprofundada da modernização](../audits/2026-10-23-modernization-decision-trace.md)
+é **evidência retrospectiva de decisões, testes, contraprovas, falhas e
+limitações de A0–A9**, não regra funcional, especificação aprovada, handoff
+de execução ou confirmação permanente de ambiente. O
+[`CURRENT_STAGE.md`](../CURRENT_STAGE.md) indica o estado mutável, os
+merges #478/#482/#483 e a ordem original da issue #481. **#482 A9 está
+integrado como pesquisa instrumental, #483 como hotfix de dependências; #460
+Caso A, #446 e #447 permanecem independentes.** Não atribuir a A9 uma
+correção de desempenho/UX nem ler os históricos pré-merge abaixo como tarefas.
+
+**Registro histórico anterior a #482/#483:** o texto de "fronteira atual"
+logo abaixo foi produzido antes desses merges e fica subordinado ao
+checkpoint de abertura.
+
 **Fronteira atual (23/10):** ler o topo de
 [`CURRENT_STAGE.md`](../CURRENT_STAGE.md) e o
 [relatório de continuidade](../audits/2026-10-23-modernization-continuity-review.md).
@@ -40,6 +56,7 @@ um checkpoint histórico diz "aguardando", "Draft" ou "candidato".
 
 | Arquivo | Classe | Uso |
 |---|---|---|
+| docs/audits/2026-10-23-modernization-decision-trace.md | Auditoria retrospectiva de continuidade A0–A9 (22–23/10) | Fonte de contexto integrada ao roteador: decisões, motivos, contraprovas, PRs, CI e limites; não define regra de negócio, solução de performance nem handoff funcional | 
 | docs/audits/2026-10-23-modernization-continuity-review.md | Auditoria datada e evidência de continuidade | revisão de A0–A6, merges #475/#477, contraprovas e limites do TS7/Knip, falhas preservadas e medição do job documental; não é especificação de arquitetura ou benchmark de fluidez |
 | docs/audits/2026-10-23-js-contract-boundary-experiment.md | Evidência A7 integrada no #479 | baseline TS válida do consumidor fiscal, contraprova TS2551 no runner, JSDoc sem mudança executável; não habilita tipagem ampla |
 | docs/audits/2026-10-23-invoice-capture-viewport-diagnostic.md | Diagnóstico do teste integrado no #480 | evidência de screenshot 1366×768, botões operacionais integralmente visíveis, 21/21 ciclos Supabase reais; não autoriza relaxamento de outras asserções |
