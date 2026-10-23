@@ -6,6 +6,10 @@ on:
     branches:
       - fix/security-fast-uri-3-1-9-20261023
 
+concurrency:
+  group: temp-ajv-security-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
