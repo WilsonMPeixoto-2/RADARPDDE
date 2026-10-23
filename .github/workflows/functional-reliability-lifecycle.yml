@@ -24,6 +24,8 @@ jobs:
     steps:
       - name: Obter código
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 2
 
       - name: Configurar Node.js 24
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
@@ -31,13 +33,42 @@ jobs:
           node-version: 24
           cache: npm
 
+      - name: Classificar diff para atalho A6 (fail closed)
+        id: impact
+        if: ${{ github.event_name == 'pull_request' }}
+        shell: bash
+        env:
+          RADAR_CI_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          report="${RUNNER_TEMP}/radar-lifecycle-impact.json"
+          if ! node scripts/ci/classify-pr-impact.mjs > "${report}"; then
+            printf '%s\n' '{"scope":"full","reason":"erro ao executar classificador"}' > "${report}"
+          fi
+          cat "${report}"
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import {maySkipLifecycleForAuditDocs} from './scripts/ci/classify-pr-impact.mjs';
+          let report;
+          try { report = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/radar-lifecycle-impact.json','utf8')); }
+          catch { report = {scope:'full',reason:'JSON invalido'}; }
+          const eligible = maySkipLifecycleForAuditDocs(report);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `run_full=${eligible ? 'false' : 'true'}\n`);
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+            `### A6: ciclos Supabase\n- Escopo classificado: ${report.scope}\n- Motivo: ${report.reason || 'não especificado'}\n- Execução integral: **${eligible ? 'não (somente docs/audits/*.md)' : 'sim'}**\n- Check preservado: **Criar editar converter excluir avaliar e reanalisar**\n`);
+          if (eligible) console.log('A6_DOCS_ONLY_SKIP=true; somente docs/audits/*.md; check preservado');
+          else console.log('A6_FULL_RUN=true; risco ou diff indeterminado');
+          NODE
       - name: Instalar dependências reproduzíveis
+        if: ${{ steps.impact.outputs.run_full != 'false' }}
         run: npm ci
 
       - name: Instalar Chromium
+        if: ${{ steps.impact.outputs.run_full != 'false' }}
         run: npx playwright install --with-deps chromium
 
       - name: Preparar pilha local
+        if: ${{ steps.impact.outputs.run_full != 'false' }}
         run: |
           mkdir -p supabase/functions
           printf 'RADAR_ALLOWED_ORIGIN=%s\n' 'http://127.0.0.1:4175' > supabase/functions/.env
@@ -47,6 +78,7 @@ jobs:
           psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -v ON_ERROR_STOP=1 -f tests/fixtures/operational-uat.sql
 
       - name: Preparar autenticação e configuração da aplicação
+        if: ${{ steps.impact.outputs.run_full != 'false' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -70,6 +102,7 @@ jobs:
           } >> "${GITHUB_ENV}"
 
       - name: Executar ciclos funcionais reais
+        if: ${{ steps.impact.outputs.run_full != 'false' }}
         env:
           RADAR_E2E_SUPABASE_LOCAL: '1'
           RADAR_E2E_OPERATIONAL_UAT: '1'
@@ -88,7 +121,7 @@ jobs:
           --workers=1
 
       - name: Publicar evidências das jornadas
-        if: always()
+        if: ${{ always() && steps.impact.outputs.run_full != 'false' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: functional-lifecycle-${{ github.run_id }}
@@ -99,7 +132,7 @@ jobs:
           retention-days: 7
 
       - name: Encerrar pilha local
-        if: always()
+        if: ${{ always() && steps.impact.outputs.run_full != 'false' }}
         run: |
           npm run generate:runtime-config || true
           rm -f supabase/functions/.env
