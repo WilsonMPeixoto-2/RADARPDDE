@@ -1,0 +1,44 @@
+name: Diagnóstico isolado Axe 4.14 e WCAG 2.2
+
+on:
+  push:
+    branches: [docs/audit-capacidades-pacotes-out2026]
+    paths:
+      - '.github/workflows/tooling-capability-axe-pilot.yml'
+      - 'tests/e2e/capability-axe-wcag22-diagnostic.spec.js'
+      - 'playwright.axe-capability.config.js'
+
+permissions:
+  contents: read
+
+jobs:
+  axe-diagnostic:
+    name: WCAG 2.1 vs 2.2 sem alterar produto
+    runs-on: ubuntu-26.04
+    timeout-minutes: 18
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Node 24
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '24'
+          cache: npm
+      - name: npm ci
+        run: npm ci --no-audit --no-fund
+      - name: Validar sintaxe
+        run: |
+          node --check tests/e2e/capability-axe-wcag22-diagnostic.spec.js
+          node --check playwright.axe-capability.config.js
+      - name: Chromium descartável
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Diagnóstico Axe
+        run: npx --no-install playwright test --config=playwright.axe-capability.config.js
+      - name: Guardar evidência de falha
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: axe-wcag22-diagnostic-error
+          path: test-results/capability-axe-wcag22/**
+          retention-days: 7
+          if-no-files-found: ignore
