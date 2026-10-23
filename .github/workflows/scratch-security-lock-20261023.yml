@@ -1,0 +1,36 @@
+name: Scratch security advisory lockfile (ephemeral)
+on:
+  push:
+    branches:
+      - scratch/security-zod-advisory-lock-20261023
+permissions:
+  contents: read
+jobs:
+  compute:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Resolve targeted patched tooling dependency
+        run: npm install --package-lock-only --save-dev --save-exact --ignore-scripts --no-audit puppeteer-core@25.16.0
+      - name: Install exact lock and check zod advisory
+        run: |
+          npm ci
+          mkdir -p scratch-security
+          npm audit --json > scratch-security/npm-audit.json || true
+          node -e 'const p=require("./package-lock.json").packages; for (const n of ["node_modules/puppeteer-core","node_modules/chromium-bidi","node_modules/zod","node_modules/chromium-bidi/node_modules/zod"]) console.log(n,p[n]?.version||"absent")'
+          npm run audit:exceljs-policy
+      - name: Upload generated lock and security evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: scratch-zod-patch-lock-${{ github.run_id }}
+          path: |
+            package.json
+            package-lock.json
+            scratch-security/npm-audit.json
+          retention-days: 3
