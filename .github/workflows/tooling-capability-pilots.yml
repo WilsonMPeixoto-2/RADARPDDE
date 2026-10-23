@@ -1,0 +1,84 @@
+name: Pilotos isolados TypeScript 7 e Knip 6
+
+on:
+  push:
+    branches: [docs/audit-capacidades-pacotes-out2026]
+    paths:
+      - '.github/workflows/tooling-capability-pilots.yml'
+      - 'scripts/audit/inspect-knip-deep.mjs'
+      - 'tsconfig.js-contract-pilot.json'
+      - 'src/domain/operation-key.js'
+      - 'knip.config.cjs'
+      - 'package.json'
+      - 'package-lock.json'
+permissions:
+  contents: read
+
+jobs:
+  typescript-pilot:
+    name: TS7 - baseline e contraprova negativa
+    runs-on: ubuntu-26.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Compilar contrato JavaScript original
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/tooling
+          npx --no-install tsc --version
+          npx --no-install tsc -p tsconfig.js-contract-pilot.json --noEmit 2>&1 | tee artifacts/tooling/ts-baseline.log
+      - name: Contraprova negativa sem alterar a branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          backup="$(mktemp)"
+          cp src/domain/operation-key.js "$backup"
+          trap 'cp "$backup" src/domain/operation-key.js; rm -f "$backup"' EXIT
+          printf '\n/** @type {string} */ const __radar_ts7_negative_probe = 123;\n' >> src/domain/operation-key.js
+          set +e
+          npx --no-install tsc -p tsconfig.js-contract-pilot.json --noEmit > artifacts/tooling/ts-negative.log 2>&1
+          code=$?
+          set -e
+          cat artifacts/tooling/ts-negative.log
+          test "$code" -ne 0
+          grep -q 'TS2322' artifacts/tooling/ts-negative.log
+          echo "PASS: TypeScript detectou a violação de tipo intencional."
+      - name: Preservar logs TypeScript
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: ts7-a1-diagnostics
+          path: artifacts/tooling/ts-*.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+  knip-pilot:
+    name: Knip - relatório não bloqueante de arquivos e exports
+    runs-on: ubuntu-26.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Executar diagnóstico Knip
+        run: |
+          node --check scripts/audit/inspect-knip-deep.mjs
+          npx --no-install knip --version
+          node scripts/audit/inspect-knip-deep.mjs
+      - name: Preservar relatório JSON
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: knip-a1-diagnostics
+          path: artifacts/tooling/knip-deep-diagnostic.json
+          if-no-files-found: ignore
+          retention-days: 7
