@@ -1,3 +1,4 @@
+// @ts-check
 (function installRadarOperationKey(root, factory) {
     'use strict';
 
@@ -9,6 +10,7 @@
 
     const UUID_V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+    /** @param {unknown} value @returns {string} */
     function normalize(value) {
         const key = value == null ? '' : String(value).trim().toLowerCase();
         if (!UUID_V4.test(key)) throw new Error('OPERATION_KEY_INVALID: chave de intenção inválida.');
@@ -27,6 +29,10 @@
         return `${hex.slice(0, 4).join('')}-${hex.slice(4, 6).join('')}-${hex.slice(6, 8).join('')}-${hex.slice(8, 10).join('')}-${hex.slice(10).join('')}`;
     }
 
+    /**
+     * @param {{ randomUUID?: () => string, getRandomValues?: (bytes: Uint8Array) => Uint8Array } | null} [cryptoOverride]
+     * @returns {string}
+     */
     function create(cryptoOverride = null) {
         const cryptoRef = cryptoOverride || root?.crypto || globalThis.crypto;
         if (cryptoRef && typeof cryptoRef.randomUUID === 'function') {
@@ -35,10 +41,16 @@
         return normalize(fallbackUuid(cryptoRef));
     }
 
+    /** @param {unknown} value @returns {string} */
     function reuse(value) {
         return normalize(value);
     }
 
+    /**
+     * @param {unknown} prefix
+     * @param {unknown} operationKey
+     * @returns {string}
+     */
     function persistentId(prefix, operationKey) {
         const safePrefix = prefix == null ? '' : String(prefix).trim();
         if (!safePrefix || !/^[a-z0-9_-]+$/i.test(safePrefix)) {

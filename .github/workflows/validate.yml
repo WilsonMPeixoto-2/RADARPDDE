@@ -48,6 +48,9 @@ jobs:
       - name: Instalar dependências reproduzíveis
         run: npm ci
 
+      - name: Verificar contrato JS de identidade e consumidor fiscal (TS 7)
+        run: ./node_modules/.bin/tsc -p tsconfig.js-contract-boundary.json --pretty false
+
       - name: Validar referências locais dos workflows
         run: node scripts/check-workflow-references.mjs
 
