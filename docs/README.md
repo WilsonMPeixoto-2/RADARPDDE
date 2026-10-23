@@ -1,13 +1,14 @@
 # Documentação do RADAR PDDE
 
 **Estado de retomada em 23/10/2026:** [`CURRENT_STAGE.md`](CURRENT_STAGE.md)
-registra os merges #474, #476, #477 e #475. O
+registra os merges #474, #476, #477, #475, **#479 e #480**. O
 [relatório de continuidade](audits/2026-10-23-modernization-continuity-review.md)
-confronta os pilotos, preserva as falhas e mede a redução de um job de CI
-em relatórios documentais. O Knip profundo é opcional;
-[guia de interpretação](runbooks/KNIP_DEEP_DIAGNOSTIC.md). TypeScript amplo
-continua experimental, sem gate geral de serviços. Não integrar integralmente
-as branches antigas de auditoria nem reabrir a CLI #472.
+confronta os pilotos históricos, preserva as falhas e mede a redução de um job
+em relatórios documentais. O Knip profundo continua opcional;
+[guia de interpretação](runbooks/KNIP_DEEP_DIAGNOSTIC.md). O **#479 protege apenas
+a interface JS de identidade fiscal** por TypeScript, sem gate geral de
+serviços, e o **#480 corrige o critério de captura E2E**, sem alteração de UI.
+Não integrar integralmente branches antigas de auditoria nem reabrir a CLI #472.
 
 **Histórico da manutenção, verificado em 22/10/2026:** [`CURRENT_STAGE.md`](CURRENT_STAGE.md)
 registra o [merge do PR #472](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/472),
@@ -47,7 +48,7 @@ CI e publicação devem corresponder ao HEAD final de cada PR. Não atribuir
 melhora de fluidez a atualizações de ferramentas de análise.
 
 **Classe documental:** Canônico — índice e rota de leitura  
-**Atualizado em:** 22 de outubro de 2026
+**Atualizado em:** 23 de outubro de 2026
 
 ## 1. Rota obrigatória
 

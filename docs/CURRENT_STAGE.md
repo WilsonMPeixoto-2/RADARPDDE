@@ -2,9 +2,9 @@
 
 ## Estado vigente da modernização — 23/10/2026
 
-Este checkpoint sucede o encerramento da CLI abaixo. A baseline de código desta
-retomada é `main@f95b7d7ad3d9589cd616b2b052931df586755e69`; conferir o remoto
-antes de reutilizar SHAs ou estados de CI/deployment.
+Este checkpoint sucede o encerramento da CLI abaixo. A baseline verificada desta
+retomada avançou até `main@3949c7b89c23901ac84ced2b681a3c3322efb96a`
+(merge do #480). Confirmar o remoto antes de reutilizar SHAs, checks ou deployments.
 
 - **#474 integrado:** nome acessível de “Mais filtros” corrigido, merge
   `78227c8744519d1357dc97d39207fe0b3b27b79c`. Não repetir a correção Axe.
@@ -19,11 +19,24 @@ antes de reutilizar SHAs ou estados de CI/deployment.
   código ou gate obrigatório. **18/18 workflows** aprovados após uma única
   repetição dos dois jobs inicialmente falhos. As ocorrências e limites de
   causalidade permanecem no [relatório de continuidade](audits/2026-10-23-modernization-continuity-review.md).
-- **TypeScript A4 permanece experimental:** detectou incompatibilidade no
-  contrato escolhido, mas a baseline ampla de InvoiceService já reprova. Não
-  ativar esse checkJs como gate geral nem tratar erros injetados como defeitos
-  existentes. Próxima frente possível: contrato JS menor com consumidor real,
-  baseline válida e contraprova, sem reescrita ou supressão em massa.
+- **#479 integrado:** contrato JavaScript tipado de identidade no consumidor
+  fiscal, merge `3a6860a5a3b86172b4746c6c3275cac1c4d0ced4`. Uma nova etapa
+  curta do gate `Validar RADAR PDDE` compila a fronteira TypeScript delimitada;
+  **29 checks aprovados/2 skips** no PR e **11 aprovados/2 skips** no push.
+  Contraprova TS2551 com erro de método inexistente e 7 testes de identidade.
+  Não confundir com o **TypeScript A4 amplo**, que continua experimental,
+  sem tipagem obrigatória de todo o InvoiceService.
+- **#480 integrado:** captura E2E de notas fiscais passa a exigir que os botões
+  `Adicionar Nota` e `Registrar despesa a identificar` caibam integralmente
+  na viewport, em vez de exigir a borda inteira do painel. Merge
+  `3949c7b89c23901ac84ced2b681a3c3322efb96a`, **17 checks aprovados/2 skips**
+  no PR e **21/21 ciclos financeiros com Supabase real**. Não alterou produto,
+  banco, Auth, RLS, CSS ou regras de despesa. A falha anterior do retry serial
+  não foi corrigida por alteração de fixture; só não reapareceu no teste verde.
+- **#478 ainda documental em validação:** a falha do HEAD anterior no teste
+  visual foi reproduzida e tratada exclusivamente pelo #480. O relatório
+  histórico [de continuidade](audits/2026-10-23-modernization-continuity-review.md)
+  preserva o estado dos experimentos A0–A6 antes desses merges.
 
 A documentação e os pilotos A0–A4 do outro agente permanecem na branch
 `docs/audit-capacidades-pacotes-out2026@82ae7162` e em
@@ -31,12 +44,14 @@ A documentação e os pilotos A0–A4 do outro agente permanecem na branch
 merge integral dessas branches. #446/#447 e Caso A da #460 continuam separados.
 Nenhum handoff de implementação novo foi designado por este checkpoint.
 
-A última consulta Vercel após #475 confirmou Production `READY`, deployment
-`dpl_H187AY8pvVxaT2BZvRdEyPSWtfbz`, domínio oficial no SHA `f95b7d7a...`.
-Conferir publicação documental posterior deste relatório no remoto;
-READY não equivale a nova sessão humana autenticada. Esta etapa não modificou
-schema, RLS, Auth, dados institucionais ou regras de negócio. CLI #472 e a
-limitação do recurso premium de senhas vazadas no plano atual estão encerradas.
+A Vercel confirmou Production `READY` após #479 no deployment
+`dpl_J9twqyxfwcdxp7nQfqKuTdvSzs6d`, domínio oficial ligado ao SHA
+`3a6860a5a3b86172b4746c6c3275cac1c4d0ced4`. O merge #480 iniciou outro
+build para `3949c7b...`; verificar a conclusão e o alias no remoto antes de
+atribuir `READY` a esse commit. READY não equivale a uma sessão humana
+Production autenticada. Nenhuma mudança de schema, RLS, Auth, dados
+institucionais ou regra de negócio foi necessária nesta retomada. A CLI #472
+e a limitação de senhas vazadas premium permanecem encerradas.
 
 ## Histórico: encerramento do #472 — 22/10/2026
 
