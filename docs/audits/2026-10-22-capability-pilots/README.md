@@ -22,3 +22,7 @@ Esta branch não muda `package.json`, os workflows canônicos de CI, RLS, banco 
 ## Resultado adicional A2
 
 O [run 39887138715](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39887138715) homologou a contraprova da **API real** `persistentId()` com TS2322, mapeou automaticamente **34/34 referências dinâmicas** do inventário Knip e comprovou a detecção de um arquivo artificial realmente sem referência (**35º achado**). [Evidências e interpretação](../../evidence/2026-10-22-ts7-knip-capability-a1/README.md#5-contraprova-independente-a2--contrato-real-e-controle-positivo-de-descoberta). Estes são diagnósticos, não uma aprovação para apagar módulos ou tornar o typecheck de todo o produto obrigatório.
+
+## Piloto A3 de Axe 4.14 e Playwright 1.64
+
+Branch isolada: `tests/e2e/capability-axe-wcag22-diagnostic.spec.js`, `playwright.axe-capability.config.js` e `.github/workflows/tooling-capability-axe-pilot.yml`. Execução: [run 39887802231](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39887802231). Compara resultados das tags WCAG até 2.1 AA com a inclusão de `wcag22aa` no Dashboard, Prontuário e Pendências, em Chromium desktop e fixture local. A análise não falha apenas por detectar violações, mas falha se não conseguir examinar as telas reais. Não faz login em Production, alterações funcionais nem escrita de banco. **O resultado do run deve ser consultado diretamente antes de declarar qualquer auditoria Axe concluída**. Regras existentes de acessibilidade da CI não foram modificadas.
