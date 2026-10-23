@@ -14,15 +14,15 @@
 
 ## Mudança proposta na branch de caracterização
 
-Apenas o cenário E2E preexistente do Controlador e Assistente Federal recebe **observação passiva antes das asserções que já existem**. Em cada reload, anexa JSON com:
+Apenas o cenário E2E preexistente do Controlador e Assistente Federal reutiliza o **mesmo `page.evaluate` que já calcula a exportação**, enriquecendo seu retorno com observação passiva no instante da própria projeção. Em cada reload, anexa JSON com:
 - valor remoto `bonus_result` lido pelo helper existente (sem consultas adicionais);
 - `RadarDataContext.ready`, valor do seletor e `RadarCompetenceContext.getState()`;
 - `RadarApplicationServices.data.currentOperationalCompetence`;
 - presença de `verificacoes[school][competence_program]`, `bonus_result` e documento de bonificação;
 - retorno de `getProgramBonificationStatus` naquele instante;
-- PNG **somente se houver divergência**, preservando o estado efetivamente apresentado ao usuário.
+- PNG **somente depois que uma das asserções preexistentes de resultado/exportação tiver efetivamente falhado**, sem dar tempo adicional para convergência antes de decidir seu resultado.
 
-**Não há** `waitForTimeout`, polling para obter verde, espera de `whenHydrated()`, relaxamento de expectativa, novas credenciais, alteração de fixture, mutação de banco, CSS, JS produtivo ou API do RADAR. Uma leitura extra de memória pode ter custo/timing mínimo e por isso **não é medição neutra de latência**, mas não introduz espera específica por convergência. As asserções pré-existentes permanecem.
+**Não há** `waitForTimeout`, polling para obter verde, espera de `whenHydrated()`, relaxamento de expectativa, novas credenciais, alteração de fixture, mutação de banco, CSS, JS produtivo ou API do RADAR. Os campos extras são calculados na mesma chamada de browser que já lia a exportação, sem roundtrip adicional antes da expectativa. O `testInfo.attach` ocorre **após a avaliação das três asserções**; na falha a screenshot também é posterior. Isto minimiza interferência temporal, embora não seja uma medição neutra de latência. As asserções e seus valores esperados permanecem.
 
 ## Decisão que esta prova poderá apoiar
 
