@@ -1,5 +1,38 @@
 # RADAR PDDE — estado atual e retomada
 
+## Checkpoint de cobertura pós-upgrade e integração documental — 23/10/2026
+
+A [auditoria e a matriz de governança A0–A9 do PR #484](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/484)
+foram **integradas** na `main` pelo commit
+`1cd0543db00585fe7d0e979fa685c6415480c629`, com cinco workflows de
+GitHub aprovados no HEAD final do candidato (homologação pré-Production,
+ciclos financeiros reais, confiabilidade, CodeQL e validação principal).
+**O erro de Preview Vercel foi quota de deployments gratuitos (>100/dia)**,
+não comprovação de falha de código; não afirmar READY do novo SHA sem
+consultar Vercel/alias novamente.
+
+**Nova rodada B1–B4 (nesta branch candidata; não presumir merge):**
+[matriz viva](TECHNOLOGY_CAPABILITIES_TRACKER.md) foi reconciliada para
+**26/26 dependências com decisão final de triagem de capacidades**, divididas
+entre [9 verificações novas](audits/2026-10-23-capability-triage-b1-b3.md) e
+[17 decisões reconciliadas com A0/código](audits/2026-10-23-capability-triage-b4.md).
+Essa conclusão é de **cobertura horizontal de oportunidades**, não das
+investigações aprofundadas F01–F15, nem prova de ganho de performance no
+produto. As frentes permanecem com próximos passos/condições de retomada
+na matriz. Não criar 26 PRs nem habilitar funcionalidades por novidade.
+
+**Mudança executável isolada do candidato:** adicionar `artifacts/tooling/`
+ao `.gitignore` e testar a exclusão dirigida em
+`tests/unit/tooling-contract.test.js`. Isso resolve o apontamento conhecido
+do [review #475](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/475#discussion_r4356581142);
+não modifica runtime, Supabase, Auth/RLS, financeiro, CSS ou workflows.
+**Homologação/merge próprios desta rodada devem ser aferidos pelo SHA final.**
+A próxima intervenção de produto deve ser escolhida pela evidência humana,
+conforme [issue #481](https://github.com/WilsonMPeixoto-2/RADARPDDE/issues/481),
+sem reabrir B1–B4 ou A9 automaticamente.
+
+---
+
 ## Estado consolidado após a pesquisa de capacidades — 23/10/2026
 
 > **Leitura de retomada após os merges #482/#483.** A baseline remota conferida antes
