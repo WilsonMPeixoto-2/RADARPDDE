@@ -181,6 +181,12 @@ test.describe.serial('PR397 — independência com UI/Auth/Supabase reais', () =
                 }, null, 2)),
                 contentType: 'application/json'
             });
+            if (reloadReadiness.projectedBonification !== after.bonus_result) {
+                await info.attach(`reload-bonification-visible-divergence-${role}.png`, {
+                    body: await page.screenshot({ animations: 'disabled' }),
+                    contentType: 'image/png'
+                });
+            }
             expect(after.bonus_result).toBe(before.bonus_result);
             for (const key of ['notaFiscal', 'extCC', 'extINV', 'declBBAgil']) expect(after.bonification[key]).toBe(before.bonification[key]);
             if (role === 'federal_assistant') expect(after.bonification.consAssessoria).toBe('Não');
