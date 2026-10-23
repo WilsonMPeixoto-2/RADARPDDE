@@ -56,6 +56,21 @@ export function classifyDiff(paths, {beforePackage = null, afterPackage = null} 
     : 'somente arquivos Markdown documentais', fileCount:unique.length};
 }
 
+
+/**
+ * A6: autorizacao excepcional para omitir somente o E2E pesado do workflow de
+ * ciclos de Supabase. O escopo global docs-only e deliberadamente mais amplo.
+ * O atalho so e elegivel para relatorios Markdown de auditoria, sem outros
+ * arquivos, com base e diff comprovados.
+ * @param {{scope?: string, files?: string[]}|null|undefined} report
+ */
+export function maySkipLifecycleForAuditDocs(report) {
+  return report?.scope === 'docs-only'
+    && Array.isArray(report.files)
+    && report.files.length > 0
+    && report.files.every(file => /^docs\\/audits\\/[A-Za-z0-9_.-]+\\.md$/.test(file));
+}
+
 function git(...args) {
   return execFileSync('git', args, {encoding:'utf8',maxBuffer:16*1024*1024});
 }
