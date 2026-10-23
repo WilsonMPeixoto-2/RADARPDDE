@@ -1,0 +1,35 @@
+{
+  "baselineOriginalSha256": "a4ebcc2b93f92ed3eddd46500ff731c9df1a51978d1b12ba0480f0884e25f11e",
+  "lighthouseOriginalSha256": "c37452f7d3e50fdfc41ee4c39dc6c4bdc9c2c45f418cd61b9297faa39b73ed86",
+  "localFullHtml": {
+    "file": "/workspace/scratch/a9-authenticated-journey-04/lighthouse-flow.html",
+    "bytes": 1088702,
+    "sha256": "a76ffc73bb801f8d1df412be7b254d3993575d9a596f162d17d54d07ad695322"
+  },
+  "files": {
+    "summary.json": {
+      "bytes": 7287,
+      "sha256": "9a44701374d897f3e6ef0c2fe9667a9b79cbd0d915fecc8b5a847cbfff6e385e"
+    },
+    "lighthouse-inp-attribution.json": {
+      "bytes": 1683,
+      "sha256": "f1670329e280ff759aaa3f14940e5c5af81e3939d7a6b9b2fbe10a960bb845ea"
+    },
+    "baseline-original.json": {
+      "bytes": 13192,
+      "sha256": "289784530f7260bf3dd1f9f4cc4247a502f8b990fb8e9fc54df7b7fad5cf08a8"
+    },
+    "lighthouse-original.json": {
+      "bytes": 9143,
+      "sha256": "65106ada59bef1885f6f618c61f9a4b9a9abe6030cd45e1a13c9192a18968915"
+    },
+    "prontuario-after-reload.png": {
+      "bytes": 391967,
+      "sha256": "08299ed112f3066440b55a1b1c4f34c8a85809b05527b411d2ec0cff56ea7bf0"
+    },
+    "invoice-modal.png": {
+      "bytes": 169411,
+      "sha256": "60d247d3670f60a3636d4562d277d15e1ba68897ab1f8beb703c689fc7e33bc2"
+    }
+  }
+}
