@@ -1,6 +1,6 @@
 # RADAR PDDE 2026 | Matriz de aproveitamento das dependências modernizadas
 
-**Estado:** auditoria técnica A0, somente leitura; hipóteses de adoção, não especificação de implementação aprovada.  
+**Estado:** auditoria A0 de configuração, com **piloto A1 executado posteriormente em branch isolada**; não é autorização de integração funcional. [Evidência experimental A1](../evidence/2026-10-22-ts7-knip-capability-a1/README.md).  
 **Data:** 22/10/2026 (BRT).  
 **Código-base examinado:** main em 7141489e084691722a1bef814bea0c9c1c5f8023, após PRs #472/#473.  
 **Estudo complementar:** docs/audits/2026-10-22-technology-opportunities.md, commit 46cfe3927e203e1f6ca6b50eff3c8ed57e8e8484.  
@@ -145,3 +145,7 @@ Não consultar texto SQL, credenciais ou registros pessoais para compor evidênc
 - Documentação de elegibilidade do alerta já encerrado (não constitui pendência): https://supabase.com/docs/guides/auth/password-security
 
 **Limites:** fontes públicas e inspeções estáticas, mais consultas agregadas apenas de leitura aos metadados/estatísticas hospedados. Não foram executados benchmarks novos, scans WCAG 2.2 novos, comparações de Knip ampliadas, piloto de JSDoc ou auditoria autenticada da interface. Essas são fases seguintes, não resultados já comprovados.
+
+## 8. Pós-escrito A1 — resultados dos pilotos
+
+Após a leitura A0, o [piloto A1](../evidence/2026-10-22-ts7-knip-capability-a1/README.md) executou **TypeScript 7.0.2 e Knip 6.42.1** em GitHub Actions isolado. TypeScript aprovou a baseline do módulo de chaves e reprovou uma violação de tipo intencional (TS2322), após atualizar a opção `moduleResolution=Node` removida pela versão 7. Knip listou 34 arquivos, mas **34/34 possuem referências explícitas nos carregadores dinâmicos**, de modo que nenhum pode ser excluído com base na análise estática. Não confundir esse resultado com remoção de código morto ou ganho de desempenho comprovado. Nenhuma alteração do runtime/Production foi realizada.

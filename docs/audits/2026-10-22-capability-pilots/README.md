@@ -1,8 +1,8 @@
 # Pilotos A1 de capacidades: Knip profundo e TypeScript 7 em JavaScript
 
-**Data:** 22/10/2026. **Estado:** configuração experimental isolada em branch, não ligada aos checks obrigatórios; nenhum resultado de execução ainda homologado.
+**Data:** 22/10/2026. **Estado:** pilotos **executados e validados** em GitHub Actions, em branch isolada; o resultado detalhado e os falsos positivos classificados estão em [evidência A1](../../evidence/2026-10-22-ts7-knip-capability-a1/README.md). Nenhum check obrigatório foi alterado.
 
-## Contrato do piloto
+## Contrato do piloto (preservado como baseline)
 
 1. **Knip 6.42.1**, diagnóstico não bloqueante em `scripts/audit/inspect-knip-deep.mjs`. Executar após `npm ci` com `node scripts/audit/inspect-knip-deep.mjs`. Escreve JSON em `artifacts/tooling/knip-deep-diagnostic.json` (artefato não versionado). O script exige execução bem-sucedida e JSON válido, mas não transforma achados em falhas ou exclusões. Classificar cada possível arquivo/export sem uso antes de alterar código, confrontando `index.html`, bootstrap de módulos IIFE e consumidores dinâmicos. O Knip atual só verifica dependências no comando `analyze:unused`, que permanece intacto.
 2. **TypeScript 7.0.2**, diagnóstico inicial de JS com `tsconfig.js-contract-pilot.json`. Executar após `npm ci` com `npx --no-install tsc -p tsconfig.js-contract-pilot.json --noEmit`; escopo **somente** `src/domain/operation-key.js` (chaves de intenção/idempotência). O compilador novo é usado para JS com `allowJs/checkJs/noEmit`, sem converter JavaScript para TypeScript nem produzir novos arquivos. `noImplicitAny: false` é uma tolerância *explícita e apenas do piloto* para código histórico não anotado; os tipos de domínio ainda precisam de JSDoc antes de elevar a proteção. Não confundir zero erros deste piloto com tipagem forte do domínio.
