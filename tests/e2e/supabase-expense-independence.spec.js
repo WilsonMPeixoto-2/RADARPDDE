@@ -55,7 +55,13 @@ async function capture(page, testInfo, name, program = 'BASIC') {
         if (!(await page.locator('#pendency-preview-drawer').isVisible())) {
             const panel = row(page, program).locator('[data-invoice-document-panel]');
             await panel.evaluate(element => element.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' }));
-            await expect(panel).toBeInViewport({ ratio: 1 });
+            await expect(panel).toBeVisible();
+            // A captura representa a experiencia do Controlador: os dois comandos
+            // devem estar integralmente visiveis e utilizaveis. O painel contem
+            // decoracao e bordas que podem ficar poucos pixels abaixo do viewport.
+            for (const label of ['Adicionar Nota', 'Registrar despesa a identificar']) {
+                await expect(panel.getByRole('button', { name: label, exact: true })).toBeInViewport({ ratio: 1 });
+            }
         }
     }
     await testInfo.attach(name, { body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
