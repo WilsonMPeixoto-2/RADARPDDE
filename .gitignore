@@ -10,3 +10,6 @@ npm-debug.log*
 .worktrees/
 .radar-snapshot/
 radar-pdde-snapshot*.json
+
+# Relatórios locais opt-in do diagnóstico Knip; evidências aprovadas em docs/ continuam versionadas.
+artifacts/tooling/
