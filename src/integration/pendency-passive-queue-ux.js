@@ -99,7 +99,7 @@
 
         const summary = document.createElement('summary');
         summary.textContent = 'Mais filtros';
-        summary.setAttribute('aria-label', 'Exibir filtros adicionais de pendências');
+        // O <summary> usa o próprio texto visível como nome acessível (Axe 4.14).
 
         const content = document.createElement('div');
         content.className = 'pendency-more-filters-grid';

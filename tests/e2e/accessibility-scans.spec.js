@@ -69,6 +69,37 @@ test.describe('Acessibilidade Automatizada (Axe-core)', () => {
   });
 });
 
+test.describe('Pendências: nome acessível e operação por teclado', () => {
+  test('Mais filtros usa seu rótulo visível e mantém a expansão nativa', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForFunction(() => window.RadarDataContext?.ready === true);
+    await page.evaluate(async () => {
+      if (window.RadarProductExtensionsReady) await window.RadarProductExtensionsReady;
+      switchProfile('controlador');
+      switchView('pendencias');
+    });
+
+    const summary = page.locator('#main-container .pendency-more-filters > summary');
+    const details = page.locator('#main-container .pendency-more-filters');
+    await expect(summary).toBeVisible();
+    await expect(summary).toHaveText('Mais filtros');
+
+    // RED anterior: aria-label antigo sobrepunha "Mais filtros".
+    await expect(summary).toHaveAccessibleName('Mais filtros');
+    const results = await new AxeBuilder({ page })
+      .include('#main-container .pendency-more-filters')
+      .withRules(['label-content-name-mismatch'])
+      .analyze();
+    expect(results.violations).toEqual([]);
+
+    await summary.focus();
+    await expect(summary).toBeFocused();
+    await summary.press('Enter');
+    await expect(details).toHaveAttribute('open', '');
+    await expect(summary).toBeFocused();
+  });
+});
+
 test.describe('Navegação e Ciclo de Foco com Fallback Lógico', () => {
   test('Devolve o foco para o elemento de fallback lógico quando o trigger disparador original é removido do DOM', async ({ page }) => {
     await page.goto('/');
