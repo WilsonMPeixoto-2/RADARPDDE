@@ -19,6 +19,17 @@ PR aberto, Preview ou documento antigo não altera Production.
 
 ## 2. Rota canônica vigente
 
+**Cobertura de capacidades (segunda rodada documental de 23/10,
+ainda candidata):** [B1–B3](../audits/2026-10-23-capability-triage-b1-b3.md)
+e [B4](../audits/2026-10-23-capability-triage-b4.md) fundamentam
+**26/26 decisões de triagem** na
+[matriz viva](../TECHNOLOGY_CAPABILITIES_TRACKER.md). A classificação
+`DECISÃO DE TRIAGEM CONCLUÍDA` não substitui validação de produto
+nem encerra F01–F15. O #484 foi integrado na
+`main@1cd0543db00585fe7d0e979fa685c6415480c629`; estes dois
+relatórios e a higiene de Knip requerem homologação do novo PR.
+Não citar o commit do PR #484 como prova dos arquivos adicionados depois.
+
 **Rota de governança tecnológica (23/10):**
 [`TECHNOLOGY_CAPABILITIES_TRACKER.md`](../TECHNOLOGY_CAPABILITIES_TRACKER.md)
 é o registro **vivo** de cobertura individual de 26 pacotes e dos
@@ -64,6 +75,8 @@ um checkpoint histórico diz "aguardando", "Draft" ou "candidato".
 
 | Arquivo | Classe | Uso |
 |---|---|---|
+| docs/audits/2026-10-23-capability-triage-b1-b3.md | Auditoria datada B1–B3 | Decisões individualizadas de nove dependências previamente T0, com fontes e limites; não altera contrato de produto |
+| docs/audits/2026-10-23-capability-triage-b4.md | Auditoria datada B4 | Decisões reconciliadas de 17 dependências já analisadas em A0; conclusão horizontal 26/26 sem encerramento das frentes F |
 | docs/TECHNOLOGY_CAPABILITIES_TRACKER.md | **Registro operacional vivo, não ADR nem especificação funcional** | Cobertura formal das 26 dependências e vínculo com aprofundamentos F01–F15, blocos B1–B4 e issue #481; o status do ambiente deve ser revalidado em GitHub/Production, e T0/T1/T2 não significam conclusão | 
 | docs/audits/2026-10-23-modernization-decision-trace.md | Auditoria retrospectiva de continuidade A0–A9 (22–23/10) | Fonte de contexto integrada ao roteador: decisões, motivos, contraprovas, PRs, CI e limites; não define regra de negócio, solução de performance nem handoff funcional | 
 | docs/audits/2026-10-23-modernization-continuity-review.md | Auditoria datada e evidência de continuidade | revisão de A0–A6, merges #475/#477, contraprovas e limites do TS7/Knip, falhas preservadas e medição do job documental; não é especificação de arquitetura ou benchmark de fluidez |
