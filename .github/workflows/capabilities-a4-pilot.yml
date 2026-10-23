@@ -1,0 +1,114 @@
+name: Piloto A4 - contratos JS e Knip (diagnostico isolado)
+on:
+  push:
+    branches:
+      - experiment/capabilities-a4-ts-knip-20261023
+    paths:
+      - '.github/workflows/capabilities-a4-pilot.yml'
+      - 'tsconfig.js-contract-a4.json'
+      - 'src/domain/operation-key.js'
+      - 'src/application/invoice-service.js'
+      - 'scripts/audit/inspect-knip-deep.mjs'
+      - 'scripts/audit/verify-knip-dynamic-references.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  typescript-consumer:
+    name: TS7 - consumidor fiscal real e controle negativo
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Checar sintaxe e testes de identidade originais
+        run: |
+          node --check src/domain/operation-key.js
+          node --check src/application/invoice-service.js
+          node --test tests/unit/operation-key.test.js
+      - name: TS7 baseline e contraprova no consumidor existente
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/tooling
+          npx --no-install tsc --version
+          set +e
+          npx --no-install tsc -p tsconfig.js-contract-a4.json --noEmit > artifacts/tooling/a4-ts-baseline.log 2>&1
+          baseline_exit=$?
+          set -e
+          echo "A4_BASELINE_EXIT=$baseline_exit"
+          sed -n '1,65p' artifacts/tooling/a4-ts-baseline.log
+          cp src/application/invoice-service.js artifacts/tooling/a4-invoice-service-backup.js
+          trap 'cp artifacts/tooling/a4-invoice-service-backup.js src/application/invoice-service.js' EXIT
+          node -e "const fs=require('node:fs');const p='src/application/invoice-service.js';const s=fs.readFileSync(p,'utf8');const from=\"operationKey.persistentId('nota', key)\";if(!s.includes(from))throw Error('A chamada efetiva mudou; atualizar piloto');fs.writeFileSync(p,s.replace(from,\"operationKey.persistentId(123, key)\"))"
+          set +e
+          npx --no-install tsc -p tsconfig.js-contract-a4.json --noEmit > artifacts/tooling/a4-ts-negative.log 2>&1
+          negative_exit=$?
+          set -e
+          echo "A4_NEGATIVE_EXIT=$negative_exit"
+          grep 'TS2345' artifacts/tooling/a4-ts-negative.log | head -15 || true
+          if [ "$negative_exit" -eq 0 ]; then
+            echo 'A4_FAIL: mutacao do consumidor nao detectada'
+            exit 1
+          fi
+          if ! grep -Eq 'src/application/invoice-service.js\\([0-9]+,[0-9]+\\): error TS2345: Argument of type .number.' artifacts/tooling/a4-ts-negative.log; then
+            echo 'A4_FAIL: sem prova TS2345 especifica na chamada fiscal'
+            exit 1
+          fi
+          echo 'A4_REAL_CONSUMER_MUTATION_DETECTED=true'
+          if [ "$baseline_exit" -ne 0 ]; then
+            echo 'A4_STATUS=EXPERIMENTAL_BASELINE_DIAGNOSTICS; NAO PROMOVER AO GATE OBRIGATORIO'
+          else
+            echo 'A4_STATUS=CANDIDATE_FOR_TARGETED_GATE'
+          fi
+      - name: Preservar diagnósticos
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: a4-ts-contract-evidence
+          path: artifacts/tooling/a4-ts-*.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+  knip-dynamic:
+    name: Knip - reconciliacao e positivo controle
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Inventario e classificacao dinamica
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/audit/inspect-knip-deep.mjs
+          cp artifacts/tooling/knip-deep-diagnostic.json artifacts/tooling/knip-deep-baseline.json
+          node scripts/audit/verify-knip-dynamic-references.mjs
+          echo 'A4_KNIP_BASELINE=DIAGNOSTIC_ONLY'
+      - name: Controle positivo de arquivo realmente orfao
+        shell: bash
+        run: |
+          set -euo pipefail
+          control=src/domain/__radar_a4_unused_positive_control.js
+          trap 'rm -f "$control"' EXIT
+          printf "'use strict';\\nmodule.exports = {orphaned: true};\\n" > "$control"
+          node scripts/audit/inspect-knip-deep.mjs
+          node -e "const r=require('./artifacts/tooling/knip-deep-diagnostic.json');if(!r.issues.some(x=>x.file==='src/domain/__radar_a4_unused_positive_control.js'))process.exit(1);console.log('A4_KNIP_POSITIVE_CONTROL_DETECTED=true')"
+      - name: Guardar evidências
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: a4-knip-diagnostic
+          path: artifacts/tooling/knip-*.json
+          if-no-files-found: ignore
+          retention-days: 7
