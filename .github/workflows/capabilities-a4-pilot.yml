@@ -57,7 +57,7 @@ jobs:
             echo 'A4_FAIL: mutacao do consumidor nao detectada'
             exit 1
           fi
-          if ! grep -Eq 'src/application/invoice-service.js\\([0-9]+,[0-9]+\\): error TS2345: Argument of type .number.' artifacts/tooling/a4-ts-negative.log; then
+          if ! grep 'src/application/invoice-service.js' artifacts/tooling/a4-ts-negative.log | grep 'TS2345' | grep -Fq "Argument of type 'number'"; then
             echo 'A4_FAIL: sem prova TS2345 especifica na chamada fiscal'
             exit 1
           fi
