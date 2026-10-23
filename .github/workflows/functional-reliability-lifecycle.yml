@@ -48,11 +48,17 @@ jobs:
           cat "${report}"
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
-          import {maySkipLifecycleForAuditDocs} from './scripts/ci/classify-pr-impact.mjs';
-          let report;
-          try { report = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/radar-lifecycle-impact.json','utf8')); }
-          catch { report = {scope:'full',reason:'JSON invalido'}; }
-          const eligible = maySkipLifecycleForAuditDocs(report);
+          let report = {scope:'full',reason:'classificacao nao confirmada'};
+          let eligible = false;
+          try {
+            report = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/radar-lifecycle-impact.json','utf8'));
+            const {maySkipLifecycleForAuditDocs} = await import('./scripts/ci/classify-pr-impact.mjs');
+            eligible = maySkipLifecycleForAuditDocs(report);
+          } catch (error) {
+            report = {scope:'full',reason:'erro no parser/classificador'};
+            eligible = false;
+            console.error('A6_FAIL_CLOSED: usando execucao integral:',String(error?.message||error));
+          }
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `run_full=${eligible ? 'false' : 'true'}\n`);
           fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,
             `### A6: ciclos Supabase\n- Escopo classificado: ${report.scope}\n- Motivo: ${report.reason || 'não especificado'}\n- Execução integral: **${eligible ? 'não (somente docs/audits/*.md)' : 'sim'}**\n- Check preservado: **Criar editar converter excluir avaliar e reanalisar**\n`);
