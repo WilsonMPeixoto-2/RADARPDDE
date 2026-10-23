@@ -23,7 +23,10 @@
 
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     if (root) root.RadarInvoiceService = Object.freeze(api);
-}(typeof window !== 'undefined' ? window : globalThis, function createInvoiceServiceApi(
+}(typeof window !== 'undefined' ? window : globalThis, /**
+ * @param {typeof import('../domain/operation-key.js')} operationKey
+ */
+function createInvoiceServiceApi(
     contract,
     serviceAdvisory,
     invoiceEffects,
