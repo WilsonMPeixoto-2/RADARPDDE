@@ -142,6 +142,45 @@ test.describe.serial('PR397 — independência com UI/Auth/Supabase reais', () =
             await page.evaluate(() => window.RadarApplicationServices.data.remoteExecutionTail);
             await page.reload();
             const after = await persistedContext(page, 'ESC-INDEP-CONS');
+            // Observação passiva no instante real da asserção histórica (issue #460 Caso A).
+            // Não aguardar whenHydrated(), nem mudar a expectativa: isso ocultaria
+            // justamente uma divergência entre ready, competência ativa e estado em memória.
+            const reloadReadiness = await page.evaluate(() => {
+                const schoolId = 'ESC-INDEP-CONS';
+                const competence = '2026-05';
+                const program = 'BASIC';
+                const verification = verificacoes?.[schoolId]?.[`${competence}_${program}`] || null;
+                const context = window.RadarCompetenceContext?.isInitialized?.()
+                    ? window.RadarCompetenceContext.getState()
+                    : null;
+                const service = window.RadarApplicationServices?.data;
+                return {
+                    dataReady: window.RadarDataContext?.ready === true,
+                    selectedCompetence: document.querySelector('#global-competence-select')?.value || null,
+                    competenceContext: context
+                        ? { activeKey: context.activeKey, exercise: context.exercise }
+                        : null,
+                    operationalCompetence: service?.currentOperationalCompetence || null,
+                    memory: {
+                        present: Boolean(verification),
+                        result: verification?.resultadoBonif ?? verification?.bonus_result ?? null,
+                        documentNotaFiscal: verification?.bonificacao?.notaFiscal
+                            ?? verification?.bonification?.notaFiscal ?? null
+                    },
+                    projectedBonification: getProgramBonificationStatus(schoolId, competence, program)
+                };
+            });
+            await info.attach(`reload-bonification-readiness-${role}.json`, {
+                body: Buffer.from(JSON.stringify({
+                    schoolId: 'ESC-INDEP-CONS',
+                    competence: '2026-05',
+                    programId: 'BASIC',
+                    persistedBonusResult: after.bonus_result,
+                    initialBonusResult: before.bonus_result,
+                    reloadReadiness
+                }, null, 2)),
+                contentType: 'application/json'
+            });
             expect(after.bonus_result).toBe(before.bonus_result);
             for (const key of ['notaFiscal', 'extCC', 'extINV', 'declBBAgil']) expect(after.bonification[key]).toBe(before.bonification[key]);
             if (role === 'federal_assistant') expect(after.bonification.consAssessoria).toBe('Não');
