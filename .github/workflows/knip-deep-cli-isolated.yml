@@ -1,0 +1,58 @@
+name: Knip deep CLI smoke (isolated)
+on:
+  push:
+    branches: [experiment/knip-deep-cli-smoke-20261023]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  knip-deep:
+    name: Comando opt-in + controle positivo
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Instalar
+        run: npm ci
+      - name: Assegurar que o comando existente não mudou
+        run: npm run analyze:unused
+      - name: Executar novo comando e verificar relatórios
+        run: |
+          set -euo pipefail
+          npm run analyze:unused:deep
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const deep = JSON.parse(fs.readFileSync('artifacts/tooling/knip-deep-diagnostic.json','utf8'));
+          const classified = JSON.parse(fs.readFileSync('artifacts/tooling/knip-dynamic-classification.json','utf8'));
+          if (!Array.isArray(deep.issues) || !Array.isArray(classified.classification)) process.exit(1);
+          if (classified.baselineFileCount !== classified.classification.length) process.exit(2);
+          if (classified.baselineFileCount === 0) process.exit(3);
+          console.log(JSON.stringify({baselineFiles:classified.baselineFileCount,dynamicMatches:classified.dynamicReferencesFound,unresolved:classified.unresolvedCount}));
+          NODE
+      - name: Contraprova de arquivo sem referência sem excluir código
+        run: |
+          set -euo pipefail
+          f=src/domain/__radar_knip_smoke_unused_control.js
+          trap 'rm -f "$f"' EXIT
+          printf "'use strict';\nmodule.exports = {control: true};\n" > "$f"
+          node scripts/audit/inspect-knip-deep.mjs
+          node scripts/audit/verify-knip-dynamic-references.mjs
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const result = JSON.parse(fs.readFileSync('artifacts/tooling/knip-dynamic-classification.json','utf8'));
+          const control = result.classification.find(x => x.file.endsWith('__radar_knip_smoke_unused_control.js'));
+          if (!control || control.referencedBy.length !== 0) process.exit(1);
+          console.log('A5_KNIP_CANDIDATE_REQUIRES_MANUAL_REVIEW=true');
+          NODE
+      - name: Publicar relatórios
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: knip-deep-smoke-artifacts
+          path: artifacts/tooling/knip-*.json
+          if-no-files-found: ignore
+          retention-days: 7
