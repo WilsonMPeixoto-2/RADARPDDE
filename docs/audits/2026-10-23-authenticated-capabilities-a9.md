@@ -215,3 +215,9 @@ node scripts/audit/authenticated-journey-capabilities.mjs
 três amostras. O coletor usa Puppeteer transitivo do Lighthouse para instrumentar
 a mesma instância Chromium do Playwright; continua piloto opt-in, sem gate novo.
 Não foi incorporado a CI normal nem homologado em runner limpo nesta rodada.
+O primeiro CI do Draft detectou o `puppeteer-core` usado diretamente pelo coletor
+como dependência não declarada: corrigimos **somente a declaração direta de
+devDependency `25.12.0`** em `package.json` e no root do lockfile. O módulo
+já integrava a árvore resolvida de Lighthouse; não foi atualizada sua versão
+nem qualquer código do RADAR. Essa correção elimina a dependência implícita
+em transitive imports, mas **não valida** a reprodução A9 em runner limpo.
