@@ -22,6 +22,10 @@ jobs:
     steps:
       - name: Obter código
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # O checkout de PR aponta para o commit sintetico de merge;
+          # a profundidade 2 disponibiliza sua baseline sem buscar todo o historico.
+          fetch-depth: 2
 
       - name: Configurar Node.js LTS
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -30,6 +34,17 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
+      - name: Observar impacto do diff (shadow; nunca pula checks)
+        if: ${{ github.event_name == 'pull_request' }}
+        continue-on-error: true
+        env:
+          RADAR_CI_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/ci/classify-pr-impact.mjs > "${RUNNER_TEMP}/radar-impact-shadow.json"
+          cat "${RUNNER_TEMP}/radar-impact-shadow.json"
+          node -e 'const fs=require("node:fs"); const report=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, "### Classificacao de impacto (apenas observacional)\n\n- Escopo sugerido: `"+report.scope+"`\n- Motivo: "+report.reason+"\n- Gates alterados ou pulados: **nenhum**\n");' "${RUNNER_TEMP}/radar-impact-shadow.json"
       - name: Instalar dependências reproduzíveis
         run: npm ci
 
