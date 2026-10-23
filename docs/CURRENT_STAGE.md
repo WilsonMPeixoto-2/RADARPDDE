@@ -8,6 +8,18 @@
 > merge documental: revalidar `main` e Production ao iniciar nova intervenção.
 > As seções abaixo intituladas **Histórico** preservam momentos anteriores.
 
+**Roteiro operacional de cobertura e aprofundamentos (adotado em 23/10):**
+[registro vivo das 26 dependências, lotes B1–B4 e carteira F01–F15](TECHNOLOGY_CAPABILITIES_TRACKER.md).
+O inventário formal parte de **26/26 dependências identificadas**, das quais
+**17/26 têm triagem A0 específica ou compartilhada e 9/26 exigem triagem
+individual adicional**; **nenhuma linha é contada como formalmente encerrada
+até receber decisão final e fonte neste novo registro**. T0/T1/T2 denotam
+**maturidade da evidência**, não progresso de implementação. Evitar aprofundar
+indefinidamente uma biblioteca enquanto outra deixa de ser avaliada; manter
+uma frente principal ativa e uma condição verificável de retomada para as
+demais. [Issue estratégica #481](https://github.com/WilsonMPeixoto-2/RADARPDDE/issues/481).
+Não criar 26 PRs nem alterar produto por consequência automática dessa matriz.
+
 **Auditoria aprofundada da continuidade:**
 [decisões, mudanças de direção, contraprovas e testes de 22–23/10](audits/2026-10-23-modernization-decision-trace.md).
 **Leia esse documento antes de reabrir pesquisa ou planejar qualquer nova
