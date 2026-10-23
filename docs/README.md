@@ -1,6 +1,17 @@
 # Documentação do RADAR PDDE
 
-**Estado de retomada em 23/10/2026:** [`CURRENT_STAGE.md`](CURRENT_STAGE.md)
+**Retomada consolidada em 23/10/2026, após #478/#482/#483:** ler o
+[checkpoint canônico atualizado](CURRENT_STAGE.md) e, para entender as decisões,
+testes, contraprovas, mudanças de direção e limites da modernização de 22–23/10,
+a [auditoria aprofundada A0–A9](audits/2026-10-23-modernization-decision-trace.md).
+O A9 foi encerrado como pesquisa instrumental, **não como correção de performance**.
+O #483 foi o hotfix de Zod; a issue #481 continua aberta na ordem original.
+A auditoria é histórica e não substitui as regras de negócio e os documentos
+canônicos. **Revalidar o HEAD, checks e ambiente antes de novos trabalhos.**
+
+**Histórico da retomada anterior ao fechamento #482/#483:**
+
+**Estado de retomada em 23/10/2026 (fotografia anterior aos merges #482/#483):** [`CURRENT_STAGE.md`](CURRENT_STAGE.md)
 registra os merges #474, #476, #477, #475, **#479 e #480**. O
 [relatório de continuidade](audits/2026-10-23-modernization-continuity-review.md)
 confronta os pilotos históricos, preserva as falhas e mede a redução de um job
