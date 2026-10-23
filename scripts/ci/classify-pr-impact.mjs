@@ -80,7 +80,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       if (!/^[0-9a-f]{40}$/.test(baseSha)) throw new Error('merge-base nao encontrado');
     }
     const changed = git('diff', '--name-only', '--diff-filter=ACMRD', baseSha, 'HEAD');
-    const files = changed.trim().split('\\n').filter(Boolean);
+    const files = changed.trim().split(String.fromCharCode(10)).filter(Boolean);
     const result = classifyDiff(files, {
       beforePackage: files.includes('package.json') ? packageAt(baseSha) : null,
       afterPackage: files.includes('package.json') ? packageAt('HEAD') : null
