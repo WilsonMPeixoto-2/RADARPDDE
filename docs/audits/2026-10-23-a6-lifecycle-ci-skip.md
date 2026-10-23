@@ -1,7 +1,7 @@
 # A6 — Primeira redução controlada de CI (ciclos Supabase)
 
 Data: 23/10/2026. Status: **piloto validado; não integrado à main**.
-Dependência: PR [#476](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/476), que adiciona o classificador em modo observacional.
+Baseline reconciliada: PR [#476](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/476) **integrado à `main` por squash**, commit `8795f1e384b858e52b3ba4ca56ae54c58508161c`. O PR #477 aponta agora diretamente para `main` e mostra somente os quatro arquivos da A6.
 Evidência do runner: [GitHub Actions 39903767162](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39903767162).
 
 ## Justificativa comprovada
@@ -31,8 +31,8 @@ O [run isolado A6 39903767162](https://github.com/WilsonMPeixoto-2/RADARPDDE/act
 
 ## Dependências para integração definitiva
 
-1. Resolver a avaliação pendente dos PRs #475 e #476; não fazer merge em cadeia com checks falhos.
-2. Integrar o #476 antes da A6, ou reconciliar seletivamente a implementação numa branch atualizada da main.
+1. O PR #476 foi integrado e reconciliado. O #475 continua separado com falhas funcionais ainda sob análise.
+2. Validar integralmente os checks atuais do PR #477, agora sobre `main`, antes de decidir pelo merge.
 3. Executar o job completo da A6 no PR de integração, porque a mudança toca CI/testes e corretamente exige modo `full`.
 4. Após eventual merge, abrir um PR de teste contendo **somente** `docs/audits/*.md` e confirmar que o job conserva status de check bem-sucedido enquanto os passos pesados são pulados. Comparar o tempo de execução com os minutos consumidos nos runs anteriores.
 5. Confirmar configuração real de branch protection (a consulta pela integração atual devolveu 403) antes de estender o mecanismo a outros workflows.
