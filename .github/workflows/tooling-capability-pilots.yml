@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/tooling-capability-pilots.yml'
       - 'scripts/audit/inspect-knip-deep.mjs'
+      - 'scripts/audit/verify-knip-dynamic-references.mjs'
       - 'tsconfig.js-contract-pilot.json'
       - 'src/domain/operation-key.js'
       - 'knip.config.cjs'
@@ -49,6 +50,27 @@ jobs:
           test "$code" -ne 0
           grep -q 'TS2322' artifacts/tooling/ts-negative.log
           echo "PASS: TypeScript detectou a violação de tipo intencional."
+      - name: Testar inferência da API real de chaves de operação
+        shell: bash
+        run: |
+          set -euo pipefail
+          backup="$(mktemp)"
+          cp src/domain/operation-key.js "$backup"
+          trap 'cp "$backup" src/domain/operation-key.js; rm -f "$backup"' EXIT
+          printf '\n/** @type {number} */ const __radar_real_api_negative = module.exports.persistentId("nf", "00000000-0000-4000-8000-000000000000");\n' >> src/domain/operation-key.js
+          set +e
+          npx --no-install tsc -p tsconfig.js-contract-pilot.json --noEmit > artifacts/tooling/ts-real-api-negative.log 2>&1
+          code=$?
+          set -e
+          cat artifacts/tooling/ts-real-api-negative.log
+          if [ "$code" -ne 0 ] && grep -q 'TS2322' artifacts/tooling/ts-real-api-negative.log; then
+            echo 'RESULT=REAL_API_CONTRACT_DETECTED'
+          elif [ "$code" -eq 0 ]; then
+            echo 'RESULT=INFERENCE_GAP_REAL_API: JSDoc/contrato explícito ainda necessário'
+          else
+            echo 'Erro inesperado de compilação na sonda do consumidor real'
+            exit 1
+          fi
       - name: Preservar logs TypeScript
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
@@ -74,11 +96,24 @@ jobs:
           node --check scripts/audit/inspect-knip-deep.mjs
           npx --no-install knip --version
           node scripts/audit/inspect-knip-deep.mjs
+      - name: Classificar referências dinâmicas e controle positivo do Knip
+        shell: bash
+        env:
+          RADAR_EXPECT_KNIP_A1: '1'
+        run: |
+          set -euo pipefail
+          cp artifacts/tooling/knip-deep-diagnostic.json artifacts/tooling/knip-deep-baseline.json
+          node scripts/audit/verify-knip-dynamic-references.mjs
+          control=src/domain/__radar_knip_unused_control.js
+          trap 'rm -f "$control"' EXIT
+          printf "'use strict';\nmodule.exports = {unusedControl: true};\n" > "$control"
+          node scripts/audit/inspect-knip-deep.mjs
+          node -e "const r=require('./artifacts/tooling/knip-deep-diagnostic.json');if(!r.issues.some(x=>x.file==='src/domain/__radar_knip_unused_control.js'))process.exit(1);console.log('PASS: Knip detectou arquivo realmente sem referências.')"
       - name: Preservar relatório JSON
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: knip-a1-diagnostics
-          path: artifacts/tooling/knip-deep-diagnostic.json
+          path: artifacts/tooling/knip-*.json
           if-no-files-found: ignore
           retention-days: 7
