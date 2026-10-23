@@ -3,7 +3,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import http from 'node:http';
-import { randomBytes, randomUUID } from 'node:crypto';
+import os from 'node:os';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -14,6 +15,8 @@ import { startFlow } from 'lighthouse';
 import AxeBuilder from '@axe-core/playwright';
 import { createRadarRequestHandler } from '../serve-radar.mjs';
 import { buildRuntimeInput, renderRuntimeConfig } from '../generate-runtime-config.mjs';
+import { buildVercelArtifact } from '../build-vercel.mjs';
+import { installSaveInteractionObserver } from './save-interaction-observer.mjs';
 
 const require = createRequire(import.meta.url);
 const { installNetworkObserver, installRuntimeHooks, resetObservers, readObservation } = require('../../tests/support/performance-journey-observer.js');
@@ -32,17 +35,19 @@ const password = randomBytes(24).toString('base64url');
 const runKey = `A9-${Date.now()}`;
 const schoolId = runKey;
 const schoolName = `Escola sintética ${runKey}`;
-const baselineIterations = process.env.RADAR_A9_LIGHTHOUSE_ONLY === '1' ? 0 : 3;
+const nativeTiming = process.env.RADAR_A9_NATIVE_TIMING === '1';
+const publicBuild = process.env.RADAR_A9_PUBLIC_BUILD === '1';
+const baselineIterations = nativeTiming ? 1 : process.env.RADAR_A9_LIGHTHOUSE_ONLY === '1' ? 0 : 3;
 const users = [];
 const report = {
-  schemaVersion: 2, generatedAt: new Date().toISOString(),
+  schemaVersion: 3, generatedAt: new Date().toISOString(), nativeTiming, publicBuild,
   checkout: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
   environment: 'local-disposable-authenticated-small-fixture',
   versions: Object.fromEntries(['lighthouse', '@playwright/test', '@axe-core/playwright', '@supabase/supabase-js'].map(name => [name, JSON.parse(fs.readFileSync(path.join(root, 'node_modules', name, 'package.json'), 'utf8')).version])),
   samples: [], accessibility: [], failures: [],
   limitations: [
     'Localhost, synthetic small fixture, headless Chromium; not Production latency/volume or a before/after upgrade comparison.',
-    'Three samples; no population percentile or product budget.',
+    nativeTiming ? 'One predeclared sample in each invocation; paired runs must restore fixture counts.' : 'Three samples; no population percentile or product budget.',
     'RPC completion is browser acknowledgement, not SQL execution time or precise commit time.',
     'DOM detection plus two requestAnimationFrame callbacks is not proof that an offscreen row was painted or perceived.',
     'Lighthouse passage is separate; profiler and audit overhead must not be pooled with baseline.',
@@ -78,8 +83,14 @@ const remoteInvoices = page => page.evaluate(async id => {
   if (result.error) throw new Error(result.error.code);
   return result.data;
 }, schoolId);
-let server, puppet, browser, writer, observer;
+const fixtureCounts = () => JSON.parse(sql(`select json_build_object(
+  'schools',(select count(*) from public.schools), 'controllers',(select count(*) from public.controllers),
+  'verifications',(select count(*) from public.verifications), 'registeredInvoices',(select count(*) from public.registered_invoices),
+  'pendencies',(select count(*) from public.pendencies), 'pendencyAttempts',(select count(*) from public.pendency_attempts),
+  'pendencyContacts',(select count(*) from public.pendency_contacts), 'assets',(select count(*) from public.assets));`));
+let server, puppet, browser, writer, observer, buildDirectory;
 try {
+  report.fixtureBefore = fixtureCounts();
   report.database = JSON.parse(sql(`select json_build_object('version', version(), 'migrations', (select count(*) from supabase_migrations.schema_migrations), 'lastMigration', (select max(version) from supabase_migrations.schema_migrations), 'schoolsBefore', (select count(*) from public.schools), 'invoicesBefore', (select count(*) from public.registered_invoices));`));
   if (report.database.migrations !== 61 || report.database.lastMigration !== '20261011193500') throw new Error('Disposable schema does not match expected baseline');
   for (let index = 0; index < 2; index++) {
@@ -96,8 +107,21 @@ try {
       values ('${schoolId}',(select '04.98.' || lpad(n::text,3,'0') from generate_series(1,999) n where not exists (select 1 from public.schools where designation = '04.98.' || lpad(n::text,3,'0')) order by n limit 1),'${schoolName}','${runKey}','${runKey}','${runKey}','4ª CRE','A9','${users[0].controllerId}','2026-05','A9');
     insert into public.school_programs(id,school_id,program_id,active,starts_on) values ('${runKey}-SP','${schoolId}','BASIC',true,'2026-01-01');
     commit;`);
-  const runtime = renderRuntimeConfig(buildRuntimeInput({ RADAR_ENVIRONMENT: 'test', RADAR_DATA_MODE: 'supabase-preview', RADAR_SUPABASE_REPOSITORY_ENABLED: 'true', RADAR_SUPABASE_URL: api.href, RADAR_SUPABASE_PUBLISHABLE_KEY: access.ANON_KEY }));
-  const handler = createRadarRequestHandler({ root });
+  const runtimeEnvironment = { RADAR_ENVIRONMENT: 'test', RADAR_DATA_MODE: 'supabase-preview', RADAR_SUPABASE_REPOSITORY_ENABLED: 'true', RADAR_SUPABASE_URL: api.href, RADAR_SUPABASE_PUBLISHABLE_KEY: access.ANON_KEY };
+  const runtime = renderRuntimeConfig(buildRuntimeInput(runtimeEnvironment));
+  let servedRoot = root;
+  if (publicBuild) {
+    buildDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'radar-vercel-build-a9-'));
+    const built = await buildVercelArtifact({ rootDir: root, outputDir: path.join(buildDirectory, 'dist'), environment: runtimeEnvironment });
+    servedRoot = built.outputDir;
+    report.build = { manifest: built.manifest, optimization: built.optimization.totals,
+      limit: 'Canonical public asset optimization, local test runtime; not hosted Production/CDN.' };
+  }
+  report.servedAssets = Object.fromEntries(['app.js', 'styles.css'].map(name => {
+    const contents = fs.readFileSync(path.join(servedRoot, name));
+    return [name, { bytes: contents.length, sha256: createHash('sha256').update(contents).digest('hex') }];
+  }));
+  const handler = createRadarRequestHandler({ root: servedRoot });
   server = http.createServer((req, res) => {
     if (new URL(req.url, 'http://localhost').pathname.endsWith('/config.runtime.js')) {
       res.writeHead(200, { 'content-type': 'text/javascript', 'cache-control': 'no-store' }); res.end(runtime);
@@ -135,7 +159,7 @@ try {
     await twoFrames(page);
     await expect(page).toHaveURL(new RegExp(`/escolas/${schoolId}(?:[/?#]|$)`));
   };
-  for (let i = 1; i <= baselineIterations; i++) {
+  for (let i = 1; !nativeTiming && i <= baselineIterations; i++) {
     await resetObservers(writer);
     const started = await epoch(writer);
     await navigate(writer);
@@ -182,6 +206,11 @@ try {
   };
   const save = async (number, label) => {
     await fillInvoice(writer, number);
+    if (nativeTiming) {
+      await writer.bringToFront();
+      await writer.waitForFunction(() => document.visibilityState === 'visible');
+      await writer.evaluate(installSaveInteractionObserver);
+    }
     await armUi(writer, number); await armUi(observer, number);
     await writer.evaluate(() => {
       window.__A9_CLICK__ = null;
@@ -203,6 +232,14 @@ try {
     const other = await observer.evaluate(() => window.__A9_MATCH__);
     const sample = { kind: 'create-invoice', label, clickToAckObservedMs: ackAt - clickedAt, clickToWriterDomTwoRafMs: own.twoFramesAt - clickedAt, clickToObserverDomTwoRafMs: other.twoFramesAt - clickedAt,
       observerDomAfterAckMs: other.twoFramesAt - ackAt, writer: await readObservation(writer), observer: await readObservation(observer) };
+    if (nativeTiming) {
+      sample.native = await writer.evaluate(() => window.__A9_NATIVE__.sample());
+      sample.residentCounts = await writer.evaluate(() => {
+        const snapshot = window.RadarApplicationServices.data.statePort.exportCanonical();
+        return Promise.resolve(snapshot).then(value => Object.fromEntries(Object.entries(value.entities).map(([key, rows]) => [key, rows.length])));
+      });
+      await writer.evaluate(() => window.__A9_NATIVE__.dispose());
+    }
     const stored = await remoteInvoices(writer);
     expect(stored.filter(r => r.invoice_number === number)).toHaveLength(1);
     expect(stored.find(r => r.invoice_number === number)).toMatchObject({ expense_type: 'consumo', school_id: schoolId, competence_id: '2026-05', program_id: 'BASIC' });
@@ -219,6 +256,7 @@ try {
   await expect(writer.locator('#global-competence-select')).toHaveValue('2026-05');
   report.reload = { automationWallMs: Date.now() - reloadStart, persistedInvoices: storedBeforeReload.length, ...await readObservation(writer) };
   await writer.screenshot({ path: path.join(output, 'prontuario-after-reload.png') });
+  if (!nativeTiming) {
   await installRuntimeHooks(writer);
   // Reload recreates DataService; reinstall only the small outcome recorder.
   await writer.evaluate(() => {
@@ -260,6 +298,7 @@ try {
   const outputHtml = await flow.generateReport();
   if ([password, access.ANON_KEY, access.SERVICE_ROLE_KEY].some(v => outputHtml.includes(v))) throw new Error('Report contains local secret');
   fs.writeFileSync(path.join(output, 'lighthouse-flow.html'), outputHtml);
+  }
   report.convergence = { checked: true, invoices: (await remoteInvoices(observer)).length, competence: await observer.locator('#global-competence-select').inputValue(), realtime: await observer.evaluate(() => window.RadarOperationalRealtimeInvalidationController.getStatus()) };
   checkpoint('completed');
 } catch (error) {
@@ -280,5 +319,21 @@ try {
   }
   report.cleanup = { ephemeralAuthUsersRemoved: removed, syntheticSchoolRetained: schoolId };
   if (removed !== users.length) process.exitCode = 1;
+  if (nativeTiming && report.fixtureBefore) {
+    // A paired experiment removes only its own generated fixtures, never resets the stack.
+    try {
+      sql(`begin; delete from public.schools where id = '${schoolId}';
+        delete from public.controllers where id in ('${runKey}-C0','${runKey}-C1'); commit;`);
+      report.cleanup.syntheticSchoolRetained = null;
+      report.cleanup.fixtureAfter = fixtureCounts();
+      if (JSON.stringify(report.fixtureBefore) !== JSON.stringify(report.cleanup.fixtureAfter)) {
+        throw new Error('Fixture counts were not restored; do not treat paired runs as comparable');
+      }
+    } catch (error) {
+      report.failures.push({ stage: 'cleanup', message: error.message });
+      process.exitCode = 1;
+    }
+  }
+  if (buildDirectory) fs.rmSync(buildDirectory, { recursive: true, force: true });
   writeJson('result.json', report);
 }
