@@ -38,6 +38,7 @@
     "audit:exceljs-policy": "node scripts/check-exceljs-audit-policy.mjs --report dependency-health/npm-audit.json",
     "certify:excel:fixture": "node scripts/generate-excel-certification-evidence.mjs --check",
     "analyze:unused": "knip --config knip.config.cjs --include dependencies,devDependencies,unlisted,unresolved",
+    "analyze:unused:deep": "node scripts/audit/inspect-knip-deep.mjs && node scripts/audit/verify-knip-dynamic-references.mjs",
     "build:supabase-client": "node scripts/build-supabase-client.mjs",
     "generate:runtime-config": "node scripts/generate-runtime-config.mjs",
     "build:vercel": "node scripts/build-vercel.mjs",
