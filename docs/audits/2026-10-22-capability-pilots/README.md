@@ -17,4 +17,8 @@
 
 ## Escopo e não objetivos
 
-Esta branch não muda `package.json`, nenhum workflow, RLS, banco de dados, UX, autenticação, API ou Production. **Não reabrir o alerta conhecido de senhas vazadas**, recurso indisponível no plano atual; decisão registrada na auditoria canônica. Próximas trilhas: diagnóstico Axe/WCAG 2.2 em estados de tela e eventual redesenho proporcional da CI, preservando required checks.
+Esta branch não muda `package.json`, os workflows canônicos de CI, RLS, banco de dados, UX, autenticação, API ou Production. Inclui apenas `.github/workflows/tooling-capability-pilots.yml`, restrito à própria branch experimental, para executar as contraprovas sem disparar as suites oficiais. **Não reabrir o alerta conhecido de senhas vazadas**, recurso indisponível no plano atual; decisão registrada na auditoria canônica. Próximas trilhas: diagnóstico Axe/WCAG 2.2 em estados de tela e eventual redesenho proporcional da CI, preservando required checks.
+
+## Resultado adicional A2
+
+O [run 39887138715](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39887138715) homologou a contraprova da **API real** `persistentId()` com TS2322, mapeou automaticamente **34/34 referências dinâmicas** do inventário Knip e comprovou a detecção de um arquivo artificial realmente sem referência (**35º achado**). [Evidências e interpretação](../../evidence/2026-10-22-ts7-knip-capability-a1/README.md#5-contraprova-independente-a2--contrato-real-e-controle-positivo-de-descoberta). Estes são diagnósticos, não uma aprovação para apagar módulos ou tornar o typecheck de todo o produto obrigatório.

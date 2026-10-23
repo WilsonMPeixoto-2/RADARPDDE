@@ -45,3 +45,52 @@ Foi examinada a lista real produzida no artifact JSON e, contra o código da `ma
 - Os artifacts do Actions podem expirar, mas **os resultados, os links por run e as relações de carregamento ficam preservados neste documento versionado**.
 
 **Decisão administrativa já confirmada:** o aviso de senhas vazadas do Supabase é conhecido, **não acionável no plano atual e fora do escopo**; não reabrir a discussão nesta modernização.
+
+## 5. Contraprova independente A2 — contrato real e controle positivo de descoberta
+
+**Run:** [39887138715](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39887138715);
+**HEAD executado:** [`efe65c0c7bea`](https://github.com/WilsonMPeixoto-2/RADARPDDE/commit/efe65c0c7bea6f38db568e0a733a91df0060d268).
+**Conclusão remota:** **2/2 jobs `success`** em ubuntu-26.04/Node 24,
+com `npm ci`. Contraprovas são **temporárias no runner** e não modificaram
+as fontes do produto no Git.
+
+| Experimento | Prova efetiva | Resultado |
+|---|---|---|
+| TypeScript 7.0.2, baseline `operation-key.js` | `npx --no-install tsc -p tsconfig.js-contract-pilot.json --noEmit` | Aprovado, sem erros |
+| TypeScript 7, mutação negativa simples | `/** @type {string} */ const probe = 123` dentro da cópia temporária | **TS2322** detectado, como esperado |
+| TypeScript 7, **API efetiva** | Atribuição deliberada do retorno de `module.exports.persistentId('nf', UUID)` a variável `/** @type {number} */` em cópia temporária | **TS2322**: `Type 'string' is not assignable to type 'number'`. **`RESULT=REAL_API_CONTRACT_DETECTED`** |
+| Knip, grafo estático atual | `node scripts/audit/inspect-knip-deep.mjs` | **34 arquivos / 0 exports / 0 tipos** |
+| Reconciliação dos loaders | `node scripts/audit/verify-knip-dynamic-references.mjs`, leitura do JSON + seis fontes de loaders | **34/34 com referências literais**, nenhum não reconciliado |
+| Knip, **controle positivo de ausência** | Criado temporariamente `src/domain/__radar_knip_unused_control.js` sem consumidor no runner e repetida análise | **35 arquivos**, incluindo explicitamente o arquivo criado. **PASS** |
+
+**Interpretação:** o TS7 consegue inferir o tipo de retorno de ao menos uma
+API real da implementação JavaScript já existente; não é apenas um compilador
+executando erro artificial independente do RADAR. Isso **não garante tipagem
+forte de todas as entradas**, nem prova cobertura de todos os serviços, porque
+`noImplicitAny: false` continua limitado ao piloto. Próximo passo técnico
+proporcional é selecionar uma fronteira JS de dados com alto custo de
+regressão, adicionar anotações JSDoc compatíveis com sua semântica atual e
+aplicar contraprova sobre um consumidor concreto, sem migração geral.
+
+**Interpretação do Knip:** os 34 alertas decorrem de caminhos explícitos em
+`config.js` (14), `product-extensions-bootstrap.js` (9),
+`exercise-management.js` (2), `mobile-navigation.js` (8) e
+`navigation-routes.js`/`auth-gate.js` (1). A contraprova com 35 arquivos
+confirma que o scanner **ainda detecta um novo arquivo sem referência**. A
+reconciliação textual **não prova carregamento efetivo em toda sessão**, mas
+impede excluir incorretamente essas partes por falha de rastreamento estático.
+Não habilitar remoção automática nem adicionar `src/**/*` indistintamente
+ao conjunto de entradas, porque isso esconderia futuros candidatos reais.
+
+**Artefatos do run A2:** `ts7-a1-diagnostics` (baseline e logs de duas
+contraprovas); `knip-a1-diagnostics` (JSON baseline, classificação,
+diagnóstico com controle positivo), vinculados ao
+[run 39887138715](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39887138715).
+Os nomes `a1` foram preservados no workflow experimental, mas esse run
+contém **os ensaios ampliados A2**. Logs e relatórios de CI são temporários;
+este registro preserva resultados e método de reprodução.
+
+**Estado ao final:** nenhuma alteração na `main`, bundles, CSS,
+RLS, Supabase/Auth, dados ou Production; nenhuma modificação funcional
+justificada apenas pelos resultados da ferramenta. O workflow temporário
+está restrito à branch experimental e não é um required check de produto.

@@ -149,3 +149,7 @@ Não consultar texto SQL, credenciais ou registros pessoais para compor evidênc
 ## 8. Pós-escrito A1 — resultados dos pilotos
 
 Após a leitura A0, o [piloto A1](../evidence/2026-10-22-ts7-knip-capability-a1/README.md) executou **TypeScript 7.0.2 e Knip 6.42.1** em GitHub Actions isolado. TypeScript aprovou a baseline do módulo de chaves e reprovou uma violação de tipo intencional (TS2322), após atualizar a opção `moduleResolution=Node` removida pela versão 7. Knip listou 34 arquivos, mas **34/34 possuem referências explícitas nos carregadores dinâmicos**, de modo que nenhum pode ser excluído com base na análise estática. Não confundir esse resultado com remoção de código morto ou ganho de desempenho comprovado. Nenhuma alteração do runtime/Production foi realizada.
+
+## 9. Pós-escrito A2 — verificação adicional de sensibilidade das ferramentas
+
+A [contraprova independente A2](../evidence/2026-10-22-ts7-knip-capability-a1/README.md#5-contraprova-independente-a2--contrato-real-e-controle-positivo-de-descoberta), em [Actions 39887138715](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39887138715), encerrou com **2/2 jobs aprovados**: TS7 detectou tipo errado em retorno da **API real** `persistentId()` (`TS2322`); Knip reconheceu os 34 módulos com referências dos carregadores e, após inclusão de um arquivo fictício sem consumidor apenas no runner, passou a reportar 35. Isso confirma utilidade real dos dois diagnósticos sem autorizar limpeza automática ou ativação de gate global de TypeScript. Nenhuma mudança foi feita na `main`/Production.
