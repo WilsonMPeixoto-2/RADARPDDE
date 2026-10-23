@@ -312,3 +312,28 @@ test('relatórios temporários do Knip profundo são ignorados sem esconder evid
     assert.match(dynamic, /'artifacts\/tooling\/knip-deep-diagnostic\.json'/);
     assert.match(dynamic, /'artifacts\/tooling\/knip-dynamic-classification\.json'/);
 });
+
+test('inventário das dependências modernas acompanha o manifesto e mantém decisões rastreáveis', () => {
+    const packageJson = readJson('package.json');
+    const manifest = { ...packageJson.dependencies, ...packageJson.devDependencies };
+    const tracker = read('docs/TECHNOLOGY_CAPABILITIES_TRACKER.md');
+    const rows = tracker.split(/\r?\n/).filter(line => /^\|/.test(line) && /\| \*\*T[012]\*\* \|/.test(line));
+    const visited = new Set();
+
+    for (const line of rows) {
+        const cells = line.split('|').map(cell => cell.trim());
+        assert.equal(cells.length, 9, 'linha do inventário deve manter sete colunas');
+        const raw = cells[2].replace(/^\x60|\x60$/g, '');
+        const separator = raw.lastIndexOf('@');
+        assert.ok(separator > 0, 'nome e versão devem estar presentes no inventário');
+        const name = raw.slice(0, separator);
+        const version = raw.slice(separator + 1);
+        assert.equal(visited.has(name), false, `entrada duplicada: ${name}`);
+        visited.add(name);
+        assert.equal(version, manifest[name], `versão sem correspondência: ${name}`);
+        assert.match(cells[7], /\*\*ENCERRADA\*\*/, `decisão de triagem ausente: ${name}`);
+    }
+
+    assert.deepEqual([...visited].sort(), Object.keys(manifest).sort(),
+        'todos os pacotes diretos devem ter registro individual: novos ou removidos exigem revisar a matriz');
+});
