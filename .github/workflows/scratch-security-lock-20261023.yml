@@ -17,6 +17,7 @@ jobs:
           cache: npm
       - name: Resolve targeted patched tooling dependency
         run: npm install --package-lock-only --save-dev --save-exact --ignore-scripts --no-audit puppeteer-core@25.16.0
+          npm update zod --package-lock-only --ignore-scripts --no-audit
       - name: Install exact lock and check zod advisory
         run: |
           npm ci
