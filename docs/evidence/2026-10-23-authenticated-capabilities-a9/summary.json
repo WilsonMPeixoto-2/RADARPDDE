@@ -1,0 +1,244 @@
+{
+  "scope": "A9 diagnostic, no runtime change",
+  "sourceBaseline": "ea00ca5409e24158a904d2a754803f953eeed2a0",
+  "localDatabase": {
+    "version": "PostgreSQL 17.6 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit",
+    "migrations": 61,
+    "lastMigration": "20261011193500",
+    "schoolsBefore": 3,
+    "invoicesBefore": 19
+  },
+  "samples": [
+    {
+      "label": "baseline-1",
+      "clickToAckObservedMs": 114,
+      "clickToWriterDomTwoRafMs": 303.800048828125,
+      "clickToObserverDomTwoRafMs": 2197,
+      "observerDomAfterAckMs": 2083
+    },
+    {
+      "label": "baseline-2",
+      "clickToAckObservedMs": 95.900146484375,
+      "clickToWriterDomTwoRafMs": 303.5,
+      "clickToObserverDomTwoRafMs": 2123.7001953125,
+      "observerDomAfterAckMs": 2027.800048828125
+    },
+    {
+      "label": "baseline-3",
+      "clickToAckObservedMs": 91,
+      "clickToWriterDomTwoRafMs": 287.900146484375,
+      "clickToObserverDomTwoRafMs": 2140.10009765625,
+      "observerDomAfterAckMs": 2049.10009765625
+    }
+  ],
+  "sessionCosts": {
+    "writer": {
+      "global": 3,
+      "school": 0,
+      "aborted": 0,
+      "payloadBytes": 281779,
+      "applies": 6,
+      "renders": 6,
+      "mainReplacements": 6,
+      "longTasks": {
+        "supported": true,
+        "count": 1,
+        "totalMs": 57,
+        "maxMs": 57,
+        "blockingMs": 7
+      },
+      "errors": []
+    },
+    "observer": {
+      "global": 0,
+      "school": 3,
+      "aborted": 0,
+      "payloadBytes": 9490,
+      "applies": 3,
+      "renders": 3,
+      "mainReplacements": 3,
+      "longTasks": {
+        "supported": true,
+        "count": 0,
+        "totalMs": 0,
+        "maxMs": 0,
+        "blockingMs": 0
+      },
+      "errors": []
+    }
+  },
+  "reload": {
+    "persistedInvoices": 3,
+    "automationWallMs": 1775
+  },
+  "lighthouse": [
+    {
+      "name": "Create invoice and converge (instrumented)",
+      "mode": "timespan",
+      "warnings": [],
+      "categories": {
+        "performance": 0.98
+      },
+      "audits": {
+        "total-blocking-time": {
+          "score": 1,
+          "value": 0,
+          "unit": "millisecond",
+          "title": "Total Blocking Time",
+          "display": "0 ms"
+        },
+        "cumulative-layout-shift": {
+          "score": 0.96,
+          "value": 0.07044425154320987,
+          "unit": "unitless",
+          "title": "Cumulative Layout Shift",
+          "display": "0.07"
+        },
+        "interaction-to-next-paint": {
+          "score": 0.59,
+          "value": 418.049,
+          "unit": "millisecond",
+          "title": "Interaction to Next Paint",
+          "display": "420 ms"
+        },
+        "mainthread-work-breakdown": {
+          "score": 1,
+          "value": 405.6150000000011,
+          "unit": "millisecond",
+          "title": "Minimizes main-thread work",
+          "display": "0.4 s"
+        },
+        "bootup-time": {
+          "score": 1,
+          "value": 69.17700000000002,
+          "unit": "millisecond",
+          "title": "JavaScript execution time",
+          "display": "0.1 s"
+        },
+        "network-rtt": {
+          "score": 1,
+          "value": 0.8999999999999999,
+          "unit": "millisecond",
+          "title": "Network Round Trip Times",
+          "display": "0 ms"
+        },
+        "network-server-latency": {
+          "score": 1,
+          "value": 9.836500000000001,
+          "unit": "millisecond",
+          "title": "Server Backend Latencies",
+          "display": "10 ms"
+        },
+        "total-byte-weight": {
+          "score": 1,
+          "value": 100928,
+          "unit": "byte",
+          "title": "Avoids enormous network payloads",
+          "display": "Total size was 99 KiB"
+        },
+        "unminified-css": {
+          "score": 0.5,
+          "value": 0,
+          "unit": "millisecond",
+          "title": "Minify CSS",
+          "display": "Est savings of 6 KiB"
+        },
+        "unminified-javascript": {
+          "score": 1,
+          "value": 0,
+          "unit": "millisecond",
+          "title": "Minify JavaScript",
+          "display": ""
+        },
+        "unused-javascript": {
+          "score": 1,
+          "value": 0,
+          "unit": "millisecond",
+          "title": "Reduce unused JavaScript",
+          "display": ""
+        },
+        "dom-size-insight": {
+          "score": 1,
+          "value": 1178,
+          "unit": "element",
+          "title": "Optimize DOM size",
+          "display": null
+        },
+        "inp-breakdown-insight": {
+          "score": 0,
+          "value": null,
+          "unit": null,
+          "title": "INP breakdown",
+          "display": null
+        }
+      }
+    },
+    {
+      "name": "Authenticated invoice modal",
+      "mode": "snapshot",
+      "warnings": [],
+      "categories": {
+        "accessibility": 1
+      },
+      "audits": {}
+    }
+  ],
+  "schoolReadOutcomes": {
+    "writer": [
+      {
+        "coverageBefore": false,
+        "fallback": {
+          "kind": "global",
+          "reason": "MISSING_BASELINE_COVERAGE"
+        },
+        "applied": false,
+        "stale": false
+      }
+    ],
+    "observer": [
+      {
+        "coverageBefore": true,
+        "fallback": null,
+        "applied": true,
+        "stale": false
+      }
+    ]
+  },
+  "accessibility": [
+    {
+      "state": "new-consumption-invoice-modal",
+      "passedRules": 32,
+      "incompleteRules": 3,
+      "violations": []
+    }
+  ],
+  "limitations": [
+    "Localhost, synthetic small fixture, headless Chromium; not Production latency/volume or a before/after upgrade comparison.",
+    "Three samples; no population percentile or product budget.",
+    "RPC completion is browser acknowledgement, not SQL execution time or precise commit time.",
+    "Lighthouse passage is separate; profiler and audit overhead must not be pooled with baseline.",
+    "Runtime instrumentation is test-only; hooks and durations may overlap.",
+    "Existing disposable stack is not reset; only a new synthetic school and test identities are added.",
+    "Original *PaintMs fields record DOM text detection followed by two rAF callbacks; they do NOT prove visible paint/perception or stable end of all background work. Normalized names above make this explicit.",
+    "Navigation wall times include Playwright waits and two clicks; not isolated site latency.",
+    "Lighthouse was executed separately after the baseline, with another new synthetic school. Its values are not a paired performance comparison."
+  ],
+  "preparationFailures": [
+    {
+      "attempt": "01",
+      "stage": "before backend/browser",
+      "reason": "Package exports refused @axe-core/playwright/package.json; fixed file-based version lookup."
+    },
+    {
+      "attempt": "02",
+      "stage": "after baseline and reload",
+      "reason": "Timespan rejects accessibility category; classified as Lighthouse configuration, baseline results retained."
+    },
+    {
+      "attempt": "03",
+      "stage": "fixture setup before browser",
+      "reason": "Fixed synthetic designation collided with retained fixture; generator selects a free synthetic designation."
+    }
+  ],
+  "outcome": "04 completed Lighthouse and Axe with real authentication, response and peer DOM convergence; two ephemeral Auth users removed in each backend attempt."
+}
