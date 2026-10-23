@@ -299,3 +299,16 @@ test('checker de workflows exige SHA imutável para Actions externas', () => {
     assert.match(checker, /\^\[0-9a-f\]\{40\}\$/i);
     assert.match(checkerTests, /actions\/checkout@v7/);
 });
+
+
+test('relatórios temporários do Knip profundo são ignorados sem esconder evidências versionadas', () => {
+    const ignore = read('.gitignore');
+    const deep = read('scripts/audit/inspect-knip-deep.mjs');
+    const dynamic = read('scripts/audit/verify-knip-dynamic-references.mjs');
+    assert.match(ignore, /^artifacts\/tooling\/$/m);
+    assert.doesNotMatch(ignore, /^docs\/$/m);
+    assert.doesNotMatch(ignore, /^artifacts\/$/m);
+    assert.match(deep, /'artifacts', 'tooling'/);
+    assert.match(dynamic, /'artifacts\/tooling\/knip-deep-diagnostic\.json'/);
+    assert.match(dynamic, /'artifacts\/tooling\/knip-dynamic-classification\.json'/);
+});
