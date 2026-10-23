@@ -1,0 +1,27 @@
+name: A5 - classificador CI (piloto isolado)
+on:
+  push:
+    branches:
+      - experiment/ci-impact-classification-20261023
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  classify:
+    name: Validar classificacao conservadora
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Executar testes puros do classificador
+        run: node --test tests/unit/ci-impact-classification.test.js
+      - name: Garantir fail-closed diante de merge-base indisponivel
+        run: |
+          set -euo pipefail
+          output="$(RADAR_CI_BASE_REF=origin/ref-inexistente node scripts/ci/classify-pr-impact.mjs)"
+          echo "$output"
+          echo "$output" | grep -q '"scope": "full"'
