@@ -1,0 +1,58 @@
+name: A7 - JS contract boundary (isolated)
+on:
+  push:
+    branches:
+      - experiment/js-contract-boundary-20261023
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  typecheck-contract:
+    name: TS 7 - consumidor fiscal e contraprova
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Node 24
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Instalar deps do lockfile
+        run: npm ci
+      - name: Contrato valido, sintaxe e testes de identidade
+        run: |
+          set -euo pipefail
+          node --check src/domain/operation-key.js
+          node --check src/application/invoice-service.js
+          ./node_modules/.bin/tsc -p tsconfig.js-contract-boundary.json --pretty false
+          node --test tests/unit/operation-key.test.js tests/unit/invoice-idempotency.test.js tests/unit/invoice-idempotency-repository.test.js
+      - name: Contraprova no consumidor real, exclusivamente neste runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_file=src/application/invoice-service.js
+          trap 'git restore -- "$source_file"' EXIT
+          node <<'NODE'
+          const fs = require('node:fs');
+          const file='src/application/invoice-service.js';
+          const original=fs.readFileSync(file,'utf8');
+          const valid="operationKey.persistentId('nota', key)";
+          const invalid="operationKey.persistentID('nota', key)";
+          if (original.split(valid).length !== 2) throw new Error('A7_ANCHOR_INESPERADO: abortar sem mutacao');
+          fs.writeFileSync(file,original.replace(valid,invalid));
+          NODE
+          set +e
+          ./node_modules/.bin/tsc -p tsconfig.js-contract-boundary.json --pretty false > /tmp/a7-negative-check.log 2>&1
+          exit_code=$?
+          set -e
+          cat /tmp/a7-negative-check.log
+          if [ "$exit_code" -eq 0 ]; then echo 'A7_ERROR: mutacao nao detectada' >&2; exit 1; fi
+          grep -F 'invoice-service.js' /tmp/a7-negative-check.log | grep -q 'TS2551'
+          echo 'A7_NEGATIVE_CONTROL=DETECTED'
+      - name: Verificar restauracao e diff apenas de comentarios
+        run: |
+          set -euo pipefail
+          git diff --exit-code -- src/application/invoice-service.js src/domain/operation-key.js
+          echo 'A7_SOURCE_RESTORED=true'
