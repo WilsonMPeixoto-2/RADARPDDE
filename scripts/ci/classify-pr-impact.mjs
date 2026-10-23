@@ -56,6 +56,21 @@ export function classifyDiff(paths, {beforePackage = null, afterPackage = null} 
     : 'somente arquivos Markdown documentais', fileCount:unique.length};
 }
 
+
+/**
+ * A6: autorizacao excepcional para omitir somente o E2E pesado do workflow de
+ * ciclos de Supabase. O escopo global docs-only e deliberadamente mais amplo.
+ * O atalho so e elegivel para relatorios Markdown de auditoria, sem outros
+ * arquivos, com base e diff comprovados.
+ * @param {{scope?: string, files?: string[]}|null|undefined} report
+ */
+export function maySkipLifecycleForAuditDocs(report) {
+  return report?.scope === 'docs-only'
+    && Array.isArray(report.files)
+    && report.files.length > 0
+    && report.files.every(file => new RegExp('^docs/audits/[A-Za-z0-9_.-]+[.]md$').test(file));
+}
+
 function git(...args) {
   return execFileSync('git', args, {encoding:'utf8',maxBuffer:16*1024*1024});
 }
@@ -79,7 +94,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       baseSha = git('merge-base', baseRef, 'HEAD').trim();
       if (!/^[0-9a-f]{40}$/.test(baseSha)) throw new Error('merge-base nao encontrado');
     }
-    const changed = git('diff', '--name-only', '--diff-filter=ACMRD', baseSha, 'HEAD');
+    const changed = git('diff', '--name-only', '--no-renames', baseSha, 'HEAD');
     const files = changed.trim().split(String.fromCharCode(10)).filter(Boolean);
     const result = classifyDiff(files, {
       beforePackage: files.includes('package.json') ? packageAt(baseSha) : null,
