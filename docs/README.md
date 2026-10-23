@@ -1,5 +1,17 @@
 # Documentação do RADAR PDDE
 
+**Cobertura horizontal pós-upgrade (candidato de 23/10):** o
+[PR #484](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/484)
+integrou a auditoria histórica, a matriz viva e a rota de agentes à
+`main@1cd0543db00585fe7d0e979fa685c6415480c629`.
+A nova
+[triagem individual B1–B3](audits/2026-10-23-capability-triage-b1-b3.md) e a
+[reconciliação B4](audits/2026-10-23-capability-triage-b4.md)
+registram decisões para **26/26 dependências diretas** no
+[controle de oportunidades](TECHNOLOGY_CAPABILITIES_TRACKER.md), mas esta
+segunda rodada só estará integrada quando seu próprio PR for homologado.
+O aprofundamento F01–F15 **não** foi encerrado pela cobertura de pacotes.
+
 **Programa de aproveitamento de capacidades (roteiro vivo, 23/10):**
 [matriz de cobertura de todas as 26 dependências e carteira de aprofundamentos](TECHNOLOGY_CAPABILITIES_TRACKER.md),
 vinculada à [issue #481](https://github.com/WilsonMPeixoto-2/RADARPDDE/issues/481).
