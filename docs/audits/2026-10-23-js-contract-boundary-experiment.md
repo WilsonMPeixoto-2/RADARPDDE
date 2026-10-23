@@ -79,9 +79,9 @@ node --test tests/unit/operation-key.test.js tests/unit/invoice-idempotency.test
 ## Decisão de continuidade
 
 Há fundamento para propor uma proteção limitada da interface de identidade,
-com esse consumidor fiscal real. O piloto não está integrado, não modifica
-`package.json`, não participa de `test:readiness` e não recebeu CI própria nesta
-branch. Não tratá-lo como gate já publicado.
+com esse consumidor fiscal real. A prova isolada [A7 Actions 39915581581](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39915581581) terminou **success**, com 7/7 testes existentes, compilação válida e detecção **TS2551** ao substituir temporariamente `persistentId` por `persistentID` na chamada real do serviço. A mutação foi restaurada e o runner confirmou diff limpo.
+
+O workflow experimental foi removido após a prova. A proposta integra o `tsc -p tsconfig.js-contract-boundary.json` como **uma etapa curta** do job existente `Sintaxe, auditoria e testes de domínio`, **após `npm ci`**, sem novos jobs ou dependências. O novo gate ainda depende de CI de PR e merge; não considerá-lo publicado antes disso. `package.json`, runtime e `test:readiness` continuam inalterados.
 
 Antes da promoção: revisar os contratos normalizados, manter a sensibilidade à
 chamada real inválida, decidir o comando/gate proporcional e certificar o diff
