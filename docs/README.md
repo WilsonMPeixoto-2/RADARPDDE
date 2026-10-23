@@ -1,5 +1,13 @@
 # Documentação do RADAR PDDE
 
+**Programa de aproveitamento de capacidades (roteiro vivo, 23/10):**
+[matriz de cobertura de todas as 26 dependências e carteira de aprofundamentos](TECHNOLOGY_CAPABILITIES_TRACKER.md),
+vinculada à [issue #481](https://github.com/WilsonMPeixoto-2/RADARPDDE/issues/481).
+Essa matriz complementa, sem substituir, a auditoria histórica A0–A9:
+cada pacote precisa de decisão individual sobre capacidades; cada investigação
+profunda tem estado, prova e condição de retomada. Ela não cria 26 issues,
+não altera regras de negócio e não afirma melhorias de desempenho.
+
 **Retomada consolidada em 23/10/2026, após #478/#482/#483:** ler o
 [checkpoint canônico atualizado](CURRENT_STAGE.md) e, para entender as decisões,
 testes, contraprovas, mudanças de direção e limites da modernização de 22–23/10,
