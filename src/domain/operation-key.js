@@ -39,6 +39,13 @@
         return normalize(value);
     }
 
+    /**
+     * Gera uma identidade persistente reproduzível para uma intenção.
+     * A validação de prefixo e UUID permanece em runtime.
+     * @param {string | null | undefined} prefix
+     * @param {string} operationKey
+     * @returns {string}
+     */
     function persistentId(prefix, operationKey) {
         const safePrefix = prefix == null ? '' : String(prefix).trim();
         if (!safePrefix || !/^[a-z0-9_-]+$/i.test(safePrefix)) {
