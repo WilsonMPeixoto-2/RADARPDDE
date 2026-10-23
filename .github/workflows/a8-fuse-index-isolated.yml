@@ -1,0 +1,27 @@
+name: A8 - Fuse search rebuild vs reuse (isolated)
+on:
+  push:
+    branches:
+      - experiment/a8-global-search-fuse-index-20261023
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  bench:
+    name: A8 - carga sintetica e contratos da busca
+    runs-on: ubuntu-26.04
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Node.js 24
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Instalar dependencias reprodutiveis
+        run: npm ci
+      - name: Medir reconstrucao versus reuso sem mudar runtime
+        run: node scripts/audit/benchmark-global-search-index.mjs
+      - name: Reexecutar contrato de busca existente
+        run: node --test tests/unit/global-search-index.test.js tests/unit/global-search-integration.test.js
