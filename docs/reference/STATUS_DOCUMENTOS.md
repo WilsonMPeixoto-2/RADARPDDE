@@ -19,7 +19,15 @@ PR aberto, Preview ou documento antigo não altera Production.
 
 ## 2. Rota canônica vigente
 
-**Fronteira atual (22/10, após merge #472):** ler o topo do
+**Fronteira atual (23/10):** ler o topo de
+[`CURRENT_STAGE.md`](../CURRENT_STAGE.md) e o
+[relatório de continuidade](../audits/2026-10-23-modernization-continuity-review.md).
+#474/#476/#477/#475 estão integrados; Knip profundo é diagnóstico opt-in e
+TypeScript amplo permanece experimental. A redução de CI foi medida somente
+em um job e no diff documental específico. Não tratar pilotos antigos como
+configurações já obrigatórias nem transferir ganhos de CI para a fluidez do site.
+
+**Checkpoint histórico da CLI (22/10, após merge #472):** ler o histórico de
 [`CURRENT_STAGE.md`](../CURRENT_STAGE.md). O
 [PR #472](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/472) está **integrado** em `main@caf2de3e`;
 CLI 2.121.0, **19/19 workflows do candidato e 8/8 checks de push pós-merge**,
@@ -31,6 +39,8 @@ um checkpoint histórico diz "aguardando", "Draft" ou "candidato".
 
 | Arquivo | Classe | Uso |
 |---|---|---|
+| docs/audits/2026-10-23-modernization-continuity-review.md | Auditoria datada e evidência de continuidade | revisão de A0–A6, merges #475/#477, contraprovas e limites do TS7/Knip, falhas preservadas e medição do job documental; não é especificação de arquitetura ou benchmark de fluidez |
+| docs/runbooks/KNIP_DEEP_DIAGNOSTIC.md | Runbook vigente de diagnóstico opt-in | interpretar arquivos/exports/tipos e referências textuais de loaders; não autoriza exclusão automática nem gate por contagem histórica |
 | docs/audits/2026-10-11-controller-journey/HANDOFF.md | Handoff histórico da Etapa 5 | auditoria imersiva A–N de 11–13/10; as sete correções delimitadas foram encerradas pelo PR #438; não tratar checkpoints pré-merge como frente corrente |
 | docs/audits/2026-10-11-controller-journey/ENVIRONMENT.md e CONTEXT.md | Evidência histórica datada | limitações e invariantes do experimento A–N em seu SHA; não homologação de novas jornadas nem justificativa para reabrir #438 |
 | AGENTS.md | Canônico | roteador obrigatório |

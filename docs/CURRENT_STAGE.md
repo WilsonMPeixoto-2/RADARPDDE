@@ -1,6 +1,44 @@
 # RADAR PDDE — estado atual e retomada
 
-## Estado vigente após merge do #472 — 22/10/2026
+## Estado vigente da modernização — 23/10/2026
+
+Este checkpoint sucede o encerramento da CLI abaixo. A baseline de código desta
+retomada é `main@f95b7d7ad3d9589cd616b2b052931df586755e69`; conferir o remoto
+antes de reutilizar SHAs ou estados de CI/deployment.
+
+- **#474 integrado:** nome acessível de “Mais filtros” corrigido, merge
+  `78227c8744519d1357dc97d39207fe0b3b27b79c`. Não repetir a correção Axe.
+- **#476 integrado:** classificação observacional de impacto da CI,
+  `8795f1e384b858e52b3ba4ca56ae54c58508161c`; não dispensava testes.
+- **#477 integrado:** redução de um job somente para relatórios Markdown diretos
+  em `docs/audits/*.md`, merge `fdb522de8840e860845eb6596bc577a9aee77a2d`.
+  Nove workflows aprovados; o próprio candidato executou os **21 ciclos reais**.
+  O PR documental #478 provou o check original bem-sucedido com passos pesados
+  pulados: **342 s → 11 s**, uma amostra por caminho, somente nesse job.
+- **#475 integrado:** `npm run analyze:unused:deep` é opt-in, sem exclusão de
+  código ou gate obrigatório. **18/18 workflows** aprovados após uma única
+  repetição dos dois jobs inicialmente falhos. As ocorrências e limites de
+  causalidade permanecem no [relatório de continuidade](audits/2026-10-23-modernization-continuity-review.md).
+- **TypeScript A4 permanece experimental:** detectou incompatibilidade no
+  contrato escolhido, mas a baseline ampla de InvoiceService já reprova. Não
+  ativar esse checkJs como gate geral nem tratar erros injetados como defeitos
+  existentes. Próxima frente possível: contrato JS menor com consumidor real,
+  baseline válida e contraprova, sem reescrita ou supressão em massa.
+
+A documentação e os pilotos A0–A4 do outro agente permanecem na branch
+`docs/audit-capacidades-pacotes-out2026@82ae7162` e em
+`experiment/capabilities-a4-ts-knip-20261023`. São fontes de evidência; não fazer
+merge integral dessas branches. #446/#447 e Caso A da #460 continuam separados.
+Nenhum handoff de implementação novo foi designado por este checkpoint.
+
+A última consulta Vercel após #475 confirmou Production `READY`, deployment
+`dpl_H187AY8pvVxaT2BZvRdEyPSWtfbz`, domínio oficial no SHA `f95b7d7a...`.
+Conferir publicação documental posterior deste relatório no remoto;
+READY não equivale a nova sessão humana autenticada. Esta etapa não modificou
+schema, RLS, Auth, dados institucionais ou regras de negócio. CLI #472 e a
+limitação do recurso premium de senhas vazadas no plano atual estão encerradas.
+
+## Histórico: encerramento do #472 — 22/10/2026
 
 > **PORTA DE ENTRADA PARA AGENTES.** Este checkpoint é posterior aos registros
 > históricos abaixo e prevalece sobre mensagens "Draft", "aguardando CI" ou
