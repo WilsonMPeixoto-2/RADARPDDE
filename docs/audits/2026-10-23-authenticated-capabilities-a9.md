@@ -4,6 +4,11 @@
 **Baseline:** `ea00ca5409e24158a904d2a754803f953eeed2a0`, após #479/#480/#478.
 **Roteiro:** [issue #481](https://github.com/WilsonMPeixoto-2/RADARPDDE/issues/481).
 
+**Continuação de 23/10:** [contraprova nativa sem Lighthouse](2026-10-23-save-interaction-native-timing.md)
+com seis gravações fonte/build, registro de cobertura e uma passagem de trace
+separada. Os resultados originais abaixo foram preservados; a continuação não é
+uma otimização publicada nem comprovação de velocidade em Production.
+
 ## Reconciliação antes de executar
 
 Os três PRs estão efetivamente integrados. O diff do #479 mantém a AST executável

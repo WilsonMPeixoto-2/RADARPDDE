@@ -1,0 +1,111 @@
+{
+  "files": [
+    {
+      "path": "run-01-source.json",
+      "bytes": 34761,
+      "sha256": "df6a571444c1141fc6652f5169315568bd4ea05ae7c1213d05a34bda6c73fcd7"
+    },
+    {
+      "path": "run-02-build.json",
+      "bytes": 34835,
+      "sha256": "d24772e1ed2a1f24e8f2307798e83600387825cdbd75bea5272c8115009225b8"
+    },
+    {
+      "path": "run-03-build.json",
+      "bytes": 34622,
+      "sha256": "13063c4d6d268c68d262886abab23adcf262bcfd94ea75aa3e3357db6fbd800c"
+    },
+    {
+      "path": "run-04-source.json",
+      "bytes": 35359,
+      "sha256": "37dae87047d4036b3d2748dfb19cce88b133e6ad6b03927ba6ade5face554d8a"
+    },
+    {
+      "path": "run-05-source.json",
+      "bytes": 33154,
+      "sha256": "1fd5654d1556f9967537d2d218ff6dbf195a92b14793e2b60007a6c06896c2b1"
+    },
+    {
+      "path": "run-06-build.json",
+      "bytes": 35174,
+      "sha256": "e032611882ab5444805bf3484944c7383c510a8474998c7e0203d6be21e2cd74"
+    },
+    {
+      "path": "run-07-trace.json",
+      "bytes": 40422,
+      "sha256": "23872cbf5b5b481cda70e9e1290b2cc2de4b692565f0f8d659a4082af2ccbb25"
+    },
+    {
+      "path": "trace-excerpt.json",
+      "bytes": 14877,
+      "sha256": "5ce4e9d790136d90890f8f5fe62c65621fc96f5de8b4cc0f927fe64d6d33f92f"
+    },
+    {
+      "path": "instrument-control.json",
+      "bytes": 3838,
+      "sha256": "a9cf3efb71e45508f121ad21ee0838214e09168ec24a4444f7be864116a6e1dd"
+    },
+    {
+      "path": "browser-environment.json",
+      "bytes": 7396,
+      "sha256": "1aa5e8e5921ad25267cf5618a49345971b959af59587e39f0e7f200b6ea8fa38"
+    },
+    {
+      "path": "summary.json",
+      "bytes": 6968,
+      "sha256": "798f9d9a1dff345c86eca33b738ea09a850c22d612fc650474fe2cab06e59bf0"
+    }
+  ],
+  "localOriginals": [
+    {
+      "path": "/workspace/scratch/a9-native-01-source/result.json",
+      "bytes": 57853,
+      "sha256": "fb29faa5e8a7740b8732384d390b37560450db35c20d219651ca6b1078c945ad"
+    },
+    {
+      "path": "/workspace/scratch/a9-native-02-build/result.json",
+      "bytes": 58280,
+      "sha256": "82f5c29adacea8ae013c5effcb71913005119cbffe63ee605592578a5bb820a2"
+    },
+    {
+      "path": "/workspace/scratch/a9-native-03-build/result.json",
+      "bytes": 57797,
+      "sha256": "b41b138ccd771ca1b38d8d9f482c4e2b055f7354999a8990da5ee8110f5057cb"
+    },
+    {
+      "path": "/workspace/scratch/a9-native-04-source/result.json",
+      "bytes": 59182,
+      "sha256": "80e483f9f7cb5a5afce264b5abed57200fb66ec54e0da7bfdb4aa9a5a892ef61"
+    },
+    {
+      "path": "/workspace/scratch/a9-native-05-source/result.json",
+      "bytes": 55835,
+      "sha256": "de87ee0c62dfad571cc30db80004bc07deacbc8589b5ffa8c5405242eeccfa88"
+    },
+    {
+      "path": "/workspace/scratch/a9-native-06-build/result.json",
+      "bytes": 58729,
+      "sha256": "77930d1ca5825f2257eae1a9bdcb45fd77e69bb38cb9567fa404dad773f09e5f"
+    },
+    {
+      "path": "/workspace/scratch/a9-native-07-trace/result.json",
+      "bytes": 66946,
+      "sha256": "c73582f7b9103dbfc48e97fd84aac0fb4889f386c693d555fa5d1db7ff2568e9"
+    },
+    {
+      "path": "/workspace/scratch/a9-native-07-trace/trace.json",
+      "bytes": 9785006,
+      "sha256": "1a5734c22dacedcdcc7fffe05c11a501e291419c23406e092258a0a13393d779"
+    },
+    {
+      "path": "/workspace/scratch/a9-native-control/result.json",
+      "bytes": 5797,
+      "sha256": "6c56a4d9c563b117b20991ad335bbdb35ecf19c451d32a6b83389a722a6b3fae"
+    },
+    {
+      "path": "/workspace/scratch/a9-native-control/browser-environment.json",
+      "bytes": 7904,
+      "sha256": "533fde55fcd0632c61161567dbcdca3181286dac8db32063c7df321b196371bc"
+    }
+  ]
+}

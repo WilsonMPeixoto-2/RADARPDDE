@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Isolated A9 diagnostic. No production target, runtime patch, or performance gate.
+// Isolated A9 diagnostic. Instrumentation is never shipped in the product build.
 import fs from 'node:fs';
 import path from 'node:path';
 import http from 'node:http';
@@ -37,10 +37,11 @@ const schoolId = runKey;
 const schoolName = `Escola sintética ${runKey}`;
 const nativeTiming = process.env.RADAR_A9_NATIVE_TIMING === '1';
 const publicBuild = process.env.RADAR_A9_PUBLIC_BUILD === '1';
+const traceEnabled = nativeTiming && process.env.RADAR_A9_TRACE === '1';
 const baselineIterations = nativeTiming ? 1 : process.env.RADAR_A9_LIGHTHOUSE_ONLY === '1' ? 0 : 3;
 const users = [];
 const report = {
-  schemaVersion: 3, generatedAt: new Date().toISOString(), nativeTiming, publicBuild,
+  schemaVersion: 3, generatedAt: new Date().toISOString(), nativeTiming, publicBuild, traceEnabled,
   checkout: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
   environment: 'local-disposable-authenticated-small-fixture',
   versions: Object.fromEntries(['lighthouse', '@playwright/test', '@axe-core/playwright', '@supabase/supabase-js'].map(name => [name, JSON.parse(fs.readFileSync(path.join(root, 'node_modules', name, 'package.json'), 'utf8')).version])),
@@ -132,6 +133,13 @@ try {
   puppet = await puppeteer.launch({ executablePath: chromium.executablePath(), headless: true, defaultViewport: null, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
   browser = await chromium.connectOverCDP(puppet.wsEndpoint());
   report.browser = browser.version();
+  if (nativeTiming) {
+    const systemSession = await browser.newBrowserCDPSession();
+    const { gpu } = await systemSession.send('SystemInfo.getInfo');
+    report.graphics = { devices: gpu.devices, features: gpu.featureStatus, renderer: gpu.auxAttributes?.glRenderer };
+    report.cpuQuota = fs.existsSync('/sys/fs/cgroup/cpu.max') ? fs.readFileSync('/sys/fs/cgroup/cpu.max', 'utf8').trim() : null;
+    await systemSession.detach();
+  }
   report.viewport = { width: 1440, height: 900 };
   for (const user of users) {
     const context = await browser.newContext({ viewport: report.viewport, baseURL });
@@ -214,9 +222,20 @@ try {
     await armUi(writer, number); await armUi(observer, number);
     await writer.evaluate(() => {
       window.__A9_CLICK__ = null;
-      document.querySelector('#form-dados-nota button[type="submit"]').addEventListener('click', () => { window.__A9_CLICK__ = performance.timeOrigin + performance.now(); }, { once: true, capture: true });
+      document.querySelector('#form-dados-nota button[type="submit"]').addEventListener('click', () => {
+        window.__A9_CLICK__ = performance.timeOrigin + performance.now();
+        performance.mark('A9:save-click');
+      }, { once: true, capture: true });
     });
     await resetObservers(writer); await resetObservers(observer);
+    let traceSession;
+    if (traceEnabled) {
+      traceSession = await browser.newBrowserCDPSession();
+      await traceSession.send('Tracing.start', {
+        categories: 'devtools.timeline,blink.user_timing,cc,gpu,viz,benchmark,latencyInfo',
+        transferMode: 'ReturnAsStream'
+      });
+    }
     let ackAt = null;
     const ack = writer.waitForResponse(r => /\/rpc\/save_invoice_with_effects(?:_v2)?$/.test(new URL(r.url()).pathname)).then(async r => {
       await r.finished(); ackAt = await epoch(writer); expect(r.status()).toBe(200);
@@ -227,6 +246,21 @@ try {
     await expect(writer.locator('#modal-dados-nota')).not.toHaveClass(/show/);
     await observer.waitForFunction(() => Boolean(window.__A9_MATCH__), null, { timeout: 45000 });
     await writer.waitForFunction(() => Boolean(window.__A9_MATCH__));
+    if (traceSession) {
+      const complete = new Promise(resolve => traceSession.once('Tracing.tracingComplete', resolve));
+      await traceSession.send('Tracing.end');
+      const { stream } = await complete;
+      let contents = '';
+      while (true) {
+        const part = await traceSession.send('IO.read', { handle: stream });
+        contents += part.base64Encoded ? Buffer.from(part.data, 'base64').toString('utf8') : part.data;
+        if (part.eof) break;
+      }
+      await traceSession.send('IO.close', { handle: stream });
+      await traceSession.detach();
+      writeJson('trace.json', JSON.parse(contents));
+      report.trace = { bytes: Buffer.byteLength(contents), limit: 'One separate profiled passage; excluded from native six-run series.' };
+    }
     const clickedAt = await writer.evaluate(() => window.__A9_CLICK__);
     const own = await writer.evaluate(() => window.__A9_MATCH__);
     const other = await observer.evaluate(() => window.__A9_MATCH__);

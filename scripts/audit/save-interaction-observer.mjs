@@ -80,7 +80,7 @@ export function installSaveInteractionObserver() {
     restorers.push(() => { if (object[key] === observed) object[key] = original; });
   };
   wrap(data, 'execute', ([c]) => ({ command: c?.name, authoritativeResult: c?.remoteResultIsAuthoritative === true,
-    changedEntities: c?.changedEntities }));
+    authoritativeCommit: c?.remoteCommitIsAuthoritative === true, changedEntities: c?.changedEntities }));
   wrap(data, 'invalidateSchoolOperationalCoverage');
   wrap(data, 'applyRemoteState', ([, entities, source]) => ({ entities, source }));
   wrap(data, 'loadSchoolOperationalContext', ([, , o]) => ({ source: o?.source }));
