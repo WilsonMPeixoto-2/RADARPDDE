@@ -68,7 +68,7 @@ export function maySkipLifecycleForAuditDocs(report) {
   return report?.scope === 'docs-only'
     && Array.isArray(report.files)
     && report.files.length > 0
-    && report.files.every(file => /^docs\\/audits\\/[A-Za-z0-9_.-]+\\.md$/.test(file));
+    && report.files.every(file => new RegExp('^docs/audits/[A-Za-z0-9_.-]+[.]md$').test(file));
 }
 
 function git(...args) {
