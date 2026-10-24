@@ -309,6 +309,11 @@
             return async ({ repository, snapshot, value, defaultPersist }) => {
                 const capabilities = repository.capabilities();
                 if (capabilities.atomicInvoiceEffects !== true) {
+                    if (options.qualityProvisionalId) {
+                        fail('ATOMIC_PERSISTENCE_REQUIRED',
+                            'A identificação de uma movimentação provisória exige persistência atômica no Supabase.',
+                            'invoice:identify-quality-provisional');
+                    }
                     return defaultPersist();
                 }
                 const entities = snapshot.entities || {};
