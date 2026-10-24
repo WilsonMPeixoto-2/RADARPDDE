@@ -169,3 +169,51 @@ test.describe('F06 — formulário NF: foco, validação e reflow desktop', () =
     });
   });
 });
+
+
+test('Observação escolhida antes do frame não devolve foco à Descrição nem mistura os textos', async ({ page }) => {
+  await page.goto('/');
+  await page.waitForFunction(() => window.RadarDataContext?.ready === true
+    && typeof window.RadarModalAccessibility?.getActiveDialog === 'function');
+  const state = await page.evaluate(async () => {
+    if (window.RadarProductExtensionsReady) await window.RadarProductExtensionsReady;
+    switchProfile('controlador');
+    const school = escolas.find(item => (
+      Array.isArray(item.programasIds)
+      && item.programasIds.length > 0
+      && isCompetenceInScope(item.competenciaInicial, activeCompetenciaKey)
+    ));
+    if (!school) throw new Error('F06: escola compatível não encontrada.');
+    activeProntuarioCompetencia = activeCompetenciaKey;
+    switchView('prontuario', school.id);
+    const compKey = activeCompetenciaKey + '_' + school.programasIds[0];
+    if (!window.RadarUnidentifiedExpenseUx?.open(school.id, compKey)) {
+      throw new Error('F06: modal provisório não abriu.');
+    }
+    const observation = document.getElementById('nota-unidentified-observation');
+    if (!observation || observation.closest('[hidden]')) {
+      throw new Error('F06: Observação provisória não está disponível.');
+    }
+    // A troca de foco ocorre NO MESMO task da abertura, antes do rAF
+    // programado por modal-accessibility.js e app.js.
+    observation.focus({ preventScroll: true });
+    return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => {
+      resolve({
+        activeId: document.activeElement?.id || null,
+        modalOpen: document.getElementById('modal-dados-nota')?.classList.contains('show'),
+        observationVisible: observation.getClientRects().length > 0
+      });
+    })));
+  });
+  expect(state).toMatchObject({
+    activeId: 'nota-unidentified-observation',
+    modalOpen: true,
+    observationVisible: true
+  });
+  const observation = page.locator('#nota-unidentified-observation');
+  await expect(observation).toBeFocused();
+  await observation.fill('Débito observado no extrato; documento não apresentado.');
+  await expect(observation).toHaveValue('Débito observado no extrato; documento não apresentado.');
+  await expect(page.locator('#nota-desc')).toHaveValue('');
+  await expect(observation).toBeFocused();
+});
