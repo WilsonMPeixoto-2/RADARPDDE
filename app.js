@@ -11615,6 +11615,9 @@ function openModalDadosNota(escolaId, compKey) {
     const accessProfile = getRadarAccessProfile();
     if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
     document.getElementById('form-dados-nota').reset();
+    // Hidden values reflect their defaults; reset() alone retains the last origin.
+    document.getElementById('nota-quality-provisional-id').value = '';
+    document.getElementById('nota-quality-provisional-version').value = '';
     document.getElementById('nota-modal-intro').textContent = 'Cadastre o gasto referente a esta Nota Fiscal para que o sistema direcione as obrigações operacionais corretas.';
     document.getElementById('nota-escola-id').value = escolaId;
     document.getElementById('nota-comp-key').value = compKey;
