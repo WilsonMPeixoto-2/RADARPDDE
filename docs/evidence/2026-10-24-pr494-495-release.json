@@ -1,0 +1,180 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-24T19:52:41.500Z",
+  "scope": "PDDE Qualidade: registrar saída sem Ação Integrada e identificar depois",
+  "sourcePr": 494,
+  "sourceMerge": "96f4955419334943fbc34831b27ad7a1485e854a",
+  "hotfixPr": 495,
+  "hotfixHead": "9ccddfff9340cdeb7296bbd979d24f1bcf178826",
+  "releaseMerge": "99a28bb82b1d7596f1b6a999b21ff47084e644b6",
+  "migration": {
+    "version": "20261024120000",
+    "appliedCount": 62,
+    "sha256": "b7b5fe1ea95d2559b65082dfc938a6f23655d9f2fe6b57cd9ecf301c2f1a675a",
+    "preflightRun": 40122067027,
+    "backupRun": 40122540213,
+    "applyRun": 40124334481,
+    "backupArtifactId": 12571876362,
+    "backupArtifactZipSha256": "03ea91b0b8157683ea9ff79a3ce1612e02f10379ea2afde39c85713d613841a0",
+    "backupExpires": "2027-01-22",
+    "note": "Backup cifrado com restauração ensaiada; preservar a senha do banco vigente no instante do backup para recuperar a chave. Não reaplicar a migration."
+  },
+  "containment": {
+    "cause": "form.reset() conserva valores/defaults atribuídos a inputs hidden",
+    "rollbackCommit": "22faf5482bd79b84e7503ea460a733ab3c830b19",
+    "rollbackDeployment": "dpl_HJaPgzTG4Z27cib7BYSe12u1vM5b",
+    "provisionalRowsAtCheck": 0,
+    "identifiedRowsAtCheck": 0,
+    "databaseReverted": false
+  },
+  "deployment": {
+    "id": "dpl_JA19wLSWdEJJT5XwfyuMKJ8ojUQ4",
+    "projectId": "prj_GfXuUuO3dF2jykpp9QgyqIDsxg4U",
+    "environment": "production",
+    "state": "READY",
+    "explicitPromotion": true,
+    "domain": "https://radarpdde-fix.vercel.app",
+    "verifiedCommit": "99a28bb82b1d7596f1b6a999b21ff47084e644b6"
+  },
+  "smoke": {
+    "status": "approved",
+    "assetCount": 54,
+    "anonymousRlsEvidence": "blocked-401",
+    "productionWrites": false,
+    "authenticatedProductionJourney": false
+  },
+  "productionReadOnly": {
+    "migrations": 62,
+    "lastMigration": "20261024120000",
+    "qualityRls": true,
+    "schools": 163,
+    "invoices": 496,
+    "pendencies": 700,
+    "provisionalRows": 0,
+    "identifiedRows": 0
+  },
+  "hotfixWorkflows": [
+    {
+      "id": 40125658911,
+      "name": "Validar snapshot canônico do RADAR",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1
+    },
+    {
+      "id": 40125658799,
+      "name": "Contratos-fonte do Excel SME",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1
+    },
+    {
+      "id": 40125658852,
+      "name": "Validar RADAR PDDE",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1
+    },
+    {
+      "id": 40125658887,
+      "name": "Retificação auditável direcionada",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1
+    },
+    {
+      "id": 40125658885,
+      "name": "Estabilidade de posição do Prontuário",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1
+    },
+    {
+      "id": 40125658889,
+      "name": "Lighthouse CI",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1
+    },
+    {
+      "id": 40125658781,
+      "name": "Regressões específicas do help desk",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1
+    },
+    {
+      "id": 40125658946,
+      "name": "Identificação de Despesa a identificar",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1
+    },
+    {
+      "id": 40125658975,
+      "name": "CodeQL",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1
+    },
+    {
+      "id": 40125658795,
+      "name": "Confiabilidade funcional com Supabase real",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1
+    },
+    {
+      "id": 40125658779,
+      "name": "Regressão visual desktop",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1
+    },
+    {
+      "id": 40125658773,
+      "name": "Supabase readiness",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1
+    },
+    {
+      "id": 40125658847,
+      "name": "Gate remoto de perfis e viewports",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1
+    },
+    {
+      "id": 40125658916,
+      "name": "Testes E2E Playwright",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1
+    },
+    {
+      "id": 40125658917,
+      "name": "Homologação integral pré-production",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1
+    },
+    {
+      "id": 40125658972,
+      "name": "Uso real operacional com volume semelhante a Production",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1
+    },
+    {
+      "id": 40125658928,
+      "name": "Ciclos funcionais reais com Supabase",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 2
+    }
+  ],
+  "knownValidationLimit": "Ciclos funcionais: primeira tentativa falhou na prontidão Auth; causa não demonstrada. Uma repetição dirigida passou com 21 cenários. Nenhum teste, timeout ou Auth foi alterado. Revisão automática Copilot não executada por quota.",
+  "followUp": "F12 suspensa; nenhuma nova auditoria ou investigação de busca iniciada. A branch release é trilha operacional e não deve ser integrada à main."
+}
+
