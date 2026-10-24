@@ -1,5 +1,23 @@
 # RADAR PDDE — estado atual e retomada
 
+## PDDE Qualidade — publicação e limpeza de contexto fiscal — 24/10/2026
+
+- #494 integrado em `96f49554`; **migration 62 aplicada** no projeto institucional,
+  RLS/grants/RPC verificados e integridade saudável. Backup recuperável cifrado:
+  [run 40122540213](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/40122540213).
+- A conferência final detectou retenção do ID/versão do provisório ao reabrir NF
+  comum sem reload. O frontend foi revertido a F06/`22faf548`; naquele instante
+  o banco continha **zero provisórios/identificados**. Migration e dados preservados.
+- Esta correção limpa os dois campos na abertura canônica e protege cancelamento,
+  identificação concluída e cadastro de NF comum na mesma sessão. É fechamento
+  da própria entrega Qualidade; sem novo escopo fiscal, schema ou modernização.
+  [Causa, RED/GREEN e liberação](evidence/2026-10-24-quality-invoice-context-cleanup.md).
+- Após o rollback, conferir **promoção explícita** do deployment corrigido. O PR
+  de limpeza de contexto registra a conclusão/SHA/deployment reais; revalidar
+  esses dados antes de retomar. F12 continua suspensa por prioridade.
+
+## Histórico — homologação e primeira publicação do #494
+
 ## Entrega operacional corrente — PDDE Qualidade / #494 — 24/10/2026
 
 - **F06 integrada e publicada:** `main@22faf548`, Vercel

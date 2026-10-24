@@ -93,6 +93,16 @@ test('Controlador registra saída sem programa, reencontra e identifica uma úni
   await expect(invoice.locator('#nota-desc')).toHaveValue('Saída conferida no extrato');
   await expect(invoice.locator('#nota-valor')).toHaveValue('250.35');
   await expect(invoice.locator('#nota-tipo option[value="a_identificar"]')).toBeDisabled();
+  const fiscalRow = page.locator('tr[data-program-id="CONECTADA"][data-document-key="notaFiscal"]');
+  // Cancelar uma identificação não pode contaminar o próximo cadastro comum.
+  await invoice.getByRole('button', { name: 'Cancelar', exact: true }).click();
+  await fiscalRow.getByRole('button', { name: 'Adicionar Nota', exact: true }).click();
+  await expect(invoice.locator('#nota-quality-provisional-id')).toHaveValue('');
+  await expect(invoice.locator('#nota-quality-provisional-version')).toHaveValue('');
+  await expect(invoice.getByRole('button', { name: 'Salvar Gasto', exact: true })).toBeVisible();
+  await invoice.getByRole('button', { name: 'Cancelar', exact: true }).click();
+  await record.getByRole('combobox').selectOption('CONECTADA');
+  await record.getByRole('button', { name: 'Identificar despesa', exact: true }).click();
   await invoice.getByLabel('Tipo de Gasto', { exact: true }).selectOption('consumo');
   await invoice.screenshot({ path: testInfo.outputPath('quality-identification-form.png') });
 
@@ -109,13 +119,34 @@ test('Controlador registra saída sem programa, reencontra e identifica uma úni
   await page.unroute(rpc);
   await invoice.getByRole('button', { name: 'Identificar despesa', exact: true }).click();
   await expect(invoice).not.toHaveClass(/show/);
+  const identified = await state(page, schoolId, movementId);
+  // Sem reload: o formulário comum deve voltar à RPC fiscal ordinária.
+  await fiscalRow.getByRole('button', { name: 'Adicionar Nota', exact: true }).click();
+  await expect(invoice.locator('#nota-quality-provisional-id')).toHaveValue('');
+  await expect(invoice.locator('#nota-quality-provisional-version')).toHaveValue('');
+  const ordinaryNumber = `ORD-${Date.now()}`;
+  await invoice.locator('#nota-desc').fill('Despesa comum após identificação');
+  await invoice.locator('#nota-numero').fill(ordinaryNumber);
+  await invoice.locator('#nota-valor').fill('10');
+  const ordinarySaved = page.waitForResponse(response => response.url().endsWith('/rpc/save_invoice_with_effects_v2'));
+  await invoice.getByRole('button', { name: 'Salvar Gasto', exact: true }).click();
+  expect((await ordinarySaved).ok()).toBe(true);
+  await expect(invoice).not.toHaveClass(/show/);
   await page.reload();
   await ready(page);
   await expect(record).toContainText('Identificada');
   await expect(record.getByRole('button', { name: 'Identificar despesa', exact: true })).toHaveCount(0);
   const final = await state(page, schoolId, movementId);
   expect(final.movement.status).toBe('identified');
-  expect(final.invoices).toHaveLength(baseline.invoices.length + 1);
+  expect(final.invoices).toHaveLength(baseline.invoices.length + 2);
+  expect(final.movement).toEqual(identified.movement);
+  expect(final.invoices.filter(item => item.invoice_number === ordinaryNumber)).toHaveLength(1);
+  expect(final.invoices.find(item => item.invoice_number === ordinaryNumber))
+    .toMatchObject({ description: 'Despesa comum após identificação', amount: 10, program_id: 'CONECTADA' });
+  const ordinaryRow = page.locator('.invoice-document-row').filter({ hasText: ordinaryNumber });
+  await expect(ordinaryRow).toBeVisible();
+  await expect(ordinaryRow).toContainText('Material de consumo');
+  await expect(ordinaryRow).toContainText('10,00');
   expect(final.invoices.find(item => item.id === final.movement.registered_invoice_id))
     .toMatchObject({ description: 'Saída conferida no extrato', amount: 250.35, program_id: 'CONECTADA', invoice_number: number });
   expect(final.pendencies).toEqual(baseline.pendencies);
