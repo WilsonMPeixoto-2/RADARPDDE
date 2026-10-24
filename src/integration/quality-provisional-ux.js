@@ -189,7 +189,7 @@
     const panel = byId('quality-provisional-panel');
     if (!panel || !input.schoolId || !input.competence) return;
     const programs = (input.programs || []).filter(p => PROGRAMS.has(p.id));
-    if (!programs.length || !input.canEdit) { panel.hidden = true; return; }
+    if (!input.canEdit) { panel.hidden = true; return; }
     panel.hidden = false;
     context = { schoolId: input.schoolId, competence: input.competence, programs, canEdit: true };
     const id = ++generation;
