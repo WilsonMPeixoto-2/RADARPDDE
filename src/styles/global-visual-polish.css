@@ -685,6 +685,18 @@ textarea.form-control {
     background: color-mix(in srgb, var(--bg-sidebar) 94%, var(--bg-input) 6%);
 }
 
+/* F06: ao navegar por Tab com zoom/reflow, o rodapé sticky de NF não
+   pode encobrir o campo focado nem o seu rótulo. O scroll-padding ajusta
+   a área útil do scrollport; o scroll-margin acompanha o foco nativo. */
+#modal-dados-nota .modal-body {
+    scroll-padding-block-end: 112px;
+}
+
+#modal-dados-nota #form-dados-nota .form-control {
+    scroll-margin-block-start: 36px;
+    scroll-margin-block-end: 112px;
+}
+
 /* Mantém os CTAs visíveis em formulários longos, sem alterar o fluxo. */
 #modal-contato .modal-footer,
 #modal-escola-edit .modal-footer,
