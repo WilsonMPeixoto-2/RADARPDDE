@@ -353,5 +353,10 @@
     "Snapshot inicial, não classificação conclusiva dos 42 sítios.",
     "Prova de interpretação de HTML em fixture local, sem persistência ou consulta a Production.",
     "Não é prova de exploração de conta real nem auditoria universal de segurança."
-  ]
+  ],
+  "secondControlledBrowserProbe": {
+    "input": "Escola \"Modelo\" & Jardim",
+    "afterFilter": "Escola ",
+    "scope": "Fixture local; interação no filtro real; nenhuma persistência ou consulta a Production"
+  }
 }
