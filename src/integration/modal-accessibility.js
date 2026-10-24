@@ -70,7 +70,13 @@
         dialog.setAttribute('aria-hidden', 'false');
         dialog.removeAttribute('inert');
         document.body.classList.add('modal-open');
-        root.requestAnimationFrame(() => focusInitial(dialog));
+        const focusWhenOpened = document.activeElement;
+        root.requestAnimationFrame(() => {
+            if (!dialog.classList.contains('show')) return;
+            const focusedNow = document.activeElement;
+            if (focusedNow !== focusWhenOpened && dialog.contains(focusedNow)) return;
+            focusInitial(dialog);
+        });
         return result;
     }
 

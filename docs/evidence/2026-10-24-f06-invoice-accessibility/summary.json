@@ -1,0 +1,220 @@
+{
+  "baselineCheckout": "e700fba83f1dd8030f9bfd36eb490e990369a799",
+  "candidateBase": "9b86b19d8e8090087e4b166aeb03e99ffbf29fea",
+  "candidateInputHashes": {
+    "src/styles/global-visual-polish.css": "6bf558febab2ed68c8ef536c36314371705df8b39e9f266fd4bc009dcd669c25",
+    "src/integration/modal-accessibility.js": "9b49c9e774b22a3696b2437f1e1ab286424a751ec52870b1f4d84522caf5b673",
+    "scripts/audit/invoice-accessibility-states.mjs": "e52efaa09c560481b224d23e533e0b152a836fd4d533946404ca811c1b6e7ead",
+    "index.html": "85c675d24e191c046eebcc5e54c4a22be9d9f173e0d5fc38532e6b21b3dab411"
+  },
+  "versions": {
+    "@playwright/test": "1.64.1",
+    "@axe-core/playwright": "4.14.0",
+    "@supabase/supabase-js": "2.118.0"
+  },
+  "browser": "156.0.8078.4",
+  "database": {
+    "version": "PostgreSQL 17.6 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit",
+    "migrations": 61,
+    "lastMigration": "20261011193500"
+  },
+  "environment": "local-disposable-authenticated-source-headless",
+  "baselineCompleted": false,
+  "candidateCompleted": true,
+  "redFailure": "Keyboard focus must remain visible and unobscured at 200%: nota-tipo, nota-valor covered by modal-footer",
+  "cases": [
+    {
+      "zoom": 1,
+      "viewport": {
+        "width": 1440,
+        "height": 813,
+        "dpr": 1,
+        "pinchScale": 1
+      },
+      "baselineObscured": [],
+      "candidateObscured": [],
+      "candidateChecks": 9,
+      "validation": {
+        "valueMissing": true,
+        "message": "Please fill out this field.",
+        "invalid": true
+      },
+      "correctedFormValid": true,
+      "returnFocus": true,
+      "competence": "2026-05",
+      "axe": {
+        "normal": {
+          "violations": [],
+          "incomplete": [
+            {
+              "id": "label-content-name-mismatch",
+              "impact": "serious",
+              "nodes": [
+                {
+                  "target": [
+                    ".btn-close[onclick=\"closeModal('modal-dados-nota')\"][aria-label=\"Fechar\"]"
+                  ],
+                  "summary": "Fix any of the following:\n  Unable to determine if the visible text is part of the accessible name"
+                }
+              ]
+            }
+          ],
+          "passes": 17
+        },
+        "invalid": {
+          "violations": [],
+          "incomplete": [
+            {
+              "id": "label-content-name-mismatch",
+              "impact": "serious",
+              "nodes": [
+                {
+                  "target": [
+                    ".btn-close[onclick=\"closeModal('modal-dados-nota')\"][aria-label=\"Fechar\"]"
+                  ],
+                  "summary": "Fix any of the following:\n  Unable to determine if the visible text is part of the accessible name"
+                }
+              ]
+            }
+          ],
+          "passes": 17
+        }
+      }
+    },
+    {
+      "zoom": 2,
+      "viewport": {
+        "width": 720,
+        "height": 406,
+        "dpr": 2,
+        "pinchScale": 1
+      },
+      "baselineObscured": [
+        {
+          "id": "nota-tipo",
+          "cover": "modal-footer"
+        },
+        {
+          "id": "nota-valor",
+          "cover": "modal-footer"
+        }
+      ],
+      "candidateObscured": [],
+      "candidateChecks": 9,
+      "validation": {
+        "valueMissing": true,
+        "message": "Please fill out this field.",
+        "invalid": true
+      },
+      "correctedFormValid": true,
+      "returnFocus": true,
+      "competence": "2026-05",
+      "axe": {
+        "normal": {
+          "violations": [],
+          "incomplete": [
+            {
+              "id": "label-content-name-mismatch",
+              "impact": "serious",
+              "nodes": [
+                {
+                  "target": [
+                    ".btn-close[onclick=\"closeModal('modal-dados-nota')\"][aria-label=\"Fechar\"]"
+                  ],
+                  "summary": "Fix any of the following:\n  Unable to determine if the visible text is part of the accessible name"
+                }
+              ]
+            }
+          ],
+          "passes": 18
+        },
+        "invalid": {
+          "violations": [],
+          "incomplete": [
+            {
+              "id": "label-content-name-mismatch",
+              "impact": "serious",
+              "nodes": [
+                {
+                  "target": [
+                    ".btn-close[onclick=\"closeModal('modal-dados-nota')\"][aria-label=\"Fechar\"]"
+                  ],
+                  "summary": "Fix any of the following:\n  Unable to determine if the visible text is part of the accessible name"
+                }
+              ]
+            }
+          ],
+          "passes": 18
+        }
+      }
+    }
+  ],
+  "candidateBrowserErrors": [],
+  "candidateInvoiceWriteRequests": 0,
+  "candidatePersistedInvoices": 0,
+  "before": {
+    "users": 7,
+    "profiles": 6,
+    "schools": 5,
+    "controllers": 8,
+    "invoices": 23
+  },
+  "after": {
+    "users": 7,
+    "profiles": 6,
+    "schools": 5,
+    "controllers": 8,
+    "invoices": 23
+  },
+  "limitations": [
+    "One existing consumption invoice form and one controller profile; not all forms or WCAG certification.",
+    "Native browser zoom via chrome.tabs.setZoom; headless Chromium, not a screen reader or personal desktop session.",
+    "No valid invoice is submitted. Saving/server errors/reanalysis are outside this bounded round.",
+    "Local disposable PostgreSQL may differ from hosted Production; not a performance benchmark."
+  ],
+  "rawResults": {
+    "red": {
+      "bytes": 15793,
+      "sha256": "0139951724dff9cbe50567002ed2bcbbb57c98df67f80fa42097432875a2a5d8"
+    },
+    "green": {
+      "bytes": 15614,
+      "sha256": "3d8a7b169102094fa6b1fa31c045ad1706101b8162daa7777fd44caa5bfcf787"
+    },
+    "consolidatedGreen": {
+      "bytes": 15728,
+      "sha256": "5284e88ca09f33114f4631e621e3a7b45d6351cb52e24bc40b2e0277d6977d3e"
+    }
+  },
+  "focusConsolidation": {
+    "donorHead": "2b1d372227b5b50f6169a586a76f001604e78457",
+    "baselineHead": "9b86b19d8e8090087e4b166aeb03e99ffbf29fea",
+    "red": {
+      "command": "playwright test tests/e2e/modal-accessibility.spec.js --project=desktop-chromium --workers=1 --grep 'Observação escolhida'",
+      "exitCode": 1,
+      "expectedActiveId": "nota-unidentified-observation",
+      "actualActiveId": null,
+      "modalOpen": true,
+      "observationVisible": true
+    },
+    "green": {
+      "relatedE2E": 11,
+      "invoiceServiceUnit": 22,
+      "nativeZoomPassed": [
+        1,
+        2
+      ]
+    },
+    "initialFocusContract": "Valid focus inside the dialog; keep current main preference, preserve later deliberate focus choice",
+    "runtimeChanges": [
+      "CSS scroll-padding only in invoice body",
+      "Guard delayed focus in existing modal manager"
+    ],
+    "excludedFromDonor": [
+      "app.js extra focus scheduler",
+      "Explicit preference for Description",
+      "Extra scroll margins",
+      "Sustained benchmark animation override"
+    ]
+  }
+}

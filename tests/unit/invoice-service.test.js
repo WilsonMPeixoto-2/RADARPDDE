@@ -712,6 +712,8 @@ test('comando atômico cria despesa a identificar Incorreta já vinculada à Pen
 
     assert.equal(created.value.invoice.analiseDocumentoFiscal, 'Incorreto');
     assert.equal(created.value.pendency.status, 'Aberta');
+    assert.equal(created.value.pendency.observacao, 'Documento não apresentado.');
+    assert.equal(created.value.invoice.desc, 'Débito observado no extrato');
     assert.equal(
         created.value.pendency.registeredInvoiceId,
         created.value.invoice.id

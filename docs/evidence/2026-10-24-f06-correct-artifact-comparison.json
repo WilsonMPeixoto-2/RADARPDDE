@@ -1,0 +1,334 @@
+{
+  "status": "diagnostic-comparison-complete",
+  "sourceRuntime": "3314faa27ab74642ac4126488c2a90ea5a664b0c",
+  "runId": 40071155543,
+  "inputs": {
+    "baseline": {
+      "artifactId": 12551799525,
+      "attempt": 2,
+      "sha256": "9dfeb6aff2a0d3bedb3ffea68fcbe545b5865033ff260960297810c9aa67a9a6"
+    },
+    "candidate": {
+      "artifactId": 12551383602,
+      "attempt": 1,
+      "sha256": "12bfc4af9c9a68c088a902a20259a75c3325b868faf56d0bb58fab2c76cd6a6a"
+    }
+  },
+  "staleBaselineSelectedByWorkflow": {
+    "artifactId": 12551821292,
+    "attempt": 1,
+    "outcome": "failed in login, zero gestures"
+  },
+  "comparatorSha256": "8d8176391fb4d3692f7c1fad4591110cbb4a647e064a715544e7e5053cd2c719",
+  "command": "node scripts/compare-operational-sessions.mjs --baseline <fresh baseline artifact root> --candidate <successful candidate artifact root> --output <output>",
+  "exitCode": 0,
+  "changes": {
+    "gestures": {
+      "baseline": 1107,
+      "candidate": 1107,
+      "absolute": 0,
+      "percent": 0,
+      "percentUnavailableReason": null
+    },
+    "writeAttempts": {
+      "baseline": 1107,
+      "candidate": 1107,
+      "absolute": 0,
+      "percent": 0,
+      "percentUnavailableReason": null
+    },
+    "successfulWrites": {
+      "baseline": 1107,
+      "candidate": 1107,
+      "absolute": 0,
+      "percent": 0,
+      "percentUnavailableReason": null
+    },
+    "readAttempts": {
+      "baseline": 61,
+      "candidate": 54,
+      "absolute": -7,
+      "percent": -11.475409836065573,
+      "percentUnavailableReason": null
+    },
+    "successfulReadResponses": {
+      "baseline": 21,
+      "candidate": 21,
+      "absolute": 0,
+      "percent": 0,
+      "percentUnavailableReason": null
+    },
+    "abortedReadAttempts": {
+      "baseline": 39,
+      "candidate": 32,
+      "absolute": -7,
+      "percent": -17.94871794871795,
+      "percentUnavailableReason": null
+    },
+    "readHttpErrors": {
+      "baseline": 1,
+      "candidate": 1,
+      "absolute": 0,
+      "percent": 0,
+      "percentUnavailableReason": null
+    },
+    "readNetworkErrors": {
+      "baseline": 0,
+      "candidate": 0,
+      "absolute": 0,
+      "percent": null,
+      "percentUnavailableReason": "zero-baseline"
+    },
+    "payloadBytes": {
+      "baseline": 27908251,
+      "candidate": 13305354,
+      "absolute": -14602897,
+      "percent": -52.3246583958271,
+      "percentUnavailableReason": null
+    },
+    "staleLoads": {
+      "baseline": 40,
+      "candidate": 33,
+      "absolute": -7,
+      "percent": -17.5,
+      "percentUnavailableReason": null
+    },
+    "abortedLoads": {
+      "baseline": 39,
+      "candidate": 32,
+      "absolute": -7,
+      "percent": -17.94871794871795,
+      "percentUnavailableReason": null
+    },
+    "failedLoads": {
+      "baseline": 1,
+      "candidate": 1,
+      "absolute": 0,
+      "percent": 0,
+      "percentUnavailableReason": null
+    },
+    "stateApplies": {
+      "baseline": 1127,
+      "candidate": 1127,
+      "absolute": 0,
+      "percent": 0,
+      "percentUnavailableReason": null
+    },
+    "renderCalls": {
+      "baseline": 1123,
+      "candidate": 1123,
+      "absolute": 0,
+      "percent": 0,
+      "percentUnavailableReason": null
+    },
+    "domReplacements": {
+      "baseline": 320,
+      "candidate": 320,
+      "absolute": 0,
+      "percent": 0,
+      "percentUnavailableReason": null
+    },
+    "domMutations": {
+      "baseline": 89286,
+      "candidate": 87616,
+      "absolute": -1670,
+      "percent": -1.870394014739153,
+      "percentUnavailableReason": null
+    },
+    "sampledOpacityFrames": {
+      "baseline": 12091,
+      "candidate": 12278,
+      "absolute": 187,
+      "percent": 1.546604912745017,
+      "percentUnavailableReason": null
+    },
+    "fadedOpacityFrames": {
+      "baseline": 760,
+      "candidate": 0,
+      "absolute": -760,
+      "percent": -100,
+      "percentUnavailableReason": null
+    },
+    "nearlyInvisibleFrames": {
+      "baseline": 653,
+      "candidate": 0,
+      "absolute": -653,
+      "percent": -100,
+      "percentUnavailableReason": null
+    },
+    "pageErrors": {
+      "baseline": 0,
+      "candidate": 0,
+      "absolute": 0,
+      "percent": null,
+      "percentUnavailableReason": "zero-baseline"
+    },
+    "longTaskCount": {
+      "baseline": 1085,
+      "candidate": 1817,
+      "absolute": 732,
+      "percent": 67.46543778801843,
+      "percentUnavailableReason": null
+    },
+    "longTaskTotalMs": {
+      "baseline": 80641,
+      "candidate": 154749,
+      "absolute": 74108,
+      "percent": 91.8986619709577,
+      "percentUnavailableReason": null
+    },
+    "longTaskBlockingMs": {
+      "baseline": 26392,
+      "candidate": 63899,
+      "absolute": 37507,
+      "percent": 142.1150348590482,
+      "percentUnavailableReason": null
+    },
+    "applyMeasuredCount": {
+      "baseline": 1127,
+      "candidate": 1127,
+      "absolute": 0,
+      "percent": 0,
+      "percentUnavailableReason": null
+    },
+    "applyTotalMs": {
+      "baseline": 16952.100000000035,
+      "candidate": 24715.099999999715,
+      "absolute": 7762.99999999968,
+      "percent": 45.79373646922602,
+      "percentUnavailableReason": null
+    },
+    "renderMeasuredCount": {
+      "baseline": 1123,
+      "candidate": 1123,
+      "absolute": 0,
+      "percent": 0,
+      "percentUnavailableReason": null
+    },
+    "renderTotalMs": {
+      "baseline": 3464.4999999981665,
+      "candidate": 4812.399999999616,
+      "absolute": 1347.9000000014494,
+      "percent": 38.90604704869859,
+      "percentUnavailableReason": null
+    },
+    "elapsedMs": {
+      "baseline": 386344.669827,
+      "candidate": 488665.637301,
+      "absolute": 102320.967474,
+      "percent": 26.48437404864883,
+      "percentUnavailableReason": null
+    },
+    "readsPerMinute": {
+      "baseline": 9.473406224651422,
+      "candidate": 6.6303004604440385,
+      "absolute": -2.843105764207383,
+      "percent": -30.01144146874158,
+      "percentUnavailableReason": null
+    },
+    "longTasksPerMinute": {
+      "baseline": 168.5023894056851,
+      "candidate": 223.0973321597559,
+      "absolute": 54.594942754070786,
+      "percent": 32.40010004999301,
+      "percentUnavailableReason": null
+    },
+    "sqlCalls": {
+      "baseline": 43,
+      "candidate": 45,
+      "absolute": 2,
+      "percent": 4.651162790697675,
+      "percentUnavailableReason": null
+    },
+    "sqlTotalExecMs": {
+      "baseline": 12725.139117,
+      "candidate": 10847.39629,
+      "absolute": -1877.742827,
+      "percent": -14.75616737652362,
+      "percentUnavailableReason": null
+    }
+  },
+  "costBudgets": {
+    "status": "not-established",
+    "mode": "report-only",
+    "note": "No operational cost SLO is established here. Timer-derived read limits are not cost acceptance criteria; a completed comparison is not release approval."
+  },
+  "warnings": [
+    {
+      "code": "cost-regression",
+      "metric": "sqlCalls",
+      "baseline": 43,
+      "candidate": 45,
+      "absolute": 2,
+      "percent": 4.651162790697675,
+      "percentUnavailableReason": null
+    },
+    {
+      "code": "cost-regression",
+      "metric": "longTaskCount",
+      "baseline": 1085,
+      "candidate": 1817,
+      "absolute": 732,
+      "percent": 67.46543778801843,
+      "percentUnavailableReason": null
+    },
+    {
+      "code": "cost-regression",
+      "metric": "longTaskTotalMs",
+      "baseline": 80641,
+      "candidate": 154749,
+      "absolute": 74108,
+      "percent": 91.8986619709577,
+      "percentUnavailableReason": null
+    },
+    {
+      "code": "cost-regression",
+      "metric": "longTaskBlockingMs",
+      "baseline": 26392,
+      "candidate": 63899,
+      "absolute": 37507,
+      "percent": 142.1150348590482,
+      "percentUnavailableReason": null
+    },
+    {
+      "code": "cost-regression",
+      "metric": "applyTotalMs",
+      "baseline": 16952.100000000035,
+      "candidate": 24715.099999999715,
+      "absolute": 7762.99999999968,
+      "percent": 45.79373646922602,
+      "percentUnavailableReason": null
+    },
+    {
+      "code": "cost-regression",
+      "metric": "renderTotalMs",
+      "baseline": 3464.4999999981665,
+      "candidate": 4812.399999999616,
+      "absolute": 1347.9000000014494,
+      "percent": 38.90604704869859,
+      "percentUnavailableReason": null
+    },
+    {
+      "code": "baseline-freshness-not-comparable",
+      "message": "Baseline includes stale/aborted reads. Fewer completed SQL calls or payload bytes can reflect deferred updates; final convergence alone does not establish equal freshness during activity."
+    }
+  ],
+  "limitations": [
+    "Browser read attempts include aborts before or after sending; they are not completed database statements.",
+    "pg_stat_statements spans a different interval, including bootstrap/reload outside browser observation; SQL cannot be assigned to individual sessions from these snapshots.",
+    "Payload is observed read response body bytes, including observed error bodies; it excludes unknown bodies, protocol overhead, writes and other endpoints.",
+    "DOM replacement/mutation counts are distinct from render calls. Sampled panel opacity is not comprehensive flicker or layout stability measurement.",
+    "Read durations use successful responses only (nearest-rank percentiles), include induced transport latency and exclude aborted requests.",
+    "Write HTTP durations cover observed successful write requests. UI write/apply summaries are copied from the instrumented subset (currently at most the last 100 evaluation samples); they are not all gestures. Null RPC/UI timing is unavailable, not zero. Aggregate p95/p99 cannot be reconstructed from session percentiles.",
+    "Browser long-task/apply/render timing is optional: older artifacts report not-recorded, not zero. Long-task availability depends on browser support; synchronous render duration does not include subsequent asynchronous rendering/paint.",
+    "Session indices follow the same workload order. Samples end before reload; the passed report attests reload assertions separately.",
+    "Completed observation records do not include requests still in flight at snapshot time. Absence of recorded errors does not certify unobserved intervals.",
+    "Massa sintética calibrada; não clone de Production.",
+    "Seis sessões/quatro Controladores: três escritores, dois observadores escolares e um Dashboard; inclui abas da mesma identidade.",
+    "Esta jornada mede avaliações e CRUD fiscal; não certifica patrimônio, Pendências, horas de uso ou staging.",
+    "Latência e HTTP 500 são induzidos no transporte; dados e Realtime são reais.",
+    "Um socket real é desconectado; snapshot SQL anterior é retido até recovery ser solicitado. UI só converge após a nova resposta global de recovery. A sonda antiga acrescenta uma leitura nas duas variantes.",
+    "Historical fixed baseline #408, not main immediately before F06. No metric here isolates F06 performance.",
+    "Seven warnings are preserved; successful comparison validates recorded invariants, not superiority of cost or equal freshness."
+  ]
+}
