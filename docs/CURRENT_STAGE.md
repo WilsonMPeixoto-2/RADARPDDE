@@ -1,6 +1,29 @@
 # RADAR PDDE — estado atual e retomada
 
-## Checkpoint de cobertura pós-upgrade e integração documental — 23/10/2026
+## Retomada após #485/#487/#488 — 23/10/2026 (Brasília)
+
+- Main conferida: `e913df2a4b114810f1fda0dfd67fd9d7f75a6a3d`, merge #488.
+- **Cobertura horizontal 26/26 integrada** pelo #485 (`2b46df7e`), complementando
+  #484 (`1cd0543d`). Não repetir A0–A9 ou B1–B4 sem mudança material.
+- #487 integrou fast-uri 3.1.9 e bundle Ajv reconstruído (`77388ad5`). Consulta
+  Vercel nesta retomada confirmou esse SHA em Production READY,
+  `dpl_EFRnrhgrNbBr27TDJ9oTcyMdcThY`; não antecipar publicação do merge seguinte.
+- #488 é somente instrumento de teste + relatório. Seis workflows verdes no HEAD
+  `f544a65a`; log original do ciclo `40043664844` / job `120720294826`: **20 pass,
+  1 flaky** (timeout de login/prontidão no spec de reanálise, antes dos cenários
+  alterados). Os dois perfis da caracterização passaram sem retry. Não afirmar
+  causa do timeout ou correção da divergência histórica por esses resultados.
+- F03 (#460 Caso A) passa a **aguardar recorrência capturada**. Sem polling novo,
+  modificação funcional ou repetição de testes até produzir falha.
+- [Matriz única](TECHNOLOGY_CAPABILITIES_TRACKER.md): F13/F15 reconciliadas com os
+  merges; próxima rodada escolhida **F06**, uma jornada com estados, teclado e
+  zoom. Ainda não executada. F01/F02 continuam condicionadas; não concentrar
+  novamente todo o programa no A9.
+
+As seções abaixo são checkpoints datados: frases sobre candidatos, 17/26 ou
+aprovação pendente não substituem o estado acima e o remoto atual.
+
+## Histórico — checkpoint de cobertura pós-upgrade e integração documental — 23/10/2026
 
 A [auditoria e a matriz de governança A0–A9 do PR #484](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/484)
 foram **integradas** na `main` pelo commit
