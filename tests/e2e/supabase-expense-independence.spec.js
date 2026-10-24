@@ -145,14 +145,65 @@ test.describe.serial('PR397 — independência com UI/Auth/Supabase reais', () =
             expect(after.bonus_result).toBe(before.bonus_result);
             for (const key of ['notaFiscal', 'extCC', 'extINV', 'declBBAgil']) expect(after.bonification[key]).toBe(before.bonification[key]);
             if (role === 'federal_assistant') expect(after.bonification.consAssessoria).toBe('Não');
+            // Capturar a prontidão no MESMO page.evaluate do resultado já testado.
+            // Nada de polling, whenHydrated() ou screenshots antes das asserções.
             const exported = await page.evaluate(() => {
+                const schoolId = 'ESC-INDEP-CONS';
+                const competence = '2026-05';
+                const program = 'BASIC';
                 const input = { escolas, competencias: COMPETENCIAS, programas, verificacoes };
-                return { result: getProgramBonificationStatus('ESC-INDEP-CONS', '2026-05', 'BASIC'),
-                    rows: window.RadarExcelExportModel.buildBaseRows(input).filter(row => row.designacao === '04.00.398') };
+                const verification = verificacoes?.[schoolId]?.[`${competence}_${program}`] || null;
+                const competenceContext = window.RadarCompetenceContext?.isInitialized?.()
+                    ? window.RadarCompetenceContext.getState()
+                    : null;
+                return {
+                    result: getProgramBonificationStatus(schoolId, competence, program),
+                    rows: window.RadarExcelExportModel.buildBaseRows(input)
+                        .filter(row => row.designacao === '04.00.398'),
+                    reloadReadiness: {
+                        dataReady: window.RadarDataContext?.ready === true,
+                        selectedCompetence: document.querySelector('#global-competence-select')?.value || null,
+                        competenceContext: competenceContext
+                            ? { activeKey: competenceContext.activeKey, exercise: competenceContext.exercise }
+                            : null,
+                        operationalCompetence: window.RadarApplicationServices?.data?.currentOperationalCompetence || null,
+                        memory: {
+                            present: Boolean(verification),
+                            result: verification?.resultadoBonif ?? verification?.bonus_result ?? null,
+                            documentNotaFiscal: verification?.bonificacao?.notaFiscal
+                                ?? verification?.bonification?.notaFiscal ?? null
+                        }
+                    }
+                };
             });
-            expect(exported.result).toBe(before.bonus_result);
-            expect(exported.rows).toHaveLength(1);
-            expect(exported.rows[0].statusBonificacao).toBe(before.bonus_result.toUpperCase());
+            // Preserva exatamente as expectativas anteriores: se houver divergência,
+            // anexar evidências APÓS a falha, sem permitir que screenshot/IO a mascare.
+            let exportAssertionError = null;
+            try {
+                expect(exported.result).toBe(before.bonus_result);
+                expect(exported.rows).toHaveLength(1);
+                expect(exported.rows[0].statusBonificacao).toBe(before.bonus_result.toUpperCase());
+            } catch (error) {
+                exportAssertionError = error;
+            }
+            await info.attach(`reload-bonification-readiness-${role}.json`, {
+                body: Buffer.from(JSON.stringify({
+                    schoolId: 'ESC-INDEP-CONS', competence: '2026-05', programId: 'BASIC',
+                    persistedBonusResult: after.bonus_result,
+                    initialBonusResult: before.bonus_result,
+                    projectedBonification: exported.result,
+                    exportedStatus: exported.rows[0]?.statusBonificacao ?? null,
+                    readiness: exported.reloadReadiness
+                }, null, 2)),
+                contentType: 'application/json'
+            });
+            if (exportAssertionError) {
+                await info.attach(`reload-bonification-visible-divergence-${role}.png`, {
+                    body: await page.screenshot({ animations: 'disabled' }),
+                    contentType: 'image/png'
+                });
+                throw exportAssertionError;
+            }
             await capture(page, info, `03-${role}-consolidacao-preservada`);
             const edited = row(page).locator('.invoice-document-row').filter({ hasText: `NF: NF-INDEP-${role}-EDIT` });
             await edited.getByRole('button', { name: `Excluir NF: NF-INDEP-${role}-EDIT`, exact: true }).click();
