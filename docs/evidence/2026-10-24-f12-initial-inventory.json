@@ -1,0 +1,357 @@
+{
+  "baseline": "e700fba83f1dd8030f9bfd36eb490e990369a799",
+  "errors": 0,
+  "warnings": 42,
+  "rules": {
+    "nounsanitized/property": 38,
+    "nounsanitized/method": 4
+  },
+  "sites": [
+    {
+      "file": "app.js",
+      "line": 4890,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "app.js",
+      "line": 5747,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML (Variable 'activeControladorName' initialized with unsafe value at 5667:34)",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "app.js",
+      "line": 5904,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "app.js",
+      "line": 6081,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "app.js",
+      "line": 6347,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "app.js",
+      "line": 6522,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "app.js",
+      "line": 6957,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "app.js",
+      "line": 7183,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "app.js",
+      "line": 7385,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "app.js",
+      "line": 7756,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "app.js",
+      "line": 7887,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML (Variable 'competenceKey' declared as function parameter, which is considered unsafe. 'FunctionDeclaration' at 7879:0)",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "app.js",
+      "line": 7891,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "app.js",
+      "line": 8101,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "app.js",
+      "line": 8704,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "app.js",
+      "line": 9307,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "app.js",
+      "line": 9360,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "app.js",
+      "line": 9580,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "app.js",
+      "line": 10906,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML (Variable 'visibleColumnCount' initialized with unsafe value at 10240:31)",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "app.js",
+      "line": 11987,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "app.js",
+      "line": 12053,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "app.js",
+      "line": 12130,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "app.js",
+      "line": 12277,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "app.js",
+      "line": 12282,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "app.js",
+      "line": 12446,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "app.js",
+      "line": 12579,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "src/application/directory-service.js",
+      "line": 38,
+      "rule": "nounsanitized/method",
+      "severity": 1,
+      "message": "Unsafe call to import for argument 0",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "src/integration/controller-guide.js",
+      "line": 514,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "src/integration/controller-guide.js",
+      "line": 531,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "src/integration/cycle-b-carteira.js",
+      "line": 233,
+      "rule": "nounsanitized/method",
+      "severity": 1,
+      "message": "Unsafe call to pendencyCell.insertAdjacentHTML for argument 1",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "src/integration/cycle-b-carteira.js",
+      "line": 243,
+      "rule": "nounsanitized/method",
+      "severity": 1,
+      "message": "Unsafe call to actions.insertAdjacentHTML for argument 1",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "src/integration/cycle-b-carteira.js",
+      "line": 254,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "src/integration/cycle-b-dashboard.js",
+      "line": 259,
+      "rule": "nounsanitized/method",
+      "severity": 1,
+      "message": "Unsafe call to actionCell.insertAdjacentHTML for argument 1",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "src/integration/cycle-b-dashboard.js",
+      "line": 301,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "src/integration/cycle-b-dashboard.js",
+      "line": 362,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "src/integration/excel-export-integration.js",
+      "line": 341,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "src/integration/shared-interactions.js",
+      "line": 233,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "src/integration/task-12-13-retificacoes.js",
+      "line": 421,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "src/integration/task-9-cross-view.js",
+      "line": 135,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "src/integration/task-9-cross-view.js",
+      "line": 181,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "src/integration/task-9-cross-view.js",
+      "line": 189,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "src/integration/task-9-pendencias-page.js",
+      "line": 894,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    },
+    {
+      "file": "src/integration/task-9-pendencias-page.js",
+      "line": 1190,
+      "rule": "nounsanitized/property",
+      "severity": 1,
+      "message": "Unsafe assignment to innerHTML",
+      "classification": "aguarda análise de contexto; aviso não equivale a defeito"
+    }
+  ],
+  "controlledBrowserProbe": {
+    "controllerName": "F12 <span data-f12-probe=\"name\">Nome literal</span>",
+    "interpretedNodes": 1,
+    "headerText": "Carteira ativa: F12 Nome literal. R.A. vinculada: 31ª R.A.. Você pode navegar por outras R.As ou pesquisar na CRE."
+  },
+  "limits": [
+    "Snapshot inicial, não classificação conclusiva dos 42 sítios.",
+    "Prova de interpretação de HTML em fixture local, sem persistência ou consulta a Production.",
+    "Não é prova de exploração de conta real nem auditoria universal de segurança."
+  ]
+}
