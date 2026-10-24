@@ -23,7 +23,7 @@
 | Grupo | Pacote fixado no manifesto | Cobertura | Uso reconhecido / evidência inicial | Orientação operacional após triagem | Vinculação | Decisão final |
 | --- | --- | --- | --- | --- | --- | --- |
 | Experiência | `@playwright/test@1.64.1` | **T1** | E2E, jornadas e capturas desktop/mobile; A0; #461, #463, #480 | Instrumentação já usada; locks/FPS apenas com problema comprovado | F04 / F05 | **ENCERRADA** — ver [triagem B4](audits/2026-10-23-capability-triage-b4.md); aprofundamentos F independentes |
-| Experiência | `@axe-core/playwright@4.14.0` | **T2** | Auditorias de acessibilidade de telas; A0/A3; #464, #466, #474; A9 | Problemas de nome acessível corrigidos; falta prova de estados/zoom/teclado | F06 | **ENCERRADA** — ver [triagem B4](audits/2026-10-23-capability-triage-b4.md); aprofundamentos F independentes |
+| Experiência | `@axe-core/playwright@4.14.0` | **T2** | Auditorias de acessibilidade de telas; A0/A3; #464, #466, #474; A9 | Nomes corrigidos; rodada NF de estados/zoom/teclado provada localmente, em homologação | F06 | **ENCERRADA** — ver [triagem B4](audits/2026-10-23-capability-triage-b4.md); aprofundamentos F independentes |
 | Experiência | `lighthouse@13.5.0` | **T2** | Lighthouse CI e piloto de jornada autenticada; A0/A9; #482 | Timespan/snapshot comprovados; não interpretar INP local como Production | F01 | **ENCERRADA** — ver [triagem B4](audits/2026-10-23-capability-triage-b4.md); aprofundamentos F independentes |
 | Experiência | `puppeteer-core@25.16.0` | **T1** | Driver direto do coletor opt-in de A9; devDependency; #482/#483 (integração/segurança) | Aproveitamento atual do A9 adequado; nova prova gráfica somente pela F01 | F01 / B1 | **ENCERRADA** — uso demonstrado; ver [triagem B1–B3](audits/2026-10-23-capability-triage-b1-b3.md) |
 | Experiência | `fuse.js@7.5.0` | **T2** | Índice de busca global/token matching; A0/A8; run 39990335333 | Cache melhorou cenário Node; browser/invalidação ainda não provados | F09 | **ENCERRADA** — ver [triagem B4](audits/2026-10-23-capability-triage-b4.md); aprofundamentos F independentes |
@@ -64,7 +64,7 @@ A numeração F identifica uma **frente de produto/metodologia**, não um pacote
 | **F03 / P1–P3** | Prontidão/projeção após reload, [#460 Caso A](https://github.com/WilsonMPeixoto-2/RADARPDDE/issues/460), [#488](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/488) | **INSTRUMENTO INTEGRADO; AGUARDANDO RECORRÊNCIA** | #488 integrado em `e913df2a`; sem polling novo ou alteração funcional. Retomar somente se os anexos capturarem divergência entre banco, memória, competência e exportação. Não repetir baterias até falhar | Seis workflows aprovados no HEAD `f544a65a`; ciclo real: 20 pass + 1 flaky de login em outro spec; ambos os perfis alterados passaram sem retry. Causa histórica não resolvida nem presumida; Caso B já corrigido por #463 |
 | **F04 / P1** | Playwright, estados de UI, test readiness/flakiness e fixtures serializadas; #463/#480 | **CORREÇÕES LOCALIZADAS CONCLUÍDAS; isolamento de retry ainda CANDIDATO** | Somente ao reproduzir, isolar fixture entre retry serial e distinguir geometry/readiness de defeito financeiro | Resultado por interação visível e banco; não relaxar asserção como atalho |
 | **F05 / P1** | Captura NF e controles em viewport; [#480](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/480) | **CONCLUÍDA — critério do teste** | Nenhuma ação em aberto pelo #480; novas questões visuais requerem problema independente | Ambos os botões 100% na viewport; 21/21 ciclos reais documentados, **não** redesign |
-| **F06 / P1–P2** | Axe 4.14; [#466](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/466), [#474](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/474) | **Correções de nomes CONCLUÍDAS; estados/zoom/foco CANDIDATOS** | Amostragem WCAG 2.2, teclado, zoom 200%, erro, salvando e reanálise após seleção de jornada material | Defeito atual atribuível à UI + contraprova visual/teclado; não transformar 3 checks Axe incompletos em certificação |
+| **F06 / P1–P2** | Axe 4.14; [#466](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/466), [#474](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/474) | **Rodada NF CONCLUÍDA localmente; correção em homologação** | [F06 delimitada](audits/2026-10-24-f06-invoice-accessibility.md): duas obstruções por rodapé a 200% → zero; teclado/erro/foco preservados. Outros estados somente com necessidade concreta | Homologar o candidato e encerrar esta rodada; sem ampliação automática para salvando, reanálise ou outros modais |
 | **F07 / P2** | TypeScript/JSDoc; A4→A7, [#479](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/479) | **CONCLUÍDA — fronteira fiscal localizada; expansão CANDIDATA** | Escolher outra fronteira de risco **quando alterada** (RPC/serviço real), com mutação que provoque erro executável | RED/verde reais, AST/bundle invariável, testes do consumidor; sem typecheck global |
 | **F08 / P3** | MSW, Supabase SDK, fast-check, Ajv; [#443](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/443) | **MSW 3 CONCLUÍDO; novas falhas de rede CONDICIONAIS** | Só abrir piloto para resposta perdida após commit, resposta obsoleta ou logout/abort se não coberto pelos testes atuais | Garantias de idempotência, rollback, auth e convergência com falha reproduzível; não duplicar pgTAP |
 | **F09 / P1–P2** | Fuse.js A8; [run 39990335333](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39990335333) | **ENSAIO NODE CONCLUÍDO; cache de busca AGUARDANDO CONDIÇÃO** | Medir pesquisa no browser autenticado e mapear invalidadores (escola, competência, perfil, Pendências, logout) | Paridade de ordem/IDs com catálogo alterado, benefício perceptível no browser; sem `FuseWorker` incompatível com `useTokenSearch` |
@@ -99,14 +99,15 @@ A numeração F identifica uma **frente de produto/metodologia**, não um pacote
 
 **Regra final:** cobertura total não exige 26 implementações; aprofundamentos podem estar encerrados como investigação sem correção; melhora de experiência deve ser provada em jornada real. Nenhum pacote sem decisão, nenhuma F aberta sem retomada definida.
 
-## Próxima rodada delimitada após #488 — 23/10/2026
+## Rodada F06 delimitada — 24/10/2026
 
-**Selecionada: F06, ainda não executada nesta retomada.** Uma jornada existente de
-registro de NF no Prontuário: formulário normal, erro de validação e retorno/foco
-após fechar; teclado e zoom de navegador 200%, com Axe como instrumento auxiliar.
-Reutilizar testes/contas descartáveis e a cobertura existente. Não usar escala de
-screenshot como se fosse zoom real. Encerrar com evidência por estado e decisão
-corrigir defeito demonstrado / manter comportamento; não abrir redesign geral.
+**Executada e encerrada na fronteira NF; candidato em homologação.**
+[Relatório e reprodução](audits/2026-10-24-f06-invoice-accessibility.md): formulário
+normal/inválido, teclado, Escape/retorno do foco e zoom real 200%. Encontradas duas
+obstruções por rodapé; uma regra CSS restrita à NF eliminou-as no teste autenticado.
+Axe complementado por imagem/hit-test, mantendo os incompletes visíveis no relatório.
+Não abrir outros formulários nem novos estados nesta entrega. Após o CI e a
+integração, escolher outra oportunidade da carteira pela prova e benefício humano.
 
 F01 aguarda ambiente gráfico representativo; F02 aguarda prova de cobertura e
 concorrência; F03 aguarda recorrência. F07–F14 mantêm suas condições próprias.

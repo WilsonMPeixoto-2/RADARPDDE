@@ -1,6 +1,19 @@
 # RADAR PDDE — estado atual e retomada
 
-## Retomada após #485/#487/#488 — 23/10/2026 (Brasília)
+## Rodada delimitada F06 — 24/10/2026
+
+- #489 integrado em `e700fba8`: reconciliação da cobertura **26/26** e condições F.
+- F06 executada em uma jornada de NF: teclado, validação vazia, Escape/retorno
+  de foco e zoom real de navegador 100%/200%, com Controlador no Supabase local.
+- Defeito confirmado: Tipo e Valor encobertos pelo rodapé sticky a 200%.
+  Correção candidata: uma regra de scroll-padding somente no corpo do modal NF;
+  mesmo fluxo autenticado passou com zero obstruções. Três regressões de modal
+  passaram. [Relatório/limites/evidências](audits/2026-10-24-f06-invoice-accessibility.md).
+- Candidato ainda depende de CI/merge; não afirmar publicação desta correção.
+  A rodada **não será ampliada** para outros formulários/estados nesta entrega.
+  Outras F mantêm suas condições na [matriz](TECHNOLOGY_CAPABILITIES_TRACKER.md).
+
+## Histórico — retomada após #485/#487/#488 — 23/10/2026 (Brasília)
 
 - Main conferida: `e913df2a4b114810f1fda0dfd67fd9d7f75a6a3d`, merge #488.
 - **Cobertura horizontal 26/26 integrada** pelo #485 (`2b46df7e`), complementando
