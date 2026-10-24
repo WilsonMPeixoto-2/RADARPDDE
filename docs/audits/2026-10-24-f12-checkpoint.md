@@ -23,3 +23,18 @@ Próximo lote delimitado: testes de regressão do texto literal/nome e da busca 
 filtro; reutilizar escapeHtml existente nos dois renderizadores. Não mudar regras
 de busca, classificação, RLS, fonte de dados ou scanner para zerar o contador.
 Implementação funcional desse lote espera concluir a consolidação/homologação F06.
+
+## Decisão de prioridade — 24/10, após avaliação do usuário
+
+**Lote suspenso; não é a próxima entrega automática.** Os casos de texto literal
+e busca com aspas são reproduzíveis, mas sua frequência/impacto no trabalho diário
+não foi demonstrada. Não justificam deslocar objetivos operacionais mais relevantes.
+O diagnóstico não equivale a prioridade, vulnerabilidade explorável comprovada ou
+ganho de fluidez. Nenhum PR de produto foi aberto para estes casos.
+
+Uma correção experimental de quatro linhas e três regressões de navegador foi
+ensaiada localmente (RED 3/3; GREEN 5/5 incluindo exportações da Assistente;
+1.386 unitários aprovados; ESLint continua 42 avisos/0 erros). A alteração foi
+retirada da árvore de produto. Esses resultados não são uma entrega publicada.
+Retomar apenas se uso real, impacto material ou análise de risco justificar.
+Os 42 sítios permanecem inventariados, sem obrigação de zerar o contador.
