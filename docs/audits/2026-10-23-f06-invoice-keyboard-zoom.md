@@ -51,6 +51,16 @@ A correção foi reavaliada: o produto garante agora foco inicial diretamente em
 
 **Gates:** executar lint de E2E, Playwright Chromium desktop, homologação, regressões de produto e inspeção dos PNG/JSON do **HEAD aprovado**. Se aparecer defeito inesperado, diagnosticar a geometria antes de aumentar tolerâncias ou repetir testes. O usuário já possui captura de zoom nativo do Chrome no RED; a homologação CI em viewport equivalente não é prova autônoma de zoom nativo após o patch.
 
+## Prova GREEN real — instrumentação focada em GitHub Actions
+
+Após corrigir o foco inicial no produto e preservar as asserções geométricas, o workflow temporário [TEMP F06 invoice focus diagnostic (run 40051377257)](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/40051377257) **concluiu com sucesso** no Ubuntu 26.04, Node 24 e Chromium homologado, executando **2/2 cenários** de `tests/e2e/invoice-focus-clearance.spec.js` no RADAR real, em modo local.
+
+O [artifact `temporary-f06-focused-report` (ID 12543606035)](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/40051377257/artifacts/12543606035) foi baixado e suas duas screenshots inspecionadas visualmente: uma registra desktop `1440 × 900` com campos/rodapé, outra mostra `720 × 406` com o campo **Valor do Gasto** inteiramente acima do rodapé sticky enquanto mantém foco visível. O teste confirmou para **Tipo de Gasto, Número e Valor** ausência de intersecção campo/rodapé, rótulos visíveis no scrollport e foco real por Tab; também conferiu invalidação HTML5 sem gravação e Escape com retorno do foco.
+
+A mudança de metodologia evitou repetir toda a suíte de cerca de 297 cenários para cada hipótese: o teste direcionado isolou a falha, o código foi corrigido e os dois cenários passaram antes da integração. **Esse GREEN comprova o comportamento no reflow CSS equivalente**, não novo teste nativo de zoom 200% na versão corrigida.
+
+O workflow temporário só serve de instrumento e **deve ser excluído da branch antes do merge**. A homologação geral do HEAD final continua obrigatória, assim como a confirmação de Production depois do merge.
+
 ## Estado
 
 Correções e prova propostas na branch `fix/f06-nf-modal-keyboard-clearance-20261023`. **O merge e o status de CI/Production não são presumidos.** A etapa só pode ser declarada corrigida em código versionado após inspecionar o workflow e, idealmente, os artefatos geométricos. Não alargar F06 para mobile ou a auditoria horizontal das 26 dependências.
