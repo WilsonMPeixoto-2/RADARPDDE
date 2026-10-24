@@ -1,131 +1,176 @@
-name: Aplicar e validar Supabase remoto descartável
-
+name: Publicação controlada PR494 — Production
+run-name: PR494 ${{ inputs.phase }} — ${{ github.sha }}
 on:
   workflow_dispatch:
     inputs:
-      project_ref:
-        description: Referência do projeto ou branch Supabase descartável autorizado
-        required: true
-        type: string
-      target_kind:
-        description: Natureza do alvo experimental
-        required: true
+      phase:
         type: choice
-        options:
-          - development-project
-          - database-branch
-      confirmation:
-        description: Digite APLICAR_25_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
         required: true
+        options: [preflight, backup, apply]
+      confirmation:
         type: string
-
+        required: true
 permissions:
   contents: read
-
+  actions: read
+  pull-requests: read
 concurrency:
-  group: supabase-remote-apply-${{ inputs.project_ref }}
+  group: pr494-production-migration
   cancel-in-progress: false
-
-env:
-  SUPABASE_TELEMETRY_DISABLED: '1'
-  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-  PGPASS_REMOTE: ${{ secrets.SUPABASE_DB_PASSWORD }}
-
 jobs:
-  apply-and-validate:
+  release:
+    if: inputs.phase != 'backup'
     runs-on: ubuntu-26.04
-    timeout-minutes: 40
-
+    timeout-minutes: 20
+    env:
+      SUPABASE_TELEMETRY_DISABLED: '1'
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PGPASS_REMOTE: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      PROJECT_REF: scnryinorqeucbfkioxo
+      CANDIDATE_SHA: c3950c14afcf60170aefa97fe2da9196d87866c7
+      MAIN_SHA: 22faf5482bd79b84e7503ea460a733ab3c830b19
+      PGOPTIONS: '-c lock_timeout=5s -c statement_timeout=30s'
+      PHASE: ${{ inputs.phase }}
+      CONFIRMATION: ${{ inputs.confirmation }}
+      GH_TOKEN: ${{ github.token }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Configurar Node.js 24
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          node-version: '24'
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 24
           cache: npm
-          cache-dependency-path: package-lock.json
-
-      - name: Instalar dependências reproduzíveis
+      - name: Verificar autorização, alvo e conteúdo certificado
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$CONFIRMATION" = 'PUBLICAR_PR494_EM_SCNRYINORQEUCBFKIOXO'
+          test "$PROJECT_REF" = 'scnryinorqeucbfkioxo'
+          test -n "$SUPABASE_ACCESS_TOKEN" && test -n "$PGPASS_REMOTE"
+          test "$(gh api repos/WilsonMPeixoto-2/RADARPDDE/pulls/494 --jq .head.sha)" = "$CANDIDATE_SHA"
+          test "$(gh api repos/WilsonMPeixoto-2/RADARPDDE/branches/main --jq .commit.sha)" = "$MAIN_SHA"
+          echo 'b7b5fe1ea95d2559b65082dfc938a6f23655d9f2fe6b57cd9ecf301c2f1a675a  supabase/migrations/20261024120000_quality_provisional_movements.sql' | sha256sum --check
+          mkdir -p release-evidence
+          if [ "$PHASE" = apply ]; then
+            gh api "repos/WilsonMPeixoto-2/RADARPDDE/actions/runs?head_sha=$CANDIDATE_SHA&per_page=100" > release-evidence/ci.json
+            node -e "const d=require('./release-evidence/ci.json').workflow_runs;if(d.length<22||d.some(x=>x.status!=='completed'||x.conclusion!=='success'))throw Error('CI_FINAL_NOT_APPROVED');"
+          fi
+      - name: Instalar CLI canônico sem upgrade
         run: npm ci
-
-      - name: Validar alvo descartável, autorização e segredos
-        env:
-          PROJECT_REF: ${{ inputs.project_ref }}
-          TARGET_KIND: ${{ inputs.target_kind }}
-          CONFIRMATION: ${{ inputs.confirmation }}
+      - name: Vincular Production explicitamente autorizada
+        run: npx --no-install supabase link --project-ref "$PROJECT_REF" --password "$PGPASS_REMOTE"
+      - name: Consultar backups gerenciados sem alterar configurações
         run: |
-          test -n "${SUPABASE_ACCESS_TOKEN}" || { echo 'SUPABASE_ACCESS_TOKEN ausente.' >&2; exit 1; }
-          test -n "${PGPASS_REMOTE}" || { echo 'Segredo de senha do banco ausente.' >&2; exit 1; }
-          test -n "${PROJECT_REF}" || { echo 'project_ref ausente.' >&2; exit 1; }
-          test "${TARGET_KIND}" = 'development-project' -o "${TARGET_KIND}" = 'database-branch' \
-            || { echo 'Tipo de alvo não autorizado.' >&2; exit 1; }
-          test "${CONFIRMATION}" = 'APLICAR_25_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL' \
-            || { echo 'Confirmação explícita incorreta; nenhuma migration será aplicada.' >&2; exit 1; }
-
-      - name: Vincular alvo descartável autorizado
-        env:
-          PROJECT_REF: ${{ inputs.project_ref }}
-        run: npx --no-install supabase link --project-ref "${PROJECT_REF}" --password "${PGPASS_REMOTE}"
-
-      - name: Repetir dry-run imediatamente antes da aplicação
+          python3 - <<'PYCODE'
+          import urllib.request,json,os,pathlib
+          req=urllib.request.Request('https://api.supabase.com/v1/projects/'+os.environ['PROJECT_REF']+'/database/backups',headers={'Authorization':'Bearer '+os.environ['SUPABASE_ACCESS_TOKEN']})
+          try:
+            with urllib.request.urlopen(req,timeout=30) as r: d=json.load(r)
+            summary={k:d.get(k) for k in ('region','pitr_enabled','walg_enabled','physical_backup_data') if k in d}
+            summary['response_keys']=list(d.keys())
+            summary['backups']=[{k:b.get(k) for k in ('status','inserted_at','updated_at','created_at','is_physical_backup') if k in b} for b in d.get('backups',[])]
+          except urllib.error.HTTPError as e: summary={'http_status':e.code,'available':False}
+          pathlib.Path('release-evidence/managed-backups.json').write_text(json.dumps(summary,indent=2))
+          print(json.dumps(summary))
+          PYCODE
+      - name: Preflight e cópia das definições afetadas
         run: |
-          set -o pipefail
-          npx --no-install supabase db push --linked --dry-run --password "${PGPASS_REMOTE}" 2>&1 \
-            | tee /tmp/supabase-apply-dry-run.txt
-
-      - name: Aplicar migrations sem seed
-        run: |
-          set -o pipefail
-          npx --no-install supabase db push --linked --password "${PGPASS_REMOTE}" --yes 2>&1 \
-            | tee /tmp/supabase-apply.txt
-
-      - name: Confirmar histórico remoto e capacidades instaladas
-        run: |
-          set -o pipefail
-          npx --no-install supabase migration list --linked --password "${PGPASS_REMOTE}" 2>&1 \
-            | tee /tmp/supabase-migration-list-after.txt
-          npx --no-install supabase db query --linked --file supabase/verification/remote-post-apply.sql 2>&1 \
-            | tee /tmp/supabase-post-apply-contract.txt
-
-      - name: Executar lint remoto
-        run: npx --no-install supabase db lint --linked --schema public --level warning --fail-on error
-
-      - name: Executar pgTAP remoto em transações reversíveis
-        run: npx --no-install supabase test db supabase/tests/database --linked
-
-      - name: Comparar tipos remotos com o contrato versionado
-        run: |
-          npx --no-install supabase gen types typescript --linked --schema public > /tmp/database.remote.types.ts
-          node scripts/check-generated-database-types.js src/types/database.types.ts /tmp/database.remote.types.ts
-
-      - name: Executar Advisors de segurança e desempenho
-        run: |
-          set -o pipefail
-          npx --no-install supabase db advisors --linked --type all --level info --fail-on error 2>&1 \
-            | tee /tmp/supabase-advisors.txt
-
-      - name: Implantar função protegida de Gestão de Equipe
-        env:
-          PROJECT_REF: ${{ inputs.project_ref }}
-        run: |
-          set -o pipefail
-          npx --no-install supabase functions deploy team-account-management \
-            --project-ref "${PROJECT_REF}" 2>&1 | tee /tmp/supabase-function-deploy.txt
-
-      - name: Publicar evidências da aplicação experimental
-        if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+          set -euo pipefail
+          npx --no-install supabase migration list --linked --password "$PGPASS_REMOTE" > release-evidence/migrations-before.txt
+          npx --no-install supabase db query --linked --file supabase/verification/pr494-release-preflight.sql > release-evidence/affected-schema-backup.json
+          npx --no-install supabase db push --linked --dry-run --skip-vault --password "$PGPASS_REMOTE" 2>&1 | tee release-evidence/dry-run.txt
+          python3 - <<'PYCODE'
+          import re,pathlib
+          pending=set(re.findall(r'\d{12,14}_[a-z0-9_]+\.sql',pathlib.Path('release-evidence/dry-run.txt').read_text()))
+          assert pending=={'20261024120000_quality_provisional_movements.sql'},pending
+          PYCODE
+      - name: Preservar backup antes de qualquer DDL
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
-          name: supabase-remote-post-apply-${{ github.run_id }}
-          path: |
-            /tmp/supabase-apply-dry-run.txt
-            /tmp/supabase-apply.txt
-            /tmp/supabase-migration-list-after.txt
-            /tmp/supabase-post-apply-contract.txt
-            /tmp/database.remote.types.ts
-            /tmp/supabase-advisors.txt
-            /tmp/supabase-function-deploy.txt
+          name: pr494-before-${{ github.run_id }}
+          path: release-evidence/
+          retention-days: 90
+          if-no-files-found: error
+      - name: Aplicar somente a migration homologada, sem seed ou Vault
+        if: inputs.phase == 'apply'
+        run: |
+          set -euo pipefail
+          npx --no-install supabase db push --linked --skip-vault --password "$PGPASS_REMOTE" --yes 2>&1 | tee release-evidence/apply.txt
+      - name: Conferir proteções, histórico e integridade agregada
+        if: inputs.phase == 'apply'
+        run: |
+          set -euo pipefail
+          npx --no-install supabase db query --linked --file supabase/verification/pr494-release-postflight.sql > release-evidence/postflight.json
+          npx --no-install supabase db query --linked --file supabase/verification/production-integrity-health.sql > release-evidence/integrity.json
+          npx --no-install supabase migration list --linked --password "$PGPASS_REMOTE" > release-evidence/migrations-after.txt
+      - name: Evidência final, sem credenciais ou registros pessoais
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: pr494-release-${{ github.run_id }}
+          path: release-evidence/
+          retention-days: 90
           if-no-files-found: warn
-          retention-days: 14
+
+  backup:
+    if: inputs.phase == 'backup'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Conferir autorização e candidato
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$CONFIRMATION" = 'PUBLICAR_PR494_EM_SCNRYINORQEUCBFKIOXO'
+          test "$(gh api repos/WilsonMPeixoto-2/RADARPDDE/pulls/494 --jq .head.sha)" = 'c3950c14afcf60170aefa97fe2da9196d87866c7'
+          test "$(gh api repos/WilsonMPeixoto-2/RADARPDDE/branches/main --jq .commit.sha)" = '22faf5482bd79b84e7503ea460a733ab3c830b19'
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: node --test ops/pr397-backup/backup-snapshot.test.mjs
+      - name: Reservar portas do PostgreSQL descartável
+        run: |
+          current="$(sysctl -n net.ipv4.ip_local_reserved_ports)"
+          sudo sysctl -w "net.ipv4.ip_local_reserved_ports=${current:+$current,}54320-54323"
+      - name: Iniciar apenas PostgreSQL descartável
+        run: npx --no-install supabase start --exclude gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+      - name: Gerar destinatário com chave privada cifrada
+        env:
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          BACKUP_OUTPUT_DIR: ${{ runner.temp }}/pr494-backup-sealed
+        run: node ops/pr494-release/backup-key.mjs prepare
+      - name: Backup somente leitura e restauração isolada — procedimento do PR397
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_TELEMETRY_DISABLED: '1'
+          BACKUP_PUBLIC_KEY: ${{ runner.temp }}/pr494-backup-sealed/recipient-public.pem
+          BACKUP_OUTPUT_DIR: ${{ runner.temp }}/pr494-backup-sealed
+          BACKUP_PRIVATE_DIR: ${{ runner.temp }}/pr494-backup-private
+        run: node ops/pr397-backup/backup-production.mjs
+      - name: Conferir descriptografia autenticada e hash do arquivo
+        env:
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          BACKUP_OUTPUT_DIR: ${{ runner.temp }}/pr494-backup-sealed
+        run: node ops/pr494-release/backup-key.mjs verify
+      - name: Preservar somente backup cifrado, chave cifrada e evidência sanitizada
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: pr494-production-backup-encrypted-${{ github.run_id }}
+          path: ${{ runner.temp }}/pr494-backup-sealed/
+          retention-days: 90
+          if-no-files-found: error
+      - name: Remover cópia em claro e banco descartável
+        if: always()
+        run: |
+          rm -rf -- "${RUNNER_TEMP}/pr494-backup-private"
+          rm -f -- "${RUNNER_TEMP}/pr397-backup.tar.gz"
+          npx --no-install supabase stop --no-backup
