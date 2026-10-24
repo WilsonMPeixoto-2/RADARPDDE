@@ -44,12 +44,6 @@ create policy quality_provisional_insert on public.quality_provisional_movements
     with check (
         (select public.current_app_role()) in ('controller', 'federal_assistant', 'technical_admin')
         and public.can_write_school(school_id)
-        and exists (
-            select 1 from public.school_programs sp
-            where sp.school_id = quality_provisional_movements.school_id and sp.active
-              and sp.program_id in ('CONECTADA', 'PROEC', 'ED_FAMILIA',
-                  'ADOLESCENCIAS', 'LEITURA', 'TEMPO_APRENDER')
-        )
     );
 
 create policy quality_provisional_update on public.quality_provisional_movements
