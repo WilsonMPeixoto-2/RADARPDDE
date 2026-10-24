@@ -9,7 +9,8 @@
   Correção candidata: uma regra de scroll-padding somente no corpo do modal NF;
   mesmo fluxo autenticado passou com zero obstruções. Três regressões de modal
   passaram. [Relatório/limites/evidências](audits/2026-10-24-f06-invoice-accessibility.md).
-- Candidato ainda depende de CI/merge; não afirmar publicação desta correção.
+- Entrega isolada no [PR #493](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/493);
+  conferir ali CI, merge e deployment, sem antecipar publicação pelo teste local.
   A rodada **não será ampliada** para outros formulários/estados nesta entrega.
   Outras F mantêm suas condições na [matriz](TECHNOLOGY_CAPABILITIES_TRACKER.md).
 

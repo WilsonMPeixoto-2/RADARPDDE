@@ -64,7 +64,7 @@ A numeração F identifica uma **frente de produto/metodologia**, não um pacote
 | **F03 / P1–P3** | Prontidão/projeção após reload, [#460 Caso A](https://github.com/WilsonMPeixoto-2/RADARPDDE/issues/460), [#488](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/488) | **INSTRUMENTO INTEGRADO; AGUARDANDO RECORRÊNCIA** | #488 integrado em `e913df2a`; sem polling novo ou alteração funcional. Retomar somente se os anexos capturarem divergência entre banco, memória, competência e exportação. Não repetir baterias até falhar | Seis workflows aprovados no HEAD `f544a65a`; ciclo real: 20 pass + 1 flaky de login em outro spec; ambos os perfis alterados passaram sem retry. Causa histórica não resolvida nem presumida; Caso B já corrigido por #463 |
 | **F04 / P1** | Playwright, estados de UI, test readiness/flakiness e fixtures serializadas; #463/#480 | **CORREÇÕES LOCALIZADAS CONCLUÍDAS; isolamento de retry ainda CANDIDATO** | Somente ao reproduzir, isolar fixture entre retry serial e distinguir geometry/readiness de defeito financeiro | Resultado por interação visível e banco; não relaxar asserção como atalho |
 | **F05 / P1** | Captura NF e controles em viewport; [#480](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/480) | **CONCLUÍDA — critério do teste** | Nenhuma ação em aberto pelo #480; novas questões visuais requerem problema independente | Ambos os botões 100% na viewport; 21/21 ciclos reais documentados, **não** redesign |
-| **F06 / P1–P2** | Axe 4.14; [#466](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/466), [#474](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/474) | **Rodada NF CONCLUÍDA localmente; correção em homologação** | [F06 delimitada](audits/2026-10-24-f06-invoice-accessibility.md): duas obstruções por rodapé a 200% → zero; teclado/erro/foco preservados. Outros estados somente com necessidade concreta | Homologar o candidato e encerrar esta rodada; sem ampliação automática para salvando, reanálise ou outros modais |
+| **F06 / P1–P2** | Axe 4.14; [#466](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/466), [#474](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/474) | **Rodada NF CONCLUÍDA localmente; entrega #493** | [F06 delimitada](audits/2026-10-24-f06-invoice-accessibility.md): duas obstruções por rodapé a 200% → zero; teclado/erro/foco preservados. Outros estados somente com necessidade concreta | Conferir homologação/integração no #493; sem ampliação automática para salvando, reanálise ou outros modais |
 | **F07 / P2** | TypeScript/JSDoc; A4→A7, [#479](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/479) | **CONCLUÍDA — fronteira fiscal localizada; expansão CANDIDATA** | Escolher outra fronteira de risco **quando alterada** (RPC/serviço real), com mutação que provoque erro executável | RED/verde reais, AST/bundle invariável, testes do consumidor; sem typecheck global |
 | **F08 / P3** | MSW, Supabase SDK, fast-check, Ajv; [#443](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/443) | **MSW 3 CONCLUÍDO; novas falhas de rede CONDICIONAIS** | Só abrir piloto para resposta perdida após commit, resposta obsoleta ou logout/abort se não coberto pelos testes atuais | Garantias de idempotência, rollback, auth e convergência com falha reproduzível; não duplicar pgTAP |
 | **F09 / P1–P2** | Fuse.js A8; [run 39990335333](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39990335333) | **ENSAIO NODE CONCLUÍDO; cache de busca AGUARDANDO CONDIÇÃO** | Medir pesquisa no browser autenticado e mapear invalidadores (escola, competência, perfil, Pendências, logout) | Paridade de ordem/IDs com catálogo alterado, benefício perceptível no browser; sem `FuseWorker` incompatível com `useTokenSearch` |
@@ -101,13 +101,13 @@ A numeração F identifica uma **frente de produto/metodologia**, não um pacote
 
 ## Rodada F06 delimitada — 24/10/2026
 
-**Executada e encerrada na fronteira NF; candidato em homologação.**
+**Executada e encerrada na fronteira NF; entrega [#493](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/493).**
 [Relatório e reprodução](audits/2026-10-24-f06-invoice-accessibility.md): formulário
 normal/inválido, teclado, Escape/retorno do foco e zoom real 200%. Encontradas duas
 obstruções por rodapé; uma regra CSS restrita à NF eliminou-as no teste autenticado.
 Axe complementado por imagem/hit-test, mantendo os incompletes visíveis no relatório.
-Não abrir outros formulários nem novos estados nesta entrega. Após o CI e a
-integração, escolher outra oportunidade da carteira pela prova e benefício humano.
+Não abrir outros formulários nem novos estados nesta entrega. Após conferir o CI e a
+integração no #493, escolher outra oportunidade da carteira pela prova e benefício humano.
 
 F01 aguarda ambiente gráfico representativo; F02 aguarda prova de cobertura e
 concorrência; F03 aguarda recorrência. F07–F14 mantêm suas condições próprias.

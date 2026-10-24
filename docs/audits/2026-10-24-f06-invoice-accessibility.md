@@ -2,7 +2,8 @@
 
 **Classe:** evidência datada de rodada delimitada; não cria regra funcional nova.  
 **Baseline:** `e700fba83f1dd8030f9bfd36eb490e990369a799` (main após #489).  
-**Estado:** correção e provas locais concluídas; candidato ainda depende do CI/integração.
+**Estado da rodada:** correção e provas locais concluídas. Homologação, integração
+e publicação devem ser verificadas no [PR #493](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/493).
 
 ## Fronteira e resultado
 
