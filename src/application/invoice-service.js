@@ -305,7 +305,7 @@
             return aggregate;
         }
 
-        createPersistence(operation) {
+        createPersistence(operation, options = {}) {
             return async ({ repository, snapshot, value, defaultPersist }) => {
                 const capabilities = repository.capabilities();
                 if (capabilities.atomicInvoiceEffects !== true) {
@@ -331,6 +331,8 @@
                         verificationPatch,
                         administrativeLog,
                         operationKey: value.operationKey,
+                        qualityProvisionalId: options.qualityProvisionalId || null,
+                        qualityProvisionalVersion: options.qualityProvisionalVersion ?? null,
                         expectedInvoiceVersion: value.expectedVersions?.invoice ?? (
                             value.operation === 'update'
                                 ? (value.invoice.rowVersion || value.invoice.row_version || null)
@@ -839,7 +841,10 @@
                 remoteRefreshExemptEntities: ['administrativeLogs'],
                 changedEntities: [...plan.changedEntities],
                 remoteCommitIsAuthoritative: true,
-                persist: this.createPersistence('save'),
+                persist: this.createPersistence('save', {
+                    qualityProvisionalId: input.qualityProvisionalId || null,
+                    qualityProvisionalVersion: input.qualityProvisionalVersion ?? null
+                }),
                 mutate: () => {
                     const state = this.getState();
                     const context = this.getContext(state, input, 'invoice:save');
