@@ -1256,7 +1256,8 @@ textarea.form-control {
 
 /* O Prontuário é reconstruído também em refresh silencioso. A animação de
    entrada reapresentava dados já visíveis a partir de opacity zero. */
-#main-container .school-workspace > .tab-content-panel.active {
+#main-container .school-workspace > .tab-content-panel.active,
+#main-container #tab-verificacoes.tab-content-panel.active {
     animation: none;
 }
 
