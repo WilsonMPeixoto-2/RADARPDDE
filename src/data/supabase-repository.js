@@ -83,6 +83,7 @@
     const EXPENSE_RPC_NAMES = new Set([
         'save_invoice_with_effects', 'save_invoice_with_effects_v2',
         'delete_invoice_with_effects', 'save_unidentified_expense_with_pendency',
+        'identify_quality_provisional_movement',
         'save_invoice_document_with_pendency', 'register_invoice_document_attempt',
         'reanalyze_invoice_document_pendency', 'save_service_advisory_with_pendency',
         'register_service_advisory_attempt', 'reanalyze_service_advisory_pendency'
@@ -716,9 +717,20 @@
                 );
             }
             const operationKey = input.operationKey == null ? '' : String(input.operationKey).trim();
-            const rpcName = operationKey ? 'save_invoice_with_effects_v2' : 'save_invoice_with_effects';
+            if (input.qualityProvisionalId && !operationKey) {
+                throw new RepositoryError('VALIDATION_FAILED',
+                    'A identificação de movimentação provisória exige uma chave idempotente.',
+                    { operation: 'saveInvoiceWithEffects' });
+            }
+            const rpcName = input.qualityProvisionalId
+                ? 'identify_quality_provisional_movement'
+                : (operationKey ? 'save_invoice_with_effects_v2' : 'save_invoice_with_effects');
             const args = {
                 ...(operationKey ? { p_operation_key: operationKey } : {}),
+                ...(input.qualityProvisionalId ? {
+                    p_provisional_id: input.qualityProvisionalId,
+                    p_expected_provisional_version: input.qualityProvisionalVersion
+                } : {}),
                 p_invoice: cloneValue(input.invoice),
                 p_asset: input.asset ? cloneValue(input.asset) : null,
                 p_verification_patch: input.verificationPatch ? cloneValue(input.verificationPatch) : null,
