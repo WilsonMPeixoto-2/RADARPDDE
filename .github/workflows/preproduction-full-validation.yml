@@ -209,6 +209,9 @@ jobs:
           tests/e2e/supabase-realtime-invalidation.spec.js
           tests/e2e/performance-journeys.spec.js
           --project=desktop-chromium
+      - name: Preparar escola exclusiva da jornada PDDE Qualidade
+        run: psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -v ON_ERROR_STOP=1 -f tests/fixtures/quality-provisional.sql
+
       # Cria histórico protegido: executar só após as suítes que substituem a base.
       - name: Exercitar login tardio e ações com histórico protegido
         env:
@@ -217,6 +220,7 @@ jobs:
         run: >-
           npx playwright test tests/e2e/supabase-late-auth-actions.spec.js
           tests/e2e/supabase-inventory-terminal-delete.spec.js
+          tests/e2e/supabase-quality-provisional.spec.js
           --project=desktop-chromium --output=test-results-late-auth
 
       - name: Publicar evidência visual do contrato Supabase local

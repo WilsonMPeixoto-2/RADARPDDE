@@ -9821,6 +9821,20 @@ function renderProntuario(escolaId) {
                                 : 'Clique nos botões de bonificação ou selecione a análise técnica de cada item.'}</p>
                         </div>
                         
+                        <section id="quality-provisional-panel" class="quality-provisional-panel" hidden aria-labelledby="quality-provisional-title">
+                            <div class="quality-provisional-heading">
+                                <div>
+                                    <h3 id="quality-provisional-title">Conta PDDE Qualidade · movimentações sem programa</h3>
+                                    <p>Registre saídas ainda não atribuídas a uma Ação Integrada. Não são Notas Fiscais nem Pendências.</p>
+                                </div>
+                                <div class="quality-provisional-heading-actions">
+                                    <button type="button" data-quality-refresh class="btn btn-secondary btn-sm">Atualizar</button>
+                                    <button type="button" data-quality-new class="btn btn-primary btn-sm">Registrar saída</button>
+                                </div>
+                            </div>
+                            <div class="quality-provisional-list" data-quality-list aria-live="polite"></div>
+                            <p class="quality-provisional-feedback" id="quality-provisional-feedback" role="status" aria-live="polite"></p>
+                        </section>
                         <div class="comp-tabs-container" role="group" aria-label="Competências mensais" style="display: flex; gap: 8px; flex-wrap: wrap; padding: 0 24px 20px 24px; border-bottom: 1px solid var(--border-color); width: 100%;">
                             ${COMPETENCIAS.map(c => {
                                 const status = getCompMonthStatus(esc.id, c.key);
@@ -10065,6 +10079,14 @@ function renderProntuario(escolaId) {
     `;
 
     renderProntuarioVerificacoes(esc);
+    window.RadarQualityProvisional?.hydrate({
+        schoolId: esc.id,
+        competence: activeProntuarioCompetencia,
+        programs: (esc.programasIds || []).filter(id =>
+            ['CONECTADA', 'PROEC', 'ED_FAMILIA', 'ADOLESCENCIAS', 'LEITURA', 'TEMPO_APRENDER'].includes(id)
+        ).map(id => ({ id, name: programas.find(program => program.id === id)?.name || id })),
+        canEdit: accessProfile === 'controlador' || accessProfile === 'assistente'
+    });
 }
 
 function schoolContactHistoryHTML(records) {
@@ -11593,6 +11615,7 @@ function openModalDadosNota(escolaId, compKey) {
     const accessProfile = getRadarAccessProfile();
     if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
     document.getElementById('form-dados-nota').reset();
+    document.getElementById('nota-modal-intro').textContent = 'Cadastre o gasto referente a esta Nota Fiscal para que o sistema direcione as obrigações operacionais corretas.';
     document.getElementById('nota-escola-id').value = escolaId;
     document.getElementById('nota-comp-key').value = compKey;
     document.getElementById('nota-id').value = '';
@@ -11643,6 +11666,10 @@ async function salvarDadosNota(e = {}) {
                 invoiceNumber: numero,
                 amount: valor,
                 profile: accessProfile,
+                ...(!notaId && document.getElementById('nota-quality-provisional-id')?.value ? {
+                    qualityProvisionalId: document.getElementById('nota-quality-provisional-id').value,
+                    qualityProvisionalVersion: Number(document.getElementById('nota-quality-provisional-version').value)
+                } : {}),
                 ...(!notaId && tipo === 'a_identificar' && provisionalObservation
                     ? { pendencyObservation: provisionalObservation }
                     : {})
@@ -11695,6 +11722,8 @@ function abrirEditarNota(notaId, escolaId) {
     document.getElementById('nota-escola-id').value = escolaId;
     document.getElementById('nota-comp-key').value = nota.compKey;
     document.getElementById('nota-id').value = nota.id;
+    document.getElementById('nota-quality-provisional-id').value = '';
+    document.getElementById('nota-quality-provisional-version').value = '';
     document.getElementById('nota-desc').value = nota.desc;
     configureInvoiceExpenseTypeOptions(nota.compKey, nota.tipo);
     document.getElementById('nota-numero').value = nota.numero;
