@@ -53,7 +53,13 @@
     }
 
     function focusInitial(dialog) {
-        const preferred = dialog.querySelector('[autofocus], input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])');
+        // No formulário de Nota Fiscal, o primeiro botão do DOM é o "Fechar".
+        // Dar prioridade ao campo Descrição evita começar a navegação por teclado
+        // fora do formulário, sem mudar o foco inicial dos demais modais.
+        const preferred = (dialog.id === 'modal-dados-nota'
+            ? dialog.querySelector('#nota-desc:not([disabled])')
+            : null)
+            || dialog.querySelector('[autofocus], input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])');
         const target = preferred || getFocusable(dialog)[0] || dialog;
         if (target === dialog && !dialog.hasAttribute('tabindex')) dialog.setAttribute('tabindex', '-1');
         target.focus({ preventScroll: true });
