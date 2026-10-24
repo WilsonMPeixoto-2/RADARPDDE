@@ -1,5 +1,13 @@
 name: TEMP F06 invoice focus diagnostic
 on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'app.js'
+      - 'src/styles/global-visual-polish.css'
+      - 'tests/e2e/invoice-focus-clearance.spec.js'
+      - '.github/workflows/tmp-f06-invoice-focus-diagnostic.yml'
   push:
     branches:
       - fix/f06-nf-modal-keyboard-clearance-20261023
