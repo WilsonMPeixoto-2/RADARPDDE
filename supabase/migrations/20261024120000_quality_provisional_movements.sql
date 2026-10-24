@@ -46,7 +46,7 @@ create policy quality_provisional_insert on public.quality_provisional_movements
         and public.can_write_school(school_id)
         and exists (
             select 1 from public.school_programs sp
-            where sp.school_id = school_id and sp.active
+            where sp.school_id = quality_provisional_movements.school_id and sp.active
               and sp.program_id in ('CONECTADA', 'PROEC', 'ED_FAMILIA',
                   'ADOLESCENCIAS', 'LEITURA', 'TEMPO_APRENDER')
         )
@@ -153,6 +153,13 @@ begin
         end if;
     elsif v_movement.row_version <> p_expected_provisional_version then
         raise exception 'OPTIMISTIC_CONFLICT: registro provisório modificado por outra sessao';
+    end if;
+
+    if v_movement.status = 'open' and (
+        p_expected_invoice_version is not null
+        or exists (select 1 from public.registered_invoices where id = p_invoice ->> 'id')
+    ) then
+        raise exception 'VALIDATION_ERROR: identificacao exige um novo documento fiscal';
     end if;
 
     v_result := radar_private.save_invoice_with_effects_v2_impl(
