@@ -175,6 +175,63 @@
     }
   ],
   "knownValidationLimit": "Ciclos funcionais: primeira tentativa falhou na prontidão Auth; causa não demonstrada. Uma repetição dirigida passou com 21 cenários. Nenhum teste, timeout ou Auth foi alterado. Revisão automática Copilot não executada por quota.",
-  "followUp": "F12 suspensa; nenhuma nova auditoria ou investigação de busca iniciada. A branch release é trilha operacional e não deve ser integrada à main."
+  "followUp": "F12 suspensa; nenhuma nova auditoria ou investigação de busca iniciada. A branch release é trilha operacional e não deve ser integrada à main.",
+  "postMergeWorkflows": [
+    {
+      "id": 40127053982,
+      "name": "Validar snapshot canônico do RADAR",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 40127053878,
+      "name": "Lighthouse CI",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 40127053901,
+      "name": "Homologar Production Supabase",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 40127053906,
+      "name": "Validar RADAR PDDE",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 40127053850,
+      "name": "Monitoramento contínuo de Production",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 40127053940,
+      "name": "Regressão visual desktop",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 40127053825,
+      "name": "CodeQL",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 40127054150,
+      "name": "Regressões específicas do help desk",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 40127053922,
+      "name": "Supabase readiness",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "postMergeCheckedAt": "2026-10-24T19:55:38.899Z"
 }
 
