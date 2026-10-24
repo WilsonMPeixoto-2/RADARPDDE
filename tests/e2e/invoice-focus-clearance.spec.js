@@ -28,7 +28,26 @@ async function openControllerInvoice(page) {
   await expect(add).toBeVisible();
   await add.click();
   await expect(page.locator('#modal-dados-nota')).toHaveClass(/show/);
-  await expect(page.locator('#nota-desc')).toBeFocused();
+  try {
+    await expect(page.locator('#nota-desc')).toBeFocused();
+  } catch (error) {
+    // Diagnóstico somente depois da falha, sem espera adicional que possa
+    // mascarar o estado errado do foco no produto.
+    const snapshot = await page.evaluate(() => {
+      const modal = document.getElementById('modal-dados-nota');
+      return {
+        activeTag: document.activeElement?.tagName || null,
+        activeId: document.activeElement?.id || null,
+        activeText: document.activeElement?.textContent?.trim().slice(0, 90) || null,
+        modalShow: modal?.classList.contains('show') || false,
+        modalInert: Boolean(modal?.inert),
+        ariaHidden: modal?.getAttribute('aria-hidden') || null,
+        managedDialog: window.RadarModalAccessibility?.getActiveDialog?.()?.id || null,
+        modalOpenFunction: String(window.openModal || '').slice(0, 140)
+      };
+    });
+    throw new Error(`F06 — foco inicial da NF: ${JSON.stringify(snapshot)}. Causa original: ${String(error)}`);
+  }
   return add;
 }
 
