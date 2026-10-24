@@ -143,3 +143,33 @@ consultados no PR; não declarar CI concluído por esta evidência local.
 Não abrir novos formulários, salvamento, reanálise ou redesign nesta entrega.
 Outros estados só retomam F06 diante de fluxo prioritário ou defeito concreto.
 Cobertura horizontal continua 26/26; demais F mantêm condições próprias.
+
+## Suporte de CI: artefato obsoleto em reexecução
+
+Run `40071155543`: tentativa 1 da baseline parou no login (zero gestos),
+classificada no [diagnóstico](2026-10-24-f06-baseline-login-diagnostic.md).
+Uma repetição dirigida, sem mudar código/harness/timeouts, completou baseline e
+reload; candidato da tentativa 1 permaneceu aprovado. O agregador ainda reprovou
+porque baixou o artefato métrico antigo **12551821292** (1.330 bytes), apesar de
+existir a nova baseline **12551799525** (1.154.370 bytes). Ambos tinham o mesmo nome.
+O log lista explicitamente o ID antigo; não é inferência por status vermelho.
+
+Os arquivos corretos de baseline/candidato, com hashes conferidos, foram passados
+ao **mesmo comparador, sem modificá-lo**. Ele concluiu com exit 0: ambas variantes
+400 rodadas/1.107 gestos, estado final e reload aprovados. [Resultado agregado](../evidence/2026-10-24-f06-correct-artifact-comparison.json)
+preserva **sete advertências**: CPU/apply/render/SQL e frescor não comparável.
+Não atribuir variações da baseline histórica #408 à F06 nem declarar performance
+homologada como produto por esse resultado.
+
+Apoio indispensável à homologação: **uma propriedade `overwrite: true`** no upload
+somente dos artefatos compactos `operational-metrics-*`, usando a Action instalada.
+Assim há um único resumo corrente por variante/run após reexecutar um job. Os
+artefatos brutos `operational-sustained-*` e os logs das falhas são preservados.
+Nenhuma mudança no teste sustentado, comparador, limiar, timeout, animação, Auth ou
+permissão de workflow. Não é uma nova estratégia de benchmark. Esse ajuste de CI
+é commit separado; o runtime F06 continua restrito aos dois arquivos já descritos.
+
+O Preview consolidado foi CANCELED por política: `vercel.json` só libera main.
+Esse Skip não é Preview homologado nem, por si, bloqueio de merge. Após CI do HEAD
+final, conferir base/reviews, integrar e verificar Production real. Quota histórica
+não será presumida como bloqueio atual. Atualização de release no próprio #493.

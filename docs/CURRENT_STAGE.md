@@ -13,9 +13,15 @@
   em zoom nativo 100%/200% passaram localmente. Homologação do **novo HEAD** deve
   ser conferida no [#493](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/493);
   os 11 workflows verdes do SHA anterior não substituem essa verificação.
-- Production foi conferida READY em `e700fba8`; o Preview encontrou cota de
-  deployments Vercel. Fila de publicação é separada e não bloqueia tarefas
-  independentes do programa. Não criar commits apenas para tentar publicar.
+- Production foi conferida READY em `e700fba8`. O Preview do consolidado foi
+  intencionalmente dispensado por `vercel.json` (só main publica); Skip não é
+  Preview homologado nem bloqueio automático de merge. Quota de candidatos
+  anteriores é histórica: conferir o deployment real de main após integração.
+- Suporte de CI necessário: a baseline passou numa repetição, mas o agregador
+  leu o artefato antigo homônimo. Uma propriedade overwrite no upload de métricas
+  remove a ambiguidade futura, preservando os artefatos brutos. Teste, comparador,
+  timeout e runtime de Auth não mudam. [Diagnóstico e limites](audits/2026-10-24-f06-invoice-accessibility.md).
+  Fila externa de publicação não bloqueia tarefas independentes do programa.
 - **Próxima execução após homologar o candidato único: F12.** Inventário real
   42 avisos/0 erros e uma interpretação de nome como HTML reproduzida, sem
   alteração de produto, salvos em
