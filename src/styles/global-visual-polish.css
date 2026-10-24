@@ -710,6 +710,11 @@ textarea.form-control {
     bottom: 0;
 }
 
+/* Reserva o rodapé fixo ao rolar campos da NF pelo teclado (incluindo zoom). */
+#modal-dados-nota .modal-body {
+    scroll-padding-block-end: 6rem;
+}
+
 #modal-cobranca .modal-footer {
     justify-content: flex-end;
 }

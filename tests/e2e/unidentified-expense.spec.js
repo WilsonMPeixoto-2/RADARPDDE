@@ -103,6 +103,20 @@ test.describe('Prontuário — despesa a identificar', () => {
     await page.locator('#nota-valor').fill('850');
     await page.locator('#nota-unidentified-observation')
       .fill('Débito localizado no extrato; aguardando documentação da unidade.');
+
+    // #492: capturar os dois campos ANTES de salvar, sem relaxar a igualdade
+    // da observação persistida. Distingue foco/entrada de payload/persistência.
+    const filled = await page.evaluate(() => ({
+      description: document.getElementById('nota-desc')?.value,
+      observation: document.getElementById('nota-unidentified-observation')?.value,
+      focusedId: document.activeElement?.id || null
+    }));
+    await testInfo.attach('issue492-form-inputs-before-save.json', {
+      body: Buffer.from(JSON.stringify(filled, null, 2)),
+      contentType: 'application/json'
+    });
+    expect(filled.description).toBe('Saída de R$ 850,00 observada no extrato; documentação pendente');
+    expect(filled.observation).toBe('Débito localizado no extrato; aguardando documentação da unidade.');
     await page.locator('#form-dados-nota button[type="submit"]').click();
 
     await expect(page.locator('#modal-dados-nota')).not.toHaveClass(/show/);
