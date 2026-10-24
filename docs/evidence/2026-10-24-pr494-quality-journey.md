@@ -30,6 +30,10 @@ O gate prepara uma escola exclusiva com Educação Conectada **depois** do
 full-contract: a escola de UAT de outro workflow não existe nessa etapa. A primeira
 tentativa CI em `afce5a0c` parou na procura dessa escola, antes de qualquer escrita
 provisória. Foi corrigida a fixture, sem mudar runtime, timeout ou asserções.
+A carga usa `psql`, como as demais fixtures SQL do projeto: a tentativa em
+`c3950c14` mostrou que `supabase db query --local` rejeita múltiplos comandos
+preparados. Essa segunda falha também ocorreu antes da jornada, sem escrita
+provisória. Não justifica modificar o produto.
 
 ## Evidência proporcional e correções de integração
 
