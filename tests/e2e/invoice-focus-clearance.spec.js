@@ -22,7 +22,7 @@ async function openControllerInvoice(page) {
   const add = page.getByRole('button', { name: 'Adicionar Nota', exact: true }).first();
   await expect(add).toBeVisible();
   await add.click();
-  await expect(page.locator('#modal-dados-nota')).toHaveClass(/\\bshow\\b/);
+  await expect(page.locator('#modal-dados-nota')).toHaveClass(/show/);
   await expect(page.locator('#nota-desc')).toBeFocused();
   return add;
 }
@@ -88,7 +88,7 @@ test.describe('F06 — formulário NF: foco, validação e reflow desktop', () =
     expect(await form.evaluate(element => element.checkValidity())).toBe(false);
     await page.getByRole('button', { name: 'Salvar Gasto', exact: true }).click();
     await expect(page.locator('#nota-desc')).toBeFocused();
-    await expect(modal).toHaveClass(/\\bshow\\b/);
+    await expect(modal).toHaveClass(/show/);
 
     const positions = [];
     for (const fieldId of ['nota-tipo', 'nota-numero', 'nota-valor']) {
@@ -111,7 +111,7 @@ test.describe('F06 — formulário NF: foco, validação e reflow desktop', () =
 
     // Escape mantém contrato existente: overlay inerte e foco no disparador.
     await page.keyboard.press('Escape');
-    await expect(modal).not.toHaveClass(/\\bshow\\b/);
+    await expect(modal).not.toHaveClass(/show/);
     await expect.poll(() => modal.evaluate(element => ({
       inert: element.inert,
       opacity: getComputedStyle(element).opacity,
