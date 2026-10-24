@@ -7,7 +7,12 @@ const { test, expect } = require('@playwright/test');
 // A viewport reduzida testa reflow/obstrução, não afirma simular o zoom do browser.
 async function openControllerInvoice(page) {
   await page.goto('/');
-  await page.waitForFunction(() => window.RadarDataContext?.ready === true);
+  // O bootstrap de dados e a extensão de foco têm ciclos de carga distintos.
+  // Abrir antes de a extensão ser instalada impede o foco inicial no formulário.
+  await page.waitForFunction(() => (
+    window.RadarDataContext?.ready === true
+    && typeof window.RadarModalAccessibility?.getActiveDialog === 'function'
+  ));
   await page.evaluate(() => {
     switchProfile('controlador');
     const school = escolas.find(item => (
