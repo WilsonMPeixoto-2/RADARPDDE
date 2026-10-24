@@ -11603,6 +11603,16 @@ function openModalDadosNota(escolaId, compKey) {
     document.querySelector('#modal-dados-nota button[type="submit"]').innerText = 'Salvar Gasto';
     
     openModal('modal-dados-nota');
+    // F06: o primeiro campo deve receber foco real na abertura da NF.
+    // A carga dinâmica dos wrappers de modal não pode deixar a navegação
+    // por teclado começar no botão disparador, atrás do overlay.
+    const invoiceModal = document.getElementById('modal-dados-nota');
+    const initialField = document.getElementById('nota-desc');
+    window.requestAnimationFrame(() => {
+        if (invoiceModal?.classList.contains('show') && initialField?.isConnected) {
+            initialField.focus({ preventScroll: true });
+        }
+    });
     return true;
 }
 
