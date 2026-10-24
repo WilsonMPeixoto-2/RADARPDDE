@@ -217,6 +217,7 @@ jobs:
         run: >-
           npx playwright test tests/e2e/supabase-late-auth-actions.spec.js
           tests/e2e/supabase-inventory-terminal-delete.spec.js
+          tests/e2e/supabase-quality-provisional.spec.js
           --project=desktop-chromium --output=test-results-late-auth
 
       - name: Publicar evidência visual do contrato Supabase local

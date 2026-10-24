@@ -1,0 +1,53 @@
+{
+  "recordedAt": "2026-10-24T18:26:00.649030+00:00",
+  "environment": "local-disposable-authenticated",
+  "baseMain": "22faf5482bd79b84e7503ea460a733ab3c830b19",
+  "schoolId": "QUALITY-1792866253938",
+  "measurements": {
+    "invoicesBefore": 0,
+    "invoicesAfter": 1,
+    "pendenciesBefore": 0,
+    "pendenciesAfter": 0,
+    "provisionalBefore": "open",
+    "provisionalAfter": "identified",
+    "identifiedInvoice": "nota-f7f9b304-00cc-4622-8cca-bfe0df80f82c",
+    "amount": 250.35,
+    "program": "CONECTADA",
+    "browserErrors": []
+  },
+  "verification": {
+    "frontendJourney": "passed",
+    "optionalFieldsInitiallyBlank": true,
+    "reloadBeforeAndAfterIdentification": true,
+    "HTTP503PreservesOpenMovementAndNoInvoice": true,
+    "bonificationManualFieldsPreserved": true,
+    "canonicalConsumptionAdvisoryNA": true,
+    "targetedPgTAP": {
+      "passed": 22,
+      "failed": 0
+    },
+    "relatedUnit": {
+      "passed": 36,
+      "failed": 0
+    },
+    "existingVisualChecks": {
+      "passed": 3,
+      "failed": 0,
+      "goldensChanged": false
+    }
+  },
+  "sourceHashes": {
+    "app.js": "ec8d112194ac9b7e3d60bedf6d7f89ef0be0d8d2e058b549568025646ba43fef",
+    "index.html": "77301bb45344a466ee2324f1e731c56bb17f42120225258ef6ff3e0066dd28eb",
+    "src/integration/quality-provisional-ux.js": "0c591c8db09b0b254769fe3858176c942080b7100778a64f7506eff6c0eec707",
+    "src/application/invoice-service.js": "386324916ab62edaa2fa193ef3041678654a67453c1a2050902f3bf8c257d2ad",
+    "src/data/supabase-repository.js": "d80880dd0504891a8c1076700b87ee42ceafb4dcfe53f177ffab92edd6503827",
+    "supabase/migrations/20261024120000_quality_provisional_movements.sql": "b7b5fe1ea95d2559b65082dfc938a6f23655d9f2fe6b57cd9ecf301c2f1a675a",
+    "tests/e2e/supabase-quality-provisional.spec.js": "690e98fd60eff638cc63ab746f776b11b94aadade15e12ab2063491dac27cd6c"
+  },
+  "limits": [
+    "Synthetic controller and school, not an authenticated Production session.",
+    "Local PostgreSQL 17.6; hosted migrations/CI require their own confirmation.",
+    "No claim of general fluency or performance gain."
+  ]
+}

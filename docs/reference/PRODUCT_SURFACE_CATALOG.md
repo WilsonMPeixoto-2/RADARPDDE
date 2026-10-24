@@ -221,6 +221,7 @@ A **bonificação é editada diretamente pelos próprios controles Sim/Não/N/A*
 | SME | identificação e bonificação, sem análise técnica ou controles operacionais quando o papel real é SME |
 | Navegação | retorno contextual com competência, filtros, rolagem e foco |
 | Independência de despesas | Controlador e Assistente podem cadastrar, editar, excluir e operar os fluxos derivados de despesas conforme suas capacidades, sem depender de Sim/Não/N/A ou consolidação da bonificação; a própria bonificação mantém suas regras de edição |
+| Conta PDDE Qualidade | no contexto escola/competência, registrar saídas antes de conhecer a Ação Integrada; reencontrar/editar os dados conhecidos e identificar depois pelo formulário fiscal. Provisório não conta como NF nem cria Pendência; os estados Programa a identificar/Identificada distinguem o que ainda precisa de ação |
 | Leitura humana | primeiro confirma escola/competência/programa; depois trabalha documentos individualmente sem perder o contexto da unidade |
 
 ## S-06 — Capital e Inventário

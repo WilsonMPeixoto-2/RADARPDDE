@@ -712,6 +712,86 @@ export type Database = {
         }
         Relationships: []
       }
+      quality_provisional_movements: {
+        Row: {
+          amount: number | null
+          competence_id: string
+          created_at: string
+          created_by: string
+          debit_date: string | null
+          description: string | null
+          document_reference: string | null
+          id: string
+          identification_operation_key: string | null
+          observation: string | null
+          registered_invoice_id: string | null
+          row_version: number
+          school_id: string
+          status: string
+          updated_at: string
+          updated_by: string
+        }
+        ComputedFields: never
+        Insert: {
+          amount?: number | null
+          competence_id: string
+          created_at?: string
+          created_by?: string
+          debit_date?: string | null
+          description?: string | null
+          document_reference?: string | null
+          id?: string
+          identification_operation_key?: string | null
+          observation?: string | null
+          registered_invoice_id?: string | null
+          row_version?: number
+          school_id: string
+          status?: string
+          updated_at?: string
+          updated_by?: string
+        }
+        Update: {
+          amount?: number | null
+          competence_id?: string
+          created_at?: string
+          created_by?: string
+          debit_date?: string | null
+          description?: string | null
+          document_reference?: string | null
+          id?: string
+          identification_operation_key?: string | null
+          observation?: string | null
+          registered_invoice_id?: string | null
+          row_version?: number
+          school_id?: string
+          status?: string
+          updated_at?: string
+          updated_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_provisional_movements_competence_id_fkey"
+            columns: ["competence_id"]
+            isOneToOne: false
+            referencedRelation: "competences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_provisional_movements_registered_invoice_id_fkey"
+            columns: ["registered_invoice_id"]
+            isOneToOne: true
+            referencedRelation: "registered_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_provisional_movements_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       registered_invoices: {
         Row: {
           amount: number
@@ -1173,6 +1253,21 @@ export type Database = {
           p_expected_invoice_version: number
           p_expected_verification_version?: number
           p_invoice_id: string
+          p_verification_patch?: Json
+        }
+        Returns: Json
+      }
+      identify_quality_provisional_movement: {
+        Args: {
+          p_administrative_log?: Json
+          p_asset?: Json
+          p_expected_asset_version?: number
+          p_expected_invoice_version?: number
+          p_expected_provisional_version: number
+          p_expected_verification_version?: number
+          p_invoice: Json
+          p_operation_key: string
+          p_provisional_id: string
           p_verification_patch?: Json
         }
         Returns: Json

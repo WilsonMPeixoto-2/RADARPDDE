@@ -117,7 +117,7 @@
     byId('nota-numero').value = record.document_reference || '';
     byId('nota-valor').value = record.amount ?? '';
     byId('nota-modal-intro').textContent =
-      'Identifique a despesa. Ao salvar, a movimentação provisória será vinculada na mesma transação.';
+      'Ao salvar, esta saída será vinculada à despesa no programa escolhido.';
   }
   function render(panel) {
     const list = panel.querySelector('[data-quality-list]');
@@ -176,17 +176,13 @@
     const panel = byId('quality-provisional-panel');
     if (!panel || !input.schoolId || !input.competence) return;
     const programs = (input.programs || []).filter(p => PROGRAMS.has(p.id));
-    if (!input.canEdit) { panel.hidden = true; return; }
+    if (!input.canEdit || !client()) { panel.hidden = true; return; }
     panel.hidden = false;
     context = { schoolId: input.schoolId, competence: input.competence, programs, canEdit: true };
     const id = ++generation;
     panel.querySelector('[data-quality-new]').onclick = () => openEditor(null);
     panel.querySelector('[data-quality-refresh]').onclick = () => hydrate(context);
     const list = panel.querySelector('[data-quality-list]');
-    if (!client()) {
-      list.textContent = 'Disponível quando o RADAR estiver conectado ao Supabase.';
-      return;
-    }
     list.textContent = 'Consultando movimentações…';
     try {
       const { data, error } = await client().from(TABLE)

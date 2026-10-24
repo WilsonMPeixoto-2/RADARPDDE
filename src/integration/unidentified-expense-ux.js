@@ -228,7 +228,7 @@
                     ? 'Corrija os dados provisórios deste mesmo lançamento. A Pendência e seu histórico permanecem vinculados; o documento recebido deve ser registrado na Pendência.'
                     : 'Registre apenas os dados já conhecidos sobre a saída observada no extrato. O RADAR classificará automaticamente este lançamento como “Despesa a identificar” e abrirá a Pendência correspondente.')
                 : (identifyingQuality
-                    ? 'A saída provisória será identificada no programa escolhido e vinculada à despesa definitiva na mesma transação, sem Pendência artificial.'
+                    ? 'Ao salvar, esta saída será vinculada à despesa no programa escolhido. Não será aberta uma Pendência apenas por essa identificação.'
                     : (invoiceId
                         ? 'Corrija os dados deste mesmo lançamento. Salvar as alterações não cria outra despesa ou Pendência.'
                         : 'Cadastre o gasto referente a esta Nota Fiscal para que o sistema direcione as obrigações operacionais corretas.'));

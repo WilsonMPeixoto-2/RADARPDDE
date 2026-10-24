@@ -37,13 +37,13 @@ grant delete on public.quality_provisional_movements to authenticated;
 
 create policy quality_provisional_read on public.quality_provisional_movements
     for select to authenticated
-    using (public.can_access_school(school_id));
+    using (school_id = any ((select radar_private.accessible_school_ids())::text[]));
 
 create policy quality_provisional_insert on public.quality_provisional_movements
     for insert to authenticated
     with check (
         (select public.current_app_role()) in ('controller', 'federal_assistant', 'technical_admin')
-        and public.can_write_school(school_id)
+        and school_id = any ((select radar_private.writable_school_ids())::text[])
     );
 
 create policy quality_provisional_update on public.quality_provisional_movements
@@ -51,12 +51,12 @@ create policy quality_provisional_update on public.quality_provisional_movements
     using (
         status = 'open'
         and (select public.current_app_role()) in ('controller', 'federal_assistant', 'technical_admin')
-        and public.can_write_school(school_id)
+        and school_id = any ((select radar_private.writable_school_ids())::text[])
     )
     with check (
         status = 'open'
         and (select public.current_app_role()) in ('controller', 'federal_assistant', 'technical_admin')
-        and public.can_write_school(school_id)
+        and school_id = any ((select radar_private.writable_school_ids())::text[])
     );
 
 create policy quality_provisional_delete on public.quality_provisional_movements
@@ -64,7 +64,7 @@ create policy quality_provisional_delete on public.quality_provisional_movements
     using (
         status = 'open'
         and (select public.current_app_role()) in ('controller', 'federal_assistant', 'technical_admin')
-        and public.can_write_school(school_id)
+        and school_id = any ((select radar_private.writable_school_ids())::text[])
     );
 
 create or replace function radar_private.touch_quality_provisional_movement()

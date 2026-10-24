@@ -370,6 +370,31 @@ A `verification` é necessária como vínculo estrutural do contexto escolar/mê
 
 A retificação cadastral do mesmo lançamento permite descrição, número/referência e valor mesmo com Pendência ativa. A correção de tipo é permitida com histórico exclusivamente fiscal (`notaFiscal`), quando todas as Pendências estão Resolvidas/Canceladas e nunca houve `consAssessoria`. Contexto e histórico permanecem; `a_identificar` não muda de tipo pelo editor e um bem já `Inventariada` não pode ser removido por essa conversão. O contrato é compartilhado entre editor e autoridade de salvamento no `InvoiceService`, com antes/depois no log e as versões esperadas no comando atômico existente.
 
+## 9.3.1 Registrar saída da conta PDDE Qualidade sem Ação Integrada
+
+Controlador e Assistente registram a movimentação no Prontuário/competência,
+preenchendo somente os dados conhecidos (data do débito, referência, descrição,
+valor e observação são opcionais). `quality_provisional_movements` é entidade
+separada de `registered_invoices`: não cria NF, Pendência ou avaliação fiscal,
+não participa de totais de NF e não preenche bonificação. Pode existir antes
+de haver programas vinculados à escola. A leitura/CRUD é dirigida à escola e
+competência no Supabase; o painel usa retorno remoto, reload ou Atualizar,
+sem bootstrap global nem polling próprio. Modos sem Supabase não expõem esse painel.
+
+Ao conhecer a Ação Integrada, o operador escolhe um programa Qualidade vinculado
+à escola e utiliza o formulário fiscal existente. `InvoiceService` e Repository
+encaminham a identificação para `identify_quality_provisional_movement`:
+o wrapper chama a autoridade fiscal idempotente existente e vincula o provisório
+na mesma transação. Versão conflitante/falha não baixa o provisório nem deixa NF
+parcial; repetir a mesma operação não duplica NF. O identificado deixa de aceitar
+edição/exclusão como provisório. Se a NF for excluída legitimamente depois, o
+registro permanece identificado, sem inventar outra identificação automática.
+
+Regras de NF, patrimônio, Assessoria, bonificação e autorização colaborativa
+permanecem canônicas. As políticas novas reutilizam os conjuntos escolares de
+leitura/escrita existentes. Esse registro de conta não altera o contrato fiscal
+`a_identificar`, que já tem escola, competência e programa conhecidos.
+
 ## 9.4 Criar `a_identificar`
 
 ```text
@@ -387,7 +412,7 @@ usuário registra uma saída cuja natureza ainda não pode ser identificada
 
 Regra inegociável: **novo `a_identificar` nasce `Incorreto + Pendência` na mesma operação**.
 
-No cadastro provisório, a natureza final da despesa não é escolha do usuário. Descrição, valor e referência opcional pertencem ao lançamento; a observação provisória é projetada na Pendência. O modelo vigente não possui um campo de negócio para “data da saída/débito”: `registered_at` e `dataAbertura` são datas técnicas/auditáveis e não devem ser reinterpretadas como esse dado.
+No cadastro fiscal `a_identificar`, a natureza final da despesa não é escolha do usuário. Descrição, valor e referência opcional pertencem ao lançamento; a observação provisória é projetada na Pendência. Esse fluxo fiscal não possui campo de negócio para “data da saída/débito”: `registered_at` e `dataAbertura` são datas técnicas/auditáveis e não devem ser reinterpretadas como esse dado. O `debit_date` da movimentação de conta descrita na seção 9.3.1 pertence à entidade separada.
 
 Enquanto a Pendência vinculada está aberta, os dados provisórios editáveis podem ser retificados pela **retificação auditável existente**, preservando ID, tipo `a_identificar`, escola, competência, programa, histórico e vínculo da Pendência. A observação/motivo da Pendência continuam editáveis no próprio drawer.
 

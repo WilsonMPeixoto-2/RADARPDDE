@@ -1,5 +1,22 @@
 # RADAR PDDE — estado atual e retomada
 
+## Entrega operacional corrente — PDDE Qualidade / #494 — 24/10/2026
+
+- **F06 integrada e publicada:** `main@22faf548`, Vercel
+  `dpl_HJaPgzTG4Z27cib7BYSe12u1vM5b` READY. Pós-deploy confirmou SHA, 52 assets
+  e bloqueio anônimo de RLS; a jornada autenticada/zoom foi no banco descartável.
+- **Prioridade única de implementação: #494.** Permitir registrar saída da conta
+  PDDE Qualidade antes de saber a Ação Integrada e identificá-la posteriormente.
+  [Jornada, invariantes e publicação](evidence/2026-10-24-pr494-quality-journey.md).
+  A branch incorporou a F06; consultar CI do HEAD consolidado antes de integrar.
+- A migration 62 está versionada e foi ensaiada localmente. **Isso não significa
+  que tenha sido aplicada em Production.** Publicação exige banco antes do frontend.
+- **F12 suspensa por prioridade.** Os casos de busca/nome foram registrados,
+  não publicados e não são a próxima entrega automática. Não retomar scanner,
+  benchmarks, atualização de pacotes ou investigações periféricas nesta frente.
+
+## Histórico — consolidação F06 antes da integração
+
 ## Continuidade do programa e consolidação F06 — 24/10/2026
 
 - Cobertura **26/26** e roteiro de duas trilhas já integrados nos #484/#485/#489.

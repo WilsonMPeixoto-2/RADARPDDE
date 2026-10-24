@@ -2,12 +2,16 @@ begin;
 set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
-select plan(13);
+select plan(22);
 
 insert into auth.users (id, email)
 values ('00000000-0000-0000-0000-000000009936', 'quality-provisional@example.test');
 insert into public.user_profiles (user_id, profile_id)
 values ('00000000-0000-0000-0000-000000009936', 'federal_assistant');
+insert into auth.users (id, email)
+values ('00000000-0000-0000-0000-000000009937', 'quality-readonly@example.test');
+insert into public.user_profiles (user_id, profile_id, cre_scope)
+values ('00000000-0000-0000-0000-000000009937', 'sme_management', '4ª CRE');
 insert into public.competences (id, label, exercise, bonus_deadline)
 values ('2038-04', 'Abril de 2038', 2038, '2038-05-15');
 insert into public.programs (id, name)
@@ -99,5 +103,46 @@ select throws_like(
 
 select is((select count(*)::int from public.registered_invoices where school_id='04.99.936'),1,
           'rejeicao nao duplica a NF');
+
+select ok(not has_table_privilege('anon','public.quality_provisional_movements','select'),
+          'anon nao le movimentacoes provisorias');
+select ok(not has_column_privilege('authenticated','public.quality_provisional_movements','status','update'),
+          'cliente nao identifica por update direto do status');
+select ok(not has_column_privilege('authenticated','public.quality_provisional_movements','school_id','update'),
+          'cliente nao move o registro para outra escola');
+
+-- Mesma chamada fiscal: replay idempotente, sem segundo documento ou nova baixa.
+select lives_ok($$select public.identify_quality_provisional_movement(
+  'f0000000-0000-4000-8000-000000000936'::uuid, 2,
+  '11111111-2222-4333-8444-555555559936'::uuid,
+  '{"id":"quality-invoice-936","school_id":"04.99.936","competence_id":"2038-04","program_id":"CONECTADA","verification_id":"04.99.936::2038-04::CONECTADA","source_context_key":"2038-04_CONECTADA","description":"Material confirmado","expense_type":"consumo","invoice_number":"NF-936","amount":150,"registered_at":"2038-04-15T12:00:00Z"}'::jsonb,
+  null,
+  '{"id":"04.99.936::2038-04::CONECTADA","analysis":{}}'::jsonb,
+  null, null, 1,
+  '{"id":"quality-log-936","action":"Gasto Consumo Cadastrado","details":{"invoice":"quality-invoice-936"},"event_at":"2038-04-15T12:00:00Z"}'::jsonb
+)$$, 'reenvio da mesma operacao e idempotente');
+select is((select count(*)::int from public.registered_invoices where school_id='04.99.936'),1,
+          'replay nao cria segunda NF');
+
+insert into public.quality_provisional_movements(id, school_id, competence_id)
+values ('f0000000-0000-4000-8000-000000000937','04.99.936','2038-04');
+select throws_like($$select public.identify_quality_provisional_movement(
+  p_provisional_id => 'f0000000-0000-4000-8000-000000000937'::uuid,
+  p_expected_provisional_version => 1,
+  p_operation_key => '11111111-2222-4333-8444-555555559937'::uuid,
+  p_invoice => '{"id":"quality-rejected-937","school_id":"04.99.936","competence_id":"2038-04","program_id":"CONECTADA","verification_id":"04.99.936::2038-04::CONECTADA","source_context_key":"2038-04_CONECTADA","description":"Nao persistir","expense_type":"consumo","invoice_number":"NF-937","amount":10}'::jsonb,
+  p_verification_patch => '{"id":"04.99.936::2038-04::CONECTADA","analysis":{}}'::jsonb,
+  p_expected_verification_version => 999
+)$$, 'OPTIMISTIC_CONFLICT:%', 'conflito fiscal aborta a identificacao');
+select is((select status from public.quality_provisional_movements where id='f0000000-0000-4000-8000-000000000937'),
+          'open','falha fiscal preserva provisório aberto');
+select is((select count(*)::int from public.registered_invoices where id='quality-rejected-937'),0,
+          'falha fiscal nao deixa NF parcial');
+
+select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000009937',true);
+set local role authenticated;
+select throws_like($$insert into public.quality_provisional_movements(school_id,competence_id)
+  values ('04.99.936','2038-04')$$, '%row-level security%', 'RLS impede escrita de perfil SME');
+reset role;
 select * from finish();
 rollback;
