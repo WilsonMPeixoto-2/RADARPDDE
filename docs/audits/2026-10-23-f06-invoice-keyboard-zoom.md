@@ -1,6 +1,6 @@
 # F06 — Nota Fiscal: foco e rodapé do modal com zoom/reflow
 
-**Objeto:** jornada do Controlador para cadastrar Nota Fiscal / Despesa; validação obrigatória, Tab, foco, rolagem e fechamento em zoom elevado. **Escopo:** correção CSS do modal existente e teste E2E; sem mudança em regras financeiras, estado, SQL, Auth, RLS, dados ou Vercel.
+**Objeto:** jornada do Controlador para cadastrar Nota Fiscal / Despesa; validação obrigatória, Tab, foco, rolagem e fechamento em zoom elevado. **Escopo:** correção CSS do modal, garantia explícita de foco inicial na ação de abrir NF e teste E2E; sem mudança em regras financeiras, estado, SQL, Auth, RLS, dados ou Vercel.
 
 ## Evidência original da falha (RED)
 
@@ -18,6 +18,7 @@ O Axe não apontou violação nesse recorte. Isso **não** invalida o problema: 
 
 - `#modal-dados-nota .modal-body { scroll-padding-block-end: 112px; }`: informa à rolagem automática a zona inferior reservada para as ações sticky.
 - `#modal-dados-nota #form-dados-nota .form-control` usa `scroll-margin-block-start: 36px;` para deixar rótulo visível e `scroll-margin-block-end: 112px;` para não estacionar o campo atrás do rodapé.
+- `app.js` (`openModalDadosNota`): depois de abrir, no próximo frame, foca explicitamente `#nota-desc` se o modal permanece aberto. Essa garantia localizada independe da ordem das extensões de acessibilidade e não cria waits, gravação ou mutação financeira. A extensão segue responsável por Escape e devolução do foco.
 - Os seletores são específicos da NF; o rodapé continua sticky. A viewport desktop a 100% deve permanecer sem regressões.
 
 ## Contraprova geométrica local de implementação (controle reduzido)
@@ -30,6 +31,14 @@ Antes de abrir o PR, foi executado **um HTML estático mínimo** com a estrutura
 | Valor do Gasto | 370 px | 340 px | 318 px |
 
 A sobreposição por pintura reproduziu-se antes, e ambas as posições ficaram acima do rodapé no mock após as regras novas. A verificação do RADAR **de verdade**, com campos, validação e fluxo do Controlador, cabe ao teste de integração abaixo.
+
+## Observação da CI e mudança de estratégia
+
+O PR #490 nas duas primeiras execuções do E2E (HEAD `5d49f59f`, depois `3455b68d`) reprovou **nos dois perfis de viewport, antes de medir o rodapé**, na asserção `expect(#nota-desc).toBeFocused()`. O modal abriu visivelmente, mas o foco não entrou no primeiro campo. A primeira hipótese de extensão ainda não carregada foi testada aguardando a API concreta `RadarModalAccessibility.getActiveDialog`; **isso não resolveu**. Por isso, a etapa anterior é registrada como falha de abordagem e não repetida.
+
+A correção foi reavaliada: o produto garante agora foco inicial diretamente em `openModalDadosNota`, além do espaço de rolagem específico. As asserções de foco **não foram removidas**, e a extensão continua responsável por fechar e devolver o foco. A prova de geometria só poderá ser considerada efetiva depois de os testes atravessarem a pré-condição.
+
+**Gates:** o status final do último SHA, screenshots geométricos e comportamento real de teclado precisam ser conferidos antes de declarar o defeito encerrado; não assumir resultado a partir da mudança de código.
 
 ## Regressão E2E proposta
 
@@ -44,4 +53,4 @@ A sobreposição por pintura reproduziu-se antes, e ambas as posições ficaram 
 
 ## Estado
 
-Correção e prova propostas na branch `fix/f06-nf-modal-keyboard-clearance-20261023`. **O merge e o status de CI/Production não são presumidos.** A etapa só pode ser declarada corrigida em código versionado após inspecionar o workflow e, idealmente, os artefatos geométricos. Não alargar F06 para mobile ou a auditoria horizontal das 26 dependências.
+Correções e prova propostas na branch `fix/f06-nf-modal-keyboard-clearance-20261023`. **O merge e o status de CI/Production não são presumidos.** A etapa só pode ser declarada corrigida em código versionado após inspecionar o workflow e, idealmente, os artefatos geométricos. Não alargar F06 para mobile ou a auditoria horizontal das 26 dependências.
