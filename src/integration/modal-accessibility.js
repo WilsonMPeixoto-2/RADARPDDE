@@ -76,7 +76,16 @@
         dialog.setAttribute('aria-hidden', 'false');
         dialog.removeAttribute('inert');
         document.body.classList.add('modal-open');
-        root.requestAnimationFrame(() => focusInitial(dialog));
+        const focusWhenOpened = document.activeElement;
+        root.requestAnimationFrame(() => {
+            if (!dialog.classList.contains('show')) return;
+            // A abertura é assíncrona em relação ao frame. Se o usuário (ou
+            // Playwright) já escolheu outro campo do diálogo, não roubar foco
+            // e redirecionar teclas para a Descrição durante o preenchimento.
+            const focusedNow = document.activeElement;
+            if (focusedNow !== focusWhenOpened && dialog.contains(focusedNow)) return;
+            focusInitial(dialog);
+        });
         return result;
     }
 
