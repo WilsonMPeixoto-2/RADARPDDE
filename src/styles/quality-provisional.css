@@ -1,0 +1,58 @@
+/* Registro de saídas da conta PDDE Qualidade ainda sem Ação Integrada. */
+.quality-provisional-panel {
+    margin: 16px 24px 20px;
+    padding: 18px;
+    border: 1px solid var(--border-color, #dde2e9);
+    border-radius: 14px;
+    background: var(--card-bg, #fff);
+}
+.quality-provisional-panel[hidden] { display: none !important; }
+.quality-provisional-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+.quality-provisional-heading h3 { margin: 0 0 5px; font-size: 1rem; }
+.quality-provisional-heading p { margin: 0; color: var(--text-muted); font-size: 0.85rem; }
+.quality-provisional-list { display: grid; gap: 10px; }
+.quality-provisional-item {
+    padding: 12px 14px;
+    border: 1px solid var(--border-color, #dde2e9);
+    border-radius: 10px;
+    background: var(--background-light, #fff);
+}
+.quality-provisional-item-title { display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; }
+.quality-provisional-status { font-size: 0.77rem; border-radius: 100px; padding: 4px 8px; background: #ede9fe; color: #5b21b6; }
+.quality-provisional-details, .quality-provisional-observation { font-size: .82rem; margin: 8px 0 0; color: var(--text-muted); overflow-wrap: anywhere; }
+.quality-provisional-actions { margin-top: 12px; display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap; }
+.quality-provisional-actions label { display: grid; gap: 4px; font-size: .8rem; min-width: 200px; flex: 1 1 240px; max-width: 320px; }
+.quality-provisional-actions .btn { min-height: 36px; }
+.quality-provisional-empty { color: var(--text-muted); margin: 10px 0; }
+.quality-provisional-feedback { margin: 8px 0 0; color: var(--text-muted); font-size: .83rem; }
+.quality-provisional-dialog {
+    color: var(--text-primary, #1e293b);
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--border-color, #dde2e9);
+    border-radius: 16px;
+    box-shadow: 0 20px 65px rgba(0,0,0,.22);
+    max-width: min(640px, calc(100vw - 32px));
+    width: 100%;
+    max-height: calc(100dvh - 32px);
+    overflow: auto;
+    padding: 24px;
+}
+.quality-provisional-dialog::backdrop { background: rgba(15,23,42,.64); }
+.quality-provisional-dialog h2 { margin: 0 0 6px; font-size: 1.15rem; }
+.quality-provisional-dialog header p { font-size: .85rem; color: var(--text-muted); margin: 0 0 18px; }
+.quality-provisional-form-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+.quality-provisional-dialog label { display: grid; gap: 6px; font-size: .86rem; font-weight: 500; margin-bottom: 14px; }
+.quality-provisional-dialog footer { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+#quality-provisional-message { font-size: .84rem; color: var(--text-muted); min-height: 1.3rem; }
+@media (max-width: 700px) {
+    .quality-provisional-panel { margin: 12px; padding: 14px; }
+    .quality-provisional-form-grid { grid-template-columns: 1fr; }
+    .quality-provisional-dialog { padding: 18px; }
+}
