@@ -1,18 +1,29 @@
 # RADAR PDDE — estado atual e retomada
 
-## Rodada delimitada F06 — 24/10/2026
+## Continuidade do programa e consolidação F06 — 24/10/2026
 
-- #489 integrado em `e700fba8`: reconciliação da cobertura **26/26** e condições F.
-- F06 executada em uma jornada de NF: teclado, validação vazia, Escape/retorno
-  de foco e zoom real de navegador 100%/200%, com Controlador no Supabase local.
-- Defeito confirmado: Tipo e Valor encobertos pelo rodapé sticky a 200%.
-  Correção candidata: uma regra de scroll-padding somente no corpo do modal NF;
-  mesmo fluxo autenticado passou com zero obstruções. Três regressões de modal
-  passaram. [Relatório/limites/evidências](audits/2026-10-24-f06-invoice-accessibility.md).
-- Entrega isolada no [PR #493](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/493);
-  conferir ali CI, merge e deployment, sem antecipar publicação pelo teste local.
-  A rodada **não será ampliada** para outros formulários/estados nesta entrega.
-  Outras F mantêm suas condições na [matriz](TECHNOLOGY_CAPABILITIES_TRACKER.md).
+- Cobertura **26/26** e roteiro de duas trilhas já integrados nos #484/#485/#489.
+  Isso não significa 26 melhorias implementadas nem encerramento do programa.
+- **Candidato único F06: #493.** Reconcilia #490/#493: uma regra CSS contra
+  obstrução de campos/rótulos a 200% e proteção no callback do gerenciador para
+  manter foco já escolhido pelo operador. Mantém a preferência inicial da main,
+  sem segundo agendador em app.js ou override de animação do benchmark.
+- A contraprova complementar falhou no #493@9b86b19d antes do guard e passou
+  depois. 11 E2E relacionados, 22 testes de serviço e nova passagem autenticada
+  em zoom nativo 100%/200% passaram localmente. Homologação do **novo HEAD** deve
+  ser conferida no [#493](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/493);
+  os 11 workflows verdes do SHA anterior não substituem essa verificação.
+- Production foi conferida READY em `e700fba8`; o Preview encontrou cota de
+  deployments Vercel. Fila de publicação é separada e não bloqueia tarefas
+  independentes do programa. Não criar commits apenas para tentar publicar.
+- **Próxima execução após homologar o candidato único: F12.** Inventário real
+  42 avisos/0 erros e uma interpretação de nome como HTML reproduzida, sem
+  alteração de produto, salvos em
+  [a0c220b2](https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/a0c220b2309ee5532efb3fc48f23e97960ab28b9/docs/audits/2026-10-24-f12-checkpoint.md).
+  Retomar produtores/escapes a partir desse checkpoint; não declarar 42 defeitos.
+- [Matriz e fila executável](TECHNOLOGY_CAPABILITIES_TRACKER.md) registram destino,
+  retomada e saída de cada F. #491 continua como prova de filtros separada; não
+  ampliar a NF. [Evidência da consolidação](audits/2026-10-24-f06-invoice-accessibility.md).
 
 ## Histórico — retomada após #485/#487/#488 — 23/10/2026 (Brasília)
 

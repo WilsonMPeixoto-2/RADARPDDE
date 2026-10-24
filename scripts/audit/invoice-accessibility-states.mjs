@@ -45,7 +45,7 @@ const report = {
   schemaVersion: 1, generatedAt: new Date().toISOString(),
   checkout: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
   environment: 'local-disposable-authenticated-source-headless',
-  inputHashes: Object.fromEntries(['src/styles/global-visual-polish.css', 'scripts/audit/invoice-accessibility-states.mjs', 'index.html'].map(name => [name, createHash('sha256').update(fs.readFileSync(path.join(root, name))).digest('hex')])),
+  inputHashes: Object.fromEntries(['src/styles/global-visual-polish.css', 'src/integration/modal-accessibility.js', 'scripts/audit/invoice-accessibility-states.mjs', 'index.html'].map(name => [name, createHash('sha256').update(fs.readFileSync(path.join(root, name))).digest('hex')])),
   versions: Object.fromEntries(['@playwright/test', '@axe-core/playwright', '@supabase/supabase-js'].map(name => [name, JSON.parse(fs.readFileSync(path.join(root, 'node_modules', name, 'package.json'), 'utf8')).version])),
   cases: [], failures: [], browserErrors: [], invoiceWriteRequests: 0,
   limitations: ['One existing consumption invoice form and one controller profile; not all forms or WCAG certification.',

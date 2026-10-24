@@ -11,7 +11,7 @@
 
 **Legenda de cobertura (não confundir com conclusão):**
 - **T0 | inventariado:** versão e consumidor/finalidade preliminar identificados; **não existe triagem individual suficiente da capacidade aproveitável**. Obrigatório examinar.
-- **T1 | triagem inicial registrada:** o estudo A0 já analisou individualmente emprego/capacidades e formulou decisão provisória; falta confirmar/encerrar a decisão na matriz viva, com o SHA e a fonte pertinente.
+- **T1 | uso/capacidade conferidos:** consumidor e configuração foram confrontados com a fonte citada; não houve experimento específico para essa capacidade. A decisão final está em coluna própria; T1 não significa automaticamente avaliação pendente.
 - **T2 | hipótese testada ou correção comprovada:** pelo menos uma capacidade foi examinada com evidência específica; isso **não significa** que todas as capacidades do pacote foram examinadas, nem que oportunidades futuras estejam encerradas.
 
 **Contadores após B1–B4 (integrados no #485):** **26/26 dependências inventariadas e com decisão final de triagem**: **9** com revisão nova [B1–B3](audits/2026-10-23-capability-triage-b1-b3.md) e **17** com conferência de evidências A0 e código vigente [B4](audits/2026-10-23-capability-triage-b4.md). Maturidade das evidências: **T0=0, T1=19, T2=7**. Cobertura concluída significa **decisão sobre capacidade materialmente útil ao RADAR**, não auditoria de todas as APIs, inexistência de novas oportunidades nem **15 melhorias funcionais implementadas**. As F01–F15 continuam independentes, com condições de retomada.
@@ -64,13 +64,13 @@ A numeração F identifica uma **frente de produto/metodologia**, não um pacote
 | **F03 / P1–P3** | Prontidão/projeção após reload, [#460 Caso A](https://github.com/WilsonMPeixoto-2/RADARPDDE/issues/460), [#488](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/488) | **INSTRUMENTO INTEGRADO; AGUARDANDO RECORRÊNCIA** | #488 integrado em `e913df2a`; sem polling novo ou alteração funcional. Retomar somente se os anexos capturarem divergência entre banco, memória, competência e exportação. Não repetir baterias até falhar | Seis workflows aprovados no HEAD `f544a65a`; ciclo real: 20 pass + 1 flaky de login em outro spec; ambos os perfis alterados passaram sem retry. Causa histórica não resolvida nem presumida; Caso B já corrigido por #463 |
 | **F04 / P1** | Playwright, estados de UI, test readiness/flakiness e fixtures serializadas; #463/#480 | **CORREÇÕES LOCALIZADAS CONCLUÍDAS; isolamento de retry ainda CANDIDATO** | Somente ao reproduzir, isolar fixture entre retry serial e distinguir geometry/readiness de defeito financeiro | Resultado por interação visível e banco; não relaxar asserção como atalho |
 | **F05 / P1** | Captura NF e controles em viewport; [#480](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/480) | **CONCLUÍDA — critério do teste** | Nenhuma ação em aberto pelo #480; novas questões visuais requerem problema independente | Ambos os botões 100% na viewport; 21/21 ciclos reais documentados, **não** redesign |
-| **F06 / P1–P2** | Axe 4.14; [#466](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/466), [#474](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/474) | **Rodada NF CONCLUÍDA localmente; entrega #493** | [F06 delimitada](audits/2026-10-24-f06-invoice-accessibility.md): duas obstruções por rodapé a 200% → zero; teclado/erro/foco preservados. Outros estados somente com necessidade concreta | Conferir homologação/integração no #493; sem ampliação automática para salvando, reanálise ou outros modais |
+| **F06 / P1–P2** | Axe 4.14; [#466](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/466), [#474](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/474) | **Candidato único #493; consolidação em homologação** | [F06 delimitada](audits/2026-10-24-f06-invoice-accessibility.md): duas obstruções a 200% → zero; proteção de foco complementar do #490 no gerenciador existente. Outros estados somente com necessidade concreta | Conferir homologação/integração no #493; sem ampliação automática para salvando, reanálise ou outros modais |
 | **F07 / P2** | TypeScript/JSDoc; A4→A7, [#479](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/479) | **CONCLUÍDA — fronteira fiscal localizada; expansão CANDIDATA** | Escolher outra fronteira de risco **quando alterada** (RPC/serviço real), com mutação que provoque erro executável | RED/verde reais, AST/bundle invariável, testes do consumidor; sem typecheck global |
 | **F08 / P3** | MSW, Supabase SDK, fast-check, Ajv; [#443](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/443) | **MSW 3 CONCLUÍDO; novas falhas de rede CONDICIONAIS** | Só abrir piloto para resposta perdida após commit, resposta obsoleta ou logout/abort se não coberto pelos testes atuais | Garantias de idempotência, rollback, auth e convergência com falha reproduzível; não duplicar pgTAP |
 | **F09 / P1–P2** | Fuse.js A8; [run 39990335333](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/39990335333) | **ENSAIO NODE CONCLUÍDO; cache de busca AGUARDANDO CONDIÇÃO** | Medir pesquisa no browser autenticado e mapear invalidadores (escola, competência, perfil, Pendências, logout) | Paridade de ordem/IDs com catálogo alterado, benefício perceptível no browser; sem `FuseWorker` incompatível com `useTokenSearch` |
 | **F10 / P1** | Floating UI; menus globais | **USO EXISTENTE; EXTENSÃO CONDICIONAL** | Abrir somente se menu/modal/drawer com clipping, foco ou posicionamento incorreto for reproduzido | Inspeção rendered UI da superfície, sem refatoração horizontal por preferência |
 | **F11 / P3** | Supabase CLI/typegen; [#472](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/472) | **CONCLUÍDA — compatibilização** | Não reabrir 2×2 sem mudança de contrato real | Grants locais coerentes, 674 pgTAP, typegen sem drift semântico; não modificar Production |
-| **F12 / P2** | ESLint 10, @eslint/js, plugins de segurança e E2E | **CANDIDATA — classificação de warnings** | Identificar regras/locais dos 42 warnings de produto e histórico dos testes; tratar riscos antes de elevar severidade | Triagem causal de warnings úteis, sem relaxar scanner nem impor regras desnecessárias |
+| **F12 / P2** | ESLint 10, @eslint/js, plugins de segurança e E2E | **PRÓXIMA — diagnóstico iniciado e preservado** | Inventário: 42 avisos (38 property, 4 method), 0 erros; um nome como HTML reproduzido na fixture. Retomar a0c220b2 após CI da consolidação F06; classificar produtores/escapes, sem relaxar scanner | Triagem causal de warnings úteis, sem relaxar scanner nem impor regras desnecessárias |
 | **F13 / P2** | Knip; [#475](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/475), [#485](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/485) | **CONCLUÍDA — diagnóstico e higiene de relatórios** | `artifacts/tooling/` já foi ignorado seletivamente e protegido por teste no #485. Nenhuma ação restante de higiene por este achado | Não eliminar os 34 candidatos sem prova de ausência de execução dinâmica; nenhuma nova limpeza automática |
 | **F14 / P4** | GitHub Actions A5/A6; [#476](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/476)/[#477](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/477) | **CONCLUÍDA — shadow + exceção em 1 job; ampliação CONDICIONAL** | Verificar required checks/branch protections (403 histórico) antes de qualquer skip novo; medir custo por job e Preview Vercel separadamente | Paths SQL/runtime continuam protegidos, nome de check estável, ganho medido apenas no recorte afetado |
 | **F15 / transversal** | Integridade documental de prioridades, prova e CI; #484/#485, [issue #481](https://github.com/WilsonMPeixoto-2/RADARPDDE/issues/481) | **CONCLUÍDA — matriz integrada; manutenção contínua** | Atualizar apenas frentes que mudaram. Preservar 26 decisões e o teste que confere manifesto/versões; não confundir triagem concluída com 26 melhorias implementadas | #484 integrado em `1cd0543d`; #485 em `2b46df7e`. Snapshot atual reconciliado após #487/#488; fatos de ambiente sempre revalidados |
@@ -89,6 +89,26 @@ A numeração F identifica uma **frente de produto/metodologia**, não um pacote
 
 **Condução vigente:** B1–B4 tiveram sua triagem de cobertura integrada pelos #484/#485. Próximas alterações devem ser selecionadas **pela prioridade humana e pela prova** na carteira F, respeitando o limite de uma frente principal ativa e a condição de retomada das demais. Não reabrir a contagem de 26 sem alteração real do manifesto/lock ou descoberta de oportunidade material. Quando uma oportunidade tiver decisão final comprovada, fechá-la imediatamente (não exigir pesquisa repetida). Manter **no máximo uma F principal de implementação funcional ativa**; exceções justificadas para risco de segurança/integridade/disponibilidade. Uma frente em espera precisa de condição de retomada. Não existe prazo ou compromisso implícito de fazer todas as F.
 
+## Fila executável e continuidade — 24/10/2026
+
+As quatro prioridades originais da #481 permanecem. **26/26 mede decisão de
+cobertura; não mede 26 adoções, ausência de defeitos ou fim do programa.**
+Acompanhamos separadamente a cobertura, o destino das F e o benefício humano.
+
+| Papel atual | Entrega / ação concreta | Saída ou condição de retomada |
+| --- | --- | --- |
+| **Única implementação ativa** | Consolidar #490/#493 no **#493**: CSS simples + guard do gerenciador; foco inicial da main preservado | RED/GREEN complementares e CI do novo HEAD. Não incorporar preferência imposta pelo teste nem override do benchmark |
+| **Fila de publicação** | #493, depois de homologado, aguarda a janela da Vercel | Revalidar HEAD/base/cota, integrar e verificar deployment/asset/smoke. Não produzir commits de tentativa. Essa espera não bloqueia tarefas independentes |
+| **Próxima execução: F12** | Classificar os 42 sítios do ESLint e reproduzir texto literal no Dashboard; [checkpoint a0c220b2](https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/a0c220b2309ee5532efb3fc48f23e97960ab28b9/docs/audits/2026-10-24-f12-checkpoint.md) | Após candidato F06 único homologado, retomar desse dado, sem repetir inventário. Toda ocorrência recebe contexto/decisão; warning não vira bug automaticamente |
+| **Prova separada, não nova implementação** | #491, filtros de Pendências, permanece Draft; não misturar à NF | Reaproveitar relatório/artefatos na próxima mudança dos filtros ou se surgir defeito confirmado; não abrir outra rodada F06 por proximidade |
+| **Demais aprofundamentos** | F01–F05/F07–F11/F13–F15 mantêm os próximos passos e condições da tabela | Verificar condições após cada entrega; selecionar pela prioridade/benefício, não por ordem alfabética ou facilidade de criar PR |
+
+Ao encerrar um lote, avançar para a próxima ação autorizada e independente, ou
+registrar precisamente a dependência externa/limite que impede avançar. **Uma
+pendência de publicação não é conclusão do programa.** Em interrupção, deixar no
+remoto: SHA, prova, decisão, limite e comando/próxima ação. Nenhuma entrega deve
+ter dois PRs funcionais concorrentes sem uma escolha canônica explícita.
+
 ## Atualização obrigatória após cada lote
 
 1. Revalidar `main`, manifesto, lock e decisões/PRs mais recentes, sem refazer pesquisa histórica encerrada. A cobertura horizontal 26/26 é fotografia; uma dependência nova reabre **somente** sua própria avaliação.
@@ -101,10 +121,12 @@ A numeração F identifica uma **frente de produto/metodologia**, não um pacote
 
 ## Rodada F06 delimitada — 24/10/2026
 
-**Executada e encerrada na fronteira NF; entrega [#493](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/493).**
+**Consolidação delimitada em homologação; entrega [#493](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/493).**
 [Relatório e reprodução](audits/2026-10-24-f06-invoice-accessibility.md): formulário
 normal/inválido, teclado, Escape/retorno do foco e zoom real 200%. Encontradas duas
 obstruções por rodapé; uma regra CSS restrita à NF eliminou-as no teste autenticado.
+O complemento de preservação da escolha de foco do #490 foi incorporado apenas
+no gerenciador, com RED/GREEN; sem novo agendador ou preferência em app.js.
 Axe complementado por imagem/hit-test, mantendo os incompletes visíveis no relatório.
 Não abrir outros formulários nem novos estados nesta entrega. Após conferir o CI e a
 integração no #493, escolher outra oportunidade da carteira pela prova e benefício humano.

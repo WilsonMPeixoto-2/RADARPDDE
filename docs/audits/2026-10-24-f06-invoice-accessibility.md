@@ -40,6 +40,49 @@ e imagens [antes](../evidence/2026-10-24-f06-invoice-accessibility/before-200-ty
 O resumo preserva falha RED, versões, geometria, resultados, limites e hashes dos
 JSONs brutos locais. Não versionar toda a sequência de capturas.
 
+## Consolidação #490/#493 — contrato único de foco
+
+A revisão encontrou duas propostas sobrepostas e uma divergência de teste:
+#490 exigia Descrição inicialmente; #493 exigia Fechar. Nenhuma preferência é
+requisito funcional universal. A implementação consolidada preserva a seleção
+original da main e testa foco utilizável dentro do diálogo, navegação por Tab,
+campos/rótulos expostos e preservação da escolha posterior do operador.
+
+Foi reaproveitada a contraprova complementar do #490 (`2b1d3722`, issue #492):
+abrir Despesa a identificar, escolher Observação no mesmo task e aguardar dois
+frames reais. **RED no #493@9b86b19d:** foco saiu da Observação, embora o modal
+continuasse aberto. O controle ativo não tinha ID; a captura mostrou Fechar.
+Isso demonstra roubo de foco também sem a preferência por Descrição do #490.
+Não demonstra concatenação de texto em Production. A concatenação documentada
+na #492 aconteceu antes do save em uma execução do candidato #490; preservar
+essa distinção evita imputar ao banco um problema de entrada.
+
+**Correção única de autoridade:** em `modal-accessibility.js::openAccessible`,
+o callback já existente verifica se o modal ainda está aberto e se o foco foi
+movido para outro controle interno. Nesse caso mantém a escolha, em vez de
+chamar `focusInitial` outra vez. Não foi criado callback de foco em `app.js`.
+O algoritmo `focusInitial` e sua preferência anterior permanecem intactos.
+
+Preservados do #490: prova de foco/Observação, captura dos dois inputs antes do
+save, igualdade literal de descrição/observação e assertivas de serviço.
+Não incorporados: preferência obrigatória por Descrição, segundo agendador em
+`app.js`, margens adicionais sem necessidade no recorte provado e override de
+animação na baseline/candidate do benchmark. A prova sustentada anterior do
+#493 passou com seu harness original; não mudar esse contrato para consolidar NF.
+
+**GREEN local consolidado:** 11 E2E relacionados, 22 testes de InvoiceService,
+4 regressões finais de modal (incluindo campos e rótulos) e nova passagem
+Controlador/Supabase/zoom nativo 100%/200% aprovados. Nenhuma NF foi gravada
+pelo diagnóstico nativo; contagens restauradas. ESLint do modal/spec e Stylelint
+aprovados. Os 11 workflows do antigo HEAD `9b86b19d` não homologam por si só este
+novo código: exigir o CI do HEAD consolidado, registrado no próprio #493.
+
+**Decisão de entrega:** #493 é o candidato único; #490 preserva histórico e
+contribuições aproveitadas, sem merge concorrente. Publicação aguarda cota da
+Vercel; essa fila não encerra o programa de capacidades. A F12 está preservada em
+[`a0c220b2`](https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/a0c220b2309ee5532efb3fc48f23e97960ab28b9/docs/audits/2026-10-24-f12-checkpoint.md),
+sem alteração de produto, para retomada após homologar o candidato único.
+
 ## Método e limites
 
 - Playwright **1.64.1**, Axe **4.14.0**, SDK Supabase **2.118.0**, Chromium
@@ -91,12 +134,12 @@ controladores 8→8 e NFs 23→23. Relatórios locais em `artifacts/tooling/`, i
 
 Prova RED autenticada: duas obstruções a 200%, exit 1. Mesmo fluxo após a regra:
 exit 0, zero obstruções em ambos os zooms; estado normal/inválido e foco aprovados.
-Regressões locais do modal: **3 aprovadas**. Acessibilidade existente e contenção
+Antes da consolidação, regressões locais do modal: **3 aprovadas**. Acessibilidade existente e contenção
 de submit de NF: **9 aprovadas**. Stylelint do arquivo e ESLint do spec: aprovados.
 Demais gates e SHAs finais devem ser
 consultados no PR; não declarar CI concluído por esta evidência local.
 
-**Saída desta rodada:** homologar a correção pequena e encerrar a NF nesta F06.
+**Saída desta rodada:** homologar as duas correções consolidadas no #493 e encerrar esta NF/F06.
 Não abrir novos formulários, salvamento, reanálise ou redesign nesta entrega.
 Outros estados só retomam F06 diante de fluxo prioritário ou defeito concreto.
 Cobertura horizontal continua 26/26; demais F mantêm condições próprias.
