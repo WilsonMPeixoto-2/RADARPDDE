@@ -27,7 +27,7 @@ jobs:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       PGPASS_REMOTE: ${{ secrets.SUPABASE_DB_PASSWORD }}
       PROJECT_REF: scnryinorqeucbfkioxo
-      CANDIDATE_SHA: c3950c14afcf60170aefa97fe2da9196d87866c7
+      CANDIDATE_SHA: eefd921dbd5e3415c7193dcffaff06f0e5574790
       MAIN_SHA: 22faf5482bd79b84e7503ea460a733ab3c830b19
       PGOPTIONS: '-c lock_timeout=5s -c statement_timeout=30s'
       PHASE: ${{ inputs.phase }}
@@ -127,7 +127,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           test "$CONFIRMATION" = 'PUBLICAR_PR494_EM_SCNRYINORQEUCBFKIOXO'
-          test "$(gh api repos/WilsonMPeixoto-2/RADARPDDE/pulls/494 --jq .head.sha)" = 'c3950c14afcf60170aefa97fe2da9196d87866c7'
+          test "$(gh api repos/WilsonMPeixoto-2/RADARPDDE/pulls/494 --jq .head.sha)" = 'eefd921dbd5e3415c7193dcffaff06f0e5574790'
           test "$(gh api repos/WilsonMPeixoto-2/RADARPDDE/branches/main --jq .commit.sha)" = '22faf5482bd79b84e7503ea460a733ab3c830b19'
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
