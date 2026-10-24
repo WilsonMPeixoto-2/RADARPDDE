@@ -9827,7 +9827,10 @@ function renderProntuario(escolaId) {
                                     <h3 id="quality-provisional-title">Conta PDDE Qualidade · movimentações sem programa</h3>
                                     <p>Registre saídas ainda não atribuídas a uma Ação Integrada. Não são Notas Fiscais nem Pendências.</p>
                                 </div>
-                                <button type="button" data-quality-new class="btn btn-primary btn-sm">Registrar saída</button>
+                                <div class="quality-provisional-heading-actions">
+                                    <button type="button" data-quality-refresh class="btn btn-secondary btn-sm">Atualizar</button>
+                                    <button type="button" data-quality-new class="btn btn-primary btn-sm">Registrar saída</button>
+                                </div>
                             </div>
                             <div class="quality-provisional-list" data-quality-list aria-live="polite"></div>
                             <p class="quality-provisional-feedback" id="quality-provisional-feedback" role="status" aria-live="polite"></p>
