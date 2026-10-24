@@ -67,3 +67,14 @@ mas não repete download de imagem de terceiro. Os gates de Supabase dedicados
 continuam bloqueantes; não confundir redução de duplicação com aprovação
 simulada. Conferir execução do novo SHA antes de
 considerar essas duas correções homologadas.
+
+## 6. Artefatos métricos em reexecuções de jobs (24/10)
+
+No gate operacional, o resumo `operational-metrics-<variante>-<run>` usa
+`overwrite: true`: uma reexecução substitui o resumo corrente daquela variante,
+sem apagar os artefatos brutos `operational-sustained-*` ou os logs da tentativa.
+Isso impede selecionar um resumo antigo homônimo, mesmo quando o novo job passou.
+Conferir IDs/digests e outcome/stage antes de interpretar um comparador vermelho.
+O [caso F06](../audits/2026-10-24-f06-invoice-accessibility.md) preserva a falha,
+a repetição e a comparação pelos IDs corretos; não elevar timeout ou relaxar
+invariantes para compensar erro de seleção de artefato.

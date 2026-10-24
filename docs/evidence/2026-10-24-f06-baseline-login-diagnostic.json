@@ -1,0 +1,62 @@
+{
+  "runId": 40071155543,
+  "head": "3314faa27ab74642ac4126488c2a90ea5a664b0c",
+  "baselineRuntime": "d9bf67f7d8a1ce2e468ec3c793ff992d8e10dfd6",
+  "baselineJobId": 120804672873,
+  "candidateJobId": 120804672672,
+  "comparatorJobId": 120808175842,
+  "baselineArtifact": {
+    "id": 12552075236,
+    "bytes": 27319187,
+    "sha256": "da3246ceca17991d2bd4fbf3edcf0148880f80483e0a77feb8a49338b236bc1f"
+  },
+  "baselineResult": {
+    "stage": "login",
+    "outcome": "failed",
+    "roundsConfigured": 400,
+    "gestures": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "samples": [],
+    "failedWait": "ready(): RadarDataContext.ready === true && role === controller && InvoiceService exists",
+    "waitLocation": "operational-sustained-sessions.spec.js:22",
+    "timeoutMs": 900000
+  },
+  "artifactObservation": {
+    "fiveSessions": "Reached school workspace; readiness completed",
+    "oneSession": "Login gate remains; credential text in email control; email/password validation message",
+    "identityLimit": "Third screenshot attachment; reporter groups parallel steps and does not preserve enough page identity to map it uniquely without trace",
+    "safety": "Raw screenshot is not copied into Git because it contains ephemeral test credential text"
+  },
+  "controlledMechanism": {
+    "environment": "local fixture, no authentication submitted",
+    "before": {
+      "selected": "radar-auth-password",
+      "beforeTyping": "radar-auth-email"
+    },
+    "values": {
+      "email": "probe@radar.localPUBLIC-FOCUS-PROBE",
+      "passwordLength": 0
+    },
+    "baselineShowHash": "32b21875714d553fda991ddabf046be02ab913172e9a96ed71f7638a1ff56abc",
+    "currentShowHash": "32b21875714d553fda991ddabf046be02ab913172e9a96ed71f7638a1ff56abc",
+    "sameShowMethod": true,
+    "scope": "Mechanism reproduced; original failed run has no first-attempt trace to timestamp this callback."
+  },
+  "decision": {
+    "productAndHarnessChanged": false,
+    "comparison": "invalid/incomplete, not an approved cost comparison",
+    "retry": "One targeted rerun of failed baseline/comparator, preserving successful candidate and other workflows",
+    "stopCondition": "If setup fails again, no further automatic repeats; classify separate readiness issue and retain incomplete result"
+  },
+  "limitations": [
+    "No trace of the first failure is present in the artifact. Exact original callback timing is not proven.",
+    "No Production authentication or data changed.",
+    "The independent AuthGate focus issue is outside the F06 runtime diff; do not add auth changes to this release."
+  ]
+}
