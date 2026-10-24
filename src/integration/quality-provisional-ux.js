@@ -180,7 +180,10 @@
         deleteButton.type = 'button';
         deleteButton.addEventListener('click', () => remove(record));
         actions.append(selection,identifyButton,editButton,deleteButton);
-      } else actions.append(node('span','quality-provisional-linked','Despesa identificada no Prontuário.'));
+      } else actions.append(node('span','quality-provisional-linked',
+        record.registered_invoice_id
+          ? 'Despesa identificada no Prontuário.'
+          : 'Despesa previamente identificada. O documento fiscal vinculado não está mais cadastrado.'));
       card.append(actions);
       list.append(card);
     }
@@ -194,6 +197,7 @@
     context = { schoolId: input.schoolId, competence: input.competence, programs, canEdit: true };
     const id = ++generation;
     panel.querySelector('[data-quality-new]').onclick = () => openEditor(null);
+    panel.querySelector('[data-quality-refresh]').onclick = () => hydrate(context);
     const list = panel.querySelector('[data-quality-list]');
     if (!client()) {
       list.textContent = 'Disponível quando o RADAR estiver conectado ao Supabase.';
