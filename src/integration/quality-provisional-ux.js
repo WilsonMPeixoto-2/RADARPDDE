@@ -19,34 +19,18 @@
     if (target) target.textContent = message;
   }
   function editor() {
-    let dialog = byId('quality-provisional-dialog');
-    if (dialog) return dialog;
-    dialog = node('dialog', 'quality-provisional-dialog');
-    dialog.id = 'quality-provisional-dialog';
-    dialog.setAttribute('aria-labelledby','quality-provisional-dialog-title');
-    dialog.innerHTML = [
-      '<form id="quality-provisional-form">',
-      '<header><h2 id="quality-provisional-dialog-title">Registrar saída sem programa definido</h2>',
-      '<p>Conta PDDE Qualidade. Preencha somente os dados disponíveis.</p></header>',
-      '<input type="hidden" id="quality-provisional-id">',
-      '<div class="quality-provisional-form-grid">',
-      '<label>Data do débito (opcional)<input id="quality-provisional-date" class="form-control" type="date"></label>',
-      '<label>Valor em R$ (opcional)<input id="quality-provisional-amount" class="form-control" type="number" step="0.01" min="0"></label>',
-      '<label>Referência (opcional)<input id="quality-provisional-reference" class="form-control" maxlength="250"></label>',
-      '<label>Descrição (opcional)<input id="quality-provisional-description" class="form-control" maxlength="2000"></label>',
-      '</div>',
-      '<label>Observação (opcional)<textarea class="form-control" id="quality-provisional-observation" rows="3" maxlength="2000"></textarea></label>',
-      '<p id="quality-provisional-message" role="status" aria-live="polite"></p>',
-      '<footer><button type="button" class="btn btn-secondary" id="quality-provisional-cancel">Cancelar</button>',
-      '<button type="submit" class="btn btn-primary" id="quality-provisional-submit">Salvar movimentação</button></footer>',
-      '</form>'
-    ].join('');
-    byId('quality-provisional-dialog');
-    dialog.querySelector('form').addEventListener('submit', save);
-    dialog.querySelector('#quality-provisional-cancel').addEventListener('click', () => {
-      if (!saving) dialog.close();
-    });
-    doc.body.appendChild(dialog);
+    const dialog = byId('quality-provisional-dialog');
+    if (!dialog) throw new Error('Formulário provisório não está disponível.');
+    if (dialog.dataset.bound !== 'true') {
+      dialog.querySelector('form').addEventListener('submit', save);
+      byId('quality-provisional-cancel').addEventListener('click', () => {
+        if (!saving) dialog.close();
+      });
+      dialog.addEventListener('cancel', event => {
+        if (saving) event.preventDefault();
+      });
+      dialog.dataset.bound = 'true';
+    }
     return dialog;
   }
   function openEditor(record) {
