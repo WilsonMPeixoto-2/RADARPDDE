@@ -41,9 +41,9 @@ test('mantém o renderer institucional interno e fixa ExcelJS somente para o pro
     assert.equal(packageJson.overrides['brace-expansion@^1.0.0'], '1.1.21');
     assert.equal(packageJson.overrides['brace-expansion@^2.0.0'], '2.1.7');
     assert.equal(packageJson.overrides['brace-expansion@^5.0.0'], '5.0.12');
-    assert.equal(packageJson.overrides['fast-uri'], '3.1.8');
+    assert.equal(packageJson.overrides['fast-uri'], '3.1.9');
     assert.equal(packageJson.overrides.qs, undefined);
-    assert.match(lockfile, /"node_modules\/fast-uri": \{\s+"version": "3\.1\.8"/);
+    assert.match(lockfile, /"node_modules\/fast-uri": \{\s+"version": "3\.1\.9"/);
     assert.doesNotMatch(lockfile, /"node_modules\/qs"/);
     assert.doesNotMatch(lockfile, /"node_modules\/fast-uri": \{\s+"version": "4\.1\.2"/);
     assert.equal(
