@@ -27,7 +27,7 @@ async function ready(page) {
   });
   await expect(page.locator('#app-layout')).toBeVisible();
 }
-async function signIn(page, email, school) {
+async function signIn(page, email, school, testInfo, sessionIndex) {
   await page.goto('/');
   const runtime = await page.evaluate(() => window.RADAR_PDDE_RUNTIME_INPUT);
   expect(runtime.environment).toBe('test');
@@ -43,6 +43,38 @@ async function signIn(page, email, school) {
   await expect(row(page)).toBeVisible();
   await page.waitForFunction(() => document.getElementById('main-container')?.inert !== true
     && window.RadarOperationalRealtimeInvalidationController?.getStatus?.() === 'SUBSCRIBED');
+
+  // #492: a baseline HISTÓRICA (d9bf67f7) ainda traz fadeIn 0.3 s no painel,
+  // já removido do Prontuário atual. Com seis sessões e rerenders, a animação
+  // antiga pode reiniciar no frame zero. A prova nativa é preservada ANTES
+  // de normalizar uma variável puramente visual de benchmark de throughput.
+  const nativePanel = await page.locator('#tab-verificacoes').evaluate(element => {
+    const style = getComputedStyle(element);
+    return {
+      opacity: style.opacity,
+      animationName: style.animationName,
+      animationDuration: style.animationDuration,
+      className: element.className,
+      parentClassName: element.parentElement?.className || '',
+      cssReady: element.getClientRects().length > 0,
+      competence: window.RadarCompetenceContext?.getState?.()?.activeKey || null
+    };
+  });
+  await testInfo.attach(`operational-session-${sessionIndex}-native-panel.json`, {
+    body: Buffer.from(JSON.stringify({
+      variant: process.env.RADAR_OPERATIONAL_VARIANT || 'unknown',
+      ...nativePanel
+    }, null, 2)),
+    contentType: 'application/json'
+  });
+
+  // Benchmark causal de escrita/leitura: aplicar a MESMA normalização à
+  // baseline e ao candidato. Isto NÃO é teste de fidelidade visual e NÃO
+  // corrige a UI histórica publicada. Tests de UX seguem sem este override.
+  await page.addStyleTag({
+    content: '#main-container #tab-verificacoes.tab-content-panel.active { animation: none !important; }'
+  });
+  await expect(page.locator('#tab-verificacoes')).toHaveCSS('animation-name', 'none');
   await expect(page.locator('#tab-verificacoes')).toHaveCSS('opacity', '1');
   page.on('dialog', dialog => dialog.accept());
 }
@@ -115,7 +147,8 @@ test('seis sessões reais medem escrita, observação, edição e falha durante 
   let failure;
   try {
     await Promise.all(pages.map((page, i) => signIn(page,
-      `operational-${i >= 4 ? 1 : i + 1}@radar.local`, `OPS-SESSION-${i < 3 ? i + 1 : 1}`)));
+      `operational-${i >= 4 ? 1 : i + 1}@radar.local`,
+      `OPS-SESSION-${i < 3 ? i + 1 : 1}`, testInfo, i + 1)));
     await pages[5].locator('#nav-dashboard').click();
     await expect(pages[5].locator('#nav-dashboard')).toHaveClass(/active/);
     for (const page of pages) observations.push(await observeOperationalSession(page));
