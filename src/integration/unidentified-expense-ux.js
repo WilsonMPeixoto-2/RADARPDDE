@@ -168,6 +168,7 @@
         const modal = root.document.getElementById('modal-dados-nota');
         const description = root.document.getElementById('nota-desc');
         const invoiceId = text(root.document.getElementById('nota-id')?.value);
+        const identifyingQuality = !invoiceId && Boolean(root.document.getElementById('nota-quality-provisional-id')?.value);
         const retificationEditor = Boolean(invoiceId && root.document.getElementById('invoice-edit-context'));
         const title = modal?.querySelector('h3');
         const intro = root.document.getElementById('nota-modal-intro');
@@ -218,7 +219,7 @@
         if (title && !retificationEditor) {
             title.textContent = unidentified
                 ? (invoiceId ? 'Editar despesa a identificar' : 'Registrar despesa a identificar')
-                : (invoiceId ? 'Editar Dados da Nota Fiscal' : 'Dados da Nota Fiscal / Despesa');
+                : (identifyingQuality ? 'Identificar despesa do PDDE Qualidade' : (invoiceId ? 'Editar Dados da Nota Fiscal' : 'Dados da Nota Fiscal / Despesa'));
         }
         if (intro) {
             intro.hidden = retificationEditor;
@@ -226,14 +227,16 @@
                 ? (invoiceId
                     ? 'Corrija os dados provisórios deste mesmo lançamento. A Pendência e seu histórico permanecem vinculados; o documento recebido deve ser registrado na Pendência.'
                     : 'Registre apenas os dados já conhecidos sobre a saída observada no extrato. O RADAR classificará automaticamente este lançamento como “Despesa a identificar” e abrirá a Pendência correspondente.')
-                : (invoiceId
-                    ? 'Corrija os dados deste mesmo lançamento. Salvar as alterações não cria outra despesa ou Pendência.'
-                    : 'Cadastre o gasto referente a esta Nota Fiscal para que o sistema direcione as obrigações operacionais corretas.');
+                : (identifyingQuality
+                    ? 'A saída provisória será identificada no programa escolhido e vinculada à despesa definitiva na mesma transação, sem Pendência artificial.'
+                    : (invoiceId
+                        ? 'Corrija os dados deste mesmo lançamento. Salvar as alterações não cria outra despesa ou Pendência.'
+                        : 'Cadastre o gasto referente a esta Nota Fiscal para que o sistema direcione as obrigações operacionais corretas.'));
         }
         if (submit && !retificationEditor) {
             submit.textContent = unidentified
                 ? (invoiceId ? 'Salvar Alterações' : 'Registrar Despesa')
-                : (invoiceId ? 'Salvar Alterações' : 'Salvar Gasto');
+                : (identifyingQuality ? 'Identificar despesa' : (invoiceId ? 'Salvar Alterações' : 'Salvar Gasto'));
         }
         if (retificationEditor) root.RadarAuditableRetification?.updateInvoiceClassificationPreview(root);
         return unidentified;
