@@ -43,11 +43,12 @@
     "src/application/invoice-service.js": "386324916ab62edaa2fa193ef3041678654a67453c1a2050902f3bf8c257d2ad",
     "src/data/supabase-repository.js": "d80880dd0504891a8c1076700b87ee42ceafb4dcfe53f177ffab92edd6503827",
     "supabase/migrations/20261024120000_quality_provisional_movements.sql": "b7b5fe1ea95d2559b65082dfc938a6f23655d9f2fe6b57cd9ecf301c2f1a675a",
-    "tests/e2e/supabase-quality-provisional.spec.js": "690e98fd60eff638cc63ab746f776b11b94aadade15e12ab2063491dac27cd6c"
+    "tests/e2e/supabase-quality-provisional.spec.js": "603ec18df94233a9265b2aa97b7f2ec10debaf294b1c7cd507b3104473b0a3e9"
   },
   "limits": [
     "Synthetic controller and school, not an authenticated Production session.",
     "Local PostgreSQL 17.6; hosted migrations/CI require their own confirmation.",
     "No claim of general fluency or performance gain."
-  ]
+  ],
+  "CISetupCorrection": "afce5a0c: stopped before writes; dedicated school fixture added after full-contract. Runtime and assertions unchanged."
 }

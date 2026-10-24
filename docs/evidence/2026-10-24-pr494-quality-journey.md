@@ -26,6 +26,10 @@ O spec versionado `supabase-quality-provisional.spec.js` reproduz essa jornada
 e é executado no gate Supabase/Auth da homologação pré-Production, após as suítes
 que substituem a base. Inclui imagens do painel, formulário e Prontuário integrado,
 JSON final do banco e checagem de erros não tratados no navegador.
+O gate prepara uma escola exclusiva com Educação Conectada **depois** do
+full-contract: a escola de UAT de outro workflow não existe nessa etapa. A primeira
+tentativa CI em `afce5a0c` parou na procura dessa escola, antes de qualquer escrita
+provisória. Foi corrigida a fixture, sem mudar runtime, timeout ou asserções.
 
 ## Evidência proporcional e correções de integração
 

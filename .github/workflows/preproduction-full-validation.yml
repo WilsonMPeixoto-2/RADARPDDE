@@ -209,6 +209,9 @@ jobs:
           tests/e2e/supabase-realtime-invalidation.spec.js
           tests/e2e/performance-journeys.spec.js
           --project=desktop-chromium
+      - name: Preparar escola exclusiva da jornada PDDE Qualidade
+        run: npx --no-install supabase db query --local --file tests/fixtures/quality-provisional.sql
+
       # Cria histórico protegido: executar só após as suítes que substituem a base.
       - name: Exercitar login tardio e ações com histórico protegido
         env:

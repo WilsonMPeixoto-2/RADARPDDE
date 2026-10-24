@@ -7,7 +7,7 @@ test.skip(!enabled, 'Exige Supabase descartável com Auth e RLS reais.');
 const accounts = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../supabase/fixtures/auth-users.json'), 'utf8'));
 const email = process.env.RADAR_QUALITY_TEST_EMAIL
   || accounts.find(account => account.profileId === 'controller' && account.active).email;
-const schoolName = process.env.RADAR_QUALITY_TEST_SCHOOL || 'Escola de Homologação Operacional';
+const schoolName = process.env.RADAR_QUALITY_TEST_SCHOOL || 'Escola da Conta PDDE Qualidade';
 
 async function ready(page) {
   await page.waitForFunction(() => window.RadarDataContext?.ready === true
