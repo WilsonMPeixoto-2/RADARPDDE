@@ -11608,10 +11608,15 @@ function openModalDadosNota(escolaId, compKey) {
     // por teclado começar no botão disparador, atrás do overlay.
     const invoiceModal = document.getElementById('modal-dados-nota');
     const initialField = document.getElementById('nota-desc');
+    const focusAtOpen = document.activeElement;
     window.requestAnimationFrame(() => {
-        if (invoiceModal?.classList.contains('show') && initialField?.isConnected) {
-            initialField.focus({ preventScroll: true });
-        }
+        if (!invoiceModal?.classList.contains('show') || !initialField?.isConnected) return;
+        // Evita retomar o foco na descrição se a pessoa já entrou em outro
+        // campo no intervalo entre abrir o modal e o próximo animation frame.
+        // Não interferir com a digitação da observação da despesa provisória.
+        const currentFocus = document.activeElement;
+        if (currentFocus !== focusAtOpen && invoiceModal.contains(currentFocus)) return;
+        initialField.focus({ preventScroll: true });
     });
     return true;
 }
