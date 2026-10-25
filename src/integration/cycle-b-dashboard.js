@@ -112,6 +112,67 @@
         return `${days} dia${days === 1 ? '' : 's'} aguardando`;
     }
 
+    function getHistoricalReanalysisActions(targetSchools, competenceKey) {
+        // Não interferir no recorte dos cartões mensais.
+        if (typeof root.canReanalysePendency !== 'function') return [];
+        const schoolsById = new Map(targetSchools.map(school => [String(school.id), school]));
+        const now = Date.now();
+        const actions = pendencias.filter(pendency => (
+            pendency.status === 'Aguardando reanálise'
+            && String(pendency.competenciaOrigem || pendency.competencia || '') !== competenceKey
+            && schoolsById.has(String(pendency.escolaId))
+            && root.canReanalysePendency(pendency)
+        )).map(pendency => {
+            const school = schoolsById.get(String(pendency.escolaId));
+            const date = root.RadarOperationalProjection.getOperationalBaseDate(pendency);
+            const stamp = date ? new Date(date).getTime() : NaN;
+            return {
+                ...root.RadarOperationalProjection.getConcreteNextAction({ pendency }),
+                actor: 'Controlador',
+                schoolName: school.denominação || school.denominacao || school.id,
+                schoolDesignation: school.designação || school.designacao || school.id,
+                ra: school.ra || '',
+                waitingDays: Number.isFinite(stamp)
+                    ? Math.max(0, Math.floor((now - stamp) / 86400000)) : null
+            };
+        });
+        return root.RadarOperationalProjection.sortOperationalActions(actions);
+    }
+
+    function renderHistoricalReanalysisSection(actions, competenceKey) {
+        if (!actions.length) return '';
+        const total = actions.length;
+        const title = total + (total === 1 ? ' reanálise' : ' reanálises');
+        const intro = 'Providências do Controlador fora de '
+            + escapeHtml(formatCompetenciaText(competenceKey))
+            + '. Não incluídas nos indicadores mensais.';
+        const rows = actions.slice(0, 3).map(action => renderAction(action, competenceKey)).join('');
+        const more = total > 3
+            ? '<button type="button" class="btn btn-secondary btn-sm cycle-b-historical-view-all"'
+                + ' onclick="openCycleBHistoricalReanalyses()">Ver todas as reanálises</button>'
+            : '';
+        return '<div class="cycle-b-historical-actions" role="group" aria-label="Reanálises de outras competências">'
+            + '<div class="cycle-b-historical-header"><strong>Outras competências · ' + title
+            + '</strong><span>' + intro + '</span></div>'
+            + '<div class="cycle-b-action-list">' + rows + '</div>' + more + '</div>';
+    }
+
+    function openCycleBHistoricalReanalyses() {
+        if (typeof root.activatePendencyTab !== 'function'
+            || typeof root.clearPendencyFilters !== 'function') return false;
+        const controllerId = typeof activeControladorRAFilter !== 'undefined'
+            && activeControladorRAFilter === 'carteira'
+            && typeof getDefaultControladorId === 'function'
+            ? getDefaultControladorId() : '';
+        root.switchView('pendencias');
+        root.clearPendencyFilters({ render: false });
+        root.activatePendencyTab('aguardando');
+        if (controllerId && typeof root.changePendencyFilter === 'function') {
+            root.changePendencyFilter('controllerId', controllerId);
+        }
+        return true;
+    }
+
     function renderCard({ label, value, detail, className, filter, icon }) {
         const selected = activeDashboardFilter === filter;
         return `
@@ -290,6 +351,7 @@
         const fullProjection = buildProjection(targetSchools, competenceKey);
         const filteredSchools = filterSchools(targetSchools, fullProjection, competenceKey);
         const filteredProjection = buildProjection(filteredSchools, competenceKey);
+        const historicalReanalyses = getHistoricalReanalysisActions(targetSchools, competenceKey);
         const targetIds = new Set(targetSchools.map(school => school.id));
         const schoolsWithPendingAssets = new Set(
             bens
@@ -380,6 +442,7 @@
                     : '<div class="cycle-b-action-empty"><strong>Nenhuma pendência documental ativa.</strong><span>Não há providência da escola ou reanálise aguardando neste recorte.</span></div>'}
             </div>
             ${pendencyActions.length > 8 ? '<button type="button" class="btn btn-secondary btn-sm cycle-b-action-view-all" onclick="switchView(\'pendencias\')">Ver todas as pendências</button>' : ''}
+            ${renderHistoricalReanalysisSection(historicalReanalyses, competenceKey)}
             ${renderBonificationSummary(filteredProjection.totals.bonificationNotLaunched, competenceKey)}
         `;
         const currentSidePanel = sideColumn && sideColumn.querySelector('.panel-card');
@@ -458,6 +521,7 @@
         root.changeCycleBDashboardFilter = changeCycleBDashboardFilter;
         root.openCycleBCarteira = openCycleBCarteira;
         root.openCycleBOperationalAction = openCycleBOperationalAction;
+        root.openCycleBHistoricalReanalyses = openCycleBHistoricalReanalyses;
         root.RadarCycleBDashboard = Object.freeze({
             VERSION: '1.3.0',
             enhance: enhanceDashboard,
