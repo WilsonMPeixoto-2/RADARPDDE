@@ -81,6 +81,9 @@ test.describe('Ciclo B — Dashboard operacional do Controlador', () => {
     await expect(queue).toContainText('Registrar novo envio do Parecer Técnico');
     await expect(queue).toContainText('Escola Municipal de Educação Integral Professora Maria da Conceição');
     await expect(queue.locator('.cycle-b-action-item')).toHaveCount(3);
+    // Reanálise chega antes da cobrança de Escola mais antiga: trabalho da equipe primeiro.
+    await expect(queue.locator('.cycle-b-action-item').first())
+      .toContainText('Reanalisar Extrato Investimento');
     await expect(page.locator('#controlador-gargalos')).toHaveCount(0);
 
     const queueMetrics = await queue.evaluate((element) => {

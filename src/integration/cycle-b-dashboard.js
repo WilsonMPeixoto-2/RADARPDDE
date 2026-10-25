@@ -352,6 +352,13 @@
         applySchoolListFilter(filteredSchools, filteredProjection, competenceKey);
 
         const pendencyActions = filteredProjection.actions.filter(action => action.pendencyId != null);
+        // Exibir primeiro as providências de responsabilidade do Controlador.
+        // A ordenação por antiguidade original permanece dentro de cada grupo.
+        const controllerActions = pendencyActions.filter(action => action.actor === 'Controlador');
+        const orderedActions = [
+            ...controllerActions,
+            ...pendencyActions.filter(action => action.actor !== 'Controlador')
+        ];
         const sideColumn = layout.lastElementChild;
         let queue = document.getElementById('cycle-b-action-queue');
         if (!queue) queue = document.createElement('section');
@@ -363,13 +370,13 @@
             <div class="panel-header">
                 <div>
                     <h2>Próximas ações operacionais</h2>
-                    <p>${escapeHtml(FILTER_META[activeDashboardFilter]?.label || FILTER_META.all.label)} · priorizadas por tempo de espera.</p>
+                    <p>${escapeHtml(FILTER_META[activeDashboardFilter]?.label || FILTER_META.all.label)} · ${controllerActions.length} ${controllerActions.length === 1 ? 'providência' : 'providências'} do Controlador primeiro; depois, demais pendências por tempo de espera.</p>
                 </div>
                 <span class="badge badge-info">${pendencyActions.length}</span>
             </div>
             <div class="cycle-b-action-list">
                 ${pendencyActions.length
-                    ? pendencyActions.slice(0, 8).map(action => renderAction(action, competenceKey)).join('')
+                    ? orderedActions.slice(0, 8).map(action => renderAction(action, competenceKey)).join('')
                     : '<div class="cycle-b-action-empty"><strong>Nenhuma pendência documental ativa.</strong><span>Não há providência da escola ou reanálise aguardando neste recorte.</span></div>'}
             </div>
             ${pendencyActions.length > 8 ? '<button type="button" class="btn btn-secondary btn-sm cycle-b-action-view-all" onclick="switchView(\'pendencias\')">Ver todas as pendências</button>' : ''}
