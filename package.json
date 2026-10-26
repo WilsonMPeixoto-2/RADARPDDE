@@ -116,7 +116,7 @@
     "msw": "3.0.3",
     "prettier": "3.9.10",
     "puppeteer-core": "25.16.0",
-    "supabase": "2.121.0",
+    "supabase": "2.122.0",
     "typescript": "7.0.2",
     "stylelint": "17.16.0",
     "stylelint-config-recommended": "18.0.0"
