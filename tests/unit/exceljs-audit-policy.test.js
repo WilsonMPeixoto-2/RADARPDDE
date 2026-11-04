@@ -96,6 +96,26 @@ function minimatchAmplificationReport() {
     };
 }
 
+function minimatchAmplificationLockfile() {
+    return {
+        packages: {
+            'node_modules/exceljs': { dependencies: { unzipper: '^0.10.11' } },
+            'node_modules/unzipper': { dependencies: { fstream: '^1.0.12' } },
+            'node_modules/fstream': { dependencies: { rimraf: '2' } },
+            'node_modules/rimraf': { dependencies: { glob: '^7.1.3' } },
+            'node_modules/glob': { dependencies: { minimatch: '^3.1.1' } },
+            'node_modules/eslint': {
+                dependencies: {
+                    '@eslint-community/eslint-utils': '^4.9.1',
+                    '@eslint/config-array': '^0.23.0',
+                    minimatch: '^10.2.6'
+                }
+            },
+            'node_modules/@eslint/config-array': { dependencies: { minimatch: '^10.2.4' } }
+        }
+    };
+}
+
 test('aceita somente o advisory remanescente da cadeia glob nos caminhos documentados', async () => {
     const policy = await import(POLICY_URL);
     const result = policy.evaluateAuditReport(allowedReport());
@@ -170,7 +190,15 @@ test('bloqueia cadeia permitida quando ela afeta pacote fora do caminho aprovado
 
 test('aceita o advisory moderado recente de minimatch apenas nas cadeias documentadas de tooling e ExcelJS', async () => {
     const policy = await import(POLICY_URL);
-    const result = policy.evaluateAuditReport(minimatchAmplificationReport());
+    const report = minimatchAmplificationReport();
+    const withoutLock = policy.evaluateAuditReport(report);
+    assert.equal(withoutLock.passed, false);
+    assert.ok(withoutLock.violations.some(item => (
+        item.packageName === 'rimraf'
+        && item.code === 'PACKAGE_OUTSIDE_ALLOWED_PATH'
+    )));
+
+    const result = policy.evaluateAuditReport(report, minimatchAmplificationLockfile());
 
     assert.equal(result.passed, true);
     assert.equal(result.counts.moderate, 14);
@@ -193,7 +221,7 @@ test('bloqueia o advisory de minimatch fora das cadeias explicitamente autorizad
     report.metadata.vulnerabilities.moderate += 1;
     report.metadata.vulnerabilities.total += 1;
 
-    const result = policy.evaluateAuditReport(report);
+    const result = policy.evaluateAuditReport(report, minimatchAmplificationLockfile());
 
     assert.equal(result.passed, false);
     assert.ok(result.violations.some(item => (
