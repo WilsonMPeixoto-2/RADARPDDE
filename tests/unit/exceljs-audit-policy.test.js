@@ -144,47 +144,15 @@ test('bloqueia pacote transitivo da exceção ExcelJS quando ele aparece como de
     )));
 });
 
-test('aceita o advisory sem correção de braces somente na cadeia Stylelint de desenvolvimento documentada', async () => {
+test('não mantém allowlist para o advisory histórico de braces removido pelo Stylelint 18', async () => {
     const policy = await import(POLICY_URL);
     const result = policy.evaluateAuditReport(stylelintBracesReport());
 
-    assert.equal(result.passed, true);
-    assert.equal(result.counts.high, 6);
-    assert.deepEqual(new Set(result.accepted.map(item => item.advisory)), new Set([
-        'GHSA-vfj7-8cjw-p6xm'.toUpperCase()
-    ]));
-    assert.deepEqual(result.violations, []);
-});
-
-test('bloqueia o advisory de braces quando aparece fora da cadeia Stylelint autorizada', async () => {
-    const policy = await import(POLICY_URL);
-    const report = stylelintBracesReport();
-    report.vulnerabilities['runtime-package'] = entry('runtime-package', ['braces'], [], { isDirect: true });
-    report.metadata.vulnerabilities.high += 1;
-    report.metadata.vulnerabilities.total += 1;
-
-    const result = policy.evaluateAuditReport(report);
-
+    assert.equal(policy.ALLOWED_ADVISORIES.has('GHSA-VFJ7-8CJW-P6XM'), false);
     assert.equal(result.passed, false);
     assert.ok(result.violations.some(item => (
-        item.code === 'PACKAGE_OUTSIDE_ALLOWED_PATH'
-        && item.packageName === 'runtime-package'
+        item.code === 'NEW_ADVISORY'
         && item.advisory === 'GHSA-VFJ7-8CJW-P6XM'
-    )));
-});
-
-test('bloqueia cadeia permitida quando ela afeta pacote fora do caminho aprovado', async () => {
-    const policy = await import(POLICY_URL);
-    const report = stylelintBracesReport();
-    report.vulnerabilities.braces.effects.push('other-tool');
-
-    const result = policy.evaluateAuditReport(report);
-
-    assert.equal(result.passed, false);
-    assert.ok(result.violations.some(item => (
-        item.code === 'PACKAGE_OUTSIDE_ALLOWED_PATH'
-        && item.packageName === 'braces'
-        && item.outsideEffects?.includes('other-tool')
     )));
 });
 
