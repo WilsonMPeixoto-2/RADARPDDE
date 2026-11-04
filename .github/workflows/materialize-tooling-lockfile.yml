@@ -1,0 +1,51 @@
+name: Materializar lockfile de tooling
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - package.json
+      - package-lock.json
+      - tests/unit/tooling-contract.test.js
+      - .github/workflows/materialize-tooling-lockfile.yml
+
+permissions:
+  contents: read
+
+jobs:
+  materializar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Atualizar lockfile a partir do manifesto
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+
+      - name: Instalação reproduzível
+        run: npm ci
+
+      - name: Contrato de tooling
+        run: node --test tests/unit/tooling-contract.test.js
+
+      - name: Arquitetura
+        run: npm run check:architecture
+
+      - name: ESLint de segurança
+        run: npm run lint:security
+
+      - name: Inventário Knip
+        run: npm run analyze:unused
+
+      - name: Publicar lockfile materializado
+        uses: actions/upload-artifact@v4
+        with:
+          name: tooling-lockfile
+          path: package-lock.json
+          if-no-files-found: error
+          retention-days: 2
