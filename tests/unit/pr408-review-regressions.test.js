@@ -328,7 +328,7 @@ test('relatório de erro do npm audit é inválido e nunca pode ser tratado como
     assert.ok(result.violations.some(item => item.code === 'INVALID_AUDIT_REPORT'));
 });
 
-test('braces direto é rejeitado mesmo usando o advisory permitido para a cadeia Stylelint', async () => {
+test('braces direto continua bloqueado sem exceção histórica do Stylelint', async () => {
     const policy = await import(POLICY_URL);
     const report = stylelintBracesReport();
     report.vulnerabilities.braces.isDirect = true;
