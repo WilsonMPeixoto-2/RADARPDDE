@@ -1,5 +1,7 @@
 # AGENTS.md — RADAR PDDE 2026
 
+> **Referência de depuração e entrega comprovada (04/11/2026):** para falhas de build/deploy, integrações Vercel, problemas de browser, persistência remota, dependências ou downloads, consultar [skill portátil](.agents/skills/diagnostico-entrega-verificada/SKILL.md) e [registro de evidências](docs/reference/LIÇÕES_INTERPROJETOS_DEPURACAO_2026_11.md). Estes textos são **suplementares** e não alteram a precedência, a governança, os gates, as decisões e os critérios de autorização definidos neste AGENTS.md.
+
 **Classe documental:** Canônico — roteador obrigatório para agentes e novos chats  
 **Atualizado em:** 18 de outubro de 2026
 
