@@ -26,6 +26,32 @@ const ALLOWED_ADVISORIES = Object.freeze(new Map([
     directPackages: Object.freeze(new Set(['exceljs'])),
     reason: 'Cadeia de glob/streaming do Node não alcançada pelo workbook documental do navegador.'
   })],
+  ['GHSA-G3HV-75WG-M249', Object.freeze({
+    packages: Object.freeze(new Set([
+      '@eslint-community/eslint-utils',
+      '@eslint/config-array',
+      '@eslint/js',
+      'archiver',
+      'archiver-utils',
+      'eslint',
+      'eslint-plugin-no-unsanitized',
+      'eslint-plugin-playwright',
+      'exceljs',
+      'glob',
+      'minimatch',
+      'readdir-glob',
+      'rimraf',
+      'zip-stream'
+    ])),
+    directPackages: Object.freeze(new Set([
+      '@eslint/js',
+      'eslint',
+      'eslint-plugin-no-unsanitized',
+      'eslint-plugin-playwright',
+      'exceljs'
+    ])),
+    reason: 'Advisory moderado de minimatch publicado em 30/10/2026; os caminhos observados ficam restritos a tooling e à cadeia Node/streaming do ExcelJS, não alcançada pelo workbook documental do navegador. A correção exige minimatch 11 e depende de compatibilidade dos consumidores upstream.'
+  })],
   ['GHSA-VFJ7-8CJW-P6XM', Object.freeze({
     packages: Object.freeze(new Set([
       'braces',
@@ -105,7 +131,31 @@ function reachesApprovedDirectPackage(report, packageName, policy, seen = new Se
   return false;
 }
 
-function evaluateAuditReport(report) {
+function lockfileReachesPackage(lockfile, directPackages, targetPackage) {
+  const packages = lockfile?.packages;
+  const target = String(targetPackage || '');
+  if (!packages || typeof packages !== 'object' || !target) return false;
+
+  const queue = [...(directPackages || [])].map(String);
+  const seen = new Set();
+
+  while (queue.length) {
+    const current = queue.shift();
+    if (!current || seen.has(current)) continue;
+    seen.add(current);
+    if (current === target) return true;
+
+    const entry = packages[`node_modules/${current}`];
+    if (!entry || typeof entry !== 'object') continue;
+    for (const dependencyName of Object.keys(entry.dependencies || {})) {
+      if (!seen.has(dependencyName)) queue.push(dependencyName);
+    }
+  }
+
+  return false;
+}
+
+function evaluateAuditReport(report, lockfile = null) {
   const violations = [];
   if (!report || typeof report !== 'object' || report.error
     || Number(report.auditReportVersion) !== 2
@@ -143,7 +193,8 @@ function evaluateAuditReport(report) {
         continue;
       }
       const outsideEffects = vulnerability.effects.filter(effect => !policy.packages.has(String(effect)));
-      const reachesApprovedRoot = reachesApprovedDirectPackage(report, packageName, policy);
+      const reachesApprovedRoot = reachesApprovedDirectPackage(report, packageName, policy)
+        || lockfileReachesPackage(lockfile, policy.directPackages, packageName);
       if (!policy.packages.has(packageName)
         || (vulnerability.isDirect === true && !policy.directPackages?.has(packageName))
         || outsideEffects.length > 0
@@ -252,7 +303,8 @@ function parseArgs(argv) {
 function main() {
   const args = parseArgs(process.argv.slice(2));
   const report = JSON.parse(fs.readFileSync(args.report, 'utf8'));
-  const evaluation = evaluateAuditReport(report);
+  const lockfile = JSON.parse(fs.readFileSync(path.join(ROOT, 'package-lock.json'), 'utf8'));
+  const evaluation = evaluateAuditReport(report, lockfile);
   const runtimeAudit = verifyRuntimeDependencyAudit();
   const bundle = verifyBundleIdentity();
   const runtime = verifyRuntimeScope();
@@ -285,6 +337,7 @@ export {
   RUNTIME_FILES,
   collectAdvisories,
   evaluateAuditReport,
+  lockfileReachesPackage,
   reachesApprovedDirectPackage,
   validAuditEntry,
   verifyBundleIdentity,
