@@ -51,18 +51,6 @@ const ALLOWED_ADVISORIES = Object.freeze(new Map([
       'exceljs'
     ])),
     reason: 'Advisory moderado de minimatch publicado em 30/10/2026; os caminhos observados ficam restritos a tooling e à cadeia Node/streaming do ExcelJS, não alcançada pelo workbook documental do navegador. A correção exige minimatch 11 e depende de compatibilidade dos consumidores upstream.'
-  })],
-  ['GHSA-VFJ7-8CJW-P6XM', Object.freeze({
-    packages: Object.freeze(new Set([
-      'braces',
-      'micromatch',
-      'fast-glob',
-      'globby',
-      'stylelint',
-      'stylelint-config-recommended'
-    ])),
-    directPackages: Object.freeze(new Set(['stylelint', 'stylelint-config-recommended'])),
-    reason: 'Cadeia exclusiva do Stylelint em devDependencies; sem correção publicada em 2026-10-03. Remover a exceção quando houver versão corrigida compatível.'
   })]
 ]));
 
