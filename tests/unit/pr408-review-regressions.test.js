@@ -337,7 +337,7 @@ test('braces direto continua bloqueado sem exceção histórica do Stylelint', a
 
     assert.equal(result.passed, false);
     assert.ok(result.violations.some(item => (
-        item.code === 'PACKAGE_OUTSIDE_ALLOWED_PATH'
+        item.code === 'NEW_ADVISORY'
         && item.packageName === 'braces'
         && item.advisory === 'GHSA-VFJ7-8CJW-P6XM'
     )));
