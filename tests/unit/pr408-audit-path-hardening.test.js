@@ -20,7 +20,7 @@ function advisory(id) {
     };
 }
 
-test('pacote de nome permitido continua bloqueado se não alcançar a dependência direta aprovada', async () => {
+test('advisory histórico de braces volta a bloquear se reaparecer após Stylelint 18', async () => {
     const policy = await import(POLICY_URL);
     const report = {
         auditReportVersion: 2,
@@ -41,7 +41,7 @@ test('pacote de nome permitido continua bloqueado se não alcançar a dependênc
 
     const result = policy.evaluateAuditReport(report);
 
-    assert.equal(result.passed, false, 'allow-list de nomes não basta sem caminho até Stylelint');
+    assert.equal(result.passed, false, 'a exceção removida não pode reaparecer silenciosamente');
     assert.ok(result.violations.some(item => (
         item.code === 'PACKAGE_OUTSIDE_ALLOWED_PATH'
         && item.packageName === 'braces'
