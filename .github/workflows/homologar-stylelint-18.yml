@@ -9,6 +9,8 @@ on:
       - package-lock.json
       - stylelint.config.mjs
       - tests/unit/tooling-contract.test.js
+      - tests/unit/exceljs-audit-policy.test.js
+      - scripts/check-exceljs-audit-policy.mjs
       - docs/TECHNOLOGY_CAPABILITIES_TRACKER.md
       - .github/workflows/homologar-stylelint-18.yml
 
@@ -43,7 +45,7 @@ jobs:
         run: npm run lint:css
 
       - name: Validar contrato de tooling
-        run: node --test tests/unit/tooling-contract.test.js
+        run: node --test tests/unit/tooling-contract.test.js tests/unit/exceljs-audit-policy.test.js
 
       - name: Inventariar cadeia CSS
         shell: bash
