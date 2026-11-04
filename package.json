@@ -118,8 +118,8 @@
     "puppeteer-core": "25.16.0",
     "supabase": "2.121.0",
     "typescript": "7.0.2",
-    "stylelint": "17.16.0",
-    "stylelint-config-recommended": "18.0.0"
+    "stylelint": "18.0.0",
+    "stylelint-config-recommended": "19.0.0"
   },
   "dependencies": {
     "exceljs": "4.4.0"
