@@ -7,10 +7,11 @@ on:
       - package.json
       - package-lock.json
       - tests/unit/tooling-contract.test.js
+      - docs/TECHNOLOGY_CAPABILITIES_TRACKER.md
       - .github/workflows/materialize-tooling-lockfile.yml
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   materializar:
@@ -18,6 +19,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - uses: actions/setup-node@v4
         with:
@@ -42,10 +45,14 @@ jobs:
       - name: Inventário Knip
         run: npm run analyze:unused
 
-      - name: Publicar lockfile materializado
-        uses: actions/upload-artifact@v4
-        with:
-          name: tooling-lockfile
-          path: package-lock.json
-          if-no-files-found: error
-          retention-days: 2
+      - name: Gravar lockfile materializado na branch
+        run: |
+          if git diff --quiet -- package-lock.json; then
+            echo "Lockfile já está sincronizado."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          git commit -m "chore(tooling): materializar lockfile atualizado"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
