@@ -26,6 +26,32 @@ const ALLOWED_ADVISORIES = Object.freeze(new Map([
     directPackages: Object.freeze(new Set(['exceljs'])),
     reason: 'Cadeia de glob/streaming do Node não alcançada pelo workbook documental do navegador.'
   })],
+  ['GHSA-G3HV-75WG-M249', Object.freeze({
+    packages: Object.freeze(new Set([
+      '@eslint-community/eslint-utils',
+      '@eslint/config-array',
+      '@eslint/js',
+      'archiver',
+      'archiver-utils',
+      'eslint',
+      'eslint-plugin-no-unsanitized',
+      'eslint-plugin-playwright',
+      'exceljs',
+      'glob',
+      'minimatch',
+      'readdir-glob',
+      'rimraf',
+      'zip-stream'
+    ])),
+    directPackages: Object.freeze(new Set([
+      '@eslint/js',
+      'eslint',
+      'eslint-plugin-no-unsanitized',
+      'eslint-plugin-playwright',
+      'exceljs'
+    ])),
+    reason: 'Advisory moderado de minimatch publicado em 30/10/2026; os caminhos observados ficam restritos a tooling e à cadeia Node/streaming do ExcelJS, não alcançada pelo workbook documental do navegador. A correção exige minimatch 11 e depende de compatibilidade dos consumidores upstream.'
+  })],
   ['GHSA-VFJ7-8CJW-P6XM', Object.freeze({
     packages: Object.freeze(new Set([
       'braces',
