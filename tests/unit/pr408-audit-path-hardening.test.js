@@ -43,7 +43,7 @@ test('advisory histórico de braces volta a bloquear se reaparecer após Styleli
 
     assert.equal(result.passed, false, 'a exceção removida não pode reaparecer silenciosamente');
     assert.ok(result.violations.some(item => (
-        item.code === 'PACKAGE_OUTSIDE_ALLOWED_PATH'
+        item.code === 'NEW_ADVISORY'
         && item.packageName === 'braces'
         && item.advisory === 'GHSA-VFJ7-8CJW-P6XM'
     )));
