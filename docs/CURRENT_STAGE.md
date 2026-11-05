@@ -1,6 +1,6 @@
 # RADAR PDDE — estado atual e retomada
 
-**Dependências em produção (04/11/2026):** `main@0f632f243ff171917eb36c23a3883cfd8f8bb362` (PR #499), Vercel `dpl_FzvbrBfXHYtvjXt61dNiqhBnZRth` READY. Supabase CLI `2.122.0`; SDK JS `2.118.0`; Lighthouse `13.5.0`. Versões candidatas não devem ser confundidas com publicadas. [Checkpoint de dependências](DEPENDENCY_UPGRADES_2026-11-04.md).
+**Baseline funcional homologada em 04/11/2026:** PR #499, commit `0f632f243ff171917eb36c23a3883cfd8f8bb362`, deployment Vercel `dpl_FzvbrBfXHYtvjXt61dNiqhBnZRth` READY naquele corte. O merge deste próprio checkpoint documental gera novo HEAD e pode gerar outro deployment, sem alterar a versão das dependências. Supabase CLI `2.122.0`; SDK JS `2.118.0`; Lighthouse `13.5.0`. Versões candidatas não devem ser confundidas com publicadas. [Checkpoint de dependências](DEPENDENCY_UPGRADES_2026-11-04.md).
 
 ## PDDE Qualidade — publicação e limpeza de contexto fiscal — 24/10/2026
 
