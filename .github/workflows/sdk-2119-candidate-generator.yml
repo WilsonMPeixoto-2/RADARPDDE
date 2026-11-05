@@ -61,7 +61,8 @@ jobs:
           npm run check:search-ui-vendors
           npm run typecheck:database
           node --test tests/unit/supabase-modernization.test.js tests/unit/tooling-contract.test.js
-          git diff --check
+          # Artefato minificado é gerado integralmente por esbuild e pode conter espaços em strings.
+          git diff --check -- . ':!vendor/supabase-client.js'
 
       - name: Commit reproducible candidate onto the PR branch
         env:
