@@ -1,5 +1,6 @@
 # RADAR PDDE — estado atual e retomada
 
+> **Dependências — checkpoint de 04/11/2026:** [baseline efetiva, PRs #499/#502 e bloqueios](DEPENDENCY_UPGRADES_2026-11-04.md). A versão publicada do Supabase JS continua 2.118.0; CLI 2.121.0 e Lighthouse 13.5.0. Nenhuma candidata não integrada deve ser tratada como Production.\n\n
 ## PDDE Qualidade — publicação e limpeza de contexto fiscal — 24/10/2026
 
 - #494 integrado em `96f49554`; **migration 62 aplicada** no projeto institucional,
