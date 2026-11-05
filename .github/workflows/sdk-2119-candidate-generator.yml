@@ -56,7 +56,8 @@ jobs:
       - name: Verify generated output and focused contracts
         run: |
           set -euo pipefail
-          npm run check:generated
+          # O check CI=true compara com HEAD; nesta etapa o bundle ainda será commitado.
+          CI=false npm run check:generated
           npm run check:search-ui-vendors
           npm run typecheck:database
           node --test tests/unit/supabase-modernization.test.js tests/unit/tooling-contract.test.js
