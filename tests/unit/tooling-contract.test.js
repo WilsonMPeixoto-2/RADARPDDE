@@ -263,8 +263,8 @@ test('tooling A/B fixa ambiente, qualidade CSS, revisão de dependências e regr
     const visualConfig = read('playwright.visual.config.js');
 
     assert.equal(packageJson.devDependencies['@supabase/supabase-js'], '2.118.0');
-    assert.equal(packageJson.devDependencies.stylelint, '17.16.0');
-    assert.equal(packageJson.devDependencies['stylelint-config-recommended'], '18.0.0');
+    assert.equal(packageJson.devDependencies.stylelint, '18.0.0');
+    assert.equal(packageJson.devDependencies['stylelint-config-recommended'], '19.0.0');
     assert.equal(packageJson.scripts['lint:css'], 'stylelint "styles.css" "src/styles/**/*.css"');
     assert.match(packageJson.scripts['test:readiness'], /lint:css/);
     assert.equal(packageJson.scripts['test:visual'], 'playwright test --config=playwright.visual.config.js');
