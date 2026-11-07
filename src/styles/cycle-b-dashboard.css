@@ -155,6 +155,33 @@
     line-height: 1.45;
 }
 
+/* Providências históricas: dentro da fila existente, separadas do indicador mensal. */
+.cycle-b-historical-actions {
+    display: grid;
+    gap: 12px;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border-color);
+}
+.cycle-b-historical-header {
+    display: grid;
+    gap: 5px;
+}
+.cycle-b-historical-header strong {
+    font-size: 0.92rem;
+    line-height: 1.4;
+}
+.cycle-b-historical-header span {
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: var(--text-muted);
+}
+.cycle-b-historical-view-all {
+    min-height: 40px;
+    width: 100%;
+    justify-content: center;
+}
+
 .cycle-b-action-summary {
     display: grid;
     gap: 12px;
