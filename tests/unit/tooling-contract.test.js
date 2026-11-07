@@ -36,7 +36,7 @@ test('mantém o renderer institucional interno e fixa ExcelJS somente para o pro
     assert.equal(packageJson.devDependencies.knip, '6.44.1');
     assert.equal(packageJson.devDependencies['dependency-cruiser'], '18.7.2');
     assert.equal(packageJson.devDependencies['eslint-plugin-no-unsanitized'], '4.1.5');
-    assert.equal(packageJson.devDependencies['eslint-plugin-playwright'], '2.12.1');
+    assert.equal(packageJson.devDependencies['eslint-plugin-playwright'], '2.12.2');
     assert.equal(packageJson.devDependencies.lighthouse, '13.5.0');
     assert.equal(packageJson.devDependencies['@lhci/cli'], undefined);
     assert.equal(packageJson.overrides['brace-expansion@^1.0.0'], '1.1.21');

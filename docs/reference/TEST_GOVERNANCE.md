@@ -155,7 +155,7 @@ Regras:
 
 ## 10. Locks e paralelismo
 
-Os locks por recurso introduzidos no Playwright 1.63 seguem disponíveis na versão atual **1.64.1**. O RADAR os utiliza somente onde testes compartilham estado material.
+Os locks por recurso introduzidos no Playwright 1.63 seguem disponíveis na versão atual **1.65.0**. O RADAR os utiliza somente onde testes compartilham estado material.
 
 - não elevar paralelismo global de suíte que depende de estado compartilhado;
 - serializar o recurso, não o repositório inteiro;
