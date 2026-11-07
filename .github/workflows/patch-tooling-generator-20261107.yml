@@ -1,0 +1,61 @@
+name: One-shot verified tooling candidate generation
+on:
+  push:
+    branches:
+      - chore/tooling-playwright-msw-patch-20261107
+    paths:
+      - '.github/workflows/patch-tooling-generator-20261107.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    name: Regenerate exact five-file patch and remove one-shot workflow
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: true
+      - name: Node 24
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - name: Recreate canonical patch from main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          test "$(git rev-parse origin/main)" = "f0d82436ff61b12ff75aac097f800b8396b041f0"
+          git restore --source=origin/main -- package.json package-lock.json tests/unit/tooling-contract.test.js docs/TECHNOLOGY_CAPABILITIES_TRACKER.md docs/reference/TEST_GOVERNANCE.md
+          npm ci --no-audit --no-fund
+          npm install --save-dev --save-exact @playwright/test@1.65.0 eslint-plugin-playwright@2.12.2 msw@3.0.4 --no-audit --no-fund
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('tests/unit/tooling-contract.test.js')
+          s=p.read_text()
+          assert "['eslint-plugin-playwright'], '2.12.1'" in s
+          p.write_text(s.replace("['eslint-plugin-playwright'], '2.12.1'", "['eslint-plugin-playwright'], '2.12.2'"))
+          p=Path('docs/TECHNOLOGY_CAPABILITIES_TRACKER.md')
+          s=p.read_text()
+          for old,new in (('@playwright/test@1.64.1','@playwright/test@1.65.0'),('eslint-plugin-playwright@2.12.1','eslint-plugin-playwright@2.12.2'),('msw@3.0.3','msw@3.0.4')):
+              assert old in s
+              s=s.replace(old,new)
+          p.write_text(s)
+          p=Path('docs/reference/TEST_GOVERNANCE.md')
+          s=p.read_text()
+          assert 'versão atual **1.64.1**' in s
+          p.write_text(s.replace('versão atual **1.64.1**','versão atual **1.65.0**'))
+          PY
+          node --test tests/unit/tooling-contract.test.js
+          node --test tests/unit/msw-remote-failures.test.js
+          npm run check:generated
+          git rm -f .github/workflows/patch-tooling-generator-20261107.yml
+          git add package.json package-lock.json tests/unit/tooling-contract.test.js docs/TECHNOLOGY_CAPABILITIES_TRACKER.md docs/reference/TEST_GOVERNANCE.md
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'fix(tooling): persist UTF-8 and lockfile exactly for three upgrades'
+          git push origin HEAD:chore/tooling-playwright-msw-patch-20261107
