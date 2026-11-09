@@ -4875,6 +4875,8 @@ function getAlertActionDataAttributes(alert) {
 
 function updateAlertsBell() {
     const list = getAlerts();
+    const bellButton = document.querySelector('#alerts-bell-container .bell-button');
+    bellButton?.setAttribute('aria-label', `Alertas de ação, ${list.length} ${list.length === 1 ? 'pendente' : 'pendentes'}`);
     const countEl = document.getElementById('alerts-count');
     const dropCountEl = document.getElementById('alerts-dropdown-count');
     const listContainer = document.getElementById('alerts-list');
@@ -4938,7 +4940,9 @@ function handleAlertClick(alertSource) {
     const alert = findAlertFromActionSource(alerts, alertSource);
     if (alert) {
         alert.action();
-        document.getElementById('alerts-dropdown').classList.remove('show');
+        if (!window.__radarFloatingUIController?.closeFloating?.('alerts')) {
+            document.getElementById('alerts-dropdown').classList.remove('show');
+        }
     }
 }
 
@@ -5051,8 +5055,10 @@ function switchProfile(profile) {
         }
     }
     
-    // Fechar Dropdown
-    document.getElementById('profile-dropdown').classList.remove('show');
+    // Encerrar pelo controlador canônico, liberando o posicionamento e sincronizando aria-expanded.
+    if (!window.__radarFloatingUIController?.closeFloating?.('profile')) {
+        document.getElementById('profile-dropdown').classList.remove('show');
+    }
     
     // Fechar menu ativo de perfil no switcher
     document.querySelectorAll('.profile-option').forEach(el => el.classList.remove('active'));
@@ -5748,14 +5754,14 @@ function renderDashboardControlador(container) {
         <div class="page-header">
             <div class="page-title">
                 <h1>Painel do Controlador</h1>
-                <p>Carteira ativa: <strong>${activeControladorName}</strong>. R.A. vinculada: <strong>${carteiraRAText}</strong>. Você pode navegar por outras R.As ou pesquisar na CRE.</p>
+                <p>Carteira ativa: <strong>${escapeHtml(activeControladorName)}</strong>. R.A. vinculada: <strong>${escapeHtml(carteiraRAText)}</strong>. Você pode navegar por outras R.As ou pesquisar na CRE.</p>
 
             </div>
-            <div class="badge badge-info">Mês Ativo: ${activeCompetenciaLabel}</div>
+            <div class="badge badge-info">Mês Ativo: ${escapeHtml(activeCompetenciaLabel)}</div>
         </div>
 
         <div class="tab-container" style="margin-bottom: 20px;">
-            <button class="tab-button ${filterRa === 'carteira' ? 'active' : ''}" onclick="changeControladorRAFilter('carteira')">Minha Carteira (${activeControladorName.split(' ')[0]})</button>
+            <button class="tab-button ${filterRa === 'carteira' ? 'active' : ''}" onclick="changeControladorRAFilter('carteira')">Minha Carteira (${escapeHtml(activeControladorName.split(' ')[0])})</button>
 
             <button class="tab-button ${filterRa === '10' ? 'active' : ''}" onclick="changeControladorRAFilter('10')">10ª R.A.</button>
             <button class="tab-button ${filterRa === '11' ? 'active' : ''}" onclick="changeControladorRAFilter('11')">11ª R.A.</button>
@@ -5780,7 +5786,7 @@ function renderDashboardControlador(container) {
 
                 </div>
 
-                <div class="stat-label">Bonificação não lançada (${activeCompetenciaLabel})</div>
+                <div class="stat-label">Bonificação não lançada (${escapeHtml(activeCompetenciaLabel)})</div>
 
                 <div class="stat-value">${escolasNaoAnalisadas.length} Escolas</div>
 
@@ -13060,12 +13066,14 @@ function updateThemeIcon(isDark) {
             <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
         `;
         document.getElementById('theme-toggle-btn').title = "Mudar para Tema Claro";
+        document.getElementById('theme-toggle-btn').setAttribute('aria-label', 'Mudar para tema claro');
     } else {
         // Ícone da Lua (para mudar para o Escuro)
         icon.innerHTML = `
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
         `;
         document.getElementById('theme-toggle-btn').title = "Mudar para Tema Escuro";
+        document.getElementById('theme-toggle-btn').setAttribute('aria-label', 'Mudar para tema escuro');
     }
 }
 

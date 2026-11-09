@@ -162,7 +162,7 @@
             <header class="top-header">
                 <!-- Busca rápida de escolas -->
                 <div class="search-bar-container">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                     <input type="text" class="search-input" id="global-search" placeholder="Buscar escola ou designação..." title="Busca pelo nome da unidade escolar ou pela designação" oninput="handleGlobalSearch(event)">
                 </div>
 
@@ -178,16 +178,16 @@
                     </select>
 
                     <!-- Alternador de Tema (Claro/Escuro) -->
-                    <button class="bell-button" id="theme-toggle-btn" onclick="toggleTheme()" title="Alternar Tema" style="margin-right: 4px;">
-                        <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <button class="bell-button" id="theme-toggle-btn" type="button" aria-label="Mudar para tema escuro" onclick="toggleTheme()" title="Alternar Tema" style="margin-right: 4px;">
+                        <svg id="theme-icon" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                         </svg>
                     </button>
 
                     <!-- Alertas -->
                     <div class="alerts-bell" id="alerts-bell-container">
-                        <button class="bell-button" onclick="toggleAlertsDropdown(event)">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <button class="bell-button" type="button" aria-label="Alertas de ação, 0 pendentes" onclick="toggleAlertsDropdown(event)">
+                            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                             </svg>
@@ -221,8 +221,8 @@
 
                     <!-- Seletor de Perfil Simulado (Badge Flutuante) -->
                     <div class="profile-switcher">
-                        <button class="profile-button" onclick="toggleProfileDropdown(event)">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <button class="profile-button" type="button" onclick="toggleProfileDropdown(event)">
+                            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                                 <circle cx="9" cy="7" r="4"></circle>
                                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
@@ -271,7 +271,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Registrar Contato / Atendimento</h3>
-                <button class="btn-close" onclick="closeModal('modal-contato')">×</button>
+                <button aria-label="Fechar" type="button" class="btn-close" onclick="closeModal('modal-contato')">×</button>
             </div>
             <div class="modal-body">
                 <form id="form-contato" onsubmit="saveContato(event)">
@@ -331,7 +331,7 @@
                         <p class="modal-subtitle">Selecione as pendências que devem constar na mensagem. Copiar o texto apenas prepara a comunicação; depois do envio, registre o contato realizado.</p>
                     </div>
                 </div>
-                <button class="btn-close" aria-label="Fechar geração de comunicação" onclick="closeModal('modal-cobranca')">×</button>
+                <button type="button" class="btn-close" aria-label="Fechar geração de comunicação" onclick="closeModal('modal-cobranca')">×</button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="cobranca-escola-id">
@@ -378,7 +378,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Editar Dados da Unidade</h3>
-                <button class="btn-close" onclick="closeModal('modal-escola-edit')">×</button>
+                <button aria-label="Fechar" type="button" class="btn-close" onclick="closeModal('modal-escola-edit')">×</button>
             </div>
             <div class="modal-body">
                 <form id="form-escola-edit" onsubmit="saveEscolaEdit(event)">
@@ -400,7 +400,7 @@
                         </div>
                         <div class="form-group">
                             <label for="edit-telefone-diretor">Telefone do Diretor(a)</label>
-                            <input type="text" class="form-control" id="edit-telefone-diretor">
+                            <input type="text" class="form-control" id="edit-telefone-diretor" inputmode="tel">
                         </div>
                     </div>
                     <div class="form-row">
@@ -410,17 +410,17 @@
                         </div>
                         <div class="form-group">
                             <label for="edit-telefone-adjunto">Telefone do Adjunto(a)</label>
-                            <input type="text" class="form-control" id="edit-telefone-adjunto">
+                            <input type="text" class="form-control" id="edit-telefone-adjunto" inputmode="tel">
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="edit-telefone">Telefone da Unidade</label>
-                            <input type="text" class="form-control" id="edit-telefone" required>
+                            <input type="text" class="form-control" id="edit-telefone" inputmode="tel" required>
                         </div>
                         <div class="form-group">
                             <label for="edit-celular-institucional">Celular Institucional</label>
-                            <input type="text" class="form-control" id="edit-celular-institucional">
+                            <input type="text" class="form-control" id="edit-celular-institucional" inputmode="tel">
                         </div>
                     </div>
                     <div class="form-row">
@@ -455,7 +455,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Abrir Pendência Manual</h3>
-                <button class="btn-close" onclick="closeModal('modal-nova-pendencia')">×</button>
+                <button aria-label="Fechar" type="button" class="btn-close" onclick="closeModal('modal-nova-pendencia')">×</button>
             </div>
             <div class="modal-body">
                 <form id="form-nova-pendencia" onsubmit="saveNovaPendencia(event)">
@@ -693,7 +693,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Dados da Nota Fiscal / Despesa</h3>
-                <button class="btn-close" onclick="closeModal('modal-dados-nota')">×</button>
+                <button aria-label="Fechar" type="button" class="btn-close" onclick="closeModal('modal-dados-nota')">×</button>
             </div>
             <div class="modal-body">
                 <form id="form-dados-nota" onsubmit="salvarDadosNota(event)">
@@ -794,7 +794,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Inventariar Bem Patrimonial</h3>
-                <button class="btn-close" onclick="closeModal('modal-inventario-confirm')">×</button>
+                <button aria-label="Fechar" type="button" class="btn-close" onclick="closeModal('modal-inventario-confirm')">×</button>
             </div>
             <div class="modal-body">
                 <form id="form-inventario-confirm" onsubmit="salvarInventariacao(event)">
@@ -872,7 +872,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modal-controlador-title">Cadastrar Controlador</h3>
-                <button class="btn-close" onclick="closeModal('modal-controlador-edit')">×</button>
+                <button aria-label="Fechar" type="button" class="btn-close" onclick="closeModal('modal-controlador-edit')">×</button>
             </div>
             <div class="modal-body">
                 <form id="form-controlador-edit" onsubmit="salvarControlador(event)">
@@ -902,7 +902,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modal-inventariador-title">Cadastrar Integrante de Inventário</h3>
-                <button class="btn-close" onclick="closeModal('modal-inventariador-edit')">×</button>
+                <button aria-label="Fechar" type="button" class="btn-close" onclick="closeModal('modal-inventariador-edit')">×</button>
             </div>
             <div class="modal-body">
                 <form id="form-inventariador-edit" onsubmit="salvarInventariador(event)">
