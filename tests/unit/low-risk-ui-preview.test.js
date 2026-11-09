@@ -39,8 +39,8 @@ test('Dashboard trata controlador, R.A., competência e aba da carteira como tex
 test('Alertas e troca de perfil usam encerramento canônico do Floating UI', () => {
     const alertHandler = app.slice(app.indexOf('function handleAlertClick('), app.indexOf('function openSchoolTimeline('));
     const profileHandler = app.slice(app.indexOf('function switchProfile('), app.indexOf('function resetContentAreaScroll('));
-    assert.match(alertHandler, /__radarFloatingUIController\\?\\.closeFloating\\?\\.\\('alerts'\\)/);
-    assert.match(profileHandler, /__radarFloatingUIController\\?\\.closeFloating\\?\\.\\('profile'\\)/);
+    assert.match(alertHandler, /__radarFloatingUIController\?\.closeFloating\?\.\('alerts'\)/);
+    assert.match(profileHandler, /__radarFloatingUIController\?\.closeFloating\?\.\('profile'\)/);
 });
 
 test('Controles de tema, alertas e perfil têm nomes e ícones decorativos acessíveis', () => {
@@ -48,21 +48,21 @@ test('Controles de tema, alertas e perfil têm nomes e ícones decorativos acess
     assert.match(theme, /type="button"/);
     assert.match(theme, /aria-label="[^"]+"/);
     assert.match(theme, /<svg[^>]*aria-hidden="true"/);
-    const bell = html.match(/<button class="bell-button"[^>]*onclick="toggleAlertsDropdown\\(event\\)"[^>]*>[\\s\\S]*?<\\/button>/)?.[0];
+    const bell = html.match(/<button class="bell-button"[^>]*onclick="toggleAlertsDropdown\(event\)"[^>]*>[\s\S]*?<\/button>/)?.[0];
     assert.ok(bell, 'Botão de alertas ausente');
     assert.match(bell, /aria-label="[^"]+"/);
     assert.match(bell, /type="button"/);
     assert.match(bell, /<svg[^>]*aria-hidden="true"/);
-    const profile = html.match(/<button class="profile-button"[^>]*>[\\s\\S]*?<\\/button>/)?.[0];
+    const profile = html.match(/<button class="profile-button"[^>]*>[\s\S]*?<\/button>/)?.[0];
     assert.ok(profile, 'Botão de perfil ausente');
     assert.match(profile, /type="button"/);
     assert.match(profile, /<svg[^>]*aria-hidden="true"/);
-    assert.match(app, /function updateThemeIcon\\([\\s\\S]*?setAttribute\\('aria-label'/);
-    assert.match(app, /function updateAlertsBell\\([\\s\\S]*?setAttribute\\('aria-label'/);
+    assert.match(app, /function updateThemeIcon\([\s\S]*?setAttribute\('aria-label'/);
+    assert.match(app, /function updateAlertsBell\([\s\S]*?setAttribute\('aria-label'/);
 });
 
 test('Botões de fechar modais têm tipo e nome acessível no HTML inicial', () => {
-    const closeButtons = [...html.matchAll(/<button\\b[^>]*class="btn-close"[^>]*>[\\s\\S]*?<\\/button>/g)].map(match => match[0]);
+    const closeButtons = [...html.matchAll(/<button\b[^>]*class="btn-close"[^>]*>[\s\S]*?<\/button>/g)].map(match => match[0]);
     assert.ok(closeButtons.length >= 10);
     for (const button of closeButtons) {
         assert.match(button, /type="button"/, 'Botão de fechar sem type');
@@ -79,5 +79,5 @@ test('Campos telefônicos acionam teclado apropriado sem alterar a validação',
     ]) {
         assert.match(inputById(id), /inputmode="tel"/, id);
     }
-    assert.match(html, /<div class="search-bar-container">\\s*<svg[^>]*aria-hidden="true"/);
+    assert.match(html, /<div class="search-bar-container">\s*<svg[^>]*aria-hidden="true"/);
 });
