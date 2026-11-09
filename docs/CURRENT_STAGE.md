@@ -1,5 +1,9 @@
 # RADAR PDDE — estado atual e retomada
 
+**Estado remoto verificado em 09/11/2026:** `main@ff9dade9999469e99c8745de3659eea71f5af41c`, Production Vercel `dpl_FsohkhJt1CQyyucPFdGr4hj2RktD` (READY). PR #508 integrado: Supabase JS `2.119.0`; PR #509 integrado: Playwright `1.65.0`, eslint-plugin-playwright `2.12.2`, MSW `3.0.4`; PR #510 integrado: CodeQL Action `4.39.3`. Supabase CLI permanece `2.122.0` e Lighthouse `13.5.0`.
+
+**Leitura do histórico:** o checkpoint de 04/11/2026 e as instruções de retomada abaixo documentam o estado **daquela data** e não substituem a versão efetivamente publicada. Esta frente de UX/segurança de baixo risco é exclusiva de branch e Preview, sem autorização para merge em `main` ou Production.
+
 **Baseline funcional homologada em 04/11/2026:** PR #499, commit `0f632f243ff171917eb36c23a3883cfd8f8bb362`, deployment Vercel `dpl_FzvbrBfXHYtvjXt61dNiqhBnZRth` READY naquele corte. O merge deste próprio checkpoint documental gera novo HEAD e pode gerar outro deployment, sem alterar a versão das dependências. Supabase CLI `2.122.0`; SDK JS `2.118.0`; Lighthouse `13.5.0`. Versões candidatas não devem ser confundidas com publicadas. [Checkpoint de dependências](DEPENDENCY_UPGRADES_2026-11-04.md).
 
 ## PDDE Qualidade — publicação e limpeza de contexto fiscal — 24/10/2026

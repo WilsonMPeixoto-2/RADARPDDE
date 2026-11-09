@@ -1,5 +1,7 @@
 # RADAR PDDE — situação de atualizações de dependências
 
+> **Atualização de estado em 09/11/2026 (preservado o registro histórico abaixo):** desde o corte original de 04/11, foram publicados os PRs #508 (Supabase JS `2.119.0`), #509 (Playwright `1.65.0`, eslint-plugin-playwright `2.12.2`, MSW `3.0.4`) e #510 (CodeQL `4.39.3`), culminando na `main@ff9dade9999469e99c8745de3659eea71f5af41c`, Vercel Production READY no deployment `dpl_FsohkhJt1CQyyucPFdGr4hj2RktD`. CLI Supabase `2.122.0`; Lighthouse `13.5.0`. As expressões “não publicar” no texto abaixo referem-se exclusivamente ao cenário verificado em 04/11/2026.
+
 **Corte de verificação:** 04/11/2026 (Brasília), após o merge do PR #499.  
 **Repositório canônico:** `WilsonMPeixoto-2/RADARPDDE`.  
 **Fonte de verdade das versões instaladas:** `package.json` + `package-lock.json` da `main`; o presente relatório não substitui o manifesto.
