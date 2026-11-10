@@ -8,6 +8,19 @@
       "command": "npx",
       "args": ["-y", "@playwright/mcp@0.0.82", "--extension"]
     },
+    "chrome-devtools-session": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@1.12.0",
+        "--auto-connect",
+        "--memory-debugging",
+        "--no-usage-statistics",
+        "--no-performance-crux",
+        "--redact-network-headers",
+        "--workspace=."
+      ]
+    },
     "chrome-devtools": {
       "command": "npx",
       "args": [

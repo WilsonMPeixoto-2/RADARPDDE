@@ -181,5 +181,10 @@ Chrome DevTools MCP complementa essa reprodução com console/rede, CSS,
 Lighthouse, traces, análise de heap e ferramentas PWA. Seus guias são roteados
 por `.agents/skills/radar-browser-diagnostics/SKILL.md`; configuração, versões e
 limites estão em [AGENT_BROWSER_MCP.md](../runbooks/AGENT_BROWSER_MCP.md).
+`chrome-devtools` alcança URLs de Production com perfil limpo;
+`chrome-devtools-session` conecta ao Chrome já aberto na mesma máquina.
+Em Production, confirmar manifesto/runtime e limitar o diagnóstico a leitura;
+uma URL de Preview não comprova isolamento do banco. `npm run check:production`
+reutiliza o smoke público existente e não atesta a jornada autenticada.
 Auditoria automatizada, nota Lighthouse e trace local não substituem jornada
 autenticada, inspeção visual ou evidência do ambiente de destino.

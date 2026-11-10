@@ -5,9 +5,11 @@ alteração; estas notas especializam seu uso no RADAR.
 
 ## Ferramentas e sessão
 
-- O projeto habilita `memoryDebugging` e `categoryPwa`, em conexão por pipe,
-  para disponibilizar os recursos opcionais descritos nos guias. Confirmar o
-  catálogo ativo; ter uma ferramenta listada não prova sua execução funcional.
+- O servidor isolado `chrome-devtools` habilita `memoryDebugging` e `categoryPwa`,
+  em conexão por pipe, para os recursos opcionais descritos nos guias. O servidor
+  `chrome-devtools-session` usa `autoConnect`, com memória habilitada e sem PWA.
+  Confirmar o catálogo ativo; ter uma ferramenta listada não prova sua execução
+  funcional.
 - `set_logpoints` não pertence ao catálogo 1.12.0 verificado. Não copiá-lo de
   documentação posterior como se estivesse disponível nesta versão.
 - `list_network_requests.resourceTypes` usa nomes minúsculos, como `image` e

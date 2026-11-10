@@ -234,6 +234,9 @@ fixado em `0.0.82` e Chrome DevTools MCP fixado em `1.12.0`.
 - use `playwright` para navegação isolada e reproduzível;
 - use `playwright-session` quando a validação depender de sessão já autenticada, SSO, 2FA ou extensões do navegador;
 - use `chrome-devtools` para diagnóstico de console/rede, CSS, acessibilidade, LCP, heap e PWA; ele abre Chrome isolado e não reutiliza a sessão do Playwright;
+- para o sistema publicado em `https://radarpdde-fix.vercel.app`, use esse navegador na parte pública ou `chrome-devtools-session` para observar a sessão autenticada no Chrome da mesma máquina; confirme URL, manifesto/SHA, runtime e perfil antes do diagnóstico;
+- `chrome-devtools-session` usa `--auto-connect`, exige Chrome 144+ com depuração remota habilitada e aceite da conexão; configuração registrada não comprova login;
+- diagnóstico de Production é leitura por padrão, incluindo não disparar exportações auditadas ou workflows de CRUD; Preview só permite mutações após confirmar backend separado/descartável e escopo autorizado;
 - antes desse diagnóstico, leia `.agents/skills/radar-browser-diagnostics/SKILL.md` e carregue somente os guias oficiais pertinentes entre os sete versionados em `.agents/skills/`;
 - a configuração MCP é tooling do agente e não integra o bundle/runtime do RADAR;
 - nenhuma sessão autenticada autoriza escrita em Production por inferência: aplicar os mesmos guardrails de ambiente e autorização do restante do projeto;

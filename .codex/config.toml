@@ -28,3 +28,21 @@ tool_timeout_sec = 180
 command = "npx"
 args = ["-y", "@playwright/mcp@0.0.82", "--extension"]
 startup_timeout_sec = 45
+
+# Conecta apenas ao chamar uma ferramenta; Chrome 144+ na mesma máquina.
+# Habilitar chrome://inspect/#remote-debugging e aceitar a conexão no Chrome.
+# Para sessões existentes não usar --headless, --isolated ou --category-pwa.
+[mcp_servers.chrome-devtools-session]
+command = "npx"
+args = [
+    "-y",
+    "chrome-devtools-mcp@1.12.0",
+    "--auto-connect",
+    "--memory-debugging",
+    "--no-usage-statistics",
+    "--no-performance-crux",
+    "--redact-network-headers",
+    "--workspace=."
+]
+startup_timeout_sec = 45
+tool_timeout_sec = 180

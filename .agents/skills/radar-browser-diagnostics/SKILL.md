@@ -23,6 +23,33 @@ description: Use ao diagnosticar ou validar o RADAR PDDE pelo navegador com Chro
 7. Entregue resultado, evidência, alcance e lacunas. Separe teste local, Preview,
    Production, sessão autenticada e dados sintéticos.
 
+## Sistema publicado e sessão autenticada
+
+- O alvo oficial é **https://radarpdde-fix.vercel.app**. Comece por
+  `npm run check:production` para conferir manifesto, SHA, assets e RLS anônima;
+  isso não comprova a jornada autenticada.
+- Use `chrome-devtools` para inspecionar o site em navegador limpo. Use
+  `chrome-devtools-session` para a aba autenticada: o servidor deve executar no
+  computador do Chrome 144+, com depuração remota habilitada e conexão aceita.
+  Confira `list_pages`, a URL e a interface real antes de declarar acesso.
+  Configuração, conexão e autenticação são etapas distintas.
+- Em Production, o diagnóstico padrão é leitura: navegação, busca, filtros,
+  console/rede e medições pertinentes. Não salvar/excluir, alterar permissões,
+  testar RPCs de escrita ou exportar arquivos que gerem auditoria. Não encerrar
+  a sessão pessoal ou limpar seu storage como preparação automática.
+- Preview não significa banco descartável. Antes de CRUD, confirmar o runtime
+  e o projeto Supabase de destino, além do escopo autorizado. A configuração
+  Vercel atual não publica automaticamente branches de PR.
+- Não disparar `production-authenticated-read.yml` manualmente para uma prova
+  somente leitura: `workflow_dispatch` habilita CRUD fiscal. O runbook explica
+  as alternativas e os flags explícitos de leitura da suíte existente.
+- Traces, screenshots, rede e heap podem conter dados institucionais mesmo com
+  headers mascarados. Manter brutos fora do Git e compartilhar só evidência
+  revisada. Uma medição no domínio real não certifica todo o sistema.
+- Para melhorar o produto, transformar achados confirmados em reprodução,
+  correção na branch e validação da jornada. Distinguir correção candidata de
+  publicação efetiva e registrar as partes que não puderam ser verificadas.
+
 | Necessidade                              | Guia oficial                                               |
 | ---------------------------------------- | ---------------------------------------------------------- |
 | MCP, navegação, elementos e CSS          | [chrome-devtools](../chrome-devtools/SKILL.md)             |
