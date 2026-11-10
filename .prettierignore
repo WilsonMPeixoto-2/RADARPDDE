@@ -19,3 +19,12 @@ src/vendor/
 vendor/
 package-lock.json
 radar-pdde-snapshot*.json
+
+# Guias upstream sem alterações; manter a cópia da versão MCP verificável.
+.agents/skills/a11y-debugging/
+.agents/skills/chrome-devtools/
+.agents/skills/chrome-devtools-cli/
+.agents/skills/cookie-debugging/
+.agents/skills/debug-optimize-lcp/
+.agents/skills/memory-leak-debugging/
+.agents/skills/troubleshooting/

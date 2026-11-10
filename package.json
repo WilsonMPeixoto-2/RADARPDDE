@@ -30,6 +30,7 @@
     "check:supabase-final": "node scripts/check-supabase-final-alignment-current.js",
     "check:generated": "node scripts/check-generated-artifacts.js",
     "check:runtime-config": "node scripts/generate-runtime-config.mjs --check",
+    "check:production": "node scripts/check-production-system.mjs --base-url https://radarpdde-fix.vercel.app --allow-any-commit",
     "check:workflow-references": "node scripts/check-workflow-references.mjs",
     "audit:functional": "node scripts/audit-functional-persistence.js",
     "audit:functional:json": "node scripts/audit-functional-persistence.js --json",

@@ -123,6 +123,7 @@ um checkpoint histórico diz "aguardando", "Draft" ou "candidato".
 | docs/reference/ENGINEERING_METHOD.md | Canônico | método de engenharia |
 | docs/reference/FRONTEND_USER_VALIDATION_GATE.md | Canônico | prova de interface real |
 | docs/reference/TEST_GOVERNANCE.md | Canônico | interpretação de testes |
+| docs/runbooks/AGENT_BROWSER_MCP.md | Runbook técnico vigente | Playwright MCP e Chrome DevTools MCP; diagnóstico de Production, conexão à sessão autenticada, configuração portátil e sete guias oficiais |
 | docs/reference/functional-contract-matrix.json e módulos | Contrato executável | cobertura funcional |
 | docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md | Gerado | visão humana da matriz |
 | docs/DECISION_LOG.md e docs/decisions/*.md | Decisão vigente | regras especializadas |
