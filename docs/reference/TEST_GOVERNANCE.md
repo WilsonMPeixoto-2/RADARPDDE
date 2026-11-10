@@ -176,3 +176,10 @@ snapshots para satisfazer um job.
 ## 12. Navegador MCP para agentes
 
 Playwright MCP pode ser usado para reprodução interativa e homologação navegada. `playwright` usa navegador isolado; `playwright-session` reutiliza sessão existente quando SSO/2FA/cookies são parte material da prova. O MCP não ganha autoridade de negócio nem autoriza escrita em Production por inferência.
+
+Chrome DevTools MCP complementa essa reprodução com console/rede, CSS,
+Lighthouse, traces, análise de heap e ferramentas PWA. Seus guias são roteados
+por `.agents/skills/radar-browser-diagnostics/SKILL.md`; configuração, versões e
+limites estão em [AGENT_BROWSER_MCP.md](../runbooks/AGENT_BROWSER_MCP.md).
+Auditoria automatizada, nota Lighthouse e trace local não substituem jornada
+autenticada, inspeção visual ou evidência do ambiente de destino.

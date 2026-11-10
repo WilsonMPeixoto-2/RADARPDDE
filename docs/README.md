@@ -116,6 +116,11 @@ Não retomar a antiga fila #378 nem transformar textos pré-merge em pendências
 
 ## 2. Função de cada documento canônico/vigente
 
+**Navegadores e guias de diagnóstico para agentes:**
+[AGENT_BROWSER_MCP.md](runbooks/AGENT_BROWSER_MCP.md) descreve Playwright MCP,
+sessão autenticada e Chrome DevTools MCP, com os sete guias oficiais versionados
+e a adaptação de uso para o RADAR. É tooling do agente, separado do runtime.
+
 | Documento | Função |
 |---|---|
 | `AGENTS.md` | roteador obrigatório e regras de trabalho |

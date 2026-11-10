@@ -2,17 +2,25 @@
   "mcpServers": {
     "playwright": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@playwright/mcp@0.0.82"
-      ]
+      "args": ["-y", "@playwright/mcp@0.0.82"]
     },
     "playwright-session": {
       "command": "npx",
+      "args": ["-y", "@playwright/mcp@0.0.82", "--extension"]
+    },
+    "chrome-devtools": {
+      "command": "npx",
       "args": [
         "-y",
-        "@playwright/mcp@0.0.82",
-        "--extension"
+        "chrome-devtools-mcp@1.12.0",
+        "--headless",
+        "--isolated",
+        "--memory-debugging",
+        "--category-pwa",
+        "--no-usage-statistics",
+        "--no-performance-crux",
+        "--redact-network-headers",
+        "--workspace=."
       ]
     }
   }

@@ -228,10 +228,13 @@ Performance nunca compra regressão funcional.
 
 ### Navegador MCP para agentes
 
-O repositório versiona `.mcp.json` com Playwright MCP fixado em `0.0.82`.
+O repositório versiona `.mcp.json` e `.codex/config.toml` com Playwright MCP
+fixado em `0.0.82` e Chrome DevTools MCP fixado em `1.12.0`.
 
 - use `playwright` para navegação isolada e reproduzível;
 - use `playwright-session` quando a validação depender de sessão já autenticada, SSO, 2FA ou extensões do navegador;
+- use `chrome-devtools` para diagnóstico de console/rede, CSS, acessibilidade, LCP, heap e PWA; ele abre Chrome isolado e não reutiliza a sessão do Playwright;
+- antes desse diagnóstico, leia `.agents/skills/radar-browser-diagnostics/SKILL.md` e carregue somente os guias oficiais pertinentes entre os sete versionados em `.agents/skills/`;
 - a configuração MCP é tooling do agente e não integra o bundle/runtime do RADAR;
 - nenhuma sessão autenticada autoriza escrita em Production por inferência: aplicar os mesmos guardrails de ambiente e autorização do restante do projeto;
 - para detalhes operacionais, leia `docs/runbooks/AGENT_BROWSER_MCP.md`.
