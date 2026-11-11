@@ -141,8 +141,9 @@ test('Pendências usa nove colunas legíveis e o drawer não reduz a largura da 
     'Tentativas',
     'Ações'
   ]);
-  expect(before.tableWidth).toBeLessThanOrEqual(before.wrapperWidth + 1);
-  expect(before.wrapperScrollWidth).toBeLessThanOrEqual(before.wrapperWidth + 1);
+  // As nove colunas não são comprimidas: excedente fica no contêiner rolável.
+  expect(before.tableWidth).toBeGreaterThanOrEqual(1319);
+  expect(before.wrapperScrollWidth).toBeGreaterThan(before.wrapperWidth);
 
   await page.locator('[data-action="open-pendency-detail"]').first().click();
   await expect(page.locator('#pendency-detail-drawer')).toBeVisible();
@@ -164,7 +165,8 @@ test('Pendências usa nove colunas legíveis e o drawer não reduz a largura da 
 
   expect(Math.abs(after.mainWidth - before.mainWidth)).toBeLessThanOrEqual(1);
   expect(Math.abs(after.wrapperWidth - before.wrapperWidth)).toBeLessThanOrEqual(1);
-  expect(after.wrapperScrollWidth).toBeLessThanOrEqual(after.wrapperWidth + 1);
+  expect(after.wrapperScrollWidth).toBeGreaterThan(after.wrapperWidth);
+  // O drawer é overlay; abrir não muda a largura da tabela nem do main.
   expect(after.drawerPosition).toBe('fixed');
   expect(after.documentWidth).toBeLessThanOrEqual(after.viewport + 1);
 });
