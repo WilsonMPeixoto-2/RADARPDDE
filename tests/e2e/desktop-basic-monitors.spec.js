@@ -211,8 +211,21 @@ test.describe('Desktop — notebooks e monitores básicos', () => {
     });
     const pendencyTable = page.locator('.pendency-operations-table');
     await expect(pendencyTable).toBeVisible();
-    const pendencyMinWidth = await pendencyTable.evaluate(element => Number.parseFloat(getComputedStyle(element).minWidth));
-    expect(pendencyMinWidth).toBeLessThanOrEqual(1040);
+    const pendencyGeometry = await pendencyTable.evaluate(element => {
+      const wrapper = element.closest('.pendency-desktop-list.table-responsive');
+      return {
+        tableMinWidth: Number.parseFloat(getComputedStyle(element).minWidth),
+        tableWidth: element.getBoundingClientRect().width,
+        wrapperWidth: wrapper.clientWidth,
+        wrapperScrollWidth: wrapper.scrollWidth,
+        wrapperOverflowX: getComputedStyle(wrapper).overflowX
+      };
+    });
+    // Carteira cabe no painel; Pendências usa nove colunas com scroll localizado.
+    expect(pendencyGeometry.tableMinWidth).toBeGreaterThanOrEqual(1320);
+    expect(pendencyGeometry.tableWidth).toBeGreaterThan(pendencyGeometry.wrapperWidth);
+    expect(pendencyGeometry.wrapperScrollWidth).toBeGreaterThan(pendencyGeometry.wrapperWidth);
+    expect(pendencyGeometry.wrapperOverflowX).toBe('auto');
 
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
   });
