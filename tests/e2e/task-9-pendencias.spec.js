@@ -406,11 +406,11 @@ for (const width of [1280, 1440, 1920, 390]) {
         .toHaveCSS('white-space', 'nowrap');
     }
     const topCapture = testInfo.outputPath('drawer-editorial-top.png');
-    await page.screenshot({ path: topCapture });
+    await page.screenshot({ path: topCapture, animations: 'disabled' });
     await testInfo.attach('drawer-editorial-top', { path: topCapture, contentType: 'image/png' });
     await drawer.locator('.is-attempts').scrollIntoViewIfNeeded();
     const historyCapture = testInfo.outputPath('drawer-editorial-history.png');
-    await page.screenshot({ path: historyCapture });
+    await page.screenshot({ path: historyCapture, animations: 'disabled' });
     await testInfo.attach('drawer-editorial-history', { path: historyCapture, contentType: 'image/png' });
     await expect(drawer.locator('.pendency-attempt-list > li')).toBeVisible();
     await page.keyboard.press('Escape');
@@ -447,7 +447,7 @@ test('metadados ficam no head e detalhes cancelados permanecem legíveis no tema
   await expect(summary).toContainText('Retificação da avaliação técnica');
   await summary.scrollIntoViewIfNeeded();
   const darkCapture = testInfo.outputPath('cancelled-dark.png');
-  await page.screenshot({ path: darkCapture });
+  await page.screenshot({ path: darkCapture, animations: 'disabled' });
   await testInfo.attach('drawer-cancelled-dark', { path: darkCapture, contentType: 'image/png' });
   expect(await drawer.locator('.pendency-drawer-body').evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1);
   await drawer.locator('.pendency-drawer-body').evaluate(el => { el.scrollTop = el.scrollHeight; });
