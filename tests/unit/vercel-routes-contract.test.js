@@ -27,7 +27,8 @@ test('Vercel reescreve as rotas canônicas aprovadas para a raiz SPA', () => {
     assert.deepEqual(applicationRewrites.map(item => item.source), expectedSources);
     assert.deepEqual(config.git?.deploymentEnabled, {
         '*': false,
-        main: true
+        main: true,
+        'preview/pr515-visual-qa-20261111': true
     });
     assert.equal(rewrites.some(item => item.source === '/(.*)'), false);
 });
