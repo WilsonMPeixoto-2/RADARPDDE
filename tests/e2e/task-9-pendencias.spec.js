@@ -359,7 +359,7 @@ for (const width of [1440, 1280, 1920, 390]) {
   });
 }
 
-for (const width of [1280, 390]) {
+for (const width of [1280, 1440, 1920, 390]) {
   test('ficha editorial prioriza a próxima ação e contém as operações em ' + width + 'px', async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/');
@@ -405,8 +405,13 @@ for (const width of [1280, 390]) {
       await expect(page.locator('.pendency-desktop-list table.pendency-operations-table thead th').nth(1))
         .toHaveCSS('white-space', 'nowrap');
     }
-    await page.screenshot({ path: testInfo.outputPath('drawer-editorial-top.png') });
+    const topCapture = testInfo.outputPath('drawer-editorial-top.png');
+    await page.screenshot({ path: topCapture });
+    await testInfo.attach('drawer-editorial-top', { path: topCapture, contentType: 'image/png' });
     await drawer.locator('.is-attempts').scrollIntoViewIfNeeded();
+    const historyCapture = testInfo.outputPath('drawer-editorial-history.png');
+    await page.screenshot({ path: historyCapture });
+    await testInfo.attach('drawer-editorial-history', { path: historyCapture, contentType: 'image/png' });
     await expect(drawer.locator('.pendency-attempt-list > li')).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(drawer).toBeHidden();
@@ -441,7 +446,9 @@ test('metadados ficam no head e detalhes cancelados permanecem legíveis no tema
   await expect(drawer.locator('.is-next-step')).toHaveCount(0);
   await expect(summary).toContainText('Retificação da avaliação técnica');
   await summary.scrollIntoViewIfNeeded();
-  await page.screenshot({ path: testInfo.outputPath('cancelled-dark.png') });
+  const darkCapture = testInfo.outputPath('cancelled-dark.png');
+  await page.screenshot({ path: darkCapture });
+  await testInfo.attach('drawer-cancelled-dark', { path: darkCapture, contentType: 'image/png' });
   expect(await drawer.locator('.pendency-drawer-body').evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1);
   await drawer.locator('.pendency-drawer-body').evaluate(el => { el.scrollTop = el.scrollHeight; });
   await expect(drawer.getByRole('heading', { name: 'Linha do tempo' })).toBeVisible();
