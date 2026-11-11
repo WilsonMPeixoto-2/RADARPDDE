@@ -352,6 +352,10 @@ for (const width of [1280, 1440, 1920]) {
       await scroller.evaluate(node => { node.scrollLeft = 0; });
     }
 
+    const tableShot = testInfo.outputPath('pendencias-populadas-tabela-fechada.png');
+    await page.screenshot({ path: tableShot, animations: 'disabled' });
+    await testInfo.attach('pendencias-populadas-tabela-fechada', { path: tableShot, contentType: 'image/png' });
+
     const record = visibleRecord(page, 'task9-open');
     await record.getByRole('button', { name: 'Ver detalhes' }).click();
     const drawer = page.locator('#pendency-detail-drawer');
