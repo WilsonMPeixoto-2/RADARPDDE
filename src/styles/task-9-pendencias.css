@@ -188,15 +188,33 @@
     table-layout: fixed;
 }
 
-.pendency-operations-table th:nth-child(1) { width: 17%; }
-.pendency-operations-table th:nth-child(2) { width: 8%; }
-.pendency-operations-table th:nth-child(3) { width: 14%; }
-.pendency-operations-table th:nth-child(4) { width: 14%; }
-.pendency-operations-table th:nth-child(5) { width: 10%; }
-.pendency-operations-table th:nth-child(6) { width: 14%; }
-.pendency-operations-table th:nth-child(7) { width: 9%; }
-.pendency-operations-table th:nth-child(8) { width: 6%; }
-.pendency-operations-table th:nth-child(9) { width: 16%; }
+/* Proporções normalizadas (100%) para evitar colunas esmagadas. */
+.pendency-operations-table th:nth-child(1) { width: 16%; }
+.pendency-operations-table th:nth-child(2) { width: 9%; }
+.pendency-operations-table th:nth-child(3) { width: 13%; }
+.pendency-operations-table th:nth-child(4) { width: 12%; }
+.pendency-operations-table th:nth-child(5) { width: 11%; }
+.pendency-operations-table th:nth-child(6) { width: 13%; }
+.pendency-operations-table th:nth-child(7) { width: 8%; }
+.pendency-operations-table th:nth-child(8) { width: 5%; }
+.pendency-operations-table th:nth-child(9) { width: 13%; }
+
+/* Na área desktop, a tabela rola horizontalmente em vez de partir palavras. */
+.pendency-desktop-list table.pendency-operations-table thead th {
+    white-space: nowrap;
+    word-break: normal;
+    overflow-wrap: normal;
+}
+
+.pendency-desktop-list table.pendency-operations-table tbody td:nth-child(2) {
+    white-space: nowrap;
+}
+
+.pendency-desktop-list table.pendency-operations-table tbody td:nth-child(4),
+.pendency-desktop-list table.pendency-operations-table tbody td:nth-child(5) {
+    word-break: normal;
+    overflow-wrap: break-word;
+}
 
 .pendency-operations-table td {
     vertical-align: top;
