@@ -188,15 +188,44 @@
     table-layout: fixed;
 }
 
-.pendency-operations-table th:nth-child(1) { width: 17%; }
-.pendency-operations-table th:nth-child(2) { width: 8%; }
-.pendency-operations-table th:nth-child(3) { width: 14%; }
-.pendency-operations-table th:nth-child(4) { width: 14%; }
-.pendency-operations-table th:nth-child(5) { width: 10%; }
-.pendency-operations-table th:nth-child(6) { width: 14%; }
-.pendency-operations-table th:nth-child(7) { width: 9%; }
-.pendency-operations-table th:nth-child(8) { width: 6%; }
-.pendency-operations-table th:nth-child(9) { width: 16%; }
+/* Proporções normalizadas (100%) para evitar colunas esmagadas. */
+.pendency-operations-table th:nth-child(1) { width: 16%; }
+.pendency-operations-table th:nth-child(2) { width: 9%; }
+.pendency-operations-table th:nth-child(3) { width: 13%; }
+.pendency-operations-table th:nth-child(4) { width: 12%; }
+.pendency-operations-table th:nth-child(5) { width: 11%; }
+.pendency-operations-table th:nth-child(6) { width: 13%; }
+.pendency-operations-table th:nth-child(7) { width: 8%; }
+.pendency-operations-table th:nth-child(8) { width: 5%; }
+.pendency-operations-table th:nth-child(9) { width: 13%; }
+
+/* Na área desktop, a tabela rola horizontalmente em vez de partir palavras. */
+.pendency-desktop-list table.pendency-operations-table thead th {
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: normal;
+    line-height: 1.3;
+}
+
+.pendency-desktop-list table.pendency-operations-table thead th:nth-child(2),
+.pendency-desktop-list table.pendency-operations-table thead th:nth-child(8) {
+    white-space: nowrap;
+}
+
+.pendency-desktop-list table.pendency-operations-table tbody td:nth-child(4) .pendency-error-summary li {
+    word-break: normal;
+    overflow-wrap: break-word;
+}
+
+.pendency-desktop-list table.pendency-operations-table tbody td:nth-child(2) {
+    white-space: nowrap;
+}
+
+.pendency-desktop-list table.pendency-operations-table tbody td:nth-child(4),
+.pendency-desktop-list table.pendency-operations-table tbody td:nth-child(5) {
+    word-break: normal;
+    overflow-wrap: break-word;
+}
 
 .pendency-operations-table td {
     vertical-align: top;
@@ -347,16 +376,18 @@
     min-width: 460px;
     height: 100%;
     border-left: 1px solid var(--border-color);
-    background: var(--bg-main);
+    background: var(--bg-page);
     box-shadow: -18px 0 52px rgba(15, 23, 42, 0.22);
     color: var(--text-main);
     pointer-events: auto;
+    container-type: inline-size;
     animation: pendency-drawer-enter 160ms ease-out;
 }
 
+/* Translação sem opacidade: os dados por trás nunca atravessam a ficha. */
 @keyframes pendency-drawer-enter {
-    from { transform: translateX(24px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
+    from { transform: translateX(24px); }
+    to { transform: translateX(0); }
 }
 
 .pendency-drawer-header {
@@ -642,7 +673,7 @@
 .pendency-detail-drawer {
     background:
         linear-gradient(180deg, color-mix(in srgb, var(--primary-glow) 28%, transparent), transparent 180px),
-        var(--bg-main);
+        var(--bg-page);
 }
 
 .pendency-drawer-header {
@@ -795,7 +826,7 @@
 
 @media (max-width: 900px) {
     .pendency-detail-drawer {
-        background: var(--bg-main);
+        background: var(--bg-page);
     }
 
     .pendency-drawer-header {
@@ -850,337 +881,291 @@
 }
 
 
-/* Refino visual aprovado — detalhe de Pendência (31/08/2026) */
-@media (min-width: 901px) {
-    .pendency-detail-drawer {
-        width: min(900px, calc(100vw - 300px));
-        min-width: 720px;
-        border-left: 1px solid rgba(124, 58, 237, 0.12);
-        background: color-mix(in srgb, var(--bg-main) 97%, var(--primary-glow));
-        box-shadow: -24px 0 70px rgba(18, 14, 34, 0.20);
-    }
+/* Ficha operacional: hierarquia contínua, sem mosaico de cartões. */
+.pendency-detail-drawer {
+    background: var(--bg-page);
+}
 
-    .pendency-drawer-header {
-        min-height: 118px;
-        padding: 24px 30px 20px;
-        background:
-            linear-gradient(135deg, rgba(124, 58, 237, 0.045), rgba(255,255,255,0) 58%),
-            var(--bg-sidebar);
-    }
+.pendency-drawer-header {
+    position: relative;
+    top: auto;
+    z-index: auto;
+    min-height: 0;
+    gap: 14px;
+    padding: 18px 22px 16px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-sidebar);
+    backdrop-filter: none;
+}
 
-    .pendency-drawer-header h2 {
-        margin-top: 10px;
-        font-size: 1.38rem;
-    }
+.pendency-drawer-header h2 {
+    margin: 8px 0 4px;
+    font-size: 1.3rem;
+    line-height: 1.2;
+}
 
-    .pendency-drawer-body {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 14px;
-        padding: 18px 24px 26px;
-    }
+.pendency-drawer-header p {
+    line-height: 1.45;
+    overflow-wrap: break-word;
+}
 
-    .pendency-drawer-body > .pendency-drawer-section {
-        min-width: 0;
-        padding: 15px 16px;
-        border: 1px solid rgba(124, 58, 237, 0.11);
-        border-radius: 13px;
-        background: color-mix(in srgb, var(--bg-sidebar) 97%, var(--primary-glow));
-        box-shadow: 0 6px 18px rgba(18, 14, 34, 0.035);
-    }
+.pendency-drawer-body {
+    display: block;
+    min-height: 0;
+    padding: 0 22px 24px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scroll-padding-block: 18px;
+}
 
-    .pendency-drawer-body > .pendency-drawer-section.is-context,
-    .pendency-drawer-body > .pendency-drawer-section.is-timeline,
-    .pendency-drawer-body > .pendency-drawer-section.is-cancel {
-        grid-column: 1 / -1;
-    }
+.pendency-drawer-body > .pendency-drawer-section,
+.pendency-drawer-body > .pendency-drawer-section.is-context {
+    min-width: 0;
+    margin: 0;
+    padding: 17px 0 19px;
+    border: 0;
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
 
-    .pendency-drawer-body > .pendency-drawer-section.is-context {
-        padding: 14px;
-        background:
-            linear-gradient(180deg, rgba(124, 58, 237, 0.032), rgba(255,255,255,0)),
-            var(--bg-sidebar);
-    }
+.pendency-drawer-body > .pendency-drawer-section.is-next-step {
+    margin: 16px 0 3px;
+    padding: 13px 16px 14px;
+    border: 0;
+    border-left: 3px solid var(--primary);
+    border-radius: 10px;
+    background: var(--primary-glow);
+}
 
-    .pendency-detail-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 1px;
-        padding: 1px;
-        border: 1px solid rgba(124, 58, 237, 0.10);
-        border-radius: 11px;
-        background: rgba(124, 58, 237, 0.10);
-    }
+.pendency-drawer-body h3 {
+    display: block;
+    margin: 0 0 10px;
+    color: var(--text-muted);
+    font-size: 0.76rem;
+    font-weight: 750;
+    letter-spacing: 0.045em;
+    line-height: 1.35;
+    text-transform: uppercase;
+}
 
-    .pendency-detail-grid > div {
-        min-height: 74px;
-        padding: 11px 12px;
-        background: color-mix(in srgb, var(--bg-sidebar) 96%, var(--primary-glow));
-    }
+.pendency-drawer-body h3::before {
+    content: none;
+}
 
-    .pendency-detail-drawer dt {
-        font-size: 0.61rem;
-        font-weight: 780;
-        letter-spacing: 0.045em;
-        text-transform: uppercase;
-    }
+.pendency-drawer-body .is-next-step h3 {
+    margin-bottom: 5px;
+    color: var(--primary);
+}
 
-    .pendency-detail-drawer dd {
-        margin-top: 5px;
-        font-size: 0.79rem;
-        font-weight: 650;
-    }
+.pendency-next-action {
+    margin: 0 0 5px !important;
+    color: var(--text-main);
+    font-family: var(--font-heading);
+    font-size: 1.01rem !important;
+    font-weight: 700;
+    line-height: 1.4 !important;
+    overflow-wrap: break-word;
+}
 
-    .pendency-drawer-body h3 {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 12px;
-        font-size: 0.9rem;
-        font-weight: 740;
-    }
+.pendency-next-actor {
+    color: var(--text-muted);
+    font-size: 0.76rem;
+}
 
-    .pendency-drawer-body h3::before {
-        content: "";
-        flex: 0 0 27px;
-        width: 27px;
-        height: 27px;
-        border: 1px solid rgba(124, 58, 237, 0.11);
-        border-radius: 8px;
-        background:
-            radial-gradient(circle at center, rgba(124, 58, 237, 0.55) 0 3px, transparent 4px),
-            rgba(124, 58, 237, 0.065);
-    }
+.pendency-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 18px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    overflow: visible;
+    background: transparent;
+}
 
-    .pendency-drawer-section.is-errors {
-        background: color-mix(in srgb, var(--bg-sidebar) 98%, rgba(239,68,68,0.04));
-    }
+.pendency-detail-grid > div {
+    min-width: 0;
+    min-height: 0;
+    padding: 9px 0 10px;
+    border-bottom: 1px solid var(--border-color);
+    background: transparent;
+}
 
-    .pendency-drawer-section.is-observation p {
-        min-height: 52px;
-        display: flex;
-        align-items: center;
-        margin: 0;
-        padding: 10px 12px;
-        border-left: 3px solid var(--primary);
-        border-radius: 9px;
-        background: color-mix(in srgb, var(--bg-input) 90%, var(--primary-glow));
-    }
+.pendency-detail-grid > div:nth-last-child(-n+2) {
+    border-bottom: 0;
+}
 
-    .pendency-error-summary li {
-        min-height: 42px;
-        display: flex;
-        align-items: center;
-        margin: 0;
-        padding: 9px 11px;
-        border-radius: 9px;
-    }
+.pendency-detail-drawer dt {
+    color: var(--text-muted);
+    font-size: 0.64rem;
+    font-weight: 750;
+    letter-spacing: 0.04em;
+}
 
-    .pendency-attempt-list > li,
-    .pendency-contact-list > li {
-        min-height: 50px;
-        display: flex;
-        align-items: center;
-        padding: 11px 12px;
-        border: 0;
-        border-radius: 9px;
-        background: color-mix(in srgb, var(--bg-input) 92%, var(--primary-glow));
-    }
+.pendency-detail-drawer dd {
+    margin-top: 4px;
+    color: var(--text-main);
+    font-family: var(--font-heading);
+    font-size: 0.83rem;
+    font-weight: 620;
+    line-height: 1.46;
+    overflow-wrap: break-word;
+}
 
-    .pendency-timeline {
-        gap: 16px;
-    }
+.pendency-drawer-section.is-observation p,
+.pendency-drawer-section.is-cancel p {
+    display: block;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    line-height: 1.6;
+    overflow-wrap: break-word;
+}
 
-    .pendency-timeline > li {
-        grid-template-columns: 15px minmax(0, 1fr);
-        gap: 11px;
-        padding-bottom: 2px;
-    }
+.pendency-drawer-section.is-errors .pendency-error-summary {
+    gap: 5px;
+}
 
-    .pendency-drawer-footer {
-        padding: 15px 24px;
-        background: color-mix(in srgb, var(--bg-sidebar) 98%, var(--primary-glow));
-        box-shadow: 0 -10px 24px rgba(18,14,34,0.045);
-    }
+.pendency-drawer-section.is-errors .pendency-error-summary li {
+    display: list-item;
+    min-height: 0;
+    padding: 2px 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    line-height: 1.5;
+}
 
-    .pendency-drawer-footer .pendency-row-actions {
-        grid-template-columns: 1.15fr 1fr 1fr 1fr;
-        gap: 10px;
-    }
+.pendency-attempt-list,
+.pendency-contact-list {
+    gap: 0;
+}
 
-    .pendency-drawer-footer .pendency-row-actions .btn.btn-primary:first-child {
-        grid-column: auto;
-    }
+.pendency-attempt-list > li,
+.pendency-contact-list > li {
+    display: block;
+    min-height: 0;
+    margin: 0;
+    padding: 12px 0;
+    border: 0;
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 0;
+    background: transparent;
+    overflow-wrap: break-word;
+}
 
-    .pendency-drawer-footer .pendency-row-actions .btn {
-        min-height: 42px;
-        border-radius: 10px;
-        font-size: 0.73rem;
-    }
+.pendency-attempt-list > li:first-child,
+.pendency-contact-list > li:first-child {
+    padding-top: 2px;
+}
+
+.pendency-attempt-list > li:last-child,
+.pendency-contact-list > li:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.pendency-attempt-heading,
+.pendency-timeline-heading {
+    flex-wrap: wrap;
+    gap: 7px 12px;
+}
+
+.pendency-compact-dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 14px;
+    margin-top: 12px;
+}
+
+.pendency-compact-dl > div {
+    min-width: 0;
+}
+
+.pendency-attempt-list > li > p {
+    margin: 9px 0;
+}
+
+.pendency-timeline {
+    gap: 16px;
+}
+
+.pendency-timeline > li {
+    grid-template-columns: 14px minmax(0, 1fr);
+    gap: 11px;
+}
+
+.pendency-drawer-footer {
+    position: relative;
+    bottom: auto;
+    z-index: auto;
+    flex-shrink: 0;
+    padding: 11px 22px 13px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-sidebar);
+    box-shadow: 0 -5px 16px rgba(18, 14, 34, 0.04);
+}
+
+.pendency-drawer-footer .pendency-row-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.pendency-drawer-footer .pendency-row-actions .btn {
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    margin: 0;
+    padding: 8px 10px;
+    font-size: 0.78rem;
+    line-height: 1.3;
+    white-space: normal;
+}
+
+.pendency-drawer-footer .pendency-row-actions .btn.btn-primary:first-child,
+.pendency-drawer-footer .pendency-row-actions .btn.btn-danger {
+    grid-column: auto;
 }
 
 @media (max-width: 900px) {
-    .pendency-detail-drawer {
-        background:
-            linear-gradient(180deg, rgba(124, 58, 237, 0.025), rgba(255,255,255,0) 180px),
-            var(--bg-main);
-    }
-
     .pendency-drawer-header {
-        min-height: 138px;
-        padding: max(18px, env(safe-area-inset-top)) 18px 16px;
-        border-bottom: 1px solid rgba(124, 58, 237, 0.10);
-        background: var(--bg-sidebar);
+        padding: max(14px, env(safe-area-inset-top)) 16px 12px;
     }
 
     .pendency-drawer-header h2 {
-        margin-top: 14px;
-        font-size: clamp(1.4rem, 6vw, 1.8rem);
-        line-height: 1.15;
-    }
-
-    .pendency-drawer-header p {
-        margin-top: 6px;
-        font-size: 0.79rem;
+        font-size: 1.22rem;
     }
 
     .pendency-drawer-body {
-        grid-template-columns: 1fr;
-        gap: 12px;
-        padding: 14px 14px 18px;
-    }
-
-    .pendency-drawer-body > .pendency-drawer-section {
-        padding: 14px;
-        border: 1px solid rgba(124, 58, 237, 0.11);
-        border-radius: 15px;
-        background: var(--bg-sidebar);
-        box-shadow: 0 5px 16px rgba(18,14,34,0.03);
-    }
-
-    .pendency-drawer-body h3 {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 12px;
-        font-size: 0.92rem;
-    }
-
-    .pendency-drawer-body h3::before {
-        content: "";
-        flex: 0 0 28px;
-        width: 28px;
-        height: 28px;
-        border: 1px solid rgba(124, 58, 237, 0.11);
-        border-radius: 50%;
-        background:
-            radial-gradient(circle at center, rgba(124, 58, 237, 0.62) 0 3px, transparent 4px),
-            rgba(124, 58, 237, 0.07);
-    }
-
-    .pendency-detail-grid {
-        grid-template-columns: 1fr;
-        gap: 0;
-        padding: 0;
-        border: 0;
-        border-radius: 0;
-        overflow: visible;
-        background: transparent;
-    }
-
-    .pendency-detail-grid > div {
-        position: relative;
-        min-height: 72px;
-        padding: 11px 10px 11px 50px;
-        border-bottom: 1px solid rgba(124, 58, 237, 0.11);
-        background: transparent;
-    }
-
-    .pendency-detail-grid > div:last-child {
-        border-bottom: 0;
-    }
-
-    .pendency-detail-grid > div::before {
-        content: "";
-        position: absolute;
-        left: 8px;
-        top: 16px;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        background:
-            radial-gradient(circle at center, rgba(124, 58, 237, 0.7) 0 3px, transparent 4px),
-            rgba(124, 58, 237, 0.075);
-    }
-
-    .pendency-detail-drawer dt {
-        font-size: 0.64rem;
-        font-weight: 780;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-    }
-
-    .pendency-detail-drawer dd {
-        margin-top: 5px;
-        font-size: 0.95rem;
-        font-weight: 650;
-    }
-
-    .pendency-drawer-section.is-observation p {
-        margin: 0;
-        padding: 10px 11px;
-        border-left: 3px solid var(--primary);
-        border-radius: 9px;
-        background: color-mix(in srgb, var(--bg-input) 90%, var(--primary-glow));
+        padding: 0 16px 20px;
     }
 
     .pendency-drawer-footer {
-        padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
-        background: color-mix(in srgb, var(--bg-sidebar) 98%, var(--primary-glow));
-        box-shadow: 0 -10px 24px rgba(18,14,34,0.05);
-    }
-
-    .pendency-drawer-footer .pendency-row-actions {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
+        padding: 9px 12px calc(9px + env(safe-area-inset-bottom));
     }
 
     .pendency-drawer-footer .pendency-row-actions .btn {
         min-height: 44px;
-        border-radius: 10px;
-        font-size: 0.74rem;
-    }
-
-    .pendency-drawer-footer .pendency-row-actions .btn.btn-primary:first-child {
-        grid-column: 1 / -1;
-    }
-
-    .pendency-drawer-footer .pendency-row-actions .btn.btn-danger {
-        grid-column: 1 / -1;
+        font-size: 0.75rem;
     }
 }
 
 @media (max-width: 480px) {
-    .pendency-drawer-header {
-        min-height: 132px;
-    }
-
-    .pendency-drawer-body {
-        padding-inline: 12px;
-    }
-
-    .pendency-drawer-body > .pendency-drawer-section {
-        border-radius: 14px;
-    }
-
     .pendency-drawer-footer .pendency-row-actions {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .pendency-drawer-footer .pendency-row-actions .btn.btn-primary:first-child,
     .pendency-drawer-footer .pendency-row-actions .btn.btn-danger {
-        grid-column: 1 / -1;
+        grid-column: auto;
     }
 }
-
 
 /* Exportação editorial da fila de Pendências */
 @media (max-width: 900px) {
@@ -1208,5 +1193,33 @@
     .pendency-active-summary {
         width: 100%;
         justify-content: center;
+    }
+}
+
+/* Contenção real do overlay, independente da largura do viewport. */
+.pendency-drawer-header,
+.pendency-drawer-footer {
+    flex-shrink: 0;
+}
+
+.pendency-drawer-body {
+    min-height: 0;
+    min-width: 0;
+}
+
+@container (max-width: 650px) {
+    .pendency-detail-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@container (max-width: 390px) {
+    .pendency-detail-grid,
+    .pendency-compact-dl {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .pendency-detail-grid > div:nth-last-child(2) {
+        border-bottom: 1px solid var(--border-color);
     }
 }

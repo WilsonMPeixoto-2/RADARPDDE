@@ -828,6 +828,13 @@
                         <button class="btn-close" type="button" aria-label="Fechar detalhes" onclick="closePendencyDetail()">×</button>
                     </header>
                     <div class="pendency-drawer-body">
+                        ${['Aberta', 'Aguardando reanálise'].includes(record.status) ? `
+                            <section class="pendency-drawer-section is-next-step" aria-labelledby="pendency-detail-next-title">
+                                <h3 id="pendency-detail-next-title">Próxima ação</h3>
+                                <p class="pendency-next-action">${escapeHtml(record.nextAction)}</p>
+                                <span class="pendency-next-actor">Responsável: ${escapeHtml(record.nextActor || 'Não definido')}</span>
+                            </section>
+                        ` : ''}
                         <section class="pendency-drawer-section is-context" aria-labelledby="pendency-detail-context-title">
                             <h3 id="pendency-detail-context-title">Contexto</h3>
                             <dl class="pendency-detail-grid">
@@ -835,8 +842,6 @@
                                 <div><dt>Programa</dt><dd>${escapeHtml(record.programName)}</dd></div>
                                 <div><dt>Documento</dt><dd>${escapeHtml(record.documentName)}</dd></div>
                                 <div><dt>Controlador</dt><dd>${escapeHtml(record.controllerName)}</dd></div>
-                                <div><dt>Próxima ação</dt><dd>${escapeHtml(record.nextAction)}</dd></div>
-                                <div><dt>Responsável atual</dt><dd>${escapeHtml(record.nextActor || 'Nenhum')}</dd></div>
                                 <div><dt>Abertura</dt><dd>${escapeHtml(formatDate(record.openedAt))}</dd></div>
                                 <div><dt>Última movimentação</dt><dd>${escapeHtml(formatDateTime(record.latestMovement && record.latestMovement.at))}</dd></div>
                             </dl>

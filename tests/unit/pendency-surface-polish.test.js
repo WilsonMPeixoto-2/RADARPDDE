@@ -65,17 +65,26 @@ test('comunicação externa gerada não expõe o nome do sistema interno', () =>
   );
 });
 
-test('refino aprovado usa cartões de contexto e composição editorial', () => {
+test('ficha de Pendências é contínua, mantém a ação principal e não usa mosaico de contexto', () => {
   assert.match(appSource, /corrective-context-grid/);
   assert.match(appSource, /corrective-context-item is-school/);
   assert.match(appSource, /corrective-context-item is-document/);
   assert.match(indexSource, /modal-title-lockup/);
   assert.match(indexSource, /cobranca-section-icon/);
   assert.match(rootCss, /Refino visual aprovado — modais de Pendências/);
-  assert.match(pendencyCss, /Refino visual aprovado — detalhe de Pendência/);
-  assert.match(pendencyCss, /grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/);
+  assert.match(pendencyPageSource, /pendency-drawer-section is-next-step/);
+  assert.match(pendencyCss, /Ficha operacional: hierarquia contínua/);
+  assert.match(pendencyCss, /\.pendency-next-action/);
+  assert.doesNotMatch(pendencyCss, /Refino visual aprovado — detalhe de Pendência/);
+  assert.doesNotMatch(pendencyCss, /grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/);
 });
 
+
+test('abertura do drawer mantém opacidade total durante a transição', () => {
+  const animation = pendencyCss.match(/@keyframes pendency-drawer-enter \{([\s\S]*?)\n\}/)?.[1];
+  assert.ok(animation, 'a animação de entrada deve existir');
+  assert.doesNotMatch(animation, /opacity\s*:/, 'a entrada não pode revelar a tabela através do drawer');
+});
 
 test('tela de pendências oferece download da planilha editorial', () => {
   assert.match(pendencyPageSource, /data-radar-pendency-export="xlsx"/);

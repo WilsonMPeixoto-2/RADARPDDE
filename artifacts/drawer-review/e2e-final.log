@@ -1,0 +1,33 @@
+
+node.exe : [WebServer] (node:20972) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+No linha:1 caractere:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([WebServer] (no... env being set.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 13 tests using 2 workers
+
+(node:26348) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+(node:27372) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1/13] [desktop-chromium] › tests\e2e\pendency-desktop-action-containment.spec.js:6:1 › o envio de despesa a identificar cabe na célula Ações da fila desktop
+[2/13] [desktop-chromium] › tests\e2e\task-9-pendencias.spec.js:135:3 › Task 9 — página de Pendências Operacionais › separa as quatro situações canônicas em abas acessíveis
+[3/13] [desktop-chromium] › tests\e2e\task-9-pendencias.spec.js:154:3 › Task 9 — página de Pendências Operacionais › baixa planilha editorial respeitando a busca e os filtros da fila
+[4/13] [desktop-chromium] › tests\e2e\task-9-pendencias.spec.js:194:3 › Task 9 — página de Pendências Operacionais › aplica busca global sem perder a separação das quatro filas
+[5/13] [desktop-chromium] › tests\e2e\task-9-pendencias.spec.js:217:3 › Task 9 — página de Pendências Operacionais › abre o drawer com erros, tentativas, contatos e timeline e restaura o foco
+[6/13] [desktop-chromium] › tests\e2e\task-9-pendencias.spec.js:240:3 › Task 9 — página de Pendências Operacionais › preserva busca, aba, seleção e rolagem ao retornar do Prontuário
+[7/13] [desktop-chromium] › tests\e2e\task-9-pendencias.spec.js:279:3 › Task 9 — página de Pendências Operacionais › permite percorrer as abas pelo teclado
+[8/13] [desktop-chromium] › tests\e2e\task-9-pendencias.spec.js:293:3 › Task 9 — página de Pendências Operacionais › substitui a tabela por cartões e abre o detalhe em tela inteira no celular
+[9/13] [desktop-chromium] › tests\e2e\task-9-pendencias.spec.js:314:3 › detalhe legível e opaco em 1440px
+[10/13] [desktop-chromium] › tests\e2e\task-9-pendencias.spec.js:314:3 › detalhe legível e opaco em 1280px
+[11/13] [desktop-chromium] › tests\e2e\task-9-pendencias.spec.js:314:3 › detalhe legível e opaco em 1920px
+[12/13] [desktop-chromium] › tests\e2e\task-9-pendencias.spec.js:314:3 › detalhe legível e opaco em 390px
+[13/13] [desktop-chromium] › tests\e2e\task-9-pendencias.spec.js:362:1 › metadados ficam no head e detalhes cancelados permanecem legíveis no tema escuro
+  1 skipped
+  12 passed (16.8s)

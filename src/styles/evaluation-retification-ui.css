@@ -232,20 +232,24 @@
 }
 
 .pendency-detail-drawer.is-evaluation-retification .is-evaluation-retification-summary {
-    border-color: rgba(124, 58, 237, 0.22);
-    background: rgba(124, 58, 237, 0.055);
+    padding-left: 14px;
+    border: 0;
+    border-left: 3px solid var(--primary);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
 }
 
 .evaluation-retification-drawer-label {
-    display: inline-flex;
+    display: inline-block;
     margin-bottom: 12px;
-    padding: 4px 8px;
-    border: 1px solid rgba(109, 40, 217, 0.24);
-    border-radius: 999px;
-    color: #6d28d9;
-    background: rgba(124, 58, 237, 0.09);
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    color: var(--primary);
+    background: transparent;
     font-size: 0.74rem;
-    font-weight: 720;
+    font-weight: 740;
 }
 
 .evaluation-retification-drawer-grid {
@@ -295,11 +299,16 @@
     background: rgba(15, 23, 42, 0.18);
 }
 
-.dark-theme .evaluation-retification-status-badge,
-.dark-theme .evaluation-retification-drawer-label {
+.dark-theme .evaluation-retification-status-badge {
     color: #c4b5fd;
     border-color: rgba(196, 181, 253, 0.28);
     background: rgba(124, 58, 237, 0.18);
+}
+
+.dark-theme .evaluation-retification-drawer-label {
+    color: var(--primary);
+    border: 0;
+    background: transparent;
 }
 
 @media (max-width: 700px) {

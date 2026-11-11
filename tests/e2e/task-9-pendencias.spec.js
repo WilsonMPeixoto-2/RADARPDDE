@@ -309,3 +309,149 @@ test.describe('Task 9 — página de Pendências Operacionais', () => {
     expect(Math.abs(box.width - (await page.evaluate(() => innerWidth)))).toBeLessThanOrEqual(2);
   });
 });
+
+for (const width of [1440, 1280, 1920, 390]) {
+  test(`detalhe legível e opaco em ${width}px`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/');
+    await seedFourPendencyStates(page);
+    await page.getByRole('tab', { name: /^Aguardando reanálise/ }).click();
+    await visibleRecord(page, 'task9-awaiting').getByRole('button', { name: 'Ver detalhes' }).click();
+    const drawer = page.locator('#pendency-detail-drawer');
+    await expect(drawer).toBeVisible();
+    await drawer.locator('.is-attempts').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: testInfo.outputPath('drawer.png') });
+    const geometry = await drawer.evaluate(el => {
+      const attempt = el.querySelector('.pendency-attempt-list > li');
+      const box = attempt.getBoundingClientRect();
+      const body = el.querySelector('.pendency-drawer-body');
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = getComputedStyle(el).backgroundColor;
+      ctx.fillRect(0, 0, 1, 1);
+      const texts = [...attempt.querySelectorAll('dt, dd, p, strong, .badge')].map(child => {
+        const range = document.createRange();
+        range.selectNodeContents(child);
+        return { text: child.textContent, bounds: range.getBoundingClientRect() };
+      });
+      const overlaps = texts.flatMap((a, i) => texts.slice(i + 1).filter(b => (
+        Math.min(a.bounds.right, b.bounds.right) - Math.max(a.bounds.left, b.bounds.left) > 1
+        && Math.min(a.bounds.bottom, b.bounds.bottom) - Math.max(a.bounds.top, b.bounds.top) > 1
+      )).map(b => [a.text, b.text]));
+      return {
+        alpha: ctx.getImageData(0, 0, 1, 1).data[3],
+        overlaps,
+        overflow: body.scrollWidth - body.clientWidth,
+        escaped: [...attempt.querySelectorAll('dt, dd, p, strong, .badge')].filter(child => {
+          const range = document.createRange();
+          range.selectNodeContents(child);
+          const r = range.getBoundingClientRect();
+          return r.left < box.left || r.right > box.right || r.top < box.top || r.bottom > box.bottom;
+        }).map(child => child.textContent)
+      };
+    });
+    expect.soft(geometry.alpha).toBe(255);
+    expect.soft(geometry.overlaps).toEqual([]);
+    expect.soft(geometry.overflow).toBeLessThanOrEqual(1);
+    expect(geometry.escaped).toEqual([]);
+    await page.keyboard.press('Escape');
+    await expect(drawer).toBeHidden();
+  });
+}
+
+for (const width of [1280, 1440, 1920, 390]) {
+  test('ficha editorial prioriza a próxima ação e contém as operações em ' + width + 'px', async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/');
+    await seedFourPendencyStates(page);
+    await page.getByRole('tab', { name: /^Aguardando reanálise/ }).click();
+    await visibleRecord(page, 'task9-awaiting').getByRole('button', { name: 'Ver detalhes' }).click();
+
+    const drawer = page.locator('#pendency-detail-drawer');
+    const nextStep = drawer.locator('.pendency-drawer-section.is-next-step');
+    await expect(nextStep).toBeVisible();
+    await expect(nextStep.getByRole('heading', { name: 'Próxima ação' })).toBeVisible();
+    await expect(nextStep.locator('.pendency-next-action')).toContainText('Conferir o novo arquivo');
+
+    const layout = await drawer.evaluate(el => {
+      const header = el.querySelector('.pendency-drawer-header').getBoundingClientRect();
+      const action = el.querySelector('.is-next-step').getBoundingClientRect();
+      const body = el.querySelector('.pendency-drawer-body');
+      const footer = el.querySelector('.pendency-drawer-footer');
+      const sections = [...body.querySelectorAll(':scope > .pendency-drawer-section:not(.is-next-step)')];
+      const buttons = [...footer.querySelectorAll('.pendency-row-actions .btn')];
+      const buttonRects = buttons.map(button => button.getBoundingClientRect());
+      const collisions = buttonRects.flatMap((a, i) => buttonRects.slice(i + 1)
+        .filter(b => Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1
+          && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1));
+      return {
+        bodyDisplay: getComputedStyle(body).display,
+        sectionRadii: sections.map(section => getComputedStyle(section).borderTopLeftRadius),
+        actionBelowHeader: action.top >= header.bottom - 1,
+        footerHeight: footer.getBoundingClientRect().height,
+        collisions: collisions.length,
+        bodyOverflow: body.scrollWidth - body.clientWidth
+      };
+    });
+
+    expect(layout.bodyDisplay).toBe('block');
+    expect(layout.sectionRadii).toEqual(layout.sectionRadii.map(() => '0px'));
+    expect(layout.actionBelowHeader).toBe(true);
+    expect(layout.footerHeight).toBeLessThan(145);
+    expect(layout.collisions).toBe(0);
+    expect(layout.bodyOverflow).toBeLessThanOrEqual(1);
+
+    if (width > 900) {
+      await expect(page.locator('.pendency-desktop-list table.pendency-operations-table thead th').nth(1))
+        .toHaveCSS('white-space', 'nowrap');
+    }
+    const topCapture = testInfo.outputPath('drawer-editorial-top.png');
+    await page.screenshot({ path: topCapture, animations: 'disabled' });
+    await testInfo.attach('drawer-editorial-top', { path: topCapture, contentType: 'image/png' });
+    await drawer.locator('.is-attempts').scrollIntoViewIfNeeded();
+    const historyCapture = testInfo.outputPath('drawer-editorial-history.png');
+    await page.screenshot({ path: historyCapture, animations: 'disabled' });
+    await testInfo.attach('drawer-editorial-history', { path: historyCapture, contentType: 'image/png' });
+    await expect(drawer.locator('.pendency-attempt-list > li')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(drawer).toBeHidden();
+  });
+}
+
+test('metadados ficam no head e detalhes cancelados permanecem legíveis no tema escuro', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1280, height: 768 });
+  await page.goto('/');
+  await expect(page).toHaveTitle('RADAR PDDE - Registro de Acompanhamento das Demandas, Análises e Regularizações');
+  await expect(page.locator('head > meta[name="description"]')).toHaveAttribute('content', /Sistema institucional RADAR PDDE/);
+  await seedFourPendencyStates(page);
+  await page.evaluate(() => {
+    const cancelled = pendencias.find(item => item.id === 'task9-cancelled');
+    cancelled.cancelamento = {
+      ...cancelled.cancelamento,
+      tipo: 'retificacao_avaliacao',
+      avaliacaoAnterior: 'Incorreto',
+      avaliacaoNova: 'Correto',
+      usuario: 'Controladora de teste',
+      dataHora: '2026-07-07T12:00:00.000Z',
+      justificativa: 'Avaliação corrigida após conferência do documento e do histórico preservado.'
+    };
+    rebuildOperationalIndexes();
+    persist();
+  });
+  await page.locator('#theme-toggle-btn').click();
+  await page.getByRole('tab', { name: /^Canceladas/ }).click();
+  await visibleRecord(page, 'task9-cancelled').getByRole('button', { name: 'Ver detalhes' }).click();
+  const drawer = page.locator('#pendency-detail-drawer');
+  const summary = drawer.locator('.is-evaluation-retification-summary');
+  await expect(drawer.locator('.is-next-step')).toHaveCount(0);
+  await expect(summary).toContainText('Retificação da avaliação técnica');
+  await summary.scrollIntoViewIfNeeded();
+  const darkCapture = testInfo.outputPath('cancelled-dark.png');
+  await page.screenshot({ path: darkCapture, animations: 'disabled' });
+  await testInfo.attach('drawer-cancelled-dark', { path: darkCapture, contentType: 'image/png' });
+  expect(await drawer.locator('.pendency-drawer-body').evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1);
+  await drawer.locator('.pendency-drawer-body').evaluate(el => { el.scrollTop = el.scrollHeight; });
+  await expect(drawer.getByRole('heading', { name: 'Linha do tempo' })).toBeVisible();
+  await drawer.locator('.btn-close').click();
+  await expect(drawer).toBeHidden();
+});
