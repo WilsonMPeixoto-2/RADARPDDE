@@ -379,8 +379,8 @@
     width: 100%;
     border: 0;
     background: var(--radar-modal-backdrop);
-    backdrop-filter: var(--radar-overlay-filter);
-    -webkit-backdrop-filter: var(--radar-overlay-filter);
+    backdrop-filter: var(--radar-modal-filter);
+    -webkit-backdrop-filter: var(--radar-modal-filter);
     cursor: pointer;
     pointer-events: auto;
 }
@@ -391,6 +391,8 @@
     pointer-events: none;
     cursor: default;
     background: var(--radar-context-backdrop);
+    backdrop-filter: var(--radar-context-filter);
+    -webkit-backdrop-filter: var(--radar-context-filter);
 }
 
 .pendency-detail-drawer {

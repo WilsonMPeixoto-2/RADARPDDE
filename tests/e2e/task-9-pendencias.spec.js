@@ -315,11 +315,20 @@ for (const width of [1280, 1440, 1920]) {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Layout de tabela exclusivo do desktop.');
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/');
-    await seedFourPendencyStates(page);
+    const seeded = await seedFourPendencyStates(page);
+    // Conteúdo populado e nome longo: a grade não pode despedaçar palavras.
+    await page.evaluate(schoolId => {
+      const school = escolas.find(record => record.id === schoolId);
+      if (!school) throw new Error('Escola do teste visual não encontrada');
+      school.denominação = 'Escola Municipal Professora Maria das Graças de Oliveira e Albuquerque';
+      rebuildOperationalIndexes();
+      window.RadarTask9PendencyPage.render();
+    }, seeded.schoolId);
 
     const scroller = page.locator('.pendency-tab-panel.active .pendency-desktop-list.table-responsive');
     const table = scroller.locator('table.pendency-operations-table');
     await expect(table.locator('tbody tr')).toHaveCount(1);
+    await expect(table).toContainText('Escola Municipal Professora Maria das Graças de Oliveira e Albuquerque');
     await expect(scroller).toHaveAttribute('tabindex', '0');
     await expect(scroller).toHaveAttribute('role', 'region');
     await expect(scroller).toHaveAttribute('aria-label', /Tabela de pendências/);
@@ -371,6 +380,13 @@ for (const width of [1280, 1440, 1920]) {
     const shot = testInfo.outputPath('pendencias-com-registros-e-drawer.png');
     await page.screenshot({ path: shot, animations: 'disabled' });
     await testInfo.attach('pendencias-com-registros-e-drawer', { path: shot, contentType: 'image/png' });
+    if (width === 1440) {
+      await page.locator('#theme-toggle-btn').click();
+      await expect(drawer).toBeVisible();
+      const darkShot = testInfo.outputPath('pendencias-populadas-dark.png');
+      await page.screenshot({ path: darkShot, animations: 'disabled' });
+      await testInfo.attach('pendencias-populadas-dark', { path: darkShot, contentType: 'image/png' });
+    }
     await page.keyboard.press('Escape');
     await expect(drawer).toBeHidden();
   });
