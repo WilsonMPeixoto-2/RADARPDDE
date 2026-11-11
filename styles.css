@@ -45,6 +45,10 @@
     --sidebar-active-bg: linear-gradient(90deg, rgba(124, 58, 237, 0.12) 0%, rgba(124, 58, 237, 0.03) 100%);
     --toggle-na-bg: rgba(0, 0, 0, 0.05);
     --bg-header: rgba(255, 255, 255, 0.85);
+    /* Sobreposições: distinguir modais que bloqueiam de painéis complementares. */
+    --radar-overlay-filter: blur(4px);
+    --radar-modal-backdrop: rgba(15, 10, 30, 0.42);
+    --radar-context-backdrop: rgba(32, 20, 55, 0.12);
     --bg-gradient: radial-gradient(circle at 10% 20%, rgba(124, 58, 237, 0.04) 0%, transparent 40%),
                    radial-gradient(circle at 90% 80%, rgba(167, 139, 250, 0.03) 0%, transparent 45%);
 
@@ -100,6 +104,9 @@ body.dark-theme {
     --sidebar-active-bg: linear-gradient(90deg, rgba(74, 33, 125, 0.4) 0%, rgba(157, 125, 252, 0.1) 100%);
     --toggle-na-bg: rgba(255, 255, 255, 0.1);
     --bg-header: rgba(16, 12, 30, 0.85);
+    --radar-overlay-filter: blur(4px);
+    --radar-modal-backdrop: rgba(5, 4, 12, 0.62);
+    --radar-context-backdrop: rgba(6, 5, 15, 0.26);
     --bg-gradient: radial-gradient(circle at 10% 20%, rgba(74, 33, 125, 0.15) 0%, transparent 40%),
                    radial-gradient(circle at 90% 80%, rgba(109, 62, 247, 0.12) 0%, transparent 45%);
 
