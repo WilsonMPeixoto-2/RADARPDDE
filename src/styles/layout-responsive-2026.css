@@ -208,7 +208,7 @@
  */
 @media (min-width: 1181px) {
     body.pendency-drawer-open-desktop {
-        --pendency-docked-drawer-width: clamp(420px, 34vw, 520px);
+        --pendency-docked-drawer-width: clamp(500px, 38vw, 620px);
         --pendency-docked-drawer-top: 66px;
     }
 
