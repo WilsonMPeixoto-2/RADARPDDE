@@ -28,47 +28,8 @@
         min-width: 0;
     }
 
-    /* A fila real possui nove colunas. A distribuição abaixo soma exatamente 100%. */
-    .pendency-desktop-list.table-responsive {
-        width: 100%;
-        max-width: 100%;
-        overflow-x: hidden;
-    }
-
-    .pendency-operations-table {
-        width: 100%;
-        min-width: 0;
-        max-width: 100%;
-        table-layout: fixed;
-    }
-
-    .pendency-operations-table th:nth-child(1) { width: 16%; }
-    .pendency-operations-table th:nth-child(2) { width: 8%; }
-    .pendency-operations-table th:nth-child(3) { width: 13%; }
-    .pendency-operations-table th:nth-child(4) { width: 12%; }
-    .pendency-operations-table th:nth-child(5) { width: 9%; }
-    .pendency-operations-table th:nth-child(6) { width: 14%; }
-    .pendency-operations-table th:nth-child(7) { width: 10%; }
-    .pendency-operations-table th:nth-child(8) { width: 5%; }
-    .pendency-operations-table th:nth-child(9) { width: 13%; }
-
-    .pendency-operations-table th,
-    .pendency-operations-table td {
-        min-width: 0;
-        max-width: 100%;
-        overflow-wrap: anywhere;
-        word-break: normal;
-        hyphens: auto;
-    }
-
-    .pendency-operations-table th {
-        white-space: normal;
-        text-wrap: balance;
-    }
-
-    .pendency-operations-table td {
-        vertical-align: top;
-    }
+    /* A grade e a rolagem da tabela são definidas em task-9-pendencias.css.
+     * Esta folha atua apenas na geometria da página e nos demais componentes. */
 }
 
 /*
