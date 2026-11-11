@@ -1,21 +1,32 @@
-# Design System & Autonomia Proativa de UI/UX — RADAR PDDE
+# RADAR PDDE — Contratos compartilhados de design
 
-Este documento estabelece os **5 Contratos Visuais Sistêmicos** obrigatórios para todas as superfícies do RADAR PDDE (`/dashboard`, `/carteira`, `/competencias`, `/pendencias`, `/inventario`, `/auditoria`, `/guia`, `/escolas/:id`).
+Este documento orienta a evolução visual de `/dashboard`, `/carteira`, `/competencias`, `/pendencias`, `/inventario`, `/auditoria`, `/guia` e `/escolas/:id`. Complementa `docs/reference/FRONTEND_USER_VALIDATION_GATE.md`; não altera suas regras de aceite.
 
-## Regra de Autonomia Proativa (Proibido Remendo Isolado)
+## Autonomia com responsabilidade
 
-1. A diretriz de "menor alteração possível" aplica-se exclusivamente à lógica de negócio, banco de dados (Supabase/RLS) e regras fiscais do PDDE.
-2. Em tarefas de **UI/UX, CSS, tipografia, iconografia e layout**, é **proibido fazer remendos isolados em uma única aba**. Sempre que um desvio visual for identificado em uma superfície, o agente deve realizar uma varredura transversal e propagar a melhoria para todos os componentes equivalentes do sistema no mesmo lote de Preview.
+- Toda correção visual deve investigar **componentes equivalentes** em outras superfícies, mas só alterar as que compartilham a mesma causa e cuja regressão possa ser validada.
+- Preferir resolver a regra em seu **proprietário CSS** e remover concorrentes; não acrescentar overrides indiscriminados, `!important` ou novas folhas sem necessidade.
+- Proteger comportamento, dados e permissões existentes. Uma mudança de layout pode afetar navegação, foco e estados, mesmo sem alterar o banco.
+- Não considerar um teste verde equivalente à aprovação estética. Homologação visual e aprovação do responsável são gates independentes.
 
-## Os 5 Contratos Sistêmicos Globais
+## Contratos visuais
 
-1. **Profundidade e Foco de Contexto (Gavetas Laterais e Modais):**
-   - Sempre que uma gaveta lateral (*Prontuário* ou *Detalhes de Pendência*) ou modal estiver aberto, a página principal ao fundo deve receber atenuação e desfoque (`backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); background-color: rgba(15, 10, 30, 0.36);`), isolando o foco cognitivo na camada ativa.
-2. **Hierarquia Tipográfica Semântica:**
-   - Diferenciação estrita entre *kickers/tópicos* (`0.72rem`, `font-weight: 700`, `letter-spacing: 0.06em`, caixa alta, `--text-muted`), *títulos e nomes de unidades escolares* (`font-weight: 600` a `700`, `--text-main`), *valores monetários/códigos INEP/datas* (`font-variant-numeric: tabular-nums`, `font-weight: 500`) e *metadados secundários*.
-3. **Relação Semântica de Cores para Tópicos, Status e Botões:**
-   - Apenas 1 botão primário (`#7c3aed`) por zona funcional; botões secundários em superfície neutra com borda sutil (`1px solid`); ações destrutivas em vermelho semântico; badges de status diferenciados por matiz real (erro, pendência, regularizado, informativo).
-4. **Respiro, Separação Visual e Tabelas Universais:**
-   - Todas as tabelas operacionais devem ter `padding: 12px 16px`, `min-width` garantido por coluna (com soma exata de `100%` quando houver larguras percentuais) e contêiner com `overflow-x: auto` para evitar colisões em `1280px` com gaveta aberta.
-5. **Iconografia Consistente e Equilíbrio Óptico:**
-   - Ícones SVG padronizados com traço uniforme (`1.75px` a `2px`), `flex-shrink: 0`, compensação óptica por formato e alinhamento vertical centrado com o texto.
+1. **Profundidade e sobreposição:** distinguir modal (bloqueia interação ao fundo, confina foco e usa `aria-modal`) de painel complementar (não bloqueia nem confina foco). Os tokens `--radar-overlay-filter`, `--radar-modal-backdrop` e `--radar-context-backdrop`, definidos em `styles.css`, permitem variantes claras/escuro. O drawer de Pendências é complementar em desktop e modal em mobile. Desfoque não implica, por si, mudança semântica ou bloqueio de interação.
+2. **Tipografia e leitura:** aplicar `--font-heading`, `--font-body`, `--text-main` e `--text-muted` segundo a hierarquia real: título da página, título da seção, ação requerida, campos, metadados. Usar `font-variant-numeric: tabular-nums` em números e datas tabulares, sem impor tamanho fixo a toda a aplicação.
+3. **Cor e ações:** usar tokens `--primary`, `--success`, `--warning`, `--danger`, `--info` e variantes de superfície, com contraste verificado nos temas claro e escuro. Botões primários indicam a ação prioritária; secundários não disputam atenção com ela; destrutivos permanecem identificáveis.
+4. **Espaçamento, tabelas e responsividade:** definir densidade e colunas na feature que possui a tabela. Folhas de layout geral cuidam da geometria da página. Se o conteúdo ultrapassar a largura disponível, oferecer rolagem horizontal acessível, sem partidas de palavras letra a letra. Nenhuma coluna pode depender de percentuais concorrentes distribuídos em múltiplas folhas.
+5. **Iconografia:** manter família, peso, dimensão, baseline e tratamento do estado ativo coerentes; quando um ícone existente for ruim, ajustar a fonte comum, não substituir arbitrariamente todos os ícones.
+
+## Autoridade do CSS
+
+- `styles.css`: tokens, tipografia-base e padrões realmente compartilhados;
+- `src/styles/task-9-pendencias.css`: composição da lista, colunas e gaveta específicas de Pendências;
+- `src/styles/layout-responsive-2026.css`: geometria do app, sidebar e breakpoints gerais — sem redefinir larguras das nove colunas;
+- `src/styles/desktop-basic-monitors.css`: ajustes de densidade gerais, sem impor dimensões de tabelas de uma feature;
+- `src/styles/global-visual-polish.css`: acabamentos compartilhados comprovados, não depósito de sobrescritas de features.
+
+## Gate de implementação
+
+Na homologação, utilizar **1440 × 900** como baseline canônica e acrescentar **1280 × 900, 1920 × 900 e 390 × 900**, conforme este projeto. Capturar telas **com dados preenchidos**, inclusive textos longos e estados diferentes; testar drawers, modais, botões, rolagem e foco, em tema claro e escuro. Comparar antes/depois e inspecionar as capturas — não apenas seus nomes e os resultados do CI.
+
+Publicar em Preview isolado, verificar o SHA real do deployment e solicitar aprovação visual expressa antes de integrar à `main`.
