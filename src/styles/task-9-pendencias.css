@@ -201,9 +201,20 @@
 
 /* Na área desktop, a tabela rola horizontalmente em vez de partir palavras. */
 .pendency-desktop-list table.pendency-operations-table thead th {
-    white-space: nowrap;
+    white-space: normal;
     word-break: normal;
     overflow-wrap: normal;
+    line-height: 1.3;
+}
+
+.pendency-desktop-list table.pendency-operations-table thead th:nth-child(2),
+.pendency-desktop-list table.pendency-operations-table thead th:nth-child(8) {
+    white-space: nowrap;
+}
+
+.pendency-desktop-list table.pendency-operations-table tbody td:nth-child(4) .pendency-error-summary li {
+    word-break: normal;
+    overflow-wrap: break-word;
 }
 
 .pendency-desktop-list table.pendency-operations-table tbody td:nth-child(2) {
@@ -373,9 +384,10 @@
     animation: pendency-drawer-enter 160ms ease-out;
 }
 
+/* Translação sem opacidade: os dados por trás nunca atravessam a ficha. */
 @keyframes pendency-drawer-enter {
-    from { transform: translateX(24px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
+    from { transform: translateX(24px); }
+    to { transform: translateX(0); }
 }
 
 .pendency-drawer-header {
