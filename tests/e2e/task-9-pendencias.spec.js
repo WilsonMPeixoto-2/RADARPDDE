@@ -310,6 +310,72 @@ test.describe('Task 9 — página de Pendências Operacionais', () => {
   });
 });
 
+for (const width of [1280, 1440, 1920]) {
+  test('tabela preenchida preserva largura e rolagem acessível em ' + width + 'px', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Layout de tabela exclusivo do desktop.');
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/');
+    await seedFourPendencyStates(page);
+
+    const scroller = page.locator('.pendency-tab-panel.active .pendency-desktop-list.table-responsive');
+    const table = scroller.locator('table.pendency-operations-table');
+    await expect(table.locator('tbody tr')).toHaveCount(1);
+    await expect(scroller).toHaveAttribute('tabindex', '0');
+    await expect(scroller).toHaveAttribute('role', 'region');
+    await expect(scroller).toHaveAttribute('aria-label', /Tabela de pendências/);
+
+    const before = await scroller.evaluate(node => ({
+      viewport: node.clientWidth,
+      content: node.scrollWidth,
+      minTable: node.querySelector('table').getBoundingClientRect().width,
+      scroll: getComputedStyle(node).overflowX,
+      headerWrap: getComputedStyle(node.querySelector('th')).overflowWrap
+    }));
+    expect(before.scroll).toBe('auto');
+    expect(before.minTable).toBeGreaterThanOrEqual(1319);
+    expect(before.headerWrap).toBe('normal');
+
+    if (before.viewport < before.minTable) {
+      expect(before.content).toBeGreaterThan(before.viewport);
+      await scroller.focus();
+      await page.keyboard.press('ArrowRight');
+      await expect.poll(() => scroller.evaluate(node => node.scrollLeft)).toBeGreaterThan(0);
+      await scroller.evaluate(node => { node.scrollLeft = 0; });
+    }
+
+    const record = visibleRecord(page, 'task9-open');
+    await record.getByRole('button', { name: 'Ver detalhes' }).click();
+    const drawer = page.locator('#pendency-detail-drawer');
+    await expect(drawer).toHaveAttribute('role', 'complementary');
+    await expect(drawer).not.toHaveAttribute('aria-modal', 'true');
+    const background = page.locator('.pendency-drawer-layer.is-desktop .pendency-drawer-backdrop');
+    const veil = await background.evaluate(el => ({
+      display: getComputedStyle(el).display,
+      pointerEvents: getComputedStyle(el).pointerEvents,
+      filter: getComputedStyle(el).backdropFilter,
+      tabIndex: el.getAttribute('tabindex'),
+      ariaHidden: el.getAttribute('aria-hidden')
+    }));
+    expect(veil.display).not.toBe('none');
+    expect(veil.pointerEvents).toBe('none');
+    expect(veil.filter).toContain('blur(');
+    expect(veil.tabIndex).toBe('-1');
+    expect(veil.ariaHidden).toBe('true');
+
+    // Complementary desktop drawer: a página continua alcançável por clique e teclado.
+    const search = page.getByRole('searchbox', { name: 'Buscar pendências' });
+    await search.click();
+    await expect(search).toBeFocused();
+    await expect(drawer).toBeVisible();
+
+    const shot = testInfo.outputPath('pendencias-com-registros-e-drawer.png');
+    await page.screenshot({ path: shot, animations: 'disabled' });
+    await testInfo.attach('pendencias-com-registros-e-drawer', { path: shot, contentType: 'image/png' });
+    await page.keyboard.press('Escape');
+    await expect(drawer).toBeHidden();
+  });
+}
+
 for (const width of [1440, 1280, 1920, 390]) {
   test(`detalhe legível e opaco em ${width}px`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height: 900 });
