@@ -612,8 +612,9 @@ textarea.form-control {
 /* Modais */
 .modal-overlay {
     padding: 24px;
-    background-color: rgba(20, 13, 32, 0.68);
-    backdrop-filter: blur(10px) saturate(105%);
+    background-color: var(--radar-modal-backdrop);
+    backdrop-filter: var(--radar-modal-filter);
+    -webkit-backdrop-filter: var(--radar-modal-filter);
 }
 
 .modal-content {
