@@ -359,6 +359,60 @@ for (const width of [1440, 1280, 1920, 390]) {
   });
 }
 
+for (const width of [1280, 390]) {
+  test('ficha editorial prioriza a próxima ação e contém as operações em ' + width + 'px', async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/');
+    await seedFourPendencyStates(page);
+    await page.getByRole('tab', { name: /^Aguardando reanálise/ }).click();
+    await visibleRecord(page, 'task9-awaiting').getByRole('button', { name: 'Ver detalhes' }).click();
+
+    const drawer = page.locator('#pendency-detail-drawer');
+    const nextStep = drawer.locator('.pendency-drawer-section.is-next-step');
+    await expect(nextStep).toBeVisible();
+    await expect(nextStep.getByRole('heading', { name: 'Próxima ação' })).toBeVisible();
+    await expect(nextStep.locator('.pendency-next-action')).toContainText('Conferir o novo arquivo');
+
+    const layout = await drawer.evaluate(el => {
+      const header = el.querySelector('.pendency-drawer-header').getBoundingClientRect();
+      const action = el.querySelector('.is-next-step').getBoundingClientRect();
+      const body = el.querySelector('.pendency-drawer-body');
+      const footer = el.querySelector('.pendency-drawer-footer');
+      const sections = [...body.querySelectorAll(':scope > .pendency-drawer-section:not(.is-next-step)')];
+      const buttons = [...footer.querySelectorAll('.pendency-row-actions .btn')];
+      const buttonRects = buttons.map(button => button.getBoundingClientRect());
+      const collisions = buttonRects.flatMap((a, i) => buttonRects.slice(i + 1)
+        .filter(b => Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1
+          && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1));
+      return {
+        bodyDisplay: getComputedStyle(body).display,
+        sectionRadii: sections.map(section => getComputedStyle(section).borderTopLeftRadius),
+        actionBelowHeader: action.top >= header.bottom - 1,
+        footerHeight: footer.getBoundingClientRect().height,
+        collisions: collisions.length,
+        bodyOverflow: body.scrollWidth - body.clientWidth
+      };
+    });
+
+    expect(layout.bodyDisplay).toBe('block');
+    expect(layout.sectionRadii).toEqual(layout.sectionRadii.map(() => '0px'));
+    expect(layout.actionBelowHeader).toBe(true);
+    expect(layout.footerHeight).toBeLessThan(145);
+    expect(layout.collisions).toBe(0);
+    expect(layout.bodyOverflow).toBeLessThanOrEqual(1);
+
+    if (width > 900) {
+      await expect(page.locator('.pendency-desktop-list table.pendency-operations-table thead th').nth(1))
+        .toHaveCSS('white-space', 'nowrap');
+    }
+    await page.screenshot({ path: testInfo.outputPath('drawer-editorial-top.png') });
+    await drawer.locator('.is-attempts').scrollIntoViewIfNeeded();
+    await expect(drawer.locator('.pendency-attempt-list > li')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(drawer).toBeHidden();
+  });
+}
+
 test('metadados ficam no head e detalhes cancelados permanecem legíveis no tema escuro', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 1280, height: 768 });
   await page.goto('/');
@@ -384,6 +438,7 @@ test('metadados ficam no head e detalhes cancelados permanecem legíveis no tema
   await visibleRecord(page, 'task9-cancelled').getByRole('button', { name: 'Ver detalhes' }).click();
   const drawer = page.locator('#pendency-detail-drawer');
   const summary = drawer.locator('.is-evaluation-retification-summary');
+  await expect(drawer.locator('.is-next-step')).toHaveCount(0);
   await expect(summary).toContainText('Retificação da avaliação técnica');
   await summary.scrollIntoViewIfNeeded();
   await page.screenshot({ path: testInfo.outputPath('cancelled-dark.png') });
