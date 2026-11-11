@@ -322,7 +322,7 @@ for (const width of [1280, 1440, 1920]) {
       if (!school) throw new Error('Escola do teste visual não encontrada');
       school.denominação = 'Escola Municipal Professora Maria das Graças de Oliveira e Albuquerque';
       rebuildOperationalIndexes();
-      renderPendenciasTask9();
+      window.RadarTask9PendencyPage.render();
     }, seeded.schoolId);
 
     const scroller = page.locator('.pendency-tab-panel.active .pendency-desktop-list.table-responsive');
