@@ -80,6 +80,12 @@ test('ficha de Pendências é contínua, mantém a ação principal e não usa m
 });
 
 
+test('abertura do drawer mantém opacidade total durante a transição', () => {
+  const animation = pendencyCss.match(/@keyframes pendency-drawer-enter \{([\s\S]*?)\n\}/)?.[1];
+  assert.ok(animation, 'a animação de entrada deve existir');
+  assert.doesNotMatch(animation, /opacity\s*:/, 'a entrada não pode revelar a tabela através do drawer');
+});
+
 test('tela de pendências oferece download da planilha editorial', () => {
   assert.match(pendencyPageSource, /data-radar-pendency-export="xlsx"/);
   assert.match(pendencyPageSource, />Baixar planilha<\/span>/);
