@@ -198,7 +198,8 @@ test('Vercel limita deploy automático à main e preserva filtro do Dependabot',
     assert.match(vercel.ignoreCommand, /dependabot\/\*/);
     assert.deepEqual(vercel.git?.deploymentEnabled, {
         '*': false,
-        main: true
+        main: true,
+        'preview/pr515-visual-qa-20261111': true
     });
 });
 
