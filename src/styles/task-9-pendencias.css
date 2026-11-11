@@ -378,9 +378,19 @@
     display: none;
     width: 100%;
     border: 0;
-    background: rgba(12, 18, 30, 0.56);
+    background: var(--radar-modal-backdrop);
+    backdrop-filter: var(--radar-overlay-filter);
+    -webkit-backdrop-filter: var(--radar-overlay-filter);
     cursor: pointer;
     pointer-events: auto;
+}
+
+/* Gaveta desktop complementar: fundo atenuado sem impedir interação na página. */
+.pendency-drawer-layer.is-desktop .pendency-drawer-backdrop {
+    display: block;
+    pointer-events: none;
+    cursor: default;
+    background: var(--radar-context-backdrop);
 }
 
 .pendency-detail-drawer {
