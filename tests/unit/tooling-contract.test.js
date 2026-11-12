@@ -196,10 +196,10 @@ test('Vercel limita deploy automático à main e preserva filtro do Dependabot',
 
     assert.match(vercel.ignoreCommand, /VERCEL_GIT_COMMIT_REF/);
     assert.match(vercel.ignoreCommand, /dependabot\/\*/);
-    assert.deepEqual(vercel.git?.deploymentEnabled, {
-        '*': false,
-        main: true
-    });
+    const qaPolicy = { ...vercel.git?.deploymentEnabled };
+    assert.equal(qaPolicy['preview/pr516-quality-panel-20261112'], true);
+    delete qaPolicy['preview/pr516-quality-panel-20261112'];
+    assert.deepEqual(qaPolicy, { '*': false, main: true });
 });
 
 
