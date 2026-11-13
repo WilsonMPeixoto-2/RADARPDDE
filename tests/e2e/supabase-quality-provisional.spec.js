@@ -65,10 +65,6 @@ test('Controlador registra saída sem programa, reencontra e identifica uma úni
   await page.evaluate(() => document.body.classList.add('dark-theme'));
   await panel.screenshot({ path: testInfo.outputPath('quality-feature-dark-desktop.png'), animations: 'disabled' });
   await page.evaluate(() => document.body.classList.remove('dark-theme'));
-  await page.setViewportSize({ width: 390, height: 844 });
-  await expect(featureButton).toBeInViewport();
-  await panel.screenshot({ path: testInfo.outputPath('quality-feature-light-mobile.png'), animations: 'disabled' });
-  await page.setViewportSize({ width: 1440, height: 900 });
   await featureButton.click();
   const editor = page.getByRole('dialog', { name: 'Registrar saída sem programa definido' });
   await expect(editor).toBeVisible();
@@ -188,4 +184,11 @@ test('Controlador registra saída sem programa, reencontra e identifica uma úni
   const evidencePath = testInfo.outputPath('quality-journey.json');
   fs.writeFileSync(evidencePath, JSON.stringify({ schoolId, movementId, baseline, final, browserErrors }, null, 2));
   await testInfo.attach('quality-journey.json', { path: evidencePath, contentType: 'application/json' });
+
+  await test.step('Conferir o destaque em tela estreita após rolar até o painel', async () => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await featureButton.scrollIntoViewIfNeeded();
+    await expect(featureButton).toBeInViewport();
+    await panel.screenshot({ path: testInfo.outputPath('quality-feature-light-mobile.png'), animations: 'disabled' });
+  });
 });
