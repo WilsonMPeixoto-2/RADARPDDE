@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "source": "GitHub Actions / Testar RADAR PDDE",
+  "runId": 38511334777,
+  "sourceArtifacts": {
+    "diagnostics": 11870525457,
+    "junit": 11870500669
+  },
+  "validatedStatus": "success",
+  "junitCases": 1366,
+  "junitFailures": 0,
+  "test": "diagnóstico integrado: tempo de gravação por tamanho da coleção e rollback seguro",
+  "experiment": "DataService+UnitOfWork+StatePort+state-bridge reais; repository RPC I/O controlado",
+  "groups": [
+    {
+      "verificationRows": 1,
+      "changedRows": 1,
+      "medianMs": 1.109,
+      "samplesMs": [
+        1.109,
+        1.348,
+        2.012,
+        1.095,
+        0.996
+      ],
+      "phaseMedianMs": {
+        "captureEntities": 0.044,
+        "exportCanonicalEntities": 0.474,
+        "applyEntities": 0.185
+      }
+    },
+    {
+      "verificationRows": 163,
+      "changedRows": 1,
+      "medianMs": 22.432,
+      "samplesMs": [
+        23.053,
+        23.591,
+        22.432,
+        21.988,
+        20.789
+      ],
+      "phaseMedianMs": {
+        "captureEntities": 0.652,
+        "exportCanonicalEntities": 10.489,
+        "applyEntities": 6.085
+      }
+    },
+    {
+      "verificationRows": 1630,
+      "changedRows": 1,
+      "medianMs": 204.126,
+      "samplesMs": [
+        188.063,
+        222.662,
+        201.945,
+        204.126,
+        245.059
+      ],
+      "phaseMedianMs": {
+        "captureEntities": 6.967,
+        "exportCanonicalEntities": 96.56,
+        "applyEntities": 58.84
+      }
+    }
+  ],
+  "rollback": {
+    "rows": 163,
+    "outcome": "restored-before-remote-commit",
+    "elapsedMs": 11.693,
+    "phasesMs": {
+      "captureEntities": 0.579,
+      "exportCanonicalEntities": 8.42,
+      "restoreEntities": 1.184
+    },
+    "unrelatedSchoolsPreserved": true
+  },
+  "scopeLimits": [
+    "Cadeia real com ponte de dados, mas não executa serviço de bonificação/validação de competência em interface.",
+    "Persistência é simulada somente na fronteira do repositório; sem Supabase, RPC, triggers, network ou RLS.",
+    "A falha simulada acontece antes do commit; não há prova de resposta perdida depois do commit nem concorrência com duas escritas.",
+    "Apenas três grupos de registros sintéticos, 5 amostras por volume em runner CI; não medir percentis de Production.",
+    "Não se conhece o tamanho do conjunto de verificações residente simultaneamente no navegador real.",
+    "Os tempos medidos não incluem renderização, Realtime nem interação do usuário; não subtrair para calcular atraso percebido."
+  ],
+  "status": "Prova de amplificação local validada no CI; causa parcial, não demonstra explicação universal para lentidão."
+}

@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "origin": "GitHub Actions run 38500456162 artifact 11864979495 state-clone-amplification.json",
+  "environment": "Node 24.21.0 Linux, isolated synthetic StatePort+UnitOfWork",
+  "changedRows": 1,
+  "groups": [
+    {
+      "rows": 1,
+      "medianMs": 0.39,
+      "copyOccurrences": 6,
+      "samplesMs": [
+        0.41,
+        0.39,
+        0.33,
+        0.41,
+        0.33
+      ]
+    },
+    {
+      "rows": 163,
+      "medianMs": 5.41,
+      "copyOccurrences": 978,
+      "samplesMs": [
+        5.14,
+        5.41,
+        5.04,
+        6,
+        5.62
+      ]
+    },
+    {
+      "rows": 1630,
+      "medianMs": 53.39,
+      "copyOccurrences": 9780,
+      "samplesMs": [
+        54.87,
+        47.14,
+        60.91,
+        51.28,
+        53.39
+      ]
+    },
+    {
+      "rows": 16300,
+      "medianMs": 523.07,
+      "copyOccurrences": 97800,
+      "samplesMs": [
+        588.72,
+        510.2,
+        523.07,
+        520.77,
+        533.28
+      ]
+    }
+  ],
+  "interpretation": "Six copies of the entire verification array per transaction; near-linear rise in time with unrelated rows; structural amplification reproduced in isolated harness.",
+  "limitations": [
+    "Not measured in Production.",
+    "Does not include SQL, RLS, visual render, network, audit triggers.",
+    "All records in synthetic collection are in memory; actual active working set must be established.",
+    "Do not remove defensive cloning before maintaining concurrency, rollback, consistency."
+  ]
+}
