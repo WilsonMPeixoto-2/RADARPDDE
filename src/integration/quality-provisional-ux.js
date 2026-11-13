@@ -176,12 +176,13 @@
     const panel = byId('quality-provisional-panel');
     if (!panel || !input.schoolId || !input.competence) return;
     const programs = (input.programs || []).filter(p => PROGRAMS.has(p.id));
-    if (!input.canEdit || !client()) { panel.hidden = true; return; }
+    if (!input.canEdit) { panel.hidden = true; return; }
     panel.hidden = false;
     context = { schoolId: input.schoolId, competence: input.competence, programs, canEdit: true };
     const id = ++generation;
     panel.querySelector('[data-quality-new]').onclick = () => openEditor(null);
-    panel.querySelector('[data-quality-refresh]').onclick = () => hydrate(context);
+    panel.querySelector('[data-quality-refresh]').onclick = () => hydrate(context)
+  if (!client()) { records = []; render(panel); return; };
     const list = panel.querySelector('[data-quality-list]');
     list.textContent = 'Consultando movimentações…';
     try {
