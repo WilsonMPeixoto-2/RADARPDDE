@@ -44,9 +44,28 @@ test('Controlador registra saída sem programa, reencontra e identifica uma úni
   await page.locator('#nav-escolas').click();
   await page.getByRole('row').filter({ hasText: schoolName })
     .getByRole('link', { name: 'Ver Unidade', exact: true }).click();
-  const panel = page.getByRole('region', { name: 'Conta PDDE Qualidade · movimentações sem programa' });
+  const panel = page.getByRole('region', { name: 'Saídas sem ação definida' });
   await expect(panel).toBeVisible();
-  await panel.getByRole('button', { name: 'Registrar saída', exact: true }).click();
+  await expect(panel.getByText('NOVO RECURSO · PDDE QUALIDADE', { exact: true })).toBeVisible();
+  await expect(panel.getByText('Registre saídas do extrato enquanto a Ação Integrada correspondente ainda não foi identificada.', { exact: true })).toBeVisible();
+  await expect(panel.getByText('Não são Notas Fiscais nem Pendências.')).toHaveCount(0);
+  const qualityPanelVisual = await panel.evaluate(element => {
+    const style = getComputedStyle(element);
+    return {
+      borderLeftWidth: Number.parseFloat(style.borderLeftWidth),
+      backgroundImage: style.backgroundImage,
+      borderColor: style.borderLeftColor
+    };
+  });
+  expect(qualityPanelVisual.borderLeftWidth).toBeGreaterThanOrEqual(4);
+  expect(qualityPanelVisual.backgroundImage).toContain('linear-gradient');
+  const featureButton = panel.getByRole('button', { name: 'Registrar saída', exact: true });
+  await expect(featureButton).toBeVisible();
+  await panel.screenshot({ path: testInfo.outputPath('quality-feature-light-desktop.png'), animations: 'disabled' });
+  await page.evaluate(() => document.body.classList.add('dark-theme'));
+  await panel.screenshot({ path: testInfo.outputPath('quality-feature-dark-desktop.png'), animations: 'disabled' });
+  await page.evaluate(() => document.body.classList.remove('dark-theme'));
+  await featureButton.click();
   const editor = page.getByRole('dialog', { name: 'Registrar saída sem programa definido' });
   await expect(editor).toBeVisible();
   const created = page.waitForResponse(response => response.request().method() === 'POST'
@@ -165,4 +184,11 @@ test('Controlador registra saída sem programa, reencontra e identifica uma úni
   const evidencePath = testInfo.outputPath('quality-journey.json');
   fs.writeFileSync(evidencePath, JSON.stringify({ schoolId, movementId, baseline, final, browserErrors }, null, 2));
   await testInfo.attach('quality-journey.json', { path: evidencePath, contentType: 'application/json' });
+
+  await test.step('Conferir o destaque em tela estreita após rolar até o painel', async () => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await featureButton.scrollIntoViewIfNeeded();
+    await expect(featureButton).toBeInViewport();
+    await panel.screenshot({ path: testInfo.outputPath('quality-feature-light-mobile.png'), animations: 'disabled' });
+  });
 });

@@ -9829,13 +9829,26 @@ function renderProntuario(escolaId) {
                         
                         <section id="quality-provisional-panel" class="quality-provisional-panel" hidden aria-labelledby="quality-provisional-title">
                             <div class="quality-provisional-heading">
-                                <div>
-                                    <h3 id="quality-provisional-title">Conta PDDE Qualidade · movimentações sem programa</h3>
-                                    <p>Registre saídas ainda não atribuídas a uma Ação Integrada. Não são Notas Fiscais nem Pendências.</p>
+                                <div class="quality-provisional-intro">
+                                    <span class="quality-provisional-mark" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                            <rect x="3.5" y="5" width="17" height="14" rx="2.5"></rect>
+                                            <path d="M7.5 9h6M7.5 12.5h4"></path>
+                                            <path d="m14.5 15 2 2 3-4"></path>
+                                        </svg>
+                                    </span>
+                                    <div class="quality-provisional-copy">
+                                        <span class="quality-provisional-eyebrow">NOVO RECURSO · PDDE QUALIDADE</span>
+                                        <h3 id="quality-provisional-title">Saídas sem ação definida</h3>
+                                        <p>Registre saídas do extrato enquanto a Ação Integrada correspondente ainda não foi identificada.</p>
+                                    </div>
                                 </div>
                                 <div class="quality-provisional-heading-actions">
                                     <button type="button" data-quality-refresh class="btn btn-secondary btn-sm">Atualizar</button>
-                                    <button type="button" data-quality-new class="btn btn-primary btn-sm">Registrar saída</button>
+                                    <button type="button" data-quality-new class="btn btn-primary btn-sm">
+                                        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+                                        Registrar saída
+                                    </button>
                                 </div>
                             </div>
                             <div class="quality-provisional-list" data-quality-list aria-live="polite"></div>
