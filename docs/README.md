@@ -1,5 +1,7 @@
 # Documentação do RADAR PDDE
 
+**Frente corrente de implementação (14/11/2026):** [contrato Prontuário/correção](reference/PRONTUARIO_CORRECAO_CONTRATO.md), [plano integrado](superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md) e [handoff obrigatório](handoff/2026-11-14-prontuario-correcao-integrada.md). Novas regras aprovadas são destino da implementação, não declaração de comportamento já publicado. Conferir a branch de execução indicada no handoff.
+
 **Cobertura horizontal pós-upgrade (candidato de 23/10):** o
 [PR #484](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/484)
 integrou a auditoria histórica, a matriz viva e a rota de agentes à
