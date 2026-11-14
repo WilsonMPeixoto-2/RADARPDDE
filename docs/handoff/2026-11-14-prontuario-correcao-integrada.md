@@ -15,9 +15,9 @@
 
 | Etapa | Estado | Evidência / próximo passo |
 |---|---|---|
-| Preparação | Em curso | Worktree isolada na baseline `190e4494`; documentação conciliada e roteada |
-| T0 | Em curso | 28 testes de baseline passaram; preparar fixtures e capturas do produto real |
-| T1 | Não iniciada | Contexto/cabeçalhos/edição e prova visual |
+| Preparação | Concluída | Worktree e baseline 190e4494 validadas; documentação e PR #517 (4011a2b) integrados   |
+| T0 | Concluída | 28/28 testes de baseline aprovados; contrato PRONTUARIO_CORRECAO_CONTRATO.md e fixtures tests/fixtures/prontuario-correction-cases.json gravados em bf903ae 
+| T1 | Em curso | Contexto visual, agrupamento semântico por programa (sem depender de td[rowspan]), tokens editoriais #FAFAFC/#252133/#686477/#6335B5 e edição cadastral com prova E2E |
 | T2 | Não iniciada | Correção/regularização e contrato transacional |
 | T3 | Não iniciada | Exclusão causal com patrimônio/provisória |
 | T4 | Não iniciada | Bonificação/contexto errado |
@@ -32,7 +32,7 @@
 - Pre-flight T2→T3/T4/T5: preview/apply/receipt são interfaces futuras, ainda ausentes; um comando por intenção e autoridade no servidor.
 - Pre-flight T1→T2/T5: DOM será reorganizado; mapear consumidores de rowspan e handlers antes de editar.
 - PR #515 permanece separado; não importar sua branch auxiliar de Preview nem alterar sua tabela/gaveta incidentalmente.
-- Material de outro agente mencionado pelo proprietário: ainda não identificado nas consultas remotas iniciais; não presumir conteúdo nem bloquear execução. Incorporar somente após ler e confrontar com o código.
+- Material complementar analisado (docs/analises-e-plano-mestre-gemini-20261114@166aad4): conciliado integralmente sob a precedência estrita do plano aprovado T0–T6 (30f08ec) e das 6 pranchas visuais aprovadas (5e57eda).
 
 ## Ambiente e validação
 
