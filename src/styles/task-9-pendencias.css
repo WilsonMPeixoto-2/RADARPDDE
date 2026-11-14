@@ -183,12 +183,32 @@
     display: block;
 }
 
-.pendency-operations-table {
+/*
+ * Responsabilidade única da fila de Pendências.
+ * Nove colunas: 16 + 9 + 13 + 12 + 11 + 13 + 8 + 7 + 11 = 100%.
+ * A página não comprime ao abrir o drawer; a lista rola quando a área útil é menor.
+ */
+.pendency-desktop-list.table-responsive {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+}
+
+.pendency-desktop-list.table-responsive:focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 2px;
+}
+
+.pendency-desktop-list table.pendency-operations-table {
+    width: 100%;
     min-width: 1320px;
+    max-width: none;
     table-layout: fixed;
 }
 
-/* Proporções normalizadas (100%) para evitar colunas esmagadas. */
 .pendency-operations-table th:nth-child(1) { width: 16%; }
 .pendency-operations-table th:nth-child(2) { width: 9%; }
 .pendency-operations-table th:nth-child(3) { width: 13%; }
@@ -196,35 +216,32 @@
 .pendency-operations-table th:nth-child(5) { width: 11%; }
 .pendency-operations-table th:nth-child(6) { width: 13%; }
 .pendency-operations-table th:nth-child(7) { width: 8%; }
-.pendency-operations-table th:nth-child(8) { width: 5%; }
-.pendency-operations-table th:nth-child(9) { width: 13%; }
+.pendency-operations-table th:nth-child(8) { width: 7%; }
+.pendency-operations-table th:nth-child(9) { width: 11%; }
 
-/* Na área desktop, a tabela rola horizontalmente em vez de partir palavras. */
 .pendency-desktop-list table.pendency-operations-table thead th {
+    padding: 11px 10px;
+    box-sizing: border-box;
+    line-height: 1.35;
     white-space: normal;
     word-break: normal;
     overflow-wrap: normal;
-    line-height: 1.3;
+    hyphens: none;
+}
+
+.pendency-desktop-list table.pendency-operations-table tbody td {
+    padding: 11px 10px;
+    box-sizing: border-box;
+    word-break: normal;
+    overflow-wrap: break-word;
+    hyphens: none;
+    font-variant-numeric: tabular-nums;
 }
 
 .pendency-desktop-list table.pendency-operations-table thead th:nth-child(2),
-.pendency-desktop-list table.pendency-operations-table thead th:nth-child(8) {
-    white-space: nowrap;
-}
-
-.pendency-desktop-list table.pendency-operations-table tbody td:nth-child(4) .pendency-error-summary li {
-    word-break: normal;
-    overflow-wrap: break-word;
-}
-
+.pendency-desktop-list table.pendency-operations-table thead th:nth-child(8),
 .pendency-desktop-list table.pendency-operations-table tbody td:nth-child(2) {
     white-space: nowrap;
-}
-
-.pendency-desktop-list table.pendency-operations-table tbody td:nth-child(4),
-.pendency-desktop-list table.pendency-operations-table tbody td:nth-child(5) {
-    word-break: normal;
-    overflow-wrap: break-word;
 }
 
 .pendency-operations-table td {
@@ -361,9 +378,21 @@
     display: none;
     width: 100%;
     border: 0;
-    background: rgba(12, 18, 30, 0.56);
+    background: var(--radar-modal-backdrop);
+    backdrop-filter: var(--radar-modal-filter);
+    -webkit-backdrop-filter: var(--radar-modal-filter);
     cursor: pointer;
     pointer-events: auto;
+}
+
+/* Gaveta desktop complementar: fundo atenuado sem impedir interação na página. */
+.pendency-drawer-layer.is-desktop .pendency-drawer-backdrop {
+    display: block;
+    pointer-events: none;
+    cursor: default;
+    background: var(--radar-context-backdrop);
+    backdrop-filter: var(--radar-context-filter);
+    -webkit-backdrop-filter: var(--radar-context-filter);
 }
 
 .pendency-detail-drawer {
@@ -1201,7 +1230,6 @@
 .pendency-drawer-footer {
     flex-shrink: 0;
 }
-
 .pendency-drawer-body {
     min-height: 0;
     min-width: 0;
