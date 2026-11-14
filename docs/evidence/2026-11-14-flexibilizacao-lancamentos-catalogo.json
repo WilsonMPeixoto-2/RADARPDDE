@@ -1,0 +1,491 @@
+{
+  "baseline": "190e44942d0bb6927d1a7eeb83fb94fc782171b8",
+  "project": "scnryinorqeucbfkioxo",
+  "inspected_at_utc": "2026-11-14T02:56:42.272Z",
+  "metadata": [
+    {
+      "kind": "constraint",
+      "entity": "assets",
+      "name": "assets_competence_id_fkey",
+      "definition": "FOREIGN KEY (competence_id) REFERENCES competences(id) ON UPDATE CASCADE ON DELETE SET NULL"
+    },
+    {
+      "kind": "constraint",
+      "entity": "assets",
+      "name": "assets_inventoried_by_member_id_fkey",
+      "definition": "FOREIGN KEY (inventoried_by_member_id) REFERENCES inventory_team_members(id) ON UPDATE CASCADE ON DELETE SET NULL"
+    },
+    {
+      "kind": "constraint",
+      "entity": "assets",
+      "name": "assets_school_id_fkey",
+      "definition": "FOREIGN KEY (school_id) REFERENCES schools(id) ON UPDATE CASCADE ON DELETE CASCADE"
+    },
+    {
+      "kind": "constraint",
+      "entity": "pendencies",
+      "name": "pendencies_competence_origin_fkey",
+      "definition": "FOREIGN KEY (competence_origin) REFERENCES competences(id) ON UPDATE CASCADE ON DELETE RESTRICT"
+    },
+    {
+      "kind": "constraint",
+      "entity": "pendencies",
+      "name": "pendencies_program_id_fkey",
+      "definition": "FOREIGN KEY (program_id) REFERENCES programs(id) ON UPDATE CASCADE ON DELETE RESTRICT"
+    },
+    {
+      "kind": "constraint",
+      "entity": "pendencies",
+      "name": "pendencies_registered_invoice_id_fkey",
+      "definition": "FOREIGN KEY (registered_invoice_id) REFERENCES registered_invoices(id) ON UPDATE CASCADE ON DELETE RESTRICT"
+    },
+    {
+      "kind": "constraint",
+      "entity": "pendencies",
+      "name": "pendencies_school_id_fkey",
+      "definition": "FOREIGN KEY (school_id) REFERENCES schools(id) ON UPDATE CASCADE ON DELETE CASCADE"
+    },
+    {
+      "kind": "constraint",
+      "entity": "pendency_attempts",
+      "name": "pendency_attempts_created_by_fkey",
+      "definition": "FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL"
+    },
+    {
+      "kind": "constraint",
+      "entity": "pendency_attempts",
+      "name": "pendency_attempts_pendency_id_attempt_number_key",
+      "definition": "UNIQUE (pendency_id, attempt_number)"
+    },
+    {
+      "kind": "constraint",
+      "entity": "pendency_attempts",
+      "name": "pendency_attempts_pendency_id_fkey",
+      "definition": "FOREIGN KEY (pendency_id) REFERENCES pendencies(id) ON UPDATE CASCADE ON DELETE CASCADE"
+    },
+    {
+      "kind": "constraint",
+      "entity": "pendency_contacts",
+      "name": "pendency_contacts_created_by_fkey",
+      "definition": "FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL"
+    },
+    {
+      "kind": "constraint",
+      "entity": "pendency_contacts",
+      "name": "pendency_contacts_pendency_id_fkey",
+      "definition": "FOREIGN KEY (pendency_id) REFERENCES pendencies(id) ON UPDATE CASCADE ON DELETE SET NULL"
+    },
+    {
+      "kind": "constraint",
+      "entity": "pendency_contacts",
+      "name": "pendency_contacts_school_id_fkey",
+      "definition": "FOREIGN KEY (school_id) REFERENCES schools(id) ON UPDATE CASCADE ON DELETE CASCADE"
+    },
+    {
+      "kind": "constraint",
+      "entity": "quality_provisional_movements",
+      "name": "quality_provisional_movements_competence_id_fkey",
+      "definition": "FOREIGN KEY (competence_id) REFERENCES competences(id) ON UPDATE CASCADE ON DELETE RESTRICT"
+    },
+    {
+      "kind": "constraint",
+      "entity": "quality_provisional_movements",
+      "name": "quality_provisional_movements_registered_invoice_id_fkey",
+      "definition": "FOREIGN KEY (registered_invoice_id) REFERENCES registered_invoices(id) ON DELETE SET NULL"
+    },
+    {
+      "kind": "constraint",
+      "entity": "quality_provisional_movements",
+      "name": "quality_provisional_movements_registered_invoice_id_key",
+      "definition": "UNIQUE (registered_invoice_id)"
+    },
+    {
+      "kind": "constraint",
+      "entity": "quality_provisional_movements",
+      "name": "quality_provisional_movements_school_id_fkey",
+      "definition": "FOREIGN KEY (school_id) REFERENCES schools(id) ON UPDATE CASCADE ON DELETE CASCADE"
+    },
+    {
+      "kind": "constraint",
+      "entity": "registered_invoices",
+      "name": "registered_invoices_competence_id_fkey",
+      "definition": "FOREIGN KEY (competence_id) REFERENCES competences(id) ON UPDATE CASCADE ON DELETE SET NULL"
+    },
+    {
+      "kind": "constraint",
+      "entity": "registered_invoices",
+      "name": "registered_invoices_linked_asset_id_fkey",
+      "definition": "FOREIGN KEY (linked_asset_id) REFERENCES assets(id) ON UPDATE CASCADE ON DELETE SET NULL"
+    },
+    {
+      "kind": "constraint",
+      "entity": "registered_invoices",
+      "name": "registered_invoices_program_id_fkey",
+      "definition": "FOREIGN KEY (program_id) REFERENCES programs(id) ON UPDATE CASCADE ON DELETE SET NULL"
+    },
+    {
+      "kind": "constraint",
+      "entity": "registered_invoices",
+      "name": "registered_invoices_school_id_fkey",
+      "definition": "FOREIGN KEY (school_id) REFERENCES schools(id) ON UPDATE CASCADE ON DELETE CASCADE"
+    },
+    {
+      "kind": "constraint",
+      "entity": "registered_invoices",
+      "name": "registered_invoices_verification_id_fkey",
+      "definition": "FOREIGN KEY (verification_id) REFERENCES verifications(id) ON UPDATE CASCADE ON DELETE SET NULL"
+    },
+    {
+      "kind": "constraint",
+      "entity": "verifications",
+      "name": "verifications_competence_id_fkey",
+      "definition": "FOREIGN KEY (competence_id) REFERENCES competences(id) ON UPDATE CASCADE ON DELETE RESTRICT"
+    },
+    {
+      "kind": "constraint",
+      "entity": "verifications",
+      "name": "verifications_program_id_fkey",
+      "definition": "FOREIGN KEY (program_id) REFERENCES programs(id) ON UPDATE CASCADE ON DELETE RESTRICT"
+    },
+    {
+      "kind": "constraint",
+      "entity": "verifications",
+      "name": "verifications_school_id_competence_id_program_id_key",
+      "definition": "UNIQUE (school_id, competence_id, program_id)"
+    },
+    {
+      "kind": "constraint",
+      "entity": "verifications",
+      "name": "verifications_school_id_fkey",
+      "definition": "FOREIGN KEY (school_id) REFERENCES schools(id) ON UPDATE CASCADE ON DELETE CASCADE"
+    },
+    {
+      "kind": "policy",
+      "entity": "assets",
+      "name": "assets_delete",
+      "definition": "DELETE: (current_app_role() = 'technical_admin'::text) CHECK "
+    },
+    {
+      "kind": "policy",
+      "entity": "pendencies",
+      "name": "pendencies_delete",
+      "definition": "DELETE: (current_app_role() = 'technical_admin'::text) CHECK "
+    },
+    {
+      "kind": "policy",
+      "entity": "pendency_attempts",
+      "name": "pendency_attempts_delete",
+      "definition": "DELETE: (current_app_role() = 'technical_admin'::text) CHECK "
+    },
+    {
+      "kind": "policy",
+      "entity": "pendency_contacts",
+      "name": "pendency_contacts_delete",
+      "definition": "DELETE: (current_app_role() = 'technical_admin'::text) CHECK "
+    },
+    {
+      "kind": "policy",
+      "entity": "quality_provisional_movements",
+      "name": "quality_provisional_delete",
+      "definition": "DELETE: ((status = 'open'::text) AND (( SELECT current_app_role() AS current_app_role) = ANY (ARRAY['controller'::text, 'federal_assistant'::text, 'technical_admin'::text])) AND (school_id = ANY (( SELECT radar_private.writable_school_ids() AS writable_school_ids)::text[]))) CHECK "
+    },
+    {
+      "kind": "policy",
+      "entity": "registered_invoices",
+      "name": "registered_invoices_delete",
+      "definition": "DELETE: (current_app_role() = 'technical_admin'::text) CHECK "
+    },
+    {
+      "kind": "policy",
+      "entity": "verifications",
+      "name": "verifications_delete",
+      "definition": "DELETE: (current_app_role() = 'technical_admin'::text) CHECK "
+    },
+    {
+      "kind": "trigger",
+      "entity": "assets",
+      "name": "assets_capture_audit",
+      "definition": "CREATE TRIGGER assets_capture_audit AFTER INSERT OR DELETE OR UPDATE ON public.assets FOR EACH ROW EXECUTE FUNCTION capture_audit_event()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "assets",
+      "name": "assets_operational_invalidation",
+      "definition": "CREATE TRIGGER assets_operational_invalidation AFTER INSERT OR DELETE OR UPDATE ON public.assets FOR EACH ROW EXECUTE FUNCTION radar_private.broadcast_operational_invalidation()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "assets",
+      "name": "assets_protect_inventoried_terminal_delete",
+      "definition": "CREATE TRIGGER assets_protect_inventoried_terminal_delete BEFORE DELETE ON public.assets FOR EACH ROW WHEN ((old.status = 'Inventariada'::text)) EXECUTE FUNCTION radar_private.protect_inventoried_asset_terminal_state()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "assets",
+      "name": "assets_protect_inventoried_terminal_state",
+      "definition": "CREATE TRIGGER assets_protect_inventoried_terminal_state BEFORE UPDATE OF status ON public.assets FOR EACH ROW WHEN (((old.status = 'Inventariada'::text) AND (new.status IS DISTINCT FROM old.status))) EXECUTE FUNCTION radar_private.protect_inventoried_asset_terminal_state()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "assets",
+      "name": "assets_touch_updated_at",
+      "definition": "CREATE TRIGGER assets_touch_updated_at BEFORE UPDATE ON public.assets FOR EACH ROW EXECUTE FUNCTION touch_updated_at()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "pendencies",
+      "name": "pendencies_capture_audit",
+      "definition": "CREATE TRIGGER pendencies_capture_audit AFTER INSERT OR DELETE OR UPDATE ON public.pendencies FOR EACH ROW EXECUTE FUNCTION capture_audit_event()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "pendencies",
+      "name": "pendencies_operational_invalidation",
+      "definition": "CREATE TRIGGER pendencies_operational_invalidation AFTER INSERT OR DELETE OR UPDATE ON public.pendencies FOR EACH ROW EXECUTE FUNCTION radar_private.broadcast_operational_invalidation()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "pendencies",
+      "name": "pendencies_sync_attempt_statuses",
+      "definition": "CREATE TRIGGER pendencies_sync_attempt_statuses AFTER INSERT OR UPDATE OF payload ON public.pendencies FOR EACH ROW EXECUTE FUNCTION sync_pendency_attempt_statuses()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "pendencies",
+      "name": "pendencies_touch_updated_at",
+      "definition": "CREATE TRIGGER pendencies_touch_updated_at BEFORE UPDATE ON public.pendencies FOR EACH ROW EXECUTE FUNCTION touch_updated_at()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "pendency_attempts",
+      "name": "pendency_attempts_capture_audit",
+      "definition": "CREATE TRIGGER pendency_attempts_capture_audit AFTER INSERT OR DELETE OR UPDATE ON public.pendency_attempts FOR EACH ROW EXECUTE FUNCTION capture_audit_event()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "pendency_attempts",
+      "name": "pendency_attempts_operational_invalidation",
+      "definition": "CREATE TRIGGER pendency_attempts_operational_invalidation AFTER INSERT OR DELETE OR UPDATE ON public.pendency_attempts FOR EACH ROW EXECUTE FUNCTION radar_private.broadcast_operational_invalidation()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "pendency_attempts",
+      "name": "pendency_attempts_touch_updated_at",
+      "definition": "CREATE TRIGGER pendency_attempts_touch_updated_at BEFORE UPDATE ON public.pendency_attempts FOR EACH ROW EXECUTE FUNCTION touch_updated_at()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "pendency_contacts",
+      "name": "pendency_contacts_capture_audit",
+      "definition": "CREATE TRIGGER pendency_contacts_capture_audit AFTER INSERT OR DELETE OR UPDATE ON public.pendency_contacts FOR EACH ROW EXECUTE FUNCTION capture_audit_event()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "pendency_contacts",
+      "name": "pendency_contacts_operational_invalidation",
+      "definition": "CREATE TRIGGER pendency_contacts_operational_invalidation AFTER INSERT OR DELETE OR UPDATE ON public.pendency_contacts FOR EACH ROW EXECUTE FUNCTION radar_private.broadcast_operational_invalidation()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "pendency_contacts",
+      "name": "pendency_contacts_touch_updated_at",
+      "definition": "CREATE TRIGGER pendency_contacts_touch_updated_at BEFORE UPDATE ON public.pendency_contacts FOR EACH ROW EXECUTE FUNCTION touch_updated_at()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "quality_provisional_movements",
+      "name": "quality_provisional_movement_touch",
+      "definition": "CREATE TRIGGER quality_provisional_movement_touch BEFORE UPDATE ON public.quality_provisional_movements FOR EACH ROW EXECUTE FUNCTION radar_private.touch_quality_provisional_movement()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "registered_invoices",
+      "name": "registered_invoices_capture_audit",
+      "definition": "CREATE TRIGGER registered_invoices_capture_audit AFTER INSERT OR DELETE OR UPDATE ON public.registered_invoices FOR EACH ROW EXECUTE FUNCTION capture_audit_event()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "registered_invoices",
+      "name": "registered_invoices_delete_unlinked_asset",
+      "definition": "CREATE TRIGGER registered_invoices_delete_unlinked_asset AFTER UPDATE OF linked_asset_id ON public.registered_invoices FOR EACH ROW WHEN ((old.linked_asset_id IS DISTINCT FROM new.linked_asset_id)) EXECUTE FUNCTION delete_unlinked_invoice_asset()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "registered_invoices",
+      "name": "registered_invoices_internet_bill_program_guard",
+      "definition": "CREATE TRIGGER registered_invoices_internet_bill_program_guard BEFORE INSERT OR UPDATE OF school_id, program_id, expense_type ON public.registered_invoices FOR EACH ROW EXECUTE FUNCTION enforce_internet_bill_expense_program()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "registered_invoices",
+      "name": "registered_invoices_normalize_number",
+      "definition": "CREATE TRIGGER registered_invoices_normalize_number BEFORE INSERT OR UPDATE OF expense_type, invoice_number ON public.registered_invoices FOR EACH ROW EXECUTE FUNCTION normalize_registered_invoice_number()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "registered_invoices",
+      "name": "registered_invoices_operational_invalidation",
+      "definition": "CREATE TRIGGER registered_invoices_operational_invalidation AFTER INSERT OR DELETE OR UPDATE ON public.registered_invoices FOR EACH ROW EXECUTE FUNCTION radar_private.broadcast_operational_invalidation()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "registered_invoices",
+      "name": "registered_invoices_protect_advisory_history_delete",
+      "definition": "CREATE TRIGGER registered_invoices_protect_advisory_history_delete BEFORE DELETE ON public.registered_invoices FOR EACH ROW EXECUTE FUNCTION radar_private.protect_service_advisory_invoice_history()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "registered_invoices",
+      "name": "registered_invoices_protect_advisory_history_update",
+      "definition": "CREATE TRIGGER registered_invoices_protect_advisory_history_update BEFORE UPDATE OF school_id, competence_id, program_id, expense_type ON public.registered_invoices FOR EACH ROW EXECUTE FUNCTION radar_private.protect_service_advisory_invoice_history()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "registered_invoices",
+      "name": "registered_invoices_protect_inventoried_delete",
+      "definition": "CREATE TRIGGER registered_invoices_protect_inventoried_delete BEFORE DELETE ON public.registered_invoices FOR EACH ROW WHEN ((old.linked_asset_id IS NOT NULL)) EXECUTE FUNCTION radar_private.protect_inventoried_invoice_delete()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "registered_invoices",
+      "name": "registered_invoices_touch_updated_at",
+      "definition": "CREATE TRIGGER registered_invoices_touch_updated_at BEFORE UPDATE ON public.registered_invoices FOR EACH ROW EXECUTE FUNCTION touch_updated_at()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "verifications",
+      "name": "verifications_capture_audit",
+      "definition": "CREATE TRIGGER verifications_capture_audit AFTER INSERT OR DELETE OR UPDATE ON public.verifications FOR EACH ROW EXECUTE FUNCTION capture_audit_event()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "verifications",
+      "name": "verifications_operational_invalidation",
+      "definition": "CREATE TRIGGER verifications_operational_invalidation AFTER INSERT OR DELETE OR UPDATE ON public.verifications FOR EACH ROW EXECUTE FUNCTION radar_private.broadcast_operational_invalidation()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "verifications",
+      "name": "verifications_strip_payload_versions",
+      "definition": "CREATE TRIGGER verifications_strip_payload_versions BEFORE INSERT OR UPDATE OF payload ON public.verifications FOR EACH ROW EXECUTE FUNCTION radar_private.strip_verification_payload_versions()"
+    },
+    {
+      "kind": "trigger",
+      "entity": "verifications",
+      "name": "verifications_touch_updated_at",
+      "definition": "CREATE TRIGGER verifications_touch_updated_at BEFORE UPDATE ON public.verifications FOR EACH ROW EXECUTE FUNCTION touch_updated_at()"
+    }
+  ],
+  "counts": [
+    {
+      "metric": "invoice_with_pendency_history",
+      "count": 424
+    },
+    {
+      "metric": "invoice_linked_to_inventoried_asset",
+      "count": 1
+    },
+    {
+      "metric": "asset_linked_to_multiple_invoices",
+      "count": 0
+    },
+    {
+      "metric": "fiscal_or_advisory_pendency_without_invoice_fk",
+      "count": 2
+    },
+    {
+      "metric": "contacts_with_pendency",
+      "count": 5
+    },
+    {
+      "metric": "quality_identified_without_invoice",
+      "count": 0
+    },
+    {
+      "metric": "invoices_without_verification_fk",
+      "count": 0
+    },
+    {
+      "metric": "invoice_verification_context_mismatch",
+      "count": 0
+    }
+  ],
+  "legacy": [
+    {
+      "document_key": "notaFiscal",
+      "status": "Aguardando reanálise",
+      "records": 1,
+      "has_payload_invoice_id": 0,
+      "payload_link_matches_existing_invoice": 0
+    },
+    {
+      "document_key": "consAssessoria",
+      "status": "Cancelada",
+      "records": 1,
+      "has_payload_invoice_id": 0,
+      "payload_link_matches_existing_invoice": 0
+    }
+  ],
+  "functions": [
+    {
+      "schema": "radar_private",
+      "name": "delete_invoice_with_effects_impl",
+      "definition": "CREATE OR REPLACE FUNCTION radar_private.delete_invoice_with_effects_impl(p_invoice_id text, p_expected_invoice_version integer, p_delete_linked_asset boolean DEFAULT true, p_expected_asset_version integer DEFAULT NULL::integer, p_verification_patch jsonb DEFAULT NULL::jsonb, p_expected_verification_version integer DEFAULT NULL::integer, p_administrative_log jsonb DEFAULT NULL::jsonb)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\ndeclare\n    v_invoice public.registered_invoices%rowtype;\n    v_asset public.assets%rowtype;\n    v_verification public.verifications%rowtype;\nbegin\n    select *\n    into v_invoice\n    from public.registered_invoices\n    where id = p_invoice_id\n    for update;\n\n    if not found then\n        raise exception 'NOT_FOUND: registered_invoices/%', p_invoice_id;\n    end if;\n\n    if not public.can_write_school(v_invoice.school_id) then\n        raise exception 'AUTHORIZATION_DENIED: usuário sem permissão de escrita para a escola %', v_invoice.school_id;\n    end if;\n\n    if v_invoice.row_version <> p_expected_invoice_version then\n        raise exception 'OPTIMISTIC_CONFLICT: registered_invoices/%', p_invoice_id;\n    end if;\n\n    if v_invoice.linked_asset_id is not null and p_delete_linked_asset then\n        select *\n        into v_asset\n        from public.assets\n        where id = v_invoice.linked_asset_id\n        for update;\n\n        if found and (p_expected_asset_version is null or v_asset.row_version <> p_expected_asset_version) then\n            raise exception 'OPTIMISTIC_CONFLICT: assets/%', v_invoice.linked_asset_id;\n        end if;\n    end if;\n\n    delete from public.registered_invoices\n    where id = p_invoice_id\n      and row_version = p_expected_invoice_version;\n\n    if not found then\n        raise exception 'OPTIMISTIC_CONFLICT: registered_invoices/%', p_invoice_id;\n    end if;\n\n    if v_asset.id is not null and p_delete_linked_asset then\n        if exists (\n            select 1\n            from public.registered_invoices other_invoice\n            where other_invoice.linked_asset_id = v_asset.id\n        ) then\n            raise exception 'VALIDATION_ERROR: bem ainda está vinculado a outra nota';\n        end if;\n\n        delete from public.assets\n        where id = v_asset.id\n          and row_version = p_expected_asset_version;\n\n        if not found then\n            raise exception 'OPTIMISTIC_CONFLICT: assets/%', v_asset.id;\n        end if;\n    end if;\n\n    if p_verification_patch is not null then\n        if v_invoice.verification_id is null then\n            raise exception 'VALIDATION_ERROR: nota sem verificação vinculada';\n        end if;\n\n        update public.verifications\n        set\n            -- Merge only projections owned by the expense; preserve manual marks\n            -- and bonus_result even when an old/incomplete client sends them.\n            analysis = analysis || coalesce((\n                select jsonb_object_agg(key, value)\n                from jsonb_each(coalesce(p_verification_patch -> 'analysis', '{}'::jsonb))\n                where key in ('notaFiscal', 'consAssessoria', 'encampInventario')\n            ), '{}'::jsonb),\n            bonification = bonification || coalesce((\n                select jsonb_object_agg(key, value)\n                from jsonb_each(coalesce(p_verification_patch -> 'bonification', '{}'::jsonb))\n                where key in ('consAssessoria', 'consEnviada', 'encampInventario')\n            ), '{}'::jsonb)\n        where id = v_invoice.verification_id\n          and school_id = v_invoice.school_id\n          and row_version = p_expected_verification_version\n        returning * into v_verification;\n\n        if not found then\n            raise exception 'OPTIMISTIC_CONFLICT: verifications/%', v_invoice.verification_id;\n        end if;\n    end if;\n\n    if p_administrative_log is not null then\n        if nullif(p_administrative_log ->> 'id', '') is null\n            or nullif(p_administrative_log ->> 'action', '') is null then\n            raise exception 'VALIDATION_ERROR: log administrativo exige id e action';\n        end if;\n\n        insert into public.administrative_logs (\n            id,\n            school_id,\n            actor_user_id,\n            user_identifier,\n            profile_name,\n            action,\n            details,\n            event_at\n        ) values (\n            p_administrative_log ->> 'id',\n            v_invoice.school_id,\n            auth.uid(),\n            coalesce(p_administrative_log ->> 'user_identifier', ''),\n            coalesce(p_administrative_log ->> 'profile_name', public.current_app_role(), ''),\n            p_administrative_log ->> 'action',\n            coalesce(p_administrative_log -> 'details', '{}'::jsonb),\n            coalesce(nullif(p_administrative_log ->> 'event_at', '')::timestamptz, now())\n        );\n    end if;\n\n    return jsonb_build_object(\n        'deleted_invoice_id', p_invoice_id,\n        'deleted_asset_id', case when v_asset.id is null or not p_delete_linked_asset then null else v_asset.id end,\n        'verification', case when v_verification.id is null then null else to_jsonb(v_verification) end\n    );\nend\n$function$\n"
+    },
+    {
+      "schema": "radar_private",
+      "name": "save_invoice_with_effects_v2_impl",
+      "definition": "CREATE OR REPLACE FUNCTION radar_private.save_invoice_with_effects_v2_impl(p_operation_key uuid, p_invoice jsonb, p_asset jsonb DEFAULT NULL::jsonb, p_verification_patch jsonb DEFAULT NULL::jsonb, p_expected_invoice_version integer DEFAULT NULL::integer, p_expected_asset_version integer DEFAULT NULL::integer, p_expected_verification_version integer DEFAULT NULL::integer, p_administrative_log jsonb DEFAULT NULL::jsonb)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public', 'radar_private'\nAS $function$\ndeclare\n    v_actor_user_id uuid := auth.uid();\n    v_request jsonb;\n    v_request_hash text;\n    v_stored_hash text;\n    v_stored_result jsonb;\n    v_result jsonb;\n    v_log jsonb;\nbegin\n    if p_operation_key is null then\n        raise exception 'VALIDATION_ERROR: operation key é obrigatória na gravação idempotente de Nota Fiscal';\n    end if;\n    if v_actor_user_id is null then\n        raise exception 'AUTHORIZATION_DENIED: operação idempotente exige usuário autenticado';\n    end if;\n\n    v_request := jsonb_build_object(\n        'invoice', p_invoice,\n        'asset', p_asset,\n        'verification_patch', p_verification_patch,\n        'expected_invoice_version', p_expected_invoice_version,\n        'expected_asset_version', p_expected_asset_version,\n        'expected_verification_version', p_expected_verification_version,\n        'administrative_log', p_administrative_log\n    );\n    v_request_hash := md5(v_request::text);\n\n    insert into radar_private.invoice_operation_idempotency (\n        operation_name,\n        operation_key,\n        actor_user_id,\n        request_hash\n    ) values (\n        'invoice:save',\n        p_operation_key,\n        v_actor_user_id,\n        v_request_hash\n    )\n    on conflict (operation_name, operation_key, actor_user_id) do nothing;\n\n    select request_hash, result\n    into v_stored_hash, v_stored_result\n    from radar_private.invoice_operation_idempotency\n    where operation_name = 'invoice:save'\n      and operation_key = p_operation_key\n      and actor_user_id = v_actor_user_id\n    for update;\n\n    if v_stored_hash is distinct from v_request_hash then\n        raise exception 'IDEMPOTENCY_CONFLICT: a mesma chave de intenção foi reutilizada com outro payload';\n    end if;\n\n    if v_stored_result is not null then\n        return v_stored_result;\n    end if;\n\n    v_result := radar_private.save_invoice_with_effects_impl(\n        p_invoice,\n        p_asset,\n        p_verification_patch,\n        p_expected_invoice_version,\n        p_expected_asset_version,\n        p_expected_verification_version,\n        p_administrative_log\n    );\n\n    if p_administrative_log is not null and nullif(p_administrative_log ->> 'id', '') is not null then\n        select to_jsonb(log_row)\n        into v_log\n        from public.administrative_logs log_row\n        where log_row.id = p_administrative_log ->> 'id';\n    end if;\n\n    v_result := v_result || jsonb_build_object(\n        'operation_key', p_operation_key,\n        'administrative_log', v_log,\n        'changed_entities', jsonb_build_array(\n            'registeredInvoices',\n            'assets',\n            'verifications',\n            'administrativeLogs'\n        )\n    );\n\n    update radar_private.invoice_operation_idempotency\n    set result = v_result,\n        completed_at = now()\n    where operation_name = 'invoice:save'\n      and operation_key = p_operation_key\n      and actor_user_id = v_actor_user_id;\n\n    return v_result;\nend\n$function$\n"
+    },
+    {
+      "schema": "public",
+      "name": "delete_unlinked_invoice_asset",
+      "definition": "CREATE OR REPLACE FUNCTION public.delete_unlinked_invoice_asset()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\nbegin\n    if old.linked_asset_id is null\n        or old.linked_asset_id is not distinct from new.linked_asset_id then\n        return new;\n    end if;\n\n    if exists (\n        select 1\n        from public.registered_invoices invoice\n        where invoice.linked_asset_id = old.linked_asset_id\n          and invoice.id <> new.id\n    ) then\n        raise exception 'INTEGRITY_CONFLICT: o bem % está vinculado a outra nota', old.linked_asset_id;\n    end if;\n\n    delete from public.assets\n    where id = old.linked_asset_id\n      and school_id = old.school_id;\n\n    if not found then\n        raise exception 'INTEGRITY_CONFLICT: bem derivado % não localizado para desvinculação', old.linked_asset_id;\n    end if;\n\n    return new;\nend\n$function$\n"
+    },
+    {
+      "schema": "radar_private",
+      "name": "identify_quality_provisional_movement_impl",
+      "definition": "CREATE OR REPLACE FUNCTION radar_private.identify_quality_provisional_movement_impl(p_provisional_id uuid, p_expected_provisional_version integer, p_operation_key uuid, p_invoice jsonb, p_asset jsonb DEFAULT NULL::jsonb, p_verification_patch jsonb DEFAULT NULL::jsonb, p_expected_invoice_version integer DEFAULT NULL::integer, p_expected_asset_version integer DEFAULT NULL::integer, p_expected_verification_version integer DEFAULT NULL::integer, p_administrative_log jsonb DEFAULT NULL::jsonb)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public', 'radar_private'\nAS $function$\ndeclare\n    v_movement public.quality_provisional_movements%rowtype;\n    v_result jsonb;\n    v_program text := nullif(p_invoice ->> 'program_id', '');\nbegin\n    if auth.uid() is null\n        or radar_private.current_app_role() not in ('controller','federal_assistant','technical_admin')\n        or p_provisional_id is null or p_operation_key is null\n        or p_expected_provisional_version is null\n        or nullif(p_invoice ->> 'id', '') is null then\n        raise exception 'AUTHORIZATION_DENIED: identificacao exige identidade, versao e operacao validas';\n    end if;\n\n    select * into v_movement\n    from public.quality_provisional_movements\n    where id = p_provisional_id\n    for update;\n\n    if not found then\n        raise exception 'NOT_FOUND: movimentacao provisoria nao localizada';\n    end if;\n    if not radar_private.can_write_school(v_movement.school_id) then\n        raise exception 'AUTHORIZATION_DENIED: escola fora do escopo de escrita';\n    end if;\n\n    if v_movement.school_id is distinct from p_invoice ->> 'school_id'\n        or v_movement.competence_id is distinct from p_invoice ->> 'competence_id'\n        or v_program not in ('CONECTADA', 'PROEC', 'ED_FAMILIA', 'ADOLESCENCIAS', 'LEITURA', 'TEMPO_APRENDER')\n        or not exists (\n            select 1 from public.school_programs sp\n            where sp.school_id = v_movement.school_id\n              and sp.program_id = v_program and sp.active\n        )\n        or p_invoice ->> 'expense_type' not in ('consumo', 'permanente', 'servico', 'boleto_internet')\n    then\n        raise exception 'VALIDATION_ERROR: identificacao incompatível com escola, competencia, programa ou tipo';\n    end if;\n\n    if v_movement.status = 'identified' then\n        if v_movement.identification_operation_key is distinct from p_operation_key\n            or v_movement.registered_invoice_id is distinct from p_invoice ->> 'id'\n        then\n            raise exception 'OPTIMISTIC_CONFLICT: movimentacao ja identificada';\n        end if;\n    elsif v_movement.row_version <> p_expected_provisional_version then\n        raise exception 'OPTIMISTIC_CONFLICT: registro provisório modificado por outra sessao';\n    end if;\n\n    if v_movement.status = 'open' and (\n        p_expected_invoice_version is not null\n        or exists (select 1 from public.registered_invoices where id = p_invoice ->> 'id')\n    ) then\n        raise exception 'VALIDATION_ERROR: identificacao exige um novo documento fiscal';\n    end if;\n\n    v_result := radar_private.save_invoice_with_effects_v2_impl(\n        p_operation_key, p_invoice, p_asset, p_verification_patch,\n        p_expected_invoice_version, p_expected_asset_version,\n        p_expected_verification_version, p_administrative_log\n    );\n\n    if v_movement.status = 'open' then\n        update public.quality_provisional_movements\n        set status = 'identified',\n            registered_invoice_id = p_invoice ->> 'id',\n            identification_operation_key = p_operation_key\n        where id = p_provisional_id;\n    end if;\n\n    return v_result || jsonb_build_object(\n        'quality_provisional_id', p_provisional_id,\n        'quality_provisional_status', 'identified'\n    );\nend;\n$function$\n"
+    },
+    {
+      "schema": "radar_private",
+      "name": "protect_inventoried_asset_terminal_state",
+      "definition": "CREATE OR REPLACE FUNCTION radar_private.protect_inventoried_asset_terminal_state()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog', 'public', 'radar_private'\nAS $function$\nbegin\n    if old.status = 'Inventariada' then\n        if tg_op = 'DELETE' then\n            raise exception 'ASSET_ALREADY_INVENTORIED: assets/%', old.id;\n        end if;\n        if new.status is distinct from old.status then\n            raise exception 'ASSET_ALREADY_INVENTORIED: assets/%', old.id;\n        end if;\n    end if;\n    if tg_op = 'DELETE' then return old; end if;\n    return new;\nend\n$function$\n"
+    },
+    {
+      "schema": "radar_private",
+      "name": "protect_inventoried_invoice_delete",
+      "definition": "CREATE OR REPLACE FUNCTION radar_private.protect_inventoried_invoice_delete()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public', 'radar_private'\nAS $function$\ndeclare\n    v_asset_status text;\nbegin\n    select status into v_asset_status\n    from public.assets\n    where id = old.linked_asset_id\n    for update;\n\n    if v_asset_status = 'Inventariada' then\n        raise exception 'ASSET_ALREADY_INVENTORIED: assets/%', old.linked_asset_id;\n    end if;\n    return old;\nend\n$function$\n"
+    },
+    {
+      "schema": "radar_private",
+      "name": "protect_service_advisory_invoice_history",
+      "definition": "CREATE OR REPLACE FUNCTION radar_private.protect_service_advisory_invoice_history()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public', 'radar_private'\nAS $function$\ndeclare\n    v_has_individual_history boolean;\n    v_has_advisory_history boolean;\nbegin\n    select\n        bool_or(document_key in ('consAssessoria', 'notaFiscal')),\n        bool_or(document_key = 'consAssessoria')\n      into v_has_individual_history, v_has_advisory_history\n      from public.pendencies\n     where registered_invoice_id = old.id;\n\n    if not coalesce(v_has_individual_history, false) then\n        if tg_op = 'DELETE' then return old; end if;\n        return new;\n    end if;\n\n    if tg_op = 'DELETE' then\n        raise exception 'INTEGRITY_CONFLICT: Nota Fiscal possui histórico de pendência individual e não pode ser excluída';\n    end if;\n\n    if new.school_id is distinct from old.school_id\n        or new.competence_id is distinct from old.competence_id\n        or new.program_id is distinct from old.program_id then\n        raise exception 'INTEGRITY_CONFLICT: Nota Fiscal possui histórico de pendência individual e não pode alterar escola, competência ou programa';\n    end if;\n\n    if new.expense_type is distinct from old.expense_type\n        and coalesce(v_has_advisory_history, false) then\n        raise exception 'INTEGRITY_CONFLICT: Nota Fiscal possui histórico de pendência da Assessoria e deve permanecer como prestação de serviço';\n    end if;\n\n    return new;\nend\n$function$\n"
+    },
+    {
+      "schema": "public",
+      "name": "retify_verification_with_pendency_cancel",
+      "definition": "CREATE OR REPLACE FUNCTION public.retify_verification_with_pendency_cancel(p_verification jsonb, p_expected_verification_version integer, p_pendency jsonb, p_expected_pendency_version integer, p_administrative_log jsonb, p_retification jsonb)\n RETURNS jsonb\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\ndeclare\n    v_role text := public.current_app_role();\n    v_verification_id text := nullif(p_verification ->> 'id', '');\n    v_pendency_id text := nullif(p_pendency ->> 'id', '');\n    v_school_id text;\n    v_document_key text;\n    v_requested_analysis text;\n    v_previous_analysis text;\n    v_justification text;\n    v_event_at timestamptz;\n    v_user_identifier text;\n    v_profile_name text;\n    v_existing_verification public.verifications%rowtype;\n    v_existing_pendency public.pendencies%rowtype;\n    v_saved_verification public.verifications%rowtype;\n    v_saved_pendency public.pendencies%rowtype;\n    v_log public.administrative_logs%rowtype;\n    v_history jsonb;\n    v_cancel_event jsonb;\n    v_cancellation jsonb;\n    v_next_payload jsonb;\nbegin\n    if v_role not in ('controller', 'federal_assistant', 'technical_admin') then\n        raise exception 'AUTHORIZATION_DENIED: perfil sem permissão para retificar avaliações';\n    end if;\n\n    if jsonb_typeof(p_verification) <> 'object'\n        or v_verification_id is null\n        or jsonb_typeof(p_pendency) <> 'object'\n        or v_pendency_id is null then\n        raise exception 'VALIDATION_ERROR: verificação e pendência canônicas são obrigatórias';\n    end if;\n\n    if p_expected_verification_version is null or p_expected_pendency_version is null then\n        raise exception 'VALIDATION_ERROR: retificação exige versões esperadas da verificação e da pendência';\n    end if;\n\n    if p_retification is null or jsonb_typeof(p_retification) <> 'object' then\n        raise exception 'VALIDATION_ERROR: confirmação formal da retificação é obrigatória';\n    end if;\n    if coalesce((p_retification ->> 'confirmed')::boolean, false) is distinct from true then\n        raise exception 'RETIFICATION_CONFIRMATION_REQUIRED: confirmação expressa é obrigatória';\n    end if;\n    if nullif(p_retification ->> 'kind', '') is distinct from 'retificacao_avaliacao'\n        or nullif(p_retification ->> 'origin', '') is distinct from 'avaliacao_tecnica' then\n        raise exception 'VALIDATION_ERROR: tipo ou origem da retificação inválidos';\n    end if;\n    v_justification := nullif(btrim(p_retification ->> 'justification'), '');\n    if v_justification is null then\n        raise exception 'RETIFICATION_JUSTIFICATION_REQUIRED: justificativa da retificação é obrigatória';\n    end if;\n\n    if p_administrative_log is null\n        or jsonb_typeof(p_administrative_log) <> 'object'\n        or nullif(p_administrative_log ->> 'id', '') is null\n        or nullif(p_administrative_log ->> 'action', '') is null\n        or not public.radar_jsonb_matches(\n            'auditDetails', coalesce(p_administrative_log -> 'details', '{}'::jsonb)\n        ) then\n        raise exception 'VALIDATION_ERROR: log administrativo obrigatório e inválido';\n    end if;\n\n    if not public.radar_jsonb_matches(\n        'analysis', coalesce(p_verification -> 'analysis', '{}'::jsonb)\n    ) or not public.radar_jsonb_matches(\n        'bonification', coalesce(p_verification -> 'bonification', '{}'::jsonb)\n    ) or not public.radar_jsonb_matches(\n        'compatibilityPayload', coalesce(p_verification -> 'payload', '{}'::jsonb)\n    ) then\n        raise exception 'VALIDATION_ERROR: verificação incompatível';\n    end if;\n\n    if not public.radar_jsonb_matches(\n        'compatibilityPayload', coalesce(p_pendency -> 'payload', '{}'::jsonb)\n    ) then\n        raise exception 'VALIDATION_ERROR: payload da pendência incompatível';\n    end if;\n\n    select *\n    into v_existing_verification\n    from public.verifications\n    where id = v_verification_id\n    for update;\n\n    if not found then\n        raise exception 'NOT_FOUND: verifications/%', v_verification_id;\n    end if;\n\n    select *\n    into v_existing_pendency\n    from public.pendencies\n    where id = v_pendency_id\n    for update;\n\n    if not found then\n        raise exception 'NOT_FOUND: pendencies/%', v_pendency_id;\n    end if;\n\n    if v_existing_verification.row_version <> p_expected_verification_version then\n        raise exception 'OPTIMISTIC_CONFLICT: verifications/%', v_verification_id;\n    end if;\n    if v_existing_pendency.row_version <> p_expected_pendency_version then\n        raise exception 'OPTIMISTIC_CONFLICT: pendencies/%', v_pendency_id;\n    end if;\n\n    v_school_id := v_existing_verification.school_id;\n    v_document_key := v_existing_pendency.document_key;\n    v_previous_analysis := nullif(v_existing_verification.analysis ->> v_document_key, '');\n    v_requested_analysis := nullif(p_verification -> 'analysis' ->> v_document_key, '');\n\n    if not public.can_write_school(v_school_id) then\n        raise exception 'AUTHORIZATION_DENIED: usuário sem escrita para a escola %', v_school_id;\n    end if;\n\n    if v_existing_pendency.school_id is distinct from v_school_id\n        or v_existing_pendency.competence_origin is distinct from v_existing_verification.competence_id\n        or v_existing_pendency.program_id is distinct from v_existing_verification.program_id then\n        raise exception 'VALIDATION_ERROR: verificação e pendência pertencem a contextos diferentes';\n    end if;\n\n    if nullif(p_verification ->> 'school_id', '') is distinct from v_existing_verification.school_id\n        or nullif(p_verification ->> 'competence_id', '') is distinct from v_existing_verification.competence_id\n        or nullif(p_verification ->> 'program_id', '') is distinct from v_existing_verification.program_id then\n        raise exception 'VALIDATION_ERROR: contexto da verificação não pode ser alterado';\n    end if;\n\n    if nullif(p_pendency ->> 'school_id', '') is distinct from v_existing_pendency.school_id\n        or nullif(p_pendency ->> 'competence_origin', '') is distinct from v_existing_pendency.competence_origin\n        or nullif(p_pendency ->> 'program_id', '') is distinct from v_existing_pendency.program_id\n        or nullif(p_pendency ->> 'document_key', '') is distinct from v_existing_pendency.document_key\n        or nullif(p_pendency ->> 'registered_invoice_id', '') is distinct from v_existing_pendency.registered_invoice_id then\n        raise exception 'VALIDATION_ERROR: contexto da pendência não pode ser alterado';\n    end if;\n\n    if v_document_key in ('notaFiscal', 'boletoInternet', 'consAssessoria') then\n        raise exception 'VALIDATION_ERROR: documento possui fluxo técnico derivado e não admite retificação agregada';\n    end if;\n\n    if v_existing_pendency.status not in ('Aberta', 'Aguardando reanálise') then\n        raise exception 'INVALID_TRANSITION: somente pendência ativa pode ser anulada por retificação';\n    end if;\n\n    if v_previous_analysis is distinct from 'Incorreto' then\n        raise exception 'INVALID_TRANSITION: análise atual precisa ser Incorreto para anular pendência por retificação';\n    end if;\n\n    if nullif(p_pendency ->> 'status', '') is distinct from 'Cancelada' then\n        raise exception 'INVALID_TRANSITION: retificação com pendência ativa deve resultar em estado técnico Cancelada';\n    end if;\n\n    if v_requested_analysis not in ('Não analisado', 'Correto', 'Correto (Atrasado)') then\n        raise exception 'VALIDATION_ERROR: estado técnico de destino inválido para retificação';\n    end if;\n\n    if nullif(p_retification ->> 'previousAnalysis', '') is distinct from v_previous_analysis\n        or nullif(p_retification ->> 'newAnalysis', '') is distinct from v_requested_analysis then\n        raise exception 'VALIDATION_ERROR: confirmação não corresponde à alteração efetivamente solicitada';\n    end if;\n\n    if coalesce(p_verification -> 'bonification', '{}'::jsonb) is distinct from v_existing_verification.bonification\n        or nullif(p_verification ->> 'bonus_result', '') is distinct from v_existing_verification.bonus_result\n        or coalesce(p_verification -> 'payload', '{}'::jsonb) is distinct from v_existing_verification.payload then\n        raise exception 'VALIDATION_ERROR: retificação técnica não pode alterar bonificação, consolidação ou payload da verificação';\n    end if;\n\n    if (coalesce(p_verification -> 'analysis', '{}'::jsonb) - v_document_key)\n        is distinct from (v_existing_verification.analysis - v_document_key) then\n        raise exception 'VALIDATION_ERROR: retificação técnica não pode alterar a análise de outros documentos';\n    end if;\n\n    if coalesce(p_pendency ->> 'responsible_area', '') is distinct from v_existing_pendency.responsible_area\n        or coalesce(p_pendency ->> 'reason', '') is distinct from v_existing_pendency.reason\n        or coalesce(p_pendency ->> 'notes', '') is distinct from v_existing_pendency.notes then\n        raise exception 'VALIDATION_ERROR: anulação por retificação não pode editar dados cadastrais da pendência';\n    end if;\n\n    if v_requested_analysis = 'Correto'\n        and lower(coalesce(v_existing_verification.bonus_result, '')) in ('apta', 'inapta')\n        and coalesce(v_existing_verification.bonification ->> v_document_key, '') = 'Não' then\n        raise exception 'LATE_ANALYSIS_REQUIRED: documento exige Correto (Atrasado) após não entrega consolidada';\n    end if;\n\n    v_event_at := coalesce(\n        nullif(p_administrative_log ->> 'event_at', '')::timestamptz,\n        now()\n    );\n    v_user_identifier := coalesce(\n        nullif(p_administrative_log ->> 'user_identifier', ''),\n        auth.uid()::text,\n        'Sistema'\n    );\n    v_profile_name := coalesce(\n        nullif(p_administrative_log ->> 'profile_name', ''),\n        v_role,\n        'sistema'\n    );\n\n    v_history := case\n        when jsonb_typeof(v_existing_pendency.payload -> 'historico') = 'array'\n            then v_existing_pendency.payload -> 'historico'\n        else '[]'::jsonb\n    end;\n    v_cancel_event := jsonb_build_object(\n        'id', 'evento-retificacao-' || (p_administrative_log ->> 'id'),\n        'tipo', 'retificacao_avaliacao',\n        'dataHora', v_event_at,\n        'usuario', v_user_identifier,\n        'perfil', v_profile_name,\n        'detalhe', format(\n            'Avaliação técnica retificada de \"%s\" para \"%s\". Pendência anulada por edição da avaliação. Justificativa: %s',\n            v_previous_analysis,\n            v_requested_analysis,\n            v_justification\n        ),\n        'erros', case\n            when jsonb_typeof(v_existing_pendency.payload -> 'errosAtuais') = 'array'\n                then v_existing_pendency.payload -> 'errosAtuais'\n            else '[]'::jsonb\n        end,\n        'tentativaId', null,\n        'metadados', jsonb_build_object(\n            'tipoEncerramento', 'retificacao_avaliacao',\n            'origem', 'avaliacao_tecnica',\n            'avaliacaoAnterior', v_previous_analysis,\n            'avaliacaoNova', v_requested_analysis,\n            'confirmacaoExpressa', true\n        )\n    );\n    v_cancellation := jsonb_build_object(\n        'tipo', 'retificacao_avaliacao',\n        'origem', 'avaliacao_tecnica',\n        'rotulo', 'Anulada por edição da avaliação',\n        'avaliacaoAnterior', v_previous_analysis,\n        'avaliacaoNova', v_requested_analysis,\n        'justificativa', v_justification,\n        'confirmacaoExpressa', true,\n        'dataHora', v_event_at,\n        'usuario', v_user_identifier,\n        'perfil', v_profile_name\n    );\n    v_next_payload := v_existing_pendency.payload || jsonb_build_object(\n        'status', 'Cancelada',\n        'proximoAtor', null,\n        'dataResolucao', null,\n        'cancelamento', v_cancellation,\n        'historico', v_history || jsonb_build_array(v_cancel_event)\n    );\n\n    update public.verifications\n    set analysis = jsonb_set(\n        v_existing_verification.analysis,\n        array[v_document_key],\n        to_jsonb(v_requested_analysis),\n        true\n    )\n    where id = v_verification_id\n      and row_version = p_expected_verification_version\n    returning * into v_saved_verification;\n\n    if not found then\n        raise exception 'OPTIMISTIC_CONFLICT: verifications/%', v_verification_id;\n    end if;\n\n    update public.pendencies\n    set\n        status = 'Cancelada',\n        next_actor = '',\n        resolved_at = null,\n        canceled_at = v_event_at,\n        payload = v_next_payload\n    where id = v_pendency_id\n      and row_version = p_expected_pendency_version\n    returning * into v_saved_pendency;\n\n    if not found then\n        raise exception 'OPTIMISTIC_CONFLICT: pendencies/%', v_pendency_id;\n    end if;\n\n    if nullif(p_administrative_log ->> 'school_id', '') is not null\n        and (p_administrative_log ->> 'school_id') is distinct from v_school_id then\n        raise exception 'VALIDATION_ERROR: log administrativo pertence a outra escola';\n    end if;\n\n    insert into public.administrative_logs (\n        id,\n        school_id,\n        actor_user_id,\n        user_identifier,\n        profile_name,\n        action,\n        details,\n        event_at\n    ) values (\n        p_administrative_log ->> 'id',\n        v_school_id,\n        auth.uid(),\n        coalesce(p_administrative_log ->> 'user_identifier', ''),\n        v_profile_name,\n        p_administrative_log ->> 'action',\n        coalesce(p_administrative_log -> 'details', '{}'::jsonb),\n        v_event_at\n    )\n    returning * into v_log;\n\n    return jsonb_build_object(\n        'verification', to_jsonb(v_saved_verification),\n        'pendency', to_jsonb(v_saved_pendency),\n        'administrative_log', to_jsonb(v_log)\n    );\nend\n$function$\n"
+    },
+    {
+      "schema": "public",
+      "name": "sync_pendency_attempt_statuses",
+      "definition": "CREATE OR REPLACE FUNCTION public.sync_pendency_attempt_statuses()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\nbegin\n    if jsonb_typeof(coalesce(new.payload -> 'tentativas', '[]'::jsonb)) <> 'array' then\n        raise exception 'VALIDATION_ERROR: tentativas da pendência devem ser um array';\n    end if;\n\n    update public.pendency_attempts attempt\n    set payload = jsonb_set(\n        coalesce(attempt.payload, '{}'::jsonb),\n        '{status}',\n        to_jsonb(source_attempt ->> 'status'),\n        true\n    )\n    from jsonb_array_elements(coalesce(new.payload -> 'tentativas', '[]'::jsonb)) source_attempt\n    where attempt.pendency_id = new.id\n      and attempt.id = nullif(source_attempt ->> 'id', '')\n      and nullif(source_attempt ->> 'status', '') is not null\n      and coalesce(attempt.payload ->> 'status', '') is distinct from (source_attempt ->> 'status');\n\n    return new;\nend\n$function$\n"
+    }
+  ],
+  "validation": {
+    "type": "existing unit tests for current behavior, no implementation",
+    "tests": 45,
+    "passed": 45,
+    "failed": 0,
+    "files": [
+      "tests/unit/invoice-history-lock.test.js",
+      "tests/unit/invoice-terminal-deletion.test.js",
+      "tests/unit/invoice-effects.test.js",
+      "tests/unit/auditable-retification.test.js",
+      "tests/unit/evaluation-retification-atomic.test.js",
+      "tests/unit/pendency-invoice-state-bridge.test.js",
+      "tests/unit/service-advisory-pendency.test.js"
+    ]
+  }
+}
