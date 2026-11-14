@@ -1,5 +1,11 @@
 # Matriz de validade documental
 
+## Evolução aprovada em execução — 14/11/2026
+
+[PRONTUARIO_CORRECAO_CONTRATO.md](PRONTUARIO_CORRECAO_CONTRATO.md) é o contrato **de destino**, obrigatório para esta frente; [plano](../superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md) e [handoff corrente](../handoff/2026-11-14-prontuario-correcao-integrada.md) governam execução/retomada. O código e banco atuais descrevem o presente; não confundir restrições atuais com exigência de preservá-las contra a decisão do proprietário.
+
+O estudo visual de 13/11 mantém valor para composição, mas suas exigências de justificativa, exclusão sem histórico e terminalidade absoluta foram superadas pela análise de flexibilização e plano aprovado. Testes dessas restrições serão substituídos com provas das novas capacidades, não simplesmente apagados. As demais invariantes permanecem. Acompanhar o handoff remoto na branch de execução; somente mudar o modelo efetivo e a matriz funcional à medida que houver implementação e integração comprovadas.
+
 **Classe documental:** Canônico  
 **Atualizado em:** 23 de outubro de 2026
 

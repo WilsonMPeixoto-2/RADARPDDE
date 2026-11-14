@@ -1,5 +1,7 @@
 # Catálogo de superfícies do RADAR PDDE
 
+**Evolução aprovada, ainda em implementação:** ler [contrato Prontuário/correção](PRONTUARIO_CORRECAO_CONTRATO.md) e [handoff corrente](../handoff/2026-11-14-prontuario-correcao-integrada.md). As regras abaixo descrevem a baseline efetiva; justificativas obrigatórias e bloqueios por histórico/terminalidade são alvo de revisão deliberada, não motivo para impedir a execução aprovada. Nenhuma aprovação de plano, isoladamente, altera Production.
+
 **Estado:** referência operacional vigente  
 **Atualizado em:** 25 de setembro de 2026
 
