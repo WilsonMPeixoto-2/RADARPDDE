@@ -1,5 +1,15 @@
 # RADAR PDDE — estado atual e retomada
 
+## Frente corrente — Prontuário visual + correção de lançamentos — 14/11/2026
+
+Plano aprovado pelo proprietário para execução. Baseline de produto conferida: `190e44942d0bb6927d1a7eeb83fb94fc782171b8` (#516). Esta atualização é documental; não comprova novo deployment nem mudança no banco.
+
+**Handoff corrente:** [Prontuário e correção integrada](handoff/2026-11-14-prontuario-correcao-integrada.md). **Branch cumulativa:** `feat/prontuario-correcao-integrada-20261114`. Consultar a versão remota do handoff nessa branch para commits, testes, limites e próxima ação; este bloco não é contador de progresso.
+
+Leitura obrigatória: [contrato de evolução](reference/PRONTUARIO_CORRECAO_CONTRATO.md) e [plano T0–T6](superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md). T0 iniciou; T1–T6 ainda não concluídos. A política de correção/exclusão foi aprovada como destino, mas não está implementada nesta baseline. PR #515 de Pendências permanece independente, sem integração nesta frente.
+
+**As seções datadas abaixo são checkpoints históricos.** Prioridades e handoffs antigos nelas citados não substituem este roteamento. As funcionalidades e melhorias já integradas permanecem preservadas.
+
 **Estado remoto verificado em 09/11/2026:** `main@ff9dade9999469e99c8745de3659eea71f5af41c`, Production Vercel `dpl_FsohkhJt1CQyyucPFdGr4hj2RktD` (READY). PR #508 integrado: Supabase JS `2.119.0`; PR #509 integrado: Playwright `1.65.0`, eslint-plugin-playwright `2.12.2`, MSW `3.0.4`; PR #510 integrado: CodeQL Action `4.39.3`. Supabase CLI permanece `2.122.0` e Lighthouse `13.5.0`.
 
 **Leitura do histórico:** o checkpoint de 04/11/2026 e as instruções de retomada abaixo documentam o estado **daquela data** e não substituem a versão efetivamente publicada. Esta frente de UX/segurança de baixo risco é exclusiva de branch e Preview, sem autorização para merge em `main` ou Production.
