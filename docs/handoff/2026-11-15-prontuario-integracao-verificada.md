@@ -6,6 +6,14 @@
 **Plano de destino:** [Prontuário: design, correção e exclusão integrados](../superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md).
 **Regras aprovadas:** [contrato](../reference/PRONTUARIO_CORRECAO_CONTRATO.md) e [estudo de flexibilização](../superpowers/specs/2026-11-14-flexibilizacao-correcao-exclusao-lancamentos.md).
 
+## Última conferência da branch Antigravity — 15/11/2026
+
+**Verificação final com GitHub e sandbox remoto:** `audit/antigravity-argon-prontuario-20261115@52ff0871` **não teve novos commits** após a incorporação seletiva à integração `a869b2df`. O `main@4011a2b8` permaneceu intacto. A divergência entre branches é intencional: preserve ambas, não efetue merge integral. Não existem arquivos de código adicionais a importar no corte verificado.
+
+**Teste independente do código REMOTO integrado `a869b2df`:** `npm run test:readiness` com **1.414 unitários e 8 integrações** (exit 0); Chromium Playwright nas sete suítes de retificação, projeções NF, Pendências, diálogo e SME: **40 aprovados, 1 ignorado e 0 falhas** (exit 0, 2 workers). Trata-se de UI com RPC controlada, não de teste autenticado da 63ª migration em banco institucional.
+
+**Análise detalhada, SHAs, exclusões seletivas e comandos:** [reconciliação final Antigravity](../audits/2026-11-15-antigravity-reconciliacao-final.md). **Este checkpoint continua sendo o único ponto de retomada funcional**, sem apagar registros anteriores.
+
 ## Reconciliação independente — projeções de NF e Pendências (15/11/2026)
 
 **Origem auditada e preservada:** `audit/antigravity-argon-prontuario-20261115@52ff0871`, partindo de `466810ff`. O Antigravity relatou inspeção **somente de leitura** no Supabase institucional (62 migrations instaladas, 43 Pendências com identificação histórica diferente da NF atual); esses totais são **evidência do relatório do Antigravity, não reconferência independente direta no banco**. A migration de correção T2/T3 **não foi instalada** no Supabase institucional.
