@@ -4,6 +4,7 @@
 **Branch única de integração e recuperação:** `fix/prontuario-integrado-validado-20261115`.
 **Baseline conservada:** `main` em `4011a2b8`, sem alteração, merge ou deploy pela frente.
 **Plano de destino:** [Prontuário: design, correção e exclusão integrados](../superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md).
+**Matriz obrigatória de transição por jornada:** [Regras antigas → novos comandos → substituição → testes/interfaces/documentação](../reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md). Diferenciar **código candidato ainda desligado** de **defeito no produto vigente**; a retirada de regras legadas ocorre no lote correto e exige testes de compatibilidade, não simplesmente remoção de testes antigos. Documento complementar ao plano original, sem segunda branch de execução.
 **Regras aprovadas:** [contrato](../reference/PRONTUARIO_CORRECAO_CONTRATO.md) e [estudo de flexibilização](../superpowers/specs/2026-11-14-flexibilizacao-correcao-exclusao-lancamentos.md).
 
 ## Última conferência da branch Antigravity — 15/11/2026
