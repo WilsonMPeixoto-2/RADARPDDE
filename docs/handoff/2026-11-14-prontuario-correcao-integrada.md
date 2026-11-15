@@ -17,8 +17,8 @@
 |---|---|---|
 | Preparação | Concluída | Worktree e baseline 190e4494 validadas; documentação e PR #517 (4011a2b) integrados   |
 | T0 | Concluída | 28/28 testes de baseline aprovados; contrato PRONTUARIO_CORRECAO_CONTRATO.md e fixtures tests/fixtures/prontuario-correction-cases.json gravados em bf903ae 
-| T1 | Em curso | Contexto visual, agrupamento semântico por programa (sem depender de td[rowspan]), tokens editoriais #FAFAFC/#252133/#686477/#6335B5 e edição cadastral com prova E2E |
-| T2 | Não iniciada | Correção/regularização e contrato transacional |
+| T1 | Concluída | Contexto visual, agrupamento semântico por programa, tokens editoriais #FAFAFC/#252133/#686477/#6335B5 e cenários E2E gravados em 0405e45, 2ddf6a8, ab5b8e4 |
+| T2 | Em curso | Correção/regularização e contrato transacional |
 | T3 | Não iniciada | Exclusão causal com patrimônio/provisória |
 | T4 | Não iniciada | Bonificação/contexto errado |
 | T5 | Não iniciada | Histórico/contatos/inventariação |
