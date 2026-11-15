@@ -1,0 +1,28 @@
+    Error Context: test-results/prontuario-correction-layo-0fd4a-tadados-com-pendência-ativa-desktop-chromium-retry1/error-context.md
+    Error Context: test-results/prontuario-correction-layo-0fd4a-tadados-com-pendência-ativa-desktop-chromium/error-context.md
+    Error Context: test-results/prontuario-correction-layo-9f0a4-ape-e-tokens-do-tema-escuro-desktop-chromium-retry1/error-context.md
+    Error Context: test-results/prontuario-correction-layo-9f0a4-ape-e-tokens-do-tema-escuro-desktop-chromium/error-context.md
+    Error: expect(received).toBeTruthy()
+    at createSmeError (/home/runner/work/RADARPDDE/RADARPDDE/src/integration/excel-export-integration.js:30:23)
+    test-results/prontuario-correction-layo-0fd4a-tadados-com-pendência-ativa-desktop-chromium-retry1/test-failed-1.png
+    test-results/prontuario-correction-layo-0fd4a-tadados-com-pendência-ativa-desktop-chromium/test-failed-1.png
+    test-results/prontuario-correction-layo-9f0a4-ape-e-tokens-do-tema-escuro-desktop-chromium-retry1/test-failed-1.png
+    test-results/prontuario-correction-layo-9f0a4-ape-e-tokens-do-tema-escuro-desktop-chromium/test-failed-1.png
+    throw new Error(`${label} falhou com status ${result.status}.${details}`);
+  1) [desktop-chromium] › tests/e2e/prontuario-correction-layout.spec.js:9:5 › Prontuário — Lote T1 (Layout, Agrupamento Semântico e Edição Cadastral) › same-invoice-metadata-edit-with-active-pendency: preserva NF B e bonificação ao editar metadados com pendência ativa 
+  2 failed
+  2) [desktop-chromium] › tests/e2e/prontuario-correction-layout.spec.js:66:5 › Prontuário — Lote T1 (Layout, Agrupamento Semântico e Edição Cadastral) › dense-context-keyboard-theme: valida contexto visível, tecla Escape e tokens do tema escuro 
+  239 passed (8.4m)
+  TypeError [Error]: Cannot read properties of undefined (reading 'delete')
+  TypeError [Error]: group.contextCell.setAttribute is not a function
+Error: Iniciar segunda pilha Supabase descartável falhou com status 1.
+[163/310] (retries) [desktop-chromium] › tests/e2e/prontuario-correction-layout.spec.js:9:5 › Prontuário — Lote T1 (Layout, Agrupamento Semântico e Edição Cadastral) › same-invoice-metadata-edit-with-active-pendency: preserva NF B e bonificação ao editar metadados com pendência ativa (retry #1)
+[165/310] (retries) [desktop-chromium] › tests/e2e/prontuario-correction-layout.spec.js:66:5 › Prontuário — Lote T1 (Layout, Agrupamento Semântico e Edição Cadastral) › dense-context-keyboard-theme: valida contexto visível, tecla Escape e tokens do tema escuro (retry #1)
+[MSW] Error: intercepted a request without a matching request handler:
+[RADAR PDDE] Falha ao gerar o Excel SME mensal. Error: A competência exibida não corresponde ao estado atual. Selecione novamente o mês antes de gerar o Excel SME.
+failed to execute query: error: MIGRATION_HISTORY_MISMATCH: esperado {202607130001,202607130002,202607130003,202607130004,202607130005,202607130006,202607130007,202607130008,202607140009,20260714180621,20260714220136,20260714220146,202607190001,20260720030046,20260720193000,20260721090000,20260721152515,20260721152634,20260721153758,20260721160056,202607220001,202607220002,202607230001,20260723043129,20260728182226,202608040001,202608050001,202608060001,202608060002,202608060003,20260809165500,20260811181312,20260811190712,20260816205046,20260816214535,20260822040642,20260823003500,20260823010000,20260823032000,20260823045000,20260823050000,20260827130000,20260828023000,20260830223000,20260903175000,20260904040000,20260905231000,20260906062000,20260906065000,20260906072000,20260910201500,20260917011723,20260919234500,20260920013656,20260922234500,20260929143215,20260929213000,20260930003000,20261004132755,20261004210000,20261011193500,20261024120000}, recebido {202607130001,202607130002,202607130003,202607130004,202607130005,202607130006,202607130007,202607130008,202607140009,20260714180621,20260714220136,20260714220146,202607190001,20260720030046,20260720193000,20260721090000,20260721152515,20260721152634,20260721153758,20260721160056,202607220001,202607220002,202607230001,20260723043129,20260728182226,202608040001,202608050001,202608060001,202608060002,202608060003,20260809165500,20260811181312,20260811190712,20260816205046,20260816214535,20260822040642,20260823003500,20260823010000,20260823032000,20260823045000,20260823050000,20260827130000,20260828023000,20260830223000,20260903175000,20260904040000,20260905231000,20260906062000,20260906065000,20260906072000,20260910201500,20260917011723,20260919234500,20260920013656,20260922234500,20260929143215,20260929213000,20260930003000,20261004132755,20261004210000,20261011193500,20261024120000,20261114000100}
+failed to start containers: 9e1fa42da2dda1006b6e785a007c953a7af57a9896f65c4be0de1c17e8d00229
+failed to start docker container "supabase_db_radar-pdde-restore": Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint supabase_db_radar-pdde-restore (5e4a2497e34b529b3e27b48d9080abc88f9aba5f9cfb62c45f557835c99d922e): failed to bind host port 0.0.0.0:55322/tcp: address already in use
+✔ executeRpc mantém AbortError reconhecível para leitura cancelada (0.802534ms)
+✔ gateway preserva ACCOUNT_CONFLICT recebido no corpo de FunctionsHttpError (28.632815ms)
+✔ trata QuotaExceededError lançando o código de erro apropriado (0.276061ms)

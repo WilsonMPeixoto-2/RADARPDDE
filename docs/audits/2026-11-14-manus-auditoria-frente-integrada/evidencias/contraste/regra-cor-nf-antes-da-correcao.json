@@ -1,0 +1,54 @@
+[
+  {
+    "tag": "STRONG.",
+    "text": "Débito bancário ainda sem documento",
+    "color": "rgb(18, 14, 34)",
+    "inline": null,
+    "rules": [
+      {
+        "sheet": "styles.css",
+        "selector": ".invoice-document-title-line > strong",
+        "color": "var(--text-dark)"
+      }
+    ]
+  },
+  {
+    "tag": "STRONG.",
+    "text": "R$ 145,67",
+    "color": "rgb(64, 56, 72)",
+    "inline": null,
+    "rules": [
+      {
+        "sheet": "styles.css",
+        "selector": ".invoice-document-meta strong",
+        "color": "rgb(64, 56, 72)"
+      }
+    ]
+  },
+  {
+    "tag": "STRONG.",
+    "text": "NF: NF-DEMO-01",
+    "color": "rgb(18, 14, 34)",
+    "inline": null,
+    "rules": [
+      {
+        "sheet": "styles.css",
+        "selector": ".invoice-document-title-line > strong",
+        "color": "var(--text-dark)"
+      }
+    ]
+  },
+  {
+    "tag": "STRONG.",
+    "text": "R$ 420,00",
+    "color": "rgb(64, 56, 72)",
+    "inline": null,
+    "rules": [
+      {
+        "sheet": "styles.css",
+        "selector": ".invoice-document-meta strong",
+        "color": "rgb(64, 56, 72)"
+      }
+    ]
+  }
+]

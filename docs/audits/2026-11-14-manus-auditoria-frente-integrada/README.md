@@ -6,6 +6,8 @@
 **SHAs auditados:** `main` = `4011a2b8`; `feat/prontuario-correcao-integrada-20261114` = `4c0c1725`.
 **Restrições respeitadas:** nenhuma alteração em `main`, no Supabase ou na Vercel. Produção consultada só em leitura. Os testes de banco rodaram num PostgreSQL 17 descartável, montado a partir das migrations do repositório.
 
+> **Atualização 15/11 00:35:** ver [ADENDO-2026-11-15.md](ADENDO-2026-11-15.md) (testes remotos, sugestões de código na branch `audit/manus-sugestoes-correcao-20261114` e guia de continuidade).
+
 ## Estado deste pacote
 
 | Arquivo | Conteúdo |

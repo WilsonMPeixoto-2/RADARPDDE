@@ -1,0 +1,9 @@
+main            claro                  nome do documento=16.78 | número da NF=18.89 | nome da escola (cabeçalho)=15.8
+main            escuroAposTroca        nome do documento=1.1 | número da NF=18.89 | nome da escola (cabeçalho)=1.04
+main            escuroAposRecarregar   nome do documento=16.67 | nome da escola (cabeçalho)=1.04
+T1 Astra        claro                  nome do documento=16.78 | número da NF=18.89 | nome da escola (cabeçalho)=15.8
+T1 Astra        escuroAposTroca        nome do documento=1.1 | número da NF=18.89 | nome da escola (cabeçalho)=1.04
+T1 Astra        escuroAposRecarregar   nome do documento=16.67 | nome da escola (cabeçalho)=1.04
+sugestão Manus  claro                  nome do documento=16.78 | número da NF=18.89 | nome da escola (cabeçalho)=15.8
+sugestão Manus  escuroAposTroca        nome do documento=1.1 | número da NF=18.89 | nome da escola (cabeçalho)=18.1
+sugestão Manus  escuroAposRecarregar   nome do documento=16.67 | nome da escola (cabeçalho)=18.1

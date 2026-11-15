@@ -1,0 +1,64 @@
+psql:supabase/tests/database/operational-correction.test.sql:7: NOTICE:  extension "pgtap" already exists, skipping
+1..59
+ok 1 - preview_operational_change existe
+ok 2 - apply_operational_change existe
+ok 3 - anon não pré-visualiza correção
+ok 4 - anon não aplica correção
+ok 5 - anon não executa a implementação privada
+ok 6 - authenticated não grava no livro-razão
+ok 7 - authenticated não lê o livro-razão diretamente
+ok 8 - guarda terminal do bem preserva o search_path endurecido
+ok 9 - exclusão ordinária de bem Inventariada continua bloqueada
+ok 10 - exclusão ordinária de NF com bem Inventariada continua bloqueada
+{"sub":"00000000-0000-0000-0000-00000000c003","role":"authenticated"}
+ok 11 - Gestão SME (somente leitura) não corrige lançamentos
+{"sub":"00000000-0000-0000-0000-00000000c002","role":"authenticated"}
+ok 12 - Controlador de outra CRE não corrige a escola
+{"sub":"00000000-0000-0000-0000-00000000c001","role":"authenticated"}
+ok 13 - ação desconhecida é rejeitada
+ok 14 - ação de lote futuro falha explicitamente, sem falso sucesso
+ok 15 - alvo fora do contexto informado é rejeitado
+ok 16 - plano de exclusão da NF conta exatamente 2 Pendências, 1 envio e 2 contatos
+ok 17 - contatos de outras NFs e contato geral ficam fora do plano
+ok 18 - plano traz digest SHA-256
+ok 19 - pré-visualização não escreve
+ok 20 - exclusão da despesa é aplicada
+ok 21 - NF excluída
+ok 22 - Pendências da NF (inclusive resolvida) excluídas
+ok 23 - envio da Pendência excluído
+ok 24 - contatos vinculados excluídos
+ok 25 - contatos de outra NF e geral preservados
+ok 26 - NF vizinha preservada
+ok 27 - bonificação consolidada e marca preservadas (ADR-055)
+ok 28 - repetição com a mesma operationKey devolve o recibo original
+ok 29 - mesma operationKey com outro alvo é conflito
+ok 30 - alteração entre prévia e aplicação gera STALE_PLAN
+ok 31 - prévia avisa que o bem Inventariado será excluído
+ok 32 - exclusão de despesa com bem Inventariada é permitida pelo comando autorizado
+ok 33 - bem exclusivo Inventariada excluído junto com a NF
+ok 34 - após a operação, bem Inventariada fora do plano continua protegido
+ok 35 - Pendência obrigatória da despesa a identificar é bloqueada na prévia
+ok 36 - apply respeita o bloqueio determinístico
+ok 37 - excluir a única NF Incorreta recalcula o agregado de Notas Fiscais
+ok 38 - despesa a identificar e sua Pendência obrigatória são excluídas juntas
+ok 39 - agregado atualizado sem reabrir bonificação
+ok 40 - NF originada de saída provisória é excluída
+ok 41 - saída provisória do Qualidade volta a aberta sem vínculo inválido
+ok 42 - prévia avisa que a Pendência tem envio da escola
+ok 43 - limpar análise aplica sem justificativa obrigatória
+ok 44 - análise volta a Não analisado e a marca de bonificação permanece
+ok 45 - Pendência consequência excluída com seus envios
+ok 46 - seleção de Pendência fora da consequência (histórica) é rejeitada
+ok 47 - correção com seleção explícita é aplicada
+ok 48 - somente a Pendência ativa consequência foi excluída; a histórica cancelada permanece
+ok 49 - Correto após não entrega consolidada é normalizado de forma visível
+ok 50 - correção com normalização de atraso aplicada
+ok 51 - resultado gravado como Correto (Atrasado)
+ok 52 - Incorreto exige o fluxo próprio com apontamentos
+ok 53 - limpar a análise individual da NF é aplicado
+ok 54 - análise individual e agregado de Notas Fiscais voltam a Não analisado
+ok 55 - Pendência resolvida pode ser excluída; nota opcional é aceita
+ok 56 - contato vinculado à Pendência excluída também é removido
+ok 57 - livro-razão registra autoria e perfil de cada operação aplicada
+ok 58 - nota opcional é preservada no livro-razão
+ok 59 - nenhuma operação fica em estado intermediário

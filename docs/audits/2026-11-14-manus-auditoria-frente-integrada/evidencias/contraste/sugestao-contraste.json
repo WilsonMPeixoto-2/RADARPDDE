@@ -1,0 +1,89 @@
+{
+  "claro": {
+    "theme": "",
+    "items": [
+      {
+        "label": "nome do documento",
+        "text": "Extrato Conta Corrente",
+        "color": "rgb(32, 26, 48)",
+        "bg": "rgb(255,255,255,0.72)",
+        "ratio": 16.78
+      },
+      {
+        "label": "número da NF",
+        "text": "Débito bancário ainda sem documento",
+        "color": "rgb(18, 14, 34)",
+        "bg": "rgb(255,255,255)",
+        "ratio": 18.89
+      },
+      {
+        "label": "nome da escola (cabeçalho)",
+        "text": "Unidade Escolar: Escola Municipal Ema Ne",
+        "color": "rgb(32, 26, 48)",
+        "bg": "rgb(247,248,251)",
+        "ratio": 15.8
+      },
+      {
+        "label": "título Notas Fiscais",
+        "found": false
+      }
+    ]
+  },
+  "escuroAposTroca": {
+    "theme": "dark-theme",
+    "items": [
+      {
+        "label": "nome do documento",
+        "text": "Extrato Conta Corrente",
+        "color": "rgb(245, 243, 247)",
+        "bg": "rgb(255,255,255,0.72)",
+        "ratio": 1.1
+      },
+      {
+        "label": "número da NF",
+        "text": "Débito bancário ainda sem documento",
+        "color": "rgb(18, 14, 34)",
+        "bg": "rgb(255,255,255)",
+        "ratio": 18.89
+      },
+      {
+        "label": "nome da escola (cabeçalho)",
+        "text": "Unidade Escolar: Escola Municipal Ema Ne",
+        "color": "rgb(245, 243, 247)",
+        "bg": "rgb(10,7,18)",
+        "ratio": 18.1
+      },
+      {
+        "label": "título Notas Fiscais",
+        "found": false
+      }
+    ]
+  },
+  "escuroAposRecarregar": {
+    "theme": "dark-theme",
+    "items": [
+      {
+        "label": "nome do documento",
+        "text": "Extrato Conta Corrente",
+        "color": "rgb(245, 243, 247)",
+        "bg": "rgb(22,17,38,0.7)",
+        "ratio": 16.67
+      },
+      {
+        "label": "número da NF",
+        "found": false
+      },
+      {
+        "label": "nome da escola (cabeçalho)",
+        "text": "Unidade Escolar: Escola Municipal Ema Ne",
+        "color": "rgb(245, 243, 247)",
+        "bg": "rgb(10,7,18)",
+        "ratio": 18.1
+      },
+      {
+        "label": "título Notas Fiscais",
+        "found": false
+      }
+    ]
+  }
+}

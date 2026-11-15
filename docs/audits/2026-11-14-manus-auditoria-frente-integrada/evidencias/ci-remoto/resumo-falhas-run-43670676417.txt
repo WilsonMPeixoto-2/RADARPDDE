@@ -1,0 +1,16 @@
+    Error Context: test-results/global-visual-polish-Polim-3c6b2-ementos-e-ganham-acabamento-desktop-chromium-retry1/error-context.md
+    Error Context: test-results/global-visual-polish-Polim-3c6b2-ementos-e-ganham-acabamento-desktop-chromium/error-context.md
+    Error Context: test-results/sme-access-governance-gove-3abf5-em-análise-técnica-ou-ações-desktop-chromium-retry1/error-context.md
+    Error Context: test-results/sme-access-governance-gove-3abf5-em-análise-técnica-ou-ações-desktop-chromium/error-context.md
+    Error: expect(locator).toHaveCount(expected) failed
+    Error: expect(page).toHaveScreenshot(expected) failed
+    test-results/global-visual-polish-Polim-3c6b2-ementos-e-ganham-acabamento-desktop-chromium-retry1/test-failed-1.png
+    test-results/global-visual-polish-Polim-3c6b2-ementos-e-ganham-acabamento-desktop-chromium/test-failed-1.png
+    test-results/sme-access-governance-gove-3abf5-em-análise-técnica-ou-ações-desktop-chromium-retry1/test-failed-1.png
+    test-results/sme-access-governance-gove-3abf5-em-análise-técnica-ou-ações-desktop-chromium/test-failed-1.png
+  1) [desktop-chromium] › tests/e2e/global-visual-polish.spec.js:115:3 › Polimento visual global › Prontuário, abas, formulários e modais preservam elementos e ganham acabamento 
+  2 failed
+  2) [desktop-chromium] › tests/e2e/sme-access-governance.spec.js:19:3 › governança de acesso da Gestão SME › visão mensal e prontuário exibem bonificação sem análise técnica ou ações 
+  241 passed (10.2m)
+[198/312] (retries) [desktop-chromium] › tests/e2e/sme-access-governance.spec.js:19:3 › governança de acesso da Gestão SME › visão mensal e prontuário exibem bonificação sem análise técnica ou ações (retry #1)
+[93/312] (retries) [desktop-chromium] › tests/e2e/global-visual-polish.spec.js:115:3 › Polimento visual global › Prontuário, abas, formulários e modais preservam elementos e ganham acabamento (retry #1)
