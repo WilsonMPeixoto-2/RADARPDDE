@@ -1,10 +1,10 @@
 # Matriz de validade documental
 
-## Evolução aprovada em execução — 14/11/2026
+## Prontuário e correção integrada — rota documental vigente (15/11/2026)
 
-[PRONTUARIO_CORRECAO_CONTRATO.md](PRONTUARIO_CORRECAO_CONTRATO.md) é o contrato **de destino**, obrigatório para esta frente; [plano](../superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md) e [handoff corrente](../handoff/2026-11-14-prontuario-correcao-integrada.md) governam execução/retomada. O código e banco atuais descrevem o presente; não confundir restrições atuais com exigência de preservá-las contra a decisão do proprietário.
+O [contrato aprovado](PRONTUARIO_CORRECAO_CONTRATO.md) define as regras de destino e o [plano T0–T6](../superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md) delimita a implementação. **O único handoff de execução corrente** é o [checkpoint de integração verificada de 15/11](../handoff/2026-11-15-prontuario-integracao-verificada.md), na branch `fix/prontuario-integrado-validado-20261115`. O [handoff original do Argon (14/11)](../handoff/2026-11-14-prontuario-correcao-integrada.md) e o [relatório do Manus](https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/audit/manus-auditoria-frente-integrada-20261114/docs/audits/2026-11-14-manus-auditoria-frente-integrada/RELATORIO.md) são fontes **históricas de comparação**, não pontos paralelos de retomada.
 
-O estudo visual de 13/11 mantém valor para composição, mas suas exigências de justificativa, exclusão sem histórico e terminalidade absoluta foram superadas pela análise de flexibilização e plano aprovado. Testes dessas restrições serão substituídos com provas das novas capacidades, não simplesmente apagados. As demais invariantes permanecem. Acompanhar o handoff remoto na branch de execução; somente mudar o modelo efetivo e a matriz funcional à medida que houver implementação e integração comprovadas.
+O estudo visual de 13/11 continua referência estética, mas restrições antigas incompatíveis com a flexibilização aprovada (justificativa compulsória, exclusão vedada só por histórico e terminalidade absoluta) não prevalecem sobre a decisão posterior. O código do SHA efetivo e o banco institucional continuam fontes para **o que está implementado hoje**. Um contrato aprovado não representa publicação, migração executada ou funcionalidade testada de ponta a ponta.
 
 **Classe documental:** Canônico  
 **Atualizado em:** 23 de outubro de 2026
