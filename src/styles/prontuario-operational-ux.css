@@ -396,3 +396,60 @@ body.dark-theme #prontuario-verif-rows tr.verification-document-row.is-striped >
         white-space: normal;
     }
 }
+
+/* T1: o contexto ocupa a largura do programa, sem coluna lateral vazia. */
+#prontuario-verif-rows [data-program-header] .program-context-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px 24px;
+}
+
+#prontuario-verif-rows [data-program-header] .program-context-identity {
+    flex: 1 1 220px;
+    min-width: 0;
+    text-align: left;
+}
+
+#prontuario-verif-rows [data-program-header] .program-context-competence {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+#prontuario-verif-rows [data-program-header] .program-context-name {
+    margin: 4px 0 0;
+    color: var(--text-main) !important;
+    font-size: 1.15rem !important;
+    line-height: 1.3;
+}
+
+#prontuario-verif-rows [data-program-header] .program-status-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+    margin: 0;
+}
+
+#prontuario-verif-rows [data-program-header] .program-status-summary > div {
+    display: grid;
+    justify-items: start;
+    gap: 4px;
+}
+
+#prontuario-verif-rows [data-program-header] .program-consolidate-button {
+    width: auto;
+    min-height: 36px;
+    margin: 0;
+}
+
+#tab-verificacoes .prontuario-evaluation-table > thead th:first-child {
+    width: 36%;
+}
+
+#tab-verificacoes .prontuario-evaluation-table > thead th {
+    padding-block: 16px;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 0.82rem;
+}

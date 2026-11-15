@@ -9890,14 +9890,13 @@ function renderProntuario(escolaId) {
                             }).join('')}
                         </div>
                         <div class="table-responsive">
-                            <table class="data-table">
+                            <table class="data-table prontuario-evaluation-table" aria-label="Avaliações mensais por programa">
                                 <thead>
                                     <tr>
-                                        <th>Competência</th>
-                                        <th>Item de Verificação</th>
-                                        <th>Bonificação</th>
-                                        ${canViewTechnicalAnalysis ? '<th>Análise Técnica</th>' : ''}
-                                        ${canUseVerificationActions ? '<th>Ações</th>' : ''}
+                                        <th scope="col">Documento</th>
+                                        <th scope="col">Bonificação</th>
+                                        ${canViewTechnicalAnalysis ? '<th scope="col">Análise técnica</th>' : ''}
+                                        ${canUseVerificationActions ? '<th scope="col">Providência</th>' : ''}
                                     </tr>
                                 </thead>
                                 <tbody id="prontuario-verif-rows">
@@ -10278,7 +10277,7 @@ function renderProntuarioVerificacoes(esc) {
     const canUseVerificationActions = canOpenPendency
         || canRegisterCorrectiveSubmission
         || canReanalyzePendency;
-    const visibleColumnCount = 3
+    const visibleColumnCount = 2
         + (canViewTechnicalAnalysis ? 1 : 0)
         + (canUseVerificationActions ? 1 : 0);
     const documentaryPendencies = pendencias.filter(pendency => (
@@ -10354,6 +10353,26 @@ function renderProntuarioVerificacoes(esc) {
                 const programDocItems = docItems.filter(doc => (
                     !Array.isArray(doc.programIds) || doc.programIds.includes(progId)
                 ));
+                rowsHTML += `
+                    <tr class="program-block-start" data-program-header="${escapeHtml(progId)}" data-program-id="${escapeHtml(progId)}">
+                        <td class="program-context-cell" colspan="${visibleColumnCount}">
+                            <div class="program-context-header">
+                                <div class="program-context-identity">
+                                    <span class="program-context-competence">${escapeHtml(c.label)}</span>
+                                    <h3 class="program-context-name">${escapeHtml(progName)}</h3>
+                                </div>
+                                ${programStatusSummary}
+                                ${accessProfile !== 'inventario' && accessProfile !== 'sme' ? (
+                                    v.resultadoBonif ? `
+                                        <button class="btn program-consolidate-button is-disabled" disabled>Consolidada</button>
+                                    ` : `
+                                        <button class="btn program-consolidate-button" onclick="calcularEFecharBonificacao('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">Consolidar</button>
+                                    `
+                                ) : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
                 programDocItems.forEach((doc, idx) => {
                     const effectiveDocumentState = window.RadarFluxoOperacional
                         .getEffectiveDocumentState(v, progId, doc.key);
@@ -10620,7 +10639,7 @@ function renderProntuarioVerificacoes(esc) {
                                 data-document-key="notaFiscal"
                                 class="invoice-document-host-row"
                             >
-                                <td colspan="${Math.max(1, visibleColumnCount - 1)}">
+                                <td colspan="${visibleColumnCount}">
                                     <section class="invoice-document-panel" data-invoice-document-panel>
                                         <div class="invoice-document-panel-header">
                                             <div class="invoice-document-panel-title">
@@ -10812,7 +10831,7 @@ function renderProntuarioVerificacoes(esc) {
                                 data-document-key="consAssessoria"
                                 class="invoice-document-host-row service-advisory-host-row"
                             >
-                                <td colspan="${Math.max(1, visibleColumnCount - 1)}">
+                                <td colspan="${visibleColumnCount}">
                                     <section class="invoice-document-panel service-advisory-panel" data-service-advisory-panel>
                                         <div class="invoice-document-panel-header">
                                             <div class="invoice-document-panel-title">
@@ -10909,20 +10928,6 @@ function renderProntuarioVerificacoes(esc) {
                             data-document-key="${escapeHtml(doc.key)}"
                             ${rowPendency ? `data-pendency-ref="${escapeHtml(encodePendencyIdReference(rowPendency.id))}" tabindex="-1"` : ''}
                         >
-                            ${idx === 0 ? `<td rowspan="${programDocItems.length}" style="vertical-align:top; border-right: 1px solid var(--border-color); width:180px;">
-                                <strong>${escapeHtml(c.label)}</strong><br>
-                                <span style="font-size:0.75rem; color:var(--primary); font-weight:600;">${escapeHtml(progName)}</span>
-                                <div style="margin-top:16px;">
-                                    ${programStatusSummary}
-                                    ${accessProfile !== 'inventario' && accessProfile !== 'sme' ? (
-                                        v.resultadoBonif ? `
-                                            <button class="btn program-consolidate-button is-disabled" disabled>Consolidada</button>
-                                        ` : `
-                                            <button class="btn program-consolidate-button" onclick="calcularEFecharBonificacao('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">Consolidar</button>
-                                        `
-                                    ) : ''}
-                                </div>
-                            </td>` : ''}
                             <td class="verification-document-name-cell">
                                 <div class="verification-document-cell">
                                     <span class="verification-document-icon">${verificationDocumentIconSvg(doc.key)}</span>

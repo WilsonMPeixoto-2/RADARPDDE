@@ -374,14 +374,21 @@
             });
         });
 
-        const summary = rows
-            .map(row => row.querySelector('[data-program-status-summary]'))
-            .find(Boolean);
+        const summary = findProgramContext(root, rows)?.querySelector('[data-program-status-summary]');
         syncProgramSummary(root, summary, schoolId, competenceKey, programId);
     }
 
+    function findProgramContext(root, rows) {
+        const programId = text(rows[0]?.dataset?.programId);
+        const header = Array.from(root.document?.querySelectorAll?.(
+            '#prontuario-verif-rows tr[data-program-header]'
+        ) || []).find(candidate => text(candidate.dataset.programHeader) === programId);
+        return header?.querySelector('.program-context-cell')
+            || rows[0]?.querySelector?.('td[rowspan]');
+    }
+
     function syncConsolidationAction(root, schoolId, compKey, verification, rows) {
-        const contextCell = rows[0]?.querySelector?.('td[rowspan]');
+        const contextCell = findProgramContext(root, rows);
         const button = contextCell?.querySelector?.('button');
         if (!button) return false;
         const profile = text(root.getRadarAccessProfile?.()).toLocaleLowerCase('pt-BR');
