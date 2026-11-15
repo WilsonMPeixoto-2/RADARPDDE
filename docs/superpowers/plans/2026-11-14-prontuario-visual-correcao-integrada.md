@@ -8,6 +8,8 @@
 **Baseline confirmada em 14/11/2026, Brasília:** `main@190e44942d0bb6927d1a7eeb83fb94fc782171b8`; comparação remota idêntica durante o planejamento. Os catálogos SQL abaixo são evidência datada da análise anterior, não revalidação automática de futuras migrations.
 **Estado:** plano proposto, sem etapas de implementação executadas.
 
+> **Complemento de execução — 15/11/2026:** [Matriz de transição integral T0–T6](../../reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md) é leitura obrigatória junto deste plano para cada lote. Ela identifica as **regras e interfaces antigas que permanecem deliberadamente ativas enquanto a funcionalidade nova está em preparação**, a sequência correta de substituição, as expectativas de teste a atualizar, tipos/RPCs, consumidores, documentos, frontend e compatibilidade com clientes antigos. Este complemento **não** altera a decisão de destino nem declara uma etapa homologada ou publicada.
+
 **Especificações que acompanham o plano:**
 
 - [Direção visual do Prontuário, documento fixado](https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/5e57eda0e47983754b54b3ee1f7c59ecba202dbd/docs/superpowers/specs/2026-11-13-prontuario-exploracao-visual.md).
