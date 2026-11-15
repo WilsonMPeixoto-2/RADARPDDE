@@ -292,3 +292,21 @@ test('AMBIGUOUS_CONSEQUENCE exige seleção explícita de Pendências candidatas
     const applyCall = await page.evaluate(() => window.__ambiguousRpc.find(c => c.name === 'apply_operational_change'));
     expect(applyCall.args.p_request.selectedPendencyIds).toEqual(['PEND-CAND-2']);
 });
+
+test('botão Limpar análise prepara a prévia do que vai mudar e pede confirmação antes de gravar', async ({ page }) => {
+    await page.goto('/');
+    const dialog = await controlledDialog(page);
+    await expect(dialog.getByRole('heading', { name: 'O que vai mudar ao confirmar' })).toBeVisible();
+    const clearButton = dialog.getByRole('button', { name: 'Limpar análise' });
+    await expect(clearButton).toBeEnabled();
+    await clearButton.click();
+    await expect(dialog.getByText('Incorreto → Não analisado')).toBeVisible();
+    await expect(dialog.getByText(/Análise pronta para ser limpa/)).toBeVisible();
+    await expect(clearButton).toBeDisabled();
+    // Ainda não gravou nada antes da confirmação explícita:
+    expect(await page.evaluate(() => window.__auditRpc.filter(c => c.name === 'apply_operational_change').length)).toBe(0);
+    await dialog.getByRole('button', { name: 'Confirmar correção' }).click();
+    await expect(dialog).toBeHidden();
+    const applyCall = await page.evaluate(() => window.__auditRpc.find(c => c.name === 'apply_operational_change'));
+    expect(applyCall.args.p_request.action).toBe('clear_analysis');
+});

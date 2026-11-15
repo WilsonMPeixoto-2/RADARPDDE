@@ -6,6 +6,16 @@
 **Plano de destino:** [Prontuário: design, correção e exclusão integrados](../superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md).
 **Regras aprovadas:** [contrato](../reference/PRONTUARIO_CORRECAO_CONTRATO.md) e [estudo de flexibilização](../superpowers/specs/2026-11-14-flexibilizacao-correcao-exclusao-lancamentos.md).
 
+## Incremento de usabilidade — ação direta “Limpar análise” (15/11/2026)
+
+**Origem preservada:** `audit/antigravity-argon-prontuario-20261115@466810ff`, alterando somente `src/integration/operational-correction-dialog.js`, `tests/e2e/operational-correction-dialog.spec.js` e plano de continuidade da auditoria.
+
+**Incorporado ao diálogo canônico:** botão dedicado **Limpar análise** na barra de ações; o primeiro clique apenas prepara uma prévia `clear_analysis` (sem `apply_operational_change`); a gravação somente é enviada após **Confirmar correção**. Quando já está `Não analisado`, a limpeza direta fica indisponível. Os textos visíveis passam a `O que vai mudar ao confirmar`, `Calculando o que vai mudar…` e `Nenhuma outra análise será alterada`. A API pública `RadarOperationalCorrectionDialog.open`, o tratamento de `AMBIGUOUS_CONSEQUENCE`, o retry idempotente e a flag desligada foram preservados.
+
+**Testes reproduzidos independentemente do Antigravity:** Playwright Chromium **24/24** (2 workers, novo caso do botão + demais diálogos, retificação legada, layout, contraste e acesso SME); `npm run test:readiness` **1.412 unitários, 8 integrações**, demais verificações aprovadas. Testes de tela usam transporte RPC controlado: **não** comprovam gravação autenticada com Supabase, persistência após F5 ou autorização para habilitar em Produção.
+
+**Nomenclatura futura:** sugestões de botões de T2–T5 permanecem **propostas**, não interfaces implementadas. Em particular, exclusão de nota fiscal **não deve prometer excluir bens tombados/inventariados**, pois o contrato atual bloqueia estados patrimoniais terminais; a prévia deverá explicar dependências, bloqueios e os registros efetivamente atingidos.
+
 ## Atualização verificada — Antigravity Argon integrado seletivamente (15/11/2026)
 
 **Origem independente preservada:** `audit/antigravity-argon-prontuario-20261115@7802c0fb`, código `5c2f80b1`. Sua branch permanece intacta. A branch principal recebeu as alterações compatíveis, sem cherry-pick integral, pois uma modificação SQL da proposta enfraquecia a identificação das operações.

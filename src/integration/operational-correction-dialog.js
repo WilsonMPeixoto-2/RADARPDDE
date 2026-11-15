@@ -78,19 +78,21 @@
         note.id = 'radar-operational-correction-note';
         note.maxLength = 2000;
         note.rows = 3;
-        const planTitle = el(doc, 'h3', '', 'Efeitos informados pelo servidor');
-        const effects = el(doc, 'div', 'radar-operational-correction-effects', 'Consultando o servidor…');
+        const planTitle = el(doc, 'h3', '', 'O que vai mudar ao confirmar');
+        const effects = el(doc, 'div', 'radar-operational-correction-effects', 'Calculando o que vai mudar…');
         effects.setAttribute('aria-live', 'polite');
         const feedback = el(doc, 'p', 'radar-operational-correction-feedback');
         feedback.setAttribute('role', 'status');
         feedback.setAttribute('aria-live', 'polite');
         const actions = el(doc, 'div', 'radar-operational-correction-actions');
         const cancel = el(doc, 'button', 'btn btn-secondary', 'Cancelar');
+        const clearBtn = el(doc, 'button', 'btn btn-secondary', 'Limpar análise');
         const review = el(doc, 'button', 'btn btn-secondary', 'Revisar prévia');
         const save = el(doc, 'button', 'btn btn-primary', 'Confirmar correção');
-        for (const button of [cancel, review, save]) button.type = 'button';
+        for (const button of [cancel, clearBtn, review, save]) button.type = 'button';
+        clearBtn.disabled = currentChoice === 'Não analisado' || !currentChoice;
         save.disabled = true;
-        actions.append(cancel, review, save);
+        actions.append(cancel, clearBtn, review, save);
         dialog.append(title, summary, current, label, select, noteLabel, note,
             planTitle, effects, feedback, actions);
         layer.append(backdrop, dialog);
@@ -117,7 +119,7 @@
             const blockers = Array.isArray(view.blockers) ? view.blockers : [];
             effects.appendChild(el(doc, 'p', '', changes.length
                 ? changes.map(change => text(change.before) + ' → ' + text(change.after)).join(' · ')
-                : 'Nenhuma análise independente será modificada.'));
+                : 'Nenhuma outra análise será alterada.'));
             for (const item of [...warnings, ...blockers]) {
                 effects.appendChild(el(doc, 'p', '', text(item?.message || item?.code || item)));
                 if (item?.code === 'AMBIGUOUS_CONSEQUENCE' && Array.isArray(item.candidates)) {
@@ -156,7 +158,10 @@
             preview = null;
             confirmation = null;
             save.disabled = true;
-            effects.textContent = 'Consultando o servidor…';
+            clearBtn.disabled = uncertain || pending || committed
+                || currentChoice === 'Não analisado' || !currentChoice
+                || select.value === 'Não analisado';
+            effects.textContent = 'Calculando o que vai mudar…';
             status('');
             try {
                 const action = select.value === 'Não analisado'
@@ -170,8 +175,14 @@
                 if (generation !== serial || !layer.isConnected) return;
                 preview = result;
                 renderPlan(result.view);
-                if (result.view.canApply) save.disabled = false;
-                else status('Correção bloqueada. Confira os efeitos do servidor.', true);
+                if (result.view.canApply) {
+                    save.disabled = false;
+                    if (action === 'clear_analysis') {
+                        status('Análise pronta para ser limpa. Confira o que vai mudar acima e clique em Confirmar correção.', false);
+                    }
+                } else {
+                    status('Ação pendente ou bloqueada. Confira os avisos acima antes de confirmar.', true);
+                }
             } catch (error) {
                 if (generation !== serial || !layer.isConnected) return;
                 effects.textContent = '';
@@ -193,6 +204,7 @@
             } catch (_error) {
                 status('A correção foi confirmada pelo servidor, mas a atualização da tela não foi verificada. Atualize a página; não repita a gravação.', true);
                 save.disabled = true;
+                clearBtn.disabled = true;
                 review.disabled = true;
                 select.disabled = true;
                 note.disabled = true;
@@ -208,6 +220,7 @@
             pending = true;
             save.disabled = true;
             cancel.disabled = true;
+            clearBtn.disabled = true;
             review.disabled = true;
             select.disabled = true;
             note.disabled = true;
@@ -241,6 +254,9 @@
             } finally {
                 pending = false;
                 cancel.disabled = uncertain || committed;
+                clearBtn.disabled = uncertain || committed
+                    || currentChoice === 'Não analisado' || !currentChoice
+                    || select.value === 'Não analisado';
                 review.disabled = uncertain || committed;
                 select.disabled = uncertain || committed;
                 note.disabled = uncertain || committed;
@@ -248,6 +264,11 @@
             }
         }
         cancel.addEventListener('click', () => close());
+        clearBtn.addEventListener('click', () => {
+            if (uncertain || pending || committed) return;
+            select.value = 'Não analisado';
+            void loadPreview();
+        });
         backdrop.addEventListener('click', () => close());
         layer.addEventListener('keydown', event => {
             if (event.key === 'Escape') {
