@@ -1,12 +1,12 @@
 # RADAR PDDE — estado atual e retomada
 
-## Frente corrente — Prontuário visual + correção de lançamentos — 14/11/2026
+## Frente corrente — Prontuário e correções operacionais — 15/11/2026
 
-Plano aprovado pelo proprietário para execução. Baseline de produto conferida: `190e44942d0bb6927d1a7eeb83fb94fc782171b8` (#516). Esta atualização é documental; não comprova novo deployment nem mudança no banco.
+**Único ponto de retomada desta frente:** [checkpoint de integração T0–T3 (15/11)](handoff/2026-11-15-prontuario-integracao-verificada.md), vinculado à branch `fix/prontuario-integrado-validado-20261115`. **Não retomar pela branch original do Argon** (`feat/prontuario-correcao-integrada-20261114`) nem pelos arquivos históricos do Manus. O checkpoint é o registro operacional de estado e próximos passos; validar sempre o HEAD remoto antes de editar.
 
-**Handoff corrente:** [Prontuário e correção integrada](handoff/2026-11-14-prontuario-correcao-integrada.md). **Branch cumulativa:** `feat/prontuario-correcao-integrada-20261114`. Consultar a versão remota do handoff nessa branch para commits, testes, limites e próxima ação; este bloco não é contador de progresso.
+**Precedência:** [contrato aprovado](reference/PRONTUARIO_CORRECAO_CONTRATO.md) → [plano T0–T6](superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md) → checkpoint vigente → código/testes da branch corrente. As regras de destino aprovadas **não** são funcionalidades já publicadas.
 
-Leitura obrigatória: [contrato de evolução](reference/PRONTUARIO_CORRECAO_CONTRATO.md) e [plano T0–T6](superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md). T0 iniciou; T1–T6 ainda não concluídos. A política de correção/exclusão foi aprovada como destino, mas não está implementada nesta baseline. PR #515 de Pendências permanece independente, sem integração nesta frente.
+**Situação do candidato no último checkpoint:** T0 preservada com fixtures; T1 (cabeçalho horizontal e testes) implementada, mas sem homologação visual integral; T2/T3 têm proposta SQL/cliente com testes em banco descartável, mas **ainda não estão ligados aos diálogos, bootstrap e controles reais**; T4/T5/T6 incompletas. A `main`, Production e Supabase institucional não foram modificados por esta frente; confirmar novamente antes de qualquer release. O PR #515 continua separado. O handoff de 14/11 e as auditorias são **históricos**, não instruções concorrentes.
 
 **As seções datadas abaixo são checkpoints históricos.** Prioridades e handoffs antigos nelas citados não substituem este roteamento. As funcionalidades e melhorias já integradas permanecem preservadas.
 
