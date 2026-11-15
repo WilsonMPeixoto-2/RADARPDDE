@@ -800,7 +800,7 @@ set search_path = pg_catalog, public, radar_private
 as $$
 declare
     v_role text;
-    v_fingerprint text := encode(sha256(convert_to(coalesce(p_request, 'null'::jsonb)::text, 'UTF8')), 'hex');
+    v_fingerprint text := encode(sha256(convert_to((coalesce(p_request, '{}'::jsonb) - 'note')::text, 'UTF8')), 'hex');
     v_existing radar_private.operational_change_ledger%rowtype;
     v_plan jsonb;
     v_blocker jsonb;
