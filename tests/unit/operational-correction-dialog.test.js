@@ -27,3 +27,6 @@ test('flag explÃ­cita com RPC remota e cliente libera somente o diÃ¡logo', () =>
         RadarDataContext: { repository: { executeRpc() {}, capabilities: () => ({ remote: true }) } }
     }), true);
 });
+
+test('localiza o repositÃ³rio pela composiÃ§Ã£o REAL RadarApplicationServices.data', () => {
+    const repositor¶»§q«^
