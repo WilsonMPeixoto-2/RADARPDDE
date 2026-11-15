@@ -124,73 +124,63 @@ No corte consultado, Manus (`f0fa7335`/`300ac6d1`), Antigravity (`52ff0871`) e a
 **Objetivo operacional:** impedir que a evolução do RADAR entregue apenas uma função nova sobre um sistema que continua dependente da lógica anterior. O sucesso é uma **substituição integrada, rastreável e homologada por jornada**, sem regressões nas demais superfícies.
 
 
-## 8. Estratégia de homologação isolada e substituição progressiva — decisão de preparação
+## 8. Ambiente local como etapa obrigatória de validação — decisão de 15/11/2026
 
-**Decisão de engenharia (15/11/2026):** manter `main`, Vercel Production e Supabase institucional inalterados; **não criar Preview remoto agora**. O primeiro ambiente integrado será o **Supabase local real (PostgreSQL/Auth/API/RLS/migrations) por Docker em runner descartável de GitHub Actions**, com frontend da branch candidata, Playwright e dados sintéticos. Repetir em computador local com Docker para navegação humana e depuração quando for útil, sem tornar a máquina pessoal dependência obrigatória. Somente depois dos gates locais e de compatibilidade considerar Preview remoto **explicitamente isolado**, se necessário para revisão visual compartilhada ou diferença de infraestrutura.
+**Decisão aprovada pelo proprietário:** a forma principal de experimentar o RADAR candidato é **uma cópia local da branch de integração, executando o frontend verdadeiro em navegador e o Supabase local completo por Docker**, com PostgreSQL, APIs, autenticação, políticas RLS, RPCs, migrations e **dados exclusivamente sintéticos**. Testes unitários, integração, pgTAP e Playwright devem operar sobre a mesma versão do código e, quando pertinente, o mesmo banco isolado. **Nenhuma publicação ou alteração de ambientes institucionais integra o escopo atual.**
 
-### 8.1 Ambientes e risco
+O workflow existente de GitHub Actions com Docker e Supabase local é uma automação complementar de regressão, não substitui a sessão local navegável pelo proprietário. **Não tomar CI verde como aprovação da experiência de uso.**
 
-| Ambiente | Conteúdo | Risco para sistema institucional | Uso correto |
-|---|---|---|---|
-| **B0 — Baseline** | `main` e testes atuais de contrato antigo, sem escrita na Produção | Nenhum se apenas leitura do GitHub/código | Saber quais regras antigas realmente funcionam; caracterizar testes de regressão |
-| **B1 — Candidato automatizado** | Branch integrada + runner efêmero GitHub Ubuntu/Docker + Supabase local com todas as migrations candidatas + Auth local + Playwright | Nenhum acesso institucional necessário | Primeiro teste integral de regra nova, SQL/RLS, fluxo real, reload, desempenho inicial, repetibilidade por SHA |
-| **B2 — Candidato local interativo (opcional, recomendado antes de aprovar layout)** | Mesma branch e bootstrap real em estação com Docker + navegador local | Isolado quando o ambiente estiver corretamente configurado | Inspeção de elementos, screenshots, cliques humanos, devtools, zoom, tema, densidade e depuração |
-| **B3 — Pré-produção remota futura (opcional)** | Vercel isolado ou projeto específico **não vinculado à Produção**, Supabase separado e dados sintéticos; autenticação/staging exclusivos | Requer conferir projeto, URL, chaves, domínios, configuração da Vercel; risco baixo após isolamento conferido | Validar hospedagem real/colaboração e homologação visual remota depois de B1/B2; NÃO é pré-requisito para começar código/testes |
-| **B4 — Produção** | Main + Supabase institucional + Vercel oficial | Alto para operações destrutivas | Apenas após T6, gates, aprovação expressa e publicação controlada |
+### 8.1. Duas formas complementares de validar a mesma cópia isolada
 
-**Observação:** Supabase local não é um “banco simulado”: SQL, triggers, RLS e Auth são serviços reais isolados. Não reproduz automaticamente cada diferença de hospedagem, volume/dados institucionais ou integração externa; o restante é testado em B3 quando pertinente. A configuração atual do projeto declara PostgreSQL 17 em `supabase/config.toml`. Os testes históricos em PostgreSQL 18 descartável não substituem a prova na configuração local real.
-
-### 8.2 O que já existe no projeto e o que falta adaptar
-
-- Workflow **`.github/workflows/functional-reliability-supabase.yml`** (nome “Confiabilidade funcional com Supabase real”) possui `workflow_dispatch`, checkout, Node 24, Docker/Supabase local, `npm run supabase:start` + `npm run supabase:reset`, autenticação fictícia controlada, runtime `supabase-preview` com URL **local**, Playwright/Chromium com recargas e publicação de traces. Executa atualmente `supabase-functional-reliability.spec.js` e `pendency-reanalysis-auth.spec.js`, **não** coleta automaticamente os E2E novos T2–T5.
-- Manter e **estender esse pipeline existente**, mediante arquivo/seleção de testes e autorização de perfis por lote; não criar segundo CI redundante. O workflow suporta disparo manual; verificar branch/SHA exatos selecionados em cada execução.
-- `package.json` já inclui `supabase:start`, `supabase:reset`, `supabase:test:db`, `test:unit`, `test:integration` e `test:readiness`. Executar pgTAP sobre a migration candidata no banco descartável, não no projeto institucional.
-- `playwright.supabase-preview.config.js` possui `testMatch` restrito a `supabase-preview-profile-viewport.spec.js`; portanto não tratá-lo como certificação dos cenários T2–T5. Adaptar a seleção da suíte de testes apropriada e provar pela lista efetivamente coletada.
-- `vercel.json` tem `git.deploymentEnabled` somente para `main`, e `ignoreCommand` também restringe builds. **Isso é barreira deliberada contra Preview casual**, não defeito de implantação. `scripts/build-vercel.mjs` mantém runtime Preview comum em `local` e bloqueia apontamento de Preview ao URL institucional. Qualquer B3 exigirá configuração explícita, inspeção do build final e projeto Supabase separado; um frontend remoto não consegue acessar automaticamente `127.0.0.1` do Docker na máquina do operador.
-- **Ponto de versão:** a Supabase CLI v3 alterou comandos e defaults em novembro/2026. Para esta frente, manter versão **fixada e verificada no lockfile** e executar `--help` antes de mudanças de ferramenta; **não** atualizar a CLI em paralelo ao corte das regras de negócio.
-
-### 8.3 Ciclo de testes por alteração — jamais somente depois de todo o código
-
-**Fase R (caracterização antiga):** identificar operações e testes vigentes de B0. Classificar cada expectativa como `contrato a preservar`, `restrição a substituir na nova operação` ou `proteção de coexistência`. Não “corrigir” teste antigo alterando a expectativa sem implementação de novo comportamento correspondente.
-
-**Fase N (novo contrato com flag/capacidade controlada):** criar REDs contra a nova autoridade, testar SQL e Auth local, implementar o menor lote T2/T3 completo; garantir que a antiga interface continua correta quando a capacidade nova não está disponível.
-
-**Fase C (corte de responsabilidade na branch candidata):** ligar UI nova para o perfil permitido **somente** em B1/B2 e com backend compatível, conectar serviços/repos e remapear botões, retirar/desativar guards e mensagens antigas apenas onde a nova autoridade assumiu a intenção. Mudar/aposentar testes negativos superados **no mesmo commit/lote** e incluir testes positivos/negativos da nova operação. As proteções ordinárias que continuam válidas permanecem testadas.
-
-**Fase X (efeitos cruzados):** cada teste principal aciona controle real via Playwright com usuário local autenticado, compara banco antes/depois e verifica ID de entidades removidas/preservadas, Prontuário, Pendências, Inventário, Competências, Dashboard/Carteira, Busca, Passivo, Timeline, Alertas, Excel e cliente com dados em cache, conforme pertinência. Recarregar F5, reabrir em segunda sessão/perfil e conferir se ambos mostram o mesmo fato. Não simular RPC para afirmar persistência.
-
-**Fase G (gate por lote):** comparar resultados do mesmo SHA, migrations, logs, perfis, tempos, screenshot e expectativa revisada. A frente não avança para ativação até que a jornada seja completa. B3 e depois B4 permanecem posteriores e condicionais.
-
-### 8.4 Provas mínimas obrigatórias
-
-| Família | Caso real de teste | O que deve resultar |
+| Frente | Exigência | Prova |
 |---|---|---|
-| **Legado intacto** | Reanalisar envio legítimo, bonificação, NF sem histórico, colaboração entre controladores | Continua funcionando sem efeito colateral |
-| **Nova permissão** | Corrigir análise equivocada sem justificativa; excluir NF com histórico com dependentes conhecidos | Ação disponível no contexto correto, sem declaração ou envio fictício, transação única |
-| **Restrições ainda válidas** | Gravar `Incorreto` sem Pendência por rota comum; usuário SME tentando exclusão fiscal; bem compartilhado | Banco rejeita ou a transação correta preserva o vínculo; botão não autoriza mais do que RLS/RPC |
-| **Fronteira de concorrência** | A faz prévia, B inclui/altera dependente, A tenta confirmação | Rejeita plano obsoleto ou requer nova prévia, não amplia apagamento |
-| **Idempotência** | Resposta de commit se perde, mesmo usuário repete operação com mesma chave | Não duplica efeito; recibo único estável |
-| **Sincronização** | Após commit, modal fecha, Prontuário e Pendências mostram estado novo; F5 e segunda sessão | Sem falsa confirmação, sem registro ressuscitado, com foco/contexto mantidos |
-| **Interação/visual** | 1280/1440/1920 px, 390 px, zoom 200%, temas claro/escuro, sem/varias NFs | Hierarquia visual, legibilidade, controles, informações e mensagens corretos |
-| **Compatibilidade** | Cliente antigo com aba aberta antes da nova migration, novo cliente depois | Cliente antigo não reverte exclusão nem escreve através de rota obsoleta incompatível |
-| **Documentação e CI** | Matriz JSON/MD, tipos do banco, workflow de E2E, gates de arquitetura/estilo | Todos coerentes com a mesma regra; novos testes realmente coletados e executados |
+| **Execução local navegável — referência humana obrigatória** | Cópia da branch `fix/prontuario-integrado-validado-20261115` em diretório separado, Node e dependências fixadas, Docker com Supabase local, usuários de teste e frontend real servidos em `localhost`; navegador com acesso a formulários, fluxos, conteúdo denso, todos os perfis e modos claro/escuro | O proprietário consegue navegar, operar, identificar incoerências e **validar explicitamente** as decisões visuais e operacionais relevantes |
+| **Automação no mesmo código — verificação técnica obrigatória** | Reutilizar `.github/workflows/functional-reliability-supabase.yml`, que inicia Supabase local no runner, prepara autenticação sintética e executa Chromium; ampliar os testes para T2–T5 e garantir coleta efetiva dos novos cenários | SQL, RLS, Auth, navegação automatizada, alterações cruzadas, rollback, concorrência, segunda sessão e persistência após recarga; guardar artifacts por SHA |
 
-### 8.5 Testar no computador do usuário: opcional, não obrigação
+**Importante:** o Supabase do Docker **não é um banco simulado por mocks**: suas migrations, funções, RLS e transações são executadas de verdade, com dados de teste. Os mocks podem continuar úteis nos testes unitários; eles não certificam a integração final. O ambiente não replica automaticamente serviços externos ou dados institucionais, os quais não devem ser acessados nos ensaios.
 
-Se desejar visualização e navegação por si próprio, a estação local é excelente para B2. A instalação depende de sistema operacional/recursos disponíveis e deve seguir o mesmo roteiro auditável de B1; nunca copiar configurações ou segredos da Produção.
+### 8.2. Momento correto de construir e utilizar o ambiente
 
-Passos de referência **não suficientes, isoladamente, para habilitar autenticação**:
+**Não esperar até T6 para começar a testar localmente.** Preparar o ambiente assim que for possível executar uma primeira jornada integrada — preferencialmente durante o fechamento de T2 — e reutilizá-lo nas demais etapas.
 
-1. Obter a branch candidata numa pasta separada e confirmar seu SHA.
-2. Instalar Node 24, dependências pelo lockfile e runtime de containers compatível com Docker; confirmar versão **fixada** da Supabase CLI.
-3. Subir Supabase local, reinicializar com migrations e seed sintético; os scripts existentes são `npm run supabase:start` / `npm run supabase:reset` / `npm run supabase:test:db`.
-4. Reproduzir **o bootstrap de usuários e configuração local** que está no workflow de GitHub Actions; validar que runtime aponta para API local, nunca URL institucional.
-5. Rodar servidor local do RADAR, realizar login com perfis sintéticos, navegar com navegador e Playwright, tirar screenshots, ver registros após F5; ao final encerrar somente o Supabase local com `npm run supabase:stop`.
+O código da frente **ainda não está integralmente criado**: T2/T3 têm peças funcionais preparadas, mas sem integração final da interface; T4 e T5 ainda exigem comandos persistentes e controles. Assim, é incorreto declarar a implementação terminada ou exigir que o proprietário aprove uma experiência que ainda não pode navegar.
 
-Caso não queira configurar a máquina, tudo de B1 pode ser executado no GitHub runner, com relatórios, screenshots e traces como artifacts; B2 continua opcional.
+Cada lote deve passar pelo ciclo:
+1. **Caracterizar:** identificar a regra vigente, os testes correspondentes, as proteções que continuam válidas e as que serão substituídas.
+2. **Completar o código do fluxo:** interface real → serviço → autorização → Supabase local → atualização dos consumidores. Manter ações incompletas indisponíveis no candidato.
+3. **Trocar responsabilidades dentro da branch isolada:** adaptar botões, handlers, guardas, mensagens, tipos do banco, contratos e expectativas dos testes *no mesmo lote*, sem liberar gravação antiga concorrente.
+4. **Testar tecnicamente:** criar reproduções RED/GREEN, executar pgTAP/unitários/integração/Playwright autenticado em Docker e provar persistência depois de F5 e em outra sessão.
+5. **Validar navegando:** apresentar o frontend local com estados reais sintéticos e permitir ao proprietário realizar a jornada e julgar resultado, texto, alcance, clareza, foco, layout e efeitos entre telas.
+6. **Registrar o resultado:** ajustar somente o que foi identificado; repetir testes afetados e registrar no handoff SHA, capturas, decisões humanas e pendências. Avançar para o lote seguinte apenas quando os critérios de passagem forem cumpridos.
 
-### 8.6 Critério de decisão para um Preview futuro
+### 8.3. Pontos obrigatórios de validação do proprietário
 
-**Não criar Preview agora por simples existência de código ou por falha de teste antigo.** Antes de B3 exigir: T2/T3 com ações reais completas; RLS/Auth/concorrência; testes adaptados; fronteiras de configuração/repositório verificadas; dados 100% sintéticos; CI coletando todos os casos; operador capaz de validar o frontend local. Se B2 demonstrar qualidade e a questão remanescente for especificamente hospedagem/collaboração, criar B3 **em projeto Vercel isolado e banco Supabase de staging independente**, com URL/chaves e bloqueio de produção revisados. Não alterar `git.deploymentEnabled.main` do projeto produtivo para gerar Preview acidentalmente.
+| Marco | O que deve ser experimentado na cópia local | Condição de prosseguimento |
+|---|---|---|
+| **T1 / composição visual** | Prontuário realista, diversos programas, muitas NFs, menus, contexto, 1280/1440/1920 px, 390 px, zoom, temas e foco | Proprietário valida legibilidade, hierarquia e experiência efetiva **antes de considerar fechado o desenho** |
+| **T2 / correção** | Corrigir análise incorreta e/ou excluir Pendência equivocada pela UI, com prévia, ausência de justificativa obrigatória e resultado em outras telas | Aprovação da experiência de correção e testes reais de persistência, isolamento e permissões |
+| **T3 / exclusão composta** | Visualizar antes da confirmação exatamente quais registros desaparecem e quais permanecem; excluir NF com dependentes; reabrir após F5 | Aprovação da informação de impacto e da jornada, com testes negativos/concorrência e dados independentes preservados |
+| **T4 / bonificação e contexto** | Corrigir marca consolidada e excluir lançamentos de mês/programa errado sem afetar contexto vizinho | Proprietário entende e aprova o alcance, e testes abrangem todos os contextos afetados |
+| **T5 / histórico e patrimônio** | Corrigir/excluir tentativa, reanálise, contato e registro patrimonial; verificar histórico remanescente | Aprovação das ações e consequências, sem destruir o histórico independente |
+| **T6 / verificação global** | Navegação completa como usuário, com perfis, dados sintéticos, consultas, relatórios e estados de erro | Gate técnico e validação humana registrados no mesmo SHA; conclusão interna da implementação, **sem implicar publicação** |
 
-**Não realizar `supabase link`, `db push`, `db reset --linked` ou utilizar credenciais de Produção para executar o ensaio.** Scripts automatizados devem recusar alvos remotos quando a finalidade é B1/B2. Provas por SHA e logs precisam ser guardadas e referidas no checkpoint. Nada nesta matriz autoriza disparo de workflows, implantação ou migrations por si só.
+**Não confundir:** validação humana de decisões materiais não significa que cada pequena alteração de serviço deva aguardar aprovação manual. Código e testes independentes podem progredir entre marcos; **a conclusão das jornadas de interface e das ações destrutivas depende da experiência navegada e do feedback do proprietário**. Se a validação revelar desacordo, a correção integra o lote em curso, com nova execução dos testes e nova inspeção.
+
+### 8.4. Roteiro do ambiente local
+
+O projeto já fornece `supabase/config.toml` e scripts `npm run supabase:start`, `npm run supabase:reset`, `npm run supabase:test:db`, `npm run start` e scripts de autenticação sintética. A execução de referência é o workflow `.github/workflows/functional-reliability-supabase.yml`; seu procedimento de bootstrap deve ser reaproveitado localmente, **sem improvisar perfis nem usar contas reais**.
+
+Antes de entregar instruções de instalação para a máquina do proprietário, conferir sistema operacional, Docker/recursos, versões fixadas no repositório e passos exatos já testados no workflow. Executar em pasta isolada, conferir branch/SHA e que a URL configurada aponta somente para a API local. Não usar comandos vinculados a projetos remotos, nem importar dados institucionais.
+
+### 8.5. Critério de conclusão dos testes
+
+Uma jornada **não** está pronta apenas porque:
+- a nova função está versionada, mas o botão continua apontando para a implementação antiga;
+- o teste unitário passa, mas nenhuma pessoa consegue percorrer o fluxo real;
+- um teste antigo foi removido sem cobertura equivalente do contrato deliberadamente substituído;
+- o teste de browser usa respostas RPC controladas, sem Auth/RLS/migration efetivos;
+- os dados parecem corretos antes de F5 mas divergem após recarga, em outra aba ou em outro perfil;
+- o visual de referência não foi confrontado com a aplicação renderizada;
+- os testes novos não foram efetivamente selecionados pelo CI.
+
+**Evidência exigida por lote:** SHA, regras anteriores/novas, matriz de substituição dos guards, testes antigos adaptados e testes novos executados, SQL/RLS/Auth, capturas e traces, dados afetados/preservados, conferência pós-reload e registro da validação humana relevante. Isso complementa os gates T0–T6 originais sem reabrir escopo.
