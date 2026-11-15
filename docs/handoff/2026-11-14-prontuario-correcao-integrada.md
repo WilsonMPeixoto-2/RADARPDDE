@@ -4,6 +4,18 @@
 **Versão remota mais recente deste handoff:** https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/feat/prontuario-correcao-integrada-20261114/docs/handoff/2026-11-14-prontuario-correcao-integrada.md
 **Plano:** [T0–T6](../superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md). **Contrato:** [destino aprovado](../reference/PRONTUARIO_CORRECAO_CONTRATO.md).
 
+## Aviso obrigatório: auditoria independente Manus (14/11/2026, 23:35 BRT)
+> **Antes de qualquer novo commit nesta branch**, leia a auditoria do agente Manus: [RELATORIO.md](https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/audit/manus-auditoria-frente-integrada-20261114/docs/audits/2026-11-14-manus-auditoria-frente-integrada/RELATORIO.md) e [evidências](https://github.com/WilsonMPeixoto-2/RADARPDDE/tree/audit/manus-auditoria-frente-integrada-20261114/docs/audits/2026-11-14-manus-auditoria-frente-integrada), na branch `audit/manus-auditoria-frente-integrada-20261114`. Ela foi feita sobre `4c0c1725`.
+>
+> Resumo verificado em banco descartável e por execução de testes:
+> - **Produção intacta.** A Vercel serve `4011a2b8` (só documentação). O Supabase de produção não tem a migration `20261114000100`.
+> - **Não aplicar `supabase/migrations/20261114000100_operational_correction_contract.sql` em nenhum banco remoto.** As RPCs são `SECURITY DEFINER`, não têm verificação de autenticação, perfil ou escola e não fazem `revoke`/`grant`. Uma chamada anônima conseguiu apagar NF, Pendência, tentativa e contato. A exclusão de NF com bem Inventariada continua falhando. `clear_analysis` e `delete_context` falham com `competence_id`. Ações inexistentes devolvem `committed: true`. Há 3 regressões no pgTAP existente.
+> - `npm run test:unit` nesta branch: **7 falhas**, sendo 2 da suíte nova e 5 regressões em `prontuario-program-order`, que passam na `main`. O E2E `prontuario-correction-layout.spec.js` falha nos 2 testes e usa HTML sintético. Os módulos novos não são carregados pelo `index.html`.
+> - O gate T1 do plano não foi atendido: não há cabeçalho horizontal por programa em `app.js`. A implementação T1 do Astra foi feita localmente no contêiner do ChatGPT e nunca foi enviada a este repositório.
+> - **Não remover** as travas de `invoice-history-lock.js` e `evaluation-retification.js` antes de existir a operação completa da T3, conforme o plano.
+>
+> Os commits `0405e45d`..`4c0c1725` devem ser tratados como **rascunho não homologado** até decisão do proprietário. O fixture `bf903aea` (T0) pode ser reaproveitado. A tabela de estado abaixo foi mantida como registrada pelo agente anterior. A reconciliação cabe ao proprietário, com base na auditoria.
+
 ## Retomar sem repetir trabalho
 
 1. Fetch da branch de execução; conferir git log/status e esta versão remota, não apenas a cópia da main.
