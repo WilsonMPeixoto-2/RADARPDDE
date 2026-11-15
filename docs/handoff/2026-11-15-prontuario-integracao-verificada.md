@@ -37,6 +37,17 @@ O trabalho da sessão Work foi interrompido por cota antes de chegar ao GitHub. 
 
 **Testes executados nesta reconstrução isolada:** `npm run test:readiness` aprovado (1.404 unitários, 8 testes de integração e demais verificações institucionais); Playwright Chromium: **18/18** nas suítes do diálogo, da retificação legada, da Gestão SME e do layout do Prontuário (incluindo 390 px, tema escuro e interação com botão real sob transporte simulado). Essas provas não equivalem a CRUD autenticado no Supabase institucional; o teste de navegador usa `executeRpc` controlado.
 
+## Aproveitamento seletivo da autoauditoria Gemini (15/11)
+
+Referência **somente de leitura**: `audit/gemini-revisao-critica-e-sugestoes-20261115@6b4efb5d`. Não integrar o diálogo alternativo integralmente: o módulo substitui a API pública `open()` por `openCorrectionDialog()` e falhou em **6/8** testes Playwright do contrato atual, embora seus 8 testes unitários específicos passem. O `test:readiness` dessa branch também passou; isso não prova compatibilidade de navegador.
+
+- **G-01: já atendido** no diálogo integrado: `context.invoiceId` vira `target.id`; o diagnóstico de que a versão-base passava `target.invoiceId` estava incorreto.
+- **G-02: aproveitado pontualmente:** a seleção `Não analisado` passa a pedir `clear_analysis` ao cliente/RPC existentes, sem `changes.analysis`; as outras seleções continuam em `correct_analysis`. A pré-seleção antiga para avaliações inicialmente não analisadas foi preservada. A interface de seleção explícita de múltiplas Pendências continua pendente; **não** aplicar seleção automática de consequências.
+- **G-03: não incorporar o helper sugerido sem reconciliação adicional:** ao receber um `attemptId` inexistente, `findTargetAttemptIndex` cai silenciosamente na última tentativa, corrigindo ou excluindo a tentativa errada. Reproduzido com duas tentativas sintéticas. O módulo antigo em T5 segue como artefato preliminar, não como solução operacional.
+- **G-04: avaliar somente o fallback:** `administrativeLogReadRequired()` consulta a factory canônica (`RadarRepositoryFactory.isSupabaseExplicitlyEnabled`) antes do caminho `RadarDataContext`; não se demonstrou falha generalizada que exija modificar o bootstrap.
+- **Aprimoramento independente pós-Manus:** após erro de rede de resultado incerto, manter análise, observação e `operationKey` intactas para retry, sem nova prévia; informar possibilidade de commit remoto e oferecer recarga.
+- **Validação:** novo E2E G-02 falhou antes da correção e passou depois; testes direcionados G-02/integração real/retry: 3/3. `npm run test:readiness`: 1.405 unitários e 8 integrações aprovados. A regressão de 21 testes Playwright estava em 20/21 por alteração de pré-seleção; essa alteração foi revertida e os 3 testes afetados passaram. Reexecutar a bateria completa sobre o commit final. Os transportes RPC são controlados, não teste autenticado no Supabase.
+
 ## De onde veio o código
 
 - A base deste candidato é `audit/manus-sugestoes-correcao-20261114` (`f0fa7335`), com a T1 de cabeçalhos horizontais reconstruída do Astra e uma proposta nova de RPCs mais segura que o contrato incompleto do Argon.

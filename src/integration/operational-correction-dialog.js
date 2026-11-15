@@ -6,7 +6,7 @@
 }(typeof window !== 'undefined' ? window : globalThis, function createOperationalCorrectionDialog() {
     'use strict';
 
-    const ANALYSES = ['Correto', 'Correto (Atrasado)', 'Incorreto'];
+    const ANALYSES = ['Correto', 'Correto (Atrasado)', 'Incorreto', 'Não analisado'];
     const text = value => value == null ? '' : String(value).trim();
     const el = (doc, tag, className, value) => {
         const node = doc.createElement(tag);
@@ -67,7 +67,11 @@
             option.value = analysis;
             select.appendChild(option);
         }
-        select.value = ANALYSES.includes(text(input.currentValue)) ? text(input.currentValue) : 'Correto';
+        // Preserva a sugestão inicial de "Correto" quando ainda não há análise;
+        // "Não analisado" permanece disponível para limpeza deliberada.
+        const currentChoice = text(input.currentValue);
+        select.value = currentChoice !== 'Não analisado' && ANALYSES.includes(currentChoice)
+            ? currentChoice : 'Correto';
         const noteLabel = el(doc, 'label', '', 'Observação (opcional)');
         noteLabel.htmlFor = 'radar-operational-correction-note';
         const note = el(doc, 'textarea', 'form-control');
@@ -93,8 +97,9 @@
         doc.body.appendChild(layer);
         const previousFocus = input.trigger || doc.activeElement;
         let serial = 0, preview = null, confirmation = null, pending = false, committed = false;
+        let uncertain = false, submittedNote = null;
         function close(force = false) {
-            if (pending && !force) return;
+            if ((pending || uncertain) && !force) return;
             layer.remove();
             previousFocus?.focus?.({ preventScroll: true });
         }
@@ -117,6 +122,8 @@
             if (view.removals?.length) effects.appendChild(el(doc, 'p', '', text(view.summary)));
         }
         async function loadPreview() {
+            // Não criar uma nova operação enquanto o resultado anterior for incerto.
+            if (uncertain || pending || committed) return;
             const generation = ++serial;
             preview = null;
             confirmation = null;
@@ -124,8 +131,12 @@
             effects.textContent = 'Consultando o servidor…';
             status('');
             try {
+                const action = select.value === 'Não analisado'
+                    ? 'clear_analysis' : 'correct_analysis';
                 const result = await client.preview({
-                    action: 'correct_analysis', target, changes: { analysis: select.value }
+                    action,
+                    target,
+                    ...(action === 'correct_analysis' ? { changes: { analysis: select.value } } : {})
                 });
                 if (generation !== serial || !layer.isConnected) return;
                 preview = result;
@@ -170,9 +181,12 @@
             cancel.disabled = true;
             review.disabled = true;
             select.disabled = true;
+            note.disabled = true;
             try {
                 if (!confirmation) confirmation = client.prepareConfirmation(preview);
-                const receipt = await client.apply(confirmation, { note: note.value });
+                // Mesmo payload nas tentativas idempotentes após erro de rede.
+                if (submittedNote === null) submittedNote = note.value;
+                const receipt = await client.apply(confirmation, { note: submittedNote });
                 if (receipt?.committed !== true) throw new Error('O servidor não confirmou a gravação.');
                 committed = true;
                 await synchronizeConfirmed();
@@ -180,15 +194,26 @@
                 if (error?.code === 'STALE_PLAN') {
                     confirmation = null;
                     preview = null;
+                    submittedNote = null;
+                    uncertain = false;
                     status('Os dados mudaram. Revise a prévia antes de confirmar.', true);
                 } else {
-                    status(error?.message || 'Não foi possível confirmar a gravação.', true);
+                    uncertain = true;
+                    status('Estado incerto: o servidor pode ter confirmado a gravação. Tente novamente com a mesma intenção ou atualize a página e confira o resultado antes de um novo lançamento.', true);
+                    if (!doc.getElementById('radar-operational-correction-reload')) {
+                        const reload = el(doc, 'button', 'btn btn-secondary', 'Atualizar página');
+                        reload.id = 'radar-operational-correction-reload';
+                        reload.type = 'button';
+                        reload.addEventListener('click', () => root.location.reload());
+                        actions.appendChild(reload);
+                    }
                 }
             } finally {
                 pending = false;
-                cancel.disabled = false;
-                review.disabled = committed;
-                select.disabled = committed;
+                cancel.disabled = uncertain || committed;
+                review.disabled = uncertain || committed;
+                select.disabled = uncertain || committed;
+                note.disabled = uncertain || committed;
                 save.disabled = committed || !preview?.view?.canApply;
             }
         }

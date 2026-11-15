@@ -15,9 +15,9 @@ async function controlledDialog(page, options = {}) {
                 window.__auditRpc.push({ name, args });
                 if (name === 'preview_operational_change') {
                     return {
-                        action: 'correct_analysis', planDigest: 'a'.repeat(64),
+                        action: args.p_request.action, planDigest: 'a'.repeat(64),
                         effects: { update: [{ entity: 'verifications', field: 'analysis.extCC',
-                            before: 'Incorreto', after: args.p_request.changes.analysis }] },
+                            before: 'Incorreto', after: args.p_request.changes?.analysis ?? 'Não analisado' }] },
                         blockers: [], warnings: [], preserved: { bonusResult: 'apta' }
                     };
                 }
@@ -87,7 +87,7 @@ test('falha de rede reutiliza exatamente a mesma operationKey', async ({ page })
     await page.goto('/');
     const dialog = await controlledDialog(page, { failFirst: true });
     await dialog.getByRole('button', { name: 'Confirmar correção' }).click();
-    await expect(dialog.getByRole('alert')).toContainText(/Falha|Não foi possível/);
+    await expect(dialog.getByRole('alert')).toContainText(/Falha|Não foi possível|Estado incerto/);
     await dialog.getByRole('button', { name: 'Confirmar correção' }).click();
     await expect(dialog).toBeHidden();
     const keys = await page.evaluate(() => window.__auditRpc
@@ -177,4 +177,46 @@ test('botão real encontra o repositório em RadarApplicationServices.data', asy
     const dialog = page.getByRole('dialog', { name: 'Corrigir análise técnica' });
     await expect(dialog.getByText('Não analisado → Correto')).toBeVisible();
     expect(await page.evaluate(() => window.__canonicalCalls)).toEqual(['preview_operational_change']);
+});
+
+
+test('resultado incerto de rede conserva intenção integral no retry e bloqueia nova prévia', async ({ page }) => {
+    await page.goto('/');
+    const dialog = await controlledDialog(page, { failFirst: true });
+    await dialog.getByLabel('Novo resultado').selectOption('Correto');
+    await expect(dialog.getByText('Incorreto → Correto')).toBeVisible();
+    await dialog.getByLabel('Observação (opcional)').fill('Observação inicial');
+    await dialog.getByRole('button', { name: 'Confirmar correção' }).click();
+    await expect(dialog.getByRole('alert')).toContainText(/Falha|Não foi possível|Estado incerto/i);
+    await expect(dialog.getByLabel('Novo resultado')).toBeDisabled();
+    await expect(dialog.getByLabel('Observação (opcional)')).toBeDisabled();
+    await expect(dialog.getByRole('button', { name: 'Revisar prévia' })).toBeDisabled();
+    await expect(dialog.getByRole('button', { name: 'Cancelar' })).toBeDisabled();
+    await dialog.getByRole('button', { name: 'Confirmar correção' }).click();
+    await expect(dialog).toBeHidden();
+    const attempts = await page.evaluate(() => window.__auditRpc
+        .filter(call => call.name === 'apply_operational_change')
+        .map(call => ({ key: call.args.p_operation_key, payload: call.args.p_request })));
+    expect(attempts).toHaveLength(2);
+    expect(attempts[1]).toEqual(attempts[0]);
+    expect(attempts[0].payload.note).toBe('Observação inicial');
+    expect(attempts[0].payload.changes.analysis).toBe('Correto');
+});
+
+test('G-02: limpar análise utiliza clear_analysis existente e preserva observação opcional', async ({ page }) => {
+    await page.goto('/');
+    const dialog = await controlledDialog(page);
+    await expect(dialog.getByLabel('Novo resultado').locator('option', { hasText: 'Não analisado' })).toHaveCount(1);
+    await dialog.getByLabel('Novo resultado').selectOption('Não analisado');
+    await expect(dialog.getByText('Incorreto → Não analisado')).toBeVisible();
+    await dialog.getByRole('button', { name: 'Confirmar correção' }).click();
+    await expect(dialog).toBeHidden();
+    const calls = await page.evaluate(() => window.__auditRpc);
+    const preview = calls.filter(call => call.name === 'preview_operational_change').at(-1);
+    const apply = calls.find(call => call.name === 'apply_operational_change');
+    expect(preview.args.p_request.action).toBe('clear_analysis');
+    expect(preview.args.p_request.changes).toBeUndefined();
+    expect(apply.args.p_request.action).toBe('clear_analysis');
+    expect(apply.args.p_request.changes).toBeUndefined();
+    expect(apply.args.p_request.note).toBeUndefined();
 });
