@@ -15,7 +15,9 @@
         return node;
     };
     function repositoryOf(root) {
-        return root?.RadarDataContext?.dataService?.repository
+        // Autoridade: mesmo repositório já composto pelo app.js.
+        return root?.RadarApplicationServices?.data?.repository
+            || root?.RadarDataContext?.dataService?.repository
             || root?.RadarDataContext?.repository || null;
     }
     function canUse(root) {

@@ -133,26 +133,48 @@ test('diálogo permanece dentro do viewport de 390 px em tema escuro', async ({ 
     expect(geometry.overflowY).toBe('auto');
 });
 
-test('botão real Editar análise usa prévia da RPC simulada sob flag', async ({ page }) => {
+test('RadarDataContext artificial não substitui repositório canônico local', async ({ page }) => {
     await prepareSchool(page);
     await page.evaluate(() => {
         window.RADAR_OPERATIONAL_CORRECTION_PREVIEW = true;
-        window.__remoteCalls = [];
+        window.__spoofedCalls = [];
         window.RadarDataContext = { dataService: { repository: {
             capabilities: () => ({ remote: true }),
-            async executeRpc(name, args) {
-                window.__remoteCalls.push(name);
-                if (name !== 'preview_operational_change') throw new Error('RPC inesperada');
-                return { action: 'correct_analysis', planDigest: 'c'.repeat(64),
-                    effects: { update: [{ entity: 'verifications', field: 'analysis.extCC',
-                        before: 'Não analisado', after: args.p_request.changes.analysis }] },
-                    blockers: [], warnings: [], preserved: {} };
-            }
+            async executeRpc(name) { window.__spoofedCalls.push(name); }
         } } };
+    });
+    await page.locator('#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="extCC"]')
+        .getByRole('button', { name: 'Editar análise' }).click();
+    await expect(page.getByRole('dialog', { name: 'Corrigir análise técnica' })).toHaveCount(0);
+    await expect(page.locator('#pendency-notice')).toContainText(/conexão autenticada/);
+    expect(await page.evaluate(() => window.__spoofedCalls)).toEqual([]);
+});
+
+test('botão real encontra o repositório em RadarApplicationServices.data', async ({ page }) => {
+    await prepareSchool(page);
+    await page.evaluate(() => {
+        const repository = window.RadarApplicationServices?.data?.repository;
+        if (!repository) throw new Error('Repositório canônico não localizado.');
+        if (window.RadarDataContext?.repository || window.RadarDataContext?.dataService) {
+            throw new Error('O teste exige a composição verdadeira do app.js.');
+        }
+        window.RADAR_OPERATIONAL_CORRECTION_PREVIEW = true;
+        window.__canonicalCalls = [];
+        repository.capabilities = () => ({ remote: true });
+        repository.executeRpc = async (name, args) => {
+            window.__canonicalCalls.push(name);
+            if (name !== 'preview_operational_change') throw new Error('RPC inesperada');
+            return {
+                action: 'correct_analysis', planDigest: 'd'.repeat(64),
+                effects: { update: [{ entity: 'verifications', field: 'analysis.extCC',
+                    before: 'Não analisado', after: args.p_request.changes.analysis }] },
+                blockers: [], warnings: [], preserved: {}
+            };
+        };
     });
     await page.locator('#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="extCC"]')
         .getByRole('button', { name: 'Editar análise' }).click();
     const dialog = page.getByRole('dialog', { name: 'Corrigir análise técnica' });
     await expect(dialog.getByText('Não analisado → Correto')).toBeVisible();
-    expect(await page.evaluate(() => window.__remoteCalls)).toEqual(['preview_operational_change']);
+    expect(await page.evaluate(() => window.__canonicalCalls)).toEqual(['preview_operational_change']);
 });

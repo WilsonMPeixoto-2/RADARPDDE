@@ -27,3 +27,14 @@ test('flag explícita com RPC remota e cliente libera somente o diálogo', () =>
         RadarDataContext: { repository: { executeRpc() {}, capabilities: () => ({ remote: true }) } }
     }), true);
 });
+
+test('usa o repositório real publicado em RadarApplicationServices.data', () => {
+    const repository = { executeRpc() {}, capabilities: () => ({ remote: true }) };
+    const root = {
+        RADAR_OPERATIONAL_CORRECTION_PREVIEW: true,
+        RadarDataContext: Object.freeze({ ready: true, capabilities: { remote: true } }),
+        RadarApplicationServices: Object.freeze({ data: { repository } }),
+        RadarOperationalCorrectionClient: { createOperationalCorrectionClient() {} }
+    };
+    assert.equal(dialog.canUse(root), true);
+});
