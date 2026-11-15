@@ -43,13 +43,13 @@ A configuração institucional de Supabase é fonte de verdade operacional. A mi
 
 ## 4. Lacunas concretas observadas diretamente no código atual
 
-### A — T3 ainda usa o caminho antigo de exclusão (integração ausente, inequívoca)
+### A — T3 conserva deliberadamente a exclusão antiga durante a preparação (cutover pendente, não regressão atual)
 
 - Em `app.js`, perto de L10522–L10607, o botão Excluir só existe com `!hasPendencyHistory`; um documento com Pendência não recebe essa ação.
 - Em `src/application/invoice-service.js`, L1302–L1380, `InvoiceService.remove()` ainda chama `assertDeletionHistorySafe` e `assertDeletionAssetSafe`, monta `planInvoiceEffects` e usa `invoice:remove` / `delete_invoice_with_effects`, **não** `apply_operational_change`.
-- O comando SQL `delete_invoice` existe, mas não foi exposto. Não remover as guardas antes de concluir a transação e sua integração.
+- O comando SQL `delete_invoice` existe, mas não foi exposto. **O bloqueio anterior permanece propositalmente correto enquanto o novo protocolo não está completo**. Não remover as guardas antes de concluir a transação e sua integração; a tarefa futura é a substituição coordenada, não um hotfix para desbloquear precocemente.
 
-### B — T2 só aciona o diálogo novo em documentos agregados (integração ausente)
+### B — T2 só aciona o diálogo piloto em documentos agregados (integração em preparação sob flag OFF)
 
 - `src/integration/evaluation-retification-ui.js` L485–L495 abre `RadarOperationalCorrectionDialog.open` para `Editar análise` com flag `RADAR_OPERATIONAL_CORRECTION_PREVIEW === true`; a flag é desligada por padrão.
 - `app.js` L11533–L11618 usa `beginInvoiceDocumentAnalysisEdit()` + `radarInvoiceService.updateDocumentAnalysis()` para NF; L11792+ usa `updateServiceAdvisory()` para Assessoria. Ainda não passam pelo novo diálogo quando usuário quer **retificar** o estado individual.
@@ -94,7 +94,7 @@ A configuração institucional de Supabase é fonte de verdade operacional. A mi
 - `tests/e2e/operational-correction-dialog.spec.js` usa `executeRpc` controlado em navegador, e `prontuario-correction-layout.spec.js` usa fixture local. Não há ainda `tests/e2e/prontuario-analysis-correction.spec.js`, `prontuario-causal-deletion.spec.js`, `prontuario-context-correction.spec.js`, `prontuario-history-correction.spec.js` na branch.
 - O arquivo de evidências visuais `docs/evidence/prontuario-correcao-integrada/` só possui `README.md`; não contém conjunto aprovado de capturas por SHA. A aprovação humana visual e a prova em Preview isolado são etapas futuras, não concluídas.
 
-**Classificação:** A/B/H são faltas de integração previstas no estágio; C/D/E/F são **incompatibilidades/riscos identificados estaticamente na versão candidata**, ainda não demonstrados em jornada Supabase autenticada; G é cobertura insuficiente. Não confundir com defeitos já corrigidos da branch original do Argon.
+**Classificação:** A/B são **funcionalidades novas ainda não ativadas**, com coexistência intencional da lógica anterior; não indicam defeito da versão atual em Produção. H é trabalho de preparação e documentação; C/D/E/F são **incompatibilidades/riscos identificados estaticamente na versão candidata**, ainda não demonstrados em jornada Supabase autenticada; G é cobertura insuficiente. Para a matriz integral de substituição, testes, frontend, documentação e coexistência por lote, consultar [anexo de transição T0–T6](../reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md). Não confundir com defeitos já corrigidos da branch original do Argon.
 
 ## 5. Sequência de trabalho verificável sem reconstrução
 
