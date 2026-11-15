@@ -5,6 +5,8 @@
 **Baseline conservada:** `main` em `4011a2b8`, sem alteração, merge ou deploy pela frente.
 **Plano de destino:** [Prontuário: design, correção e exclusão integrados](../superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md).
 **Matriz obrigatória de transição por jornada:** [Regras antigas → novos comandos → substituição → testes/interfaces/documentação](../reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md). Diferenciar **código candidato ainda desligado** de **defeito no produto vigente**; a retirada de regras legadas ocorre no lote correto e exige testes de compatibilidade, não simplesmente remoção de testes antigos. Documento complementar ao plano original, sem segunda branch de execução.
+
+**Ambiente de ensaio definido (15/11):** seguir a [seção 8 da matriz](../reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md#8-estratégia-de-homologação-isolada-e-substituição-progressiva--decisão-de-preparação): usar primeiro o workflow de GitHub Actions com Supabase local/Docker, Auth real sintética e Playwright; ampliar as suítes T2–T5 no mesmo pipeline. Navegação local com Docker é opcional. Preview remoto da Vercel fica **adiado**, e só poderá existir posteriormente com banco de staging separado e proteção contra acesso à Produção. O bloqueio antigo permanece na UI enquanto a substituição não passar pelos testes de corte; não é falha da Produção. Esta decisão não executa nenhum workflow nem altera deployments.
 **Regras aprovadas:** [contrato](../reference/PRONTUARIO_CORRECAO_CONTRATO.md) e [estudo de flexibilização](../superpowers/specs/2026-11-14-flexibilizacao-correcao-exclusao-lancamentos.md).
 
 ## Última conferência da branch Antigravity — 15/11/2026
