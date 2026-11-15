@@ -1,3 +1,34 @@
+body:not(.dark-theme) #view-prontuario,
+body:not(.dark-theme) #tab-verificacoes {
+    --prontuario-canvas-bg: #fafafc;
+    --prontuario-surface-opaque: #ffffff;
+    --prontuario-ink-primary: #252133;
+    --prontuario-ink-secondary: #686477;
+    --prontuario-accent-purple: #6335b5;
+}
+
+body.dark-theme #view-prontuario,
+body.dark-theme #tab-verificacoes {
+    --prontuario-canvas-bg: var(--bg-page);
+    --prontuario-surface-opaque: var(--bg-card);
+    --prontuario-ink-primary: var(--text-main);
+    --prontuario-ink-secondary: var(--text-muted);
+    --prontuario-accent-purple: var(--primary);
+}
+
+#prontuario-verif-rows .btn-toggle.active-sim,
+#prontuario-verif-rows .btn-toggle.active-nao,
+#prontuario-verif-rows .btn-toggle.active-naoseaplica {
+    font-weight: 750;
+    box-shadow: inset 0 0 0 1.5px currentColor;
+}
+
+#prontuario-verif-rows tr.verification-document-row > td,
+#prontuario-verif-rows .invoice-document-row,
+#prontuario-verif-rows .inventory-document-link-copy span {
+    font-variant-numeric: tabular-nums;
+}
+
 #prontuario-verif-rows tr.program-block-start > td {
     border-top: 2px solid var(--border-hover);
 }
