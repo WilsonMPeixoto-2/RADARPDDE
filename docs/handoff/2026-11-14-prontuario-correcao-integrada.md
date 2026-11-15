@@ -18,7 +18,7 @@
 | Preparação | Concluída | Worktree e baseline 190e4494 validadas; documentação e PR #517 (4011a2b) integrados   |
 | T0 | Concluída | 28/28 testes de baseline aprovados; contrato PRONTUARIO_CORRECAO_CONTRATO.md e fixtures tests/fixtures/prontuario-correction-cases.json gravados em bf903ae 
 | T1 | Concluída | Contexto visual, agrupamento semântico por programa, tokens editoriais #FAFAFC/#252133/#686477/#6335B5 e cenários E2E gravados em 0405e45, 2ddf6a8, ab5b8e4 |
-| T2 | Em curso | OperationalCorrectionService (preview/apply/receipt) e testes unitários implementados (6f9aced e novo commit de teste); próximo passo: migration SQL 20261114000100 e integração UI dos 4 modais 
+| T2 | Em curso | OperationalCorrectionService (preview/apply/receipt) e testes unitários implementados (6f9aced e novo commit de teste); próximo passo: migration SQL 20261114000100 e integração UI dos 4 modais; migration supabase/migrations/20261114000100_operational_correction_contract.sql gravada em 55001ccd749781b9fbb2d28eae00c2186f8df3a1 (55001cc) e src/integration/operational-correction-ui.js gravado em 9132136dfcce12f4feb373139c7eaffcf3dae7c4 (9132136) 
 | T3 | Não iniciada | Exclusão causal com patrimônio/provisória |
 | T4 | Não iniciada | Bonificação/contexto errado |
  T5 | Em curso | Função pura rebuildPendencyAfterCorrection implementada e testada em src/domain/pendency-correction.js (7af651e) 
