@@ -1,0 +1,80 @@
+--- functional-integrity-remediation.test.sql
+not ok 12 - criação de exercício válida é atômica
+# Failed test 12: "criação de exercício válida é atômica"
+#     died: P0001: VALIDATION_ERROR: configuração inválida
+#         CONTEXT:
+#             PL/pgSQL function save_exercise_with_competences(jsonb,jsonb,jsonb) line 17 at RAISE
+#             SQL statement "
+#                 select public.save_exercise_with_competences(
+#                     (
+#                         select jsonb_build_object(
+#                             'id', id,
+#                             'exercises', exercises || '["2040"]'::jsonb,
+#                             'closing_competence', '2040-05',
+--- json-contracts.test.sql
+not ok 1 - pg_jsonschema está disponível
+# Failed test 1: "pg_jsonschema está disponível"
+not ok 3 - bonificação inválida rejeitada
+# Failed test 3: "bonificação inválida rejeitada"
+not ok 6 - erros fora de array rejeitados
+# Failed test 6: "erros fora de array rejeitados"
+not ok 7 - constraint rejeita bonificação inválida
+# Failed test 7: "constraint rejeita bonificação inválida"
+#       caught: no exception
+#       wanted: 23514
+not ok 8 - registro legado extensível permanece válido
+# Failed test 8: "registro legado extensível permanece válido"
+--- operations-rpc.test.sql
+not ok 1 - exercício e doze competências são gravados atomicamente
+# Failed test 1: "exercício e doze competências são gravados atomicamente"
+#     died: P0001: VALIDATION_ERROR: configuração inválida
+#         CONTEXT:
+#             PL/pgSQL function save_exercise_with_competences(jsonb,jsonb,jsonb) line 17 at RAISE
+#             SQL statement "
+#                 select public.save_exercise_with_competences(
+#                     jsonb_set('{"id":"global","exercises":["2030"],"closing_competence":"2030-01","settings":{}}'::jsonb, '{row_version}', to_jsonb((select row_version from public.app_config where id = 'global')), true),
+#                     (select jsonb_agg(jsonb_build_object('id', format('2030-%s', lpad(month::text, 2, '0')), 'label', month::text, 'exercise', 2030)) from generate_series(1,12) month),
+#                     '{"id":"log-exercise","action":"Exercício Criado","details":{"year":2030}}'::jsonb
+#                 )
+#             "
+--- production-integrity-monitor.test.sql
+not ok 9 - seed local evidencia dois controladores ainda sem identidade Auth
+# Failed test 9: "seed local evidencia dois controladores ainda sem identidade Auth"
+#         have: 0
+#         want: 2
+not ok 10 - seed local evidencia um integrante do Inventário ainda sem identidade Auth
+# Failed test 10: "seed local evidencia um integrante do Inventário ainda sem identidade Auth"
+#         have: 0
+#         want: 1
+not ok 11 - auditoria soma as três inconsistências intencionais do seed pré-Auth
+# Failed test 11: "auditoria soma as três inconsistências intencionais do seed pré-Auth"
+#         have: 0
+#         want: 3
+--- realtime-school-invalidation-context.test.sql
+not ok 2 - INSERT envia a escola afetada no Broadcast privado
+# Failed test 2: "INSERT envia a escola afetada no Broadcast privado"
+not ok 3 - UPDATE envia a escola afetada no Broadcast privado
+# Failed test 3: "UPDATE envia a escola afetada no Broadcast privado"
+not ok 4 - DELETE usa OLD e preserva a escola afetada no Broadcast privado
+# Failed test 4: "DELETE usa OLD e preserva a escola afetada no Broadcast privado"
+not ok 6 - tentativa sem school_id deriva a escola pela Pendência canônica
+# Failed test 6: "tentativa sem school_id deriva a escola pela Pendência canônica"
+not ok 8 - pai ausente emite invalidação conservadora sem inventar escola
+# Failed test 8: "pai ausente emite invalidação conservadora sem inventar escola"
+#         have: 0
+#         want: 1
+--- schema.test.sql
+psql:<worktree-main>/supabase/tests/database/schema.test.sql:38: ERROR:  relation "supabase_migrations.schema_migrations" does not exist
+psql:<worktree-main>/supabase/tests/database/schema.test.sql:39: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:<worktree-main>/supabase/tests/database/schema.test.sql:46: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:<worktree-main>/supabase/tests/database/schema.test.sql:53: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:<worktree-main>/supabase/tests/database/schema.test.sql:55: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+--- school-assignment-authorization.test.sql
+psql:<worktree-main>/supabase/tests/database/school-assignment-authorization.test.sql:29: ERROR:  insert or update on table "schools" violates foreign key constraint "schools_initial_competence_fkey"
+psql:<worktree-main>/supabase/tests/database/school-assignment-authorization.test.sql:31: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:<worktree-main>/supabase/tests/database/school-assignment-authorization.test.sql:32: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:<worktree-main>/supabase/tests/database/school-assignment-authorization.test.sql:61: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:<worktree-main>/supabase/tests/database/school-assignment-authorization.test.sql:67: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:<worktree-main>/supabase/tests/database/school-assignment-authorization.test.sql:69: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:<worktree-main>/supabase/tests/database/school-assignment-authorization.test.sql:98: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:<worktree-main>/supabase/tests/database/school-assignment-authorization.test.sql:100: ERROR:  current transaction is aborted, commands ignored until end of transaction block

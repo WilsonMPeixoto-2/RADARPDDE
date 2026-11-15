@@ -1,0 +1,48 @@
+7327c967|2026-11-12 15:14|Wilson Malafaia Peixoto|docs(audit): registrar diagnostico somente leitura de bonificacao inap|fix/preview-pendencias-column-spacing-20261111 
+0a6e77f1|2026-11-12 17:04|Wilson Malafaia Peixoto|test(ui): exigir destaque visual e texto claro para saídas sem ação de|feat/quality-provisional-discoverability-20261112 preview/pr516-quality-panel-20261112 
+9f5ea95e|2026-11-12 17:05|Wilson Malafaia Peixoto|feat(ui): destacar cadastro de saídas sem ação definida no Prontuário|feat/quality-provisional-discoverability-20261112 preview/pr516-quality-panel-20261112 
+87df3672|2026-11-12 17:05|Wilson Malafaia Peixoto|style(quality): destacar painel com acento institucional e CTA respons|feat/quality-provisional-discoverability-20261112 preview/pr516-quality-panel-20261112 
+82685e27|2026-11-12 17:07|Wilson Malafaia Peixoto|ci(preview): permitir build isolado da demonstração do painel PDDE Qua|preview/pr516-quality-panel-20261112 
+5d2f67df|2026-11-12 17:09|Wilson Malafaia Peixoto|test(preview-only): preservar whitelist main e admitir branch temporár|preview/pr516-quality-panel-20261112 
+15a49dc7|2026-11-12 17:09|Wilson Malafaia Peixoto|test(preview-only): preservar whitelist main e admitir branch temporár|preview/pr516-quality-panel-20261112 
+ee1bab61|2026-11-12 23:20|Wilson Malafaia Peixoto|fix(quality): exibir painel no modo Preview sem cliente Supabase|feat/quality-provisional-discoverability-20261112 
+3eed13ba|2026-11-13 00:26|Wilson Malafaia Peixoto|fix(quality): exibir painel no modo Preview sem cliente Supabase|preview/pr516-quality-panel-20261112 
+8fcdb681|2026-11-13 00:33|Wilson Malafaia Peixoto|revert(quality): preservar contrato de exibicao restrita ao cliente Su|feat/quality-provisional-discoverability-20261112 
+d06b1625|2026-11-13 00:59|Wilson Malafaia Peixoto|fix(quality): restaurar sintaxe válida mantendo bloqueio em modo local|feat/quality-provisional-discoverability-20261112 
+362cf23a|2026-11-13 07:02|Wilson Malafaia Peixoto|test(quality): validar o painel após rolar em tela estreita|feat/quality-provisional-discoverability-20261112 
+190e4494|2026-11-13 07:04|Wilson Malafaia Peixoto|UI: destacar saídas sem Ação Integrada no Prontuário (#516)|origin docs/analises-e-plano-mestre-gemini-20261114 docs/flexibilizacao-lancamentos-20261114 docs/plano-integrado-prontuario-20261114 docs/prontuario-direcao-visual-20261113 docs/rota-obrigatoria-prontuario-20261114 feat/prontuario-correcao-integrada-20261114 main 
+feebdb15|2026-11-13 16:36|Wilson Malafaia Peixoto|docs(ux): registrar mapa de oportunidades de design e usabilidade desk|fix/preview-pendencias-column-spacing-20261111 
+9e420c0d|2026-11-13 20:53|Wilson Malafaia Peixoto|Create visual architecture documentation for Prontuário|fix/preview-pendencias-column-spacing-20261111 
+5e57eda0|2026-11-13 21:08|Wilson Malafaia Peixoto|docs(design): analisar jornada e direcao visual do prontuario [skip ci|docs/prontuario-direcao-visual-20261113 
+54de4f3a|2026-11-14 00:04|Wilson Malafaia Peixoto|docs: registrar evidencias de regras e vinculos de lancamentos [skip c|docs/flexibilizacao-lancamentos-20261114 
+5db04f47|2026-11-14 00:05|Wilson Malafaia Peixoto|docs: analisar flexibilizacao de correcao e exclusao de lancamentos [s|docs/flexibilizacao-lancamentos-20261114 
+30f08ecf|2026-11-14 00:40|Wilson Malafaia Peixoto|docs: planejar evolucao integrada de design e correcao de lancamentos |docs/plano-integrado-prontuario-20261114 
+08bddb19|2026-11-14 03:30|Wilson Malafaia Peixoto|docs(reference): consolidar plano mestre comparativo de design e flexi|fix/preview-pendencias-column-spacing-20261111 
+7039f588|2026-11-14 19:55|Wilson Malafaia Peixoto|docs: rotear frente integrada e continuidade [skip ci]|origin docs/rota-obrigatoria-prontuario-20261114 feat/prontuario-correcao-integrada-20261114 main 
+cea0da68|2026-11-14 19:56|Wilson Malafaia Peixoto|docs: rotear frente integrada e continuidade [skip ci]|origin docs/rota-obrigatoria-prontuario-20261114 feat/prontuario-correcao-integrada-20261114 main 
+acf37eea|2026-11-14 19:56|Wilson Malafaia Peixoto|docs: rotear frente integrada e continuidade [skip ci]|origin docs/rota-obrigatoria-prontuario-20261114 feat/prontuario-correcao-integrada-20261114 main 
+9b791bc9|2026-11-14 19:56|Wilson Malafaia Peixoto|docs: registrar contrato e continuidade da frente integrada [skip ci]|origin docs/rota-obrigatoria-prontuario-20261114 feat/prontuario-correcao-integrada-20261114 main 
+d7c44ba1|2026-11-14 19:56|Wilson Malafaia Peixoto|docs: registrar contrato e continuidade da frente integrada [skip ci]|origin docs/rota-obrigatoria-prontuario-20261114 feat/prontuario-correcao-integrada-20261114 main 
+6e2fb646|2026-11-14 19:56|Wilson Malafaia Peixoto|docs: registrar contrato e continuidade da frente integrada [skip ci]|origin docs/rota-obrigatoria-prontuario-20261114 feat/prontuario-correcao-integrada-20261114 main 
+96bb7985|2026-11-14 19:56|Wilson Malafaia Peixoto|docs: rotear frente integrada e continuidade [skip ci]|origin docs/rota-obrigatoria-prontuario-20261114 feat/prontuario-correcao-integrada-20261114 main 
+14305785|2026-11-14 19:56|Wilson Malafaia Peixoto|docs: registrar contrato e continuidade da frente integrada [skip ci]|origin docs/rota-obrigatoria-prontuario-20261114 feat/prontuario-correcao-integrada-20261114 main 
+5beeec64|2026-11-14 19:56|Wilson Malafaia Peixoto|docs: rotear frente integrada e continuidade [skip ci]|origin docs/rota-obrigatoria-prontuario-20261114 feat/prontuario-correcao-integrada-20261114 main 
+ffc21a9a|2026-11-14 19:56|Wilson Malafaia Peixoto|docs: rotear frente integrada e continuidade [skip ci]|origin docs/rota-obrigatoria-prontuario-20261114 feat/prontuario-correcao-integrada-20261114 main 
+e97451a2|2026-11-14 19:56|Wilson Malafaia Peixoto|docs: registrar contrato e continuidade da frente integrada [skip ci]|origin docs/rota-obrigatoria-prontuario-20261114 feat/prontuario-correcao-integrada-20261114 main 
+8b1a84cf|2026-11-14 19:56|Wilson Malafaia Peixoto|docs: registrar contrato e continuidade da frente integrada [skip ci]|origin docs/rota-obrigatoria-prontuario-20261114 feat/prontuario-correcao-integrada-20261114 main 
+e15cf912|2026-11-14 19:56|Wilson Malafaia Peixoto|docs: registrar contrato e continuidade da frente integrada [skip ci]|origin docs/rota-obrigatoria-prontuario-20261114 feat/prontuario-correcao-integrada-20261114 main 
+4011a2b8|2026-11-14 20:05|Wilson Malafaia Peixoto|docs: orientar agentes pela frente integrada do Prontuário (#517)|origin main 
+166aad44|2026-11-14 20:10|Wilson Malafaia Peixoto|docs: add Gemini technical analyses and comparative master plan|docs/analises-e-plano-mestre-gemini-20261114 
+bf903aea|2026-11-14 20:34|Wilson Malafaia Peixoto|test(fixtures): registrar cenarios de referencia T0 para correcao inte|feat/prontuario-correcao-integrada-20261114 
+8fc77ac5|2026-11-14 20:51|Wilson Malafaia Peixoto|docs(handoff): concluir lote T0 com fixtures de referencia e iniciar T|feat/prontuario-correcao-integrada-20261114 
+0405e45d|2026-11-14 21:06|Wilson Malafaia Peixoto|feat(prontuario): aplicar agrupamento semantico por programa no lote T|feat/prontuario-correcao-integrada-20261114 
+2ddf6a80|2026-11-14 21:06|Wilson Malafaia Peixoto|style(prontuario): aplicar tokens editoriais 5e57eda e selecao percept|feat/prontuario-correcao-integrada-20261114 
+ab5b8e47|2026-11-14 21:07|Wilson Malafaia Peixoto|test(e2e): adicionar cenarios T1 de edicao com pendencia ativa e conte|feat/prontuario-correcao-integrada-20261114 
+a98f3682|2026-11-14 21:08|Wilson Malafaia Peixoto|docs(handoff): marcar lote T1 concluido e T2 em curso|feat/prontuario-correcao-integrada-20261114 
+7af651e8|2026-11-14 21:13|Wilson Malafaia Peixoto|feat(domain): implementar rebuildPendencyAfterCorrection para recompos|feat/prontuario-correcao-integrada-20261114 
+6f9aced5|2026-11-14 21:16|Wilson Malafaia Peixoto|feat(application): implementar OperationalCorrectionService preview e |feat/prontuario-correcao-integrada-20261114 
+82510354|2026-11-14 21:18|Wilson Malafaia Peixoto|test(unit): adicionar suite de testes do OperationalCorrectionService |feat/prontuario-correcao-integrada-20261114 
+e9bf2e10|2026-11-14 21:20|Wilson Malafaia Peixoto|docs(handoff): registrar implementacao de OperationalCorrectionService|feat/prontuario-correcao-integrada-20261114 
+55001ccd|2026-11-14 21:31|Wilson Malafaia Peixoto|feat(db): criar contrato RPC preview_operational_change e apply_operat|feat/prontuario-correcao-integrada-20261114 
+9132136d|2026-11-14 21:33|Wilson Malafaia Peixoto|feat(integration): instalar ponte de UI e registro do OperationalCorre|feat/prontuario-correcao-integrada-20261114 
+4c0c1725|2026-11-14 21:34|Wilson Malafaia Peixoto|docs(handoff): registrar hashes da migration 20261114000100 e operatio|feat/prontuario-correcao-integrada-20261114 

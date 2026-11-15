@@ -1,0 +1,85 @@
+✖ ordena Básico, Qualidade e Equidade, mantendo a ordem relativa dos demais programas (4.806832ms)
+✖ quando só o par Qualidade está invertido, move exclusivamente Educação Conectada (1.821109ms)
+✖ não movimenta o DOM quando a ordem já está correta (0.680841ms)
+✖ mantém ordem com apenas um dos dois programas especiais (0.627467ms)
+✖ coloca programas desconhecidos depois dos grupos conhecidos sem inventar categoria (0.667254ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 0
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 84.617877
+
+✖ failing tests:
+
+test at tests/unit/prontuario-program-order.test.js:120:1
+✖ ordena Básico, Qualidade e Equidade, mantendo a ordem relativa dos demais programas (4.806832ms)
+  TypeError [Error]: group.contextCell.setAttribute is not a function
+      at decorateProgramGroup (<worktree-branch>/src/integration/prontuario-operational-ux.js:300:27)
+      at <worktree-branch>/src/integration/prontuario-operational-ux.js:516:13
+      at Array.forEach (<anonymous>)
+      at Object.enhanceProntuario [as enhance] (<worktree-branch>/src/integration/prontuario-operational-ux.js:515:67)
+      at Object.enhance (<worktree-branch>/tests/unit/prontuario-program-order.test.js:71:30)
+      at verify (<worktree-branch>/tests/unit/prontuario-program-order.test.js:104:11)
+      at TestContext.<anonymous> (<worktree-branch>/tests/unit/prontuario-program-order.test.js:121:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+
+test at tests/unit/prontuario-program-order.test.js:127:1
+✖ quando só o par Qualidade está invertido, move exclusivamente Educação Conectada (1.821109ms)
+  TypeError [Error]: group.contextCell.setAttribute is not a function
+      at decorateProgramGroup (<worktree-branch>/src/integration/prontuario-operational-ux.js:300:27)
+      at <worktree-branch>/src/integration/prontuario-operational-ux.js:516:13
+      at Array.forEach (<anonymous>)
+      at Object.enhanceProntuario [as enhance] (<worktree-branch>/src/integration/prontuario-operational-ux.js:515:67)
+      at Object.enhance (<worktree-branch>/tests/unit/prontuario-program-order.test.js:71:30)
+      at verify (<worktree-branch>/tests/unit/prontuario-program-order.test.js:104:11)
+      at TestContext.<anonymous> (<worktree-branch>/tests/unit/prontuario-program-order.test.js:128:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+
+test at tests/unit/prontuario-program-order.test.js:135:1
+✖ não movimenta o DOM quando a ordem já está correta (0.680841ms)
+  TypeError [Error]: group.contextCell.setAttribute is not a function
+      at decorateProgramGroup (<worktree-branch>/src/integration/prontuario-operational-ux.js:300:27)
+      at <worktree-branch>/src/integration/prontuario-operational-ux.js:516:13
+      at Array.forEach (<anonymous>)
+      at Object.enhanceProntuario [as enhance] (<worktree-branch>/src/integration/prontuario-operational-ux.js:515:67)
+      at Object.enhance (<worktree-branch>/tests/unit/prontuario-program-order.test.js:71:30)
+      at verify (<worktree-branch>/tests/unit/prontuario-program-order.test.js:104:11)
+      at TestContext.<anonymous> (<worktree-branch>/tests/unit/prontuario-program-order.test.js:136:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+
+test at tests/unit/prontuario-program-order.test.js:143:1
+✖ mantém ordem com apenas um dos dois programas especiais (0.627467ms)
+  TypeError [Error]: group.contextCell.setAttribute is not a function
+      at decorateProgramGroup (<worktree-branch>/src/integration/prontuario-operational-ux.js:300:27)
+      at <worktree-branch>/src/integration/prontuario-operational-ux.js:516:13
+      at Array.forEach (<anonymous>)
+      at Object.enhanceProntuario [as enhance] (<worktree-branch>/src/integration/prontuario-operational-ux.js:515:67)
+      at Object.enhance (<worktree-branch>/tests/unit/prontuario-program-order.test.js:71:30)
+      at verify (<worktree-branch>/tests/unit/prontuario-program-order.test.js:104:11)
+      at TestContext.<anonymous> (<worktree-branch>/tests/unit/prontuario-program-order.test.js:144:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+
+test at tests/unit/prontuario-program-order.test.js:150:1
+✖ coloca programas desconhecidos depois dos grupos conhecidos sem inventar categoria (0.667254ms)
+  TypeError [Error]: group.contextCell.setAttribute is not a function
+      at decorateProgramGroup (<worktree-branch>/src/integration/prontuario-operational-ux.js:300:27)
+      at <worktree-branch>/src/integration/prontuario-operational-ux.js:516:13
+      at Array.forEach (<anonymous>)
+      at Object.enhanceProntuario [as enhance] (<worktree-branch>/src/integration/prontuario-operational-ux.js:515:67)
+      at Object.enhance (<worktree-branch>/tests/unit/prontuario-program-order.test.js:71:30)
+      at verify (<worktree-branch>/tests/unit/prontuario-program-order.test.js:104:11)
+      at TestContext.<anonymous> (<worktree-branch>/tests/unit/prontuario-program-order.test.js:151:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)

@@ -1,0 +1,28 @@
+✖ OperationalCorrectionService: delete_invoice remove dependentes exatos, preserva vizinhos, legado sem FK e bonificação (9.598885ms)
+✖ OperationalCorrectionService: na-bonus-with-valid-invoices preserva NFs e aplica regra de BB Ágil N/A (0.692755ms)
+✔ rebuildPendencyAfterCorrection: excluir reanálise atual recoloca envio válido em Aguardando reanálise (0.713678ms)
+✔ rebuildPendencyAfterCorrection: corrigir data de envio recalcula atraso sem inventar aprovação (0.351342ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 2
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 98.503966
+
+✖ failing tests:
+
+test at tests/unit/operational-correction-service.test.js:12:1
+✖ OperationalCorrectionService: delete_invoice remove dependentes exatos, preserva vizinhos, legado sem FK e bonificação (9.598885ms)
+  TypeError [Error]: Cannot read properties of undefined (reading 'delete')
+      at TestContext.<anonymous> (<worktree-branch>/tests/unit/operational-correction-service.test.js:65:35)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at tests/unit/operational-correction-service.test.js:100:1
+✖ OperationalCorrectionService: na-bonus-with-valid-invoices preserva NFs e aplica regra de BB Ágil N/A (0.692755ms)
+  TypeError [Error]: Cannot read properties of undefined (reading 'delete')
+      at TestContext.<anonymous> (<worktree-branch>/tests/unit/operational-correction-service.test.js:120:42)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)

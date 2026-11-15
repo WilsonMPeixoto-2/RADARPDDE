@@ -1,0 +1,44 @@
+Output format is unaligned.
+SET
+INSERT 0 1
+INSERT 0 1
+00000000-0000-0000-0000-00000000a001
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+CREATE FUNCTION
+FIXTURE nf-a (consumo)        -> ok
+FIXTURE nf-b (consumo, vizinha)-> ok
+FIXTURE nf-c (permanente)      -> ok
+FIXTURE nf-d (permanente inv.) -> ok
+UPDATE 1
+INSERT 0 2
+INSERT 0 1
+INSERT 0 1
+FIXTURE contagens: NFs=4 pendencias=2 bens=2
+P1 EXECUTE anon apply=true anon preview=true secdef=true
+
+SET
+P2 preview como anon -> {"action": "delete_invoice", "counts": {"assets": 0, "pendencies": 1, "pendencyAttempts": 1, "pendencyContacts": 1, "reopenedMovements": 0, "registeredInvoices": 1}, "context": {"schoolId": "04.99.901", "programId": "PROBE", "competence": "2039-05", "documentKey": null}, "effects": {"delete": {"assets": [], "pendencies": ["pend-a"], "pendencyAttempts": ["att-a1"], "pendencyContacts": ["cont-a1"], "registeredInvoices": ["nf-a"], "qualityProvisionalMovements": []}, "reopen": []}, "planDigest": "plan-v1-ca49c47588da8563569d10b7877b6861", "contractVersion": 1}
+P2 apply como anon -> {"action": "delete_invoice", "auditId": "audit-11111111-1111-1111-1111-111111111111", "committed": true, "operationKey": "11111111-1111-1111-1111-111111111111", "changedEntities": ["verifications", "registeredInvoices", "pendencies", "pendencyAttempts", "assets", "qualityProvisionalMovements", "administrativeLogs"], "contractVersion": 1, "affectedContexts": [{"schoolId": "04.99.901", "programId": "PROBE", "competence": "2039-05", "documentKey": null}], "reopenedEntities": [], "deletedIdsByEntity": {"assets": [], "pendencies": ["pend-a"], "pendencyAttempts": ["att-a1"], "pendencyContacts": ["cont-a1"], "registeredInvoices": ["nf-a"], "qualityProvisionalMovements": []}}
+RESET
+P2 depois: nf-a existe=false pend-a existe=false att-a1 existe=false cont-a1 existe=false nf-b (vizinha) existe=true | analysis da verificação={"notaFiscal": "Incorreto"} ledger.actor_id=NULL
+00000000-0000-0000-0000-00000000a001
+WARNING:  P3 apply nf-d inventariada -> ERRO [P0001] ASSET_ALREADY_INVENTORIED: assets/asset-d
+DO
+WARNING:  P4 preview clear_analysis -> ERRO [42703] column p.competence_id does not exist
+DO
+WARNING:  P5 preview delete_context -> ERRO [42703] column p.competence_id does not exist
+DO
+WARNING:  P6 apply acao_inventada -> committed=true (ledger=1)
+DO
+WARNING:  P6b apply correct_contact -> committed=true deleted={"assets": [], "pendencies": [], "pendencyAttempts": [], "pendencyContacts": [], "registeredInvoices": [], "qualityProvisionalMovements": []}
+DO
+WARNING:  P7 reuso de chave com outro alvo -> recibo action=delete_invoice (nf-b ainda existe=t)
+DO
+WARNING:  P8 correct_analysis(Correto) -> pend-ctx existe=f | analysis={"notaFiscal": "Incorreto"}
+DO
+WARNING:  P9 digest antes=plan-v1-2fb9c84b276e7d9e66a9efabe8b1cc17 depois(valor alterado + bem inventariado)=plan-v1-2fb9c84b276e7d9e66a9efabe8b1cc17 iguais=t
+WARNING:  P9 -> ERRO [P0001] ASSET_ALREADY_INVENTORIED: assets/asset-c cannot leave terminal status Inventariada
+DO

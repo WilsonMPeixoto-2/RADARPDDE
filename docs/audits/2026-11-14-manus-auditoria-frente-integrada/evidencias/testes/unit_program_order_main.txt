@@ -1,0 +1,13 @@
+✔ ordena Básico, Qualidade e Equidade, mantendo a ordem relativa dos demais programas (7.859343ms)
+✔ quando só o par Qualidade está invertido, move exclusivamente Educação Conectada (0.941467ms)
+✔ não movimenta o DOM quando a ordem já está correta (0.899695ms)
+✔ mantém ordem com apenas um dos dois programas especiais (2.203671ms)
+✔ coloca programas desconhecidos depois dos grupos conhecidos sem inventar categoria (0.829058ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 95.158681

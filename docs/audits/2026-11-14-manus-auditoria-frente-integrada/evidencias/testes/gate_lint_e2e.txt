@@ -1,0 +1,394 @@
+
+<worktree-branch>/tests/e2e/accessibility-scans.spec.js
+   9:11  warning  Unexpected use of page.waitForSelector()  playwright/no-wait-for-selector
+  20:5   warning  Avoid having conditionals in tests        playwright/no-conditional-in-test
+
+<worktree-branch>/tests/e2e/application-services.spec.js
+   5:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  61:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/atomic-analysis-pendency.spec.js
+    6:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  120:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/canonical-routes.spec.js
+  309:3  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  327:3  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/controller-guide.spec.js
+  5:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/critical-product-extensions.spec.js
+   5:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  45:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/cycle-b-carteira.spec.js
+   83:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  105:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  133:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  147:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  167:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/cycle-b-dashboard.spec.js
+   68:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  115:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  142:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/desktop-basic-monitors.spec.js
+  63:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/evaluation-retification-ui.spec.js
+   64:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  161:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/excel-export-button.spec.js
+   30:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+   74:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  121:7  warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+  140:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  165:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  197:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/exercise-management.spec.js
+    5:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  121:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  147:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/frontend-contract.spec.js
+  4:3  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/functional-core.spec.js
+  114:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  135:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  198:3  warning  Expected blank line before this statement   playwright/consistent-spacing-between-blocks
+  199:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  326:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  362:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  416:3  warning  Expected blank line before this statement   playwright/consistent-spacing-between-blocks
+  417:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  487:3  warning  Expected blank line before this statement   playwright/consistent-spacing-between-blocks
+  488:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  521:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  686:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/global-competence-carteira.spec.js
+   25:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  103:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  145:7  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/global-competence-dashboard.spec.js
+   43:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  127:7  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/global-visual-polish.spec.js
+   15:9   warning  Unexpected use of page.waitForTimeout()                          playwright/no-wait-for-timeout
+   63:5   warning  Unexpected use of the `.skip()` annotation                       playwright/no-skipped-test
+  194:54  warning  Unexpected usage of not.toBeVisible(). Use toBeHidden() instead  playwright/no-useless-not
+
+<worktree-branch>/tests/e2e/internet-bill-document.spec.js
+    5:3  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  190:3  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  357:3  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  441:3  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/inventory-observation.spec.js
+  5:3  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/inventory-prontuario-link.spec.js
+  10:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/invoice-auditable-retification.spec.js
+  116:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  174:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/invoice-document-analysis.spec.js
+  42:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/invoice-retification-discoverability.spec.js
+  124:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  180:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/invoice-retification-projections.spec.js
+  151:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  203:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/invoice-submit-guard.spec.js
+  159:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  179:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  199:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  229:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  247:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/layout-responsive-regressions.spec.js
+   75:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  111:3  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  173:3  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/mobile-header-controls.spec.js
+   49:21  warning  Callback argument must be a function        playwright/valid-describe-callback
+   52:23  warning  Callback argument must be a function        playwright/valid-describe-callback
+   53:28  warning  Callback argument must be a function        playwright/valid-describe-callback
+   54:26  warning  Callback argument must be a function        playwright/valid-describe-callback
+   55:23  warning  Callback argument must be a function        playwright/valid-describe-callback
+   56:24  warning  Callback argument must be a function        playwright/valid-describe-callback
+   57:25  warning  Callback argument must be a function        playwright/valid-describe-callback
+   81:3   warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  104:9   warning  Unexpected use of page.waitForTimeout()     playwright/no-wait-for-timeout
+
+<worktree-branch>/tests/e2e/mobile-smoke.spec.js
+  142:13  warning  Unexpected use of page.waitForTimeout()  playwright/no-wait-for-timeout
+
+<worktree-branch>/tests/e2e/monthly-evaluation-journey.spec.js
+   19:3   warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  173:89  warning  Use toHaveLength() instead                  playwright/prefer-to-have-length
+
+<worktree-branch>/tests/e2e/operational-refresh-focus.spec.js
+  11:3  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/operational-refresh-visibility.spec.js
+  7:3  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/operational-sustained-sessions.spec.js
+   11:1   warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  126:7   warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+  149:13  warning  Avoid calling `expect` conditionally        playwright/no-conditional-expect
+  154:13  warning  Avoid calling `expect` conditionally        playwright/no-conditional-expect
+  205:7   warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+  218:5   warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+  318:5   warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+  320:9   warning  Avoid calling `expect` conditionally        playwright/no-conditional-expect
+  332:5   warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+
+<worktree-branch>/tests/e2e/pendency-cross-competence.spec.js
+   81:5   warning  Unexpected use of the `.skip()` annotation      playwright/no-skipped-test
+  108:5   warning  Unexpected use of the `.skip()` annotation      playwright/no-skipped-test
+  119:11  warning  Prefer locator methods instead of page methods  playwright/prefer-locator
+
+<worktree-branch>/tests/e2e/pendency-cycle.spec.js
+   164:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+   209:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+   461:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+   819:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+   998:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  1264:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  1388:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  1515:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  1622:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  1757:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  1845:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  1956:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  2039:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  2153:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  2213:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  2387:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  2508:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/pendency-manual-auditable-retification.spec.js
+  11:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/pendency-reanalysis-auth.spec.js
+  6:1  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/performance-journeys.spec.js
+   18:1   warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  245:20  warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+
+<worktree-branch>/tests/e2e/production-authenticated-read.spec.js
+   15:1  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  370:5  warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+  394:3  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  459:5  warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+
+<worktree-branch>/tests/e2e/prontuario-correction-layout.spec.js
+  10:26  warning  Avoid having conditionals in tests  playwright/no-conditional-in-test
+  67:26  warning  Avoid having conditionals in tests  playwright/no-conditional-in-test
+
+<worktree-branch>/tests/e2e/prontuario-integridade.spec.js
+  10:5   warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  45:5   warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+  46:13  warning  Avoid calling `expect` conditionally        playwright/no-conditional-expect
+  57:5   warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/prontuario-program-order.spec.js
+  49:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/prontuario-scroll-preservation.spec.js
+   6:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  71:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/prontuario-ux-baixo-risco.spec.js
+   79:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  165:5  warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+  179:5  warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+  193:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/remote-deployment-contract.spec.js
+  15:54  warning  Unexpected use of networkidle         playwright/no-networkidle
+  61:37  warning  Unexpected use of networkidle         playwright/no-networkidle
+  73:3   warning  Avoid having conditionals in tests    playwright/no-conditional-in-test
+  74:5   warning  Avoid calling `expect` conditionally  playwright/no-conditional-expect
+  76:5   warning  Avoid calling `expect` conditionally  playwright/no-conditional-expect
+  77:5   warning  Avoid calling `expect` conditionally  playwright/no-conditional-expect
+
+<worktree-branch>/tests/e2e/school-details-desktop.spec.js
+   75:5   warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  254:11  warning  Unexpected use of page.waitForTimeout()     playwright/no-wait-for-timeout
+
+<worktree-branch>/tests/e2e/school-timeline.spec.js
+  134:3  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  154:3  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/shared-interactions.spec.js
+  18:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  34:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/sme-access-governance.spec.js
+  14:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/supabase-aggregate-school-sync.spec.js
+    7:1   warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  326:5   warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+  326:9   warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+  348:21  warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+  379:26  warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+
+<worktree-branch>/tests/e2e/supabase-auth-local.spec.js
+  6:1  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/supabase-evaluation-retification.spec.js
+    8:1  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  167:5  warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+
+<worktree-branch>/tests/e2e/supabase-expense-independence.spec.js
+    5:1   warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  102:5   warning  Expected blank line before this statement   playwright/consistent-spacing-between-blocks
+  131:5   warning  Expected blank line before this statement   playwright/consistent-spacing-between-blocks
+  147:13  warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+  147:47  warning  Avoid calling `expect` conditionally        playwright/no-conditional-expect
+  200:13  warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+
+<worktree-branch>/tests/e2e/supabase-full-contract.spec.js
+  6:1  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/supabase-functional-reliability.spec.js
+  8:1  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/supabase-inventory-terminal-delete.spec.js
+  6:1  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/supabase-invoice-lifecycle-reliability.spec.js
+  8:1  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/supabase-invoice-type-retification.spec.js
+   6:1   warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  47:9   warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+  48:13  warning  Avoid calling `expect` conditionally        playwright/no-conditional-expect
+  49:13  warning  Avoid calling `expect` conditionally        playwright/no-conditional-expect
+  50:13  warning  Avoid calling `expect` conditionally        playwright/no-conditional-expect
+  53:13  warning  Avoid calling `expect` conditionally        playwright/no-conditional-expect
+  54:13  warning  Avoid calling `expect` conditionally        playwright/no-conditional-expect
+  56:9   warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+  57:13  warning  Avoid calling `expect` conditionally        playwright/no-conditional-expect
+
+<worktree-branch>/tests/e2e/supabase-late-auth-actions.spec.js
+  6:1  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/supabase-local-mode.spec.js
+   58:11  warning  Unexpected use of page.waitForTimeout()     playwright/no-wait-for-timeout
+  104:5   warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/supabase-operational-uat.spec.js
+    8:1   warning  Unexpected use of the `.skip()` annotation                       playwright/no-skipped-test
+  291:47  warning  Unexpected usage of not.toBeVisible(). Use toBeHidden() instead  playwright/no-useless-not
+
+<worktree-branch>/tests/e2e/supabase-pendency-operations-uat.spec.js
+  8:1  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/supabase-preview-profile-viewport.spec.js
+  6:1  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/supabase-preview-remote.spec.js
+    6:1   warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  107:5   warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+  108:13  warning  Avoid calling `expect` conditionally        playwright/no-conditional-expect
+  109:13  warning  Avoid calling `expect` conditionally        playwright/no-conditional-expect
+  110:13  warning  Avoid calling `expect` conditionally        playwright/no-conditional-expect
+  111:7   warning  Avoid calling `expect` conditionally        playwright/no-conditional-expect
+  128:9   warning  Avoid calling `expect` conditionally        playwright/no-conditional-expect
+  129:9   warning  Avoid calling `expect` conditionally        playwright/no-conditional-expect
+  130:9   warning  Avoid calling `expect` conditionally        playwright/no-conditional-expect
+  133:7   warning  Avoid calling `expect` conditionally        playwright/no-conditional-expect
+  230:1   warning  Test has no assertions                      playwright/expect-expect
+  240:1   warning  Test has no assertions                      playwright/expect-expect
+
+<worktree-branch>/tests/e2e/supabase-quality-provisional.spec.js
+   6:1   warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  77:23  warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+
+<worktree-branch>/tests/e2e/supabase-realtime-invalidation.spec.js
+    8:1   warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  141:21  warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+  184:21  warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+  304:21  warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+
+<worktree-branch>/tests/e2e/supabase-verification-reliability.spec.js
+  8:1  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/task-10-11-pendencias.spec.js
+   60:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  103:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  139:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  191:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  217:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  240:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  258:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  301:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/task-10-alertas-competencias.spec.js
+  58:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  76:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/task-12-13-retificacoes.spec.js
+   69:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  133:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  141:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/task-8-indicator-separation.spec.js
+  104:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/task-9-cross-view-order.spec.js
+  5:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/task-9-cross-view.spec.js
+  62:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  92:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/task-9-pendencias.spec.js
+  136:5   warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  155:5   warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  195:5   warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  218:5   warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  241:5   warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  280:5   warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  294:5   warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+  404:5   warning  Avoid having conditionals in tests          playwright/no-conditional-in-test
+  405:13  warning  Avoid calling `expect` conditionally        playwright/no-conditional-expect
+
+<worktree-branch>/tests/e2e/unidentified-expense-user-journey.spec.js
+    9:9   warning  Unexpected use of page.waitForTimeout()                          playwright/no-wait-for-timeout
+   23:5   warning  Unexpected use of the `.skip()` annotation                       playwright/no-skipped-test
+   75:54  warning  Unexpected usage of not.toBeVisible(). Use toBeHidden() instead  playwright/no-useless-not
+  370:54  warning  Unexpected usage of not.toBeVisible(). Use toBeHidden() instead  playwright/no-useless-not
+  517:11  warning  Unexpected use of page.waitForTimeout()                          playwright/no-wait-for-timeout
+
+<worktree-branch>/tests/e2e/unidentified-expense.spec.js
+   13:5   warning  Unexpected use of the `.skip()` annotation                       playwright/no-skipped-test
+   94:46  warning  Unexpected usage of not.toBeVisible(). Use toBeHidden() instead  playwright/no-useless-not
+  237:5   warning  Unexpected use of the `.skip()` annotation                       playwright/no-skipped-test
+
+<worktree-branch>/tests/e2e/visual-regression-sidebar-prontuario.spec.js
+  12:5  warning  Unexpected use of the `.skip()` annotation  playwright/no-skipped-test
+
+✖ 238 problems (0 errors, 238 warnings)
+  0 errors and 11 warnings potentially fixable with the `--fix` option.
+
