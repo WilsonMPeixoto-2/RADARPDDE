@@ -8,6 +8,8 @@
 **Baseline confirmada em 14/11/2026, Brasília:** `main@190e44942d0bb6927d1a7eeb83fb94fc782171b8`; comparação remota idêntica durante o planejamento. Os catálogos SQL abaixo são evidência datada da análise anterior, não revalidação automática de futuras migrations.
 **Estado:** plano proposto, sem etapas de implementação executadas.
 
+> **Decisão obrigatória de ambiente e aprovação humana — 15/11/2026:** executar as jornadas candidatas numa cópia local do RADAR com **Supabase completo em Docker, navegador e testes reais**, e obter validação navegada do proprietário nos marcos materiais T1–T5. A automação do GitHub Actions é complementar, não substitui essa aprovação. Ver [seção 8 da matriz de transição](../../reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md#8-ambiente-local-como-etapa-obrigatória-de-validação--decisão-de-15112026). Preparar o ambiente antes de fechar T2; código T4/T5 ainda não está concluído. Não publicar nesta frente.
+
 > **Complemento de execução — 15/11/2026:** [Matriz de transição integral T0–T6](../../reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md) é leitura obrigatória junto deste plano para cada lote. Ela identifica as **regras e interfaces antigas que permanecem deliberadamente ativas enquanto a funcionalidade nova está em preparação**, a sequência correta de substituição, as expectativas de teste a atualizar, tipos/RPCs, consumidores, documentos, frontend e compatibilidade com clientes antigos. Este complemento **não** altera a decisão de destino nem declara uma etapa homologada ou publicada.
 
 **Especificações que acompanham o plano:**
