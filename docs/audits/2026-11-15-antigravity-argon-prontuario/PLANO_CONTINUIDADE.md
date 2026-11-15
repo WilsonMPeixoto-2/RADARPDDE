@@ -13,7 +13,9 @@ Diferentemente da branch `audit/gemini-revisao-critica-e-sugestoes-20261115@6b4e
 ### Arquivos de código e testes prontos para incorporação direta (`git cherry-pick` ou `git merge --ff-only`):
 
 1. **`src/integration/operational-correction-dialog.js` + `tests/e2e/operational-correction-dialog.spec.js` + `tests/unit/operational-correction-dialog.test.js`:**
-   - Completa o suporte a `AMBIGUOUS_CONSEQUENCE` no diálogo piloto: quando `preview_operational_change` retorna `blockers` com `code === 'AMBIGUOUS_CONSEQUENCE'` e `candidates`, renderiza checkboxes explícitos (`data-pendency-candidate-id`, desmarcados por padrão — nunca auto-selecionados) e reexecuta a prévia enviando `selectedPendencyIds`.
+   - **Botão explícito `"Limpar análise"` com prévia e confirmação em 2 etapas:** permite acionar diretamente o botão `"Limpar análise"` (além de manter compatibilidade com o seletor), exibindo imediatamente no quadro `"O que vai mudar ao confirmar"` a reversão para `"Não analisado"` e os registros dependentes que serão excluídos, aguardando o clique final em `"Confirmar correção"`.
+   - **Nomenclatura voltada ao usuário humano:** substitui jargões técnicos (`"Efeitos informados pelo servidor"` → `"O que vai mudar ao confirmar"`, `"Consultando o servidor…"` → `"Calculando o que vai mudar…"`).
+   - **Seleção explícita de Pendências (`AMBIGUOUS_CONSEQUENCE`):** quando `preview_operational_change` retorna `blockers` com `code === 'AMBIGUOUS_CONSEQUENCE'` e `candidates`, renderiza checkboxes explícitos (`data-pendency-candidate-id`, desmarcados por padrão — nunca auto-selecionados) e reexecuta a prévia enviando `selectedPendencyIds`.
    - Remove eventual botão `#radar-operational-correction-reload` caso uma repetição receba `STALE_PLAN`.
    - Exporta `ANALYSES` na interface pública congelada `{ ANALYSES, canUse, open }`.
 2. **`src/application/operational-correction-client.js` + `tests/unit/operational-correction-client.test.js` + `supabase/migrations/20261114000100_operational_correction_contract.sql` + `supabase/tests/database/operational-correction.test.sql`:**
