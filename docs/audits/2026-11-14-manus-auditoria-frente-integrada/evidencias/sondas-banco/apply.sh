@@ -4,7 +4,8 @@
 set -u
 WT="$1"; DB="$2"; LAST="${3:-}"
 PGBIN=/usr/lib/postgresql/17/bin
-DATA=/home/ubuntu/analise/pgtest/data
+HERE="$(cd "$(dirname "$0")" && pwd)"
+DATA="${PGTEST_DATA:-$HERE/data}"
 PORT=54329
 export PGHOST=/tmp PGPORT=$PORT PGUSER=postgres
 if [ ! -d "$DATA" ]; then
@@ -12,10 +13,10 @@ if [ ! -d "$DATA" ]; then
   echo "unix_socket_directories = '/tmp'" >> "$DATA/postgresql.conf"
   echo "port = $PORT" >> "$DATA/postgresql.conf"
 fi
-$PGBIN/pg_ctl -D "$DATA" status >/dev/null 2>&1 || $PGBIN/pg_ctl -D "$DATA" -l /home/ubuntu/analise/pgtest/pg.log start -w >/dev/null
+$PGBIN/pg_ctl -D "$DATA" status >/dev/null 2>&1 || $PGBIN/pg_ctl -D "$DATA" -l "$HERE/pg.log" start -w >/dev/null
 $PGBIN/dropdb --if-exists "$DB" >/dev/null 2>&1
 $PGBIN/createdb "$DB"
-$PGBIN/psql -q -v ON_ERROR_STOP=1 -d "$DB" -f /home/ubuntu/analise/pgtest/bootstrap.sql >/tmp/boot_$DB.log 2>&1 || { echo "BOOTSTRAP FALHOU"; cat /tmp/boot_$DB.log; exit 1; }
+$PGBIN/psql -q -v ON_ERROR_STOP=1 -d "$DB" -f "$HERE/bootstrap.sql" >/tmp/boot_$DB.log 2>&1 || { echo "BOOTSTRAP FALHOU"; cat /tmp/boot_$DB.log; exit 1; }
 ok=0; fail=0
 for f in $(ls "$WT"/supabase/migrations/*.sql | sort); do
   base=$(basename "$f")
