@@ -122,6 +122,14 @@
         ));
     }
 
+    function currentRegisteredInvoices() {
+        const fromService = root.RadarApplicationServices?.invoices?.getState?.()?.registeredInvoices;
+        if (Array.isArray(fromService)) return fromService;
+        return typeof notasRegistradas !== 'undefined' && Array.isArray(notasRegistradas)
+            ? notasRegistradas
+            : [];
+    }
+
     function getPageModel() {
         return root.RadarPendenciasViewModel.createPendencyPageModel({
             pendencias,
@@ -129,6 +137,7 @@
             programas,
             controladores,
             contatos,
+            notasRegistradas: currentRegisteredInvoices(),
             filters: pageState.filters
         });
     }
@@ -215,8 +224,7 @@
         const pendency = record?.pendency;
         const invoiceId = pendency?.registeredInvoiceId || pendency?.registered_invoice_id;
         if (!invoiceId) return null;
-        const state = root.RadarApplicationServices?.invoices?.getState?.();
-        return (state?.registeredInvoices || []).find(invoice => (
+        return currentRegisteredInvoices().find(invoice => (
             String(invoice.id) === String(invoiceId)
         )) || null;
     }
@@ -290,7 +298,9 @@
         const reference = escapeHtml(encodePendencyIdReference(record.id));
         const isSelected = record.id === activePendencyDetailId;
         const linkedExpense = linkedInvoiceForRecord(record);
-        const expenseDescription = String(linkedExpense?.desc || linkedExpense?.descricao || '').trim();
+        const expenseIdentity = String(
+            record.invoiceIdentityLabel || linkedExpense?.desc || linkedExpense?.descricao || ''
+        ).trim();
         return `
             <tr
                 data-pendency-id="${escapeHtml(String(record.id))}"
@@ -311,7 +321,7 @@
                 <td>
                     <strong>${escapeHtml(record.programName)}</strong>
                     <small>${escapeHtml(record.documentName)}</small>
-                    ${expenseDescription ? `<small class="pendency-expense-identity">${escapeHtml(expenseDescription)}</small>` : ''}
+                    ${expenseIdentity ? `<small class="pendency-expense-identity">${escapeHtml(expenseIdentity)}</small>` : ''}
                 </td>
                 <td>${renderErrors(record)}</td>
                 <td><span class="badge ${getStatusBadgeClass(record.status)}">${escapeHtml(record.status)}</span></td>
@@ -334,6 +344,7 @@
     function renderMobileCard(record) {
         const reference = escapeHtml(encodePendencyIdReference(record.id));
         const selected = record.id === activePendencyDetailId;
+        const expenseIdentity = String(record.invoiceIdentityLabel || '').trim();
         return `
             <article
                 class="pendency-mobile-card ${selected ? 'pendency-row-selected' : ''}"
@@ -356,7 +367,7 @@
                 <dl>
                     <div><dt>Competência</dt><dd>${escapeHtml(formatCompetenciaText(record.competence))}</dd></div>
                     <div><dt>Programa</dt><dd>${escapeHtml(record.programName)}</dd></div>
-                    <div><dt>Documento</dt><dd>${escapeHtml(record.documentName)}</dd></div>
+                    <div><dt>Documento</dt><dd>${escapeHtml(record.documentName)}${expenseIdentity ? ` · ${escapeHtml(expenseIdentity)}` : ''}</dd></div>
                     <div><dt>Próxima ação</dt><dd>${escapeHtml(nextActionLabel(record))}</dd></div>
                     <div><dt>Tempo aguardando</dt><dd>${record.ageDays == null ? 'Não informado' : `${record.ageDays} dia${record.ageDays === 1 ? '' : 's'}`}</dd></div>
                     <div><dt>Tentativas</dt><dd>${record.attemptCount}</dd></div>
@@ -840,7 +851,7 @@
                             <dl class="pendency-detail-grid">
                                 <div><dt>Competência</dt><dd>${escapeHtml(formatCompetenciaText(record.competence))}</dd></div>
                                 <div><dt>Programa</dt><dd>${escapeHtml(record.programName)}</dd></div>
-                                <div><dt>Documento</dt><dd>${escapeHtml(record.documentName)}</dd></div>
+                                <div><dt>Documento</dt><dd>${escapeHtml(record.documentName)}${record.invoiceIdentityLabel ? ` (${escapeHtml(record.invoiceIdentityLabel)})` : ''}</dd></div>
                                 <div><dt>Controlador</dt><dd>${escapeHtml(record.controllerName)}</dd></div>
                                 <div><dt>Abertura</dt><dd>${escapeHtml(formatDate(record.openedAt))}</dd></div>
                                 <div><dt>Última movimentação</dt><dd>${escapeHtml(formatDateTime(record.latestMovement && record.latestMovement.at))}</dd></div>

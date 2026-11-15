@@ -6,6 +6,20 @@
 **Plano de destino:** [Prontuário: design, correção e exclusão integrados](../superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md).
 **Regras aprovadas:** [contrato](../reference/PRONTUARIO_CORRECAO_CONTRATO.md) e [estudo de flexibilização](../superpowers/specs/2026-11-14-flexibilizacao-correcao-exclusao-lancamentos.md).
 
+## Reconciliação independente — projeções de NF e Pendências (15/11/2026)
+
+**Origem auditada e preservada:** `audit/antigravity-argon-prontuario-20261115@52ff0871`, partindo de `466810ff`. O Antigravity relatou inspeção **somente de leitura** no Supabase institucional (62 migrations instaladas, 43 Pendências com identificação histórica diferente da NF atual); esses totais são **evidência do relatório do Antigravity, não reconferência independente direta no banco**. A migration de correção T2/T3 **não foi instalada** no Supabase institucional.
+
+**Código incorporado seletivamente:** projeção dos dados atuais da NF vinculada na fila, cartões e detalhes de Pendências, Passivo de Competências, Busca Global (incluindo texto *visível* do resultado) e Exportação Excel, além de orientações e botões alternativos no editor de NF e no diálogo de análise. O vínculo é exclusivamente por `registeredInvoiceId`, não por número, posição ou valor de nota. Atualização dos dados da NF e de bem relacionado permanece governada pelo `InvoiceService` existente.
+
+**Correção de integridade durante a integração:** o candidato originalmente modificava `pendency.item` em memória **após** a conclusão de `invoice:save` e também na rotina de renderização. Como não havia comando de persistência para `pendencies` nessa etapa, o código criava divergência entre estado local e banco e poderia sobrescrever dados históricos. Retirei essa mutação; as telas derivam a apresentação atual das NFs vinculadas, preservando `pendency.item` original e `documentSnapshot` nos dados. A normalização não substitui mais números incidentais dentro de textos livres. A Busca Global passa a **exibir** o número e a descrição atuais no título do resultado, além de indexá-los.
+
+**Limite funcional importante:** não houve UPDATE transacional de `public.pendencies.payload.item` no banco de Produção. O item histórico persistido pode continuar com a identificação original; as telas que recebem NF e Pendência vinculadas projetam os valores atuais. Uma eventual sincronização material de dados históricos exigirá comando e migração próprios, governança da auditoria e validação transacional; não presumir que este patch já a realizou.
+
+**Testes reproduzidos:** TDD RED/GREEN para não mutar `pendency.item`, preservar números incidentais e exibir a NF correta na Busca Global. `npm run test:readiness`: **1.414 unitários, 8 de integração**, demais gates verdes. Playwright Chromium: **40 aprovados, 1 ignorado** (2 workers; editor de NF, projeções, busca, Pendências, correção de análise, retificação legada e Gestão SME). Esses testes usam fixtures e dados simulados; **não comprovam persistência/autenticação com Supabase real nem autorizam ativação de T2/T3 em Produção**.
+
+**Próximo passo:** concluir T2/T3 com transação autenticada e reload em banco isolado, e validar atualização entre duas sessões antes de liberar funcionalidades. Não repetir as auditorias do Argon e do Manus sem alteração material de código.
+
 ## Incremento de usabilidade — ação direta “Limpar análise” (15/11/2026)
 
 **Origem preservada:** `audit/antigravity-argon-prontuario-20261115@466810ff`, alterando somente `src/integration/operational-correction-dialog.js`, `tests/e2e/operational-correction-dialog.spec.js` e plano de continuidade da auditoria.
