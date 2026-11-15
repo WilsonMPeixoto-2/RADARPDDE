@@ -8,7 +8,8 @@
 - [Plano aprovado](../superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md).
 - [Flexibilização detalhada](../superpowers/specs/2026-11-14-flexibilizacao-correcao-exclusao-lancamentos.md).
 - [Direção visual](../superpowers/specs/2026-11-13-prontuario-exploracao-visual.md), com regras antigas substituídas pela flexibilização.
-- [Handoff único](../handoff/2026-11-14-prontuario-correcao-integrada.md), sempre confrontado com o HEAD remoto.
+- [Checkpoint de integração atual](../handoff/2026-11-15-prontuario-integracao-verificada.md), obrigatório para retomar sem repetir trabalho.
+- [Handoff original](../handoff/2026-11-14-prontuario-correcao-integrada.md), histórico das decisões iniciais.
 
 ## Decisões aprovadas
 

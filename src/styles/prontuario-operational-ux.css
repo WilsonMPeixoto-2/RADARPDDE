@@ -468,3 +468,15 @@ body.dark-theme .prontuario-school-header {
     border-bottom-color: rgba(167, 139, 250, 0.18);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
 }
+
+/* Contraste AA no Prontuário: a lista de NFs é renderizada fora da
+   .invoice-document-panel em alguns contextos. Corrigir a superfície da
+   linha, não apenas a cor do título, impede texto claro em cartão branco. */
+body.dark-theme #prontuario-verif-rows .invoice-document-row {
+    background: #151022;
+    --invoice-surface: #151022;
+    --invoice-secondary: #b3adbc;
+}
+body.dark-theme #prontuario-verif-rows .invoice-document-row.is-striped {
+    background: #191328;
+}

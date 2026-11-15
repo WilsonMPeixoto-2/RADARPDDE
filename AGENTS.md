@@ -6,7 +6,8 @@ Até o encerramento explícito desta frente, **todo agente deve ler**, além da 
 
 1. [Contrato aprovado de evolução](docs/reference/PRONTUARIO_CORRECAO_CONTRATO.md): separa regras de destino das regras ainda publicadas;
 2. [Plano integrado](docs/superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md);
-3. [Único handoff corrente desta frente](docs/handoff/2026-11-14-prontuario-correcao-integrada.md), incluindo o link para sua versão mais recente na branch de execução.
+3. [Checkpoint operacional mais recente (15/11)](docs/handoff/2026-11-15-prontuario-integracao-verificada.md) — LEITURA OBRIGATÓRIA antes de qualquer intervenção;
+4. [Handoff de origem e decisões históricas](docs/handoff/2026-11-14-prontuario-correcao-integrada.md), para conferir o que precedeu a integração.
 
 Antes de editar, conferir os commits remotos e o lote em andamento. Não executar novamente etapas já comprovadas nem reintroduzir justificativas obrigatórias/bloqueios históricos a partir de documentos antigos. **Aprovação de regra futura não significa que já foi aplicada em Production.** Código/SQL atuais continuam evidência do comportamento efetivo. Alteração em módulo compartilhado deve preservar esta frente e o PR #515 independente. Atualizar handoff e evidências no mesmo checkpoint remoto de cada entrega. Remover esta rota temporária apenas quando a frente estiver encerrada e reconciliada com os documentos canônicos.
 

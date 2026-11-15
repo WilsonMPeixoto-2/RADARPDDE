@@ -1,0 +1,500 @@
+{
+  "contractVersion": 1,
+  "baselineSha": "190e44942d0bb6927d1a7eeb83fb94fc782171b8",
+  "status": "reference-not-functional-homologation",
+  "schoolContext": {
+    "schoolId": "escola-horizonte-0400001",
+    "schoolCode": "04.00.001",
+    "schoolName": "Escola Municipal Horizonte",
+    "cre": "4ª CRE",
+    "exercise": "2026"
+  },
+  "cases": [
+    {
+      "caseId": "same-invoice-metadata-edit-with-active-pendency",
+      "lot": "T1",
+      "profile": "controlador",
+      "context": {
+        "schoolId": "escola-horizonte-0400001",
+        "competence": "2026-10",
+        "programId": "BASICO",
+        "compKey": "2026-10_BASICO"
+      },
+      "initialEntities": {
+        "verification": {
+          "id": "ver-2026-10-basico",
+          "rowVersion": 3,
+          "resultadoBonif": "apta",
+          "bonificacao": {
+            "extCC": "Sim",
+            "extINV": "Sim",
+            "notaFiscal": "Sim",
+            "consAssessoria": "Sim",
+            "declBBAgil": "Não se aplica",
+            "encampInventario": "Sim"
+          },
+          "analise": {
+            "extCC": "Correto",
+            "extINV": "Correto",
+            "notaFiscal": "Incorreto",
+            "consAssessoria": "Correto",
+            "declBBAgil": "Correto",
+            "encampInventario": "Não analisado"
+          }
+        },
+        "registeredInvoices": [
+          {
+            "id": "nf-1058",
+            "rowVersion": 2,
+            "numero": "1058",
+            "descricao": "Manutenção de equipamento",
+            "tipo": "servico",
+            "valor": 920.0,
+            "analiseDocumentoFiscal": "Incorreto",
+            "enviadaAssessoria": true,
+            "analiseConsultaAssessoria": "Correto"
+          },
+          {
+            "id": "nf-1042",
+            "rowVersion": 1,
+            "numero": "1042",
+            "descricao": "Materiais pedagógicos",
+            "tipo": "consumo",
+            "valor": 480.0,
+            "analiseDocumentoFiscal": "Correto"
+          }
+        ],
+        "pendencies": [
+          {
+            "id": "pend-nf-1058-fiscal",
+            "documentoKey": "notaFiscal",
+            "registeredInvoiceId": "nf-1058",
+            "status": "Aguardando reanálise",
+            "errors": ["Documento ilegível"]
+          }
+        ]
+      },
+      "operation": {
+        "action": "edit_invoice_metadata",
+        "targetId": "nf-1058",
+        "changes": {
+          "numero": "1058-A",
+          "descricao": "Manutenção corretiva de equipamento",
+          "valor": 950.0,
+          "observacao": ""
+        }
+      },
+      "expectedAfter": {
+        "removedIds": [],
+        "preservedIds": ["ver-2026-10-basico", "nf-1058", "nf-1042", "pend-nf-1058-fiscal"],
+        "updatedEntities": {
+          "nf-1058": {
+            "numero": "1058-A",
+            "descricao": "Manutenção corretiva de equipamento",
+            "valor": 950.0,
+            "analiseDocumentoFiscal": "Incorreto",
+            "analiseConsultaAssessoria": "Correto"
+          },
+          "ver-2026-10-basico": {
+            "resultadoBonif": "apta"
+          }
+        },
+        "visualState": {
+          "focusedInvoiceId": "nf-1058",
+          "rowActionLabel": "Em foco →",
+          "contextualPanelPrimaryCta": "Reanalisar documento",
+          "duplicatePrimaryCtaInRow": false
+        }
+      }
+    },
+    {
+      "caseId": "service-invoice-dual-dimension-and-deletion",
+      "lot": "T3",
+      "profile": "controlador",
+      "context": {
+        "schoolId": "escola-horizonte-0400001",
+        "competence": "2026-10",
+        "programId": "BASICO",
+        "compKey": "2026-10_BASICO"
+      },
+      "initialEntities": {
+        "registeredInvoices": ["nf-1058", "nf-1042"],
+        "pendencies": ["pend-nf-1058-fiscal", "pend-nf-1058-assessoria"],
+        "pendencyAttempts": ["att-1058-1", "att-1058-2"],
+        "pendencyContacts": ["contact-1058-linked"],
+        "schoolGeneralContacts": ["contact-school-general-01"],
+        "resultadoBonif": "apta"
+      },
+      "operation": {
+        "action": "delete_invoice",
+        "target": {
+          "kind": "invoice",
+          "id": "nf-1058",
+          "schoolId": "escola-horizonte-0400001",
+          "competence": "2026-10",
+          "programId": "BASICO"
+        }
+      },
+      "expectedAfter": {
+        "removedIds": [
+          "nf-1058",
+          "pend-nf-1058-fiscal",
+          "pend-nf-1058-assessoria",
+          "att-1058-1",
+          "att-1058-2",
+          "contact-1058-linked"
+        ],
+        "preservedIds": ["nf-1042", "contact-school-general-01"],
+        "updatedAggregates": {
+          "resultadoBonif": "apta",
+          "analiseNotaFiscal": "Correto",
+          "bonificacaoConsAssessoria": "Não se aplica",
+          "analiseConsAssessoria": "Correto"
+        }
+      }
+    },
+    {
+      "caseId": "permanent-inventariada-causal-deletion",
+      "lot": "T3",
+      "profile": "controlador",
+      "context": {
+        "schoolId": "escola-horizonte-0400001",
+        "competence": "2026-10",
+        "programId": "BASICO",
+        "compKey": "2026-10_BASICO"
+      },
+      "initialEntities": {
+        "registeredInvoices": [
+          {
+            "id": "nf-1071",
+            "numero": "1071",
+            "descricao": "Projetor multimídia",
+            "tipo": "permanente",
+            "valor": 2400.0,
+            "linkedAssetId": "asset-1071"
+          }
+        ],
+        "assets": [
+          {
+            "id": "asset-1071",
+            "registeredInvoiceId": "nf-1071",
+            "status": "Inventariada",
+            "processo": "04/000.123/2026"
+          },
+          {
+            "id": "asset-manual-02",
+            "registeredInvoiceId": null,
+            "status": "Encaminhada",
+            "processo": "04/000.999/2026"
+          }
+        ]
+      },
+      "operation": {
+        "action": "delete_invoice",
+        "target": {
+          "kind": "invoice",
+          "id": "nf-1071",
+          "schoolId": "escola-horizonte-0400001",
+          "competence": "2026-10",
+          "programId": "BASICO"
+        }
+      },
+      "expectedAfter": {
+        "removedIds": ["nf-1071", "asset-1071"],
+        "preservedIds": ["asset-manual-02"],
+        "updatedAggregates": {
+          "bonificacaoEncampInventario": "Não se aplica",
+          "analiseEncampInventario": "Não analisado"
+        }
+      }
+    },
+    {
+      "caseId": "unidentified-expense-atomic-deletion",
+      "lot": "T3",
+      "profile": "controlador",
+      "context": {
+        "schoolId": "escola-horizonte-0400001",
+        "competence": "2026-10",
+        "programId": "BASICO",
+        "compKey": "2026-10_BASICO"
+      },
+      "initialEntities": {
+        "registeredInvoices": [
+          {
+            "id": "nf-unid-01",
+            "tipo": "a_identificar",
+            "valor": 3328.0,
+            "analiseDocumentoFiscal": "Incorreto"
+          }
+        ],
+        "pendencies": [
+          {
+            "id": "pend-unid-01",
+            "documentoKey": "notaFiscal",
+            "registeredInvoiceId": "nf-unid-01",
+            "status": "Aberta"
+          }
+        ]
+      },
+      "operation": {
+        "action": "delete_invoice",
+        "target": {
+          "kind": "invoice",
+          "id": "nf-unid-01",
+          "schoolId": "escola-horizonte-0400001",
+          "competence": "2026-10",
+          "programId": "BASICO"
+        }
+      },
+      "expectedAfter": {
+        "removedIds": ["nf-unid-01", "pend-unid-01"],
+        "preservedIds": []
+      }
+    },
+    {
+      "caseId": "quality-provisional-undo-and-delete",
+      "lot": "T3",
+      "profile": "controlador",
+      "context": {
+        "schoolId": "escola-horizonte-0400001",
+        "competence": "2026-10",
+        "programId": "CONECTADA",
+        "compKey": "2026-10_CONECTADA"
+      },
+      "initialEntities": {
+        "qualityProvisionalMovements": [
+          {
+            "id": "prov-open-01",
+            "status": "open",
+            "registeredInvoiceId": null,
+            "valor": 150.0
+          },
+          {
+            "id": "prov-id-02",
+            "status": "identified",
+            "registeredInvoiceId": "nf-conectada-201",
+            "valor": 860.0
+          }
+        ],
+        "registeredInvoices": ["nf-conectada-201"],
+        "pendencies": ["pend-conectada-201"]
+      },
+      "operation": {
+        "action": "undo_quality_identification",
+        "target": {
+          "kind": "quality_movement",
+          "id": "prov-id-02",
+          "schoolId": "escola-horizonte-0400001",
+          "competence": "2026-10",
+          "programId": "CONECTADA"
+        }
+      },
+      "expectedAfter": {
+        "removedIds": ["nf-conectada-201", "pend-conectada-201"],
+        "preservedIds": ["prov-open-01", "prov-id-02"],
+        "updatedEntities": {
+          "prov-id-02": {
+            "status": "open",
+            "registeredInvoiceId": null
+          }
+        }
+      }
+    },
+    {
+      "caseId": "na-bonus-with-valid-invoices",
+      "lot": "T4",
+      "profile": "controlador",
+      "context": {
+        "schoolId": "escola-horizonte-0400001",
+        "competence": "2026-10",
+        "programId": "BASICO",
+        "compKey": "2026-10_BASICO"
+      },
+      "initialEntities": {
+        "bonificacao": {
+          "notaFiscal": "Sim",
+          "declBBAgil": "Não se aplica"
+        },
+        "analise": {
+          "notaFiscal": "Incorreto",
+          "declBBAgil": "Correto"
+        },
+        "registeredInvoices": ["nf-1042", "nf-1058"]
+      },
+      "operation": {
+        "action": "correct_bonification",
+        "target": {
+          "kind": "verification",
+          "schoolId": "escola-horizonte-0400001",
+          "competence": "2026-10",
+          "programId": "BASICO",
+          "documentKey": "notaFiscal"
+        },
+        "changes": {
+          "bonificacao": "Não se aplica"
+        }
+      },
+      "expectedAfter": {
+        "removedIds": [],
+        "preservedIds": ["nf-1042", "nf-1058"],
+        "updatedEntities": {
+          "bonificacao": {
+            "notaFiscal": "Não se aplica",
+            "declBBAgil": "Não se aplica"
+          },
+          "analise": {
+            "notaFiscal": "Incorreto",
+            "declBBAgil": "Correto"
+          }
+        }
+      }
+    },
+    {
+      "caseId": "legacy-scope-does-not-consume-independent-history",
+      "lot": "T2",
+      "profile": "controlador",
+      "context": {
+        "schoolId": "escola-horizonte-0400001",
+        "competence": "2026-10",
+        "programId": "BASICO",
+        "compKey": "2026-10_BASICO"
+      },
+      "initialEntities": {
+        "pendencies": [
+          {
+            "id": "pend-extinv-hist-01",
+            "documentoKey": "extINV",
+            "status": "Resolvida",
+            "origin": "historical-independent"
+          },
+          {
+            "id": "pend-extinv-curr-02",
+            "documentoKey": "extINV",
+            "status": "Aberta",
+            "origin": "current-mistaken-analysis"
+          },
+          {
+            "id": "pend-legacy-nf-null",
+            "documentoKey": "notaFiscal",
+            "registeredInvoiceId": null,
+            "status": "Aguardando reanálise"
+          },
+          {
+            "id": "pend-legacy-adv-null",
+            "documentoKey": "consAssessoria",
+            "registeredInvoiceId": null,
+            "status": "Cancelada"
+          }
+        ]
+      },
+      "operation": {
+        "action": "clear_analysis",
+        "target": {
+          "kind": "verification_document",
+          "schoolId": "escola-horizonte-0400001",
+          "competence": "2026-10",
+          "programId": "BASICO",
+          "documentKey": "extINV"
+        },
+        "selectedPendencyIds": ["pend-extinv-curr-02"]
+      },
+      "expectedAfter": {
+        "removedIds": ["pend-extinv-curr-02"],
+        "preservedIds": ["pend-extinv-hist-01", "pend-legacy-nf-null", "pend-legacy-adv-null"],
+        "updatedEntities": {
+          "analiseExtINV": "Não analisado"
+        }
+      }
+    },
+    {
+      "caseId": "delete-wrong-month-or-program-context",
+      "lot": "T4",
+      "profile": "controlador",
+      "context": {
+        "schoolId": "escola-horizonte-0400001",
+        "competence": "2026-09",
+        "programId": "BASICO",
+        "compKey": "2026-09_BASICO"
+      },
+      "initialEntities": {
+        "targetContextEntities": ["ver-2026-09-basico", "nf-0901", "asset-0901", "pend-0901", "pend-manual-0901"],
+        "neighborContextEntities": ["ver-2026-10-basico", "nf-1042", "nf-1058"],
+        "openQualityProvisional": ["prov-open-2026-09"],
+        "generalSchoolContacts": ["contact-school-general-01"]
+      },
+      "operation": {
+        "action": "delete_context",
+        "target": {
+          "kind": "program_context",
+          "schoolId": "escola-horizonte-0400001",
+          "competence": "2026-09",
+          "programId": "BASICO"
+        }
+      },
+      "expectedAfter": {
+        "removedIds": ["ver-2026-09-basico", "nf-0901", "asset-0901", "pend-0901", "pend-manual-0901"],
+        "preservedIds": ["ver-2026-10-basico", "nf-1042", "nf-1058", "prov-open-2026-09", "contact-school-general-01"]
+      }
+    },
+    {
+      "caseId": "multi-attempt-reanalysis-recomposition",
+      "lot": "T5",
+      "profile": "controlador",
+      "context": {
+        "schoolId": "escola-horizonte-0400001",
+        "competence": "2026-10",
+        "programId": "BASICO",
+        "compKey": "2026-10_BASICO"
+      },
+      "initialEntities": {
+        "pendency": {
+          "id": "pend-reanalysis-01",
+          "documentoKey": "notaFiscal",
+          "registeredInvoiceId": "nf-1058",
+          "status": "Resolvida"
+        },
+        "attempts": [
+          {
+            "id": "att-01-open",
+            "kind": "open",
+            "date": "2026-11-08",
+            "errors": ["Documento ilegível"]
+          },
+          {
+            "id": "att-02-submission",
+            "kind": "submission",
+            "date": "2026-11-10",
+            "note": "Arquivo legível disponibilizado no Drive."
+          },
+          {
+            "id": "att-03-review",
+            "kind": "review",
+            "date": "2026-11-11",
+            "result": "Correto"
+          }
+        ]
+      },
+      "operation": {
+        "action": "delete_review",
+        "target": {
+          "kind": "pendency_review",
+          "id": "att-03-review",
+          "pendencyId": "pend-reanalysis-01"
+        }
+      },
+      "expectedAfter": {
+        "removedIds": ["att-03-review"],
+        "preservedIds": ["pend-reanalysis-01", "att-01-open", "att-02-submission"],
+        "updatedEntities": {
+          "pend-reanalysis-01": {
+            "status": "Aguardando reanálise",
+            "nextActor": "Controlador"
+          },
+          "nf-1058": {
+            "analiseDocumentoFiscal": "Incorreto"
+          }
+        }
+      }
+    }
+  ]
+}

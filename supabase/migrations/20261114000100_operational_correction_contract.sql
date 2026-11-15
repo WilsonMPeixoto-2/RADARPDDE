@@ -822,6 +822,14 @@ begin
 
     v_role := radar_private.operational_correction_capability(nullif(btrim(p_request -> 'target' ->> 'schoolId'), ''));
 
+    -- Serializa retries simultâneos ANTES de verificar ledger/entidades.
+    -- Sem esta trava, o segundo pedido pode ler a NF já apagada e retornar
+    -- NOT_FOUND em vez de recuperar o receipt da primeira confirmação.
+    -- Chave derivada somente do UUID validado; não é fornecida pelo cliente.
+    perform pg_catalog.pg_advisory_xact_lock(
+        pg_catalog.hashtextextended(p_operation_key::text, 20261114)
+    );
+
     select * into v_existing from radar_private.operational_change_ledger where operation_key = p_operation_key;
     if found then
         if v_existing.request_fingerprint = v_fingerprint

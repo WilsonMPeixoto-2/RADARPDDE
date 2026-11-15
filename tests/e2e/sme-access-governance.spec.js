@@ -67,7 +67,18 @@ test.describe('governança de acesso da Gestão SME', () => {
 
     await expect(page.getByRole('tab', { name: 'Competências e Bonificação' })).toBeVisible();
     const prontuario = page.locator('#tab-verificacoes');
-    await expect(prontuario.locator('thead th')).toHaveCount(3);
+    // Lote T1: o programa saiu da coluna lateral (rowspan) e virou cabeçalho
+    // horizontal; para a SME restam Documento e Bonificação.
+    await expect(prontuario.locator('thead th')).toHaveCount(2);
+    await expect(prontuario.locator('thead th').nth(0)).toContainText('Documento');
+    await expect(prontuario.locator('thead th').nth(1)).toContainText('Bonificação');
+    const programHeader = prontuario.locator('tr[data-program-header]').first();
+    await expect(programHeader).toBeVisible();
+    await expect(programHeader.locator('.program-context-name')).not.toBeEmpty();
+    await expect(programHeader.locator('[data-status-dimension="bonificacao"]')).toBeVisible();
+    await expect(programHeader.locator('[data-status-dimension="analise"]')).toHaveCount(0);
+    await expect(programHeader.locator('.program-consolidate-button')).toHaveCount(0);
+    await expect(programHeader).not.toContainText('Análise técnica');
     await expect(prontuario.locator('thead')).not.toContainText('Análise Técnica');
     await expect(prontuario.locator('thead')).not.toContainText('Ações');
     await expect(prontuario.locator('select.select-analise')).toHaveCount(0);
