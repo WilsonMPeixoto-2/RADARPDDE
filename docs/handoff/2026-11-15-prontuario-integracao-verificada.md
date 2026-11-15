@@ -6,6 +6,21 @@
 **Plano de destino:** [Prontuário: design, correção e exclusão integrados](../superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md).
 **Regras aprovadas:** [contrato](../reference/PRONTUARIO_CORRECAO_CONTRATO.md) e [estudo de flexibilização](../superpowers/specs/2026-11-14-flexibilizacao-correcao-exclusao-lancamentos.md).
 
+## Atualização verificada — Antigravity Argon integrado seletivamente (15/11/2026)
+
+**Origem independente preservada:** `audit/antigravity-argon-prontuario-20261115@7802c0fb`, código `5c2f80b1`. Sua branch permanece intacta. A branch principal recebeu as alterações compatíveis, sem cherry-pick integral, pois uma modificação SQL da proposta enfraquecia a identificação das operações.
+
+**Incorporado:**
+- T2: seleção explícita (checkboxes não marcados por padrão) de Pendências candidatas no bloqueio `AMBIGUOUS_CONSEQUENCE`; correção da remoção do botão residual de recarga após `STALE_PLAN`; cliente congela a requisição da primeira tentativa por `WeakMap` sem alterar a `operationKey`.
+- T5: helper de domínio sobre o esquema verdadeiro de `tentativas`, rejeitando `targetId` inexistente e múltiplas tentativas sem alvo escolhido; ainda **sem ligação ao SQL/UI real**.
+- T1: superfície escura síncrona e transição limitada a `box-shadow` para evitar contraste transitório insuficiente.
+
+**Recusado com prova RED/GREEN:** a alteração do Antigravity removia `note` do `request_fingerprint` SQL, permitindo que **a mesma chave idempotente com observação diferente** recebesse um replay silencioso. O teste negativo falhou em PostgreSQL descartável com a proposta original (sem exceção). Foi preservado o fingerprint completo da migration anterior, com teste SQL novo para **rejeitar observação divergente** e outro para **repetir exatamente a observação original**. O cliente que congela o payload já resolve o retry sem precisar relaxar o servidor.
+
+**Verificação independente do lote ajustado:** `npm run test:readiness`: **1.412/1.412 unitários e 8/8 integrações**, demais gates aprovados; PostgreSQL 18 descartável com **63 migrations aplicadas e 61/61 pgTAP**; teste real com duas sessões `scripts/test-operational-correction-concurrency.sh`: **um commit, um replay, uma exclusão**; Playwright/Chromium com **23/23** testes em 2 workers (diálogo, retificação legada, layout, contraste e governança SME). O teste paralelo com 8 workers sofreu `exit 137` por falta de memória do sandbox; **não** se tratou de falha funcional. O transporte RPC dos E2E ainda é controlado; **a integração autenticada com Supabase descartável e reload continua pendente**.
+
+**Próximo trabalho funcional:** concluir as jornadas reais de T2 (Pendência, NF e Consulta Assessoria) e T3 (exclusão coordenada de NF via autoridade única), seguidas da implantação transacional de T4/T5 e homologação T6. A flag segue desligada, sem mudanças em `main`, Vercel Production ou Supabase institucional.
+
 ## Comece aqui — retomada pelo Astra
 
 **O que abrir:** branch `fix/prontuario-integrado-validado-20261115`, consultar `git status`, `git log -1` e comparar com `main` antes de editar. Este checkpoint, `docs/CURRENT_STAGE.md` e `docs/reference/STATUS_DOCUMENTOS.md` apontam para a **mesma** frente. O handoff antigo do Argon é histórico. Não abrir uma quarta branch nem repetir a auditoria inteira sem mudança material de SHA.
@@ -16,10 +31,10 @@
 | --- | --- | --- |
 | **T0** | Contrato, plano e 500 linhas de fixtures recuperadas do Argon | Verificar cobertura das fixtures com cenários de aceitação efetivos |
 | **T1** | Cabeçalhos horizontais por programa, ajustes CSS, correção do teste Gestão SME, teste automatizado de contraste | Comparação visual aprovada, persistência após reload e revisão mobile/perfis |
-| **T2** | RPCs de preview/apply, ledger, validação de papéis, cliente `operational-correction-client.js`, 59 testes SQL e teste concorrente | Diálogos reais, bootstrap e controles da análise/Pendência; provas de fluxo em banco descartável e reload |
+| **T2** | RPCs e cliente integrados; diálogo piloto de análise com `correct_analysis`, `clear_analysis` e seleção explícita de Pendências candidatas; 61 testes SQL e concorrência idempotente | Ainda conectar exclusão de Pendência, análise individual NF/Assessoria, autenticação e persistência pós-reload |
 | **T3** | Exclusão causal de NF e dependentes proposta no SQL, inclusive testes isolados | Encaminhar exclusão das autoridades existentes à operação única, tratar patrimônio/provisória e reconciliação de caches/UI |
 | **T4** | Regras descritas no contrato | Correção de bonificação e exclusão de pacote/contexto |
-| **T5** | `pendency-correction.js` preservado do Argon **como material preliminar**, não como solução integrada | Revisar esquema real de tentativas e implementar edição/exclusão granular, contatos e inventário |
+| **T5** | Helper de recomposição `pendency-correction.js` reconciliado com `tentativas` reais e testes unitários, preservado como componente de domínio puro | Ainda faltam RPCs, interfaces e testes de persistência para histórico, contatos e inventário |
 | **T6** | Gates parciais e roteiro de teste | Homologação visual, funcional, segurança, CI, integrações e plano de publicação, somente após autorização |
 
 **Próxima alteração útil:** concluir **T2** (diálogos de correção, conexão única ao bootstrap e controles reais). O cliente existente espera `repository.executeRpc`; não confundir um cliente testado em isolamento com produto operacional. Primeiro escrever os cenários negativos e positivos do clique até recibo, atualização da tela e reload; depois integrar, sem sobrescrever a autoridade existente por uma implementação parcial. **Não aplicar SQL ao Supabase institucional.**

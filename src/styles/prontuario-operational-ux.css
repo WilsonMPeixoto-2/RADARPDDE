@@ -476,6 +476,7 @@ body.dark-theme #prontuario-verif-rows .invoice-document-row {
     background: #151022;
     --invoice-surface: #151022;
     --invoice-secondary: #b3adbc;
+    transition: box-shadow 150ms ease;
 }
 body.dark-theme #prontuario-verif-rows .invoice-document-row.is-striped {
     background: #191328;

@@ -7,7 +7,7 @@ set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(59);
+select plan(61);
 
 -- --------------------------------------------------------------- massa
 insert into auth.users (id, email) values
@@ -300,6 +300,20 @@ select lives_ok(
         (select plan ->> 'planDigest' from occ_plans where k = 'del-p-nf2'),
         '00000000-0000-0000-0000-0000000000b5') $$,
     'Pendência resolvida pode ser excluída; nota opcional é aceita');
+select throws_like(
+    $$ select public.apply_operational_change(
+        pg_temp.occ_req('delete_pendency', '{"kind":"pendency","id":"OCC-P-NF2"}', '{"note":"Nota diferente no retry"}'),
+        (select plan ->> 'planDigest' from occ_plans where k = 'del-p-nf2'),
+        '00000000-0000-0000-0000-0000000000b5') $$,
+    'IDEMPOTENCY_CONFLICT%',
+    'mesma chave com observacao divergente e rejeitada para proteger rastreabilidade');
+select is(
+    (public.apply_operational_change(
+        pg_temp.occ_req('delete_pendency', '{"kind":"pendency","id":"OCC-P-NF2"}', '{"note":"Lançada em duplicidade"}'),
+        (select plan ->> 'planDigest' from occ_plans where k = 'del-p-nf2'),
+        '00000000-0000-0000-0000-0000000000b5') ->> 'replayed')::boolean,
+    true,
+    'mesma chave e observacao original retornam replay idempotente preservando a intencao');
 select is((select count(*)::int from public.pendency_contacts where id = 'OCC-C-3'), 0, 'contato vinculado à Pendência excluída também é removido');
 
 reset role;

@@ -1,228 +1,250 @@
-'use strict';
+(function (root, factory) {
+    if (typeof module === 'object' && module.exports) {
+        module.exports = factory();
+    } else if (root) {
+        root.RadarPendencyCorrection = factory();
+    }
+}(typeof self !== 'undefined' ? self : this, function () {
+    'use strict';
 
-(function installRadarPendencyCorrection(root) {
-    const ACTIVE_STATUSES = new Set(['Aberta', 'Aguardando reanálise']);
-    const VALID_REVIEW_RESULTS = new Set([
-        'Correto',
-        'Correto (Atrasado)',
-        'Incorreto',
-        'Arquivo não localizado ou inacessível'
-    ]);
+    const ATTEMPT_STATUS = Object.freeze({
+        WAITING_REVIEW: 'aguardando',
+        REVIEWED: 'analisada',
+        SUPERSEDED: 'substituida_antes_da_analise'
+    });
+
+    const REVIEW_RESULTS = Object.freeze({
+        CORRECT: 'correto',
+        INCORRECT: 'incorreto',
+        UNAVAILABLE: 'arquivo_indisponivel'
+    });
+
+    const PENDENCY_STATUS = Object.freeze({
+        OPEN: 'Aberta',
+        WAITING_REVIEW: 'Aguardando reanálise',
+        RESOLVED: 'Resolvida',
+        CANCELLED: 'Cancelada'
+    });
+
+    const ACTORS = Object.freeze({
+        SCHOOL: 'Escola',
+        CONTROLLER: 'Controlador'
+    });
 
     function text(value) {
         return value == null ? '' : String(value).trim();
     }
 
-    function clone(value) {
-        return value == null ? value : JSON.parse(JSON.stringify(value));
+    function normalizeErrors(errors) {
+        if (!Array.isArray(errors)) return [];
+        const unique = new Set();
+        errors.forEach(item => {
+            const normalized = text(item);
+            if (normalized) unique.add(normalized);
+        });
+        return Array.from(unique);
     }
 
-    function computeLateAnalysis(submissionDate, cutoffDate, requiresLateCorrect = false) {
-        if (requiresLateCorrect) return 'Correto (Atrasado)';
-        const sub = text(submissionDate);
-        const cutoff = text(cutoffDate);
-        if (sub && cutoff && sub > cutoff) {
-            return 'Correto (Atrasado)';
-        }
-        return 'Correto';
+    function requiresLateCorrect({ bonusResult, deliveryStatus } = {}) {
+        const consolidatedResults = ['apta', 'inapta'];
+        return consolidatedResults.includes(text(bonusResult).toLowerCase())
+            && text(deliveryStatus) === 'Não';
     }
 
-    function rebuildPendencyAfterCorrection(input = {}) {
-        const pendency = clone(input.pendency || {});
-        const attempts = Array.isArray(input.attempts) ? clone(input.attempts) : [];
-        const action = text(input.action);
-        const targetId = text(input.targetId);
-        const changes = input.changes || {};
-
-        const targetIndex = attempts.findIndex(item => text(item?.id) === targetId);
-        if (targetIndex === -1) {
-            return {
-                pendency,
-                attempts,
-                affectedAnalysis: null,
-                ambiguity: {
-                    code: 'TARGET_ATTEMPT_NOT_FOUND',
-                    message: 'A tentativa ou reanálise indicada não foi localizada na sequência.'
-                }
-            };
-        }
-
-        const target = attempts[targetIndex];
-        const isLastEvent = targetIndex === attempts.length - 1;
-        const laterEvents = attempts.slice(targetIndex + 1);
-
-        if (action === 'correct_attempt') {
-            if (Object.prototype.hasOwnProperty.call(changes, 'note')) {
-                target.note = text(changes.note);
-            }
-            if (Object.prototype.hasOwnProperty.call(changes, 'link')) {
-                target.link = text(changes.link);
-            }
-            let affectedAnalysis = null;
-            if (Object.prototype.hasOwnProperty.call(changes, 'date') && text(changes.date)) {
-                target.date = text(changes.date);
-                const linkedReview = laterEvents.find(ev => text(ev?.kind) === 'review');
-                if (linkedReview && (linkedReview.result === 'Correto' || linkedReview.result === 'Correto (Atrasado)')) {
-                    const recomputed = computeLateAnalysis(
-                        target.date,
-                        pendency.cutoffDate || pendency.dataLimite,
-                        Boolean(pendency.requiresLateCorrect)
-                    );
-                    linkedReview.result = recomputed;
-                    affectedAnalysis = recomputed;
-                }
-            }
-            return { pendency, attempts, affectedAnalysis, ambiguity: null };
-        }
-
-        if (action === 'correct_review') {
-            if (Object.prototype.hasOwnProperty.call(changes, 'note')) {
-                target.note = text(changes.note);
-            }
-            if (Object.prototype.hasOwnProperty.call(changes, 'result')) {
-                const nextResult = text(changes.result);
-                if (!VALID_REVIEW_RESULTS.has(nextResult)) {
-                    return {
-                        pendency,
-                        attempts,
-                        affectedAnalysis: null,
-                        ambiguity: {
-                            code: 'INVALID_REVIEW_RESULT',
-                            message: 'Resultado de reanálise inválido.'
-                        }
-                    };
-                }
-                if (!isLastEvent && laterEvents.some(ev => text(ev?.kind) === 'submission')) {
-                    return {
-                        pendency,
-                        attempts,
-                        affectedAnalysis: null,
-                        ambiguity: {
-                            code: 'DEPENDENT_SUBSEQUENT_SUBMISSIONS',
-                            message: 'Existem novos envios posteriores a esta reanálise. Escolha se deseja recompor a sequência atual ou excluir o conjunto.',
-                            options: ['recompose_current', 'delete_pendency']
-                        }
-                    };
-                }
-                target.result = nextResult;
-                if (nextResult === 'Correto' || nextResult === 'Correto (Atrasado)') {
-                    pendency.status = 'Resolvida';
-                    pendency.nextActor = null;
-                    return { pendency, attempts, affectedAnalysis: nextResult, ambiguity: null };
-                }
-                pendency.status = 'Aberta';
-                pendency.nextActor = 'Escola';
-                if (Array.isArray(changes.errors) && changes.errors.length > 0) {
-                    target.errors = clone(changes.errors);
-                    pendency.errors = clone(changes.errors);
-                }
-                return { pendency, attempts, affectedAnalysis: 'Incorreto', ambiguity: null };
-            }
-            return { pendency, attempts, affectedAnalysis: null, ambiguity: null };
-        }
-
-        if (action === 'delete_review') {
-            if (text(target.kind) !== 'review') {
-                return {
-                    pendency,
-                    attempts,
-                    affectedAnalysis: null,
-                    ambiguity: {
-                        code: 'TARGET_NOT_REVIEW',
-                        message: 'O evento selecionado não é uma reanálise.'
-                    }
-                };
-            }
-            const hasSubsequentSubmission = laterEvents.some(ev => text(ev?.kind) === 'submission');
-            const hasIndependentCancel = pendency.status === 'Cancelada' && Boolean(pendency.cancelledIndependently);
-            attempts.splice(targetIndex, 1);
-
-            if (hasIndependentCancel || hasSubsequentSubmission) {
-                return { pendency, attempts, affectedAnalysis: null, ambiguity: null };
-            }
-
-            const lastRemaining = attempts[attempts.length - 1] || null;
-            if (lastRemaining && text(lastRemaining.kind) === 'submission') {
-                pendency.status = 'Aguardando reanálise';
-                pendency.nextActor = 'Controlador';
-                delete pendency.resolvedAt;
-                return { pendency, attempts, affectedAnalysis: 'Incorreto', ambiguity: null };
-            }
-
-            pendency.status = 'Aberta';
-            pendency.nextActor = 'Escola';
-            delete pendency.resolvedAt;
-            return { pendency, attempts, affectedAnalysis: 'Incorreto', ambiguity: null };
-        }
-
-        if (action === 'delete_attempt') {
-            if (text(target.kind) !== 'submission') {
-                return {
-                    pendency,
-                    attempts,
-                    affectedAnalysis: null,
-                    ambiguity: {
-                        code: 'TARGET_NOT_SUBMISSION',
-                        message: 'O evento selecionado não é um envio.'
-                    }
-                };
-            }
-
-            const hasDependentReviewImmediatelyAfter = laterEvents.length > 0
-                && text(laterEvents[0]?.kind) === 'review';
-            if (hasDependentReviewImmediatelyAfter && laterEvents.length > 1) {
-                return {
-                    pendency,
-                    attempts,
-                    affectedAnalysis: null,
-                    ambiguity: {
-                        code: 'AMBIGUOUS_INTERMEDIATE_SUBMISSION_REMOVAL',
-                        message: 'Este envio possui reanálise e eventos posteriores dependentes. Confirme o alcance desejado.',
-                        options: ['remove_submission_and_dependent_review', 'delete_pendency']
-                    }
-                };
-            }
-
-            if (hasDependentReviewImmediatelyAfter) {
-                attempts.splice(targetIndex, 2);
-            } else {
-                attempts.splice(targetIndex, 1);
-            }
-
-            const lastRemaining = attempts[attempts.length - 1] || null;
-            if (lastRemaining && text(lastRemaining.kind) === 'submission') {
-                pendency.status = 'Aguardando reanálise';
-                pendency.nextActor = 'Controlador';
-                delete pendency.resolvedAt;
-                return { pendency, attempts, affectedAnalysis: 'Incorreto', ambiguity: null };
-            }
-
-            pendency.status = 'Aberta';
-            pendency.nextActor = 'Escola';
-            delete pendency.resolvedAt;
-            return { pendency, attempts, affectedAnalysis: 'Incorreto', ambiguity: null };
-        }
-
+    function cloneAttempt(attempt, index) {
+        const raw = attempt && typeof attempt === 'object' ? attempt : {};
         return {
-            pendency,
-            attempts,
-            affectedAnalysis: ACTIVE_STATUSES.has(text(pendency.status)) ? 'Incorreto' : null,
-            ambiguity: {
-                code: 'UNSUPPORTED_CORRECTION_ACTION',
-                message: `Ação de recomposição não suportada: ${action}`
-            }
+            ...raw,
+            id: text(raw.id) || `tentativa-${index + 1}`,
+            numero: Number(raw.numero) > 0 ? Number(raw.numero) : index + 1,
+            dataDisponibilizacao: text(raw.dataDisponibilizacao || raw.date) || null,
+            observacaoEscola: text(raw.observacaoEscola || raw.note),
+            status: text(raw.status) || ATTEMPT_STATUS.WAITING_REVIEW,
+            dataAnalise: text(raw.dataAnalise) || null,
+            resultado: text(raw.resultado) ? text(raw.resultado).toLowerCase() : null,
+            errosEncontrados: normalizeErrors(raw.errosEncontrados || raw.errors),
+            observacaoAnalise: text(raw.observacaoAnalise)
         };
     }
 
-    const exported = Object.freeze({
-        rebuildPendencyAfterCorrection,
-        computeLateAnalysis
-    });
+    function resolveTargetAttemptIndex(attempts, targetId) {
+        if (!attempts.length) {
+            return { index: -1, ambiguity: null };
+        }
+        const normalizedTarget = text(targetId);
+        if (normalizedTarget) {
+            const idx = attempts.findIndex(item => (
+                text(item.id) === normalizedTarget || String(item.numero) === normalizedTarget
+            ));
+            if (idx === -1) {
+                throw new Error(`Tentativa alvo não encontrada na Pendência: ${normalizedTarget}`);
+            }
+            return { index: idx, ambiguity: null };
+        }
+        if (attempts.length > 1) {
+            return {
+                index: -1,
+                ambiguity: {
+                    code: 'AMBIGUOUS_ATTEMPT_TARGET',
+                    message: 'A Pendência possui múltiplas tentativas; informe targetId explicitamente.',
+                    candidates: attempts.map(item => item.id)
+                }
+            };
+        }
+        return { index: 0, ambiguity: null };
+    }
 
-    if (typeof module !== 'undefined' && module.exports) {
-        module.exports = exported;
+    /**
+     * Recompõe o estado da Pendência e da análise técnica vinculada a partir
+     * do esquema real de `src/domain/pendencias.js` (`tentativas`) e da regra
+     * real `requiresLateCorrect` de `src/domain/fluxo-operacional.js`.
+     */
+    function rebuildPendencyAfterCorrection({
+        pendency,
+        attempts: externalAttempts = null,
+        action,
+        targetId = null,
+        changes = {},
+        verification = {}
+    } = {}) {
+        if (!pendency || typeof pendency !== 'object') {
+            throw new Error('Pendência inválida para recomposição.');
+        }
+
+        const nextPendency = JSON.parse(JSON.stringify(pendency));
+        const sourceAttempts = Array.isArray(nextPendency.tentativas)
+            ? nextPendency.tentativas
+            : (Array.isArray(externalAttempts) ? externalAttempts : []);
+        const attempts = sourceAttempts.map(cloneAttempt);
+
+        const normalizedAction = text(action);
+        const { index: targetIdx, ambiguity } = resolveTargetAttemptIndex(attempts, targetId);
+
+        if (ambiguity) {
+            return {
+                pendency: nextPendency,
+                attempts,
+                affectedAnalysis: 'Incorreto',
+                ambiguity
+            };
+        }
+
+        if (normalizedAction === 'delete_review') {
+            if (targetIdx < 0) {
+                throw new Error('Nenhuma tentativa disponível para excluir reanálise.');
+            }
+            const target = attempts[targetIdx];
+            if (target.status !== ATTEMPT_STATUS.REVIEWED) {
+                throw new Error('A tentativa selecionada não possui reanálise concluída para exclusão.');
+            }
+            target.status = ATTEMPT_STATUS.WAITING_REVIEW;
+            target.dataAnalise = null;
+            target.resultado = null;
+            target.errosEncontrados = [];
+            target.observacaoAnalise = '';
+        } else if (normalizedAction === 'correct_review') {
+            if (targetIdx < 0) {
+                throw new Error('Nenhuma tentativa disponível para corrigir reanálise.');
+            }
+            const target = attempts[targetIdx];
+            const nextResult = text(changes.resultado || changes.result).toLowerCase();
+            if (!Object.values(REVIEW_RESULTS).includes(nextResult)) {
+                throw new Error(`Resultado de reanálise inválido: ${nextResult}`);
+            }
+            target.status = ATTEMPT_STATUS.REVIEWED;
+            target.resultado = nextResult;
+            target.dataAnalise = text(changes.dataAnalise || changes.date || target.dataAnalise) || null;
+            target.observacaoAnalise = text(
+                changes.observacaoAnalise !== undefined
+                    ? changes.observacaoAnalise
+                    : (changes.note !== undefined ? changes.note : target.observacaoAnalise)
+            );
+            target.errosEncontrados = nextResult === REVIEW_RESULTS.CORRECT
+                ? []
+                : normalizeErrors(changes.errosEncontrados || changes.errors || target.errosEncontrados);
+        } else if (normalizedAction === 'delete_submission') {
+            if (targetIdx < 0) {
+                throw new Error('Nenhuma tentativa disponível para excluir envio.');
+            }
+            attempts.splice(targetIdx, 1);
+            attempts.forEach((item, index) => {
+                item.numero = index + 1;
+            });
+        } else if (normalizedAction === 'correct_submission') {
+            if (targetIdx < 0) {
+                throw new Error('Nenhuma tentativa disponível para corrigir envio.');
+            }
+            const target = attempts[targetIdx];
+            if (changes.dataDisponibilizacao !== undefined || changes.date !== undefined) {
+                target.dataDisponibilizacao = text(changes.dataDisponibilizacao ?? changes.date) || null;
+            }
+            if (changes.observacaoEscola !== undefined || changes.note !== undefined) {
+                target.observacaoEscola = text(changes.observacaoEscola ?? changes.note);
+            }
+        } else {
+            throw new Error(`Ação de correção de histórico desconhecida: ${normalizedAction}`);
+        }
+
+        const activeAttempts = attempts.filter(item => item.status !== ATTEMPT_STATUS.SUPERSEDED);
+        const latest = activeAttempts.length ? activeAttempts[activeAttempts.length - 1] : null;
+        let affectedAnalysis = 'Incorreto';
+
+        if (!latest) {
+            nextPendency.status = PENDENCY_STATUS.OPEN;
+            nextPendency.responsavel = ACTORS.SCHOOL;
+            nextPendency.proximoAtor = ACTORS.SCHOOL;
+            nextPendency.dataResolucao = null;
+        } else if (latest.status === ATTEMPT_STATUS.WAITING_REVIEW) {
+            nextPendency.status = PENDENCY_STATUS.WAITING_REVIEW;
+            nextPendency.responsavel = ACTORS.CONTROLLER;
+            nextPendency.proximoAtor = ACTORS.CONTROLLER;
+            nextPendency.dataResolucao = null;
+            const previousReviewedIncorrect = activeAttempts
+                .slice(0, -1)
+                .reverse()
+                .find(item => item.status === ATTEMPT_STATUS.REVIEWED && item.errosEncontrados.length > 0);
+            if (previousReviewedIncorrect) {
+                nextPendency.errosAtuais = normalizeErrors(previousReviewedIncorrect.errosEncontrados);
+            }
+        } else if (latest.status === ATTEMPT_STATUS.REVIEWED) {
+            if (latest.resultado === REVIEW_RESULTS.CORRECT) {
+                nextPendency.status = PENDENCY_STATUS.RESOLVED;
+                nextPendency.responsavel = null;
+                nextPendency.proximoAtor = null;
+                nextPendency.dataResolucao = latest.dataAnalise || nextPendency.dataResolucao || null;
+                const isLate = requiresLateCorrect({
+                    bonusResult: verification.bonusResult ?? verification.resultadoBonif,
+                    deliveryStatus: verification.deliveryStatus ?? verification.bonificationValue
+                });
+                affectedAnalysis = isLate ? 'Correto (Atrasado)' : 'Correto';
+            } else {
+                nextPendency.status = PENDENCY_STATUS.OPEN;
+                nextPendency.responsavel = ACTORS.SCHOOL;
+                nextPendency.proximoAtor = ACTORS.SCHOOL;
+                nextPendency.dataResolucao = null;
+                if (latest.errosEncontrados.length > 0) {
+                    nextPendency.errosAtuais = normalizeErrors(latest.errosEncontrados);
+                }
+                affectedAnalysis = 'Incorreto';
+            }
+        }
+
+        nextPendency.tentativas = attempts;
+
+        return {
+            pendency: nextPendency,
+            attempts: nextPendency.tentativas,
+            affectedAnalysis,
+            ambiguity: null
+        };
     }
-    if (root) {
-        root.RadarPendencyCorrection = exported;
-    }
-}(typeof window !== 'undefined' ? window : globalThis));
+
+    return Object.freeze({
+        ATTEMPT_STATUS,
+        REVIEW_RESULTS,
+        PENDENCY_STATUS,
+        ACTORS,
+        requiresLateCorrect,
+        rebuildPendencyAfterCorrection
+    });
+}));

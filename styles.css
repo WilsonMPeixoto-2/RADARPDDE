@@ -4345,6 +4345,20 @@ body.dark-theme .invoice-document-title-line > strong {
 body.dark-theme .invoice-document-meta strong {
     color: var(--invoice-secondary, var(--text-muted));
 }
+body.dark-theme #prontuario-verif-rows .invoice-document-row {
+    background: #151022;
+    --invoice-surface: #151022;
+    --invoice-secondary: #b3adbc;
+    transition: box-shadow 150ms ease;
+}
+body.dark-theme #prontuario-verif-rows .invoice-document-row.is-striped {
+    background: #191328;
+}
+body.dark-theme .prontuario-school-header {
+    background: var(--bg-page);
+    border-bottom-color: rgba(167, 139, 250, 0.18);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
 
 body.dark-theme .pendency-preview-drawer {
     background: #100c1e;

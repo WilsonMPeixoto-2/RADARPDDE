@@ -98,6 +98,8 @@
         const previousFocus = input.trigger || doc.activeElement;
         let serial = 0, preview = null, confirmation = null, pending = false, committed = false;
         let uncertain = false, submittedNote = null;
+        let candidatePendencyIds = [];
+        const selectedPendencyIds = new Set();
         function close(force = false) {
             if ((pending || uncertain) && !force) return;
             layer.remove();
@@ -118,6 +120,32 @@
                 : 'Nenhuma análise independente será modificada.'));
             for (const item of [...warnings, ...blockers]) {
                 effects.appendChild(el(doc, 'p', '', text(item?.message || item?.code || item)));
+                if (item?.code === 'AMBIGUOUS_CONSEQUENCE' && Array.isArray(item.candidates)) {
+                    candidatePendencyIds = item.candidates.map(text).filter(Boolean);
+                }
+            }
+            if (candidatePendencyIds.length > 0) {
+                const group = el(doc, 'div', 'radar-operational-correction-candidates');
+                group.setAttribute('role', 'group');
+                group.setAttribute('aria-label', 'Pendências candidatas para exclusão');
+                for (const candidateId of candidatePendencyIds) {
+                    const row = el(doc, 'label', 'evaluation-retification-check');
+                    const checkbox = el(doc, 'input', '');
+                    checkbox.type = 'checkbox';
+                    checkbox.value = candidateId;
+                    checkbox.checked = selectedPendencyIds.has(candidateId);
+                    checkbox.dataset.pendencyCandidateId = candidateId;
+                    checkbox.disabled = uncertain || committed || pending;
+                    checkbox.addEventListener('change', () => {
+                        if (checkbox.checked) selectedPendencyIds.add(candidateId);
+                        else selectedPendencyIds.delete(candidateId);
+                        void loadPreview();
+                    });
+                    const span = el(doc, 'span', '', `Excluir Pendência ${candidateId}`);
+                    row.append(checkbox, span);
+                    group.appendChild(row);
+                }
+                effects.appendChild(group);
             }
             if (view.removals?.length) effects.appendChild(el(doc, 'p', '', text(view.summary)));
         }
@@ -136,7 +164,8 @@
                 const result = await client.preview({
                     action,
                     target,
-                    ...(action === 'correct_analysis' ? { changes: { analysis: select.value } } : {})
+                    ...(action === 'correct_analysis' ? { changes: { analysis: select.value } } : {}),
+                    ...(selectedPendencyIds.size > 0 ? { selectedPendencyIds: [...selectedPendencyIds] } : {})
                 });
                 if (generation !== serial || !layer.isConnected) return;
                 preview = result;
@@ -196,6 +225,7 @@
                     preview = null;
                     submittedNote = null;
                     uncertain = false;
+                    doc.getElementById('radar-operational-correction-reload')?.remove();
                     status('Os dados mudaram. Revise a prévia antes de confirmar.', true);
                 } else {
                     uncertain = true;
@@ -243,5 +273,5 @@
         void loadPreview();
         return true;
     }
-    return Object.freeze({ canUse, open });
+    return Object.freeze({ ANALYSES, canUse, open });
 }));

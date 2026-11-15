@@ -38,3 +38,8 @@ test('usa o repositório real publicado em RadarApplicationServices.data', () =>
     };
     assert.equal(dialog.canUse(root), true);
 });
+
+test('inclui Não analisado (clear_analysis) nas opções suportadas pelo diálogo', () => {
+    assert.equal(Array.isArray(dialog.ANALYSES), true);
+    assert.equal(dialog.ANALYSES.includes('Não analisado'), true);
+});

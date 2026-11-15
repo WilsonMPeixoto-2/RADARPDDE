@@ -201,6 +201,7 @@
             throw new TypeError('createOperationalCorrectionClient exige repository.executeRpc');
         }
         const newOperationKey = typeof deps.newOperationKey === 'function' ? deps.newOperationKey : defaultOperationKey;
+        const lockedRequests = new WeakMap();
 
         async function preview(input) {
             const request = buildRequest(input);
@@ -218,7 +219,7 @@
 
         // Prepara uma confirmação. A mesma operationKey é reutilizada em novas
         // tentativas (falha de rede), garantindo efeito único no servidor.
-        function prepareConfirmation(previewResult) {
+        function prepareConfirmation(previewResult, extra = {}) {
             const view = previewResult?.view || describePlan(previewResult?.plan);
             if (!view.canApply) {
                 const blocker = view.blockers[0];
@@ -226,20 +227,31 @@
                     details: { blockers: view.blockers }
                 });
             }
-            return Object.freeze({
-                request: clone(previewResult.request),
+            const request = clone(previewResult.request);
+            const note = text(extra.note);
+            if (note) request.note = note.slice(0, MAX_NOTE_LENGTH);
+            const confirmation = Object.freeze({
+                request,
                 planDigest: view.planDigest,
                 operationKey: newOperationKey()
             });
+            if (note) lockedRequests.set(confirmation, clone(request));
+            return confirmation;
         }
 
         async function apply(confirmation, extra = {}) {
             if (!confirmation?.planDigest || !confirmation?.operationKey || !confirmation?.request) {
                 throw invalid('Confirmação incompleta: gere a prévia antes de aplicar.');
             }
-            const request = clone(confirmation.request);
-            const note = text(extra.note);
-            if (note) request.note = note.slice(0, MAX_NOTE_LENGTH);
+            let request = lockedRequests.get(confirmation);
+            if (!request) {
+                request = clone(confirmation.request);
+                const note = text(extra.note);
+                if (note) request.note = note.slice(0, MAX_NOTE_LENGTH);
+                lockedRequests.set(confirmation, clone(request));
+            } else {
+                request = clone(request);
+            }
             try {
                 const receipt = await repository.executeRpc(
                     'apply_operational_change',

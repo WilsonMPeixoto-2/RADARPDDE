@@ -158,3 +158,26 @@ test('apply exige recibo confirmado pelo servidor', async () => {
     const confirmation = client.prepareConfirmation(await client.preview({ action: 'delete_invoice', target: { ...target, id: 'NF-1' } }));
     await assert.rejects(client.apply(confirmation), error => error.code === 'NOT_COMMITTED');
 });
+
+test('apply congela o payload da requisicao na primeira tentativa para evitar IDEMPOTENCY_CONFLICT ao repetir com outra nota', async () => {
+    const network = new Error('fetch failed');
+    network.code = 'NETWORK_ERROR';
+    const receipt = { committed: true, replayed: true, operationKey: 'k-note-1' };
+    const repository = fakeRepository([plan, network, receipt]);
+    const client = createOperationalCorrectionClient({ repository, newOperationKey: () => 'k-note-1' });
+    const previewResult = await client.preview({ action: 'delete_invoice', target: { ...target, id: 'NF-1' } });
+    const confirmation = client.prepareConfirmation(previewResult);
+
+    await assert.rejects(
+        client.apply(confirmation, { note: 'Nota original na primeira tentativa' }),
+        error => error.code === 'NETWORK_ERROR'
+    );
+    await client.apply(confirmation, { note: 'Nota editada antes do retry' });
+
+    const applies = repository.calls.filter(call => call.name === 'apply_operational_change');
+    assert.equal(applies.length, 2);
+    assert.equal(applies[0].args.p_operation_key, 'k-note-1');
+    assert.equal(applies[1].args.p_operation_key, 'k-note-1');
+    assert.deepEqual(applies[1].args.p_request, applies[0].args.p_request);
+    assert.equal(applies[1].args.p_request.note, 'Nota original na primeira tentativa');
+});

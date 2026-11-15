@@ -220,3 +220,75 @@ test('G-02: limpar análise utiliza clear_analysis existente e preserva observa�
     expect(apply.args.p_request.changes).toBeUndefined();
     expect(apply.args.p_request.note).toBeUndefined();
 });
+
+test('AMBIGUOUS_CONSEQUENCE exige seleção explícita de Pendências candidatas sem pré-selecionar automaticamente', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(async () => {
+        await window.RadarProductExtensionsReady;
+        window.__ambiguousRpc = [];
+        const repository = {
+            capabilities: () => ({ remote: true }),
+            async executeRpc(name, args) {
+                window.__ambiguousRpc.push({ name, args });
+                if (name === 'preview_operational_change') {
+                    const selected = args.p_request.selectedPendencyIds || [];
+                    if (!selected.length) {
+                        return {
+                            action: args.p_request.action,
+                            planDigest: 'e'.repeat(64),
+                            effects: { update: [{ entity: 'verifications', field: 'analysis.extINV', before: 'Incorreto', after: 'Correto' }] },
+                            blockers: [{
+                                code: 'AMBIGUOUS_CONSEQUENCE',
+                                message: 'Há mais de uma Pendência ativa para esta análise; selecione quais serão excluídas.',
+                                candidates: ['PEND-CAND-1', 'PEND-CAND-2']
+                            }],
+                            warnings: [],
+                            preserved: {}
+                        };
+                    }
+                    return {
+                        action: args.p_request.action,
+                        planDigest: 'f'.repeat(64),
+                        effects: {
+                            delete: { pendencies: selected },
+                            update: [{ entity: 'verifications', field: 'analysis.extINV', before: 'Incorreto', after: 'Correto' }]
+                        },
+                        blockers: [],
+                        warnings: [],
+                        preserved: {}
+                    };
+                }
+                if (name === 'apply_operational_change') {
+                    return { committed: true, operationKey: args.p_operation_key };
+                }
+                throw new Error('RPC inesperada');
+            }
+        };
+        const root = {
+            document,
+            RADAR_OPERATIONAL_CORRECTION_PREVIEW: true,
+            RadarApplicationServices: { data: { repository } },
+            RadarOperationalCorrectionClient: window.RadarOperationalCorrectionClient,
+            RadarOperationalContextRefreshController: { refreshSchool: async () => ({ applied: true }) },
+            rebuildOperationalIndexes() {},
+            renderProntuario() {}
+        };
+        window.RadarOperationalCorrectionDialog.open(root, {
+            context: { schoolId: 'ESC-1', competence: '2026-05', programId: 'BASIC', documentKey: 'extINV', documentLabel: 'Extrato Investimento' },
+            currentValue: 'Correto'
+        });
+    });
+    const dialog = page.getByRole('dialog', { name: 'Corrigir análise técnica' });
+    await expect(dialog.getByText(/Há mais de uma Pendência ativa/)).toBeVisible();
+    await expect(dialog.getByRole('button', { name: 'Confirmar correção' })).toBeDisabled();
+    const cand1 = dialog.getByLabel('Excluir Pendência PEND-CAND-1');
+    const cand2 = dialog.getByLabel('Excluir Pendência PEND-CAND-2');
+    await expect(cand1).not.toBeChecked();
+    await expect(cand2).not.toBeChecked();
+    await cand2.check();
+    await expect(dialog.getByRole('button', { name: 'Confirmar correção' })).toBeEnabled();
+    await dialog.getByRole('button', { name: 'Confirmar correção' }).click();
+    await expect(dialog).toBeHidden();
+    const applyCall = await page.evaluate(() => window.__ambiguousRpc.find(c => c.name === 'apply_operational_change'));
+    expect(applyCall.args.p_request.selectedPendencyIds).toEqual(['PEND-CAND-2']);
+});
