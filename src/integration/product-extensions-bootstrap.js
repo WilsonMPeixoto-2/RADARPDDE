@@ -30,4 +30,285 @@
         // Regra crítica: "Incorreto" nunca pode cair no handler-base sem a pendência atômica.
         // Carregar primeiro impede que falhas em extensões opcionais anteriores desativem essa proteção.
         '/src/integration/atomic-analysis-pendency.js',
-        // Registros administrativos permanecem no Supabase e só entram em���q�^
+        // Registros administrativos permanecem no Supabase e só entram em memória quando uma
+        // superfície de histórico realmente é aberta. A timeline depende desta leitura contextual.
+        '/src/integration/administrative-log-read-model.js',
+        '/src/domain/school-timeline.js',
+        '/src/integration/school-timeline.js',
+        '/src/integration/navigation-context-bootstrap.js',
+        '/src/integration/controller-guide.js',
+        '/src/integration/controller-guide-ready.js',
+        '/src/integration/unidentified-expense-ux.js',
+        '/src/integration/prontuario-operational-ux.js',
+        '/src/integration/operational-readiness-bridge.js',
+        '/src/integration/operational-context-refresh.js',
+        '/src/integration/operational-realtime-invalidation.js',
+        '/src/integration/pendency-passive-queue-ux.js',
+        '/src/integration/invoice-history-lock.js',
+        '/src/integration/service-advisory-pendency.js',
+        '/src/integration/service-advisory-corrective-submission.js',
+        '/src/integration/critical-action-guard.js',
+        '/src/integration/operational-write-diagnostics.js',
+        '/src/integration/operational-write-performance.js',
+        '/src/integration/prontuario-conditional-reconciler.js',
+        '/src/integration/operational-write-feedback.js',
+        '/src/integration/prontuario-scroll-preservation.js',
+        // Retificação auditável de dados documentais/manuais permanece como wrapper funcional externo.
+        '/src/integration/auditable-retification.js',
+        '/src/integration/evaluation-retification.js',
+        '/src/application/operational-correction-client.js',
+        '/src/integration/operational-correction-dialog.js',
+        '/src/integration/evaluation-retification-ui.js'
+    ]);
+    const criticalScripts = new Set([
+        '/src/integration/atomic-analysis-pendency.js',
+        '/src/integration/administrative-log-read-model.js',
+        '/src/integration/operational-context-refresh.js',
+        '/src/integration/operational-realtime-invalidation.js',
+        '/src/integration/operational-write-feedback.js',
+        '/src/integration/prontuario-conditional-reconciler.js',
+        '/src/integration/prontuario-scroll-preservation.js',
+        '/src/integration/service-advisory-pendency.js',
+        '/src/integration/service-advisory-corrective-submission.js',
+        '/src/integration/critical-action-guard.js',
+        '/src/integration/auditable-retification.js',
+        '/src/integration/evaluation-retification.js',
+        '/src/application/operational-correction-client.js',
+        '/src/integration/operational-correction-dialog.js',
+        '/src/integration/evaluation-retification-ui.js'
+    ]);
+    const failedScripts = new Map();
+    const criticalScriptCapabilities = new Map([
+        [
+            '/src/integration/operational-realtime-invalidation.js',
+            () => typeof root.RadarOperationalRealtimeInvalidation?.install === 'function'
+        ],
+        [
+            '/src/integration/operational-write-feedback.js',
+            () => (
+                typeof root.RadarOperationalWriteFeedback?.install === 'function'
+                && root.RadarOperationalWriteFeedback.install(root) === true
+            )
+        ],
+        [
+            '/src/integration/prontuario-conditional-reconciler.js',
+            () => typeof root.RadarProntuarioConditionalReconciler?.install === 'function'
+        ],
+        [
+            '/src/integration/prontuario-scroll-preservation.js',
+            () => typeof root.RadarProntuarioScrollPreservation?.install === 'function'
+        ]
+    ]);
+
+    function assertLoadedCapability(src) {
+        const predicate = criticalScriptCapabilities.get(src);
+        if (!predicate) return true;
+        if (predicate()) return true;
+        throw new Error(`Extensão crítica carregada sem expor a capacidade esperada: ${src}.`);
+    }
+
+
+    function administrativeLogReadRequired() {
+        const repositoryFactory = root.RadarRepositoryFactory;
+        if (typeof repositoryFactory?.isSupabaseExplicitlyEnabled === 'function') {
+            return repositoryFactory.isSupabaseExplicitlyEnabled(root.RADAR_PDDE_CONFIG || {}) === true;
+        }
+        try {
+            const repository = root.RadarDataContext?.dataService?.repository
+                || root.RadarDataContext?.repository
+                || null;
+            return repository?.capabilities?.().remote === true;
+        } catch (_error) {
+            return false;
+        }
+    }
+
+    function installCriticalExtensions() {
+        const administrativeLogReadInstalled = !administrativeLogReadRequired()
+            || root.RadarAdministrativeLogReadModel?.install?.(root) === true;
+        const operationalContextRefreshInstalled = root.RadarOperationalContextRefresh?.install?.(root) === true;
+        const conditionalReconcilerInstalled = root.RadarProntuarioConditionalReconciler?.install?.(root) === true;
+        const scrollPreservationInstalled = conditionalReconcilerInstalled
+            && root.RadarProntuarioScrollPreservation?.install?.(root) === true;
+        const advisoryInstalled = root.RadarServiceAdvisoryPendency?.install?.(root) === true;
+        const correctiveInstalled = root.RadarServiceAdvisoryCorrectiveSubmission?.install?.(root) === true;
+        const retificationInstalled = root.RadarAuditableRetification?.install?.(root) === true;
+        const evaluationInstalled = root.RadarEvaluationRetification?.install?.(root) === true;
+        const evaluationUiInstalled = root.RadarEvaluationRetificationUi?.install?.(root) === true;
+        return administrativeLogReadInstalled
+            && operationalContextRefreshInstalled
+            && conditionalReconcilerInstalled
+            && scrollPreservationInstalled
+            && advisoryInstalled
+            && correctiveInstalled
+            && retificationInstalled
+            && evaluationInstalled
+            && evaluationUiInstalled;
+    }
+
+    function waitForCriticalExtensions() {
+        if (installCriticalExtensions()) return Promise.resolve(true);
+        return new Promise(resolve => {
+            const handleServicesReady = () => {
+                if (!installCriticalExtensions()) return;
+                root.removeEventListener?.('radar:application-services-ready', handleServicesReady);
+                resolve(true);
+            };
+            root.addEventListener?.('radar:application-services-ready', handleServicesReady);
+            handleServicesReady();
+        });
+    }
+
+    function publishFailures() {
+        const failures = [...failedScripts.entries()].map(([src, error]) => Object.freeze({
+            src,
+            message: String(error?.message || error || `Falha ao carregar ${src}.`)
+        }));
+        root.RADAR_PRODUCT_EXTENSION_FAILURES = Object.freeze(failures);
+        root.RADAR_LAST_PRODUCT_EXTENSION_ERROR = failures.length > 0
+            ? failedScripts.get(failures[failures.length - 1].src)
+            : null;
+    }
+
+    function preloadScriptOnce(src) {
+        const existing = Array.from(
+            document.querySelectorAll?.('link[rel="preload"][as="script"]') || []
+        ).find(link => (
+            link.getAttribute?.('href') === src
+            || link.dataset?.radarProductPreload === src
+        ));
+        if (existing) return existing;
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'script';
+        link.href = src;
+        link.dataset.radarProductPreload = src;
+        document.head.appendChild(link);
+        return link;
+    }
+
+    function loadStyleOnce(href) {
+        const existing = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).find(link => (
+            link.getAttribute('href') === href
+            || link.dataset?.radarProductStyle === href
+        ));
+        if (existing) return existing;
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = href;
+        link.dataset.radarProductStyle = href;
+        document.head.appendChild(link);
+        return link;
+    }
+
+    function loadScriptOnce(src) {
+        let existing = Array.from(document.scripts || []).find(script => (
+            script.getAttribute('src') === src
+            || script.dataset?.radarProductScript === src
+        ));
+        if (existing?.dataset?.radarLoadFailed === 'true') {
+            existing.remove?.();
+            existing = null;
+        }
+        if (existing?.dataset?.radarLoaded === 'true') return Promise.resolve(existing);
+        if (existing) {
+            return new Promise((resolve, reject) => {
+                existing.addEventListener('load', () => {
+                    existing.dataset.radarLoaded = 'true';
+                    delete existing.dataset.radarLoadFailed;
+                    resolve(existing);
+                }, { once: true });
+                existing.addEventListener('error', () => {
+                    existing.dataset.radarLoadFailed = 'true';
+                    reject(new Error(`Falha ao carregar ${src}.`));
+                }, { once: true });
+            });
+        }
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.async = false;
+            script.dataset.radarProductScript = src;
+            script.addEventListener('load', () => {
+                script.dataset.radarLoaded = 'true';
+                delete script.dataset.radarLoadFailed;
+                resolve(script);
+            }, { once: true });
+            script.addEventListener('error', () => {
+                script.dataset.radarLoadFailed = 'true';
+                reject(new Error(`Falha ao carregar ${src}.`));
+            }, { once: true });
+            document.head.appendChild(script);
+        });
+    }
+
+    async function loadScripts(targets) {
+        for (const src of targets) {
+            try {
+                await loadScriptOnce(src);
+                assertLoadedCapability(src);
+                failedScripts.delete(src);
+            } catch (error) {
+                failedScripts.set(src, error);
+                if (criticalScriptCapabilities.has(src)) {
+                    const loadedScript = Array.from(document.scripts || []).find(script => (
+                        script.getAttribute?.('src') === src
+                        || script.dataset?.radarProductScript === src
+                    ));
+                    if (loadedScript) {
+                        loadedScript.dataset.radarLoadFailed = 'true';
+                        delete loadedScript.dataset.radarLoaded;
+                    }
+                }
+                root.console?.error?.(`Não foi possível carregar a extensão ${src}.`, error);
+            }
+        }
+        publishFailures();
+
+        const failedCritical = [...failedScripts.keys()].find(src => criticalScripts.has(src));
+        if (failedCritical) {
+            throw failedScripts.get(failedCritical)
+                || new Error(`Falha ao carregar extensão crítica ${failedCritical}.`);
+        }
+        return true;
+    }
+
+    function completeLoad(targets) {
+        return loadScripts(targets)
+            .then(() => waitForCriticalExtensions())
+            .then(() => failedScripts.size === 0)
+            .catch(error => {
+                root.RADAR_LAST_PRODUCT_EXTENSION_ERROR = error;
+                root.console?.error?.('Não foi possível inicializar as extensões críticas do RADAR.', error);
+                return false;
+            });
+    }
+
+    function startLoad(targets) {
+        if (root.RadarProductExtensionsLoading === true && root.RadarProductExtensionsReady) {
+            return root.RadarProductExtensionsReady;
+        }
+        root.RadarProductExtensionsLoading = true;
+        let run = null;
+        run = completeLoad(targets).finally(() => {
+            if (root.RadarProductExtensionsReady === run) {
+                root.RadarProductExtensionsLoading = false;
+            }
+        });
+        root.RadarProductExtensionsReady = run;
+        return run;
+    }
+
+    root.RadarProductExtensionsRetry = function retryProductExtensions() {
+        if (root.RadarProductExtensionsLoading === true) {
+            return root.RadarProductExtensionsReady;
+        }
+        const retryTargets = scripts.filter(src => failedScripts.has(src));
+        if (retryTargets.length === 0) return root.RadarProductExtensionsReady;
+        return startLoad(retryTargets);
+    };
+
+    scripts.forEach(preloadScriptOnce);
+    styles.forEach(loadStyleOnce);
+    startLoad(scripts);
+}(typeof window !== 'undefined' ? window : globalThis));
