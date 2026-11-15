@@ -4337,6 +4337,14 @@ body.dark-theme .invoice-document-analysis-select {
 body.dark-theme .invoice-document-list-head {
     background: #1b142b;
 }
+/* Título e metadados da NF fixavam --text-dark e #403848 também no tema
+   escuro (contraste 1,02 sobre #151022). Auditoria Manus 15/11/2026. */
+body.dark-theme .invoice-document-title-line > strong {
+    color: var(--invoice-text, var(--text-main));
+}
+body.dark-theme .invoice-document-meta strong {
+    color: var(--invoice-secondary, var(--text-muted));
+}
 
 body.dark-theme .pendency-preview-drawer {
     background: #100c1e;

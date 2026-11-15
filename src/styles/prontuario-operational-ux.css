@@ -270,6 +270,12 @@ body.dark-theme #prontuario-verif-rows tr.verification-document-row.is-striped >
     letter-spacing: -0.01em;
 }
 
+/* --text-dark é escuro nos dois temas; no tema escuro o nome do documento
+   ficava com contraste 1,02. Auditoria Manus 15/11. */
+body.dark-theme #prontuario-verif-rows .verification-document-copy strong {
+    color: var(--text-main);
+}
+
 #prontuario-verif-rows tr.verification-document-row > td > .btn-group-toggle,
 #prontuario-verif-rows tr.verification-document-row > td > .select-analise {
     min-height: 36px;
@@ -452,4 +458,13 @@ body.dark-theme #prontuario-verif-rows tr.verification-document-row.is-striped >
     text-transform: none;
     letter-spacing: 0;
     font-size: 0.82rem;
+}
+
+/* .prontuario-school-header usa var(--bg-primary, #f7f8fb), mas --bg-primary
+   nunca foi definida: no tema escuro o nome da escola ficava claro sobre fundo
+   claro (contraste 1,04). O tema claro permanece idêntico. Auditoria Manus 15/11. */
+body.dark-theme .prontuario-school-header {
+    background: var(--bg-page);
+    border-bottom-color: rgba(167, 139, 250, 0.18);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
 }

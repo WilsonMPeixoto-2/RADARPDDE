@@ -63,7 +63,8 @@ declare
         '20261004132755',
         '20261004210000',
         '20261011193500',
-        '20261024120000'
+        '20261024120000',
+        '20261114000100'
     ];
     v_actual text[];
     v_missing_extensions text[];
@@ -109,6 +110,15 @@ begin
         raise exception 'ATOMIC_OPERATIONAL_RPC_MISSING';
     end if;
 
+    if to_regprocedure('public.preview_operational_change(jsonb)') is null
+       or to_regprocedure('public.apply_operational_change(jsonb,text,uuid)') is null then
+        raise exception 'OPERATIONAL_CORRECTION_RPC_MISSING';
+    end if;
+    if has_function_privilege('anon', 'public.preview_operational_change(jsonb)', 'EXECUTE')
+       or has_function_privilege('anon', 'public.apply_operational_change(jsonb,text,uuid)', 'EXECUTE')
+       or not has_function_privilege('authenticated', 'public.apply_operational_change(jsonb,text,uuid)', 'EXECUTE') then
+        raise exception 'OPERATIONAL_CORRECTION_PRIVILEGES_INVALID';
+    end if;
     if to_regprocedure('public.read_operational_context(text,text[])') is null then
         raise exception 'OPERATIONAL_CONTEXT_READ_MISSING';
     end if;
