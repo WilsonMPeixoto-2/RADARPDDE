@@ -44,12 +44,30 @@
 
     function getProgramGroups(rows) {
         const groups = [];
+        const groupsByProgramId = new Map();
         let currentGroup = null;
 
         rows.forEach(row => {
-            const contextCell = row.querySelector('td[rowspan]');
+            const programId = text(row?.dataset?.programId);
+            const contextCell = row?.querySelector?.('[data-program-context], .program-context-cell, td[rowspan]')
+                || row?.querySelector?.('td[rowspan]')
+                || null;
+
+            if (programId) {
+                currentGroup = groupsByProgramId.get(programId) || null;
+                if (!currentGroup) {
+                    currentGroup = { programId, contextCell, rows: [] };
+                    groupsByProgramId.set(programId, currentGroup);
+                    groups.push(currentGroup);
+                } else if (!currentGroup.contextCell && contextCell) {
+                    currentGroup.contextCell = contextCell;
+                }
+                currentGroup.rows.push(row);
+                return;
+            }
+
             if (contextCell) {
-                currentGroup = { contextCell, rows: [] };
+                currentGroup = { programId: '', contextCell, rows: [] };
                 groups.push(currentGroup);
             }
             if (currentGroup) currentGroup.rows.push(row);
@@ -272,8 +290,14 @@
 
     function decorateProgramGroup(group) {
         const firstRow = group.rows[0];
-        if (!firstRow || !group.contextCell) return;
-
+        if (!firstRow) return;
+        const programGroupId = text(group.programId || firstRow.dataset?.programId || '');
+        group.rows.forEach(row => {
+            if (!row?.setAttribute) return;
+            row.setAttribute('data-program-group', programGroupId || 'true');
+        });
+        if (!group.contextCell) return;
+        group.contextCell.setAttribute('data-program-context', programGroupId || 'true');
         firstRow.classList.add('program-block-start');
         group.contextCell.classList.add('program-context-cell');
 
@@ -515,7 +539,8 @@
 
     root.RadarProntuarioOperationalUx = Object.freeze({
         install,
-        enhance: enhanceProntuario
+        enhance: enhanceProntuario,
+        getProgramGroups
     });
 
     install();
