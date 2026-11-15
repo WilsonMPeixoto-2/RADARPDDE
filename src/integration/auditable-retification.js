@@ -154,6 +154,75 @@
         return context;
     }
 
+    function deriveUpdatedPendencyItem(pendency = {}, invoice = {}, previousNumber = '') {
+        const currentItem = text(pendency.item);
+        if (!invoice) return currentItem;
+        const expenseType = normalizeType(invoice.tipo || invoice.expense_type);
+        const newNumber = text(invoice.numero || invoice.invoice_number);
+        const oldNumber = text(previousNumber || pendency.documentSnapshot?.numero);
+        const documentKey = text(pendency.documentoKey || pendency.document_key);
+
+        if (expenseType === UNIDENTIFIED_EXPENSE_TYPE) {
+            if (currentItem && oldNumber && newNumber && oldNumber !== newNumber && currentItem.includes(oldNumber)) {
+                return currentItem.replace(oldNumber, newNumber);
+            }
+            return currentItem || 'Despesa a identificar';
+        }
+        if (!newNumber) return currentItem;
+
+        const docPrefix = expenseType === 'boleto_internet' ? 'Boleto Internet' : 'NF';
+        const dashDocMatch = currentItem.match(/^(.*?-\s*)(?:NF|Boleto Internet):\s*(.+)$/i);
+        if (dashDocMatch) {
+            return `${dashDocMatch[1]}${docPrefix}: ${newNumber}`;
+        }
+        if (/^(?:NF|Boleto Internet):\s*(.+)$/i.test(currentItem)) {
+            return `${docPrefix}: ${newNumber}`;
+        }
+        const nfDashMatch = currentItem.match(/^(Notas?\s+Fisca(?:is|l)\s*[—-]\s*)(.+)$/i);
+        if (nfDashMatch) {
+            return `${nfDashMatch[1]}${newNumber}`;
+        }
+        const advisoryMatch = currentItem.match(/^(.*Consulta\s+(?:à\s+)?Assessoria\s*[—-]\s*NF\s*:?\s*)(.+)$/i);
+        if (advisoryMatch) {
+            return `${advisoryMatch[1]}${newNumber}`;
+        }
+        if (oldNumber && oldNumber !== newNumber && currentItem.includes(oldNumber)) {
+            return currentItem.replace(oldNumber, newNumber);
+        }
+        if (documentKey === 'consAssessoria' && /^Consulta\s+(?:à\s+)?Assessoria$/i.test(currentItem)) {
+            return `Consulta Assessoria — NF ${newNumber}`;
+        }
+        if (/^Notas?\s+Fisca(?:is|l)$/i.test(currentItem)) {
+            return `Notas Fiscais — ${newNumber}`;
+        }
+        return currentItem;
+    }
+
+    function syncLinkedPendencyItems(state = {}, invoiceId = null, previousNumber = '') {
+        const pendencies = Array.isArray(state?.pendencies) ? state.pendencies : [];
+        const invoices = Array.isArray(state?.registeredInvoices) ? state.registeredInvoices : [];
+        if (!pendencies.length || !invoices.length) return 0;
+        const targetId = text(invoiceId);
+        const invoicesById = new Map(invoices.map(item => [text(item.id), item]));
+        let updatedCount = 0;
+        pendencies.forEach(pendency => {
+            const linkedId = invoiceIdOfPendency(pendency);
+            if (!linkedId || (targetId && linkedId !== targetId)) return;
+            const invoice = invoicesById.get(linkedId);
+            if (!invoice) return;
+            const nextItem = deriveUpdatedPendencyItem(
+                pendency,
+                invoice,
+                targetId && linkedId === targetId ? previousNumber : ''
+            );
+            if (nextItem && nextItem !== text(pendency.item)) {
+                pendency.item = nextItem;
+                updatedCount += 1;
+            }
+        });
+        return updatedCount;
+    }
+
     function protectInvoiceService(service) {
         if (!service || typeof service.save !== 'function' || typeof service.getState !== 'function') return false;
         if (service.__radarAuditableRetificationSave === true) return true;
@@ -162,13 +231,18 @@
         service.save = async function saveWithAuditableRetification(input = {}) {
             const state = this.getState();
             const existing = currentInvoice(state, input.id);
+            const previousNumber = text(existing?.numero || existing?.invoice_number);
             if (!isRetifiableInvoice(state, existing)) {
-                return originalSave.call(this, input);
+                const res = await originalSave.call(this, input);
+                if (existing) syncLinkedPendencyItems(this.getState(), existing.id, previousNumber);
+                return res;
             }
 
             assertRetificationIdentity(state, existing, input);
             const context = createInvoiceRetificationContext(this);
-            return originalSave.call(context, input);
+            const result = await originalSave.call(context, input);
+            syncLinkedPendencyItems(this.getState(), existing.id, previousNumber);
+            return result;
         };
 
         Object.defineProperty(service, '__radarAuditableRetificationSave', {
@@ -376,6 +450,7 @@
         if (!root?.document) return false;
         const state = stateFromRoot(root);
         if (!state) return false;
+        syncLinkedPendencyItems(state);
 
         root.document.querySelectorAll('.invoice-document-row[data-invoice-id]').forEach(row => {
             const invoiceId = text(row.dataset.invoiceId);
@@ -409,6 +484,7 @@
         select.removeAttribute('aria-describedby');
         delete select.dataset.auditableRetificationLocked;
         root.document.querySelector('[data-auditable-retification-type-hint]')?.remove();
+        root.document.querySelector('[data-auditable-retification-alternatives]')?.remove();
         root.document.querySelector('[data-auditable-retification-guidance]')?.remove();
         root.document.getElementById('invoice-edit-context')?.remove();
         root.document.getElementById('invoice-classification-preview')?.remove();
@@ -484,6 +560,14 @@
                 : 'Descrição, número/referência, valor e classificação. O histórico anterior será preservado.';
         }
         appendText(root, guidance, 'span', message);
+        const syncNote = appendText(
+            root,
+            guidance,
+            'small',
+            'Ao salvar, o novo número, descrição e valor serão atualizados automaticamente na Pendência vinculada, nas filas de busca e no Patrimônio/Inventário.',
+            'invoice-retification-sync-note'
+        );
+        syncNote.dataset.auditableRetificationSyncNote = 'true';
         const firstField = root.document.getElementById('nota-desc')?.closest('.form-group');
         (firstField || group.closest('.form-row') || group).before(guidance);
         return true;
@@ -512,6 +596,30 @@
             group.appendChild(hint);
             select.setAttribute('aria-describedby', 'invoice-classification-hint');
             hint.id = 'invoice-classification-hint';
+        }
+        if (group && restriction && !group.querySelector('[data-auditable-retification-alternatives]')) {
+            const activePendency = (state?.pendencies || []).find(pendency => (
+                invoiceIdOfPendency(pendency) === text(invoice.id)
+                && pendencyDomain.isActivePendency(pendency)
+            )) || null;
+            if (activePendency && typeof root.openPendencyDrawer === 'function') {
+                const altBox = root.document.createElement('div');
+                altBox.className = 'invoice-retification-alternatives';
+                altBox.dataset.auditableRetificationAlternatives = 'true';
+                const altBtn = root.document.createElement('button');
+                altBtn.type = 'button';
+                altBtn.className = 'btn btn-secondary btn-sm';
+                altBtn.dataset.auditableRetificationAltAction = 'open-pendency';
+                altBtn.textContent = normalizeType(invoice.tipo || invoice.expense_type) === UNIDENTIFIED_EXPENSE_TYPE
+                    ? 'Ir para Pendência e identificar despesa'
+                    : 'Abrir Pendência deste lançamento';
+                altBtn.addEventListener('click', () => {
+                    root.closeModal?.('modal-dados-nota');
+                    root.openPendencyDrawer?.(activePendency.id);
+                });
+                altBox.appendChild(altBtn);
+                group.appendChild(altBox);
+            }
         }
         updateInvoiceClassificationPreview(root);
         return true;
@@ -757,6 +865,8 @@
         invoiceHistory,
         isRetifiableInvoice,
         assertRetificationIdentity,
+        deriveUpdatedPendencyItem,
+        syncLinkedPendencyItems,
         protectInvoiceService,
         isManualPendency,
         protectPendencyService,

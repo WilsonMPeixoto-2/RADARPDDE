@@ -273,3 +273,58 @@ test('retificação manual rejeita opções novas fora do cadastro canônico', a
         error => error?.code === 'VALIDATION_FAILED'
     );
 });
+
+test('propaga edição de número da NF para o item da Pendência vinculada em todos os formatos de produção', async () => {
+    const harness = createInvoiceHarness();
+    harness.state.pendencies[0].item = 'PDDE Básico - NF: NF-1';
+    harness.state.pendencies.push({
+        id: 'pend-assessoria',
+        escolaId: 'ESC-1',
+        competenciaOrigem: '2026-05',
+        programaId: 'BASIC',
+        documentoKey: 'consAssessoria',
+        registeredInvoiceId: harness.invoiceId,
+        status: 'Resolvida',
+        item: 'PDDE Básico - Consulta Assessoria — NF NF-1',
+        motivo: 'Documento ausente',
+        observacao: 'Assessoria original',
+        documentSnapshot: {
+            registeredInvoiceId: harness.invoiceId,
+            tipo: 'consumo',
+            numero: 'NF-1',
+            descricao: 'Material original',
+            valor: 100
+        }
+    });
+
+    await harness.service.save({
+        id: harness.invoiceId,
+        schoolId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        description: 'Material atualizado',
+        expenseType: 'consumo',
+        invoiceNumber: '2217',
+        amount: 250,
+        profile: 'controlador'
+    });
+
+    assert.equal(harness.state.pendencies[0].item, 'PDDE Básico - NF: 2217');
+    assert.equal(harness.state.pendencies[0].documentSnapshot.numero, 'NF-1');
+    assert.equal(harness.state.pendencies[1].item, 'PDDE Básico - Consulta Assessoria — NF 2217');
+    assert.equal(
+        retification.deriveUpdatedPendencyItem(
+            { item: 'Notas Fiscais — 232', documentoKey: 'notaFiscal' },
+            { tipo: 'consumo', numero: '265' },
+            '232'
+        ),
+        'Notas Fiscais — 265'
+    );
+    assert.equal(
+        retification.deriveUpdatedPendencyItem(
+            { item: 'Educação Conectada - Boleto Internet: 2446412', documentoKey: 'notaFiscal' },
+            { tipo: 'boleto_internet', numero: '2446499' },
+            '2446412'
+        ),
+        'Educação Conectada - Boleto Internet: 2446499'
+    );
+});

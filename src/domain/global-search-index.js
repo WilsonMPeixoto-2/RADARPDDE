@@ -115,7 +115,7 @@
         };
     }
 
-    function createPendencyItem(pendency, schoolsById) {
+    function createPendencyItem(pendency, schoolsById, invoicesById = new Map()) {
         const id = String(pendency.id || '').trim();
         const schoolId = String(pendency.escolaId || pendency.schoolId || pendency.school_id || '').trim();
         const competenceKey = String(
@@ -126,9 +126,14 @@
             || ''
         ).trim();
         const school = schoolsById.get(schoolId);
+        const invoiceId = String(pendency.registeredInvoiceId || pendency.registered_invoice_id || '').trim();
+        const linkedInvoice = invoiceId ? invoicesById.get(invoiceId) : null;
+        const invoiceNumber = String(linkedInvoice?.numero || linkedInvoice?.invoice_number || '').trim();
+        const invoiceDescription = String(linkedInvoice?.desc || linkedInvoice?.descricao || '').trim();
         const documentName = String(
             pendency.documento
             || pendency.documentoNome
+            || pendency.item
             || pendency.tipo
             || pendency.descricao
             || 'Pendência operacional'
@@ -149,6 +154,9 @@
                 pendency.status,
                 pendency.programaId,
                 pendency.program_id,
+                pendency.item,
+                invoiceNumber,
+                invoiceDescription,
                 competenceKey,
                 school?.denominação,
                 school?.denominacao,
@@ -173,6 +181,10 @@
             return id && (!allowedIds || allowedIds.has(id));
         });
         const schoolsById = new Map(visibleSchools.map(school => [String(school.id), school]));
+        const invoices = Array.isArray(context.invoices)
+            ? context.invoices
+            : (Array.isArray(context.registeredInvoices) ? context.registeredInvoices : []);
+        const invoicesById = new Map(invoices.map(invoice => [String(invoice?.id || ''), invoice]));
         const modules = (Array.isArray(context.modules) ? context.modules : [])
             .filter(module => module && module.visible !== false);
         const linkedProgramIds = new Set(visibleSchools.flatMap(school => (
@@ -193,7 +205,7 @@
             ...modules.map(createModuleItem),
             ...programs.map(program => createProgramItem(program, visibleSchools)),
             ...competencies.map(createCompetenceItem),
-            ...pendencies.map(pendency => createPendencyItem(pendency, schoolsById))
+            ...pendencies.map(pendency => createPendencyItem(pendency, schoolsById, invoicesById))
         ];
 
         const byId = new Map();

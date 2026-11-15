@@ -117,6 +117,9 @@
             if (name === 'pendencies') {
                 return typeof pendencias !== 'undefined' && Array.isArray(pendencias) ? pendencias : [];
             }
+            if (name === 'invoices') {
+                return typeof notasRegistradas !== 'undefined' && Array.isArray(notasRegistradas) ? notasRegistradas : [];
+            }
             if (name === 'competencies') {
                 if (typeof competencias !== 'undefined' && Array.isArray(competencias)) return competencias;
                 if (typeof config !== 'undefined' && Array.isArray(config?.competencias)) return config.competencias;
@@ -169,6 +172,7 @@
             schools,
             programs: readGlobalCollection('programs'),
             pendencies: readGlobalCollection('pendencies'),
+            invoices: readGlobalCollection('invoices'),
             competencies: collectCompetencies(document),
             modules: collectVisibleModules(root, document),
             allowedSchoolIds: schools.map(school => String(

@@ -390,3 +390,64 @@ test('cria modelo de página com totais e contagens filtradas por aba', () => {
   assert.equal(model.activeTotal, 4);
   assert.equal(model.filteredTotal, 4);
 });
+
+test('propaga edição de número e descrição da Nota Fiscal vinculada para item, projeção e busca de Pendências', () => {
+  const pendenciesWithLinkedInvoice = [
+    ...PENDENCIES,
+    {
+      schemaVersion: 2,
+      id: 'pend-nf-editada',
+      tipo: 'documental',
+      escolaId: '04.31.001',
+      competencia: '2026-05',
+      competenciaOrigem: '2026-05',
+      programaId: 'ED_FAMILIA',
+      documentoKey: 'notaFiscal',
+      registeredInvoiceId: 'nota-550',
+      item: 'Educação e Família - NF: 550',
+      status: 'Aberta',
+      errosAtuais: ['Valor divergente'],
+      motivo: 'Valor divergente',
+      observacao: 'Conferir valor correto da nota.',
+      responsavel: 'Escola',
+      dataAbertura: '2026-06-10',
+      tentativas: [],
+      historico: [],
+      documentSnapshot: {
+        registeredInvoiceId: 'nota-550',
+        tipo: 'consumo',
+        numero: '550',
+        descricao: 'Material antigo',
+        valor: 300
+      }
+    }
+  ];
+
+  const model = ViewModel.createPendencyPageModel(baseInput({
+    pendencias: pendenciesWithLinkedInvoice,
+    notasRegistradas: [
+      {
+        id: 'nota-550',
+        escolaId: '04.31.001',
+        compKey: '2026-05_ED_FAMILIA',
+        competencia: '2026-05',
+        programaId: 'ED_FAMILIA',
+        tipo: 'consumo',
+        numero: '2217',
+        desc: 'Kit pedagógico atualizado',
+        descricao: 'Kit pedagógico atualizado',
+        valor: 450.75
+      }
+    ],
+    filters: { query: '2217 pedagógico atualizado' }
+  }));
+
+  assert.equal(model.filteredRecords.length, 1);
+  const record = model.filteredRecords[0];
+  assert.equal(record.id, 'pend-nf-editada');
+  assert.equal(record.item, 'Educação e Família - NF: 2217');
+  assert.equal(record.invoiceNumber, '2217');
+  assert.equal(record.invoiceDescription, 'Kit pedagógico atualizado');
+  assert.equal(record.invoiceAmount, 450.75);
+  assert.equal(record.invoiceIdentityLabel, 'NF: 2217 · Kit pedagógico atualizado');
+});

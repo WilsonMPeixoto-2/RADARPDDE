@@ -64,3 +64,27 @@ npx playwright test tests/e2e/operational-correction-dialog.spec.js tests/e2e/pr
 - `tests/e2e/prontuario-dark-contrast-regression.spec.js`: **1/1 aprovado** (contraste AA >= 4,5:1 determinístico em execução paralela).
 - `tests/e2e/sme-access-governance.spec.js`: **3/3 aprovados**.
 - `tests/e2e/evaluation-retification.spec.js`: **3/3 aprovados** (fluxo legado preservado quando a flag `RADAR_OPERATIONAL_CORRECTION_PREVIEW` está desativada).
+- `tests/e2e/invoice-auditable-retification.spec.js`, `tests/e2e/invoice-retification-projections.spec.js` e `tests/e2e/invoice-retification-discoverability.spec.js`: **6/6 aprovados** (incluindo propagação do novo número e descrição da Nota Fiscal para `pendency.item`, fila e busca da tela de Pendências e `#pendency-detail-drawer`, preservando `documentSnapshot` histórico, além do botão de ação alternativa `Abrir Pendência deste lançamento`).
+
+---
+
+## 3. Auditoria Somente-Leitura no Supabase Remoto (`scnryinorqeucbfkioxo`) via MCP
+
+Com a configuração MCP `read_only=true` fornecida pelo proprietário, executamos consultas exclusivamente de leitura (`SELECT`) sobre o projeto institucional `scnryinorqeucbfkioxo`:
+
+1. **Estado das migrations remotas:** `supabase_migrations.schema_migrations` possui **62 migrations** aplicadas (última: `20261024120000_quality_provisional_movements`). A migration `20261114000100_operational_correction_contract.sql` ainda não foi aplicada em produção (`preview_operational_change = null`, `apply_operational_change = null`, `operational_change_ledger = null`).
+2. **Compatibilidade de pré-requisitos PostgreSQL 17 em `scnryinorqeucbfkioxo`:** Confirmada a existência e assinatura exata de todas as funções exigidas por `20261114000100_operational_correction_contract.sql`:
+   - `radar_private.current_app_role()`
+   - `radar_private.can_write_school(text)`
+   - `pg_catalog.sha256(bytea)`
+   - `pg_catalog.txid_current_if_assigned()` e `pg_catalog.txid_current()`
+   - `pg_catalog.hashtextextended(text, bigint)` e `pg_catalog.pg_advisory_xact_lock(bigint)`
+3. **Integridade de FKs e Triggers em `scnryinorqeucbfkioxo`:**
+   - `pendency_attempts.pendency_id -> pendencies.id` (`ON DELETE CASCADE`)
+   - `pendency_contacts.pendency_id -> pendencies.id` (`ON DELETE SET NULL`)
+   - `pendencies.registered_invoice_id -> registered_invoices.id` (`ON DELETE RESTRICT`)
+   - `registered_invoices.linked_asset_id -> assets.id` (`ON DELETE SET NULL`)
+   - `quality_provisional_movements.registered_invoice_id -> registered_invoices.id` (`ON DELETE SET NULL`)
+   - Triggers `assets_protect_inventoried_terminal_delete` e `registered_invoices_protect_inventoried_delete` ativos e compatíveis com a trava `TERMINAL_INVENTORY_LOCK` da migration `20261114000100`.
+4. **Evidência empírica de produção (43 registros reais com descompasso pós-edição de NF):**
+   - A consulta `SELECT` cruzando `public.pendencies` e `public.registered_invoices` revelou **43 registros reais** em que a Nota Fiscal foi editada após a abertura da Pendência (ex.: `pend-b5e947bf` com `pendency_item = "Escola das Adolescências - NF: 550"` e `invoice_number = "2217"`; `pend-0d61ce75` com `pendency_item = "Notas Fiscais — 232"` e `invoice_number = "265"`; e notas com descrição `"APAGAR LANÇAMENTO"` / `"NOTA INDEVIDA - EXCLUIR"`), comprovando a necessidade real das correções de propagação automática e exclusão assistida implementadas nesta branch.

@@ -125,6 +125,39 @@
                 if (item?.code === 'AMBIGUOUS_CONSEQUENCE' && Array.isArray(item.candidates)) {
                     candidatePendencyIds = item.candidates.map(text).filter(Boolean);
                 }
+                if (item?.code === 'OPEN_PENDENCY_FLOW_REQUIRED') {
+                    const canOpenInvoicePendency = Boolean(
+                        target.id && typeof root.openInvoiceDocumentPendencyModal === 'function'
+                    );
+                    const canOpenDocPendency = Boolean(
+                        !target.id && typeof root.openNovaPendenciaModalWithDefaults === 'function'
+                    );
+                    if (canOpenInvoicePendency || canOpenDocPendency) {
+                        const altBtn = el(
+                            doc,
+                            'button',
+                            'btn btn-secondary btn-sm',
+                            'Ir para abertura de Pendência'
+                        );
+                        altBtn.type = 'button';
+                        altBtn.dataset.operationalCorrectionAlt = 'open-pendency';
+                        altBtn.addEventListener('click', () => {
+                            close();
+                            if (canOpenInvoicePendency) {
+                                root.openInvoiceDocumentPendencyModal(target.id, target.schoolId);
+                            } else if (canOpenDocPendency) {
+                                root.openNovaPendenciaModalWithDefaults(
+                                    target.schoolId,
+                                    `${target.competence}_${target.programId}`,
+                                    context.programName || target.programId,
+                                    target.documentKey,
+                                    context.documentLabel || target.documentKey
+                                );
+                            }
+                        });
+                        effects.appendChild(altBtn);
+                    }
+                }
             }
             if (candidatePendencyIds.length > 0) {
                 const group = el(doc, 'div', 'radar-operational-correction-candidates');

@@ -163,6 +163,89 @@
             .sort((left, right) => right.timestamp - left.timestamp)[0] || null;
     }
 
+    function derivePendencyItem(pendency, linkedInvoice) {
+        const currentItem = normalizeText(pendency && pendency.item);
+        if (!linkedInvoice) return currentItem;
+        const expenseType = normalizeText(linkedInvoice.tipo || linkedInvoice.expense_type).toLocaleLowerCase('pt-BR');
+        const newNumber = normalizeText(linkedInvoice.numero || linkedInvoice.invoice_number);
+        const oldNumber = normalizeText(pendency && pendency.documentSnapshot && pendency.documentSnapshot.numero);
+        const documentKey = normalizeText(pendency && (pendency.documentoKey || pendency.document_key));
+
+        if (expenseType === 'a_identificar') {
+            if (currentItem && oldNumber && newNumber && oldNumber !== newNumber && currentItem.includes(oldNumber)) {
+                return currentItem.replace(oldNumber, newNumber);
+            }
+            return currentItem || 'Despesa a identificar';
+        }
+        if (!newNumber) return currentItem;
+
+        const docPrefix = expenseType === 'boleto_internet' ? 'Boleto Internet' : 'NF';
+        const dashDocMatch = currentItem.match(/^(.*?-\s*)(?:NF|Boleto Internet):\s*(.+)$/i);
+        if (dashDocMatch) {
+            return `${dashDocMatch[1]}${docPrefix}: ${newNumber}`;
+        }
+        if (/^(?:NF|Boleto Internet):\s*(.+)$/i.test(currentItem)) {
+            return `${docPrefix}: ${newNumber}`;
+        }
+        const nfDashMatch = currentItem.match(/^(Notas?\s+Fisca(?:is|l)\s*[—-]\s*)(.+)$/i);
+        if (nfDashMatch) {
+            return `${nfDashMatch[1]}${newNumber}`;
+        }
+        const advisoryMatch = currentItem.match(/^(.*Consulta\s+(?:à\s+)?Assessoria\s*[—-]\s*NF\s*:?\s*)(.+)$/i);
+        if (advisoryMatch) {
+            return `${advisoryMatch[1]}${newNumber}`;
+        }
+        if (oldNumber && oldNumber !== newNumber && currentItem.includes(oldNumber)) {
+            return currentItem.replace(oldNumber, newNumber);
+        }
+        if (documentKey === 'consAssessoria' && /^Consulta\s+(?:à\s+)?Assessoria$/i.test(currentItem)) {
+            return `Consulta Assessoria — NF ${newNumber}`;
+        }
+        if (/^Notas?\s+Fisca(?:is|l)$/i.test(currentItem)) {
+            return `Notas Fiscais — ${newNumber}`;
+        }
+        return currentItem;
+    }
+
+    function deriveInvoiceProjection(pendency, linkedInvoice) {
+        const snapshot = pendency && typeof pendency.documentSnapshot === 'object'
+            ? pendency.documentSnapshot
+            : null;
+        const source = linkedInvoice || snapshot;
+        if (!source) {
+            return {
+                invoiceNumber: '',
+                invoiceDescription: '',
+                invoiceAmount: null,
+                invoiceType: '',
+                invoiceIdentityLabel: ''
+            };
+        }
+        const invoiceNumber = normalizeText(source.numero || source.invoice_number);
+        const invoiceDescription = normalizeText(source.desc || source.descricao || source.description);
+        const rawAmount = source.valor ?? source.amount;
+        const invoiceAmount = rawAmount != null && rawAmount !== '' && Number.isFinite(Number(rawAmount))
+            ? Number(rawAmount)
+            : null;
+        const invoiceType = normalizeText(source.tipo || source.expense_type).toLocaleLowerCase('pt-BR');
+        let titlePart = '';
+        if (invoiceType === 'a_identificar') {
+            titlePart = invoiceNumber ? `Ref: ${invoiceNumber}` : 'Despesa a identificar';
+        } else if (invoiceType === 'boleto_internet') {
+            titlePart = invoiceNumber ? `Boleto Internet: ${invoiceNumber}` : 'Boleto Internet';
+        } else if (invoiceNumber) {
+            titlePart = `NF: ${invoiceNumber}`;
+        }
+        const invoiceIdentityLabel = [titlePart, invoiceDescription].filter(Boolean).join(' · ');
+        return {
+            invoiceNumber,
+            invoiceDescription,
+            invoiceAmount,
+            invoiceType,
+            invoiceIdentityLabel
+        };
+    }
+
     function buildSearchText(record) {
         return normalizeSearchText([
             record.schoolName,
@@ -174,6 +257,9 @@
             record.documentKey,
             record.documentName,
             record.item,
+            record.invoiceNumber,
+            record.invoiceDescription,
+            record.invoiceIdentityLabel,
             record.status,
             record.errors.join(' '),
             record.observation,
@@ -196,11 +282,15 @@
         const programs = Array.isArray(input.programas) ? input.programas : [];
         const controllers = Array.isArray(input.controladores) ? input.controladores : [];
         const contacts = Array.isArray(input.contatos) ? input.contatos : [];
+        const invoices = Array.isArray(input.notasRegistradas)
+            ? input.notasRegistradas
+            : (Array.isArray(input.registeredInvoices) ? input.registeredInvoices : []);
         const now = input.now || new Date().toISOString();
 
         const schoolsById = new Map(schools.map(school => [school.id, school]));
         const programsById = new Map(programs.map(program => [program.id, program]));
         const controllersById = new Map(controllers.map(controller => [controller.id, controller]));
+        const invoicesById = new Map(invoices.map(invoice => [String(invoice && invoice.id || ''), invoice]));
         const contactsByPendencyId = new Map();
         contacts.forEach(contact => {
             const pendencyId = contact && (contact.pendenciaId || contact.pendencyId);
@@ -219,6 +309,13 @@
             const attempts = Array.isArray(pendency.tentativas) ? pendency.tentativas : [];
             const history = Array.isArray(pendency.historico) ? pendency.historico : [];
             const linkedContacts = contactsByPendencyId.get(pendency.id) || [];
+            const registeredInvoiceId = normalizeText(
+                pendency.registeredInvoiceId || pendency.registered_invoice_id
+            );
+            const linkedInvoice = registeredInvoiceId
+                ? (invoicesById.get(registeredInvoiceId) || null)
+                : null;
+            const invoiceProjection = deriveInvoiceProjection(pendency, linkedInvoice);
             const latestAwaitingAttempt = getLatestAwaitingAttempt(pendency);
             const waitingSince = status === 'Aguardando reanálise'
                 ? (latestAwaitingAttempt && (
@@ -243,7 +340,13 @@
                 programName: getProgramName(programsById, pendency),
                 documentKey: normalizeText(pendency.documentoKey),
                 documentName: getDocumentName(pendency),
-                item: normalizeText(pendency.item),
+                item: derivePendencyItem(pendency, linkedInvoice),
+                registeredInvoiceId: registeredInvoiceId || null,
+                invoiceNumber: invoiceProjection.invoiceNumber,
+                invoiceDescription: invoiceProjection.invoiceDescription,
+                invoiceAmount: invoiceProjection.invoiceAmount,
+                invoiceType: invoiceProjection.invoiceType,
+                invoiceIdentityLabel: invoiceProjection.invoiceIdentityLabel,
                 errors: getErrors(pendency),
                 observation: normalizeText(pendency.observacao),
                 nextActor: next.actor,
