@@ -438,7 +438,9 @@
                 actions.className = 'invoice-document-inline-actions';
                 titleLine.appendChild(actions);
             }
-            actions.appendChild(createInvoiceEditButton(root, invoice));
+            const editBtn = createInvoiceEditButton(root, invoice);
+            if (typeof actions.prepend === 'function') actions.prepend(editBtn);
+            else actions.appendChild(editBtn);
         });
         return true;
     }
