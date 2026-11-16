@@ -12,6 +12,8 @@
 
 **Estado efetivo:** T0/T1 preparados, T1 sem homologação visual final; T2/T3 com UI e RPCs candidatas já conectadas **sob flag local OFF por padrão**, mas Auth/RLS, pgTAP real de **74 asserções**, segunda sessão, persistência após F5, concorrência e aceite humano não comprovados. T3 ainda requer validar a origem provisória Qualidade e corte dos escritores antigos. T4/T5 demandam implementação de novos comandos persistentes e UX; T6 não iniciado como homologação global.
 
+**Evidência documental atual:** [auditoria de branches, código, docs e provas de 16/11](../audits/2026-11-16-reconciliacao-branches-codigo-documentacao-t0-t6.md). É relatório de conferência, **não** segundo handoff de execução.
+
 **Histórico comparativo, sem segunda autoridade:** Argon original 14/11, Manus, Gemini e Antigravity. Os seis refinamentos de Antigravity `1cb118fd` já entraram na branch de integração por aproveitamento seletivo: **não reexecutar**. As frentes PR #515 e #522 (layout/legibilidade da fila de Pendências) e PR #523 (recuperação de autenticação, incidente separado) permanecem isoladas; não trazer seus diffs automaticamente. Os PRs Dependabot não alteram o contrato vigente até integração comprovada.
 
 **Precedência de evidências:** comportamento real do código/SQL do SHA e ambiente consultados > decisões e ADRs > testes reproduzidos > documentação canônica > relatórios históricos. Código candidato não prova funcionamento em Produção, CI com RPC simulada não prova RLS/persistência e aceite do proprietário não é substituído por parecer automatizado.
