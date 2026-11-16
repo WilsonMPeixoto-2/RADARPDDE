@@ -157,9 +157,12 @@ test('timeout no bootstrap preserva sessão e exibe tentativa de recuperação s
     };
     const root = {
         supabase: { createClient: () => ({}) },
-        RadarSessionService: { SessionService: class {
-            constructor() { return sessionService; }
-        } },
+        RadarSessionService: {
+            SessionService: class { constructor() { return sessionService; } },
+            isTemporaryAccessFailure(error) {
+                return error?.code === 'AUTHORIZATION_UNAVAILABLE';
+            }
+        },
         RadarAuthGate: {
             showWorkspaceError(error, options) { errorShown = { error, options }; }
         },
