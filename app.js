@@ -11601,8 +11601,10 @@ function openInvoiceOperationalCorrection(invoiceId, escolaId, documentKey = 'no
 }
 
 function corrigirAnaliseDaPendencia(pendencyId, trigger = document.activeElement) {
-    const pendency = pendencias.find(item => String(item.id) === String(pendencyId));
-    const invoice = getPendencyLinkedInvoice(pendency);
+    const pendency = pendencias.find(item => String(item.id) === String(pendencyId))
+        || window.RadarTask9PendencyPage?.getPendencyRecordById?.(pendencyId);
+    const invoice = getPendencyLinkedInvoice(pendency)
+        || notasRegistradas.find(note => String(note.id) === String(pendency?.registeredInvoiceId || ''));
     const documentKey = String(pendency?.documentoKey || pendency?.document_key || '');
     if (!invoice || !['notaFiscal', 'consAssessoria'].includes(documentKey)) return false;
     const target = { invoiceId: invoice.id, escolaId: invoice.escolaId, documentKey };
@@ -11616,11 +11618,13 @@ function corrigirAnaliseDaPendencia(pendencyId, trigger = document.activeElement
 }
 
 function excluirPendenciaOperacional(pendencyId, trigger = document.activeElement) {
-    const item = pendencias.find(pendency => String(pendency.id) === String(pendencyId));
+    const item = pendencias.find(pendency => String(pendency.id) === String(pendencyId))
+        || window.RadarTask9PendencyPage?.getPendencyRecordById?.(pendencyId);
     const dialog = window.RadarOperationalCorrectionDialog;
     if (!item || !dialog?.canUse?.(window)) return false;
     const schoolId = String(item.escolaId || item.schoolId || '');
-    const competence = String(item.competenciaOrigem || item.competencia || item.competence_origin || '');
+    const competence = String(item.competenciaOrigem || item.competencia || item.competence_origin
+        || item.competence || '');
     if (!schoolId || !competence) return false;
     // A gaveta lateral também pode ser modal: fechá-la antes de abrir a prévia
     // evita bloquear a atualização do estado depois da transação.
