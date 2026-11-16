@@ -11635,6 +11635,7 @@ function excluirPendenciaOperacional(pendencyId, trigger = document.activeElemen
             programId: String(item.programaId || item.programId || item.program_id || ''),
             documentKey: String(item.documentoKey || item.documentKey || item.document_key || ''),
             pendencyId: item.id,
+            linkedInvoiceId: String(item.registeredInvoiceId || item.registered_invoice_id || ''),
             documentLabel: `Pendência — ${String(item.item || item.motivo || 'registro selecionado')}`
         },
         trigger: trigger?.isConnected ? trigger : null
