@@ -231,7 +231,7 @@
                 if (result.view.canApply) {
                     save.disabled = false;
                     if (action === 'clear_analysis') {
-                        status('Confira os efeitos e clique em Confirmar correção.', false);
+                        status('Análise pronta para ser limpa. Confira o que vai mudar acima e clique em Confirmar correção.', false);
                     } else if (deleting) {
                         status('Confira quais registros serão excluídos e clique em Confirmar exclusão.', false);
                     }
