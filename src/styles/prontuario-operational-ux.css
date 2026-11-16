@@ -481,3 +481,31 @@ body.dark-theme #prontuario-verif-rows .invoice-document-row {
 body.dark-theme #prontuario-verif-rows .invoice-document-row.is-striped {
     background: #191328;
 }
+
+/* Confirmação persistente após commit confirmado quando a tela não sincroniza.
+   A mensagem não repete a gravação: apenas orienta a recarga segura. */
+.radar-operational-refresh-notice {
+    position: fixed;
+    z-index: 22000;
+    right: clamp(12px, 3vw, 28px);
+    bottom: clamp(12px, 3vw, 28px);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    width: min(460px, calc(100vw - 24px));
+    padding: 16px;
+    border: 1px solid #d6c4ec;
+    border-radius: 14px;
+    background: #fff;
+    color: #252133;
+    box-shadow: 0 12px 35px rgba(37, 33, 51, 0.18);
+    font-size: 0.92rem;
+    line-height: 1.45;
+}
+.radar-operational-refresh-notice span { flex: 1 1 180px; }
+body.dark-theme .radar-operational-refresh-notice {
+    background: #20162e;
+    color: #f9f7ff;
+    border-color: #71588e;
+}
