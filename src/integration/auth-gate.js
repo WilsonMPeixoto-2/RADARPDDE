@@ -279,9 +279,15 @@
                 error
             );
             this.setWorkspaceErrorMode(true);
-            this.setDescription(WORKSPACE_ERROR_DESCRIPTION);
+            const temporaryAuthorizationFailure =
+                stage === 'authorization-temporarily-unavailable';
+            this.setDescription(temporaryAuthorizationFailure
+                ? 'Sua sessão foi preservada, mas o RADAR não conseguiu confirmar as permissões institucionais. Nenhum dado foi liberado.'
+                : WORKSPACE_ERROR_DESCRIPTION);
             this.setFormVisible(true);
-            this.setStatus(WORKSPACE_ERROR_STATUS, 'error');
+            this.setStatus(temporaryAuthorizationFailure
+                ? 'O servidor está temporariamente indisponível. Recarregue o ambiente para tentar recuperar o acesso.'
+                : WORKSPACE_ERROR_STATUS, 'error');
         }
 
         show(message) {
