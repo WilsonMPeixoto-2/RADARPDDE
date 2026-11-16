@@ -115,7 +115,7 @@
     "knip": "6.44.1",
     "lighthouse": "13.5.0",
     "msw": "3.0.4",
-    "prettier": "3.9.10",
+    "prettier": "3.10.1",
     "puppeteer-core": "25.16.0",
     "stylelint": "18.0.0",
     "stylelint-config-recommended": "19.0.0",
