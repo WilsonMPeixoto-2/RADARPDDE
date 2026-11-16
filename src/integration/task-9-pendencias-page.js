@@ -891,6 +891,12 @@
                     </div>
                     <footer class="pendency-drawer-footer">
                         ${renderActionButtons(record, { drawer: true })}
+                        ${root.RadarOperationalCorrectionDialog?.canUse?.(root)
+                            && hasCapability(root.RadarAccessPolicy.CAPABILITIES.OPEN_PENDENCY)
+                            ? `<button type="button" class="btn btn-secondary btn-sm"
+                                onclick="excluirPendenciaOperacional('${escapeHtml(record.id)}', this)">
+                                Excluir pendência
+                            </button>` : ''}
                     </footer>
                 </aside>
             </div>
