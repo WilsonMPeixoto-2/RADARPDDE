@@ -11,6 +11,7 @@
 3. [Checkpoint único de execução](handoff/2026-11-15-prontuario-integracao-verificada.md): **ler primeiro a seção "Estado vigente — reconciliação de 16/11"**; os marcos abaixo dela registram fotografias datadas anteriores.
 4. [Matriz de transição](reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md): autoridades antigas/novas, superfícies afetadas e gates de validação.
 5. [Validade dos documentos](reference/STATUS_DOCUMENTOS.md), [modelo canônico](reference/SYSTEM_CANONICAL_MODEL.md) e demais documentos exigidos pelo `AGENTS.md`.
+6. [Auditoria de branches, código e documentos de 16/11](audits/2026-11-16-reconciliacao-branches-codigo-documentacao-t0-t6.md): evidência da atualização e lista do que não foi validado.
 
 **Não reutilizar trechos antigos sem conferir sua data, branch e SHA.** Os relatórios de Argon, Antigravity, Gemini e Manus são evidências comparativas; nenhum deles substitui o checkpoint único. Não fazer merge/cherry-pick integral de branch auxiliar.
 
