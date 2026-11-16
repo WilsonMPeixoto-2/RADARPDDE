@@ -10,6 +10,23 @@
 **Novo princípio de decisão do proprietário (15/11):** **desbloqueio orientado ao objetivo**, documentado no [contrato](../reference/PRONTUARIO_CORRECAO_CONTRATO.md) e na [matriz, §7.1](../reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md). Preferir correção direta com recomposição segura; caso necessário, permitir a correção e oferecer ação posterior; se depender de passo anterior, orientar e levar à ação sem perder contexto; bloquear só por impedimento real. Exemplo T4: após editar bonificação consolidada, indicar **“Alterações pendentes de consolidação”** e oferecer **“Consolidar alterações”**, preservando versões e coerência de nova exportação. É **decisão de destino ainda não implementada**, não prova de funcionalidade disponível. Validar navegando na cópia local com Docker; não ampliar o escopo para publicação.
 **Regras aprovadas:** [contrato](../reference/PRONTUARIO_CORRECAO_CONTRATO.md) e [estudo de flexibilização](../superpowers/specs/2026-11-14-flexibilizacao-correcao-exclusao-lancamentos.md).
 
+## Reconciliação Antigravity pós-e26058bc — 16/11/2026
+
+**Origem examinada:** `audit/antigravity-argon-prontuario-20261115@1cb118fd`, branch à frente de `fix/prontuario-integrado-validado-20261115@e26058bc` por 5 commits, sem divergência prévia. O GitHub confirmou por comparação os patches exatos. As **cinco alterações funcionais/arquivo de teste** foram incorporadas seletivamente à branch de integração, **sem merge integral** e sem importar instruções históricas paralelas. O relatório do Antigravity permanece consultável na sua branch de auditoria.
+
+**Correções aproveitadas, todas relativas ao comportamento já aprovado:**
+1. Preservar na tela as caixas de Pendências candidatas após selecionar a última; a seleção continua visível e revisável.
+2. Após uma operação iniciada na fila de Pendências, atualizar a própria fila, não substituir sua tela pelo Prontuário; novo teste Playwright de regressão.
+3. Manter a **primeira análise** de NF/Assessoria direta e simples; reservar o diálogo de correção para retificação de um resultado já registrado.
+4. Mostrar na confirmação de exclusão de Pendência a identificação **atual** da NF, sem alterar seu histórico original; ordenar **Editar lançamento** antes de **Excluir**.
+5. Capturar versões das NFs irmãs durante o cálculo agregado de análise fiscal; aplicar `FOR UPDATE` aos envios da Pendência envolvidos na transação. Um **novo teste pgTAP** garante a presença das versões das NFs irmãs na prévia, elevando o plano preparado a **74 asserções**.
+
+**Evidência e limite da prova:** o Antigravity relata `npm run test:readiness` aprovado (**1.416 unitários, 8 de integração**) e **18/18 Playwright do diálogo + 2/2 de retificação**. Os logs versionados na auditoria registram uma execução de **19/19** de um conjunto anterior, além do `test:readiness`; portanto distinguir relatório de execução mais recente de prova reproduzida. Na presente integração foi executado **teste isolado do diálogo com DOM/RPC simulados**, comprovando permanência de duas opções selecionadas, gravação única e atualização da fila correta. **Ainda não executados na integração:** suíte completa, 74 pgTAP com PostgreSQL real, concorrência real, Auth/RLS local, segunda sessão, persistência após F5 e aceite de UI. Não confundir a inspeção visual que o agente relata ter iniciado em `127.0.0.1:4179` com homologação concluída.
+
+**Próximo gate:** teste local Docker/Supabase completo e inspeção visual do proprietário. Se falhar, corrigir sobre esta branch e repetir, nunca atualizar Production como método de teste. A flag piloto continua condicionada a frontend e Supabase em localhost; nenhuma alteração em `main`, Vercel ou Supabase institucional está autorizada.
+
+---
+
 ## Incremento T2/T3 — código candidato conectado na branch isolada (15/11, após a decisão de flexibilização)
 
 **Situação:** implementação candidata de T2/T3 avançada, **NÃO HOMOLOGADA**. Não afirmar que os fluxos passaram em Supabase local ou Playwright autenticado. A chave `RADAR_OPERATIONAL_CORRECTION_PREVIEW` segue desligada por padrão; `main`, Production, Supabase institucional e Preview permanecem intocados. Verificar HEAD real no GitHub antes de continuar.
