@@ -119,10 +119,14 @@
         let uncertain = false, submittedNote = null;
         let candidatePendencyIds = [];
         const selectedPendencyIds = new Set();
-        function close(force = false) {
+        function close(force = false, restoreFocus = true) {
             if ((pending || uncertain) && !force) return;
             layer.remove();
-            if (previousFocus?.isConnected) previousFocus.focus?.({ preventScroll: true });
+            // Ao confirmar, não devolver foco a um <input>/<select> antes do
+            // refresh: o controlador interpreta isso como edição em curso.
+            if (restoreFocus && previousFocus?.isConnected) {
+                previousFocus.focus?.({ preventScroll: true });
+            }
         }
         function status(message, error = false) {
             feedback.textContent = message;
@@ -267,10 +271,10 @@
             }
         }
         async function synchronizeConfirmed() {
-            // A recarga canônica é suspensa quando existe qualquer modal ativo,
-            // inclusive este. Fechar ANTES para não interpretar o próprio
-            // diálogo como outra edição em curso.
-            close(true);
+            // A recarga canônica é suspensa quando existe qualquer modal ativo
+            // ou um formulário focado. Fechar sem restaurar o foco ANTES do
+            // refresh evita que o próprio diálogo/formulário seja o bloqueio.
+            close(true, false);
             try {
                 const refresher = root.RadarOperationalContextRefreshController;
                 if (typeof refresher?.refreshSchool !== 'function') throw new Error('Recarga indisponível.');
