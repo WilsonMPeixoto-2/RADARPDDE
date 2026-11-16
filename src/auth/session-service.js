@@ -31,6 +31,23 @@
         throw new SessionError(code, message, { operation, cause });
     }
 
+    // Erro transitório nunca autoriza o uso de dados, mas também não prova
+    // revogação do token do Supabase Auth. Preservamos as credenciais remotas.
+    function isTemporaryAccessFailure(error) {
+        return error?.code === 'AUTHORIZATION_UNAVAILABLE'
+            || error?.code === 'SESSION_UNAVAILABLE';
+    }
+
+    function unavailableState(error) {
+        return {
+            status: 'authorization_unavailable',
+            session: null,
+            user: null,
+            authorization: null,
+            errorCode: error?.code || 'AUTHORIZATION_UNAVAILABLE'
+        };
+    }
+
     function normalizeProfileRelation(value) {
         if (Array.isArray(value)) return value[0] || null;
         return value && typeof value === 'object' ? value : null;
@@ -115,7 +132,13 @@
                         return;
                     }
                     queueMicrotask(() => {
-                        this.establish(session).catch(() => {
+                        this.establish(session).catch(error => {
+                            if (isTemporaryAccessFailure(error)) {
+                                // Nunca publicar signed_out em timeout HTTP 500/502.
+                                // O frontend bloqueia os dados e oferece Recarregar.
+                                this.publish(unavailableState(error));
+                                return;
+                            }
                             this.publish(this.createSignedOutState());
                         });
                     });
@@ -128,7 +151,11 @@
         async restore() {
             const { data, error } = await this.client.auth.getSession();
             if (error) {
-                fail('SESSION_EXPIRED', 'A sessão não pôde ser restaurada.', 'restore', error);
+                const status = Number(error.status || error.statusCode || 0);
+                if ([400, 401, 403].includes(status)) {
+                    fail('SESSION_EXPIRED', 'A sessão não pôde ser restaurada.', 'restore', error);
+                }
+                fail('SESSION_UNAVAILABLE', 'A autenticação está temporariamente indisponível.', 'restore', error);
             }
             const session = data?.session || null;
             if (!session?.user) return this.publish(this.createSignedOutState());
@@ -150,6 +177,12 @@
             try {
                 return await this.establish(data.session);
             } catch (authorizationError) {
+                if (isTemporaryAccessFailure(authorizationError)) {
+                    // Falha de leitura do perfil não é revogação da sessão:
+                    // não liberar dados e não destruir o token válido.
+                    this.publish(unavailableState(authorizationError));
+                    throw authorizationError;
+                }
                 await this.client.auth.signOut().catch(() => null);
                 this.publish(this.createSignedOutState());
                 throw authorizationError;
@@ -274,6 +307,7 @@
     }
 
     return Object.freeze({
+        isTemporaryAccessFailure,
         SessionError,
         SessionService,
         normalizeSession,
