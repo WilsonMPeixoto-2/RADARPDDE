@@ -846,6 +846,12 @@ begin
                     'field', 'analysis.notaFiscal', 'before', v_aggregate_before, 'after', v_aggregate));
             end if;
             v_versions := v_versions || jsonb_build_object('verifications', jsonb_build_object(v_verification.id, v_verification.row_version));
+            select coalesce(jsonb_object_agg(i.id, i.row_version), '{}'::jsonb)
+              into v_map from public.registered_invoices i
+             where i.verification_id = v_verification.id
+               and i.id <> v_invoice.id;
+            v_versions := jsonb_set(v_versions, '{registered_invoices}',
+                coalesce(v_versions -> 'registered_invoices', '{}'::jsonb) || v_map);
         end if;
     end if;
 
@@ -956,6 +962,9 @@ begin
      order by id for update;
     perform 1 from public.pendencies
      where id in (select jsonb_object_keys(coalesce(p_plan -> 'versions' -> 'pendencies', '{}'::jsonb)))
+     order by id for update;
+    perform 1 from public.pendency_attempts
+     where id in (select jsonb_object_keys(coalesce(p_plan -> 'versions' -> 'pendency_attempts', '{}'::jsonb)))
      order by id for update;
     perform 1 from public.pendency_contacts
      where id in (select jsonb_object_keys(coalesce(p_plan -> 'versions' -> 'pendency_contacts', '{}'::jsonb)))
