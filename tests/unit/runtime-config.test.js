@@ -155,3 +155,32 @@ test('Production válida com marcador permanece conectada ao Supabase', () => {
     assert.equal(config.activeRepository, 'supabase');
     assert.equal(config.supabase.connectionEnabled, true);
 });
+
+
+test('piloto operacional depende de banco loopback e ambiente de teste', () => {
+    const local = createRuntimeConfig({
+        dataMode: DATA_MODES.SUPABASE_PREVIEW,
+        environment: 'test',
+        features: { supabaseRepositoryEnabled: true, operationalCorrectionPilot: true },
+        supabase: { url: 'http://127.0.0.1:54321', publishableKey: 'sb_publishable_test' }
+    });
+    assert.equal(local.features.operationalCorrectionPilot, true);
+
+    const remote = createRuntimeConfig({
+        dataMode: DATA_MODES.SUPABASE_PREVIEW,
+        environment: 'preview',
+        features: { supabaseRepositoryEnabled: true, operationalCorrectionPilot: true },
+        supabase: { url: 'https://example.supabase.co', publishableKey: 'sb_publishable_test' }
+    });
+    assert.notEqual(remote.features.operationalCorrectionPilot, true);
+
+    const prod = createRuntimeConfig({
+        deploymentTarget: 'production',
+        dataMode: DATA_MODES.SUPABASE_PRODUCTION,
+        environment: 'production',
+        productionActivationApproved: true,
+        features: { supabaseRepositoryEnabled: true, operationalCorrectionPilot: true },
+        supabase: { url: 'https://example.supabase.co', publishableKey: 'sb_publishable_test' }
+    });
+    assert.notEqual(prod.features.operationalCorrectionPilot, true);
+});
