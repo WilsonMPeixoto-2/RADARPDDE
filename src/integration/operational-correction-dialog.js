@@ -38,7 +38,7 @@
         if (!['analysis', 'delete_invoice', 'delete_pendency'].includes(mode)) return false;
         if (!canUse(root) || !context.schoolId || !context.competence
             || (!deleting && (!context.programId || !context.documentKey))
-            || (deleting && !text(context.invoiceId || context.pendencyId))) return false;
+            || (deleting && !text(mode === 'delete_invoice' ? context.invoiceId : context.pendencyId))) return false;
         const doc = root.document;
         if (doc.getElementById('radar-operational-correction-layer')) return true;
         const client = root.RadarOperationalCorrectionClient.createOperationalCorrectionClient({
