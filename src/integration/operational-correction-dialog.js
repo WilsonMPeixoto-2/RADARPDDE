@@ -50,8 +50,10 @@
             programId: context.programId,
             documentKey: context.documentKey
         };
-        if (context.invoiceId || context.pendencyId) {
-            target.id = text(context.invoiceId || context.pendencyId);
+        if (deleting) {
+            target.id = text(mode === 'delete_invoice' ? context.invoiceId : context.pendencyId);
+        } else if (context.invoiceId) {
+            target.id = text(context.invoiceId);
         }
         const layer = el(doc, 'div', 'radar-operational-correction-layer evaluation-retification-modal-layer');
         layer.id = 'radar-operational-correction-layer';
@@ -146,12 +148,17 @@
                 }
                 if (item?.code === 'OPEN_PENDENCY_FLOW_REQUIRED') {
                     const canOpenInvoicePendency = Boolean(
-                        target.id && typeof root.openInvoiceDocumentPendencyModal === 'function'
+                        target.id && target.documentKey === 'notaFiscal'
+                        && typeof root.openInvoiceDocumentPendencyModal === 'function'
+                    );
+                    const canOpenAdvisoryPendency = Boolean(
+                        target.id && target.documentKey === 'consAssessoria'
+                        && typeof root.changeInvoiceAdvisoryAnalysis === 'function'
                     );
                     const canOpenDocPendency = Boolean(
                         !target.id && typeof root.openNovaPendenciaModalWithDefaults === 'function'
                     );
-                    if (canOpenInvoicePendency || canOpenDocPendency) {
+                    if (canOpenInvoicePendency || canOpenAdvisoryPendency || canOpenDocPendency) {
                         const altBtn = el(
                             doc,
                             'button',
@@ -164,6 +171,8 @@
                             close();
                             if (canOpenInvoicePendency) {
                                 root.openInvoiceDocumentPendencyModal(target.id, target.schoolId);
+                            } else if (canOpenAdvisoryPendency) {
+                                void root.changeInvoiceAdvisoryAnalysis(target.id, target.schoolId, 'Incorreto');
                             } else if (canOpenDocPendency) {
                                 root.openNovaPendenciaModalWithDefaults(
                                     target.schoolId,
@@ -176,6 +185,19 @@
                         });
                         effects.appendChild(altBtn);
                     }
+                }
+                if (item?.code === 'MANDATORY_PENDENCY' && mode === 'delete_pendency'
+                    && text(context.linkedInvoiceId)
+                    && typeof root.removerNotaRegistrada === 'function') {
+                    const guidance = el(doc, 'button', 'btn btn-secondary btn-sm',
+                        'Excluir despesa e Pendência juntas');
+                    guidance.type = 'button';
+                    guidance.dataset.operationalCorrectionAlt = 'delete-linked-invoice';
+                    guidance.addEventListener('click', () => {
+                        close();
+                        root.removerNotaRegistrada(text(context.linkedInvoiceId), target.schoolId);
+                    });
+                    effects.appendChild(guidance);
                 }
             }
             if (candidatePendencyIds.length > 0) {
