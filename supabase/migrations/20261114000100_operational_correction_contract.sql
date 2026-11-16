@@ -792,7 +792,9 @@ begin
                 end if;
                 -- Não permitir resultado correto/não analisado com uma Pendência ativa
                 -- remanescente que sustenta o mesmo Incorreto.
-                if cardinality(v_selected) < cardinality(v_candidates) then
+                -- Exigir cobertura por conjunto, não apenas contagem:
+                -- ["P1","P1"] não pode simular seleção de P1 e P2.
+                if not (v_candidates <@ v_selected) then
                     v_blockers := v_blockers || jsonb_build_array(jsonb_build_object(
                         'code', 'INCOMPLETE_PENDENCY_SELECTION',
                         'message', 'Para corrigir esta análise, selecione todas as Pendências ativas relacionadas ou trate cada Pendência individualmente.',
