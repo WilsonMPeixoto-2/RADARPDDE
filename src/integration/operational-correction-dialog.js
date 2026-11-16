@@ -200,6 +200,18 @@
                         effects.appendChild(altBtn);
                     }
                 }
+                if (item?.code === 'MANDATORY_ANALYSIS' && target.id
+                    && typeof root.removerNotaRegistrada === 'function') {
+                    const action = el(doc, 'button', 'btn btn-secondary btn-sm',
+                        'Excluir despesa lançada por engano');
+                    action.type = 'button';
+                    action.dataset.operationalCorrectionAlt = 'delete-invoice-instead';
+                    action.addEventListener('click', () => {
+                        close();
+                        root.removerNotaRegistrada(target.id, target.schoolId);
+                    });
+                    effects.appendChild(action);
+                }
                 if (item?.code === 'MANDATORY_PENDENCY' && mode === 'delete_pendency'
                     && text(context.linkedInvoiceId)
                     && typeof root.removerNotaRegistrada === 'function') {
