@@ -444,3 +444,78 @@ test('refresh não ocorre enquanto o próprio diálogo de correção está abert
     await expect(dialog).toBeHidden();
     expect(await page.evaluate(() => window.__refreshWasBlocked)).toBe(false);
 });
+
+
+test('Pendência obrigatória orienta excluir a despesa e a Pendência juntas', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(async () => {
+        await window.RadarProductExtensionsReady;
+        window.__guidedDeletion = [];
+        const repository = {
+            capabilities: () => ({ remote: true }),
+            async executeRpc(name) {
+                if (name !== 'preview_operational_change') throw new Error('Nenhuma exclusão deve ocorrer.');
+                return {
+                    action: 'delete_pendency', planDigest: 'e'.repeat(64),
+                    effects: { delete: {}, update: [] },
+                    blockers: [{ code: 'MANDATORY_PENDENCY',
+                        message: 'A Pendência é obrigatória para esta despesa. Exclua o conjunto.' }],
+                    warnings: []
+                };
+            }
+        };
+        window.RadarOperationalCorrectionDialog.open({
+            document,
+            RADAR_OPERATIONAL_CORRECTION_PREVIEW: true,
+            RadarApplicationServices: { data: { repository } },
+            RadarOperationalCorrectionClient: window.RadarOperationalCorrectionClient,
+            removerNotaRegistrada(...args) { window.__guidedDeletion.push(args); }
+        }, {
+            mode: 'delete_pendency',
+            context: { schoolId: 'ESC-1', competence: '2026-05', programId: 'BASIC',
+                pendencyId: 'P-1', linkedInvoiceId: 'NF-1', documentKey: 'notaFiscal',
+                documentLabel: 'Despesa a identificar' }
+        });
+    });
+    const dialog = page.getByRole('dialog', { name: 'Excluir pendência' });
+    await expect(dialog.getByRole('button', { name: 'Confirmar exclusão' })).toBeDisabled();
+    await dialog.getByRole('button', { name: 'Excluir despesa e Pendência juntas' }).click();
+    await expect(dialog).toBeHidden();
+    expect(await page.evaluate(() => window.__guidedDeletion)).toEqual([['NF-1', 'ESC-1']]);
+});
+
+test('orientação para Incorreto na Assessoria abre seu fluxo, não a Pendência fiscal', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(async () => {
+        await window.RadarProductExtensionsReady;
+        window.__advisoryOpens = [];
+        const repository = {
+            capabilities: () => ({ remote: true }),
+            async executeRpc(name) {
+                if (name !== 'preview_operational_change') throw new Error('Não deve gravar.');
+                return { action: 'correct_analysis', planDigest: 'b'.repeat(64),
+                    effects: { update: [], delete: {} },
+                    blockers: [{ code: 'OPEN_PENDENCY_FLOW_REQUIRED',
+                        message: 'Abra a Pendência com os apontamentos.' }], warnings: [] };
+            }
+        };
+        window.RadarOperationalCorrectionDialog.open({
+            document,
+            RADAR_OPERATIONAL_CORRECTION_PREVIEW: true,
+            RadarApplicationServices: { data: { repository } },
+            RadarOperationalCorrectionClient: window.RadarOperationalCorrectionClient,
+            openInvoiceDocumentPendencyModal() { throw new Error('Abertura fiscal indevida'); },
+            changeInvoiceAdvisoryAnalysis(...args) { window.__advisoryOpens.push(args); }
+        }, {
+            context: { schoolId: 'ESC-1', competence: '2026-05',
+                programId: 'BASIC', invoiceId: 'NF-SVC', documentKey: 'consAssessoria',
+                documentLabel: 'Consulta Assessoria' },
+            currentValue: 'Correto'
+        });
+    });
+    const dialog = page.getByRole('dialog', { name: 'Corrigir análise técnica' });
+    await dialog.getByRole('button', { name: 'Ir para abertura de Pendência' }).click();
+    await expect(dialog).toBeHidden();
+    expect(await page.evaluate(() => window.__advisoryOpens))
+        .toEqual([['NF-SVC', 'ESC-1', 'Incorreto']]);
+});
