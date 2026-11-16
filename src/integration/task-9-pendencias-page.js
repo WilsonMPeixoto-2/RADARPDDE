@@ -1309,6 +1309,16 @@
         root.RadarTask9PendencyPage = Object.freeze({
             VERSION: '1.2.0',
             requestedHistoryStatuses,
+            getPendencyRecordById: id => {
+                const record = getPageModel().records.find(item => String(item.id) === String(id));
+                if (!record) return null;
+                return {
+                    id: record.id, schoolId: record.schoolId,
+                    competence: record.competence, programId: record.programId,
+                    documentKey: record.documentKey, registeredInvoiceId: record.registeredInvoiceId,
+                    item: record.item, status: record.status
+                };
+            },
             getFilterSummary: () => getFilterSummary(getPageModel()),
             setSchoolFilter: setPendencySchoolFilter,
             getState: () => ({
