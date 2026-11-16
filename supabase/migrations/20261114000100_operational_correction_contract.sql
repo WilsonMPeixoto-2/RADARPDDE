@@ -847,6 +847,35 @@ begin
         end if;
     end if;
 
+    -- Análise individual da Assessoria: o agregado mensal deriva de TODAS as
+    -- notas de serviço sobreviventes, inclusive quando se limpa a análise.
+    if v_action in ('correct_analysis', 'clear_analysis')
+       and v_document = 'consAssessoria' and v_invoice.verification_id is not null then
+        select * into v_verification from public.verifications
+         where id = v_invoice.verification_id;
+        if found then
+            v_service_projection := radar_private.operational_correction_service_projection(
+                v_verification.id, null, v_invoice.id, v_requested);
+            if v_verification.analysis ->> 'consAssessoria'
+                 is distinct from v_service_projection ->> 'analysis' then
+                v_updates := v_updates || jsonb_build_array(jsonb_build_object(
+                    'entity', 'verifications', 'id', v_verification.id,
+                    'field', 'analysis.consAssessoria',
+                    'before', v_verification.analysis -> 'consAssessoria',
+                    'after', v_service_projection -> 'analysis'));
+            end if;
+            v_versions := v_versions || jsonb_build_object('verifications',
+                jsonb_build_object(v_verification.id, v_verification.row_version));
+            select coalesce(jsonb_object_agg(i.id, i.row_version), '{}'::jsonb)
+              into v_map from public.registered_invoices i
+             where i.verification_id = v_verification.id
+               and lower(i.expense_type) = 'servico'
+               and i.id <> v_invoice.id;
+            v_versions := jsonb_set(v_versions, '{registered_invoices}',
+                coalesce(v_versions -> 'registered_invoices', '{}'::jsonb) || v_map);
+        end if;
+    end if;
+
     -- Dependentes comuns das Pendências planejadas.
     if cardinality(v_pendency_ids) > 0 then
         select coalesce(array_agg(a.id order by a.id), array[]::text[]), count(*)
