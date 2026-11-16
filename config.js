@@ -11,6 +11,10 @@
 
     root.RadarRuntimeConfig = Object.freeze(api);
     root.RADAR_PDDE_CONFIG = api.createRuntimeConfig(root.RADAR_PDDE_RUNTIME_INPUT || {});
+    // Piloto habilitado só quando o frontend e a API estão no ambiente local.
+    root.RADAR_OPERATIONAL_CORRECTION_PREVIEW =
+        root.RADAR_PDDE_CONFIG.features?.operationalCorrectionPilot === true
+        && ['localhost', '127.0.0.1'].includes(root.location?.hostname);
 
     if (typeof document === 'undefined') return;
 
@@ -243,6 +247,19 @@
                 && connectionEnabled
             );
 
+        let localSupabaseEndpoint = false;
+        try {
+            localSupabaseEndpoint = ['localhost', '127.0.0.1'].includes(new URL(rawUrl).hostname);
+        } catch (_error) {
+            localSupabaseEndpoint = false;
+        }
+        const operationalCorrectionPilot = input.features?.operationalCorrectionPilot === true
+            && dataMode === DATA_MODES.SUPABASE_PREVIEW
+            && ['local', 'development', 'test'].includes(environment)
+            && connectionEnabled && !productionBlocked
+            && localSupabaseEndpoint
+            && deploymentTarget !== 'production';
+
         if (!isLocal && !validCredentials) {
             diagnostics.push('Conexão Supabase bloqueada: URL ou chave publicável inválida.');
         }
@@ -266,7 +283,8 @@
                 && input.productionActivationApproved === true
                 && !productionBlocked,
             features: {
-                supabaseRepositoryEnabled: isLocal ? false : requestedRepository
+                supabaseRepositoryEnabled: isLocal ? false : requestedRepository,
+                ...(operationalCorrectionPilot ? { operationalCorrectionPilot: true } : {})
             },
             supabase: {
                 url: connectionEnabled && !productionBlocked ? rawUrl : '',

@@ -5,7 +5,7 @@
 - **Branch exclusiva desta auditoria e propostas:** `audit/antigravity-argon-prontuario-20261115`
 - **SHAs auditados:**
   - `main`: `4011a2b82b7cf557f10bdba64ab6b793409282cc` (intocado)
-  - `fix/prontuario-integrado-validado-20261115`: auditado inicialmente em `9eeedb501a08e023ce8ea3767d641ca082b8ee81` e reconciliado com o avanço paralelo até `b5cd26918c102cadda651f5fe62d3f583b908836` (`46bd6dfc`, `e8a596a2`, `b5cd2691`)
+  - `fix/prontuario-integrado-validado-20261115`: auditado inicialmente em `9eeedb50`, reconciliado em `b5cd2691` e **reauditado integralmente no avanço de T2/T3 até `e26058bc`** (57 commits entre `b5cd2691` e `e26058bc`)
   - `audit/manus-auditoria-frente-integrada-20261114`: `a87e9e0e6e7fa9dbff3f4daefdd534d2834f1116`
   - `audit/manus-t1-astra-reconstruida-20261114`: `300ac6d19f27dc25c86aaebbf8ac3581d62a4fa2`
   - `audit/manus-sugestoes-correcao-20261114`: `f0fa73355f2e6fc48870b2dcfa846d3d6402da10`
@@ -94,3 +94,46 @@
 |---|---|---|---|
 | `D-01` | `docs/CURRENT_STAGE.md` (linha 9 em `9eeedb50`) | Afirmava que `T2/T3` ainda não estavam ligados aos diálogos e bootstrap, o que havia sido superado pelos commits `273ded2f`..`9eeedb50`. | **Já reconciliado em `b5cd2691`** na branch integrada e preservado nesta branch. |
 | `D-02` | `docs/handoff/2026-11-15-prontuario-integracao-verificada.md` (linha 68 em `b5cd2691`) | A seção histórica *"O que NÃO está feito neste commit"* (herdada de `5a62a18b`) ainda contém o item *"Cliente `src/application/operational-correction-client.js` não está instalado em `src/integration/product-extensions-bootstrap.js` nem ligado aos diálogos"*, embora o topo do mesmo documento (linhas 16 e 40–49) já explique o estado atualizado. | Divergência apenas entre a seção histórica inferior e o cabeçalho atualizado do handoff; sem impacto funcional. |
+
+---
+
+## 3. Auditoria Independente do Incremento T2/T3 (`b5cd2691` → `e26058bc`)
+
+Analisamos os **57 novos commits** publicados pelo agente ChatGPT/Astra em `fix/prontuario-integrado-validado-20261115` até o commit **`e26058bc`**.
+
+### 3.1. Pontos com os quais concordamos integralmente em `e26058bc`
+
+1. **Reconciliação seletiva dos pacotes anteriores (`e9bdfbbb`, `80280fcc`, `a869b2df`, `a45f3ca4`):**
+   - Incorporou corretamente o congelamento de payload no cliente (`WeakMap`), o botão `"Limpar análise"`, a seleção explícita em `AMBIGUOUS_CONSEQUENCE`, o helper `pendency-correction.js` (T5), o contraste no tema escuro e as projeções de NF atual nas Pendências, Busca Global, Passivo e Excel.
+   - Concordamos com as três decisões de refinamento aplicadas nessa consolidação:
+     1. Manter o fingerprint SQL sobre o `p_request` completo (rejeitando `note` divergente para a mesma `operationKey` com `IDEMPOTENCY_CONFLICT` na 59ª asserção pgTAP), já que o cliente e o diálogo congelam a `note` na primeira tentativa.
+     2. Projetar o número e descrição atuais da Nota Fiscal nas camadas de leitura (`pendencias-view-model.js`, `global-search-index.js`) sem mutar `pendency.item` em memória fora da transação de `pendencies`.
+     3. Remover o fallback de substituição por substring livre (`currentItem.includes(oldNumber)`), evitando substituir números incidentais no texto.
+2. **Unificação do diálogo `RadarOperationalCorrectionDialog` para T2 e T3 (`mode: 'analysis' | 'delete_invoice' | 'delete_pendency'`):**
+   - Excelente solução de arquitetura e UX: usa um único componente modal com títulos claros (`Corrigir análise técnica`, `Excluir nota fiscal`, `Excluir pendência`), prévia calculada pelo servidor e mensagens explícitas sobre o que será preservado (`O resultado da bonificação já consolidada será preservado`, `O bem vinculado a outra nota fiscal será preservado`).
+3. **Resolução do bloqueio de recarga (`synchronizeConfirmed`):**
+   - Fechar o modal sem devolver foco a um `<select>`/`<input>` antes de `refreshSchool(..., { force: true })` resolve a incompatibilidade com `RadarOperationalContextRefreshController` (que suspendia o refresh quando detectava `aria-modal="true"` aberto).
+   - Caso a recarga falhe após commit confirmado, exibe aviso flutuante persistente (`.radar-operational-refresh-notice`) com botão `Atualizar página`, jamais repetindo `apply_operational_change`.
+4. **Atalhos contextuais orientados ao usuário humano:**
+   - Quando `delete_pendency` encontra `MANDATORY_PENDENCY` (despesa `a_identificar`), oferece o botão **`"Excluir despesa e Pendência juntas"`**.
+   - Quando `correct_analysis`/`clear_analysis` encontra `MANDATORY_ANALYSIS` (despesa `a_identificar`), oferece **`"Excluir despesa lançada por engano"`**.
+   - Quando `OPEN_PENDENCY_FLOW_REQUIRED` ocorre em `consAssessoria`, encaminha para o fluxo próprio da Assessoria (`changeInvoiceAdvisoryAnalysis(..., 'Incorreto')`) em vez da Pendência de Nota Fiscal.
+5. **Recomposição transacional de Consulta à Assessoria e Inventário no SQL (`operational_correction_service_projection` e `operational_correction_inventory_projection`):**
+   - Ao excluir uma NF de serviço ou permanente (`delete_invoice`), ao excluir uma Pendência ativa de Assessoria (`delete_pendency`) ou ao corrigir/limpar análise individual de Assessoria, o banco recalcula `bonification.consAssessoria`, `bonification.consEnviada`, `analysis.consAssessoria`, `bonification.encampInventario` e `analysis.encampInventario`, elevando a suíte pgTAP para **73 verificações**.
+6. **Validação de cobertura por conjunto (`INCOMPLETE_PENDENCY_SELECTION`):**
+   - Impede que um cliente envie `selectedPendencyIds: []` ou IDs repetidos (`["P1","P1"]`) deixando uma Pendência ativa órfã após mudar a análise para `Correto`.
+7. **Trava de segurança de ambiente (`operationalCorrectionPilot` em `config.js` e `scripts/generate-runtime-config.mjs`):**
+   - Garante que o piloto T2/T3 só possa ser ativado quando `dataMode === 'supabase-preview'`, `environment` for `'local' | 'development' | 'test'` e tanto o navegador quanto a URL do Supabase estiverem em `localhost` / `127.0.0.1`.
+
+### 3.2. Defeitos e melhorias identificados em `e26058bc` e já corrigidos nesta branch
+
+Ao executar a suíte Playwright E2E e inspecionar o código de `e26058bc`, identificamos e corrigimos **6 pontos concretos**:
+
+| # | Severidade | Achado em `e26058bc` | Correção aplicada e testada em `audit/antigravity-argon-prontuario-20261115` |
+|---|---|---|---|
+| **1** | **Crítica (Quebrava teste Playwright e UX)** | Em `src/integration/operational-correction-dialog.js:136`, o commit `87ba2e09` adicionou `candidatePendencyIds = [];` no início de `renderPlan(view)`. Como resultado, no instante em que o usuário marcava a segunda caixinha de escolha (`cand1.check()`), `preview_operational_change` retornava `blockers: []` e **`renderPlan` apagava todas as caixinhas da tela**, fazendo o teste Playwright `AMBIGUOUS_CONSEQUENCE exige seleção explícita de Pendências candidatas` **reprovar por timeout na linha 290** e impedindo o usuário de ver ou desmarcar as Pendências selecionadas. | Removido o reset `candidatePendencyIds = [];` dentro de `renderPlan(view)`, preservando as caixinhas visíveis e marcadas após a seleção completa (**18/18 testes Playwright aprovados**). |
+| **2** | **Alta (UX / Navegação na fila de Pendências)** | Em `src/integration/operational-correction-dialog.js:309`, `synchronizeConfirmed()` chamava sempre `root.renderProntuario?.(target.schoolId)`. Quando o operador acionava `Excluir pendência` ou `Corrigir análise` a partir da gaveta da tela **Pendências Operacionais** (`task-9-pendencias-page.js:794-807`, recém-conectada em `e26058bc`), confirmar a operação sobrescrevia `#main-container` com o Prontuário sem atualizar a rota nem a fila de Pendências. | Atualizado `synchronizeConfirmed()` para detectar quando a tela ativa é a fila de Pendências (`.pendency-page-header`) e chamar `root.renderPendencias()`, mantendo o usuário na fila com seus filtros e abas preservados. Provado com novo teste E2E. |
+| **3** | **Média (Fluxo de 1ª análise vs. Retificação)** | Em `app.js:11697` (`changeInvoiceDocumentAnalysis`) e `app.js:11947` (`changeInvoiceAdvisoryAnalysis`), a condição `if (window.RadarOperationalCorrectionDialog?.canUse?.(window) && value !== 'Incorreto')` interceptava o `<select>` mesmo quando `previousValue === 'Não analisado'` (isto é, no **primeiro registro ordinário** da análise de uma NF recém-cadastrada), abrindo o modal `"Corrigir análise técnica"` para uma nota que nunca havia sido analisada. | Adicionada a guarda `previousValue !== 'Não analisado'` (e `previousState.analysis !== 'Não analisado'`), mantendo a primeira análise rápida em 1 clique e acionando o modal de retificação apenas quando já existe análise registrada. |
+| **4** | **Média (Lock e versão de NFs irmãs e tentativas no SQL)** | Em `supabase/migrations/20261114000100_operational_correction_contract.sql`: (a) o cálculo do agregado `analysis.notaFiscal` (linhas 838–850) não incluía as versões das NFs irmãs em `v_versions -> 'registered_invoices'` (diferentemente de `delete_invoice` e `consAssessoria`); e (b) `operational_correction_lock` (linha 957) não aplicava `FOR UPDATE` em `public.pendency_attempts` apesar de `v_versions` listar `pendency_attempts`. | Adicionada captura de `row_version` das NFs irmãs no recálculo individual de `notaFiscal` e adicionado `perform 1 from public.pendency_attempts ... order by id for update` em `operational_correction_lock`. |
+| **5** | **Baixa (Rótulo atualizado no modal de exclusão de Pendência)** | Em `app.js:11643` (`excluirPendenciaOperacional`), quando aberto pelo Prontuário (`#pendency-preview-drawer`), `item.item` vinha do objeto bruto `pendencias` e exibia o número antigo da NF caso a nota tivesse sido editada. | Aplicado `RadarAuditableRetification.deriveUpdatedPendencyItem(item, linkedInvoice)` ao montar `documentLabel` em `excluirPendenciaOperacional`, exibindo o número atual da NF sem mutar `pendencias` em memória. |
+| **6** | **Baixa (Ordem visual dos botões na linha da NF)** | Quando `integratedDeletion` habilitava o botão `Excluir` em uma NF com Pendência ativa, `decorateInvoiceRows` (`src/integration/auditable-retification.js:441`) inseria `Editar lançamento` com `appendChild` (à direita da lixeira), invertendo a ordem visual padrão (`Editar` à esquerda, `Excluir` à direita). | Ajustado para `actions.prepend(editBtn)` com fallback seguro para `appendChild` em mocks DOM de teste unitário. |

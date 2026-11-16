@@ -1197,6 +1197,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_operational_change: {
+        Args: {
+          p_request: Json
+          p_plan_digest: string
+          p_operation_key: string
+        }
+        Returns: Json
+      }
       apply_functional_snapshot: { Args: { p_snapshot: Json }; Returns: Json }
       assign_controller_with_log: {
         Args: { p_administrative_log: Json; p_schools: Json }
@@ -1277,6 +1285,7 @@ export type Database = {
         Returns: string
       }
       load_staged_import: { Args: { p_import_id: string }; Returns: Json }
+      preview_operational_change: { Args: { p_request: Json }; Returns: Json }
       production_integrity_check: { Args: Record<PropertyKey, never>; Returns: Json }
       promote_data_import: {
         Args: {

@@ -2,13 +2,27 @@
 
 - **Data:** 15/11/2026
 - **Branch de origem das propostas validadas:** `audit/antigravity-argon-prontuario-20261115`
-- **Branch alvo de integração pelo proprietário ou pelo agente Astra:** `fix/prontuario-integrado-validado-20261115` (a partir de `b5cd2691`)
+- **Branch alvo de integração pelo proprietário ou pelo agente Astra:** `fix/prontuario-integrado-validado-20261115` (a partir de `e26058bc`)
 
 ---
 
-## 1. O que pode ser incorporado imediatamente de `audit/antigravity-argon-prontuario-20261115`
+## 1. O que pode ser incorporado imediatamente de `audit/antigravity-argon-prontuario-20261115` sobre `e26058bc`
 
-Diferentemente da branch `audit/gemini-revisao-critica-e-sugestoes-20261115@6b4efb5d` (que quebrava a API `open()` do diálogo e continha fallback silencioso em `findTargetAttemptIndex`), a branch `audit/antigravity-argon-prontuario-20261115` foi construída diretamente sobre **`b5cd2691`** (`fix/prontuario-integrado-validado-20261115`), preservando 100% da API pública, do DOM e dos testes existentes.
+A branch `audit/antigravity-argon-prontuario-20261115` agora incorpora integralmente o estado `e26058bc` de `fix/prontuario-integrado-validado-20261115` **mais 6 correções pontuais** identificadas na auditoria do incremento T2/T3:
+
+1. **Correção do desaparecimento das caixinhas de Pendências candidatas (`src/integration/operational-correction-dialog.js:136`):**
+   - Em `e26058bc`, `candidatePendencyIds = []` dentro de `renderPlan(view)` fazia todas as caixinhas desaparecerem do DOM no momento em que o usuário marcava a última Pendência candidata (porque `preview_operational_change` retornava `blockers: []`), quebrando a experiência do usuário e fazendo o teste Playwright `AMBIGUOUS_CONSEQUENCE exige seleção explícita de Pendências candidatas` reprovar por timeout na linha 290.
+   - Com a correção aplicada nesta branch, as caixinhas permanecem visíveis e marcadas até a confirmação e **18/18 testes de `operational-correction-dialog.spec.js` passam**.
+2. **Preservação da tela de Pendências Operacionais após confirmação (`src/integration/operational-correction-dialog.js:309`):**
+   - Quando o usuário aciona `Excluir pendência` ou `Corrigir análise` a partir da gaveta da tela **Pendências Operacionais**, `synchronizeConfirmed()` agora chama `root.renderPendencias()` em vez de `root.renderProntuario(target.schoolId)`, mantendo o usuário na fila de Pendências com seus filtros e abas preservados.
+3. **Separação entre 1ª análise ordinária e Retificação (`app.js:11702` e `app.js:11953`):**
+   - Em `changeInvoiceDocumentAnalysis` e `changeInvoiceAdvisoryAnalysis`, a abertura automática do modal `Corrigir análise técnica` agora exige `previousValue !== 'Não analisado'` (e `previousState.analysis !== 'Não analisado'`), preservando o registro rápido de primeira análise quando o documento ainda está `"Não analisado"`.
+4. **Rótulo atualizado no modal de exclusão de Pendência (`app.js:11634`):**
+   - Em `excluirPendenciaOperacional`, aplica `RadarAuditableRetification.deriveUpdatedPendencyItem(item, linkedInvoice)` para que o título do modal de exclusão exiba o número atual da NF mesmo quando aberto pela gaveta do Prontuário.
+5. **Ordem visual consistente dos botões na linha da NF (`src/integration/auditable-retification.js:441`):**
+   - Usa `actions.prepend(editBtn)` (com fallback `appendChild` para mocks DOM unitários) para que `Editar lançamento` fique sempre à esquerda do botão `Excluir`.
+6. **Fechamento de versão de NFs irmãs e lock de `pendency_attempts` no SQL (`supabase/migrations/20261114000100_operational_correction_contract.sql:848, 963`):**
+   - Inclui as versões das NFs irmãs em `v_versions -> 'registered_invoices'` durante o cálculo individual de `analysis.notaFiscal` e aplica `FOR UPDATE` em `public.pendency_attempts` dentro de `operational_correction_lock(p_plan)`.
 
 ### Arquivos de código e testes prontos para incorporação direta (`git cherry-pick` ou `git merge --ff-only`):
 

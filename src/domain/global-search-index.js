@@ -138,13 +138,28 @@
             || pendency.descricao
             || 'Pendência operacional'
         ).trim();
+        // Título é uma projeção da fonte atual, nunca uma mutação do histórico.
+        const documentCategory = String(
+            pendency.documento || pendency.documentoNome || pendency.tipo
+            || 'Pendência operacional'
+        ).trim();
+        const expenseType = String(linkedInvoice?.tipo || linkedInvoice?.expense_type || '').trim();
+        const invoicePrefix = expenseType === 'boleto_internet' ? 'Boleto Internet'
+            : (expenseType === 'a_identificar' ? 'Referência' : 'NF');
+        const liveInvoiceLabel = [
+            invoiceNumber ? `${invoicePrefix}: ${invoiceNumber}` : '',
+            invoiceDescription
+        ].filter(Boolean).join(' · ');
+        const displayTitle = liveInvoiceLabel
+            ? `${documentCategory} · ${liveInvoiceLabel}`
+            : documentName;
         return {
             id: `pendency:${id}`,
             type: 'pendency',
             pendencyId: id,
             schoolId,
             competenceKey,
-            title: documentName,
+            title: displayTitle,
             subtitle: school
                 ? String(school.denominação || school.denominacao || school.id)
                 : schoolId,

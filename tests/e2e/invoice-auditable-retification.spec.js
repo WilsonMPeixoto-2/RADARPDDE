@@ -157,7 +157,7 @@ test.describe('Edição auditável de lançamentos', () => {
       amount: 175.5,
       type: 'consumo',
       pendencyId: context.pendencyId,
-      pendencyItem: 'Notas Fiscais — NF-CORRIGIDA',
+      pendencyItem: 'Nota Fiscal',
       pendencyStatus: 'Aberta',
       activeEquivalentCount: 1
     });

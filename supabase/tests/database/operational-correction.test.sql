@@ -7,7 +7,7 @@ set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(60);
+select plan(73);
 
 -- --------------------------------------------------------------- massa
 insert into auth.users (id, email) values
@@ -197,6 +197,9 @@ select lives_ok(
         (select plan ->> 'planDigest' from occ_plans where k = 'nf3'),
         '00000000-0000-0000-0000-0000000000a3') $$,
     'exclusão de despesa com bem Inventariada é permitida pelo comando autorizado');
+select is((select (bonification ->> 'encampInventario') || '|' || (analysis ->> 'encampInventario')
+    from public.verifications where id = 'OCC-SCHOOL::2041-03::OCC_BASIC'),
+    'Não se aplica|Correto', 'T3: última NF permanente removida recompõe encaminhamento e análise patrimonial');
 reset role;
 select is((select count(*)::int from public.assets where id = 'OCC-ASSET-3'), 0, 'bem exclusivo Inventariada excluído junto com a NF');
 insert into public.assets (id, school_id, competence_id, description, expense_type, invoice_number, amount, status)
@@ -257,6 +260,16 @@ select is((select count(*)::int from public.pendencies where id = 'OCC-P-EXTCC')
 select throws_like(
     $$ select public.preview_operational_change(pg_temp.occ_req('correct_analysis', '{"kind":"analysis","programId":"OCC_BASIC","documentKey":"extINV"}', '{"changes":{"analysis":"Correto"},"selectedPendencyIds":["OCC-P-EXTINV-2"]}')) $$,
     'VALIDATION_ERROR%', 'seleção de Pendência fora da consequência (histórica) é rejeitada');
+-- Um cliente não pode enviar seleção vazia e deixar Incorreto sem tratamento.
+select ok(
+    (public.preview_operational_change(pg_temp.occ_req(
+        'correct_analysis',
+        '{"kind":"analysis","programId":"OCC_BASIC","documentKey":"extINV"}',
+        '{"changes":{"analysis":"Correto"},"selectedPendencyIds":[]}'
+    )) -> 'blockers') @> '[{"code":"INCOMPLETE_PENDENCY_SELECTION"}]'::jsonb,
+    'T2: seleção explícita vazia bloqueia análise correta com Pendência ativa remanescente'
+);
+
 insert into occ_plans values ('fix-extinv-sel', public.preview_operational_change(pg_temp.occ_req('correct_analysis', '{"kind":"analysis","programId":"OCC_BASIC","documentKey":"extINV"}', '{"changes":{"analysis":"Correto"},"selectedPendencyIds":["OCC-P-EXTINV-1"]}')));
 select lives_ok(
     $$ select public.apply_operational_change(
@@ -300,13 +313,20 @@ select lives_ok(
         (select plan ->> 'planDigest' from occ_plans where k = 'del-p-nf2'),
         '00000000-0000-0000-0000-0000000000b5') $$,
     'Pendência resolvida pode ser excluída; nota opcional é aceita');
+select throws_like(
+    $$ select public.apply_operational_change(
+        pg_temp.occ_req('delete_pendency', '{"kind":"pendency","id":"OCC-P-NF2"}', '{"note":"Nota diferente no retry"}'),
+        (select plan ->> 'planDigest' from occ_plans where k = 'del-p-nf2'),
+        '00000000-0000-0000-0000-0000000000b5') $$,
+    'IDEMPOTENCY_CONFLICT%',
+    'mesma chave com observacao divergente e rejeitada para proteger rastreabilidade');
 select is(
     (public.apply_operational_change(
-        pg_temp.occ_req('delete_pendency', '{"kind":"pendency","id":"OCC-P-NF2"}', '{"note":"Nota diferente no retry"}'),
+        pg_temp.occ_req('delete_pendency', '{"kind":"pendency","id":"OCC-P-NF2"}', '{"note":"Lançada em duplicidade"}'),
         (select plan ->> 'planDigest' from occ_plans where k = 'del-p-nf2'),
         '00000000-0000-0000-0000-0000000000b5') ->> 'replayed')::boolean,
     true,
-    'retry com mesma operationKey ignora diferenca de note no fingerprint e devolve recibo idempotente');
+    'mesma chave e observacao original retornam replay idempotente preservando a intencao');
 select is((select count(*)::int from public.pendency_contacts where id = 'OCC-C-3'), 0, 'contato vinculado à Pendência excluída também é removido');
 
 reset role;
@@ -317,6 +337,97 @@ select is((select note from radar_private.operational_change_ledger where operat
     'Lançada em duplicidade', 'nota opcional é preservada no livro-razão');
 select is((select count(*)::int from radar_private.operational_change_ledger where status = 'applying'), 0,
     'nenhuma operação fica em estado intermediário');
+
+
+-- --------------------------------------------------------------- T2/T3 projeções de Assessoria
+-- Massa separada para não interferir nas contagens e efeitos do contrato básico.
+insert into public.programs (id, name) values ('OCC_SERVICE', 'Serviço de correção');
+insert into public.verifications (
+    id, school_id, competence_id, program_id, bonification, analysis, bonus_result, payload
+) values (
+    'OCC-SCHOOL::2041-03::OCC_SERVICE', 'OCC-SCHOOL', '2041-03', 'OCC_SERVICE',
+    '{"notaFiscal":"Sim","consAssessoria":"Sim","consEnviada":true}'::jsonb,
+    '{"notaFiscal":"Correto","consAssessoria":"Incorreto"}'::jsonb, 'apta', '{}'::jsonb
+);
+insert into public.registered_invoices (
+    id, school_id, competence_id, program_id, verification_id, source_context_key,
+    description, expense_type, invoice_number, amount, payload
+) values
+    ('OCC-SVC-1', 'OCC-SCHOOL', '2041-03', 'OCC_SERVICE', 'OCC-SCHOOL::2041-03::OCC_SERVICE',
+     '2041-03_OCC_SERVICE', 'Primeiro serviço', 'servico', 'SERV-1', 500,
+     '{"consultaAssessoriaEnviada":true,"analiseConsultaAssessoria":"Incorreto","analiseDocumentoFiscal":"Correto"}'::jsonb),
+    ('OCC-SVC-2', 'OCC-SCHOOL', '2041-03', 'OCC_SERVICE', 'OCC-SCHOOL::2041-03::OCC_SERVICE',
+     '2041-03_OCC_SERVICE', 'Segundo serviço', 'servico', 'SERV-2', 400,
+     '{"consultaAssessoriaEnviada":false,"analiseConsultaAssessoria":"Correto","analiseDocumentoFiscal":"Correto"}'::jsonb);
+insert into public.pendencies (
+    id, school_id, competence_origin, program_id, document_key, status,
+    next_actor, registered_invoice_id
+) values ('OCC-P-SVC-1', 'OCC-SCHOOL', '2041-03', 'OCC_SERVICE',
+    'consAssessoria', 'Aberta', 'Escola', 'OCC-SVC-1');
+set local role authenticated;
+
+insert into occ_plans values ('svc-p', public.preview_operational_change(pg_temp.occ_req(
+    'delete_pendency', '{"kind":"pendency","id":"OCC-P-SVC-1","programId":"OCC_SERVICE"}')));
+select lives_ok(
+    $$ select public.apply_operational_change(
+        pg_temp.occ_req('delete_pendency', '{"kind":"pendency","id":"OCC-P-SVC-1","programId":"OCC_SERVICE"}'),
+        (select plan ->> 'planDigest' from occ_plans where k = 'svc-p'),
+        '00000000-0000-0000-0000-0000000000c1') $$,
+    'T2: excluir Pendência ativa de Assessoria com outra NF de serviço é permitido');
+select is(
+    (select payload ->> 'analiseConsultaAssessoria' from public.registered_invoices where id='OCC-SVC-1')
+    || '|' || (select analysis ->> 'consAssessoria' from public.verifications
+        where id='OCC-SCHOOL::2041-03::OCC_SERVICE'),
+    'Não analisado|Não analisado',
+    'T2: análise individual e agregado de Assessoria são recompostos ao excluir Pendência');
+insert into occ_plans values ('svc1', public.preview_operational_change(pg_temp.occ_req(
+    'delete_invoice', '{"kind":"invoice","id":"OCC-SVC-1","programId":"OCC_SERVICE"}')));
+select ok((select plan -> 'effects' -> 'update' @>
+    '[{"field":"bonification.consAssessoria"},{"field":"bonification.consEnviada"},{"field":"analysis.consAssessoria"}]'::jsonb
+    from occ_plans where k='svc1'),
+    'T3: prévia contém as três projeções de Assessoria afetadas pela exclusão');
+select lives_ok(
+    $$ select public.apply_operational_change(
+        pg_temp.occ_req('delete_invoice', '{"kind":"invoice","id":"OCC-SVC-1","programId":"OCC_SERVICE"}'),
+        (select plan ->> 'planDigest' from occ_plans where k = 'svc1'),
+        '00000000-0000-0000-0000-0000000000c2') $$,
+    'T3: excluir a primeira NF de serviço recompõe projeções');
+select is((select (bonification ->> 'consAssessoria') || '|' || (bonification ->> 'consEnviada')
+      || '|' || (analysis ->> 'consAssessoria') || '|' || bonus_result
+    from public.verifications where id='OCC-SCHOOL::2041-03::OCC_SERVICE'),
+    'Não|false|Correto|apta',
+    'T3: Assessoria deriva da NF restante e bonificação consolidada permanece');
+select is((select count(*)::int from public.registered_invoices where id='OCC-SVC-2'), 1,
+    'T3: NF vizinha de serviço permanece intacta');
+-- A correção individual de serviço deve refletir o novo resumo após F5.
+insert into occ_plans values ('svc2-clear', public.preview_operational_change(pg_temp.occ_req(
+    'clear_analysis', '{"kind":"analysis","id":"OCC-SVC-2","programId":"OCC_SERVICE","documentKey":"consAssessoria"}')));
+select lives_ok(
+    $$ select public.apply_operational_change(
+        pg_temp.occ_req('clear_analysis', '{"kind":"analysis","id":"OCC-SVC-2","programId":"OCC_SERVICE","documentKey":"consAssessoria"}'),
+        (select plan ->> 'planDigest' from occ_plans where k='svc2-clear'),
+        '00000000-0000-0000-0000-0000000000c4') $$,
+    'T2: limpar análise individual de Assessoria aplica sem apagar NF');
+select is(
+    (select payload ->> 'analiseConsultaAssessoria' from public.registered_invoices where id='OCC-SVC-2')
+      || '|' || (select analysis ->> 'consAssessoria' from public.verifications
+          where id='OCC-SCHOOL::2041-03::OCC_SERVICE'),
+    'Não analisado|Não analisado',
+    'T2: limpeza individual também sincroniza resumo da Consulta Assessoria');
+insert into occ_plans values ('svc2', public.preview_operational_change(pg_temp.occ_req(
+    'delete_invoice', '{"kind":"invoice","id":"OCC-SVC-2","programId":"OCC_SERVICE"}')));
+select lives_ok(
+    $$ select public.apply_operational_change(
+        pg_temp.occ_req('delete_invoice', '{"kind":"invoice","id":"OCC-SVC-2","programId":"OCC_SERVICE"}'),
+        (select plan ->> 'planDigest' from occ_plans where k = 'svc2'),
+        '00000000-0000-0000-0000-0000000000c3') $$,
+    'T3: excluir última NF de serviço recompõe o contexto vazio');
+select is((select (bonification ->> 'consAssessoria') || '|' || (bonification ->> 'consEnviada')
+      || '|' || (analysis ->> 'consAssessoria') || '|' || bonus_result
+    from public.verifications where id='OCC-SCHOOL::2041-03::OCC_SERVICE'),
+    'Não se aplica|false|Correto|apta',
+    'T3: sem notas de serviço Assessoria é N/A sem apagar resultado consolidado');
+reset role;
 
 select * from finish();
 rollback;

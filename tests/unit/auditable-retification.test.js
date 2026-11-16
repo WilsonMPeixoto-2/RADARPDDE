@@ -274,7 +274,7 @@ test('retificação manual rejeita opções novas fora do cadastro canônico', a
     );
 });
 
-test('propaga edição de número da NF para o item da Pendência vinculada em todos os formatos de produção', async () => {
+test('edita NF sem modificar Pendência canônica fora da transação; projeção reflete dados atuais', async () => {
     const harness = createInvoiceHarness();
     harness.state.pendencies[0].item = 'PDDE Básico - NF: NF-1';
     harness.state.pendencies.push({
@@ -308,9 +308,16 @@ test('propaga edição de número da NF para o item da Pendência vinculada em t
         profile: 'controlador'
     });
 
-    assert.equal(harness.state.pendencies[0].item, 'PDDE Básico - NF: 2217');
+    assert.equal(harness.state.pendencies[0].item, 'PDDE Básico - NF: NF-1');
     assert.equal(harness.state.pendencies[0].documentSnapshot.numero, 'NF-1');
-    assert.equal(harness.state.pendencies[1].item, 'PDDE Básico - Consulta Assessoria — NF 2217');
+    assert.equal(harness.state.pendencies[1].item, 'PDDE Básico - Consulta Assessoria — NF NF-1');
+    assert.equal(harness.calls[0].changedEntities.includes('pendencies'), false);
+    const currentRecords = require('../../src/domain/pendencias-view-model.js').buildPendencyRecords({
+        pendencias: harness.state.pendencies, notasRegistradas: harness.state.registeredInvoices,
+        escolas: harness.state.schools, programas: harness.state.programs
+    });
+    assert.equal(currentRecords[0].item, 'PDDE Básico - NF: 2217');
+    assert.equal(currentRecords[1].item, 'PDDE Básico - Consulta Assessoria — NF 2217');
     assert.equal(
         retification.deriveUpdatedPendencyItem(
             { item: 'Notas Fiscais — 232', documentoKey: 'notaFiscal' },

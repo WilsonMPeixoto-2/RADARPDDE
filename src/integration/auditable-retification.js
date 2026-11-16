@@ -163,9 +163,6 @@
         const documentKey = text(pendency.documentoKey || pendency.document_key);
 
         if (expenseType === UNIDENTIFIED_EXPENSE_TYPE) {
-            if (currentItem && oldNumber && newNumber && oldNumber !== newNumber && currentItem.includes(oldNumber)) {
-                return currentItem.replace(oldNumber, newNumber);
-            }
             return currentItem || 'Despesa a identificar';
         }
         if (!newNumber) return currentItem;
@@ -186,9 +183,6 @@
         if (advisoryMatch) {
             return `${advisoryMatch[1]}${newNumber}`;
         }
-        if (oldNumber && oldNumber !== newNumber && currentItem.includes(oldNumber)) {
-            return currentItem.replace(oldNumber, newNumber);
-        }
         if (documentKey === 'consAssessoria' && /^Consulta\s+(?:à\s+)?Assessoria$/i.test(currentItem)) {
             return `Consulta Assessoria — NF ${newNumber}`;
         }
@@ -198,30 +192,6 @@
         return currentItem;
     }
 
-    function syncLinkedPendencyItems(state = {}, invoiceId = null, previousNumber = '') {
-        const pendencies = Array.isArray(state?.pendencies) ? state.pendencies : [];
-        const invoices = Array.isArray(state?.registeredInvoices) ? state.registeredInvoices : [];
-        if (!pendencies.length || !invoices.length) return 0;
-        const targetId = text(invoiceId);
-        const invoicesById = new Map(invoices.map(item => [text(item.id), item]));
-        let updatedCount = 0;
-        pendencies.forEach(pendency => {
-            const linkedId = invoiceIdOfPendency(pendency);
-            if (!linkedId || (targetId && linkedId !== targetId)) return;
-            const invoice = invoicesById.get(linkedId);
-            if (!invoice) return;
-            const nextItem = deriveUpdatedPendencyItem(
-                pendency,
-                invoice,
-                targetId && linkedId === targetId ? previousNumber : ''
-            );
-            if (nextItem && nextItem !== text(pendency.item)) {
-                pendency.item = nextItem;
-                updatedCount += 1;
-            }
-        });
-        return updatedCount;
-    }
 
     function protectInvoiceService(service) {
         if (!service || typeof service.save !== 'function' || typeof service.getState !== 'function') return false;
@@ -231,18 +201,15 @@
         service.save = async function saveWithAuditableRetification(input = {}) {
             const state = this.getState();
             const existing = currentInvoice(state, input.id);
-            const previousNumber = text(existing?.numero || existing?.invoice_number);
             if (!isRetifiableInvoice(state, existing)) {
-                const res = await originalSave.call(this, input);
-                if (existing) syncLinkedPendencyItems(this.getState(), existing.id, previousNumber);
-                return res;
+                // A projeção de Pendências é derivada da Nota Fiscal atual. Não
+                // alterar pendency.item fora da transação remota de invoice:save.
+                return originalSave.call(this, input);
             }
 
             assertRetificationIdentity(state, existing, input);
             const context = createInvoiceRetificationContext(this);
-            const result = await originalSave.call(context, input);
-            syncLinkedPendencyItems(this.getState(), existing.id, previousNumber);
-            return result;
+            return originalSave.call(context, input);
         };
 
         Object.defineProperty(service, '__radarAuditableRetificationSave', {
@@ -450,7 +417,6 @@
         if (!root?.document) return false;
         const state = stateFromRoot(root);
         if (!state) return false;
-        syncLinkedPendencyItems(state);
 
         root.document.querySelectorAll('.invoice-document-row[data-invoice-id]').forEach(row => {
             const invoiceId = text(row.dataset.invoiceId);
@@ -472,7 +438,9 @@
                 actions.className = 'invoice-document-inline-actions';
                 titleLine.appendChild(actions);
             }
-            actions.appendChild(createInvoiceEditButton(root, invoice));
+            const editBtn = createInvoiceEditButton(root, invoice);
+            if (typeof actions.prepend === 'function') actions.prepend(editBtn);
+            else actions.appendChild(editBtn);
         });
         return true;
     }
@@ -564,7 +532,7 @@
             root,
             guidance,
             'small',
-            'Ao salvar, o novo número, descrição e valor serão atualizados automaticamente na Pendência vinculada, nas filas de busca e no Patrimônio/Inventário.',
+            'Após salvar, as telas e buscas relacionadas consultarão os dados atuais da Nota Fiscal. A identificação registrada na abertura da Pendência permanece preservada para auditoria.',
             'invoice-retification-sync-note'
         );
         syncNote.dataset.auditableRetificationSyncNote = 'true';
@@ -866,7 +834,6 @@
         isRetifiableInvoice,
         assertRetificationIdentity,
         deriveUpdatedPendencyItem,
-        syncLinkedPendencyItems,
         protectInvoiceService,
         isManualPendency,
         protectPendencyService,

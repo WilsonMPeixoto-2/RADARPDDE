@@ -266,6 +266,73 @@ revoke all on function radar_private.operational_correction_invoice_analysis(tex
 revoke all on function radar_private.operational_correction_invoice_aggregate(text, text[], jsonb) from public, anon, authenticated;
 
 -- ---------------------------------------------------------------------------
+
+-- Projeção de Consulta Assessoria conforme a regra individual das NFs de serviço.
+-- As leituras de preview/apply usam as mesmas exclusões e substituições propostas.
+create or replace function radar_private.operational_correction_service_projection(
+    p_verification_id text,
+    p_excluded_invoice_id text default null,
+    p_override_invoice_id text default null,
+    p_override_analysis text default null
+)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = pg_catalog, public, radar_private
+as $$
+    with notes as (
+        select
+            coalesce((i.payload ->> 'consultaAssessoriaEnviada')::boolean, false) as sent,
+            case when i.id = p_override_invoice_id
+                then p_override_analysis
+                else coalesce(nullif(btrim(i.payload ->> 'analiseConsultaAssessoria'), ''), 'Não analisado')
+            end as analysis
+        from public.registered_invoices i
+        where i.verification_id = p_verification_id
+          and lower(i.expense_type) = 'servico'
+          and (p_excluded_invoice_id is null or i.id <> p_excluded_invoice_id)
+    )
+    select jsonb_build_object(
+        'delivery', case when count(*) = 0 then 'Não se aplica'
+            when bool_or(sent) then 'Sim' else 'Não' end,
+        'sent', coalesce(bool_or(sent), false),
+        'analysis', case when count(*) = 0 then 'Correto'
+            when bool_or(analysis = 'Incorreto') then 'Incorreto'
+            when bool_or(analysis = 'Não analisado') then 'Não analisado'
+            when bool_or(analysis = 'Correto (Atrasado)') then 'Correto (Atrasado)'
+            else 'Correto' end
+    )
+    from notes
+$$;
+revoke all on function radar_private.operational_correction_service_projection(text,text,text,text)
+    from public, anon, authenticated;
+
+create or replace function radar_private.operational_correction_inventory_projection(
+    p_verification_id text, p_excluded_invoice_id text default null
+)
+returns text
+language sql
+stable
+security definer
+set search_path = pg_catalog, public, radar_private
+as $$
+    with items as (
+        select a.status
+        from public.registered_invoices i
+        left join public.assets a on a.id = i.linked_asset_id
+        where i.verification_id = p_verification_id
+          and lower(i.expense_type) = 'permanente'
+          and (p_excluded_invoice_id is null or i.id <> p_excluded_invoice_id)
+    )
+    select case when count(*) = 0 then 'Não se aplica'
+        when count(*) filter (where status in ('Encaminhada', 'Inventariada')) = count(*) then 'Sim'
+        else 'Não' end
+    from items
+$$;
+revoke all on function radar_private.operational_correction_inventory_projection(text,text)
+    from public, anon, authenticated;
+
 -- Planejador (somente leitura). O mesmo código serve preview e apply.
 -- ---------------------------------------------------------------------------
 create or replace function radar_private.operational_correction_build_plan(p_request jsonb)
@@ -313,6 +380,9 @@ declare
     v_requested text;
     v_aggregate text;
     v_aggregate_before text;
+    v_service_projection jsonb;
+    v_inventory_delivery text;
+    v_inventory_analysis text;
     v_overrides jsonb := '{}'::jsonb;
     v_is_invoice_level boolean := false;
     v_movement record;
@@ -422,17 +492,82 @@ begin
                         'entity', 'verifications', 'id', v_verification.id,
                         'field', 'analysis.notaFiscal', 'before', v_aggregate_before, 'after', v_aggregate));
                 end if;
+                -- Dependências usadas nos agregados também participam do digest e do lock.
+                -- Não bastaria observar apenas a NF excluída: outra NF pode mudar entre preview/apply.
+                select coalesce(jsonb_object_agg(i.id, i.row_version), '{}'::jsonb) into v_map
+                  from public.registered_invoices i
+                 where i.verification_id = v_verification.id and i.id <> v_invoice.id;
+                v_versions := jsonb_set(v_versions, '{registered_invoices}',
+                    coalesce(v_versions -> 'registered_invoices', '{}'::jsonb) || v_map);
+
+                if lower(v_invoice.expense_type) = 'servico' then
+                    v_service_projection := radar_private.operational_correction_service_projection(
+                        v_verification.id, v_invoice.id);
+                    if v_verification.bonification ->> 'consAssessoria'
+                         is distinct from v_service_projection ->> 'delivery' then
+                        v_updates := v_updates || jsonb_build_array(jsonb_build_object(
+                            'entity', 'verifications', 'id', v_verification.id,
+                            'field', 'bonification.consAssessoria',
+                            'before', v_verification.bonification -> 'consAssessoria',
+                            'after', v_service_projection -> 'delivery'));
+                    end if;
+                    if coalesce((v_verification.bonification ->> 'consEnviada')::boolean, false)
+                         is distinct from (v_service_projection ->> 'sent')::boolean then
+                        v_updates := v_updates || jsonb_build_array(jsonb_build_object(
+                            'entity', 'verifications', 'id', v_verification.id,
+                            'field', 'bonification.consEnviada',
+                            'before', v_verification.bonification -> 'consEnviada',
+                            'after', v_service_projection -> 'sent'));
+                    end if;
+                    if v_verification.analysis ->> 'consAssessoria'
+                         is distinct from v_service_projection ->> 'analysis' then
+                        v_updates := v_updates || jsonb_build_array(jsonb_build_object(
+                            'entity', 'verifications', 'id', v_verification.id,
+                            'field', 'analysis.consAssessoria',
+                            'before', v_verification.analysis -> 'consAssessoria',
+                            'after', v_service_projection -> 'analysis'));
+                    end if;
+                end if;
+
+                if lower(v_invoice.expense_type) = 'permanente' then
+                    v_inventory_delivery := radar_private.operational_correction_inventory_projection(
+                        v_verification.id, v_invoice.id);
+                    v_inventory_analysis := case when v_inventory_delivery = 'Não se aplica'
+                        then 'Correto' else 'Não analisado' end;
+                    -- A exclusão altera o universo de bens: preservar marca manual e
+                    -- recompor apenas a projeção patrimonial correspondente.
+                    if v_verification.bonification ->> 'encampInventario'
+                         is distinct from v_inventory_delivery then
+                        v_updates := v_updates || jsonb_build_array(jsonb_build_object(
+                            'entity', 'verifications', 'id', v_verification.id,
+                            'field', 'bonification.encampInventario',
+                            'before', v_verification.bonification -> 'encampInventario',
+                            'after', to_jsonb(v_inventory_delivery)));
+                    end if;
+                    if v_verification.analysis ->> 'encampInventario'
+                         is distinct from v_inventory_analysis then
+                        v_updates := v_updates || jsonb_build_array(jsonb_build_object(
+                            'entity', 'verifications', 'id', v_verification.id,
+                            'field', 'analysis.encampInventario',
+                            'before', v_verification.analysis -> 'encampInventario',
+                            'after', to_jsonb(v_inventory_analysis)));
+                    end if;
+                    select coalesce(jsonb_object_agg(a.id, a.row_version), '{}'::jsonb) into v_map
+                      from public.assets a
+                     where a.id in (
+                         select i.linked_asset_id from public.registered_invoices i
+                          where i.verification_id = v_verification.id
+                            and i.id <> v_invoice.id and i.linked_asset_id is not null
+                     );
+                    v_versions := jsonb_set(v_versions, '{assets}',
+                        coalesce(v_versions -> 'assets', '{}'::jsonb) || v_map);
+                end if;
+
                 v_versions := v_versions || jsonb_build_object('verifications', jsonb_build_object(v_verification.id, v_verification.row_version));
                 v_preserved := v_preserved || jsonb_build_object(
-                    'bonification', coalesce(v_verification.bonification, '{}'::jsonb),
+                    'manualBonification', coalesce(v_verification.bonification, '{}'::jsonb),
                     'bonusResult', v_verification.bonus_result);
             end if;
-        end if;
-
-        if lower(v_invoice.expense_type) = 'servico' then
-            v_warnings := v_warnings || jsonb_build_array(jsonb_build_object(
-                'code', 'ASSESSORIA_PROJECTION_REFRESH',
-                'message', 'A Consulta Assessoria é derivada das notas de serviço restantes e será recalculada pela leitura do contexto.'));
         end if;
 
     -- ---------------------------------------------------------------- T2
@@ -484,6 +619,33 @@ begin
                             if v_field = 'analiseDocumentoFiscal' and v_invoice.verification_id is not null then
                                 v_overrides := jsonb_build_object(v_invoice.id, 'Não analisado');
                                 v_is_invoice_level := true;
+                            elsif v_field = 'analiseConsultaAssessoria'
+                                and v_invoice.verification_id is not null then
+                                -- Excluir a única Pendência de Assessoria que sustentava
+                                -- Incorreto altera também o resumo mensal da Assessoria.
+                                select * into v_verification from public.verifications
+                                 where id = v_invoice.verification_id;
+                                if found then
+                                    v_service_projection := radar_private.operational_correction_service_projection(
+                                        v_verification.id, null, v_invoice.id, 'Não analisado');
+                                    if v_verification.analysis ->> 'consAssessoria'
+                                         is distinct from v_service_projection ->> 'analysis' then
+                                        v_updates := v_updates || jsonb_build_array(jsonb_build_object(
+                                            'entity', 'verifications', 'id', v_verification.id,
+                                            'field', 'analysis.consAssessoria',
+                                            'before', v_verification.analysis -> 'consAssessoria',
+                                            'after', v_service_projection -> 'analysis'));
+                                    end if;
+                                    v_versions := v_versions || jsonb_build_object('verifications',
+                                        jsonb_build_object(v_verification.id, v_verification.row_version));
+                                    select coalesce(jsonb_object_agg(i.id, i.row_version), '{}'::jsonb)
+                                      into v_map from public.registered_invoices i
+                                     where i.verification_id = v_verification.id
+                                       and lower(i.expense_type) = 'servico'
+                                       and i.id <> v_invoice.id;
+                                    v_versions := jsonb_set(v_versions, '{registered_invoices}',
+                                        coalesce(v_versions -> 'registered_invoices', '{}'::jsonb) || v_map);
+                                end if;
                             end if;
                         end if;
                     end if;
@@ -628,6 +790,16 @@ begin
                 if not (v_selected <@ v_candidates) then
                     raise exception 'VALIDATION_ERROR: selectedPendencyIds contém Pendência fora da consequência desta análise';
                 end if;
+                -- Não permitir resultado correto/não analisado com uma Pendência ativa
+                -- remanescente que sustenta o mesmo Incorreto.
+                -- Exigir cobertura por conjunto, não apenas contagem:
+                -- ["P1","P1"] não pode simular seleção de P1 e P2.
+                if not (v_candidates <@ v_selected) then
+                    v_blockers := v_blockers || jsonb_build_array(jsonb_build_object(
+                        'code', 'INCOMPLETE_PENDENCY_SELECTION',
+                        'message', 'Para corrigir esta análise, selecione todas as Pendências ativas relacionadas ou trate cada Pendência individualmente.',
+                        'candidates', to_jsonb(v_candidates)));
+                end if;
                 v_pendency_ids := v_selected;
             elsif cardinality(v_candidates) > 1 then
                 v_blockers := v_blockers || jsonb_build_array(jsonb_build_object(
@@ -674,6 +846,41 @@ begin
                     'field', 'analysis.notaFiscal', 'before', v_aggregate_before, 'after', v_aggregate));
             end if;
             v_versions := v_versions || jsonb_build_object('verifications', jsonb_build_object(v_verification.id, v_verification.row_version));
+            select coalesce(jsonb_object_agg(i.id, i.row_version), '{}'::jsonb)
+              into v_map from public.registered_invoices i
+             where i.verification_id = v_verification.id
+               and i.id <> v_invoice.id;
+            v_versions := jsonb_set(v_versions, '{registered_invoices}',
+                coalesce(v_versions -> 'registered_invoices', '{}'::jsonb) || v_map);
+        end if;
+    end if;
+
+    -- Análise individual da Assessoria: o agregado mensal deriva de TODAS as
+    -- notas de serviço sobreviventes, inclusive quando se limpa a análise.
+    if v_action in ('correct_analysis', 'clear_analysis')
+       and v_document = 'consAssessoria' and v_invoice.verification_id is not null then
+        select * into v_verification from public.verifications
+         where id = v_invoice.verification_id;
+        if found then
+            v_service_projection := radar_private.operational_correction_service_projection(
+                v_verification.id, null, v_invoice.id, v_requested);
+            if v_verification.analysis ->> 'consAssessoria'
+                 is distinct from v_service_projection ->> 'analysis' then
+                v_updates := v_updates || jsonb_build_array(jsonb_build_object(
+                    'entity', 'verifications', 'id', v_verification.id,
+                    'field', 'analysis.consAssessoria',
+                    'before', v_verification.analysis -> 'consAssessoria',
+                    'after', v_service_projection -> 'analysis'));
+            end if;
+            v_versions := v_versions || jsonb_build_object('verifications',
+                jsonb_build_object(v_verification.id, v_verification.row_version));
+            select coalesce(jsonb_object_agg(i.id, i.row_version), '{}'::jsonb)
+              into v_map from public.registered_invoices i
+             where i.verification_id = v_verification.id
+               and lower(i.expense_type) = 'servico'
+               and i.id <> v_invoice.id;
+            v_versions := jsonb_set(v_versions, '{registered_invoices}',
+                coalesce(v_versions -> 'registered_invoices', '{}'::jsonb) || v_map);
         end if;
     end if;
 
@@ -756,6 +963,9 @@ begin
     perform 1 from public.pendencies
      where id in (select jsonb_object_keys(coalesce(p_plan -> 'versions' -> 'pendencies', '{}'::jsonb)))
      order by id for update;
+    perform 1 from public.pendency_attempts
+     where id in (select jsonb_object_keys(coalesce(p_plan -> 'versions' -> 'pendency_attempts', '{}'::jsonb)))
+     order by id for update;
     perform 1 from public.pendency_contacts
      where id in (select jsonb_object_keys(coalesce(p_plan -> 'versions' -> 'pendency_contacts', '{}'::jsonb)))
      order by id for update;
@@ -800,7 +1010,7 @@ set search_path = pg_catalog, public, radar_private
 as $$
 declare
     v_role text;
-    v_fingerprint text := encode(sha256(convert_to((coalesce(p_request, '{}'::jsonb) - 'note')::text, 'UTF8')), 'hex');
+    v_fingerprint text := encode(sha256(convert_to(coalesce(p_request, 'null'::jsonb)::text, 'UTF8')), 'hex');
     v_existing radar_private.operational_change_ledger%rowtype;
     v_plan jsonb;
     v_blocker jsonb;
@@ -907,14 +1117,25 @@ begin
                 raise exception 'OPTIMISTIC_CONFLICT: registered_invoices/%', v_id;
             end if;
         elsif v_entity = 'verifications' then
-            v_field := substr(v_item ->> 'field', length('analysis.') + 1);
-            update public.verifications
-               set analysis = case
-                    when v_item -> 'after' = 'null'::jsonb or v_item ->> 'after' is null
-                        then coalesce(analysis, '{}'::jsonb) - v_field
-                    else jsonb_set(coalesce(analysis, '{}'::jsonb), array[v_field], v_item -> 'after')
-               end
-             where id = v_id;
+            if left(v_item ->> 'field', length('bonification.')) = 'bonification.' then
+                v_field := substr(v_item ->> 'field', length('bonification.') + 1);
+                update public.verifications
+                   set bonification = case
+                        when v_item -> 'after' = 'null'::jsonb
+                            then coalesce(bonification, '{}'::jsonb) - v_field
+                        else jsonb_set(coalesce(bonification, '{}'::jsonb), array[v_field], v_item -> 'after')
+                   end
+                 where id = v_id;
+            else
+                v_field := substr(v_item ->> 'field', length('analysis.') + 1);
+                update public.verifications
+                   set analysis = case
+                        when v_item -> 'after' = 'null'::jsonb or v_item ->> 'after' is null
+                            then coalesce(analysis, '{}'::jsonb) - v_field
+                        else jsonb_set(coalesce(analysis, '{}'::jsonb), array[v_field], v_item -> 'after')
+                   end
+                 where id = v_id;
+            end if;
             if not found then
                 raise exception 'OPTIMISTIC_CONFLICT: verifications/%', v_id;
             end if;

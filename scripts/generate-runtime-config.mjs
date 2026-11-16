@@ -91,11 +91,29 @@ function buildRuntimeInput(environment = {}) {
         environment.RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED,
         'RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED'
     );
+    const operationalCorrectionPilot = parseBoolean(
+        environment.RADAR_OPERATIONAL_CORRECTION_PREVIEW,
+        'RADAR_OPERATIONAL_CORRECTION_PREVIEW'
+    );
     const url = String(environment.RADAR_SUPABASE_URL || '').trim();
     const publishableKey = String(environment.RADAR_SUPABASE_PUBLISHABLE_KEY || '').trim();
 
     if (isForbiddenPublishableKey(publishableKey)) {
         throw new Error('Chave secreta não é permitida na configuração pública do frontend.');
+    }
+
+    if (operationalCorrectionPilot) {
+        let loopback = false;
+        try {
+            loopback = ['localhost', '127.0.0.1'].includes(new URL(url).hostname);
+        } catch (_error) {
+            loopback = false;
+        }
+        if (dataMode !== 'supabase-preview'
+            || !['local', 'development', 'test'].includes(runtimeEnvironment)
+            || !loopback) {
+            throw new Error('Correção operacional piloto exige Supabase local, ambiente de teste e URL loopback.');
+        }
     }
 
     if (dataMode === 'local') {
@@ -131,9 +149,9 @@ function buildRuntimeInput(environment = {}) {
         environment: runtimeEnvironment,
         dataMode,
         productionActivationApproved: dataMode === 'supabase-production',
-        features: {
-            supabaseRepositoryEnabled: true
-        },
+        features: operationalCorrectionPilot
+            ? { supabaseRepositoryEnabled: true, operationalCorrectionPilot: true }
+            : { supabaseRepositoryEnabled: true },
         supabase: {
             url,
             publishableKey

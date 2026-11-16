@@ -117,3 +117,39 @@ test('bloqueia modo de produção sem ambiente e autorização explícitos', asy
     assert.equal(approved.dataMode, 'supabase-production');
     assert.equal(approved.productionActivationApproved, true);
 });
+
+
+test('habilita correção T2/T3 apenas contra Supabase local em modo de teste', async () => {
+    const { buildRuntimeInput } = await loadGenerator();
+    const config = buildRuntimeInput({
+        RADAR_DATA_MODE: 'supabase-preview',
+        RADAR_ENVIRONMENT: 'test',
+        RADAR_SUPABASE_REPOSITORY_ENABLED: 'true',
+        RADAR_SUPABASE_URL: 'http://127.0.0.1:54321',
+        RADAR_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_local_fixture',
+        RADAR_OPERATIONAL_CORRECTION_PREVIEW: 'true'
+    });
+    assert.equal(config.features.operationalCorrectionPilot, true);
+    assert.equal(config.dataMode, 'supabase-preview');
+
+    for (const changes of [
+        { RADAR_DATA_MODE: 'supabase-production', RADAR_ENVIRONMENT: 'production',
+            RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED: 'true' },
+        { RADAR_ENVIRONMENT: 'preview' },
+        { RADAR_SUPABASE_URL: 'https://example.supabase.co' },
+        { RADAR_DATA_MODE: 'local' }
+    ]) {
+        assert.throws(
+            () => buildRuntimeInput({
+                RADAR_DATA_MODE: 'supabase-preview',
+                RADAR_ENVIRONMENT: 'test',
+                RADAR_SUPABASE_REPOSITORY_ENABLED: 'true',
+                RADAR_SUPABASE_URL: 'http://127.0.0.1:54321',
+                RADAR_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_local_fixture',
+                RADAR_OPERATIONAL_CORRECTION_PREVIEW: 'true',
+                ...changes
+            }),
+            /Correção operacional piloto exige Supabase local/i
+        );
+    }
+});

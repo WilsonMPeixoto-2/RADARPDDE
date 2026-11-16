@@ -10587,22 +10587,27 @@ function renderProntuarioVerificacoes(esc) {
                                     `;
                                 }
 
-                                const editControls = canMutateInvoice
-                                    && !invoicePendency
-                                    && note.tipo !== 'a_identificar'
+                                const integratedDeletion = window.RadarOperationalCorrectionDialog?.canUse?.(window) === true;
+                                const canEditInvoiceData = canMutateInvoice && !invoicePendency
+                                    && note.tipo !== 'a_identificar';
+                                const canDeleteInvoice = canMutateInvoice && (
+                                    integratedDeletion || (canEditInvoiceData && !hasPendencyHistory)
+                                );
+                                const editControls = (canEditInvoiceData || canDeleteInvoice)
                                     ? `
                                         <span class="invoice-document-inline-actions">
-                                            <button type="button" onclick="abrirEditarNota('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')" aria-label="Editar ${escapeHtml(getInvoiceDocumentTitle(note))}">
-                                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg>
-                                            </button>
-                                            ${!hasPendencyHistory ? `
+                                            ${canEditInvoiceData ? `
+                                                <button type="button" onclick="abrirEditarNota('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')" aria-label="Editar ${escapeHtml(getInvoiceDocumentTitle(note))}">
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg>
+                                                </button>
+                                            ` : ''}
+                                            ${canDeleteInvoice ? `
                                                 <button type="button" class="is-danger" onclick="removerNotaRegistrada('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')" aria-label="Excluir ${escapeHtml(getInvoiceDocumentTitle(note))}">
                                                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4.5h6V7M7 7l1 13h8l1-13M10 10v7M14 10v7"/></svg>
                                                 </button>
                                             ` : ''}
                                         </span>
-                                    `
-                                    : '';
+                                    ` : '';
 
                                 return `
                                     <div class="invoice-document-row ${noteIndex % 2 === 1 ? 'is-striped' : ''}" data-invoice-id="${escapeHtml(note.id)}">
@@ -11292,6 +11297,22 @@ function renderPendencyDrawer() {
                     onclick="openPendencyDrawerWorkflowAction('reanalyze', this)"
                 >Reanalisar</button>
             ` : ''}
+            ${!edit && linkedInvoice
+                && ['notaFiscal', 'consAssessoria'].includes(String(pendency.documentoKey || ''))
+                && window.RadarOperationalCorrectionDialog?.canUse?.(window)
+                && getRadarAccessProfile() !== 'sme' && getRadarAccessProfile() !== 'inventario' ? `
+                <button type="button" class="btn btn-secondary btn-sm"
+                    onclick="corrigirAnaliseDaPendencia('${escapeHtml(pendency.id)}', this)">
+                    Corrigir análise
+                </button>
+            ` : ''}
+            ${!edit && window.RadarOperationalCorrectionDialog?.canUse?.(window)
+                && getRadarAccessProfile() !== 'sme' && getRadarAccessProfile() !== 'inventario' ? `
+                <button type="button" class="btn btn-secondary btn-sm"
+                    onclick="excluirPendenciaOperacional('${escapeHtml(pendency.id)}', this)">
+                    Excluir pendência
+                </button>
+            ` : ''}
             <button type="button" class="pendency-preview-edit-button" onclick="handlePendencyDrawerPrimaryAction()">
                 ${edit
                     ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4 4L19 6.5"/></svg><span>Salvar</span>'
@@ -11530,7 +11551,110 @@ async function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElem
     return true;
 }
 
+// Correção operacional unificada no ambiente isolado: a prévia do servidor
+// informa todos os dependentes antes de permitir salvar/excluir.
+function openInvoiceOperationalCorrection(invoiceId, escolaId, documentKey = 'notaFiscal',
+    trigger = document.activeElement, suggestedValue = '') {
+    const invoice = notasRegistradas.find(note => String(note.id) === String(invoiceId)
+        && String(note.escolaId) === String(escolaId));
+    const dialog = window.RadarOperationalCorrectionDialog;
+    if (!invoice || !dialog?.canUse?.(window)) return false;
+    const context = window.RadarCompetencia.splitCompetenciaContext(invoice.compKey);
+    const verification = verificacoes[escolaId]?.[invoice.compKey];
+    let currentValue = 'Não analisado';
+    if (documentKey === 'consAssessoria') {
+        const related = notasRegistradas.filter(note => (
+            note.escolaId === escolaId && note.compKey === invoice.compKey
+                && note.tipo === 'servico'
+        ));
+        currentValue = window.RadarServiceAdvisory.getServiceAdvisoryState(
+            invoice, related.length === 1 ? {
+                sent: verification?.bonificacao?.consEnviada === true,
+                analysis: verification?.analise?.consAssessoria
+            } : {}
+        ).analysis;
+    } else {
+        const related = notasRegistradas.filter(note => (
+            note.escolaId === escolaId && note.compKey === invoice.compKey
+        ));
+        const hasIndividualAnalysis = related.some(note => (
+            window.RadarInvoiceDocumentAnalysis.hasExplicitInvoiceDocumentAnalysis(note)
+        ));
+        currentValue = window.RadarInvoiceDocumentAnalysis.getInvoiceDocumentAnalysis(
+            invoice, hasIndividualAnalysis
+                ? 'Não analisado' : (verification?.analise?.notaFiscal || 'Não analisado')
+        );
+    }
+    return dialog.open(window, {
+        context: {
+            schoolId: escolaId,
+            competence: context.competenciaKey,
+            programId: context.contextId,
+            documentKey,
+            invoiceId: invoice.id,
+            documentLabel: documentKey === 'consAssessoria'
+                ? `Consulta à Assessoria — ${getInvoiceDocumentTitle(invoice)}`
+                : getInvoiceDocumentTitle(invoice)
+        },
+        currentValue, suggestedValue, trigger
+    });
+}
+
+function corrigirAnaliseDaPendencia(pendencyId, trigger = document.activeElement) {
+    const pendency = pendencias.find(item => String(item.id) === String(pendencyId))
+        || window.RadarTask9PendencyPage?.getPendencyRecordById?.(pendencyId);
+    const invoice = getPendencyLinkedInvoice(pendency)
+        || notasRegistradas.find(note => String(note.id) === String(pendency?.registeredInvoiceId || ''));
+    const documentKey = String(pendency?.documentoKey || pendency?.document_key || '');
+    if (!invoice || !['notaFiscal', 'consAssessoria'].includes(documentKey)) return false;
+    const target = { invoiceId: invoice.id, escolaId: invoice.escolaId, documentKey };
+    const before = window.RadarOperationalCorrectionDialog?.canUse?.(window);
+    if (!before) return false;
+    if (document.getElementById('pendency-detail-drawer')) window.closePendencyDetail?.();
+    const drawer = document.getElementById('pendency-preview-drawer');
+    if (drawer && !drawer.hidden) closePendencyDrawer();
+    return openInvoiceOperationalCorrection(target.invoiceId, target.escolaId,
+        target.documentKey, trigger?.isConnected ? trigger : null);
+}
+
+function excluirPendenciaOperacional(pendencyId, trigger = document.activeElement) {
+    const item = pendencias.find(pendency => String(pendency.id) === String(pendencyId))
+        || window.RadarTask9PendencyPage?.getPendencyRecordById?.(pendencyId);
+    const dialog = window.RadarOperationalCorrectionDialog;
+    if (!item || !dialog?.canUse?.(window)) return false;
+    const schoolId = String(item.escolaId || item.schoolId || '');
+    const competence = String(item.competenciaOrigem || item.competencia || item.competence_origin
+        || item.competence || '');
+    if (!schoolId || !competence) return false;
+    // A gaveta lateral também pode ser modal: fechá-la antes de abrir a prévia
+    // evita bloquear a atualização do estado depois da transação.
+    if (document.getElementById('pendency-detail-drawer')) window.closePendencyDetail?.();
+    const previewDrawer = document.getElementById('pendency-preview-drawer');
+    if (previewDrawer && !previewDrawer.hidden) closePendencyDrawer();
+    const linkedInvoiceForLabel = getPendencyLinkedInvoice(item)
+        || notasRegistradas.find(note => String(note.id) === String(item.registeredInvoiceId || item.registered_invoice_id || ''));
+    const resolvedItemLabel = window.RadarAuditableRetification?.deriveUpdatedPendencyItem
+        ? window.RadarAuditableRetification.deriveUpdatedPendencyItem(item, linkedInvoiceForLabel)
+        : String(item.item || '');
+    return dialog.open(window, {
+        mode: 'delete_pendency',
+        context: {
+            schoolId,
+            competence,
+            programId: String(item.programaId || item.programId || item.program_id || ''),
+            documentKey: String(item.documentoKey || item.documentKey || item.document_key || ''),
+            pendencyId: item.id,
+            linkedInvoiceId: String(item.registeredInvoiceId || item.registered_invoice_id || ''),
+            documentLabel: `Pendência — ${String(resolvedItemLabel || item.item || item.motivo || 'registro selecionado')}`
+        },
+        trigger: trigger?.isConnected ? trigger : null
+    });
+}
+
 function beginInvoiceDocumentAnalysisEdit(invoiceId, escolaId) {
+    if (window.RadarOperationalCorrectionDialog?.canUse?.(window)) {
+        return openInvoiceOperationalCorrection(invoiceId, escolaId);
+    }
     const scrollSnapshot = window.RadarProntuarioScrollPreservation?.capture?.(window) || null;
     try {
         invoiceAnalysisEditId = String(invoiceId);
@@ -11575,6 +11699,13 @@ async function changeInvoiceDocumentAnalysis(
             ? 'Não analisado'
             : (verification?.analise?.notaFiscal || 'Não analisado')
     );
+    if (window.RadarOperationalCorrectionDialog?.canUse?.(window)
+        && previousValue !== 'Não analisado'
+        && value !== 'Incorreto') {
+        if (selectElement) selectElement.value = previousValue;
+        return openInvoiceOperationalCorrection(invoiceId, escolaId, 'notaFiscal',
+            selectElement, value);
+    }
     const activePendency = findActiveInvoiceDocumentPendency(invoice);
     if (activePendency) {
         if (selectElement) selectElement.value = previousValue;
@@ -11819,6 +11950,13 @@ async function changeInvoiceAdvisoryAnalysis(
         } : {}
     );
 
+    if (window.RadarOperationalCorrectionDialog?.canUse?.(window)
+        && previousState.analysis !== 'Não analisado'
+        && value !== 'Incorreto') {
+        if (selectElement) selectElement.value = previousState.analysis;
+        return openInvoiceOperationalCorrection(notaId, escolaId, 'consAssessoria',
+            selectElement, value);
+    }
     const activePendency = findActiveInvoiceAdvisoryPendency(nota);
     if (activePendency) {
         if (selectElement && typeof selectElement === 'object') {
@@ -11911,8 +12049,23 @@ async function removerNotaRegistrada(notaId, escolaId) {
     const accessProfile = getRadarAccessProfile();
     if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
     const nota = notasRegistradas.find(item => item.id === notaId);
-    if (!nota) return;
-    if (!confirm('Deseja realmente remover esta nota fiscal registrada?')) return;
+    if (!nota) return false;
+    if (window.RadarOperationalCorrectionDialog?.canUse?.(window)) {
+        const context = window.RadarCompetencia.splitCompetenciaContext(nota.compKey);
+        return window.RadarOperationalCorrectionDialog.open(window, {
+            mode: 'delete_invoice',
+            context: {
+                schoolId: escolaId,
+                competence: context.competenciaKey,
+                programId: context.contextId,
+                documentKey: 'notaFiscal',
+                invoiceId: nota.id,
+                documentLabel: getInvoiceDocumentTitle(nota)
+            },
+            trigger: document.activeElement
+        });
+    }
+    if (!confirm('Deseja realmente remover esta nota fiscal registrada?')) return false;
 
     try {
         const result = await radarInvoiceService.remove({

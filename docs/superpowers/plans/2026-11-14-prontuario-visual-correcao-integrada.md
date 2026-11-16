@@ -8,6 +8,10 @@
 **Baseline confirmada em 14/11/2026, Brasília:** `main@190e44942d0bb6927d1a7eeb83fb94fc782171b8`; comparação remota idêntica durante o planejamento. Os catálogos SQL abaixo são evidência datada da análise anterior, não revalidação automática de futuras migrations.
 **Estado:** plano proposto, sem etapas de implementação executadas.
 
+> **Decisão obrigatória de ambiente e aprovação humana — 15/11/2026:** executar as jornadas candidatas numa cópia local do RADAR com **Supabase completo em Docker, navegador e testes reais**, e obter validação navegada do proprietário nos marcos materiais T1–T5. A automação do GitHub Actions é complementar, não substitui essa aprovação. Ver [seção 8 da matriz de transição](../../reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md#8-ambiente-local-como-etapa-obrigatória-de-validação--decisão-de-15112026). Preparar o ambiente antes de fechar T2; código T4/T5 ainda não está concluído. Não publicar nesta frente.
+
+> **Complemento de execução — 15/11/2026:** [Matriz de transição integral T0–T6](../../reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md) é leitura obrigatória junto deste plano para cada lote. Ela identifica as **regras e interfaces antigas que permanecem deliberadamente ativas enquanto a funcionalidade nova está em preparação**, a sequência correta de substituição, as expectativas de teste a atualizar, tipos/RPCs, consumidores, documentos, frontend e compatibilidade com clientes antigos. Este complemento **não** altera a decisão de destino nem declara uma etapa homologada ou publicada.
+
 **Especificações que acompanham o plano:**
 
 - [Direção visual do Prontuário, documento fixado](https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/5e57eda0e47983754b54b3ee1f7c59ecba202dbd/docs/superpowers/specs/2026-11-13-prontuario-exploracao-visual.md).
@@ -29,6 +33,14 @@
 - Referência visual não cria enum, campo obrigatório, regra de negócio ou aprovação que o sistema não possua.
 - Não resolver falha de teste enfraquecendo regra válida, tolerância visual ou autorização. Contratos antigos deliberadamente substituídos recebem novos testes explícitos.
 - As contagens anteriores — inclusive 424 despesas com histórico e dois legados sem FK individual — não autorizam limpeza em massa nem indicam que os registros são inválidos.
+
+### Princípio global de produto — liberar o caminho de correção, não apenas trocar a trava
+
+**Leitura vinculante:** [diretriz transversal de correção assistida](../../reference/PRONTUARIO_CORRECAO_CONTRATO.md#diretriz-transversal--correção-assistida-sem-bloqueios-desnecessários-15112026). Para cada regra antiga, perguntar: **qual problema ela previne e qual ação o operador realmente deseja realizar?** Priorizar uma operação diretamente possível com efeitos coerentes; caso uma obrigação posterior permaneça, salvar a correção e oferecer **ação contextual específica** para concluí-la; se a dependência exigir ação prévia, explicar a razão e conduzir o usuário à tela correta, com retorno à intenção original. **Bloqueio é a última opção**, restrito a risco real, ambiguidade, ausência de autorização ou impossibilidade técnica demonstrada.
+
+Exemplo de T4: editar lançamento de bonificação já consolidada **não deve exigir excluir a consolidação antes nem permissão de administração geral**. O sistema deve registrar a alteração do operador autorizado, explicitar que o resultado anterior está pendente de atualização, e oferecer **“Consolidar alterações”** usando o fluxo canônico de consolidação, inclusive seus requisitos efetivos de completude. Isso precisa repercutir nos dados a serem exportados novamente; não prometer reescrita de arquivo XLSX anteriormente baixado. Definir e testar representação de pendência e distinção histórico/vigente sem criar outro cálculo paralelo de bonificação. Em T2/T3/T5, preferir recomposição automática segura dos vínculos; quando não for viável, uma orientação com ação imediata, não um bloqueio sem saída.
+
+**Gate de cada lote:** além de testar a regra nova, demonstrar que a pessoa consegue sair do impasse; capturar fluxo **tentativa → orientação → ação de resolução → retorno → resultado consistente** e validar na cópia local navegável. Não confundir responsabilidade do usuário pelo conteúdo com ausência de validações de integridade no banco.
 
 ## Foco da revisão e prova correspondente
 

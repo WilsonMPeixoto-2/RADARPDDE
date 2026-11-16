@@ -172,9 +172,6 @@
         const documentKey = normalizeText(pendency && (pendency.documentoKey || pendency.document_key));
 
         if (expenseType === 'a_identificar') {
-            if (currentItem && oldNumber && newNumber && oldNumber !== newNumber && currentItem.includes(oldNumber)) {
-                return currentItem.replace(oldNumber, newNumber);
-            }
             return currentItem || 'Despesa a identificar';
         }
         if (!newNumber) return currentItem;
@@ -194,9 +191,6 @@
         const advisoryMatch = currentItem.match(/^(.*Consulta\s+(?:à\s+)?Assessoria\s*[—-]\s*NF\s*:?\s*)(.+)$/i);
         if (advisoryMatch) {
             return `${advisoryMatch[1]}${newNumber}`;
-        }
-        if (oldNumber && oldNumber !== newNumber && currentItem.includes(oldNumber)) {
-            return currentItem.replace(oldNumber, newNumber);
         }
         if (documentKey === 'consAssessoria' && /^Consulta\s+(?:à\s+)?Assessoria$/i.test(currentItem)) {
             return `Consulta Assessoria — NF ${newNumber}`;

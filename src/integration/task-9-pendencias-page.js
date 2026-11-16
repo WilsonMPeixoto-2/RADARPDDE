@@ -891,6 +891,20 @@
                     </div>
                     <footer class="pendency-drawer-footer">
                         ${renderActionButtons(record, { drawer: true })}
+                        ${root.RadarOperationalCorrectionDialog?.canUse?.(root)
+                            && hasCapability(root.RadarAccessPolicy.CAPABILITIES.OPEN_PENDENCY)
+                            && record.registeredInvoiceId
+                            && ['notaFiscal', 'consAssessoria'].includes(record.documentKey)
+                            ? `<button type="button" class="btn btn-secondary btn-sm"
+                                onclick="corrigirAnaliseDaPendencia('${escapeHtml(record.id)}', this)">
+                                Corrigir análise
+                            </button>` : ''}
+                        ${root.RadarOperationalCorrectionDialog?.canUse?.(root)
+                            && hasCapability(root.RadarAccessPolicy.CAPABILITIES.OPEN_PENDENCY)
+                            ? `<button type="button" class="btn btn-secondary btn-sm"
+                                onclick="excluirPendenciaOperacional('${escapeHtml(record.id)}', this)">
+                                Excluir pendência
+                            </button>` : ''}
                     </footer>
                 </aside>
             </div>
@@ -1295,6 +1309,16 @@
         root.RadarTask9PendencyPage = Object.freeze({
             VERSION: '1.2.0',
             requestedHistoryStatuses,
+            getPendencyRecordById: id => {
+                const record = getPageModel().records.find(item => String(item.id) === String(id));
+                if (!record) return null;
+                return {
+                    id: record.id, schoolId: record.schoolId,
+                    competence: record.competence, programId: record.programId,
+                    documentKey: record.documentKey, registeredInvoiceId: record.registeredInvoiceId,
+                    item: record.item, status: record.status
+                };
+            },
             getFilterSummary: () => getFilterSummary(getPageModel()),
             setSchoolFilter: setPendencySchoolFilter,
             getState: () => ({

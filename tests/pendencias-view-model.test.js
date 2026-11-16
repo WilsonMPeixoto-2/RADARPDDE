@@ -451,3 +451,24 @@ test('propaga edição de número e descrição da Nota Fiscal vinculada para it
   assert.equal(record.invoiceAmount, 450.75);
   assert.equal(record.invoiceIdentityLabel, 'NF: 2217 · Kit pedagógico atualizado');
 });
+
+
+test('não substitui número incidental em texto livre por conta de uma edição de NF', () => {
+  const p = {
+    schemaVersion: 2, id: 'pend-exemplo', escolaId: '04.31.001',
+    programaId: 'ED_FAMILIA', competencia: '2026-05',
+    documentoKey: 'notaFiscal', registeredInvoiceId: 'NF-item',
+    item: 'A escola deverá apresentar 55 anexos complementares',
+    status: 'Aberta', tentativas: [], historico: [],
+    documentSnapshot: { numero: '55' }
+  };
+  const inputs = baseInput({ pendencias: [p], notasRegistradas: [{
+    id: 'NF-item', escolaId: '04.31.001',
+    numero: '2217', desc: 'Aquisição devidamente corrigida', tipo: 'consumo'
+  }] });
+  const original = structuredClone(p);
+  const row = ViewModel.buildPendencyRecords(inputs)[0];
+  assert.equal(row.item, 'A escola deverá apresentar 55 anexos complementares');
+  assert.equal(row.invoiceNumber, '2217');
+  assert.deepEqual(p, original);
+});
