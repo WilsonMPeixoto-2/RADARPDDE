@@ -7,7 +7,7 @@ set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(61);
+select plan(62);
 
 -- --------------------------------------------------------------- massa
 insert into auth.users (id, email) values
@@ -257,6 +257,16 @@ select is((select count(*)::int from public.pendencies where id = 'OCC-P-EXTCC')
 select throws_like(
     $$ select public.preview_operational_change(pg_temp.occ_req('correct_analysis', '{"kind":"analysis","programId":"OCC_BASIC","documentKey":"extINV"}', '{"changes":{"analysis":"Correto"},"selectedPendencyIds":["OCC-P-EXTINV-2"]}')) $$,
     'VALIDATION_ERROR%', 'seleção de Pendência fora da consequência (histórica) é rejeitada');
+-- Um cliente não pode enviar seleção vazia e deixar Incorreto sem tratamento.
+select ok(
+    (public.preview_operational_change(pg_temp.occ_req(
+        'correct_analysis',
+        '{"kind":"analysis","programId":"OCC_BASIC","documentKey":"extINV"}',
+        '{"changes":{"analysis":"Correto"},"selectedPendencyIds":[]}'
+    )) -> 'blockers') @> '[{"code":"INCOMPLETE_PENDENCY_SELECTION"}]'::jsonb,
+    'T2: seleção explícita vazia bloqueia análise correta com Pendência ativa remanescente'
+);
+
 insert into occ_plans values ('fix-extinv-sel', public.preview_operational_change(pg_temp.occ_req('correct_analysis', '{"kind":"analysis","programId":"OCC_BASIC","documentKey":"extINV"}', '{"changes":{"analysis":"Correto"},"selectedPendencyIds":["OCC-P-EXTINV-1"]}')));
 select lives_ok(
     $$ select public.apply_operational_change(
