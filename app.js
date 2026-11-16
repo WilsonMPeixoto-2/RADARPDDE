@@ -11631,6 +11631,11 @@ function excluirPendenciaOperacional(pendencyId, trigger = document.activeElemen
     if (document.getElementById('pendency-detail-drawer')) window.closePendencyDetail?.();
     const previewDrawer = document.getElementById('pendency-preview-drawer');
     if (previewDrawer && !previewDrawer.hidden) closePendencyDrawer();
+    const linkedInvoiceForLabel = getPendencyLinkedInvoice(item)
+        || notasRegistradas.find(note => String(note.id) === String(item.registeredInvoiceId || item.registered_invoice_id || ''));
+    const resolvedItemLabel = window.RadarAuditableRetification?.deriveUpdatedPendencyItem
+        ? window.RadarAuditableRetification.deriveUpdatedPendencyItem(item, linkedInvoiceForLabel)
+        : String(item.item || '');
     return dialog.open(window, {
         mode: 'delete_pendency',
         context: {
@@ -11640,7 +11645,7 @@ function excluirPendenciaOperacional(pendencyId, trigger = document.activeElemen
             documentKey: String(item.documentoKey || item.documentKey || item.document_key || ''),
             pendencyId: item.id,
             linkedInvoiceId: String(item.registeredInvoiceId || item.registered_invoice_id || ''),
-            documentLabel: `Pendência — ${String(item.item || item.motivo || 'registro selecionado')}`
+            documentLabel: `Pendência — ${String(resolvedItemLabel || item.item || item.motivo || 'registro selecionado')}`
         },
         trigger: trigger?.isConnected ? trigger : null
     });
@@ -11695,6 +11700,7 @@ async function changeInvoiceDocumentAnalysis(
             : (verification?.analise?.notaFiscal || 'Não analisado')
     );
     if (window.RadarOperationalCorrectionDialog?.canUse?.(window)
+        && previousValue !== 'Não analisado'
         && value !== 'Incorreto') {
         if (selectElement) selectElement.value = previousValue;
         return openInvoiceOperationalCorrection(invoiceId, escolaId, 'notaFiscal',
@@ -11945,6 +11951,7 @@ async function changeInvoiceAdvisoryAnalysis(
     );
 
     if (window.RadarOperationalCorrectionDialog?.canUse?.(window)
+        && previousState.analysis !== 'Não analisado'
         && value !== 'Incorreto') {
         if (selectElement) selectElement.value = previousState.analysis;
         return openInvoiceOperationalCorrection(notaId, escolaId, 'consAssessoria',
