@@ -519,3 +519,51 @@ test('orientação para Incorreto na Assessoria abre seu fluxo, não a Pendênci
     expect(await page.evaluate(() => window.__advisoryOpens))
         .toEqual([['NF-SVC', 'ESC-1', 'Incorreto']]);
 });
+
+test('confirmação acionada na fila de Pendências re-renderiza renderPendencias sem sobrescrever com renderProntuario', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(async () => {
+        await window.RadarProductExtensionsReady;
+        switchView('pendencias');
+        window.__renderedViews = [];
+        const repository = {
+            capabilities: () => ({ remote: true }),
+            async executeRpc(name) {
+                if (name === 'preview_operational_change') {
+                    return {
+                        action: 'delete_pendency',
+                        planDigest: 'f'.repeat(64),
+                        effects: { delete: { pendencies: ['P-99'] }, update: [] },
+                        blockers: [],
+                        warnings: [],
+                        preserved: {}
+                    };
+                }
+                return { committed: true };
+            }
+        };
+        window.RadarOperationalCorrectionDialog.open({
+            document,
+            RADAR_OPERATIONAL_CORRECTION_PREVIEW: true,
+            RadarApplicationServices: { data: { repository } },
+            RadarOperationalCorrectionClient: window.RadarOperationalCorrectionClient,
+            RadarOperationalContextRefreshController: { refreshSchool: async () => ({ ok: true }) },
+            rebuildOperationalIndexes() {},
+            renderPendencias() { window.__renderedViews.push('pendencias'); },
+            renderProntuario() { window.__renderedViews.push('prontuario'); }
+        }, {
+            mode: 'delete_pendency',
+            context: {
+                schoolId: 'ESC-1',
+                competence: '2026-05',
+                programId: 'BASIC',
+                pendencyId: 'P-99',
+                documentLabel: 'Pendência de teste'
+            }
+        });
+    });
+    const dialog = page.getByRole('dialog', { name: 'Excluir pendência' });
+    await dialog.getByRole('button', { name: 'Confirmar exclusão' }).click();
+    await expect(dialog).toBeHidden();
+    expect(await page.evaluate(() => window.__renderedViews)).toEqual(['pendencias']);
+});
