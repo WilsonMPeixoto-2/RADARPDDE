@@ -1,13 +1,25 @@
 # Matriz de validade documental
 
-## Prontuário e correção integrada — rota documental vigente (15/11/2026)
+## Prontuário e correção integrada — validade vigente em 16/11/2026
 
-O [contrato aprovado](PRONTUARIO_CORRECAO_CONTRATO.md) define as regras de destino e o [plano T0–T6](../superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md) delimita a implementação. **O único handoff de execução corrente** é o [checkpoint de integração verificada de 15/11](../handoff/2026-11-15-prontuario-integracao-verificada.md), na branch `fix/prontuario-integrado-validado-20261115`. O [handoff original do Argon (14/11)](../handoff/2026-11-14-prontuario-correcao-integrada.md) e o [relatório do Manus](https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/audit/manus-auditoria-frente-integrada-20261114/docs/audits/2026-11-14-manus-auditoria-frente-integrada/RELATORIO.md) são fontes **históricas de comparação**, não pontos paralelos de retomada.
+**Branch executora única:** `fix/prontuario-integrado-validado-20261115`. Último SHA de código auditado antes desta atualização documental: `a8e47045`; consultar o HEAD efetivo, pois documentos avançam a branch. **Nenhuma integração na `main` nem publicação de T0–T6 foi realizada.**
 
-O estudo visual de 13/11 continua referência estética, mas restrições antigas incompatíveis com a flexibilização aprovada (justificativa compulsória, exclusão vedada só por histórico e terminalidade absoluta) não prevalecem sobre a decisão posterior. O código do SHA efetivo e o banco institucional continuam fontes para **o que está implementado hoje**. Um contrato aprovado não representa publicação, migração executada ou funcionalidade testada de ponta a ponta.
+**Ordem para cada novo agente:**
+1. [`AGENTS.md`](../../AGENTS.md) e [`CURRENT_STAGE.md`](../CURRENT_STAGE.md), que registram prioridade, publicação e branches.
+2. [Contrato aprovado](PRONTUARIO_CORRECAO_CONTRATO.md): regra funcional e desbloqueio orientado ao operador.
+3. [Plano original T0–T6, atualizado por estado](../superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md) e [matriz de transição](PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md): obrigações e critérios de aceite.
+4. **[Único handoff operacional corrente](../handoff/2026-11-15-prontuario-integracao-verificada.md)**, seção **“Estado vigente — reconciliação de 16/11/2026”**. Todo trecho subsequente no mesmo documento tem caráter de fotografia datada, não ordem para refazer etapas.
 
-**Classe documental:** Canônico  
-**Atualizado em:** 23 de outubro de 2026
+**Estado efetivo:** T0/T1 preparados, T1 sem homologação visual final; T2/T3 com UI e RPCs candidatas já conectadas **sob flag local OFF por padrão**, mas Auth/RLS, pgTAP real de **74 asserções**, segunda sessão, persistência após F5, concorrência e aceite humano não comprovados. T3 ainda requer validar a origem provisória Qualidade e corte dos escritores antigos. T4/T5 demandam implementação de novos comandos persistentes e UX; T6 não iniciado como homologação global.
+
+**Histórico comparativo, sem segunda autoridade:** Argon original 14/11, Manus, Gemini e Antigravity. Os seis refinamentos de Antigravity `1cb118fd` já entraram na branch de integração por aproveitamento seletivo: **não reexecutar**. As frentes PR #515 e #522 (layout/legibilidade da fila de Pendências) e PR #523 (recuperação de autenticação, incidente separado) permanecem isoladas; não trazer seus diffs automaticamente. Os PRs Dependabot não alteram o contrato vigente até integração comprovada.
+
+**Precedência de evidências:** comportamento real do código/SQL do SHA e ambiente consultados > decisões e ADRs > testes reproduzidos > documentação canônica > relatórios históricos. Código candidato não prova funcionamento em Produção, CI com RPC simulada não prova RLS/persistência e aceite do proprietário não é substituído por parecer automatizado.
+
+O [handoff original do Argon (14/11)](../handoff/2026-11-14-prontuario-correcao-integrada.md), o [relatório histórico do Manus](https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/audit/manus-auditoria-frente-integrada-20261114/docs/audits/2026-11-14-manus-auditoria-frente-integrada/RELATORIO.md) e o estudo visual de 13/11 preservam contexto, mas suas restrições anteriores que contrariam o contrato aprovado não prevalecem. Evitar justificativa obrigatória e bloqueios históricos por comodidade técnica.
+
+**Classe documental:** Canônico. **Rota temporária e status atualizados em:** 16/11/2026.  
+**Corpo histórico abaixo:** linhas e registros originais de 23/10/2026 e datas anteriores; preservar fatos pretéritos sem usá-los como instruções de retomada.
 
 ## 1. Finalidade e precedência
 
@@ -157,9 +169,11 @@ O servidor canônico e suas correções não alteraram schema, migrations, RPCs,
 
 **Sucessão prevista:** com `PROD-FUNC-09` já encerrado, depois de encerrar `PROD-UX-08` e os refinamentos imediatos que permanecerem válidos, a próxima decisão de produto deve recuperar `docs/evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md` antes de abrir uma frente ampla de layout/design. Essa obrigação preserva o debate sobre Figma, design system, tokens, componentização, iconografia, tipografia, galeria de estados e tooling visual sem transformar a avaliação datada em adoção automática.
 
-## 4. Handoff corrente e histórico
+## 4. Handoff corrente e histórico — fotografia de 22/10/2026 (SUPERADA)
 
-Não há handoff de execução corrente designado no checkpoint vigente de 22/10 de
+**Este parágrafo preserva o estado de 22/10, não o estado de 16/11: o handoff vigente agora é o checkpoint de integração de 15/11, com seção de 16/11 explicitada na abertura deste documento.**
+
+Na data-base de 22/10, não havia handoff de execução corrente designado no checkpoint daquela data de
 `CURRENT_STAGE.md`. A manutenção CLI #472 está encerrada; não reabrir seus testes sem novo risco. `docs/audits/2026-10-11-controller-journey/HANDOFF.md` é histórico:
 preserva a auditoria A–N e os checkpoints das sete correções encerradas pelo #438,
 sem constituir uma atribuição atual nem certificar o desempenho sistêmico.
