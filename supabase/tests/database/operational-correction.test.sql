@@ -192,10 +192,10 @@ select throws_like(
 insert into occ_plans values ('nf3', public.preview_operational_change(pg_temp.occ_req('delete_invoice', '{"kind":"invoice","id":"OCC-NF-3"}')));
 select ok((select plan -> 'warnings' @> '[{"code":"ASSET_INVENTORIED_DELETED"}]' from occ_plans where k = 'nf3'), 'prévia avisa que o bem Inventariado será excluído');
 select lives_ok(
-    $ select public.apply_operational_change(
+    $$ select public.apply_operational_change(
         pg_temp.occ_req('delete_invoice', '{"kind":"invoice","id":"OCC-NF-3"}'),
         (select plan ->> 'planDigest' from occ_plans where k = 'nf3'),
-        '00000000-0000-0000-0000-0000000000a3') $,
+        '00000000-0000-0000-0000-0000000000a3') $$,
     'exclusão de despesa com bem Inventariada é permitida pelo comando autorizado');
 select is((select (bonification ->> 'encampInventario') || '|' || (analysis ->> 'encampInventario')
     from public.verifications where id = 'OCC-SCHOOL::2041-03::OCC_BASIC'),
@@ -369,10 +369,10 @@ set local role authenticated;
 insert into occ_plans values ('svc-p', public.preview_operational_change(pg_temp.occ_req(
     'delete_pendency', '{"kind":"pendency","id":"OCC-P-SVC-1","programId":"OCC_SERVICE"}')));
 select lives_ok(
-    $ select public.apply_operational_change(
+    $$ select public.apply_operational_change(
         pg_temp.occ_req('delete_pendency', '{"kind":"pendency","id":"OCC-P-SVC-1","programId":"OCC_SERVICE"}'),
         (select plan ->> 'planDigest' from occ_plans where k = 'svc-p'),
-        '00000000-0000-0000-0000-0000000000c1') $,
+        '00000000-0000-0000-0000-0000000000c1') $$,
     'T2: excluir Pendência ativa de Assessoria com outra NF de serviço é permitido');
 select is(
     (select payload ->> 'analiseConsultaAssessoria' from public.registered_invoices where id='OCC-SVC-1')
@@ -387,10 +387,10 @@ select ok((select plan -> 'effects' -> 'update' @>
     from occ_plans where k='svc1'),
     'T3: prévia contém as três projeções de Assessoria afetadas pela exclusão');
 select lives_ok(
-    $ select public.apply_operational_change(
+    $$ select public.apply_operational_change(
         pg_temp.occ_req('delete_invoice', '{"kind":"invoice","id":"OCC-SVC-1","programId":"OCC_SERVICE"}'),
         (select plan ->> 'planDigest' from occ_plans where k = 'svc1'),
-        '00000000-0000-0000-0000-0000000000c2') $,
+        '00000000-0000-0000-0000-0000000000c2') $$,
     'T3: excluir a primeira NF de serviço recompõe projeções');
 select is((select (bonification ->> 'consAssessoria') || '|' || (bonification ->> 'consEnviada')
       || '|' || (analysis ->> 'consAssessoria') || '|' || bonus_result
@@ -403,10 +403,10 @@ select is((select count(*)::int from public.registered_invoices where id='OCC-SV
 insert into occ_plans values ('svc2-clear', public.preview_operational_change(pg_temp.occ_req(
     'clear_analysis', '{"kind":"analysis","id":"OCC-SVC-2","programId":"OCC_SERVICE","documentKey":"consAssessoria"}')));
 select lives_ok(
-    $ select public.apply_operational_change(
+    $$ select public.apply_operational_change(
         pg_temp.occ_req('clear_analysis', '{"kind":"analysis","id":"OCC-SVC-2","programId":"OCC_SERVICE","documentKey":"consAssessoria"}'),
         (select plan ->> 'planDigest' from occ_plans where k='svc2-clear'),
-        '00000000-0000-0000-0000-0000000000c4') $,
+        '00000000-0000-0000-0000-0000000000c4') $$,
     'T2: limpar análise individual de Assessoria aplica sem apagar NF');
 select is(
     (select payload ->> 'analiseConsultaAssessoria' from public.registered_invoices where id='OCC-SVC-2')
@@ -417,10 +417,10 @@ select is(
 insert into occ_plans values ('svc2', public.preview_operational_change(pg_temp.occ_req(
     'delete_invoice', '{"kind":"invoice","id":"OCC-SVC-2","programId":"OCC_SERVICE"}')));
 select lives_ok(
-    $ select public.apply_operational_change(
+    $$ select public.apply_operational_change(
         pg_temp.occ_req('delete_invoice', '{"kind":"invoice","id":"OCC-SVC-2","programId":"OCC_SERVICE"}'),
         (select plan ->> 'planDigest' from occ_plans where k = 'svc2'),
-        '00000000-0000-0000-0000-0000000000c3') $,
+        '00000000-0000-0000-0000-0000000000c3') $$,
     'T3: excluir última NF de serviço recompõe o contexto vazio');
 select is((select (bonification ->> 'consAssessoria') || '|' || (bonification ->> 'consEnviada')
       || '|' || (analysis ->> 'consAssessoria') || '|' || bonus_result
