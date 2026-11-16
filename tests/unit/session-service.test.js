@@ -222,3 +222,20 @@ test('falha temporária na restauração de sessão mantém credenciais no clien
     assert.equal(service.getAuthorizationContext(), null);
     assert.equal(client.signOutCalls.length, 0);
 });
+
+
+test('falha explícita de permissão não é classificada como timeout transitório', async () => {
+    const client = createClient({
+        userProfiles: [activeProfile()],
+        tableErrors: { user_profiles: {
+            status: 403, code: '42501', message: 'permission denied'
+        } }
+    });
+    const service = new SessionService({ client });
+    await assert.rejects(
+        service.signIn({ email: 'controller@radar.local', password: 'fixture' }),
+        error => error instanceof SessionError && error.code === 'AUTHORIZATION_UNAVAILABLE'
+    );
+    assert.equal(client.signOutCalls.length, 1);
+    assert.equal(service.getAuthorizationContext(), null);
+});
