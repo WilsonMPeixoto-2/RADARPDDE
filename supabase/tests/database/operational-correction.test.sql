@@ -7,7 +7,7 @@ set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(70);
+select plan(71);
 
 -- --------------------------------------------------------------- massa
 insert into auth.users (id, email) values
