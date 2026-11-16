@@ -1,5 +1,11 @@
 # RADAR PDDE — estado atual e retomada
 
+## Execução T2/T3 candidata — atualização após 15/11/2026
+
+**Fonte operacional única:** [checkpoint T2/T3 atualizado](handoff/2026-11-15-prontuario-integracao-verificada.md), seção **“Incremento T2/T3 — código candidato conectado”**. A versão da branch `fix/prontuario-integrado-validado-20261115` agora inclui UI de correção e exclusão para NF, Pendência e Assessoria, recomposição SQL de agregados e testes novos versionados. **Ainda não foi validada com Docker/Supabase real e Playwright autenticado**; não confundir código criado com homologação. O cliente piloto continua sob flag desligada por padrão. Não fazer merge, deploy nem alterar Supabase institucional.
+
+**Próxima etapa:** rodar e corrigir os testes no banco local com usuários sintéticos, autorização/RLS, concorrência, rollback, F5, segunda sessão, projeções e exportação; confirmar os fluxos visualmente com o proprietário. T4 (bonificação após consolidação/contexto) e T5 (histórico/inventário) não estão implementados integralmente. **Precedência desta atualização sobre as fotografias históricas abaixo.**
+
 ## Frente corrente — Prontuário e correções operacionais — 15/11/2026
 
 **Único ponto de retomada desta frente:** [checkpoint de integração T0–T3 (15/11)](handoff/2026-11-15-prontuario-integracao-verificada.md), vinculado à branch `fix/prontuario-integrado-validado-20261115`. **Não retomar pela branch original do Argon** (`feat/prontuario-correcao-integrada-20261114`) nem pelos arquivos históricos do Manus. O checkpoint é o registro operacional de estado e próximos passos; validar sempre o HEAD remoto antes de editar.
