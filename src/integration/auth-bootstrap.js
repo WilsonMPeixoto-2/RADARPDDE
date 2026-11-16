@@ -133,6 +133,17 @@
                 authenticatedSessionObserved = true;
                 return;
             }
+            if (state?.status === 'authorization_unavailable') {
+                // Quando o PostgREST falha, não apresentar o estado como logout.
+                // A autorização permanece bloqueada até uma validação completa.
+                root.RadarAuthContext = null;
+                const error = new Error('Não foi possível confirmar o perfil institucional no momento.');
+                error.code = state.errorCode || 'AUTHORIZATION_UNAVAILABLE';
+                root.RadarAuthGate?.showWorkspaceError?.(error, {
+                    stage: 'authorization-temporarily-unavailable'
+                });
+                return;
+            }
             if (state?.status !== 'signed_out') return;
             root.RadarAuthContext = null;
             emitAuthRequired(root, 'Sua sessão foi encerrada. Entre novamente para continuar.');
@@ -148,6 +159,15 @@
         try {
             state = await sessionService.initialize();
         } catch (error) {
+            if (root.RadarSessionService?.isTemporaryAccessFailure?.(error)) {
+                // A UI de recuperação exige nova verificação em recarga, sem
+                // perda do token nem acesso a dados sem autorização válida.
+                root.RadarAuthContext = null;
+                root.RadarAuthGate?.showWorkspaceError?.(error, {
+                    stage: 'authorization-temporarily-unavailable'
+                });
+                throw error;
+            }
             await sessionService.signOut().catch(() => null);
             emitAuthRequired(root, error?.message || 'A sessão atual não pôde ser validada.');
             state = await sessionService.waitForAuthenticated();
