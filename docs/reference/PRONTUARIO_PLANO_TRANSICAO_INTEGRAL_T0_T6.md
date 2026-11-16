@@ -124,6 +124,18 @@ No corte consultado, Manus (`f0fa7335`/`300ac6d1`), Antigravity (`52ff0871`) e a
 **Objetivo operacional:** impedir que a evolução do RADAR entregue apenas uma função nova sobre um sistema que continua dependente da lógica anterior. O sucesso é uma **substituição integrada, rastreável e homologada por jornada**, sem regressões nas demais superfícies.
 
 
+## 7.1. Critério transversal de desbloqueio orientado ao objetivo do usuário
+
+**Regra de leitura obrigatória para T1–T6 (complemento do proprietário em 15/11/2026):** toda restrição remanescente precisa responder a três perguntas: **(i)** o que o usuário está tentando fazer? **(ii)** qual consequência concreta a restrição protege? **(iii)** qual é o caminho mais curto e consistente para concluir a intenção?
+
+**Prioridade por funcionalidade:** (1) permitir operação direta e recalcular os dependentes, se segura; (2) permitir a mudança e sinalizar uma etapa posterior obrigatória com botão contextual; (3) explicar a dependência e oferecer navegação/ação prévia guiada, retornando ao ponto original; (4) bloquear somente quando houver impedimento real de integridade, autorização, ambiguidade ou risco concreto. Não exigir justificativa, confirmação textual ou atos documentais fictícios. Para exclusão destrutiva, manter prévia real de impacto e confirmação simples. Não transformar um risco tecnicamente tratável em bloqueio definitivo por comodidade de implementação.
+
+**Caso de aceite T4:** o usuário autorizado altera um item depois de consolidar; a edição é persistida sem justificativa; o sistema apresenta **“Alterações pendentes de consolidação”** enquanto o resultado anterior estiver desatualizado; fornece **“Consolidar alterações”**; se dados insuficientes, explica os campos faltantes e facilita completá-los; após reconsolidar, o estado pendente desaparece e nova exportação XLSX reflete a situação correta. O arquivo já baixado permanece imutável. As atualizações fiscais independentes **não** tornam a bonificação pendente por acidente. Registrar testes unitários, RPC, CI/Playwright autenticado e conferência de células de exportação com dados sintéticos. Não duplicar a autoridade de consolidação nem presumir que o Excel seja armazenado e regravado em servidor.
+
+**Casos de aceite T2/T3/T5:** quando um vínculo pode ser resolvido com transação única, a ação principal o faz; quando não pode, o aviso explica qual dependência impede **esse caso concreto**, apresenta o botão da ação prévia e preserva o contexto/retorno. Exemplo patrimonial não é ordem de exigir duas exclusões para todos os bens inventariados: não remover uma solução causal segura já existente. Testar os dois caminhos (direto e guiado) na aplicação local.
+
+**Registro por bloqueio restante:** causa legítima, caminho preferencial (direto/pós-ação/ação prévia), contexto e controle apresentado, condição de desbloqueio, consequência em outras telas, teste de sucesso humano, teste de integridade; testar como navegador, não só código. Exceção de segurança não dá permissão a perfil proibido.
+
 ## 8. Ambiente local como etapa obrigatória de validação — decisão de 15/11/2026
 
 **Decisão aprovada pelo proprietário:** a forma principal de experimentar o RADAR candidato é **uma cópia local da branch de integração, executando o frontend verdadeiro em navegador e o Supabase local completo por Docker**, com PostgreSQL, APIs, autenticação, políticas RLS, RPCs, migrations e **dados exclusivamente sintéticos**. Testes unitários, integração, pgTAP e Playwright devem operar sobre a mesma versão do código e, quando pertinente, o mesmo banco isolado. **Nenhuma publicação ou alteração de ambientes institucionais integra o escopo atual.**
