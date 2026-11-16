@@ -7,7 +7,7 @@ set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(71);
+select plan(73);
 
 -- --------------------------------------------------------------- massa
 insert into auth.users (id, email) values
@@ -399,6 +399,21 @@ select is((select (bonification ->> 'consAssessoria') || '|' || (bonification ->
     'T3: Assessoria deriva da NF restante e bonificação consolidada permanece');
 select is((select count(*)::int from public.registered_invoices where id='OCC-SVC-2'), 1,
     'T3: NF vizinha de serviço permanece intacta');
+-- A correção individual de serviço deve refletir o novo resumo após F5.
+insert into occ_plans values ('svc2-clear', public.preview_operational_change(pg_temp.occ_req(
+    'clear_analysis', '{"kind":"analysis","id":"OCC-SVC-2","programId":"OCC_SERVICE","documentKey":"consAssessoria"}')));
+select lives_ok(
+    $ select public.apply_operational_change(
+        pg_temp.occ_req('clear_analysis', '{"kind":"analysis","id":"OCC-SVC-2","programId":"OCC_SERVICE","documentKey":"consAssessoria"}'),
+        (select plan ->> 'planDigest' from occ_plans where k='svc2-clear'),
+        '00000000-0000-0000-0000-0000000000c4') $,
+    'T2: limpar análise individual de Assessoria aplica sem apagar NF');
+select is(
+    (select payload ->> 'analiseConsultaAssessoria' from public.registered_invoices where id='OCC-SVC-2')
+      || '|' || (select analysis ->> 'consAssessoria' from public.verifications
+          where id='OCC-SCHOOL::2041-03::OCC_SERVICE'),
+    'Não analisado|Não analisado',
+    'T2: limpeza individual também sincroniza resumo da Consulta Assessoria');
 insert into occ_plans values ('svc2', public.preview_operational_change(pg_temp.occ_req(
     'delete_invoice', '{"kind":"invoice","id":"OCC-SVC-2","programId":"OCC_SERVICE"}')));
 select lives_ok(
