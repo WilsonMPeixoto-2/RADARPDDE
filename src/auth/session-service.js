@@ -34,8 +34,15 @@
     // Erro transitório nunca autoriza o uso de dados, mas também não prova
     // revogação do token do Supabase Auth. Preservamos as credenciais remotas.
     function isTemporaryAccessFailure(error) {
-        return error?.code === 'AUTHORIZATION_UNAVAILABLE'
-            || error?.code === 'SESSION_UNAVAILABLE';
+        if (error?.code === 'SESSION_UNAVAILABLE') return true;
+        if (error?.code !== 'AUTHORIZATION_UNAVAILABLE') return false;
+        // Falhas explícitas de permissão/JWT não podem ser tratadas como
+        // indisponibilidade passageira, mesmo que o frontend ainda não tenha dados.
+        const cause = error.cause || {};
+        const status = Number(cause.status || cause.statusCode || 0);
+        const backendCode = String(cause.code || '').toUpperCase();
+        return ![400, 401, 403].includes(status)
+            && !['42501', 'PGRST301', 'PGRST302'].includes(backendCode);
     }
 
     function unavailableState(error) {
