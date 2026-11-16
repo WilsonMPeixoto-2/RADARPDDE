@@ -28,6 +28,8 @@
 
 **Seis correções do Antigravity incorporadas seletivamente (origem `audit/antigravity-argon-prontuario-20261115@1cb118fd`):** preservar seleção de Pendências; renderizar a fila original após confirmar; primeira análise sem modal de correção desnecessário; exibir número de NF atualizado; ordenar **Editar lançamento** antes de **Excluir**; adicionar versões de NFs irmãs e locks de tentativas. Nenhum novo commit na branch de origem até a conferência de 16/11. **Não repetir merge ou cherry-pick.**
 
+**Relatório de verificação e rastreabilidade:** [auditoria de branches, código, provas e documentos de 16/11](../audits/2026-11-16-reconciliacao-branches-codigo-documentacao-t0-t6.md). A busca de GitHub Actions pela branch de integração retornou **zero execuções**; não atribuir CI de outra branch ao HEAD integrado.
+
 ### Provas que existem e as que não existem
 
 - Outros agentes relataram `npm run test:readiness` verde com **1.416 unitários e 8 integrações** e testes Chromium E2E de diálogo/retificação aprovados, com **RPC simulada**. Logs são evidências da execução deles e podem não corresponder ao HEAD final após integração.
