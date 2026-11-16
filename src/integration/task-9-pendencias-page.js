@@ -893,6 +893,14 @@
                         ${renderActionButtons(record, { drawer: true })}
                         ${root.RadarOperationalCorrectionDialog?.canUse?.(root)
                             && hasCapability(root.RadarAccessPolicy.CAPABILITIES.OPEN_PENDENCY)
+                            && record.registeredInvoiceId
+                            && ['notaFiscal', 'consAssessoria'].includes(record.documentKey)
+                            ? `<button type="button" class="btn btn-secondary btn-sm"
+                                onclick="corrigirAnaliseDaPendencia('${escapeHtml(record.id)}', this)">
+                                Corrigir análise
+                            </button>` : ''}
+                        ${root.RadarOperationalCorrectionDialog?.canUse?.(root)
+                            && hasCapability(root.RadarAccessPolicy.CAPABILITIES.OPEN_PENDENCY)
                             ? `<button type="button" class="btn btn-secondary btn-sm"
                                 onclick="excluirPendenciaOperacional('${escapeHtml(record.id)}', this)">
                                 Excluir pendência
