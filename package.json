@@ -114,7 +114,7 @@
     "fuse.js": "7.5.0",
     "knip": "6.44.1",
     "lighthouse": "13.5.0",
-    "msw": "3.0.4",
+    "msw": "3.0.5",
     "prettier": "3.9.10",
     "puppeteer-core": "25.16.0",
     "stylelint": "18.0.0",
