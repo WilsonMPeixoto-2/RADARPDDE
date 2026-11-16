@@ -135,7 +135,6 @@
         }
         function renderPlan(view) {
             effects.replaceChildren();
-            candidatePendencyIds = [];
             const changes = Array.isArray(view.changes) ? view.changes : [];
             const warnings = Array.isArray(view.warnings) ? view.warnings : [];
             const blockers = Array.isArray(view.blockers) ? view.blockers : [];
@@ -306,7 +305,11 @@
                     throw new Error('A tela não foi sincronizada.');
                 }
                 root.rebuildOperationalIndexes?.();
-                root.renderProntuario?.(target.schoolId);
+                if (doc?.querySelector?.('.pendency-page-header') && typeof root.renderPendencias === 'function') {
+                    root.renderPendencias();
+                } else {
+                    root.renderProntuario?.(target.schoolId);
+                }
                 root.updateAlertsBell?.();
                 root.RadarSharedInteractions?.notify?.({
                     type: 'success',
