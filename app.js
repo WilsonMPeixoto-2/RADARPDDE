@@ -11297,6 +11297,15 @@ function renderPendencyDrawer() {
                     onclick="openPendencyDrawerWorkflowAction('reanalyze', this)"
                 >Reanalisar</button>
             ` : ''}
+            ${!edit && linkedInvoice
+                && ['notaFiscal', 'consAssessoria'].includes(String(pendency.documentoKey || ''))
+                && window.RadarOperationalCorrectionDialog?.canUse?.(window)
+                && getRadarAccessProfile() !== 'sme' && getRadarAccessProfile() !== 'inventario' ? `
+                <button type="button" class="btn btn-secondary btn-sm"
+                    onclick="corrigirAnaliseDaPendencia('${escapeHtml(pendency.id)}', this)">
+                    Corrigir análise
+                </button>
+            ` : ''}
             ${!edit && window.RadarOperationalCorrectionDialog?.canUse?.(window)
                 && getRadarAccessProfile() !== 'sme' && getRadarAccessProfile() !== 'inventario' ? `
                 <button type="button" class="btn btn-secondary btn-sm"
@@ -11589,6 +11598,21 @@ function openInvoiceOperationalCorrection(invoiceId, escolaId, documentKey = 'no
         },
         currentValue, suggestedValue, trigger
     });
+}
+
+function corrigirAnaliseDaPendencia(pendencyId, trigger = document.activeElement) {
+    const pendency = pendencias.find(item => String(item.id) === String(pendencyId));
+    const invoice = getPendencyLinkedInvoice(pendency);
+    const documentKey = String(pendency?.documentoKey || pendency?.document_key || '');
+    if (!invoice || !['notaFiscal', 'consAssessoria'].includes(documentKey)) return false;
+    const target = { invoiceId: invoice.id, escolaId: invoice.escolaId, documentKey };
+    const before = window.RadarOperationalCorrectionDialog?.canUse?.(window);
+    if (!before) return false;
+    if (document.getElementById('pendency-detail-drawer')) window.closePendencyDetail?.();
+    const drawer = document.getElementById('pendency-preview-drawer');
+    if (drawer && !drawer.hidden) closePendencyDrawer();
+    return openInvoiceOperationalCorrection(target.invoiceId, target.escolaId,
+        target.documentKey, trigger?.isConnected ? trigger : null);
 }
 
 function excluirPendenciaOperacional(pendencyId, trigger = document.activeElement) {
