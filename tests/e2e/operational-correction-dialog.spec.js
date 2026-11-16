@@ -100,9 +100,9 @@ test('gravação confirmada sem recarga proíbe repetição e oferece atualizar'
     await page.goto('/');
     const dialog = await controlledDialog(page, { failRefresh: true });
     await dialog.getByRole('button', { name: 'Confirmar correção' }).click();
-    await expect(dialog.getByRole('alert')).toContainText(/confirmada pelo servidor/i);
-    await expect(dialog.getByRole('button', { name: 'Confirmar correção' })).toBeDisabled();
-    await expect(dialog.getByRole('button', { name: 'Atualizar página' })).toBeVisible();
+    await expect(dialog).toBeHidden();
+    await expect(page.getByRole('alert')).toContainText(/Alteração gravada/i);
+    await expect(page.getByRole('button', { name: 'Atualizar página' })).toBeVisible();
     expect(await page.evaluate(() => window.__auditRpc.filter(c => c.name === 'apply_operational_change').length)).toBe(1);
 });
 
@@ -232,13 +232,13 @@ test('AMBIGUOUS_CONSEQUENCE exige seleção explícita de Pendências candidatas
                 window.__ambiguousRpc.push({ name, args });
                 if (name === 'preview_operational_change') {
                     const selected = args.p_request.selectedPendencyIds || [];
-                    if (!selected.length) {
+                    if (selected.length < 2) {
                         return {
                             action: args.p_request.action,
                             planDigest: 'e'.repeat(64),
                             effects: { update: [{ entity: 'verifications', field: 'analysis.extINV', before: 'Incorreto', after: 'Correto' }] },
                             blockers: [{
-                                code: 'AMBIGUOUS_CONSEQUENCE',
+                                code: selected.length === 0 ? 'AMBIGUOUS_CONSEQUENCE' : 'INCOMPLETE_PENDENCY_SELECTION',
                                 message: 'Há mais de uma Pendência ativa para esta análise; selecione quais serão excluídas.',
                                 candidates: ['PEND-CAND-1', 'PEND-CAND-2']
                             }],
@@ -286,11 +286,13 @@ test('AMBIGUOUS_CONSEQUENCE exige seleção explícita de Pendências candidatas
     await expect(cand1).not.toBeChecked();
     await expect(cand2).not.toBeChecked();
     await cand2.check();
+    await expect(dialog.getByRole('button', { name: 'Confirmar correção' })).toBeDisabled();
+    await cand1.check();
     await expect(dialog.getByRole('button', { name: 'Confirmar correção' })).toBeEnabled();
     await dialog.getByRole('button', { name: 'Confirmar correção' }).click();
     await expect(dialog).toBeHidden();
     const applyCall = await page.evaluate(() => window.__ambiguousRpc.find(c => c.name === 'apply_operational_change'));
-    expect(applyCall.args.p_request.selectedPendencyIds).toEqual(['PEND-CAND-2']);
+    expect(applyCall.args.p_request.selectedPendencyIds).toEqual(['PEND-CAND-1', 'PEND-CAND-2']);
 });
 
 test('botão Limpar análise prepara a prévia do que vai mudar e pede confirmação antes de gravar', async ({ page }) => {
@@ -309,4 +311,136 @@ test('botão Limpar análise prepara a prévia do que vai mudar e pede confirma�
     await expect(dialog).toBeHidden();
     const applyCall = await page.evaluate(() => window.__auditRpc.find(c => c.name === 'apply_operational_change'));
     expect(applyCall.args.p_request.action).toBe('clear_analysis');
+});
+
+
+test('diálogo de exclusão de NF mostra efeitos reais antes de confirmar', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(async () => {
+        await window.RadarProductExtensionsReady;
+        window.__deleteRequests = [];
+        const repository = {
+            capabilities: () => ({ remote: true }),
+            async executeRpc(name, args) {
+                window.__deleteRequests.push({ name, args });
+                if (name === 'preview_operational_change') return {
+                    action: 'delete_invoice', planDigest: 'b'.repeat(64),
+                    effects: { delete: {
+                        registered_invoices: ['NF-100'],
+                        pendencies: ['PEND-100'],
+                        pendency_attempts: ['ENV-100'],
+                        pendency_contacts: [],
+                        assets: ['BEM-100']
+                    }, update: [{ entity: 'verifications', field: 'analysis.notaFiscal',
+                        before: 'Incorreto', after: 'Não analisado' }] },
+                    blockers: [], warnings: [], preserved: { bonusResult: 'apta' }
+                };
+                if (name === 'apply_operational_change') return { committed: true };
+                throw new Error('RPC inesperada');
+            }
+        };
+        const root = {
+            document,
+            RADAR_OPERATIONAL_CORRECTION_PREVIEW: true,
+            RadarApplicationServices: { data: { repository } },
+            RadarOperationalCorrectionClient: window.RadarOperationalCorrectionClient,
+            RadarOperationalContextRefreshController: { refreshSchool: async () => ({ ok: true }) },
+            rebuildOperationalIndexes() {}, renderProntuario() {}
+        };
+        window.RadarOperationalCorrectionDialog.open(root, {
+            mode: 'delete_invoice',
+            context: { schoolId: 'ESC-1', competence: '2026-05', programId: 'BASIC',
+                invoiceId: 'NF-100', documentKey: 'notaFiscal', documentLabel: 'NF nº 100' }
+        });
+    });
+    const dialog = page.getByRole('dialog', { name: 'Excluir nota fiscal' });
+    await expect(dialog.getByText(/1 nota fiscal/)).toBeVisible();
+    await expect(dialog.getByText(/1 Pendência/)).toBeVisible();
+    await expect(dialog.getByText(/1 bem patrimonial/)).toBeVisible();
+    await expect(dialog.getByLabel('Novo resultado')).toHaveCount(0);
+    expect(await page.evaluate(() => window.__deleteRequests.filter(x => x.name === 'apply_operational_change'))).toHaveLength(0);
+    await dialog.getByRole('button', { name: 'Confirmar exclusão' }).click();
+    await expect(dialog).toBeHidden();
+    const calls = await page.evaluate(() => window.__deleteRequests);
+    expect(calls.find(x => x.name === 'apply_operational_change').args.p_request.action).toBe('delete_invoice');
+    expect(calls.find(x => x.name === 'apply_operational_change').args.p_request.target.id).toBe('NF-100');
+});
+
+test('diálogo de exclusão de Pendência preserva decisão do usuário antes da escrita', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(async () => {
+        await window.RadarProductExtensionsReady;
+        window.__pendDeleteCalls = [];
+        const repository = {
+            capabilities: () => ({ remote: true }),
+            async executeRpc(name, args) {
+                window.__pendDeleteCalls.push({ name, args });
+                if (name === 'preview_operational_change') return {
+                    action: 'delete_pendency', planDigest: 'c'.repeat(64),
+                    effects: { delete: { pendencies: ['P-10'], pendency_attempts: ['ENV-10'],
+                        registered_invoices: [], pendency_contacts: [], assets: [] }, update: [] },
+                    blockers: [], warnings: [], preserved: {}
+                };
+                if (name === 'apply_operational_change') return { committed: true };
+                throw new Error('RPC inesperada');
+            }
+        };
+        window.RadarOperationalCorrectionDialog.open({
+            document,
+            RADAR_OPERATIONAL_CORRECTION_PREVIEW: true,
+            RadarApplicationServices: { data: { repository } },
+            RadarOperationalCorrectionClient: window.RadarOperationalCorrectionClient,
+            RadarOperationalContextRefreshController: { refreshSchool: async () => ({ ok: true }) },
+            renderProntuario() {}, rebuildOperationalIndexes() {}
+        }, {
+            mode: 'delete_pendency',
+            context: { schoolId: 'ESC-1', competence: '2026-05', programId: 'BASIC',
+                pendencyId: 'P-10', documentLabel: 'Pendência do extrato' }
+        });
+    });
+    const dialog = page.getByRole('dialog', { name: 'Excluir pendência' });
+    await expect(dialog.getByText(/1 Pendência/)).toBeVisible();
+    await dialog.getByRole('button', { name: 'Cancelar' }).click();
+    await expect(dialog).toBeHidden();
+    expect(await page.evaluate(() => window.__pendDeleteCalls.filter(x => x.name === 'apply_operational_change'))).toHaveLength(0);
+});
+
+test('refresh não ocorre enquanto o próprio diálogo de correção está aberto', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(async () => {
+        await window.RadarProductExtensionsReady;
+        window.__refreshWasBlocked = null;
+        const repository = {
+            capabilities: () => ({ remote: true }),
+            async executeRpc(name) {
+                if (name === 'preview_operational_change') return {
+                    action: 'clear_analysis', planDigest: 'd'.repeat(64),
+                    effects: { delete: {}, update: [] }, blockers: [], warnings: []
+                };
+                return { committed: true };
+            }
+        };
+        window.RadarOperationalCorrectionDialog.open({
+            document,
+            RADAR_OPERATIONAL_CORRECTION_PREVIEW: true,
+            RadarApplicationServices: { data: { repository } },
+            RadarOperationalCorrectionClient: window.RadarOperationalCorrectionClient,
+            RadarOperationalContextRefreshController: {
+                refreshSchool: async () => {
+                    window.__refreshWasBlocked = Boolean(document.querySelector('#radar-operational-correction-layer'));
+                    return window.__refreshWasBlocked ? { skipped: true, reason: 'editing' } : { ok: true };
+                }
+            },
+            rebuildOperationalIndexes() {}, renderProntuario() {}
+        }, {
+            context: { schoolId: 'ESC-1', competence: '2026-05',
+                programId: 'BASIC', documentKey: 'extCC', documentLabel: 'Extrato' },
+            currentValue: 'Incorreto'
+        });
+    });
+    const dialog = page.getByRole('dialog', { name: 'Corrigir análise técnica' });
+    await dialog.getByLabel('Novo resultado').selectOption('Não analisado');
+    await dialog.getByRole('button', { name: 'Confirmar correção' }).click();
+    await expect(dialog).toBeHidden();
+    expect(await page.evaluate(() => window.__refreshWasBlocked)).toBe(false);
 });
