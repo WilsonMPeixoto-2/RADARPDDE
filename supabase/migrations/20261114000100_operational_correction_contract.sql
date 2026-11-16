@@ -628,6 +628,14 @@ begin
                 if not (v_selected <@ v_candidates) then
                     raise exception 'VALIDATION_ERROR: selectedPendencyIds contém Pendência fora da consequência desta análise';
                 end if;
+                -- Não permitir resultado correto/não analisado com uma Pendência ativa
+                -- remanescente que sustenta o mesmo Incorreto.
+                if cardinality(v_selected) < cardinality(v_candidates) then
+                    v_blockers := v_blockers || jsonb_build_array(jsonb_build_object(
+                        'code', 'INCOMPLETE_PENDENCY_SELECTION',
+                        'message', 'Para corrigir esta análise, selecione todas as Pendências ativas relacionadas ou trate cada Pendência individualmente.',
+                        'candidates', to_jsonb(v_candidates)));
+                end if;
                 v_pendency_ids := v_selected;
             elsif cardinality(v_candidates) > 1 then
                 v_blockers := v_blockers || jsonb_build_array(jsonb_build_object(
