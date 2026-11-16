@@ -1,3 +1,11 @@
+## Reconciliação dos testes Antigravity — 16/11/2026
+
+**Rota de retomada atualizada:** ler primeiro o [checkpoint T2/T3](handoff/2026-11-15-prontuario-integracao-verificada.md), seção **“Reconciliação Antigravity pós-e26058bc”**. As seis correções pontuais relatadas no commit `audit/antigravity-argon-prontuario-20261115@1cb118fd` foram conferidas pelos patches e **incorporadas seletivamente ao código de integração** (cinco arquivos: `app.js`, `src/integration/operational-correction-dialog.js`, `src/integration/auditable-retification.js`, migration SQL e teste Playwright); acrescentado teste pgTAP de concorrência lógica por versão das NFs irmãs (**74 asserções preparadas**). A branch de auditoria e seus relatórios históricos foram mantidos. **Não** repetir cherry-pick ou merge dessa branch inteira.
+
+**Qualificação dos resultados:** Antigravity relata `test:readiness` verde e Playwright do diálogo verde, com transporte RPC controlado. Esta continuidade também validou isoladamente o diálogo em DOM simulado; **não executou** os testes PostgreSQL/Docker nem Playwright autenticado com persistência pós-F5. A inspeção visual iniciada pelo outro agente em `http://127.0.0.1:4179` ainda não tem parecer final disponível. T2/T3 permanecem **candidatos aguardando homologação local**. Nenhuma publicação ou alteração do banco institucional autorizada.
+
+---
+
 # RADAR PDDE — estado atual e retomada
 
 ## Execução T2/T3 candidata — atualização após 15/11/2026
