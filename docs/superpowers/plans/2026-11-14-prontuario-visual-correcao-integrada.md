@@ -34,6 +34,14 @@
 - Não resolver falha de teste enfraquecendo regra válida, tolerância visual ou autorização. Contratos antigos deliberadamente substituídos recebem novos testes explícitos.
 - As contagens anteriores — inclusive 424 despesas com histórico e dois legados sem FK individual — não autorizam limpeza em massa nem indicam que os registros são inválidos.
 
+### Princípio global de produto — liberar o caminho de correção, não apenas trocar a trava
+
+**Leitura vinculante:** [diretriz transversal de correção assistida](../../reference/PRONTUARIO_CORRECAO_CONTRATO.md#diretriz-transversal--correção-assistida-sem-bloqueios-desnecessários-15112026). Para cada regra antiga, perguntar: **qual problema ela previne e qual ação o operador realmente deseja realizar?** Priorizar uma operação diretamente possível com efeitos coerentes; caso uma obrigação posterior permaneça, salvar a correção e oferecer **ação contextual específica** para concluí-la; se a dependência exigir ação prévia, explicar a razão e conduzir o usuário à tela correta, com retorno à intenção original. **Bloqueio é a última opção**, restrito a risco real, ambiguidade, ausência de autorização ou impossibilidade técnica demonstrada.
+
+Exemplo de T4: editar lançamento de bonificação já consolidada **não deve exigir excluir a consolidação antes nem permissão de administração geral**. O sistema deve registrar a alteração do operador autorizado, explicitar que o resultado anterior está pendente de atualização, e oferecer **“Consolidar alterações”** usando o fluxo canônico de consolidação, inclusive seus requisitos efetivos de completude. Isso precisa repercutir nos dados a serem exportados novamente; não prometer reescrita de arquivo XLSX anteriormente baixado. Definir e testar representação de pendência e distinção histórico/vigente sem criar outro cálculo paralelo de bonificação. Em T2/T3/T5, preferir recomposição automática segura dos vínculos; quando não for viável, uma orientação com ação imediata, não um bloqueio sem saída.
+
+**Gate de cada lote:** além de testar a regra nova, demonstrar que a pessoa consegue sair do impasse; capturar fluxo **tentativa → orientação → ação de resolução → retorno → resultado consistente** e validar na cópia local navegável. Não confundir responsabilidade do usuário pelo conteúdo com ausência de validações de integridade no banco.
+
 ## Foco da revisão e prova correspondente
 
 | Condição que costuma escapar ao caminho ideal | Comportamento esperado | Tarefa responsável |
