@@ -139,7 +139,17 @@
             const changes = Array.isArray(view.changes) ? view.changes : [];
             const warnings = Array.isArray(view.warnings) ? view.warnings : [];
             const blockers = Array.isArray(view.blockers) ? view.blockers : [];
-            if (deleting) effects.appendChild(el(doc, 'p', '', text(view.summary)));
+            if (deleting) {
+                effects.appendChild(el(doc, 'p', '', text(view.summary)));
+                if (view.preserved?.bonusResult) {
+                    effects.appendChild(el(doc, 'p', '',
+                        'O resultado da bonificação já consolidada será preservado.'));
+                }
+                if (view.preserved?.sharedAssetId) {
+                    effects.appendChild(el(doc, 'p', '',
+                        'O bem vinculado a outra nota fiscal será preservado.'));
+                }
+            }
             effects.appendChild(el(doc, 'p', '', changes.length
                 ? (deleting ? 'Informações relacionadas também serão atualizadas: ' : '')
                     + changes.map(change => text(change.before) + ' → ' + text(change.after)).join(' · ')
