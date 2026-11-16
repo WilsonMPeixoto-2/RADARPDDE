@@ -7,12 +7,18 @@
 
 > **Critério de conclusão revisto:** uma regra nova não está concluída quando a função foi criada. O lote está concluído quando a autoridade antiga foi conscientemente mantida ou substituída, o novo comando é atingível no fluxo humano, o banco o executa integralmente, os consumidores apresentam o resultado após F5/segunda sessão, as expectativas de teste descrevem a decisão nova, a documentação é coerente e a compatibilidade de clientes foi comprovada. Não antecipar a retirada de guarda antiga enquanto a operação substituta estiver incompleta.
 
+## Situação de execução auditada em 16/11/2026
+
+Esta matriz é **contrato de transição e critérios de prova**, não relatório isolado de funcionalidades prontas. O [checkpoint vigente](../handoff/2026-11-15-prontuario-integracao-verificada.md), seção **“Estado vigente — reconciliação de 16/11/2026”**, distingue estados reais por lote: **T0/T1 preparados; T2/T3 com operações de correção e exclusão ligadas à interface candidata sob flag local, mas não homologadas; T4/T5 incompletas; T6 pendente**.
+
+**74 asserções pgTAP já escritas, ainda não executadas integralmente no HEAD integrado**; testes de interface com RPC simulada não bastam. O frontend e Supabase devem rodar em localhost com identidades sintéticas, Auth/RLS, SQL e persistência F5/segunda sessão. Este adendo corrige constatações **anteriores à integração das seis mudanças de Antigravity** nos riscos R1–R5 e no inventário de tipos; não elimina a obrigação de validar o novo contrato em campo.
+
 ## 1. Três estados que NÃO devem ser confundidos
 
 | Estado | Significado | Evidência e decisão |
 |---|---|---|
 | **A. Produção vigente** | `main`, Vercel e Supabase institucional continuam com o contrato anterior nesta frente. | Revalidar SHAs e migrations antes de cada decisão. Não chamar comportamento antigo de regressão da Produção. |
-| **B. Integração em preparação** | Branch tem código de T1, cliente/RPCs de T2/T3, diálogo de T2 sob flag, mas sem ativação por padrão e sem jornadas completas. | Bloqueios antigos ainda presentes em `InvoiceService.remove()` e `evaluation-retification.js` são esperados enquanto não ocorrer o corte. Distinguir falta de integração final de defeito na versão candidata. |
+| **B. Integração em preparação** | Branch tem T1, RPCs e cliente T2/T3, e janelas de correção e exclusão **conectadas** no Prontuário e em Pendências, sob flag OFF por padrão. Falta prova Auth/RLS/persistência real. | Rotas antigas em `InvoiceService.remove()` e `evaluation-retification.js` permanecem para uso legado até substituição validada. Distinguir código candidato conectado, alcance ainda incompleto e ausência de homologação. |
 | **C. Homologação / versão candidata** | Mesmo SHA com frontend e Supabase descartável compatível, flag e operações habilitadas para o ensaio, não para Produção. | Precisam existir testes com autenticação, RLS, clique verdadeiro, transação e F5; aprovação do operador sobre a UI renderizada. |
 
 `vercel.json` mantém `deploymentEnabled.main=true` e os demais ramos desativados. `scripts/build-vercel.mjs` configura Preview convencional como `RADAR_DATA_MODE=local` sem Supabase, salvo configuração **explicitamente isolada**. Isso explica a ausência de Preview remoto homologado da nova capacidade; **não é evidência de falha de deploy ou de funcionamento em Produção**. `RADAR_OPERATIONAL_CORRECTION_PREVIEW` está desativada por padrão, e a presença de código não ativa funcionalidade no navegador institucional.
@@ -47,7 +53,7 @@ Antes de considerar um lote pronto, preencher **todos** os campos abaixo, com ca
 2. **Pontos de entrada humanos:** botões, menus, listas, modais, drawers, atalhos, contexto, foco, teclado e mensagens.
 3. **Caminhos de execução antigos:** handlers em `app.js`, extensões/wrappers, domínio, serviços, repositórios, RPC antiga, triggers, RLS, feature flags; distinguir **bloqueio deliberado da fase** de defeito.
 4. **Autoridade de destino:** ação suportada, validação servidor, transação, locks, versões, efeitos, dependentes e recibo. Garantir que não restem dois escritores independentes para a mesma intenção.
-5. **Modelos e tipos:** schema, migrations, tipos de `src/types/database.types.ts`, JSON/payloads/adapters e auditoria automática. **Constatação no corte 15/11:** novas RPCs de T2/T3 não aparecem ainda no arquivo de tipos.
+5. **Modelos e tipos:** schema, migrations, tipos de `src/types/database.types.ts`, JSON/payloads/adapters e auditoria automática. **Atualização verificada em 16/11:** o arquivo de tipos **já declara** `preview_operational_change` e `apply_operational_change`; falta confrontar tipos regenerados com a migration executada em PostgreSQL descartável.
 6. **Persistência e concorrência:** plano confirmado, dependente novo entre prévia e commit, outra sessão, cliente antigo, falta de rede, retry idempotente, rollback parcial impossível, commit reconhecido vs refresh pendente.
 7. **Consumidores do resultado:** Prontuário, Competências, Pendências, Passivo, Dashboard, Carteira, Inventário, Timeline, Busca Global, Alertas, exportações, indicadores e filtros — marcar `afetado` ou `não afetado` com motivo.
 8. **Testes positivos e negativos:** modificar testes antigos superados **no mesmo lote que muda a autoridade**, não antes; preservar as restrições ainda válidas, testar portas fechadas e novo fluxo permitido, conferir que as suítes são realmente coletadas.
@@ -72,11 +78,11 @@ Antes de considerar um lote pronto, preencher **todos** os campos abaixo, com ca
 
 ## 5. Registro dos riscos da versão candidata (não defeitos de Produção)
 
-- **R1 — atualização com diálogo aberto:** `operational-correction-dialog.js` aguarda `refreshSchool()` antes de fechar `role=dialog/aria-modal=true`; `operational-context-refresh.js` classifica diálogo aberto como edição e pode responder `skipped:editing`. Criar teste com controller verdadeiro e tratar sem comprometer outros formulários abertos. A flag está OFF por padrão; não atribuir o resultado à Produção.
-- **R2 — seleção de Pendência ativa vazia:** na migration `operational_correction_build_plan`, subconjunto `[]` satisfaz `selectedPendencyIds <@ candidates`. Teste negativo deve impedir mudança do estado `Incorreto` sem recompor sua consequência ativa.
-- **R3 — projeções de Consultoria/Inventário:** `invoice-effects.js` e `service-advisory.js` recompõem dimensões derivadas após exclusão; a nova operação SQL não trata integralmente todos esses agregados. Testar NF de serviço/permanente e decidir recomposição transacional precisa sem violar ADR-055.
+- **R1 — refresh e foco:** **mitigado no candidato**: o diálogo é fechado antes do `refreshSchool`, sem restaurar o foco ao editor antigo; teste DOM isolado executado. **Ainda falta** prova com controlador de refresh verdadeiro, dados persistidos e foco em outros formulários. Flag OFF por padrão.
+- **R2 — Pendência ativa vazia/incompleta:** **mitigado no código candidato** pela verificação do conjunto de candidatos (inclusive IDs repetidos), com teste pgTAP escrito. **Pendente executar o pgTAP no PostgreSQL local** e confirmar concorrência real; não atribuir o defeito ao código já corrigido.
+- **R3 — projeções de Assessoria/Inventário:** **recomposição SQL candidata implementada** ao excluir NF/Pendência e corrigir ou limpar análise individual de Assessoria; testes SQL foram adicionados. **Pendente** prova efetiva de cada agregado, NF irmã e preservação de bonificação independente em Supabase local real.
 - **R4 — concorrência de dependentes:** prova de duas sessões com a **mesma** `operationKey` não cobre um colega criando filho ou um escritor REST legado após a prévia. Necessária prova `concurrent-child-and-stale-retry` e concorrência do ciclo normal.
-- **R5 — protocolo ainda parcial:** `src/types/database.types.ts`, recibo completo, seleção de testes E2E e capacidade de backend precisam acompanhar o corte.
+- **R5 — protocolo ainda parcial:** tipos RPC básicos já declarados e cliente de prévia/aplicação conectado à UI sob flag local; **pendem** contrato completo de recibo, coleta E2E Auth/RLS, compatibilidade com escritores antigos, consumidores e validação do corte da autoridade.
 - **R6 — ambiguidade de regras de atraso:** o domínio vigente `requiresLateCorrect` relaciona `Correto (Atrasado)` à consolidação e entrega `Não`, não a uma dedução livre de data. Ajustar expectativas de T5 para não criar nova regra de prazo ao editar tentativa.
 
 **Critério de classificação:** risco de contrato incompleto/contraprova pendente ≠ falha demonstrada na Produção ≠ bloqueio antigo correto durante a transição.
@@ -91,7 +97,7 @@ Não descartar contribuições por origem nem importar uma branch inteira apenas
 4. Incorporar **seletivamente** as soluções que melhorem confiabilidade, clareza ou qualidade global; preservar APIs, responsabilidades, segurança e contratos de negócio; nunca copiar regressão ou pressupor que outro agente testou nossa versão.
 5. Reexecutar contraprova no **SHA integrado**, atualizar esta matriz, o checkpoint e os testes/artefatos do lote. Branch auxiliar permanece rastreável e disponível para evolução; não se torna uma rota concorrente de execução.
 
-No corte consultado, Manus (`f0fa7335`/`300ac6d1`), Antigravity (`52ff0871`) e a autoauditoria Gemini (`6b4efb5d`) não tinham novos commits além da reconciliação anterior. Isso é **fotografia datada**, não ordem de ignorá-los no futuro.
+**Conferência de 16/11/2026:** Antigravity está em `1cb118fd` (seis correções seletivamente integradas), Gemini em `16aca6c1`, Manus em `a87e9e0e` e o Argon original em `182b7949`, sem novos commits nessas fontes. PR #522 acrescenta correção separada de parágrafos CSS da tela de Pendências; PR #515 segue frente visual distinta; PR #523 trata autenticação, fora desta etapa. Não fazer merge automático nem refazer correções já incorporadas.
 
 ## 7. Ordem prática de execução e critérios de aceite
 
@@ -155,7 +161,7 @@ O workflow existente de GitHub Actions com Docker e Supabase local é uma automa
 
 **Não esperar até T6 para começar a testar localmente.** Preparar o ambiente assim que for possível executar uma primeira jornada integrada — preferencialmente durante o fechamento de T2 — e reutilizá-lo nas demais etapas.
 
-O código da frente **ainda não está integralmente criado**: T2/T3 têm peças funcionais preparadas, mas sem integração final da interface; T4 e T5 ainda exigem comandos persistentes e controles. Assim, é incorreto declarar a implementação terminada ou exigir que o proprietário aprove uma experiência que ainda não pode navegar.
+O código da frente **ainda não está integralmente concluído**: T2/T3 já possuem **janelas e ações conectadas à UI candidata** sob flag local, mas a experiência não foi homologada com PostgreSQL/Auth/RLS reais, e a cobertura da origem provisória e dos consumidores ainda exige testes/correções. T4 e T5 exigem comandos persistentes e interfaces. Assim, a próxima tarefa é montar a cópia local navegável para testar de verdade, não redesenhar do zero o fluxo já conectado.
 
 Cada lote deve passar pelo ciclo:
 1. **Caracterizar:** identificar a regra vigente, os testes correspondentes, as proteções que continuam válidas e as que serão substituídas.
