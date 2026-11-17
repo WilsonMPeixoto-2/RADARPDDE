@@ -1,91 +1,22 @@
 {
   "auditReportVersion": 2,
-  "vulnerabilities": {
-    "@eslint/config-array": {
-      "name": "@eslint/config-array",
-      "severity": "moderate",
-      "isDirect": false,
-      "via": [
-        "minimatch"
-      ],
-      "effects": [],
-      "range": "0.23.0 - 0.23.5",
-      "nodes": [
-        "node_modules/@eslint/config-array"
-      ],
-      "fixAvailable": true
-    },
-    "eslint": {
-      "name": "eslint",
-      "severity": "moderate",
-      "isDirect": true,
-      "via": [
-        "minimatch"
-      ],
-      "effects": [],
-      "range": "10.0.0-alpha.0 - 10.14.0",
-      "nodes": [
-        "node_modules/eslint"
-      ],
-      "fixAvailable": {
-        "name": "eslint",
-        "version": "10.15.0",
-        "isSemVerMajor": false
-      }
-    },
-    "minimatch": {
-      "name": "minimatch",
-      "severity": "moderate",
-      "isDirect": false,
-      "via": [
-        {
-          "source": 1244623,
-          "name": "minimatch",
-          "dependency": "minimatch",
-          "title": "minimatch has potential denial of service via globparts amplification",
-          "url": "https://github.com/advisories/GHSA-g3hv-75wg-m249",
-          "severity": "moderate",
-          "cwe": [
-            "CWE-405"
-          ],
-          "cvss": {
-            "score": 0,
-            "vectorString": null
-          },
-          "range": ">=7.0.0 <11.0.1"
-        }
-      ],
-      "effects": [
-        "@eslint/config-array",
-        "eslint"
-      ],
-      "range": "7.0.0 - 11.0.0",
-      "nodes": [
-        "node_modules/minimatch"
-      ],
-      "fixAvailable": {
-        "name": "eslint",
-        "version": "10.15.0",
-        "isSemVerMajor": false
-      }
-    }
-  },
+  "vulnerabilities": {},
   "metadata": {
     "vulnerabilities": {
       "info": 0,
       "low": 0,
-      "moderate": 3,
+      "moderate": 0,
       "high": 0,
       "critical": 0,
-      "total": 3
+      "total": 0
     },
     "dependencies": {
       "prod": 96,
-      "dev": 444,
+      "dev": 445,
       "optional": 97,
       "peer": 0,
       "peerOptional": 0,
-      "total": 539
+      "total": 540
     }
   }
 }
