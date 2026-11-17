@@ -1,0 +1,114 @@
+name: "Temporary - RADAR browser diagnostic tooling candidate (security-blocked)"
+on:
+  push:
+    branches:
+      - chore/deps-browser-validation-blocked-20261117
+    paths:
+      - .github/workflows/maintenance-browser-deps-20261117.yml
+permissions:
+  contents: write
+concurrency:
+  group: radar-browser-tooling-20261117
+  cancel-in-progress: false
+jobs:
+  create-reviewable-candidate:
+    if: github.ref == 'refs/heads/chore/deps-browser-validation-blocked-20261117'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: true
+          fetch-depth: 1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '24'
+      - name: Confirm Node npm and baseline versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const p=require('./package.json'),cp=require('node:child_process');
+          if(!process.version.startsWith('v24.')) throw Error('Requires Node 24');
+          if(!cp.execFileSync('npm',['-v'],{encoding:'utf8'}).startsWith('11.'))throw Error('Requires npm 11');
+          for(const [k,v]of Object.entries({lighthouse:'13.5.0','puppeteer-core':'25.17.0'}))
+            if(p.devDependencies[k]!==v)throw Error('Mismatched baseline '+k);
+          NODE
+      - name: Update only the two browser diagnostic packages
+        run: |
+          npm install --save-dev --save-exact lighthouse@13.6.0 puppeteer-core@25.18.1 --no-fund
+          npm ci --no-fund
+      - name: Reconcile documented versions and exact tooling test
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          changes={
+            'tests/unit/tooling-contract.test.js':{
+              "packageJson.devDependencies.lighthouse, '13.5.0'":"packageJson.devDependencies.lighthouse, '13.6.0'",
+            },
+            'docs/TECHNOLOGY_CAPABILITIES_TRACKER.md':{
+              '`lighthouse@13.5.0`':'`lighthouse@13.6.0`',
+              '`puppeteer-core@25.17.0`':'`puppeteer-core@25.18.1`',
+            },
+          }
+          for name,repls in changes.items():
+            p=Path(name);s=p.read_text()
+            for before,after in repls.items():
+              assert s.count(before)==1,(name,before,s.count(before))
+              s=s.replace(before,after)
+            p.write_text(s)
+          PY
+      - name: Record complete vulnerability report without suppressing findings
+        shell: bash
+        run: |
+          set +e
+          npm audit --json > dependency-health/npm-audit.json
+          result=$?
+          set -e
+          if [ "$result" -gt 1 ]; then exit "$result"; fi
+          node - <<'NODE'
+          const a=require('./dependency-health/npm-audit.json');
+          const expected=['dependency-cruiser','fdir','knip','picomatch','stylelint','stylelint-config-recommended','tinyglobby'];
+          const actual=Object.keys(a.vulnerabilities||{}).sort();
+          if(JSON.stringify(actual)!==JSON.stringify(expected.sort()))throw Error('Audit findings changed; review required '+JSON.stringify(actual));
+          if(a.metadata.vulnerabilities.high!==7||a.metadata.vulnerabilities.critical!==0)throw Error('Unexpected vulnerability severity count');
+          console.log('Known blocking advisory recorded accurately; full security CI must remain red until remediated.');
+          NODE
+          npm audit --omit=dev --json > /tmp/radar-third-prod-audit.json
+          node - <<'NODE'
+          const a=require('/tmp/radar-third-prod-audit.json');
+          if(a.metadata?.vulnerabilities?.total!==0)throw Error('Production dependency audit no longer clean');
+          NODE
+      - name: Remove ephemeral workflow before checking repository contracts
+        run: git rm -- .github/workflows/maintenance-browser-deps-20261117.yml
+      - name: Run source test suite and build; do not override full security policy
+        shell: bash
+        run: |
+          npm run test:readiness
+          npm run test:properties
+          npm run test:network-failures
+          npm run check:architecture
+          npm run check:generated
+          npm run build:vercel
+      - name: Commit only five candidate files in isolated non-production branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -- package.json package-lock.json dependency-health/npm-audit.json docs/TECHNOLOGY_CAPABILITIES_TRACKER.md tests/unit/tooling-contract.test.js
+          git diff --cached --check
+          python3 - <<'PY'
+          import subprocess
+          files=set(subprocess.check_output(['git','diff','--cached','--name-only'],text=True).splitlines())
+          expected={
+            '.github/workflows/maintenance-browser-deps-20261117.yml',
+            'package.json','package-lock.json','dependency-health/npm-audit.json',
+            'docs/TECHNOLOGY_CAPABILITIES_TRACKER.md',
+            'tests/unit/tooling-contract.test.js'
+          }
+          assert files==expected,(files,expected)
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(deps): stage browser tools with known upstream security blocker"
+          git push origin HEAD:refs/heads/chore/deps-browser-validation-blocked-20261117
