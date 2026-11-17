@@ -1,58 +1,72 @@
 {
   "auditReportVersion": 2,
   "vulnerabilities": {
-    "exceljs": {
-      "name": "exceljs",
+    "@eslint/config-array": {
+      "name": "@eslint/config-array",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "minimatch"
+      ],
+      "effects": [],
+      "range": "0.23.0 - 0.23.5",
+      "nodes": [
+        "node_modules/@eslint/config-array"
+      ],
+      "fixAvailable": true
+    },
+    "eslint": {
+      "name": "eslint",
       "severity": "moderate",
       "isDirect": true,
       "via": [
-        "uuid"
+        "minimatch"
       ],
       "effects": [],
-      "range": ">=3.5.0",
+      "range": "10.0.0-alpha.0 - 10.14.0",
       "nodes": [
-        "node_modules/exceljs"
+        "node_modules/eslint"
       ],
       "fixAvailable": {
-        "name": "exceljs",
-        "version": "3.4.0",
-        "isSemVerMajor": true
+        "name": "eslint",
+        "version": "10.15.0",
+        "isSemVerMajor": false
       }
     },
-    "uuid": {
-      "name": "uuid",
+    "minimatch": {
+      "name": "minimatch",
       "severity": "moderate",
       "isDirect": false,
       "via": [
         {
-          "source": 1119441,
-          "name": "uuid",
-          "dependency": "uuid",
-          "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
-          "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq",
+          "source": 1244623,
+          "name": "minimatch",
+          "dependency": "minimatch",
+          "title": "minimatch has potential denial of service via globparts amplification",
+          "url": "https://github.com/advisories/GHSA-g3hv-75wg-m249",
           "severity": "moderate",
           "cwe": [
-            "CWE-787",
-            "CWE-1285"
+            "CWE-405"
           ],
           "cvss": {
-            "score": 7.5,
-            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+            "score": 0,
+            "vectorString": null
           },
-          "range": "<11.1.1"
+          "range": ">=7.0.0 <11.0.1"
         }
       ],
       "effects": [
-        "exceljs"
+        "@eslint/config-array",
+        "eslint"
       ],
-      "range": "<11.1.1",
+      "range": "7.0.0 - 11.0.0",
       "nodes": [
-        "node_modules/uuid"
+        "node_modules/minimatch"
       ],
       "fixAvailable": {
-        "name": "exceljs",
-        "version": "3.4.0",
-        "isSemVerMajor": true
+        "name": "eslint",
+        "version": "10.15.0",
+        "isSemVerMajor": false
       }
     }
   },
@@ -60,18 +74,18 @@
     "vulnerabilities": {
       "info": 0,
       "low": 0,
-      "moderate": 2,
+      "moderate": 3,
       "high": 0,
       "critical": 0,
-      "total": 2
+      "total": 3
     },
     "dependencies": {
-      "prod": 95,
-      "dev": 375,
-      "optional": 99,
+      "prod": 96,
+      "dev": 444,
+      "optional": 97,
       "peer": 0,
       "peerOptional": 0,
-      "total": 469
+      "total": 539
     }
   }
 }
