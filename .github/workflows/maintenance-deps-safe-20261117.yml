@@ -1,0 +1,109 @@
+name: "Temporary - RADAR safe dev-dependency upgrade"
+on:
+  push:
+    branches:
+      - chore/deps-safe-batch-20261117
+    paths:
+      - .github/workflows/maintenance-deps-safe-20261117.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: radar-safe-deps-20261117
+  cancel-in-progress: false
+
+jobs:
+  upgrade-and-self-remove:
+    if: github.ref == 'refs/heads/chore/deps-safe-batch-20261117'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate Node/npm toolchain and initial state
+        run: |
+          node -v
+          npm -v
+          node -e "const p=require('./package.json');if(!process.version.startsWith('v24.'))process.exit(1);for(const [n,v] of Object.entries({'@playwright/test':'1.65.0','msw':'3.0.4','knip':'6.44.1','prettier':'3.9.10','puppeteer-core':'25.16.0'})){if(p.devDependencies[n]!==v)throw Error(n+' baseline mismatch')}"
+
+      - name: Install the five pinned development-tool updates
+        run: npm install --save-dev --save-exact @playwright/test@1.65.1 msw@3.0.6 knip@6.45.1 prettier@3.10.1 puppeteer-core@25.17.0 --no-fund
+
+      - name: Reconcile the version-contract tests and capability tracker
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          changes = {
+              'tests/unit/tooling-contract.test.js': {
+                  "packageJson.devDependencies.prettier, '3.9.10'": "packageJson.devDependencies.prettier, '3.10.1'",
+                  "packageJson.devDependencies.knip, '6.44.1'": "packageJson.devDependencies.knip, '6.45.1'",
+              },
+              'docs/TECHNOLOGY_CAPABILITIES_TRACKER.md': {
+                  '`@playwright/test@1.65.0`': '`@playwright/test@1.65.1`',
+                  '`msw@3.0.4`': '`msw@3.0.6`',
+                  '`knip@6.44.1`': '`knip@6.45.1`',
+                  '`prettier@3.9.10`': '`prettier@3.10.1`',
+                  '`puppeteer-core@25.16.0`': '`puppeteer-core@25.17.0`',
+              },
+          }
+          for name, replacements in changes.items():
+              path = Path(name)
+              data = path.read_text()
+              for old, new in replacements.items():
+                  assert data.count(old) == 1, f'{name}: expected exactly one {old}'
+                  data = data.replace(old, new)
+              path.write_text(data)
+          PY
+
+      - name: Refresh the recorded npm security audit
+        shell: bash
+        run: |
+          set +e
+          npm audit --json > dependency-health/npm-audit.json
+          result=$?
+          set -e
+          if [ "$result" -gt 1 ]; then
+            echo "npm audit could not generate a valid report: $result"
+            exit "$result"
+          fi
+
+      - name: Verify dependency and domain contracts
+        run: |
+          npm run test:readiness
+          npm run test:network-failures
+          npm run test:properties
+          npm run audit:exceljs-policy
+          npm run check:generated
+          npm run build:vercel
+
+      - name: Commit only the approved maintenance files and remove this workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm -- .github/workflows/maintenance-deps-safe-20261117.yml
+          git add -- package.json package-lock.json dependency-health/npm-audit.json docs/TECHNOLOGY_CAPABILITIES_TRACKER.md tests/unit/tooling-contract.test.js
+          git diff --cached --check
+          python3 - <<'PY'
+          import subprocess
+          actual = set(subprocess.check_output(['git','diff','--cached','--name-only'],text=True).splitlines())
+          expected = {
+            '.github/workflows/maintenance-deps-safe-20261117.yml',
+            'package.json',
+            'package-lock.json',
+            'dependency-health/npm-audit.json',
+            'docs/TECHNOLOGY_CAPABILITIES_TRACKER.md',
+            'tests/unit/tooling-contract.test.js',
+          }
+          assert actual == expected, f'Unexpected staged files: {actual ^ expected}'
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(deps): upgrade five dev tools with contracts and security inventory"
+          git push origin HEAD:refs/heads/chore/deps-safe-batch-20261117
