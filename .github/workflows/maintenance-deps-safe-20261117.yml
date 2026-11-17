@@ -74,6 +74,9 @@ jobs:
             exit "$result"
           fi
 
+      - name: Remove the ephemeral workflow from the tree before repository checks
+        run: git rm -- .github/workflows/maintenance-deps-safe-20261117.yml
+
       - name: Verify dependency and domain contracts
         run: |
           npm run test:readiness
@@ -87,7 +90,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git rm -- .github/workflows/maintenance-deps-safe-20261117.yml
           git add -- package.json package-lock.json dependency-health/npm-audit.json docs/TECHNOLOGY_CAPABILITIES_TRACKER.md tests/unit/tooling-contract.test.js
           git diff --cached --check
           python3 - <<'PY'
