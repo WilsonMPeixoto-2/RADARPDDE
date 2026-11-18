@@ -55,19 +55,24 @@ jobs:
       - name: Registrar histórico local e remoto de migrations
         run: |
           set -o pipefail
-          npx --no-install supabase migration list --linked --password "${PGPASS_REMOTE}" 2>&1 \
+          npx --no-install supabase migration list --remote --password "${PGPASS_REMOTE}" 2>&1 \
             | tee /tmp/supabase-migration-list.txt
 
       - name: Simular aplicação das migrations sem alterar o banco
         run: |
           set -o pipefail
-          npx --no-install supabase db push --linked --dry-run --password "${PGPASS_REMOTE}" 2>&1 \
+          npx --no-install supabase db push --remote --dry-run --password "${PGPASS_REMOTE}" 2>&1 \
             | tee /tmp/supabase-migration-dry-run.txt
 
       - name: Verificar capacidades obrigatórias do projeto
         run: |
           set -o pipefail
-          npx --no-install supabase db query --linked --file supabase/verification/remote-preflight.sql 2>&1 \
+          {
+            printf 'BEGIN TRANSACTION READ ONLY;\n'
+            cat supabase/verification/remote-preflight.sql
+            printf '\nCOMMIT;\n'
+          } > "${RUNNER_TEMP}/radar-preflight-readonly.sql"
+          npx --no-install supabase db query --remote --yes --file "${RUNNER_TEMP}/radar-preflight-readonly.sql" 2>&1 \
             | tee /tmp/supabase-capabilities.txt
 
       - name: Registrar branches disponíveis sem bloquear projeto sem branching
