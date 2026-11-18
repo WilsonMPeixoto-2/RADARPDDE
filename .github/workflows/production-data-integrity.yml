@@ -91,7 +91,14 @@ jobs:
 
       - name: Consultar integridade de Production
         id: integrity
-        run: npx --no-install supabase db query --linked --file supabase/verification/production-integrity-health.sql
+        run: |
+          set -euo pipefail
+          {
+            printf 'BEGIN TRANSACTION READ ONLY;\n'
+            cat supabase/verification/production-integrity-health.sql
+            printf '\nCOMMIT;\n'
+          } > "${RUNNER_TEMP}/radar-production-health-readonly.sql"
+          npx --no-install supabase db query --remote --yes --file "${RUNNER_TEMP}/radar-production-health-readonly.sql"
 
       - name: Resumir auditoria de integridade
         if: always()
