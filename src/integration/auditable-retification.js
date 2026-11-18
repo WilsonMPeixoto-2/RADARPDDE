@@ -650,6 +650,7 @@
             };
             const cancel = appendText(root, actions, 'button', 'Cancelar', 'btn btn-secondary');
             cancel.type = 'button';
+            cancel.autofocus = true;
             cancel.addEventListener('click', () => finish(false));
             const confirm = appendText(root, actions, 'button', 'Confirmar alteração', 'btn btn-primary');
             confirm.type = 'button';
