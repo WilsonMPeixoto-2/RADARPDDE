@@ -300,3 +300,89 @@ test('toggleBonif de Nota Fiscal preserva posição dentro do reconciliador sem 
     assert.equal(area.scrollTop, 720);
     assert.equal(area.scrollLeft, 9);
 });
+
+test('syncServicePendencyControls sincroniza botão Editar análise na coluna Ação da Assessoria quando T2 está ativo', () => {
+    const replacedNodes = [];
+    const actionCell = {
+        querySelector: () => null,
+        replaceChildren(...nodes) {
+            replacedNodes.splice(0, replacedNodes.length, ...nodes);
+        }
+    };
+    const card = {
+        dataset: { serviceAdvisoryInvoice: 'NF-A' },
+        querySelector(selector) {
+            if (selector === '.invoice-document-action') return actionCell;
+            return null;
+        }
+    };
+    const selectA = {
+        disabled: false,
+        dataset: {},
+        getAttribute: () => "changeInvoiceAdvisoryAnalysis('NF-A', 'ESC-1', this.value, this)"
+    };
+    const row = {
+        dataset: { programId: 'BASIC', documentKey: 'consAssessoria' },
+        querySelectorAll(selector) {
+            if (selector.includes('changeInvoiceAdvisoryAnalysis')) return [selectA];
+            if (selector === '[data-service-advisory-invoice]') return [card];
+            return [];
+        },
+        querySelector: () => null
+    };
+    const state = {
+        pendencies: [],
+        registeredInvoices: [{
+            id: 'NF-A',
+            escolaId: 'ESC-1',
+            compKey: '2026-08_BASIC',
+            tipo: 'servico',
+            analiseConsultaAssessoria: 'Correto'
+        }]
+    };
+    const openedCalls = [];
+    const root = {
+        document: {
+            createElement(tag) {
+                const attrs = new Map();
+                const listeners = new Map();
+                return {
+                    tagName: tag.toUpperCase(),
+                    type: '',
+                    className: '',
+                    innerHTML: '',
+                    textContent: '',
+                    setAttribute(k, v) { attrs.set(k, v); },
+                    getAttribute(k) { return attrs.get(k) || null; },
+                    addEventListener(evt, fn) { listeners.set(evt, fn); },
+                    click() { listeners.get('click')?.(); }
+                };
+            }
+        },
+        getRadarAccessProfile: () => 'controlador',
+        RadarCompetencia: {
+            splitCompetenciaContext: () => ({ competenciaKey: '2026-08', contextId: 'BASIC' })
+        },
+        RadarAccessPolicy: { CAPABILITIES: {} },
+        hasRadarCapability: () => true,
+        RadarServiceAdvisoryPendency: { findActiveForInvoice: () => null },
+        RadarOperationalCorrectionDialog: { canUse: () => true },
+        openInvoiceOperationalCorrection(...args) { openedCalls.push(args); }
+    };
+
+    reconciler.syncServicePendencyControls(
+        root,
+        'ESC-1',
+        '2026-08_BASIC',
+        { resultadoBonif: '' },
+        [row],
+        state
+    );
+
+    assert.equal(replacedNodes.length, 1);
+    assert.equal(replacedNodes[0].className, 'invoice-analysis-edit-button');
+    assert.equal(replacedNodes[0].getAttribute('aria-describedby'), 'advisory-invoice-title-NF-A');
+    replacedNodes[0].click();
+    assert.deepEqual(openedCalls, [['NF-A', 'ESC-1', 'consAssessoria', replacedNodes[0]]]);
+});
+
