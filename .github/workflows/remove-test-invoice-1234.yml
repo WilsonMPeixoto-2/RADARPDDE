@@ -1,3 +1,5 @@
+name: Remover lançamento de teste NF 1234
+
 on:
   workflow_dispatch:
     inputs:
