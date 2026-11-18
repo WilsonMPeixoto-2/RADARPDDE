@@ -7,7 +7,7 @@ set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(73);
+select plan(74);
 
 -- --------------------------------------------------------------- massa
 insert into auth.users (id, email) values
@@ -137,6 +137,16 @@ select throws_like(
 select throws_like(
     $$ select public.preview_operational_change(pg_temp.occ_req('delete_invoice', '{"kind":"invoice","id":"OCC-NF-1","competence":"2041-04"}')) $$,
     'VALIDATION_ERROR%', 'alvo fora do contexto informado é rejeitado');
+
+-- T2: a retificação de uma NF observa também todas as NFs irmãs do mesmo
+-- contexto, evitando confirmar um agregado calculado sobre versões antigas.
+select ok(
+    (public.preview_operational_change(pg_temp.occ_req(
+        'clear_analysis',
+        '{"kind":"analysis","id":"OCC-NF-2","programId":"OCC_BASIC","documentKey":"notaFiscal"}'
+    )) -> 'versions' -> 'registered_invoices') ?& array['OCC-NF-1', 'OCC-NF-3'],
+    'T2: prévia da análise individual inclui versões das NFs irmãs do agregado'
+);
 
 -- --------------------------------------------------------------- T3 delete_invoice (escopo exato)
 insert into occ_plans values ('nf1', public.preview_operational_change(pg_temp.occ_req('delete_invoice', '{"kind":"invoice","id":"OCC-NF-1","programId":"OCC_BASIC"}')));

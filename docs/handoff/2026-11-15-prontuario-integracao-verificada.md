@@ -6,9 +6,70 @@
 **Plano de destino:** [Prontuário: design, correção e exclusão integrados](../superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md).
 **Matriz obrigatória de transição por jornada:** [Regras antigas → novos comandos → substituição → testes/interfaces/documentação](../reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md). Diferenciar **código candidato ainda desligado** de **defeito no produto vigente**; a retirada de regras legadas ocorre no lote correto e exige testes de compatibilidade, não simplesmente remoção de testes antigos. Documento complementar ao plano original, sem segunda branch de execução.
 
-**Ambiente de homologação interna definido (15/11):** seguir a [seção 8 da matriz](../reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md): preparar e manter **uma cópia local navegável da branch, frontend real e Supabase isolado por Docker**, com autenticação e dados sintéticos. O proprietário participa da navegação e valida os marcos visuais/operacionais de T1–T5 antes de cada fechamento; automatizar SQL/Auth/RLS/Playwright com o workflow GitHub existente como complemento. Preparar o ambiente no primeiro fluxo T2 pronto, não esperar T6. Código T2/T3 continua incompleto, T4/T5 requer implementação. Regras antigas permanecem até o corte correspondente na branch candidata; expectativa de teste é adaptada no mesmo lote. **Nenhuma publicação está prevista/autorizada**. Esta decisão não executa workflows nem altera aplicações ou bancos.
+**Ambiente de homologação interna definido (15/11):** seguir a [seção 8 da matriz](../reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md): preparar e manter **uma cópia local navegável da branch, frontend real e Supabase isolado por Docker**, com autenticação e dados sintéticos. O proprietário participa da navegação e valida os marcos visuais/operacionais de T1–T5 antes de cada fechamento; automatizar SQL/Auth/RLS/Playwright com o workflow GitHub existente como complemento. Preparar o ambiente no primeiro fluxo T2 pronto, não esperar T6. T2/T3 já têm UI e comandos candidatos ligados sob flag, porém cortes antigos, cobertura de dependências e homologação de ponta a ponta continuam pendentes; T4/T5 requerem implementação. Regras antigas permanecem até o corte correspondente na branch candidata; expectativa de teste é adaptada no mesmo lote. **Nenhuma publicação está prevista/autorizada**. Esta decisão não executa workflows nem altera aplicações ou bancos.
 **Novo princípio de decisão do proprietário (15/11):** **desbloqueio orientado ao objetivo**, documentado no [contrato](../reference/PRONTUARIO_CORRECAO_CONTRATO.md) e na [matriz, §7.1](../reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md). Preferir correção direta com recomposição segura; caso necessário, permitir a correção e oferecer ação posterior; se depender de passo anterior, orientar e levar à ação sem perder contexto; bloquear só por impedimento real. Exemplo T4: após editar bonificação consolidada, indicar **“Alterações pendentes de consolidação”** e oferecer **“Consolidar alterações”**, preservando versões e coerência de nova exportação. É **decisão de destino ainda não implementada**, não prova de funcionalidade disponível. Validar navegando na cópia local com Docker; não ampliar o escopo para publicação.
 **Regras aprovadas:** [contrato](../reference/PRONTUARIO_CORRECAO_CONTRATO.md) e [estudo de flexibilização](../superpowers/specs/2026-11-14-flexibilizacao-correcao-exclusao-lancamentos.md).
+
+## Estado vigente — reconciliação de 16/11/2026 (LER PRIMEIRO)
+
+**Este é o ponto único de retomada da frente.** O título e as seções posteriores documentam cortes anteriores, **não** substituem esta seção. Verificar os SHAs reais ao abrir uma nova sessão; a `main` foi conferida em `4011a2b8` e a integração de código em `a8e47045` **antes dos commits documentais de 16/11**. A documentação desta seção registra a fotografia do código existente, não a liberação de uma capacidade em Produção.
+
+### O que está no código, sem refazer
+
+| Lote | Entregas concretas já integradas | Estado rigoroso |
+|---|---|---|
+| T0 | Especificação, fixtures, controles de integridade e decisão de UX | Preparado, conferir casos usados nos testes |
+| T1 | Cabeçalho contextual do Prontuário e projeções de NF atual em Pendências/Busca/consumidores | Implementado, **sem aceite visual final** |
+| T2 | `correct_analysis`, `clear_analysis`, `delete_pendency`; cliente RPC com `operationKey` e payload congelados; diálogo de confirmação e orientação; conexões em NF, Assessoria e gavetas, primeira análise direta; seleção explícita de Pendências, mesmo após marcar a última | **Candidato parcialmente integrado, ainda sem homologação Auth/RLS e funcional completa** |
+| T3 | `delete_invoice` com prévia de impacto, dependentes por ID, reconciliação de agregados de Assessoria/Inventário, proteção de versão das NFs irmãs, lock de tentativas; preservar bonificação e patrimônio compartilhado quando devidos | **Candidato de exclusão fiscal conectado, sem homologação real; tratamento de provisória Qualidade e corte completo das rotas antigas ainda a verificar** |
+| T4 | Regras de edição da bonificação consolidada, `clear_item_history` e `delete_context` definidas | Implementação de domínio/banco/UI pendente |
+| T5 | Helper puro `pendency-correction.js` e cenários históricos | Persistência transacional, UI e autorização ainda pendentes |
+| T6 | Matriz de testes, UX e publicação definida | Homologação global e aprovação não realizadas |
+
+**Seis correções do Antigravity incorporadas seletivamente (origem `audit/antigravity-argon-prontuario-20261115@1cb118fd`):** preservar seleção de Pendências; renderizar a fila original após confirmar; primeira análise sem modal de correção desnecessário; exibir número de NF atualizado; ordenar **Editar lançamento** antes de **Excluir**; adicionar versões de NFs irmãs e locks de tentativas. Nenhum novo commit na branch de origem até a conferência de 16/11. **Não repetir merge ou cherry-pick.**
+
+**Relatório de verificação e rastreabilidade:** [auditoria de branches, código, provas e documentos de 16/11](../audits/2026-11-16-reconciliacao-branches-codigo-documentacao-t0-t6.md). A busca de GitHub Actions pela branch de integração retornou **zero execuções**; não atribuir CI de outra branch ao HEAD integrado.
+
+### Provas que existem e as que não existem
+
+- Outros agentes relataram `npm run test:readiness` verde com **1.416 unitários e 8 integrações** e testes Chromium E2E de diálogo/retificação aprovados, com **RPC simulada**. Logs são evidências da execução deles e podem não corresponder ao HEAD final após integração.
+- Na branch oficial, a última execução isolada do diálogo com DOM/RPC simulados confirmou a permanência dos checkboxes, confirmação única e atualização da tela de Pendências, sem banco remoto.
+- **74 asserções pgTAP estão escritas** em `supabase/tests/database/operational-correction.test.sql`, incluindo verificação das NFs irmãs; **não há execução integral comprovada destas 74 no PostgreSQL local do SHA integrado**.
+- **Não existe certificação final** dos novos caminhos em Supabase Docker com Auth/RLS, escritas reais, estados após F5, segunda sessão, concorrência de dois operadores, reversão, inventariação, provisória Qualidade, exportação ou aceite visual humano. A inspeção visual em `127.0.0.1:4179` foi relatada como iniciada, sem relatório final remoto.
+- A feature flag `RADAR_OPERATIONAL_CORRECTION_PREVIEW` é **OFF por padrão** e o piloto exige **frontend e API Supabase de teste em localhost**; não é publicável por um Preview da Vercel convencional. `src/types/database.types.ts` já contém as duas RPCs públicas da candidata, mas a conferência/regeneração contra migration instalada em PostgreSQL descartável ainda integra o gate.
+
+### Trabalho seguinte, sem reabrir regra já aprovada
+
+1. Preparar uma **cópia local isolada** do HEAD desta branch, iniciar/resetar Docker/Supabase e executar `npm ci`, `npm run supabase:start`, `npm run supabase:reset`, `npm run supabase:test:db`. Investigar falhas da suíte de 74 pgTAP antes de afirmar êxito.
+2. Instalar usuários e massa sintética; executar Playwright Auth/RLS com dados persistidos: análise agregada/individual, Pendência, NF, múltiplas Pendências, Assessoria, bem permanente Inventariada/compartilhada, provisória Qualidade, `a_identificar`, perfis restritos e motivos de bloqueio.
+3. Verificar duas operações concorrentes com **chaves distintas**, dependente novo entre preview/apply, antigas rotas de escrita, commit seguido de falha de refresh, F5, segunda sessão, caches e todos os consumidores: Prontuário, Pendências, Inventário, Passivo, Busca, Alertas, Histórico, Competências, Dashboard, Carteira, Excel.
+4. Conferir o resultado navegando com o proprietário: **botões simples e nomes intuitivos, prévia real, uma confirmação, orientação contextual, retorno à mesma tela e filtros, estados claro/escuro e responsivos**. Corrigir as regressões, adaptar expectativas legadas no mesmo lote e registrar prova por SHA.
+5. Depois de T2/T3 testados, executar T4 (bonificação/contexto) e T5 (eventos/contatos/patrimônio granular). Sem merge, deploy ou escrita institucional por esta autorização.
+
+**Branches paralelas inspecionadas:** PR #515 (layout Pendências), PR #522 Draft (parágrafos CSS de Pendências), PR #523 Draft (incidente de autenticação) e PRs Dependabot permanecem separados; não reaproveitar sem diff e teste de colisão. Gemini e Manus continuam fontes históricas, não pontos de execução.
+
+**Invariante de produto:** correção/exclusão deve permitir atingir o objetivo com efeitos transacionais coerentes e avisos simples; nenhuma justificativa obrigatória, inventário/NF independente preservado, não inventar envio ou reanálise, não impedir por histórico apenas. Se dependência legítima exigir etapa anterior, fornecer botão e orientação, não um impasse sem saída.
+
+**Todo texto abaixo descreve marcos históricos de seus próprios commits.** Em especial, menções a 61/73 pgTAP, `52ff0871`, `a869b2df`, somente diálogo piloto ou exclusão ainda não conectada **não são o estado vigente**.
+
+---
+
+## Reconciliação Antigravity pós-e26058bc — 16/11/2026
+
+**Origem examinada:** `audit/antigravity-argon-prontuario-20261115@1cb118fd`, branch à frente de `fix/prontuario-integrado-validado-20261115@e26058bc` por 5 commits, sem divergência prévia. O GitHub confirmou por comparação os patches exatos. As **cinco alterações funcionais/arquivo de teste** foram incorporadas seletivamente à branch de integração, **sem merge integral** e sem importar instruções históricas paralelas. O relatório do Antigravity permanece consultável na sua branch de auditoria.
+
+**Correções aproveitadas, todas relativas ao comportamento já aprovado:**
+1. Preservar na tela as caixas de Pendências candidatas após selecionar a última; a seleção continua visível e revisável.
+2. Após uma operação iniciada na fila de Pendências, atualizar a própria fila, não substituir sua tela pelo Prontuário; novo teste Playwright de regressão.
+3. Manter a **primeira análise** de NF/Assessoria direta e simples; reservar o diálogo de correção para retificação de um resultado já registrado.
+4. Mostrar na confirmação de exclusão de Pendência a identificação **atual** da NF, sem alterar seu histórico original; ordenar **Editar lançamento** antes de **Excluir**.
+5. Capturar versões das NFs irmãs durante o cálculo agregado de análise fiscal; aplicar `FOR UPDATE` aos envios da Pendência envolvidos na transação. Um **novo teste pgTAP** garante a presença das versões das NFs irmãs na prévia, elevando o plano preparado a **74 asserções**.
+
+**Evidência e limite da prova:** o Antigravity relata `npm run test:readiness` aprovado (**1.416 unitários, 8 de integração**) e **18/18 Playwright do diálogo + 2/2 de retificação**. Os logs versionados na auditoria registram uma execução de **19/19** de um conjunto anterior, além do `test:readiness`; portanto distinguir relatório de execução mais recente de prova reproduzida. Na presente integração foi executado **teste isolado do diálogo com DOM/RPC simulados**, comprovando permanência de duas opções selecionadas, gravação única e atualização da fila correta. **Ainda não executados na integração:** suíte completa, 74 pgTAP com PostgreSQL real, concorrência real, Auth/RLS local, segunda sessão, persistência após F5 e aceite de UI. Não confundir a inspeção visual que o agente relata ter iniciado em `127.0.0.1:4179` com homologação concluída.
+
+**Próximo gate:** teste local Docker/Supabase completo e inspeção visual do proprietário. Se falhar, corrigir sobre esta branch e repetir, nunca atualizar Production como método de teste. A flag piloto continua condicionada a frontend e Supabase em localhost; nenhuma alteração em `main`, Vercel ou Supabase institucional está autorizada.
+
+---
 
 ## Incremento T2/T3 — código candidato conectado na branch isolada (15/11, após a decisão de flexibilização)
 
