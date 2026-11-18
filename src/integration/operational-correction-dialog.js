@@ -104,6 +104,7 @@
         const save = el(doc, 'button', 'btn btn-primary',
             deleting ? 'Confirmar exclusão' : 'Confirmar correção');
         for (const button of [cancel, clearBtn, review, save]) button.type = 'button';
+        (deleting ? cancel : select).autofocus = true;
         clearBtn.disabled = currentChoice === 'Não analisado' || !currentChoice;
         save.disabled = true;
         actions.append(cancel);
@@ -396,7 +397,7 @@
             }
             if (event.key === 'Tab') {
                 const controls = Array.from(dialog.querySelectorAll(
-                    'button:not(:disabled), select:not(:disabled), textarea:not(:disabled)'
+                    'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled)'
                 ));
                 const first = controls[0], last = controls.at(-1);
                 if (event.shiftKey && doc.activeElement === first) {
@@ -409,7 +410,7 @@
         if (!deleting) select.addEventListener('change', loadPreview);
         review.addEventListener('click', loadPreview);
         save.addEventListener('click', apply);
-        (deleting ? review : select).focus({ preventScroll: true });
+        (deleting ? cancel : select).focus({ preventScroll: true });
         void loadPreview();
         return true;
     }

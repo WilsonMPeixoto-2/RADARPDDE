@@ -173,6 +173,20 @@
             .filter(className => className.startsWith('analise-'))
             .forEach(className => control.classList.remove(className));
         control.classList.add(analysisStateClass(root, value));
+        if (control.classList.contains('invoice-document-analysis-select')) {
+            ['is-incorrect', 'is-correct', 'is-late', 'is-waiting', 'is-pending']
+                .forEach(className => control.classList.remove(className));
+            const statusClass = value === 'Incorreto'
+                ? 'is-incorrect'
+                : value === 'Correto'
+                    ? 'is-correct'
+                    : value === 'Correto (Atrasado)'
+                        ? 'is-late'
+                        : value === 'Aguardando reanálise'
+                            ? 'is-waiting'
+                            : 'is-pending';
+            control.classList.add(statusClass);
+        }
     }
 
     function syncProgramSummary(root, summary, schoolId, competenceKey, programId) {
@@ -496,6 +510,14 @@
             && invoice.compKey === compKey
             && invoice.tipo === 'servico'
         ));
+        const bonification = verification.bonificacao || verification.bonification || {};
+        const analysis = verification.analise || verification.analysis || {};
+        const legacyFallback = invoices.length === 1
+            ? {
+                sent: bonification.consEnviada === true || bonification.consAssessoria === 'Sim',
+                analysis: analysis.consAssessoria
+            }
+            : {};
 
         Array.from(row.querySelectorAll('select[onchange*="changeInvoiceAdvisoryAnalysis"]')).forEach(select => {
             const invoiceId = invoiceIdFromControl(select);
@@ -514,6 +536,47 @@
 
             const card = cardForInvoice(row, invoice.id);
             if (!card) return;
+            const actionCell = card.querySelector?.('.invoice-document-action');
+            const advisoryAnalysis = getServiceAdvisoryState(invoice, legacyFallback).analysis;
+            if (actionCell && !active && typeof root.document?.createElement === 'function') {
+                const canEditAdvisory = root.RadarOperationalCorrectionDialog?.canUse?.(root) === true
+                    && !readOnlyProfile
+                    && !futureLock
+                    && advisoryAnalysis !== 'Não analisado';
+                if (canEditAdvisory) {
+                    if (!actionCell.querySelector?.('.invoice-analysis-edit-button')) {
+                        const editBtn = root.document.createElement('button');
+                        editBtn.type = 'button';
+                        editBtn.className = 'invoice-analysis-edit-button';
+                        editBtn.setAttribute('aria-describedby', `advisory-invoice-title-${invoice.id}`);
+                        if (typeof root.document.createElementNS === 'function') {
+                            const ns = 'http://www.w3.org/2000/svg';
+                            const svg = root.document.createElementNS(ns, 'svg');
+                            svg.setAttribute('viewBox', '0 0 24 24');
+                            svg.setAttribute('aria-hidden', 'true');
+                            const p1 = root.document.createElementNS(ns, 'path');
+                            p1.setAttribute('d', 'M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z');
+                            const p2 = root.document.createElementNS(ns, 'path');
+                            p2.setAttribute('d', 'M13.8 7l3.2 3.2');
+                            svg.append?.(p1, p2);
+                            editBtn.appendChild?.(svg);
+                        }
+                        const labelSpan = root.document.createElement('span');
+                        labelSpan.textContent = 'Editar análise';
+                        editBtn.appendChild?.(labelSpan);
+                        editBtn.addEventListener('click', () => {
+                            root.openInvoiceOperationalCorrection?.(invoice.id, schoolId, 'consAssessoria', editBtn);
+                        });
+                        actionCell.replaceChildren?.(editBtn);
+                    }
+                } else if (!actionCell.querySelector?.('.invoice-document-empty-action')) {
+                    const empty = root.document.createElement('span');
+                    empty.setAttribute('aria-hidden', 'true');
+                    empty.className = 'invoice-document-empty-action';
+                    empty.textContent = '—';
+                    actionCell.replaceChildren?.(empty);
+                }
+            }
             card.querySelector('[data-radar-service-pendency-actions]')?.remove();
             if (legacyActive) return;
 

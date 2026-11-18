@@ -10569,6 +10569,7 @@ function renderProntuarioVerificacoes(esc) {
                                 if (invoicePendency) {
                                     actionHTML = `
                                         <button type="button" class="invoice-pendency-view-button"
+                                            aria-describedby="fiscal-invoice-title-${escapeHtml(note.id)}"
                                             data-pendency-ref="${escapeHtml(encodePendencyIdReference(invoicePendency.id))}"
                                             onclick="openPendencyDrawer('${escapeHtml(invoicePendency.id)}')">
                                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.6-6 9.5-6 9.5 6 9.5 6-3.6 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.7"/></svg>
@@ -10797,6 +10798,7 @@ function renderProntuarioVerificacoes(esc) {
                                 const actionHTML = invoicePendency
                                     ? `
                                         <button type="button" class="invoice-pendency-view-button"
+                                            aria-describedby="advisory-invoice-title-${escapeHtml(note.id)}"
                                             data-pendency-ref="${escapeHtml(encodePendencyIdReference(invoicePendency.id))}"
                                             onclick="openPendencyDrawer('${escapeHtml(invoicePendency.id)}')">
                                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.6-6 9.5-6 9.5 6 9.5 6-3.6 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.7"/></svg>
@@ -11584,7 +11586,8 @@ function openInvoiceOperationalCorrection(invoiceId, escolaId, documentKey = 'no
         ));
         currentValue = window.RadarServiceAdvisory.getServiceAdvisoryState(
             invoice, related.length === 1 ? {
-                sent: verification?.bonificacao?.consEnviada === true,
+                sent: verification?.bonificacao?.consEnviada === true
+                    || verification?.bonificacao?.consAssessoria === 'Sim',
                 analysis: verification?.analise?.consAssessoria
             } : {}
         ).analysis;

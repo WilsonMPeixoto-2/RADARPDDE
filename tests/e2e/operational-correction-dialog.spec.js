@@ -568,16 +568,17 @@ test('confirmação acionada na fila de Pendências re-renderiza renderPendencia
     expect(await page.evaluate(() => window.__renderedViews)).toEqual(['pendencias']);
 });
 
-test('linha de Consulta à Assessoria já analisada exibe botão Editar análise com aria-describedby e abre diálogo T2', async ({ page }) => {
+test('linha de Consulta à Assessoria preserva 1ª análise em 1 clique, reconcilia botão Editar análise com aria-describedby e intercepta retificação no select e no botão para abrir diálogo T2', async ({ page }) => {
     const { schoolId, competence, compKey } = await prepareSchool(page);
     await page.evaluate(({ sid, comp, cKey }) => {
         const repository = window.RadarApplicationServices?.data?.repository;
         window.RADAR_OPERATIONAL_CORRECTION_PREVIEW = true;
-        window.__advisoryPreviewTargets = [];
-        repository.capabilities = () => ({ remote: true });
+        window.__advisoryPreviewRequests = [];
+        repository.capabilities = () => ({ remote: true, atomicInvoiceEffects: true });
+        repository.saveInvoiceWithEffects = async () => ({ ok: true });
         repository.executeRpc = async (name, args) => {
             if (name === 'preview_operational_change') {
-                window.__advisoryPreviewTargets.push(args.p_request.target);
+                window.__advisoryPreviewRequests.push(args.p_request);
                 return {
                     action: args.p_request.action,
                     planDigest: 'c'.repeat(64),
@@ -609,7 +610,7 @@ test('linha de Consulta à Assessoria já analisada exibe botão Editar análise
             descricao: 'Manutenção predial',
             valor: 1200,
             consultaAssessoriaEnviada: true,
-            analiseConsultaAssessoria: 'Correto'
+            analiseConsultaAssessoria: 'Não analisado'
         });
         rebuildOperationalIndexes();
         renderProntuario(sid);
@@ -617,20 +618,57 @@ test('linha de Consulta à Assessoria já analisada exibe botão Editar análise
 
     const advisoryRow = page.locator('.service-advisory-row[data-service-advisory-invoice="NF-SVC-77"]');
     await expect(advisoryRow).toBeVisible();
+    const advisorySelect = advisoryRow.getByLabel('Análise da consulta à Assessoria para a NF 777');
+    await expect(advisorySelect).toHaveValue('Não analisado');
+    await expect(advisoryRow.getByRole('button', { name: 'Editar análise', exact: true })).toHaveCount(0);
+
+    // 1ª análise em 1 clique ('Não analisado' -> 'Correto') grava direto e reconcilia o botão Editar análise sem reload:
+    await advisorySelect.selectOption('Correto');
+    await expect(advisorySelect).toHaveValue('Correto');
+    await expect(advisorySelect).toHaveClass(/is-correct/);
+    expect(await page.evaluate(() => window.__advisoryPreviewRequests)).toEqual([]);
+
     const editBtn = advisoryRow.getByRole('button', { name: 'Editar análise', exact: true });
     await expect(editBtn).toBeVisible();
     await expect(editBtn).toHaveAttribute('aria-describedby', 'advisory-invoice-title-NF-SVC-77');
     await expect(advisoryRow.locator('#advisory-invoice-title-NF-SVC-77')).toHaveText('NF 777');
-    await editBtn.click();
 
+    // Retificação pelo <select> ('Correto' -> 'Correto (Atrasado)') restaura o select e abre o diálogo T2 com sugestão:
+    await advisorySelect.selectOption('Correto (Atrasado)');
+    await expect(advisorySelect).toHaveValue('Correto');
     const dialog = page.getByRole('dialog', { name: 'Corrigir análise técnica' });
     await expect(dialog).toBeVisible();
-    expect(await page.evaluate(() => window.__advisoryPreviewTargets)).toEqual([
-        expect.objectContaining({
-            id: 'NF-SVC-77',
-            programId: 'BASIC',
-            documentKey: 'consAssessoria'
-        })
+    await expect(dialog.getByLabel('Novo resultado')).toHaveValue('Correto (Atrasado)');
+    await dialog.getByRole('button', { name: 'Cancelar' }).click();
+    await expect(dialog).toBeHidden();
+
+    // Retificação pelo botão explícito Editar análise:
+    await editBtn.click();
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByLabel('Novo resultado')).toHaveValue('Correto');
+    expect(await page.evaluate(() => window.__advisoryPreviewRequests.map(req => ({
+        action: req.action,
+        target: req.target,
+        analysis: req.changes?.analysis
+    })))).toEqual([
+        {
+            action: 'correct_analysis',
+            target: expect.objectContaining({
+                id: 'NF-SVC-77',
+                programId: 'BASIC',
+                documentKey: 'consAssessoria'
+            }),
+            analysis: 'Correto (Atrasado)'
+        },
+        {
+            action: 'correct_analysis',
+            target: expect.objectContaining({
+                id: 'NF-SVC-77',
+                programId: 'BASIC',
+                documentKey: 'consAssessoria'
+            }),
+            analysis: 'Correto'
+        }
     ]);
 });
 
