@@ -10580,6 +10580,7 @@ function renderProntuarioVerificacoes(esc) {
                                     && !editingAnalysis) {
                                     actionHTML = `
                                         <button type="button" class="invoice-analysis-edit-button"
+                                            aria-describedby="fiscal-invoice-title-${escapeHtml(note.id)}"
                                             onclick="beginInvoiceDocumentAnalysisEdit('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')">
                                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg>
                                             <span>Editar análise</span>
@@ -10615,7 +10616,7 @@ function renderProntuarioVerificacoes(esc) {
                                             <span class="invoice-document-icon">${invoiceDocumentIconSvg(note.tipo)}</span>
                                             <div class="invoice-document-copy">
                                                 <div class="invoice-document-title-line">
-                                                    <strong>${escapeHtml(note.tipo === 'a_identificar' ? (note.desc || 'Saída sem descrição') : getInvoiceDocumentTitle(note))}</strong>
+                                                    <strong id="fiscal-invoice-title-${escapeHtml(note.id)}">${escapeHtml(note.tipo === 'a_identificar' ? (note.desc || 'Saída sem descrição') : getInvoiceDocumentTitle(note))}</strong>
                                                     ${isLegacyUnidentified ? `
                                                         <span class="invoice-legacy-badge"
                                                             title="Registro anterior à individualização; nenhuma Pendência histórica foi inventada.">
@@ -10788,6 +10789,11 @@ function renderProntuarioVerificacoes(esc) {
                                             </select>
                                         `
                                         : `<span class="invoice-document-status ${statusClass}">${escapeHtml(statusLabel)}</span>`;
+                                const canEditAdvisoryAnalysis = window.RadarOperationalCorrectionDialog?.canUse?.(window) === true
+                                    && canViewTechnicalAnalysis
+                                    && canMutateAdvisory
+                                    && !invoicePendency
+                                    && analysis !== 'Não analisado';
                                 const actionHTML = invoicePendency
                                     ? `
                                         <button type="button" class="invoice-pendency-view-button"
@@ -10797,7 +10803,16 @@ function renderProntuarioVerificacoes(esc) {
                                             <span>Visualizar pendência</span>
                                         </button>
                                     `
-                                    : '<span aria-hidden="true" class="invoice-document-empty-action">—</span>';
+                                    : canEditAdvisoryAnalysis
+                                        ? `
+                                            <button type="button" class="invoice-analysis-edit-button"
+                                                aria-describedby="advisory-invoice-title-${escapeHtml(note.id)}"
+                                                onclick="openInvoiceOperationalCorrection('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}', 'consAssessoria', this)">
+                                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg>
+                                                <span>Editar análise</span>
+                                            </button>
+                                        `
+                                        : '<span aria-hidden="true" class="invoice-document-empty-action">—</span>';
 
                                 return `
                                     <div class="invoice-document-row service-advisory-row ${noteIndex % 2 === 1 ? 'is-striped' : ''}"
@@ -10806,7 +10821,7 @@ function renderProntuarioVerificacoes(esc) {
                                             <span class="invoice-document-icon">${invoiceDocumentIconSvg('servico')}</span>
                                             <div class="invoice-document-copy">
                                                 <div class="invoice-document-title-line">
-                                                    <strong>NF ${escapeHtml(note.numero || note.id)}</strong>
+                                                    <strong id="advisory-invoice-title-${escapeHtml(note.id)}">NF ${escapeHtml(note.numero || note.id)}</strong>
                                                 </div>
                                                 <span class="service-advisory-description">${escapeHtml(note.desc || note.descricao || 'Serviço')}</span>
                                             </div>

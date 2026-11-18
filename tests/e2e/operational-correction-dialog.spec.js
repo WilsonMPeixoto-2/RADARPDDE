@@ -567,3 +567,70 @@ test('confirmação acionada na fila de Pendências re-renderiza renderPendencia
     await expect(dialog).toBeHidden();
     expect(await page.evaluate(() => window.__renderedViews)).toEqual(['pendencias']);
 });
+
+test('linha de Consulta à Assessoria já analisada exibe botão Editar análise com aria-describedby e abre diálogo T2', async ({ page }) => {
+    const { schoolId, competence, compKey } = await prepareSchool(page);
+    await page.evaluate(({ sid, comp, cKey }) => {
+        const repository = window.RadarApplicationServices?.data?.repository;
+        window.RADAR_OPERATIONAL_CORRECTION_PREVIEW = true;
+        window.__advisoryPreviewTargets = [];
+        repository.capabilities = () => ({ remote: true });
+        repository.executeRpc = async (name, args) => {
+            if (name === 'preview_operational_change') {
+                window.__advisoryPreviewTargets.push(args.p_request.target);
+                return {
+                    action: args.p_request.action,
+                    planDigest: 'c'.repeat(64),
+                    effects: {
+                        update: [{
+                            entity: 'registered_invoices',
+                            id: 'NF-SVC-77',
+                            field: 'payload.analiseConsultaAssessoria',
+                            before: 'Correto',
+                            after: args.p_request.changes?.analysis || 'Não analisado'
+                        }]
+                    },
+                    blockers: [],
+                    warnings: [],
+                    preserved: {}
+                };
+            }
+            return { committed: true };
+        };
+        notasRegistradas.push({
+            id: 'NF-SVC-77',
+            escolaId: sid,
+            compKey: cKey,
+            competencia: comp,
+            programaId: 'BASIC',
+            tipo: 'servico',
+            numero: '777',
+            desc: 'Manutenção predial',
+            descricao: 'Manutenção predial',
+            valor: 1200,
+            consultaAssessoriaEnviada: true,
+            analiseConsultaAssessoria: 'Correto'
+        });
+        rebuildOperationalIndexes();
+        renderProntuario(sid);
+    }, { sid: schoolId, comp: competence, cKey: compKey });
+
+    const advisoryRow = page.locator('.service-advisory-row[data-service-advisory-invoice="NF-SVC-77"]');
+    await expect(advisoryRow).toBeVisible();
+    const editBtn = advisoryRow.getByRole('button', { name: 'Editar análise', exact: true });
+    await expect(editBtn).toBeVisible();
+    await expect(editBtn).toHaveAttribute('aria-describedby', 'advisory-invoice-title-NF-SVC-77');
+    await expect(advisoryRow.locator('#advisory-invoice-title-NF-SVC-77')).toHaveText('NF 777');
+    await editBtn.click();
+
+    const dialog = page.getByRole('dialog', { name: 'Corrigir análise técnica' });
+    await expect(dialog).toBeVisible();
+    expect(await page.evaluate(() => window.__advisoryPreviewTargets)).toEqual([
+        expect.objectContaining({
+            id: 'NF-SVC-77',
+            programId: 'BASIC',
+            documentKey: 'consAssessoria'
+        })
+    ]);
+});
+
