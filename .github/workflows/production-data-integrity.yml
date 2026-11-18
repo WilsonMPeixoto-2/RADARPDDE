@@ -91,14 +91,11 @@ jobs:
 
       - name: Consultar integridade de Production
         id: integrity
+        env:
+          PGOPTIONS: '-c default_transaction_read_only=on'
         run: |
           set -euo pipefail
-          {
-            printf 'BEGIN TRANSACTION READ ONLY;\n'
-            cat supabase/verification/production-integrity-health.sql
-            printf '\nCOMMIT;\n'
-          } > "${RUNNER_TEMP}/radar-production-health-readonly.sql"
-          npx --no-install supabase db query --remote --yes --file "${RUNNER_TEMP}/radar-production-health-readonly.sql"
+          npx --no-install supabase db query --remote --yes --file supabase/verification/production-integrity-health.sql
 
       - name: Resumir auditoria de integridade
         if: always()

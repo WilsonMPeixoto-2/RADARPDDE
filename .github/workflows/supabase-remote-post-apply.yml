@@ -82,16 +82,13 @@ jobs:
             | tee /tmp/supabase-apply.txt
 
       - name: Confirmar histórico remoto e capacidades instaladas
+        env:
+          PGOPTIONS: '-c default_transaction_read_only=on'
         run: |
           set -o pipefail
           npx --no-install supabase migration list --remote --password "${PGPASS_REMOTE}" 2>&1 \
             | tee /tmp/supabase-migration-list-after.txt
-          {
-            printf 'BEGIN TRANSACTION READ ONLY;\n'
-            cat supabase/verification/remote-post-apply.sql
-            printf '\nCOMMIT;\n'
-          } > "${RUNNER_TEMP}/radar-postapply-readonly.sql"
-          npx --no-install supabase db query --remote --yes --file "${RUNNER_TEMP}/radar-postapply-readonly.sql" 2>&1 \
+          npx --no-install supabase db query --remote --yes --file supabase/verification/remote-post-apply.sql 2>&1 \
             | tee /tmp/supabase-post-apply-contract.txt
 
       - name: Executar lint remoto

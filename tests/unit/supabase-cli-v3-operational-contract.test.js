@@ -30,12 +30,17 @@ test('remote CI workflows select an explicit remote and reject legacy linked fla
   }
 });
 
-test('preflight, postapply and production DO verification stay in PostgreSQL read-only transactions', () => {
-  for (const name of ['supabase-remote-validation','supabase-remote-post-apply','production-data-integrity']) {
+test('remote verification DO blocks run with PostgreSQL default_transaction_read_only enforced', () => {
+  const scripts = {
+    'supabase-remote-validation': 'remote-preflight',
+    'supabase-remote-post-apply': 'remote-post-apply',
+    'production-data-integrity': 'production-integrity-health'
+  };
+  for (const [name, sql] of Object.entries(scripts)) {
     const content=wf(name);
-    assert.match(content, /BEGIN TRANSACTION READ ONLY;/, name);
-    assert.match(content, /supabase db query --remote --yes --file/, name);
-    assert.match(content, /COMMIT;/, name);
+    assert.match(content, /PGOPTIONS:\s*'-c default_transaction_read_only=on'/, name);
+    assert.ok(content.includes('supabase db query --remote --yes --file supabase/verification/' + sql + '.sql'), name);
+    assert.doesNotMatch(content, /BEGIN TRANSACTION READ ONLY;/, name);
   }
 });
 

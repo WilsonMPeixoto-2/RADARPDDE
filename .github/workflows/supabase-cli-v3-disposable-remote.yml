@@ -82,7 +82,7 @@ jobs:
             echo 'Falha de segurança: escrita foi aceita numa transação READ ONLY.' >&2
             exit 1
           fi
-          grep -Ei 'read.only|read-only|transaction' artifacts/cli3-remote/read-only-denial.log
+          grep -F 'cannot execute DELETE in a read-only transaction' artifacts/cli3-remote/read-only-denial.log
 
       - name: Verificar os três scripts DO com conexões PostgreSQL somente leitura
         shell: bash
@@ -95,12 +95,18 @@ jobs:
               remote-preflight|remote-post-apply|production-integrity-health) ;;
               *) exit 1 ;;
             esac
-            npx --no-install supabase db query --remote="$RADAR_LOOPBACK_DB" --yes \
+            if npx --no-install supabase db query --remote="$RADAR_LOOPBACK_DB" --yes \
               --file "supabase/verification/$kind.sql" \
-              > "artifacts/cli3-remote/$kind.log" 2>&1 || {
-                cat "artifacts/cli3-remote/$kind.log"
-                exit 1
-              }
+              > "artifacts/cli3-remote/$kind.log" 2>&1; then
+              echo "Verificação $kind executada sob leitura obrigatória."
+            elif [[ "$kind" = 'production-integrity-health' ]]; then
+              # A seed sintética não representa integridade de Production; exige a falha canônica.
+              grep -E 'PRODUCTION_INTEGRITY_FAILED: status=issues_detected, totalIssues=[1-9][0-9]*' \
+                "artifacts/cli3-remote/$kind.log" || { cat "artifacts/cli3-remote/$kind.log"; exit 1; }
+            else
+              cat "artifacts/cli3-remote/$kind.log"
+              exit 1
+            fi
           done
 
       - name: Validar migrations e tipos com alvo remoto explicitamente local

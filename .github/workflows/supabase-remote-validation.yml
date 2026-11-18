@@ -65,14 +65,11 @@ jobs:
             | tee /tmp/supabase-migration-dry-run.txt
 
       - name: Verificar capacidades obrigatórias do projeto
+        env:
+          PGOPTIONS: '-c default_transaction_read_only=on'
         run: |
           set -o pipefail
-          {
-            printf 'BEGIN TRANSACTION READ ONLY;\n'
-            cat supabase/verification/remote-preflight.sql
-            printf '\nCOMMIT;\n'
-          } > "${RUNNER_TEMP}/radar-preflight-readonly.sql"
-          npx --no-install supabase db query --remote --yes --file "${RUNNER_TEMP}/radar-preflight-readonly.sql" 2>&1 \
+          npx --no-install supabase db query --remote --yes --file supabase/verification/remote-preflight.sql 2>&1 \
             | tee /tmp/supabase-capabilities.txt
 
       - name: Registrar branches disponíveis sem bloquear projeto sem branching
