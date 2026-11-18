@@ -1,0 +1,141 @@
+name: Supabase CLI v3 — verificação remota descartável
+
+on:
+  pull_request:
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'supabase/**'
+      - 'scripts/verify-supabase-backup-restore.mjs'
+      - '.github/workflows/supabase-cli-v3-disposable-remote.yml'
+      - '.github/workflows/supabase-remote-*.yml'
+      - 'tests/unit/supabase-cli-v3-operational-contract.test.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  remote-contract:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    env:
+      SUPABASE_TELEMETRY_DISABLED: '1'
+      SUPABASE_INTERNAL_IMAGE_REGISTRY: 'ghcr.io'
+
+    steps:
+      - name: Obter exclusivamente a revisão em avaliação
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Preparar Node 24
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Instalação reproduzível e teste de comandos remotos
+        run: |
+          set -euo pipefail
+          npm ci
+          test "$(npx --no-install supabase --version)" = '3.2.0'
+          npx --no-install supabase config validate
+          node --test tests/unit/supabase-cli-v3-operational-contract.test.js
+
+      - name: Reservar portas da pilha local
+        shell: bash
+        run: |
+          set -euo pipefail
+          current="$(sysctl -n net.ipv4.ip_local_reserved_ports)"
+          reservation='54320-54323'
+          if [[ -n "$current" ]]; then reservation="$current,$reservation"; fi
+          sudo sysctl -w "net.ipv4.ip_local_reserved_ports=$reservation"
+
+      - name: Criar pilha Supabase descartável, sem credenciais hospedadas
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p supabase/functions artifacts/cli3-remote
+          printf 'RADAR_ALLOWED_ORIGIN=%s\n' 'http://127.0.0.1:4175' > supabase/functions/.env
+          bash scripts/start-disposable-supabase-ci.sh
+          npm run supabase:reset
+          echo 'RADAR_LOOPBACK_DB=postgresql://postgres:postgres@127.0.0.1:54322/postgres' >> "$GITHUB_ENV"
+
+      - name: Provar que PGOPTIONS torna a execução remota efetivamente somente leitura
+        shell: bash
+        env:
+          PGOPTIONS: '-c default_transaction_read_only=on'
+        run: |
+          set -euo pipefail
+          case "$RADAR_LOOPBACK_DB" in
+            postgresql://postgres:postgres@127.0.0.1:54322/postgres) ;;
+            *) echo 'Alvo não é o banco local autorizado.' >&2; exit 1 ;;
+          esac
+          printf '%s\n' 'DELETE FROM public.schools WHERE false;' > /tmp/cli3-negative-readonly.sql
+          set +e
+          npx --no-install supabase db query --remote="$RADAR_LOOPBACK_DB" --yes \
+            --file /tmp/cli3-negative-readonly.sql > artifacts/cli3-remote/read-only-denial.log 2>&1
+          status=$?
+          set -e
+          if [[ "$status" -eq 0 ]]; then
+            echo 'Falha de segurança: escrita foi aceita numa transação READ ONLY.' >&2
+            exit 1
+          fi
+          grep -F 'cannot execute DELETE in a read-only transaction' artifacts/cli3-remote/read-only-denial.log
+
+      - name: Verificar os três scripts DO com conexões PostgreSQL somente leitura
+        shell: bash
+        env:
+          PGOPTIONS: '-c default_transaction_read_only=on'
+        run: |
+          set -euo pipefail
+          for kind in remote-preflight remote-post-apply production-integrity-health; do
+            case "$kind" in
+              remote-preflight|remote-post-apply|production-integrity-health) ;;
+              *) exit 1 ;;
+            esac
+            if npx --no-install supabase db query --remote="$RADAR_LOOPBACK_DB" --yes \
+              --file "supabase/verification/$kind.sql" \
+              > "artifacts/cli3-remote/$kind.log" 2>&1; then
+              echo "Verificação $kind executada sob leitura obrigatória."
+            elif [[ "$kind" = 'production-integrity-health' ]]; then
+              # A seed sintética não representa integridade de Production; exige a falha canônica.
+              grep -E 'PRODUCTION_INTEGRITY_FAILED: status=issues_detected, totalIssues=[1-9][0-9]*' \
+                "artifacts/cli3-remote/$kind.log" || { cat "artifacts/cli3-remote/$kind.log"; exit 1; }
+            else
+              cat "artifacts/cli3-remote/$kind.log"
+              exit 1
+            fi
+          done
+
+      - name: Validar migrations e tipos com alvo remoto explicitamente local
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --no-install supabase migration list --remote="$RADAR_LOOPBACK_DB" \
+            > artifacts/cli3-remote/migration-list.log 2>&1
+          npx --no-install supabase db push --remote="$RADAR_LOOPBACK_DB" --dry-run \
+            > artifacts/cli3-remote/push-dry-run.log 2>&1
+          grep -F 'DRY RUN' artifacts/cli3-remote/push-dry-run.log
+          npx --no-install supabase gen types typescript --remote="$RADAR_LOOPBACK_DB" --schema public \
+            > /tmp/cli3-remote.types.ts
+          node scripts/check-generated-database-types.js \
+            src/types/database.types.ts /tmp/cli3-remote.types.ts
+          npx --no-install supabase db lint --remote="$RADAR_LOOPBACK_DB" \
+            --schema public --level warning --fail-on error
+          npx --no-install supabase test db supabase/tests/database \
+            --remote="$RADAR_LOOPBACK_DB" --yes
+
+      - name: Desligar pilha local mesmo se houver falha
+        if: always()
+        run: npx --no-install supabase stop --no-backup || true
+
+      - name: Preservar logs de prova sem credenciais nem dados pessoais
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: cli3-disposable-remote-proof
+          path: artifacts/cli3-remote/
+          retention-days: 14
+          if-no-files-found: warn

@@ -91,7 +91,11 @@ jobs:
 
       - name: Consultar integridade de Production
         id: integrity
-        run: npx --no-install supabase db query --linked --file supabase/verification/production-integrity-health.sql
+        env:
+          PGOPTIONS: '-c default_transaction_read_only=on'
+        run: |
+          set -euo pipefail
+          npx --no-install supabase db query --remote --yes --file supabase/verification/production-integrity-health.sql
 
       - name: Resumir auditoria de integridade
         if: always()

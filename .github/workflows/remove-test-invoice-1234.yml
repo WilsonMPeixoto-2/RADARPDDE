@@ -1,12 +1,12 @@
 name: Remover lançamento de teste NF 1234
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "supabase/operations/20260922_remove_test_invoice_1234.sql"
-      - ".github/workflows/remove-test-invoice-1234.yml"
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Execução excepcional de correção histórica. Confirme deliberadamente."
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -17,6 +17,7 @@ concurrency:
 
 jobs:
   cleanup-production:
+    if: github.event_name == 'workflow_dispatch' && inputs.confirmation == 'CONFIRMAR_REEXECUCAO_EXCEPCIONAL_NF_1234'
     name: Remover e verificar lançamento de teste em Production
     runs-on: ubuntu-26.04
     timeout-minutes: 10
@@ -55,7 +56,7 @@ jobs:
         run: npx --no-install supabase link --project-ref "${PROJECT_REF}" --password "${PGPASS_REMOTE}"
 
       - name: Remover lançamento de teste e verificar invariantes
-        run: npx --no-install supabase db query --linked --file supabase/operations/20260922_remove_test_invoice_1234.sql
+        run: npx --no-install supabase db query --remote --yes --file supabase/operations/20260922_remove_test_invoice_1234.sql
 
       - name: Registrar resumo sanitizado
         if: always()

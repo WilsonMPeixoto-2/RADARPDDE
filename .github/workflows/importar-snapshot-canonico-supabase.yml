@@ -87,14 +87,14 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          npx --no-install supabase db query --linked --file "${RADAR_IMPORT_SQL_FILE}" 2>&1 \
+          npx --no-install supabase db query --remote --yes --file "${RADAR_IMPORT_SQL_FILE}" 2>&1 \
             | tee /tmp/radar-pdde-import-result.txt
 
       - name: Consultar Advisors após a carga
         shell: bash
         run: |
           set -o pipefail
-          npx --no-install supabase db advisors --linked --type all --level info --fail-on error 2>&1 \
+          npx --no-install supabase db advisors --remote --type all --level info --fail-on error 2>&1 \
             | tee /tmp/radar-pdde-advisors-after-import.txt
 
       - name: Publicar evidências sanitizadas
