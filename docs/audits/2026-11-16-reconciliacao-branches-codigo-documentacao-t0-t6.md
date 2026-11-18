@@ -1,6 +1,6 @@
 # Auditoria de continuidade — branches, código, documentação T0–T6
 
-**Data da conferência:** 16/11/2026 (horário de Brasília). **Natureza:** evidência de leitura do GitHub e reconciliação documental; não constitui homologação técnica ou autorização de release.
+**Data da conferência:** 16/11/2026 (horário de Brasília; ver também a [atualização e reconciliação de 17/11/2026](2026-11-15-antigravity-argon-prontuario/RELATORIO.md) com `main@58ca0c0a`, `gemini@d55747b9` e o 7º reparo T2/acessibilidade). **Natureza:** evidência de leitura do GitHub e reconciliação documental; não constitui homologação técnica ou autorização de release.
 **Repositório:** [RADARPDDE](https://github.com/WilsonMPeixoto-2/RADARPDDE). **Branch de execução única:** `fix/prontuario-integrado-validado-20261115`. **HEAD do código antes do saneamento documental:** `a8e4704516db4abbb59b24b623acd52f3de38cae`. SHAs finais de documentação devem ser revalidados no remoto em cada sessão.
 **Main/Produção por esta frente:** `main@4011a2b8e2ce39e048d5ecb68026c9f041b74cb0` permaneceu sem merge relacionado a T0–T6.
 

@@ -1,17 +1,17 @@
 # RADAR PDDE — estado atual e continuidade verificável
 
-**Atualização consolidada:** 16/11/2026. **Frente ativa:** Prontuário integrado, correções e exclusões T0–T6.
-**Branch de execução exclusiva:** `fix/prontuario-integrado-validado-20261115`. **SHA do código conferido antes deste saneamento documental:** `a8e4704516db4abbb59b24b623acd52f3de38cae`; verificar o HEAD novamente, pois commits documentais posteriores avançam a branch.
-**Baseline publicada da frente:** `main@4011a2b8e2ce39e048d5ecb68026c9f041b74cb0` (verificação de 16/11). Nenhum merge, migration institucional ou deploy de T1–T6 foi autorizado/feito por esta frente.
+**Atualização consolidada:** 17/11/2026 (sobre a reconciliação de 16/11/2026 em `20409c12`). **Frente ativa:** Prontuário integrado, correções e exclusões T0–T6.
+**Branch oficial de integração:** `fix/prontuario-integrado-validado-20261115@20409c12591090b3b422ae014afb8cdf880bd387` (código base `a8e4704516db4abbb59b24b623acd52f3de38cae`); **branch sincronizada com `main@58ca0c0a` e 7º reparo T2/acessibilidade:** `audit/antigravity-argon-prontuario-20261115`; verificar o HEAD novamente ao iniciar sessão.
+**Baseline publicada da frente:** `main@58ca0c0a507fb42ee512ace95ab766edaa1f2243` (verificação de 17/11, avançada a partir de `4011a2b8e2ce39e048d5ecb68026c9f041b74cb0` exclusivamente pelos PRs de manutenção de ferramentas #524 `74f92c08` e #526 `58ca0c0a`). Nenhum merge, migration institucional ou deploy de T1–T6 foi autorizado/feito por esta frente.
 
 ## Única rota de retomada
 
 1. [Contrato aprovado](reference/PRONTUARIO_CORRECAO_CONTRATO.md): resultado funcional pretendido, permissões e desbloqueio orientado ao objetivo.
 2. [Plano T0–T6](superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md): objetivos, decisões e critérios de aceite; checkboxes originais são tarefas do plano e não certificação da execução.
-3. [Checkpoint único de execução](handoff/2026-11-15-prontuario-integracao-verificada.md): **ler primeiro a seção "Estado vigente — reconciliação de 16/11"**; os marcos abaixo dela registram fotografias datadas anteriores.
+3. [Checkpoint único de execução](handoff/2026-11-15-prontuario-integracao-verificada.md): **ler primeiro a seção "Estado vigente — reconciliação de 16–17/11/2026"**; os marcos abaixo dela registram fotografias datadas anteriores.
 4. [Matriz de transição](reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md): autoridades antigas/novas, superfícies afetadas e gates de validação.
 5. [Validade dos documentos](reference/STATUS_DOCUMENTOS.md), [modelo canônico](reference/SYSTEM_CANONICAL_MODEL.md) e demais documentos exigidos pelo `AGENTS.md`.
-6. [Auditoria de branches, código e documentos de 16/11](audits/2026-11-16-reconciliacao-branches-codigo-documentacao-t0-t6.md): evidência da atualização e lista do que não foi validado.
+6. [Auditoria de branches, código e documentos de 16/11](audits/2026-11-16-reconciliacao-branches-codigo-documentacao-t0-t6.md) e [relatório consolidado de 17/11](audits/2026-11-15-antigravity-argon-prontuario/RELATORIO.md): evidência da atualização e lista do que não foi validado.
 
 **Não reutilizar trechos antigos sem conferir sua data, branch e SHA.** Os relatórios de Argon, Antigravity, Gemini e Manus são evidências comparativas; nenhum deles substitui o checkpoint único. Não fazer merge/cherry-pick integral de branch auxiliar.
 
@@ -21,24 +21,26 @@
 |---|---|---|
 | **T0 — contratos, cenários e fixtures** | Estrutura de referência e massas sintéticas preservadas | Reconciliar casos conforme os lotes efetivamente testados |
 | **T1 — Prontuário visual** | Estrutura horizontal e projeções de identificação atual de NF em consumidores | Homologação visual integral e operacional em navegador local |
-| **T2 — análise e Pendências** | RPCs `correct_analysis`/`clear_analysis`/`delete_pendency`, cliente, janelas, entradas de NF e Assessoria e atualização de agregados; flag local | Testar autoridade antiga versus nova, autenticação/RLS, pendências ambíguas, persistência, F5 e segunda sessão; cortes de rotas legadas ainda devem ser auditados |
+| **T2 — análise e Pendências** | RPCs `correct_analysis`/`clear_analysis`/`delete_pendency`, cliente, janelas, entradas de NF e Assessoria (incluindo interceptação no `<select>` em `service-advisory-pendency.js`, reconciliação do botão `Editar análise` em `prontuario-conditional-reconciler.js` e `aria-describedby`) e atualização de agregados; flag local | Testar autoridade antiga versus nova, autenticação/RLS, pendências ambíguas, persistência, F5 e segunda sessão; cortes de rotas legadas ainda devem ser auditados |
 | **T3 — exclusão causal de NF** | RPC `delete_invoice`, confirmação com alcance e dependentes, entrada no Prontuário, recomposição Assistência/Inventário e testes de contrato | Ensaiar exclusão com filhos concorrentes, inventariado/compartilhado, retorno de provisória Qualidade, escritores antigos, integração completa de consumidores e rollback |
 | **T4 — bonificação, histórico completo, contexto errado** | Contrato aprovado, sem implementação integral | Implementar RPC/UI, reconsolidação orientada, testes e exportação |
 | **T5 — tentativas, reanálises, contatos, inventário granular** | Helper puro preservado | Implementar persistência transacional, interface, autorização e testes |
 | **T6 — homologação global e publicação** | Plano/gates definidos | Conclusão dos lotes, aceite do proprietário e autorização explícita de release |
 
-**Ensaios existentes:** Antigravity relatou `npm run test:readiness` com 1.416 unitários e 8 integrações e 20 casos Playwright do diálogo/retificação aprovados, usando RPC controlada. Após incorporação seletiva, foi demonstrada isoladamente a retenção da seleção e refresh da fila. Existem **74 asserções pgTAP escritas**, mas **a suíte SQL de 74 casos ainda não foi executada e homologada no HEAD integrado**. Não há prova de auth/RLS real, transação integrada, concorrência entre duas sessões, F5 ou aceite humano completo para T2/T3. A inspeção visual declarada pelo Antigravity em `localhost:4179` não veio acompanhada de um resultado final remoto.
+**Ensaios existentes:** em 17/11/2026 (com `20409c12` + `main@58ca0c0a` + 7º reparo), `npm run test:readiness` aprovou **1.418/1.418 unitários e 8/8 integrações** (ESLint `10.15.0`, dependency-cruiser `18.8.0`, 0 vulnerabilidades `npm audit`) e **45/45 casos Playwright** nas 10 suítes de Prontuário e Retificação (**19/19** em `operational-correction-dialog.spec.js`), usando RPC controlada e logs versionados atualizados em `docs/audits/2026-11-15-antigravity-argon-prontuario/evidencias/`. Existem **74 asserções pgTAP escritas**, mas **a suíte SQL de 74 casos ainda não foi executada e homologada no HEAD integrado**. Não há prova de auth/RLS real, transação integrada, concorrência entre duas sessões, F5 ou aceite humano completo para T2/T3.
 
 **Ativação do piloto:** `RADAR_OPERATIONAL_CORRECTION_PREVIEW` está OFF por padrão; o gerador e a configuração só autorizam o piloto com frontend e Supabase de **teste em localhost**, sem ligação ao Supabase institucional. O contrato do serviço legado permanece até substituição/homologação deliberada.
 
-## Branches e PRs paralelos inspecionados em 16/11
+## Branches e PRs paralelos inspecionados em 16–17/11
 
-- `audit/antigravity-argon-prontuario-20261115@1cb118fd`: **sem novos commits**. Seis refinamentos de UX, concorrência e testes já aproveitados seletivamente; **não repetir integração**.
-- `audit/gemini-revisao-critica-e-sugestoes-20261115@16aca6c1`, `audit/manus-auditoria-frente-integrada-20261114@a87e9e0e` e `feat/prontuario-correcao-integrada-20261114@182b7949`: fontes datadas, não branches correntes.
+- `fix/prontuario-integrado-validado-20261115@20409c12`: incorporou os seis refinamentos de `1cb118fd` (`25ed80ea`..`8361c5ee`, 74 asserções pgTAP) e a reconciliação documental de 16/11; **não repetir integração dos 6 reparos**.
+- `audit/antigravity-argon-prontuario-20261115`: sincronizada em 17/11 com `20409c12` e `main@58ca0c0a`, acrescentando o **7º reparo** (interceptação de retificação no `<select>` da Assessoria em `service-advisory-pendency.js`, reconciliação do botão `Editar análise` em `prontuario-conditional-reconciler.js`, botão `Editar análise` e `aria-describedby` em `app.js`, e `modern-web-guidance` `dialog` focus/overscroll).
+- `audit/gemini-revisao-critica-e-sugestoes-20261115@d55747b9`: recriada sobre `20409c12` (`7d6629a0` → `d55747b9`), detalhando contratos de versão em `tooling-contract.test.js`; `audit/manus-auditoria-frente-integrada-20261114@a87e9e0e` e `feat/prontuario-correcao-integrada-20261114@182b7949` permanecem fontes datadas.
+- `main@58ca0c0a`: recebeu em 17/11 os **PRs #524 (`74f92c08`)** e **#526 (`58ca0c0a`)** (Playwright `1.65.1`, MSW `3.0.6`, Knip `6.45.1`, Prettier `3.10.1`, Puppeteer `25.17.0`, ESLint `10.15.0`, dependency-cruiser `18.8.0`, 0 vulnerabilidades `npm audit`, mantendo `supabase@2.122.0`).
+- `chore/supabase-cli3-2-remote-safety-20261117@7414b21e` (Draft CLI `3.2.0`, issue #530) e `chore/deps-browser-validation-blocked-20261117@baf158ab` (Draft bloqueada por `picomatch@4.0.7`, issue #528): mantidas separadas desta frente.
 - **PR #515** `fix/preview-pendencias-column-spacing-20261111`: frente visual distinta de Pendências; não misturar sem teste de colisão CSS.
-- **PR #522 (Draft)** `fix/pendencias-paragrafos-legiveis-20261116`: duas alterações, exclusivamente em `src/styles/task-9-pendencias.css` e teste unitário; não integrado a esta frente, avaliar colisão visual antes de eventual aproveitamento.
-- **PR #523 (Draft)** `hotfix/production-auth-timeout-recovery-20261116`: tratamento da autenticação; frente de incidente independente. Não inserir na candidata de T2/T3 sem decisão e verificação de compatibilidade.
-- Dependabot e demais PRs não constituem alterações publicadas nesta frente. `main` segue em `4011a2b8`.
+- **PR #522 (Draft)** `fix/pendencias-paragrafos-legiveis-20261116@37de3033`: duas alterações, exclusivamente em `src/styles/task-9-pendencias.css` e teste unitário; não integrado a esta frente, avaliar colisão visual antes de eventual aproveitamento.
+- **PR #523 (Draft)** `hotfix/production-auth-timeout-recovery-20261116@ed2054a3`: tratamento da autenticação; frente de incidente independente. Não inserir na candidata de T2/T3 sem decisão e verificação de compatibilidade.
 
 ## Próxima execução — ordem objetiva
 
