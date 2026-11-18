@@ -46,7 +46,7 @@ O desenvolvimento novo relevante é o chamado **7º reparo**, focado em `consAss
 - O novo teste Playwright de Assessoria prova primeira análise, surgimento do botão e duas formas de abrir a janela; **não confirma aplicação de retificação em PostgreSQL, pós-F5 ou segunda sessão**. O teste injeta `repository.executeRpc` simulado.
 - A avaliação de CSS, `autofocus`, `aria-describedby` e controles Tab é inspeção estática mais testes DOM/Chromium declarados. Falta verificar visualmente navegadores/temas, foco em sucesso e rolamento da página real.
 - A branch Antigravity não tinha uma bateria de GitHub Actions comprovando todas essas jornadas em seu HEAD; constavam somente verificações auxiliares de Preview Comments e Supabase Preview ignorado. Logs locais do Antigravity são evidência útil, mas não green gate remoto na branch de destino.
-- **74 asserções pgTAP permanecem escritas e não executadas** no PostgreSQL real isolado; SQL/RLS, concorrência com writers antigos, idempotência/rollback, efeitos Qualidade/patrimônio e consolidação não foram homologados.
+- **No relatório original Antigravity, 74 asserções pgTAP estavam escritas mas não executadas; na execução posterior do PR #532, o arquivo de 74 asserções PASSOU em PostgreSQL Docker.** Isso não equivale a Auth/RLS real, concorrência com writers antigos, idempotência/rollback em duas sessões e aceite humano, ainda pendentes.
 
 ## 5. Fragilidades residuais a testar, sem extrapolar
 
@@ -65,6 +65,18 @@ O desenvolvimento novo relevante é o chamado **7º reparo**, focado em `consAss
 
 **Gate para incorporação na branch oficial:** CI automatizado para o SHA desta candidata, teste de transição no navegador, contraprova de perfil e estado de Pendência, compatibilidade de estilo, e posterior Auth/RLS em PostgreSQL local antes de declarar T2/T3 homologado. Não realizar merge para `main` nem deploy como parte deste trabalho.
 
+## 7. Revalidação dinâmica posterior à abertura do PR #532 (18/11/2026)
+
+O [workflow Supabase readiness #44308853610](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/44308853610), disparado pelo PR #532 contra a branch oficial, iniciou Supabase local em Docker, executou `supabase reset` com todas as migrations e iniciou a suíte real de pgTAP.
+
+**Evidência nova importante:** `supabase/tests/database/operational-correction.test.sql` passou integralmente no PostgreSQL local com as **74 asserções**. Todos os demais arquivos pgTAP listados no log passaram, **exceto** `schema.test.sql`, que continha `count(*) = 62` apesar de a migration candidata `20261114000100` elevar a quantidade versionada para 63. A falha bloqueou os testes Auth/RLS/Playwright locais restantes. **Correção no PR:** `schema.test.sql` agora exige pelo menos 63 e a presença específica da migration `20261114000100`, evitando falsos vermelhos em futuras migrations. **Aguardar nova execução verde antes de certificar o gate.**
+
+**Outro bloqueio externo independente:** o job de sintaxe/auditoria do PR interrompeu-se em `npm audit`: 3 advisories moderados e sete ocorrências altas de **um mesmo advisory upstream** `GHSA-fc5q-39xc-vjpf` / CVE-2026-112366 (ReDoS em `picomatch`, revisado em 17/11/2026). Os pacotes indiretos afetados incluem `dependency-cruiser`, `fdir`, `knip`, `picomatch`, `stylelint`, `stylelint-config-recommended` e `tinyglobby`. A política rejeita essas ocorrências, sem vulnerabilidades bloqueantes de **runtime** apontadas pelo controle atual. O pacote de revisão **não alterou** `package.json` nem `package-lock.json`. Não remover o controle de segurança nem usar `npm audit fix --force` como atalho; enfrentar a questão na frente dedicada #528, respeitando mudanças de advisories.
+
+**Gate ainda aberto:** esta execução do pgTAP demonstra os testes SQL já implementados, não fecha a prova Auth/RLS das operações T2/T3, nem a reprodução E2E com banco real, F5 e segunda sessão. O CI Playwright dirigido e a readiness geral são provas complementares e não substituem a homologação com o proprietário.
+
+---
+
 ## 7. Arquivos efetivamente alterados nesta candidata
 
-`app.js`, `src/integration/{service-advisory-pendency,prontuario-conditional-reconciler,operational-correction-dialog,auditable-retification}.js`, `src/styles/{evaluation-retification-ui,unidentified-expense-ux}.css`, `tests/unit/{service-advisory-pendency,prontuario-conditional-reconciler}.test.js`, `tests/e2e/operational-correction-dialog.spec.js`, mais **este relatório de auditoria**. Nenhuma mudança SQL, dependência ou script de build.
+`app.js`, `src/integration/{service-advisory-pendency,prontuario-conditional-reconciler,operational-correction-dialog,auditable-retification}.js`, `src/styles/{evaluation-retification-ui,unidentified-expense-ux}.css`, `tests/unit/{service-advisory-pendency,prontuario-conditional-reconciler}.test.js`, `tests/e2e/operational-correction-dialog.spec.js`, `supabase/tests/database/schema.test.sql` (teste de migrações atualizado após contraprova do CI), mais **este relatório de auditoria**. Nenhuma migration SQL, dependência ou script de build foi alterado.
