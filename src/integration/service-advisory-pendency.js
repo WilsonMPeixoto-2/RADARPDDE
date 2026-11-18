@@ -366,12 +366,40 @@
             const state = invoiceService.getState();
             const invoice = state.registeredInvoices.find(record => String(record.id) === String(invoiceId));
             if (!invoice || invoice.tipo !== 'servico') return false;
-            const previous = getServiceAdvisoryState(invoice).analysis;
+            const serviceNotes = (state.registeredInvoices || []).filter(record => (
+                String(record.escolaId) === String(invoice.escolaId)
+                && String(record.compKey) === String(invoice.compKey)
+                && record.tipo === 'servico'
+            ));
+            const verification = state.verifications?.[invoice.escolaId]?.[invoice.compKey]
+                || root.verificacoes?.[invoice.escolaId]?.[invoice.compKey];
+            const previous = getServiceAdvisoryState(
+                invoice,
+                serviceNotes.length === 1 ? {
+                    sent: verification?.bonificacao?.consEnviada === true
+                        || verification?.bonificacao?.consAssessoria === 'Sim',
+                    analysis: verification?.analise?.consAssessoria
+                } : {}
+            ).analysis;
             const active = findActiveForInvoice(root, state, invoice);
             if (active) {
                 if (selectElement && typeof selectElement === 'object') selectElement.value = previous;
                 root.openPendencyDrawer?.(active.id);
                 return false;
+            }
+
+            if (root.RadarOperationalCorrectionDialog?.canUse?.(root)
+                && previous !== 'Não analisado'
+                && text(value) !== 'Incorreto'
+                && typeof root.openInvoiceOperationalCorrection === 'function') {
+                if (selectElement && typeof selectElement === 'object') selectElement.value = previous;
+                return root.openInvoiceOperationalCorrection(
+                    invoiceId,
+                    schoolId,
+                    'consAssessoria',
+                    selectElement,
+                    value
+                );
             }
 
             if (text(value) === 'Incorreto') {
