@@ -386,3 +386,124 @@ test('syncServicePendencyControls sincroniza botão Editar análise na coluna A�
     assert.deepEqual(openedCalls, [['NF-A', 'ESC-1', 'consAssessoria', replacedNodes[0]]]);
 });
 
+
+
+test('reconciliação incremental da Assessoria substitui Editar análise por Visualizar pendência e restaura ação após resolução', () => {
+    let profile = 'controlador';
+    const drawerCalls = [];
+    const makeElement = tag => {
+        const attributes = new Map();
+        const listeners = new Map();
+        const children = [];
+        return {
+            tagName: tag.toUpperCase(),
+            type: '', className: '', textContent: '', dataset: {}, style: {},
+            get childElementCount() { return children.length; },
+            appendChild(child) { children.push(child); return child; },
+            setAttribute(k, v) { attributes.set(k, String(v)); },
+            getAttribute(k) { return attributes.get(k) || null; },
+            addEventListener(evt, handler) { listeners.set(evt, handler); },
+            click() { listeners.get('click')?.(); }
+        };
+    };
+    const actionCell = {
+        children: [],
+        querySelector(selector) {
+            return this.children.find(child => (
+                selector === '.invoice-analysis-edit-button'
+                    && child.className === 'invoice-analysis-edit-button'
+            ) || (
+                selector === '.invoice-pendency-view-button'
+                    && child.className === 'invoice-pendency-view-button'
+            ) || (
+                selector === '.invoice-document-empty-action'
+                    && child.className === 'invoice-document-empty-action'
+            )) || null;
+        },
+        replaceChildren(...nodes) { this.children = nodes; }
+    };
+    const card = {
+        dataset: { serviceAdvisoryInvoice: 'NF-A' },
+        querySelector(selector) {
+            if (selector === '.invoice-document-action') return actionCell;
+            return null;
+        },
+        appendChild() {}
+    };
+    const select = {
+        disabled: false,
+        dataset: {},
+        getAttribute() {
+            return "changeInvoiceAdvisoryAnalysis('NF-A', 'ESC-1', this.value, this)";
+        }
+    };
+    const row = {
+        dataset: { programId: 'BASIC', documentKey: 'consAssessoria' },
+        querySelectorAll(selector) {
+            if (selector.includes('changeInvoiceAdvisoryAnalysis')) return [select];
+            if (selector === '[data-service-advisory-invoice]') return [card];
+            return [];
+        },
+        querySelector() { return null; }
+    };
+    const state = {
+        registeredInvoices: [{
+            id: 'NF-A', escolaId: 'ESC-1', compKey: '2026-08_BASIC',
+            tipo: 'servico', analiseConsultaAssessoria: 'Correto'
+        }],
+        pendencies: []
+    };
+    const root = {
+        document: { createElement: makeElement },
+        getRadarAccessProfile: () => profile,
+        RadarCompetencia: {
+            splitCompetenciaContext: () => ({ competenciaKey: '2026-08', contextId: 'BASIC' })
+        },
+        RadarAccessPolicy: { CAPABILITIES: {} },
+        hasRadarCapability: () => true,
+        RadarOperationalCorrectionDialog: { canUse: () => true },
+        RadarServiceAdvisoryPendency: {
+            findActiveForInvoice(_root, currentState, invoice) {
+                return currentState.pendencies.find(pendency => (
+                    pendency.registeredInvoiceId === invoice.id
+                    && ['Aberta', 'Aguardando reanálise'].includes(pendency.status)
+                )) || null;
+            }
+        },
+        encodePendencyIdReference: id => id,
+        openPendencyDrawer(id) { drawerCalls.push(id); }
+    };
+    const sync = () => reconciler.syncServicePendencyControls(
+        root, 'ESC-1', '2026-08_BASIC', { bonificacao: {}, analise: {} }, [row], state
+    );
+
+    sync();
+    assert.equal(actionCell.children[0]?.className, 'invoice-analysis-edit-button');
+    assert.equal(select.disabled, false);
+
+    state.pendencies.push({
+        id: 'P-A', escolaId: 'ESC-1', competenciaOrigem: '2026-08',
+        programaId: 'BASIC', documentoKey: 'consAssessoria',
+        registeredInvoiceId: 'NF-A', status: 'Aberta'
+    });
+    sync();
+    assert.equal(select.disabled, true, 'a análise deve ser bloqueada enquanto a Pendência está ativa');
+    assert.equal(actionCell.querySelector('.invoice-analysis-edit-button'), null,
+        'não pode manter um botão de retificação obsoleto');
+    const view = actionCell.querySelector('.invoice-pendency-view-button');
+    assert.ok(view, 'deve mostrar a ação real para a Pendência ativa');
+    view.click();
+    assert.deepEqual(drawerCalls, ['P-A']);
+
+    state.pendencies[0].status = 'Resolvida';
+    sync();
+    assert.equal(select.disabled, false);
+    assert.equal(actionCell.children[0]?.className, 'invoice-analysis-edit-button',
+        'após resolver, a ação de editar análise deve voltar');
+
+    profile = 'sme';
+    sync();
+    assert.equal(select.disabled, true);
+    assert.equal(actionCell.querySelector('.invoice-analysis-edit-button'), null,
+        'perfil somente leitura não deve conservar ação antiga');
+});
