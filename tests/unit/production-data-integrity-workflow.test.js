@@ -41,7 +41,10 @@ test('consulta Production com os secrets administrativos já existentes e permis
   assert.match(workflow, /PGPASS_REMOTE:\s*\$\{\{ secrets\.SUPABASE_DB_PASSWORD \}\}/u);
   assert.match(workflow, /PROJECT_REF:\s*scnryinorqeucbfkioxo/u);
   assert.match(workflow, /supabase link --project-ref "\$\{PROJECT_REF\}" --password "\$\{PGPASS_REMOTE\}"/u);
-  assert.match(workflow, /supabase db query --linked --file supabase\/verification\/production-integrity-health\.sql/u);
+  assert.match(workflow, /BEGIN TRANSACTION READ ONLY;/u);
+  assert.match(workflow, /cat supabase\/verification\/production-integrity-health\.sql/u);
+  assert.match(workflow, /supabase db query --remote --yes --file/u);
+  assert.match(workflow, /COMMIT;/u);
   assert.doesNotMatch(workflow, /RADAR_SUPABASE_SERVICE_ROLE_KEY/u);
 });
 
