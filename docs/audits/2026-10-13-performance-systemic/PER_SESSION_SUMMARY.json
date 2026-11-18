@@ -1,0 +1,154 @@
+{
+  "schemaVersion": 1,
+  "sourceRunId": 38495224625,
+  "sourceArtifactId": 11864340261,
+  "sourceFile": "comparison.json",
+  "sourceChecksumManifest": "EVIDENCE_MANIFEST.json (fonte original identificada por SHA-256 em metadata.sources)",
+  "readNote": "Agregações por sessão do benchmark sintético de seis navegadores. Long tasks são tempo acumulado, NÃO tempo percebido por uma única interação.",
+  "sessions": [
+    {
+      "session": 1,
+      "role": "gravações de avaliação",
+      "writes": 406,
+      "baseline": {
+        "readAttempts": 4,
+        "readAborts": 1,
+        "domReplacements": 3,
+        "domMutations": 28786,
+        "longTaskCount": 630,
+        "longTaskMs": 51320,
+        "applyMs": 8326,
+        "renderMs": 186.2
+      },
+      "candidate": {
+        "readAttempts": 19,
+        "readAborts": 16,
+        "domReplacements": 3,
+        "domMutations": 27123,
+        "longTaskCount": 644,
+        "longTaskMs": 52247,
+        "applyMs": 8526.3,
+        "renderMs": 129.3
+      }
+    },
+    {
+      "session": 2,
+      "role": "CRUD de Nota Fiscal",
+      "writes": 300,
+      "baseline": {
+        "readAttempts": 4,
+        "readAborts": 0,
+        "domReplacements": 304,
+        "domMutations": 35884,
+        "longTaskCount": 554,
+        "longTaskMs": 52894,
+        "applyMs": 8748.7,
+        "renderMs": 4640.8
+      },
+      "candidate": {
+        "readAttempts": 22,
+        "readAborts": 21,
+        "domReplacements": 301,
+        "domMutations": 32508,
+        "longTaskCount": 559,
+        "longTaskMs": 53946,
+        "applyMs": 8678.5,
+        "renderMs": 4496
+      }
+    },
+    {
+      "session": 3,
+      "role": "gravações de avaliação",
+      "writes": 401,
+      "baseline": {
+        "readAttempts": 4,
+        "readAborts": 0,
+        "domReplacements": 4,
+        "domMutations": 28556,
+        "longTaskCount": 622,
+        "longTaskMs": 51981,
+        "applyMs": 8557.6,
+        "renderMs": 152.7
+      },
+      "candidate": {
+        "readAttempts": 1,
+        "readAborts": 0,
+        "domReplacements": 1,
+        "domMutations": 26575,
+        "longTaskCount": 622,
+        "longTaskMs": 51151,
+        "applyMs": 8348.2,
+        "renderMs": 19.9
+      }
+    },
+    {
+      "session": 4,
+      "role": "observadora",
+      "writes": 0,
+      "baseline": {
+        "readAttempts": 6,
+        "readAborts": 0,
+        "domReplacements": 5,
+        "domMutations": 560,
+        "longTaskCount": 5,
+        "longTaskMs": 770
+      },
+      "candidate": {
+        "readAttempts": 6,
+        "readAborts": 0,
+        "domReplacements": 5,
+        "domMutations": 545,
+        "longTaskCount": 5,
+        "longTaskMs": 1370
+      }
+    },
+    {
+      "session": 5,
+      "role": "observadora",
+      "writes": 0,
+      "baseline": {
+        "readAttempts": 4,
+        "readAborts": 0,
+        "domReplacements": 4,
+        "domMutations": 448,
+        "longTaskCount": 4,
+        "longTaskMs": 947
+      },
+      "candidate": {
+        "readAttempts": 5,
+        "readAborts": 0,
+        "domReplacements": 5,
+        "domMutations": 545,
+        "longTaskCount": 5,
+        "longTaskMs": 1352
+      }
+    },
+    {
+      "session": 6,
+      "role": "observadora Dashboard",
+      "writes": 0,
+      "baseline": {
+        "readAttempts": 4,
+        "readAborts": 0,
+        "domReplacements": 4,
+        "domMutations": 211,
+        "longTaskCount": 5,
+        "longTaskMs": 1149
+      },
+      "candidate": {
+        "readAttempts": 4,
+        "readAborts": 0,
+        "domReplacements": 4,
+        "domMutations": 211,
+        "longTaskCount": 6,
+        "longTaskMs": 1403
+      }
+    }
+  ],
+  "safetyNotes": [
+    "Ambiente descartável com dados sintéticos",
+    "Tempos agregados de diferentes sessões não são custo exclusivo de render",
+    "Os dados não identificam funções individuais responsáveis; aguardar novo perfil CPU",
+    "Não usar apenas o ganho de bytes como prova de fluidez"
+  ]
+}

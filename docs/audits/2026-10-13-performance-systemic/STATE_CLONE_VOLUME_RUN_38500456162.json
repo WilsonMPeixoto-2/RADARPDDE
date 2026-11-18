@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "kind": "isolated-state-port-unit-of-work-clone-volume",
+  "runId": 38500456162,
+  "runUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38500456162",
+  "artifactId": 11864979495,
+  "artifactName": "systemic-state-clone-diagnostics",
+  "sourceFilename": "state-clone-amplification.json",
+  "node": "v24.21.0",
+  "environment": "GitHub Actions Ubuntu; disposable synthetic in-memory; no remote db calls",
+  "scenario": "1 changed verification row in an existing set of N; remote UnitOfWork, StatePort and repository contract real; unit test fixture and bridge synthetic",
+  "repeatCount": 5,
+  "warmupExcluded": true,
+  "groups": [
+    {
+      "totalVerificationRows": 1,
+      "changedRows": 1,
+      "samplesMs": [
+        0.41,
+        0.39,
+        0.33,
+        0.41,
+        0.33
+      ],
+      "medianMs": 0.39,
+      "minimumMs": 0.33,
+      "maximumMs": 0.41,
+      "clonedRecordOccurrences": 6,
+      "cloneOperations": 6
+    },
+    {
+      "totalVerificationRows": 163,
+      "changedRows": 1,
+      "samplesMs": [
+        5.14,
+        5.41,
+        5.04,
+        6,
+        5.62
+      ],
+      "medianMs": 5.41,
+      "minimumMs": 5.04,
+      "maximumMs": 6,
+      "clonedRecordOccurrences": 978,
+      "cloneOperations": 6
+    },
+    {
+      "totalVerificationRows": 1630,
+      "changedRows": 1,
+      "samplesMs": [
+        54.87,
+        47.14,
+        60.91,
+        51.28,
+        53.39
+      ],
+      "medianMs": 53.39,
+      "minimumMs": 47.14,
+      "maximumMs": 60.91,
+      "clonedRecordOccurrences": 9780,
+      "cloneOperations": 6
+    },
+    {
+      "totalVerificationRows": 16300,
+      "changedRows": 1,
+      "samplesMs": [
+        588.72,
+        510.2,
+        523.07,
+        520.77,
+        533.28
+      ],
+      "medianMs": 523.07,
+      "minimumMs": 510.2,
+      "maximumMs": 588.72,
+      "clonedRecordOccurrences": 97800,
+      "cloneOperations": 6
+    }
+  ],
+  "interpretation": "Six counted clones of whole verification collection per one changed row in tested UnitOfWork/StatePort path; median CPU duration scales approximately linearly with unrelated rows.",
+  "caveats": [
+    "Node test is not a UI or Production timing benchmark; no Supabase, RLS, Realtime, triggers or DOM work.",
+    "Synthetic verification objects have one competence and one school per row, and are much smaller/different than real records; scaling mechanism is supported but absolute timings are not Production estimates.",
+    "Record clone occurrences mean repeated copies, not distinct verification IDs.",
+    "Five sequential samples per volume on one runner do not establish service-level bounds.",
+    "The legitimate purpose of the copies is transaction rollback, isolation and consistency. Do not remove until same guarantees demonstrated."
+  ],
+  "tests": [
+    "tests/unit/systemic-state-snapshot-amplification.test.js"
+  ],
+  "productCode": [
+    "src/application/state-port.js",
+    "src/application/unit-of-work.js",
+    "src/application/data-service.js",
+    "src/data/repository-contract.js"
+  ],
+  "relatedPR": 447
+}
