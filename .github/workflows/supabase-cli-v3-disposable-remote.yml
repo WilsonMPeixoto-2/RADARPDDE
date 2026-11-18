@@ -62,19 +62,17 @@ jobs:
           npm run supabase:reset
           echo 'RADAR_LOOPBACK_DB=postgresql://postgres:postgres@127.0.0.1:54322/postgres' >> "$GITHUB_ENV"
 
-      - name: Demonstrar que as transações de verificação nunca podem escrever
+      - name: Provar que PGOPTIONS torna a execução remota efetivamente somente leitura
         shell: bash
+        env:
+          PGOPTIONS: '-c default_transaction_read_only=on'
         run: |
           set -euo pipefail
           case "$RADAR_LOOPBACK_DB" in
             postgresql://postgres:postgres@127.0.0.1:54322/postgres) ;;
             *) echo 'Alvo não é o banco local autorizado.' >&2; exit 1 ;;
           esac
-          {
-            printf 'BEGIN TRANSACTION READ ONLY;\n'
-            printf 'DELETE FROM public.schools WHERE false;\n'
-            printf 'COMMIT;\n'
-          } > /tmp/cli3-negative-readonly.sql
+          printf '%s\n' 'DO $ BEGIN DELETE FROM public.schools WHERE false; END $;' > /tmp/cli3-negative-readonly.sql
           set +e
           npx --no-install supabase db query --remote="$RADAR_LOOPBACK_DB" --yes \
             --file /tmp/cli3-negative-readonly.sql > artifacts/cli3-remote/read-only-denial.log 2>&1
@@ -86,8 +84,10 @@ jobs:
           fi
           grep -Ei 'read.only|read-only|transaction' artifacts/cli3-remote/read-only-denial.log
 
-      - name: Verificar os três scripts DO sob transação PostgreSQL READ ONLY
+      - name: Verificar os três scripts DO com conexões PostgreSQL somente leitura
         shell: bash
+        env:
+          PGOPTIONS: '-c default_transaction_read_only=on'
         run: |
           set -euo pipefail
           for kind in remote-preflight remote-post-apply production-integrity-health; do
@@ -95,13 +95,8 @@ jobs:
               remote-preflight|remote-post-apply|production-integrity-health) ;;
               *) exit 1 ;;
             esac
-            {
-              printf 'BEGIN TRANSACTION READ ONLY;\n'
-              cat "supabase/verification/$kind.sql"
-              printf '\nCOMMIT;\n'
-            } > "/tmp/$kind-readonly.sql"
             npx --no-install supabase db query --remote="$RADAR_LOOPBACK_DB" --yes \
-              --file "/tmp/$kind-readonly.sql" \
+              --file "supabase/verification/$kind.sql" \
               > "artifacts/cli3-remote/$kind.log" 2>&1 || {
                 cat "artifacts/cli3-remote/$kind.log"
                 exit 1
