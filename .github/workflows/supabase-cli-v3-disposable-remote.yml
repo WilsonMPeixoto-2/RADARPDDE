@@ -72,7 +72,7 @@ jobs:
             postgresql://postgres:postgres@127.0.0.1:54322/postgres) ;;
             *) echo 'Alvo não é o banco local autorizado.' >&2; exit 1 ;;
           esac
-          printf '%s\n' 'DO $ BEGIN DELETE FROM public.schools WHERE false; END $;' > /tmp/cli3-negative-readonly.sql
+          printf '%s\n' 'DELETE FROM public.schools WHERE false;' > /tmp/cli3-negative-readonly.sql
           set +e
           npx --no-install supabase db query --remote="$RADAR_LOOPBACK_DB" --yes \
             --file /tmp/cli3-negative-readonly.sql > artifacts/cli3-remote/read-only-denial.log 2>&1
