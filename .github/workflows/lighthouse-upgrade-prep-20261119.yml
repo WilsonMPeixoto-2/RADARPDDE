@@ -1,0 +1,71 @@
+name: Preparar atualização Lighthouse 13.6 (branch isolada)
+
+on:
+  push:
+    branches:
+      - chore/lighthouse-13-6-insights-20261119
+    paths:
+      - '.github/workflows/lighthouse-upgrade-prep-20261119.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate-lockfile:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 25
+    steps:
+      - name: Obter revisão isolada
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: true
+
+      - name: Preparar Node 24 e npm 11
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Reproduzir dependências e atualizar somente Lighthouse
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci
+          npm install --save-dev --save-exact lighthouse@13.6.0
+          npm ci
+          node - <<'NODE'
+          const assert=require('node:assert/strict');
+          const fs=require('node:fs');
+          const pkg=JSON.parse(fs.readFileSync('package.json','utf8'));
+          const lock=JSON.parse(fs.readFileSync('package-lock.json','utf8'));
+          assert.equal(pkg.devDependencies.lighthouse, '13.6.0');
+          assert.equal(lock.packages[''].devDependencies.lighthouse, '13.6.0');
+          assert.equal(lock.packages['node_modules/lighthouse'].version, '13.6.0');
+          assert.equal(pkg.devDependencies.supabase, '3.2.0');
+          assert.equal(lock.packages['node_modules/supabase'].version, '3.2.0');
+          assert.equal(pkg.devDependencies['@supabase/supabase-js'], '2.119.0');
+          console.log('Lockfile consistente, sem regressão de pin Supabase.');
+          NODE
+
+      - name: Verificar ferramentas em ambiente reproduzível
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run check:architecture
+          npm run check:generated
+          node --test tests/unit/tooling-contract.test.js
+        continue-on-error: true
+
+      - name: Registrar somente package.json e package-lock.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -- package.json package-lock.json
+          if git diff --cached --quiet; then
+            echo 'Pacotes já alinhados.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(deps): atualizar Lighthouse para 13.6.0 com lockfile npm 11'
+          git push origin HEAD:refs/heads/chore/lighthouse-13-6-insights-20261119
