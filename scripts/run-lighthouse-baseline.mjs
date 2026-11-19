@@ -3,6 +3,7 @@ import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { extractPerformanceOpportunities } from './lib/lighthouse-opportunity-extractor.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const configModule = await import(pathToFileURL(path.join(ROOT, 'lighthouserc.cjs')).href);
@@ -116,33 +117,7 @@ function metricValues(report) {
 }
 
 function performanceOpportunities(report) {
-    const performanceRefs = report.categories?.performance?.auditRefs || [];
-    return performanceRefs
-        .map(reference => ({ reference, audit: report.audits?.[reference.id] }))
-        .filter(({ audit }) => audit && typeof audit.score === 'number' && audit.score < 1)
-        .map(({ reference, audit }) => ({
-            id: reference.id,
-            title: audit.title || reference.id,
-            score: audit.score,
-            displayValue: audit.displayValue || null,
-            savingsMs: typeof audit.details?.overallSavingsMs === 'number'
-                ? audit.details.overallSavingsMs
-                : null,
-            savingsBytes: typeof audit.details?.overallSavingsBytes === 'number'
-                ? audit.details.overallSavingsBytes
-                : null
-        }))
-        .filter(item => (
-            (item.savingsMs || 0) > 0
-            || (item.savingsBytes || 0) > 0
-            || /economia estimada|estimated savings/i.test(item.displayValue || '')
-        ))
-        .sort((left, right) => (
-            (right.savingsMs || 0) - (left.savingsMs || 0)
-            || (right.savingsBytes || 0) - (left.savingsBytes || 0)
-            || left.score - right.score
-        ))
-        .slice(0, 8);
+    return extractPerformanceOpportunities(report);
 }
 
 function accessibilityFindings(report) {
