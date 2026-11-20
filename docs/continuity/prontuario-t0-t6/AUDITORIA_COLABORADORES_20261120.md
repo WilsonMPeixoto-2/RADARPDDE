@@ -11,7 +11,7 @@
 | Manus SQL/cliente | `f0fa7335`, 15/11 03:32 UTC | `ahead=0`, história inteiramente incorporada | Nenhum merge. |
 | Manus T1 reconstruída | `300ac6d1`, 15/11 03:45 UTC | `ahead=1` histórico; `tests/e2e/sme-access-governance.spec.js` tem **mesmo blob SHA** da Release 1 | Teste SME já incorporado; não repetir. |
 | Manus auditoria independente | `a87e9e0e`, 15/11 03:34 UTC | divergência histórica de sondas e capturas | Evidência datada; não importar migration original nem dados antigos como base nova. |
-| Gemini revisão | `d55747b9`, 17/11 04:54 UTC | 1 relatório adicional exclusivo e base antiga | Diagnóstico Dependabot/tooling fora desta release, registrado em C018? **Não**: já distinguido nas fontes de manutenção e relatórios do registro. |
+| Gemini revisão | `d55747b9`, 17/11 04:54 UTC | 1 relatório adicional exclusivo e base antiga | Diagnóstico Dependabot/tooling fora desta release; já separado da evolução funcional no registro anterior e na documentação de manutenção. |
 | Gemini plano comparativo | `166aad44`, 14/11 23:10 UTC | 1 plano exclusivo | Cinco propostas já triadas em C013–C017, não há implementação inédita. |
 | PR #515, visual Pendências | `08bddb19`, 14/11 06:30 UTC | 4 documentos históricos de Prontuário/UX, CSS de Pendências independente | Classificação explícita em C019–C022; **somente referências relevantes**, não merge CSS. |
 
