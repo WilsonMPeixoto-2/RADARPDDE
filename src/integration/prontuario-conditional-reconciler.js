@@ -173,6 +173,20 @@
             .filter(className => className.startsWith('analise-'))
             .forEach(className => control.classList.remove(className));
         control.classList.add(analysisStateClass(root, value));
+        if (control.classList.contains('invoice-document-analysis-select')) {
+            ['is-incorrect', 'is-correct', 'is-late', 'is-waiting', 'is-pending']
+                .forEach(className => control.classList.remove(className));
+            const statusClass = value === 'Incorreto'
+                ? 'is-incorrect'
+                : value === 'Correto'
+                    ? 'is-correct'
+                    : value === 'Correto (Atrasado)'
+                        ? 'is-late'
+                        : value === 'Aguardando reanálise'
+                            ? 'is-waiting'
+                            : 'is-pending';
+            control.classList.add(statusClass);
+        }
     }
 
     function syncProgramSummary(root, summary, schoolId, competenceKey, programId) {
@@ -496,6 +510,14 @@
             && invoice.compKey === compKey
             && invoice.tipo === 'servico'
         ));
+        const bonification = verification.bonificacao || verification.bonification || {};
+        const analysis = verification.analise || verification.analysis || {};
+        const legacyFallback = invoices.length === 1
+            ? {
+                sent: bonification.consEnviada === true || bonification.consAssessoria === 'Sim',
+                analysis: analysis.consAssessoria
+            }
+            : {};
 
         Array.from(row.querySelectorAll('select[onchange*="changeInvoiceAdvisoryAnalysis"]')).forEach(select => {
             const invoiceId = invoiceIdFromControl(select);
@@ -514,6 +536,77 @@
 
             const card = cardForInvoice(row, invoice.id);
             if (!card) return;
+            const actionCell = card.querySelector?.('.invoice-document-action');
+            const advisoryAnalysis = getServiceAdvisoryState(invoice, legacyFallback).analysis;
+            if (actionCell && typeof root.document?.createElement === 'function') {
+                const canEditAdvisory = !active
+                    && root.RadarOperationalCorrectionDialog?.canUse?.(root) === true
+                    && !readOnlyProfile
+                    && !futureLock
+                    && advisoryAnalysis !== 'Não analisado';
+                if (active && typeof root.openPendencyDrawer === 'function') {
+                    // A reconciliação incremental não recria toda a linha:
+                    // substitua a ação de edição obsoleta ao surgir Pendência.
+                    const ref = root.encodePendencyIdReference?.(active.id) || String(active.id);
+                    const existing = actionCell.querySelector?.('.invoice-pendency-view-button');
+                    if (!existing || existing.dataset?.pendencyRef !== ref) {
+                        const viewBtn = root.document.createElement('button');
+                        viewBtn.type = 'button';
+                        viewBtn.className = 'invoice-pendency-view-button';
+                        viewBtn.dataset.pendencyRef = ref;
+                        viewBtn.setAttribute('aria-describedby', `advisory-invoice-title-${invoice.id}`);
+                        if (typeof root.document.createElementNS === 'function') {
+                            const ns = 'http://www.w3.org/2000/svg';
+                            const svg = root.document.createElementNS(ns, 'svg');
+                            svg.setAttribute('viewBox', '0 0 24 24');
+                            svg.setAttribute('aria-hidden', 'true');
+                            const path = root.document.createElementNS(ns, 'path');
+                            path.setAttribute('d', 'M2.5 12s3.6-6 9.5-6 9.5 6 9.5 6-3.6 6-9.5 6-9.5-6-9.5-6z');
+                            svg.append?.(path);
+                            viewBtn.appendChild?.(svg);
+                        }
+                        const labelSpan = root.document.createElement('span');
+                        labelSpan.textContent = 'Visualizar pendência';
+                        viewBtn.appendChild?.(labelSpan);
+                        viewBtn.addEventListener('click', () => root.openPendencyDrawer(active.id));
+                        actionCell.replaceChildren?.(viewBtn);
+                    }
+                } else if (canEditAdvisory) {
+                    if (!actionCell.querySelector?.('.invoice-analysis-edit-button')) {
+                        const editBtn = root.document.createElement('button');
+                        editBtn.type = 'button';
+                        editBtn.className = 'invoice-analysis-edit-button';
+                        editBtn.setAttribute('aria-describedby', `advisory-invoice-title-${invoice.id}`);
+                        if (typeof root.document.createElementNS === 'function') {
+                            const ns = 'http://www.w3.org/2000/svg';
+                            const svg = root.document.createElementNS(ns, 'svg');
+                            svg.setAttribute('viewBox', '0 0 24 24');
+                            svg.setAttribute('aria-hidden', 'true');
+                            const p1 = root.document.createElementNS(ns, 'path');
+                            p1.setAttribute('d', 'M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z');
+                            const p2 = root.document.createElementNS(ns, 'path');
+                            p2.setAttribute('d', 'M13.8 7l3.2 3.2');
+                            svg.append?.(p1, p2);
+                            editBtn.appendChild?.(svg);
+                        }
+                        const labelSpan = root.document.createElement('span');
+                        labelSpan.textContent = 'Editar análise';
+                        editBtn.appendChild?.(labelSpan);
+                        editBtn.addEventListener('click', () => {
+                            root.openInvoiceOperationalCorrection?.(invoice.id, schoolId, 'consAssessoria', editBtn);
+                        });
+                        actionCell.replaceChildren?.(editBtn);
+                    }
+                } else if (!actionCell.querySelector?.('.invoice-document-empty-action')) {
+                    // Abrangência: análise limpa, perfil somente leitura, flag OFF
+                    // ou Pendência ativa sem gaveta disponível.
+                    const empty = root.document.createElement('span');
+                    empty.setAttribute('aria-hidden', 'true');
+                    empty.className = 'invoice-document-empty-action';
+                    empty.textContent = '—';
+                    actionCell.replaceChildren?.(empty);
+                }
+            }
             card.querySelector('[data-radar-service-pendency-actions]')?.remove();
             if (legacyActive) return;
 
