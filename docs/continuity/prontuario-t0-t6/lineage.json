@@ -546,7 +546,8 @@
       ],
       "decisionIds": [
         "T0T6-D002",
-        "T0T6-D004"
+        "T0T6-D004",
+        "T0T6-D009"
       ],
       "evidence": "RPC e UI com Auth local; consumidores ainda exigem gate.",
       "codePaths": [
@@ -755,7 +756,9 @@
         "S005"
       ],
       "decisionIds": [
-        "T0T6-D004"
+        "T0T6-D004",
+        "T0T6-D002",
+        "T0T6-D009"
       ],
       "evidence": "Não equivale a clear_item_history.",
       "codePaths": [
@@ -801,7 +804,8 @@
       "decisionIds": [
         "T0T6-D002",
         "T0T6-D007",
-        "T0T6-D011"
+        "T0T6-D011",
+        "T0T6-D013"
       ],
       "evidence": "RLS/Postgres local e preservação NF vizinha.",
       "codePaths": [
@@ -841,7 +845,8 @@
         "S005"
       ],
       "decisionIds": [
-        "T0T6-D014"
+        "T0T6-D014",
+        "T0T6-D011"
       ],
       "evidence": "Alterações pendentes de consolidação; Consolidar alterações.",
       "codePaths": [],
@@ -930,7 +935,8 @@
       ],
       "decisionIds": [
         "T0T6-D002",
-        "T0T6-D010"
+        "T0T6-D010",
+        "T0T6-D007"
       ],
       "evidence": "Não escolher última tentativa por fallback de attemptId.",
       "codePaths": [],
@@ -979,7 +985,9 @@
         "S003"
       ],
       "decisionIds": [
-        "T0T6-D002"
+        "T0T6-D002",
+        "T0T6-D007",
+        "T0T6-D011"
       ],
       "evidence": "Sem desativar triggers globalmente.",
       "codePaths": [],
@@ -1071,7 +1079,8 @@
         "S017"
       ],
       "decisionIds": [
-        "T0T6-D019"
+        "T0T6-D019",
+        "T0T6-D011"
       ],
       "evidence": "Cobertura por consumidor precisa evidência no SHA.",
       "codePaths": [],
@@ -1111,7 +1120,8 @@
         "S011"
       ],
       "decisionIds": [
-        "T0T6-D007"
+        "T0T6-D007",
+        "T0T6-D003"
       ],
       "evidence": "3 cenários de concorrência em PostgreSQL Docker.",
       "codePaths": [],
@@ -1496,7 +1506,8 @@
         "S014"
       ],
       "decisionIds": [
-        "T0T6-D016"
+        "T0T6-D016",
+        "T0T6-D017"
       ],
       "evidence": "Fontes exclusivamente em branches e reconciliações anteriores são rastreadas por SHA; algumas ainda aguardam revisão integral.",
       "codePaths": [],
