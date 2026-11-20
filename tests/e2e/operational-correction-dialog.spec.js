@@ -672,3 +672,150 @@ test('linha de Consulta à Assessoria preserva 1ª análise em 1 clique, reconci
     ]);
 });
 
+test('A-01 em navegador: reconciliação incremental da Assessoria substitui Editar análise por Visualizar pendência, mantém acesso a Corrigir análise na gaveta e aplica inert no modal T2', async ({ page }) => {
+    const { schoolId, competence, compKey } = await prepareSchool(page);
+    await page.evaluate(({ sid, comp, cKey }) => {
+        const repository = window.RadarApplicationServices?.data?.repository;
+        window.RADAR_OPERATIONAL_CORRECTION_PREVIEW = true;
+        window.__a01Previews = [];
+        repository.capabilities = () => ({ remote: true, atomicInvoiceEffects: true });
+        repository.executeRpc = async (name, args) => {
+            if (name === 'preview_operational_change') {
+                window.__a01Previews.push(args.p_request);
+                return {
+                    action: args.p_request.action,
+                    planDigest: 'e'.repeat(64),
+                    effects: {
+                        delete: { pendencies: ['PEND-SVC-88'] },
+                        update: [{
+                            entity: 'registered_invoices',
+                            id: 'NF-SVC-88',
+                            field: 'payload.analiseConsultaAssessoria',
+                            before: 'Incorreto',
+                            after: args.p_request.changes?.analysis || 'Não analisado'
+                        }]
+                    },
+                    blockers: [],
+                    warnings: [],
+                    preserved: {}
+                };
+            }
+            return { committed: true };
+        };
+        notasRegistradas.push({
+            id: 'NF-SVC-88',
+            escolaId: sid,
+            compKey: cKey,
+            competencia: comp,
+            programaId: 'BASIC',
+            tipo: 'servico',
+            numero: '888',
+            desc: 'Serviço elétrico',
+            descricao: 'Serviço elétrico',
+            valor: 950,
+            consultaAssessoriaEnviada: true,
+            analiseConsultaAssessoria: 'Correto'
+        });
+        rebuildOperationalIndexes();
+        renderProntuario(sid);
+    }, { sid: schoolId, comp: competence, cKey: compKey });
+
+    const advisoryRow = page.locator('.service-advisory-row[data-service-advisory-invoice="NF-SVC-88"]');
+    const advisorySelect = advisoryRow.getByLabel('Análise da consulta à Assessoria para a NF 888');
+    const advisoryCheckbox = advisoryRow.getByLabel('Consulta enviada à Assessoria para a NF 888');
+    await expect(advisoryRow.getByRole('button', { name: 'Editar análise', exact: true })).toBeVisible();
+    await expect(advisorySelect).toBeEnabled();
+    await expect(advisoryCheckbox).toBeEnabled();
+
+    // Surge uma Pendência ativa na mesma NF e roda APENAS a reconciliação incremental (sem renderProntuario):
+    await page.evaluate(({ sid, comp, cKey }) => {
+        const note = notasRegistradas.find(item => item.id === 'NF-SVC-88');
+        note.analiseConsultaAssessoria = 'Incorreto';
+        pendencias.push({
+            id: 'PEND-SVC-88',
+            escolaId: sid,
+            competencia: comp,
+            competenciaOrigem: comp,
+            programaId: 'BASIC',
+            documentoKey: 'consAssessoria',
+            registeredInvoiceId: 'NF-SVC-88',
+            item: 'Consulta Assessoria — NF 888',
+            motivo: 'Documento incompleto',
+            observacao: 'Falta assinatura da Assessoria.',
+            dataAbertura: '2026-05-15',
+            status: 'Aberta',
+            tipo: 'documental',
+            tentativas: []
+        });
+        window.RadarProntuarioConditionalReconciler.reconcile(window, sid, cKey);
+    }, { sid: schoolId, comp: competence, cKey: compKey });
+
+    await expect(advisorySelect).toBeDisabled();
+    await expect(advisoryCheckbox).toBeDisabled();
+    await expect(advisoryRow.getByRole('button', { name: 'Editar análise', exact: true })).toHaveCount(0);
+
+    const viewBtn = advisoryRow.getByRole('button', { name: 'Visualizar pendência', exact: true });
+    await expect(viewBtn).toBeVisible();
+    await expect(viewBtn).toHaveAttribute('aria-describedby', 'advisory-invoice-title-NF-SVC-88');
+    await expect(viewBtn.locator('svg path')).toHaveCount(1);
+    await expect(viewBtn.locator('svg circle')).toHaveCount(1);
+
+    // Coerência funcional: a gaveta da Pendência oferece Corrigir análise e Excluir pendência:
+    await viewBtn.click();
+    const drawer = page.locator('#pendency-preview-drawer');
+    await expect(drawer).toBeVisible();
+    await expect(drawer.getByRole('button', { name: 'Excluir pendência', exact: true })).toBeVisible();
+    await drawer.getByRole('button', { name: 'Corrigir análise', exact: true }).click();
+
+    const dialog = page.getByRole('dialog', { name: 'Corrigir análise técnica' });
+    await expect(dialog).toBeVisible();
+    // Acessibilidade (modern-web-guidance): overlay customizado marca o fundo ativo como inert
+    // e preserva elementos já inert (modais fechados) ao restaurar:
+    const appShellInertWhileOpen = await page.evaluate(() => {
+        const layer = document.getElementById('radar-operational-correction-layer');
+        const appShell = document.getElementById('app-layout');
+        const siblings = Array.from(document.body.children).filter(el => el !== layer);
+        return Boolean(appShell?.inert) && siblings.every(el => el.inert === true);
+    });
+    expect(appShellInertWhileOpen).toBe(true);
+
+    await dialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
+    await expect(dialog).toBeHidden();
+    const appShellInertAfterClose = await page.evaluate(() => (
+        Boolean(document.getElementById('app-layout')?.inert)
+    ));
+    expect(appShellInertAfterClose).toBe(false);
+
+    // Resolver a Pendência e reconciliar restaura Editar análise e destrava os controles:
+    await page.evaluate(({ sid, cKey }) => {
+        const note = notasRegistradas.find(item => item.id === 'NF-SVC-88');
+        note.analiseConsultaAssessoria = 'Correto';
+        const pend = pendencias.find(item => item.id === 'PEND-SVC-88');
+        pend.status = 'Resolvida';
+        window.RadarProntuarioConditionalReconciler.reconcile(window, sid, cKey);
+    }, { sid: schoolId, cKey: compKey });
+
+    await expect(advisorySelect).toBeEnabled();
+    await expect(advisoryCheckbox).toBeEnabled();
+    await expect(advisoryRow.getByRole('button', { name: 'Visualizar pendência', exact: true })).toHaveCount(0);
+    await expect(advisoryRow.getByRole('button', { name: 'Editar análise', exact: true })).toBeVisible();
+
+    // Contraprova de perfil SME com Pendência ativa: nenhum botão de ação é exposto na reconciliação:
+    await page.evaluate(({ sid, cKey }) => {
+        const pend = pendencias.find(item => item.id === 'PEND-SVC-88');
+        pend.status = 'Aberta';
+        const originalProfile = window.getRadarAccessProfile;
+        window.getRadarAccessProfile = () => 'sme';
+        try {
+            window.RadarProntuarioConditionalReconciler.reconcile(window, sid, cKey);
+        } finally {
+            window.getRadarAccessProfile = originalProfile;
+        }
+    }, { sid: schoolId, cKey: compKey });
+
+    await expect(advisorySelect).toBeDisabled();
+    await expect(advisoryCheckbox).toBeDisabled();
+    await expect(advisoryRow.getByRole('button', { name: 'Visualizar pendência', exact: true })).toHaveCount(0);
+    await expect(advisoryRow.getByRole('button', { name: 'Editar análise', exact: true })).toHaveCount(0);
+});
+

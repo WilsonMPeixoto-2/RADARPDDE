@@ -115,6 +115,13 @@
         dialog.append(planTitle, effects, feedback, actions);
         layer.append(backdrop, dialog);
         doc.body.appendChild(layer);
+        const inertSiblings = [];
+        for (const sibling of Array.from(doc.body?.children || [])) {
+            if (sibling !== layer && 'inert' in sibling && !sibling.inert) {
+                sibling.inert = true;
+                inertSiblings.push(sibling);
+            }
+        }
         const previousFocus = input.trigger || doc.activeElement;
         let serial = 0, preview = null, confirmation = null, pending = false, committed = false;
         let uncertain = false, submittedNote = null;
@@ -123,6 +130,9 @@
         function close(force = false, restoreFocus = true) {
             if ((pending || uncertain) && !force) return;
             layer.remove();
+            while (inertSiblings.length > 0) {
+                inertSiblings.pop().inert = false;
+            }
             // Ao confirmar, não devolver foco a um <input>/<select> antes do
             // refresh: o controlador interpreta isso como edição em curso.
             if (restoreFocus && previousFocus?.isConnected) {

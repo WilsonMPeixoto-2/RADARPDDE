@@ -42,6 +42,7 @@
     display: grid;
     place-items: center;
     padding: 24px;
+    overflow: hidden;
     overscroll-behavior: contain;
 }
 

@@ -493,8 +493,10 @@
         const profile = text(root.getRadarAccessProfile?.()).toLocaleLowerCase('pt-BR');
         const readOnlyProfile = profile === 'inventario' || profile === 'sme';
         const capabilities = root.RadarAccessPolicy?.CAPABILITIES || {};
+        const canOpen = root.hasRadarCapability?.(capabilities.OPEN_PENDENCY) !== false;
         const canRegister = root.hasRadarCapability?.(capabilities.REGISTER_CORRECTIVE_SUBMISSION) !== false;
         const canReanalyze = root.hasRadarCapability?.(capabilities.REANALYZE_PENDENCY) !== false;
+        const canUseVerificationActions = !readOnlyProfile && (canOpen || canRegister || canReanalyze);
 
         const legacyActive = (state.pendencies || []).find(pendency => (
             ['Aberta', 'Aguardando reanálise'].includes(pendency.status)
@@ -536,14 +538,51 @@
 
             const card = cardForInvoice(row, invoice.id);
             if (!card) return;
+            const sentCheckbox = card.querySelector?.('input[onchange*="toggleInvoiceAdvisorySent"]');
+            if (sentCheckbox) {
+                const checkboxFutureLock = sentCheckbox.dataset?.futureCompetenceDisabled === 'true';
+                sentCheckbox.disabled = readOnlyProfile || futureLock || checkboxFutureLock || Boolean(active);
+            }
             const actionCell = card.querySelector?.('.invoice-document-action');
             const advisoryAnalysis = getServiceAdvisoryState(invoice, legacyFallback).analysis;
-            if (actionCell && !active && typeof root.document?.createElement === 'function') {
-                const canEditAdvisory = root.RadarOperationalCorrectionDialog?.canUse?.(root) === true
+            if (actionCell && typeof root.document?.createElement === 'function') {
+                const canEditAdvisory = !active
+                    && root.RadarOperationalCorrectionDialog?.canUse?.(root) === true
                     && !readOnlyProfile
                     && !futureLock
                     && advisoryAnalysis !== 'Não analisado';
-                if (canEditAdvisory) {
+                if (active && canUseVerificationActions && typeof root.openPendencyDrawer === 'function') {
+                    // A reconciliação incremental não recria toda a linha:
+                    // substitua a ação de edição obsoleta ao surgir Pendência ativa.
+                    const ref = root.encodePendencyIdReference?.(active.id) || String(active.id);
+                    const existing = actionCell.querySelector?.('.invoice-pendency-view-button');
+                    if (!existing || existing.dataset?.pendencyRef !== ref) {
+                        const viewBtn = root.document.createElement('button');
+                        viewBtn.type = 'button';
+                        viewBtn.className = 'invoice-pendency-view-button';
+                        viewBtn.dataset.pendencyRef = ref;
+                        viewBtn.setAttribute('aria-describedby', `advisory-invoice-title-${invoice.id}`);
+                        if (typeof root.document.createElementNS === 'function') {
+                            const ns = 'http://www.w3.org/2000/svg';
+                            const svg = root.document.createElementNS(ns, 'svg');
+                            svg.setAttribute('viewBox', '0 0 24 24');
+                            svg.setAttribute('aria-hidden', 'true');
+                            const path = root.document.createElementNS(ns, 'path');
+                            path.setAttribute('d', 'M2.5 12s3.6-6 9.5-6 9.5 6 9.5 6-3.6 6-9.5 6-9.5-6-9.5-6z');
+                            const circle = root.document.createElementNS(ns, 'circle');
+                            circle.setAttribute('cx', '12');
+                            circle.setAttribute('cy', '12');
+                            circle.setAttribute('r', '2.7');
+                            svg.append?.(path, circle);
+                            viewBtn.appendChild?.(svg);
+                        }
+                        const labelSpan = root.document.createElement('span');
+                        labelSpan.textContent = 'Visualizar pendência';
+                        viewBtn.appendChild?.(labelSpan);
+                        viewBtn.addEventListener('click', () => root.openPendencyDrawer(active.id));
+                        actionCell.replaceChildren?.(viewBtn);
+                    }
+                } else if (canEditAdvisory) {
                     if (!actionCell.querySelector?.('.invoice-analysis-edit-button')) {
                         const editBtn = root.document.createElement('button');
                         editBtn.type = 'button';
@@ -570,6 +609,8 @@
                         actionCell.replaceChildren?.(editBtn);
                     }
                 } else if (!actionCell.querySelector?.('.invoice-document-empty-action')) {
+                    // Abrangência: análise limpa, perfil somente leitura, flag OFF
+                    // ou Pendência ativa sem gaveta disponível.
                     const empty = root.document.createElement('span');
                     empty.setAttribute('aria-hidden', 'true');
                     empty.className = 'invoice-document-empty-action';
