@@ -7,6 +7,16 @@
 **Commit de governança posterior já versionado:** `025a97f95a6db560b00ef473802e07a88cb3fb77` (documentação). **HEAD remoto após esta reconciliação deve ser conferido em tempo real; não presumir que estas duas fotografias são o HEAD.**  
 **Baseline de Produção verificada em 20/11:** `main@69954645b597e39623ef2f24fe5f336ed37989f2`; nenhuma publicação T0–T3 ou migration institucional autorizada.
 
+## Estado verificável da propagação histórica — 20/11/2026
+
+**Último SHA com readiness confirmado:** `da38a38f8ec512927dbd78d67875cbf7670cb321`. O GitHub Actions executou `check:continuity` (incluindo mapa de impactos) e aprovou **1.465 testes unitários + 8 integrações**, sem falhas nessas suítes. O conjunto completo de checks desse SHA ainda tinha jobs adicionais em andamento na consulta; não declarar CI integralmente aprovada nem T1 homologada.
+
+**Decisão de produto D020:** [política geral de propagação](../../reference/DECISION_IMPACT_POLICY.md), [protocolo entre chats](DECISION_IMPACT_PROTOCOL.md), [mapa versionado de impactos](decision-impact.json), com 20 decisões (19 aprovadas, 1 substituída) e 52 obrigações rastreadas. O mapa registra **24 obrigações planejadas para futuras fases**, além de obrigações candidatas, preservadas e à espera de gate. O registro `trackedObligationIds` protege a perda isolada de obrigações e força sua substituição explícita. Isso não prova cobertura de todos os chats/ADRs anteriores; as lacunas do `lineage.json` continuam abertas.
+
+**Exemplo patrimonial que deve ser relido ao iniciar T5:** D002 / D011 / D020 e R038: correção autorizada de `Inventariada` na futura UI deve conservar as garantias de domínio, permissão e independência da Bonificação; T3 concluir a exclusão causal da NF não esgota o trabalho T5. A política é geral do RADAR; não incorporar automaticamente outras frentes na Release 1.
+
+**Próximo passo de governança:** na retomada, conferir HEAD atual, resultado do CI para o commit de documentação posterior a `da38a38f` e mudanças novas em outras conversas/branches. Depois, continuar a homologação visual T1 e a matriz de consumidores T2/T3 sem reabrir decisões já aceitas.
+
 ## Estado efetivo
 
 | Marco | Estado rigoroso | Evidência/observação |
