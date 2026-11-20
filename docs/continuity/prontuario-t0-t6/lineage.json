@@ -1,0 +1,1553 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-20",
+  "feature": "PRONTUARIO_T0_T6",
+  "baselineCommit": "eb0768aefd843d45dbf1f43adcb5340430da73e2",
+  "authority": "Proveniência, não fonte de regra nem certificação de Production.",
+  "sources": [
+    {
+      "id": "S001",
+      "location": "release-branch",
+      "role": "origem-visual",
+      "path": "docs/superpowers/specs/2026-11-13-prontuario-exploracao-visual.md",
+      "contentSha": "1befe5a38afbf2254c7288050f1d5e755d3130c9",
+      "reviewStatus": "partial-review",
+      "ref": "release/prontuario-t0-t3-20261120",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/eb0768aefd843d45dbf1f43adcb5340430da73e2/docs/superpowers/specs/2026-11-13-prontuario-exploracao-visual.md"
+    },
+    {
+      "id": "S002",
+      "location": "release-branch",
+      "role": "origem-flexibilizacao",
+      "path": "docs/superpowers/specs/2026-11-14-flexibilizacao-correcao-exclusao-lancamentos.md",
+      "contentSha": "2d5f39cb3fb067b78543877ae3e8de138c113395",
+      "reviewStatus": "partial-review",
+      "ref": "release/prontuario-t0-t3-20261120",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/eb0768aefd843d45dbf1f43adcb5340430da73e2/docs/superpowers/specs/2026-11-14-flexibilizacao-correcao-exclusao-lancamentos.md"
+    },
+    {
+      "id": "S003",
+      "location": "release-branch",
+      "role": "plano-integrado",
+      "path": "docs/superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md",
+      "contentSha": "4719482c4ef7ac4759decaa691bca6ee1eb7ba65",
+      "reviewStatus": "partial-review",
+      "ref": "release/prontuario-t0-t3-20261120",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/eb0768aefd843d45dbf1f43adcb5340430da73e2/docs/superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md"
+    },
+    {
+      "id": "S004",
+      "location": "release-branch",
+      "role": "contrato-aprovado",
+      "path": "docs/reference/PRONTUARIO_CORRECAO_CONTRATO.md",
+      "contentSha": "fd7032dd650ad125b7ed719ad2748508af6ccb8c",
+      "reviewStatus": "reviewed",
+      "ref": "release/prontuario-t0-t3-20261120",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/eb0768aefd843d45dbf1f43adcb5340430da73e2/docs/reference/PRONTUARIO_CORRECAO_CONTRATO.md"
+    },
+    {
+      "id": "S005",
+      "location": "release-branch",
+      "role": "matriz-transicao",
+      "path": "docs/reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md",
+      "contentSha": "7211751c517ed224f33036d6cca7865f35162159",
+      "reviewStatus": "partial-review",
+      "ref": "release/prontuario-t0-t3-20261120",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/eb0768aefd843d45dbf1f43adcb5340430da73e2/docs/reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md"
+    },
+    {
+      "id": "S006",
+      "location": "release-branch",
+      "role": "release-vigente",
+      "path": "docs/releases/2026-11-20-prontuario-t0-t3-release-1.md",
+      "contentSha": "8071dd35b3b3e2b71bf18608c343951c8c10692d",
+      "reviewStatus": "partial-review",
+      "ref": "release/prontuario-t0-t3-20261120",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/eb0768aefd843d45dbf1f43adcb5340430da73e2/docs/releases/2026-11-20-prontuario-t0-t3-release-1.md"
+    },
+    {
+      "id": "S007",
+      "location": "release-branch",
+      "role": "handoff-de-execucao",
+      "path": "docs/handoff/2026-11-15-prontuario-integracao-verificada.md",
+      "contentSha": "e839e6c9a4ff750d377022d00253b48f48bc34cf",
+      "reviewStatus": "partial-review",
+      "ref": "release/prontuario-t0-t3-20261120",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/eb0768aefd843d45dbf1f43adcb5340430da73e2/docs/handoff/2026-11-15-prontuario-integracao-verificada.md"
+    },
+    {
+      "id": "S008",
+      "location": "release-branch",
+      "role": "handoff-original",
+      "path": "docs/handoff/2026-11-14-prontuario-correcao-integrada.md",
+      "contentSha": "3c4d9854148d18d6defdb468ddd807decdaae7f2",
+      "reviewStatus": "indexed-pending-review",
+      "ref": "release/prontuario-t0-t3-20261120",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/eb0768aefd843d45dbf1f43adcb5340430da73e2/docs/handoff/2026-11-14-prontuario-correcao-integrada.md"
+    },
+    {
+      "id": "S009",
+      "location": "release-branch",
+      "role": "adr-bonificacao",
+      "path": "docs/decisions/ADR-055-independencia-despesas-bonificacao.md",
+      "contentSha": "08ac96b4dce330403d270d4c2b19243ae5910b01",
+      "reviewStatus": "reviewed",
+      "ref": "release/prontuario-t0-t3-20261120",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/eb0768aefd843d45dbf1f43adcb5340430da73e2/docs/decisions/ADR-055-independencia-despesas-bonificacao.md"
+    },
+    {
+      "id": "S010",
+      "location": "release-branch",
+      "role": "antigravity-matriz",
+      "path": "docs/audits/2026-11-15-antigravity-argon-prontuario/MATRIZ_T0_T6.md",
+      "contentSha": "fd0502dfe21b218d6644497ad09a3cd02148f7ec",
+      "reviewStatus": "indexed-pending-review",
+      "ref": "release/prontuario-t0-t3-20261120",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/eb0768aefd843d45dbf1f43adcb5340430da73e2/docs/audits/2026-11-15-antigravity-argon-prontuario/MATRIZ_T0_T6.md"
+    },
+    {
+      "id": "S011",
+      "location": "release-branch",
+      "role": "antigravity-relatorio",
+      "path": "docs/audits/2026-11-15-antigravity-argon-prontuario/RELATORIO.md",
+      "contentSha": "d8fd9c6fbd989f3310a9cc74912cc46e8d008102",
+      "reviewStatus": "partial-review",
+      "ref": "release/prontuario-t0-t3-20261120",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/eb0768aefd843d45dbf1f43adcb5340430da73e2/docs/audits/2026-11-15-antigravity-argon-prontuario/RELATORIO.md"
+    },
+    {
+      "id": "S012",
+      "location": "release-branch",
+      "role": "antigravity-revisao",
+      "path": "docs/audits/2026-11-18-antigravity-revisao-independente-codigo.md",
+      "contentSha": "d51b3ad4718cdb16e3a0cab4bd34ba06f9c05acb",
+      "reviewStatus": "indexed-pending-review",
+      "ref": "release/prontuario-t0-t3-20261120",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/eb0768aefd843d45dbf1f43adcb5340430da73e2/docs/audits/2026-11-18-antigravity-revisao-independente-codigo.md"
+    },
+    {
+      "id": "S013",
+      "location": "release-branch",
+      "role": "integracao-auditoria",
+      "path": "docs/audits/2026-11-15-auditoria-profunda-codigo-integrado-t0-t6.md",
+      "contentSha": "d271a32209874b6da7a0c19562ab938b4048566a",
+      "reviewStatus": "indexed-pending-review",
+      "ref": "release/prontuario-t0-t3-20261120",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/eb0768aefd843d45dbf1f43adcb5340430da73e2/docs/audits/2026-11-15-auditoria-profunda-codigo-integrado-t0-t6.md"
+    },
+    {
+      "id": "S014",
+      "location": "release-branch",
+      "role": "conciliacao-branches",
+      "path": "docs/audits/2026-11-16-reconciliacao-branches-codigo-documentacao-t0-t6.md",
+      "contentSha": "fbeb8b05bff38f7209399dd78dbb14ffc94fcf08",
+      "reviewStatus": "indexed-pending-review",
+      "ref": "release/prontuario-t0-t3-20261120",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/eb0768aefd843d45dbf1f43adcb5340430da73e2/docs/audits/2026-11-16-reconciliacao-branches-codigo-documentacao-t0-t6.md"
+    },
+    {
+      "id": "S015",
+      "location": "external-branch",
+      "role": "gemini-plano-inicial",
+      "path": "docs/superpowers/plans/2026-11-14-analises-e-plano-mestre-gemini.md",
+      "contentSha": "2c0c027b70a2efe099cd28905b81274042ca88e0",
+      "reviewStatus": "partial-review",
+      "ref": "docs/analises-e-plano-mestre-gemini-20261114",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/docs/analises-e-plano-mestre-gemini-20261114/docs/superpowers/plans/2026-11-14-analises-e-plano-mestre-gemini.md"
+    },
+    {
+      "id": "S016",
+      "location": "external-branch",
+      "role": "gemini-postmortem",
+      "path": "docs/audits/2026-11-15-gemini-postmortem-e-sugestoes/RELATORIO.md",
+      "contentSha": "788bcf37635a33a53919c15f2b5e9c841cb1bbb3",
+      "reviewStatus": "indexed-pending-review",
+      "ref": "audit/gemini-revisao-critica-e-sugestoes-20261115",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/audit/gemini-revisao-critica-e-sugestoes-20261115/docs/audits/2026-11-15-gemini-postmortem-e-sugestoes/RELATORIO.md"
+    },
+    {
+      "id": "S017",
+      "location": "external-branch",
+      "role": "pr515-plano-mestre",
+      "path": "docs/reference/PLANO_MESTRE_UNIFICADO_PRONTUARIO_2026_11_14.md",
+      "contentSha": "2b9799224e3b2ae567ea15972ed43fafe03cf92f",
+      "reviewStatus": "partial-review",
+      "ref": "fix/preview-pendencias-column-spacing-20261111",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/fix/preview-pendencias-column-spacing-20261111/docs/reference/PLANO_MESTRE_UNIFICADO_PRONTUARIO_2026_11_14.md"
+    },
+    {
+      "id": "S018",
+      "location": "external-branch",
+      "role": "pr515-arquitetura-visual",
+      "path": "docs/reference/ARQUITETURA_VISUAL_PRONTUARIO_ANALISES_2026_11_13.md",
+      "contentSha": "e637b0d0eed0b942cb91b9e98e7599d27eed1c9b",
+      "reviewStatus": "reviewed",
+      "ref": "fix/preview-pendencias-column-spacing-20261111",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/fix/preview-pendencias-column-spacing-20261111/docs/reference/ARQUITETURA_VISUAL_PRONTUARIO_ANALISES_2026_11_13.md"
+    },
+    {
+      "id": "S019",
+      "location": "external-branch",
+      "role": "pr515-diagnostico-bonif",
+      "path": "docs/reference/DIAGNOSTICO_BONIFICACAO_INAPTA_2026_11_12.md",
+      "contentSha": "1abf371b1dc36985ffebbf9238da8b2b7ada4867",
+      "reviewStatus": "reviewed",
+      "ref": "fix/preview-pendencias-column-spacing-20261111",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/fix/preview-pendencias-column-spacing-20261111/docs/reference/DIAGNOSTICO_BONIFICACAO_INAPTA_2026_11_12.md"
+    },
+    {
+      "id": "S020",
+      "location": "external-branch",
+      "role": "pr515-mapa-ux",
+      "path": "docs/reference/MAPA_OPORTUNIDADES_UX_DESKTOP_2026_11_13.md",
+      "contentSha": "16b162ea8afdc9111bd88f182edd485414273188",
+      "reviewStatus": "partial-review",
+      "ref": "fix/preview-pendencias-column-spacing-20261111",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/fix/preview-pendencias-column-spacing-20261111/docs/reference/MAPA_OPORTUNIDADES_UX_DESKTOP_2026_11_13.md"
+    },
+    {
+      "id": "S021",
+      "location": "external-branch",
+      "role": "manus-auditoria-original",
+      "path": "docs/audits/2026-11-14-manus-auditoria-frente-integrada/RELATORIO.md",
+      "contentSha": "4e529545116bc9c192c7ddd8748971b435ee13e0",
+      "reviewStatus": "indexed-pending-review",
+      "ref": "audit/manus-auditoria-frente-integrada-20261114",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/audit/manus-auditoria-frente-integrada-20261114/docs/audits/2026-11-14-manus-auditoria-frente-integrada/RELATORIO.md"
+    },
+    {
+      "id": "S022",
+      "location": "external-branch",
+      "role": "manus-adendo",
+      "path": "docs/audits/2026-11-14-manus-auditoria-frente-integrada/ADENDO-2026-11-15.md",
+      "contentSha": "b2a58d5ea45929679401b8fc483f6656687e47a4",
+      "reviewStatus": "indexed-pending-review",
+      "ref": "audit/manus-auditoria-frente-integrada-20261114",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/audit/manus-auditoria-frente-integrada-20261114/docs/audits/2026-11-14-manus-auditoria-frente-integrada/ADENDO-2026-11-15.md"
+    },
+    {
+      "id": "S023",
+      "location": "external-branch",
+      "role": "visual-rascunho",
+      "path": "docs/superpowers/specs/2026-11-13-prontuario-exploracao-visual.md",
+      "contentSha": "bd3fee8891e6e9335873861f4e2ceadd910c8be5",
+      "reviewStatus": "indexed-pending-review",
+      "ref": "docs/prontuario-direcao-visual-20261113",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/docs/prontuario-direcao-visual-20261113/docs/superpowers/specs/2026-11-13-prontuario-exploracao-visual.md"
+    },
+    {
+      "id": "S024",
+      "location": "external-branch",
+      "role": "flex-rascunho",
+      "path": "docs/superpowers/specs/2026-11-14-flexibilizacao-correcao-exclusao-lancamentos.md",
+      "contentSha": "7cca57d11636587329bbf04bd835440665f510bd",
+      "reviewStatus": "indexed-pending-review",
+      "ref": "docs/flexibilizacao-lancamentos-20261114",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/docs/flexibilizacao-lancamentos-20261114/docs/superpowers/specs/2026-11-14-flexibilizacao-correcao-exclusao-lancamentos.md"
+    },
+    {
+      "id": "S025",
+      "location": "unavailable-artifact",
+      "role": "seis-pranchas-conceituais",
+      "path": null,
+      "contentSha": null,
+      "ref": null,
+      "url": null,
+      "reviewStatus": "not-recovered",
+      "note": "As seis pranchas conceituais de 13/11 são citadas em S001 §7, mas seus binários aprovados não foram localizados na árvore da release. Screenshots históricos e golden não equivalem a essas pranchas."
+    }
+  ],
+  "requirements": [
+    {
+      "id": "T0T6-R001",
+      "label": "Contexto escola/competência/programa visível",
+      "phase": "T1",
+      "state": "awaiting-human",
+      "sourceIds": [
+        "S001",
+        "S003"
+      ],
+      "decisionIds": [
+        "T0T6-D001"
+      ],
+      "evidence": "Contexto implementado; conferir foco e scroll.",
+      "codePaths": [
+        "src/integration/prontuario-operational-ux.js"
+      ],
+      "testPaths": [
+        "tests/e2e/prontuario-correction-layout.spec.js"
+      ]
+    },
+    {
+      "id": "T0T6-R002",
+      "label": "Régua mensal com estados distintos, sem semáforo único",
+      "phase": "T1",
+      "state": "candidate-partial",
+      "sourceIds": [
+        "S001",
+        "S003"
+      ],
+      "decisionIds": [
+        "T0T6-D001"
+      ],
+      "evidence": "Conferir sem dados, futuro e contagens por escopo.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R003",
+      "label": "Cabeçalho horizontal e prioridade dos programas",
+      "phase": "T1",
+      "state": "awaiting-human",
+      "sourceIds": [
+        "S001",
+        "S003"
+      ],
+      "decisionIds": [
+        "T0T6-D001"
+      ],
+      "evidence": "Código existe; golden não homologado.",
+      "codePaths": [
+        "src/integration/prontuario-operational-ux.js"
+      ],
+      "testPaths": [
+        "tests/e2e/prontuario-program-order.spec.js"
+      ]
+    },
+    {
+      "id": "T0T6-R004",
+      "label": "Grade Documento/Bonificação/Análise/Providência",
+      "phase": "T1",
+      "state": "awaiting-human",
+      "sourceIds": [
+        "S001",
+        "S003"
+      ],
+      "decisionIds": [
+        "T0T6-D001"
+      ],
+      "evidence": "Geometria em 1440x900 exige aceite.",
+      "codePaths": [
+        "src/integration/prontuario-operational-ux.js"
+      ],
+      "testPaths": [
+        "tests/e2e/prontuario-correction-layout.spec.js"
+      ]
+    },
+    {
+      "id": "T0T6-R005",
+      "label": "Bonificação distinta de Análise Técnica",
+      "phase": "T1-T5",
+      "state": "candidate-tested",
+      "sourceIds": [
+        "S001",
+        "S002",
+        "S009",
+        "S019"
+      ],
+      "decisionIds": [
+        "T0T6-D002",
+        "T0T6-D011"
+      ],
+      "evidence": "Testes sintéticos de efeito fiscal e marca de inventário.",
+      "codePaths": [
+        "src/domain/fluxo-operacional.js"
+      ],
+      "testPaths": [
+        "tests/unit/monthly-evaluation-rules.test.js"
+      ]
+    },
+    {
+      "id": "T0T6-R006",
+      "label": "N/A conforme aplicabilidade documental; extratos sem N/A",
+      "phase": "T1-T4",
+      "state": "contract-active",
+      "sourceIds": [
+        "S001",
+        "S002"
+      ],
+      "decisionIds": [
+        "T0T6-D002"
+      ],
+      "evidence": "Não uniformizar opções indevidamente.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R007",
+      "label": "BB Ágil N/A implica Análise efetiva Correto",
+      "phase": "T1-T4",
+      "state": "candidate-tested",
+      "sourceIds": [
+        "S001",
+        "S002"
+      ],
+      "decisionIds": [
+        "T0T6-D002"
+      ],
+      "evidence": "Regra do domínio e teste em avaliação mensal.",
+      "codePaths": [
+        "src/domain/fluxo-operacional.js"
+      ],
+      "testPaths": [
+        "tests/unit/monthly-evaluation-rules.test.js"
+      ]
+    },
+    {
+      "id": "T0T6-R008",
+      "label": "Avaliação de NF individual, bonificação agregada",
+      "phase": "T1-T3",
+      "state": "candidate-partial",
+      "sourceIds": [
+        "S001",
+        "S003",
+        "S005"
+      ],
+      "decisionIds": [
+        "T0T6-D011"
+      ],
+      "evidence": "Conferir NFs A e B e projeções.",
+      "codePaths": [
+        "src/domain/invoice-document-analysis.js"
+      ],
+      "testPaths": [
+        "tests/e2e/invoice-document-analysis.spec.js"
+      ]
+    },
+    {
+      "id": "T0T6-R009",
+      "label": "NF serviço e Consulta Assessoria com vínculo causal",
+      "phase": "T1-T3",
+      "state": "awaiting-human",
+      "sourceIds": [
+        "S001",
+        "S018",
+        "S012"
+      ],
+      "decisionIds": [
+        "T0T6-D008"
+      ],
+      "evidence": "Reposicionamento existe; experiência visual pendente.",
+      "codePaths": [
+        "src/integration/prontuario-operational-ux.js"
+      ],
+      "testPaths": [
+        "tests/unit/prontuario-conditional-reconciler.test.js"
+      ]
+    },
+    {
+      "id": "T0T6-R010",
+      "label": "NF permanente com vínculo e estado patrimonial",
+      "phase": "T1-T3",
+      "state": "awaiting-human",
+      "sourceIds": [
+        "S001",
+        "S018"
+      ],
+      "decisionIds": [
+        "T0T6-D001"
+      ],
+      "evidence": "decorateInventoryLinks existe; UI real pendente.",
+      "codePaths": [
+        "src/integration/prontuario-operational-ux.js"
+      ],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R011",
+      "label": "Gaveta de Pendência contextual sem duplicar CTA",
+      "phase": "T1-T3",
+      "state": "candidate-partial",
+      "sourceIds": [
+        "S001",
+        "S003",
+        "S018"
+      ],
+      "decisionIds": [
+        "T0T6-D001"
+      ],
+      "evidence": "Conservar drawer existente, foco e histórico.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R012",
+      "label": "Incorreto cria Pendência atomicamente, Cancelar não grava",
+      "phase": "T2",
+      "state": "candidate-partial",
+      "sourceIds": [
+        "S001",
+        "S003",
+        "S005"
+      ],
+      "decisionIds": [
+        "T0T6-D002"
+      ],
+      "evidence": "Autoridade anterior mantém contrato.",
+      "codePaths": [
+        "src/integration/evaluation-retification.js"
+      ],
+      "testPaths": [
+        "tests/unit/evaluation-retification-atomic.test.js"
+      ]
+    },
+    {
+      "id": "T0T6-R013",
+      "label": "Novo envio verdadeiro não resolve, deixa Aguardando reanálise",
+      "phase": "T1-T5",
+      "state": "contract-active",
+      "sourceIds": [
+        "S001",
+        "S002"
+      ],
+      "decisionIds": [
+        "T0T6-D002"
+      ],
+      "evidence": "Não fingir regularização pela correção.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R014",
+      "label": "Reanálise compara último envio, não pré-seleciona resultado",
+      "phase": "T1-T5",
+      "state": "candidate-partial",
+      "sourceIds": [
+        "S001",
+        "S003"
+      ],
+      "decisionIds": [
+        "T0T6-D001"
+      ],
+      "evidence": "Três resultados e erro categorizado.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R015",
+      "label": "Corrigir análise sem simular envio/reanálise",
+      "phase": "T2",
+      "state": "candidate-tested",
+      "sourceIds": [
+        "S002",
+        "S003",
+        "S004",
+        "S005"
+      ],
+      "decisionIds": [
+        "T0T6-D002",
+        "T0T6-D004"
+      ],
+      "evidence": "RPC e UI com Auth local; consumidores ainda exigem gate.",
+      "codePaths": [
+        "src/application/operational-correction-client.js"
+      ],
+      "testPaths": [
+        "tests/e2e/supabase-operational-correction-local.spec.js"
+      ]
+    },
+    {
+      "id": "T0T6-R016",
+      "label": "Popover acessível em foco/clique/Escape",
+      "phase": "T1-T5",
+      "state": "candidate-partial",
+      "sourceIds": [
+        "S001",
+        "S003"
+      ],
+      "decisionIds": [
+        "T0T6-D001"
+      ],
+      "evidence": "Não esconder informação essencial em hover.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R017",
+      "label": "Tipografia, contraste/dark, densidade e viewport",
+      "phase": "T1",
+      "state": "awaiting-human",
+      "sourceIds": [
+        "S001",
+        "S003",
+        "S021"
+      ],
+      "decisionIds": [
+        "T0T6-D013"
+      ],
+      "evidence": "Teste de contraste disponível; aceite final não.",
+      "codePaths": [
+        "src/integration/prontuario-operational-ux.js"
+      ],
+      "testPaths": [
+        "tests/e2e/prontuario-dark-contrast-regression.spec.js"
+      ]
+    },
+    {
+      "id": "T0T6-R018",
+      "label": "Seis pranchas conceituais são referência separada do golden",
+      "phase": "T0-T1",
+      "state": "evidence-gap",
+      "sourceIds": [
+        "S001",
+        "S025"
+      ],
+      "decisionIds": [
+        "T0T6-D013"
+      ],
+      "evidence": "Binários não localizados no repositório.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R019",
+      "label": "Preservar menu, busca, guia, contatos e demais ações existentes",
+      "phase": "T1",
+      "state": "candidate-partial",
+      "sourceIds": [
+        "S001",
+        "S003"
+      ],
+      "decisionIds": [
+        "T0T6-D001"
+      ],
+      "evidence": "Não remover função em nome da simplificação.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R020",
+      "label": "Indicadores com escopo definido, sem status global fictício",
+      "phase": "T1-T6",
+      "state": "contract-active",
+      "sourceIds": [
+        "S001",
+        "S003"
+      ],
+      "decisionIds": [
+        "T0T6-D001"
+      ],
+      "evidence": "Cada contagem deve ter objeto/autoridade.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R021",
+      "label": "Qualidade provisória independente de NF e Pendência até identificação",
+      "phase": "T1-T3",
+      "state": "candidate-tested",
+      "sourceIds": [
+        "S001",
+        "S002",
+        "S003",
+        "S005"
+      ],
+      "decisionIds": [
+        "T0T6-D015"
+      ],
+      "evidence": "E2E local de desfazer identificação e reidentificar.",
+      "codePaths": [
+        "src/integration/quality-provisional-ux.js"
+      ],
+      "testPaths": [
+        "tests/e2e/supabase-operational-correction-local.spec.js"
+      ]
+    },
+    {
+      "id": "T0T6-R022",
+      "label": "a_identificar é despesa com Pendência obrigatória",
+      "phase": "T1-T3",
+      "state": "candidate-partial",
+      "sourceIds": [
+        "S001",
+        "S002",
+        "S003"
+      ],
+      "decisionIds": [
+        "T0T6-D015"
+      ],
+      "evidence": "Não confundir com provisória de Qualidade.",
+      "codePaths": [
+        "src/integration/unidentified-expense-ux.js"
+      ],
+      "testPaths": [
+        "tests/unit/fluxo-operacional-unidentified-expense.test.js"
+      ]
+    },
+    {
+      "id": "T0T6-R023",
+      "label": "Editar número/valor/descrição NF com Pendência/histórico",
+      "phase": "T1-T3",
+      "state": "candidate-tested",
+      "sourceIds": [
+        "S002",
+        "S003",
+        "S005"
+      ],
+      "decisionIds": [
+        "T0T6-D002"
+      ],
+      "evidence": "Preservar ID, NF vizinha e bonificação.",
+      "codePaths": [
+        "src/integration/auditable-retification.js"
+      ],
+      "testPaths": [
+        "tests/e2e/invoice-auditable-retification.spec.js"
+      ]
+    },
+    {
+      "id": "T0T6-R024",
+      "label": "Sincronizar metadados derivados do bem após edição NF",
+      "phase": "T1-T3",
+      "state": "candidate-partial",
+      "sourceIds": [
+        "S002",
+        "S003",
+        "S005"
+      ],
+      "decisionIds": [
+        "T0T6-D002"
+      ],
+      "evidence": "Não sobregravar estado patrimonial independente.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R025",
+      "label": "Corrigir análise fiscal de NF por ID inequívoco",
+      "phase": "T2",
+      "state": "candidate-tested",
+      "sourceIds": [
+        "S002",
+        "S003",
+        "S005"
+      ],
+      "decisionIds": [
+        "T0T6-D002",
+        "T0T6-D007"
+      ],
+      "evidence": "NF irmã não afetada; pós-reload e segunda sessão.",
+      "codePaths": [
+        "src/application/operational-correction-client.js"
+      ],
+      "testPaths": [
+        "tests/e2e/supabase-operational-correction-local.spec.js"
+      ]
+    },
+    {
+      "id": "T0T6-R026",
+      "label": "clear_analysis preserva histórico anterior independente",
+      "phase": "T2",
+      "state": "candidate-tested",
+      "sourceIds": [
+        "S002",
+        "S003",
+        "S005"
+      ],
+      "decisionIds": [
+        "T0T6-D004"
+      ],
+      "evidence": "Não equivale a clear_item_history.",
+      "codePaths": [
+        "src/application/operational-correction-client.js"
+      ],
+      "testPaths": [
+        "tests/e2e/supabase-operational-correction-local.spec.js"
+      ]
+    },
+    {
+      "id": "T0T6-R027",
+      "label": "delete_pendency difere de cancelar/reabrir",
+      "phase": "T2",
+      "state": "candidate-tested",
+      "sourceIds": [
+        "S002",
+        "S003",
+        "S005"
+      ],
+      "decisionIds": [
+        "T0T6-D002",
+        "T0T6-D007"
+      ],
+      "evidence": "ID e efeitos exatos, guardar a_identificar.",
+      "codePaths": [
+        "src/integration/operational-correction-dialog.js"
+      ],
+      "testPaths": [
+        "tests/e2e/operational-correction-dialog.spec.js"
+      ]
+    },
+    {
+      "id": "T0T6-R028",
+      "label": "delete_invoice com dependentes e bem exclusivo inventariado",
+      "phase": "T3",
+      "state": "candidate-tested",
+      "sourceIds": [
+        "S002",
+        "S003",
+        "S005",
+        "S011"
+      ],
+      "decisionIds": [
+        "T0T6-D002",
+        "T0T6-D007",
+        "T0T6-D011"
+      ],
+      "evidence": "RLS/Postgres local e preservação NF vizinha.",
+      "codePaths": [
+        "src/application/operational-correction-client.js"
+      ],
+      "testPaths": [
+        "tests/e2e/supabase-operational-correction-local.spec.js"
+      ]
+    },
+    {
+      "id": "T0T6-R029",
+      "label": "Excluir a_identificar junto à Pendência obrigatória",
+      "phase": "T3",
+      "state": "candidate-partial",
+      "sourceIds": [
+        "S002",
+        "S003",
+        "S005"
+      ],
+      "decisionIds": [
+        "T0T6-D002",
+        "T0T6-D007"
+      ],
+      "evidence": "Não retirar somente a Pendência.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R030",
+      "label": "Bonificação consolidada corrigível com reconsolidação orientada",
+      "phase": "T4",
+      "state": "approved-future",
+      "sourceIds": [
+        "S002",
+        "S003",
+        "S004",
+        "S005"
+      ],
+      "decisionIds": [
+        "T0T6-D014"
+      ],
+      "evidence": "Alterações pendentes de consolidação; Consolidar alterações.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R031",
+      "label": "N/A de bonificação não exige excluir NFs válidas",
+      "phase": "T4",
+      "state": "approved-future",
+      "sourceIds": [
+        "S002",
+        "S003",
+        "S004",
+        "S005"
+      ],
+      "decisionIds": [
+        "T0T6-D014"
+      ],
+      "evidence": "Não deixar N/A sobrescrever avaliação técnica.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R032",
+      "label": "clear_item_history é diferente de limpar análise atual",
+      "phase": "T4",
+      "state": "approved-future",
+      "sourceIds": [
+        "S002",
+        "S003",
+        "S004",
+        "S005"
+      ],
+      "decisionIds": [
+        "T0T6-D004"
+      ],
+      "evidence": "Alcance integral explícito por item.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R033",
+      "label": "delete_context remove programa/mês confirmado, preserva vizinhos",
+      "phase": "T4",
+      "state": "approved-future",
+      "sourceIds": [
+        "S002",
+        "S003",
+        "S004",
+        "S005"
+      ],
+      "decisionIds": [
+        "T0T6-D006"
+      ],
+      "evidence": "Sem mover registros automaticamente.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R034",
+      "label": "Editar observação, link e data de tentativa",
+      "phase": "T5",
+      "state": "approved-future",
+      "sourceIds": [
+        "S002",
+        "S003",
+        "S005"
+      ],
+      "decisionIds": [
+        "T0T6-D002"
+      ],
+      "evidence": "Identidade e histórico preservados.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R035",
+      "label": "Excluir envio/reanálise com recomposição de estado",
+      "phase": "T5",
+      "state": "approved-future",
+      "sourceIds": [
+        "S002",
+        "S003",
+        "S005"
+      ],
+      "decisionIds": [
+        "T0T6-D002",
+        "T0T6-D010"
+      ],
+      "evidence": "Não escolher última tentativa por fallback de attemptId.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R036",
+      "label": "Editar/excluir contato por ID sem apagar contato geral",
+      "phase": "T5",
+      "state": "approved-future",
+      "sourceIds": [
+        "S002",
+        "S003",
+        "S005"
+      ],
+      "decisionIds": [
+        "T0T6-D002"
+      ],
+      "evidence": "Mensagem externa não apagada.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R037",
+      "label": "Corrigir campos de Pendência manual dentro do próprio domínio",
+      "phase": "T5",
+      "state": "approved-future",
+      "sourceIds": [
+        "S002",
+        "S003"
+      ],
+      "decisionIds": [
+        "T0T6-D002"
+      ],
+      "evidence": "Não transformar em documento por mudança do texto.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R038",
+      "label": "Corrigir/excluir inventariação errada, sem alterar SIGMA",
+      "phase": "T5",
+      "state": "approved-future",
+      "sourceIds": [
+        "S002",
+        "S003"
+      ],
+      "decisionIds": [
+        "T0T6-D002"
+      ],
+      "evidence": "Sem desativar triggers globalmente.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R039",
+      "label": "Pendência legada sem FK não pode ser vinculada por texto",
+      "phase": "T3-T5",
+      "state": "candidate-partial",
+      "sourceIds": [
+        "S002",
+        "S003",
+        "S005",
+        "S017"
+      ],
+      "decisionIds": [
+        "T0T6-D007"
+      ],
+      "evidence": "Preservar independentes até vínculo demonstrado.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R040",
+      "label": "Nota opcional na correção/exclusão; sem confirmação textual",
+      "phase": "T2-T5",
+      "state": "candidate-tested",
+      "sourceIds": [
+        "S002",
+        "S004",
+        "S007"
+      ],
+      "decisionIds": [
+        "T0T6-D002"
+      ],
+      "evidence": "Não alterar obrigação específica do verdadeiro Novo envio.",
+      "codePaths": [
+        "src/integration/operational-correction-dialog.js"
+      ],
+      "testPaths": [
+        "tests/e2e/operational-correction-dialog.spec.js"
+      ]
+    },
+    {
+      "id": "T0T6-R041",
+      "label": "Troca coordenada de classificação quando há histórico",
+      "phase": "T4-T5",
+      "state": "proposal-deferred",
+      "sourceIds": [
+        "S002",
+        "S003",
+        "S015",
+        "S017"
+      ],
+      "decisionIds": [
+        "T0T6-D002"
+      ],
+      "evidence": "Não remover correções simples já existentes.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R042",
+      "label": "Normalização automática Correto→Correto (Atrasado)",
+      "phase": "T2",
+      "state": "proposal-unresolved",
+      "sourceIds": [
+        "S015",
+        "S017",
+        "S005"
+      ],
+      "decisionIds": [
+        "T0T6-D002"
+      ],
+      "evidence": "Exige decisão sobre regra de entrega/consolidação.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R043",
+      "label": "Busca/Excel/Passivo coesos após cada lote",
+      "phase": "T1-T5",
+      "state": "candidate-partial",
+      "sourceIds": [
+        "S003",
+        "S005",
+        "S015",
+        "S017"
+      ],
+      "decisionIds": [
+        "T0T6-D019"
+      ],
+      "evidence": "Cobertura por consumidor precisa evidência no SHA.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R044",
+      "label": "Preview→PlanDigest→Apply→Receipt com lock e versão",
+      "phase": "T2-T5",
+      "state": "candidate-tested",
+      "sourceIds": [
+        "S002",
+        "S003",
+        "S005",
+        "S013"
+      ],
+      "decisionIds": [
+        "T0T6-D007"
+      ],
+      "evidence": "Servidor SQL é autoridade; cliente não escreve a prévia.",
+      "codePaths": [
+        "src/application/operational-correction-client.js"
+      ],
+      "testPaths": [
+        "supabase/tests/database/operational-correction.test.sql"
+      ]
+    },
+    {
+      "id": "T0T6-R045",
+      "label": "Replay de operationKey e fingerprint incluindo note",
+      "phase": "T2-T3",
+      "state": "candidate-tested",
+      "sourceIds": [
+        "S003",
+        "S007",
+        "S010",
+        "S011"
+      ],
+      "decisionIds": [
+        "T0T6-D007"
+      ],
+      "evidence": "3 cenários de concorrência em PostgreSQL Docker.",
+      "codePaths": [],
+      "testPaths": [
+        "supabase/tests/database/operational-correction.test.sql"
+      ]
+    },
+    {
+      "id": "T0T6-R046",
+      "label": "RLS/Auth/autoria/servidor, sem bypass de navegador",
+      "phase": "T2-T5",
+      "state": "candidate-tested",
+      "sourceIds": [
+        "S002",
+        "S003",
+        "S005"
+      ],
+      "decisionIds": [
+        "T0T6-D007"
+      ],
+      "evidence": "Identidades sintéticas e Auth local, não Production.",
+      "codePaths": [],
+      "testPaths": [
+        "tests/e2e/supabase-operational-correction-local.spec.js"
+      ]
+    },
+    {
+      "id": "T0T6-R047",
+      "label": "Perfil autoriza operação, carteira não bloqueia colega",
+      "phase": "T0-T5",
+      "state": "contract-active",
+      "sourceIds": [
+        "S001",
+        "S004",
+        "S005"
+      ],
+      "decisionIds": [
+        "T0T6-D012"
+      ],
+      "evidence": "ADR-056, sem bloqueio artificial por responsável.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R048",
+      "label": "Prova de F5 e segunda sessão autenticada",
+      "phase": "T2-T3",
+      "state": "candidate-tested",
+      "sourceIds": [
+        "S003",
+        "S005",
+        "S007"
+      ],
+      "decisionIds": [
+        "T0T6-D007"
+      ],
+      "evidence": "E2E autenticado em Docker, code SHA precisa revalidar.",
+      "codePaths": [],
+      "testPaths": [
+        "tests/e2e/supabase-operational-correction-local.spec.js"
+      ]
+    },
+    {
+      "id": "T0T6-R049",
+      "label": "R1 T0–T3, R2 T4, R3 T5 e T6 por release",
+      "phase": "T0-T6",
+      "state": "contract-active",
+      "sourceIds": [
+        "S003",
+        "S006"
+      ],
+      "decisionIds": [
+        "T0T6-D006"
+      ],
+      "evidence": "Plano de publicação conjunta substituído.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R050",
+      "label": "Compatibilidade cliente anterior, backup e deploy seguro",
+      "phase": "T6",
+      "state": "open-verification",
+      "sourceIds": [
+        "S003",
+        "S005",
+        "S006"
+      ],
+      "decisionIds": [
+        "T0T6-D006"
+      ],
+      "evidence": "Sem aprovação de Production.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R051",
+      "label": "Flags OFF e opt-in independente para release",
+      "phase": "T2-T3",
+      "state": "candidate-tested",
+      "sourceIds": [
+        "S006",
+        "S007"
+      ],
+      "decisionIds": [
+        "T0T6-D018"
+      ],
+      "evidence": "Regras de local e ambiente prod separadas.",
+      "codePaths": [
+        "config.js"
+      ],
+      "testPaths": [
+        "tests/unit/runtime-config.test.js"
+      ]
+    },
+    {
+      "id": "T0T6-R052",
+      "label": "Decisões e contribuições registradas no remoto",
+      "phase": "T0-T6",
+      "state": "candidate-partial",
+      "sourceIds": [
+        "S006",
+        "S007"
+      ],
+      "decisionIds": [
+        "T0T6-D016"
+      ],
+      "evidence": "Consistência não implica censo histórico exaustivo.",
+      "codePaths": [
+        "scripts/check-prontuario-continuity.mjs"
+      ],
+      "testPaths": [
+        "tests/unit/prontuario-continuity.test.js"
+      ]
+    },
+    {
+      "id": "T0T6-R053",
+      "label": "Retificação exigia justificativa e confirmação textual",
+      "phase": "T2",
+      "state": "historical-superseded",
+      "sourceIds": [
+        "S001",
+        "S002",
+        "S004"
+      ],
+      "decisionIds": [
+        "T0T6-D002"
+      ],
+      "evidence": "Regra antiga da arte, substituída pela flexibilização.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R054",
+      "label": "Exclusão bloqueada por histórico/inventariada",
+      "phase": "T3",
+      "state": "historical-superseded",
+      "sourceIds": [
+        "S001",
+        "S002",
+        "S004"
+      ],
+      "decisionIds": [
+        "T0T6-D002"
+      ],
+      "evidence": "Guard antigo só para fluxo legado até corte.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R055",
+      "label": "Uma publicação única T0–T6",
+      "phase": "T6",
+      "state": "historical-superseded",
+      "sourceIds": [
+        "S003",
+        "S006"
+      ],
+      "decisionIds": [
+        "T0T6-D006"
+      ],
+      "evidence": "Releases incrementais autorizadas em 20/11.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R056",
+      "label": "Wizard sequencial bonificação→análise→Pendência",
+      "phase": "T1",
+      "state": "historical-rejected",
+      "sourceIds": [
+        "S001"
+      ],
+      "decisionIds": [
+        "T0T6-D001"
+      ],
+      "evidence": "Estudo original já não recomendava.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R057",
+      "label": "UX geral Dashboard/Carteira fora do escopo funcional R1",
+      "phase": "T1",
+      "state": "reference-only",
+      "sourceIds": [
+        "S020"
+      ],
+      "decisionIds": [
+        "T0T6-D017"
+      ],
+      "evidence": "Não importar CSS do PR #515 por associação.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R058",
+      "label": "Golden T1 não atualizado sem comparação aprovada",
+      "phase": "T1",
+      "state": "awaiting-human",
+      "sourceIds": [
+        "S001",
+        "S003",
+        "S006"
+      ],
+      "decisionIds": [
+        "T0T6-D013"
+      ],
+      "evidence": "Falha Desktop homologado histórica, sem aceite.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R059",
+      "label": "A-01 Assessoria com Pendência ativa",
+      "phase": "T2",
+      "state": "candidate-tested",
+      "sourceIds": [
+        "S012",
+        "S007"
+      ],
+      "decisionIds": [
+        "T0T6-D008"
+      ],
+      "evidence": "Reconciliar botão e select com status.",
+      "codePaths": [
+        "src/integration/service-advisory-pendency.js"
+      ],
+      "testPaths": [
+        "tests/unit/prontuario-conditional-reconciler.test.js"
+      ]
+    },
+    {
+      "id": "T0T6-R060",
+      "label": "Contato registra comunicação, não recebimento",
+      "phase": "T1-T5",
+      "state": "contract-active",
+      "sourceIds": [
+        "S001",
+        "S002"
+      ],
+      "decisionIds": [
+        "T0T6-D002"
+      ],
+      "evidence": "Não criar prova falsa de leitura de Drive.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R061",
+      "label": "Novo envio real tem observação exigida",
+      "phase": "T1-T5",
+      "state": "contract-active",
+      "sourceIds": [
+        "S001",
+        "S002"
+      ],
+      "decisionIds": [
+        "T0T6-D002"
+      ],
+      "evidence": "Não confundir com nota opcional de correção.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R062",
+      "label": "Mudar data de disponibilização altera atraso técnico",
+      "phase": "T5",
+      "state": "approved-future",
+      "sourceIds": [
+        "S002",
+        "S003",
+        "S005"
+      ],
+      "decisionIds": [
+        "T0T6-D002"
+      ],
+      "evidence": "Sem mexer em bonificação histórica.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R063",
+      "label": "Retificação cadastral não equivale a reanálise",
+      "phase": "T2-T5",
+      "state": "candidate-partial",
+      "sourceIds": [
+        "S001",
+        "S002",
+        "S004"
+      ],
+      "decisionIds": [
+        "T0T6-D002"
+      ],
+      "evidence": "Não fabricar resultado Resolvida.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R064",
+      "label": "Autoria e auditoria técnica preservadas",
+      "phase": "T2-T5",
+      "state": "candidate-partial",
+      "sourceIds": [
+        "S002",
+        "S003",
+        "S005"
+      ],
+      "decisionIds": [
+        "T0T6-D007"
+      ],
+      "evidence": "Exclusão operacional não apaga auditoria.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R065",
+      "label": "Vínculo explícito de Pendência legada a NF",
+      "phase": "T4-T5",
+      "state": "proposal-deferred",
+      "sourceIds": [
+        "S015",
+        "S017"
+      ],
+      "decisionIds": [
+        "T0T6-D004"
+      ],
+      "evidence": "Não criar vínculo por inferência.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R066",
+      "label": "Atalho após delete_context para contexto correto",
+      "phase": "T4",
+      "state": "proposal-deferred",
+      "sourceIds": [
+        "S015",
+        "S017"
+      ],
+      "decisionIds": [
+        "T0T6-D006"
+      ],
+      "evidence": "Ação proposta, sem transporte de IDs.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R067",
+      "label": "Verificar fontes remotas-only em cada passagem",
+      "phase": "T0-T6",
+      "state": "open-verification",
+      "sourceIds": [
+        "S008",
+        "S010",
+        "S012",
+        "S016",
+        "S021",
+        "S022",
+        "S023",
+        "S024"
+      ],
+      "decisionIds": [
+        "T0T6-D016"
+      ],
+      "evidence": "Lista indexada, mas fontes nem todas revisadas.",
+      "codePaths": [],
+      "testPaths": []
+    }
+  ],
+  "gaps": [
+    {
+      "id": "G001",
+      "kind": "missing-visual",
+      "sourceIds": [
+        "S001",
+        "S025"
+      ],
+      "description": "As seis pranchas conceituais originais não foram encontradas como arquivos na branch de release.",
+      "nextStep": "Localizar os binários da versão aprovada e anexá-los com SHA, ou registrar indisponibilidade; não trocar por golden antigo."
+    },
+    {
+      "id": "G002",
+      "kind": "partial-source-review",
+      "sourceIds": [
+        "S001",
+        "S002",
+        "S003",
+        "S005",
+        "S006",
+        "S007",
+        "S008",
+        "S010",
+        "S011",
+        "S012",
+        "S013",
+        "S014",
+        "S015",
+        "S016",
+        "S017",
+        "S020",
+        "S021",
+        "S022",
+        "S023",
+        "S024"
+      ],
+      "description": "Fontes indexadas mas ainda não reconciliadas linha a linha.",
+      "nextStep": "Confrontar itens ainda não tratados; marcar somente após inspeção e relacionar requisito ou descarte fundamentado."
+    },
+    {
+      "id": "G003",
+      "kind": "chat-artifacts",
+      "sourceIds": [],
+      "description": "Decisões e arquivos exclusivamente em outros chats/sandboxes podem não ter chegado ao GitHub.",
+      "nextStep": "Reconciliar artefatos de chats anteriores quando recuperáveis; não afirmar 100% de completude."
+    },
+    {
+      "id": "G004",
+      "kind": "visual-acceptance",
+      "sourceIds": [
+        "S001",
+        "S003",
+        "S006"
+      ],
+      "description": "T1 não recebeu homologação humana e o golden difere.",
+      "nextStep": "Comparar telas reais em Supabase Docker com pranchas e contexto; preservar resultado no PR."
+    }
+  ]
+}
