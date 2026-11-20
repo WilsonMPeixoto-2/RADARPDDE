@@ -164,3 +164,31 @@ test('contabiliza separadamente providência da escola e reanálise do controlad
   assert.equal(result.awaitingReanalysisCount, 1);
   assert.equal(result.activePendencyCount, 2);
 });
+
+test('ADR-055: despesa a identificar não contamina a bonificação manual APTA mesmo quando análise técnica está incorreta', () => {
+  const result = flow.evaluateMonthlyEvaluation({
+    bonification: { ...completeBonification, notaFiscal: 'Sim' },
+    analysis: { ...completeAnalysis, notaFiscal: 'Incorreto' },
+    fiscalNotes: [{ id: 'NF-SINTETICA-1', tipo: 'a_identificar', numero: '' }],
+    pendencies: [{ status: 'Aberta', registeredInvoiceId: 'NF-SINTETICA-1' }]
+  });
+  assert.equal(result.canConsolidate, true);
+  assert.equal(result.bonusResult, 'apta');
+  assert.equal(result.bonificationStatus, 'apta');
+  assert.equal(result.technicalStatus, 'incorreto');
+  assert.equal(result.activePendencyCount, 1);
+});
+
+test('ADR-055: apenas marcação real Não de Inventariação causa INAPTA; N/A preserva APTA', () => {
+  const base = { ...completeBonification, notaFiscal: 'Sim', encampInventario: 'Não se aplica' };
+  const analysis = { ...completeAnalysis, notaFiscal: 'Incorreto' };
+  const notApplicable = flow.evaluateMonthlyEvaluation({ bonification: base, analysis });
+  const negative = flow.evaluateMonthlyEvaluation({
+    bonification: { ...base, encampInventario: 'Não' },
+    analysis
+  });
+  assert.equal(notApplicable.bonusResult, 'apta');
+  assert.equal(negative.bonusResult, 'inapta');
+  assert.equal(notApplicable.technicalStatus, 'incorreto');
+  assert.equal(negative.technicalStatus, 'incorreto');
+});

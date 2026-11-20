@@ -456,13 +456,73 @@
       "agent": "Antigravity",
       "stage": "T0/T3",
       "title": "Novas contribuições posteriores a 054d3bc4",
-      "status": "pending-review",
+      "status": "reference",
       "originRef": "audit/antigravity-argon-prontuario-20261115@054d3bc4",
       "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534",
       "decisionIds": [
         "T0T6-D016"
       ],
-      "rationale": "Comparar novamente HEAD colaborador e HEAD release em cada retomada; no último compare o #534 estava inteiramente contido no #535.",
+      "rationale": "Comparação GitHub em 20/11/2026 17h BRT: PR #534 permaneceu em 054d3bc4, com ahead=0 e behind=13 ante a Release 1; não houve correção nova a absorver. Continuar reavaliando o HEAD na próxima retomada.",
+      "integratedRef": ""
+    },
+    {
+      "id": "T0T6-C019",
+      "agent": "Gemini/PR515",
+      "stage": "T0–T5",
+      "title": "Plano Mestre Unificado — cinco complementos comparativos",
+      "status": "reference",
+      "originRef": "fix/preview-pendencias-column-spacing-20261111@08bddb19",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/08bddb1900d190039219fd6f4212bea75baccfb6/docs/reference/PLANO_MESTRE_UNIFICADO_PRONTUARIO_2026_11_14.md",
+      "decisionIds": [
+        "T0T6-D006",
+        "T0T6-D019"
+      ],
+      "rationale": "Plano anterior à execução e parcialmente sobreposto às propostas do Gemini já classificadas em C013–C017: teste Excel/Busca aceito como gate, alteração de classificação e vínculo legado adiados, navegação após delete_context em T4, regra de atraso pendente. Não criar segundo plano vinculante.",
+      "integratedRef": ""
+    },
+    {
+      "id": "T0T6-C020",
+      "agent": "Gemini/PR515",
+      "stage": "T1",
+      "title": "Arquitetura visual causal para NF/Assessoria/Inventário",
+      "status": "accepted-for-validation",
+      "originRef": "fix/preview-pendencias-column-spacing-20261111@08bddb19",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/08bddb1900d190039219fd6f4212bea75baccfb6/docs/reference/ARQUITETURA_VISUAL_PRONTUARIO_ANALISES_2026_11_13.md",
+      "decisionIds": [
+        "T0T6-D001",
+        "T0T6-D013"
+      ],
+      "rationale": "Parte da conexão causal já existe na Release 1: src/integration/prontuario-operational-ux.js implementa inventory-document-links e reposiciona controles de Assessoria. Validar visualmente no T1 real a legibilidade das relações de NF serviço/permanente, a_identificar e bonificação independente; não fundir CSS antigo do PR515.",
+      "integratedRef": ""
+    },
+    {
+      "id": "T0T6-C021",
+      "agent": "Gemini/PR515",
+      "stage": "T2/T4",
+      "title": "Hipótese de INAPTA relacionada a despesa a identificar e inventário",
+      "status": "accepted-for-validation",
+      "originRef": "fix/preview-pendencias-column-spacing-20261111@08bddb19",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/08bddb1900d190039219fd6f4212bea75baccfb6/docs/reference/DIAGNOSTICO_BONIFICACAO_INAPTA_2026_11_12.md",
+      "decisionIds": [
+        "T0T6-D011",
+        "T0T6-D014"
+      ],
+      "rationale": "Diagnóstico estático histórico contém duas hipóteses que não demonstram causalidade isoladamente. No SHA atual evaluateBonification usa exclusivamente bonificacao[]; a_identificar não participa diretamente do cálculo. 'Não' explícito em encampInventario força INAPTA, 'Não se aplica' permite APTA; persisted resultadoBonif também pode prevalecer. Adicionar contraprova de domínio com dados fictícios, sem consultar registros institucionais. Não alterar N/A por padrão nem reabrir T4 sem decisão e reprovação real.",
+      "integratedRef": ""
+    },
+    {
+      "id": "T0T6-C022",
+      "agent": "Gemini/PR515",
+      "stage": "Fora do escopo T0–T6",
+      "title": "Mapa de oportunidades geral do Dashboard, Carteira, Pendências e Capital",
+      "status": "reference",
+      "originRef": "fix/preview-pendencias-column-spacing-20261111@08bddb19",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/08bddb1900d190039219fd6f4212bea75baccfb6/docs/reference/MAPA_OPORTUNIDADES_UX_DESKTOP_2026_11_13.md",
+      "decisionIds": [
+        "T0T6-D016",
+        "T0T6-D017"
+      ],
+      "rationale": "Ideias gerais de UI e código CSS do PR515 são trabalho paralelo, não importação automática para a Release 1. Somente contexto do Prontuário e consumidores deve ser cotejado no aceite de T1.",
       "integratedRef": ""
     }
   ]

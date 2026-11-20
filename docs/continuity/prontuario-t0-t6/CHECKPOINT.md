@@ -27,6 +27,12 @@
 - Contratos vinculantes: [contrato](../../reference/PRONTUARIO_CORRECAO_CONTRATO.md) · [plano integral](../../superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md) · [matriz](../../reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md) · [plano da release](../../releases/2026-11-20-prontuario-t0-t3-release-1.md).
 - Handoff longo de 15/11 conserva provas por SHA, **não é a fila atual**.
 
+## Triagem diferencial das branches — 20/11/2026
+
+[Relatório de conciliação](AUDITORIA_COLABORADORES_20261120.md). Antigravity #534 permanece em `054d3bc4` (0 commits novos à frente desta release); PR #532 e Manus T1 já têm arquivos de teste/código com blob idêntico à candidata. Os quatro documentos do PR #515 foram analisados e classificados como C019–C022: plano mestre com recomendações duplicadas, conexões visuais parcialmente presentes, diagnóstico INAPTA ainda hipotético e mapa UX geral em frente independente. O lote acrescenta **somente testes de domínio e rastreabilidade**, sem alterar a regra operacional nem dados reais.
+
+**Último CI antes da triagem:** PR #535@6ed30db5, 15 checks success, 2 skipped e 1 falha visual de `prontuario.png`. Após este registro, conferir novo SHA e nova execução antes de afirmar GREEN.
+
 ## Próximo ato verificável — sem reiniciar auditoria integral
 
 1. Conferir **HEAD e CI atuais do PR #535**, `main` e `#534`; verificar se surgiram novos commits nas branches colaboradoras desde a última triagem.

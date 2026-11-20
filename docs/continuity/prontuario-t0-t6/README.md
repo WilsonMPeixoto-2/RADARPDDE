@@ -11,6 +11,10 @@
 5. **Conferir GitHub ao vivo**: branches, PR, diff, `main`, jobs do SHA e eventuais contribuições pós-checkpoint. Um `HEAD` anotado é uma **fotografia histórica**, não verificação atual.
 6. Somente então executar o **próximo ato pendente**. Se não houver evidência de uma decisão ou incorporação, marcar *não confirmado* e investigar; nunca inferir conclusão pelo nome do arquivo ou pelo texto de outro agente.
 
+## Revisões diferenciais de branches colaboradoras
+
+- [Conciliação de 20/11/2026](AUDITORIA_COLABORADORES_20261120.md): SHAs comparados, propostas C019–C022, hipóteses não comprovadas e decisão de não mesclar CSS/código antigo por volume de diff.
+
 ## O que registrar e quando
 
 | Evento material | Registro obrigatório na mesma entrega remota |
