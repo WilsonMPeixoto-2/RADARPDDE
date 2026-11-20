@@ -184,3 +184,35 @@ test('piloto operacional depende de banco loopback e ambiente de teste', () => {
     });
     assert.notEqual(prod.features.operationalCorrectionPilot, true);
 });
+
+test('release T0–T3 requer deployment de produção, Supabase válido e autorização dedicada', () => {
+    const base = {
+        deploymentTarget: 'production',
+        dataMode: DATA_MODES.SUPABASE_PRODUCTION,
+        environment: 'production',
+        productionActivationApproved: true,
+        features: {
+            supabaseRepositoryEnabled: true,
+            operationalCorrectionRelease: true
+        },
+        supabase: {
+            url: 'https://example.supabase.co',
+            publishableKey: 'sb_publishable_example'
+        }
+    };
+    const enabled = createRuntimeConfig(base);
+    assert.equal(enabled.features.operationalCorrectionRelease, true);
+    assert.notEqual(enabled.features.operationalCorrectionPilot, true);
+    for (const changes of [
+        { deploymentTarget: 'preview' },
+        { productionActivationApproved: false },
+        { dataMode: DATA_MODES.SUPABASE_PREVIEW },
+        { features: { ...base.features, supabaseRepositoryEnabled: false } },
+        { features: { supabaseRepositoryEnabled: true } },
+        { supabase: { ...base.supabase, url: 'http://127.0.0.1:54321' } },
+        { supabase: { ...base.supabase, url: 'http://example.supabase.co' } }
+    ]) {
+        const candidate = createRuntimeConfig({ ...base, ...changes });
+        assert.notEqual(candidate.features.operationalCorrectionRelease, true);
+    }
+});
