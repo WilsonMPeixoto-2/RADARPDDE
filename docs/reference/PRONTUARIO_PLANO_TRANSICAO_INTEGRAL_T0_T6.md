@@ -7,11 +7,11 @@
 
 > **Critério de conclusão revisto:** uma regra nova não está concluída quando a função foi criada. O lote está concluído quando a autoridade antiga foi conscientemente mantida ou substituída, o novo comando é atingível no fluxo humano, o banco o executa integralmente, os consumidores apresentam o resultado após F5/segunda sessão, as expectativas de teste descrevem a decisão nova, a documentação é coerente e a compatibilidade de clientes foi comprovada. Não antecipar a retirada de guarda antiga enquanto a operação substituta estiver incompleta.
 
-## Situação de execução auditada em 16–17/11/2026
+## Situação de execução auditada em 16–19/11/2026
 
-Esta matriz é **contrato de transição e critérios de prova**, não relatório isolado de funcionalidades prontas. O [checkpoint vigente](../handoff/2026-11-15-prontuario-integracao-verificada.md), seção **“Estado vigente — reconciliação de 16–17/11/2026”**, distingue estados reais por lote: **T0/T1 preparados; T2/T3 com operações de correção e exclusão ligadas à interface candidata sob flag local (incluindo o 7º reparo de 17/11 na Consulta à Assessoria e acessibilidade modal), mas não homologadas; T4/T5 incompletas; T6 pendente**.
+Esta matriz é **contrato de transição e critérios de prova**, não relatório isolado de funcionalidades prontas. O [checkpoint vigente](../handoff/2026-11-15-prontuario-integracao-verificada.md) distingue estados reais por lote: **T0/T1 preparados; T2/T3 com operações de correção e exclusão ligadas à interface candidata sob flag local (incluindo o 7º reparo de 17/11, a correção A-01 de `009e9101` e o 8º reparo de 19/11 em `prontuario-conditional-reconciler.js`, `database.types.ts`, `operational-correction-dialog.js` e `evaluation-retification-ui.css`), ainda não homologadas de ponta a ponta; T4/T5 incompletas; T6 pendente**.
 
-**74 asserções pgTAP já escritas, ainda não executadas integralmente no HEAD integrado**; testes de interface com RPC simulada (`45/45` E2E, `19/19` em `operational-correction-dialog.spec.js`) não bastam. O frontend e Supabase devem rodar em localhost com identidades sintéticas, Auth/RLS, SQL e persistência F5/segunda sessão. Este adendo corrige constatações **anteriores à integração das seis mudanças de Antigravity e do 7º reparo** nos riscos R1–R5 e no inventário de tipos; não elimina a obrigação de validar o novo contrato em campo.
+**74/74 asserções pgTAP PASSARAM em PostgreSQL local Docker** no CI do PR #532 (`actions/runs/44310070849`), e o descompasso de ordenação alfabética em `src/types/database.types.ts` que interrompeu `check:generated` antes dos steps de Auth/RLS foi corrigido nesta branch com match SHA-256 exato (`e9ebed11...`, 6042 tokens). Testes de interface com RPC simulada (`46/46` E2E, `20/20` em `operational-correction-dialog.spec.js`) não substituem Auth/RLS com banco local, F5, segunda sessão e aceite visual humano.
 
 ## 1. Três estados que NÃO devem ser confundidos
 

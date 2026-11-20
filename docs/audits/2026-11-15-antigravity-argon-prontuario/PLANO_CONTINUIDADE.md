@@ -1,10 +1,11 @@
 # Plano de Continuidade — Reconciliação Integral das Branches e Próximos Passos (T2–T6)
 
-- **Data de atualização:** 17/11/2026
+- **Data de atualização:** 19/11/2026
 - **Branch desta auditoria e evolução sincronizada:** `audit/antigravity-argon-prontuario-20261115`
 - **Branches sincronizadas nesta atualização:**
   - `fix/prontuario-integrado-validado-20261115@20409c12591090b3b422ae014afb8cdf880bd387` (branch oficial da frente T0–T6)
-  - `main@58ca0c0a507fb42ee512ace95ab766edaa1f2243` (PR #524 `74f92c08` + PR #526 `58ca0c0a` de 17/11/2026)
+  - `fix/review-antigravity-t2-assessoria-20261118@009e9101f1d6e9788284b124a6e3053020eb3f1f` (PR #532 Draft — A-01 + `schema.test.sql` + prova 74/74 pgTAP em Docker `#44310070849`)
+  - `main@69954645b597e39623ef2f24fe5f336ed37989f2` (PRs `#524`, `#526`, `#531` Supabase CLI `3.2.0` + política dev-only `picomatch` e `#533` Lighthouse `13.6.0` — 0 vulnerabilidades em `npm ci`)
 - **Branches paralelas conferidas e mantidas isoladas:**
   - `audit/gemini-revisao-critica-e-sugestoes-20261115@d55747b9` (relatório de sincronização `20409c1` e diagnóstico dos contratos de versão do Dependabot)
   - `chore/supabase-cli3-2-remote-safety-20261117@7414b21e` (Draft da migração candidata para `supabase` CLI `3.2.0` — issue #530; **não misturar** antes de concluir a homologação Docker de T2–T5)

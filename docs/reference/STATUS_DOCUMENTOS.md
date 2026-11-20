@@ -1,8 +1,8 @@
 # Matriz de validade documental
 
-## Prontuário e correção integrada — validade vigente em 17/11/2026
+## Prontuário e correção integrada — validade vigente em 19/11/2026
 
-**Branch oficial de integração:** `fix/prontuario-integrado-validado-20261115` (`20409c12`, último SHA de código `a8e47045`); **branch sincronizada com `main@58ca0c0a` e 7º reparo:** `audit/antigravity-argon-prontuario-20261115`; consultar o HEAD efetivo ao iniciar sessão. **Nenhuma integração na `main` nem publicação de T0–T6 foi realizada** (`main@58ca0c0a` recebeu em 17/11 apenas os PRs de manutenção de ferramentas #524 `74f92c08` e #526 `58ca0c0a`).
+**Branch oficial de integração:** `fix/prontuario-integrado-validado-20261115` (`20409c12`, último SHA de código `a8e47045`); **branch de revisão independente (PR #532 Draft):** `fix/review-antigravity-t2-assessoria-20261118@009e9101`; **branch sincronizada com `main@69954645`, correção A-01 expandida e 8º reparo:** `audit/antigravity-argon-prontuario-20261115`; consultar o HEAD efetivo ao iniciar sessão. **Nenhuma integração na `main` nem publicação de T0–T6 foi realizada** (`main@69954645` recebeu apenas PRs de manutenção de ferramentas #524, #526, #531 e #533).
 
 **Ordem para cada novo agente:**
 1. [`AGENTS.md`](../../AGENTS.md) e [`CURRENT_STAGE.md`](../CURRENT_STAGE.md), que registram prioridade, publicação e branches.
