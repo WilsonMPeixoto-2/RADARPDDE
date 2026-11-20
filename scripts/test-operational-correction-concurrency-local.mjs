@@ -85,16 +85,13 @@ try {
     // 1. Seed isolated school, verification, permanent inventoried invoice, pendency, attempt, contact.
     await sql(`
         insert into auth.users (id, email)
-        values ('${USER}', 'occ-race-controller@example.test')
-        on conflict (id) do nothing;
+        values ('${USER}', 'occ-race-controller@example.test');
 
         insert into public.controllers (id, name, email, user_id)
-        values ('${CONTROLLER}', 'Controlador Concorrência OCC', 'occ-race-controller@example.test', '${USER}')
-        on conflict (id) do update set user_id = excluded.user_id;
+        values ('${CONTROLLER}', 'Controlador Concorrência OCC', 'occ-race-controller@example.test', '${USER}');
 
         insert into public.user_profiles (user_id, profile_id, controller_id, cre_scope, active)
-        values ('${USER}', 'controller', '${CONTROLLER}', 'OCC-RACE-CRE', true)
-        on conflict (user_id) do update set profile_id = excluded.profile_id, controller_id = excluded.controller_id, cre_scope = excluded.cre_scope, active = true;
+        values ('${USER}', 'controller', '${CONTROLLER}', 'OCC-RACE-CRE', true);
 
         insert into public.competences (id, label, exercise)
         values ('${COMPETENCE}', 'Abril 2042', 2042)
@@ -346,6 +343,8 @@ try {
     barriers.forEach(proc => { if (proc.exitCode === null) proc.kill(); });
     clients.forEach(proc => { if (proc.exitCode === null) proc.kill(); });
     await sql(`
+        begin;
+        set local session_replication_role = replica;
         drop trigger if exists occ_race_delete_barrier on public.registered_invoices;
         drop function if exists public.occ_race_delete_barrier();
         drop trigger if exists occ_race_correct_barrier on public.pendencies;
@@ -362,5 +361,6 @@ try {
         delete from public.user_profiles where user_id = '${USER}';
         delete from public.controllers where id = '${CONTROLLER}';
         delete from auth.users where id = '${USER}';
+        commit;
     `);
 }
