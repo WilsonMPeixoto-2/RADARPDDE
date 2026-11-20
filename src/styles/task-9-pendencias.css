@@ -781,6 +781,13 @@
     background: var(--bg-input);
 }
 
+/* A observação é texto puro; preservar os parágrafos cadastrados sem interpretar HTML. */
+.pendency-drawer-section.is-observation p {
+    white-space: pre-line;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+}
+
 .pendency-attempt-list > li,
 .pendency-contact-list > li {
     padding: 12px 13px;
