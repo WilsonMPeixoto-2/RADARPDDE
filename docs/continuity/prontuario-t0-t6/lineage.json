@@ -153,7 +153,8 @@
       "contentSha": "2c0c027b70a2efe099cd28905b81274042ca88e0",
       "reviewStatus": "partial-review",
       "ref": "docs/analises-e-plano-mestre-gemini-20261114",
-      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/docs/analises-e-plano-mestre-gemini-20261114/docs/superpowers/plans/2026-11-14-analises-e-plano-mestre-gemini.md"
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/166aad444ddb362156f65410206ed2397b7668ab/docs/superpowers/plans/2026-11-14-analises-e-plano-mestre-gemini.md",
+      "pinnedCommit": "166aad444ddb362156f65410206ed2397b7668ab"
     },
     {
       "id": "S016",
@@ -163,7 +164,8 @@
       "contentSha": "788bcf37635a33a53919c15f2b5e9c841cb1bbb3",
       "reviewStatus": "indexed-pending-review",
       "ref": "audit/gemini-revisao-critica-e-sugestoes-20261115",
-      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/audit/gemini-revisao-critica-e-sugestoes-20261115/docs/audits/2026-11-15-gemini-postmortem-e-sugestoes/RELATORIO.md"
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/d55747b9eac12b77a546bb955de397375321439d/docs/audits/2026-11-15-gemini-postmortem-e-sugestoes/RELATORIO.md",
+      "pinnedCommit": "d55747b9eac12b77a546bb955de397375321439d"
     },
     {
       "id": "S017",
@@ -173,7 +175,8 @@
       "contentSha": "2b9799224e3b2ae567ea15972ed43fafe03cf92f",
       "reviewStatus": "partial-review",
       "ref": "fix/preview-pendencias-column-spacing-20261111",
-      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/fix/preview-pendencias-column-spacing-20261111/docs/reference/PLANO_MESTRE_UNIFICADO_PRONTUARIO_2026_11_14.md"
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/08bddb1900d190039219fd6f4212bea75baccfb6/docs/reference/PLANO_MESTRE_UNIFICADO_PRONTUARIO_2026_11_14.md",
+      "pinnedCommit": "08bddb1900d190039219fd6f4212bea75baccfb6"
     },
     {
       "id": "S018",
@@ -183,7 +186,8 @@
       "contentSha": "e637b0d0eed0b942cb91b9e98e7599d27eed1c9b",
       "reviewStatus": "reviewed",
       "ref": "fix/preview-pendencias-column-spacing-20261111",
-      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/fix/preview-pendencias-column-spacing-20261111/docs/reference/ARQUITETURA_VISUAL_PRONTUARIO_ANALISES_2026_11_13.md"
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/08bddb1900d190039219fd6f4212bea75baccfb6/docs/reference/ARQUITETURA_VISUAL_PRONTUARIO_ANALISES_2026_11_13.md",
+      "pinnedCommit": "08bddb1900d190039219fd6f4212bea75baccfb6"
     },
     {
       "id": "S019",
@@ -193,7 +197,8 @@
       "contentSha": "1abf371b1dc36985ffebbf9238da8b2b7ada4867",
       "reviewStatus": "reviewed",
       "ref": "fix/preview-pendencias-column-spacing-20261111",
-      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/fix/preview-pendencias-column-spacing-20261111/docs/reference/DIAGNOSTICO_BONIFICACAO_INAPTA_2026_11_12.md"
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/08bddb1900d190039219fd6f4212bea75baccfb6/docs/reference/DIAGNOSTICO_BONIFICACAO_INAPTA_2026_11_12.md",
+      "pinnedCommit": "08bddb1900d190039219fd6f4212bea75baccfb6"
     },
     {
       "id": "S020",
@@ -203,7 +208,8 @@
       "contentSha": "16b162ea8afdc9111bd88f182edd485414273188",
       "reviewStatus": "partial-review",
       "ref": "fix/preview-pendencias-column-spacing-20261111",
-      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/fix/preview-pendencias-column-spacing-20261111/docs/reference/MAPA_OPORTUNIDADES_UX_DESKTOP_2026_11_13.md"
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/08bddb1900d190039219fd6f4212bea75baccfb6/docs/reference/MAPA_OPORTUNIDADES_UX_DESKTOP_2026_11_13.md",
+      "pinnedCommit": "08bddb1900d190039219fd6f4212bea75baccfb6"
     },
     {
       "id": "S021",
@@ -213,7 +219,8 @@
       "contentSha": "4e529545116bc9c192c7ddd8748971b435ee13e0",
       "reviewStatus": "indexed-pending-review",
       "ref": "audit/manus-auditoria-frente-integrada-20261114",
-      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/audit/manus-auditoria-frente-integrada-20261114/docs/audits/2026-11-14-manus-auditoria-frente-integrada/RELATORIO.md"
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/a87e9e0ec49465ba531dbf595410288b3f6a37d4/docs/audits/2026-11-14-manus-auditoria-frente-integrada/RELATORIO.md",
+      "pinnedCommit": "a87e9e0ec49465ba531dbf595410288b3f6a37d4"
     },
     {
       "id": "S022",
@@ -223,7 +230,8 @@
       "contentSha": "b2a58d5ea45929679401b8fc483f6656687e47a4",
       "reviewStatus": "indexed-pending-review",
       "ref": "audit/manus-auditoria-frente-integrada-20261114",
-      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/audit/manus-auditoria-frente-integrada-20261114/docs/audits/2026-11-14-manus-auditoria-frente-integrada/ADENDO-2026-11-15.md"
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/a87e9e0ec49465ba531dbf595410288b3f6a37d4/docs/audits/2026-11-14-manus-auditoria-frente-integrada/ADENDO-2026-11-15.md",
+      "pinnedCommit": "a87e9e0ec49465ba531dbf595410288b3f6a37d4"
     },
     {
       "id": "S023",
@@ -233,7 +241,8 @@
       "contentSha": "bd3fee8891e6e9335873861f4e2ceadd910c8be5",
       "reviewStatus": "indexed-pending-review",
       "ref": "docs/prontuario-direcao-visual-20261113",
-      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/docs/prontuario-direcao-visual-20261113/docs/superpowers/specs/2026-11-13-prontuario-exploracao-visual.md"
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/5e57eda0e47983754b54b3ee1f7c59ecba202dbd/docs/superpowers/specs/2026-11-13-prontuario-exploracao-visual.md",
+      "pinnedCommit": "5e57eda0e47983754b54b3ee1f7c59ecba202dbd"
     },
     {
       "id": "S024",
@@ -243,7 +252,8 @@
       "contentSha": "7cca57d11636587329bbf04bd835440665f510bd",
       "reviewStatus": "indexed-pending-review",
       "ref": "docs/flexibilizacao-lancamentos-20261114",
-      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/docs/flexibilizacao-lancamentos-20261114/docs/superpowers/specs/2026-11-14-flexibilizacao-correcao-exclusao-lancamentos.md"
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/5db04f4779a717b7bd11b948c293d086f97764b3/docs/superpowers/specs/2026-11-14-flexibilizacao-correcao-exclusao-lancamentos.md",
+      "pinnedCommit": "5db04f4779a717b7bd11b948c293d086f97764b3"
     },
     {
       "id": "S025",

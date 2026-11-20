@@ -6,6 +6,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const REPOSITORY_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -145,6 +146,157 @@ function validateContinuityRegistry(registry, { rootDir = null } = {}) {
     return errors;
 }
 
+
+/**
+ * Atlas de proveniência: rejeita falsas referências a código, origens sem SHA,
+ * perda de decisão vinculada e mudanças silenciosas dos documentos de origem.
+ * NÃO prova que um requisito foi implementado nem que todos os chats foram recuperados.
+ */
+const LINEAGE_STATES = new Set([
+    'awaiting-human', 'candidate-partial', 'candidate-tested',
+    'contract-active', 'evidence-gap', 'approved-future',
+    'proposal-deferred', 'proposal-unresolved', 'open-verification',
+    'historical-superseded', 'historical-rejected', 'reference-only'
+]);
+const SOURCE_STATES = new Set([
+    'reviewed', 'partial-review', 'indexed-pending-review', 'not-recovered'
+]);
+const SOURCE_LOCATIONS = new Set(['release-branch', 'external-branch', 'unavailable-artifact']);
+
+function gitBlobHash(bytes) {
+    return createHash('sha1')
+        .update(Buffer.from('blob ' + bytes.length + '\\0'))
+        .update(bytes)
+        .digest('hex');
+}
+
+function validateProntuarioLineage(atlas, { rootDir = null, registry = null } = {}) {
+    const errors = [];
+    if (!isRecord(atlas)) return ['atlas: objeto obrigatório'];
+    if (atlas.schemaVersion !== 1 || atlas.feature !== 'PRONTUARIO_T0_T6') {
+        errors.push('atlas: esquema ou frente não reconhecida');
+    }
+    if (!/^([a-f0-9]{40})$/.test(String(atlas.baselineCommit || ''))) {
+        errors.push('atlas: baselineCommit SHA inválido');
+    }
+    const sources = ensureRecordList(atlas.sources, 'atlas.sources', errors);
+    const requirements = ensureRecordList(atlas.requirements, 'atlas.requirements', errors);
+    const sourcesById = new Map();
+    const decisions = new Set(Array.isArray(registry?.decisions)
+        ? registry.decisions.map(d => d.id)
+        : []);
+    for (const [i, source] of sources.entries()) {
+        const loc = 'atlas.sources[' + i + ']';
+        if (!isRecord(source)) { errors.push(loc + ': objeto inválido'); continue; }
+        if (!/^S\\d{3}$/.test(String(source.id || ''))) errors.push(loc + ': ID inválido');
+        if (sourcesById.has(source.id)) errors.push(loc + ': ID duplicado ' + source.id);
+        sourcesById.set(source.id, source);
+        if (!SOURCE_LOCATIONS.has(source.location)) errors.push(loc + ': localização inválida');
+        if (!SOURCE_STATES.has(source.reviewStatus)) errors.push(loc + ': estado de revisão inválido');
+        if (!validString(source.role)) errors.push(loc + ': propósito da fonte ausente');
+        if (source.location === 'unavailable-artifact') {
+            if (source.reviewStatus !== 'not-recovered' || !validString(source.note)) {
+                errors.push(loc + ': artefato indisponível deve declarar lacuna e justificativa');
+            }
+            continue;
+        }
+        if (!isSafeRelativePath(source.path)) errors.push(loc + ': caminho de origem inválido');
+        if (!/^[a-f0-9]{40}$/.test(String(source.contentSha || ''))) {
+            errors.push(loc + ': conteúdo sem git blob SHA');
+        }
+        if (!validString(source.url) || !source.url.startsWith(GITHUB_REPO_URL)) {
+            errors.push(loc + ': URL de proveniência inválida');
+        }
+        if (source.location === 'external-branch') {
+            if (!validString(source.ref)) errors.push(loc + ': branch externa sem ref');
+            if (!/^[a-f0-9]{40}$/.test(String(source.pinnedCommit || ''))) {
+                errors.push(loc + ': falta SHA de commit imutável na origem');
+            } else if (!String(source.url || '').includes('/blob/' + source.pinnedCommit + '/')) {
+                errors.push(loc + ': URL não está fixada ao commit da origem');
+            }
+            continue;
+        }
+        if (rootDir && isSafeRelativePath(source.path)) {
+            const file = path.join(rootDir, source.path);
+            if (!fs.existsSync(file)) {
+                errors.push(loc + ': arquivo da fonte não existe: ' + source.path);
+            } else if (gitBlobHash(fs.readFileSync(file)) !== source.contentSha) {
+                errors.push(loc + ': fingerprint divergente em ' + source.path
+                    + '; revalidar decisões após alterar a fonte antes de atualizar o SHA');
+            }
+        }
+    }
+    const requirementIds = new Set();
+    const usedSources = new Set();
+    for (const [i, requirement] of requirements.entries()) {
+        const loc = 'atlas.requirements[' + i + ']';
+        if (!isRecord(requirement)) { errors.push(loc + ': objeto inválido'); continue; }
+        if (!/^T0T6-R\\d{3}$/.test(String(requirement.id || ''))) errors.push(loc + ': ID inválido');
+        if (requirementIds.has(requirement.id)) errors.push(loc + ': ID duplicado ' + requirement.id);
+        requirementIds.add(requirement.id);
+        if (!LINEAGE_STATES.has(requirement.state)) errors.push(loc + ': estado inválido');
+        if (!validString(requirement.label) || !validString(requirement.phase)
+            || !validString(requirement.evidence)) {
+            errors.push(loc + ': descrição, fase ou limite de evidência ausente');
+        }
+        if (!Array.isArray(requirement.sourceIds) || !requirement.sourceIds.length) {
+            errors.push(loc + ': sem fonte original');
+        } else {
+            for (const sourceId of requirement.sourceIds) {
+                if (!sourcesById.has(sourceId)) errors.push(loc + ': fonte inexistente ' + sourceId);
+                else usedSources.add(sourceId);
+            }
+        }
+        if (!Array.isArray(requirement.decisionIds) || !requirement.decisionIds.length) {
+            errors.push(loc + ': sem decisão relacionada');
+        } else if (registry) {
+            for (const id of requirement.decisionIds) {
+                if (!decisions.has(id)) errors.push(loc + ': decisão inexistente ' + id);
+            }
+        }
+        for (const [prop, kind] of [['codePaths', 'código'], ['testPaths', 'teste']]) {
+            const refs = requirement[prop];
+            if (!Array.isArray(refs)) { errors.push(loc + ': ' + prop + ' não é array'); continue; }
+            for (const ref of refs) {
+                if (!isSafeRelativePath(ref) || (rootDir && !fs.existsSync(path.join(rootDir, ref)))) {
+                    errors.push(loc + ': arquivo de ' + kind + ' não existe: ' + ref);
+                }
+            }
+        }
+        if (requirement.state === 'candidate-tested'
+            && (!Array.isArray(requirement.testPaths) || !requirement.testPaths.length)) {
+            errors.push(loc + ': candidate-tested exige referência ao teste');
+        }
+        if (requirement.state === 'evidence-gap'
+            && !requirement.sourceIds.some(id => sourcesById.get(id)?.reviewStatus === 'not-recovered')) {
+            errors.push(loc + ': lacuna não aponta para artefato ausente');
+        }
+    }
+    for (const source of sources) {
+        if (isRecord(source) && !usedSources.has(source.id)) {
+            errors.push('atlas: fonte sem nenhum requisito vinculado: ' + source.id);
+        }
+    }
+    if (!Array.isArray(atlas.gaps) || !atlas.gaps.length) {
+        errors.push('atlas: lacunas conhecidas ausentes; não alegar completude artificial');
+    } else {
+        const gapIds = new Set();
+        for (const gap of atlas.gaps) {
+            if (!isRecord(gap) || !validString(gap.id) || !validString(gap.description)
+                || !validString(gap.nextStep)) {
+                errors.push('atlas: lacuna sem ID, explicação ou próxima ação');
+                continue;
+            }
+            if (gapIds.has(gap.id)) errors.push('atlas: ID de lacuna duplicado ' + gap.id);
+            gapIds.add(gap.id);
+            for (const ref of (Array.isArray(gap.sourceIds) ? gap.sourceIds : [])) {
+                if (!sourcesById.has(ref)) errors.push('atlas: lacuna aponta para fonte inexistente ' + ref);
+            }
+        }
+    }
+    return errors;
+}
+
 function checkContinuityRepository(rootDir = REPOSITORY_ROOT) {
     const errors = [];
     const registryFile = path.join(rootDir, REGISTRY_PATH);
@@ -155,6 +307,13 @@ function checkContinuityRepository(rootDir = REPOSITORY_ROOT) {
         return [`registry.json não pode ser lido: ${error.message}`];
     }
     errors.push(...validateContinuityRegistry(registry, { rootDir }));
+    let lineage;
+    try {
+        lineage = JSON.parse(fs.readFileSync(path.join(rootDir, CONTINUITY_ROOT, 'lineage.json'), 'utf8'));
+    } catch (error) {
+        errors.push('lineage.json não pode ser lido: ' + error.message);
+    }
+    if (lineage) errors.push(...validateProntuarioLineage(lineage, { rootDir, registry }));
     for (const file of ROUTERS) {
         const absolute = path.join(rootDir, file);
         const value = fs.existsSync(absolute) ? fs.readFileSync(absolute, 'utf8') : '';
@@ -190,4 +349,4 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     }
 }
 
-export { validateContinuityRegistry, checkContinuityRepository };
+export { validateContinuityRegistry, validateProntuarioLineage, checkContinuityRepository };

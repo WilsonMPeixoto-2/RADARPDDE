@@ -15,6 +15,13 @@
 
 - [Conciliação de 20/11/2026](AUDITORIA_COLABORADORES_20261120.md): SHAs comparados, propostas C019–C022, hipóteses não comprovadas e decisão de não mesclar CSS/código antigo por volume de diff.
 
+## Genealogia verificável desde as ideias de origem
+
+- [Atlas com linha evolutiva, contradições e lacunas](LINEAGE.md)
+- [25 fontes/67 requisitos em JSON, incluindo origens exclusivas de outras branches](lineage.json)
+
+**Consulta obrigatória antes de novos planos:** localizar o ID `T0T6-Rxxx`, sua fonte original e transições; conferir o código **real** da release. Não tratar fonte histórica como integralmente vigente ou integralmente superada. Fontes ainda sem revisão integral permanecem marcadas como lacunas, não contam como cobertura comprovada.
+
 ## O que registrar e quando
 
 | Evento material | Registro obrigatório na mesma entrega remota |

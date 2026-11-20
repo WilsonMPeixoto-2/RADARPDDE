@@ -33,6 +33,10 @@
 
 **Último CI antes da triagem:** PR #535@6ed30db5, 15 checks success, 2 skipped e 1 falha visual de `prontuario.png`. Após este registro, conferir novo SHA e nova execução antes de afirmar GREEN.
 
+## Atlas genealógico — corte documental de 20/11
+
+[LINEAGE.md](LINEAGE.md) / [lineage.json](lineage.json): 25 fontes, 67 requisitos, 4 lacunas documentadas. **Não alegar cobertura completa:** 10 fontes em revisão parcial, 10 apenas indexadas e seis pranchas conceituais ainda não versionadas em arquivo. O verificador passará a comparar hashes Git de fontes locais e IDs de decisões/implementações; retomar pela linha de requisito, não por plano de outra branch. O primeiro código Argon `src/application/operational-correction-service.js` não existe na candidata; usar cliente atual e migration SQL.
+
 ## Próximo ato verificável — sem reiniciar auditoria integral
 
 1. Conferir **HEAD e CI atuais do PR #535**, `main` e `#534`; verificar se surgiram novos commits nas branches colaboradoras desde a última triagem.
