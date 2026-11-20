@@ -55,11 +55,23 @@ function quoteJson(value) {
     return `'${JSON.stringify(value).replaceAll("'", "''")}'::jsonb`;
 }
 
+function parseJsonResult(output, label) {
+    const jsonLine = String(output || '')
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.startsWith('{'))
+        .at(-1);
+    if (!jsonLine) {
+        throw new Error(`Expected JSON output for ${label}, got: ${JSON.stringify(output)}`);
+    }
+    return JSON.parse(jsonLine);
+}
+
 function asController(userId, statement) {
     const claims = JSON.stringify({ sub: userId, role: 'authenticated' }).replaceAll("'", "''");
     return `
         begin;
-        select set_config('request.jwt.claims', '${claims}', true);
+        do $auth$ begin perform set_config('request.jwt.claims', '${claims}', true); end $auth$;
         set local role authenticated;
         ${statement}
         commit;
@@ -178,11 +190,12 @@ try {
             programId: PROGRAM
         }
     };
-    const deletePreviewRaw = await sql(asController(
-        USER,
-        `select public.preview_operational_change(${quoteJson(deleteRequest)})::text;`
-    ));
-    const deletePreview = JSON.parse(deletePreviewRaw.split('\n').find(line => line.startsWith('{')));
+    const deletePreviewRes = await startSession(
+        asController(USER, `select public.preview_operational_change(${quoteJson(deleteRequest)})::text;`),
+        'occ-preview-1'
+    );
+    assert.equal(deletePreviewRes.code, 0, `Delete preview failed: ${deletePreviewRes.stderr}`);
+    const deletePreview = parseJsonResult(deletePreviewRes.stdout, 'deletePreview');
     assert.match(deletePreview.planDigest, /^[0-9a-f]{64}$/);
     assert.deepEqual(deletePreview.effects.delete.registered_invoices, ['OCC-RACE-NF-1']);
     assert.deepEqual(deletePreview.effects.delete.assets, ['OCC-RACE-ASSET-1']);
@@ -215,8 +228,8 @@ try {
     const [resA, resB] = await Promise.all([sessionA, sessionB]);
     assert.equal(resA.code, 0, `Session A failed: ${resA.stderr}`);
     assert.equal(resB.code, 0, `Session B failed: ${resB.stderr}`);
-    const receiptA = JSON.parse(resA.stdout.split('\n').find(line => line.startsWith('{')));
-    const receiptB = JSON.parse(resB.stdout.split('\n').find(line => line.startsWith('{')));
+    const receiptA = parseJsonResult(resA.stdout, 'receiptA');
+    const receiptB = parseJsonResult(resB.stdout, 'receiptB');
     assert.equal(receiptA.committed, true);
     assert.equal(receiptA.replayed, false);
     assert.equal(receiptB.committed, true);
@@ -259,11 +272,12 @@ try {
         },
         changes: { analysis: 'Correto' }
     };
-    const correctPreviewRaw = await sql(asController(
-        USER,
-        `select public.preview_operational_change(${quoteJson(correctRequest)})::text;`
-    ));
-    const correctPreview = JSON.parse(correctPreviewRaw.split('\n').find(line => line.startsWith('{')));
+    const correctPreviewRes = await startSession(
+        asController(USER, `select public.preview_operational_change(${quoteJson(correctRequest)})::text;`),
+        'occ-preview-2'
+    );
+    assert.equal(correctPreviewRes.code, 0, `Correct preview failed: ${correctPreviewRes.stderr}`);
+    const correctPreview = parseJsonResult(correctPreviewRes.stdout, 'correctPreview');
     assert.match(correctPreview.planDigest, /^[0-9a-f]{64}$/);
     assert.deepEqual(correctPreview.effects.delete.pendencies, ['OCC-RACE-P-EXTCC']);
 
@@ -303,7 +317,7 @@ try {
     assert.equal(resC.code, 0, `Session C failed: ${resC.stderr}`);
     assert.notEqual(resD.code, 0, 'Session D must fail when racing with distinct operationKey');
     assert.match(resD.stderr, /STALE_PLAN|PLAN_BLOCKED: NO_EFFECT/);
-    const receiptC = JSON.parse(resC.stdout.split('\n').find(line => line.startsWith('{')));
+    const receiptC = parseJsonResult(resC.stdout, 'receiptC');
     assert.equal(receiptC.committed, true);
     assert.equal(receiptC.replayed, false);
 
