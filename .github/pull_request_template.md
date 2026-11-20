@@ -42,6 +42,16 @@ Sem justificar pela implementação, descreva em linguagem comum:
 
 **Evidências visuais, caminhos ou links:**
 
+## Impacto de decisões entre módulos e chats — aplicável a qualquer frente funcional
+
+> Verificar [política transversal de propagação](../docs/reference/DECISION_IMPACT_POLICY.md), decisões/ADRs anteriores e supervenientes e a matriz de obrigações da frente; registrar consequências **agora e em fases futuras**. Não se exige alterar simultaneamente todas as telas; exige-se **não perder** a obrigação ou contradizê-la.
+
+- [ ] Identifiquei decisão/ADR já vigente ou superveniente, efeitos na implementação atual e obrigações ainda abertas em outras superfícies/etapas.
+- [ ] Verifiquei que código, UI, testes, persistência, relatórios e documentações impactadas não reintroduzem regra antiga que já foi substituída.
+- [ ] Se houve decisão nova em outro chat ou agente, registrei origem, status de aprovação, vínculo com decisões anteriores e o compromisso futuro no GitHub.
+
+**Decisões de produto envolvidas e efeitos não atendidos nesta entrega:**
+
 ## Rastreabilidade T0–T6 (somente quando este PR tratar da frente Prontuário/correção)
 
 > Não se aplica a PRs independentes de atualização de pacotes/tooling, nem à operação institucional de auditoria documental do PDDE e lançamentos reais de prestação de contas. Essas frentes mantêm seus próprios controles.

@@ -1,3 +1,5 @@
+> **Regras que atravessam telas:** [política transversal de decisões](DECISION_IMPACT_POLICY.md). Cada novo layout deve consultar contratos anteriores e obrigações pendentes de Banco, UI, Inventário, Pendências, relatórios e outras superfícies; uma regra não fica obsoleta porque nasceu em chat anterior.
+
 # Catálogo de superfícies do RADAR PDDE
 
 **Evolução aprovada, ainda em implementação:** ler [contrato Prontuário/correção](PRONTUARIO_CORRECAO_CONTRATO.md) e [handoff corrente](../handoff/2026-11-14-prontuario-correcao-integrada.md). As regras abaixo descrevem a baseline efetiva; justificativas obrigatórias e bloqueios por histórico/terminalidade são alvo de revisão deliberada, não motivo para impedir a execução aprovada. Nenhuma aprovação de plano, isoladamente, altera Production.

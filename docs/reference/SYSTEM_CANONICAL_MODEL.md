@@ -1,3 +1,5 @@
+> **Continuidade transversal:** [política de impactos de decisões](DECISION_IMPACT_POLICY.md). Regras aprovadas podem ter partes já implementadas e obrigações de UI, dados, testes ou exportações ainda futuras. Consultar a decisão superveniente e sua propagação antes de reaproveitar modelo/protótipo anterior.
+
 # Modelo canônico integrado do RADAR PDDE
 
 **Evolução aprovada, ainda em implementação:** ler [contrato Prontuário/correção](PRONTUARIO_CORRECAO_CONTRATO.md) e [handoff corrente](../handoff/2026-11-14-prontuario-correcao-integrada.md). As regras abaixo descrevem a baseline efetiva; justificativas obrigatórias e bloqueios por histórico/terminalidade são alvo de revisão deliberada, não motivo para impedir a execução aprovada. Nenhuma aprovação de plano, isoladamente, altera Production.

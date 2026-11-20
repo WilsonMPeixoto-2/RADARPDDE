@@ -90,3 +90,16 @@ test('impacto T0–T6: obrigação com dois registros de mesmo ID deve falhar', 
   entry.obligations.push(structuredClone(entry.obligations[0]));
   assert.ok(validateDecisionImpact(f, { rootDir: root }).some(x => x.includes('duplicada')));
 });
+
+test('política transversal deve permanecer acessível a agentes, ADRs e contratos de UI', () => {
+  const policy = 'docs/reference/DECISION_IMPACT_POLICY.md';
+  assert.ok(fs.existsSync(path.join(root, policy)));
+  for (const [file,marker] of [
+    ['AGENTS.md','docs/reference/DECISION_IMPACT_POLICY.md'],
+    ['docs/DECISION_LOG.md','reference/DECISION_IMPACT_POLICY.md'],
+    ['docs/reference/SYSTEM_CANONICAL_MODEL.md','DECISION_IMPACT_POLICY.md'],
+    ['docs/reference/PRODUCT_SURFACE_CATALOG.md','DECISION_IMPACT_POLICY.md']
+  ]) {
+    assert.ok(fs.readFileSync(path.join(root,file),'utf8').includes(marker), file);
+  }
+});
