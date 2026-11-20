@@ -1,6 +1,8 @@
 # Documentação do RADAR PDDE
 
-**Frente corrente de implementação (14/11/2026):** [contrato Prontuário/correção](reference/PRONTUARIO_CORRECAO_CONTRATO.md), [plano integrado](superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md) e [handoff obrigatório](handoff/2026-11-14-prontuario-correcao-integrada.md). Novas regras aprovadas são destino da implementação, não declaração de comportamento já publicado. Conferir a branch de execução indicada no handoff.
+**FRENTE T0–T6 VIGENTE EM 20/11/2026:** [Continuidade verificável e protocolo](continuity/prontuario-t0-t6/README.md) · [checkpoint único](continuity/prontuario-t0-t6/CHECKPOINT.md) · [decisões e contribuições por ID](continuity/prontuario-t0-t6/registry.json) · [plano executivo Release 1](releases/2026-11-20-prontuario-t0-t3-release-1.md) · [PR #535](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/535). O ChatGPT integra, os demais agentes colaboram em suas branches; upgrades e auditoria documental PDDE são atividades paralelas, não parte de T0–T6. Conferir SHA e CI reais sempre.
+
+**Arquivo histórico — registro de 14/11 (não é rota vigente):** [contrato funcional de destino](reference/PRONTUARIO_CORRECAO_CONTRATO.md), [plano integrado original](superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md) e [handoff original](handoff/2026-11-14-prontuario-correcao-integrada.md). Estes arquivos preservam contexto e decisões; execução corrente segue o checkpoint acima.
 
 **Cobertura horizontal pós-upgrade (candidato de 23/10):** o
 [PR #484](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/484)

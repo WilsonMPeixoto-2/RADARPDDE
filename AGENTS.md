@@ -1,5 +1,8 @@
 # AGENTS.md — RADAR PDDE 2026
 
+**CONTINUIDADE DOCUMENTAL OBRIGATÓRIA — T0–T6:** antes de abrir novo ciclo, registrar decisão ou incorporar contribuição de agente, consultar [registro versionado e protocolo](docs/continuity/prontuario-t0-t6/README.md), [checkpoint único da release](docs/continuity/prontuario-t0-t6/CHECKPOINT.md) e [índice de decisões e contribuições](docs/continuity/prontuario-t0-t6/registry.json). Cada alteração de regra, avaliação de sugestão e encerramento de chat devem deixar trilha remota com ID, SHA, prova, motivo e próximo passo; não conservar a única cópia no sandbox, desktop ou contexto de conversa. **Este registro é rastreabilidade subordinada ao contrato/ADRs, não segunda fonte de regra funcional.**
+
+
 ## Governança e delimitação de frentes paralelas — esclarecimento do proprietário (20/11/2026)
 
 **ChatGPT é o executor principal e integrador de T0–T6.** Antigravity, Gemini, Manus e outros agentes são **colaboradores legítimos**, que inspecionam o avanço, oferecem ideias, realizam testes e preparam alterações em **branches próprias**. A multiplicidade de branches é deliberada e útil, não indício de confusão. O executor compara propostas e provas por SHA, decide o aproveitamento e incorpora seletivamente ao PR principal. “Um escritor por branch” proíbe apenas pushes concorrentes no **mesmo ref**, não a colaboração em branches diferentes. Novos commits do Antigravity após o SHA adotado devem ser reavaliados como possíveis contribuições.

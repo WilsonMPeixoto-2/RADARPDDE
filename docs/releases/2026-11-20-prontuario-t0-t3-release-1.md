@@ -1,5 +1,8 @@
 # RADAR PDDE — Release 1 (T0–T3): contrato único de execução, provas e publicação
 
+> **Rastreabilidade obrigatória:** [registro consolidado e protocolo](../continuity/prontuario-t0-t6/README.md) · [checkpoint de retomada](../continuity/prontuario-t0-t6/CHECKPOINT.md) · [decisões/contribuições por ID](../continuity/prontuario-t0-t6/registry.json). Cada mudança relevante nesta release deve registrar por SHA o que foi aceito, rejeitado, incorporado e testado antes de encerrar o ciclo.
+
+
 **Registro operacional:** 20/11/2026. **Classe:** plano executável da PRIMEIRA entrega incremental; complementa, não altera, o contrato funcional T0–T6.  
 **Branch de release:** `release/prontuario-t0-t3-20261120`, [PR #535](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/535) (Draft, SEM merge).  
 **Código de origem:** [PR #534](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534), `audit/antigravity-argon-prontuario-20261115@054d3bc4`.  

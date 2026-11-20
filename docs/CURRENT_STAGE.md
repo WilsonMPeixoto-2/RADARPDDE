@@ -1,5 +1,8 @@
 # RADAR PDDE — estado atual e continuidade verificável
 
+**Ponto único de continuidade entre chats:** [Protocolo e registro de decisões/contribuições](continuity/prontuario-t0-t6/README.md) e [CHECKPOINT vigente](continuity/prontuario-t0-t6/CHECKPOINT.md), ambos versionados no PR #535. Consultar ID de decisão e contribuição antes de repetir análise ou criar nova hipótese. A branch da release não inclui lançamentos reais de prestação de contas do PDDE. O HEAD, checks e ambientes registrados são fotografias por SHA, a revalidar ao vivo.
+
+
 **Governança confirmada em 20/11:** o ChatGPT é executor e integrador principal da Release 1; Antigravity e outros agentes contribuem de forma paralela em branches próprias, com análises, código, capturas e testes para triagem e aproveitamento seletivo. Não é fragmentação do desenvolvimento. São frentes independentes: (1) upgrades de dependências/tooling/CI; (2) auditoria de documentos PDDE recebidos no Drive e registros reais de prestação de contas no RADAR e Supabase institucional. Esta release não autoriza interromper tais rotinas nem escrever no banco institucional. Ver [governança completa no plano da Release 1](releases/2026-11-20-prontuario-t0-t3-release-1.md#modelo-de-colaboração-e-fronteiras-de-escopo).
 
 ## ESTADO EXECUTIVO VIGENTE — RELEASE 1 T0–T3 (20/11/2026)

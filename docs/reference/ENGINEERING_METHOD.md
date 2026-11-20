@@ -1,5 +1,8 @@
 # Método de engenharia e revisão adversarial do RADAR PDDE
 
+> **Aplicação à frente T0–T6, em 20/11/2026:** o [registro persistente de decisões e contribuições](../continuity/prontuario-t0-t6/README.md) e seu [checkpoint](../continuity/prontuario-t0-t6/CHECKPOINT.md) operacionalizam a continuidade entre chats, branches e agentes. Verificar IDs preexistentes antes de repetir investigação; atualizar com commit/push e prova por SHA após mudança material. Não basta relatório local ou mensagem de encerramento de chat.
+
+
 **Estado:** referência operacional canônica  
 **Aplicação:** todas as futuras análises, correções, implementações, refatorações e revisões do RADAR PDDE  
 **Atualizado em:** 28 de setembro de 2026  

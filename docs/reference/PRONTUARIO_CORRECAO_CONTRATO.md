@@ -1,5 +1,8 @@
 # Prontuário e correção — contrato de evolução aprovado
 
+> **Estado efetivo e revisões de decisão:** [registro de continuidade T0–T6](../continuity/prontuario-t0-t6/README.md) e [CHECKPOINT](../continuity/prontuario-t0-t6/CHECKPOINT.md). Este contrato contém regras de destino aprovadas, não a confirmação de que já foram publicadas. A seção “Estado de aplicação” baseada em `main@190e4494` é fotografia histórica de 14/11; prevalecem os SHAs comprovados da release.
+
+
 **Classe:** decisão de destino em implementação, leitura obrigatória temporária. **Data:** 14/11/2026.
 **Autorização:** proprietário aprovou análise e plano e solicitou execução, preservação global e checkpoints remotos. Não equivale a declarar migrations/deploy concluídos.
 
