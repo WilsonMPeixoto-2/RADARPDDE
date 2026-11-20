@@ -63,6 +63,33 @@ async function closePreviewDrawerIfOpen(page) {
     });
 }
 
+async function ensureConsolidatedFixtureBonification(page) {
+    return page.evaluate(async ({ schoolId, competence, programId }) => {
+        const client = window.RadarSessionContext.service.client;
+        const { data: current, error: readError } = await client
+            .from('verifications')
+            .select('id, bonification, analysis, bonus_result')
+            .eq('school_id', schoolId)
+            .eq('competence_id', competence)
+            .eq('program_id', programId)
+            .single();
+        if (readError) throw new Error(readError.message);
+        const nextBonification = {
+            ...(current.bonification || {}),
+            extCC: 'Sim',
+            notaFiscal: 'Sim'
+        };
+        const { data: updated, error: updateError } = await client
+            .from('verifications')
+            .update({ bonification: nextBonification })
+            .eq('id', current.id)
+            .select('id, bonification, analysis, bonus_result')
+            .single();
+        if (updateError) throw new Error(updateError.message);
+        return updated;
+    }, { schoolId: SCHOOL_ID, competence: COMPETENCE, programId: PROGRAM_ID });
+}
+
 async function readVerificationFromDb(page) {
     return page.evaluate(async ({ schoolId, competence, programId }) => {
         const { data, error } = await window.RadarSessionContext.service.client
@@ -139,12 +166,15 @@ test('T2 documental (correct_analysis e clear_analysis): RPC real, F5 e segunda 
         canUseDialog: true
     });
 
-    await openSchool(page, 'controller');
-    // ESC-OTHER já possui bonificação consolidada ('apta') da suíte anterior:
-    // provamos ADR-055 preservando resultadoBonif = 'apta' em todas as correções.
-    const beforeDb = await readVerificationFromDb(page);
-    expect(beforeDb.bonus_result).toBe('apta');
+    // ESC-OTHER já possui bonificação consolidada ('apta') da suíte anterior, mas
+    // com campos de entrega vazios; completamos extCC/notaFiscal = 'Sim' para
+    // manter um estado consolidado realista e provar ADR-055 (bonus_result = 'apta' preservado).
+    const preparedDb = await ensureConsolidatedFixtureBonification(page);
+    expect(preparedDb.bonus_result).toBe('apta');
+    expect(preparedDb.bonification.extCC).toBe('Sim');
+    expect(preparedDb.bonification.notaFiscal).toBe('Sim');
 
+    await openSchool(page, 'controller');
     const extRow = page.locator(`#prontuario-verif-rows tr[data-program-id="${PROGRAM_ID}"][data-document-key="extCC"]`);
 
     // 1ª análise em 1 clique sem modal T2:
