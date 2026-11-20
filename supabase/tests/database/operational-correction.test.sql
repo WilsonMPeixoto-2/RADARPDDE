@@ -7,7 +7,7 @@ set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(74);
+select plan(77);
 
 -- --------------------------------------------------------------- massa
 insert into auth.users (id, email) values
@@ -437,6 +437,58 @@ select is((select (bonification ->> 'consAssessoria') || '|' || (bonification ->
     from public.verifications where id='OCC-SCHOOL::2041-03::OCC_SERVICE'),
     'Não se aplica|false|Correto|apta',
     'T3: sem notas de serviço Assessoria é N/A sem apagar resultado consolidado');
+reset role;
+
+-- --------------------------------------------------------------- T2 deduplicação de selectedPendencyIds
+-- Garante que IDs repetidos não burlem a cobertura de conjunto nem dupliquem o
+-- plano de exclusão causando OPTIMISTIC_CONFLICT na segunda deleção.
+insert into public.programs (id, name) values ('OCC_DEDUP', 'Programa Deduplicação');
+insert into public.verifications (
+    id, school_id, competence_id, program_id, bonification, analysis, bonus_result, payload
+) values (
+    'OCC-SCHOOL::2041-03::OCC_DEDUP', 'OCC-SCHOOL', '2041-03', 'OCC_DEDUP',
+    '{"extCC":"Sim"}'::jsonb, '{"extCC":"Incorreto"}'::jsonb, 'apta', '{}'::jsonb
+);
+insert into public.pendencies (
+    id, school_id, competence_origin, program_id, document_key, status,
+    next_actor, registered_invoice_id
+) values
+    ('OCC-P-DUP-1', 'OCC-SCHOOL', '2041-03', 'OCC_DEDUP', 'extCC', 'Aberta', 'Escola', null),
+    ('OCC-P-DUP-2', 'OCC-SCHOOL', '2041-03', 'OCC_DEDUP', 'extCC', 'Aberta', 'Escola', null);
+set local role authenticated;
+
+select ok(
+    (public.preview_operational_change(pg_temp.occ_req(
+        'correct_analysis',
+        '{"kind":"analysis","programId":"OCC_DEDUP","documentKey":"extCC"}',
+        '{"changes":{"analysis":"Correto"},"selectedPendencyIds":["OCC-P-DUP-1","OCC-P-DUP-1"]}'
+    )) -> 'blockers') @> '[{"code":"INCOMPLETE_PENDENCY_SELECTION"}]'::jsonb,
+    'T2: IDs duplicados na seleção não simulam cobertura de todas as Pendências ativas'
+);
+insert into occ_plans values ('dedup-sel', public.preview_operational_change(pg_temp.occ_req(
+    'correct_analysis',
+    '{"kind":"analysis","programId":"OCC_DEDUP","documentKey":"extCC"}',
+    '{"changes":{"analysis":"Correto"},"selectedPendencyIds":["OCC-P-DUP-1","OCC-P-DUP-1","OCC-P-DUP-2"]}'
+)));
+select is(
+    (select jsonb_build_object(
+        'count', plan -> 'counts' -> 'pendencies',
+        'ids', plan -> 'effects' -> 'delete' -> 'pendencies'
+    ) from occ_plans where k = 'dedup-sel'),
+    '{"count":2,"ids":["OCC-P-DUP-1","OCC-P-DUP-2"]}'::jsonb,
+    'T2: selectedPendencyIds duplicados são deduplicados no plano sem inflar contagem'
+);
+select lives_ok(
+    $$ select public.apply_operational_change(
+        pg_temp.occ_req(
+            'correct_analysis',
+            '{"kind":"analysis","programId":"OCC_DEDUP","documentKey":"extCC"}',
+            '{"changes":{"analysis":"Correto"},"selectedPendencyIds":["OCC-P-DUP-1","OCC-P-DUP-1","OCC-P-DUP-2"]}'
+        ),
+        (select plan ->> 'planDigest' from occ_plans where k = 'dedup-sel'),
+        '00000000-0000-0000-0000-0000000000d1') $$,
+    'T2: apply com selectedPendencyIds duplicados executa sem OPTIMISTIC_CONFLICT'
+);
 reset role;
 
 select * from finish();

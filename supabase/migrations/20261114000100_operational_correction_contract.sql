@@ -409,7 +409,7 @@ begin
         if jsonb_typeof(v_request -> 'selectedPendencyIds') <> 'array' then
             raise exception 'VALIDATION_ERROR: selectedPendencyIds deve ser uma lista';
         end if;
-        select coalesce(array_agg(value order by value), array[]::text[])
+        select coalesce(array_agg(distinct value order by value), array[]::text[])
           into v_selected
           from jsonb_array_elements_text(v_request -> 'selectedPendencyIds') as selected(value);
     end if;
