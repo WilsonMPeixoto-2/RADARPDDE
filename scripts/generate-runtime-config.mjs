@@ -107,6 +107,10 @@ function buildRuntimeInput(environment = {}) {
         throw new Error('Chave secreta não é permitida na configuração pública do frontend.');
     }
 
+    if (operationalCorrectionPilot && operationalCorrectionRelease) {
+        throw new Error('Correção operacional: ativação simultânea de piloto e produção é proibida.');
+    }
+
     if (operationalCorrectionPilot) {
         let loopback = false;
         try {
@@ -119,10 +123,6 @@ function buildRuntimeInput(environment = {}) {
             || !loopback) {
             throw new Error('Correção operacional piloto exige Supabase local, ambiente de teste e URL loopback.');
         }
-    }
-
-    if (operationalCorrectionPilot && operationalCorrectionRelease) {
-        throw new Error('Correção operacional: ativação simultânea de piloto e produção é proibida.');
     }
 
     if (operationalCorrectionRelease) {
