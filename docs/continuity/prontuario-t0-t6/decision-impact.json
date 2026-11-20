@@ -881,6 +881,60 @@
           "evidenceRefs": []
         }
       ]
+    },
+    {
+      "decisionId": "T0T6-D020",
+      "status": "approved",
+      "impactStatus": "initial-impact-mapping-needs-review",
+      "supersededBy": null,
+      "obligations": [
+        {
+          "id": "T0T6-I020-01",
+          "phase": "T0",
+          "surface": "governance",
+          "status": "preserve",
+          "requirementIds": [
+            "T0T6-R052",
+            "T0T6-R067"
+          ],
+          "acceptance": "Registrar cada mudança aprovada no GitHub, associando decisões e obrigações entre chats/branches e preservando futuras aplicações.",
+          "targetPaths": [
+            "AGENTS.md",
+            "docs/continuity/prontuario-t0-t6/decision-impact.json"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I020-02",
+          "phase": "T5",
+          "surface": "ui",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R038",
+            "T0T6-R067"
+          ],
+          "acceptance": "Ao desenvolver o futuro layout de inventário, consultar D002/D011, representar edição/correção autorizada e não restaurar guardas históricos superados.",
+          "targetPaths": [
+            "src/integration/prontuario-operational-ux.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I020-03",
+          "phase": "T6",
+          "surface": "tests",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R052",
+            "T0T6-R067"
+          ],
+          "acceptance": "Nas futuras releases, verificar rastreabilidade das obrigações e evidência real de regras, UX, consumidores e gates, sem fechar etapas não testadas.",
+          "targetPaths": [
+            "tests/unit/prontuario-decision-impact.test.js"
+          ],
+          "evidenceRefs": []
+        }
+      ]
     }
   ]
 }

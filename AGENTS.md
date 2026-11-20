@@ -1,5 +1,8 @@
 # AGENTS.md — RADAR PDDE 2026
 
+**DECISÕES COM EFEITO EM FASES FUTURAS (D020):** antes de qualquer alteração no Prontuário, Inventário, Pendências, relatórios, banco, testes ou layout derivado da frente T0–T6, ler [protocolo transversal](docs/continuity/prontuario-t0-t6/DECISION_IMPACT_PROTOCOL.md) e [mapa de obrigações](docs/continuity/prontuario-t0-t6/decision-impact.json). Executar `npm run decisions:impact -- --query --phase=T5 --surface=ui` ou filtros adequados à tarefa. Uma decisão anterior pode estar implementada em backend e **ainda ser obrigatória para uma UI futura**, mesmo se aprovada em outro chat. Toda decisão recebida em chat exige registro no GitHub com origem e desdobramentos; memória do assistente e conversas não sincronizam automaticamente. Não marcar a decisão inteira como concluída só por CI/SQL de uma fase.
+
+
 **CONTINUIDADE DOCUMENTAL OBRIGATÓRIA — T0–T6:** antes de abrir novo ciclo, registrar decisão ou incorporar contribuição de agente, consultar [registro versionado e protocolo](docs/continuity/prontuario-t0-t6/README.md), [checkpoint único da release](docs/continuity/prontuario-t0-t6/CHECKPOINT.md) e [índice de decisões e contribuições](docs/continuity/prontuario-t0-t6/registry.json). Cada alteração de regra, avaliação de sugestão e encerramento de chat devem deixar trilha remota com ID, SHA, prova, motivo e próximo passo; não conservar a única cópia no sandbox, desktop ou contexto de conversa. **Este registro é rastreabilidade subordinada ao contrato/ADRs, não segunda fonte de regra funcional.**
 
 

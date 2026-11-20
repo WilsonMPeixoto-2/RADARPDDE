@@ -1,3 +1,5 @@
+> **Coerência entre chats e releases:** consultar [D020 e protocolo transversal](continuity/prontuario-t0-t6/DECISION_IMPACT_PROTOCOL.md) e [obrigações por decisão/fase](continuity/prontuario-t0-t6/decision-impact.json) antes de propor código, UX, teste ou alteração de contrato; pendências futuras sobrevivem às entregas parciais. O atlas não garante a recuperação de todas as conversas históricas.
+
 # RADAR PDDE — estado atual e continuidade verificável
 
 **Ponto único de continuidade entre chats:** [Protocolo e registro de decisões/contribuições](continuity/prontuario-t0-t6/README.md) e [CHECKPOINT vigente](continuity/prontuario-t0-t6/CHECKPOINT.md), ambos versionados no PR #535. Consultar ID de decisão e contribuição antes de repetir análise ou criar nova hipótese. A branch da release não inclui lançamentos reais de prestação de contas do PDDE. O HEAD, checks e ambientes registrados são fotografias por SHA, a revalidar ao vivo.

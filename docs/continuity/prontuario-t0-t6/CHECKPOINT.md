@@ -37,6 +37,10 @@
 
 [LINEAGE.md](LINEAGE.md) / [lineage.json](lineage.json): 25 fontes, 67 requisitos, 4 lacunas documentadas. **Não alegar cobertura completa:** 10 fontes em revisão parcial, 10 apenas indexadas e seis pranchas conceituais ainda não versionadas em arquivo. O verificador passará a comparar hashes Git de fontes locais e IDs de decisões/implementações; retomar pela linha de requisito, não por plano de outra branch. O primeiro código Argon `src/application/operational-correction-service.js` não existe na candidata; usar cliente atual e migration SQL.
 
+## Persistência transversal de decisões — 20/11/2026
+
+A diretriz do proprietário **D020** exige coerência de decisões também entre chats, não apenas branches. [Protocolo](DECISION_IMPACT_PROTOCOL.md) e [mapa](decision-impact.json) registram obrigações de cada decisão aprovada em várias fases e superfícies. O primeiro corte mantém **obrigações futuras de Inventário T5 e reconsolidação T4 em aberto**, mesmo com códigos T2/T3 candidatos. Consultar `npm run decisions:impact -- --query --phase=T5 --surface=ui` antes de novo layout; `check:continuity` passa também a verificar esse mapa. A auditoria integral de todas as conversas e a cobertura semântica de cada obrigação **não estão concluídas**.
+
 ## Próximo ato verificável — sem reiniciar auditoria integral
 
 1. Conferir **HEAD e CI atuais do PR #535**, `main` e `#534`; verificar se surgiram novos commits nas branches colaboradoras desde a última triagem.

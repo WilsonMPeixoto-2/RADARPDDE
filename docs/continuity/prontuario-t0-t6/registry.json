@@ -209,6 +209,16 @@
       "decision": "Projeções de Busca, Passivo, Pendências, Inventário e novas exportações devem ser testadas em cada lote afetado. Diretriz de T6 transversal não autoriza copiar proposta Gemini sem prova.",
       "sourcePath": "docs/releases/2026-11-20-prontuario-t0-t3-release-1.md",
       "supersedes": []
+    },
+    {
+      "id": "T0T6-D020",
+      "date": "2026-11-20",
+      "stage": "T0-T6",
+      "status": "approved",
+      "title": "Propagação obrigatória das decisões entre chats e camadas",
+      "decision": "Cada decisão aprovada mantém efeito vinculante sobre código, banco, interfaces, testes, relatórios e etapas futuras, mesmo quando seus desdobramentos forem implementados em chats/branches separados. Registrar obrigações por fase, preservar pendências e comprovar propagação na fase pertinente; nenhuma implementação parcial encerra os impactos restantes.",
+      "sourcePath": "docs/continuity/prontuario-t0-t6/DECISION_IMPACT_PROTOCOL.md",
+      "supersedes": []
     }
   ],
   "contributions": [

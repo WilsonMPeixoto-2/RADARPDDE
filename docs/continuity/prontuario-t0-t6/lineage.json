@@ -987,7 +987,8 @@
       "decisionIds": [
         "T0T6-D002",
         "T0T6-D007",
-        "T0T6-D011"
+        "T0T6-D011",
+        "T0T6-D020"
       ],
       "evidence": "Sem desativar triggers globalmente.",
       "codePaths": [],
@@ -1247,7 +1248,8 @@
         "S007"
       ],
       "decisionIds": [
-        "T0T6-D016"
+        "T0T6-D016",
+        "T0T6-D020"
       ],
       "evidence": "Consistência não implica censo histórico exaustivo.",
       "codePaths": [
@@ -1507,7 +1509,8 @@
       ],
       "decisionIds": [
         "T0T6-D016",
-        "T0T6-D017"
+        "T0T6-D017",
+        "T0T6-D020"
       ],
       "evidence": "Fontes exclusivamente em branches e reconciliações anteriores são rastreadas por SHA; algumas ainda aguardam revisão integral.",
       "codePaths": [],

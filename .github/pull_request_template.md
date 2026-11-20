@@ -53,6 +53,16 @@ Sem justificar pela implementação, descreva em linguagem comum:
 - [ ] Confirmei que a alteração e seus testes ocorreram **sem escrever no Supabase institucional**, sem usar documentos de escolas como fixtures e sem confundir a frente funcional com upgrades de dependências.
 - [ ] Rodei `npm run check:continuity` e registrei o resultado do HEAD final.
 
+### Propagação e coerência histórica (D020)
+
+- [ ] Consultei as obrigações por fase e superfície em [decision-impact.json](../docs/continuity/prontuario-t0-t6/decision-impact.json), inclusive as derivadas de decisões aceitas em outros chats.
+- [ ] Relacionei os identificadores `T0T6-Ixxx-xx` aplicáveis e expliquei quais estão no código, quais ainda exigem testes/aceite e quais continuam obrigatórios em T4/T5/T6.
+- [ ] Conferi se a mudança cria/revoga uma decisão e se ela exige efeitos posteriores em domínio, UI, banco, relatórios, permissões, navegação, modelos ou regressões.
+- [ ] Executei `npm run check:continuity` (incluindo validador de impactos) e consultei `npm run decisions:impact -- --query --phase=T5 --surface=ui` ou o filtro pertinente.
+- [ ] Não interpretei ausência de referência no catálogo como prova de inexistência de impacto; dúvidas de origem/aceite ficaram registradas.
+
+**Obrigações atuais e futuras afetadas (`T0T6-Ixxx-xx`):**
+
 **Decisões/contribuições afetadas (IDs):**
 
 **Origem e SHA do código ou análise incorporada:**

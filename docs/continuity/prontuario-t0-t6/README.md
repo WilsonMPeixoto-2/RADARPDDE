@@ -22,6 +22,13 @@
 
 **Consulta obrigatória antes de novos planos:** localizar o ID `T0T6-Rxxx`, sua fonte original e transições; conferir o código **real** da release. Não tratar fonte histórica como integralmente vigente ou integralmente superada. Fontes ainda sem revisão integral permanecem marcadas como lacunas, não contam como cobertura comprovada.
 
+## Continuidade **de impacto** entre chats, código, UX e etapas
+
+- [Protocolo de captura, propagação e aceite](DECISION_IMPACT_PROTOCOL.md)
+- [Obrigações por decisão, fase e superfície](decision-impact.json)
+
+**Regra obrigatória:** uma decisão aprovada pode continuar com obrigação futura `planned` mesmo que outra parte esteja em código `candidate`. Antes de redesenhar Inventário, Prontuário ou qualquer outra tela, consultar as obrigações das regras anteriores também para testes, relatórios e banco. Rodar `npm run decisions:impact -- --query --phase=T5 --surface=ui` (filtro opcional por `--decision=` ou `--file=`). O teste de CI verifica estrutura, não garante cobertura semântica de todas as conversas ou implementação.
+
 ## O que registrar e quando
 
 | Evento material | Registro obrigatório na mesma entrega remota |
