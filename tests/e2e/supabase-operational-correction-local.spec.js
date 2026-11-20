@@ -140,10 +140,12 @@ test('T2 documental (correct_analysis e clear_analysis): RPC real, F5 e segunda 
     });
 
     await openSchool(page, 'controller');
+    // ESC-OTHER já possui bonificação consolidada ('apta') da suíte anterior:
+    // provamos ADR-055 preservando resultadoBonif = 'apta' em todas as correções.
+    const beforeDb = await readVerificationFromDb(page);
+    expect(beforeDb.bonus_result).toBe('apta');
+
     const extRow = page.locator(`#prontuario-verif-rows tr[data-program-id="${PROGRAM_ID}"][data-document-key="extCC"]`);
-    await extRow.getByRole('button', { name: 'Sim', exact: true }).click();
-    await settleWrites(page);
-    await expect(extRow.getByRole('button', { name: 'Sim', exact: true })).toHaveClass(/active-sim/);
 
     // 1ª análise em 1 clique sem modal T2:
     const extSelect = extRow.locator('select.select-analise');
@@ -167,13 +169,13 @@ test('T2 documental (correct_analysis e clear_analysis): RPC real, F5 e segunda 
     expect(rpcCalls).toContain('preview');
     expect(rpcCalls).toContain('apply');
 
-    // F5 real confirma persistência no banco e na interface:
+    // F5 real confirma persistência no banco e preservação de bonus_result (ADR-055):
     await page.reload();
     await waitForApp(page, 'controller');
     await expect(extRow.locator('select.select-analise')).toHaveValue('Correto (Atrasado)');
     const afterCorrectDb = await readVerificationFromDb(page);
     expect(afterCorrectDb.analysis.extCC).toBe('Correto (Atrasado)');
-    expect(afterCorrectDb.bonification.extCC).toBe('Sim');
+    expect(afterCorrectDb.bonus_result).toBe('apta');
 
     // Segunda sessão autenticada (Assistente) vê o mesmo estado persistido:
     const secondContext = await browser.newContext({ baseURL: testInfo.project.use.baseURL });
@@ -203,13 +205,13 @@ test('T2 documental (correct_analysis e clear_analysis): RPC real, F5 e segunda 
         await secondContext.close();
     }
 
-    // F5 na sessão original do Controlador confirma limpeza refletida:
+    // F5 na sessão original do Controlador confirma limpeza refletida e bonificação preservada:
     await page.reload();
     await waitForApp(page, 'controller');
     await expect(extRow.locator('select.select-analise')).toHaveValue('Não analisado');
     const afterClearDb = await readVerificationFromDb(page);
     expect(afterClearDb.analysis?.extCC ?? null).toBeNull();
-    expect(afterClearDb.bonification.extCC).toBe('Sim');
+    expect(afterClearDb.bonus_result).toBe('apta');
     expect(pageErrors).toEqual([]);
 });
 
@@ -246,6 +248,12 @@ test('T2 Consulta à Assessoria + A-01 real + Corrigir análise pela gaveta: RPC
     const advisorySelect = advisoryRow.getByLabel(`Análise da consulta à Assessoria para a NF ${serviceNumber}`);
     const advisoryCheckbox = advisoryRow.getByLabel(`Consulta enviada à Assessoria para a NF ${serviceNumber}`);
     await expect(advisoryRow.getByRole('button', { name: 'Editar análise', exact: true })).toHaveCount(0);
+
+    // Marcar envio à Assessoria antes da análise para que bonification.consAssessoria = 'Sim'
+    // (evitando normalização automática para Correto (Atrasado) sob bonus_result = 'apta'):
+    await advisoryCheckbox.check();
+    await settleWrites(page);
+    await expect(advisoryCheckbox).toBeChecked();
 
     // 1ª análise em 1 clique ('Não analisado' -> 'Correto') grava direto e reconcilia Editar análise:
     await advisorySelect.selectOption('Correto');
@@ -395,6 +403,7 @@ test('T3 exclusão de NF (delete_invoice) com Pendência preserva NF vizinha e b
     await expect(deleteDialog.getByText(/1 nota fiscal/)).toBeVisible();
     await expect(deleteDialog.getByText(/1 Pendência/)).toBeVisible();
     await expect(deleteDialog.getByText('Incorreto → Correto')).toBeVisible();
+    await expect(deleteDialog.getByText(/bonificação já consolidada será preservado/i)).toBeVisible();
     await expect(deleteDialog.getByRole('button', { name: 'Confirmar exclusão', exact: true })).toBeEnabled();
     await deleteDialog.getByRole('button', { name: 'Confirmar exclusão', exact: true }).click();
     await expect(deleteDialog).toBeHidden();
@@ -405,7 +414,7 @@ test('T3 exclusão de NF (delete_invoice) com Pendência preserva NF vizinha e b
     await expect(fiscalRow.locator('.invoice-document-row').filter({ hasText: deleteNumber })).toHaveCount(0);
     await expect(fiscalRow.locator('.invoice-document-row').filter({ hasText: keepNumber })).toBeVisible();
 
-    // F5 + conferência direta no PostgreSQL:
+    // F5 + conferência direta no PostgreSQL (incluindo preservação ADR-055 de bonus_result):
     await page.reload();
     await waitForApp(page, 'controller');
     await expect(fiscalRow.locator('.invoice-document-row').filter({ hasText: deleteNumber })).toHaveCount(0);
@@ -415,7 +424,7 @@ test('T3 exclusão de NF (delete_invoice) com Pendência preserva NF vizinha e b
     expect(await readInvoiceFromDb(page, keepNumber)).toHaveLength(1);
     const verifAfterDelete = await readVerificationFromDb(page);
     expect(verifAfterDelete.analysis.notaFiscal).toBe('Correto');
-    expect(verifAfterDelete.bonification.extCC).toBe('Sim');
+    expect(verifAfterDelete.bonus_result).toBe('apta');
 
     // Segunda sessão autenticada (Assistente) confirma NF excluída e NF vizinha preservada:
     const secondContext = await browser.newContext({ baseURL: testInfo.project.use.baseURL });
