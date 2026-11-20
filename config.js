@@ -11,10 +11,18 @@
 
     root.RadarRuntimeConfig = Object.freeze(api);
     root.RADAR_PDDE_CONFIG = api.createRuntimeConfig(root.RADAR_PDDE_RUNTIME_INPUT || {});
-    // Piloto habilitado só quando o frontend e a API estão no ambiente local.
-    root.RADAR_OPERATIONAL_CORRECTION_PREVIEW =
-        root.RADAR_PDDE_CONFIG.features?.operationalCorrectionPilot === true
-        && ['localhost', '127.0.0.1'].includes(root.location?.hostname);
+    // O nome legado da flag é preservado para os consumidores T2/T3.
+    // Um piloto local não libera Production; o release institucional requer opt-in
+    // separado, deployment de Production e HTTPS. RLS continua no Supabase.
+    const releaseConfig = root.RADAR_PDDE_CONFIG;
+    root.RADAR_OPERATIONAL_CORRECTION_PREVIEW = (
+        releaseConfig.features?.operationalCorrectionPilot === true
+        && ['localhost', '127.0.0.1'].includes(root.location?.hostname)
+    ) || (
+        releaseConfig.features?.operationalCorrectionRelease === true
+        && releaseConfig.deploymentTarget === 'production'
+        && root.location?.protocol === 'https:'
+    );
 
     if (typeof document === 'undefined') return;
 
@@ -260,6 +268,17 @@
             && localSupabaseEndpoint
             && deploymentTarget !== 'production';
 
+        const operationalCorrectionRelease = input.features?.operationalCorrectionRelease === true
+            && input.features?.operationalCorrectionPilot !== true
+            && dataMode === DATA_MODES.SUPABASE_PRODUCTION
+            && environment === 'production'
+            && deploymentTarget === 'production'
+            && input.productionActivationApproved === true
+            && connectionEnabled && !productionBlocked
+            && !localSupabaseEndpoint
+            && validCredentials
+            && new URL(rawUrl).protocol === 'https:';
+
         if (!isLocal && !validCredentials) {
             diagnostics.push('Conexão Supabase bloqueada: URL ou chave publicável inválida.');
         }
@@ -284,7 +303,8 @@
                 && !productionBlocked,
             features: {
                 supabaseRepositoryEnabled: isLocal ? false : requestedRepository,
-                ...(operationalCorrectionPilot ? { operationalCorrectionPilot: true } : {})
+                ...(operationalCorrectionPilot ? { operationalCorrectionPilot: true } : {}),
+                ...(operationalCorrectionRelease ? { operationalCorrectionRelease: true } : {})
             },
             supabase: {
                 url: connectionEnabled && !productionBlocked ? rawUrl : '',
