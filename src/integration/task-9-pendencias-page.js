@@ -397,7 +397,7 @@
                         ${filteredEmpty ? '<button class="btn btn-secondary btn-sm" onclick="clearPendencyFilters()">Limpar filtros</button>' : ''}
                     </div>
                 ` : `
-                    <div class="pendency-desktop-list table-responsive">
+                    <div class="pendency-desktop-list table-responsive" role="region" aria-label="Tabela de pendências — rolagem horizontal" tabindex="0">
                         <table class="data-table pendency-operations-table">
                             <thead>
                                 <tr>
@@ -810,7 +810,7 @@
         const ariaModal = mobile ? ' aria-modal="true"' : '';
         return `
             <div class="pendency-drawer-layer ${mobile ? 'is-mobile' : 'is-desktop'}">
-                <button class="pendency-drawer-backdrop" type="button" aria-label="Fechar detalhes" onclick="closePendencyDetail()"></button>
+                <button class="pendency-drawer-backdrop" type="button" aria-label="Fechar detalhes" ${mobile ? '' : 'tabindex="-1" aria-hidden="true"'} onclick="closePendencyDetail()"></button>
                 <aside
                     id="pendency-detail-drawer"
                     class="pendency-detail-drawer"
@@ -1140,6 +1140,17 @@
         else drawer.removeAttribute('aria-modal');
         layer.classList.toggle('is-mobile', mobile);
         layer.classList.toggle('is-desktop', !mobile);
+        const backdrop = layer.querySelector('.pendency-drawer-backdrop');
+        if (backdrop) {
+            if (mobile) {
+                backdrop.removeAttribute('tabindex');
+                backdrop.removeAttribute('aria-hidden');
+            } else {
+                // Overlay desktop é complementar: sem bloquear clique nem foco na página.
+                backdrop.setAttribute('tabindex', '-1');
+                backdrop.setAttribute('aria-hidden', 'true');
+            }
+        }
     }
 
     function handleGlobalDrawerKeydown(event) {

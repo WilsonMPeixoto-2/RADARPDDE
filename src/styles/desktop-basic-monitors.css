@@ -244,10 +244,6 @@ body:not(.dark-theme) .pendency-error-summary {
         line-height: 1.35;
     }
 
-    .pendency-operations-table {
-        min-width: 1320px;
-    }
-
     .school-actions-stack,
     .cycle-b-wallet-actions {
         min-width: 104px;
@@ -330,10 +326,6 @@ body:not(.dark-theme) .pendency-error-summary {
     .school-filter-grid .filter-field-wide,
     .pendency-filter-grid .filter-field-wide {
         grid-column: span 2;
-    }
-
-    .pendency-operations-table {
-        min-width: 1040px;
     }
 
     .cycle-b-dashboard-stats {
