@@ -1,5 +1,10 @@
 # RADAR PDDE — estado atual e continuidade verificável
 
+## ESTADO EXECUTIVO VIGENTE — RELEASE 1 T0–T3 (20/11/2026)
+
+**Rota única de execução:** [Plano consolidado e gates da Release 1](releases/2026-11-20-prontuario-t0-t3-release-1.md), [PR #535](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/535) (Draft), branch `release/prontuario-t0-t3-20261120`, derivada de #534@054d3bc4. O PR #534 continua fonte imutável de comparação; #532 já está reconciliado; `fix/prontuario-integrado-validado-20261115@20409c12` é o destino de integração, ainda não atualizado. **Foco exclusivo T0–T3 até publicação e estabilização**; T4 e T5 terão releases independentes, T6 é gate transversal. As seções abaixo documentam o plano anterior de entrega conjunta e provas históricas, não a fila corrente. Os dois testes RED de ativação independente falharam no #535@9fae7182 em CI por ausência do opt-in — correção candidata implementada posteriormente; validar GREEN no HEAD final. Main, Vercel e Supabase institucional não foram alterados por esta frente.
+
+
 **Atualização consolidada:** 20/11/2026 (sobre a reconciliação de 16/11 em `20409c12`, revisão independente `009e9101`, `main@69954645` e Draft PR #534). **Frente ativa:** Prontuário integrado, correções e exclusões T0–T6.
 **Branch oficial de integração.** `fix/prontuario-integrado-validado-20261115@20409c12`. A execução corrente ocorre na candidata `audit/antigravity-argon-prontuario-20261115`, [PR #534](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534). A revisão independente [#532](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/532) está em `2235821c`. Conferir o commit e as verificações do #534 ao retomar.
 **Baseline publicada da frente:** `main@69954645b597e39623ef2f24fe5f336ed37989f2` (verificação de 19/11, avançada exclusivamente pelos PRs de manutenção de ferramentas #524, #526, #531 `fe582fab` — Supabase CLI `3.2.0` + exceção dev-only `picomatch` até 18/12/2026 — e #533 `69954645` — Lighthouse `13.6.0`). Nenhum merge, migration institucional ou deploy de T1–T6 foi autorizado/feito por esta frente.

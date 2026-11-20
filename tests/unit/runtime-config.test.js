@@ -216,3 +216,33 @@ test('release T0–T3 requer deployment de produção, Supabase válido e autori
         assert.notEqual(candidate.features.operationalCorrectionRelease, true);
     }
 });
+
+test('bootstrap do navegador mantém release OFF sem HTTPS e ON apenas com opt-in de production', () => {
+    const fs = require('node:fs');
+    const vm = require('node:vm');
+    const path = require('node:path');
+    const source = fs.readFileSync(path.resolve(__dirname, '../../config.js'), 'utf8');
+    const input = {
+        deploymentTarget: 'production',
+        dataMode: DATA_MODES.SUPABASE_PRODUCTION,
+        environment: 'production',
+        productionActivationApproved: true,
+        features: { supabaseRepositoryEnabled: true, operationalCorrectionRelease: true },
+        supabase: { url: 'https://example.supabase.co', publishableKey: 'sb_publishable_example' }
+    };
+    function visible(runtimeInput, protocol) {
+        const context = {
+            URL,
+            window: {
+                RADAR_PDDE_RUNTIME_INPUT: runtimeInput,
+                location: { hostname: 'radarpdde-fix.vercel.app', protocol }
+            }
+        };
+        vm.runInNewContext(source, context, { filename: 'config.js' });
+        return context.window.RADAR_OPERATIONAL_CORRECTION_PREVIEW;
+    }
+    assert.equal(visible(input, 'https:'), true);
+    assert.equal(visible(input, 'http:'), false);
+    assert.equal(visible({ ...input, features: { supabaseRepositoryEnabled: true } }, 'https:'), false);
+    assert.equal(visible({ ...input, deploymentTarget: 'preview' }, 'https:'), false);
+});

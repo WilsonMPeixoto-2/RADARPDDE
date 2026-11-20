@@ -1,5 +1,8 @@
 # Prontuário: design, correção e exclusão integrados — plano de implementação
 
+> **ALTERAÇÃO NA ORDEM DE EXECUÇÃO (20/11/2026):** o contrato e os critérios de aceite abaixo permanecem. Para evitar uma entrega monolítica, a publicação foi desmembrada em [Release 1: T0–T3](../../releases/2026-11-20-prontuario-t0-t3-release-1.md) → Release 2: T4 → Release 3: T5, com T6 aplicado em todos os gates e depois na verificação final. A branch executora atual é `release/prontuario-t0-t3-20261120`, [PR #535](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/535). Checkboxes antigos não são ordem para repetir correções já verificadas no #534, e uma imagem conceitual não substitui homologação visual de código real.
+
+
 > **Para execução por agentes:** ler as duas especificações e este plano inteiro antes de executar uma tarefa. Usar `superpowers:executing-plans` ou, se escolhido pelo proprietário, `superpowers:subagent-driven-development`. Os passos `- [ ]` são o checklist de requisitos e provas originalmente desenhado: **não representam a situação atual de cada linha**. A execução foi posteriormente autorizada pelo proprietário e está em andamento na branch de integração. Este documento **não** autoriza merge, migration institucional ou deploy.
 
 **Objetivo:** tornar a avaliação escolar mais bonita, compreensível e fácil de corrigir, com liberdade de edição/exclusão e integridade de todos os efeitos relacionados.

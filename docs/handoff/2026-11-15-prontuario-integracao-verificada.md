@@ -1,5 +1,8 @@
 # RADAR PDDE — checkpoint executável da integração T0–T3 (15/11/2026)
 
+> **ATUALIZAÇÃO DE ROTA 20/11/2026:** o proprietário autorizou dividir o programa em releases. A continuação executável T0–T3 está em [Release 1](../releases/2026-11-20-prontuario-t0-t3-release-1.md) / [PR #535](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/535), derivada de #534@054d3bc4. **Este documento conserva as evidências por SHA e as decisões anteriores**, mas não é nova fila para refazer trabalho. T4 e T5 serão implantados separadamente e T6 passa a ser transversal. Nenhuma aplicação no Supabase institucional ou publicação na Vercel foi executada nesta frente.
+
+
 **Leitura obrigatória temporária para qualquer agente que continuar esta frente.**
 **Branch oficial de integração e recuperação.** `fix/prontuario-integrado-validado-20261115@20409c12`. A candidata e suas verificações estão no [PR #534](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534). O [#532](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/532) reúne a revisão independente em `2235821c`. A seção [verificação de 20/11](#verificação-de-2011-e-prova-complementar-do-qualidade) e os resultados por SHA do #534 orientam a retomada.
 **Baseline conservada:** `main` em `69954645` em 19/11/2026 (avançada exclusivamente pelos PRs de manutenção de ferramentas #524, #526, #531 e #533), sem alteração, merge ou deploy pela frente T0–T6.

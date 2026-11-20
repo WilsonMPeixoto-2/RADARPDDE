@@ -1,5 +1,8 @@
 # Prontuário T0–T6 — Matriz de transição integral das regras, interfaces e provas
 
+> **ADENDO DE ENTREGA — 20/11/2026:** ver [Release 1 T0–T3](../releases/2026-11-20-prontuario-t0-t3-release-1.md). A matriz continua obrigatória para todas as substituições, mas os gates T6 passam a incidir em **cada release**, sem aguardar implementação de T4/T5 para publicar T0–T3. Códigos de operações futuras continuam indisponíveis. Este adendo não autoriza migração nem deploy institucional.
+
+
 **Data-base:** 15/11/2026. **Natureza:** anexo executável do plano original do Astra; não cria outra frente, nem autoriza merge, SQL institucional ou deploy.  
 **Branch de execução:** `fix/prontuario-integrado-validado-20261115`.  
 **Regra de precedência:** [contrato aprovado](PRONTUARIO_CORRECAO_CONTRATO.md) → [plano original T0–T6](../superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md) → [checkpoint vigente](../handoff/2026-11-15-prontuario-integracao-verificada.md) → código e testes do SHA.  

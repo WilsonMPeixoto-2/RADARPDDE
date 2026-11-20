@@ -1,5 +1,10 @@
 # Matriz de validade documental
 
+## Atualização de precedência — Release 1 em 20/11/2026
+
+**Único plano executivo de publicação T0–T3:** [Release 1: consolidação, fontes, imagens e gates](../releases/2026-11-20-prontuario-t0-t3-release-1.md), [PR #535](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/535). O contrato original, a matriz e o plano T0–T6 não perderam validade funcional; mudou a **sequência de entregas**. O checkpoint vigente fornece evidência por SHA. Os títulos e as instruções históricas abaixo de aguardar T4/T5 ou uma homologação global única NÃO são a ordem de publicação atual. PR #516 e #517 já integrados, #532 absorvido em #534; PRs #515/#522/#523 independentes, sem merge incidental. Sem autorização para deploy institucional.
+
+
 ## Prontuário e correção integrada — validade vigente em 20/11/2026
 
 A integração oficial está em `fix/prontuario-integrado-validado-20261115@20409c12`. O [PR #534](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534) reúne a candidata com piloto local. O [PR #532](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/532) é a revisão paralela (`2235821c` em 20/11). A referência publicada é `main@69954645`.
