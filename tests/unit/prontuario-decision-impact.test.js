@@ -103,3 +103,22 @@ test('política transversal deve permanecer acessível a agentes, ADRs e contrat
     assert.ok(fs.readFileSync(path.join(root,file),'utf8').includes(marker), file);
   }
 });
+
+test('impacto T0–T6: obrigação individual não pode desaparecer enquanto outras permanecem', async () => {
+  const { validateDecisionImpact } = await load();
+  const f = fixtures();
+  const item = f.impact.records.find(x => x.decisionId === 'T0T6-D002');
+  const removed = item.obligations.pop();
+  assert.ok(item.obligations.length > 0);
+  assert.ok(validateDecisionImpact(f, { rootDir: root }).some(x =>
+    x.includes(removed.id) && x.includes('obrigação perdida')));
+});
+
+test('impacto T0–T6: obrigação nova sem registro persistente não pode ser invisível', async () => {
+  const { validateDecisionImpact } = await load();
+  const f = fixtures();
+  const item = f.impact.records.find(x => x.decisionId === 'T0T6-D002');
+  item.obligations.push({ ...structuredClone(item.obligations[0]), id: 'T0T6-I002-99' });
+  assert.ok(validateDecisionImpact(f, { rootDir: root }).some(x =>
+    x.includes('T0T6-I002-99') && x.includes('não registrada')));
+});
