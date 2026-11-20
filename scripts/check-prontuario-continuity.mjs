@@ -158,7 +158,8 @@ function checkContinuityRepository(rootDir = REPOSITORY_ROOT) {
     for (const file of ROUTERS) {
         const absolute = path.join(rootDir, file);
         const value = fs.existsSync(absolute) ? fs.readFileSync(absolute, 'utf8') : '';
-        if (!value.includes(CONTINUITY_ROOT)) {
+        const relativePointer = CONTINUITY_ROOT.replace(/^docs\\//, '');
+        if (!value.includes(CONTINUITY_ROOT) && !value.includes(relativePointer)) {
             errors.push(`${file}: falta o ponteiro canônico para ${CONTINUITY_ROOT}`);
         }
     }
