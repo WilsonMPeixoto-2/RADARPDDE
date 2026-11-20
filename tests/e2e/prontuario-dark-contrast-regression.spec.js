@@ -24,10 +24,15 @@ test('Prontuário: textos essenciais de NF e escola mantêm contraste AA no tema
     }, context);
     await page.getByRole('button', { name: 'Mudar para tema escuro', exact: true }).click();
     await expect(page.locator('body.dark-theme')).toHaveCount(1);
-    // Aguarda a transição de background (150ms), antes de medir o estado estável.
-    await page.waitForTimeout(300);
+    await page.evaluate(async () => {
+        await window.RadarProductExtensionsReady;
+        await document.fonts.ready;
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        const transitions = document.getAnimations().filter(animation => animation instanceof CSSTransition);
+        await Promise.allSettled(transitions.map(transition => transition.finished));
+    });
 
-    const actual = await page.evaluate(() => {
+    const readColors = () => page.evaluate(() => {
         const canvas = document.createElement('canvas');
         canvas.width = canvas.height = 1;
         const paint = canvas.getContext('2d', { willReadFrequently: true });
@@ -58,18 +63,25 @@ test('Prontuário: textos essenciais de NF e escola mantêm contraste AA no tema
             return { selector, text: pixel(), background };
         });
     });
-    await testInfo.attach('contraste-prontuario-escuro', {
-        body: Buffer.from(JSON.stringify(actual)), contentType: 'application/json'
-    });
-    await testInfo.attach('acoes-fiscais-tema-escuro', {
-        body: await page.locator('.invoice-document-footer').first().screenshot(), contentType: 'image/png'
-    });
-    for (const item of actual) {
-        expect(item.missing, item.selector + ' deve existir').not.toBe(true);
-        const fg = luminance(item.text);
-        const bg = luminance(item.background);
-        const ratio = (Math.max(fg, bg) + 0.05) / (Math.min(fg, bg) + 0.05);
-        expect(ratio, item.selector + ' contraste: ' + ratio.toFixed(2) + ' (' + item.text + ' sobre ' + item.background + ')')
-            .toBeGreaterThanOrEqual(4.5);
+    let actual;
+    try {
+        await expect(async () => {
+            actual = await readColors();
+            for (const item of actual) {
+                expect(item.missing, item.selector + ' deve existir').not.toBe(true);
+                const fg = luminance(item.text);
+                const bg = luminance(item.background);
+                const ratio = (Math.max(fg, bg) + 0.05) / (Math.min(fg, bg) + 0.05);
+                expect(ratio, item.selector + ' contraste: ' + ratio.toFixed(2) + ' (' + item.text + ' sobre ' + item.background + ')')
+                    .toBeGreaterThanOrEqual(4.5);
+            }
+        }).toPass({ timeout: 5000 });
+    } finally {
+        if (actual) await testInfo.attach('contraste-prontuario-escuro', {
+            body: Buffer.from(JSON.stringify(actual)), contentType: 'application/json'
+        });
+        await testInfo.attach('acoes-fiscais-tema-escuro', {
+            body: await page.locator('.invoice-document-footer').first().screenshot(), contentType: 'image/png'
+        });
     }
 });

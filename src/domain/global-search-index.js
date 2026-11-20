@@ -244,7 +244,9 @@
             useTokenSearch: true,
             tokenMatch: 'all',
             threshold: 0.36,
-            minMatchCharLength: MIN_QUERY_LENGTH,
+            // Uma referência composta pode terminar em um token de uma letra (NF 125/A).
+            // searchCatalog aplica o mínimo de dois caracteres à consulta completa.
+            minMatchCharLength: 1,
             keys: [
                 { name: 'title', weight: 0.5 },
                 { name: 'subtitle', weight: 0.25 },

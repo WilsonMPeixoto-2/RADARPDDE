@@ -534,6 +534,25 @@
       ],
       "rationale": "Ideias gerais de UI e código CSS do PR515 são trabalho paralelo, não importação automática para a Release 1. Somente contexto do Prontuário e consumidores deve ser cotejado no aceite de T1.",
       "integratedRef": ""
+    },
+    {
+      "id": "T0T6-C023",
+      "agent": "Antigravity / ChatGPT",
+      "stage": "T0–T3 / T6",
+      "title": "Parecer sobre a retomada em 480a9864, legibilidade do Prontuário e consumidores do G2",
+      "status": "incorporated",
+      "originRef": "Parecer do Antigravity compartilhado pelo proprietário; PR #535@480a9864",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/commit/480a98649eefe52425c1e19076df210cfb19493a",
+      "decisionIds": [
+        "T0T6-D001",
+        "T0T6-D002",
+        "T0T6-D011",
+        "T0T6-D013",
+        "T0T6-D019",
+        "T0T6-D020"
+      ],
+      "rationale": "Os filtros inválidos e os controles pouco legíveis em tema escuro foram reproduzidos. A consulta corrigida, os ajustes T1 e os ensaios de Busca, Excel e concorrência entraram na candidata. O aceite visual e as obrigações futuras do inventário em T5 continuam abertos.",
+      "integratedRef": "https://github.com/WilsonMPeixoto-2/RADARPDDE/commit/e1f023fa1c11d194c317314669b958a40bbff476"
     }
   ]
 }

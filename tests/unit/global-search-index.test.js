@@ -158,3 +158,17 @@ test('resultado de busca apresenta NF atual após recarga, sem reescrever Pendê
     assert.ok(!result.title.includes('550'));
     assert.deepEqual(pendency, original);
 });
+
+test('encontra a referência fiscal completa quando o sufixo tem uma letra', () => {
+    const number = 'T2-FILA-1795212666610-R';
+    const catalog = createSearchCatalog({
+        ...context,
+        pendencies: [{ ...context.pendencies[0], registeredInvoiceId: 'nf-retificada', documento: 'Nota Fiscal' }],
+        invoices: [{ id: 'nf-retificada', numero: number, desc: 'Material de sala conferido' }]
+    });
+    const engine = createSearchEngine(Fuse, catalog);
+    const [result] = searchCatalog(engine, number);
+    assert.equal(result?.pendencyId, 'p1');
+    assert.ok(result.title.includes(number));
+    assert.deepEqual(searchCatalog(engine, 'R'), []);
+});

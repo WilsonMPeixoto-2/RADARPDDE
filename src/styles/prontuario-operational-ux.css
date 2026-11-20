@@ -484,6 +484,15 @@ body.dark-theme #prontuario-verif-rows .invoice-document-row.is-striped {
 
 /* Mantém a área de trabalho da grade aproveitável em desktops largos. */
 @media (min-width: 1100px) {
+    #main-container .prontuario-school-header {
+        padding-block: 10px;
+    }
+
+    #main-container .prontuario-flowbar.has-operational-actions {
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+    }
+
     #tab-verificacoes .prontuario-evaluation-table > thead th {
         padding-block: 9px;
     }

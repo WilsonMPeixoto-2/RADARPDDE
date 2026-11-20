@@ -30,6 +30,7 @@ on:
       - 'tests/e2e/supabase-inventory-terminal-delete.spec.js'
       - 'tests/e2e/supabase-operational-correction-local.spec.js'
       - 'tests/fixtures/quality-provisional.sql'
+      - 'tests/fixtures/operational-correction-local.sql'
       - 'tests/e2e/exercise-management.spec.js'
       - 'tests/e2e/frontend-contract.spec.js'
       - 'docs/architecture/supabase-readiness.md'
@@ -70,6 +71,7 @@ on:
       - 'tests/e2e/supabase-inventory-terminal-delete.spec.js'
       - 'tests/e2e/supabase-operational-correction-local.spec.js'
       - 'tests/fixtures/quality-provisional.sql'
+      - 'tests/fixtures/operational-correction-local.sql'
       - 'tests/e2e/exercise-management.spec.js'
       - 'tests/e2e/frontend-contract.spec.js'
       - 'docs/architecture/supabase-readiness.md'
@@ -424,7 +426,7 @@ jobs:
           PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report-operational-correction
         run: |
           set -euo pipefail
-          psql 'postgresql://postgres:postgres@127.0.0.1:54322/postgres' -X -1 -v ON_ERROR_STOP=1 -f tests/fixtures/quality-provisional.sql
+          psql 'postgresql://postgres:postgres@127.0.0.1:54322/postgres' -X -1 -v ON_ERROR_STOP=1 -f tests/fixtures/operational-correction-local.sql
           RADAR_DATA_MODE=supabase-preview \
           RADAR_ENVIRONMENT=test \
           RADAR_SUPABASE_REPOSITORY_ENABLED=true \

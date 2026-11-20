@@ -7,7 +7,7 @@ set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(77);
+select plan(81);
 
 -- --------------------------------------------------------------- massa
 insert into auth.users (id, email) values
@@ -485,6 +485,39 @@ select is(
     0,
     'T2: Pendência deduplicada foi removida integralmente na transação'
 );
+reset role;
+
+-- Duas NFs históricas podem apontar ao mesmo bem. A exclusão de apenas uma
+-- delas deve manter o vínculo da vizinha e a inventariação já registrada.
+insert into public.assets (id, school_id, competence_id, description, expense_type, invoice_number, amount, status)
+values ('OCC-ASSET-SHARED', 'OCC-SCHOOL', '2041-03', 'Bem histórico compartilhado', 'permanente', 'OCC-SH-A', 400, 'Inventariada');
+insert into public.registered_invoices
+    (id, school_id, competence_id, program_id, verification_id, source_context_key, description, expense_type, invoice_number, amount, linked_asset_id)
+select 'OCC-SH-' || label, 'OCC-SCHOOL', '2041-03', 'OCC_BASIC', 'OCC-SCHOOL::2041-03::OCC_BASIC', '2041-03_OCC_BASIC',
+       'Aquisição compartilhada ' || label, 'permanente', 'OCC-SH-' || label, 200, 'OCC-ASSET-SHARED'
+from (values ('A'), ('B')) as suffix(label);
+
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000c001","role":"authenticated"}', true);
+set local role authenticated;
+insert into occ_plans values ('shared-asset', public.preview_operational_change(
+    pg_temp.occ_req('delete_invoice', '{"kind":"invoice","id":"OCC-SH-A","programId":"OCC_BASIC"}')));
+select is((select plan -> 'preserved' ->> 'sharedAssetId' from occ_plans where k = 'shared-asset'),
+    'OCC-ASSET-SHARED', 'T3: prévia informa o ID do bem compartilhado que será preservado');
+select is((select plan -> 'effects' -> 'delete' -> 'assets' from occ_plans where k = 'shared-asset'),
+    '[]'::jsonb, 'T3: o bem compartilhado não integra a exclusão');
+select lives_ok($$
+    select public.apply_operational_change(
+        pg_temp.occ_req('delete_invoice', '{"kind":"invoice","id":"OCC-SH-A","programId":"OCC_BASIC"}'),
+        (select plan ->> 'planDigest' from occ_plans where k = 'shared-asset'), '00000000-0000-0000-0000-0000000000e1')
+$$, 'T3: excluir uma das NFs com bem compartilhado');
+select is((
+    select array[
+        (select count(*)::text from public.registered_invoices where id = 'OCC-SH-A'),
+        (select linked_asset_id from public.registered_invoices where id = 'OCC-SH-B'),
+        (select status from public.assets where id = 'OCC-ASSET-SHARED'),
+        (select bonus_result from public.verifications where id = 'OCC-SCHOOL::2041-03::OCC_BASIC')
+    ]), array['0', 'OCC-ASSET-SHARED', 'Inventariada', 'apta'],
+    'T3: NF alvo removida, NF vizinha vinculada, bem terminal e bonificação preservados');
 reset role;
 
 select * from finish();

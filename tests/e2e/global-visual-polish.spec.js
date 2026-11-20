@@ -132,9 +132,10 @@ test.describe('Polimento visual global', () => {
       expect(flowText).toContain(label);
     }
     const fiscalTitle = page.locator('[data-program-id="BASIC"][data-document-key="notaFiscal"] .invoice-document-panel-title strong').first();
+    await page.evaluate(() => document.fonts.ready);
     const bounds = await fiscalTitle.boundingBox();
     expect(bounds, 'título do grupo fiscal').not.toBeNull();
-    expect(bounds.y + bounds.height, 'Notas Fiscais na primeira tela a 1440 × 900').toBeLessThanOrEqual(900);
+    expect.soft(bounds.y + bounds.height, 'Notas Fiscais na primeira tela a 1440 × 900').toBeLessThanOrEqual(900);
     await shot(page, testInfo, '05-prontuario-visao-geral');
     // A divergência visual continua reprovando o teste. Exercitar também os fluxos abaixo.
     await golden(page, 'prontuario.png', expect.soft);

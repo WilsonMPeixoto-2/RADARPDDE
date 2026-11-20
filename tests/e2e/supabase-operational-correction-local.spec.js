@@ -24,7 +24,8 @@ const SCHOOL_ID = 'ESC-OTHER';
 const COMPETENCE = '2026-05';
 const PROGRAM_ID = 'BASIC';
 
-test.describe.configure({ mode: 'serial' });
+// A ordem da pilha é preservada; só a jornada que falhou é repetida.
+test.describe.configure({ mode: 'default' });
 
 async function loginAs(page, profileId) {
     const account = fixtures.find(item => item.profileId === profileId && item.active);
@@ -35,6 +36,15 @@ async function loginAs(page, profileId) {
     await page.locator('#radar-auth-password').fill(fixturePassword);
     await page.locator('#radar-auth-form button[type="submit"]').click();
     await waitForApp(page, profileId);
+    if (['controller', 'federal_assistant'].includes(profileId)) await selectCompetence(page, COMPETENCE);
+}
+
+async function selectCompetence(page, key) {
+    const month = page.locator('#global-competence-select');
+    await month.selectOption(key);
+    await expect(month).toHaveValue(key);
+    await expect(month).toBeEnabled();
+    await page.waitForFunction(expected => window.RadarApplicationServices.data.currentOperationalCompetence === expected, key);
 }
 
 async function waitForApp(page, role) {
@@ -155,8 +165,8 @@ async function exportSmeSchoolRow(assistantPage, schoolId) {
     return { extrato: row.getCell('E').text, notasFiscais: row.getCell('G').text, status: row.getCell('W').text };
 }
 
-async function createInvoice(page, { type, number, description, amount }) {
-    const fiscalRow = page.locator(`tr[data-program-id="${PROGRAM_ID}"][data-document-key="notaFiscal"]`);
+async function createInvoice(page, { type, number, description, amount, programId = PROGRAM_ID }) {
+    const fiscalRow = page.locator(`tr[data-program-id="${programId}"][data-document-key="notaFiscal"]`);
     await fiscalRow.getByRole('button', { name: 'Adicionar Nota', exact: true }).click();
     const modal = page.locator('#modal-dados-nota');
     await expect(modal).toHaveClass(/show/);
@@ -755,4 +765,135 @@ test('T1/T2 preserva a NF retificada e seu histórico ao excluir somente a Pend�
     const [preserved] = await readInvoiceFromDb(page, revised);
     expect(preserved).toMatchObject({ id: invoice.id, payload: { analiseDocumentoFiscal: 'Não analisado' } });
     expect((await readVerificationFromDb(page)).bonus_result).toBe(before.bonus_result);
+});
+
+test('T3 retira o bem exclusivo inventariado do Capital e do Inventário e conserva a aquisição vizinha', async ({ page, browser }, testInfo) => {
+    test.setTimeout(120000);
+    const schoolId = 'ESC-LOCAL';
+    const stamp = Date.now();
+    const target = `INV-ALVO-${stamp}`;
+    const neighbor = `INV-VIZINHA-${stamp}`;
+    const capital = page.getByRole('tabpanel', { name: 'Registro de Capital' });
+    const capitalTab = page.getByRole('tab', { name: 'Registro de Capital', exact: true });
+    async function records(currentPage, number) {
+        return currentPage.evaluate(async ({ schoolId, number }) => {
+            const db = window.RadarSessionContext.service.client;
+            const invoices = await db.from('registered_invoices').select('id, linked_asset_id, amount')
+                .eq('school_id', schoolId).eq('invoice_number', number);
+            const assets = await db.from('assets').select('id, status, inventory_process, amount')
+                .eq('school_id', schoolId).eq('invoice_number', number);
+            if (invoices.error || assets.error) throw new Error((invoices.error || assets.error).message);
+            return { invoices: invoices.data, assets: assets.data };
+        }, { schoolId, number });
+    }
+
+    await loginAs(page, 'controller');
+    await openSchool(page, 'controller', schoolId);
+    await createInvoice(page, { type: 'permanente', number: target, description: 'Projetor da sala de leitura', amount: 900 });
+    await createInvoice(page, { type: 'permanente', number: neighbor, description: 'Armário da biblioteca', amount: 440 });
+    await capitalTab.click();
+    await expect(capital.getByRole('row').filter({ hasText: target })).toBeVisible();
+    await expect(capital.getByRole('row').filter({ hasText: neighbor })).toBeVisible();
+    const survivor = await records(page, neighbor);
+    expect(survivor.assets).toHaveLength(1);
+    expect(survivor.invoices).toEqual([{ id: expect.any(String), linked_asset_id: survivor.assets[0].id, amount: 440 }]);
+
+    const inventoryContext = await browser.newContext({ baseURL: testInfo.project.use.baseURL });
+    try {
+        const inventory = await inventoryContext.newPage();
+        await loginAs(inventory, 'inventory');
+        await inventory.locator('#nav-inventario').click();
+        const row = number => inventory.getByRole('row').filter({ hasText: number });
+        await expect(row(neighbor)).toBeVisible();
+        await row(target).getByRole('button', { name: 'Marcar como Inventariado', exact: true }).click();
+        const form = inventory.locator('#modal-inventario-confirm');
+        await form.locator('#inventario-observacoes').fill('Conferência do bem de teste.');
+        await form.getByRole('button', { name: 'Confirmar Inventariação', exact: true }).click();
+        await expect(form).not.toHaveClass(/show/);
+        const terminal = await records(page, target);
+        expect(terminal.assets).toMatchObject([{ id: terminal.invoices[0].linked_asset_id, status: 'Inventariada' }]);
+
+        await openSchool(page, 'controller', schoolId);
+        await page.getByRole('button', { name: `Excluir NF: ${target}`, exact: true }).click();
+        const preview = page.getByRole('dialog', { name: 'Excluir nota fiscal' });
+        await expect(preview.getByText(/1 bem patrimonial/)).toBeVisible();
+        await expect(preview.getByText(/já está Inventariado e também será excluído/)).toBeVisible();
+        await testInfo.attach('inventario-previa-exclusao-causal', { body: await preview.screenshot(), contentType: 'image/png' });
+        await preview.getByRole('button', { name: 'Confirmar exclusão', exact: true }).click();
+        await expect(preview).toBeHidden();
+        await page.reload();
+        await waitForApp(page, 'controller');
+        await capitalTab.click();
+        await expect(capital.getByRole('row').filter({ hasText: target })).toHaveCount(0);
+        await expect(capital.getByRole('row').filter({ hasText: neighbor })).toBeVisible();
+        expect(await records(page, target)).toEqual({ invoices: [], assets: [] });
+        expect(await records(page, neighbor)).toEqual(survivor);
+
+        await inventory.reload();
+        await waitForApp(inventory, 'inventory');
+        await expect(row(neighbor)).toBeVisible();
+        await expect(row(target)).toHaveCount(0);
+    } finally {
+        await inventoryContext.close();
+    }
+});
+
+test('T3 atualiza a escola no Dashboard, na Carteira e no Passivo de junho após a exclusão da NF de maio', async ({ page, browser }, testInfo) => {
+    test.setTimeout(120000);
+    const school = 'ESC-QUALITY';
+    const schoolName = 'Escola da Conta PDDE Qualidade';
+    const number = `CONSUMIDORES-${Date.now()}`;
+    const observerContext = await browser.newContext({ baseURL: testInfo.project.use.baseURL });
+    try {
+        const observer = await observerContext.newPage();
+        await loginAs(page, 'federal_assistant');
+        await openSchool(page, 'federal_assistant', school);
+        await createInvoice(page, { type: 'consumo', programId: 'CONECTADA', number, description: 'Tinta para a sala de leitura', amount: 72 });
+        const invoiceRow = page.locator('.invoice-document-row').filter({ hasText: number });
+        await invoiceRow.getByRole('combobox').selectOption('Incorreto');
+        const form = page.locator('#modal-nova-pendencia');
+        await form.getByLabel('Documento ausente', { exact: true }).check();
+        await form.getByLabel('Observações / Detalhes', { exact: true }).fill('Conferir a nota da aquisição.');
+        await form.getByRole('button', { name: 'Criar Pendência', exact: true }).click();
+        await expect(form).not.toHaveClass(/show/);
+        await settleWrites(page);
+        await closePreviewDrawerIfOpen(page);
+
+        await loginAs(observer, 'controller');
+        const wallet = observer.getByRole('row').filter({ hasText: schoolName });
+        const passivo = observer.locator('#passivo-competencias-list');
+        const passivoRow = passivo.getByRole('row').filter({ hasText: schoolName });
+        const dashboardCard = observer.getByRole('button', { name: /Pendências abertas/ }).locator('.stat-value');
+        await observer.locator('#nav-dashboard').click();
+        await expect(dashboardCard).toHaveText(/^[0-9]+ Escolas?$/);
+        const openSchoolCount = Number.parseInt(await dashboardCard.textContent(), 10);
+        expect(openSchoolCount).toBeGreaterThan(0);
+        await observer.locator('#nav-escolas').click();
+        await expect(wallet).toContainText('1 ativa(s)');
+        await observer.locator('#nav-competencias').click();
+        await selectCompetence(observer, '2026-06');
+        await expect(passivoRow).toContainText(number);
+        await expect(passivoRow).toContainText('Aberta');
+
+        await invoiceRow.getByRole('button', { name: `Excluir NF: ${number}`, exact: true }).click();
+        const preview = page.getByRole('dialog', { name: 'Excluir nota fiscal' });
+        await expect(preview.getByText(/1 Pendência/)).toBeVisible();
+        await preview.getByRole('button', { name: 'Confirmar exclusão', exact: true }).click();
+        await expect(preview).toBeHidden();
+        await expect(invoiceRow).toHaveCount(0);
+
+        await observer.reload();
+        await waitForApp(observer, 'controller');
+        await selectCompetence(observer, '2026-06');
+        await expect(passivo).toBeVisible();
+        await expect(passivoRow).toHaveCount(0);
+        await selectCompetence(observer, COMPETENCE);
+        await observer.locator('#nav-escolas').click();
+        await expect(wallet).toContainText('Sem pendência ativa');
+        await observer.locator('#nav-dashboard').click();
+        const remaining = openSchoolCount - 1;
+        await expect(dashboardCard).toHaveText(`${remaining} ${remaining === 1 ? 'Escola' : 'Escolas'}`);
+    } finally {
+        await observerContext.close();
+    }
 });
