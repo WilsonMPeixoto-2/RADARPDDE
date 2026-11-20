@@ -153,3 +153,35 @@ test('habilita correção T2/T3 apenas contra Supabase local em modo de teste', 
         );
     }
 });
+
+test('release T0–T3 permanece OFF por padrão e exige autorização de produção independente', async () => {
+    const { buildRuntimeInput } = await loadGenerator();
+    const base = {
+        RADAR_DATA_MODE: 'supabase-production',
+        RADAR_ENVIRONMENT: 'production',
+        RADAR_SUPABASE_REPOSITORY_ENABLED: 'true',
+        RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED: 'true',
+        RADAR_SUPABASE_URL: 'https://example.supabase.co',
+        RADAR_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_example'
+    };
+    const disabled = buildRuntimeInput(base);
+    assert.notEqual(disabled.features.operationalCorrectionRelease, true);
+    const approved = buildRuntimeInput({ ...base, RADAR_OPERATIONAL_CORRECTION_RELEASE_ENABLED: 'true' });
+    assert.equal(approved.features.operationalCorrectionRelease, true);
+    assert.notEqual(approved.features.operationalCorrectionPilot, true);
+
+    for (const changes of [
+        { RADAR_DATA_MODE: 'supabase-preview' },
+        { RADAR_ENVIRONMENT: 'test' },
+        { RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED: 'false' },
+        { RADAR_SUPABASE_REPOSITORY_ENABLED: 'false' },
+        { RADAR_SUPABASE_URL: 'http://127.0.0.1:54321' },
+        { RADAR_SUPABASE_URL: 'http://example.supabase.co' },
+        { RADAR_OPERATIONAL_CORRECTION_PREVIEW: 'true' }
+    ]) {
+        assert.throws(
+            () => buildRuntimeInput({ ...base, RADAR_OPERATIONAL_CORRECTION_RELEASE_ENABLED: 'true', ...changes }),
+            /correção operacional.*produção|correção operacional.*simultânea/i
+        );
+    }
+});
