@@ -8,7 +8,8 @@
   "policy": {
     "inheritance": "Approved decisions remain binding across agents, chats and releases until explicitly superseded; obligations are independently tracked.",
     "closure": "One code commit or passed test does not close other obligations, especially future UI, reports and tests.",
-    "chatCapture": "A chat decision must be recorded with its verifiable origin and linked to downstream obligations; absent source is a gap, not implied authority."
+    "chatCapture": "A chat decision must be recorded with its verifiable origin and linked to downstream obligations; absent source is a gap, not implied authority.",
+    "noSilentDeletion": "An obligation must never be deleted; if superseded, retain its ID, mark status superseded and link replacedBy to an existing successor."
   },
   "records": [
     {
@@ -936,5 +937,59 @@
         }
       ]
     }
+  ],
+  "trackedObligationIds": [
+    "T0T6-I001-01",
+    "T0T6-I001-02",
+    "T0T6-I001-03",
+    "T0T6-I002-01",
+    "T0T6-I002-02",
+    "T0T6-I002-03",
+    "T0T6-I002-04",
+    "T0T6-I002-05",
+    "T0T6-I003-01",
+    "T0T6-I003-02",
+    "T0T6-I004-01",
+    "T0T6-I004-02",
+    "T0T6-I004-03",
+    "T0T6-I006-01",
+    "T0T6-I006-02",
+    "T0T6-I007-01",
+    "T0T6-I007-02",
+    "T0T6-I007-03",
+    "T0T6-I008-01",
+    "T0T6-I008-02",
+    "T0T6-I009-01",
+    "T0T6-I009-02",
+    "T0T6-I010-01",
+    "T0T6-I010-02",
+    "T0T6-I011-01",
+    "T0T6-I011-02",
+    "T0T6-I011-03",
+    "T0T6-I011-04",
+    "T0T6-I012-01",
+    "T0T6-I012-02",
+    "T0T6-I013-01",
+    "T0T6-I013-02",
+    "T0T6-I013-03",
+    "T0T6-I014-01",
+    "T0T6-I014-02",
+    "T0T6-I014-03",
+    "T0T6-I014-04",
+    "T0T6-I015-01",
+    "T0T6-I015-02",
+    "T0T6-I015-03",
+    "T0T6-I016-01",
+    "T0T6-I016-02",
+    "T0T6-I017-01",
+    "T0T6-I017-02",
+    "T0T6-I018-01",
+    "T0T6-I018-02",
+    "T0T6-I019-01",
+    "T0T6-I019-02",
+    "T0T6-I019-03",
+    "T0T6-I020-01",
+    "T0T6-I020-02",
+    "T0T6-I020-03"
   ]
 }

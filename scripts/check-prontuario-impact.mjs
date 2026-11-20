@@ -14,7 +14,7 @@ const SURFACES = new Set([
   'domain','ui','visual','tests','db','security',
   'reports','documentation','release','governance'
 ]);
-const STATES = new Set(['planned','candidate','gate-pending','preserve','verified']);
+const STATES = new Set(['planned','candidate','gate-pending','preserve','verified','superseded']);
 const GITHUB = 'https://github.com/WilsonMPeixoto-2/RADARPDDE/';
 
 function record(x) {
@@ -86,6 +86,10 @@ function validateDecisionImpact({impact, registry, lineage}, {rootDir = null} = 
       if (!SURFACES.has(o.surface)) errors.push(loc+': superfície inválida');
       if (!/^T[0-6]$/.test(String(o.phase||''))) errors.push(loc+': fase inválida');
       if (!STATES.has(o.status)) errors.push(loc+': status inválido');
+      if (o.status === 'superseded' &&
+        (!nonempty(o.replacedBy) || o.replacedBy === o.id)) {
+        errors.push(loc+': obrigação superseded exige ID sucessor explícito');
+      }
       if (!nonempty(o.acceptance)) errors.push(loc+': contrato de aceite ausente');
       if (!Array.isArray(o.requirementIds) || !o.requirementIds.length) {
         errors.push(loc+': obrigação sem requisito histórico');
@@ -110,6 +114,25 @@ function validateDecisionImpact({impact, registry, lineage}, {rootDir = null} = 
       }
     }
   }
+
+  const tracked = Array.isArray(impact.trackedObligationIds) ? impact.trackedObligationIds : [];
+  if (!tracked.length) errors.push('decision-impact: registro persistente de obrigações ausente');
+  const trackedSet = new Set(tracked);
+  if (trackedSet.size !== tracked.length) errors.push('decision-impact: chaves persistentes duplicadas');
+  for(const id of trackedSet) {
+    if (!seenObligations.has(id)) errors.push(id+': obrigação perdida no mapa; não apagar histórico, registrar transição');
+  }
+  for(const entry of records) {
+    for(const obligation of (entry.obligations || [])) {
+      if (obligation?.status === 'superseded' &&
+        !seenObligations.has(obligation.replacedBy)) {
+        errors.push(obligation.id+': sucessora de obrigação não localizada');
+      }
+    }
+  }
+  for(const id of seenObligations) {
+    if (!trackedSet.has(id)) errors.push(id+': obrigação não registrada no catálogo de chaves persistentes');
+  }
   for(const decision of decisionMap.values()) {
     if (decision.status === 'approved' && !seenRecords.has(decision.id)) {
       errors.push(decision.id+': decisão aprovada sem mapa de impacto');
@@ -130,6 +153,7 @@ function queryDecisionImpact(impact,{phase='',surface='',file='',decision='',ope
       if (phase && obligation.phase!==phase) continue;
       if (surface && obligation.surface!==surface) continue;
       if (file && !obligation.targetPaths.includes(file)) continue;
+      if (obligation.status==='superseded') continue;
       if (open && obligation.status==='verified') continue;
       result.push({decisionId:entry.decisionId,obligation});
     }

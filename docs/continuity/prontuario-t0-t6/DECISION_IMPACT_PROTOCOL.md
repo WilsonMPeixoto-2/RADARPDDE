@@ -36,7 +36,7 @@ Fala do usuário / análise / proposta de agente
 - `preserve`: invariante obrigatório para desenvolvimentos que tocam a superfície;
 - `verified`: só com evidência explícita, linkando commit/testes/revisão; **não significa publicada**.
 
-Ao mudar requisito, a decisão original continua rastreável por `supersedes`; uma proposta antiga não vira aprovada por aparecer em outra branch. Nunca remover um impacto obsoleto para esconder a mudança: registrar transição e sucessor antes de encerrar.
+Ao mudar requisito, a decisão original continua rastreável por `supersedes`; uma proposta antiga não vira aprovada por aparecer em outra branch. **Não eliminar uma obrigação individual, mesmo que outras da mesma decisão continuem:** `trackedObligationIds` mantém o conjunto de IDs, e a CI impede que um ID conhecido desapareça. Se uma obrigação for substituída, conservar a linha, mudar para `superseded` e indicar `replacedBy` apontando para obrigação sucessora. Alterar ambos os arquivos deliberadamente ainda exige revisão de diff pelo PR; nenhum verificador impede edição maliciosa de todos os arquivos do repositório.
 
 ## Exemplo operacional: inventário, regras, layout e testes
 
