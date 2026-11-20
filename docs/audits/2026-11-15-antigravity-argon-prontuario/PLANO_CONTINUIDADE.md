@@ -1,7 +1,7 @@
 # Plano de Continuidade — Reconciliação Integral das Branches e Próximos Passos (T2–T6)
 
-- **Data de atualização:** 19/11/2026
-- **Branch desta auditoria e evolução sincronizada:** `audit/antigravity-argon-prontuario-20261115`
+- **Data de atualização:** 20/11/2026
+- **Branch desta auditoria e evolução sincronizada:** `audit/antigravity-argon-prontuario-20261115` (Draft PR [#534](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534), Docker CI verde em [`actions/runs/44669524893`](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/44669524893))
 - **Branches sincronizadas nesta atualização:**
   - `fix/prontuario-integrado-validado-20261115@20409c12591090b3b422ae014afb8cdf880bd387` (branch oficial da frente T0–T6)
   - `fix/review-antigravity-t2-assessoria-20261118@009e9101f1d6e9788284b124a6e3053020eb3f1f` (PR #532 Draft — A-01 + `schema.test.sql` + prova 74/74 pgTAP em Docker `#44310070849`)
@@ -41,22 +41,16 @@
 
 ## 2. Sequência de Execução Vigente (Alinhada a `docs/CURRENT_STAGE.md` e `20409c12`)
 
-### Etapa 1 — Homologação integral de T1–T3 no Docker local (Prioridade Imediata)
-1. **Não reimplementar o código de T2/T3 já conectado.**
-2. Com Docker ativo, subir e resetar o Supabase descartável local:
-   ```bash
-   npm run supabase:start
-   npm run supabase:reset
-   npm run supabase:test:db
-   ```
-3. Executar as **74 asserções `pgTAP`** (`supabase/tests/database/operational-correction.test.sql`) e o ensaio de concorrência real (`scripts/test-operational-correction-concurrency.sh`) em PostgreSQL 17 local.
-4. Executar os testes Playwright autenticados com o piloto habilitado em loopback (`RADAR_OPERATIONAL_CORRECTION_PREVIEW=true`, `RADAR_DATA_MODE=supabase-preview`, `RADAR_ENVIRONMENT=test`, `RADAR_SUPABASE_URL=http://127.0.0.1:54321`), validando:
-   - Auth/RLS real por perfil (`controlador`, `assistente`, `inventario`, `sme`);
-   - Persistência real após `F5` (`page.reload()`) e em segunda sessão;
-   - Concorrência entre duas operações com chaves distintas e criação concorrente de dependente entre `preview` e `apply`;
-   - Retorno de saída provisória do PDDE Qualidade ao excluir NF originada de identificação;
-   - Reflexo em todos os consumidores (Prontuário, Pendências, Passivo, Inventário, Busca Global, Alertas, Timeline e Excel).
-5. Submeter as janelas reais à navegação e aceite visual do proprietário.
+### Etapa 1 — Fechamento humano de T1–T3 e integração na branch oficial (Prioridade Imediata)
+1. **Já provado no CI Docker real (`actions/runs/44669524893`, commit `9c66e8e3`, 20/11/2026):**
+   - `63` migrations + **77/77 asserções `pgTAP`** (`operational-correction.test.sql`, incluindo `DISTINCT` em `selectedPendencyIds`) + `schema.test.sql` + `supabase:lint:db` + `check:generated` (SHA-256 exato) + `typecheck:database`;
+   - **3/3 casos determinísticos de concorrência/idempotência** em PostgreSQL 17 (`scripts/test-operational-correction-concurrency-local.mjs`: mesma `operationKey` sob barreira com exclusão de bem `Inventariada`, duas `operationKey` distintas disputando o mesmo `planDigest`, e rejeição `IDEMPOTENCY_CONFLICT`);
+   - **4/4 testes Playwright autenticados T2/T3** com `RADAR_OPERATIONAL_CORRECTION_PREVIEW=true` em `127.0.0.1:54321` (`tests/e2e/supabase-operational-correction-local.spec.js`): `correct_analysis`/`clear_analysis`, `consAssessoria` + A-01 real + `Corrigir análise` pela gaveta, `delete_invoice` com preservação de NF vizinha e `bonus_result = 'apta'` (ADR-055) — todos com `F5` real e segunda sessão autenticada (`federal_assistant`) — mais contraprova `sme` bloqueada com `AUTHORIZATION_DENIED`, preservando `17/17 + 4/4` das suítes padrão com flag OFF.
+2. **Pendente antes de declarar T1–T3 encerrados e avançar para T4:**
+   - Submeter as telas T1–T3 à navegação e **aceite visual/operacional do proprietário**;
+   - Após aprovação visual da T1, atualizar o snapshot golden pré-T1 `prontuario.png` (`global-visual-polish.spec.js:115`) para zerar a última diferença em `Testes E2E Playwright`;
+   - Complementar o ensaio E2E autenticado de retorno de saída provisória do PDDE Qualidade na UI + conferência final de consumidores e corte de rotas legadas;
+   - Revisar e integrar seletivamente o PR #534 na branch oficial `fix/prontuario-integrado-validado-20261115` (mantendo `main`, Vercel Production e Supabase institucional intocados).
 
 ### Etapa 2 — Implementação e homologação de T4 (Após o gate de T2/T3)
 1. Implementar a edição pós-consolidação da bonificação com estado **"Alterações pendentes de consolidação"** e ação **"Consolidar alterações"** (conforme §7.1 da matriz de transição e contrato aprovado).
