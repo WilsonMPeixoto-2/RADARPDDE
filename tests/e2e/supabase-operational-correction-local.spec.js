@@ -120,7 +120,7 @@ async function readPendenciesForInvoice(page, invoiceId) {
     return page.evaluate(async id => {
         const { data, error } = await window.RadarSessionContext.service.client
             .from('pendencies')
-            .select('id, document_key, status, registered_invoice_id')
+            .select('id, document_key, status, registered_invoice_id, payload')
             .eq('registered_invoice_id', id);
         if (error) throw new Error(error.message);
         return data || [];
@@ -298,7 +298,10 @@ test('T2 Consulta à Assessoria + A-01 real + Corrigir análise pela gaveta: RPC
     const retifyDialog = page.getByRole('dialog', { name: 'Corrigir análise técnica' });
     await expect(retifyDialog).toBeVisible();
     await expect(retifyDialog.getByLabel('Novo resultado')).toHaveValue('Correto (Atrasado)');
-    await expect(retifyDialog.getByText('Correto → Correto (Atrasado)')).toBeVisible();
+    await expect(retifyDialog.getByText(
+        'Consulta à Assessoria da nota fiscal / Resumo da Assessoria do programa — Correto → Correto (Atrasado)',
+        { exact: true }
+    )).toBeVisible();
     await retifyDialog.getByRole('button', { name: 'Confirmar correção', exact: true }).click();
     await expect(retifyDialog).toBeHidden();
     await expect(advisorySelect).toHaveValue('Correto (Atrasado)');
@@ -598,4 +601,73 @@ test('T3 devolve a saída do Qualidade ao painel e permite nova identificação 
     await waitForApp(page, 'controller');
     await expect(card(page).getByText('Identificada', { exact: true })).toBeVisible();
     await expect(page.locator('.invoice-document-row').filter({ hasText: nextNumber })).toBeVisible();
+});
+
+test('T1/T2 preserva a NF retificada e seu histórico ao excluir somente a Pendência pela fila', async ({ page, browser }, testInfo) => {
+    test.setTimeout(90000);
+    const number = `T2-FILA-${Date.now()}`;
+    const revised = `${number}-R`;
+    await loginAs(page, 'controller');
+    await openSchool(page, 'controller');
+    const before = await readVerificationFromDb(page);
+    await createInvoice(page, { type: 'consumo', number, description: 'Material de sala', amount: 85 });
+    const [invoice] = await readInvoiceFromDb(page, number);
+    const rowFor = currentPage => currentPage.locator(`.invoice-document-row[data-invoice-id="${invoice.id}"]`);
+    const controllerRow = rowFor(page);
+    await controllerRow.getByRole('combobox').selectOption('Incorreto');
+    const opening = page.locator('#modal-nova-pendencia');
+    await opening.getByLabel('Documento ausente', { exact: true }).check();
+    await opening.getByLabel('Observações / Detalhes', { exact: true }).fill('Conferir o documento fiscal.');
+    await opening.getByRole('button', { name: 'Criar Pendência', exact: true }).click();
+    await expect(opening).not.toHaveClass(/show/);
+    await settleWrites(page);
+    await closePreviewDrawerIfOpen(page);
+    const [original] = await readPendenciesForInvoice(page, invoice.id);
+    expect(original).toMatchObject({ status: 'Aberta', payload: { documentSnapshot: { numero: number } } });
+
+    await controllerRow.getByRole('button', { name: /Editar lançamento/ }).click();
+    const form = page.locator('#modal-dados-nota');
+    await form.locator('#nota-numero').fill(revised);
+    await form.locator('#nota-desc').fill('Material de sala conferido');
+    await form.locator('button[type="submit"]').click();
+    await expect(form).not.toHaveClass(/show/);
+    await expect(controllerRow).toContainText(revised);
+    await page.reload();
+    await waitForApp(page, 'controller');
+    await expect(controllerRow).toContainText(revised);
+    const [stillOpen] = await readPendenciesForInvoice(page, invoice.id);
+    expect(stillOpen).toMatchObject({ id: original.id, status: 'Aberta', payload: { documentSnapshot: original.payload.documentSnapshot } });
+
+    const secondContext = await browser.newContext({ baseURL: testInfo.project.use.baseURL });
+    try {
+        const assistantPage = await secondContext.newPage();
+        await loginAs(assistantPage, 'federal_assistant');
+        await assistantPage.locator('#nav-pendencias').click();
+        const search = assistantPage.getByRole('searchbox', { name: 'Buscar pendências' });
+        await search.fill(revised);
+        const queueRow = assistantPage.getByRole('row').filter({ hasText: revised });
+        await expect(queueRow).toContainText('Material de sala conferido');
+        await queueRow.getByRole('button', { name: 'Ver detalhes', exact: true }).click();
+        const drawer = assistantPage.locator('#pendency-detail-drawer');
+        await expect(drawer).toContainText(revised);
+        await drawer.getByRole('button', { name: 'Excluir pendência', exact: true }).click();
+        const confirmation = assistantPage.getByRole('dialog', { name: 'Excluir pendência' });
+        await expect(confirmation.getByText(/1 Pendência/)).toBeVisible();
+        await testInfo.attach('fila-previa-excluir-pendencia', { body: await confirmation.screenshot(), contentType: 'image/png' });
+        await confirmation.getByRole('button', { name: 'Confirmar exclusão', exact: true }).click();
+        await expect(confirmation).toBeHidden();
+        await expect(search).toBeVisible();
+        await expect(search).toHaveValue(revised);
+        await expect(queueRow).toHaveCount(0);
+        expect(await readPendenciesForInvoice(assistantPage, invoice.id)).toHaveLength(0);
+    } finally {
+        await secondContext.close();
+    }
+
+    await page.reload();
+    await waitForApp(page, 'controller');
+    await expect(controllerRow.getByRole('combobox')).toHaveValue('Não analisado');
+    const [preserved] = await readInvoiceFromDb(page, revised);
+    expect(preserved).toMatchObject({ id: invoice.id, payload: { analiseDocumentoFiscal: 'Não analisado' } });
+    expect((await readVerificationFromDb(page)).bonus_result).toBe(before.bonus_result);
 });

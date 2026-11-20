@@ -1,7 +1,7 @@
 # RADAR PDDE — checkpoint executável da integração T0–T3 (15/11/2026)
 
 **Leitura obrigatória temporária para qualquer agente que continuar esta frente.**
-**Branch única de integração e recuperação:** `fix/prontuario-integrado-validado-20261115` (`20409c12`); PR #532 Draft de revisão independente em `fix/review-antigravity-t2-assessoria-20261118` (`009e9101`); PR #534 Draft em `audit/antigravity-argon-prontuario-20261115` (`9c66e8e3`) com `main@69954645`, `009e9101`, 8º reparo (A-01 expandida, `database.types.ts` SHA-256 exato do CI, `inert`/scroll) e 9º reparo (`DISTINCT` em `selectedPendencyIds`, 77/77 pgTAP, concorrência com barreira e 4/4 E2E autenticados T2/T3 com F5 e segunda sessão aprovados no CI Docker `44669524893`).
+**Branch oficial de integração e recuperação.** `fix/prontuario-integrado-validado-20261115@20409c12`. A candidata e suas verificações estão no [PR #534](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534). O [#532](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/532) reúne a revisão independente em `2235821c`. A seção [verificação de 20/11](#verificação-de-2011-e-prova-complementar-do-qualidade) e os resultados por SHA do #534 orientam a retomada.
 **Baseline conservada:** `main` em `69954645` em 19/11/2026 (avançada exclusivamente pelos PRs de manutenção de ferramentas #524, #526, #531 e #533), sem alteração, merge ou deploy pela frente T0–T6.
 **Plano de destino:** [Prontuário: design, correção e exclusão integrados](../superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md).
 **Matriz obrigatória de transição por jornada:** [Regras antigas → novos comandos → substituição → testes/interfaces/documentação](../reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md). Diferenciar **código candidato ainda desligado** de **defeito no produto vigente**; a retirada de regras legadas ocorre no lote correto e exige testes de compatibilidade, não simplesmente remoção de testes antigos. Documento complementar ao plano original, sem segunda branch de execução.
@@ -14,7 +14,7 @@
 
 **Este é o ponto único de retomada da frente.** O título e as seções posteriores documentam cortes anteriores, **não** substituem esta seção. Verificar os SHAs reais ao abrir uma nova sessão; a `main` foi conferida em `58ca0c0a` em 17/11/2026 (PRs #524 `74f92c08` e #526 `58ca0c0a` sobre `4011a2b8`), a integração oficial em `20409c12` (código `a8e47045`) e a sincronização com o 7º reparo em `audit/antigravity-argon-prontuario-20261115`. A documentação desta seção registra a fotografia do código existente, não a liberação de uma capacidade em Produção.
 
-### O que está no código, sem refazer
+### Fotografia de 16–17/11 na branch oficial de integração
 
 | Lote | Entregas concretas já integradas | Estado rigoroso |
 |---|---|---|
@@ -30,7 +30,7 @@
 
 **Relatório de verificação e rastreabilidade:** [auditoria de branches, código, provas e documentos de 16/11](../audits/2026-11-16-reconciliacao-branches-codigo-documentacao-t0-t6.md) e [relatório atualizado de 17/11](../audits/2026-11-15-antigravity-argon-prontuario/RELATORIO.md). A busca de GitHub Actions pela branch de integração retornou **zero execuções**; não atribuir CI de outra branch ao HEAD integrado.
 
-### Provas que existem e as que não existem
+### Evidência da candidata em `9c66e8e3`
 
 - **CI Docker real completo (`Supabase readiness`, run [`44669524893`](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/44669524893) em `audit/antigravity-argon-prontuario-20261115@9c66e8e3`, PR #534 Draft, 20/11/2026):** os 3 jobs (`readiness`, `migration-smoke` e `supabase-local`) passaram 100%, comprovando:
   - **63 migrations + 77/77 asserções pgTAP** em `operational-correction.test.sql` (incluindo correção `array_agg(distinct value order by value)` em `selectedPendencyIds`) + `schema.test.sql` + demais 41 suítes pgTAP (`All tests successful. Result: PASS`);
@@ -48,13 +48,25 @@ Na candidata `5a41653b`, o [Supabase readiness](https://github.com/WilsonMPeixot
 
 O diálogo de exclusão exibia `identified → open` para a movimentação que deu origem à NF. A correção traduz esse efeito do plano do servidor para o estado **Programa a identificar** mostrado no painel. O novo teste do #534 registra uma saída na escola sintética `ESC-QUALITY`, identifica a NF, confere a prévia, exclui, confere o painel antes e depois de F5 e identifica novamente pela Assistente em outra sessão. Verifica no banco o mesmo provisório, uma única nova NF e uma nova chave de identificação. O código do piloto conserva a confirmação e a transação existentes. O resultado desse novo ensaio deve ser aferido no job `supabase-local` do commit candidato.
 
+Em [`7c676056`](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/44778521967), a prévia de Assessoria mostrava duas linhas idênticas quando a análise da NF e o resumo do programa mudavam juntos. A correção agrupa a transição e identifica ambos os efeitos. O teste autenticado confere os dois nomes.
+
+### Reconciliação das entradas e dos consumidores
+
+| Jornada | Autoridade na candidata | Cobertura e critério de aceite |
+|---|---|---|
+| T0/T1 · identificação corrente da NF | `InvoiceService.save` preserva identidade. O Prontuário e a fila leem a identificação vigente. O retrato da abertura pertence à Pendência. | O ensaio T1/T2 do #534 cria a Pendência, edita a NF, recarrega, procura o número novo na fila como Assistente, lê o retrato anterior e exclui só a Pendência. As projeções locais de Capital e Assessoria têm a cobertura distinta de `invoice-retification-projections.spec.js`. |
+| T1 · contexto visual | Grade em `app.js`, botão no cabeçalho do programa e comparação em `global-visual-polish.spec.js`. | A comparação continua reprovando a suíte quando diverge. O teste também percorre contato, capital, registros internos e histórico após a captura. A gravação da nova referência depende do aceite do proprietário. |
+| T2 · correção e exclusão | Análise documental via `evaluation-retification-ui.js`. NF via `beginInvoiceDocumentAnalysisEdit`. Assessoria via `service-advisory-pendency.js`. Gavetas do Prontuário e da fila chamam `excluirPendenciaOperacional`. A confirmação do piloto usa `preview_operational_change` e `apply_operational_change`. | Distinguir primeira análise, abertura genuína de Incorreto, correção e exclusão. A nova prova da fila verifica filtro, permanência da NF, resultado individual e bonificação depois de F5. |
+| T3 · exclusão fiscal, patrimônio e Qualidade | `removerNotaRegistrada` abre a prévia integrada no piloto. Com a flag desligada vale o serviço publicado. A transação determina o destino da NF, bens, Pendências e provisório. | Ensaio anterior mostrou preservação de NF vizinha e bonificação. pgTAP cobre bens exclusivos/compartilhados. O novo ensaio do Qualidade testa recarga e nova identificação em outra sessão. |
+| T4 · bonificação e contexto | O cliente do piloto e o planejador SQL implementam quatro ações de T2/T3. O planejador reserva `clear_item_history` e `delete_context`. | Implementar retificação da marca após consolidação, histórico, estado “Alterações pendentes de consolidação”, reconsolidação e coerência da próxima exportação. |
+| T5 · eventos e patrimônio | `src/domain/pendency-correction.js` calcula os efeitos em memória. Os comandos de tentativa, reanálise, contato e patrimônio ainda estão reservados no planejador. | Conectar prévia, gravação, interface e releitura para cada ação, conservando os eventos independentes. |
+| T6 · homologação global | As projeções têm autoridades diferentes, inclusive planilha SME, Pendências, Passivo, Busca, Inventário e Timeline. | Registrar o alcance por superfície e o SHA, verificar perfis, exportações, retorno de navegação, recuperação e visual. Publicação tem autorização própria. |
+
 ### Trabalho seguinte, sem reabrir regra já aprovada
 
-1. Preparar uma **cópia local isolada** do HEAD desta branch, iniciar/resetar Docker/Supabase e executar `npm ci`, `npm run supabase:start`, `npm run supabase:reset`, `npm run supabase:test:db`. O job citado acima já aprovou 77 asserções específicas da correção. Usar a cópia navegável para a homologação operacional.
-2. Instalar usuários e massa sintética; executar Playwright Auth/RLS com dados persistidos: análise agregada/individual, Pendência, NF, múltiplas Pendências, Assessoria, bem permanente Inventariada/compartilhada, provisória Qualidade, `a_identificar`, perfis restritos e motivos de bloqueio.
-3. Verificar duas operações concorrentes com **chaves distintas**, dependente novo entre preview/apply, antigas rotas de escrita, commit seguido de falha de refresh, F5, segunda sessão, caches e todos os consumidores: Prontuário, Pendências, Inventário, Passivo, Busca, Alertas, Histórico, Competências, Dashboard, Carteira, Excel.
-4. Conferir o resultado navegando com o proprietário: **botões simples e nomes intuitivos, prévia real, uma confirmação, orientação contextual, retorno à mesma tela e filtros, estados claro/escuro e responsivos**. Corrigir as regressões, adaptar expectativas legadas no mesmo lote e registrar prova por SHA.
-5. Depois de T2/T3 testados, executar T4 (bonificação/contexto) e T5 (eventos/contatos/patrimônio granular). Sem merge, deploy ou escrita institucional por esta autorização.
+1. Consultar os resultados do SHA do #534. Registrar separadamente o ensaio de retorno do Qualidade e o da NF retificada na fila.
+2. Validar com o proprietário as telas T1–T3 no ambiente local. Conferir a faixa do programa, as consequências da correção/exclusão, os registros que continuam visíveis e o retorno à fila filtrada.
+3. Fechar a conferência dos consumidores e dos escritores legados para o corte aprovado. Integrar seletivamente na branch oficial depois da homologação. Em seguida, executar T4 e T5 na ordem do plano e reunir as provas de T6.
 
 **Branches paralelas inspecionadas (16–17/11):** `main@58ca0c0a` (PRs #524 `74f92c08` e #526 `58ca0c0a` já mesclados nesta branch); `chore/supabase-cli3-2-remote-safety-20261117@7414b21e` (issue #530) e `chore/deps-browser-validation-blocked-20261117@baf158ab` (issue #528, bloqueada por `picomatch@4.0.7`) mantidas separadas; PR #515 (layout Pendências), PR #522 Draft (`37de3033`, parágrafos CSS de Pendências) e PR #523 Draft (`ed2054a3`, incidente de autenticação) permanecem separados; `audit/gemini-revisao-critica-e-sugestoes-20261115@d55747b9` e Manus (`a87e9e0e`) continuam fontes comparativas/históricas, não pontos de execução.
 

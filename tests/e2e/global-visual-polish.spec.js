@@ -19,12 +19,12 @@ async function shot(page, testInfo, name) {
   });
 }
 
-async function golden(page, name) {
+async function golden(page, name, assertion = expect) {
   await page.evaluate(async () => {
     if (document.fonts?.ready) await document.fonts.ready;
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   });
-  await expect(page).toHaveScreenshot(name, {
+  await assertion(page).toHaveScreenshot(name, {
     animations: 'disabled',
     caret: 'hide',
     maxDiffPixelRatio: 0.01
@@ -132,7 +132,8 @@ test.describe('Polimento visual global', () => {
       expect(flowText).toContain(label);
     }
     await shot(page, testInfo, '05-prontuario-visao-geral');
-    await golden(page, 'prontuario.png');
+    // A divergência visual continua reprovando o teste. Exercitar também os fluxos abaixo.
+    await golden(page, 'prontuario.png', expect.soft);
 
     const contactButton = page.getByRole('button', { name: 'Registrar contato', exact: true });
     await contactButton.click();

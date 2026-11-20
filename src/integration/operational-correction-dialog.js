@@ -7,6 +7,16 @@
     'use strict';
 
     const ANALYSES = ['Correto', 'Correto (Atrasado)', 'Incorreto', 'Não analisado'];
+    const EFFECT_LABELS = {
+        'payload.analiseDocumentoFiscal': 'Análise da nota fiscal',
+        'analysis.notaFiscal': 'Resumo das notas fiscais do programa',
+        'payload.analiseConsultaAssessoria': 'Consulta à Assessoria da nota fiscal',
+        'analysis.consAssessoria': 'Resumo da Assessoria do programa',
+        'bonification.consAssessoria': 'Entrega da consulta à Assessoria',
+        'bonification.consEnviada': 'Envio da consulta à Assessoria',
+        'bonification.encampInventario': 'Entrega do encaminhamento ao Inventário',
+        'analysis.encampInventario': 'Análise do encaminhamento ao Inventário'
+    };
     const text = value => value == null ? '' : String(value).trim();
     const el = (doc, tag, className, value) => {
         const node = doc.createElement(tag);
@@ -164,15 +174,22 @@
                 effects.appendChild(el(doc, 'p', '', deleting
                     ? 'Nenhuma outra informação será alterada.' : 'Nenhuma outra análise será alterada.'));
             }
+            const transitions = new Map();
             for (const change of changes) {
                 if (change.entity === 'quality_provisional_movements' && change.field === 'status'
                     && change.before === 'identified' && change.after === 'open') {
                     effects.appendChild(el(doc, 'p', '',
                         'A saída provisória do PDDE Qualidade voltará para “Programa a identificar” e poderá ser identificada novamente.'));
-                } else {
-                    effects.appendChild(el(doc, 'p', '', (deleting ? 'Informações relacionadas também serão atualizadas: ' : '')
-                        + text(change.before) + ' → ' + text(change.after)));
+                    continue;
                 }
+                const valueChange = text(change.before) + ' → ' + text(change.after);
+                if (!transitions.has(valueChange)) transitions.set(valueChange, new Set());
+                const fieldLabel = EFFECT_LABELS[change.field] || context.documentLabel;
+                if (fieldLabel) transitions.get(valueChange).add(fieldLabel);
+            }
+            for (const [valueChange, labels] of transitions) {
+                const scope = [...labels].join(' / ');
+                effects.appendChild(el(doc, 'p', '', scope ? scope + ' — ' + valueChange : valueChange));
             }
             for (const item of [...warnings, ...blockers]) {
                 effects.appendChild(el(doc, 'p', '', text(item?.message || item?.code || item)));
