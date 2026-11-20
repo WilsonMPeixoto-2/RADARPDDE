@@ -8,15 +8,17 @@
 **Único plano executivo de publicação T0–T3:** [Release 1: consolidação, fontes, imagens e gates](../releases/2026-11-20-prontuario-t0-t3-release-1.md), [PR #535](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/535). O contrato original, a matriz e o plano T0–T6 não perderam validade funcional; mudou a **sequência de entregas**. O checkpoint vigente fornece evidência por SHA. Os títulos e as instruções históricas abaixo de aguardar T4/T5 ou uma homologação global única NÃO são a ordem de publicação atual. PR #516 e #517 já integrados, #532 absorvido em #534; PRs #515/#522/#523 independentes, sem merge incidental. Sem autorização para deploy institucional.
 
 
-## Prontuário e correção integrada — validade vigente em 20/11/2026
+## Arquivo histórico — fotografia anterior ao PR #535 (16–20/11, superada pela rota acima)
 
-A integração oficial está em `fix/prontuario-integrado-validado-20261115@20409c12`. O [PR #534](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534) reúne a candidata com piloto local. O [PR #532](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/532) é a revisão paralela (`2235821c` em 20/11). A referência publicada é `main@69954645`.
+> **Não usar como fila corrente:** a seção abaixo preserva o estado anterior ao fatiamento em releases no [PR #535](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/535).
 
-**Ordem para cada novo agente:**
+A integração oficial de origem estava em `fix/prontuario-integrado-validado-20261115@20409c12`. O [PR #534](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534) foi adotado como base funcional do PR #535 e segue como branch colaboradora do Antigravity. O [PR #532](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/532) (`2235821c`) já foi integralmente absorvido (`diff` zero). A referência publicada é `main@69954645`.
+
+**Ordem histórica (substituída por `docs/continuity/prontuario-t0-t6/README.md`):**
 1. [`AGENTS.md`](../../AGENTS.md) e [`CURRENT_STAGE.md`](../CURRENT_STAGE.md), que registram prioridade, publicação e branches.
 2. [Contrato aprovado](PRONTUARIO_CORRECAO_CONTRATO.md): regra funcional e desbloqueio orientado ao operador.
 3. [Plano original T0–T6, atualizado por estado](../superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md) e [matriz de transição](PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md): obrigações e critérios de aceite.
-4. **[Único handoff operacional corrente](../handoff/2026-11-15-prontuario-integracao-verificada.md)**, seção **“Estado vigente — reconciliação de 16–17/11/2026”**. Todo trecho subsequente no mesmo documento tem caráter de fotografia datada, não ordem para refazer etapas.
+4. **[Handoff histórico de evidências por SHA](../handoff/2026-11-15-prontuario-integracao-verificada.md)**, seção **“Estado vigente — reconciliação de 16–17/11/2026”** (preservado como histórico; a fila atual está em `CHECKPOINT.md`).
 
 **Estado efetivo em 20/11.** O [Supabase readiness de `5a41653b`](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/44670962311) aprovou 773 verificações pgTAP em 43 arquivos, incluindo 77 de correção, três provas de concorrência e quatro jornadas autenticadas T2/T3. A execução verificou persistência após recarga e leitura em outra sessão. A comparação visual de T1 e o alcance exato das provas de T2/T3 constam do [checkpoint vigente](../handoff/2026-11-15-prontuario-integracao-verificada.md). A candidata acrescenta a jornada de reabertura e nova identificação no PDDE Qualidade. O aceite do proprietário e a integração seletiva precedem T4/T5. T6 depende da homologação conjunta.
 

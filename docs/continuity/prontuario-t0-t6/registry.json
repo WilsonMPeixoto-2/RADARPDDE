@@ -355,7 +355,7 @@
       "stage": "T2",
       "title": "A-01, botão Assessoria, acessibilidade e guardas",
       "status": "incorporated",
-      "originRef": "fix/review-antigravity-t2-assessoria-20261118@009e9101",
+      "originRef": "fix/review-antigravity-t2-assessoria-20261118@2235821c",
       "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/532",
       "decisionIds": [
         "T0T6-D008"
@@ -553,6 +553,24 @@
       ],
       "rationale": "Os filtros inválidos e os controles pouco legíveis em tema escuro foram reproduzidos. A consulta corrigida, os ajustes T1 e os ensaios de Busca, Excel e concorrência entraram na candidata. O aceite visual e as obrigações futuras do inventário em T5 continuam abertos.",
       "integratedRef": "https://github.com/WilsonMPeixoto-2/RADARPDDE/commit/e1f023fa1c11d194c317314669b958a40bbff476"
+    },
+    {
+      "id": "T0T6-C024",
+      "agent": "Antigravity",
+      "stage": "T1 / T3 / T6 (G2–G4)",
+      "title": "Fechamento técnico T0–T3 no PR #534: 12 meses em 1 linha, Despesa a identificar sem corte, manifesto G3, jornada de cliente legado e runbook G4",
+      "status": "pending-review",
+      "originRef": "audit/antigravity-argon-prontuario-20261115 (sobre PR #535@128fa3c7)",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534",
+      "decisionIds": [
+        "T0T6-D001",
+        "T0T6-D006",
+        "T0T6-D013",
+        "T0T6-D016",
+        "T0T6-D018"
+      ],
+      "rationale": "Complementa 128fa3c7 sem sobreposição: compacta os 12 meses em linha única a 1280px e garante Notas Fiscais acima da dobra em 1440×900, corrige truncamento de Despesa a identificar e color-scheme/forced-colors, expõe operationalCorrectionRelease no manifesto Vercel com simetria fail-closed em config.js, adiciona jornada G3 de convivência de cliente sem flag + rejeição de prévia obsoleta (T0T6-I018-02), rebaixa blocos históricos nos roteadores e entrega runbook operacional Gate G4.",
+      "integratedRef": ""
     }
   ]
 }

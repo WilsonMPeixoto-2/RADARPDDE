@@ -35,6 +35,21 @@ test(`contexto horizontal mantém consolidação e análise após edição em ${
         analysis: verificacoes[schoolId][compKey].analise.extCC
     }), context);
     expect(state).toEqual({ bonus: 'apta', analysis: 'Correto' });
+    if (viewport.width >= 1280) {
+        const monthTops = await page.locator('#tab-verificacoes .comp-sub-tab').evaluateAll(nodes => (
+            nodes.map(node => Math.round(node.getBoundingClientRect().top))
+        ));
+        expect(monthTops.length).toBeGreaterThanOrEqual(12);
+        expect(Math.max(...monthTops) - Math.min(...monthTops), '12 competências em linha única').toBeLessThanOrEqual(4);
+    }
+    if (viewport.width === 1440 && viewport.height === 900) {
+        const fiscalTitle = page.locator(
+            'tr[data-program-id="BASIC"][data-document-key="notaFiscal"] .invoice-document-panel-title strong'
+        ).first();
+        const fiscalBounds = await fiscalTitle.boundingBox();
+        expect(fiscalBounds, 'título Notas Fiscais visível em 1440×900').not.toBeNull();
+        expect(fiscalBounds.y + fiscalBounds.height, 'Notas Fiscais acima da dobra em 1440×900').toBeLessThanOrEqual(900);
+    }
     await header.scrollIntoViewIfNeeded();
     await page.screenshot({ path: testInfo.outputPath('program-header.png'), animations: 'disabled' });
     const bounds = await page.locator('.prontuario-evaluation-table').boundingBox();

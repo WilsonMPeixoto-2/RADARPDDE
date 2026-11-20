@@ -482,7 +482,16 @@ body.dark-theme #prontuario-verif-rows .invoice-document-row.is-striped {
     background: #191328;
 }
 
-/* Mantém a área de trabalho da grade aproveitável em desktops largos. */
+:root {
+    color-scheme: light;
+}
+
+:root:has(body.dark-theme) {
+    color-scheme: dark;
+}
+
+/* Mantém a área de trabalho da grade aproveitável em desktops largos:
+   12 meses em linha única a 1280px e Notas Fiscais acima da dobra em 1440×900. */
 @media (min-width: 1100px) {
     #main-container .prontuario-school-header {
         padding-block: 10px;
@@ -491,6 +500,21 @@ body.dark-theme #prontuario-verif-rows .invoice-document-row.is-striped {
     #main-container .prontuario-flowbar.has-operational-actions {
         margin-bottom: 12px;
         padding-bottom: 8px;
+    }
+
+    #tab-verificacoes .card-header {
+        padding-block: 14px 10px;
+    }
+
+    #tab-verificacoes .comp-tabs-container {
+        gap: 6px !important;
+        padding: 0 20px 12px !important;
+    }
+
+    #tab-verificacoes .comp-sub-tab {
+        gap: 6px !important;
+        padding: 6px 11px !important;
+        font-size: 0.8rem !important;
     }
 
     #tab-verificacoes .prontuario-evaluation-table > thead th {
@@ -504,6 +528,23 @@ body.dark-theme #prontuario-verif-rows .invoice-document-row.is-striped {
     #prontuario-verif-rows tr.verification-document-row > td {
         padding-block: 7px;
     }
+}
+
+/* Evita truncamento precoce do título de Despesa a identificar ao lado do botão Editar lançamento. */
+#prontuario-verif-rows .invoice-document-title-line:has(.invoice-retification-edit-action) {
+    flex-wrap: wrap;
+    row-gap: 4px;
+}
+
+#prontuario-verif-rows .invoice-document-title-line:has(.invoice-retification-edit-action) > strong {
+    flex: 1 1 175px;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+#prontuario-verif-rows .invoice-provisional-label {
+    text-align: left;
 }
 
 body.dark-theme .prontuario-flowbar .prontuario-flow-action:not(.prontuario-flow-action-primary),
@@ -534,6 +575,15 @@ body.dark-theme .prontuario-tablist .prontuario-flow-tab:not(.active) {
 
 body.dark-theme #prontuario-verif-rows .evaluation-retification-trigger {
     color: var(--info);
+}
+
+@media (forced-colors: active) {
+    .prontuario-flow-action,
+    #prontuario-verif-rows .invoice-add-secondary,
+    #prontuario-verif-rows .invoice-pendency-view-button,
+    #tab-verificacoes .comp-sub-tab {
+        border: 1px solid ButtonText;
+    }
 }
 
 /* Confirmação persistente após commit confirmado quando a tela não sincroniza.

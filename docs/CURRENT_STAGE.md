@@ -14,11 +14,17 @@
 **Rota única de execução:** [Plano consolidado e gates da Release 1](releases/2026-11-20-prontuario-t0-t3-release-1.md), [PR #535](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/535) (Draft), branch `release/prontuario-t0-t3-20261120`, derivada de #534@054d3bc4. O PR #534 continua fonte imutável de comparação; #532 já está reconciliado; `fix/prontuario-integrado-validado-20261115@20409c12` é o destino de integração, ainda não atualizado. **Foco exclusivo T0–T3 até publicação e estabilização**; T4 e T5 terão releases independentes, T6 é gate transversal. As seções abaixo documentam o plano anterior de entrega conjunta e provas históricas, não a fila corrente. Os dois testes RED de ativação independente falharam no #535@9fae7182 em CI por ausência do opt-in — correção candidata implementada posteriormente; validar GREEN no HEAD final. Main, Vercel e Supabase institucional não foram alterados por esta frente.
 
 
-**Atualização consolidada:** 20/11/2026 (sobre a reconciliação de 16/11 em `20409c12`, revisão independente `009e9101`, `main@69954645` e Draft PR #534). **Frente ativa:** Prontuário integrado, correções e exclusões T0–T6.
-**Branch oficial de integração.** `fix/prontuario-integrado-validado-20261115@20409c12`. A execução corrente ocorre na candidata `audit/antigravity-argon-prontuario-20261115`, [PR #534](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534). A revisão independente [#532](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/532) está em `2235821c`. Conferir o commit e as verificações do #534 ao retomar.
+---
+
+## Arquivo histórico — fotografia anterior ao PR #535 (16–20/11, superada pelo CHECKPOINT acima)
+
+> **Não usar como fila corrente:** a seção abaixo preserva evidências anteriores ao fatiamento da Release 1 em [PR #535](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/535). Para retomar a execução atual, siga exclusivamente [CHECKPOINT.md](continuity/prontuario-t0-t6/CHECKPOINT.md), [registry.json](continuity/prontuario-t0-t6/registry.json) e [Plano da Release 1](releases/2026-11-20-prontuario-t0-t3-release-1.md).
+
+**Fotografia preservada (pré-PR #535):** 20/11/2026 (sobre a reconciliação de 16/11 em `20409c12`, revisão independente `009e9101`, `main@69954645` e Draft PR #534). **Frente ativa:** Prontuário integrado, correções e exclusões T0–T6.
+**Branch oficial de integração (origem histórica):** `fix/prontuario-integrado-validado-20261115@20409c12`. A candidata colaboradora do Antigravity é `audit/antigravity-argon-prontuario-20261115`, [PR #534](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534) (adotada como base do PR #535). A revisão independente [#532](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/532) em `2235821c` já está integralmente absorvida.
 **Baseline publicada da frente:** `main@69954645b597e39623ef2f24fe5f336ed37989f2` (verificação de 19/11, avançada exclusivamente pelos PRs de manutenção de ferramentas #524, #526, #531 `fe582fab` — Supabase CLI `3.2.0` + exceção dev-only `picomatch` até 18/12/2026 — e #533 `69954645` — Lighthouse `13.6.0`). Nenhum merge, migration institucional ou deploy de T1–T6 foi autorizado/feito por esta frente.
 
-## Única rota de retomada
+### Rota histórica (pré-PR #535 — preservada para consulta)
 
 1. [Contrato aprovado](reference/PRONTUARIO_CORRECAO_CONTRATO.md): resultado funcional pretendido, permissões e desbloqueio orientado ao objetivo.
 2. [Plano T0–T6](superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md): objetivos, decisões e critérios de aceite; checkboxes originais são tarefas do plano e não certificação da execução.
@@ -56,7 +62,7 @@
 - **PR #522 (Draft)** `fix/pendencias-paragrafos-legiveis-20261116@37de3033`: duas alterações, exclusivamente em `src/styles/task-9-pendencias.css` e teste unitário; não integrado a esta frente, avaliar colisão visual antes de eventual aproveitamento.
 - **PR #523 (Draft)** `hotfix/production-auth-timeout-recovery-20261116@ed2054a3`: tratamento da autenticação; frente de incidente independente. Não inserir na candidata de T2/T3 sem decisão e verificação de compatibilidade.
 
-## Próxima execução — ordem objetiva
+### Próxima execução histórica (pré-PR #535 — superada por `CHECKPOINT.md`)
 
 1. Conferir o SHA e o job `supabase-local` no [PR #534](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534). As quatro jornadas da revisão `5a41653b`, os três casos de concorrência e os 77 testes SQL da correção já passaram. Registrar separadamente o resultado da jornada adicional do Qualidade.
 2. Homologar T1–T3 na cópia local com o proprietário. Em T1, comparar a faixa horizontal e a altura disponível para Notas Fiscais. Em T2/T3, conferir as consequências no diálogo, os consumidores e o estado reencontrado após navegar. Registrar a decisão sobre a imagem de referência do Prontuário no mesmo lote.

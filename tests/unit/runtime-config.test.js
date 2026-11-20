@@ -246,3 +246,22 @@ test('bootstrap do navegador mantém release OFF sem HTTPS e ON apenas com opt-i
     assert.equal(visible({ ...input, features: { supabaseRepositoryEnabled: true } }, 'https:'), false);
     assert.equal(visible({ ...input, deploymentTarget: 'preview' }, 'https:'), false);
 });
+
+test('ativação simultânea de piloto e release falha fechado nos dois lados no runtime', () => {
+    const simultaneous = createRuntimeConfig({
+        deploymentTarget: 'preview',
+        dataMode: DATA_MODES.SUPABASE_PREVIEW,
+        environment: 'test',
+        features: {
+            supabaseRepositoryEnabled: true,
+            operationalCorrectionPilot: true,
+            operationalCorrectionRelease: true
+        },
+        supabase: {
+            url: 'http://127.0.0.1:54321',
+            publishableKey: 'sb_publishable_local_example'
+        }
+    });
+    assert.notEqual(simultaneous.features.operationalCorrectionPilot, true);
+    assert.notEqual(simultaneous.features.operationalCorrectionRelease, true);
+});

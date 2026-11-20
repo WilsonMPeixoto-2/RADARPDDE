@@ -789,11 +789,14 @@ test('T3 retira o bem exclusivo inventariado do Capital e do Inventário e conse
 
     await loginAs(page, 'controller');
     await openSchool(page, 'controller', schoolId);
+    const capitalRow = number => capital.getByRole('row').filter({
+        has: page.locator(`input[value="${number}"]`)
+    });
     await createInvoice(page, { type: 'permanente', number: target, description: 'Projetor da sala de leitura', amount: 900 });
     await createInvoice(page, { type: 'permanente', number: neighbor, description: 'Armário da biblioteca', amount: 440 });
     await capitalTab.click();
-    await expect(capital.getByRole('row').filter({ hasText: target })).toBeVisible();
-    await expect(capital.getByRole('row').filter({ hasText: neighbor })).toBeVisible();
+    await expect(capitalRow(target)).toContainText('Projetor da sala de leitura');
+    await expect(capitalRow(neighbor)).toContainText('Armário da biblioteca');
     const survivor = await records(page, neighbor);
     expect(survivor.assets).toHaveLength(1);
     expect(survivor.invoices).toEqual([{ id: expect.any(String), linked_asset_id: survivor.assets[0].id, amount: 440 }]);
@@ -824,8 +827,8 @@ test('T3 retira o bem exclusivo inventariado do Capital e do Inventário e conse
         await page.reload();
         await waitForApp(page, 'controller');
         await capitalTab.click();
-        await expect(capital.getByRole('row').filter({ hasText: target })).toHaveCount(0);
-        await expect(capital.getByRole('row').filter({ hasText: neighbor })).toBeVisible();
+        await expect(capitalRow(target)).toHaveCount(0);
+        await expect(capitalRow(neighbor)).toContainText('Armário da biblioteca');
         expect(await records(page, target)).toEqual({ invoices: [], assets: [] });
         expect(await records(page, neighbor)).toEqual(survivor);
 
@@ -896,4 +899,139 @@ test('T3 atualiza a escola no Dashboard, na Carteira e no Passivo de junho após
     } finally {
         await observerContext.close();
     }
+});
+
+test('G3 compatibilidade: cliente sem flag convive com schema de 63 migrations e RPC rejeita prévia obsoleta', async ({ page, browser }, testInfo) => {
+    test.setTimeout(90000);
+    const pageErrors = [];
+    page.on('pageerror', error => pageErrors.push(error.message));
+
+    const legacyNumber = `OCC-LEG-${Date.now()}`;
+    const legacyContext = await browser.newContext({ baseURL: testInfo.project.use.baseURL });
+    try {
+        await legacyContext.route('**/config.runtime.js', async route => {
+            const response = await route.fetch();
+            const source = await response.text();
+            const patched = source.replace(/"operationalCorrectionPilot"\s*:\s*true/g, '"operationalCorrectionPilot": false');
+            await route.fulfill({ response, body: patched });
+        });
+        const legacyPage = await legacyContext.newPage();
+        const legacyRpcCalls = [];
+        legacyPage.on('request', request => {
+            if (request.url().includes('/rest/v1/rpc/preview_operational_change')
+                || request.url().includes('/rest/v1/rpc/apply_operational_change')) {
+                legacyRpcCalls.push(request.url());
+            }
+        });
+
+        await loginAs(legacyPage, 'controller');
+        const legacyFlags = await legacyPage.evaluate(() => ({
+            previewFlag: window.RADAR_OPERATIONAL_CORRECTION_PREVIEW === true,
+            canUseDialog: window.RadarOperationalCorrectionDialog?.canUse?.(window) === true
+        }));
+        expect(legacyFlags).toEqual({ previewFlag: false, canUseDialog: false });
+
+        await openSchool(legacyPage, 'controller');
+        await createInvoice(legacyPage, {
+            type: 'consumo',
+            number: legacyNumber,
+            description: 'Despesa criada por cliente legado sem flag',
+            amount: 145
+        });
+        const legacyFiscalRow = legacyPage.locator(`tr[data-program-id="${PROGRAM_ID}"][data-document-key="notaFiscal"]`);
+        await legacyFiscalRow.locator('.invoice-document-row').filter({ hasText: legacyNumber })
+            .getByRole('combobox').selectOption('Correto');
+        await settleWrites(legacyPage);
+        await legacyPage.reload();
+        await waitForApp(legacyPage, 'controller');
+        await expect(legacyFiscalRow.locator('.invoice-document-row').filter({ hasText: legacyNumber })
+            .getByRole('combobox')).toHaveValue('Correto');
+        expect(legacyRpcCalls).toEqual([]);
+
+        // Cliente novo gera prévia; cliente legado altera a mesma NF; apply obsoleto deve falhar atomicamente.
+        await loginAs(page, 'controller');
+        const [targetInvoice] = await readInvoiceFromDb(page, legacyNumber);
+        expect(targetInvoice).toBeTruthy();
+
+        const previewPlan = await page.evaluate(async ({ schoolId, competence, programId, invoiceId }) => {
+            const { data, error } = await window.RadarSessionContext.service.client.rpc(
+                'preview_operational_change',
+                {
+                    p_request: {
+                        contractVersion: 1,
+                        action: 'correct_analysis',
+                        target: {
+                            kind: 'analysis',
+                            schoolId,
+                            competence,
+                            programId,
+                            documentKey: 'notaFiscal',
+                            id: invoiceId
+                        },
+                        changes: { analysis: 'Correto (Atrasado)' }
+                    }
+                }
+            );
+            if (error) throw new Error(error.message);
+            return data;
+        }, { schoolId: SCHOOL_ID, competence: COMPETENCE, programId: PROGRAM_ID, invoiceId: targetInvoice.id });
+        expect(previewPlan?.planDigest).toMatch(/^[0-9a-f]{64}$/);
+
+        // Cliente legado muta a mesma NF antes do apply da sessão nova:
+        await legacyPage.evaluate(async invoiceId => {
+            const { error } = await window.RadarSessionContext.service.client
+                .from('registered_invoices')
+                .update({ description: 'Atualizada por cliente legado durante prévia' })
+                .eq('id', invoiceId);
+            if (error) throw new Error(error.message);
+        }, targetInvoice.id);
+
+        const staleApply = await page.evaluate(async ({ schoolId, competence, programId, invoiceId, planDigest }) => {
+            const { data, error } = await window.RadarSessionContext.service.client.rpc(
+                'apply_operational_change',
+                {
+                    p_request: {
+                        contractVersion: 1,
+                        action: 'correct_analysis',
+                        target: {
+                            kind: 'analysis',
+                            schoolId,
+                            competence,
+                            programId,
+                            documentKey: 'notaFiscal',
+                            id: invoiceId
+                        },
+                        changes: { analysis: 'Correto (Atrasado)' }
+                    },
+                    p_plan_digest: planDigest,
+                    p_operation_key: crypto.randomUUID()
+                }
+            );
+            return { data, errorMessage: error?.message || null };
+        }, {
+            schoolId: SCHOOL_ID,
+            competence: COMPETENCE,
+            programId: PROGRAM_ID,
+            invoiceId: targetInvoice.id,
+            planDigest: previewPlan.planDigest
+        });
+        expect(staleApply.data).toBeNull();
+        expect(staleApply.errorMessage).toMatch(/STALE_PLAN|OPTIMISTIC_CONFLICT/);
+
+        const persisted = await page.evaluate(async invoiceId => {
+            const { data, error } = await window.RadarSessionContext.service.client
+                .from('registered_invoices')
+                .select('description, payload')
+                .eq('id', invoiceId)
+                .single();
+            if (error) throw new Error(error.message);
+            return data;
+        }, targetInvoice.id);
+        expect(persisted.description).toBe('Atualizada por cliente legado durante prévia');
+        expect(persisted.payload.analiseDocumentoFiscal).toBe('Correto');
+    } finally {
+        await legacyContext.close();
+    }
+
+    expect(pageErrors).toEqual([]);
 });

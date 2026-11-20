@@ -262,6 +262,7 @@
             localSupabaseEndpoint = false;
         }
         const operationalCorrectionPilot = input.features?.operationalCorrectionPilot === true
+            && input.features?.operationalCorrectionRelease !== true
             && dataMode === DATA_MODES.SUPABASE_PREVIEW
             && ['local', 'development', 'test'].includes(environment)
             && connectionEnabled && !productionBlocked

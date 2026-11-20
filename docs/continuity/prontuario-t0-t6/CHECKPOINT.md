@@ -15,6 +15,8 @@ O lote seguinte aplica D001/D013 à leitura do Prontuário no tema escuro e à p
 
 O filtro por arquivo passa a cobrir as entradas efetivas `app.js` e `styles.css`. A consulta rejeita opções e estados inválidos. As sete obrigações futuras de UI da T5 continuam planejadas, inclusive a retificação patrimonial e o vínculo com o SIGMA. O aceite da T1 permanece a cargo do proprietário.
 
+**Complemento colaborador Antigravity (`T0T6-C024`, PR #534 sobre `128fa3c7`):** entrega ajuste visual T1 (12 competências em linha única a 1280px, `Notas Fiscais` acima da dobra em 1440×900, leitura completa de `Despesa a identificar`, `color-scheme`/`forced-colors`), `operationalCorrectionRelease` auditável em `radar-build-manifest.json` + simetria fail-closed em `config.js`, jornada Docker G3 de convivência de cliente legado (`T0T6-I018-02`), limpeza dos blocos históricos nos roteadores e [Runbook Gate G4](../../runbooks/PRONTUARIO_RELEASE_1_G4_PUBLICACAO.md). Sem publicação ou migration institucional executada.
+
 ## Estado verificável da propagação histórica — 20/11/2026
 
 **Último SHA com readiness confirmado:** `da38a38f8ec512927dbd78d67875cbf7670cb321`. O GitHub Actions executou `check:continuity` (incluindo mapa de impactos) e aprovou **1.465 testes unitários + 8 integrações**, sem falhas nessas suítes. O conjunto completo de checks desse SHA ainda tinha jobs adicionais em andamento na consulta; não declarar CI integralmente aprovada nem T1 homologada.
