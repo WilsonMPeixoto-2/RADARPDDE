@@ -1492,12 +1492,13 @@
         "S021",
         "S022",
         "S023",
-        "S024"
+        "S024",
+        "S014"
       ],
       "decisionIds": [
         "T0T6-D016"
       ],
-      "evidence": "Lista indexada, mas fontes nem todas revisadas.",
+      "evidence": "Fontes exclusivamente em branches e reconciliações anteriores são rastreadas por SHA; algumas ainda aguardam revisão integral.",
       "codePaths": [],
       "testPaths": []
     }
