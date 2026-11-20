@@ -1,12 +1,12 @@
 name: Atualizar processo de inventário 04.11.012
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "supabase/operations/20260922_update_inventory_process_0411012.sql"
-      - ".github/workflows/update-inventory-process-0411012.yml"
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Execução excepcional de correção histórica. Confirme deliberadamente."
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -17,6 +17,7 @@ concurrency:
 
 jobs:
   update-production:
+    if: github.event_name == 'workflow_dispatch' && inputs.confirmation == 'CONFIRMAR_REEXECUCAO_EXCEPCIONAL_INVENTARIO_0411012'
     name: Atualizar e verificar escola 04.11.012 em Production
     runs-on: ubuntu-26.04
     timeout-minutes: 10
@@ -55,7 +56,7 @@ jobs:
         run: npx --no-install supabase link --project-ref "${PROJECT_REF}" --password "${PGPASS_REMOTE}"
 
       - name: Aplicar correção fail-closed e verificar resultado
-        run: npx --no-install supabase db query --linked --file supabase/operations/20260922_update_inventory_process_0411012.sql
+        run: npx --no-install supabase db query --remote --yes --file supabase/operations/20260922_update_inventory_process_0411012.sql
 
       - name: Registrar resumo sanitizado
         if: always()

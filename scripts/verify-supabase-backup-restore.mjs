@@ -246,29 +246,28 @@ async function dumpSource(sourceDbUrl) {
   };
 
   // supabase db dump é usado deliberadamente em vez de pg_dump cru.
-  runSupabase(['db', 'dump', '--db-url', sourceDbUrl, '-f', files.roles, '--role-only'], {
+  runSupabase(['db', 'dump', `--remote=${sourceDbUrl}`, '-f', files.roles, '--role-only'], {
     label: 'Gerar backup de papéis'
   });
   const roleDump = await readFile(files.roles, 'utf8');
   await writeFile(files.roles, sanitizeSupabaseRoleDump(roleDump), 'utf8');
 
-  runSupabase(['db', 'dump', '--db-url', sourceDbUrl, '-f', files.schema], {
+  runSupabase(['db', 'dump', `--remote=${sourceDbUrl}`, '-f', files.schema], {
     label: 'Gerar backup de schema'
   });
   runSupabase(
-    ['db', 'dump', '--db-url', sourceDbUrl, '-f', files.data, '--use-copy', '--data-only'],
+    ['db', 'dump', `--remote=${sourceDbUrl}`, '-f', files.data, '--use-copy', '--data-only'],
     { label: 'Gerar backup de dados' }
   );
   runSupabase(
-    ['db', 'dump', '--db-url', sourceDbUrl, '-f', files.historySchema, '--schema', 'supabase_migrations'],
+    ['db', 'dump', `--remote=${sourceDbUrl}`, '-f', files.historySchema, '--schema', 'supabase_migrations'],
     { label: 'Gerar backup do schema de histórico' }
   );
   runSupabase(
     [
       'db',
       'dump',
-      '--db-url',
-      sourceDbUrl,
+      `--remote=${sourceDbUrl}`,
       '-f',
       files.historyData,
       '--use-copy',

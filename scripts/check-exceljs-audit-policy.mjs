@@ -11,6 +11,26 @@ const DEFAULT_REPORT = path.join(ROOT, 'dependency-health/npm-audit.json');
 const AUDIT_SEVERITIES = Object.freeze(new Set(['info', 'low', 'moderate', 'high', 'critical']));
 
 const ALLOWED_ADVISORIES = Object.freeze(new Map([
+  ['GHSA-FC5Q-39XC-VJPF', Object.freeze({
+    packages: Object.freeze(new Set([
+      'dependency-cruiser',
+      'fdir',
+      'knip',
+      'picomatch',
+      'stylelint',
+      'stylelint-config-recommended',
+      'tinyglobby'
+    ])),
+    directPackages: Object.freeze(new Set([
+      'dependency-cruiser',
+      'knip',
+      'stylelint',
+      'stylelint-config-recommended'
+    ])),
+    devOnly: true,
+    expiresAt: '2026-12-18T23:59:59Z',
+    reason: 'Aceitação temporária de risco ReDoS apenas em ferramentas de desenvolvimento. Revisão obrigatória até 18/12/2026. docs/audits/2026-11-18-picomatch-risk-acceptance.md.'
+  })],
   ['GHSA-MH99-V99M-4GVG', Object.freeze({
     packages: Object.freeze(new Set([
       'archiver',
@@ -143,7 +163,7 @@ function lockfileReachesPackage(lockfile, directPackages, targetPackage) {
   return false;
 }
 
-function evaluateAuditReport(report, lockfile = null) {
+function evaluateAuditReport(report, lockfile = null, now = new Date()) {
   const violations = [];
   if (!report || typeof report !== 'object' || report.error
     || Number(report.auditReportVersion) !== 2
@@ -178,6 +198,26 @@ function evaluateAuditReport(report, lockfile = null) {
       const policy = ALLOWED_ADVISORIES.get(id);
       if (!policy) {
         violations.push({ code: 'NEW_ADVISORY', packageName, severity, advisory: id });
+        continue;
+      }
+      if (policy.expiresAt) {
+        const reviewDeadline = Date.parse(policy.expiresAt);
+        const evaluatedAt = new Date(now).getTime();
+        if (!Number.isFinite(reviewDeadline) || !Number.isFinite(evaluatedAt)
+          || evaluatedAt > reviewDeadline) {
+          violations.push({
+            code: 'RISK_ACCEPTANCE_EXPIRED', packageName, severity, advisory: id,
+            expiresAt: policy.expiresAt
+          });
+          continue;
+        }
+      }
+      // Any runtime node, missing node or untrusted path remains blocked.
+      if (policy.devOnly && vulnerability.nodes.some(node => (
+        !node.startsWith('node_modules/')
+        || lockfile?.packages?.[node]?.dev !== true
+      ))) {
+        violations.push({ code: 'DEV_ONLY_SCOPE_VIOLATION', packageName, severity, advisory: id });
         continue;
       }
       const outsideEffects = vulnerability.effects.filter(effect => !policy.packages.has(String(effect)));

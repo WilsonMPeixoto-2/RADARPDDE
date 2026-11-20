@@ -56,8 +56,8 @@ test('configuração local habilita login por email sem abrir cadastro público'
     assert.ok(authSection, 'A seção [auth] deve existir.');
     assert.ok(emailSection, 'A seção [auth.email] deve existir.');
     assert.match(authSection[1], /^\s*enable_signup\s*=\s*false\s*$/mi);
-    assert.match(emailSection[1], /^\s*enable_signup\s*=\s*true\s*$/mi);
-    assert.doesNotMatch(emailSection[1], /^\s*enabled\s*=/mi);
+    assert.match(emailSection[1], /^\s*enabled\s*=\s*true\s*$/mi);
+    assert.doesNotMatch(emailSection[1], /^\s*enable_signup\s*=/mi);
 });
 
 test('manifesto local contém sete identidades e cinco papéis ativos determinísticos', () => {

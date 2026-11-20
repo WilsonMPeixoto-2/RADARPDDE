@@ -317,3 +317,83 @@ test('bloqueia capacidades de Node e writer streaming no runtime do Excel SME', 
     fs.writeFileSync(path.join(root, policy.RUNTIME_FILES[0]), "const fs = require('node:fs');\n");
     assert.throws(() => policy.verifyRuntimeScope(root), /capacidades fora da exceção/);
 });
+
+function picomatchOnlyReport() {
+  return {
+    auditReportVersion: 2,
+    vulnerabilities: {
+      'dependency-cruiser': entry('dependency-cruiser', ['picomatch'], [], { isDirect: true }),
+      fdir: entry('fdir', ['picomatch'], ['tinyglobby']),
+      knip: entry('knip', ['picomatch', 'tinyglobby'], [], { isDirect: true }),
+      picomatch: entry('picomatch', [{
+        name: 'picomatch',
+        url: 'https://github.com/advisories/GHSA-fc5q-39xc-vjpf',
+        severity: 'high'
+      }], ['dependency-cruiser', 'fdir', 'knip', 'stylelint', 'tinyglobby']),
+      stylelint: entry('stylelint', ['picomatch', 'tinyglobby'], ['stylelint-config-recommended'], { isDirect: true }),
+      'stylelint-config-recommended': entry('stylelint-config-recommended', ['stylelint'], [], { isDirect: true }),
+      tinyglobby: entry('tinyglobby', ['fdir', 'picomatch'], ['knip', 'stylelint'])
+    },
+    metadata: {
+      vulnerabilities: { info: 0, low: 0, moderate: 0, high: 7, critical: 0, total: 7 }
+    }
+  };
+}
+function picomatchOnlyLockfile() {
+  const names = Object.keys(picomatchOnlyReport().vulnerabilities);
+  return { packages: Object.fromEntries(names.map(name => ['node_modules/' + name, { dev: true }])) };
+}
+test('permite temporariamente apenas o advisory picomatch nos sete caminhos dev', async () => {
+  const policy = await import(POLICY_URL);
+  const result = policy.evaluateAuditReport(picomatchOnlyReport(), picomatchOnlyLockfile(), new Date('2026-11-18T00:00:00Z'));
+  assert.equal(result.passed, true, JSON.stringify(result.violations));
+  assert.equal(result.accepted.length, 7);
+  assert.ok(result.accepted.every(v => v.advisory === 'GHSA-FC5Q-39XC-VJPF'));
+});
+test('bloqueia se a vulnerabilidade passar a ser dependência de runtime', async () => {
+  const policy = await import(POLICY_URL);
+  const lock = picomatchOnlyLockfile();
+  lock.packages['node_modules/picomatch'].dev = false;
+  const result = policy.evaluateAuditReport(picomatchOnlyReport(), lock, new Date('2026-11-18T00:00:00Z'));
+  assert.equal(result.passed, false);
+  assert.ok(result.violations.some(v => v.code === 'DEV_ONLY_SCOPE_VIOLATION' && v.packageName === 'picomatch'));
+});
+test('bloqueia pacote novo como consumidor direto da exceção', async () => {
+  const policy = await import(POLICY_URL);
+  const report = picomatchOnlyReport();
+  report.vulnerabilities.fdir.isDirect = true;
+  const result = policy.evaluateAuditReport(report, picomatchOnlyLockfile(), new Date('2026-11-18T00:00:00Z'));
+  assert.equal(result.passed, false);
+  assert.ok(result.violations.some(v => v.code === 'PACKAGE_OUTSIDE_ALLOWED_PATH'));
+});
+test('bloqueia qualquer consumidor de picomatch fora do alcance conhecido', async () => {
+  const policy = await import(POLICY_URL);
+  const report = picomatchOnlyReport();
+  report.vulnerabilities.picomatch.effects.push('unexpected-consumer');
+  const result = policy.evaluateAuditReport(report, picomatchOnlyLockfile(), new Date('2026-11-18T00:00:00Z'));
+  assert.equal(result.passed, false);
+  assert.ok(result.violations.some(v => v.code === 'PACKAGE_OUTSIDE_ALLOWED_PATH'));
+});
+test('reabre bloqueio após vencimento da aceitação de risco', async () => {
+  const policy = await import(POLICY_URL);
+  const result = policy.evaluateAuditReport(picomatchOnlyReport(), picomatchOnlyLockfile(), new Date('2026-12-19T00:00:00Z'));
+  assert.equal(result.passed, false);
+  assert.ok(result.violations.some(v => v.code === 'RISK_ACCEPTANCE_EXPIRED'));
+});
+test('não admite vulnerabilidade crítica ou advisory novo na exceção', async () => {
+  const policy = await import(POLICY_URL);
+  const report = picomatchOnlyReport();
+  report.vulnerabilities.picomatch.severity = 'critical';
+  report.metadata.vulnerabilities.high -= 1;
+  report.metadata.vulnerabilities.critical += 1;
+  const critical = policy.evaluateAuditReport(report, picomatchOnlyLockfile(), new Date('2026-11-18T00:00:00Z'));
+  assert.equal(critical.passed, false);
+  assert.ok(critical.violations.some(v => v.code === 'CRITICAL_VULNERABILITY'));
+  const added = picomatchOnlyReport();
+  added.vulnerabilities['unknown-package'] = entry('unknown-package', [{ url: 'https://github.com/advisories/GHSA-AAAA-BBBB-CCCC' }], []);
+  added.metadata.vulnerabilities.high += 1;
+  added.metadata.vulnerabilities.total += 1;
+  const extra = policy.evaluateAuditReport(added, picomatchOnlyLockfile(), new Date('2026-11-18T00:00:00Z'));
+  assert.equal(extra.passed, false);
+  assert.ok(extra.violations.some(v => v.code === 'NEW_ADVISORY'));
+});

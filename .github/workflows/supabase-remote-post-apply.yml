@@ -72,38 +72,40 @@ jobs:
       - name: Repetir dry-run imediatamente antes da aplicação
         run: |
           set -o pipefail
-          npx --no-install supabase db push --linked --dry-run --password "${PGPASS_REMOTE}" 2>&1 \
+          npx --no-install supabase db push --remote --dry-run --password "${PGPASS_REMOTE}" 2>&1 \
             | tee /tmp/supabase-apply-dry-run.txt
 
       - name: Aplicar migrations sem seed
         run: |
           set -o pipefail
-          npx --no-install supabase db push --linked --password "${PGPASS_REMOTE}" --yes 2>&1 \
+          npx --no-install supabase db push --remote --password "${PGPASS_REMOTE}" --yes 2>&1 \
             | tee /tmp/supabase-apply.txt
 
       - name: Confirmar histórico remoto e capacidades instaladas
+        env:
+          PGOPTIONS: '-c default_transaction_read_only=on'
         run: |
           set -o pipefail
-          npx --no-install supabase migration list --linked --password "${PGPASS_REMOTE}" 2>&1 \
+          npx --no-install supabase migration list --remote --password "${PGPASS_REMOTE}" 2>&1 \
             | tee /tmp/supabase-migration-list-after.txt
-          npx --no-install supabase db query --linked --file supabase/verification/remote-post-apply.sql 2>&1 \
+          npx --no-install supabase db query --remote --yes --file supabase/verification/remote-post-apply.sql 2>&1 \
             | tee /tmp/supabase-post-apply-contract.txt
 
       - name: Executar lint remoto
-        run: npx --no-install supabase db lint --linked --schema public --level warning --fail-on error
+        run: npx --no-install supabase db lint --remote --schema public --level warning --fail-on error
 
       - name: Executar pgTAP remoto em transações reversíveis
-        run: npx --no-install supabase test db supabase/tests/database --linked
+        run: npx --no-install supabase test db supabase/tests/database --remote --yes
 
       - name: Comparar tipos remotos com o contrato versionado
         run: |
-          npx --no-install supabase gen types typescript --linked --schema public > /tmp/database.remote.types.ts
+          npx --no-install supabase gen types typescript --remote --schema public > /tmp/database.remote.types.ts
           node scripts/check-generated-database-types.js src/types/database.types.ts /tmp/database.remote.types.ts
 
       - name: Executar Advisors de segurança e desempenho
         run: |
           set -o pipefail
-          npx --no-install supabase db advisors --linked --type all --level info --fail-on error 2>&1 \
+          npx --no-install supabase db advisors --remote --type all --level info --fail-on error 2>&1 \
             | tee /tmp/supabase-advisors.txt
 
       - name: Implantar função protegida de Gestão de Equipe
@@ -112,7 +114,7 @@ jobs:
         run: |
           set -o pipefail
           npx --no-install supabase functions deploy team-account-management \
-            --project-ref "${PROJECT_REF}" 2>&1 | tee /tmp/supabase-function-deploy.txt
+            --remote="${PROJECT_REF}" --yes 2>&1 | tee /tmp/supabase-function-deploy.txt
 
       - name: Publicar evidências da aplicação experimental
         if: always()
