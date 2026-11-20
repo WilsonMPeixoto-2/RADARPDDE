@@ -165,7 +165,7 @@ const SOURCE_LOCATIONS = new Set(['release-branch', 'external-branch', 'unavaila
 
 function gitBlobHash(bytes) {
     return createHash('sha1')
-        .update(Buffer.from('blob ' + bytes.length + '\\0'))
+        .update(Buffer.from('blob ' + bytes.length + String.fromCharCode(0)))
         .update(bytes)
         .digest('hex');
 }
@@ -188,7 +188,7 @@ function validateProntuarioLineage(atlas, { rootDir = null, registry = null } = 
     for (const [i, source] of sources.entries()) {
         const loc = 'atlas.sources[' + i + ']';
         if (!isRecord(source)) { errors.push(loc + ': objeto inválido'); continue; }
-        if (!/^S\\d{3}$/.test(String(source.id || ''))) errors.push(loc + ': ID inválido');
+        if (!/^S[0-9]{3}$/.test(String(source.id || ''))) errors.push(loc + ': ID inválido');
         if (sourcesById.has(source.id)) errors.push(loc + ': ID duplicado ' + source.id);
         sourcesById.set(source.id, source);
         if (!SOURCE_LOCATIONS.has(source.location)) errors.push(loc + ': localização inválida');
@@ -231,7 +231,7 @@ function validateProntuarioLineage(atlas, { rootDir = null, registry = null } = 
     for (const [i, requirement] of requirements.entries()) {
         const loc = 'atlas.requirements[' + i + ']';
         if (!isRecord(requirement)) { errors.push(loc + ': objeto inválido'); continue; }
-        if (!/^T0T6-R\\d{3}$/.test(String(requirement.id || ''))) errors.push(loc + ': ID inválido');
+        if (!/^T0T6-R[0-9]{3}$/.test(String(requirement.id || ''))) errors.push(loc + ': ID inválido');
         if (requirementIds.has(requirement.id)) errors.push(loc + ': ID duplicado ' + requirement.id);
         requirementIds.add(requirement.id);
         if (!LINEAGE_STATES.has(requirement.state)) errors.push(loc + ': estado inválido');
