@@ -165,3 +165,105 @@ test.describe('Navegação e Ciclo de Foco com Fallback Lógico', () => {
     expect(['body', 'h1', 'h2', 'div', 'main', 'button', 'a', 'input', 'select']).toContain(focusState.tag);
   });
 });
+
+
+test.describe('F06 — Pendências, reflow e teclado em largura desktop equivalente a zoom 200%', () => {
+  test('filtros avançados permanecem operáveis sem corte horizontal nem perda de foco', async ({ page }, testInfo) => {
+    // Largura CSS equivalente a um desktop de 1366 px a 200% de zoom.
+    // Não é a mesma coisa que acionar o zoom nativo do Chromium: este ensaio
+    // é uma contraprova dirigida de reflow, foco e controles visíveis.
+    await page.setViewportSize({ width: 683, height: 768 });
+    await page.goto('/');
+    await page.waitForFunction(() => window.RadarDataContext?.ready === true);
+    await page.evaluate(async () => {
+      if (window.RadarProductExtensionsReady) await window.RadarProductExtensionsReady;
+      switchProfile('controlador');
+      switchView('pendencias');
+    });
+
+    const filters = page.locator('#main-container .pendency-more-filters');
+    const summary = filters.locator('summary');
+    const program = page.locator('#main-container #pendency-filter-program');
+    await expect(summary).toBeVisible();
+    await expect(summary).toHaveAccessibleName('Mais filtros');
+
+    await summary.focus();
+    await expect(summary).toBeFocused();
+    await summary.press('Enter');
+    await expect(filters).toHaveAttribute('open', '');
+    await expect(program).toBeVisible();
+    await expect(program).toHaveAccessibleName('Programa');
+
+    // Percurso real de teclado; evita limitar a prova a um atributo ARIA.
+    await page.keyboard.press('Tab');
+    await expect(program).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(summary).toBeFocused();
+
+    const reflow = await page.evaluate(() => {
+      const visibleControls = Array.from(document.querySelectorAll(
+        '#main-container .pendency-more-filters-grid select'
+      )).filter(control => control.getClientRects().length > 0)
+        .map(control => {
+          const rect = control.getBoundingClientRect();
+          return {
+            id: control.id,
+            left: rect.left,
+            right: rect.right,
+            width: rect.width,
+            accessibleLabel: document.querySelector('label[for="' + control.id + '"]')
+              ?.textContent?.trim() || ''
+          };
+        });
+      return {
+        viewportWidth: window.innerWidth,
+        documentScrollWidth: document.documentElement.scrollWidth,
+        overflowPx: Math.max(0, document.documentElement.scrollWidth - window.innerWidth),
+        activeElement: document.activeElement?.tagName?.toLowerCase(),
+        focusedText: document.activeElement?.textContent?.trim(),
+        expanded: document.querySelector('#main-container .pendency-more-filters')?.open === true,
+        controls: visibleControls
+      };
+    });
+
+    const axe = await new AxeBuilder({ page })
+      .include('#main-container .pendency-filter-panel')
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22a', 'wcag22aa'])
+      .analyze();
+    const serious = axe.violations.filter(v => ['serious', 'critical'].includes(v.impact));
+
+    // Artefatos antes da expectativa permitem diagnosticar eventual falha
+    // sem corrigir uma asserção às cegas e sem inventar conformidade total.
+    await testInfo.attach('f06-pendencias-reflow-teclado.json', {
+      body: Buffer.from(JSON.stringify({
+        reflow,
+        axe: {
+          passes: axe.passes.length,
+          incomplete: axe.incomplete.map(x => ({ id: x.id, impact: x.impact })),
+          violations: axe.violations.map(x => ({
+            id: x.id, impact: x.impact,
+            nodes: x.nodes.map(n => ({ target: n.target, failureSummary: n.failureSummary }))
+          }))
+        }
+      }, null, 2), 'utf8'),
+      contentType: 'application/json'
+    });
+    await testInfo.attach('f06-pendencias-reflow-683px.png', {
+      body: await page.screenshot({ animations: 'disabled' }),
+      contentType: 'image/png'
+    });
+
+    expect(reflow.controls).toHaveLength(6);
+    expect(reflow.overflowPx, 'Reflow: a página não deve exigir rolagem horizontal').toBeLessThanOrEqual(2);
+    for (const control of reflow.controls) {
+      expect(control.left, control.id + ': controle cortado à esquerda').toBeGreaterThanOrEqual(-1);
+      expect(control.right, control.id + ': controle cortado à direita')
+        .toBeLessThanOrEqual(reflow.viewportWidth + 1);
+    }
+    expect(serious, 'Axe sério/crítico no painel de filtros em reflow').toEqual([]);
+
+    await summary.press('Space');
+    await expect(filters).not.toHaveAttribute('open', '');
+    await expect(summary).toBeFocused();
+  });
+});
