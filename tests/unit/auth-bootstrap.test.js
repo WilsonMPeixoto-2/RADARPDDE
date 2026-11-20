@@ -137,3 +137,46 @@ test('sessão restaurada inválida é encerrada e volta ao gate sem liberar dado
     const result = await pending;
     assert.equal(result.authentication.authorization.role, 'federal_assistant');
 });
+
+
+test('timeout no bootstrap preserva sessão e exibe tentativa de recuperação sem login novamente', async () => {
+    let signOutCalls = 0;
+    let errorShown = null;
+    const events = [];
+    const sessionService = {
+        initialize() {
+            const error = new Error('Não foi possível carregar o perfil institucional.');
+            error.code = 'AUTHORIZATION_UNAVAILABLE';
+            return Promise.reject(error);
+        },
+        async signOut() { signOutCalls += 1; },
+        waitForAuthenticated() {
+            throw new Error('Não deve exigir novo login após timeout temporário.');
+        },
+        onChange() { return () => {}; }
+    };
+    const root = {
+        supabase: { createClient: () => ({}) },
+        RadarSessionService: {
+            SessionService: class { constructor() { return sessionService; } },
+            isTemporaryAccessFailure(error) {
+                return error?.code === 'AUTHORIZATION_UNAVAILABLE';
+            }
+        },
+        RadarAuthGate: {
+            showWorkspaceError(error, options) { errorShown = { error, options }; }
+        },
+        CustomEvent: class {
+            constructor(type, options) { this.type = type; this.detail = options?.detail; }
+        },
+        dispatchEvent(event) { events.push(event); }
+    };
+
+    await assert.rejects(
+        prepareAuthenticatedClient({ runtimeConfig: remoteConfig(), root }),
+        error => error.code === 'AUTHORIZATION_UNAVAILABLE'
+    );
+    assert.equal(signOutCalls, 0);
+    assert.equal(errorShown.options.stage, 'authorization-temporarily-unavailable');
+    assert.equal(events.filter(event => event.type === 'radar:auth-required').length, 0);
+});

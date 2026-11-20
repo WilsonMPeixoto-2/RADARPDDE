@@ -99,3 +99,30 @@ test('estado inicial signed_out mostra o gate sem recarregar em loop; só uma se
     onChangeHandler({ status: 'signed_out' });
     assert.equal(harness.getReloads(), 1);
 });
+
+
+test('timeout de autorização posterior ao login bloqueia dados sem revogar sessão ou recarregar', async () => {
+    let onChange = null;
+    const sessionService = {
+        async initialize() { return authenticatedState(); },
+        onChange(listener) { onChange = listener; }
+    };
+    const h = createRoot(sessionService);
+    const errors = [];
+    h.root.RadarAuthGate = {
+        showWorkspaceError(error, options) { errors.push({ error, options }); }
+    };
+    await prepareAuthenticatedClient({ runtimeConfig: remoteConfig(), root: h.root });
+
+    onChange({
+        status: 'authorization_unavailable',
+        authorization: null,
+        errorCode: 'AUTHORIZATION_UNAVAILABLE'
+    });
+
+    assert.equal(h.root.RadarAuthContext, null);
+    assert.equal(h.getReloads(), 0);
+    assert.equal(h.events.filter(x => x.type === 'radar:auth-required').length, 0);
+    assert.equal(errors.length, 1);
+    assert.equal(errors[0].options.stage, 'authorization-temporarily-unavailable');
+});
