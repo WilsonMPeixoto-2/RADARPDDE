@@ -7,6 +7,14 @@
 **Commit de governança posterior já versionado:** `025a97f95a6db560b00ef473802e07a88cb3fb77` (documentação). **HEAD remoto após esta reconciliação deve ser conferido em tempo real; não presumir que estas duas fotografias são o HEAD.**  
 **Baseline de Produção verificada em 20/11:** `main@69954645b597e39623ef2f24fe5f336ed37989f2`; nenhuma publicação T0–T3 ou migration institucional autorizada.
 
+## Retomada funcional de 20/11 na Release 1
+
+A release contém o código de `054d3bc4` do #534. Em `480a9864`, o [Supabase real isolado](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/44816424078) aprovou 773 asserções em 43 arquivos, três provas de concorrência e seis jornadas autenticadas. O [desktop](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/44816424221) teve 263 aprovações, 75 casos ignorados e uma divergência de 21.977 pixels em `prontuario.png`.
+
+O lote seguinte aplica D001/D013 à leitura do Prontuário no tema escuro e à posição do título Notas Fiscais em 1440 × 900. Aplica D011/D019 à Busca e ao arquivo Excel SME baixado antes e depois da exclusão. A jornada do Controlador e da Assistente também confronta a prévia de exclusão com um contato registrado por outra sessão entre a prévia e a confirmação. Consultar o resultado por SHA no [PR #535](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/535).
+
+O filtro por arquivo passa a cobrir as entradas efetivas `app.js` e `styles.css`. A consulta rejeita opções e estados inválidos. As sete obrigações futuras de UI da T5 continuam planejadas, inclusive a retificação patrimonial e o vínculo com o SIGMA. O aceite da T1 permanece a cargo do proprietário.
+
 ## Estado verificável da propagação histórica — 20/11/2026
 
 **Último SHA com readiness confirmado:** `da38a38f8ec512927dbd78d67875cbf7670cb321`. O GitHub Actions executou `check:continuity` (incluindo mapa de impactos) e aprovou **1.465 testes unitários + 8 integrações**, sem falhas nessas suítes. O conjunto completo de checks desse SHA ainda tinha jobs adicionais em andamento na consulta; não declarar CI integralmente aprovada nem T1 homologada.

@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
+const ExcelJS = require('exceljs');
 
 const enabled = process.env.RADAR_E2E_OPERATIONAL_CORRECTION_LOCAL === '1';
 test.skip(
@@ -125,6 +126,33 @@ async function readPendenciesForInvoice(page, invoiceId) {
         if (error) throw new Error(error.message);
         return data || [];
     }, invoiceId);
+}
+
+async function exportSmeSchoolRow(assistantPage, schoolId) {
+    await assistantPage.goto('/dashboard');
+    await waitForApp(assistantPage, 'federal_assistant');
+    const designation = await assistantPage.evaluate(async id => {
+        const result = await window.RadarSessionContext.service.client.from('schools')
+            .select('designation').eq('id', id).single();
+        if (result.error) throw new Error(result.error.message);
+        return result.data.designation;
+    }, schoolId);
+    const button = assistantPage.locator('[data-radar-assistant-export="sme"]');
+    await expect(button).toHaveAttribute('data-radar-competence-key', COMPETENCE);
+    const downloadEvent = assistantPage.waitForEvent('download');
+    await button.click();
+    const download = await downloadEvent;
+    expect(await download.failure()).toBeNull();
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(await download.path());
+    const sheet = workbook.getWorksheet('MAIO');
+    expect(sheet).toBeTruthy();
+    const normalize = value => String(value).replace(/\D/g, '');
+    const rows = sheet.getRows(2, sheet.rowCount - 1).filter(row =>
+        normalize(row.getCell(3).text) === normalize(designation));
+    expect(rows).toHaveLength(1);
+    const row = rows[0];
+    return { extrato: row.getCell('E').text, notasFiscais: row.getCell('G').text, status: row.getCell('W').text };
 }
 
 async function createInvoice(page, { type, number, description, amount }) {
@@ -429,6 +457,17 @@ test('T3 exclusão de NF (delete_invoice) com Pendência preserva NF vizinha e b
     expect(delBeforeDb).toBeTruthy();
     expect(await readPendenciesForInvoice(page, delBeforeDb.id)).toHaveLength(1);
 
+    let beforeExport;
+    const beforeExportContext = await browser.newContext({ baseURL: testInfo.project.use.baseURL });
+    try {
+        const assistant = await beforeExportContext.newPage();
+        await loginAs(assistant, 'federal_assistant');
+        beforeExport = await exportSmeSchoolRow(assistant, SCHOOL_ID);
+        expect(beforeExport).toMatchObject({ extrato: 'SIM', notasFiscais: 'SIM' });
+    } finally {
+        await beforeExportContext.close();
+    }
+
     // Acionar exclusão integrada (sem confirm nativo):
     await page.getByRole('button', { name: `Excluir NF: ${deleteNumber}`, exact: true }).click();
     const deleteDialog = page.getByRole('dialog', { name: 'Excluir nota fiscal' });
@@ -468,6 +507,8 @@ test('T3 exclusão de NF (delete_invoice) com Pendência preserva NF vizinha e b
         const assistantFiscal = assistantPage.locator(`tr[data-program-id="${PROGRAM_ID}"][data-document-key="notaFiscal"]`);
         await expect(assistantFiscal.locator('.invoice-document-row').filter({ hasText: deleteNumber })).toHaveCount(0);
         await expect(assistantFiscal.locator('.invoice-document-row').filter({ hasText: keepNumber })).toBeVisible();
+        const afterExport = await exportSmeSchoolRow(assistantPage, SCHOOL_ID);
+        expect(afterExport).toEqual(beforeExport);
     } finally {
         await secondContext.close();
     }
@@ -607,6 +648,15 @@ test('T1/T2 preserva a NF retificada e seu histórico ao excluir somente a Pend�
     test.setTimeout(90000);
     const number = `T2-FILA-${Date.now()}`;
     const revised = `${number}-R`;
+    const lateContact = `Contato posterior à prévia ${number}`;
+    async function readLateContact(currentPage) {
+        return currentPage.evaluate(async ({ school, description }) => {
+            const result = await window.RadarSessionContext.service.client.from('pendency_contacts')
+                .select('id, pendency_id').eq('school_id', school).eq('description', description);
+            if (result.error) throw new Error(result.error.message);
+            return result.data;
+        }, { school: SCHOOL_ID, description: lateContact });
+    }
     await loginAs(page, 'controller');
     await openSchool(page, 'controller');
     const before = await readVerificationFromDb(page);
@@ -642,6 +692,12 @@ test('T1/T2 preserva a NF retificada e seu histórico ao excluir somente a Pend�
     try {
         const assistantPage = await secondContext.newPage();
         await loginAs(assistantPage, 'federal_assistant');
+        const globalSearch = assistantPage.locator('#global-search');
+        const globalResults = assistantPage.getByRole('listbox', { name: 'Resultados da busca global' });
+        const globalEntry = globalResults.getByRole('option').filter({ hasText: revised });
+        await globalSearch.fill(revised);
+        await expect(globalEntry).toContainText('Material de sala conferido');
+        await globalSearch.press('Escape');
         await assistantPage.locator('#nav-pendencias').click();
         const search = assistantPage.getByRole('searchbox', { name: 'Buscar pendências' });
         await search.fill(revised);
@@ -653,13 +709,42 @@ test('T1/T2 preserva a NF retificada e seu histórico ao excluir somente a Pend�
         await drawer.getByRole('button', { name: 'Excluir pendência', exact: true }).click();
         const confirmation = assistantPage.getByRole('dialog', { name: 'Excluir pendência' });
         await expect(confirmation.getByText(/1 Pendência/)).toBeVisible();
+        const confirm = confirmation.getByRole('button', { name: 'Confirmar exclusão', exact: true });
+        await expect(confirm).toBeEnabled();
+        await expect(confirmation.getByText(/1 contato registrado/)).toHaveCount(0);
+
+        // Enquanto a Assistente lê a prévia, o Controlador registra um contato pela rota normal.
+        await page.getByRole('button', { name: 'Registrar contato', exact: true }).click();
+        const contact = page.locator('#modal-contato');
+        await contact.getByLabel('Tipo de Contato', { exact: true }).selectOption('WhatsApp');
+        await contact.getByLabel('Vincular a uma Pendência (Opcional)', { exact: true }).selectOption(original.id);
+        await contact.getByLabel('Descrição do Atendimento', { exact: true }).fill(lateContact);
+        await contact.getByRole('button', { name: 'Registrar', exact: true }).click();
+        await expect(contact).not.toHaveClass(/show/);
+        const linked = await readLateContact(page);
+        expect(linked).toHaveLength(1);
+        expect(linked[0].pendency_id).toBe(original.id);
+
+        await confirm.click();
+        await expect(confirmation.getByRole('alert')).toContainText('Os dados mudaram');
+        await expect(confirm).toBeDisabled();
+        expect(await readLateContact(assistantPage)).toEqual(linked);
+        expect(await readPendenciesForInvoice(assistantPage, invoice.id)).toHaveLength(1);
+
+        await confirmation.getByRole('button', { name: 'Revisar prévia' }).click();
+        await expect(confirmation.getByText(/1 contato registrado/)).toBeVisible();
         await testInfo.attach('fila-previa-excluir-pendencia', { body: await confirmation.screenshot(), contentType: 'image/png' });
-        await confirmation.getByRole('button', { name: 'Confirmar exclusão', exact: true }).click();
+        await confirm.click();
         await expect(confirmation).toBeHidden();
         await expect(search).toBeVisible();
         await expect(search).toHaveValue(revised);
         await expect(queueRow).toHaveCount(0);
         expect(await readPendenciesForInvoice(assistantPage, invoice.id)).toHaveLength(0);
+        expect(await readLateContact(assistantPage)).toHaveLength(0);
+        await globalSearch.fill('');
+        await globalSearch.fill(revised);
+        await expect(globalResults).toBeVisible();
+        await expect(globalEntry).toHaveCount(0);
     } finally {
         await secondContext.close();
     }

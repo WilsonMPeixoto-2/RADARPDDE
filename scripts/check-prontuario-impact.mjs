@@ -5,6 +5,7 @@
  * Verificação puramente local, sem acesso a Supabase/GitHub/produção.
  */
 import fs from 'node:fs';
+import { parseArgs } from 'node:util';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -144,7 +145,7 @@ function validateDecisionImpact({impact, registry, lineage}, {rootDir = null} = 
   return errors;
 }
 
-function queryDecisionImpact(impact,{phase='',surface='',file='',decision='',open=false}={}) {
+function queryDecisionImpact(impact,{phase='',surface='',file='',decision='',status='',open=false}={}) {
   const result=[];
   for(const entry of (impact.records||[])) {
     if (!record(entry) || entry.status !== 'approved') continue;
@@ -153,36 +154,47 @@ function queryDecisionImpact(impact,{phase='',surface='',file='',decision='',ope
       if (phase && obligation.phase!==phase) continue;
       if (surface && obligation.surface!==surface) continue;
       if (file && !obligation.targetPaths.includes(file)) continue;
-      if (obligation.status==='superseded') continue;
+      if (status && obligation.status !== status) continue;
+      if (obligation.status === 'superseded' && status !== 'superseded') continue;
       if (open && obligation.status==='verified') continue;
       result.push({decisionId:entry.decisionId,obligation});
     }
   }
   return result;
 }
-function argument(args,key) {
-  const match=args.find(arg=>arg.startsWith('--'+key+'='));
-  return match?match.slice(key.length+3):'';
+function readOptions() {
+  const {values} = parseArgs({ options: {
+    check: {type: 'boolean'}, query: {type: 'boolean'}, open: {type: 'boolean'},
+    phase: {type: 'string'}, surface: {type: 'string'}, file: {type: 'string'},
+    decision: {type: 'string'}, status: {type: 'string'}
+  }});
+  if (values.check && values.query) throw new Error('Escolha --check ou --query.');
+  for (const key of ['phase', 'surface', 'file', 'decision', 'status', 'open']) {
+    if (values[key] === undefined) continue;
+    if (!values.query || values[key] === '') throw new Error('--' + key + ' exige --query e um filtro válido.');
+  }
+  if (values.phase && !/^T[0-6]$/.test(values.phase)) throw new Error('Fase esperada entre T0 e T6.');
+  if (values.surface && !SURFACES.has(values.surface)) throw new Error('Superfície válida: ' + [...SURFACES].join(', '));
+  if (values.status && !STATES.has(values.status)) throw new Error('Status válido: ' + [...STATES].join(', '));
+  if (values.file) values.file = path.posix.normalize(values.file.replaceAll('\\', '/'));
+  return values;
 }
 
 if(process.argv[1] && import.meta.url===pathToFileURL(process.argv[1]).href) {
   try {
+    const options = readOptions();
     const f=loadDecisionImpact();
     const issues=validateDecisionImpact(f,{rootDir:root});
     if(issues.length) {
       issues.forEach(e=>console.error('[impacto] '+e));
       process.exitCode=1;
-    } else if(process.argv.includes('--check') || !process.argv.includes('--query')) {
+    } else if(!options.query) {
       const count=f.impact.records.reduce((n,x)=>n+x.obligations.length,0);
       console.log('[impacto] '+f.impact.records.length+' decisões rastreadas, '+count+
         ' obrigações vinculadas às fases e artefatos, sem vínculos inválidos.');
       console.log('[impacto] Verificação de integridade NÃO significa cumprimento ou homologação.');
     } else {
-      const selection=queryDecisionImpact(f.impact,{
-        phase:argument(process.argv,'phase'),surface:argument(process.argv,'surface'),
-        file:argument(process.argv,'file'),decision:argument(process.argv,'decision'),
-        open:process.argv.includes('--open')
-      });
+      const selection = queryDecisionImpact(f.impact, options);
       console.log('[impacto] '+selection.length+' obrigações aplicáveis:');
       for(const {decisionId,obligation:o} of selection) {
         console.log('- '+decisionId+' / '+o.id+' / '+o.phase+' / '+o.surface+' / '+o.status+
@@ -191,7 +203,7 @@ if(process.argv[1] && import.meta.url===pathToFileURL(process.argv[1]).href) {
       if(!selection.length) console.log('Nenhuma obrigação mapeada para esse filtro; isso NÃO comprova ausência de impacto.');
     }
   } catch(error) {
-    console.error('[impacto] erro ao ler contrato: '+error.message);
+    console.error('[impacto] ' + error.message);
     process.exitCode=1;
   }
 }

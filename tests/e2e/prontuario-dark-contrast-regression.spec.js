@@ -10,12 +10,7 @@ function luminance(rgb) {
     }).reduce((sum, n, i) => sum + n * [0.2126, 0.7152, 0.0722][i], 0);
 }
 
-function parseRGB(value) {
-    const match = value.match(/[\d.]+/g);
-    return match?.slice(0, 3).map(Number);
-}
-
-test('Prontuário: textos essenciais de NF e escola mantêm contraste AA no tema escuro', async ({ page }) => {
+test('Prontuário: textos essenciais de NF e escola mantêm contraste AA no tema escuro', async ({ page }, testInfo) => {
     const context = await prepareSchool(page, { withOpenUnidentified: true });
     await page.evaluate(async ({ schoolId, compKey }) => {
         await window.RadarApplicationServices.invoices.save({
@@ -33,36 +28,46 @@ test('Prontuário: textos essenciais de NF e escola mantêm contraste AA no tema
     await page.waitForTimeout(300);
 
     const actual = await page.evaluate(() => {
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = 1;
+        const paint = canvas.getContext('2d', { willReadFrequently: true });
+        const pixel = () => Array.from(paint.getImageData(0, 0, 1, 1).data).slice(0, 3);
         return [
-            '.prontuario-school-header h1',
-            '#prontuario-verif-rows .verification-document-copy strong',
-            '.invoice-document-title-line > strong',
-            '.invoice-document-meta strong'
+            '.prontuario-school-header h1', '#prontuario-verif-rows .verification-document-copy strong',
+            '.invoice-document-title-line > strong', '.invoice-document-meta strong',
+            '.invoice-document-panel-title strong', '.invoice-summary-block.is-bonification > span',
+            '.invoice-bonification-toggle button:not(.is-selected)',
+            '.prontuario-flow-action:not(.prontuario-flow-action-primary)',
+            '.prontuario-tablist .prontuario-flow-tab:not(.active)', '.invoice-add-primary',
+            '.invoice-add-secondary', '.invoice-pendency-view-button', '.evaluation-retification-trigger'
         ].map(selector => {
             const element = document.querySelector(selector);
             if (!element) return { selector, missing: true };
-            let background, ancestor = element;
-            while (ancestor) {
-                const computed = getComputedStyle(ancestor);
-                const bg = computed.backgroundColor;
-                if (bg.startsWith('rgb(')) {
-                    background = bg;
-                    break;
-                }
-                ancestor = ancestor.parentElement;
+            const layers = [];
+            for (let node = element; node; node = node.parentElement) {
+                layers.unshift(getComputedStyle(node).backgroundColor);
             }
-            return {
-                selector,
-                text: getComputedStyle(element).color,
-                background,
-                backgroundElement: ancestor?.className || ancestor?.tagName
-            };
+            // O canvas resolve color(srgb), color-mix e as transparências da página.
+            for (const color of ['white', ...layers]) {
+                paint.fillStyle = color;
+                paint.fillRect(0, 0, 1, 1);
+            }
+            const background = pixel();
+            paint.fillStyle = getComputedStyle(element).color;
+            paint.fillRect(0, 0, 1, 1);
+            return { selector, text: pixel(), background };
         });
+    });
+    await testInfo.attach('contraste-prontuario-escuro', {
+        body: Buffer.from(JSON.stringify(actual)), contentType: 'application/json'
+    });
+    await testInfo.attach('acoes-fiscais-tema-escuro', {
+        body: await page.locator('.invoice-document-footer').first().screenshot(), contentType: 'image/png'
     });
     for (const item of actual) {
         expect(item.missing, item.selector + ' deve existir').not.toBe(true);
-        const fg = luminance(parseRGB(item.text));
-        const bg = luminance(parseRGB(item.background));
+        const fg = luminance(item.text);
+        const bg = luminance(item.background);
         const ratio = (Math.max(fg, bg) + 0.05) / (Math.min(fg, bg) + 0.05);
         expect(ratio, item.selector + ' contraste: ' + ratio.toFixed(2) + ' (' + item.text + ' sobre ' + item.background + ')')
             .toBeGreaterThanOrEqual(4.5);

@@ -482,6 +482,51 @@ body.dark-theme #prontuario-verif-rows .invoice-document-row.is-striped {
     background: #191328;
 }
 
+/* Mantém a área de trabalho da grade aproveitável em desktops largos. */
+@media (min-width: 1100px) {
+    #tab-verificacoes .prontuario-evaluation-table > thead th {
+        padding-block: 9px;
+    }
+
+    #prontuario-verif-rows [data-program-header] > .program-context-cell {
+        padding-block: 8px;
+    }
+
+    #prontuario-verif-rows tr.verification-document-row > td {
+        padding-block: 7px;
+    }
+}
+
+body.dark-theme .prontuario-flowbar .prontuario-flow-action:not(.prontuario-flow-action-primary),
+body.dark-theme #prontuario-verif-rows .invoice-add-secondary,
+body.dark-theme #prontuario-verif-rows .invoice-pendency-view-button {
+    color: var(--primary-hover);
+    background: var(--bg-input);
+    border-color: var(--border-hover);
+}
+
+body.dark-theme .prontuario-flowbar .prontuario-flow-action:not(.prontuario-flow-action-primary):hover,
+body.dark-theme #prontuario-verif-rows .invoice-add-secondary:hover,
+body.dark-theme #prontuario-verif-rows .invoice-pendency-view-button:hover {
+    background: var(--invoice-purple-soft, var(--bg-card-hover));
+    border-color: var(--primary);
+}
+
+body.dark-theme #prontuario-verif-rows .invoice-add-primary {
+    color: var(--text-dark);
+}
+
+body.dark-theme #prontuario-verif-rows .invoice-document-panel-title strong,
+body.dark-theme #prontuario-verif-rows .invoice-summary-block.is-bonification > span,
+body.dark-theme #prontuario-verif-rows .invoice-bonification-toggle > :not(.is-selected),
+body.dark-theme .prontuario-tablist .prontuario-flow-tab:not(.active) {
+    color: var(--text-main);
+}
+
+body.dark-theme #prontuario-verif-rows .evaluation-retification-trigger {
+    color: var(--info);
+}
+
 /* Confirmação persistente após commit confirmado quando a tela não sincroniza.
    A mensagem não repete a gravação: apenas orienta a recarga segura. */
 .radar-operational-refresh-notice {

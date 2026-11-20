@@ -30,7 +30,8 @@
           ],
           "acceptance": "A interface identifica escola/competência/programa e separa Documento, Bonificação, Análise e Providência sem remover ações.",
           "targetPaths": [
-            "src/integration/prontuario-operational-ux.js"
+            "src/integration/prontuario-operational-ux.js",
+            "app.js"
           ],
           "evidenceRefs": []
         },
@@ -45,7 +46,10 @@
           "acceptance": "Homologar visual real com conteúdo, tema e teclado; golden não se atualiza automaticamente.",
           "targetPaths": [
             "src/styles/prontuario-operational-ux.css",
-            "tests/e2e/prontuario-correction-layout.spec.js"
+            "tests/e2e/prontuario-correction-layout.spec.js",
+            "styles.css",
+            "src/styles/global-visual-polish.css",
+            "tests/e2e/prontuario-dark-contrast-regression.spec.js"
           ],
           "evidenceRefs": []
         },
@@ -102,7 +106,8 @@
           "acceptance": "A edição/exclusão com histórico mostra escopo causal, sem justificativa textual obrigatória.",
           "targetPaths": [
             "src/integration/operational-correction-dialog.js",
-            "src/integration/prontuario-operational-ux.js"
+            "src/integration/prontuario-operational-ux.js",
+            "app.js"
           ],
           "evidenceRefs": []
         },
@@ -509,7 +514,8 @@
           "acceptance": "Validar Busca/Excel após exclusão sem contaminar resultado de bonificação.",
           "targetPaths": [
             "src/domain/global-search-index.js",
-            "src/domain/excel-sme-export-model.js"
+            "src/domain/excel-sme-export-model.js",
+            "tests/e2e/supabase-operational-correction-local.spec.js"
           ],
           "evidenceRefs": []
         }
@@ -849,7 +855,8 @@
           "acceptance": "Conferir Busca, Excel, Pendências, Passivo, Inventário e Dashboard após correção/exclusão.",
           "targetPaths": [
             "src/domain/global-search-index.js",
-            "src/domain/excel-sme-export-model.js"
+            "src/domain/excel-sme-export-model.js",
+            "tests/e2e/supabase-operational-correction-local.spec.js"
           ],
           "evidenceRefs": []
         },
@@ -916,7 +923,9 @@
           ],
           "acceptance": "Ao desenvolver o futuro layout de inventário, consultar D002/D011, representar edição/correção autorizada e não restaurar guardas históricos superados.",
           "targetPaths": [
-            "src/integration/prontuario-operational-ux.js"
+            "src/integration/prontuario-operational-ux.js",
+            "app.js",
+            "styles.css"
           ],
           "evidenceRefs": []
         },

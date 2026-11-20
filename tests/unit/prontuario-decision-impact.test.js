@@ -3,6 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const { spawnSync } = require('node:child_process');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 
@@ -121,4 +122,25 @@ test('impacto T0–T6: obrigação nova sem registro persistente não pode ser i
   item.obligations.push({ ...structuredClone(item.obligations[0]), id: 'T0T6-I002-99' });
   assert.ok(validateDecisionImpact(f, { rootDir: root }).some(x =>
     x.includes('T0T6-I002-99') && x.includes('não registrada')));
+});
+
+
+test('consulta de impacto recusa filtros ignorados e encontra as obrigações nos arquivos de entrada', () => {
+  const query = (...args) => spawnSync(process.execPath,
+    ['scripts/check-prontuario-impact.mjs', '--query', ...args], { cwd: root, encoding: 'utf8' });
+  for (const flag of ['--estado=planned', '--status=pending', '--phase=', '--surface=foo']) {
+    const result = query(flag);
+    assert.notEqual(result.status, 0);
+    assert.doesNotMatch(result.stdout, /obrigações aplicáveis/);
+  }
+  for (const file of ['./app.js', 'styles.css']) {
+    const result = query('--file=' + file, '--phase=T5', '--surface=ui', '--status=planned');
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /T0T6-D020 \/ T0T6-I020-02/);
+  }
+  const planned = query('--status=planned');
+  assert.equal(planned.status, 0, planned.stderr);
+  const ids = planned.stdout.split('\n').filter(line => line.startsWith('- '));
+  assert.ok(ids.length > 0);
+  assert.ok(ids.every(line => line.endsWith('/ planned')));
 });
