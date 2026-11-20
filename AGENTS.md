@@ -1,5 +1,15 @@
 # AGENTS.md — RADAR PDDE 2026
 
+## Governança e delimitação de frentes paralelas — esclarecimento do proprietário (20/11/2026)
+
+**ChatGPT é o executor principal e integrador de T0–T6.** Antigravity, Gemini, Manus e outros agentes são **colaboradores legítimos**, que inspecionam o avanço, oferecem ideias, realizam testes e preparam alterações em **branches próprias**. A multiplicidade de branches é deliberada e útil, não indício de confusão. O executor compara propostas e provas por SHA, decide o aproveitamento e incorpora seletivamente ao PR principal. “Um escritor por branch” proíbe apenas pushes concorrentes no **mesmo ref**, não a colaboração em branches diferentes. Novos commits do Antigravity após o SHA adotado devem ser reavaliados como possíveis contribuições.
+
+**Antigravity executa no computador local do proprietário:** dispõe do RADAR real em navegador e pode executar Supabase/PostgreSQL, Auth, RLS e migrations em **Docker local isolado, com dados sintéticos**. Esse banco é real e descartável, **não um mock nem o Supabase institucional**. Preview Vercel não é condição para seus testes locais.
+
+**Fronteiras obrigatórias:** (a) melhorias visuais/flexibilização T0–T6 são esta frente; (b) manutenção de pacotes, dependências e CI é uma frente independente que pode avançar a `main`, exigindo apenas reconciliação da baseline compatível; (c) análise documental de prestação de contas PDDE, leitura do Drive e lançamentos reais de despesas, avaliações e Pendências no RADAR/Supabase são **operações institucionais paralelas sem relação funcional com T0–T6**. Nunca usar registros reais como fixtures, limpar dados institucionais, executar migrations remotas ou interferir na continuidade dessas análises para homologar T0–T3.
+
+**Triagem de cada colaboração:** anotar branch/SHA, proposta, prova/teste, regra aprovada aplicável, se já foi absorvida, eventual conflito e decisão: incorporar com testes; usar como evidência; adiar T4/T5; ou rejeitar motivadamente. Não fazer merge integral automático de branches auxiliares nem descartar sugestões apenas por sua origem.
+
 ## RELEASE VIGENTE — PRIMEIRA ENTREGA T0–T3 (20/11/2026)
 
 **Mudança de estratégia autorizada pelo proprietário:** concluir e publicar T0–T3 independentemente de T4/T5. **Antes de executar tarefas desta frente, leia [o plano único de Release 1](docs/releases/2026-11-20-prontuario-t0-t3-release-1.md)**, o contrato funcional e o handoff por SHA. A candidata de release é [PR #535](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/535), branch `release/prontuario-t0-t3-20261120`, derivada de #534@054d3bc4; PR #532 é somente revisão já absorvida. A documentação T0–T6 abaixo permanece válida como contrato, mas NÃO impõe esperar T4/T5 nem uma única publicação final. Um escritor por branch. A ativação de produção ainda depende de aceitação visual, testes, migração compatível e autorização separada. Não declarar publicada por haver código, flag ou CI.

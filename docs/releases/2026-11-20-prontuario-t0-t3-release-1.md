@@ -17,6 +17,29 @@ A ordem de implementação e publicação passa a ser:
 
 **Não recriar T0–T3, não retroceder as regras aprovadas e não aguardar T4/T5 para colocar a Release 1 em uso.** Os comandos ainda reservados para T4/T5 devem continuar retornando `ACTION_NOT_AVAILABLE`, sem botões que prometam funcionalidade inexistente.
 
+## Modelo de colaboração e fronteiras de escopo
+
+**Governança definida pelo proprietário em 20/11/2026:** ChatGPT é o **executor principal e integrador** da candidata da Release 1. Antigravity, Gemini, Manus e outros agentes são **revisores e colaboradores**, não desenvolvedores concorrentes descoordenados. Podem continuar produzindo análises, propostas, testes, imagens e código em suas próprias branches, inclusive sobre o avanço recente do ChatGPT. O executor analisa as diferenças e incorpora seletivamente o que melhorar o resultado, sem bloquear a colaboração paralela. O PR #534 é **base funcional adotada no SHA 054d3bc4**, não a única fonte legítima de novas contribuições.
+
+**Antigravity:** a execução local no computador do proprietário combina frontend verdadeiro, navegador e Supabase **real** porém **descartável e isolado** via Docker, com migrations, RPC, Auth/RLS e dados sintéticos. Não requer Preview Vercel nem escreve no Supabase institucional. Capturas e testes são evidência do SHA e ambiente que os produziram, não aceitação automática do release.
+
+| Frente paralela | Política para a Release 1 |
+|---|---|
+| **Evolução T0–T6** | Única frente funcional deste plano; executada em releases (T0–T3, T4 e T5), sempre aberta a contribuições verificadas. |
+| **Branches de agentes** | Fontes intencionais de análise, correção, exemplos e testes. Avaliar por SHA e contrato aprovado; não mesclar integralmente nem descartar por autoria. |
+| **Upgrades de pacotes/dependências/testes de tooling** | Manutenção independente que pode avançar a `main`. Incorporar o baseline já homologado quando necessário, registrando a origem, sem confundir esses commits com funcionalidades T0–T3. |
+| **Auditoria documental PDDE e registros operacionais reais** | Análise das prestações de contas recebidas no Drive e lançamentos de despesas, avaliações e Pendências no RADAR/Supabase. Atividade institucional **completamente separada**: não interromper, limpar, reutilizar como fixtures ou modificar esses dados durante o desenvolvimento T0–T3. |
+
+**Triagem efetiva de contribuições adicionais:**
+- `audit/manus-sugestoes-correcao-20261114`: **nenhum commit à frente** da candidata #535, conforme comparação GitHub; seus componentes essenciais já foram absorvidos na história.
+- `audit/manus-auditoria-frente-integrada-20261114`: relatório e sondas, provas de contraste e **dois PNGs históricos de falhas T1** em `docs/audits/2026-11-14-manus-auditoria-frente-integrada/evidencias/testes/`; não são as seis pranchas conceituais originais. Preservar como evidência, avaliar novamente à luz do SHA novo.
+- `audit/manus-t1-astra-reconstruida-20261114`: uma diferença de teste E2E `tests/e2e/sme-access-governance.spec.js` em relação à candidata. Comparar expectativas da SME antes de reaplicar qualquer alteração.
+- `docs/analises-e-plano-mestre-gemini-20261114`: cinco recomendações — classificação fiscal com efeitos, normalização de `Correto (Atrasado)`, vínculo de Pendência fiscal legada, atalho pós-`delete_context` e regressões de Busca/Excel por lote. **A verificação de Busca/Excel reforça o gate G2 de T0–T3.** Outras ideias precisam de validação de regra, impacto e testes; operações de `delete_context` pertencem ao lote T4. Na candidata atual ainda existe `LATE_ANALYSIS_REQUIRED` em `evaluation-retification.js`, de modo que a normalização sugerida não pode ser declarada implementada.
+- `audit/gemini-revisao-critica-e-sugestoes-20261115`: revisão retrospectiva de falhas Dependabot/versões fixadas, pertinente à **frente paralela de dependências**, não a um novo escopo funcional da release.
+- **Antigravity:** comparar qualquer novo commit publicado no PR #534 com o SHA que originou #535, incorporando as correções inéditas que passem pelos gates; manter as duas branches livres para seus papéis distintos.
+
+**Regra operacional:** ChatGPT concentra a integração no PR #535; os outros agentes trabalham nas próprias branches. A triagem identifica alteração já absorvida / nova correção T0–T3 / sugestão para T4–T5 / inaplicável, com código, prova e decisão rastreável por SHA. Não usar diversidade de branches como motivo para reabrir auditoria integral.
+
 ## 2. Precedência: uma única fonte por categoria
 
 | Fonte | Finalidade e limites |
@@ -35,7 +58,7 @@ Nenhum relatório Argon/Manus/Gemini/Antigravity, PR Draft ou captura isolada te
 
 | Origem | Decisão nesta release |
 |---|---|
-| [PR #534](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534) | **Fonte única de código T1–T3**, incluindo Auth/RLS Docker, 77 pgTAP, três disputas determinísticas e E2E com F5/segunda sessão. Fixar o SHA base; adaptar somente divergências reais. |
+| [PR #534](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534) | **Base funcional adotada de T1–T3, aberta a novas contribuições**, incluindo Auth/RLS Docker, 77 pgTAP, três disputas determinísticas e E2E com F5/segunda sessão. Fixar o SHA base; adaptar somente divergências reais. |
 | [PR #532](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/532) | A-01, reconciliação incremental de Assessoria e testes já incorporados em #534. **Não mesclar uma segunda vez.** |
 | [PR #517](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/517) | Rota documental já integrada à main; atualizar ponteiros, não reaplicar o PR. |
 | [PR #516](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/516) | Destaque “Saídas sem ação definida” do Qualidade já integrado à main; preservar. |
@@ -75,7 +98,7 @@ Nenhum relatório Argon/Manus/Gemini/Antigravity, PR Draft ou captura isolada te
 
 ## 7. Política contra loop de agentes
 
-1. **Um escritor ativo por branch**; o #535 é o candidato de release, #534 fica como origem e #532 como prova histórica. Não editar os três simultaneamente.
+1. **ChatGPT é o integrador principal do PR #535**; Antigravity e os demais agentes continuam livres para trabalhar e gravar nas próprias branches, inclusive no #534. Só evitar pushes concorrentes no mesmo ref. Examinar novas contribuições por SHA e decidir a incorporação.
 2. Não repetir CI aprovado no mesmo SHA por rotina; repetir apenas quando código ou condição relevante mudar.
 3. Um defeito demonstrado → caso RED focalizado → correção → GREEN → consumidores adjacentes; nunca mudar testes para disfarçar comportamento errado.
 4. Não iniciar T4/T5 antes de liberar/estabilizar a Release 1. Nenhuma decisão de visual/escopo posterior pode reintroduzir justificativas ou guardas indevidos.
