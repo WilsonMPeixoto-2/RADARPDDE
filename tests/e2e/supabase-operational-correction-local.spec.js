@@ -944,8 +944,12 @@ test('G3 compatibilidade: cliente sem flag convive com schema de 63 migrations e
         await settleWrites(legacyPage);
         await legacyPage.reload();
         await waitForApp(legacyPage, 'controller');
-        await expect(legacyFiscalRow.locator('.invoice-document-row').filter({ hasText: legacyNumber })
-            .getByRole('combobox')).toHaveValue('Correto');
+        await selectCompetence(legacyPage, COMPETENCE);
+        await expect(
+            legacyFiscalRow.locator('.invoice-document-row')
+                .filter({ hasText: legacyNumber })
+                .locator('.invoice-document-status')
+        ).toHaveText('Correto');
         expect(legacyRpcCalls).toEqual([]);
 
         // Cliente novo gera prévia; cliente legado altera a mesma NF; apply obsoleto deve falhar atomicamente.
