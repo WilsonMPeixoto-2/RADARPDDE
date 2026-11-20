@@ -42,6 +42,23 @@ Sem justificar pela implementação, descreva em linguagem comum:
 
 **Evidências visuais, caminhos ou links:**
 
+## Rastreabilidade T0–T6 (somente quando este PR tratar da frente Prontuário/correção)
+
+> Não se aplica a PRs independentes de atualização de pacotes/tooling, nem à operação institucional de auditoria documental do PDDE e lançamentos reais de prestação de contas. Essas frentes mantêm seus próprios controles.
+
+- [ ] Consultei [o registro versionado](../docs/continuity/prontuario-t0-t6/registry.json) e o [checkpoint](../docs/continuity/prontuario-t0-t6/CHECKPOINT.md) **antes** de repetir análise ou importar proposta de outro agente.
+- [ ] Relacionei os IDs `T0T6-Dxxx` das decisões mantidas, alteradas ou superadas, vinculando `supersedes` quando uma orientação anterior foi substituída.
+- [ ] Relacionei IDs `T0T6-Cxxx` para propostas de Antigravity/Manus/Gemini/outros; registrei origem (branch, SHA e PR), avaliação, status e fundamento de integração, adiamento ou rejeição.
+- [ ] Atualizei o checkpoint com SHA efetivamente testado, evidências verificáveis, falhas ainda abertas e **próximo ato objetivo**, sem rotular como publicado um código apenas testado localmente.
+- [ ] Confirmei que a alteração e seus testes ocorreram **sem escrever no Supabase institucional**, sem usar documentos de escolas como fixtures e sem confundir a frente funcional com upgrades de dependências.
+- [ ] Rodei `npm run check:continuity` e registrei o resultado do HEAD final.
+
+**Decisões/contribuições afetadas (IDs):**
+
+**Origem e SHA do código ou análise incorporada:**
+
+**Evidências, divergências ainda em aberto e próximo ato:**
+
 ## Revisão de continuidade
 
 Descreva os efeitos em superfícies vizinhas e o que acontece ao navegar, voltar e recarregar quando material.
