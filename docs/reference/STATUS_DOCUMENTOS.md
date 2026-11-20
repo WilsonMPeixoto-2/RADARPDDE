@@ -1,8 +1,8 @@
 # Matriz de validade documental
 
-## Prontuário e correção integrada — validade vigente em 19/11/2026
+## Prontuário e correção integrada — validade vigente em 20/11/2026
 
-**Branch oficial de integração:** `fix/prontuario-integrado-validado-20261115` (`20409c12`, último SHA de código `a8e47045`); **branch de revisão independente (PR #532 Draft):** `fix/review-antigravity-t2-assessoria-20261118@009e9101`; **branch sincronizada com `main@69954645`, correção A-01 expandida e 8º reparo:** `audit/antigravity-argon-prontuario-20261115`; consultar o HEAD efetivo ao iniciar sessão. **Nenhuma integração na `main` nem publicação de T0–T6 foi realizada** (`main@69954645` recebeu apenas PRs de manutenção de ferramentas #524, #526, #531 e #533).
+A integração oficial está em `fix/prontuario-integrado-validado-20261115@20409c12`. O [PR #534](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534) reúne a candidata com piloto local. O [PR #532](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/532) é a revisão paralela (`2235821c` em 20/11). A referência publicada é `main@69954645`.
 
 **Ordem para cada novo agente:**
 1. [`AGENTS.md`](../../AGENTS.md) e [`CURRENT_STAGE.md`](../CURRENT_STAGE.md), que registram prioridade, publicação e branches.
@@ -10,7 +10,7 @@
 3. [Plano original T0–T6, atualizado por estado](../superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md) e [matriz de transição](PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md): obrigações e critérios de aceite.
 4. **[Único handoff operacional corrente](../handoff/2026-11-15-prontuario-integracao-verificada.md)**, seção **“Estado vigente — reconciliação de 16–17/11/2026”**. Todo trecho subsequente no mesmo documento tem caráter de fotografia datada, não ordem para refazer etapas.
 
-**Estado efetivo:** T0/T1 preparados, T1 sem homologação visual final; T2/T3 com UI e RPCs candidatas já conectadas **sob flag local OFF por padrão** (incluindo o 7º reparo de 17/11 em `service-advisory-pendency.js`, `prontuario-conditional-reconciler.js`, `app.js` e diálogos modais, validado com `1.418/1.418` unitários, `8/8` integrações e `45/45` Playwright E2E com RPC controlada), mas Auth/RLS, pgTAP real de **74 asserções**, segunda sessão, persistência após F5, concorrência e aceite humano não comprovados. T3 ainda requer validar a origem provisória Qualidade e corte dos escritores antigos. T4/T5 demandam implementação de novos comandos persistentes e UX; T6 não iniciado como homologação global.
+**Estado efetivo em 20/11.** O [Supabase readiness de `5a41653b`](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/44670962311) aprovou 773 verificações pgTAP em 43 arquivos, incluindo 77 de correção, três provas de concorrência e quatro jornadas autenticadas T2/T3. A execução verificou persistência após recarga e leitura em outra sessão. A comparação visual de T1 e o alcance exato das provas de T2/T3 constam do [checkpoint vigente](../handoff/2026-11-15-prontuario-integracao-verificada.md). A candidata acrescenta a jornada de reabertura e nova identificação no PDDE Qualidade. O aceite do proprietário e a integração seletiva precedem T4/T5. T6 depende da homologação conjunta.
 
 **Evidência documental atual:** [auditoria de branches, código, docs e provas de 16/11](../audits/2026-11-16-reconciliacao-branches-codigo-documentacao-t0-t6.md) e [pacote de auditoria e reconciliação atualizado em 17/11](../audits/2026-11-15-antigravity-argon-prontuario/RELATORIO.md). São relatórios de conferência, **não** segundo handoff de execução.
 

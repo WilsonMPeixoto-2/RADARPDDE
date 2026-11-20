@@ -1,7 +1,7 @@
 # RADAR PDDE — estado atual e continuidade verificável
 
 **Atualização consolidada:** 20/11/2026 (sobre a reconciliação de 16/11 em `20409c12`, revisão independente `009e9101`, `main@69954645` e Draft PR #534). **Frente ativa:** Prontuário integrado, correções e exclusões T0–T6.
-**Branch oficial de integração:** `fix/prontuario-integrado-validado-20261115@20409c12591090b3b422ae014afb8cdf880bd387` (código base `a8e4704516db4abbb59b24b623acd52f3de38cae`); **branch de revisão independente (PR #532 Draft):** `fix/review-antigravity-t2-assessoria-20261118@009e9101`; **branch candidata com validação Docker completa (PR #534 Draft):** `audit/antigravity-argon-prontuario-20261115` (código provado em `9c66e8e3`: `main@69954645` + A-01 expandida + `database.types.ts` SHA-256 exato + `DISTINCT` em `selectedPendencyIds` + 77/77 pgTAP + concorrência determinística + E2E autenticado T2/T3 com F5 e segunda sessão); verificar o HEAD novamente ao iniciar sessão.
+**Branch oficial de integração.** `fix/prontuario-integrado-validado-20261115@20409c12`. A execução corrente ocorre na candidata `audit/antigravity-argon-prontuario-20261115`, [PR #534](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534). A revisão independente [#532](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/532) está em `2235821c`. Conferir o commit e as verificações do #534 ao retomar.
 **Baseline publicada da frente:** `main@69954645b597e39623ef2f24fe5f336ed37989f2` (verificação de 19/11, avançada exclusivamente pelos PRs de manutenção de ferramentas #524, #526, #531 `fe582fab` — Supabase CLI `3.2.0` + exceção dev-only `picomatch` até 18/12/2026 — e #533 `69954645` — Lighthouse `13.6.0`). Nenhum merge, migration institucional ou deploy de T1–T6 foi autorizado/feito por esta frente.
 
 ## Única rota de retomada
@@ -22,7 +22,7 @@
 | **T0 — contratos, cenários e fixtures** | Estrutura de referência e massas sintéticas preservadas | Reconciliar casos conforme os lotes efetivamente testados |
 | **T1 — Prontuário visual** | Estrutura horizontal e projeções de identificação atual de NF em consumidores | Homologação visual integral e operacional em navegador local |
 | **T2 — análise e Pendências** | RPCs `correct_analysis`/`clear_analysis`/`delete_pendency` (com `DISTINCT` em `selectedPendencyIds` e 77/77 pgTAP), cliente, janelas, entradas de NF e Assessoria (interceptação `<select>`, reconciliação A-01 expandida, `aria-describedby`, `inert`), prova determinística de concorrência e E2E autenticado com F5 e segunda sessão no Docker (`#44669524893`); flag local OFF por padrão | Homologação visual humana navegada pelo proprietário, auditoria final do corte de rotas legadas e cenários complementares de múltiplos consumidores |
-| **T3 — exclusão causal de NF** | RPC `delete_invoice` com prévia de impacto e dependentes, exclusão autenticada com preservação de NF vizinha e bonificação consolidada (`apta`, ADR-055) provada com F5 e segunda sessão no Docker (`#44669524893`), e concorrência sob barreira com exclusão de bem `Inventariada` | Homologação visual humana, ensaio E2E de retorno de saída provisória do PDDE Qualidade na UI, conferência completa de consumidores e corte das rotas legadas |
+| **T3 — exclusão causal de NF** | Exclusão autenticada com F5 e segunda sessão, NF vizinha e bonificação preservadas. Reabertura da saída Qualidade aprovada no SQL. A candidata explica a consequência antes de excluir e exercita uma nova identificação pela Assistente. | Conferir a execução da jornada Qualidade no job `supabase-local` do #534, as projeções relacionadas e o aceite navegado do proprietário. |
 | **T4 — bonificação, histórico completo, contexto errado** | Contrato aprovado, sem implementação integral | Implementar RPC/UI, reconsolidação orientada, testes e exportação |
 | **T5 — tentativas, reanálises, contatos, inventário granular** | Helper puro preservado | Implementar persistência transacional, interface, autorização e testes |
 | **T6 — homologação global e publicação** | Plano/gates definidos | Conclusão dos lotes, aceite do proprietário e autorização explícita de release |
@@ -44,11 +44,9 @@
 
 ## Próxima execução — ordem objetiva
 
-1. **Não repetir implementação de T2/T3 já conectada.** Congelar a linha de código e caracterizar exatamente os contratos pendentes de corte e seus testes.
-2. Instalar a mesma branch em **cópia local**, executar `npm ci`, iniciar/resetar Supabase Docker e rodar `npm run supabase:test:db` (74 pgTAP); corrigir defeitos encontrados e repetir no mesmo SHA.
-3. Configurar usuários e dados sintéticos, executar Playwright com RPC e Auth/RLS reais; verificar edição/limpeza/exclusão, outros registros, concorrência, rollback, F5, segunda sessão, busca, inventário, Pendências e exportações.
-4. Submeter as telas ao proprietário: botões intuitivos, uma confirmação com impacto real, erros claros e retorno à mesma tela/filtros; registrar screenshots e aceite de T1/T2/T3.
-5. Só então iniciar T4 e T5, cumprindo seus gates. **Nada de alterar Produção, `main` ou Supabase institucional nesta fase.**
+1. Conferir o SHA e o job `supabase-local` no [PR #534](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534). As quatro jornadas da revisão `5a41653b`, os três casos de concorrência e os 77 testes SQL da correção já passaram. Registrar separadamente o resultado da jornada adicional do Qualidade.
+2. Homologar T1–T3 na cópia local com o proprietário. Em T1, comparar a faixa horizontal e a altura disponível para Notas Fiscais. Em T2/T3, conferir as consequências no diálogo, os consumidores e o estado reencontrado após navegar. Registrar a decisão sobre a imagem de referência do Prontuário no mesmo lote.
+3. Reconciliar a candidata na branch oficial com as diferenças funcionais aprovadas. A seguir, T4 cobre bonificação, histórico de item e contexto. T5 cobre tentativas, reanálises, contatos e patrimônio. T6 reúne as verificações globais, exportações e a decisão de encerramento. Publicação exige decisão própria.
 
 ---
 

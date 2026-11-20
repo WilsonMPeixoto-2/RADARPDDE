@@ -160,10 +160,20 @@
                         'O bem vinculado a outra nota fiscal será preservado.'));
                 }
             }
-            effects.appendChild(el(doc, 'p', '', changes.length
-                ? (deleting ? 'Informações relacionadas também serão atualizadas: ' : '')
-                    + changes.map(change => text(change.before) + ' → ' + text(change.after)).join(' · ')
-                : (deleting ? 'Nenhuma outra informação será alterada.' : 'Nenhuma outra análise será alterada.')));
+            if (!changes.length) {
+                effects.appendChild(el(doc, 'p', '', deleting
+                    ? 'Nenhuma outra informação será alterada.' : 'Nenhuma outra análise será alterada.'));
+            }
+            for (const change of changes) {
+                if (change.entity === 'quality_provisional_movements' && change.field === 'status'
+                    && change.before === 'identified' && change.after === 'open') {
+                    effects.appendChild(el(doc, 'p', '',
+                        'A saída provisória do PDDE Qualidade voltará para “Programa a identificar” e poderá ser identificada novamente.'));
+                } else {
+                    effects.appendChild(el(doc, 'p', '', (deleting ? 'Informações relacionadas também serão atualizadas: ' : '')
+                        + text(change.before) + ' → ' + text(change.after)));
+                }
+            }
             for (const item of [...warnings, ...blockers]) {
                 effects.appendChild(el(doc, 'p', '', text(item?.message || item?.code || item)));
                 if (['AMBIGUOUS_CONSEQUENCE', 'INCOMPLETE_PENDENCY_SELECTION'].includes(item?.code)

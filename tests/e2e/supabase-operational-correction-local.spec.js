@@ -46,8 +46,8 @@ async function waitForApp(page, role) {
     await expect(page.locator('#radar-auth-gate')).toBeHidden();
 }
 
-async function openSchool(page, role) {
-    await page.goto(`/escolas/${SCHOOL_ID}`);
+async function openSchool(page, role, schoolId = SCHOOL_ID) {
+    await page.goto(`/escolas/${schoolId}`);
     await waitForApp(page, role);
     await expect(page.locator('#prontuario-verif-rows')).toBeVisible();
 }
@@ -511,4 +511,91 @@ test('RLS e perfil somente leitura (SME): sem controles de correção/exclusão 
     expect(rpcDenial.data).toBeNull();
     expect(rpcDenial.errorMessage).toMatch(/AUTHORIZATION_DENIED/);
     expect(pageErrors).toEqual([]);
+});
+
+test('T3 devolve a saída do Qualidade ao painel e permite nova identificação pela Assistente', async ({ page, browser }, testInfo) => {
+    test.setTimeout(90000);
+    const schoolId = 'ESC-QUALITY';
+    const reference = `QUAL-T3-${Date.now()}`;
+    const nextNumber = `${reference}-R`;
+    const impact = 'A saída provisória do PDDE Qualidade voltará para “Programa a identificar” e poderá ser identificada novamente.';
+    const panel = currentPage => currentPage.getByRole('region', { name: 'Saídas sem ação definida' });
+    const card = currentPage => panel(currentPage).getByRole('article').filter({ hasText: reference });
+
+    async function identify(currentPage, number) {
+        const movement = card(currentPage);
+        await expect(movement.getByText('Programa a identificar', { exact: true })).toBeVisible();
+        await movement.getByRole('combobox').selectOption('CONECTADA');
+        await movement.getByRole('button', { name: 'Identificar despesa', exact: true }).click();
+        const form = currentPage.locator('#modal-dados-nota');
+        await form.getByLabel('Tipo de Gasto', { exact: true }).selectOption('consumo');
+        await form.locator('#nota-numero').fill(number);
+        await form.getByRole('button', { name: 'Identificar despesa', exact: true }).click();
+        await expect(form).not.toHaveClass(/show/);
+        await expect(movement.getByText('Identificada', { exact: true })).toBeVisible();
+    }
+
+    async function readLink(currentPage) {
+        return currentPage.evaluate(async ({ schoolId, competence, reference, nextNumber }) => {
+            const db = window.RadarSessionContext.service.client;
+            const movement = await db.from('quality_provisional_movements')
+                .select('id,status,registered_invoice_id,identification_operation_key')
+                .eq('school_id', schoolId).eq('competence_id', competence).eq('document_reference', reference).single();
+            if (movement.error) throw new Error(movement.error.message);
+            const invoices = await db.from('registered_invoices').select('id,invoice_number,program_id')
+                .eq('school_id', schoolId).eq('competence_id', competence).in('invoice_number', [reference, nextNumber]);
+            if (invoices.error) throw new Error(invoices.error.message);
+            return { movement: movement.data, invoices: invoices.data };
+        }, { schoolId, competence: COMPETENCE, reference, nextNumber });
+    }
+
+    await loginAs(page, 'controller');
+    await openSchool(page, 'controller', schoolId);
+    await panel(page).getByRole('button', { name: 'Registrar saída', exact: true }).click();
+    const editor = page.getByRole('dialog', { name: 'Registrar saída sem programa definido' });
+    await editor.getByLabel('Referência (opcional)', { exact: true }).fill(reference);
+    await editor.getByLabel('Descrição (opcional)', { exact: true }).fill('Materiais para atividades escolares');
+    await editor.getByLabel('Valor em R$ (opcional)', { exact: true }).fill('42.50');
+    await editor.getByRole('button', { name: 'Salvar movimentação', exact: true }).click();
+    await identify(page, reference);
+    const first = await readLink(page);
+    expect(first.invoices).toEqual([{ id: first.movement.registered_invoice_id, invoice_number: reference, program_id: 'CONECTADA' }]);
+    expect(first.movement.identification_operation_key).toBeTruthy();
+
+    await page.getByRole('button', { name: `Excluir NF: ${reference}`, exact: true }).click();
+    const confirmation = page.getByRole('dialog', { name: 'Excluir nota fiscal' });
+    await expect(confirmation.getByText(impact, { exact: true })).toBeVisible();
+    await testInfo.attach('qualidade-previa-exclusao', { body: await confirmation.screenshot(), contentType: 'image/png' });
+    await confirmation.getByRole('button', { name: 'Confirmar exclusão', exact: true }).click();
+    await expect(confirmation).toBeHidden();
+    const identifyButton = { name: 'Identificar despesa', exact: true };
+    await expect(card(page).getByRole('button', identifyButton)).toBeVisible();
+    await expect(page.locator('.invoice-document-row').filter({ hasText: reference })).toHaveCount(0);
+    await page.reload();
+    await waitForApp(page, 'controller');
+    await expect(card(page).getByRole('button', identifyButton)).toBeVisible();
+    const reopened = { id: first.movement.id, status: 'open', registered_invoice_id: null, identification_operation_key: null };
+    expect(await readLink(page)).toEqual({ movement: reopened, invoices: [] });
+
+    const secondContext = await browser.newContext({ baseURL: testInfo.project.use.baseURL });
+    try {
+        const assistantPage = await secondContext.newPage();
+        await loginAs(assistantPage, 'federal_assistant');
+        await openSchool(assistantPage, 'federal_assistant', schoolId);
+        await expect(card(assistantPage).getByRole('button', identifyButton)).toBeVisible();
+        await testInfo.attach('qualidade-saida-reaberta', { body: await card(assistantPage).screenshot(), contentType: 'image/png' });
+        await identify(assistantPage, nextNumber);
+        const final = await readLink(assistantPage);
+        expect(final.movement).toMatchObject({ id: first.movement.id, status: 'identified' });
+        expect(final.movement.identification_operation_key).toBeTruthy();
+        expect(final.movement.identification_operation_key).not.toBe(first.movement.identification_operation_key);
+        expect(final.movement.registered_invoice_id).not.toBe(first.movement.registered_invoice_id);
+        expect(final.invoices).toEqual([{ id: final.movement.registered_invoice_id, invoice_number: nextNumber, program_id: 'CONECTADA' }]);
+    } finally {
+        await secondContext.close();
+    }
+    await page.reload();
+    await waitForApp(page, 'controller');
+    await expect(card(page).getByText('Identificada', { exact: true })).toBeVisible();
+    await expect(page.locator('.invoice-document-row').filter({ hasText: nextNumber })).toBeVisible();
 });
