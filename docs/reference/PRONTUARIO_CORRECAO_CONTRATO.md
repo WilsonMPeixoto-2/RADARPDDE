@@ -1,5 +1,8 @@
 # Prontuário e correção — contrato de evolução aprovado
 
+> **Estado efetivo e revisões de decisão:** [registro de continuidade T0–T6](../continuity/prontuario-t0-t6/README.md) e [CHECKPOINT](../continuity/prontuario-t0-t6/CHECKPOINT.md). Este contrato contém regras de destino aprovadas, não a confirmação de que já foram publicadas. A seção “Estado de aplicação” baseada em `main@190e4494` é fotografia histórica de 14/11; prevalecem os SHAs comprovados da release.
+
+
 **Classe:** decisão de destino em implementação, leitura obrigatória temporária. **Data:** 14/11/2026.
 **Autorização:** proprietário aprovou análise e plano e solicitou execução, preservação global e checkpoints remotos. Não equivale a declarar migrations/deploy concluídos.
 
@@ -8,7 +11,8 @@
 - [Plano aprovado](../superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md).
 - [Flexibilização detalhada](../superpowers/specs/2026-11-14-flexibilizacao-correcao-exclusao-lancamentos.md).
 - [Direção visual](../superpowers/specs/2026-11-13-prontuario-exploracao-visual.md), com regras antigas substituídas pela flexibilização.
-- [Handoff único](../handoff/2026-11-14-prontuario-correcao-integrada.md), sempre confrontado com o HEAD remoto.
+- [Checkpoint de integração atual](../handoff/2026-11-15-prontuario-integracao-verificada.md), obrigatório para retomar sem repetir trabalho.
+- [Handoff original](../handoff/2026-11-14-prontuario-correcao-integrada.md), histórico das decisões iniciais.
 
 ## Decisões aprovadas
 
@@ -21,6 +25,22 @@
 7. `a_identificar` e provisória Qualidade continuam entidades/fluxos distintos. A inversão da identificação deve tratar a origem explicitamente.
 8. Matriz por programa, contexto persistente e formulários refinados evoluem junto às regras; nenhuma função é retirada para simplificar o desenho.
 9. Autorização, atomicidade, versões, idempotência e convergência permanecem obrigatórias; novo comando não é DELETE irrestrito.
+
+## Diretriz transversal — correção assistida sem bloqueios desnecessários (15/11/2026)
+
+**Intenção do usuário como ponto de partida.** Em toda alteração, identificar o resultado que o operador pretende atingir e o fundamento da restrição atual. Não copiar automaticamente proibições antigas para comandos novos. **Preferir edição direta e segura**, com recomposição transacional das consequências reais e atualização das superfícies relacionadas. A responsabilidade pela exatidão do conteúdo declarado é do usuário autorizado; a aplicação continua responsável por autorizações, integridade, coerência, persistência e apresentação fiel dos estados.
+
+**Ordem de solução, aplicável a todos os domínios, não apenas aos exemplos:**
+1. **Correção direta:** autorizar edição/exclusão quando a aplicação conseguir recompor todos os vínculos pertinentes com segurança, sem exigir justificativa, envio ou reanálise fictícios.
+2. **Correção com próximo passo visível:** quando o ato for permitido, mas demandar posterior fechamento, recálculo, publicação de resultado ou outra providência, gravar a mudança e mostrar o estado **pendente** e um botão contextual para a etapa necessária. Não deixar resultados derivados com aparência de definitivos quando se tornaram desatualizados.
+3. **Procedimento orientado:** se a dependência não permitir uma operação atômica segura, informar em linguagem natural a razão específica e oferecer ação ou navegação direta para resolver primeiro a dependência, retornando à intenção original depois. Evitar bloqueio genérico sem caminho de saída.
+4. **Restrição excepcional:** bloquear apenas diante de risco concreto de perda/inconsistência, ambiguidade irredutível, impossibilidade técnica, ação externa não controlável ou ausência de autorização; indicar o motivo e o próximo passo possível. Não retirar controles de segurança/RLS nem exigir ação manual quando o próprio sistema pode resolver a dependência de forma comprovada.
+
+**Exemplo de desenho de T4 — bonificação após consolidação:** permitir que o operador com capacidade de correção altere marcações consolidadas sem justificativa obrigatória. A mudança permanece registrada; enquanto o resultado consolidado não corresponder aos dados atuais, indicar **“Alterações pendentes de consolidação”** e oferecer **“Consolidar alterações”** no contexto de escola/competência/programa. A consolidação posterior reutiliza a autoridade existente e suas validações materiais; não gerar resultado consolidado incompleto nem perpetuar indicador antigo como atual. Distinguir o resultado histórico anterior da situação vigente e assegurar que novas exportações representem os dados consolidados atualizados. **Arquivo XLSX já baixado não é regravado remotamente**: permitir nova exportação após reconsolidar; sinalizar o estado pendente em consultas/exportação quando pertinente. Validar o modo exato de representar o resultado anterior e a elegibilidade para exportação por código/testes/experiência navegada, sem inventar uma planilha persistente no servidor.
+
+**Exemplo de dependência patrimonial:** preferir exclusão composta autorizada de NF e bem exclusivo quando a operação for íntegra. Se não for possível tratar um caso com segurança, orientar a corrigir/excluir primeiro o registro patrimonial pelo caminho específico, em vez de impedir indefinidamente a correção fiscal. Isso **não** autoriza baixa automática no sistema patrimonial externo.
+
+**Critérios UX obrigatórios:** explicar **o que impediu**, **por que** e **como avançar**, com botão de ação claro no contexto; evitar pop-ups desnecessários em fluxos que podem ser concluídos normalmente; manter confirmação explícita de ações destrutivas com alcance previamente mostrado. O proprietário deve experimentar os casos relevantes no frontend local com Docker antes do fechamento da jornada. Este contrato define direção, não implementação já existente.
 
 ## Estado de aplicação
 

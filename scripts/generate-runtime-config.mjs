@@ -91,11 +91,56 @@ function buildRuntimeInput(environment = {}) {
         environment.RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED,
         'RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED'
     );
+    const operationalCorrectionPilot = parseBoolean(
+        environment.RADAR_OPERATIONAL_CORRECTION_PREVIEW,
+        'RADAR_OPERATIONAL_CORRECTION_PREVIEW'
+    );
+    // Opt-in distinto do piloto local. Nunca é ativado implicitamente por Production.
+    const operationalCorrectionRelease = parseBoolean(
+        environment.RADAR_OPERATIONAL_CORRECTION_RELEASE_ENABLED,
+        'RADAR_OPERATIONAL_CORRECTION_RELEASE_ENABLED'
+    );
     const url = String(environment.RADAR_SUPABASE_URL || '').trim();
     const publishableKey = String(environment.RADAR_SUPABASE_PUBLISHABLE_KEY || '').trim();
 
     if (isForbiddenPublishableKey(publishableKey)) {
         throw new Error('Chave secreta não é permitida na configuração pública do frontend.');
+    }
+
+    if (operationalCorrectionPilot && operationalCorrectionRelease) {
+        throw new Error('Correção operacional: ativação simultânea de piloto e produção é proibida.');
+    }
+
+    if (operationalCorrectionPilot) {
+        let loopback = false;
+        try {
+            loopback = ['localhost', '127.0.0.1'].includes(new URL(url).hostname);
+        } catch (_error) {
+            loopback = false;
+        }
+        if (dataMode !== 'supabase-preview'
+            || !['local', 'development', 'test'].includes(runtimeEnvironment)
+            || !loopback) {
+            throw new Error('Correção operacional piloto exige Supabase local, ambiente de teste e URL loopback.');
+        }
+    }
+
+    if (operationalCorrectionRelease) {
+        let secureProductionEndpoint = false;
+        try {
+            const endpoint = new URL(url);
+            secureProductionEndpoint = endpoint.protocol === 'https:'
+                && endpoint.hostname.endsWith('.supabase.co');
+        } catch (_error) {
+            secureProductionEndpoint = false;
+        }
+        if (dataMode !== 'supabase-production'
+            || runtimeEnvironment !== 'production'
+            || !productionActivationApproved
+            || !repositoryEnabled
+            || !secureProductionEndpoint) {
+            throw new Error('Correção operacional em produção exige Supabase institucional HTTPS, ambiente e autorização explícitos.');
+        }
     }
 
     if (dataMode === 'local') {
@@ -132,7 +177,9 @@ function buildRuntimeInput(environment = {}) {
         dataMode,
         productionActivationApproved: dataMode === 'supabase-production',
         features: {
-            supabaseRepositoryEnabled: true
+            supabaseRepositoryEnabled: true,
+            ...(operationalCorrectionPilot ? { operationalCorrectionPilot: true } : {}),
+            ...(operationalCorrectionRelease ? { operationalCorrectionRelease: true } : {})
         },
         supabase: {
             url,

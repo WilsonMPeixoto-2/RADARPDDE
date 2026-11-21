@@ -19,12 +19,12 @@ async function shot(page, testInfo, name) {
   });
 }
 
-async function golden(page, name) {
+async function golden(page, name, assertion = expect) {
   await page.evaluate(async () => {
     if (document.fonts?.ready) await document.fonts.ready;
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   });
-  await expect(page).toHaveScreenshot(name, {
+  await assertion(page).toHaveScreenshot(name, {
     animations: 'disabled',
     caret: 'hide',
     maxDiffPixelRatio: 0.01
@@ -131,8 +131,14 @@ test.describe('Polimento visual global', () => {
     for (const label of coreLabels) {
       expect(flowText).toContain(label);
     }
+    const fiscalTitle = page.locator('[data-program-id="BASIC"][data-document-key="notaFiscal"] .invoice-document-panel-title strong').first();
+    await page.evaluate(() => document.fonts.ready);
+    const bounds = await fiscalTitle.boundingBox();
+    expect(bounds, 'título do grupo fiscal').not.toBeNull();
+    expect.soft(bounds.y + bounds.height, 'Notas Fiscais na primeira tela a 1440 × 900').toBeLessThanOrEqual(900);
     await shot(page, testInfo, '05-prontuario-visao-geral');
-    await golden(page, 'prontuario.png');
+    // A divergência visual continua reprovando o teste. Exercitar também os fluxos abaixo.
+    await golden(page, 'prontuario.png', expect.soft);
 
     const contactButton = page.getByRole('button', { name: 'Registrar contato', exact: true });
     await contactButton.click();

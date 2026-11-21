@@ -1,20 +1,78 @@
-# RADAR PDDE — estado atual e retomada
+> **Coerência entre chats e releases:** consultar [D020 e protocolo transversal](continuity/prontuario-t0-t6/DECISION_IMPACT_PROTOCOL.md) e [obrigações por decisão/fase](continuity/prontuario-t0-t6/decision-impact.json) antes de propor código, UX, teste ou alteração de contrato; pendências futuras sobrevivem às entregas parciais. O atlas não garante a recuperação de todas as conversas históricas.
 
-## Frente corrente — Prontuário visual + correção de lançamentos — 14/11/2026
+# RADAR PDDE — estado atual e continuidade verificável
 
-Plano aprovado pelo proprietário para execução. Baseline de produto conferida: `190e44942d0bb6927d1a7eeb83fb94fc782171b8` (#516). Esta atualização é documental; não comprova novo deployment nem mudança no banco.
+**Ponto único de continuidade entre chats:** [Protocolo e registro de decisões/contribuições](continuity/prontuario-t0-t6/README.md) e [CHECKPOINT vigente](continuity/prontuario-t0-t6/CHECKPOINT.md), ambos versionados no PR #535. Consultar ID de decisão e contribuição antes de repetir análise ou criar nova hipótese. A branch da release não inclui lançamentos reais de prestação de contas do PDDE. O HEAD, checks e ambientes registrados são fotografias por SHA, a revalidar ao vivo.
 
-**Handoff corrente:** [Prontuário e correção integrada](handoff/2026-11-14-prontuario-correcao-integrada.md). **Branch cumulativa:** `feat/prontuario-correcao-integrada-20261114`. Consultar a versão remota do handoff nessa branch para commits, testes, limites e próxima ação; este bloco não é contador de progresso.
 
-Leitura obrigatória: [contrato de evolução](reference/PRONTUARIO_CORRECAO_CONTRATO.md) e [plano T0–T6](superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md). T0 iniciou; T1–T6 ainda não concluídos. A política de correção/exclusão foi aprovada como destino, mas não está implementada nesta baseline. PR #515 de Pendências permanece independente, sem integração nesta frente.
+**Governança confirmada em 20/11:** o ChatGPT é executor e integrador principal da Release 1; Antigravity e outros agentes contribuem de forma paralela em branches próprias, com análises, código, capturas e testes para triagem e aproveitamento seletivo. Não é fragmentação do desenvolvimento. São frentes independentes: (1) upgrades de dependências/tooling/CI; (2) auditoria de documentos PDDE recebidos no Drive e registros reais de prestação de contas no RADAR e Supabase institucional. Esta release não autoriza interromper tais rotinas nem escrever no banco institucional. Ver [governança completa no plano da Release 1](releases/2026-11-20-prontuario-t0-t3-release-1.md#modelo-de-colaboração-e-fronteiras-de-escopo).
 
-**As seções datadas abaixo são checkpoints históricos.** Prioridades e handoffs antigos nelas citados não substituem este roteamento. As funcionalidades e melhorias já integradas permanecem preservadas.
+**Genealogia de decisões e requisitos desde 13/11:** [atlas de continuidade T0–T6](continuity/prontuario-t0-t6/LINEAGE.md) e [fonte estruturada](continuity/prontuario-t0-t6/lineage.json). Não basta reler plano original nem tratar 22 contribuições catalogadas como conhecimento exaustivo; seguir requisitos com origem por blob SHA e pendências históricas explícitas. O atlas não autoriza escrever no Supabase institucional.
 
-**Estado remoto verificado em 09/11/2026:** `main@ff9dade9999469e99c8745de3659eea71f5af41c`, Production Vercel `dpl_FsohkhJt1CQyyucPFdGr4hj2RktD` (READY). PR #508 integrado: Supabase JS `2.119.0`; PR #509 integrado: Playwright `1.65.0`, eslint-plugin-playwright `2.12.2`, MSW `3.0.4`; PR #510 integrado: CodeQL Action `4.39.3`. Supabase CLI permanece `2.122.0` e Lighthouse `13.5.0`.
+## ESTADO EXECUTIVO VIGENTE — RELEASE 1 T0–T3 (20/11/2026)
 
-**Leitura do histórico:** o checkpoint de 04/11/2026 e as instruções de retomada abaixo documentam o estado **daquela data** e não substituem a versão efetivamente publicada. Esta frente de UX/segurança de baixo risco é exclusiva de branch e Preview, sem autorização para merge em `main` ou Production.
+**Rota única de execução:** [Plano consolidado e gates da Release 1](releases/2026-11-20-prontuario-t0-t3-release-1.md), [PR #535](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/535) (Draft), branch `release/prontuario-t0-t3-20261120`, derivada de #534@054d3bc4. O PR #534 continua fonte imutável de comparação; #532 já está reconciliado; `fix/prontuario-integrado-validado-20261115@20409c12` é o destino de integração, ainda não atualizado. **Foco exclusivo T0–T3 até publicação e estabilização**; T4 e T5 terão releases independentes, T6 é gate transversal. As seções abaixo documentam o plano anterior de entrega conjunta e provas históricas, não a fila corrente. Os dois testes RED de ativação independente falharam no #535@9fae7182 em CI por ausência do opt-in — correção candidata implementada posteriormente; validar GREEN no HEAD final. Main, Vercel e Supabase institucional não foram alterados por esta frente.
 
-**Baseline funcional homologada em 04/11/2026:** PR #499, commit `0f632f243ff171917eb36c23a3883cfd8f8bb362`, deployment Vercel `dpl_FzvbrBfXHYtvjXt61dNiqhBnZRth` READY naquele corte. O merge deste próprio checkpoint documental gera novo HEAD e pode gerar outro deployment, sem alterar a versão das dependências. Supabase CLI `2.122.0`; SDK JS `2.118.0`; Lighthouse `13.5.0`. Versões candidatas não devem ser confundidas com publicadas. [Checkpoint de dependências](DEPENDENCY_UPGRADES_2026-11-04.md).
+
+---
+
+## Arquivo histórico — fotografia anterior ao PR #535 (16–20/11, superada pelo CHECKPOINT acima)
+
+> **Não usar como fila corrente:** a seção abaixo preserva evidências anteriores ao fatiamento da Release 1 em [PR #535](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/535). Para retomar a execução atual, siga exclusivamente [CHECKPOINT.md](continuity/prontuario-t0-t6/CHECKPOINT.md), [registry.json](continuity/prontuario-t0-t6/registry.json) e [Plano da Release 1](releases/2026-11-20-prontuario-t0-t3-release-1.md).
+
+**Fotografia preservada (pré-PR #535):** 20/11/2026 (sobre a reconciliação de 16/11 em `20409c12`, revisão independente `009e9101`, `main@69954645` e Draft PR #534). **Frente ativa:** Prontuário integrado, correções e exclusões T0–T6.
+**Branch oficial de integração (origem histórica):** `fix/prontuario-integrado-validado-20261115@20409c12`. A candidata colaboradora do Antigravity é `audit/antigravity-argon-prontuario-20261115`, [PR #534](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534) (adotada como base do PR #535). A revisão independente [#532](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/532) em `2235821c` já está integralmente absorvida.
+**Baseline publicada da frente:** `main@69954645b597e39623ef2f24fe5f336ed37989f2` (verificação de 19/11, avançada exclusivamente pelos PRs de manutenção de ferramentas #524, #526, #531 `fe582fab` — Supabase CLI `3.2.0` + exceção dev-only `picomatch` até 18/12/2026 — e #533 `69954645` — Lighthouse `13.6.0`). Nenhum merge, migration institucional ou deploy de T1–T6 foi autorizado/feito por esta frente.
+
+### Rota histórica (pré-PR #535 — preservada para consulta)
+
+1. [Contrato aprovado](reference/PRONTUARIO_CORRECAO_CONTRATO.md): resultado funcional pretendido, permissões e desbloqueio orientado ao objetivo.
+2. [Plano T0–T6](superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md): objetivos, decisões e critérios de aceite; checkboxes originais são tarefas do plano e não certificação da execução.
+3. [Checkpoint único de execução](handoff/2026-11-15-prontuario-integracao-verificada.md): **ler primeiro a seção "Estado vigente — reconciliação de 16–17/11/2026"**; os marcos abaixo dela registram fotografias datadas anteriores.
+4. [Matriz de transição](reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md): autoridades antigas/novas, superfícies afetadas e gates de validação.
+5. [Validade dos documentos](reference/STATUS_DOCUMENTOS.md), [modelo canônico](reference/SYSTEM_CANONICAL_MODEL.md) e demais documentos exigidos pelo `AGENTS.md`.
+6. [Auditoria de branches, código e documentos de 16/11](audits/2026-11-16-reconciliacao-branches-codigo-documentacao-t0-t6.md) e [relatório consolidado de 17/11](audits/2026-11-15-antigravity-argon-prontuario/RELATORIO.md): evidência da atualização e lista do que não foi validado.
+
+**Não reutilizar trechos antigos sem conferir sua data, branch e SHA.** Os relatórios de Argon, Antigravity, Gemini e Manus são evidências comparativas; nenhum deles substitui o checkpoint único. Não fazer merge/cherry-pick integral de branch auxiliar.
+
+## Estado das etapas — classificação por prova
+
+| Etapa | Código já presente na branch | O que impede declarar encerrada |
+|---|---|---|
+| **T0 — contratos, cenários e fixtures** | Estrutura de referência e massas sintéticas preservadas | Reconciliar casos conforme os lotes efetivamente testados |
+| **T1 — Prontuário visual** | Estrutura horizontal e projeções de identificação atual de NF em consumidores | Homologação visual integral e operacional em navegador local |
+| **T2 — análise e Pendências** | RPCs `correct_analysis`/`clear_analysis`/`delete_pendency` (com `DISTINCT` em `selectedPendencyIds` e 77/77 pgTAP), cliente, janelas, entradas de NF e Assessoria (interceptação `<select>`, reconciliação A-01 expandida, `aria-describedby`, `inert`), prova determinística de concorrência e E2E autenticado com F5 e segunda sessão no Docker (`#44669524893`); flag local OFF por padrão | Homologação visual humana navegada pelo proprietário, auditoria final do corte de rotas legadas e cenários complementares de múltiplos consumidores |
+| **T3 — exclusão causal de NF** | Exclusão autenticada com F5 e segunda sessão, NF vizinha e bonificação preservadas. Reabertura da saída Qualidade aprovada no SQL. A candidata explica a consequência antes de excluir e exercita uma nova identificação pela Assistente. | Conferir a execução da jornada Qualidade no job `supabase-local` do #534, as projeções relacionadas e o aceite navegado do proprietário. |
+| **T4 — bonificação, histórico completo, contexto errado** | Contrato aprovado, sem implementação integral | Implementar RPC/UI, reconsolidação orientada, testes e exportação |
+| **T5 — tentativas, reanálises, contatos, inventário granular** | Helper puro preservado | Implementar persistência transacional, interface, autorização e testes |
+| **T6 — homologação global e publicação** | Plano/gates definidos | Conclusão dos lotes, aceite do proprietário e autorização explícita de release |
+
+**Ensaios existentes:** em 20/11/2026 (Draft PR [#534](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534), commit `9c66e8e3`), o workflow completo **`Supabase readiness` em Docker (`actions/runs/44669524893`)** PASSOU integralmente nos 3 jobs (`readiness`, `migration-smoke`, `supabase-local`): **63 migrations**, **77/77 asserções pgTAP** de `operational-correction.test.sql` (incluindo deduplicação `DISTINCT` de `selectedPendencyIds`) + `schema.test.sql` + demais 41 suítes pgTAP (`All tests successful. Result: PASS`), **3/3 provas determinísticas de concorrência/idempotência** (`scripts/test-operational-correction-concurrency-local.mjs`: mesma `operationKey` sob barreira com exclusão de bem `Inventariada`, duas `operationKey` distintas disputando o mesmo `planDigest`, e rejeição `IDEMPOTENCY_CONFLICT`), **`check:generated`** (SHA-256 exato `e9ebed11...` de `src/types/database.types.ts`) + `typecheck:database`, login das 7 identidades Auth + Edge Function, **17/17 + 4/4 suítes locais com flag OFF**, e **4/4 testes Playwright autenticados T2/T3 com `RADAR_OPERATIONAL_CORRECTION_PREVIEW=true`** (`tests/e2e/supabase-operational-correction-local.spec.js`: `correct_analysis`/`clear_analysis`, `consAssessoria` + A-01 real + `Corrigir análise` pela gaveta, `delete_invoice` com preservação de NF vizinha e `bonus_result = 'apta'` — todos com `F5` real e segunda sessão autenticada — e contraprova `sme` bloqueada por RLS com `AUTHORIZATION_DENIED`), além de `npm run test:readiness` (`1.436/1.436` unitários, `8/8` integrações, 0 vulnerabilidades) e `46/46` casos Playwright locais (`20/20` em `operational-correction-dialog.spec.js`). Logs em `docs/audits/2026-11-15-antigravity-argon-prontuario/evidencias/`. Continuam pendentes o **aceite visual e operacional humano pelo proprietário** para T1–T3, a atualização do snapshot visual pré-T1 (`prontuario.png`) após esse aceite, a integração seletiva na branch oficial `fix/prontuario-integrado-validado-20261115` e o início de T4–T6.
+
+**Ativação do piloto:** `RADAR_OPERATIONAL_CORRECTION_PREVIEW` está OFF por padrão; o gerador e a configuração só autorizam o piloto com frontend e Supabase de **teste em localhost**, sem ligação ao Supabase institucional. O contrato do serviço legado permanece até substituição/homologação deliberada.
+
+## Branches e PRs paralelos inspecionados em 16–17/11
+
+- `fix/prontuario-integrado-validado-20261115@20409c12`: incorporou os seis refinamentos de `1cb118fd` (`25ed80ea`..`8361c5ee`, 74 asserções pgTAP) e a reconciliação documental de 16/11; **não repetir integração dos 6 reparos**.
+- `audit/antigravity-argon-prontuario-20261115`: sincronizada em 17/11 com `20409c12` e `main@58ca0c0a`, acrescentando o **7º reparo** (interceptação de retificação no `<select>` da Assessoria em `service-advisory-pendency.js`, reconciliação do botão `Editar análise` em `prontuario-conditional-reconciler.js`, botão `Editar análise` e `aria-describedby` em `app.js`, e `modern-web-guidance` `dialog` focus/overscroll).
+- `audit/gemini-revisao-critica-e-sugestoes-20261115@d55747b9`: recriada sobre `20409c12` (`7d6629a0` → `d55747b9`), detalhando contratos de versão em `tooling-contract.test.js`; `audit/manus-auditoria-frente-integrada-20261114@a87e9e0e` e `feat/prontuario-correcao-integrada-20261114@182b7949` permanecem fontes datadas.
+- `main@58ca0c0a`: recebeu em 17/11 os **PRs #524 (`74f92c08`)** e **#526 (`58ca0c0a`)** (Playwright `1.65.1`, MSW `3.0.6`, Knip `6.45.1`, Prettier `3.10.1`, Puppeteer `25.17.0`, ESLint `10.15.0`, dependency-cruiser `18.8.0`, 0 vulnerabilidades `npm audit`, mantendo `supabase@2.122.0`).
+- `chore/supabase-cli3-2-remote-safety-20261117@7414b21e` (Draft CLI `3.2.0`, issue #530) e `chore/deps-browser-validation-blocked-20261117@baf158ab` (Draft bloqueada por `picomatch@4.0.7`, issue #528): mantidas separadas desta frente.
+- **PR #515** `fix/preview-pendencias-column-spacing-20261111`: frente visual distinta de Pendências; não misturar sem teste de colisão CSS.
+- **PR #522 (Draft)** `fix/pendencias-paragrafos-legiveis-20261116@37de3033`: duas alterações, exclusivamente em `src/styles/task-9-pendencias.css` e teste unitário; não integrado a esta frente, avaliar colisão visual antes de eventual aproveitamento.
+- **PR #523 (Draft)** `hotfix/production-auth-timeout-recovery-20261116@ed2054a3`: tratamento da autenticação; frente de incidente independente. Não inserir na candidata de T2/T3 sem decisão e verificação de compatibilidade.
+
+### Próxima execução histórica (pré-PR #535 — superada por `CHECKPOINT.md`)
+
+1. Conferir o SHA e o job `supabase-local` no [PR #534](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534). As quatro jornadas da revisão `5a41653b`, os três casos de concorrência e os 77 testes SQL da correção já passaram. Registrar separadamente o resultado da jornada adicional do Qualidade.
+2. Homologar T1–T3 na cópia local com o proprietário. Em T1, comparar a faixa horizontal e a altura disponível para Notas Fiscais. Em T2/T3, conferir as consequências no diálogo, os consumidores e o estado reencontrado após navegar. Registrar a decisão sobre a imagem de referência do Prontuário no mesmo lote.
+3. Reconciliar a candidata na branch oficial com as diferenças funcionais aprovadas. A seguir, T4 cobre bonificação, histórico de item e contexto. T5 cobre tentativas, reanálises, contatos e patrimônio. T6 reúne as verificações globais, exportações e a decisão de encerramento. Publicação exige decisão própria.
+
+---
+
+## Histórico anterior — fotografia de 24/10/2026 e outras datas
+
+Tudo abaixo preserva fatos e decisões de seus próprios cortes históricos. **Não interpretar a palavra "corrente", SHAs, testes ou próximos passos desses blocos como estado atual de 16/11.** A seção anterior é a fonte vigente de retomada.
 
 ## PDDE Qualidade — publicação e limpeza de contexto fiscal — 24/10/2026
 

@@ -1,3 +1,5 @@
+> **Impacto cruzado de decisões:** [política de propagação](DECISION_IMPACT_POLICY.md). Novos testes de uma etapa não encerram obrigações de fases seguintes; adequar expectativas antigas somente com contrato superveniente, mantendo regressões das invariantes preservadas.
+
 # Governança de testes do RADAR PDDE
 
 **Estado:** referência operacional vigente  

@@ -56,7 +56,7 @@ test('controlador lança agosto, consolida APTA e recupera o estado após nova s
   });
 
   expect(context.competencia).toBe('2026-08');
-  await expect(programRows(page, 'BASIC')).toHaveCount(6);
+  await expect(page.locator('#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key]')).toHaveCount(6);
 
   await markDeliveredAndCorrect(page, 'Extrato Conta Corrente');
   await markDeliveredAndCorrect(page, 'Extrato Investimento');

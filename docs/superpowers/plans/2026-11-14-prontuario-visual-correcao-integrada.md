@@ -1,12 +1,35 @@
 # Prontuário: design, correção e exclusão integrados — plano de implementação
 
-> **Para execução por agentes:** ler as duas especificações e este plano inteiro antes de executar uma tarefa. Usar `superpowers:executing-plans` ou, se escolhido pelo proprietário, `superpowers:subagent-driven-development`. Os passos `- [ ]` registram trabalho futuro, não concluído. Este pedido autoriza análise e planejamento; não inicia implementação, migration, merge ou deploy.
+> **ALTERAÇÃO NA ORDEM DE EXECUÇÃO (20/11/2026):** o contrato e os critérios de aceite abaixo permanecem. Para evitar uma entrega monolítica, a publicação foi desmembrada em [Release 1: T0–T3](../../releases/2026-11-20-prontuario-t0-t3-release-1.md) → Release 2: T4 → Release 3: T5, com T6 aplicado em todos os gates e depois na verificação final. A branch executora atual é `release/prontuario-t0-t3-20261120`, [PR #535](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/535). Checkboxes antigos não são ordem para repetir correções já verificadas no #534, e uma imagem conceitual não substitui homologação visual de código real.
+
+
+> **Para execução por agentes:** ler as duas especificações e este plano inteiro antes de executar uma tarefa. Usar `superpowers:executing-plans` ou, se escolhido pelo proprietário, `superpowers:subagent-driven-development`. Os passos `- [ ]` são o checklist de requisitos e provas originalmente desenhado: **não representam a situação atual de cada linha**. A execução foi posteriormente autorizada pelo proprietário e está em andamento na branch de integração. Este documento **não** autoriza merge, migration institucional ou deploy.
 
 **Objetivo:** tornar a avaliação escolar mais bonita, compreensível e fácil de corrigir, com liberdade de edição/exclusão e integridade de todos os efeitos relacionados.
 **Arquitetura:** evoluir a matriz de avaliação por programa e suas superfícies contextuais, conservando as autoridades de domínio existentes. Acrescentar comandos transacionais de correção/exclusão com alcance calculado no servidor, projeção visual do impacto e reconciliação de todas as superfícies afetadas. Entregar jornadas completas, integrando apresentação, operação, persistência e releitura no mesmo lote.
 **Tecnologias:** JavaScript/DOM e CSS existentes; Node 24; Supabase/PostgreSQL/Auth/RLS/RPC; Vercel; node:test, Playwright e pgTAP já adotados. Sem troca de framework, biblioteca visual ou atualização de dependências nesta frente.
-**Baseline confirmada em 14/11/2026, Brasília:** `main@190e44942d0bb6927d1a7eeb83fb94fc782171b8`; comparação remota idêntica durante o planejamento. Os catálogos SQL abaixo são evidência datada da análise anterior, não revalidação automática de futuras migrations.
-**Estado:** plano proposto, sem etapas de implementação executadas.
+**Baseline de elaboração do plano (fotografia de 14/11/2026, Brasília):** `main@190e44942d0bb6927d1a7eeb83fb94fc782171b8`; comparação remota idêntica durante o planejamento. Os catálogos SQL abaixo são evidência datada da análise anterior, não revalidação automática de futuras migrations.
+**Estado atual da execução (17/11/2026):** T0/T1 preparadas, T2/T3 implementadas parcialmente e conectadas sob flag local (incluindo os 6 reparos de `1cb118fd` em `20409c12` e o 7º reparo de interceptação T2 e botão `Editar análise` na Consulta à Assessoria em `audit/antigravity-argon-prontuario-20261115`), aguardando homologação funcional completa no Docker; T4/T5 não integradas; T6 pendente. O [checkpoint operacional único](../../handoff/2026-11-15-prontuario-integracao-verificada.md) é a fonte de evidência por SHA. Esta frase substitui o estado histórico de proposta inicial, sem considerar concluídos os checkboxes de aceite.
+
+> **Decisão obrigatória de ambiente e aprovação humana — 15/11/2026:** executar as jornadas candidatas numa cópia local do RADAR com **Supabase completo em Docker, navegador e testes reais**, e obter validação navegada do proprietário nos marcos materiais T1–T5. A automação do GitHub Actions é complementar, não substitui essa aprovação. Ver [seção 8 da matriz de transição](../../reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md#8-ambiente-local-como-etapa-obrigatória-de-validação--decisão-de-15112026). Preparar o ambiente para testar integralmente T2/T3 agora que as entradas UI candidatas existem; T4/T5 ainda não estão implementadas integralmente. Não publicar nesta frente.
+
+> **Complemento de execução — 15/11/2026:** [Matriz de transição integral T0–T6](../../reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md) é leitura obrigatória junto deste plano para cada lote. Ela identifica as **regras e interfaces antigas que permanecem deliberadamente ativas enquanto a funcionalidade nova está em preparação**, a sequência correta de substituição, as expectativas de teste a atualizar, tipos/RPCs, consumidores, documentos, frontend e compatibilidade com clientes antigos. Este complemento **não** altera a decisão de destino nem declara uma etapa homologada ou publicada.
+
+## Quadro de execução e pendências — verificação remota de 16–17/11/2026
+
+| Lote | Entregue no código da branch | Critério de fechamento ainda não cumprido |
+|---|---|---|
+| **T0** | Contrato aprovado, fixtures e cenário de transição; nenhum dado de produção foi tocado | Conferência cruzada dos cenários com provas atuais |
+| **T1** | Contexto horizontal do Prontuário e projeções da NF atual | Aceite visual real e verificações nos viewports/perfis |
+| **T2** | Cliente `preview_operational_change`/`apply_operational_change`; comandos `correct_analysis`, `clear_analysis`, `delete_pendency`; diálogos, entradas (incluindo interceptação no `<select>` e botão `Editar análise` na Consulta à Assessoria com `aria-describedby`) e recomposição da Assessoria | SQL local (pgTAP), Auth/RLS, persistência, F5, concorrência, corte deliberado das rotas antigas e aceite humano |
+| **T3** | Exclusão fiscal `delete_invoice` com dependentes e prévia, proteção de NF irmã, inventário/Assessoria e UX de orientação | Escrita real no banco descartável, casos patrimoniais, provisória Qualidade, writers antigos, demais consumidores e segunda sessão |
+| **T4** | Regras de bonificação, reconsolidação e exclusão de pacote definidas | Implementar contratos, SQL, UI e exportação |
+| **T5** | Helper puro do histórico e fixtures | Integrar RPCs, UI e teste real de contatos, tentativas, reanálise e inventário |
+| **T6** | Gates definidos | Homologar todas as jornadas e autorizar release explicitamente |
+
+**Provas conservadas:** em 19/11/2026 (com `20409c12` + `main@69954645` + `009e9101` + 8º reparo), `npm run test:readiness` aprovou **1.436/1.436 unitários e 8/8 integrações** (0 vulnerabilidades, `database.types.ts` com match SHA-256 exato do CI) e **46/46 testes E2E em Chromium** nas 10 suítes de Prontuário e Retificação (**20/20** em `operational-correction-dialog.spec.js`, com RPC simulada e logs em `docs/audits/2026-11-15-antigravity-argon-prontuario/evidencias/`). **74/74 asserções pgTAP passaram em Docker no CI do PR #532 (`actions/runs/44310070849`)**; permanecem pendentes o gate Auth/RLS com banco local (agora desbloqueável), concorrência em duas sessões, persistência pós-F5 e aceite visual navegável. **Não classificar T2/T3 como concluídas.**
+
+**Pré-condição operacional de retomada:** usar `fix/prontuario-integrado-validado-20261115`, conferir HEAD, aplicar migrations somente no Supabase local de Docker e ativar `RADAR_OPERATIONAL_CORRECTION_PREVIEW` somente com frontend/API `localhost`. O código antigo permanece em produção e parte de seus guards continua válida até o corte testado. PR #515 e PRs #522/#523 são frentes separadas, sem incorporação automática.
 
 **Especificações que acompanham o plano:**
 
@@ -29,6 +52,14 @@
 - Referência visual não cria enum, campo obrigatório, regra de negócio ou aprovação que o sistema não possua.
 - Não resolver falha de teste enfraquecendo regra válida, tolerância visual ou autorização. Contratos antigos deliberadamente substituídos recebem novos testes explícitos.
 - As contagens anteriores — inclusive 424 despesas com histórico e dois legados sem FK individual — não autorizam limpeza em massa nem indicam que os registros são inválidos.
+
+### Princípio global de produto — liberar o caminho de correção, não apenas trocar a trava
+
+**Leitura vinculante:** [diretriz transversal de correção assistida](../../reference/PRONTUARIO_CORRECAO_CONTRATO.md#diretriz-transversal--correção-assistida-sem-bloqueios-desnecessários-15112026). Para cada regra antiga, perguntar: **qual problema ela previne e qual ação o operador realmente deseja realizar?** Priorizar uma operação diretamente possível com efeitos coerentes; caso uma obrigação posterior permaneça, salvar a correção e oferecer **ação contextual específica** para concluí-la; se a dependência exigir ação prévia, explicar a razão e conduzir o usuário à tela correta, com retorno à intenção original. **Bloqueio é a última opção**, restrito a risco real, ambiguidade, ausência de autorização ou impossibilidade técnica demonstrada.
+
+Exemplo de T4: editar lançamento de bonificação já consolidada **não deve exigir excluir a consolidação antes nem permissão de administração geral**. O sistema deve registrar a alteração do operador autorizado, explicitar que o resultado anterior está pendente de atualização, e oferecer **“Consolidar alterações”** usando o fluxo canônico de consolidação, inclusive seus requisitos efetivos de completude. Isso precisa repercutir nos dados a serem exportados novamente; não prometer reescrita de arquivo XLSX anteriormente baixado. Definir e testar representação de pendência e distinção histórico/vigente sem criar outro cálculo paralelo de bonificação. Em T2/T3/T5, preferir recomposição automática segura dos vínculos; quando não for viável, uma orientação com ação imediata, não um bloqueio sem saída.
+
+**Gate de cada lote:** além de testar a regra nova, demonstrar que a pessoa consegue sair do impasse; capturar fluxo **tentativa → orientação → ação de resolução → retorno → resultado consistente** e validar na cópia local navegável. Não confundir responsabilidade do usuário pelo conteúdo com ausência de validações de integridade no banco.
 
 ## Foco da revisão e prova correspondente
 

@@ -137,3 +137,38 @@ test('programa não herda nomes de escolas e não sequestra busca pela Carteira'
 
     assert.equal(results[0]?.id, 'module:escolas');
 });
+
+
+test('resultado de busca apresenta NF atual após recarga, sem reescrever Pendência histórica', () => {
+    const pendency = {
+        id: 'pend-2217', escolaId: '04.31.026', programaId: 'BASIC',
+        documento: 'Nota Fiscal', item: 'Escola - NF: 550',
+        registeredInvoiceId: 'invoice-2217', status: 'Aberta',
+        documentSnapshot: { numero: '550' }
+    };
+    const original = structuredClone(pendency);
+    const catalog = createSearchCatalog({
+        ...context,
+        pendencies: [pendency],
+        invoices: [{ id: 'invoice-2217', numero: '2217', desc: 'Material atualizado', tipo: 'consumo' }]
+    });
+    const result = catalog.find(item => item.id === 'pendency:pend-2217');
+    assert.ok(result.title.includes('2217'));
+    assert.ok(result.title.includes('Material atualizado'));
+    assert.ok(!result.title.includes('550'));
+    assert.deepEqual(pendency, original);
+});
+
+test('encontra a referência fiscal completa quando o sufixo tem uma letra', () => {
+    const number = 'T2-FILA-1795212666610-R';
+    const catalog = createSearchCatalog({
+        ...context,
+        pendencies: [{ ...context.pendencies[0], registeredInvoiceId: 'nf-retificada', documento: 'Nota Fiscal' }],
+        invoices: [{ id: 'nf-retificada', numero: number, desc: 'Material de sala conferido' }]
+    });
+    const engine = createSearchEngine(Fuse, catalog);
+    const [result] = searchCatalog(engine, number);
+    assert.equal(result?.pendencyId, 'p1');
+    assert.ok(result.title.includes(number));
+    assert.deepEqual(searchCatalog(engine, 'R'), []);
+});

@@ -18,6 +18,7 @@ on:
       - 'scripts/build-supabase-client.mjs'
       - 'scripts/generate-runtime-config.mjs'
       - 'scripts/audit-functional-persistence.js'
+      - 'scripts/test-operational-correction-concurrency-local.mjs'
       - 'supabase/**'
       - 'tests/unit/**'
       - 'tests/integration/**'
@@ -27,6 +28,9 @@ on:
       - 'tests/e2e/supabase-auth-local.spec.js'
       - 'tests/e2e/supabase-late-auth-actions.spec.js'
       - 'tests/e2e/supabase-inventory-terminal-delete.spec.js'
+      - 'tests/e2e/supabase-operational-correction-local.spec.js'
+      - 'tests/fixtures/quality-provisional.sql'
+      - 'tests/fixtures/operational-correction-local.sql'
       - 'tests/e2e/exercise-management.spec.js'
       - 'tests/e2e/frontend-contract.spec.js'
       - 'docs/architecture/supabase-readiness.md'
@@ -55,6 +59,7 @@ on:
       - 'scripts/build-supabase-client.mjs'
       - 'scripts/generate-runtime-config.mjs'
       - 'scripts/audit-functional-persistence.js'
+      - 'scripts/test-operational-correction-concurrency-local.mjs'
       - 'supabase/**'
       - 'tests/unit/**'
       - 'tests/integration/**'
@@ -64,6 +69,9 @@ on:
       - 'tests/e2e/supabase-auth-local.spec.js'
       - 'tests/e2e/supabase-late-auth-actions.spec.js'
       - 'tests/e2e/supabase-inventory-terminal-delete.spec.js'
+      - 'tests/e2e/supabase-operational-correction-local.spec.js'
+      - 'tests/fixtures/quality-provisional.sql'
+      - 'tests/fixtures/operational-correction-local.sql'
       - 'tests/e2e/exercise-management.spec.js'
       - 'tests/e2e/frontend-contract.spec.js'
       - 'docs/architecture/supabase-readiness.md'
@@ -273,6 +281,9 @@ jobs:
       - name: Provar primeira despesa em duas sessões com barreira controlada
         run: node scripts/test-first-expense-concurrency.mjs
 
+      - name: Provar concorrência e idempotência da correção operacional (T2/T3)
+        run: node scripts/test-operational-correction-concurrency-local.mjs
+
       - name: Executar lint de PL/pgSQL
         run: npm run supabase:lint:db
 
@@ -408,6 +419,24 @@ jobs:
           tests/e2e/supabase-inventory-terminal-delete.spec.js
           --project=desktop-chromium --output=test-results-late-auth
 
+      - name: Exercitar correção operacional autenticada (T2/T3) com piloto local
+        shell: bash
+        env:
+          RADAR_E2E_OPERATIONAL_CORRECTION_LOCAL: '1'
+          PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report-operational-correction
+        run: |
+          set -euo pipefail
+          psql 'postgresql://postgres:postgres@127.0.0.1:54322/postgres' -X -1 -v ON_ERROR_STOP=1 -f tests/fixtures/operational-correction-local.sql
+          RADAR_DATA_MODE=supabase-preview \
+          RADAR_ENVIRONMENT=test \
+          RADAR_SUPABASE_REPOSITORY_ENABLED=true \
+          RADAR_OPERATIONAL_CORRECTION_PREVIEW=true \
+          RADAR_SUPABASE_URL="${RADAR_SUPABASE_URL}" \
+          RADAR_SUPABASE_PUBLISHABLE_KEY="${RADAR_SUPABASE_PUBLISHABLE_KEY}" \
+          npm run generate:runtime-config
+          npx playwright test tests/e2e/supabase-operational-correction-local.spec.js \
+            --project=desktop-chromium --output=test-results-operational-correction
+
       - name: Publicar relatório do contrato Supabase local
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -416,8 +445,10 @@ jobs:
           path: |
             playwright-report/
             playwright-report-late-auth/
+            playwright-report-operational-correction/
             test-results/
             test-results-late-auth/
+            test-results-operational-correction/
           if-no-files-found: warn
           retention-days: 1
 

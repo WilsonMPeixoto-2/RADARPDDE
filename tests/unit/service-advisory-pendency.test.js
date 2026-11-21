@@ -322,3 +322,47 @@ test('reinstala a autoridade individual quando os serviços autenticados são re
     assert.equal(second.state.registeredInvoices[1].analiseConsultaAssessoria, 'Correto');
     assert.equal(first.state.registeredInvoices[1].analiseConsultaAssessoria, 'Não analisado');
 });
+
+test('delega retificação de análise já registrada na Assessoria para openInvoiceOperationalCorrection quando o diálogo T2 está ativo', async () => {
+    const integration = freshIntegration();
+    const harness = createRoot();
+    const dialogCalls = [];
+    harness.root.RadarOperationalCorrectionDialog = {
+        canUse: () => true
+    };
+    harness.root.openInvoiceOperationalCorrection = (...args) => {
+        dialogCalls.push(args);
+        return true;
+    };
+    assert.equal(integration.install(harness.root), true);
+
+    const firstSelect = { value: 'Correto' };
+    const firstClick = await harness.root.changeInvoiceAdvisoryAnalysis(
+        'NF-A',
+        'ESC-1',
+        'Correto',
+        firstSelect
+    );
+    assert.equal(firstClick, true);
+    assert.equal(dialogCalls.length, 0);
+    assert.equal(harness.state.registeredInvoices[0].analiseConsultaAssessoria, 'Correto');
+
+    const retifySelect = { value: 'Correto (Atrasado)' };
+    const retifyResult = await harness.root.changeInvoiceAdvisoryAnalysis(
+        'NF-A',
+        'ESC-1',
+        'Correto (Atrasado)',
+        retifySelect
+    );
+    assert.equal(retifyResult, true);
+    assert.equal(retifySelect.value, 'Correto');
+    assert.equal(harness.state.registeredInvoices[0].analiseConsultaAssessoria, 'Correto');
+    assert.deepEqual(dialogCalls, [[
+        'NF-A',
+        'ESC-1',
+        'consAssessoria',
+        retifySelect,
+        'Correto (Atrasado)'
+    ]]);
+});
+

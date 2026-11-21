@@ -1,13 +1,37 @@
 # Matriz de validade documental
 
-## Evolução aprovada em execução — 14/11/2026
+**Rota persistente de retomada T0–T6:** [registro/protocolo](../continuity/prontuario-t0-t6/README.md), [decisões e sugestões rastreadas](../continuity/prontuario-t0-t6/registry.json) e [checkpoint operacional](../continuity/prontuario-t0-t6/CHECKPOINT.md). Classe: **registro de proveniência e estado transitório**, subordinado às decisões funcionais aprovadas. O [handoff de 15/11](../handoff/2026-11-15-prontuario-integracao-verificada.md) e as seções antigas com título “vigente” são **fontes históricas datadas**, não roteadores de execução concorrentes. Atualizar checkpoint e registro antes de encerrar chat com avanço material.
 
-[PRONTUARIO_CORRECAO_CONTRATO.md](PRONTUARIO_CORRECAO_CONTRATO.md) é o contrato **de destino**, obrigatório para esta frente; [plano](../superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md) e [handoff corrente](../handoff/2026-11-14-prontuario-correcao-integrada.md) governam execução/retomada. O código e banco atuais descrevem o presente; não confundir restrições atuais com exigência de preservá-las contra a decisão do proprietário.
 
-O estudo visual de 13/11 mantém valor para composição, mas suas exigências de justificativa, exclusão sem histórico e terminalidade absoluta foram superadas pela análise de flexibilização e plano aprovado. Testes dessas restrições serão substituídos com provas das novas capacidades, não simplesmente apagados. As demais invariantes permanecem. Acompanhar o handoff remoto na branch de execução; somente mudar o modelo efetivo e a matriz funcional à medida que houver implementação e integração comprovadas.
+## Atualização de precedência — Release 1 em 20/11/2026
 
-**Classe documental:** Canônico  
-**Atualizado em:** 23 de outubro de 2026
+**Único plano executivo de publicação T0–T3:** [Release 1: consolidação, fontes, imagens e gates](../releases/2026-11-20-prontuario-t0-t3-release-1.md), [PR #535](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/535). O contrato original, a matriz e o plano T0–T6 não perderam validade funcional; mudou a **sequência de entregas**. O checkpoint vigente fornece evidência por SHA. Os títulos e as instruções históricas abaixo de aguardar T4/T5 ou uma homologação global única NÃO são a ordem de publicação atual. PR #516 e #517 já integrados, #532 absorvido em #534; PRs #515/#522/#523 independentes, sem merge incidental. Sem autorização para deploy institucional.
+
+
+## Arquivo histórico — fotografia anterior ao PR #535 (16–20/11, superada pela rota acima)
+
+> **Não usar como fila corrente:** a seção abaixo preserva o estado anterior ao fatiamento em releases no [PR #535](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/535).
+
+A integração oficial de origem estava em `fix/prontuario-integrado-validado-20261115@20409c12`. O [PR #534](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534) foi adotado como base funcional do PR #535 e segue como branch colaboradora do Antigravity. O [PR #532](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/532) (`2235821c`) já foi integralmente absorvido (`diff` zero). A referência publicada é `main@69954645`.
+
+**Ordem histórica (substituída por `docs/continuity/prontuario-t0-t6/README.md`):**
+1. [`AGENTS.md`](../../AGENTS.md) e [`CURRENT_STAGE.md`](../CURRENT_STAGE.md), que registram prioridade, publicação e branches.
+2. [Contrato aprovado](PRONTUARIO_CORRECAO_CONTRATO.md): regra funcional e desbloqueio orientado ao operador.
+3. [Plano original T0–T6, atualizado por estado](../superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md) e [matriz de transição](PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md): obrigações e critérios de aceite.
+4. **[Handoff histórico de evidências por SHA](../handoff/2026-11-15-prontuario-integracao-verificada.md)**, seção **“Estado vigente — reconciliação de 16–17/11/2026”** (preservado como histórico; a fila atual está em `CHECKPOINT.md`).
+
+**Estado efetivo em 20/11.** O [Supabase readiness de `5a41653b`](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/44670962311) aprovou 773 verificações pgTAP em 43 arquivos, incluindo 77 de correção, três provas de concorrência e quatro jornadas autenticadas T2/T3. A execução verificou persistência após recarga e leitura em outra sessão. A comparação visual de T1 e o alcance exato das provas de T2/T3 constam do [checkpoint vigente](../handoff/2026-11-15-prontuario-integracao-verificada.md). A candidata acrescenta a jornada de reabertura e nova identificação no PDDE Qualidade. O aceite do proprietário e a integração seletiva precedem T4/T5. T6 depende da homologação conjunta.
+
+**Evidência documental atual:** [auditoria de branches, código, docs e provas de 16/11](../audits/2026-11-16-reconciliacao-branches-codigo-documentacao-t0-t6.md) e [pacote de auditoria e reconciliação atualizado em 17/11](../audits/2026-11-15-antigravity-argon-prontuario/RELATORIO.md). São relatórios de conferência, **não** segundo handoff de execução.
+
+**Histórico comparativo, sem segunda autoridade:** Argon original 14/11, Manus, Gemini (`d55747b9`) e Antigravity. Os seis refinamentos de Antigravity `1cb118fd` já entraram na branch de integração `20409c12` por aproveitamento seletivo: **não reexecutar**. As frentes PR #515 e #522 (layout/legibilidade da fila de Pendências), PR #523 (recuperação de autenticação, incidente separado), `chore/supabase-cli3-2-remote-safety-20261117@7414b21e` (CLI `3.2.0`, issue #530) e `chore/deps-browser-validation-blocked-20261117@baf158ab` (issue #528) permanecem isoladas; não trazer seus diffs automaticamente. Os PRs #524 (`74f92c08`) e #526 (`58ca0c0a`) já foram integrados na `main@58ca0c0a` e sincronizados nesta branch.
+
+**Precedência de evidências:** comportamento real do código/SQL do SHA e ambiente consultados > decisões e ADRs > testes reproduzidos > documentação canônica > relatórios históricos. Código candidato não prova funcionamento em Produção, CI com RPC simulada não prova RLS/persistência e aceite do proprietário não é substituído por parecer automatizado.
+
+O [handoff original do Argon (14/11)](../handoff/2026-11-14-prontuario-correcao-integrada.md), o [relatório histórico do Manus](https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/audit/manus-auditoria-frente-integrada-20261114/docs/audits/2026-11-14-manus-auditoria-frente-integrada/RELATORIO.md) e o estudo visual de 13/11 preservam contexto, mas suas restrições anteriores que contrariam o contrato aprovado não prevalecem. Evitar justificativa obrigatória e bloqueios históricos por comodidade técnica.
+
+**Classe documental:** Canônico. **Rota temporária e status atualizados em:** 17/11/2026.  
+**Corpo histórico abaixo:** linhas e registros originais de 23/10/2026 e datas anteriores; preservar fatos pretéritos sem usá-los como instruções de retomada.
 
 ## 1. Finalidade e precedência
 
@@ -157,9 +181,11 @@ O servidor canônico e suas correções não alteraram schema, migrations, RPCs,
 
 **Sucessão prevista:** com `PROD-FUNC-09` já encerrado, depois de encerrar `PROD-UX-08` e os refinamentos imediatos que permanecerem válidos, a próxima decisão de produto deve recuperar `docs/evidence/2026-09-27-pr378-tooling/DESIGN_TOOLING.md` antes de abrir uma frente ampla de layout/design. Essa obrigação preserva o debate sobre Figma, design system, tokens, componentização, iconografia, tipografia, galeria de estados e tooling visual sem transformar a avaliação datada em adoção automática.
 
-## 4. Handoff corrente e histórico
+## 4. Handoff corrente e histórico — fotografia de 22/10/2026 (SUPERADA)
 
-Não há handoff de execução corrente designado no checkpoint vigente de 22/10 de
+**Este parágrafo preserva o estado de 22/10, não o estado de 16/11: o handoff vigente agora é o checkpoint de integração de 15/11, com seção de 16/11 explicitada na abertura deste documento.**
+
+Na data-base de 22/10, não havia handoff de execução corrente designado no checkpoint daquela data de
 `CURRENT_STAGE.md`. A manutenção CLI #472 está encerrada; não reabrir seus testes sem novo risco. `docs/audits/2026-10-11-controller-journey/HANDOFF.md` é histórico:
 preserva a auditoria A–N e os checkpoints das sete correções encerradas pelo #438,
 sem constituir uma atribuição atual nem certificar o desempenho sistêmico.

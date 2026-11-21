@@ -1,0 +1,1004 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-20",
+  "workstream": "RADARPDDE/PRONTUARIO-T0-T6",
+  "registryPath": "docs/continuity/prontuario-t0-t6/registry.json",
+  "lineagePath": "docs/continuity/prontuario-t0-t6/lineage.json",
+  "completion": "Initial map only. Not a closed coverage audit; no code, UI acceptance or Production implied.",
+  "policy": {
+    "inheritance": "Approved decisions remain binding across agents, chats and releases until explicitly superseded; obligations are independently tracked.",
+    "closure": "One code commit or passed test does not close other obligations, especially future UI, reports and tests.",
+    "chatCapture": "A chat decision must be recorded with its verifiable origin and linked to downstream obligations; absent source is a gap, not implied authority.",
+    "noSilentDeletion": "An obligation must never be deleted; if superseded, retain its ID, mark status superseded and link replacedBy to an existing successor."
+  },
+  "records": [
+    {
+      "decisionId": "T0T6-D001",
+      "status": "approved",
+      "impactStatus": "initial-impact-mapping-needs-review",
+      "supersededBy": null,
+      "obligations": [
+        {
+          "id": "T0T6-I001-01",
+          "phase": "T1",
+          "surface": "ui",
+          "status": "candidate",
+          "requirementIds": [
+            "T0T6-R001",
+            "T0T6-R003",
+            "T0T6-R004"
+          ],
+          "acceptance": "A interface identifica escola/competência/programa e separa Documento, Bonificação, Análise e Providência sem remover ações.",
+          "targetPaths": [
+            "src/integration/prontuario-operational-ux.js",
+            "app.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I001-02",
+          "phase": "T1",
+          "surface": "visual",
+          "status": "gate-pending",
+          "requirementIds": [
+            "T0T6-R004"
+          ],
+          "acceptance": "Homologar visual real com conteúdo, tema e teclado; golden não se atualiza automaticamente.",
+          "targetPaths": [
+            "src/styles/prontuario-operational-ux.css",
+            "tests/e2e/prontuario-correction-layout.spec.js",
+            "styles.css",
+            "src/styles/global-visual-polish.css",
+            "tests/e2e/prontuario-dark-contrast-regression.spec.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I001-03",
+          "phase": "T5",
+          "surface": "ui",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R014",
+            "T0T6-R019"
+          ],
+          "acceptance": "Os futuros formulários mantêm contexto e decisão visíveis, sem wizard artificial.",
+          "targetPaths": [
+            "src/integration/prontuario-operational-ux.js"
+          ],
+          "evidenceRefs": []
+        }
+      ]
+    },
+    {
+      "decisionId": "T0T6-D002",
+      "status": "approved",
+      "impactStatus": "initial-impact-mapping-needs-review",
+      "supersededBy": null,
+      "obligations": [
+        {
+          "id": "T0T6-I002-01",
+          "phase": "T2",
+          "surface": "domain",
+          "status": "candidate",
+          "requirementIds": [
+            "T0T6-R015",
+            "T0T6-R025",
+            "T0T6-R026"
+          ],
+          "acceptance": "Corrigir análise real sem criar envio/reanálise fictícios e sem apagar história independente.",
+          "targetPaths": [
+            "src/application/operational-correction-client.js",
+            "src/integration/operational-correction-dialog.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I002-02",
+          "phase": "T3",
+          "surface": "ui",
+          "status": "candidate",
+          "requirementIds": [
+            "T0T6-R023",
+            "T0T6-R028",
+            "T0T6-R040"
+          ],
+          "acceptance": "A edição/exclusão com histórico mostra escopo causal, sem justificativa textual obrigatória.",
+          "targetPaths": [
+            "src/integration/operational-correction-dialog.js",
+            "src/integration/prontuario-operational-ux.js",
+            "app.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I002-03",
+          "phase": "T5",
+          "surface": "ui",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R038"
+          ],
+          "acceptance": "O futuro editor de Inventariada distingue retificação autorizada de baixa externa do SIGMA e informa efeitos relacionados.",
+          "targetPaths": [
+            "src/integration/prontuario-operational-ux.js",
+            "src/application/inventory-service.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I002-04",
+          "phase": "T5",
+          "surface": "tests",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R035",
+            "T0T6-R038"
+          ],
+          "acceptance": "Casos reais sintéticos de inventário terminal e histórico mostram o que é removido e o que permanece.",
+          "targetPaths": [
+            "tests/e2e/prontuario-correction-layout.spec.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I002-05",
+          "phase": "T4",
+          "surface": "ui",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R024",
+            "T0T6-R040"
+          ],
+          "acceptance": "Manter correções sem narrativa obrigatória; não confundir com observação exigida em Novo envio.",
+          "targetPaths": [
+            "src/integration/operational-correction-dialog.js"
+          ],
+          "evidenceRefs": []
+        }
+      ]
+    },
+    {
+      "decisionId": "T0T6-D003",
+      "status": "approved",
+      "impactStatus": "initial-impact-mapping-needs-review",
+      "supersededBy": null,
+      "obligations": [
+        {
+          "id": "T0T6-I003-01",
+          "phase": "T2",
+          "surface": "db",
+          "status": "candidate",
+          "requirementIds": [
+            "T0T6-R045"
+          ],
+          "acceptance": "Fingerprint inclui note, mesmo operationKey com conteúdo diferente não pode ser aceito como replay idêntico.",
+          "targetPaths": [
+            "supabase/migrations/20261114000100_operational_correction_contract.sql"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I003-02",
+          "phase": "T3",
+          "surface": "tests",
+          "status": "candidate",
+          "requirementIds": [
+            "T0T6-R045"
+          ],
+          "acceptance": "Testar concorrência/idempotência e payloads divergentes em PostgreSQL isolado.",
+          "targetPaths": [
+            "supabase/tests/database/operational-correction.test.sql"
+          ],
+          "evidenceRefs": []
+        }
+      ]
+    },
+    {
+      "decisionId": "T0T6-D004",
+      "status": "approved",
+      "impactStatus": "initial-impact-mapping-needs-review",
+      "supersededBy": null,
+      "obligations": [
+        {
+          "id": "T0T6-I004-01",
+          "phase": "T2",
+          "surface": "domain",
+          "status": "candidate",
+          "requirementIds": [
+            "T0T6-R026"
+          ],
+          "acceptance": "clear_analysis preserva história anterior legítima.",
+          "targetPaths": [
+            "src/application/operational-correction-client.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I004-02",
+          "phase": "T4",
+          "surface": "ui",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R032"
+          ],
+          "acceptance": "clear_item_history é comando distinto com escopo completo explícito.",
+          "targetPaths": [
+            "src/integration/operational-correction-dialog.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I004-03",
+          "phase": "T4",
+          "surface": "tests",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R032"
+          ],
+          "acceptance": "Exclusão não invade história independente.",
+          "targetPaths": [
+            "supabase/tests/database/operational-correction.test.sql"
+          ],
+          "evidenceRefs": []
+        }
+      ]
+    },
+    {
+      "decisionId": "T0T6-D005",
+      "status": "superseded",
+      "impactStatus": "historical",
+      "supersededBy": "T0T6-D006",
+      "obligations": []
+    },
+    {
+      "decisionId": "T0T6-D006",
+      "status": "approved",
+      "impactStatus": "initial-impact-mapping-needs-review",
+      "supersededBy": null,
+      "obligations": [
+        {
+          "id": "T0T6-I006-01",
+          "phase": "T6",
+          "surface": "release",
+          "status": "gate-pending",
+          "requirementIds": [
+            "T0T6-R049",
+            "T0T6-R050"
+          ],
+          "acceptance": "Aplicar T6 a R1, R2 e R3 separadamente; nenhuma publicação sem aprovação.",
+          "targetPaths": [
+            "docs/releases/2026-11-20-prontuario-t0-t3-release-1.md"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I006-02",
+          "phase": "T4",
+          "surface": "documentation",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R033",
+            "T0T6-R049"
+          ],
+          "acceptance": "Na R2, considerar contratos ainda vinculantes de R1 e obrigações remanescentes.",
+          "targetPaths": [
+            "docs/reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md"
+          ],
+          "evidenceRefs": []
+        }
+      ]
+    },
+    {
+      "decisionId": "T0T6-D007",
+      "status": "approved",
+      "impactStatus": "initial-impact-mapping-needs-review",
+      "supersededBy": null,
+      "obligations": [
+        {
+          "id": "T0T6-I007-01",
+          "phase": "T2",
+          "surface": "db",
+          "status": "candidate",
+          "requirementIds": [
+            "T0T6-R044",
+            "T0T6-R045"
+          ],
+          "acceptance": "Preview não escreve; Apply utiliza digest, versões, bloqueio e recibo.",
+          "targetPaths": [
+            "supabase/migrations/20261114000100_operational_correction_contract.sql"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I007-02",
+          "phase": "T2",
+          "surface": "security",
+          "status": "candidate",
+          "requirementIds": [
+            "T0T6-R046",
+            "T0T6-R048"
+          ],
+          "acceptance": "Provar Auth/RLS, concorrência, F5 e segunda sessão com Supabase Docker.",
+          "targetPaths": [
+            "tests/e2e/supabase-operational-correction-local.spec.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I007-03",
+          "phase": "T5",
+          "surface": "domain",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R035",
+            "T0T6-R038"
+          ],
+          "acceptance": "Nova correção patrimonial/reanálise não contorna RLS ou trigger por flag do cliente.",
+          "targetPaths": [
+            "src/application/inventory-service.js"
+          ],
+          "evidenceRefs": []
+        }
+      ]
+    },
+    {
+      "decisionId": "T0T6-D008",
+      "status": "approved",
+      "impactStatus": "initial-impact-mapping-needs-review",
+      "supersededBy": null,
+      "obligations": [
+        {
+          "id": "T0T6-I008-01",
+          "phase": "T2",
+          "surface": "ui",
+          "status": "candidate",
+          "requirementIds": [
+            "T0T6-R009",
+            "T0T6-R059"
+          ],
+          "acceptance": "Assessoria com Pendência ativa mostra ação coerente e conserva Correção na gaveta; SME sem mutação.",
+          "targetPaths": [
+            "src/integration/service-advisory-pendency.js",
+            "src/integration/prontuario-conditional-reconciler.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I008-02",
+          "phase": "T5",
+          "surface": "ui",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R009"
+          ],
+          "acceptance": "Design futuro preserva avaliação fiscal e assessoria independentes em cada NF.",
+          "targetPaths": [
+            "src/integration/prontuario-operational-ux.js"
+          ],
+          "evidenceRefs": []
+        }
+      ]
+    },
+    {
+      "decisionId": "T0T6-D009",
+      "status": "approved",
+      "impactStatus": "initial-impact-mapping-needs-review",
+      "supersededBy": null,
+      "obligations": [
+        {
+          "id": "T0T6-I009-01",
+          "phase": "T2",
+          "surface": "ui",
+          "status": "candidate",
+          "requirementIds": [
+            "T0T6-R015",
+            "T0T6-R026"
+          ],
+          "acceptance": "Não analisado chama clear_analysis; demais seleções correct_analysis.",
+          "targetPaths": [
+            "src/integration/operational-correction-dialog.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I009-02",
+          "phase": "T2",
+          "surface": "tests",
+          "status": "candidate",
+          "requirementIds": [
+            "T0T6-R015"
+          ],
+          "acceptance": "Retry preserva identidade, planDigest e alvo do diálogo.",
+          "targetPaths": [
+            "tests/unit/operational-correction-dialog.test.js"
+          ],
+          "evidenceRefs": []
+        }
+      ]
+    },
+    {
+      "decisionId": "T0T6-D010",
+      "status": "approved",
+      "impactStatus": "initial-impact-mapping-needs-review",
+      "supersededBy": null,
+      "obligations": [
+        {
+          "id": "T0T6-I010-01",
+          "phase": "T5",
+          "surface": "domain",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R035"
+          ],
+          "acceptance": "AttemptId inexistente não usa última tentativa por fallback.",
+          "targetPaths": [
+            "src/application/pendency-service.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I010-02",
+          "phase": "T5",
+          "surface": "ui",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R035"
+          ],
+          "acceptance": "Editor identifica tentativa explícita e comunica alvo sem adivinhação.",
+          "targetPaths": [
+            "src/integration/prontuario-operational-ux.js"
+          ],
+          "evidenceRefs": []
+        }
+      ]
+    },
+    {
+      "decisionId": "T0T6-D011",
+      "status": "approved",
+      "impactStatus": "initial-impact-mapping-needs-review",
+      "supersededBy": null,
+      "obligations": [
+        {
+          "id": "T0T6-I011-01",
+          "phase": "T3",
+          "surface": "domain",
+          "status": "preserve",
+          "requirementIds": [
+            "T0T6-R005",
+            "T0T6-R028"
+          ],
+          "acceptance": "Operação fiscal não reabre/limpa bonus_result; preservar ADR-055.",
+          "targetPaths": [
+            "src/application/invoice-service.js",
+            "src/domain/fluxo-operacional.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I011-02",
+          "phase": "T4",
+          "surface": "ui",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R030"
+          ],
+          "acceptance": "Somente alteração da própria bonificação exibe reconsolidação contextual.",
+          "targetPaths": [
+            "src/integration/prontuario-operational-ux.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I011-03",
+          "phase": "T5",
+          "surface": "ui",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R038"
+          ],
+          "acceptance": "Corrigir Inventariada não altera bonificação ou o estado de entrega.",
+          "targetPaths": [
+            "src/integration/prontuario-operational-ux.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I011-04",
+          "phase": "T3",
+          "surface": "reports",
+          "status": "gate-pending",
+          "requirementIds": [
+            "T0T6-R043"
+          ],
+          "acceptance": "Validar Busca/Excel após exclusão sem contaminar resultado de bonificação.",
+          "targetPaths": [
+            "src/domain/global-search-index.js",
+            "src/domain/excel-sme-export-model.js",
+            "tests/e2e/supabase-operational-correction-local.spec.js"
+          ],
+          "evidenceRefs": []
+        }
+      ]
+    },
+    {
+      "decisionId": "T0T6-D012",
+      "status": "approved",
+      "impactStatus": "initial-impact-mapping-needs-review",
+      "supersededBy": null,
+      "obligations": [
+        {
+          "id": "T0T6-I012-01",
+          "phase": "T2",
+          "surface": "security",
+          "status": "preserve",
+          "requirementIds": [
+            "T0T6-R047"
+          ],
+          "acceptance": "Autorização por perfil/operação, sem bloqueio por carteira do controlador.",
+          "targetPaths": [
+            "src/application/invoice-service.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I012-02",
+          "phase": "T5",
+          "surface": "ui",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R047"
+          ],
+          "acceptance": "Novos formulários respeitam capacidade efetiva e colaboração entre controladores.",
+          "targetPaths": [
+            "src/integration/prontuario-operational-ux.js"
+          ],
+          "evidenceRefs": []
+        }
+      ]
+    },
+    {
+      "decisionId": "T0T6-D013",
+      "status": "approved",
+      "impactStatus": "initial-impact-mapping-needs-review",
+      "supersededBy": null,
+      "obligations": [
+        {
+          "id": "T0T6-I013-01",
+          "phase": "T1",
+          "surface": "visual",
+          "status": "gate-pending",
+          "requirementIds": [
+            "T0T6-R017",
+            "T0T6-R058"
+          ],
+          "acceptance": "Aceite da T1 real antes da atualização do golden.",
+          "targetPaths": [
+            "tests/e2e/prontuario-correction-layout.spec.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I013-02",
+          "phase": "T3",
+          "surface": "ui",
+          "status": "gate-pending",
+          "requirementIds": [
+            "T0T6-R028"
+          ],
+          "acceptance": "Validar percepção humana dos efeitos após F5 em Pendências, Inventário e Prontuário.",
+          "targetPaths": [
+            "src/integration/operational-correction-dialog.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I013-03",
+          "phase": "T5",
+          "surface": "visual",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R017"
+          ],
+          "acceptance": "Homologar densidade, teclado, erros, dark mode e contexto do editor patrimonial.",
+          "targetPaths": [
+            "src/styles/prontuario-operational-ux.css"
+          ],
+          "evidenceRefs": []
+        }
+      ]
+    },
+    {
+      "decisionId": "T0T6-D014",
+      "status": "approved",
+      "impactStatus": "initial-impact-mapping-needs-review",
+      "supersededBy": null,
+      "obligations": [
+        {
+          "id": "T0T6-I014-01",
+          "phase": "T4",
+          "surface": "domain",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R030",
+            "T0T6-R031"
+          ],
+          "acceptance": "A correção da Bonificação pode reabrir apenas seu resultado com estado pendente.",
+          "targetPaths": [
+            "src/domain/fluxo-operacional.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I014-02",
+          "phase": "T4",
+          "surface": "ui",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R030"
+          ],
+          "acceptance": "Mostrar Alterações pendentes de consolidação e Consolidar alterações.",
+          "targetPaths": [
+            "src/integration/prontuario-operational-ux.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I014-03",
+          "phase": "T4",
+          "surface": "reports",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R030",
+            "T0T6-R031"
+          ],
+          "acceptance": "Exportação futura coerente; XLSX já baixado não pode ser regravado.",
+          "targetPaths": [
+            "src/domain/excel-sme-export-model.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I014-04",
+          "phase": "T4",
+          "surface": "tests",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R030",
+            "T0T6-R031"
+          ],
+          "acceptance": "Testar reconsolidação, N/A, NF preservada e outro programa.",
+          "targetPaths": [
+            "tests/unit/monthly-evaluation-rules.test.js"
+          ],
+          "evidenceRefs": []
+        }
+      ]
+    },
+    {
+      "decisionId": "T0T6-D015",
+      "status": "approved",
+      "impactStatus": "initial-impact-mapping-needs-review",
+      "supersededBy": null,
+      "obligations": [
+        {
+          "id": "T0T6-I015-01",
+          "phase": "T3",
+          "surface": "domain",
+          "status": "candidate",
+          "requirementIds": [
+            "T0T6-R021",
+            "T0T6-R022"
+          ],
+          "acceptance": "Excluir NF identificada reabre saída Qualidade; a_identificar é outro objeto.",
+          "targetPaths": [
+            "src/integration/quality-provisional-ux.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I015-02",
+          "phase": "T3",
+          "surface": "ui",
+          "status": "gate-pending",
+          "requirementIds": [
+            "T0T6-R021",
+            "T0T6-R022"
+          ],
+          "acceptance": "Retornar à saída provisória com ação legítima de identificar novamente.",
+          "targetPaths": [
+            "src/integration/quality-provisional-ux.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I015-03",
+          "phase": "T3",
+          "surface": "tests",
+          "status": "candidate",
+          "requirementIds": [
+            "T0T6-R021"
+          ],
+          "acceptance": "Provar exclusão, reload e nova identificação sem duplicata.",
+          "targetPaths": [
+            "tests/e2e/supabase-operational-correction-local.spec.js"
+          ],
+          "evidenceRefs": []
+        }
+      ]
+    },
+    {
+      "decisionId": "T0T6-D016",
+      "status": "approved",
+      "impactStatus": "initial-impact-mapping-needs-review",
+      "supersededBy": null,
+      "obligations": [
+        {
+          "id": "T0T6-I016-01",
+          "phase": "T0",
+          "surface": "governance",
+          "status": "preserve",
+          "requirementIds": [
+            "T0T6-R052",
+            "T0T6-R067"
+          ],
+          "acceptance": "ChatGPT integra contribuições de agentes com branch/SHA, provas e triagem explícita.",
+          "targetPaths": [
+            "docs/continuity/prontuario-t0-t6/registry.json"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I016-02",
+          "phase": "T5",
+          "surface": "documentation",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R067"
+          ],
+          "acceptance": "Novos agentes consultam obrigações históricas por requisito antes de trabalhar.",
+          "targetPaths": [
+            "docs/continuity/prontuario-t0-t6/LINEAGE.md"
+          ],
+          "evidenceRefs": []
+        }
+      ]
+    },
+    {
+      "decisionId": "T0T6-D017",
+      "status": "approved",
+      "impactStatus": "initial-impact-mapping-needs-review",
+      "supersededBy": null,
+      "obligations": [
+        {
+          "id": "T0T6-I017-01",
+          "phase": "T0",
+          "surface": "governance",
+          "status": "preserve",
+          "requirementIds": [
+            "T0T6-R057",
+            "T0T6-R067"
+          ],
+          "acceptance": "Não cruzar a frente T0–T6 com manutenção de pacotes nem auditoria documental institucional.",
+          "targetPaths": [
+            "AGENTS.md"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I017-02",
+          "phase": "T6",
+          "surface": "release",
+          "status": "preserve",
+          "requirementIds": [
+            "T0T6-R057"
+          ],
+          "acceptance": "Nenhuma validação funcional autoriza mudar Supabase institucional em tarefa paralela.",
+          "targetPaths": [
+            "docs/releases/2026-11-20-prontuario-t0-t3-release-1.md"
+          ],
+          "evidenceRefs": []
+        }
+      ]
+    },
+    {
+      "decisionId": "T0T6-D018",
+      "status": "approved",
+      "impactStatus": "initial-impact-mapping-needs-review",
+      "supersededBy": null,
+      "obligations": [
+        {
+          "id": "T0T6-I018-01",
+          "phase": "T3",
+          "surface": "release",
+          "status": "gate-pending",
+          "requirementIds": [
+            "T0T6-R051"
+          ],
+          "acceptance": "Flag local não concede ativação em Production; precisa autorização própria.",
+          "targetPaths": [
+            "config.js",
+            "docs/releases/2026-11-20-prontuario-t0-t3-release-1.md"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I018-02",
+          "phase": "T6",
+          "surface": "tests",
+          "status": "gate-pending",
+          "requirementIds": [
+            "T0T6-R051"
+          ],
+          "acceptance": "Validar versão cliente antiga, backend compatível e fallback com gate.",
+          "targetPaths": [
+            "tests/e2e/supabase-operational-correction-local.spec.js"
+          ],
+          "evidenceRefs": []
+        }
+      ]
+    },
+    {
+      "decisionId": "T0T6-D019",
+      "status": "approved",
+      "impactStatus": "initial-impact-mapping-needs-review",
+      "supersededBy": null,
+      "obligations": [
+        {
+          "id": "T0T6-I019-01",
+          "phase": "T3",
+          "surface": "reports",
+          "status": "gate-pending",
+          "requirementIds": [
+            "T0T6-R043"
+          ],
+          "acceptance": "Conferir Busca, Excel, Pendências, Passivo, Inventário e Dashboard após correção/exclusão.",
+          "targetPaths": [
+            "src/domain/global-search-index.js",
+            "src/domain/excel-sme-export-model.js",
+            "tests/e2e/supabase-operational-correction-local.spec.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I019-02",
+          "phase": "T4",
+          "surface": "reports",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R043"
+          ],
+          "acceptance": "Conferir exportação após bonificação corrigida ou delete_context.",
+          "targetPaths": [
+            "src/domain/excel-sme-export-model.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I019-03",
+          "phase": "T5",
+          "surface": "tests",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R043"
+          ],
+          "acceptance": "Novos contatos, inventário e históricos precisam regressões transversais de consumidores.",
+          "targetPaths": [
+            "tests/unit/monthly-evaluation-rules.test.js"
+          ],
+          "evidenceRefs": []
+        }
+      ]
+    },
+    {
+      "decisionId": "T0T6-D020",
+      "status": "approved",
+      "impactStatus": "initial-impact-mapping-needs-review",
+      "supersededBy": null,
+      "obligations": [
+        {
+          "id": "T0T6-I020-01",
+          "phase": "T0",
+          "surface": "governance",
+          "status": "preserve",
+          "requirementIds": [
+            "T0T6-R052",
+            "T0T6-R067"
+          ],
+          "acceptance": "Registrar cada mudança aprovada no GitHub, associando decisões e obrigações entre chats/branches e preservando futuras aplicações.",
+          "targetPaths": [
+            "AGENTS.md",
+            "docs/continuity/prontuario-t0-t6/decision-impact.json"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I020-02",
+          "phase": "T5",
+          "surface": "ui",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R038",
+            "T0T6-R067"
+          ],
+          "acceptance": "Ao desenvolver o futuro layout de inventário, consultar D002/D011, representar edição/correção autorizada e não restaurar guardas históricos superados.",
+          "targetPaths": [
+            "src/integration/prontuario-operational-ux.js",
+            "app.js",
+            "styles.css"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I020-03",
+          "phase": "T6",
+          "surface": "tests",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R052",
+            "T0T6-R067"
+          ],
+          "acceptance": "Nas futuras releases, verificar rastreabilidade das obrigações e evidência real de regras, UX, consumidores e gates, sem fechar etapas não testadas.",
+          "targetPaths": [
+            "tests/unit/prontuario-decision-impact.test.js"
+          ],
+          "evidenceRefs": []
+        }
+      ]
+    }
+  ],
+  "trackedObligationIds": [
+    "T0T6-I001-01",
+    "T0T6-I001-02",
+    "T0T6-I001-03",
+    "T0T6-I002-01",
+    "T0T6-I002-02",
+    "T0T6-I002-03",
+    "T0T6-I002-04",
+    "T0T6-I002-05",
+    "T0T6-I003-01",
+    "T0T6-I003-02",
+    "T0T6-I004-01",
+    "T0T6-I004-02",
+    "T0T6-I004-03",
+    "T0T6-I006-01",
+    "T0T6-I006-02",
+    "T0T6-I007-01",
+    "T0T6-I007-02",
+    "T0T6-I007-03",
+    "T0T6-I008-01",
+    "T0T6-I008-02",
+    "T0T6-I009-01",
+    "T0T6-I009-02",
+    "T0T6-I010-01",
+    "T0T6-I010-02",
+    "T0T6-I011-01",
+    "T0T6-I011-02",
+    "T0T6-I011-03",
+    "T0T6-I011-04",
+    "T0T6-I012-01",
+    "T0T6-I012-02",
+    "T0T6-I013-01",
+    "T0T6-I013-02",
+    "T0T6-I013-03",
+    "T0T6-I014-01",
+    "T0T6-I014-02",
+    "T0T6-I014-03",
+    "T0T6-I014-04",
+    "T0T6-I015-01",
+    "T0T6-I015-02",
+    "T0T6-I015-03",
+    "T0T6-I016-01",
+    "T0T6-I016-02",
+    "T0T6-I017-01",
+    "T0T6-I017-02",
+    "T0T6-I018-01",
+    "T0T6-I018-02",
+    "T0T6-I019-01",
+    "T0T6-I019-02",
+    "T0T6-I019-03",
+    "T0T6-I020-01",
+    "T0T6-I020-02",
+    "T0T6-I020-03"
+  ]
+}

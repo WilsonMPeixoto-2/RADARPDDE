@@ -1,3 +1,5 @@
+> **Desdobramentos de decisões entre chats e releases:** [política de propagação e impactos](reference/DECISION_IMPACT_POLICY.md). Uma ADR não perde efeitos futuros quando apenas um componente foi implementado; registrar obrigações em outras superfícies. O [mapa inicial de T0–T6](continuity/prontuario-t0-t6/decision-impact.json) exemplifica o método e não substitui a totalidade deste registro.
+
 # RADAR PDDE — Registro de decisões
 
 **Atualizado em:** 8 de outubro de 2026

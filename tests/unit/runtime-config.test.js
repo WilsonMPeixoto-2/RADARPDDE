@@ -155,3 +155,113 @@ test('Production válida com marcador permanece conectada ao Supabase', () => {
     assert.equal(config.activeRepository, 'supabase');
     assert.equal(config.supabase.connectionEnabled, true);
 });
+
+
+test('piloto operacional depende de banco loopback e ambiente de teste', () => {
+    const local = createRuntimeConfig({
+        dataMode: DATA_MODES.SUPABASE_PREVIEW,
+        environment: 'test',
+        features: { supabaseRepositoryEnabled: true, operationalCorrectionPilot: true },
+        supabase: { url: 'http://127.0.0.1:54321', publishableKey: 'sb_publishable_test' }
+    });
+    assert.equal(local.features.operationalCorrectionPilot, true);
+
+    const remote = createRuntimeConfig({
+        dataMode: DATA_MODES.SUPABASE_PREVIEW,
+        environment: 'preview',
+        features: { supabaseRepositoryEnabled: true, operationalCorrectionPilot: true },
+        supabase: { url: 'https://example.supabase.co', publishableKey: 'sb_publishable_test' }
+    });
+    assert.notEqual(remote.features.operationalCorrectionPilot, true);
+
+    const prod = createRuntimeConfig({
+        deploymentTarget: 'production',
+        dataMode: DATA_MODES.SUPABASE_PRODUCTION,
+        environment: 'production',
+        productionActivationApproved: true,
+        features: { supabaseRepositoryEnabled: true, operationalCorrectionPilot: true },
+        supabase: { url: 'https://example.supabase.co', publishableKey: 'sb_publishable_test' }
+    });
+    assert.notEqual(prod.features.operationalCorrectionPilot, true);
+});
+
+test('release T0–T3 requer deployment de produção, Supabase válido e autorização dedicada', () => {
+    const base = {
+        deploymentTarget: 'production',
+        dataMode: DATA_MODES.SUPABASE_PRODUCTION,
+        environment: 'production',
+        productionActivationApproved: true,
+        features: {
+            supabaseRepositoryEnabled: true,
+            operationalCorrectionRelease: true
+        },
+        supabase: {
+            url: 'https://example.supabase.co',
+            publishableKey: 'sb_publishable_example'
+        }
+    };
+    const enabled = createRuntimeConfig(base);
+    assert.equal(enabled.features.operationalCorrectionRelease, true);
+    assert.notEqual(enabled.features.operationalCorrectionPilot, true);
+    for (const changes of [
+        { deploymentTarget: 'preview' },
+        { productionActivationApproved: false },
+        { dataMode: DATA_MODES.SUPABASE_PREVIEW },
+        { features: { ...base.features, supabaseRepositoryEnabled: false } },
+        { features: { supabaseRepositoryEnabled: true } },
+        { supabase: { ...base.supabase, url: 'http://127.0.0.1:54321' } },
+        { supabase: { ...base.supabase, url: 'http://example.supabase.co' } }
+    ]) {
+        const candidate = createRuntimeConfig({ ...base, ...changes });
+        assert.notEqual(candidate.features.operationalCorrectionRelease, true);
+    }
+});
+
+test('bootstrap do navegador mantém release OFF sem HTTPS e ON apenas com opt-in de production', () => {
+    const fs = require('node:fs');
+    const vm = require('node:vm');
+    const path = require('node:path');
+    const source = fs.readFileSync(path.resolve(__dirname, '../../config.js'), 'utf8');
+    const input = {
+        deploymentTarget: 'production',
+        dataMode: DATA_MODES.SUPABASE_PRODUCTION,
+        environment: 'production',
+        productionActivationApproved: true,
+        features: { supabaseRepositoryEnabled: true, operationalCorrectionRelease: true },
+        supabase: { url: 'https://example.supabase.co', publishableKey: 'sb_publishable_example' }
+    };
+    function visible(runtimeInput, protocol) {
+        const context = {
+            URL,
+            window: {
+                RADAR_PDDE_RUNTIME_INPUT: runtimeInput,
+                location: { hostname: 'radarpdde-fix.vercel.app', protocol }
+            }
+        };
+        vm.runInNewContext(source, context, { filename: 'config.js' });
+        return context.window.RADAR_OPERATIONAL_CORRECTION_PREVIEW;
+    }
+    assert.equal(visible(input, 'https:'), true);
+    assert.equal(visible(input, 'http:'), false);
+    assert.equal(visible({ ...input, features: { supabaseRepositoryEnabled: true } }, 'https:'), false);
+    assert.equal(visible({ ...input, deploymentTarget: 'preview' }, 'https:'), false);
+});
+
+test('ativação simultânea de piloto e release falha fechado nos dois lados no runtime', () => {
+    const simultaneous = createRuntimeConfig({
+        deploymentTarget: 'preview',
+        dataMode: DATA_MODES.SUPABASE_PREVIEW,
+        environment: 'test',
+        features: {
+            supabaseRepositoryEnabled: true,
+            operationalCorrectionPilot: true,
+            operationalCorrectionRelease: true
+        },
+        supabase: {
+            url: 'http://127.0.0.1:54321',
+            publishableKey: 'sb_publishable_local_example'
+        }
+    });
+    assert.notEqual(simultaneous.features.operationalCorrectionPilot, true);
+    assert.notEqual(simultaneous.features.operationalCorrectionRelease, true);
+});

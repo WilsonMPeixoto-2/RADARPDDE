@@ -565,9 +565,7 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       };
     });
 
-    const targetRow = page.locator('#prontuario-verif-rows tr')
-      .filter({ hasText: 'Educação e Família' })
-      .filter({ hasText: 'Extrato Conta Corrente' });
+    const targetRow = page.locator('#prontuario-verif-rows tr[data-program-id="ED_FAMILIA"][data-document-key="extCC"]');
     await expect(targetRow).toHaveCount(1);
     await targetRow.locator('select.select-analise').selectOption('Incorreto');
     const pendencyModal = page.locator('#modal-nova-pendencia');
@@ -595,9 +593,7 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       item: 'Educação e Família - Extrato Conta Corrente'
     });
 
-    const linkedRow = page.locator('#prontuario-verif-rows tr')
-      .filter({ hasText: 'Educação e Família' })
-      .filter({ hasText: 'Extrato Conta Corrente' });
+    const linkedRow = page.locator('#prontuario-verif-rows tr[data-program-id="ED_FAMILIA"][data-document-key="extCC"]');
     await expect(linkedRow.locator('select.select-analise')).toBeDisabled();
     await expect(linkedRow.getByRole('button', { name: 'Registrar novo envio', exact: true })).toHaveCount(0);
     await expect(linkedRow.getByRole('button', { name: 'Reanalisar', exact: true })).toHaveCount(0);
@@ -641,9 +637,7 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       activeProntuarioCompetencia = competencia;
       switchView('prontuario', escolaId);
     }, context);
-    const resolvedRow = page.locator('#prontuario-verif-rows tr')
-      .filter({ hasText: 'Educação e Família' })
-      .filter({ hasText: 'Extrato Conta Corrente' });
+    const resolvedRow = page.locator('#prontuario-verif-rows tr[data-program-id="ED_FAMILIA"][data-document-key="extCC"]');
     await expect(resolvedRow.locator('select.select-analise')).toBeEnabled();
     await expect(resolvedRow.locator('select.select-analise')).toHaveValue('Correto');
     await expect(resolvedRow.getByRole('button', { name: 'Visualizar pendência', exact: true }))
@@ -756,9 +750,7 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     });
 
     await legacyRow.getByRole('button', { name: 'Abrir no Prontuário', exact: true }).click();
-    const matchingTechnicalRow = page.locator('#prontuario-verif-rows tr')
-      .filter({ hasText: 'Educação e Família' })
-      .filter({ hasText: 'Extrato Conta Corrente' });
+    const matchingTechnicalRow = page.locator('#prontuario-verif-rows tr[data-program-id="ED_FAMILIA"][data-document-key="extCC"]');
     await expect(matchingTechnicalRow.getByRole('button', { name: 'Registrar novo envio' }))
       .toHaveCount(0);
     await expect(matchingTechnicalRow.getByRole('button', { name: 'Reanalisar' }))

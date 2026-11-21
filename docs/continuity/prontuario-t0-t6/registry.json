@@ -1,0 +1,576 @@
+{
+  "schemaVersion": 1,
+  "workstream": "RADARPDDE/PRONTUARIO-T0-T6",
+  "date": "2026-11-20",
+  "authorityNote": "Contratos aprovados e ADRs prevalecem; registro documenta proveniência, revisão e estado, não modifica regra por si.",
+  "active": {
+    "release": "R1",
+    "stages": [
+      "T0",
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "pr": 535,
+    "branch": "release/prontuario-t0-t3-20261120",
+    "checkpointPath": "docs/continuity/prontuario-t0-t6/CHECKPOINT.md",
+    "decisionsPath": "docs/continuity/prontuario-t0-t6/registry.json",
+    "status": "candidata-sem-deploy"
+  },
+  "decisions": [
+    {
+      "id": "T0T6-D001",
+      "date": "2026-11-14",
+      "stage": "T1",
+      "status": "approved",
+      "title": "Matriz visual e contexto",
+      "decision": "Nova T1 usa cabeçalho horizontal por programa, colunas Documento/Bonificação/Análise técnica/Providência, identidade escola/competência/programa antes de agir. Seis conceitos visuais são referência e não prova de implementação.",
+      "sourcePath": "docs/superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md",
+      "supersedes": []
+    },
+    {
+      "id": "T0T6-D002",
+      "date": "2026-11-14",
+      "stage": "T2-T5",
+      "status": "approved",
+      "title": "Correção sem regularização fictícia",
+      "decision": "Correção, exclusão e limpeza de lançamento errôneo com efeitos causais, notas opcionais e sem obrigar novo envio, reanálise ou justificativa fictícios; preservar eventos independentes.",
+      "sourcePath": "docs/reference/PRONTUARIO_CORRECAO_CONTRATO.md",
+      "supersedes": []
+    },
+    {
+      "id": "T0T6-D003",
+      "date": "2026-11-15",
+      "stage": "T2-T3",
+      "status": "approved",
+      "title": "Idempotência retém observação no fingerprint",
+      "decision": "Proposta Antigravity de retirar note de request_fingerprint foi rejeitada após RED/GREEN: manter note no digest de identidade e retry com payload congelado para rejeitar mesma operationKey com observação diferente.",
+      "sourcePath": "docs/handoff/2026-11-15-prontuario-integracao-verificada.md",
+      "supersedes": []
+    },
+    {
+      "id": "T0T6-D004",
+      "date": "2026-11-15",
+      "stage": "T2-T4",
+      "status": "approved",
+      "title": "Limpeza de análise não é limpeza de história",
+      "decision": "clear_analysis remove resultado atual e consequência identificada; clear_item_history e delete_context são ações diferentes, previstas só para T4, sem apagar histórico independente.",
+      "sourcePath": "docs/reference/PRONTUARIO_CORRECAO_CONTRATO.md",
+      "supersedes": []
+    },
+    {
+      "id": "T0T6-D005",
+      "date": "2026-11-14",
+      "stage": "T0-T6",
+      "status": "superseded",
+      "title": "Entrega única T0–T6",
+      "decision": "O plano original estruturava a verificação e preparação de publicação no T6, após a execução conjunta dos lotes. A ordem de publicação foi modificada em 20/11, não as regras funcionais.",
+      "sourcePath": "docs/superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md",
+      "supersedes": []
+    },
+    {
+      "id": "T0T6-D006",
+      "date": "2026-11-20",
+      "stage": "T0-T6",
+      "status": "approved",
+      "title": "Publicação incremental com T6 por release",
+      "decision": "Release 1 T0–T3, depois Release 2 T4, depois Release 3 T5; gates T6 para cada release, sem aguardar implementação de T4/T5 para a primeira entrega.",
+      "sourcePath": "docs/releases/2026-11-20-prontuario-t0-t3-release-1.md",
+      "supersedes": [
+        "T0T6-D005"
+      ]
+    },
+    {
+      "id": "T0T6-D007",
+      "date": "2026-11-15",
+      "stage": "T2-T5",
+      "status": "approved",
+      "title": "RPC transacional com RLS e autenticação",
+      "decision": "Operações destrutivas exigem preview no servidor, digest com versões, apply autenticado e atômico, identidade/autoria, permissões, bloqueio de concorrência e idempotência; nunca DELETE irrestrito.",
+      "sourcePath": "docs/reference/PRONTUARIO_CORRECAO_CONTRATO.md",
+      "supersedes": []
+    },
+    {
+      "id": "T0T6-D008",
+      "date": "2026-11-18",
+      "stage": "T2",
+      "status": "approved",
+      "title": "Correção A-01 da Assessoria",
+      "decision": "Quando há Pendência ativa, linha deve trocar Editar análise por Visualizar pendência, preservando Corrigir análise na gaveta; considerar guarda SME, checkbox Assessoria e SVG na reconciliação incremental.",
+      "sourcePath": "docs/audits/2026-11-15-antigravity-argon-prontuario/PLANO_CONTINUIDADE.md",
+      "supersedes": []
+    },
+    {
+      "id": "T0T6-D009",
+      "date": "2026-11-15",
+      "stage": "T2",
+      "status": "approved",
+      "title": "Gemini G-02 seleciona clear_analysis",
+      "decision": "No diálogo, seleção Não analisado solicita clear_analysis, sem changes.analysis; outras seleções usam correct_analysis, sem perda de plano/operationKey em retry.",
+      "sourcePath": "docs/handoff/2026-11-15-prontuario-integracao-verificada.md",
+      "supersedes": []
+    },
+    {
+      "id": "T0T6-D010",
+      "date": "2026-11-15",
+      "stage": "T5",
+      "status": "approved",
+      "title": "Rejeitar fallback silencioso de attemptId",
+      "decision": "Gemini G-03 não deve ser copiado: attemptId inexistente não pode cair silenciosamente na última tentativa, sob risco de corrigir o registro errado. Requer alvo inequívoco e testes T5.",
+      "sourcePath": "docs/handoff/2026-11-15-prontuario-integracao-verificada.md",
+      "supersedes": []
+    },
+    {
+      "id": "T0T6-D011",
+      "date": "2026-09-30",
+      "stage": "T2-T5",
+      "status": "approved",
+      "title": "Despesa e bonificação independentes — ADR-055",
+      "decision": "Operação de NF/Despesa/Assessoria não pode limpar ou reabrir bonificação consolidada. Correção da própria bonificação terá fluxo de reconsolidação em T4.",
+      "sourcePath": "docs/decisions/ADR-055-independencia-despesas-bonificacao.md",
+      "supersedes": []
+    },
+    {
+      "id": "T0T6-D012",
+      "date": "2026-10-18",
+      "stage": "T2-T5",
+      "status": "approved",
+      "title": "Colaboração transversal — ADR-056",
+      "decision": "Autorização é do perfil/operação, não da carteira ou escola atribuída; não inventar bloqueios entre controladores habilitados.",
+      "sourcePath": "docs/DECISION_LOG.md",
+      "supersedes": []
+    },
+    {
+      "id": "T0T6-D013",
+      "date": "2026-11-15",
+      "stage": "T1-T3",
+      "status": "approved",
+      "title": "Aceite humano da UI real em localhost",
+      "decision": "Antes de afirmar T1–T3 homologado, proprietário deve navegar na cópia local real com Supabase Docker/Auth/RLS e dados sintéticos. Golden antigo prontuario.png só muda após aceite visual; CI verde não substitui essa decisão.",
+      "sourcePath": "docs/reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md",
+      "supersedes": []
+    },
+    {
+      "id": "T0T6-D014",
+      "date": "2026-11-15",
+      "stage": "T4",
+      "status": "approved",
+      "title": "Bonificação consolidada corrigível",
+      "decision": "Após correção de bonificação consolidada: Alterações pendentes de consolidação e botão Consolidar alterações; exportações futuras coerentes, sem fingir alteração de XLSX baixado. Ainda não implementado.",
+      "sourcePath": "docs/reference/PRONTUARIO_CORRECAO_CONTRATO.md",
+      "supersedes": []
+    },
+    {
+      "id": "T0T6-D015",
+      "date": "2026-11-14",
+      "stage": "T3",
+      "status": "approved",
+      "title": "Qualidade provisória distinta de a_identificar",
+      "decision": "A exclusão causal da NF identificada do PDDE Qualidade deve reabrir a saída provisória e permitir nova identificação. Não confundir com despesa a_identificar de programa conhecido.",
+      "sourcePath": "docs/reference/PRONTUARIO_CORRECAO_CONTRATO.md",
+      "supersedes": []
+    },
+    {
+      "id": "T0T6-D016",
+      "date": "2026-11-20",
+      "stage": "T0-T6",
+      "status": "approved",
+      "title": "ChatGPT executor, demais agentes colaboradores",
+      "decision": "ChatGPT integra e decide; Antigravity, Manus e Gemini revisam e oferecem análise, testes e código em branches próprias. Novas contribuições avaliadas por SHA e resultado, sem proibir branches paralelas.",
+      "sourcePath": "docs/releases/2026-11-20-prontuario-t0-t3-release-1.md",
+      "supersedes": []
+    },
+    {
+      "id": "T0T6-D017",
+      "date": "2026-11-20",
+      "stage": "T0-T6",
+      "status": "approved",
+      "title": "Segregar manutenção e prestação de contas",
+      "decision": "Upgrades de pacotes/CI e análises de arquivos PDDE no Drive com registros reais no RADAR/Supabase institucional são frentes paralelas separadas de T0–T6; não usar dados institucionais como fixtures.",
+      "sourcePath": "docs/releases/2026-11-20-prontuario-t0-t3-release-1.md",
+      "supersedes": []
+    },
+    {
+      "id": "T0T6-D018",
+      "date": "2026-11-20",
+      "stage": "T2-T3",
+      "status": "approved",
+      "title": "Flag de release institucional independente",
+      "decision": "Piloto local é restrito a localhost; release T0–T3 necessita opt-in independente de Production, backend e frontend compatíveis e autorização de implantação separada; default OFF.",
+      "sourcePath": "docs/releases/2026-11-20-prontuario-t0-t3-release-1.md",
+      "supersedes": []
+    },
+    {
+      "id": "T0T6-D019",
+      "date": "2026-11-20",
+      "stage": "T1-T5",
+      "status": "approved",
+      "title": "Revisar Busca/Excel por release",
+      "decision": "Projeções de Busca, Passivo, Pendências, Inventário e novas exportações devem ser testadas em cada lote afetado. Diretriz de T6 transversal não autoriza copiar proposta Gemini sem prova.",
+      "sourcePath": "docs/releases/2026-11-20-prontuario-t0-t3-release-1.md",
+      "supersedes": []
+    },
+    {
+      "id": "T0T6-D020",
+      "date": "2026-11-20",
+      "stage": "T0-T6",
+      "status": "approved",
+      "title": "Propagação obrigatória das decisões entre chats e camadas",
+      "decision": "Cada decisão aprovada mantém efeito vinculante sobre código, banco, interfaces, testes, relatórios e etapas futuras, mesmo quando seus desdobramentos forem implementados em chats/branches separados. Registrar obrigações por fase, preservar pendências e comprovar propagação na fase pertinente; nenhuma implementação parcial encerra os impactos restantes.",
+      "sourcePath": "docs/continuity/prontuario-t0-t6/DECISION_IMPACT_PROTOCOL.md",
+      "supersedes": []
+    }
+  ],
+  "contributions": [
+    {
+      "id": "T0T6-C001",
+      "agent": "Astra/Manus",
+      "stage": "T1",
+      "title": "Reconstrução do cabeçalho horizontal",
+      "status": "incorporated",
+      "originRef": "audit/manus-t1-astra-reconstruida-20261114",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/tree/audit/manus-t1-astra-reconstruida-20261114",
+      "decisionIds": [
+        "T0T6-D001"
+      ],
+      "rationale": "T1 aproveitada com atualização do consumidor SME e preservação da matriz.",
+      "integratedRef": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/release/prontuario-t0-t3-20261120/docs/handoff/2026-11-15-prontuario-integracao-verificada.md"
+    },
+    {
+      "id": "T0T6-C002",
+      "agent": "Argon",
+      "stage": "T0/T5",
+      "title": "Fixtures T0 e helper de recomposição",
+      "status": "incorporated",
+      "originRef": "feat/prontuario-correcao-integrada-20261114@182b7949",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/tree/feat/prontuario-correcao-integrada-20261114",
+      "decisionIds": [
+        "T0T6-D002"
+      ],
+      "rationale": "Somente fixture T0 e helper puro T5 reaproveitados; migration original não aceita como solução operacional.",
+      "integratedRef": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/release/prontuario-t0-t3-20261120/docs/handoff/2026-11-15-prontuario-integracao-verificada.md"
+    },
+    {
+      "id": "T0T6-C003",
+      "agent": "Manus",
+      "stage": "T2/T3",
+      "title": "Contrato SQL autenticado e cliente RPC seguros",
+      "status": "incorporated",
+      "originRef": "audit/manus-sugestoes-correcao-20261114@f0fa7335",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/tree/audit/manus-sugestoes-correcao-20261114",
+      "decisionIds": [
+        "T0T6-D007"
+      ],
+      "rationale": "Referência protegida por Auth/RLS/idempotência absorvida na linha de ancestralidade; zero commits à frente da release ao comparar refs.",
+      "integratedRef": "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534"
+    },
+    {
+      "id": "T0T6-C004",
+      "agent": "Antigravity",
+      "stage": "T2/T3",
+      "title": "Seis refinamentos de seleção e consumidores",
+      "status": "incorporated",
+      "originRef": "audit/antigravity-argon-prontuario-20261115@1cb118fd",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/tree/audit/antigravity-argon-prontuario-20261115",
+      "decisionIds": [
+        "T0T6-D002",
+        "T0T6-D007"
+      ],
+      "rationale": "Seleção de Pendência, fila original, primeira análise, NF atual, ações corretas e locks/versionamento; incorporados em 20409c12.",
+      "integratedRef": "https://github.com/WilsonMPeixoto-2/RADARPDDE/commit/20409c12591090b3b422ae014afb8cdf880bd387"
+    },
+    {
+      "id": "T0T6-C005",
+      "agent": "Antigravity",
+      "stage": "T2/T3",
+      "title": "Retirar note do fingerprint SQL",
+      "status": "rejected",
+      "originRef": "audit/antigravity-argon-prontuario-20261115@7802c0fb",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/release/prontuario-t0-t3-20261120/docs/handoff/2026-11-15-prontuario-integracao-verificada.md",
+      "decisionIds": [
+        "T0T6-D003"
+      ],
+      "rationale": "RED/GREEN demonstrou replay indevido da mesma operationKey com observação diferente; manter fingerprint completo.",
+      "integratedRef": ""
+    },
+    {
+      "id": "T0T6-C006",
+      "agent": "Gemini",
+      "stage": "T2",
+      "title": "G-01 target.invoiceId alternativo",
+      "status": "reference",
+      "originRef": "audit/gemini-revisao-critica-e-sugestoes-20261115@6b4efb5d",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/release/prontuario-t0-t3-20261120/docs/handoff/2026-11-15-prontuario-integracao-verificada.md",
+      "decisionIds": [
+        "T0T6-D007"
+      ],
+      "rationale": "Já atendido: context.invoiceId converte a target.id; diagnóstico antigo incorreto.",
+      "integratedRef": ""
+    },
+    {
+      "id": "T0T6-C007",
+      "agent": "Gemini",
+      "stage": "T2",
+      "title": "G-02 Não analisado usa clear_analysis",
+      "status": "incorporated",
+      "originRef": "audit/gemini-revisao-critica-e-sugestoes-20261115@6b4efb5d",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/release/prontuario-t0-t3-20261120/docs/handoff/2026-11-15-prontuario-integracao-verificada.md",
+      "decisionIds": [
+        "T0T6-D009"
+      ],
+      "rationale": "Incorporada pontualmente após teste RED/GREEN; sem importar diálogo alternativo que falhou E2E.",
+      "integratedRef": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/release/prontuario-t0-t3-20261120/docs/handoff/2026-11-15-prontuario-integracao-verificada.md"
+    },
+    {
+      "id": "T0T6-C008",
+      "agent": "Gemini",
+      "stage": "T5",
+      "title": "G-03 fallback para última tentativa",
+      "status": "rejected",
+      "originRef": "audit/gemini-revisao-critica-e-sugestoes-20261115@6b4efb5d",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/release/prontuario-t0-t3-20261120/docs/handoff/2026-11-15-prontuario-integracao-verificada.md",
+      "decisionIds": [
+        "T0T6-D010"
+      ],
+      "rationale": "Alvo attemptId inexistente selecionava indevidamente a tentativa mais recente; preservar rejeição inequívoca.",
+      "integratedRef": ""
+    },
+    {
+      "id": "T0T6-C009",
+      "agent": "Gemini",
+      "stage": "T2/T3",
+      "title": "G-04 fallback de log administrativo",
+      "status": "deferred",
+      "originRef": "audit/gemini-revisao-critica-e-sugestoes-20261115@6b4efb5d",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/release/prontuario-t0-t3-20261120/docs/handoff/2026-11-15-prontuario-integracao-verificada.md",
+      "decisionIds": [
+        "T0T6-D007"
+      ],
+      "rationale": "Sem regressão global reproduzida; avaliar somente se surgir prova de falha no bootstrap.",
+      "integratedRef": ""
+    },
+    {
+      "id": "T0T6-C010",
+      "agent": "Antigravity/PR532",
+      "stage": "T2",
+      "title": "A-01, botão Assessoria, acessibilidade e guardas",
+      "status": "incorporated",
+      "originRef": "fix/review-antigravity-t2-assessoria-20261118@2235821c",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/532",
+      "decisionIds": [
+        "T0T6-D008"
+      ],
+      "rationale": "Reparo e correções SME/checkbox/SVG absorvidos no PR #534; evitar duplicação por cherry-pick.",
+      "integratedRef": "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534"
+    },
+    {
+      "id": "T0T6-C011",
+      "agent": "Antigravity",
+      "stage": "T2/T3",
+      "title": "selectedPendencyIds DISTINCT e concorrência determinística",
+      "status": "incorporated",
+      "originRef": "audit/antigravity-argon-prontuario-20261115@9c66e8e3",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534",
+      "decisionIds": [
+        "T0T6-D007"
+      ],
+      "rationale": "Deduplicação com 77 pgTAP, três disputas PostgreSQL e E2E autenticado comprovados no #534.",
+      "integratedRef": "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534"
+    },
+    {
+      "id": "T0T6-C012",
+      "agent": "Manus",
+      "stage": "T1",
+      "title": "Provas de contraste e duas capturas históricas",
+      "status": "reference",
+      "originRef": "audit/manus-auditoria-frente-integrada-20261114",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/tree/audit/manus-auditoria-frente-integrada-20261114/docs/audits/2026-11-14-manus-auditoria-frente-integrada",
+      "decisionIds": [
+        "T0T6-D013"
+      ],
+      "rationale": "Evidência de estados antigos, não homologação visual do HEAD nem as seis pranchas conceituais.",
+      "integratedRef": ""
+    },
+    {
+      "id": "T0T6-C013",
+      "agent": "Gemini",
+      "stage": "T2/T3",
+      "title": "Regressões de Busca Global/Excel em cada lote",
+      "status": "accepted-for-validation",
+      "originRef": "docs/analises-e-plano-mestre-gemini-20261114",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/docs/analises-e-plano-mestre-gemini-20261114/docs/superpowers/plans/2026-11-14-analises-e-plano-mestre-gemini.md",
+      "decisionIds": [
+        "T0T6-D019"
+      ],
+      "rationale": "Incorporada à exigência de cobertura de consumidores de cada release; novos E2E específicos ainda precisam ser registrados antes de encerrar gate.",
+      "integratedRef": ""
+    },
+    {
+      "id": "T0T6-C014",
+      "agent": "Gemini",
+      "stage": "T2",
+      "title": "Normalizar Correto para Correto (Atrasado)",
+      "status": "pending-review",
+      "originRef": "docs/analises-e-plano-mestre-gemini-20261114",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/docs/analises-e-plano-mestre-gemini-20261114/docs/superpowers/plans/2026-11-14-analises-e-plano-mestre-gemini.md",
+      "decisionIds": [
+        "T0T6-D002"
+      ],
+      "rationale": "Proposta não deliberada como regra de destino; src/integration/evaluation-retification.js ainda possui LATE_ANALYSIS_REQUIRED no candidato. Comparar contrato e E2E antes de alterar.",
+      "integratedRef": ""
+    },
+    {
+      "id": "T0T6-C015",
+      "agent": "Gemini",
+      "stage": "T3/T5",
+      "title": "Troca coordenada de classificação de NF",
+      "status": "deferred",
+      "originRef": "docs/analises-e-plano-mestre-gemini-20261114",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/docs/analises-e-plano-mestre-gemini-20261114/docs/superpowers/plans/2026-11-14-analises-e-plano-mestre-gemini.md",
+      "decisionIds": [
+        "T0T6-D002"
+      ],
+      "rationale": "Ampliaria conjunto de comandos; decisão por fluxo separado depois do corte mínimo da Release 1.",
+      "integratedRef": ""
+    },
+    {
+      "id": "T0T6-C016",
+      "agent": "Gemini",
+      "stage": "T4/T5",
+      "title": "Vincular Pendência fiscal legada sem FK",
+      "status": "deferred",
+      "originRef": "docs/analises-e-plano-mestre-gemini-20261114",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/docs/analises-e-plano-mestre-gemini-20261114/docs/superpowers/plans/2026-11-14-analises-e-plano-mestre-gemini.md",
+      "decisionIds": [
+        "T0T6-D004"
+      ],
+      "rationale": "Proposta exige resolver ambiguidade de vínculo e prova de compatibilidade do histórico; fora da primeira release.",
+      "integratedRef": ""
+    },
+    {
+      "id": "T0T6-C017",
+      "agent": "Gemini",
+      "stage": "T4",
+      "title": "Atalho de contexto após delete_context",
+      "status": "deferred",
+      "originRef": "docs/analises-e-plano-mestre-gemini-20261114",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/docs/analises-e-plano-mestre-gemini-20261114/docs/superpowers/plans/2026-11-14-analises-e-plano-mestre-gemini.md",
+      "decisionIds": [
+        "T0T6-D006"
+      ],
+      "rationale": "Avaliar na Release 2/T4, quando delete_context estiver implementado.",
+      "integratedRef": ""
+    },
+    {
+      "id": "T0T6-C018",
+      "agent": "Antigravity",
+      "stage": "T0/T3",
+      "title": "Novas contribuições posteriores a 054d3bc4",
+      "status": "reference",
+      "originRef": "audit/antigravity-argon-prontuario-20261115@054d3bc4",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534",
+      "decisionIds": [
+        "T0T6-D016"
+      ],
+      "rationale": "Comparação GitHub em 20/11/2026 17h BRT: PR #534 permaneceu em 054d3bc4, com ahead=0 e behind=13 ante a Release 1; não houve correção nova a absorver. Continuar reavaliando o HEAD na próxima retomada.",
+      "integratedRef": ""
+    },
+    {
+      "id": "T0T6-C019",
+      "agent": "Gemini/PR515",
+      "stage": "T0–T5",
+      "title": "Plano Mestre Unificado — cinco complementos comparativos",
+      "status": "reference",
+      "originRef": "fix/preview-pendencias-column-spacing-20261111@08bddb19",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/08bddb1900d190039219fd6f4212bea75baccfb6/docs/reference/PLANO_MESTRE_UNIFICADO_PRONTUARIO_2026_11_14.md",
+      "decisionIds": [
+        "T0T6-D006",
+        "T0T6-D019"
+      ],
+      "rationale": "Plano anterior à execução e parcialmente sobreposto às propostas do Gemini já classificadas em C013–C017: teste Excel/Busca aceito como gate, alteração de classificação e vínculo legado adiados, navegação após delete_context em T4, regra de atraso pendente. Não criar segundo plano vinculante.",
+      "integratedRef": ""
+    },
+    {
+      "id": "T0T6-C020",
+      "agent": "Gemini/PR515",
+      "stage": "T1",
+      "title": "Arquitetura visual causal para NF/Assessoria/Inventário",
+      "status": "accepted-for-validation",
+      "originRef": "fix/preview-pendencias-column-spacing-20261111@08bddb19",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/08bddb1900d190039219fd6f4212bea75baccfb6/docs/reference/ARQUITETURA_VISUAL_PRONTUARIO_ANALISES_2026_11_13.md",
+      "decisionIds": [
+        "T0T6-D001",
+        "T0T6-D013"
+      ],
+      "rationale": "Parte da conexão causal já existe na Release 1: src/integration/prontuario-operational-ux.js implementa inventory-document-links e reposiciona controles de Assessoria. Validar visualmente no T1 real a legibilidade das relações de NF serviço/permanente, a_identificar e bonificação independente; não fundir CSS antigo do PR515.",
+      "integratedRef": ""
+    },
+    {
+      "id": "T0T6-C021",
+      "agent": "Gemini/PR515",
+      "stage": "T2/T4",
+      "title": "Hipótese de INAPTA relacionada a despesa a identificar e inventário",
+      "status": "accepted-for-validation",
+      "originRef": "fix/preview-pendencias-column-spacing-20261111@08bddb19",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/08bddb1900d190039219fd6f4212bea75baccfb6/docs/reference/DIAGNOSTICO_BONIFICACAO_INAPTA_2026_11_12.md",
+      "decisionIds": [
+        "T0T6-D011",
+        "T0T6-D014"
+      ],
+      "rationale": "Diagnóstico estático histórico contém duas hipóteses que não demonstram causalidade isoladamente. No SHA atual evaluateBonification usa exclusivamente bonificacao[]; a_identificar não participa diretamente do cálculo. 'Não' explícito em encampInventario força INAPTA, 'Não se aplica' permite APTA; persisted resultadoBonif também pode prevalecer. Adicionar contraprova de domínio com dados fictícios, sem consultar registros institucionais. Não alterar N/A por padrão nem reabrir T4 sem decisão e reprovação real.",
+      "integratedRef": ""
+    },
+    {
+      "id": "T0T6-C022",
+      "agent": "Gemini/PR515",
+      "stage": "Fora do escopo T0–T6",
+      "title": "Mapa de oportunidades geral do Dashboard, Carteira, Pendências e Capital",
+      "status": "reference",
+      "originRef": "fix/preview-pendencias-column-spacing-20261111@08bddb19",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/08bddb1900d190039219fd6f4212bea75baccfb6/docs/reference/MAPA_OPORTUNIDADES_UX_DESKTOP_2026_11_13.md",
+      "decisionIds": [
+        "T0T6-D016",
+        "T0T6-D017"
+      ],
+      "rationale": "Ideias gerais de UI e código CSS do PR515 são trabalho paralelo, não importação automática para a Release 1. Somente contexto do Prontuário e consumidores deve ser cotejado no aceite de T1.",
+      "integratedRef": ""
+    },
+    {
+      "id": "T0T6-C023",
+      "agent": "Antigravity / ChatGPT",
+      "stage": "T0–T3 / T6",
+      "title": "Parecer sobre a retomada em 480a9864, legibilidade do Prontuário e consumidores do G2",
+      "status": "incorporated",
+      "originRef": "Parecer do Antigravity compartilhado pelo proprietário; PR #535@480a9864",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/commit/480a98649eefe52425c1e19076df210cfb19493a",
+      "decisionIds": [
+        "T0T6-D001",
+        "T0T6-D002",
+        "T0T6-D011",
+        "T0T6-D013",
+        "T0T6-D019",
+        "T0T6-D020"
+      ],
+      "rationale": "Os filtros inválidos e os controles pouco legíveis em tema escuro foram reproduzidos. A consulta corrigida, os ajustes T1 e os ensaios de Busca, Excel e concorrência entraram na candidata. O aceite visual e as obrigações futuras do inventário em T5 continuam abertos.",
+      "integratedRef": "https://github.com/WilsonMPeixoto-2/RADARPDDE/commit/e1f023fa1c11d194c317314669b958a40bbff476"
+    },
+    {
+      "id": "T0T6-C024",
+      "agent": "Antigravity",
+      "stage": "T1 / T3 / T6 (G2–G4)",
+      "title": "Fechamento técnico T0–T3 no PR #534: 12 meses em 1 linha, Despesa a identificar sem corte, manifesto G3, jornada de cliente legado e runbook G4",
+      "status": "pending-review",
+      "originRef": "audit/antigravity-argon-prontuario-20261115 (sobre PR #535@128fa3c7)",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534",
+      "decisionIds": [
+        "T0T6-D001",
+        "T0T6-D006",
+        "T0T6-D013",
+        "T0T6-D016",
+        "T0T6-D018"
+      ],
+      "rationale": "Complementa 128fa3c7 sem sobreposição: compacta os 12 meses em linha única a 1280px e garante Notas Fiscais acima da dobra em 1440×900, corrige truncamento de Despesa a identificar e color-scheme/forced-colors, expõe operationalCorrectionRelease no manifesto Vercel com simetria fail-closed em config.js, adiciona jornada G3 de convivência de cliente sem flag + rejeição de prévia obsoleta (T0T6-I018-02), rebaixa blocos históricos nos roteadores e entrega runbook operacional Gate G4.",
+      "integratedRef": ""
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 # Handoff corrente — Prontuário visual e correção integrada
 
+> **CONTINUIDADE EM 15/11/2026:** este registro documenta a branch ORIGINAL do Argon e não acompanha as correções mais recentes. A integração verificada continua em [checkpoint atual](2026-11-15-prontuario-integracao-verificada.md), branch \`fix/prontuario-integrado-validado-20261115\`. Conferir o HEAD antes de editar. Esta nota não equivale a migração/merge.
+
 **Branch de execução:** `feat/prontuario-correcao-integrada-20261114`.
 **Versão remota mais recente deste handoff:** https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/feat/prontuario-correcao-integrada-20261114/docs/handoff/2026-11-14-prontuario-correcao-integrada.md
 **Plano:** [T0–T6](../superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md). **Contrato:** [destino aprovado](../reference/PRONTUARIO_CORRECAO_CONTRATO.md).

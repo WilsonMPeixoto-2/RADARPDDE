@@ -154,6 +154,45 @@
         return context;
     }
 
+    function deriveUpdatedPendencyItem(pendency = {}, invoice = {}, previousNumber = '') {
+        const currentItem = text(pendency.item);
+        if (!invoice) return currentItem;
+        const expenseType = normalizeType(invoice.tipo || invoice.expense_type);
+        const newNumber = text(invoice.numero || invoice.invoice_number);
+        const oldNumber = text(previousNumber || pendency.documentSnapshot?.numero);
+        const documentKey = text(pendency.documentoKey || pendency.document_key);
+
+        if (expenseType === UNIDENTIFIED_EXPENSE_TYPE) {
+            return currentItem || 'Despesa a identificar';
+        }
+        if (!newNumber) return currentItem;
+
+        const docPrefix = expenseType === 'boleto_internet' ? 'Boleto Internet' : 'NF';
+        const dashDocMatch = currentItem.match(/^(.*?-\s*)(?:NF|Boleto Internet):\s*(.+)$/i);
+        if (dashDocMatch) {
+            return `${dashDocMatch[1]}${docPrefix}: ${newNumber}`;
+        }
+        if (/^(?:NF|Boleto Internet):\s*(.+)$/i.test(currentItem)) {
+            return `${docPrefix}: ${newNumber}`;
+        }
+        const nfDashMatch = currentItem.match(/^(Notas?\s+Fisca(?:is|l)\s*[—-]\s*)(.+)$/i);
+        if (nfDashMatch) {
+            return `${nfDashMatch[1]}${newNumber}`;
+        }
+        const advisoryMatch = currentItem.match(/^(.*Consulta\s+(?:à\s+)?Assessoria\s*[—-]\s*NF\s*:?\s*)(.+)$/i);
+        if (advisoryMatch) {
+            return `${advisoryMatch[1]}${newNumber}`;
+        }
+        if (documentKey === 'consAssessoria' && /^Consulta\s+(?:à\s+)?Assessoria$/i.test(currentItem)) {
+            return `Consulta Assessoria — NF ${newNumber}`;
+        }
+        if (/^Notas?\s+Fisca(?:is|l)$/i.test(currentItem)) {
+            return `Notas Fiscais — ${newNumber}`;
+        }
+        return currentItem;
+    }
+
+
     function protectInvoiceService(service) {
         if (!service || typeof service.save !== 'function' || typeof service.getState !== 'function') return false;
         if (service.__radarAuditableRetificationSave === true) return true;
@@ -163,6 +202,8 @@
             const state = this.getState();
             const existing = currentInvoice(state, input.id);
             if (!isRetifiableInvoice(state, existing)) {
+                // A projeção de Pendências é derivada da Nota Fiscal atual. Não
+                // alterar pendency.item fora da transação remota de invoice:save.
                 return originalSave.call(this, input);
             }
 
@@ -397,7 +438,9 @@
                 actions.className = 'invoice-document-inline-actions';
                 titleLine.appendChild(actions);
             }
-            actions.appendChild(createInvoiceEditButton(root, invoice));
+            const editBtn = createInvoiceEditButton(root, invoice);
+            if (typeof actions.prepend === 'function') actions.prepend(editBtn);
+            else actions.appendChild(editBtn);
         });
         return true;
     }
@@ -409,6 +452,7 @@
         select.removeAttribute('aria-describedby');
         delete select.dataset.auditableRetificationLocked;
         root.document.querySelector('[data-auditable-retification-type-hint]')?.remove();
+        root.document.querySelector('[data-auditable-retification-alternatives]')?.remove();
         root.document.querySelector('[data-auditable-retification-guidance]')?.remove();
         root.document.getElementById('invoice-edit-context')?.remove();
         root.document.getElementById('invoice-classification-preview')?.remove();
@@ -484,6 +528,14 @@
                 : 'Descrição, número/referência, valor e classificação. O histórico anterior será preservado.';
         }
         appendText(root, guidance, 'span', message);
+        const syncNote = appendText(
+            root,
+            guidance,
+            'small',
+            'Após salvar, as telas e buscas relacionadas consultarão os dados atuais da Nota Fiscal. A identificação registrada na abertura da Pendência permanece preservada para auditoria.',
+            'invoice-retification-sync-note'
+        );
+        syncNote.dataset.auditableRetificationSyncNote = 'true';
         const firstField = root.document.getElementById('nota-desc')?.closest('.form-group');
         (firstField || group.closest('.form-row') || group).before(guidance);
         return true;
@@ -512,6 +564,30 @@
             group.appendChild(hint);
             select.setAttribute('aria-describedby', 'invoice-classification-hint');
             hint.id = 'invoice-classification-hint';
+        }
+        if (group && restriction && !group.querySelector('[data-auditable-retification-alternatives]')) {
+            const activePendency = (state?.pendencies || []).find(pendency => (
+                invoiceIdOfPendency(pendency) === text(invoice.id)
+                && pendencyDomain.isActivePendency(pendency)
+            )) || null;
+            if (activePendency && typeof root.openPendencyDrawer === 'function') {
+                const altBox = root.document.createElement('div');
+                altBox.className = 'invoice-retification-alternatives';
+                altBox.dataset.auditableRetificationAlternatives = 'true';
+                const altBtn = root.document.createElement('button');
+                altBtn.type = 'button';
+                altBtn.className = 'btn btn-secondary btn-sm';
+                altBtn.dataset.auditableRetificationAltAction = 'open-pendency';
+                altBtn.textContent = normalizeType(invoice.tipo || invoice.expense_type) === UNIDENTIFIED_EXPENSE_TYPE
+                    ? 'Ir para Pendência e identificar despesa'
+                    : 'Abrir Pendência deste lançamento';
+                altBtn.addEventListener('click', () => {
+                    root.closeModal?.('modal-dados-nota');
+                    root.openPendencyDrawer?.(activePendency.id);
+                });
+                altBox.appendChild(altBtn);
+                group.appendChild(altBox);
+            }
         }
         updateInvoiceClassificationPreview(root);
         return true;
@@ -574,6 +650,7 @@
             };
             const cancel = appendText(root, actions, 'button', 'Cancelar', 'btn btn-secondary');
             cancel.type = 'button';
+            cancel.autofocus = true;
             cancel.addEventListener('click', () => finish(false));
             const confirm = appendText(root, actions, 'button', 'Confirmar alteração', 'btn btn-primary');
             confirm.type = 'button';
@@ -757,6 +834,7 @@
         invoiceHistory,
         isRetifiableInvoice,
         assertRetificationIdentity,
+        deriveUpdatedPendencyItem,
         protectInvoiceService,
         isManualPendency,
         protectPendencyService,

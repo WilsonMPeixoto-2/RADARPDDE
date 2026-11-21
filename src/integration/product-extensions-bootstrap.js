@@ -56,6 +56,8 @@
         // Retificação auditável de dados documentais/manuais permanece como wrapper funcional externo.
         '/src/integration/auditable-retification.js',
         '/src/integration/evaluation-retification.js',
+        '/src/application/operational-correction-client.js',
+        '/src/integration/operational-correction-dialog.js',
         '/src/integration/evaluation-retification-ui.js'
     ]);
     const criticalScripts = new Set([
@@ -71,6 +73,8 @@
         '/src/integration/critical-action-guard.js',
         '/src/integration/auditable-retification.js',
         '/src/integration/evaluation-retification.js',
+        '/src/application/operational-correction-client.js',
+        '/src/integration/operational-correction-dialog.js',
         '/src/integration/evaluation-retification-ui.js'
     ]);
     const failedScripts = new Map();

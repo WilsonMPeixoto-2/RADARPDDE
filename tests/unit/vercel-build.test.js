@@ -225,3 +225,47 @@ test('recusa limpeza de diretório amplo ou de saída com nome inesperado', asyn
         /temporária isolada/i
     );
 });
+
+test('artefato Vercel Production mantém T0–T3 OFF por padrão, habilita só por opt-in explícito e registra no manifesto', async context => {
+    const { buildVercelArtifact } = await loadBuilder();
+    const offDir = await createOutputDirectory(context);
+    const offResult = await buildVercelArtifact({
+        rootDir: projectRoot,
+        outputDir: offDir,
+        environment: {
+            VERCEL_ENV: 'production'
+        }
+    });
+    const offRuntime = await fs.readFile(path.join(offDir, 'config.runtime.js'), 'utf8');
+    assert.equal(offResult.manifest.operationalCorrectionRelease, false);
+    assert.notEqual(offResult.runtimeInput.features.operationalCorrectionRelease, true);
+    assert.doesNotMatch(offRuntime, /operationalCorrectionRelease/);
+
+    const onDir = await createOutputDirectory(context);
+    const onResult = await buildVercelArtifact({
+        rootDir: projectRoot,
+        outputDir: onDir,
+        environment: {
+            VERCEL_ENV: 'production',
+            RADAR_OPERATIONAL_CORRECTION_RELEASE_ENABLED: 'true'
+        }
+    });
+    const onRuntime = await fs.readFile(path.join(onDir, 'config.runtime.js'), 'utf8');
+    assert.equal(onResult.manifest.operationalCorrectionRelease, true);
+    assert.equal(onResult.runtimeInput.deploymentTarget, 'production');
+    assert.equal(onResult.runtimeInput.features.operationalCorrectionRelease, true);
+    assert.match(onRuntime, /operationalCorrectionRelease["']?\s*:\s*true/);
+
+    const previewDir = await createOutputDirectory(context);
+    await assert.rejects(
+        buildVercelArtifact({
+            rootDir: projectRoot,
+            outputDir: previewDir,
+            environment: {
+                VERCEL_ENV: 'preview',
+                RADAR_OPERATIONAL_CORRECTION_RELEASE_ENABLED: 'true'
+            }
+        }),
+        /correção operacional.*produção/i
+    );
+});

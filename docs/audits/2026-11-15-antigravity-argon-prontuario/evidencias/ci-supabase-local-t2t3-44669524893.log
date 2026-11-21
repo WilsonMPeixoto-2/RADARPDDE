@@ -1,0 +1,41 @@
+# Evidência real de execução em Docker — GitHub Actions (`Supabase readiness`)
+# Repositório: WilsonMPeixoto-2/RADARPDDE
+# Branch: audit/antigravity-argon-prontuario-20261115 (Draft PR #534)
+# Commit testado: 9c66e8e3987c6246c1f22200bb1351431c4add0c
+# Run ID: 44669524893 (Job supabase-local ID: 136066883155)
+# URL: https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/44669524893
+# Data/Hora UTC: 2026-11-20T03:46:56Z - 2026-11-20T03:49:05Z
+# Resultado global do workflow: completed/success (readiness: PASS, migration-smoke: PASS, supabase-local: PASS)
+
+[Step: Executar testes pgTAP]
+/home/runner/work/RADARPDDE/RADARPDDE/supabase/tests/database/operational-correction.test.sql .................. ok (77/77 assertions, incluindo deduplicação DISTINCT em selectedPendencyIds)
+All tests successful.
+Result: PASS
+
+[Step: Provar concorrência e idempotência da correção operacional (T2/T3)]
+$ node scripts/test-operational-correction-concurrency-local.mjs
+PASS [Case 1]: same operationKey under barrier -> 1 commit, 1 idempotent replay, 1 atomic deletion (including Inventariada asset).
+PASS [Case 2]: distinct operationKeys racing on same planDigest -> 1 winner, 1 clean STALE_PLAN/NO_EFFECT rejection.
+PASS [Case 3]: reused operationKey with altered payload rejected with IDEMPOTENCY_CONFLICT.
+
+[Step: Confirmar artefatos reproduzíveis]
+$ npm run check:generated && npm run typecheck:database
+Artefatos gerados: aprovados.
+
+[Step: Exercitar frontend, Auth e RLS na pilha Supabase local (flag piloto OFF — comportamento padrão)]
+17 passed (43.7s)
+
+[Step: Exercitar login tardio e ações com histórico protegido (flag piloto OFF — comportamento padrão)]
+Running 4 tests using 1 worker
+4 passed (41.8s)
+
+[Step: Exercitar correção operacional autenticada (T2/T3) com piloto local (RADAR_OPERATIONAL_CORRECTION_PREVIEW=true em http://127.0.0.1:54321)]
+$ npm run generate:runtime-config
+Configuração pública gerada em config.runtime.js.
+$ npx playwright test tests/e2e/supabase-operational-correction-local.spec.js --project=desktop-chromium --output=test-results-operational-correction
+Running 4 tests using 1 worker
+[1/4] [desktop-chromium] › tests/e2e/supabase-operational-correction-local.spec.js:144:1 › T2 documental (correct_analysis e clear_analysis): RPC real, F5 e segunda sessão autenticada
+[2/4] [desktop-chromium] › tests/e2e/supabase-operational-correction-local.spec.js:248:1 › T2 Consulta à Assessoria + A-01 real + Corrigir análise pela gaveta: RPC real, F5 e segunda sessão
+[3/4] [desktop-chromium] › tests/e2e/supabase-operational-correction-local.spec.js:376:1 › T3 exclusão de NF (delete_invoice) com Pendência preserva NF vizinha e bonificação após F5 e segunda sessão
+[4/4] [desktop-chromium] › tests/e2e/supabase-operational-correction-local.spec.js:475:1 › RLS e perfil somente leitura (SME): sem controles de correção/exclusão na UI e RPC rejeitada com AUTHORIZATION_DENIED
+4 passed (17.5s)

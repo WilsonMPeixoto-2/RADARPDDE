@@ -145,6 +145,12 @@ A capacidade de consolidar pode continuar conforme o perfil já autorizado para 
 
 Operações de NF, Pendência, Assessoria e inventário preservam o resultado de bonificação, como estabelece a ADR-055, mesmo quando atualizam projeções derivadas. Apenas um comando cujo alvo inclua a própria bonificação ou todo o pacote pode limpar seu resultado. Não recalcular uma bonificação histórica automaticamente a partir de uma reanálise posterior.
 
+### 5.3. Consolidação corrigível e orientação para conclusão
+
+**Complemento do proprietário, 15/11/2026:** a finalidade das restrições é preservar consequências úteis, não perpetuar proibições. Corrigir a bonificação consolidada deve ser possível ao perfil autorizado; a aplicação registra a mudança, distingue o resultado anteriormente consolidado dos dados atuais e indica **“Alterações pendentes de consolidação”** com o comando contextual **“Consolidar alterações”**. Assim a correção não fica bloqueada e o operador não esquece a atualização necessária para refletir o resultado em novas exportações. Reutilizar `closeBonification` ou a autoridade que o substituir, mantendo os requisitos de completude **na consolidação**, nunca impondo preenchimento integral ou justificativa ao ato de corrigir. Não prometer modificar um XLSX já baixado. A definição do estado pendente e o fluxo de reexportação precisam ser implementados/testados com o exportador real antes da homologação humana.
+
+**Generalização para todas as operações:** preferir permitir e recompor automaticamente; na impossibilidade, mostrar o motivo concreto e a próxima ação navegável em vez de um bloqueio abstrato. Exemplo patrimonial: a remoção causal de NF com bem exclusivo deve ocorrer conjuntamente quando segura; se um caso não permitir isso, oferecer acesso para corrigir o inventário antes e retomar a exclusão da NF, sem confundir o RADAR com sistemas patrimoniais externos. Quando uma ação exigir validação/autoridade própria (inclusive RLS), isso continua obrigatório; o sistema deve explicar e encaminhar, não contornar a proteção.
+
 ## 6. Matriz de exclusão: nomes e alcance para o usuário
 
 | Ação visível | O que desaparece | O que permanece/recalcula |

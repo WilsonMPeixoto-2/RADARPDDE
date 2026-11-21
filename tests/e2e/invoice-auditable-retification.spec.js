@@ -122,6 +122,8 @@ test.describe('Edição auditável de lançamentos', () => {
     await editButton.click();
 
     await expect(page.locator('#nota-tipo')).toBeDisabled();
+    await expect(page.locator('[data-auditable-retification-alt-action="open-pendency"]'))
+      .toHaveText('Abrir Pendência deste lançamento');
     await page.locator('#nota-desc').fill('Material pedagógico corrigido');
     await page.locator('#nota-numero').fill('NF-CORRIGIDA');
     await page.locator('#nota-valor').fill('175.50');
@@ -138,6 +140,7 @@ test.describe('Edição auditável de lançamentos', () => {
         amount: invoice.valor,
         type: invoice.tipo,
         pendencyId: pendency.id,
+        pendencyItem: pendency.item,
         pendencyStatus: pendency.status,
         activeEquivalentCount: pendencias.filter(item => (
           RadarPendencias.isActivePendency(item)
@@ -154,6 +157,7 @@ test.describe('Edição auditável de lançamentos', () => {
       amount: 175.5,
       type: 'consumo',
       pendencyId: context.pendencyId,
+      pendencyItem: 'Nota Fiscal',
       pendencyStatus: 'Aberta',
       activeEquivalentCount: 1
     });
@@ -168,6 +172,17 @@ test.describe('Edição auditável de lançamentos', () => {
     const drawer = page.locator('#pendency-preview-drawer');
     await expect(drawer.getByText('NF: NF-CORRIGIDA', { exact: true })).toBeVisible();
     await expect(drawer.getByText(/175,50/)).toBeVisible();
+    await page.keyboard.press('Escape');
+
+    await page.evaluate(() => switchView('pendencias'));
+    const search = page.getByRole('searchbox', { name: 'Buscar pendências' });
+    await search.fill('NF-CORRIGIDA');
+    const pendRow = page.locator(`[data-pendency-id="${context.pendencyId}"]:visible`).first();
+    await expect(pendRow).toBeVisible();
+    await expect(pendRow).toContainText('NF: NF-CORRIGIDA · Material pedagógico corrigido');
+    await pendRow.getByRole('button', { name: 'Ver detalhes' }).click();
+    const detailDrawer = page.locator('#pendency-detail-drawer');
+    await expect(detailDrawer).toContainText('NF: NF-CORRIGIDA · Material pedagógico corrigido');
   });
 
   test('retifica despesa a identificar mantendo tipo, Incorreto, ID e mesma Pendência', async ({ page }, testInfo) => {

@@ -138,12 +138,15 @@
     }
 
     function getPassivoRecords() {
+        const invoices = root.RadarApplicationServices?.invoices?.getState?.()?.registeredInvoices
+            || (typeof notasRegistradas !== 'undefined' && Array.isArray(notasRegistradas) ? notasRegistradas : []);
         const records = root.RadarPendenciasViewModel.buildPendencyRecords({
             pendencias,
             escolas,
             programas,
             controladores,
             contatos,
+            notasRegistradas: invoices,
             now: new Date().toISOString()
         });
         return records
@@ -215,6 +218,7 @@
                                 <td>
                                     <strong>${escapeHtml(record.programName)}</strong>
                                     <small>${escapeHtml(record.documentName)}</small>
+                                    ${record.invoiceIdentityLabel ? `<small class="pendency-expense-identity">${escapeHtml(record.invoiceIdentityLabel)}</small>` : ''}
                                 </td>
                                 <td>${record.errors.length
                                     ? `<ul class="pendency-error-summary">${record.errors.slice(0, 2).map(error => `<li>${escapeHtml(error)}</li>`).join('')}</ul>`

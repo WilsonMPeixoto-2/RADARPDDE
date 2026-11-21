@@ -43,19 +43,27 @@
     }
 
     function getProgramGroups(rows) {
-        const groups = [];
-        let currentGroup = null;
-
+        const headers = new Map(Array.from(root.document.querySelectorAll(
+            '#prontuario-verif-rows tr[data-program-header]'
+        )).map(header => [text(header.dataset.programHeader), header]));
+        const groups = new Map();
         rows.forEach(row => {
-            const contextCell = row.querySelector('td[rowspan]');
-            if (contextCell) {
-                currentGroup = { contextCell, rows: [] };
-                groups.push(currentGroup);
+            const programId = text(row.dataset.programId);
+            if (!groups.has(programId)) {
+                const header = headers.get(programId) || null;
+                groups.set(programId, {
+                    header,
+                    contextCell: header?.querySelector('.program-context-cell')
+                        || row.querySelector('td[rowspan]'),
+                    rows: [],
+                    domRows: header ? [header] : []
+                });
             }
-            if (currentGroup) currentGroup.rows.push(row);
+            const group = groups.get(programId);
+            group.rows.push(row);
+            group.domRows.push(row);
         });
-
-        return groups;
+        return Array.from(groups.values());
     }
 
     function getRegisteredInvoices() {
@@ -263,15 +271,15 @@
 
         for (let i = ordered.length - 1; i >= 0; i -= 1) {
             if (keepPositions.has(i)) continue;
-            const reference = ordered[i + 1]?.group.rows[0] || null;
-            ordered[i].group.rows.forEach(row => rowsContainer.insertBefore(row, reference));
+            const reference = ordered[i + 1]?.group.domRows[0] || null;
+            ordered[i].group.domRows.forEach(row => rowsContainer.insertBefore(row, reference));
         }
 
         return ordered.map(item => item.group);
     }
 
     function decorateProgramGroup(group) {
-        const firstRow = group.rows[0];
+        const firstRow = group.header || group.rows[0];
         if (!firstRow || !group.contextCell) return;
 
         firstRow.classList.add('program-block-start');
