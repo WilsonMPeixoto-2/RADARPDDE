@@ -9858,6 +9858,9 @@ function renderProntuario(escolaId) {
                             ${COMPETENCIAS.map(c => {
                                 const status = getCompMonthStatus(esc.id, c.key);
                                 const isActive = c.key === activeProntuarioCompetencia;
+                                const monthPendencyCount = pAtivas.filter(p => (
+                                    (p.competenciaOrigem || p.competencia) === c.key
+                                )).length;
                                 const monthStatusLabels = {
                                     apta: 'Apta',
                                     inapta: 'Inapta',
@@ -9869,28 +9872,39 @@ function renderProntuario(escolaId) {
                                 const statusBadgeClass = 'status-dot-' + status;
                                 const isDisabled = status === 'out-of-scope';
                                 const clickHandler = isDisabled ? '' : `onclick="changeProntuarioCompetencia('${escapeHtml(esc.id)}', '${escapeHtml(c.key)}')"`;
+                                const pendencySuffix = monthPendencyCount > 0
+                                    ? ` · ${monthPendencyCount} ${monthPendencyCount === 1 ? 'pendência ativa' : 'pendências ativas'}`
+                                    : '';
                                 
                                 // Obter nome abreviado do mês (Ex: Janeiro -> Jan)
                                 const monthAbbr = c.label.split(' ')[0].substring(0, 3);
                                 
                                 return `
                                     <button type="button"
-                                            class="comp-sub-tab ${isActive ? 'active' : ''} ${isDisabled ? 'disabled' : ''}"
+                                            class="comp-sub-tab ${isActive ? 'active' : ''} ${isDisabled ? 'disabled' : ''} ${monthPendencyCount > 0 ? 'has-pendencies' : ''}"
                                             data-competence="${escapeHtml(c.key)}"
+                                            ${monthPendencyCount > 0 ? `data-active-pendencies="${monthPendencyCount}"` : ''}
                                             aria-pressed="${String(isActive)}"
                                             aria-disabled="${String(isDisabled)}"
                                             ${isDisabled ? 'disabled' : ''}
                                             ${clickHandler}
                                             style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 500;"
-                                            title="${c.label} - Bonificação: ${monthStatusLabels[status] || 'Não lançada'}">
+                                            title="${c.label} - Bonificação: ${monthStatusLabels[status] || 'Não lançada'}${pendencySuffix}">
                                         <span class="status-dot ${statusBadgeClass}" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block;"></span>
                                         <span>${monthAbbr}</span>
+                                        ${monthPendencyCount > 0 ? `<span class="comp-pendency-count" aria-hidden="true">${monthPendencyCount}</span>` : ''}
                                     </button>
                                 `;
                             }).join('')}
                         </div>
-                        <div class="table-responsive">
-                            <table class="data-table prontuario-evaluation-table" aria-label="Avaliações mensais por programa">
+                        <div class="table-responsive prontuario-evaluation-table-wrap" tabindex="0" role="region" aria-label="Avaliações mensais por programa">
+                            <table class="data-table prontuario-evaluation-table" data-col-count="${2 + (canViewTechnicalAnalysis ? 1 : 0) + (canUseVerificationActions ? 1 : 0)}" aria-label="Avaliações mensais por programa">
+                                <colgroup>
+                                    <col class="prontuario-col-doc">
+                                    <col class="prontuario-col-bonif">
+                                    ${canViewTechnicalAnalysis ? '<col class="prontuario-col-analise">' : ''}
+                                    ${canUseVerificationActions ? '<col class="prontuario-col-action">' : ''}
+                                </colgroup>
                                 <thead>
                                     <tr>
                                         <th scope="col">Documento</th>
@@ -10356,19 +10370,21 @@ function renderProntuarioVerificacoes(esc) {
                 rowsHTML += `
                     <tr class="program-block-start" data-program-header="${escapeHtml(progId)}" data-program-id="${escapeHtml(progId)}">
                         <td class="program-context-cell" colspan="${visibleColumnCount}">
-                            <div class="program-context-header">
+                            <div class="program-context-header" data-col-count="${visibleColumnCount}">
                                 <div class="program-context-identity">
                                     <span class="program-context-competence">${escapeHtml(c.label)}</span>
                                     <h3 class="program-context-name">${escapeHtml(progName)}</h3>
                                 </div>
                                 ${programStatusSummary}
-                                ${accessProfile !== 'inventario' && accessProfile !== 'sme' ? (
-                                    v.resultadoBonif ? `
-                                        <button class="btn program-consolidate-button is-disabled" disabled>Consolidada</button>
-                                    ` : `
-                                        <button class="btn program-consolidate-button" onclick="calcularEFecharBonificacao('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">Consolidar</button>
-                                    `
-                                ) : ''}
+                                ${accessProfile !== 'inventario' && accessProfile !== 'sme' ? `
+                                    <div class="program-context-consolidate">
+                                        ${v.resultadoBonif ? `
+                                            <button class="btn program-consolidate-button is-disabled" disabled>Consolidada</button>
+                                        ` : `
+                                            <button class="btn program-consolidate-button" onclick="calcularEFecharBonificacao('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">Consolidar</button>
+                                        `}
+                                    </div>
+                                ` : ''}
                             </div>
                         </td>
                     </tr>
@@ -10959,11 +10975,11 @@ function renderProntuarioVerificacoes(esc) {
                                 </div>
                                 ${extraContentHTML}
                             </td>
-                            <td>${bonificationCellHTML}</td>
+                            <td class="verification-document-bonif-cell">${bonificationCellHTML}</td>
                             ${canViewTechnicalAnalysis ? `
-                                <td>${analysisCellHTML}</td>
+                                <td class="verification-document-analysis-cell">${analysisCellHTML}</td>
                             ` : ''}
-                            ${canUseVerificationActions ? `<td>${pendStatusHTML}</td>` : ''}
+                            ${canUseVerificationActions ? `<td class="verification-document-action-cell" data-verification-cell="action">${pendStatusHTML}</td>` : ''}
                         </tr>
                     `;
                 });

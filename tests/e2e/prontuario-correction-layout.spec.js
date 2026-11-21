@@ -41,6 +41,20 @@ test(`contexto horizontal mantém consolidação e análise após edição em ${
         ));
         expect(monthTops.length).toBeGreaterThanOrEqual(12);
         expect(Math.max(...monthTops) - Math.min(...monthTops), '12 competências em linha única').toBeLessThanOrEqual(4);
+        const colAlign = await page.evaluate(() => {
+            const heads = Array.from(document.querySelectorAll('.prontuario-evaluation-table > thead th'))
+                .map(node => Math.round(node.getBoundingClientRect().left));
+            const header = document.querySelector('[data-program-header="BASIC"]');
+            const bonif = Math.round(header.querySelector('[data-status-dimension="bonificacao"]').closest('div').getBoundingClientRect().left);
+            const analise = Math.round(header.querySelector('[data-status-dimension="analise"]').closest('div').getBoundingClientRect().left);
+            const consolidate = Math.round(header.querySelector('.program-context-consolidate').getBoundingClientRect().left);
+            return { heads, bonif, analise, consolidate };
+        });
+        expect(Math.abs(colAlign.bonif - colAlign.heads[1]), 'Bonificação alinhada à coluna 2').toBeLessThanOrEqual(6);
+        expect(Math.abs(colAlign.analise - colAlign.heads[2]), 'Análise técnica alinhada à coluna 3').toBeLessThanOrEqual(6);
+        expect(Math.abs(colAlign.consolidate - colAlign.heads[3]), 'Consolidar alinhado à coluna 4').toBeLessThanOrEqual(6);
+        await expect(row.locator('td.verification-document-action-cell [data-evaluation-retification-action="analysis"]')).toBeVisible();
+        await expect(row.locator('td.verification-document-analysis-cell [data-evaluation-retification-action="analysis"]')).toHaveCount(0);
     }
     if (viewport.width === 1440 && viewport.height === 900) {
         const fiscalTitle = page.locator(
@@ -77,6 +91,8 @@ test('programa com despesas mantém vínculos, acesso por teclado e leitura nos 
         switchView('prontuario', schoolId);
     }, context);
     const header = page.locator('[data-program-header="BASIC"]');
+    const activeMonthTab = page.locator('#tab-verificacoes .comp-sub-tab.active');
+    await expect(activeMonthTab.locator('.comp-pendency-count')).toHaveText('1');
     const fiscal = page.locator('tr[data-program-id="BASIC"][data-document-key="notaFiscal"]');
     await expect(fiscal.locator('.invoice-document-row')).toHaveCount(4);
     const advisory = page.locator('tr[data-program-id="BASIC"][data-document-key="consAssessoria"]');

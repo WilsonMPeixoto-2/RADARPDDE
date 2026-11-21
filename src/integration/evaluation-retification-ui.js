@@ -522,9 +522,10 @@
 
             const analysisSelect = row.querySelector('select.select-analise');
             if (analysisSelect && !DERIVED_TECHNICAL_DOCUMENTS.has(context.documentKey)) {
-                const analysisCell = analysisSelect.closest('td');
-                if (analysisCell) {
-                    const area = ensureActionArea(root, analysisCell, 'analysis');
+                const actionCell = row.querySelector('td.verification-document-action-cell, td[data-verification-cell="action"]')
+                    || analysisSelect.closest('td');
+                if (actionCell) {
+                    const area = ensureActionArea(root, actionCell, 'analysis');
                     if (!area.querySelector('[data-evaluation-retification-action="analysis"]')) {
                         const bonificationValue = text(
                             verification?.bonificacao?.[context.documentKey]

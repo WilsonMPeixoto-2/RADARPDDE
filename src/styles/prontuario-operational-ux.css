@@ -403,61 +403,432 @@ body.dark-theme #prontuario-verif-rows .verification-document-copy strong {
     }
 }
 
-/* T1: o contexto ocupa a largura do programa, sem coluna lateral vazia. */
-#prontuario-verif-rows [data-program-header] .program-context-header {
+/* T1: grade editorial alinhada por coluna (Documento | Bonificação | Análise técnica | Providência). */
+#tab-verificacoes .panel-card {
+    border: 1px solid color-mix(in srgb, #6335b5 12%, var(--border-color));
+    border-radius: 16px;
+    background: var(--bg-card);
+    box-shadow: 0 2px 10px rgba(37, 33, 51, 0.04);
+}
+
+#tab-verificacoes .panel-header {
     display: flex;
-    align-items: center;
+    align-items: baseline;
+    justify-content: space-between;
     flex-wrap: wrap;
-    gap: 16px 24px;
+    gap: 6px 18px;
+    padding: 18px 22px 12px;
+}
+
+#tab-verificacoes .panel-header h2 {
+    margin: 0;
+    color: var(--text-main);
+    font-family: var(--font-heading);
+    font-size: 1.08rem;
+    font-weight: 750;
+    letter-spacing: -0.02em;
+}
+
+/* Régua de competências: faixa unificada com sinalização discreta de pendências ativas. */
+#tab-verificacoes .comp-tabs-container {
+    align-items: center;
+    background: color-mix(in srgb, #6335b5 2.5%, var(--bg-card));
+}
+
+#tab-verificacoes .comp-sub-tab {
+    position: relative;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, #6335b5 12%, var(--border-color));
+    background: var(--bg-card);
+    color: var(--text-main);
+    font-variant-numeric: tabular-nums;
+}
+
+#tab-verificacoes .comp-sub-tab.has-pendencies:not(.active) {
+    border-color: color-mix(in srgb, var(--danger) 32%, var(--border-color));
+}
+
+#tab-verificacoes .comp-sub-tab.active {
+    background: #6335b5;
+    border-color: #6335b5;
+    color: #ffffff;
+    box-shadow: 0 3px 10px rgba(99, 53, 181, 0.28);
+}
+
+#tab-verificacoes .comp-pendency-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: 18px;
+    block-size: 18px;
+    padding-inline: 5px;
+    border-radius: 999px;
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid rgba(185, 28, 28, 0.24);
+    font-size: 0.68rem;
+    font-weight: 750;
+    line-height: 1;
+}
+
+#tab-verificacoes .comp-sub-tab.active .comp-pendency-count {
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.36);
+    color: #ffffff;
+}
+
+body.dark-theme #tab-verificacoes .comp-tabs-container {
+    background: rgba(157, 125, 252, 0.04);
+}
+
+body.dark-theme #tab-verificacoes .comp-pendency-count {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(248, 113, 113, 0.42);
+    color: #fecaca;
+}
+
+/* Separação visual entre abas de navegação e ações operacionais no flowbar. */
+@media (min-width: 901px) {
+    .prontuario-flowbar.has-operational-actions .prontuario-flow-actions {
+        padding-inline: 10px;
+        margin-inline: 2px;
+        border-inline: 1px solid color-mix(in srgb, var(--primary) 18%, var(--border-color));
+    }
+}
+
+/* Container query para a tabela de avaliações (modern-web-guidance: responsive-table + css-layout). */
+#tab-verificacoes .prontuario-evaluation-table-wrap {
+    container: prontuario-table / inline-size;
+    border: 1px solid color-mix(in srgb, #6335b5 12%, var(--border-color));
+    border-radius: 14px;
+    background: var(--bg-card);
+    overflow-x: auto;
+    scrollbar-gutter: stable;
+}
+
+#tab-verificacoes .prontuario-evaluation-table-wrap:focus-visible {
+    outline: 2px solid #6335b5;
+    outline-offset: 2px;
+}
+
+#tab-verificacoes .prontuario-evaluation-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+#tab-verificacoes .prontuario-evaluation-table[data-col-count="4"] .prontuario-col-doc { width: 35%; }
+#tab-verificacoes .prontuario-evaluation-table[data-col-count="4"] .prontuario-col-bonif { width: 25%; }
+#tab-verificacoes .prontuario-evaluation-table[data-col-count="4"] .prontuario-col-analise { width: 20%; }
+#tab-verificacoes .prontuario-evaluation-table[data-col-count="4"] .prontuario-col-action { width: 20%; }
+
+#tab-verificacoes .prontuario-evaluation-table[data-col-count="3"] .prontuario-col-doc { width: 44%; }
+#tab-verificacoes .prontuario-evaluation-table[data-col-count="3"] .prontuario-col-bonif { width: 30%; }
+#tab-verificacoes .prontuario-evaluation-table[data-col-count="3"] .prontuario-col-analise { width: 26%; }
+
+#tab-verificacoes .prontuario-evaluation-table[data-col-count="2"] .prontuario-col-doc { width: 64%; }
+#tab-verificacoes .prontuario-evaluation-table[data-col-count="2"] .prontuario-col-bonif { width: 36%; }
+
+#tab-verificacoes .prontuario-evaluation-table > thead th {
+    padding: 11px 16px;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.045em;
+    font-size: 0.7rem;
+    font-weight: 750;
+    color: var(--text-muted);
+    background: color-mix(in srgb, #6335b5 3.5%, var(--bg-card));
+    border-bottom: 1px solid color-mix(in srgb, #6335b5 14%, var(--border-color));
+}
+
+body.dark-theme #tab-verificacoes .prontuario-evaluation-table > thead th {
+    background: #171226;
+    color: #c4bed4;
+    border-bottom-color: rgba(167, 139, 250, 0.2);
+}
+
+/* Cabeçalho de programa em grade de 4 trilhas alinhadas exatamente às colunas da tabela. */
+#prontuario-verif-rows tr.program-block-start > td.program-context-cell {
+    padding: 0;
+    border-top: 0;
+    border-bottom: 1px solid color-mix(in srgb, #6335b5 16%, var(--border-color));
+    background: linear-gradient(180deg, #f7f4fe 0%, #f1ecfc 100%);
+}
+
+#prontuario-verif-rows tr.program-block-start:not(:first-child) > td.program-context-cell {
+    border-top: 16px solid var(--bg-page);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, #6335b5 20%, var(--border-color));
+}
+
+body.dark-theme #prontuario-verif-rows tr.program-block-start > td.program-context-cell {
+    background: linear-gradient(180deg, #211936 0%, #1b142d 100%);
+    border-bottom-color: rgba(167, 139, 250, 0.22);
+}
+
+#prontuario-verif-rows [data-program-header] .program-context-header {
+    display: grid;
+    grid-template-columns: 35% 25% 20% 20%;
+    align-items: center;
+    padding-block: 12px;
+    box-shadow: inset 4px 0 0 #6335b5;
+}
+
+#prontuario-verif-rows [data-program-header] .program-context-header[data-col-count="3"] {
+    grid-template-columns: 44% 30% 26%;
+}
+
+#prontuario-verif-rows [data-program-header] .program-context-header[data-col-count="2"] {
+    grid-template-columns: 64% 36%;
 }
 
 #prontuario-verif-rows [data-program-header] .program-context-identity {
-    flex: 1 1 220px;
-    min-width: 0;
+    min-inline-size: 0;
+    padding-inline: 16px;
     text-align: left;
 }
 
 #prontuario-verif-rows [data-program-header] .program-context-competence {
-    color: var(--text-muted);
-    font-size: 0.78rem;
-    font-weight: 600;
+    display: inline-block;
+    color: #6335b5;
+    font-size: 0.7rem;
+    font-weight: 750;
+    letter-spacing: 0.055em;
+    text-transform: uppercase;
+    line-height: 1.2;
+}
+
+body.dark-theme #prontuario-verif-rows [data-program-header] .program-context-competence {
+    color: #c4b5fd;
 }
 
 #prontuario-verif-rows [data-program-header] .program-context-name {
-    margin: 4px 0 0;
+    margin: 3px 0 0;
     color: var(--text-main) !important;
-    font-size: 1.15rem !important;
-    line-height: 1.3;
+    font-family: var(--font-heading);
+    font-size: 1.08rem !important;
+    font-weight: 760 !important;
+    letter-spacing: -0.02em;
+    line-height: 1.22;
 }
 
 #prontuario-verif-rows [data-program-header] .program-status-summary {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px 24px;
+    display: contents;
     margin: 0;
 }
 
 #prontuario-verif-rows [data-program-header] .program-status-summary > div {
-    display: grid;
-    justify-items: start;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
     gap: 4px;
+    min-inline-size: 0;
+    padding-inline: 16px;
+}
+
+#prontuario-verif-rows [data-program-header] .program-status-summary > div > span:first-child {
+    color: var(--text-muted);
+    font-size: 0.67rem;
+    font-weight: 750;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1.1;
+}
+
+#prontuario-verif-rows [data-program-header] .program-status-summary .badge {
+    min-inline-size: 0;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+#prontuario-verif-rows [data-program-header] .program-context-consolidate {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-inline: 16px;
 }
 
 #prontuario-verif-rows [data-program-header] .program-consolidate-button {
     width: auto;
+    min-inline-size: 124px;
     min-height: 36px;
+    padding: 7px 16px;
     margin: 0;
-}
-
-#tab-verificacoes .prontuario-evaluation-table > thead th:first-child {
-    width: 36%;
-}
-
-#tab-verificacoes .prontuario-evaluation-table > thead th {
-    padding-block: 16px;
-    text-transform: none;
-    letter-spacing: 0;
+    border-radius: 10px;
+    background: #6335b5;
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(99, 53, 181, 0.22);
     font-size: 0.82rem;
+    font-weight: 700;
+}
+
+#prontuario-verif-rows [data-program-header] .program-consolidate-button:hover:not(:disabled) {
+    background: #4e2596;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(99, 53, 181, 0.3);
+}
+
+#prontuario-verif-rows [data-program-header] .program-consolidate-button.is-disabled,
+#prontuario-verif-rows [data-program-header] .program-consolidate-button:disabled {
+    background: #e6f6ee;
+    color: #066a41;
+    border: 1px solid rgba(6, 106, 65, 0.28);
+    box-shadow: none;
+}
+
+body.dark-theme #prontuario-verif-rows [data-program-header] .program-consolidate-button.is-disabled,
+body.dark-theme #prontuario-verif-rows [data-program-header] .program-consolidate-button:disabled {
+    background: rgba(16, 185, 129, 0.18);
+    color: #6ee7b7;
+    border-color: rgba(110, 231, 183, 0.35);
+}
+
+@container prontuario-table (inline-size < 920px) {
+    #tab-verificacoes .prontuario-evaluation-table {
+        table-layout: auto;
+    }
+
+    #prontuario-verif-rows [data-program-header] .program-context-header,
+    #prontuario-verif-rows [data-program-header] .program-context-header[data-col-count="3"],
+    #prontuario-verif-rows [data-program-header] .program-context-header[data-col-count="2"] {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px 20px;
+        padding: 12px 16px;
+    }
+
+    #prontuario-verif-rows [data-program-header] .program-context-identity,
+    #prontuario-verif-rows [data-program-header] .program-status-summary > div,
+    #prontuario-verif-rows [data-program-header] .program-context-consolidate {
+        padding-inline: 0;
+    }
+
+    #prontuario-verif-rows [data-program-header] .program-context-identity {
+        flex: 1 1 200px;
+    }
+
+    #prontuario-verif-rows [data-program-header] .program-status-summary {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 20px;
+    }
+}
+
+/* Alinhamento limpo das 4 colunas e controles táteis de 36px nas linhas de documentos. */
+#prontuario-verif-rows tr.verification-document-row > td {
+    padding: 10px 16px;
+    vertical-align: middle;
+    text-align: left;
+    border-bottom: 1px solid color-mix(in srgb, #6335b5 8%, var(--border-color));
+}
+
+#prontuario-verif-rows tr.verification-document-row > td.verification-document-bonif-cell > .btn-group-toggle {
+    display: inline-flex;
+    width: 100%;
+    max-inline-size: 214px;
+    min-height: 36px;
+    margin-inline: 0;
+    padding: 3px;
+    gap: 3px;
+    border-radius: 10px;
+    border: 1px solid color-mix(in srgb, #6335b5 14%, var(--border-color));
+    background: #f4f2f9;
+}
+
+body.dark-theme #prontuario-verif-rows tr.verification-document-row > td.verification-document-bonif-cell > .btn-group-toggle {
+    background: #181326;
+    border-color: rgba(167, 139, 250, 0.2);
+}
+
+#prontuario-verif-rows .btn-toggle {
+    min-height: 28px;
+    padding: 5px 10px;
+    border-radius: 7px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    transition: background 140ms ease, color 140ms ease, box-shadow 140ms ease;
+}
+
+#prontuario-verif-rows .btn-toggle.active-sim {
+    background: #e6f6ee;
+    color: #066a41;
+    box-shadow: inset 0 0 0 1px rgba(6, 106, 65, 0.34), 0 1px 2px rgba(6, 106, 65, 0.12);
+    font-weight: 700;
+}
+
+#prontuario-verif-rows .btn-toggle.active-nao {
+    background: #feecef;
+    color: #b4232c;
+    box-shadow: inset 0 0 0 1px rgba(180, 35, 44, 0.34), 0 1px 2px rgba(180, 35, 44, 0.12);
+    font-weight: 700;
+}
+
+#prontuario-verif-rows .btn-toggle.active-naoseaplica {
+    background: #ede9f7;
+    color: #3e2b6b;
+    box-shadow: inset 0 0 0 1px rgba(99, 53, 181, 0.32), 0 1px 2px rgba(37, 33, 51, 0.08);
+    font-weight: 700;
+}
+
+body.dark-theme #prontuario-verif-rows .btn-toggle.active-sim {
+    background: rgba(16, 185, 129, 0.22);
+    color: #6ee7b7;
+    box-shadow: inset 0 0 0 1px rgba(110, 231, 183, 0.45);
+}
+
+body.dark-theme #prontuario-verif-rows .btn-toggle.active-nao {
+    background: rgba(239, 68, 68, 0.22);
+    color: #fca5a5;
+    box-shadow: inset 0 0 0 1px rgba(252, 165, 165, 0.45);
+}
+
+body.dark-theme #prontuario-verif-rows .btn-toggle.active-naoseaplica {
+    background: rgba(167, 139, 250, 0.22);
+    color: #ede9fe;
+    box-shadow: inset 0 0 0 1px rgba(196, 181, 253, 0.45);
+}
+
+#prontuario-verif-rows tr.verification-document-row > td.verification-document-analysis-cell > .select-analise {
+    width: 100%;
+    max-inline-size: 196px;
+    min-width: 142px;
+    min-height: 36px;
+    margin-inline: 0;
+    padding: 6px 12px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+#prontuario-verif-rows td.verification-document-action-cell {
+    vertical-align: middle;
+}
+
+#prontuario-verif-rows td.verification-document-action-cell:has(> *) {
+    white-space: normal;
+}
+
+#prontuario-verif-rows td.verification-document-action-cell > .invoice-pendency-view-button,
+#prontuario-verif-rows td.verification-document-action-cell > .evaluation-retification-inline-actions {
+    vertical-align: middle;
+}
+
+#prontuario-verif-rows td.verification-document-action-cell > .invoice-pendency-view-button + .evaluation-retification-inline-actions {
+    margin-top: 6px;
+    display: flex;
+}
+
+/* Números tabulares em valores monetários e contagens do Prontuário. */
+#tab-verificacoes .invoice-document-meta strong,
+#tab-verificacoes .invoice-document-panel-title > div > span,
+#tab-verificacoes .inventory-document-link-copy span,
+#tab-capital .data-table td {
+    font-variant-numeric: tabular-nums;
 }
 
 /* .prontuario-school-header usa var(--bg-primary, #f7f8fb), mas --bg-primary
@@ -502,31 +873,32 @@ body.dark-theme #prontuario-verif-rows .invoice-document-row.is-striped {
         padding-bottom: 8px;
     }
 
+    #tab-verificacoes .panel-header,
     #tab-verificacoes .card-header {
         padding-block: 14px 10px;
     }
 
     #tab-verificacoes .comp-tabs-container {
         gap: 6px !important;
-        padding: 0 20px 12px !important;
+        padding: 8px 20px 10px !important;
     }
 
     #tab-verificacoes .comp-sub-tab {
-        gap: 6px !important;
-        padding: 6px 11px !important;
-        font-size: 0.8rem !important;
+        gap: 5px !important;
+        padding: 5px 10px !important;
+        font-size: 0.79rem !important;
     }
 
     #tab-verificacoes .prontuario-evaluation-table > thead th {
         padding-block: 9px;
     }
 
-    #prontuario-verif-rows [data-program-header] > .program-context-cell {
-        padding-block: 8px;
+    #prontuario-verif-rows [data-program-header] .program-context-header {
+        padding-block: 10px;
     }
 
     #prontuario-verif-rows tr.verification-document-row > td {
-        padding-block: 7px;
+        padding-block: 8px;
     }
 }
 
@@ -574,13 +946,14 @@ body.dark-theme .prontuario-tablist .prontuario-flow-tab:not(.active) {
 }
 
 body.dark-theme #prontuario-verif-rows .evaluation-retification-trigger {
-    color: var(--info);
+    color: #d8b4fe;
 }
 
 @media (forced-colors: active) {
     .prontuario-flow-action,
     #prontuario-verif-rows .invoice-add-secondary,
     #prontuario-verif-rows .invoice-pendency-view-button,
+    #prontuario-verif-rows .evaluation-retification-trigger,
     #tab-verificacoes .comp-sub-tab {
         border: 1px solid ButtonText;
     }

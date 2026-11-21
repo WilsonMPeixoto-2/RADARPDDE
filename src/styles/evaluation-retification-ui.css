@@ -1,33 +1,58 @@
 /* RADAR PDDE — retificação auditável de avaliações. Escopo deliberadamente local. */
 
 .evaluation-retification-inline-actions {
-    display: flex;
+    display: inline-flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 6px;
     margin-top: 7px;
 }
 
+.verification-document-action-cell .evaluation-retification-inline-actions {
+    margin-top: 0;
+}
+
 .evaluation-retification-trigger {
-    min-height: 32px;
-    padding: 5px 10px;
-    border-color: color-mix(in srgb, var(--primary-color, #2563eb) 34%, transparent);
-    background: color-mix(in srgb, var(--primary-color, #2563eb) 8%, var(--bg-card, #ffffff));
-    color: color-mix(in srgb, var(--primary-color, #2563eb) 84%, #0f172a);
+    min-height: 34px;
+    padding: 6px 11px;
+    border: 1px solid rgba(99, 53, 181, 0.24);
+    border-radius: 9px;
+    background: #ffffff;
+    color: #5b21b6;
+    font-family: var(--font-body);
     font-size: 0.76rem;
-    font-weight: 700;
+    font-weight: 650;
+    line-height: 1.2;
     white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(37, 33, 51, 0.04);
+    transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease, color 140ms ease;
 }
 
 .evaluation-retification-trigger::before {
     content: '✎';
     margin-right: 5px;
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     line-height: 1;
 }
 
 .evaluation-retification-trigger:hover {
-    border-color: color-mix(in srgb, var(--primary-color, #2563eb) 56%, transparent);
-    background: color-mix(in srgb, var(--primary-color, #2563eb) 13%, var(--bg-card, #ffffff));
+    border-color: rgba(99, 53, 181, 0.45);
+    background: #f5f0ff;
+    color: #4c1d95;
+    box-shadow: 0 2px 6px rgba(99, 53, 181, 0.12);
+}
+
+body.dark-theme .evaluation-retification-trigger {
+    border-color: rgba(196, 181, 253, 0.28);
+    background: #211936;
+    color: #d8b4fe;
+    box-shadow: none;
+}
+
+body.dark-theme .evaluation-retification-trigger:hover {
+    border-color: rgba(196, 181, 253, 0.52);
+    background: #2c2146;
+    color: #ede9fe;
 }
 
 /* A própria tríade Sim/Não/N/A é a interface de edição da bonificação. */
@@ -422,12 +447,12 @@
         padding-right: 14px;
     }
 }
-/* Prévia T2 em homologação: reusa o modal existente sem criar outra folha. */
+/* Prévia T2/T3: mesma família visual editorial do Prontuário. */
 .radar-operational-correction-dialog {
     display: grid;
-    gap: 12px;
-    padding: 24px;
-    color: var(--text-main, #1f2937);
+    gap: 14px;
+    padding: 24px 26px;
+    color: var(--text-main, #252133);
 }
 
 .radar-operational-correction-dialog h2,
@@ -437,36 +462,49 @@
 }
 
 .radar-operational-correction-dialog h2 {
-    font-size: 1.12rem;
-    font-weight: 750;
+    font-family: var(--font-heading, inherit);
+    font-size: 1.2rem;
+    font-weight: 760;
+    letter-spacing: -0.02em;
+    color: var(--text-main, #252133);
+}
+
+.radar-operational-correction-dialog > p:first-of-type {
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color, #e5e7eb);
+    color: var(--text-muted, #686477);
+    font-size: 0.84rem;
 }
 
 .radar-operational-correction-dialog h3,
 .radar-operational-correction-dialog label {
-    font-size: 0.86rem;
+    font-size: 0.82rem;
     font-weight: 700;
+    color: var(--text-main, #252133);
 }
 
 .radar-operational-correction-dialog select,
 .radar-operational-correction-dialog textarea {
     width: 100%;
+    border-radius: 10px;
 }
 
 .radar-operational-correction-effects {
     display: grid;
     gap: 8px;
-    padding: 15px;
-    border: 1px solid var(--border-color, #d8dce8);
+    padding: 14px 16px;
+    border: 1px solid color-mix(in srgb, #6335b5 18%, var(--border-color, #d8dce8));
+    border-left: 3px solid #6335b5;
     border-radius: 12px;
-    background: var(--bg-sidebar, #f8f9fc);
-    font-size: 0.85rem;
+    background: var(--bg-sidebar, #f7f4fe);
+    font-size: 0.84rem;
     line-height: 1.5;
 }
 
 .radar-operational-correction-feedback {
     min-height: 18px;
-    font-size: 0.83rem;
-    line-height: 1.5;
+    font-size: 0.82rem;
+    line-height: 1.45;
 }
 
 .radar-operational-correction-feedback[data-status="error"] {
@@ -478,14 +516,18 @@
     flex-wrap: wrap;
     justify-content: flex-end;
     gap: 9px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color, #e5e7eb);
 }
 
 .dark-theme .radar-operational-correction-effects {
-    background: var(--bg-sidebar, #201832);
+    background: #1d162e;
+    border-color: rgba(167, 139, 250, 0.25);
+    border-left-color: #a78bfa;
 }
 
 @media (max-width: 700px) {
     .radar-operational-correction-dialog {
-        padding: 17px;
+        padding: 18px;
     }
 }
