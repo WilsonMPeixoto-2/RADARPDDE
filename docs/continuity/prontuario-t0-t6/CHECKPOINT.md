@@ -1,6 +1,21 @@
 # Checkpoint único de continuidade operacional — RADAR T0–T6
 
-**Retomada de 21/11/2026.** A Release 1 entrou na `main` pelo [PR #535](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/535), commit `9278f83a`. O acompanhamento de T2/T3 está no [PR #537](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/537). Conferir nesse PR a validação da migration 64 antes de qualquer publicação.
+## Estado em 21/11/2026
+
+**T0–T3 estão tecnicamente concluídos e publicados.** A Release 1 foi integrada pelo [PR #535](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/535) e o [PR #537](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/537) fechou as três correções de acompanhamento. A homologação operacional com usuários reais continua disponível para conferir permissões e jornadas em uso.
+
+| Evidência | Resultado confirmado |
+|---|---|
+| GitHub | Merge do #537 em [`9d0f50b0`](https://github.com/WilsonMPeixoto-2/RADARPDDE/commit/9d0f50b0f42b44017591bce472581717c8a09bc0). Os 20 workflows do [commit testado do PR](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/537/checks) passaram. |
+| Vercel Production | [Deploy `dpl_9ZWdbvmkc2YeBUdpamLkU3rU37NN`](https://vercel.com/wilson-m-peixotos-projects/radarpdde-fix/9ZWdbvmkc2YeBUdpamLkU3rU37NN) em `READY` para o mesmo commit do merge. |
+| Supabase institucional | A migration [`20261121000100_operational_correction_followup`](https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/9d0f50b0f42b44017591bce472581717c8a09bc0/supabase/migrations/20261121000100_operational_correction_followup.sql) consta no histórico do projeto `scnryinorqeucbfkioxo`. Consulta de leitura ao catálogo confirmou as RPCs de prévia e confirmação, a chamada de histórico, a tabela de registros administrativos e o bloqueio concorrente. |
+| Fluxos atingidos | [789 asserções SQL, quatro cenários de concorrência/idempotência e dez jornadas autenticadas T2/T3](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/44944665686). [21 ciclos funcionais](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/44944665571) em banco descartável. |
+
+**Release 2 · T4.** Retomar na branch `release/prontuario-t4-20261121`, [PR #538](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/538). O primeiro caso usa um Controlador para corrigir a marca de bonificação de um programa consolidado, com duas NFs já registradas. A correção deve preservar as análises e a Pendência fiscal, reabrir somente a bonificação do alvo e permitir reconsolidar pelo fluxo existente. A limpeza do histórico do item e a exclusão do contexto pertencem à sequência da T4. T5 tem release própria. T6 verifica cada entrega.
+
+As regras e obrigações herdadas estão no [registro](registry.json) e no [mapa de impacto](decision-impact.json). O aceite de campo continua identificado separadamente das provas em banco descartável.
+
+## Arquivo da Release 1 — fotografias anteriores ao encerramento
 
 **Data de fotografia anterior:** 20/11/2026. **Escopo:** Release 1, T0–T3. **Classe:** estado temporário, revalidar GitHub em cada retomada.
 **Branch executora:** `release/prontuario-t0-t3-20261120` — [PR #535](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/535) (Draft).  
@@ -29,7 +44,7 @@ O filtro por arquivo passa a cobrir as entradas efetivas `app.js` e `styles.css`
 
 **Próximo passo de governança:** na retomada, conferir HEAD atual, resultado do CI para o commit de documentação posterior a `da38a38f` e mudanças novas em outras conversas/branches. Depois, continuar a homologação visual T1 e a matriz de consumidores T2/T3 sem reabrir decisões já aceitas.
 
-## Estado efetivo
+## Estado no corte histórico de 20/11
 
 | Marco | Estado rigoroso | Evidência/observação |
 |---|---|---|

@@ -1,13 +1,13 @@
 # Continuidade verificável — Prontuário T0–T6
 
-**Classe:** índice operacional de rastreabilidade, não contrato funcional paralelo. **Primeira consolidação:** 20/11/2026. **Autoridade de execução:** ChatGPT (branch `release/prontuario-t0-t3-20261120`, PR #535). Os agentes colaboradores podem escrever em suas próprias branches.
+**Classe:** índice operacional de rastreabilidade, não contrato funcional paralelo. **Primeira consolidação:** 20/11/2026. **Autoridade de execução:** ChatGPT. A branch, o PR e a etapa vigentes constam no [checkpoint](CHECKPOINT.md). Os agentes colaboradores podem escrever em suas próprias branches.
 
 ## Rota de retomada em um novo chat ou agente
 
 1. **Ler `AGENTS.md` e `docs/CURRENT_STAGE.md`** para conhecer o produto, as restrições e a frente atual.
 2. **Ler [CHECKPOINT.md](CHECKPOINT.md)**, que guarda o último HEAD verificado, o que foi feito, o que não foi comprovado e **o próximo ato objetivo**.
 3. **Consultar [registry.json](registry.json)** por `T0T6-Dxxx` (decisões e mudanças de direção) ou `T0T6-Cxxx` (contribuições externas e sua triagem). **Não começar nova análise sem consultar IDs existentes**.
-4. Abrir [contrato funcional](../../reference/PRONTUARIO_CORRECAO_CONTRATO.md), [plano original T0–T6](../../superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md), [matriz de transição](../../reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md) e [plano de release vigente](../../releases/2026-11-20-prontuario-t0-t3-release-1.md). O registro não os substitui.
+4. Abrir [contrato funcional](../../reference/PRONTUARIO_CORRECAO_CONTRATO.md), [plano original T0–T6](../../superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md), [matriz de transição](../../reference/PRONTUARIO_PLANO_TRANSICAO_INTEGRAL_T0_T6.md) e [plano histórico da Release 1](../../releases/2026-11-20-prontuario-t0-t3-release-1.md). O registro não os substitui.
 5. **Conferir GitHub ao vivo**: branches, PR, diff, `main`, jobs do SHA e eventuais contribuições pós-checkpoint. Um `HEAD` anotado é uma **fotografia histórica**, não verificação atual.
 6. Somente então executar o **próximo ato pendente**. Se não houver evidência de uma decisão ou incorporação, marcar *não confirmado* e investigar; nunca inferir conclusão pelo nome do arquivo ou pelo texto de outro agente.
 
