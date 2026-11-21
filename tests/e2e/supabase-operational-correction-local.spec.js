@@ -280,6 +280,16 @@ test('T2 documental (correct_analysis e clear_analysis): RPC real, F5 e segunda 
     const afterClearDb = await readVerificationFromDb(page);
     expect(afterClearDb.analysis?.extCC ?? null).toBeNull();
     expect(afterClearDb.bonus_result).toBe('apta');
+
+    await page.getByRole('tab', { name: 'Registros Internos', exact: true }).click();
+    const history = page.locator('#tab-auditoria tbody tr').filter({ hasText: 'Extrato Conta Corrente' });
+    const corrected = history.filter({ hasText: 'Análise técnica corrigida' });
+    const cleared = history.filter({ hasText: 'Análise técnica limpa' });
+    await expect(corrected).toHaveCount(1);
+    await expect(corrected).toContainText('Correto → Correto (Atrasado)');
+    await expect(cleared).toHaveCount(1);
+    await expect(cleared).toContainText('Correto (Atrasado) → Não analisado');
+    await testInfo.attach('historico-da-correcao', { body: await page.locator('#tab-auditoria').screenshot(), contentType: 'image/png' });
     expect(pageErrors).toEqual([]);
 });
 
@@ -901,7 +911,7 @@ test('T3 atualiza a escola no Dashboard, na Carteira e no Passivo de junho após
     }
 });
 
-test('G3 compatibilidade: cliente sem flag convive com schema de 63 migrations e RPC rejeita prévia obsoleta', async ({ page, browser }, testInfo) => {
+test('G3 compatibilidade: cliente sem flag convive com schema atualizado e RPC rejeita prévia obsoleta', async ({ page, browser }, testInfo) => {
     test.setTimeout(90000);
     const pageErrors = [];
     page.on('pageerror', error => pageErrors.push(error.message));
@@ -1038,4 +1048,30 @@ test('G3 compatibilidade: cliente sem flag convive com schema de 63 migrations e
     }
 
     expect(pageErrors).toEqual([]);
+});
+
+test('T2 mantém o resumo antigo na nota única e permite a primeira análise de cada nota quando há duas', async ({ page }, testInfo) => {
+    await loginAs(page, 'controller');
+    await openSchool(page, 'controller', 'ESC-OCC-LEGACY');
+    const may = page.locator('.invoice-document-row[data-invoice-id="OCC-LEG-MAI"]');
+    await may.getByRole('button', { name: 'Editar análise', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: 'Corrigir análise técnica' });
+    await dialog.getByRole('button', { name: 'Limpar análise', exact: true }).click();
+    await expect(dialog.getByText('Correto → Não analisado')).toBeVisible();
+    await expect(dialog.getByRole('button', { name: 'Confirmar correção' })).toBeEnabled();
+    await testInfo.attach('previa-da-unica-nota-antiga', { body: await dialog.screenshot(), contentType: 'image/png' });
+    await dialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
+
+    await selectCompetence(page, '2026-06');
+    const first = page.locator('.invoice-document-row[data-invoice-id="OCC-LEG-JUN-A"]');
+    const second = page.locator('.invoice-document-row[data-invoice-id="OCC-LEG-JUN-B"]');
+    await expect(first.getByRole('combobox')).toHaveValue('Não analisado');
+    await expect(second.getByRole('combobox')).toHaveValue('Não analisado');
+    await first.getByRole('combobox').selectOption('Correto (Atrasado)');
+    await settleWrites(page);
+    await expect(dialog).toHaveCount(0);
+    await page.reload();
+    await waitForApp(page, 'controller');
+    await expect(first.locator('.invoice-document-status')).toHaveText('Correto (Atrasado)');
+    await expect(second.getByRole('combobox')).toHaveValue('Não analisado');
 });
