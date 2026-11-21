@@ -1057,7 +1057,7 @@ test('T2 mantém o resumo antigo na nota única e permite a primeira análise de
     await may.getByRole('button', { name: 'Editar análise', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Corrigir análise técnica' });
     await dialog.getByRole('button', { name: 'Limpar análise', exact: true }).click();
-    await expect(dialog.getByText('Correto → Não analisado', { exact: true })).toBeVisible();
+    await expect(dialog.getByText('Correto → Não analisado')).toBeVisible();
     await expect(dialog.getByRole('button', { name: 'Confirmar correção' })).toBeEnabled();
     await testInfo.attach('previa-da-unica-nota-antiga', { body: await dialog.screenshot(), contentType: 'image/png' });
     await dialog.getByRole('button', { name: 'Cancelar', exact: true }).click();

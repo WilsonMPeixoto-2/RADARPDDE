@@ -7,7 +7,7 @@ set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(92);
+select plan(93);
 
 -- --------------------------------------------------------------- massa
 insert into auth.users (id, email) values
@@ -244,6 +244,9 @@ select lives_ok(
         (select plan ->> 'planDigest' from occ_plans where k = 'nf4'),
         '00000000-0000-0000-0000-0000000000a5') $$,
     'despesa a identificar e sua Pendência obrigatória são excluídas juntas');
+select is((select action from public.administrative_logs
+            where details ->> 'operationKey' = '00000000-0000-0000-0000-0000000000a5'),
+    'Despesa a identificar excluída', 'o histórico identifica o tipo real do lançamento excluído');
 select is((select analysis ->> 'notaFiscal' || '|' || bonus_result from public.verifications where id = 'OCC-SCHOOL::2041-03::OCC_BASIC'),
     'Correto|apta', 'agregado atualizado sem reabrir bonificação');
 

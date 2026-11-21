@@ -808,9 +808,10 @@ declare
     v_target jsonb := p_plan -> 'target';
     v_action text := p_plan ->> 'action';
     v_program text := v_target ->> 'programId';
-    v_document text := v_target ->> 'documentKey';
+    v_document text := case when v_action <> 'delete_invoice' then v_target ->> 'documentKey' end;
     v_invoice_id text := v_target ->> 'id';
     v_reference text;
+    v_expense_type text;
     v_transition text;
     v_update jsonb;
     v_actor text;
@@ -823,8 +824,12 @@ begin
           from public.pendencies p where p.id = v_target ->> 'id';
     end if;
     if v_invoice_id is not null then
-        select i.program_id, coalesce('NF ' || nullif(i.invoice_number,''), nullif(i.description,''), i.id)
-          into v_program, v_reference from public.registered_invoices i where i.id = v_invoice_id;
+        select i.program_id, i.expense_type,
+               case when i.expense_type = 'a_identificar' then coalesce(nullif(i.description,''), i.id)
+                    when nullif(i.invoice_number,'') is null then coalesce(nullif(i.description,''), i.id)
+                    when i.expense_type = 'boleto_internet' then 'Boleto Internet ' || i.invoice_number
+                    else 'NF ' || i.invoice_number end
+          into v_program, v_expense_type, v_reference from public.registered_invoices i where i.id = v_invoice_id;
     end if;
     if v_action in ('correct_analysis','clear_analysis') then
         -- A primeira mudança da análise é a do alvo. Os agregados vêm depois.
@@ -839,7 +844,9 @@ begin
         when 'boletoInternet' then 'Boleto de pagamento de Internet'
         when 'declBBAgil' then 'Declaração BB Ágil' when 'encampInventario' then 'Encaminhado para Inventariação'
         else v_document end;
-    v_label := case v_action when 'delete_invoice' then 'Nota fiscal excluída'
+    v_label := case v_action when 'delete_invoice' then
+        case v_expense_type when 'a_identificar' then 'Despesa a identificar excluída'
+            when 'boleto_internet' then 'Boleto Internet excluído' else 'Nota fiscal excluída' end
         when 'delete_pendency' then 'Pendência excluída' when 'correct_analysis' then 'Análise técnica corrigida'
         when 'clear_analysis' then 'Análise técnica limpa' end;
 
