@@ -551,7 +551,7 @@ body.dark-theme #tab-verificacoes .prontuario-evaluation-table > thead th {
 /* Cabeçalho de programa em grade de 4 trilhas alinhadas exatamente às colunas da tabela. */
 #prontuario-verif-rows tr.program-block-start > td.program-context-cell {
     padding: 0;
-    border-top: 0;
+    border-top: 2px solid color-mix(in srgb, #6335b5 22%, var(--border-hover));
     border-bottom: 1px solid color-mix(in srgb, #6335b5 16%, var(--border-color));
     background: linear-gradient(180deg, #f7f4fe 0%, #f1ecfc 100%);
 }
@@ -563,6 +563,7 @@ body.dark-theme #tab-verificacoes .prontuario-evaluation-table > thead th {
 
 body.dark-theme #prontuario-verif-rows tr.program-block-start > td.program-context-cell {
     background: linear-gradient(180deg, #211936 0%, #1b142d 100%);
+    border-top-color: rgba(167, 139, 250, 0.34);
     border-bottom-color: rgba(167, 139, 250, 0.22);
 }
 
@@ -570,7 +571,8 @@ body.dark-theme #prontuario-verif-rows tr.program-block-start > td.program-conte
     display: grid;
     grid-template-columns: 35% 25% 20% 20%;
     align-items: center;
-    padding-block: 12px;
+    padding-top: 10px;
+    padding-bottom: 12px;
     box-shadow: inset 4px 0 0 #6335b5;
 }
 
