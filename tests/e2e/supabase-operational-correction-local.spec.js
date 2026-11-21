@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('node:fs');
+const { execFileSync } = require('node:child_process');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const ExcelJS = require('exceljs');
@@ -1051,6 +1052,15 @@ test('G3 compatibilidade: cliente sem flag convive com schema atualizado e RPC r
 });
 
 test('T2 mantém o resumo antigo na nota única e permite a primeira análise de cada nota quando há duas', async ({ page }, testInfo) => {
+    // O Playwright reutiliza o banco local na repetição. Restaurar a mesma massa de junho.
+    execFileSync('psql', ['postgresql://postgres:postgres@127.0.0.1:54322/postgres',
+        '-X', '-1', '-v', 'ON_ERROR_STOP=1', '-c', `
+            update public.registered_invoices set payload = '{}'
+             where school_id = 'ESC-OCC-LEGACY' and competence_id = '2026-06'
+               and id in ('OCC-LEG-JUN-A','OCC-LEG-JUN-B') and payload <> '{}';
+            update public.verifications set analysis = '{"notaFiscal":"Correto"}'
+             where id = 'ESC-OCC-LEGACY::2026-06::BASIC' and analysis <> '{"notaFiscal":"Correto"}';
+        `]);
     await loginAs(page, 'controller');
     await openSchool(page, 'controller', 'ESC-OCC-LEGACY');
     const may = page.locator('.invoice-document-row[data-invoice-id="OCC-LEG-MAI"]');
@@ -1070,8 +1080,10 @@ test('T2 mantém o resumo antigo na nota única e permite a primeira análise de
     await first.getByRole('combobox').selectOption('Correto (Atrasado)');
     await settleWrites(page);
     await expect(dialog).toHaveCount(0);
+    await expect(first.locator('.invoice-document-status')).toHaveText('Correto (Atrasado)');
     await page.reload();
     await waitForApp(page, 'controller');
+    await selectCompetence(page, '2026-06');
     await expect(first.locator('.invoice-document-status')).toHaveText('Correto (Atrasado)');
     await expect(second.getByRole('combobox')).toHaveValue('Não analisado');
 });
