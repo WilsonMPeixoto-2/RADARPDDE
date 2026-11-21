@@ -49,8 +49,7 @@ begin
 
     if lower(p_invoice.expense_type) = 'a_identificar' or p_invoice.payload ?| v_keys or exists (
         select 1 from radar_private.operational_correction_context_invoices(p_verification.id) i
-         where lower(i.expense_type) in ('consumo','permanente','servico','boleto_internet','a_identificar')
-           and i.payload ?| v_keys
+         where i.id <> p_invoice.id
     ) then
         return radar_private.operational_correction_invoice_analysis(p_invoice.expense_type, p_invoice.payload);
     end if;

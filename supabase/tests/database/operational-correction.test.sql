@@ -7,7 +7,7 @@ set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(91);
+select plan(92);
 
 -- --------------------------------------------------------------- massa
 insert into auth.users (id, email) values
@@ -527,16 +527,14 @@ select is((
     'T3: NF alvo removida, NF vizinha vinculada, bem terminal e bonificação preservados');
 reset role;
 
--- Análises antigas pertencem ao resumo até existir uma avaliação individual.
+-- Só um resultado mensal inequívoco pode ser exibido para uma nota antiga.
 insert into public.programs (id, name) values ('OCC_LEGACY', 'Programa legado');
 insert into public.verifications (id, school_id, competence_id, program_id, analysis, bonus_result)
 values ('OCC-LEGACY-V', 'OCC-SCHOOL', '2041-03', 'OCC_LEGACY',
         '{"notaFiscal":"Correto","consAssessoria":"Incorreto"}', 'apta');
 insert into public.registered_invoices (id, school_id, competence_id, program_id, verification_id,
     source_context_key, description, expense_type, invoice_number, amount)
-values ('OCC-LEGACY-NF', 'OCC-SCHOOL', '2041-03', 'OCC_LEGACY', null,
-        '2041-03_OCC_LEGACY', 'Material legado', 'consumo', 'LEG-1', 50),
-       ('OCC-LEGACY-SVC', 'OCC-SCHOOL', '2041-03', 'OCC_LEGACY', 'OCC-LEGACY-V',
+values ('OCC-LEGACY-SVC', 'OCC-SCHOOL', '2041-03', 'OCC_LEGACY', null,
         '2041-03_OCC_LEGACY', 'Serviço legado', 'servico', 'LEG-2', 90);
 
 create function pg_temp.legacy_request(invoice_id text, document_key text)
@@ -547,26 +545,25 @@ $$;
 
 set local role authenticated;
 insert into occ_plans values
-    ('legacy-fiscal', public.preview_operational_change(pg_temp.legacy_request('OCC-LEGACY-NF','notaFiscal'))),
+    ('legacy-fiscal', public.preview_operational_change(pg_temp.legacy_request('OCC-LEGACY-SVC','notaFiscal'))),
     ('legacy-service', public.preview_operational_change(pg_temp.legacy_request('OCC-LEGACY-SVC','consAssessoria')));
 
 select ok((select plan -> 'blockers' = '[]' and plan #>> '{effects,update,0,before}' = 'Correto'
                   and (plan #> '{versions,registered_invoices}') ? 'OCC-LEGACY-SVC'
              from occ_plans where k = 'legacy-fiscal'),
-    'prévia usa o resultado fiscal exibido no contexto legado e observa a NF vizinha');
+    'prévia usa o resumo fiscal para a única NF, mesmo sem verification_id');
 select ok((select plan -> 'blockers' = '[]' and plan #>> '{effects,update,0,before}' = 'Incorreto'
              from occ_plans where k = 'legacy-service'),
     'a única nota de serviço pode usar a análise de Assessoria exibida');
-select lives_ok($$ select public.apply_operational_change(pg_temp.legacy_request('OCC-LEGACY-NF','notaFiscal'),
+select lives_ok($$ select public.apply_operational_change(pg_temp.legacy_request('OCC-LEGACY-SVC','notaFiscal'),
     (select plan ->> 'planDigest' from occ_plans where k = 'legacy-fiscal'),
     '00000000-0000-0000-0000-0000000000f1') $$, 'limpa a análise fiscal herdada pela RPC normal');
 select is((select array[
-    (select payload ->> 'analiseDocumentoFiscal' from public.registered_invoices where id = 'OCC-LEGACY-NF'),
-    (select analysis ->> 'notaFiscal' from public.verifications where id = 'OCC-LEGACY-V'),
     (select payload ->> 'analiseDocumentoFiscal' from public.registered_invoices where id = 'OCC-LEGACY-SVC'),
+    (select analysis ->> 'notaFiscal' from public.verifications where id = 'OCC-LEGACY-V'),
     (select bonus_result from public.verifications where id = 'OCC-LEGACY-V')
-]), array['Não analisado','Não analisado',null,'apta'],
-    'limpar altera nota e resumo, preserva a vizinha e a bonificação');
+]), array['Não analisado','Não analisado','apta'],
+    'limpar altera nota e resumo e preserva a bonificação');
 select lives_ok($$ select public.apply_operational_change(pg_temp.legacy_request('OCC-LEGACY-SVC','consAssessoria'),
     public.preview_operational_change(pg_temp.legacy_request('OCC-LEGACY-SVC','consAssessoria')) ->> 'planDigest',
     '00000000-0000-0000-0000-0000000000f2') $$, 'limpa a análise herdada da Assessoria');
@@ -588,6 +585,12 @@ select ok(public.preview_operational_change(pg_temp.legacy_request('OCC-LEGACY-S
 select ok(public.preview_operational_change(pg_temp.legacy_request('OCC-LEGACY-SVC2','consAssessoria'))
     -> 'blockers' @> '[{"code":"NO_EFFECT"}]',
     'duas notas de serviço nunca recebem a análise de Assessoria do resumo');
+reset role;
+update public.registered_invoices set payload = payload - 'analiseDocumentoFiscal' where id = 'OCC-LEGACY-SVC';
+set local role authenticated;
+select ok(public.preview_operational_change(pg_temp.legacy_request('OCC-LEGACY-SVC2','notaFiscal'))
+    -> 'blockers' @> '[{"code":"NO_EFFECT"}]',
+    'nenhuma das duas NFs sem análise própria herda a conclusão mensal compartilhada');
 reset role;
 
 select * from finish();

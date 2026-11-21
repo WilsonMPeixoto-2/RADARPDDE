@@ -85,6 +85,12 @@
         return normalizeInvoiceDocumentAnalysis(value, fallback);
     }
 
+    function getInvoiceDocumentAnalysisInContext(invoice, invoiceCount, monthlyAnalysis) {
+        const fallback = invoiceCount === 1 && !hasExplicitInvoiceDocumentAnalysis(invoice)
+            ? monthlyAnalysis : 'Não analisado';
+        return getInvoiceDocumentAnalysis(invoice, fallback);
+    }
+
     function deriveInvoiceDocumentAnalysis(invoices, legacyFallback = 'Não analisado') {
         const documents = Array.isArray(invoices)
             ? invoices.filter(isInvoiceDocument)
@@ -130,6 +136,7 @@
         IDENTIFIED_EXPENSE_TYPES,
         deriveInvoiceDocumentAnalysis,
         getInvoiceDocumentAnalysis,
+        getInvoiceDocumentAnalysisInContext,
         hasExplicitInvoiceDocumentAnalysis,
         isInvoiceDocument,
         isUnidentifiedExpense,
