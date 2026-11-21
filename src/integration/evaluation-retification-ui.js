@@ -260,33 +260,49 @@
                 </header>
                 <form id="evaluation-retification-form" class="evaluation-retification-form">
                     <p class="evaluation-retification-guidance" id="evaluation-retification-guidance"></p>
-                    <div class="evaluation-retification-current">
-                        <span>Valor atual</span>
-                        <strong data-testid="evaluation-current-value"></strong>
-                    </div>
-                    <div class="form-group">
-                        <label for="evaluation-retification-value"></label>
-                        <select id="evaluation-retification-value" class="form-control" aria-label="">
-                            </select>
-                    </div>
-                    <p class="evaluation-retification-preview" role="status" aria-live="polite"></p>
-                    <div class="evaluation-retification-impact" data-testid="evaluation-retification-confirmation" hidden>
-                        <strong>Esta correção encerra uma Pendência ativa</strong>
-                        <p>A Pendência vinculada será anulada por esta retificação. O histórico anterior será preservado e o registro ficará identificado como <b>Anulada por edição da avaliação</b>.</p>
-                        <label class="evaluation-retification-check">
-                            <input type="checkbox" id="evaluation-retification-confirm-check">
-                            <span>Confirmo que estou corrigindo um lançamento de avaliação realizado incorretamente e que a Pendência vinculada deve ser anulada por esta retificação.</span>
-                        </label>
-                        <div class="form-group">
-                            <label for="evaluation-retification-justification">Justificativa da retificação</label>
-                            <textarea id="evaluation-retification-justification" class="form-control" rows="4" maxlength="1000" placeholder="Explique objetivamente por que a avaliação anterior foi registrada incorretamente."></textarea>
-                            <small>Obrigatória para diferenciar esta operação de um cancelamento comum de Pendência.</small>
+                    <div class="evaluation-retification-split">
+                        <div class="evaluation-retification-inputs">
+                            <div class="form-group">
+                                <label for="evaluation-retification-value"></label>
+                                <select id="evaluation-retification-value" class="form-control" aria-label=""></select>
+                                <div class="evaluation-retification-current">
+                                    <span>Valor atual:</span>
+                                    <strong data-testid="evaluation-current-value"></strong>
+                                </div>
+                            </div>
+                            <div class="evaluation-retification-impact" data-testid="evaluation-retification-confirmation" hidden>
+                                <strong>Esta correção encerra uma Pendência ativa</strong>
+                                <p>A Pendência vinculada será anulada por esta retificação. O histórico anterior será preservado e o registro ficará identificado como <b>Anulada por edição da avaliação</b>.</p>
+                                <div class="form-group">
+                                    <label for="evaluation-retification-justification">Justificativa da retificação</label>
+                                    <textarea id="evaluation-retification-justification" class="form-control" rows="4" maxlength="1000" placeholder="Explique objetivamente por que a avaliação anterior foi registrada incorretamente."></textarea>
+                                    <small>Obrigatória para diferenciar esta operação de um cancelamento comum de Pendência.</small>
+                                </div>
+                                <label class="evaluation-retification-check">
+                                    <input type="checkbox" id="evaluation-retification-confirm-check">
+                                    <span>Confirmo que estou corrigindo um lançamento de avaliação realizado incorretamente e que a Pendência vinculada deve ser anulada por esta retificação.</span>
+                                </label>
+                            </div>
                         </div>
+                        <aside class="evaluation-retification-effect-card" aria-label="Efeito desta correção">
+                            <h3>Efeito desta correção</h3>
+                            <p class="evaluation-retification-preview" role="status" aria-live="polite"></p>
+                            <div class="evaluation-retification-effect-callout" data-evaluation-effect-callout="neutral">
+                                <strong data-evaluation-effect-title>Selecione o novo resultado</strong>
+                                <p data-evaluation-effect-body>A previsão de efeito na avaliação técnica e na Pendência aparecerá aqui antes da gravação.</p>
+                            </div>
+                            <div class="evaluation-retification-audit-note">
+                                <strong>Registro da operação</strong>
+                                <span>Alteração e autoria permanecem preservadas no histórico da unidade.</span>
+                            </div>
+                        </aside>
                     </div>
-                    <div class="evaluation-retification-feedback" role="status" aria-live="polite"></div>
                     <footer class="evaluation-retification-actions">
-                        <button type="button" class="btn btn-secondary" data-evaluation-retification-close="true">Voltar sem alterar</button>
-                        <button type="submit" class="btn btn-primary" id="evaluation-retification-submit" disabled>Salvar edição</button>
+                        <div class="evaluation-retification-feedback" role="status" aria-live="polite"></div>
+                        <div class="evaluation-retification-action-buttons">
+                            <button type="button" class="btn btn-secondary" data-evaluation-retification-close="true">Voltar sem alterar</button>
+                            <button type="submit" class="btn btn-primary" id="evaluation-retification-submit" disabled>Salvar edição</button>
+                        </div>
                     </footer>
                 </form>
             </section>
@@ -322,6 +338,9 @@
         let saving = false;
         let committedNeedsRefresh = false;
         const preview = layer.querySelector('.evaluation-retification-preview');
+        const effectCallout = layer.querySelector('[data-evaluation-effect-callout]');
+        const effectTitle = layer.querySelector('[data-evaluation-effect-title]');
+        const effectBody = layer.querySelector('[data-evaluation-effect-body]');
 
         const refresh = () => {
             if (saving || committedNeedsRefresh) return;
@@ -345,6 +364,23 @@
             preview.textContent = changed
                 ? `${currentDisplay} → ${nextValue || 'Não preenchido'}${!isAnalysis && !nextValue ? ' · Análise: Não analisado' : ''}`
                 : 'Escolha um novo valor para habilitar a gravação.';
+            if (effectCallout && effectTitle && effectBody) {
+                if (requiresFormalConfirmation) {
+                    effectCallout.dataset.evaluationEffectCallout = 'warning';
+                    effectTitle.textContent = 'A Pendência será anulada por edição da avaliação.';
+                    effectBody.textContent = 'Situação resultante: Cancelada. As tentativas, a autoria e o histórico serão preservados.';
+                } else if (changed) {
+                    effectCallout.dataset.evaluationEffectCallout = 'ready';
+                    effectTitle.textContent = 'Avaliação pronta para atualização';
+                    effectBody.textContent = isAnalysis
+                        ? 'A nova análise técnica será gravada preservando a bonificação do programa.'
+                        : 'A marcação de entrega será atualizada imediatamente neste programa.';
+                } else {
+                    effectCallout.dataset.evaluationEffectCallout = 'neutral';
+                    effectTitle.textContent = 'Selecione o novo resultado';
+                    effectBody.textContent = 'A previsão de efeito na avaliação técnica e na Pendência aparecerá aqui antes da gravação.';
+                }
+            }
             feedback.textContent = undoBlocked
                 ? 'Existe Pendência ativa. Primeiro use Editar análise para corrigir o lançamento e justificar a anulação da Pendência.'
                 : '';

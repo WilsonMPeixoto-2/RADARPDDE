@@ -545,6 +545,7 @@
                         </svg>
                     </span>
                     <div>
+                        <span class="modal-editorial-kicker">Regularização documental</span>
                         <h3 id="modal-registrar-envio-title">Registrar novo envio para conferência</h3>
                         <p class="modal-subtitle">Registre a nova disponibilização do documento para que a pendência siga para reanálise.</p>
                     </div>
@@ -559,58 +560,77 @@
             <div class="modal-body">
                 <form id="form-registrar-envio" onsubmit="confirmarRegistrarNovoEnvio(event)">
                     <input type="hidden" id="envio-pendencia-id">
-                    <section class="corrective-context-panel" aria-labelledby="envio-contexto-title">
-                        <h4 id="envio-contexto-title" tabindex="-1">Contexto da pendência</h4>
-                        <div class="pendency-context-summary" id="envio-contexto"></div>
-                    </section>
-                    <fieldset
-                        class="pendency-error-fieldset"
-                        id="envio-identificacao"
-                        hidden
-                        disabled
-                    >
-                        <legend>Documento que identifica a despesa</legend>
-                        <p class="form-hint">
-                            A identificação preservará o mesmo registro e a mesma Pendência.
-                        </p>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="envio-identificacao-tipo">Tipo da despesa</label>
-                                <select class="form-control" id="envio-identificacao-tipo" required>
-                                    <option value="">Selecione o tipo</option>
-                                    <option value="consumo">Material de Consumo</option>
-                                    <option value="permanente">Bem Permanente</option>
-                                    <option value="servico">Prestação de Serviço</option>
-                                    <option value="boleto_internet" data-program-id="CONECTADA">Boleto de pagamento de Internet</option>
-                                </select>
+                    <div class="corrective-split-layout">
+                        <div class="corrective-submission-main">
+                            <section class="corrective-context-panel" aria-labelledby="envio-contexto-title">
+                                <h4 id="envio-contexto-title" tabindex="-1">Contexto da pendência</h4>
+                                <div class="pendency-context-summary" id="envio-contexto"></div>
+                            </section>
+                            <fieldset
+                                class="pendency-error-fieldset"
+                                id="envio-identificacao"
+                                hidden
+                                disabled
+                            >
+                                <legend>Documento que identifica a despesa</legend>
+                                <p class="form-hint">
+                                    A identificação preservará o mesmo registro e a mesma Pendência.
+                                </p>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="envio-identificacao-tipo">Tipo da despesa</label>
+                                        <select class="form-control" id="envio-identificacao-tipo" required>
+                                            <option value="">Selecione o tipo</option>
+                                            <option value="consumo">Material de Consumo</option>
+                                            <option value="permanente">Bem Permanente</option>
+                                            <option value="servico">Prestação de Serviço</option>
+                                            <option value="boleto_internet" data-program-id="CONECTADA">Boleto de pagamento de Internet</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="envio-identificacao-numero">Número ou referência do documento</label>
+                                        <input type="text" class="form-control" id="envio-identificacao-numero" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="envio-identificacao-descricao">Descrição</label>
+                                    <input type="text" class="form-control" id="envio-identificacao-descricao" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="envio-identificacao-valor">Valor (R$)</label>
+                                    <input type="number" step="0.01" min="0" class="form-control" id="envio-identificacao-valor" required>
+                                </div>
+                            </fieldset>
+                            <div class="corrective-submission-fields">
+                                <div class="form-group">
+                                    <label for="envio-data-disponibilizacao">Data em que o arquivo foi disponibilizado no Drive</label>
+                                    <input type="date" class="form-control" id="envio-data-disponibilizacao" required>
+                                </div>
+                                <div class="form-group is-full">
+                                    <label for="envio-observacao">Observação</label>
+                                    <textarea class="form-control" id="envio-observacao" rows="4" placeholder="Descreva informações relevantes sobre este envio" required></textarea>
+                                </div>
+                                <div class="form-group is-full">
+                                    <label for="envio-link">Link direto do arquivo no Drive <span class="field-optional">(opcional)</span></label>
+                                    <input type="url" class="form-control" id="envio-link" placeholder="https://drive.google.com/...">
+                                    <small class="corrective-drive-hint">O arquivo permanece armazenado no Google Drive.</small>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="envio-identificacao-numero">Número ou referência do documento</label>
-                                <input type="text" class="form-control" id="envio-identificacao-numero" required>
+                        </div>
+                        <aside class="corrective-effect-panel" aria-label="O que acontece após registrar">
+                            <h4>O que acontece após registrar</h4>
+                            <span class="corrective-effect-status">Aguardando reanálise</span>
+                            <div class="corrective-effect-actor">
+                                <span>Próxima ação</span>
+                                <strong>Controlador</strong>
+                                <p>O envio será conferido antes da resolução da Pendência.</p>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="envio-identificacao-descricao">Descrição</label>
-                            <input type="text" class="form-control" id="envio-identificacao-descricao" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="envio-identificacao-valor">Valor (R$)</label>
-                            <input type="number" step="0.01" min="0" class="form-control" id="envio-identificacao-valor" required>
-                        </div>
-                    </fieldset>
-                    <div class="corrective-submission-fields">
-                        <div class="form-group">
-                            <label for="envio-data-disponibilizacao">Data em que o arquivo foi disponibilizado no Drive</label>
-                            <input type="date" class="form-control" id="envio-data-disponibilizacao" required>
-                        </div>
-                        <div class="form-group is-full">
-                            <label for="envio-observacao">Observação</label>
-                            <textarea class="form-control" id="envio-observacao" rows="4" placeholder="Descreva informações relevantes sobre este envio" required></textarea>
-                        </div>
-                        <div class="form-group is-full">
-                            <label for="envio-link">Link direto do arquivo no Drive <span class="field-optional">(opcional)</span></label>
-                            <input type="url" class="form-control" id="envio-link" placeholder="https://drive.google.com/...">
-                        </div>
+                            <div class="corrective-effect-pointing">
+                                <span>Apontamento atual</span>
+                                <p id="envio-apontamento-atual">Pendência documental em aberto.</p>
+                                <small>Este apontamento será avaliado na reanálise.</small>
+                            </div>
+                        </aside>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" onclick="closeModal('modal-registrar-envio')">Cancelar</button>
@@ -631,9 +651,12 @@
         aria-hidden="true"
         inert
     >
-        <div class="modal-content">
+        <div class="modal-content reanalysis-modal-content">
             <div class="modal-header">
-                <h3 id="modal-reanalisar-pendencia-title">Reanalisar pendência documental</h3>
+                <div>
+                    <span class="modal-editorial-kicker">Regularização documental</span>
+                    <h3 id="modal-reanalisar-pendencia-title">Reanalisar pendência documental</h3>
+                </div>
                 <button
                     type="button"
                     class="btn-close"
@@ -645,44 +668,54 @@
                 <form id="form-reanalisar-pendencia" onsubmit="confirmarReanalisePendencia(event)">
                     <input type="hidden" id="reanalisar-pendencia-id">
                     <p class="reanalysis-guidance" tabindex="-1">Confira o último arquivo recebido antes de registrar o resultado. A reanálise pertence à Pendência e ao documento identificados abaixo.</p>
-                    <div
-                        class="pendency-context-summary"
-                        id="reanalisar-tentativa-atual"
-                        aria-label="Tentativa aguardando reanálise"
-                    ></div>
-                    <section
-                        class="reanalysis-decision-panel"
-                        data-reanalysis-decision
-                        aria-labelledby="reanalisar-decisao-title"
-                    >
-                        <div class="reanalysis-decision-heading">
-                            <span>Decisão técnica</span>
-                            <h4 id="reanalisar-decisao-title">Registre o resultado desta tentativa</h4>
-                            <p>Use o resultado abaixo para concluir a Pendência ou devolver o documento à escola para novo envio.</p>
-                        </div>
-                        <div class="form-group">
-                            <label for="reanalisar-resultado">Resultado da reanálise</label>
-                            <select class="form-control" id="reanalisar-resultado" required>
-                                <option value="">Selecione o resultado</option>
-                                <option value="correto">Documento correto</option>
-                                <option value="incorreto">Documento ainda incorreto</option>
-                                <option value="arquivo_indisponivel">Arquivo não localizado ou inacessível</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="reanalisar-observacao">Observação da análise</label>
-                            <textarea class="form-control" id="reanalisar-observacao" required></textarea>
-                        </div>
-                        <div class="form-group" id="reanalisar-erros-group" hidden>
-                            <fieldset class="pendency-error-fieldset" id="reanalisar-erros-fieldset" disabled>
-                                <legend>Erros documentais encontrados</legend>
-                                <div id="reanalisar-erros" class="pendency-error-grid"></div>
-                            </fieldset>
-                        </div>
-                    </section>
+                    <div class="reanalysis-split-layout">
+                        <div
+                            class="pendency-context-summary"
+                            id="reanalisar-tentativa-atual"
+                            aria-label="Tentativa aguardando reanálise"
+                        ></div>
+                        <section
+                            class="reanalysis-decision-panel"
+                            data-reanalysis-decision
+                            aria-labelledby="reanalisar-decisao-title"
+                        >
+                            <div class="reanalysis-decision-heading">
+                                <span>Decisão técnica</span>
+                                <h4 id="reanalisar-decisao-title">Resultado desta tentativa</h4>
+                                <p>Use o resultado abaixo para concluir a Pendência ou devolver o documento à escola para novo envio.</p>
+                            </div>
+                            <div class="form-group">
+                                <label for="reanalisar-resultado">Resultado da reanálise</label>
+                                <select class="form-control" id="reanalisar-resultado" required>
+                                    <option value="">Selecione o resultado</option>
+                                    <option value="correto">Documento correto</option>
+                                    <option value="incorreto">Documento ainda incorreto</option>
+                                    <option value="arquivo_indisponivel">Arquivo não localizado ou inacessível</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="reanalisar-erros-group" hidden>
+                                <fieldset class="pendency-error-fieldset" id="reanalisar-erros-fieldset" disabled>
+                                    <legend>Erros documentais encontrados</legend>
+                                    <div id="reanalisar-erros" class="pendency-error-grid"></div>
+                                </fieldset>
+                            </div>
+                            <div class="form-group">
+                                <label for="reanalisar-observacao">Observação da análise</label>
+                                <textarea class="form-control" id="reanalisar-observacao" rows="4" placeholder="Registre o parecer objetivo sobre o arquivo conferido." required></textarea>
+                            </div>
+                            <div class="reanalysis-effect-preview" id="reanalisar-efeito-preview" data-effect-state="idle" role="status" aria-live="polite">
+                                <span class="reanalysis-effect-kicker">Após confirmar</span>
+                                <strong>Selecione o resultado desta tentativa</strong>
+                                <p>O impacto previsto na Pendência e no histórico aparecerá aqui antes da gravação.</p>
+                            </div>
+                        </section>
+                    </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-reanalisar-pendencia')">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Confirmar reanálise</button>
+                        <span class="reanalysis-footer-note">Você está analisando o último envio desta pendência.</span>
+                        <div class="reanalysis-footer-actions">
+                            <button type="button" class="btn btn-secondary" onclick="closeModal('modal-reanalisar-pendencia')">Cancelar</button>
+                            <button type="submit" class="btn btn-primary">Confirmar reanálise</button>
+                        </div>
                     </div>
                 </form>
             </div>

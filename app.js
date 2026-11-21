@@ -8744,6 +8744,14 @@ function abrirModalRegistrarNovoEnvio(pendencySource) {
         </dl>
     `;
 
+    const pointingBox = document.getElementById('envio-apontamento-atual');
+    if (pointingBox) {
+        const currentErrors = Array.isArray(pendency.errosAtuais) && pendency.errosAtuais.length > 0
+            ? pendency.errosAtuais.join(' · ')
+            : (pendency.motivo || 'Pendência documental aberta.');
+        pointingBox.textContent = currentErrors;
+    }
+
     openRegistrarNovoEnvioModal(
         trigger,
         sourceContext,
@@ -8942,6 +8950,29 @@ function updateReanalysisErrorVisibility() {
         input.disabled = !showErrors;
         if (!showErrors) input.checked = false;
     });
+
+    const preview = document.getElementById('reanalisar-efeito-preview');
+    if (preview) {
+        const heading = preview.querySelector('strong');
+        const body = preview.querySelector('p');
+        if (result.value === 'correto') {
+            preview.dataset.effectState = 'resolved';
+            if (heading) heading.textContent = 'Pendência Resolvida';
+            if (body) body.textContent = 'O histórico de envios será preservado e a bonificação consolidada permanece intacta.';
+        } else if (result.value === 'incorreto') {
+            preview.dataset.effectState = 'incorrect';
+            if (heading) heading.textContent = 'Pendência devolvida à unidade';
+            if (body) body.textContent = 'A situação retorna para Aberta e a escola precisará disponibilizar novo documento corrigido.';
+        } else if (result.value === 'arquivo_indisponivel') {
+            preview.dataset.effectState = 'unavailable';
+            if (heading) heading.textContent = 'Arquivo não localizado ou inacessível';
+            if (body) body.textContent = 'A Pendência retorna para Aberta sem validar o conteúdo, solicitando novo envio legível.';
+        } else {
+            preview.dataset.effectState = 'idle';
+            if (heading) heading.textContent = 'Selecione o resultado desta tentativa';
+            if (body) body.textContent = 'O impacto previsto na Pendência e no histórico aparecerá aqui antes da gravação.';
+        }
+    }
 }
 
 function collectReanalysisErrors(result) {
@@ -11240,6 +11271,27 @@ function renderPendencyDrawer() {
                 ? 'O envio já foi registrado. O próximo passo é conferir o documento recebido e registrar o resultado da reanálise.'
                 : '';
 
+    const latestAttempt = Array.isArray(pendency.tentativas) && pendency.tentativas.length > 0
+        ? pendency.tentativas[pendency.tentativas.length - 1]
+        : null;
+    const latestAttemptLink = latestAttempt ? getSafeReanalysisLink(latestAttempt.link) : '';
+    const recentHistory = Array.isArray(pendency.historico) ? pendency.historico.slice(-3) : [];
+    const formatHistoryLabel = ev => {
+        if (ev?.resumo) return ev.resumo;
+        const labels = {
+            abertura: 'Pendência aberta',
+            novo_envio: 'Novo envio registrado',
+            reanalise: 'Reanálise registrada',
+            resolucao: 'Pendência resolvida',
+            cancelamento: 'Pendência cancelada',
+            retificacao_avaliacao: 'Retificação da avaliação'
+        };
+        return labels[String(ev?.tipo || '').toLowerCase()] || ev?.descricao || ev?.tipo || 'Evento registrado';
+    };
+    const nextActorLabel = pendency.status === 'Aguardando reanálise'
+        ? 'Controlador'
+        : (pendency.responsavel || 'Escola');
+
     // eslint-disable-next-line nounsanitized/property -- valores dinâmicos do drawer são escapados com escapeHtml antes da interpolação; SVG e estrutura são estáticos.
     content.innerHTML = `
         <div class="pendency-preview-header">
@@ -11259,6 +11311,12 @@ function renderPendencyDrawer() {
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M7 3v4M17 3v4M3.5 9h17"/></svg>
             <span>${escapeHtml(competence?.label || pendency.competenciaOrigem || pendency.competencia || '')} · ${escapeHtml(program?.name || pendency.programaId || '')}</span>
         </div>
+        ${!edit ? `
+            <div class="pendency-preview-actor-row">
+                <span>Próxima ação</span>
+                <strong>${escapeHtml(nextActorLabel)}</strong>
+            </div>
+        ` : ''}
         ${unidentifiedExpense ? `
             <section class="pendency-preview-provisional" aria-label="Dados provisórios da despesa">
                 <span class="pendency-preview-provisional-label">Dados provisórios</span>
@@ -11280,7 +11338,7 @@ function renderPendencyDrawer() {
                 </dl>
             </section>
         ` : ''}
-        <div class="pendency-preview-field">
+        <div class="pendency-preview-field ${!edit ? 'is-pointing-callout' : ''}">
             <label for="pendency-preview-reason">Motivo</label>
             ${edit
                 ? `<select id="pendency-preview-reason">${reasonOptionsHTML}</select>`
@@ -11292,10 +11350,33 @@ function renderPendencyDrawer() {
                 ? `<textarea id="pendency-preview-observation" rows="5">${escapeHtml(pendency.observacao || '')}</textarea>`
                 : `<p class="pendency-preview-observation">${escapeHtml(pendency.observacao || '')}</p>`}
         </div>
+        ${!edit && latestAttempt ? `
+            <section class="pendency-preview-latest-attempt" aria-label="Último envio registrado">
+                <div class="pendency-preview-attempt-head">
+                    <span>Último envio</span>
+                    <strong>${escapeHtml(formatPendencyDate(latestAttempt.dataDisponibilizacao))}</strong>
+                </div>
+                ${latestAttempt.observacao ? `<p>${escapeHtml(latestAttempt.observacao)}</p>` : ''}
+                ${latestAttemptLink ? `<a class="pendency-preview-drive-link" href="${escapeHtml(latestAttemptLink)}" target="_blank" rel="noopener noreferrer">Abrir arquivo no Drive ↗</a>` : ''}
+            </section>
+        ` : ''}
         <div class="pendency-preview-date">
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M7 3v4M17 3v4M3.5 9h17"/></svg>
             <div><span>Registrada em</span><strong>${escapeHtml(formatPendencyDate(pendency.dataAbertura))}</strong></div>
         </div>
+        ${!edit && recentHistory.length > 0 ? `
+            <section class="pendency-preview-history" aria-label="Histórico recente">
+                <span class="pendency-preview-history-label">Histórico recente</span>
+                <ul class="pendency-preview-timeline">
+                    ${recentHistory.map(ev => `
+                        <li>
+                            <span class="pendency-preview-timeline-date">${escapeHtml(formatPendencyDate(ev.dataHora || ev.data || pendency.dataAbertura))}</span>
+                            <span>${escapeHtml(formatHistoryLabel(ev))}</span>
+                        </li>
+                    `).join('')}
+                </ul>
+            </section>
+        ` : ''}
         ${nextStepCopy ? `
             <section class="pendency-preview-next-step" aria-label="Próximo passo">
                 <span class="pendency-preview-next-step-label">Próximo passo</span>

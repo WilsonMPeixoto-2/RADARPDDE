@@ -72,12 +72,16 @@
         dialog.setAttribute('role', 'dialog');
         dialog.setAttribute('aria-modal', 'true');
         dialog.setAttribute('aria-labelledby', 'radar-operational-correction-title');
+        const header = el(doc, 'header', 'radar-operational-correction-header');
+        const kicker = el(doc, 'span', 'evaluation-retification-kicker',
+            deleting ? 'Exclusão com alcance causal' : 'Correção operacional');
         const title = el(doc, 'h2', '', deleting
             ? (mode === 'delete_invoice' ? 'Excluir nota fiscal' : 'Excluir pendência')
             : 'Corrigir análise técnica');
         title.id = 'radar-operational-correction-title';
         const summary = el(doc, 'p', '', text(context.documentLabel || context.documentKey) + ' · ' + context.competence);
-        const current = el(doc, 'p', '', 'Resultado atual: ' + text(input.currentValue || 'Não analisado'));
+        header.append(kicker, title, summary);
+        const current = el(doc, 'p', 'radar-operational-correction-current', 'Resultado atual: ' + text(input.currentValue || 'Não analisado'));
         const label = el(doc, 'label', '', 'Novo resultado');
         label.htmlFor = 'radar-operational-correction-select';
         const select = el(doc, 'select', 'form-control');
@@ -120,9 +124,19 @@
         actions.append(cancel);
         if (!deleting) actions.append(clearBtn);
         actions.append(review, save);
-        dialog.append(title, summary);
-        if (!deleting) dialog.append(current, label, select, noteLabel, note);
-        dialog.append(planTitle, effects, feedback, actions);
+        const bodyGrid = el(doc, 'div', deleting
+            ? 'radar-operational-correction-body is-single'
+            : 'radar-operational-correction-body is-split');
+        const effectsCol = el(doc, 'aside', 'radar-operational-correction-preview-col');
+        effectsCol.append(planTitle, effects);
+        if (!deleting) {
+            const inputsCol = el(doc, 'div', 'radar-operational-correction-inputs-col');
+            inputsCol.append(label, select, current, noteLabel, note);
+            bodyGrid.append(inputsCol, effectsCol);
+        } else {
+            bodyGrid.append(effectsCol);
+        }
+        dialog.append(header, bodyGrid, feedback, actions);
         layer.append(backdrop, dialog);
         doc.body.appendChild(layer);
         const inertSiblings = [];
