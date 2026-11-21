@@ -32,14 +32,17 @@ select ok(to_regprocedure('public.save_school_with_programs(jsonb,jsonb,integer,
 select ok(to_regprocedure('public.reanalyze_pendency_with_verification(jsonb,jsonb,jsonb,integer,integer,jsonb)') is not null, 'RPC de reanálise existe');
 select ok(to_regprocedure('public.promote_data_import(text,text,jsonb,jsonb)') is not null, 'RPC de promoção existe');
 select ok(to_regprocedure('public.rollback_data_import(text)') is not null, 'RPC de rollback existe');
--- Desde T2/T3 há 63 migrations versionadas. Validar também a identidade
+-- Desde o acompanhamento de T2/T3 há 64 migrations. Validar também a identidade
 -- da migration candidata, sem travar o teste em uma contagem exata que
 -- precisaria ser alterada após cada migration legítima posterior.
 select ok(
-    (select count(*) >= 63 from supabase_migrations.schema_migrations)
+    (select count(*) >= 64 from supabase_migrations.schema_migrations)
     and exists (
         select 1 from supabase_migrations.schema_migrations
          where version = '20261114000100'
+    ) and exists (
+        select 1 from supabase_migrations.schema_migrations
+         where version = '20261121000100'
     ),
     'migrations históricas e contrato de correção T2/T3 foram registrados'
 );

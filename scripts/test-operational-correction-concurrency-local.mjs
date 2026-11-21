@@ -8,6 +8,8 @@
 //      zero double writes.
 //   3. Reusing a committed operationKey with an altered request -> clean
 //      IDEMPOTENCY_CONFLICT.
+//   4. Real reanalysis blocked on an attempt while a correction enters on the
+//      same pendency: reanalysis commits, correction rejects its stale plan.
 import { spawn, execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import assert from 'node:assert/strict';
@@ -353,6 +355,75 @@ try {
     assert.notEqual(altered.code, 0, 'Altered payload with reused operationKey must fail');
     assert.match(altered.stderr, /IDEMPOTENCY_CONFLICT/);
     console.log('PASS [Case 3]: reused operationKey with altered payload rejected with IDEMPOTENCY_CONFLICT.');
+    // Case 4: A real reanalysis owns the pendency while a correction tries to clear its result.
+    const pendencyId = 'OCC-RACE-P-EXTINV';
+    const attemptId = 'OCC-RACE-A-EXTINV';
+    const correctionKey = '1b4a6c0f-9a28-4d62-8e13-77a5c8a00104';
+    await sql(`
+        update public.verifications set analysis = analysis || '{"extINV":"Incorreto"}'
+          where id = '${VERIFICATION}';
+        insert into public.pendencies (id, school_id, competence_origin, program_id, document_key, status, next_actor)
+          values ('${pendencyId}', '${SCHOOL}', '${COMPETENCE}', '${PROGRAM}', 'extINV', 'Aguardando reanálise', 'Controlador');
+        insert into public.pendency_attempts (id, pendency_id, attempt_number, submitted_at)
+          values ('${attemptId}', '${pendencyId}', 1, now());
+    `);
+    const clearRequest = {
+        contractVersion: 1, action: 'clear_analysis',
+        target: { ...correctRequest.target, documentKey: 'extINV' }
+    };
+    const forClear = await startSession(asController(USER,
+        `select public.preview_operational_change(${quoteJson(clearRequest)})::text;`), 'occ-preview-reanalysis');
+    assert.equal(forClear.code, 0, forClear.stderr);
+    const preview = parseJsonResult(forClear.stdout, 'clear before reanalysis');
+    assert.deepEqual(preview.blockers, []);
+    assert.deepEqual(preview.effects.delete.pendencies, [pendencyId]);
+
+    const barrier = spawn('psql', args, { env: { ...process.env, PGAPPNAME: 'occ-attempt-barrier' } });
+    barriers.push(barrier);
+    barrier.stdin.write(`begin; select id from public.pendency_attempts where id = '${attemptId}' for update;\n`);
+    await awaitCondition("select count(*) from pg_stat_activity where application_name = 'occ-attempt-barrier' and state = 'idle in transaction'", '1');
+
+    function waitingFor(waiter, holder) {
+        return `select count(*) from pg_stat_activity w join pg_stat_activity h
+            on h.pid = any(pg_blocking_pids(w.pid))
+            where w.application_name = '${waiter}' and h.application_name = '${holder}'`;
+    }
+    const reanalysis = startSession(asController(USER, `
+        select public.reanalyze_pendency_with_verification(
+            ${quoteJson({ id: pendencyId, status: 'Resolvida' })},
+            ${quoteJson({ id: attemptId, pendency_id: pendencyId, attempt_number: 1,
+                analyzed_at: new Date().toISOString(), result: 'correto', errors: [] })},
+            (select jsonb_build_object('id', id, 'analysis', analysis || '{"extINV":"Correto"}')
+                from public.verifications where id = '${VERIFICATION}'),
+            ${preview.versions.pendencies[pendencyId]}, ${preview.versions.verifications[VERIFICATION]},
+            ${quoteJson({ id: 'OCC-RACE-LOG-REANALYSIS', action: 'Reanálise de pendência', school_id: SCHOOL })}
+        )::text;`), 'occ-reanalyze');
+    await awaitCondition(waitingFor('occ-reanalyze', 'occ-attempt-barrier'), '1');
+    const correction = startSession(asController(USER, `select public.apply_operational_change(
+        ${quoteJson(clearRequest)}, '${preview.planDigest}', '${correctionKey}'::uuid)::text;`), 'occ-clear');
+    await awaitCondition(waitingFor('occ-clear', 'occ-reanalyze'), '1');
+    barrier.stdin.end('commit;\n\\q\n');
+
+    const [reanalyzed, refused] = await Promise.all([reanalysis, correction]);
+    assert.equal(reanalyzed.code, 0, reanalyzed.stderr);
+    assert.notEqual(refused.code, 0, 'A correção precisa respeitar a reanálise que terminou primeiro');
+    assert.match(refused.stderr, /STALE_PLAN|PLAN_BLOCKED: NO_EFFECT/);
+    const finalState = JSON.parse(await sql(`
+        select json_build_object(
+            'analysis', (select analysis ->> 'extINV' from public.verifications where id = '${VERIFICATION}'),
+            'bonus', (select bonus_result from public.verifications where id = '${VERIFICATION}'),
+            'pendency', (select status from public.pendencies where id = '${pendencyId}'),
+            'attempt', (select result from public.pendency_attempts where id = '${attemptId}'),
+            'reanalysisLog', (select count(*) from public.administrative_logs where id = 'OCC-RACE-LOG-REANALYSIS'),
+            'rejectedLog', (select count(*) from public.administrative_logs where details ->> 'operationKey' = '${correctionKey}'),
+            'rejectedLedger', (select count(*) from radar_private.operational_change_ledger where operation_key = '${correctionKey}')
+        )::text;
+    `));
+    assert.deepEqual(finalState, {
+        analysis: 'Correto', bonus: 'apta', pendency: 'Resolvida', attempt: 'correto',
+        reanalysisLog: 1, rejectedLog: 0, rejectedLedger: 0
+    });
+    console.log('PASS [Case 4]: reanálise e correção simultâneas preservam o resultado e o histórico, sem deadlock.');
 } finally {
     barriers.forEach(proc => { if (proc.exitCode === null) proc.kill(); });
     clients.forEach(proc => { if (proc.exitCode === null) proc.kill(); });
@@ -364,6 +435,7 @@ try {
         drop trigger if exists occ_race_correct_barrier on public.pendencies;
         drop function if exists public.occ_race_correct_barrier();
         delete from radar_private.operational_change_ledger where school_id = '${SCHOOL}';
+        delete from public.administrative_logs where school_id = '${SCHOOL}';
         delete from public.pendency_contacts where school_id = '${SCHOOL}';
         delete from public.pendency_attempts where pendency_id in (select id from public.pendencies where school_id = '${SCHOOL}');
         delete from public.pendencies where school_id = '${SCHOOL}';

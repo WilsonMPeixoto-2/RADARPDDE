@@ -10482,9 +10482,6 @@ function renderProntuarioVerificacoes(esc) {
                         const notes = notasRegistradas.filter(note => (
                             note.escolaId === esc.id && note.compKey === compProgKey
                         ));
-                        const individualizationStarted = notes.some(note => (
-                            window.RadarInvoiceDocumentAnalysis.hasExplicitInvoiceDocumentAnalysis(note)
-                        ));
                         const fiscalSummary = window.RadarInvoiceDocumentAnalysis
                             .deriveInvoiceDocumentAnalysis(notes, analiseValue || 'Não analisado');
                         const activeInvoicePendencies = documentaryPendencies.filter(pendency => (
@@ -10549,11 +10546,8 @@ function renderProntuarioVerificacoes(esc) {
                                     documentaryPendencies,
                                     invoiceContext
                                 );
-                                const analysisFallback = !individualizationStarted && notes.length === 1
-                                    ? (analiseValue || 'Não analisado')
-                                    : 'Não analisado';
                                 const analysis = window.RadarInvoiceDocumentAnalysis
-                                    .getInvoiceDocumentAnalysis(note, analysisFallback);
+                                    .getInvoiceDocumentAnalysisInContext(note, notes.length, analiseValue);
                                 const statusLabel = invoicePendency?.status === 'Aguardando reanálise'
                                     ? 'Aguardando reanálise'
                                     : analysis;
@@ -11692,12 +11686,8 @@ function openInvoiceOperationalCorrection(invoiceId, escolaId, documentKey = 'no
         const related = notasRegistradas.filter(note => (
             note.escolaId === escolaId && note.compKey === invoice.compKey
         ));
-        const hasIndividualAnalysis = related.some(note => (
-            window.RadarInvoiceDocumentAnalysis.hasExplicitInvoiceDocumentAnalysis(note)
-        ));
-        currentValue = window.RadarInvoiceDocumentAnalysis.getInvoiceDocumentAnalysis(
-            invoice, hasIndividualAnalysis
-                ? 'Não analisado' : (verification?.analise?.notaFiscal || 'Não analisado')
+        currentValue = window.RadarInvoiceDocumentAnalysis.getInvoiceDocumentAnalysisInContext(
+            invoice, related.length, verification?.analise?.notaFiscal
         );
     }
     return dialog.open(window, {
@@ -11805,14 +11795,8 @@ async function changeInvoiceDocumentAnalysis(
     const allContextInvoices = notasRegistradas.filter(item => (
         item.escolaId === escolaId && item.compKey === invoice.compKey
     ));
-    const individualizationStarted = allContextInvoices.some(item => (
-        window.RadarInvoiceDocumentAnalysis.hasExplicitInvoiceDocumentAnalysis(item)
-    ));
-    const previousValue = window.RadarInvoiceDocumentAnalysis.getInvoiceDocumentAnalysis(
-        invoice,
-        individualizationStarted
-            ? 'Não analisado'
-            : (verification?.analise?.notaFiscal || 'Não analisado')
+    const previousValue = window.RadarInvoiceDocumentAnalysis.getInvoiceDocumentAnalysisInContext(
+        invoice, allContextInvoices.length, verification?.analise?.notaFiscal
     );
     if (window.RadarOperationalCorrectionDialog?.canUse?.(window)
         && previousValue !== 'Não analisado'

@@ -8,6 +8,7 @@ const {
     IDENTIFIED_EXPENSE_TYPES,
     deriveInvoiceDocumentAnalysis,
     getInvoiceDocumentAnalysis,
+    getInvoiceDocumentAnalysisInContext,
     isInvoiceDocument,
     isUnidentifiedExpense,
     normalizeInvoiceDocumentAnalysis,
@@ -44,6 +45,16 @@ test('despesa a identificar nova é Incorreto, mas legado sem análise não rece
         () => withInvoiceDocumentAnalysis(canonical, 'Correto'),
         /deve permanecer Incorreto/
     );
+});
+
+test('o resumo fiscal antigo só identifica a análise da única nota do contexto', () => {
+    const invoice = { id: 'nf', tipo: 'consumo' };
+    assert.equal(getInvoiceDocumentAnalysisInContext(invoice, 1, 'Correto'), 'Correto');
+    assert.equal(getInvoiceDocumentAnalysisInContext(invoice, 2, 'Correto'), 'Não analisado');
+    assert.equal(getInvoiceDocumentAnalysisInContext(
+        { ...invoice, analiseDocumentoFiscal: 'Incorreto' }, 2, 'Correto'
+    ), 'Incorreto');
+    assert.equal(getInvoiceDocumentAnalysisInContext({ tipo: 'a_identificar' }, 1, 'Correto'), 'Não analisado');
 });
 
 test('sem estado individual explícito preserva o resumo legado durante a transição', () => {

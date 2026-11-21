@@ -1,6 +1,8 @@
 # Checkpoint único de continuidade operacional — RADAR T0–T6
 
-**Data de fotografia:** 20/11/2026. **Escopo:** Release 1, T0–T3. **Classe:** estado temporário, revalidar GitHub em cada retomada.  
+**Retomada de 21/11/2026.** A Release 1 entrou na `main` pelo [PR #535](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/535), commit `9278f83a`. O acompanhamento de T2/T3 está no [PR #537](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/537). Conferir nesse PR a validação da migration 64 antes de qualquer publicação.
+
+**Data de fotografia anterior:** 20/11/2026. **Escopo:** Release 1, T0–T3. **Classe:** estado temporário, revalidar GitHub em cada retomada.
 **Branch executora:** `release/prontuario-t0-t3-20261120` — [PR #535](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/535) (Draft).  
 **Code source:** [Antigravity PR #534](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/534) @ `054d3bc4e0eaf7a7d1db8a5c0bfc2c9947d0f4fe`; a branch colaboradora pode receber novos commits.  
 **Última candidata com testes funcionais completos verificados:** `b4f2853c3a5f6161b09788fb5e43fdfad1f2a840` (test:readiness, Auth/RLS/Supabase local, gate de configuração).  
