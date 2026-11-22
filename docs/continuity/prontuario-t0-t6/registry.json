@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "workstream": "RADARPDDE/PRONTUARIO-T0-T6",
-  "date": "2026-11-21",
+  "date": "2026-11-22",
   "authorityNote": "Contratos aprovados e ADRs prevalecem; registro documenta proveniência, revisão e estado, não modifica regra por si.",
   "active": {
     "release": "R2",
@@ -215,6 +215,16 @@
       "title": "Propagação obrigatória das decisões entre chats e camadas",
       "decision": "Cada decisão aprovada mantém efeito vinculante sobre código, banco, interfaces, testes, relatórios e etapas futuras, mesmo quando seus desdobramentos forem implementados em chats/branches separados. Registrar obrigações por fase, preservar pendências e comprovar propagação na fase pertinente; nenhuma implementação parcial encerra os impactos restantes.",
       "sourcePath": "docs/continuity/prontuario-t0-t6/DECISION_IMPACT_PROTOCOL.md",
+      "supersedes": []
+    },
+    {
+      "id": "T0T6-D021",
+      "date": "2026-11-22",
+      "stage": "T4-T5",
+      "status": "approved",
+      "title": "Linguagem do Controlador na correção de consolidação",
+      "decision": "A ação visível é Corrigir consolidação, não Corrigir marca. A janela informa que esta entrega corrige apenas a avaliação de Notas Fiscais, explica o efeito após confirmar e apresenta Consolidar bonificação como etapa distinta e necessária. Em T4/T5, labels, avisos, erros, contexto e próximos passos usam linguagem operacional compreensível sem instruções externas; aprovações de regra e controle de acesso são preservados.",
+      "sourcePath": "docs/continuity/prontuario-t0-t6/D021_LINGUAGEM_DO_CONTROLADOR.md",
       "supersedes": []
     }
   ],
