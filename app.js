@@ -10539,7 +10539,7 @@ function renderProntuarioVerificacoes(esc) {
                                     data-school-id="${escapeHtml(esc.id)}" data-comp-key="${escapeHtml(compProgKey)}"
                                     data-school-name="${escapeHtml(esc.denominação)}" data-program-name="${escapeHtml(progName)}"
                                     data-competence-label="${escapeHtml(c.label)}" onclick="openFiscalBonusCorrection(this)">
-                                    Corrigir marca
+                                    Corrigir consolidação
                                 </button>
                             </div>`
                             : accessProfile === 'sme'
