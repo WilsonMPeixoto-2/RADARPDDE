@@ -1141,13 +1141,14 @@ test('T4 · corrigir bonificação fiscal, preservar notas e consolidar o progra
     const header = page.locator('[data-program-header="BASIC"]');
     const neighbor = page.locator('[data-program-header="CONECTADA"]');
     const fiscal = page.locator('tr[data-program-id="BASIC"][data-document-key="notaFiscal"] [data-invoice-document-panel]');
-    const edit = fiscal.getByRole('button', { name: 'Corrigir marca' });
-    const dialog = page.getByRole('dialog', { name: 'Corrigir bonificação' });
+    const edit = fiscal.getByRole('button', { name: 'Corrigir consolidação' });
+    const dialog = page.getByRole('dialog', { name: 'Corrigir consolidação da bonificação' });
     const confirm = dialog.getByRole('button', { name: 'Confirmar correção' });
-    const choice = dialog.getByLabel('Nova marca de bonificação');
+    const choice = dialog.getByLabel('Nova avaliação — Notas Fiscais');
 
     await edit.click();
     await expect(dialog).toContainText('Escola Horizonte');
+    await expect(dialog.getByText('Nesta etapa, você pode corrigir apenas a avaliação de Notas Fiscais.')).toBeVisible();
     await expect(confirm).toBeDisabled();
     await choice.selectOption('Não se aplica');
     await expect(dialog.getByText('As notas fiscais, as análises individuais e as pendências serão preservadas.')).toBeVisible();
@@ -1188,7 +1189,7 @@ test('T4 · corrigir bonificação fiscal, preservar notas e consolidar o progra
     await page.reload();
     await waitForApp(page, 'controller');
     await edit.click();
-    await choice.selectOption('Limpar marca');
+    await choice.selectOption('Limpar resposta');
     await confirm.click();
     const consolidate = header.getByRole('button', { name: 'Consolidar alterações' });
     await expect(header).toContainText('Preencha para consolidar: Notas Fiscais');
