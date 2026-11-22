@@ -42,7 +42,12 @@
         }
     }
     function canCorrectFiscalBonus(root) {
-        return root?.RADAR_PDDE_CONFIG?.features?.operationalCorrectionPilot === true && canUse(root);
+        const features = root?.RADAR_PDDE_CONFIG?.features;
+        return canUse(root) && (
+            features?.operationalCorrectionPilot === true
+            || (features?.operationalCorrectionRelease === true
+                && features?.bonificationCorrectionRelease === true)
+        );
     }
     function open(root, input = {}) {
         const context = input.context || {};
