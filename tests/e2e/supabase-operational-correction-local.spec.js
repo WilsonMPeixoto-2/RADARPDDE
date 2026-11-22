@@ -1149,6 +1149,9 @@ test('T4 · corrigir bonificação fiscal, preservar notas e consolidar o progra
     await edit.click();
     await expect(dialog).toContainText('Escola Horizonte');
     await expect(dialog.getByText('Nesta etapa, você pode corrigir apenas a avaliação de Notas Fiscais.')).toBeVisible();
+    await expect(dialog).toContainText('Alterações pendentes de consolidação');
+    await expect(dialog).toContainText('Consolidar bonificação');
+    await expect(dialog.getByText('Avaliação atual: Sim')).toBeVisible();
     await expect(confirm).toBeDisabled();
     await choice.selectOption('Não se aplica');
     await expect(dialog.getByText('As notas fiscais, as análises individuais e as pendências serão preservadas.')).toBeVisible();
@@ -1191,7 +1194,7 @@ test('T4 · corrigir bonificação fiscal, preservar notas e consolidar o progra
     await edit.click();
     await choice.selectOption('Limpar resposta');
     await confirm.click();
-    const consolidate = header.getByRole('button', { name: 'Consolidar alterações' });
+    const consolidate = header.getByRole('button', { name: 'Consolidar bonificação', exact: true });
     await expect(header).toContainText('Preencha para consolidar: Notas Fiscais');
     await expect(consolidate).toBeDisabled();
     await testInfo.attach('t4-marca-limpa', { body: await header.screenshot(), contentType: 'image/png' });
