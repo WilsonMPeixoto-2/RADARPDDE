@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "date": "2026-11-20",
+  "date": "2026-11-21",
   "workstream": "RADARPDDE/PRONTUARIO-T0-T6",
   "registryPath": "docs/continuity/prontuario-t0-t6/registry.json",
   "lineagePath": "docs/continuity/prontuario-t0-t6/lineage.json",
@@ -80,7 +80,7 @@
           "id": "T0T6-I002-01",
           "phase": "T2",
           "surface": "domain",
-          "status": "candidate",
+          "status": "verified",
           "requirementIds": [
             "T0T6-R015",
             "T0T6-R025",
@@ -91,13 +91,13 @@
             "src/application/operational-correction-client.js",
             "src/integration/operational-correction-dialog.js"
           ],
-          "evidenceRefs": []
+          "evidenceRefs": ["https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/44944665686"]
         },
         {
           "id": "T0T6-I002-02",
           "phase": "T3",
           "surface": "ui",
-          "status": "candidate",
+          "status": "verified",
           "requirementIds": [
             "T0T6-R023",
             "T0T6-R028",
@@ -109,7 +109,7 @@
             "src/integration/prontuario-operational-ux.js",
             "app.js"
           ],
-          "evidenceRefs": []
+          "evidenceRefs": ["https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/44944665686"]
         },
         {
           "id": "T0T6-I002-03",
@@ -168,7 +168,7 @@
           "id": "T0T6-I003-01",
           "phase": "T2",
           "surface": "db",
-          "status": "candidate",
+          "status": "verified",
           "requirementIds": [
             "T0T6-R045"
           ],
@@ -176,13 +176,13 @@
           "targetPaths": [
             "supabase/migrations/20261114000100_operational_correction_contract.sql"
           ],
-          "evidenceRefs": []
+          "evidenceRefs": ["https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/44944665686"]
         },
         {
           "id": "T0T6-I003-02",
           "phase": "T3",
           "surface": "tests",
-          "status": "candidate",
+          "status": "verified",
           "requirementIds": [
             "T0T6-R045"
           ],
@@ -190,7 +190,7 @@
           "targetPaths": [
             "supabase/tests/database/operational-correction.test.sql"
           ],
-          "evidenceRefs": []
+          "evidenceRefs": ["https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/44944665686"]
         }
       ]
     },
