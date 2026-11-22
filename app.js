@@ -10426,7 +10426,7 @@ function renderProntuarioVerificacoes(esc) {
                                             <button class="btn program-consolidate-button is-disabled" disabled>Consolidada</button>
                                         ` : `
                                             <button class="btn program-consolidate-button" ${bonusReview && !bonusReview.canConsolidate ? 'disabled' : ''}
-                                                onclick="calcularEFecharBonificacao('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">${bonusReview ? 'Consolidar alterações' : 'Consolidar'}</button>
+                                                onclick="calcularEFecharBonificacao('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">${bonusReview ? 'Consolidar bonificação' : 'Consolidar'}</button>
                                         `}
                                     </div>
                                 ` : ''}
