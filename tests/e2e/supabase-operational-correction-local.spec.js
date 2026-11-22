@@ -166,6 +166,43 @@ async function exportSmeSchoolRow(assistantPage, schoolId) {
     return { extrato: row.getCell('E').text, notasFiscais: row.getCell('G').text, status: row.getCell('W').text };
 }
 
+// Verifica o arquivo XLSX realmente baixado no fluxo autenticado do Assistente.
+// A planilha só apresenta resultados consolidados atuais (uma linha por programa).
+async function exportInstitutionalSchoolResults(assistantPage, schoolId, testInfo, artifactSuffix) {
+    await assistantPage.goto('/dashboard');
+    await waitForApp(assistantPage, 'federal_assistant');
+    const designation = await assistantPage.evaluate(async id => {
+        const result = await window.RadarSessionContext.service.client.from('schools')
+            .select('designation').eq('id', id).single();
+        if (result.error) throw new Error(result.error.message);
+        return result.data.designation;
+    }, schoolId);
+    const button = assistantPage.locator('[data-radar-assistant-export="institutional"]');
+    await expect(button).toBeVisible();
+    const downloadPromise = assistantPage.waitForEvent('download');
+    await button.click();
+    const download = await downloadPromise;
+    expect(await download.failure()).toBeNull();
+    expect(download.suggestedFilename()).toMatch(/^RADAR_PDDE_BONIFICACOES_05-2026\\.xlsx$/);
+    const downloadedPath = await download.path();
+    expect(downloadedPath).toBeTruthy();
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(downloadedPath);
+    expect(workbook.worksheets.map(sheet => sheet.name)).toEqual([
+        'BONIFICACOES', 'SINTESE', 'QUALIDADE_DADOS', 'METADADOS'
+    ]);
+    const sheet = workbook.getWorksheet('BONIFICACOES');
+    const normalize = value => String(value || '').replace(/\\D/g, '');
+    const rows = (sheet.getRows(9, Math.max(1, sheet.rowCount - 8)) || [])
+        .filter(row => normalize(row.getCell(3).text) === normalize(designation))
+        .map(row => ({ program: row.getCell(5).text, status: row.getCell(12).text }));
+    await testInfo.attach(`t4-excel-${artifactSuffix}`, {
+        path: downloadedPath,
+        contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+    return rows;
+}
+
 async function createInvoice(page, { type, number, description, amount, programId = PROGRAM_ID }) {
     const fiscalRow = page.locator(`tr[data-program-id="${programId}"][data-document-key="notaFiscal"]`);
     await fiscalRow.getByRole('button', { name: 'Adicionar Nota', exact: true }).click();
@@ -1139,6 +1176,11 @@ test('T4 · corrigir bonificação fiscal, preservar notas e consolidar o progra
         await expect(other.locator('[data-program-header="BASIC"]')).toContainText('Alterações pendentes de consolidação');
         await expect(other.locator('.invoice-document-row[data-invoice-id="T4-NF1"]')).toBeVisible();
         await expect(other.locator('.invoice-document-row[data-invoice-id="T4-NF2"]')).toBeVisible();
+        const pendingResults = await exportInstitutionalSchoolResults(other, school, testInfo, 'pendente');
+        expect(pendingResults.some(row => /Básico/i.test(row.program))).toBe(false);
+        expect(pendingResults.filter(row => /Conectada/i.test(row.program))).toEqual([
+            { program: 'Educação Conectada', status: 'APTA' }
+        ]);
     } finally {
         await session.close();
     }
@@ -1163,4 +1205,19 @@ test('T4 · corrigir bonificação fiscal, preservar notas e consolidar o progra
     await expect(header.getByRole('button', { name: 'Consolidada', exact: true })).toBeDisabled();
     await expect(header).not.toContainText('Alterações pendentes de consolidação');
     await expect(fiscal.locator('.invoice-document-row')).toHaveCount(2);
+
+    const afterSession = await browser.newContext({ baseURL: testInfo.project.use.baseURL });
+    try {
+        const assistant = await afterSession.newPage();
+        await loginAs(assistant, 'federal_assistant');
+        const consolidatedResults = await exportInstitutionalSchoolResults(assistant, school, testInfo, 'reconsolidado');
+        expect(consolidatedResults.filter(row => /Básico/i.test(row.program))).toEqual([
+            { program: 'PDDE Básico', status: 'APTA' }
+        ]);
+        expect(consolidatedResults.filter(row => /Conectada/i.test(row.program))).toEqual([
+            { program: 'Educação Conectada', status: 'APTA' }
+        ]);
+    } finally {
+        await afterSession.close();
+    }
 });
