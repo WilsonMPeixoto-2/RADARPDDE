@@ -19,13 +19,15 @@
         'delete_invoice',
         'delete_pendency',
         'clear_analysis',
-        'correct_analysis'
+        'correct_analysis',
+        'correct_bonification'
     ]);
     const TARGET_KIND_BY_ACTION = Object.freeze({
         delete_invoice: 'invoice',
         delete_pendency: 'pendency',
         clear_analysis: 'analysis',
-        correct_analysis: 'analysis'
+        correct_analysis: 'analysis',
+        correct_bonification: 'verification'
     });
     const CORRECTABLE_ANALYSES = Object.freeze(['Correto', 'Correto (Atrasado)', 'Incorreto']);
     const MAX_NOTE_LENGTH = 2000;
@@ -92,7 +94,7 @@
             const value = text(source[key]);
             if (value) target[key] = value;
         }
-        if (target.kind !== 'analysis' && !target.id) {
+        if (['invoice', 'pendency'].includes(target.kind) && !target.id) {
             throw invalid('Informe o registro a ser excluído.');
         }
         if (target.kind === 'analysis') {
@@ -105,6 +107,14 @@
         }
 
         const request = { contractVersion: CONTRACT_VERSION, action, target };
+        if (action === 'correct_bonification') {
+            const mark = input.changes?.bonificacao;
+            if (!target.programId || target.documentKey !== 'notaFiscal'
+                || ![null, 'Sim', 'Não', 'Não se aplica'].includes(mark)) {
+                throw invalid('Informe o programa e a nova marca de Notas Fiscais.');
+            }
+            request.changes = { bonificacao: mark };
+        }
         if (action === 'correct_analysis') {
             const analysis = text(input.changes?.analysis);
             if (!CORRECTABLE_ANALYSES.includes(analysis)) {
@@ -150,8 +160,9 @@
             entity: item.entity,
             id: item.id,
             field: item.field,
-            before: item.before ?? 'Não analisado',
-            after: item.after ?? 'Não analisado'
+            before: item.before ?? (plan.action === 'correct_bonification' ? 'Sem marca' : 'Não analisado'),
+            after: item.after ?? (item.field === 'bonus_result' ? 'Pendente de consolidação'
+                : plan.action === 'correct_bonification' ? 'Sem marca' : 'Não analisado')
         }));
         const blockers = Array.isArray(plan.blockers) ? clone(plan.blockers) : [];
         const warnings = Array.isArray(plan.warnings) ? clone(plan.warnings) : [];

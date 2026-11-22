@@ -5188,6 +5188,18 @@ function verificationDocumentIconSvg(documentKey) {
         || '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h10l4 4V20.5H5z"/><path d="M15 3.5v4h4"/><path d="M8.5 12h7M8.5 15.5h5"/></svg>';
 }
 
+function getPendingBonusReview(verification, programId) {
+    if (verification?.bonificacaoPendenteConsolidacao !== true || verification.resultadoBonif) return null;
+    const { canConsolidate, missingFields } = window.RadarFluxoOperacional.evaluateMonthlyEvaluation({
+        bonification: verification.bonificacao, analysis: verification.analise, programId
+    });
+    const labels = window.RadarOperationalProjection.DOCUMENT_LABELS;
+    const guidance = canConsolidate
+        ? 'A marca foi corrigida. O novo resultado depende da consolidação.'
+        : 'Preencha para consolidar: ' + missingFields.map(key => labels[key] || key).join(', ') + '.';
+    return { canConsolidate, guidance };
+}
+
 function buildVerificationSnapshot(verification, programId = '') {
     const emptyVerification = window.RadarFluxoOperacional.createEmptyVerification(programId);
 
@@ -10377,6 +10389,7 @@ function renderProntuarioVerificacoes(esc) {
                 );
                 const bonusStatus = getProgramBonificationStatus(esc.id, c.key, progId);
                 const bonusMeta = getProgramBonificationMeta(bonusStatus);
+                const bonusReview = getPendingBonusReview(v, progId);
                 const technicalStatus = getProgramTechnicalStatus(esc.id, c.key, progId);
                 const technicalMeta = getProgramTechnicalMeta(technicalStatus);
                 const programStatusSummary = `
@@ -10412,11 +10425,18 @@ function renderProntuarioVerificacoes(esc) {
                                         ${v.resultadoBonif ? `
                                             <button class="btn program-consolidate-button is-disabled" disabled>Consolidada</button>
                                         ` : `
-                                            <button class="btn program-consolidate-button" onclick="calcularEFecharBonificacao('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">Consolidar</button>
+                                            <button class="btn program-consolidate-button" ${bonusReview && !bonusReview.canConsolidate ? 'disabled' : ''}
+                                                onclick="calcularEFecharBonificacao('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">${bonusReview ? 'Consolidar alterações' : 'Consolidar'}</button>
                                         `}
                                     </div>
                                 ` : ''}
                             </div>
+                            ${bonusReview ? `
+                                <div class="program-bonus-pending" role="status">
+                                    <strong>Alterações pendentes de consolidação</strong>
+                                    <span>${escapeHtml(bonusReview.guidance)}</span>
+                                </div>
+                            ` : ''}
                         </td>
                     </tr>
                 `;
@@ -10509,7 +10529,20 @@ function renderProntuarioVerificacoes(esc) {
                             .canRegisterFiscalNote(accessProfile);
                         const canAddUnidentifiedExpense = canMutateInvoice;
 
-                        const fiscalBonificationHTML = accessProfile === 'sme'
+                        const editableFiscalBonus = canMutateInvoice
+                            && Boolean(v.resultadoBonif || bonusReview || bonifValue || notes.length)
+                            && window.RadarOperationalCorrectionDialog?.canCorrectFiscalBonus?.(window);
+                        const fiscalBonificationHTML = editableFiscalBonus
+                            ? `<div class="fiscal-bonus-control">
+                                <strong>${escapeHtml(bonifValue || 'Sem marca')}</strong>
+                                <button type="button" class="fiscal-bonus-edit"
+                                    data-school-id="${escapeHtml(esc.id)}" data-comp-key="${escapeHtml(compProgKey)}"
+                                    data-school-name="${escapeHtml(esc.denominação)}" data-program-name="${escapeHtml(progName)}"
+                                    data-competence-label="${escapeHtml(c.label)}" onclick="openFiscalBonusCorrection(this)">
+                                    Corrigir marca
+                                </button>
+                            </div>`
+                            : accessProfile === 'sme'
                             ? `
                                 <span class="invoice-document-status ${bonifValue === 'Sim'
                                     ? 'is-correct'
@@ -11661,6 +11694,21 @@ async function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElem
 
 // Correção operacional unificada no ambiente isolado: a prévia do servidor
 // informa todos os dependentes antes de permitir salvar/excluir.
+function openFiscalBonusCorrection(trigger) {
+    const { schoolId, compKey, schoolName, programName, competenceLabel } = trigger.dataset;
+    const { competenciaKey, contextId } = window.RadarCompetencia.splitCompetenciaContext(compKey);
+    if (['inventario', 'sme'].includes(getRadarAccessProfile())) return false;
+    return window.RadarOperationalCorrectionDialog.open(window, {
+        mode: 'correct_bonification',
+        trigger,
+        currentValue: verificacoes[schoolId]?.[compKey]?.bonificacao?.notaFiscal || '',
+        context: {
+            schoolId, schoolName, programName, competenceLabel, competence: competenciaKey,
+            programId: contextId, documentKey: 'notaFiscal', documentLabel: 'Notas Fiscais'
+        }
+    });
+}
+
 function openInvoiceOperationalCorrection(invoiceId, escolaId, documentKey = 'notaFiscal',
     trigger = document.activeElement, suggestedValue = '') {
     const invoice = notasRegistradas.find(note => String(note.id) === String(invoiceId)
@@ -13272,7 +13320,7 @@ function exportDataExcel() {
             e.programasIds.forEach(progId => {
                 const compProgKey = `${c.key}_${progId}`;
                 const v = verificacoes[e.id]?.[compProgKey];
-                if (v && v.resultadoBonif) {
+                if (v && v.resultadoBonif && v.bonificacaoPendenteConsolidacao !== true) {
                     const b = v.bonificacao;
                     const prog = programas.find(p => p.id === progId);
                     const progName = prog ? prog.name : progId;

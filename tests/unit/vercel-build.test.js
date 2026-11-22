@@ -256,6 +256,30 @@ test('artefato Vercel Production mantém T0–T3 OFF por padrão, habilita só p
     assert.equal(onResult.runtimeInput.features.operationalCorrectionRelease, true);
     assert.match(onRuntime, /operationalCorrectionRelease["']?\s*:\s*true/);
 
+    // Release 1 ativa continua com T4 desligada até autorização separada.
+    assert.equal(onResult.manifest.bonificationCorrectionRelease, false);
+    const t4Dir = await createOutputDirectory(context);
+    const t4Result = await buildVercelArtifact({
+        rootDir: projectRoot,
+        outputDir: t4Dir,
+        environment: {
+            VERCEL_ENV: 'production',
+            RADAR_OPERATIONAL_CORRECTION_RELEASE_ENABLED: 'true',
+            RADAR_BONIFICATION_CORRECTION_RELEASE_ENABLED: 'true'
+        }
+    });
+    const t4Runtime = await fs.readFile(path.join(t4Dir, 'config.runtime.js'), 'utf8');
+    assert.equal(t4Result.manifest.bonificationCorrectionRelease, true);
+    assert.equal(t4Result.runtimeInput.features.bonificationCorrectionRelease, true);
+    assert.match(t4Runtime, /bonificationCorrectionRelease["']?\s*:\s*true/);
+
+    const t4WithoutReleaseDir = await createOutputDirectory(context);
+    await assert.rejects(buildVercelArtifact({
+        rootDir: projectRoot,
+        outputDir: t4WithoutReleaseDir,
+        environment: { VERCEL_ENV: 'production', RADAR_BONIFICATION_CORRECTION_RELEASE_ENABLED: 'true' }
+    }), /T4.*release/i);
+
     const previewDir = await createOutputDirectory(context);
     await assert.rejects(
         buildVercelArtifact({

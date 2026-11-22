@@ -100,6 +100,10 @@ function buildRuntimeInput(environment = {}) {
         environment.RADAR_OPERATIONAL_CORRECTION_RELEASE_ENABLED,
         'RADAR_OPERATIONAL_CORRECTION_RELEASE_ENABLED'
     );
+    const bonificationCorrectionRelease = parseBoolean(
+        environment.RADAR_BONIFICATION_CORRECTION_RELEASE_ENABLED,
+        'RADAR_BONIFICATION_CORRECTION_RELEASE_ENABLED'
+    );
     const url = String(environment.RADAR_SUPABASE_URL || '').trim();
     const publishableKey = String(environment.RADAR_SUPABASE_PUBLISHABLE_KEY || '').trim();
 
@@ -143,6 +147,11 @@ function buildRuntimeInput(environment = {}) {
         }
     }
 
+    // A autorização da Release 1 não implica a da T4: migration 65 e aceite separados.
+    if (bonificationCorrectionRelease && !operationalCorrectionRelease) {
+        throw new Error('T4 em produção exige release operacional T0–T3 ativo e autorização própria.');
+    }
+
     if (dataMode === 'local') {
         return {
             environment: runtimeEnvironment,
@@ -179,7 +188,8 @@ function buildRuntimeInput(environment = {}) {
         features: {
             supabaseRepositoryEnabled: true,
             ...(operationalCorrectionPilot ? { operationalCorrectionPilot: true } : {}),
-            ...(operationalCorrectionRelease ? { operationalCorrectionRelease: true } : {})
+            ...(operationalCorrectionRelease ? { operationalCorrectionRelease: true } : {}),
+            ...(bonificationCorrectionRelease ? { bonificationCorrectionRelease: true } : {})
         },
         supabase: {
             url,

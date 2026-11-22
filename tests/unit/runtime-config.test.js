@@ -217,6 +217,31 @@ test('release T0–T3 requer deployment de produção, Supabase válido e autori
     }
 });
 
+test('T4 não herda a ativação T0–T3 e permanece desligada sem autorização específica', () => {
+    const base = {
+        deploymentTarget: 'production',
+        dataMode: DATA_MODES.SUPABASE_PRODUCTION,
+        environment: 'production',
+        productionActivationApproved: true,
+        features: { supabaseRepositoryEnabled: true, operationalCorrectionRelease: true },
+        supabase: { url: 'https://example.supabase.co', publishableKey: 'sb_publishable_example' }
+    };
+    assert.notEqual(createRuntimeConfig(base).features.bonificationCorrectionRelease, true);
+    const explicit = createRuntimeConfig({
+        ...base, features: { ...base.features, bonificationCorrectionRelease: true }
+    });
+    assert.equal(explicit.features.bonificationCorrectionRelease, true);
+    for (const changes of [
+        { deploymentTarget: 'preview' },
+        { productionActivationApproved: false },
+        { features: { supabaseRepositoryEnabled: true, bonificationCorrectionRelease: true } },
+        { supabase: { ...base.supabase, url: 'http://127.0.0.1:54321' } }
+    ]) {
+        const candidate = createRuntimeConfig({ ...base, ...changes });
+        assert.notEqual(candidate.features.bonificationCorrectionRelease, true);
+    }
+});
+
 test('bootstrap do navegador mantém release OFF sem HTTPS e ON apenas com opt-in de production', () => {
     const fs = require('node:fs');
     const vm = require('node:vm');

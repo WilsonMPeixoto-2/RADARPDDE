@@ -184,7 +184,8 @@ function createPublicBuildManifest(runtimeInput, environment = {}) {
         dataMode: runtimeInput.dataMode,
         supabaseRepositoryEnabled: runtimeInput.features.supabaseRepositoryEnabled,
         productionActivationApproved: runtimeInput.productionActivationApproved,
-        operationalCorrectionRelease: runtimeInput.features.operationalCorrectionRelease === true
+        operationalCorrectionRelease: runtimeInput.features.operationalCorrectionRelease === true,
+        bonificationCorrectionRelease: runtimeInput.features.bonificationCorrectionRelease === true
     });
 }
 
