@@ -39,6 +39,34 @@ test('usa o repositório real publicado em RadarApplicationServices.data', () =>
     assert.equal(dialog.canUse(root), true);
 });
 
+test('bonificação T4 só é editável no piloto local ou com release próprio explicitamente ativado', () => {
+    const context = {
+        RADAR_OPERATIONAL_CORRECTION_PREVIEW: true,
+        RadarApplicationServices: { data: { repository: {
+            executeRpc() {}, capabilities: () => ({ remote: true })
+        } } },
+        RadarOperationalCorrectionClient: { createOperationalCorrectionClient() {} }
+    };
+    assert.equal(dialog.canCorrectFiscalBonus({
+        ...context,
+        RADAR_PDDE_CONFIG: { features: { operationalCorrectionRelease: true } }
+    }), false);
+    assert.equal(dialog.canCorrectFiscalBonus({
+        ...context,
+        RADAR_PDDE_CONFIG: { features: { operationalCorrectionPilot: true } }
+    }), true);
+    assert.equal(dialog.canCorrectFiscalBonus({
+        ...context,
+        RADAR_PDDE_CONFIG: { features: {
+            operationalCorrectionRelease: true, bonificationCorrectionRelease: true
+        } }
+    }), true);
+    assert.equal(dialog.canCorrectFiscalBonus({
+        ...context, RADAR_OPERATIONAL_CORRECTION_PREVIEW: false,
+        RADAR_PDDE_CONFIG: { features: { bonificationCorrectionRelease: true } }
+    }), false);
+});
+
 test('inclui Não analisado (clear_analysis) nas opções suportadas pelo diálogo', () => {
     assert.equal(Array.isArray(dialog.ANALYSES), true);
     assert.equal(dialog.ANALYSES.includes('Não analisado'), true);
