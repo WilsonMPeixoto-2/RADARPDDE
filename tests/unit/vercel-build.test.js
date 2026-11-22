@@ -271,7 +271,7 @@ test('artefato Vercel Production mantém T0–T3 OFF por padrão, habilita só p
     const t4Runtime = await fs.readFile(path.join(t4Dir, 'config.runtime.js'), 'utf8');
     assert.equal(t4Result.manifest.bonificationCorrectionRelease, true);
     assert.equal(t4Result.runtimeInput.features.bonificationCorrectionRelease, true);
-    assert.match(t4Runtime, /bonificationCorrectionRelease["']?\\s*:\\s*true/);
+    assert.match(t4Runtime, /bonificationCorrectionRelease["']?\s*:\s*true/);
 
     const t4WithoutReleaseDir = await createOutputDirectory(context);
     await assert.rejects(buildVercelArtifact({
