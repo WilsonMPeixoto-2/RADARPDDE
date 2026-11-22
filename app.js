@@ -13320,7 +13320,7 @@ function exportDataExcel() {
             e.programasIds.forEach(progId => {
                 const compProgKey = `${c.key}_${progId}`;
                 const v = verificacoes[e.id]?.[compProgKey];
-                if (v && v.resultadoBonif) {
+                if (v && v.resultadoBonif && v.bonificacaoPendenteConsolidacao !== true) {
                     const b = v.bonificacao;
                     const prog = programas.find(p => p.id === progId);
                     const progName = prog ? prog.name : progId;
