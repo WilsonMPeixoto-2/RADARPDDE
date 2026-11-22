@@ -9,10 +9,10 @@
       "T4"
     ],
     "pr": 538,
-    "branch": "release/prontuario-t4-20261121",
+    "branch": "main",
     "checkpointPath": "docs/continuity/prontuario-t0-t6/CHECKPOINT.md",
     "decisionsPath": "docs/continuity/prontuario-t0-t6/registry.json",
-    "status": "em-desenvolvimento"
+    "status": "primeiro-caso-T4-publicado; demais-casos-T4-pendentes"
   },
   "decisions": [
     {
