@@ -183,7 +183,7 @@ async function exportInstitutionalSchoolResults(assistantPage, schoolId, testInf
     await button.click();
     const download = await downloadPromise;
     expect(await download.failure()).toBeNull();
-    expect(download.suggestedFilename()).toMatch(/^RADAR_PDDE_BONIFICACOES_05-2026\\.xlsx$/);
+    expect(download.suggestedFilename()).toMatch(/^RADAR_PDDE_BONIFICACOES_05-2026\.xlsx$/);
     const downloadedPath = await download.path();
     expect(downloadedPath).toBeTruthy();
     const workbook = new ExcelJS.Workbook();
@@ -192,7 +192,7 @@ async function exportInstitutionalSchoolResults(assistantPage, schoolId, testInf
         'BONIFICACOES', 'SINTESE', 'QUALIDADE_DADOS', 'METADADOS'
     ]);
     const sheet = workbook.getWorksheet('BONIFICACOES');
-    const normalize = value => String(value || '').replace(/\\D/g, '');
+    const normalize = value => String(value || '').replace(/\D/g, '');
     const rows = (sheet.getRows(9, Math.max(1, sheet.rowCount - 8)) || [])
         .filter(row => normalize(row.getCell(3).text) === normalize(designation))
         .map(row => ({ program: row.getCell(5).text, status: row.getCell(12).text }));
