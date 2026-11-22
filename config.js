@@ -280,6 +280,10 @@
             && validCredentials
             && new URL(rawUrl).protocol === 'https:';
 
+        // T4 não herda o opt-in T0–T3. A segunda autorização permanece OFF até a migration 65.
+        const bonificationCorrectionRelease = input.features?.bonificationCorrectionRelease === true
+            && operationalCorrectionRelease === true;
+
         if (!isLocal && !validCredentials) {
             diagnostics.push('Conexão Supabase bloqueada: URL ou chave publicável inválida.');
         }
@@ -305,7 +309,8 @@
             features: {
                 supabaseRepositoryEnabled: isLocal ? false : requestedRepository,
                 ...(operationalCorrectionPilot ? { operationalCorrectionPilot: true } : {}),
-                ...(operationalCorrectionRelease ? { operationalCorrectionRelease: true } : {})
+                ...(operationalCorrectionRelease ? { operationalCorrectionRelease: true } : {}),
+                ...(bonificationCorrectionRelease ? { bonificationCorrectionRelease: true } : {})
             },
             supabase: {
                 url: connectionEnabled && !productionBlocked ? rawUrl : '',
