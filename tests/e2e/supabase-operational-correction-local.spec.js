@@ -1125,7 +1125,9 @@ test('T4 · corrigir bonificação fiscal, preservar notas e consolidar o progra
     await expect(fiscal.locator('.invoice-document-row')).toHaveCount(2);
     await expect(neighbor.getByRole('button', { name: 'Consolidada' })).toBeDisabled();
     await testInfo.attach('t4-notas-preservadas', { body: await fiscal.screenshot(), contentType: 'image/png' });
-    await header.evaluate(row => row.scrollIntoView({ block: 'start' }));
+    // O cabeçalho da unidade é fixo. Centralizar a linha preserva o contexto
+    // do programa na captura e aproxima a janela da leitura real do operador.
+    await header.evaluate(row => row.scrollIntoView({ block: 'center', behavior: 'instant' }));
     await testInfo.attach('t4-prontuario', { body: await page.screenshot(), contentType: 'image/png' });
     await testInfo.attach('t4-programa-pendente', { body: await header.screenshot(), contentType: 'image/png' });
 

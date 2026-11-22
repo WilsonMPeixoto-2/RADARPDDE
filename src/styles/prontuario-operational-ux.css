@@ -1535,6 +1535,7 @@ body.dark-theme .fiscal-bonus-edit {
 }
 
 #prontuario-verif-rows [data-program-header]:has(.program-bonus-pending) .program-consolidate-button:disabled {
+    opacity: 1;
     color: var(--text-muted);
     background: var(--bg-sidebar);
     border: 1px solid var(--border-color);

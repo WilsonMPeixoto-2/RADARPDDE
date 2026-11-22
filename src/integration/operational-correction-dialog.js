@@ -415,11 +415,14 @@
                     control?.focus({ preventScroll: true });
                 }
                 root.updateAlertsBell?.();
-                root.RadarSharedInteractions?.notify?.({
-                    type: 'success',
-                    message: bonus ? 'Marca de bonificação atualizada.' : deleting ? 'Exclusão confirmada. Os registros relacionados foram atualizados.'
-                        : 'Correção confirmada e informações atualizadas.'
-                });
+                let message = deleting ? 'Exclusão confirmada. Os registros relacionados foram atualizados.'
+                    : 'Correção confirmada e informações atualizadas.';
+                if (bonus) {
+                    const reopened = preview.view.changes.some(change => change.field === 'bonus_result');
+                    message = reopened ? 'Marca corrigida. Consolide as alterações no cabeçalho do programa.'
+                        : 'Marca de bonificação atualizada.';
+                }
+                root.RadarSharedInteractions?.notify?.({ type: 'success', message });
             } catch (_error) {
                 // A gravação já foi confirmada: jamais executar apply novamente.
                 root.RadarSharedInteractions?.notify?.({
