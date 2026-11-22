@@ -20,10 +20,9 @@
 
 **REGRA DE CONHECIMENTO HISTÓRICO T0–T6:** consultar [genealogia por requisito](docs/continuity/prontuario-t0-t6/LINEAGE.md) e [fonte por SHA](docs/continuity/prontuario-t0-t6/lineage.json) antes de considerar qualquer ideia inédita, revogada ou implementada. Conferir evolução da mesma ideia entre especificações, novas decisões e código/testes do HEAD. A matriz distingue fontes ainda não examinadas integralmente e não deve ser rotulada de completa enquanto mantiver lacunas.
 
-## RELEASE VIGENTE — PRIMEIRA ENTREGA T0–T3 (20/11/2026)
+## Frente vigente — Release 2 (T4)
 
-**Mudança de estratégia autorizada pelo proprietário:** concluir e publicar T0–T3 independentemente de T4/T5. **Antes de executar tarefas desta frente, leia [o plano único de Release 1](docs/releases/2026-11-20-prontuario-t0-t3-release-1.md)**, o contrato funcional e o handoff por SHA. A candidata de release é [PR #535](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/535), branch `release/prontuario-t0-t3-20261120`, derivada de #534@054d3bc4; PR #532 é somente revisão já absorvida. A documentação T0–T6 abaixo permanece válida como contrato, mas NÃO impõe esperar T4/T5 nem uma única publicação final. Um escritor por branch. A ativação de produção ainda depende de aceitação visual, testes, migração compatível e autorização separada. Não declarar publicada por haver código, flag ou CI.
-
+A primeira entrega T0–T3 está tecnicamente concluída e publicada. O [checkpoint](docs/continuity/prontuario-t0-t6/CHECKPOINT.md) registra as evidências do GitHub, da Vercel e do Supabase institucional. A [Release 1](docs/releases/2026-11-20-prontuario-t0-t3-release-1.md) permanece como referência histórica. Retomar T4 no [PR #538](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/538) conforme o [plano aprovado](docs/superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md#t4--bonificação-corrigível-e-limpeza-do-contexto-errado). T6 acompanha as provas da nova entrega. Um escritor por branch.
 
 ## Arquivo histórico — leitura da frente anterior ao fatiamento em releases (14–20/11, superada pela rota de continuidade acima)
 

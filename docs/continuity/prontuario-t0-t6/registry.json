@@ -1,21 +1,18 @@
 {
   "schemaVersion": 1,
   "workstream": "RADARPDDE/PRONTUARIO-T0-T6",
-  "date": "2026-11-20",
+  "date": "2026-11-21",
   "authorityNote": "Contratos aprovados e ADRs prevalecem; registro documenta proveniência, revisão e estado, não modifica regra por si.",
   "active": {
-    "release": "R1",
+    "release": "R2",
     "stages": [
-      "T0",
-      "T1",
-      "T2",
-      "T3"
+      "T4"
     ],
-    "pr": 535,
-    "branch": "release/prontuario-t0-t3-20261120",
+    "pr": 538,
+    "branch": "release/prontuario-t4-20261121",
     "checkpointPath": "docs/continuity/prontuario-t0-t6/CHECKPOINT.md",
     "decisionsPath": "docs/continuity/prontuario-t0-t6/registry.json",
-    "status": "candidata-sem-deploy"
+    "status": "em-desenvolvimento"
   },
   "decisions": [
     {
@@ -572,5 +569,20 @@
       "rationale": "Complementa 128fa3c7 sem sobreposição: compacta os 12 meses em linha única a 1280px e garante Notas Fiscais acima da dobra em 1440×900, corrige truncamento de Despesa a identificar e color-scheme/forced-colors, expõe operationalCorrectionRelease no manifesto Vercel com simetria fail-closed em config.js, adiciona jornada G3 de convivência de cliente sem flag + rejeição de prévia obsoleta (T0T6-I018-02), rebaixa blocos históricos nos roteadores e entrega runbook operacional Gate G4.",
       "integratedRef": ""
     }
-  ]
+  ],
+  "previousRelease": {
+    "release": "R1",
+    "stages": [
+      "T0",
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "status": "tecnicamente-concluida-e-publicada",
+    "pr": 537,
+    "mergeSha": "9d0f50b0f42b44017591bce472581717c8a09bc0",
+    "migrationVersion": "20261121000100",
+    "vercelDeployment": "dpl_9ZWdbvmkc2YeBUdpamLkU3rU37NN",
+    "checkpointPath": "docs/continuity/prontuario-t0-t6/CHECKPOINT.md"
+  }
 }

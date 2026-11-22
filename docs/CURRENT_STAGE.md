@@ -2,19 +2,18 @@
 
 # RADAR PDDE — estado atual e continuidade verificável
 
-**Ponto único de continuidade entre chats:** [Protocolo e registro de decisões/contribuições](continuity/prontuario-t0-t6/README.md) e [CHECKPOINT vigente](continuity/prontuario-t0-t6/CHECKPOINT.md), ambos versionados no PR #535. Consultar ID de decisão e contribuição antes de repetir análise ou criar nova hipótese. A branch da release não inclui lançamentos reais de prestação de contas do PDDE. O HEAD, checks e ambientes registrados são fotografias por SHA, a revalidar ao vivo.
+**Ponto único de continuidade entre chats:** [Protocolo e registro de decisões/contribuições](continuity/prontuario-t0-t6/README.md) e [CHECKPOINT vigente](continuity/prontuario-t0-t6/CHECKPOINT.md), mantidos na branch principal. Consultar ID de decisão e contribuição antes de repetir análise ou criar nova hipótese. A branch da release não inclui lançamentos reais de prestação de contas do PDDE. O HEAD, checks e ambientes registrados são fotografias por SHA, a revalidar ao vivo.
 
 
 **Governança confirmada em 20/11:** o ChatGPT é executor e integrador principal da Release 1; Antigravity e outros agentes contribuem de forma paralela em branches próprias, com análises, código, capturas e testes para triagem e aproveitamento seletivo. Não é fragmentação do desenvolvimento. São frentes independentes: (1) upgrades de dependências/tooling/CI; (2) auditoria de documentos PDDE recebidos no Drive e registros reais de prestação de contas no RADAR e Supabase institucional. Esta release não autoriza interromper tais rotinas nem escrever no banco institucional. Ver [governança completa no plano da Release 1](releases/2026-11-20-prontuario-t0-t3-release-1.md#modelo-de-colaboração-e-fronteiras-de-escopo).
 
 **Genealogia de decisões e requisitos desde 13/11:** [atlas de continuidade T0–T6](continuity/prontuario-t0-t6/LINEAGE.md) e [fonte estruturada](continuity/prontuario-t0-t6/lineage.json). Não basta reler plano original nem tratar 22 contribuições catalogadas como conhecimento exaustivo; seguir requisitos com origem por blob SHA e pendências históricas explícitas. O atlas não autoriza escrever no Supabase institucional.
 
-## ESTADO EXECUTIVO VIGENTE — RELEASE 1 T0–T3 (20/11/2026)
+## Etapa vigente em 21/11/2026 — Release 2 (T4)
 
-**Rota única de execução:** [Plano consolidado e gates da Release 1](releases/2026-11-20-prontuario-t0-t3-release-1.md), [PR #535](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/535) (Draft), branch `release/prontuario-t0-t3-20261120`, derivada de #534@054d3bc4. O PR #534 continua fonte imutável de comparação; #532 já está reconciliado; `fix/prontuario-integrado-validado-20261115@20409c12` é o destino de integração, ainda não atualizado. **Foco exclusivo T0–T3 até publicação e estabilização**; T4 e T5 terão releases independentes, T6 é gate transversal. As seções abaixo documentam o plano anterior de entrega conjunta e provas históricas, não a fila corrente. Os dois testes RED de ativação independente falharam no #535@9fae7182 em CI por ausência do opt-in — correção candidata implementada posteriormente; validar GREEN no HEAD final. Main, Vercel e Supabase institucional não foram alterados por esta frente.
+**T0–T3 tecnicamente concluídos e publicados.** O [checkpoint](continuity/prontuario-t0-t6/CHECKPOINT.md) reúne o merge `9d0f50b0`, as 20 verificações aprovadas, o deploy de produção no mesmo commit e a migration 64 instalada. A homologação operacional com usuários reais tem acompanhamento próprio.
 
-
----
+**Execução de T4.** [PR #538](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/538), branch `release/prontuario-t4-20261121`. O primeiro caso cobre correção de bonificação consolidada e preservação de notas e programas vizinhos. Seguir o [plano aprovado](superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md#t4--bonificação-corrigível-e-limpeza-do-contexto-errado).
 
 ## Arquivo histórico — fotografia anterior ao PR #535 (16–20/11, superada pelo CHECKPOINT acima)
 
