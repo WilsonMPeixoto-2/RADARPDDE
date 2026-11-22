@@ -780,3 +780,8 @@ body.dark-theme .is-fiscal-bonus .fiscal-bonus-transition strong {
     background: #47375f;
     color: #f3e9ff;
 }
+
+.is-fiscal-bonus .radar-operational-correction-actions button[hidden],
+.is-fiscal-bonus .radar-operational-correction-feedback:empty {
+    display: none;
+}

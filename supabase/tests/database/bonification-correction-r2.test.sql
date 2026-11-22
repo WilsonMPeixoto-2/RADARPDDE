@@ -64,10 +64,10 @@ select ok((select not (bonification ? 'notaFiscal') and bonus_result is null
     'limpar a marca conserva o aviso de consolidação pendente');
 
 -- Um cliente antigo pode substituir o payload inteiro em outra edição.
-select public.save_verification_with_log(to_jsonb(v) || '{"payload":{}}'::jsonb,v.row_version,
+select public.save_verification_with_log(to_jsonb(v) || '{"payload":{},"bonus_result":"em-apuracao"}'::jsonb,v.row_version,
     '{"id":"R2-LOG-EDICAO","action":"Edição"}') from public.verifications v where id='R2-V-R2-A';
-select ok((select payload @> '{"bonificacaoPendenteConsolidacao":true}' from public.verifications where id='R2-V-R2-A'),
-    'outra gravação canônica preserva o aviso da bonificação');
+select ok((select bonus_result is null and payload @> '{"bonificacaoPendenteConsolidacao":true}' from public.verifications where id='R2-V-R2-A'),
+    'gravação provisória de cliente antigo preserva o aviso e deixa o resultado reaberto');
 -- Exercita a persistência do resultado já calculado pelo serviço de consolidação.
 select public.save_verification_with_log(to_jsonb(v) || '{"bonification":{"notaFiscal":"Sim","extCC":"Sim","extINV":"Sim","consAssessoria":"Sim","encampInventario":"Sim","boletoInternet":"Sim","declBBAgil":"Sim"},"bonus_result":"apta"}'::jsonb,
     v.row_version,'{"id":"R2-LOG-CONSOLIDACAO","action":"Bonificação consolidada"}') from public.verifications v where id='R2-V-R2-A';

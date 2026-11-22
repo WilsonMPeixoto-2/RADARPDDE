@@ -5188,6 +5188,18 @@ function verificationDocumentIconSvg(documentKey) {
         || '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h10l4 4V20.5H5z"/><path d="M15 3.5v4h4"/><path d="M8.5 12h7M8.5 15.5h5"/></svg>';
 }
 
+function getPendingBonusReview(verification, programId) {
+    if (verification?.bonificacaoPendenteConsolidacao !== true || verification.resultadoBonif) return null;
+    const { canConsolidate, missingFields } = window.RadarFluxoOperacional.evaluateMonthlyEvaluation({
+        bonification: verification.bonificacao, analysis: verification.analise, programId
+    });
+    const labels = window.RadarOperationalProjection.DOCUMENT_LABELS;
+    const guidance = canConsolidate
+        ? 'A marca foi corrigida. O novo resultado depende da consolidação.'
+        : 'Preencha para consolidar: ' + missingFields.map(key => labels[key] || key).join(', ') + '.';
+    return { canConsolidate, guidance };
+}
+
 function buildVerificationSnapshot(verification, programId = '') {
     const emptyVerification = window.RadarFluxoOperacional.createEmptyVerification(programId);
 
@@ -10377,12 +10389,7 @@ function renderProntuarioVerificacoes(esc) {
                 );
                 const bonusStatus = getProgramBonificationStatus(esc.id, c.key, progId);
                 const bonusMeta = getProgramBonificationMeta(bonusStatus);
-                const pendingBonus = !v.resultadoBonif && v.bonificacaoPendenteConsolidacao === true;
-                const missingBonusItems = pendingBonus
-                    ? window.RadarFluxoOperacional.evaluateMonthlyEvaluation({
-                        bonification: v.bonificacao, analysis: v.analise, programId: progId
-                    }).missingFields.map(key => docItems.find(item => item.key === key)?.name || key)
-                    : [];
+                const bonusReview = getPendingBonusReview(v, progId);
                 const technicalStatus = getProgramTechnicalStatus(esc.id, c.key, progId);
                 const technicalMeta = getProgramTechnicalMeta(technicalStatus);
                 const programStatusSummary = `
@@ -10418,18 +10425,16 @@ function renderProntuarioVerificacoes(esc) {
                                         ${v.resultadoBonif ? `
                                             <button class="btn program-consolidate-button is-disabled" disabled>Consolidada</button>
                                         ` : `
-                                            <button class="btn program-consolidate-button" ${missingBonusItems.length ? 'disabled' : ''}
-                                                onclick="calcularEFecharBonificacao('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">${pendingBonus ? 'Consolidar alterações' : 'Consolidar'}</button>
+                                            <button class="btn program-consolidate-button" ${bonusReview && !bonusReview.canConsolidate ? 'disabled' : ''}
+                                                onclick="calcularEFecharBonificacao('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">${bonusReview ? 'Consolidar alterações' : 'Consolidar'}</button>
                                         `}
                                     </div>
                                 ` : ''}
                             </div>
-                            ${pendingBonus ? `
+                            ${bonusReview ? `
                                 <div class="program-bonus-pending" role="status">
                                     <strong>Alterações pendentes de consolidação</strong>
-                                    <span>${missingBonusItems.length
-                                        ? 'Preencha para consolidar: ' + escapeHtml(missingBonusItems.join(', ')) + '.'
-                                        : 'A marca foi corrigida. O novo resultado depende da consolidação.'}</span>
+                                    <span>${escapeHtml(bonusReview.guidance)}</span>
                                 </div>
                             ` : ''}
                         </td>
@@ -10525,7 +10530,7 @@ function renderProntuarioVerificacoes(esc) {
                         const canAddUnidentifiedExpense = canMutateInvoice;
 
                         const editableFiscalBonus = canMutateInvoice
-                            && Boolean(v.resultadoBonif || pendingBonus || bonifValue || notes.length)
+                            && Boolean(v.resultadoBonif || bonusReview || bonifValue || notes.length)
                             && window.RadarOperationalCorrectionDialog?.canCorrectFiscalBonus?.(window);
                         const fiscalBonificationHTML = editableFiscalBonus
                             ? `<div class="fiscal-bonus-control">

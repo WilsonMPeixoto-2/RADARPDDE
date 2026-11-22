@@ -418,11 +418,14 @@
             return true;
         }
 
-        button.disabled = false;
-        button.textContent = 'Consolidar';
+        const review = root.getPendingBonusReview?.(verification, splitContext(root, compKey).programId);
+        const guidance = contextCell.querySelector?.('.program-bonus-pending span');
+        if (review && guidance && guidance.textContent !== review.guidance) guidance.textContent = review.guidance;
+        button.disabled = Boolean(review && !review.canConsolidate);
+        button.textContent = review ? 'Consolidar alterações' : 'Consolidar';
         button.removeAttribute('onclick');
         button.onclick = () => root.calcularEFecharBonificacao?.(schoolId, compKey);
-        button.dataset.radarConsolidationState = 'open';
+        button.dataset.radarConsolidationState = review ? 'pending' : 'open';
         return true;
     }
 

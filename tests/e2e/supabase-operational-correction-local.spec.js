@@ -1090,6 +1090,14 @@ test('T2 mantém o resumo antigo na nota única e permite a primeira análise de
 
 test('T4 · corrigir bonificação fiscal, preservar notas e consolidar o programa', async ({ page, browser }, testInfo) => {
     const school = 'ESC-T4-BONUS';
+    if (testInfo.retry) {
+        execFileSync('psql', ['postgresql://postgres:postgres@127.0.0.1:54322/postgres',
+            '-X', '-1', '-v', 'ON_ERROR_STOP=1', '-c', `
+                update public.verifications
+                   set bonification = jsonb_set(bonification, '{notaFiscal}', '"Sim"'), bonus_result = 'apta'
+                 where id = 'ESC-T4-BONUS::2026-05::BASIC';
+            `]);
+    }
     await page.setViewportSize({ width: 1440, height: 900 });
     await loginAs(page, 'controller');
     await openSchool(page, 'controller', school);
@@ -1116,7 +1124,9 @@ test('T4 · corrigir bonificação fiscal, preservar notas e consolidar o progra
     await expect(fiscal.locator('.fiscal-bonus-control strong')).toHaveText('Não se aplica');
     await expect(fiscal.locator('.invoice-document-row')).toHaveCount(2);
     await expect(neighbor.getByRole('button', { name: 'Consolidada' })).toBeDisabled();
-    await header.scrollIntoViewIfNeeded();
+    await testInfo.attach('t4-notas-preservadas', { body: await fiscal.screenshot(), contentType: 'image/png' });
+    await header.evaluate(row => row.scrollIntoView({ block: 'start' }));
+    await testInfo.attach('t4-prontuario', { body: await page.screenshot(), contentType: 'image/png' });
     await testInfo.attach('t4-programa-pendente', { body: await header.screenshot(), contentType: 'image/png' });
 
     const session = await browser.newContext();
@@ -1139,6 +1149,7 @@ test('T4 · corrigir bonificação fiscal, preservar notas e consolidar o progra
     const consolidate = header.getByRole('button', { name: 'Consolidar alterações' });
     await expect(header).toContainText('Preencha para consolidar: Notas Fiscais');
     await expect(consolidate).toBeDisabled();
+    await testInfo.attach('t4-marca-limpa', { body: await header.screenshot(), contentType: 'image/png' });
     await edit.click();
     await choice.selectOption('Sim');
     await confirm.click();

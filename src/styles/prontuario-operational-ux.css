@@ -1533,3 +1533,9 @@ body.dark-theme .program-bonus-pending {
 body.dark-theme .fiscal-bonus-edit {
     color: #dcc9ff;
 }
+
+#prontuario-verif-rows [data-program-header]:has(.program-bonus-pending) .program-consolidate-button:disabled {
+    color: var(--text-muted);
+    background: var(--bg-sidebar);
+    border: 1px solid var(--border-color);
+}

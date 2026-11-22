@@ -408,6 +408,12 @@
                 } else {
                     root.renderProntuario?.(target.schoolId);
                 }
+                if (bonus && previousFocus?.dataset) {
+                    const control = Array.from(doc.querySelectorAll('.fiscal-bonus-edit')).find(button =>
+                        button.dataset.schoolId === target.schoolId
+                        && button.dataset.compKey === previousFocus.dataset.compKey);
+                    control?.focus({ preventScroll: true });
+                }
                 root.updateAlertsBell?.();
                 root.RadarSharedInteractions?.notify?.({
                     type: 'success',

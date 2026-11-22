@@ -91,9 +91,11 @@ returns trigger language plpgsql
 set search_path = pg_catalog
 as $$
 begin
-    if new.bonus_result is not null then
+    if new.bonus_result in ('apta', 'inapta') then
         new.payload := new.payload - 'bonificacaoPendenteConsolidacao';
     else
+        -- Estados provisórios enviados por clientes antigos não fecham a correção.
+        new.bonus_result := null;
         new.payload := new.payload || '{"bonificacaoPendenteConsolidacao":true}'::jsonb;
     end if;
     return new;
