@@ -665,6 +665,23 @@ body.dark-theme .evaluation-retification-check {
     font-size: 0.84rem;
 }
 
+/* Explicação contextual: alcance da entrega e etapa posterior de consolidação. */
+.is-fiscal-bonus .radar-operational-correction-header .fiscal-bonus-explanation {
+    margin-top: 0.6rem;
+    padding: 0.65rem 0.85rem;
+    border-inline-start: 3px solid var(--primary-color, #6335b5);
+    border-radius: 0.4rem;
+    background: color-mix(in srgb, var(--primary-color, #6335b5) 8%, transparent);
+    color: var(--text-main, #252133);
+    font-size: 0.83rem;
+    line-height: 1.5;
+}
+
+body.dark-theme .is-fiscal-bonus .radar-operational-correction-header .fiscal-bonus-explanation {
+    background: color-mix(in srgb, #c4b5fd 13%, transparent);
+    color: var(--text-main, #f3f0f9);
+}
+
 .radar-operational-correction-body.is-split {
     display: grid;
     grid-template-columns: minmax(0, 1.05fr) minmax(240px, 0.95fr);
