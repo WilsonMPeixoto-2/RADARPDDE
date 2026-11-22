@@ -31,11 +31,11 @@
     --border-focus: rgba(124, 58, 237, 0.5);
     
     /* Cores de Status */
-    --success: #10b981;
+    --success: #047857;
     --success-bg: rgba(16, 185, 129, 0.08);
-    --warning: #d97706;
+    --warning: #92400e;
     --warning-bg: rgba(217, 119, 6, 0.08);
-    --danger: #ef4444;
+    --danger: #b91c1c;
     --danger-bg: rgba(239, 68, 68, 0.08);
     --info: #2563eb;
     --info-bg: rgba(37, 99, 235, 0.08);
@@ -86,7 +86,7 @@ body.dark-theme {
     --border-focus: rgba(157, 125, 252, 0.6);
     
     /* Cores de Status */
-    --success: #10b981;
+    --success: #047857;
     --success-bg: rgba(16, 185, 129, 0.15);
     --warning: #f59e0b;
     --warning-bg: rgba(245, 158, 11, 0.15);
@@ -226,6 +226,13 @@ aside.sidebar {
     cursor: pointer;
     transition: var(--transition-fast);
     border: 1px solid transparent;
+}
+button.nav-item {
+   width: 100%;
+   border: 0;
+   background: transparent;
+   text-align: left;
+   font: inherit;
 }
 
 .nav-item svg {
