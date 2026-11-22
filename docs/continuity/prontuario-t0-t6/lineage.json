@@ -334,7 +334,8 @@
         "S003"
       ],
       "decisionIds": [
-        "T0T6-D001"
+        "T0T6-D001",
+        "T0T6-D021"
       ],
       "evidence": "Geometria em 1440x900 exige aceite.",
       "codePaths": [
@@ -846,7 +847,8 @@
       ],
       "decisionIds": [
         "T0T6-D014",
-        "T0T6-D011"
+        "T0T6-D011",
+        "T0T6-D021"
       ],
       "evidence": "Alterações pendentes de consolidação; Consolidar alterações.",
       "codePaths": [],
@@ -988,7 +990,8 @@
         "T0T6-D002",
         "T0T6-D007",
         "T0T6-D011",
-        "T0T6-D020"
+        "T0T6-D020",
+        "T0T6-D021"
       ],
       "evidence": "Sem desativar triggers globalmente.",
       "codePaths": [],
@@ -1249,7 +1252,8 @@
       ],
       "decisionIds": [
         "T0T6-D016",
-        "T0T6-D020"
+        "T0T6-D020",
+        "T0T6-D021"
       ],
       "evidence": "Consistência não implica censo histórico exaustivo.",
       "codePaths": [
