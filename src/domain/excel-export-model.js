@@ -135,6 +135,13 @@
         };
     }
 
+    // Durante uma reconsolidação T4, o resultado anterior não é vigente,
+    // mesmo que uma projeção incremental ainda traga a etiqueta antiga.
+    function hasCurrentConsolidation(verification) {
+        return Boolean(verification?.resultadoBonif)
+            && verification.bonificacaoPendenteConsolidacao !== true;
+    }
+
     // Espelho lógico da rotina atual exportDataExcel(). Mantido separado de
     // buildBaseRows para que mudanças futuras possam ser verificadas por equivalência.
     function buildLegacyLogicalRows(input) {
@@ -146,7 +153,7 @@
                 (escola.programasIds || []).forEach(programaId => {
                     const compoundKey = `${competencia.key}_${programaId}`;
                     const verification = verificacoes[escola.id] && verificacoes[escola.id][compoundKey];
-                    if (!verification || !verification.resultadoBonif) return;
+                    if (!hasCurrentConsolidation(verification)) return;
 
                     const bonificacao = verification.bonificacao || {};
                     rows.push([
@@ -179,7 +186,7 @@
                 (escola.programasIds || []).forEach(programaId => {
                     const compoundKey = `${competencia.key}_${programaId}`;
                     const verification = verificacoes[escola.id] && verificacoes[escola.id][compoundKey];
-                    if (!verification || !verification.resultadoBonif) return;
+                    if (!hasCurrentConsolidation(verification)) return;
 
                     const bonificacao = verification.bonificacao || {};
                     rows.push({
