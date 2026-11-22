@@ -1483,3 +1483,53 @@ body.dark-theme .radar-operational-refresh-notice {
     color: #f9f7ff;
     border-color: #71588e;
 }
+
+/* A marca fiscal pertence ao programa e ao mês exibidos no Prontuário. */
+.fiscal-bonus-control {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--text-main);
+}
+
+.fiscal-bonus-edit {
+    padding: 0.32rem 0.65rem;
+    border: 1px solid color-mix(in srgb, currentColor 34%, transparent);
+    border-radius: 0.5rem;
+    background: transparent;
+    color: var(--primary-color, #59349a);
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.fiscal-bonus-edit:hover,
+.fiscal-bonus-edit:focus-visible {
+    background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.program-bonus-pending {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.85rem;
+    margin-top: 0.65rem;
+    padding: 0.6rem 0.85rem;
+    border-inline-start: 3px solid #bf812c;
+    border-radius: 0.35rem;
+    background: #fff5e2;
+    color: #684317;
+    font-size: 0.82rem;
+    line-height: 1.5;
+}
+
+body.dark-theme .program-bonus-pending {
+    background: #372d23;
+    color: #ffdcaa;
+}
+
+body.dark-theme .fiscal-bonus-edit {
+    color: #dcc9ff;
+}

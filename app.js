@@ -10377,6 +10377,12 @@ function renderProntuarioVerificacoes(esc) {
                 );
                 const bonusStatus = getProgramBonificationStatus(esc.id, c.key, progId);
                 const bonusMeta = getProgramBonificationMeta(bonusStatus);
+                const pendingBonus = !v.resultadoBonif && v.bonificacaoPendenteConsolidacao === true;
+                const missingBonusItems = pendingBonus
+                    ? window.RadarFluxoOperacional.evaluateMonthlyEvaluation({
+                        bonification: v.bonificacao, analysis: v.analise, programId: progId
+                    }).missingFields.map(key => docItems.find(item => item.key === key)?.name || key)
+                    : [];
                 const technicalStatus = getProgramTechnicalStatus(esc.id, c.key, progId);
                 const technicalMeta = getProgramTechnicalMeta(technicalStatus);
                 const programStatusSummary = `
@@ -10412,11 +10418,20 @@ function renderProntuarioVerificacoes(esc) {
                                         ${v.resultadoBonif ? `
                                             <button class="btn program-consolidate-button is-disabled" disabled>Consolidada</button>
                                         ` : `
-                                            <button class="btn program-consolidate-button" onclick="calcularEFecharBonificacao('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">Consolidar</button>
+                                            <button class="btn program-consolidate-button" ${missingBonusItems.length ? 'disabled' : ''}
+                                                onclick="calcularEFecharBonificacao('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">${pendingBonus ? 'Consolidar alterações' : 'Consolidar'}</button>
                                         `}
                                     </div>
                                 ` : ''}
                             </div>
+                            ${pendingBonus ? `
+                                <div class="program-bonus-pending" role="status">
+                                    <strong>Alterações pendentes de consolidação</strong>
+                                    <span>${missingBonusItems.length
+                                        ? 'Preencha para consolidar: ' + escapeHtml(missingBonusItems.join(', ')) + '.'
+                                        : 'A marca foi corrigida. O novo resultado depende da consolidação.'}</span>
+                                </div>
+                            ` : ''}
                         </td>
                     </tr>
                 `;
@@ -10509,7 +10524,20 @@ function renderProntuarioVerificacoes(esc) {
                             .canRegisterFiscalNote(accessProfile);
                         const canAddUnidentifiedExpense = canMutateInvoice;
 
-                        const fiscalBonificationHTML = accessProfile === 'sme'
+                        const editableFiscalBonus = canMutateInvoice
+                            && Boolean(v.resultadoBonif || pendingBonus || bonifValue || notes.length)
+                            && window.RadarOperationalCorrectionDialog?.canCorrectFiscalBonus?.(window);
+                        const fiscalBonificationHTML = editableFiscalBonus
+                            ? `<div class="fiscal-bonus-control">
+                                <strong>${escapeHtml(bonifValue || 'Sem marca')}</strong>
+                                <button type="button" class="fiscal-bonus-edit"
+                                    data-school-id="${escapeHtml(esc.id)}" data-comp-key="${escapeHtml(compProgKey)}"
+                                    data-school-name="${escapeHtml(esc.denominação)}" data-program-name="${escapeHtml(progName)}"
+                                    data-competence-label="${escapeHtml(c.label)}" onclick="openFiscalBonusCorrection(this)">
+                                    Corrigir marca
+                                </button>
+                            </div>`
+                            : accessProfile === 'sme'
                             ? `
                                 <span class="invoice-document-status ${bonifValue === 'Sim'
                                     ? 'is-correct'
@@ -11661,6 +11689,21 @@ async function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElem
 
 // Correção operacional unificada no ambiente isolado: a prévia do servidor
 // informa todos os dependentes antes de permitir salvar/excluir.
+function openFiscalBonusCorrection(trigger) {
+    const { schoolId, compKey, schoolName, programName, competenceLabel } = trigger.dataset;
+    const { competenciaKey, contextId } = window.RadarCompetencia.splitCompetenciaContext(compKey);
+    if (['inventario', 'sme'].includes(getRadarAccessProfile())) return false;
+    return window.RadarOperationalCorrectionDialog.open(window, {
+        mode: 'correct_bonification',
+        trigger,
+        currentValue: verificacoes[schoolId]?.[compKey]?.bonificacao?.notaFiscal || '',
+        context: {
+            schoolId, schoolName, programName, competenceLabel, competence: competenciaKey,
+            programId: contextId, documentKey: 'notaFiscal', documentLabel: 'Notas Fiscais'
+        }
+    });
+}
+
 function openInvoiceOperationalCorrection(invoiceId, escolaId, documentKey = 'notaFiscal',
     trigger = document.activeElement, suggestedValue = '') {
     const invoice = notasRegistradas.find(note => String(note.id) === String(invoiceId)

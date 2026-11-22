@@ -743,3 +743,40 @@ body.dark-theme .evaluation-retification-check {
         grid-template-columns: 1fr;
     }
 }
+
+.is-fiscal-bonus .fiscal-bonus-transition {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.55rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.97rem;
+}
+
+.is-fiscal-bonus .fiscal-bonus-transition strong {
+    padding: 0.12rem 0.55rem;
+    border-radius: 0.4rem;
+    background: #e9e0fa;
+    color: #512e89;
+}
+
+.is-fiscal-bonus .fiscal-bonus-preserved {
+    margin-top: 0.7rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.fiscal-bonus-note summary {
+    color: var(--text-main);
+    font-size: 0.83rem;
+    cursor: pointer;
+}
+
+.fiscal-bonus-note[open] summary {
+    margin-bottom: 0.5rem;
+}
+
+body.dark-theme .is-fiscal-bonus .fiscal-bonus-transition strong {
+    background: #47375f;
+    color: #f3e9ff;
+}

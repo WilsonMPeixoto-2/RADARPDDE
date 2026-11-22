@@ -41,11 +41,16 @@
             return false;
         }
     }
+    function canCorrectFiscalBonus(root) {
+        return root?.RADAR_PDDE_CONFIG?.features?.operationalCorrectionPilot === true && canUse(root);
+    }
     function open(root, input = {}) {
         const context = input.context || {};
         const mode = input.mode || 'analysis';
         const deleting = mode === 'delete_invoice' || mode === 'delete_pendency';
-        if (!['analysis', 'delete_invoice', 'delete_pendency'].includes(mode)) return false;
+        const bonus = mode === 'correct_bonification';
+        if (bonus && !canCorrectFiscalBonus(root)) return false;
+        if (!bonus && !['analysis', 'delete_invoice', 'delete_pendency'].includes(mode)) return false;
         if (!canUse(root) || !context.schoolId || !context.competence
             || (!deleting && (!context.programId || !context.documentKey))
             || (deleting && !text(mode === 'delete_invoice' ? context.invoiceId : context.pendencyId))) return false;
@@ -69,33 +74,41 @@
         layer.id = 'radar-operational-correction-layer';
         const backdrop = el(doc, 'div', 'radar-operational-correction-backdrop evaluation-retification-backdrop');
         const dialog = el(doc, 'section', 'radar-operational-correction-dialog evaluation-retification-dialog');
+        if (bonus) dialog.classList.add('is-fiscal-bonus');
         dialog.setAttribute('role', 'dialog');
         dialog.setAttribute('aria-modal', 'true');
         dialog.setAttribute('aria-labelledby', 'radar-operational-correction-title');
         const header = el(doc, 'header', 'radar-operational-correction-header');
         const kicker = el(doc, 'span', 'evaluation-retification-kicker',
-            deleting ? 'Exclusão com alcance causal' : 'Correção operacional');
+            bonus ? 'Notas Fiscais' : deleting ? 'Exclusão com alcance causal' : 'Correção operacional');
         const title = el(doc, 'h2', '', deleting
             ? (mode === 'delete_invoice' ? 'Excluir nota fiscal' : 'Excluir pendência')
-            : 'Corrigir análise técnica');
+            : bonus ? 'Corrigir bonificação' : 'Corrigir análise técnica');
         title.id = 'radar-operational-correction-title';
-        const summary = el(doc, 'p', '', text(context.documentLabel || context.documentKey) + ' · ' + context.competence);
+        const summary = el(doc, 'p', '', bonus
+            ? [context.schoolName, context.programName, context.competenceLabel].filter(Boolean).join(' · ')
+            : text(context.documentLabel || context.documentKey) + ' · ' + context.competence);
         header.append(kicker, title, summary);
-        const current = el(doc, 'p', 'radar-operational-correction-current', 'Resultado atual: ' + text(input.currentValue || 'Não analisado'));
-        const label = el(doc, 'label', '', 'Novo resultado');
+        const current = el(doc, 'p', 'radar-operational-correction-current', bonus
+            ? 'Marca atual: ' + text(input.currentValue || 'Sem marca')
+            : 'Resultado atual: ' + text(input.currentValue || 'Não analisado'));
+        const label = el(doc, 'label', '', bonus ? 'Nova marca de bonificação' : 'Novo resultado');
         label.htmlFor = 'radar-operational-correction-select';
         const select = el(doc, 'select', 'form-control');
         select.id = 'radar-operational-correction-select';
-        for (const analysis of ANALYSES) {
-            const option = el(doc, 'option', '', analysis);
-            option.value = analysis;
+        const choices = bonus ? ['', 'Sim', 'Não', 'Não se aplica', 'Limpar marca'] : ANALYSES;
+        for (const choice of choices) {
+            const option = el(doc, 'option', '', choice || 'Escolha uma opção');
+            option.value = choice;
+            if (bonus) option.disabled = !choice || choice === input.currentValue
+                || (choice === 'Limpar marca' && !input.currentValue);
             select.appendChild(option);
         }
         // Preserva a sugestão inicial de "Correto" quando ainda não há análise;
         // "Não analisado" permanece disponível para limpeza deliberada.
         const currentChoice = text(input.currentValue);
         const suggestedValue = text(input.suggestedValue);
-        select.value = ANALYSES.includes(suggestedValue)
+        select.value = bonus ? '' : ANALYSES.includes(suggestedValue)
             ? suggestedValue
             : currentChoice !== 'Não analisado' && ANALYSES.includes(currentChoice)
                 ? currentChoice : 'Correto';
@@ -122,7 +135,8 @@
         clearBtn.disabled = currentChoice === 'Não analisado' || !currentChoice;
         save.disabled = true;
         actions.append(cancel);
-        if (!deleting) actions.append(clearBtn);
+        if (!deleting && !bonus) actions.append(clearBtn);
+        if (bonus) review.hidden = true;
         actions.append(review, save);
         const bodyGrid = el(doc, 'div', deleting
             ? 'radar-operational-correction-body is-single'
@@ -131,7 +145,15 @@
         effectsCol.append(planTitle, effects);
         if (!deleting) {
             const inputsCol = el(doc, 'div', 'radar-operational-correction-inputs-col');
-            inputsCol.append(label, select, current, noteLabel, note);
+            if (bonus) {
+                inputsCol.append(current, label, select);
+                const optionalNote = el(doc, 'details', 'fiscal-bonus-note');
+                const toggle = el(doc, 'summary', '', 'Adicionar observação');
+                optionalNote.append(toggle, noteLabel, note);
+                inputsCol.appendChild(optionalNote);
+            } else {
+                inputsCol.append(label, select, current, noteLabel, note);
+            }
             bodyGrid.append(inputsCol, effectsCol);
         } else {
             bodyGrid.append(effectsCol);
@@ -187,6 +209,23 @@
             if (!changes.length) {
                 effects.appendChild(el(doc, 'p', '', deleting
                     ? 'Nenhuma outra informação será alterada.' : 'Nenhuma outra análise será alterada.'));
+            }
+            if (bonus) {
+                for (const change of changes) {
+                    if (change.field === 'bonification.notaFiscal') {
+                        const pair = el(doc, 'div', 'fiscal-bonus-transition');
+                        pair.append(el(doc, 'span', '', change.before), el(doc, 'span', 'fiscal-bonus-arrow', '→'),
+                            el(doc, 'strong', '', change.after));
+                        effects.appendChild(pair);
+                    } else if (change.field === 'bonus_result') {
+                        effects.appendChild(el(doc, 'p', '', 'O resultado ' + text(change.before).toLocaleUpperCase('pt-BR')
+                            + ' deste programa será reaberto para consolidação.'));
+                    }
+                }
+                effects.appendChild(el(doc, 'p', 'fiscal-bonus-preserved',
+                    'As notas fiscais, as análises individuais e as pendências serão preservadas.'));
+                for (const item of [...warnings, ...blockers]) effects.appendChild(el(doc, 'p', '', text(item.message || item.code)));
+                return;
             }
             const transitions = new Map();
             for (const change of changes) {
@@ -315,16 +354,22 @@
             effects.textContent = 'Calculando o que vai mudar…';
             status('');
             try {
-                const action = deleting ? mode : select.value === 'Não analisado'
+                if (bonus && !select.value) {
+                    effects.textContent = 'Escolha uma marca para conferir o efeito neste programa.';
+                    return;
+                }
+                const action = bonus || deleting ? mode : select.value === 'Não analisado'
                     ? 'clear_analysis' : 'correct_analysis';
                 const result = await client.preview({
                     action,
                     target,
+                    ...(bonus ? { changes: { bonificacao: select.value === 'Limpar marca' ? null : select.value } } : {}),
                     ...(action === 'correct_analysis' ? { changes: { analysis: select.value } } : {}),
                     ...(selectedPendencyIds.size > 0 && !deleting
                         ? { selectedPendencyIds: [...selectedPendencyIds] } : {})
                 });
                 if (generation !== serial || !layer.isConnected) return;
+                if (bonus) review.hidden = true;
                 preview = result;
                 renderPlan(result.view);
                 if (result.view.canApply) {
@@ -339,6 +384,7 @@
                 }
             } catch (error) {
                 if (generation !== serial || !layer.isConnected) return;
+                if (bonus) review.hidden = false;
                 effects.textContent = '';
                 status(error?.message || 'Não foi possível obter a prévia.', true);
             }
@@ -365,7 +411,7 @@
                 root.updateAlertsBell?.();
                 root.RadarSharedInteractions?.notify?.({
                     type: 'success',
-                    message: deleting ? 'Exclusão confirmada. Os registros relacionados foram atualizados.'
+                    message: bonus ? 'Marca de bonificação atualizada.' : deleting ? 'Exclusão confirmada. Os registros relacionados foram atualizados.'
                         : 'Correção confirmada e informações atualizadas.'
                 });
             } catch (_error) {
@@ -410,6 +456,7 @@
                     submittedNote = null;
                     uncertain = false;
                     doc.getElementById('radar-operational-correction-reload')?.remove();
+                    if (bonus) review.hidden = false;
                     status('Os dados mudaram. Revise a prévia antes de confirmar.', true);
                 } else {
                     uncertain = true;
@@ -465,5 +512,5 @@
         void loadPreview();
         return true;
     }
-    return Object.freeze({ ANALYSES, canUse, open });
+    return Object.freeze({ ANALYSES, canUse, canCorrectFiscalBonus, open });
 }));

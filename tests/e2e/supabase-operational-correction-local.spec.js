@@ -1087,3 +1087,67 @@ test('T2 mantém o resumo antigo na nota única e permite a primeira análise de
     await expect(first.locator('.invoice-document-status')).toHaveText('Correto (Atrasado)');
     await expect(second.getByRole('combobox')).toHaveValue('Não analisado');
 });
+
+test('T4 · corrigir bonificação fiscal, preservar notas e consolidar o programa', async ({ page, browser }, testInfo) => {
+    const school = 'ESC-T4-BONUS';
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await loginAs(page, 'controller');
+    await openSchool(page, 'controller', school);
+    const header = page.locator('[data-program-header="BASIC"]');
+    const neighbor = page.locator('[data-program-header="CONECTADA"]');
+    const fiscal = page.locator('tr[data-program-id="BASIC"][data-document-key="notaFiscal"] [data-invoice-document-panel]');
+    const edit = fiscal.getByRole('button', { name: 'Corrigir marca' });
+    const dialog = page.getByRole('dialog', { name: 'Corrigir bonificação' });
+    const confirm = dialog.getByRole('button', { name: 'Confirmar correção' });
+    const choice = dialog.getByLabel('Nova marca de bonificação');
+
+    await edit.click();
+    await expect(dialog).toContainText('Escola Horizonte');
+    await expect(confirm).toBeDisabled();
+    await choice.selectOption('Não se aplica');
+    await expect(dialog.getByText('As notas fiscais, as análises individuais e as pendências serão preservadas.')).toBeVisible();
+    await expect(confirm).toBeEnabled();
+    await testInfo.attach('t4-previa-clara', { body: await dialog.screenshot(), contentType: 'image/png' });
+    await page.evaluate(() => document.body.classList.add('dark-theme'));
+    await testInfo.attach('t4-previa-escura', { body: await dialog.screenshot(), contentType: 'image/png' });
+    await page.evaluate(() => document.body.classList.remove('dark-theme'));
+    await confirm.click();
+    await expect(header.getByText('Alterações pendentes de consolidação')).toBeVisible();
+    await expect(fiscal.locator('.fiscal-bonus-control strong')).toHaveText('Não se aplica');
+    await expect(fiscal.locator('.invoice-document-row')).toHaveCount(2);
+    await expect(neighbor.getByRole('button', { name: 'Consolidada' })).toBeDisabled();
+    await header.scrollIntoViewIfNeeded();
+    await testInfo.attach('t4-programa-pendente', { body: await header.screenshot(), contentType: 'image/png' });
+
+    const session = await browser.newContext();
+    try {
+        const other = await session.newPage();
+        await loginAs(other, 'federal_assistant');
+        await openSchool(other, 'federal_assistant', school);
+        await expect(other.locator('[data-program-header="BASIC"]')).toContainText('Alterações pendentes de consolidação');
+        await expect(other.locator('.invoice-document-row[data-invoice-id="T4-NF1"]')).toBeVisible();
+        await expect(other.locator('.invoice-document-row[data-invoice-id="T4-NF2"]')).toBeVisible();
+    } finally {
+        await session.close();
+    }
+
+    await page.reload();
+    await waitForApp(page, 'controller');
+    await edit.click();
+    await choice.selectOption('Limpar marca');
+    await confirm.click();
+    const consolidate = header.getByRole('button', { name: 'Consolidar alterações' });
+    await expect(header).toContainText('Preencha para consolidar: Notas Fiscais');
+    await expect(consolidate).toBeDisabled();
+    await edit.click();
+    await choice.selectOption('Sim');
+    await confirm.click();
+    await expect(consolidate).toBeEnabled();
+    await consolidate.click();
+    await expect(header.getByRole('button', { name: 'Consolidada', exact: true })).toBeDisabled();
+    await page.reload();
+    await waitForApp(page, 'controller');
+    await expect(header.getByRole('button', { name: 'Consolidada', exact: true })).toBeDisabled();
+    await expect(header).not.toContainText('Alterações pendentes de consolidação');
+    await expect(fiscal.locator('.invoice-document-row')).toHaveCount(2);
+});
