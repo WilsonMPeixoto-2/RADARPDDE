@@ -154,6 +154,42 @@ test('habilita correção T2/T3 apenas contra Supabase local em modo de teste', 
     }
 });
 
+test('T4 exige opt-in de produção independente do release T0–T3', async () => {
+    const { buildRuntimeInput } = await loadGenerator();
+    const base = {
+        RADAR_DATA_MODE: 'supabase-production',
+        RADAR_ENVIRONMENT: 'production',
+        RADAR_SUPABASE_REPOSITORY_ENABLED: 'true',
+        RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED: 'true',
+        RADAR_SUPABASE_URL: 'https://example.supabase.co',
+        RADAR_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_example'
+    };
+    const existingRelease = buildRuntimeInput({
+        ...base, RADAR_OPERATIONAL_CORRECTION_RELEASE_ENABLED: 'true'
+    });
+    assert.equal(existingRelease.features.operationalCorrectionRelease, true);
+    assert.notEqual(existingRelease.features.bonificationCorrectionRelease, true);
+
+    assert.throws(() => buildRuntimeInput({
+        ...base, RADAR_BONIFICATION_CORRECTION_RELEASE_ENABLED: 'true'
+    }), /T4.*release|T4.*produção/i);
+
+    const authorized = buildRuntimeInput({
+        ...base,
+        RADAR_OPERATIONAL_CORRECTION_RELEASE_ENABLED: 'true',
+        RADAR_BONIFICATION_CORRECTION_RELEASE_ENABLED: 'true'
+    });
+    assert.equal(authorized.features.bonificationCorrectionRelease, true);
+    assert.equal(authorized.features.operationalCorrectionRelease, true);
+
+    assert.throws(() => buildRuntimeInput({
+        ...base,
+        RADAR_OPERATIONAL_CORRECTION_RELEASE_ENABLED: 'true',
+        RADAR_BONIFICATION_CORRECTION_RELEASE_ENABLED: 'true',
+        RADAR_ENVIRONMENT: 'preview'
+    }), /produção|production/i);
+});
+
 test('release T0–T3 permanece OFF por padrão e exige autorização de produção independente', async () => {
     const { buildRuntimeInput } = await loadGenerator();
     const base = {
