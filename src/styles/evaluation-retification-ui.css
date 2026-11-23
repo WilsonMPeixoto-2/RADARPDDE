@@ -718,9 +718,20 @@ body.dark-theme .is-fiscal-bonus .radar-operational-correction-header .fiscal-bo
     color: var(--danger, #b91c1c);
 }
 
-.is-context-deletion .radar-operational-correction-effects {
-    max-block-size: min(48vh, 450px);
+/* A janela destrutiva deve manter a confirmação visível sem exigir
+   rolagem da página ou do modal. Somente o conteúdo da prévia rola. */
+.radar-operational-correction-dialog.is-context-deletion {
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    overflow: hidden;
+}
+.is-context-deletion .radar-operational-correction-body {
+    min-block-size: 0;
     overflow-y: auto;
+    overscroll-behavior: contain;
+}
+.is-context-deletion .radar-operational-correction-effects {
+    max-block-size: none;
+    overflow: visible;
     overflow-wrap: anywhere;
 }
 .is-context-deletion .context-deletion-details {
