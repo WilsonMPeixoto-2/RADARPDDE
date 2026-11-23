@@ -29,6 +29,8 @@ on:
       - 'tests/e2e/supabase-late-auth-actions.spec.js'
       - 'tests/e2e/supabase-inventory-terminal-delete.spec.js'
       - 'tests/e2e/supabase-operational-correction-local.spec.js'
+      - 'tests/e2e/supabase-t4-context-deletion-local.spec.js'
+      - 'tests/fixtures/t4-context-deletion-local.sql'
       - 'tests/fixtures/quality-provisional.sql'
       - 'tests/fixtures/operational-correction-local.sql'
       - 'tests/e2e/exercise-management.spec.js'
@@ -70,6 +72,8 @@ on:
       - 'tests/e2e/supabase-late-auth-actions.spec.js'
       - 'tests/e2e/supabase-inventory-terminal-delete.spec.js'
       - 'tests/e2e/supabase-operational-correction-local.spec.js'
+      - 'tests/e2e/supabase-t4-context-deletion-local.spec.js'
+      - 'tests/fixtures/t4-context-deletion-local.sql'
       - 'tests/fixtures/quality-provisional.sql'
       - 'tests/fixtures/operational-correction-local.sql'
       - 'tests/e2e/exercise-management.spec.js'
@@ -434,8 +438,10 @@ jobs:
           RADAR_SUPABASE_URL="${RADAR_SUPABASE_URL}" \
           RADAR_SUPABASE_PUBLISHABLE_KEY="${RADAR_SUPABASE_PUBLISHABLE_KEY}" \
           npm run generate:runtime-config
-          npx playwright test tests/e2e/supabase-operational-correction-local.spec.js \
-            --project=desktop-chromium --output=test-results-operational-correction
+          npx playwright test \
+            tests/e2e/supabase-operational-correction-local.spec.js \
+            tests/e2e/supabase-t4-context-deletion-local.spec.js \
+            --project=desktop-chromium --workers=1 --output=test-results-operational-correction
 
       - name: Publicar relatório do contrato Supabase local
         if: ${{ !cancelled() }}
