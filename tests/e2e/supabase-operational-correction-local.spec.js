@@ -1106,7 +1106,7 @@ test('T2 mantém o resumo antigo na nota única e permite a primeira análise de
     await dialog.getByRole('button', { name: 'Limpar análise', exact: true }).click();
     await expect(dialog.getByText('Correto → Não analisado')).toBeVisible();
     await expect(dialog.getByRole('button', { name: 'Confirmar correção' })).toBeEnabled();
-    await testInfo.attach('previa-da-unica-nota-antiga', { body: await dialog.screenshot(), contentType: 'image/png' });
+    await testInfo.attach('previa-da-unica-nota-antiga', { body: await dialog.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
     await dialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
 
     await selectCompetence(page, '2026-06');
@@ -1126,6 +1126,9 @@ test('T2 mantém o resumo antigo na nota única e permite a primeira análise de
 });
 
 test('T4 · corrigir bonificação fiscal, preservar notas e consolidar o programa', async ({ page, browser }, testInfo) => {
+    // Jornada integrada: duas sessões autenticadas, exportação e capturas em dois temas.
+    // O timeout padrão de 30 s interrompia a captura escura antes de testar a consolidação.
+    test.setTimeout(90_000);
     const school = 'ESC-T4-BONUS';
     if (testInfo.retry) {
         execFileSync('psql', ['postgresql://postgres:postgres@127.0.0.1:54322/postgres',
@@ -1156,21 +1159,21 @@ test('T4 · corrigir bonificação fiscal, preservar notas e consolidar o progra
     await choice.selectOption('Não se aplica');
     await expect(dialog.getByText('As notas fiscais, as análises individuais e as pendências serão preservadas.')).toBeVisible();
     await expect(confirm).toBeEnabled();
-    await testInfo.attach('t4-previa-clara', { body: await dialog.screenshot(), contentType: 'image/png' });
+    await testInfo.attach('t4-previa-clara', { body: await dialog.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
     await page.evaluate(() => document.body.classList.add('dark-theme'));
-    await testInfo.attach('t4-previa-escura', { body: await dialog.screenshot(), contentType: 'image/png' });
+    await testInfo.attach('t4-previa-escura', { body: await dialog.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
     await page.evaluate(() => document.body.classList.remove('dark-theme'));
     await confirm.click();
     await expect(header.getByText('Alterações pendentes de consolidação')).toBeVisible();
     await expect(fiscal.locator('.fiscal-bonus-control strong')).toHaveText('Não se aplica');
     await expect(fiscal.locator('.invoice-document-row')).toHaveCount(2);
     await expect(neighbor.getByRole('button', { name: 'Consolidada' })).toBeDisabled();
-    await testInfo.attach('t4-notas-preservadas', { body: await fiscal.screenshot(), contentType: 'image/png' });
+    await testInfo.attach('t4-notas-preservadas', { body: await fiscal.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
     // O cabeçalho da unidade é fixo. Centralizar a linha preserva o contexto
     // do programa na captura e aproxima a janela da leitura real do operador.
     await header.evaluate(row => row.scrollIntoView({ block: 'center', behavior: 'instant' }));
     await testInfo.attach('t4-prontuario', { body: await page.screenshot(), contentType: 'image/png' });
-    await testInfo.attach('t4-programa-pendente', { body: await header.screenshot(), contentType: 'image/png' });
+    await testInfo.attach('t4-programa-pendente', { body: await header.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
 
     const session = await browser.newContext();
     try {
@@ -1197,7 +1200,7 @@ test('T4 · corrigir bonificação fiscal, preservar notas e consolidar o progra
     const consolidate = header.getByRole('button', { name: 'Consolidar bonificação', exact: true });
     await expect(header).toContainText('Preencha para consolidar: Notas Fiscais');
     await expect(consolidate).toBeDisabled();
-    await testInfo.attach('t4-marca-limpa', { body: await header.screenshot(), contentType: 'image/png' });
+    await testInfo.attach('t4-marca-limpa', { body: await header.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
     await edit.click();
     await choice.selectOption('Sim');
     await confirm.click();
