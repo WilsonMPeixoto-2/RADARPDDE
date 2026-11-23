@@ -49,30 +49,41 @@
                 && features?.bonificationCorrectionRelease === true)
         );
     }
+    function canDeleteContext(root) {
+        return root?.RADAR_T4_CONTEXT_DELETION_PILOT === true && canUse(root);
+    }
     function open(root, input = {}) {
         const context = input.context || {};
         const mode = input.mode || 'analysis';
-        const deleting = mode === 'delete_invoice' || mode === 'delete_pendency';
+        const contextDeletion = mode === 'delete_context';
+        const deleting = contextDeletion || mode === 'delete_invoice' || mode === 'delete_pendency';
         const bonus = mode === 'correct_bonification';
         if (bonus && !canCorrectFiscalBonus(root)) return false;
-        if (!bonus && !['analysis', 'delete_invoice', 'delete_pendency'].includes(mode)) return false;
+        if (contextDeletion && !canDeleteContext(root)) return false;
+        if (!bonus && !['analysis', 'delete_invoice', 'delete_pendency', 'delete_context'].includes(mode)) return false;
         if (!canUse(root) || !context.schoolId || !context.competence
+            || (contextDeletion && !context.programId)
             || (!deleting && (!context.programId || !context.documentKey))
-            || (deleting && !text(mode === 'delete_invoice' ? context.invoiceId : context.pendencyId))) return false;
+            || (deleting && !contextDeletion && !text(mode === 'delete_invoice' ? context.invoiceId : context.pendencyId))) return false;
         const doc = root.document;
         if (doc.getElementById('radar-operational-correction-layer')) return true;
         const client = root.RadarOperationalCorrectionClient.createOperationalCorrectionClient({
             repository: repositoryOf(root)
         });
-        const target = {
+        const target = contextDeletion ? {
+            kind: 'program_context',
+            schoolId: context.schoolId,
+            competence: context.competence,
+            programId: context.programId
+        } : {
             schoolId: context.schoolId,
             competence: context.competence,
             programId: context.programId,
             documentKey: context.documentKey
         };
-        if (deleting) {
+        if (deleting && !contextDeletion) {
             target.id = text(mode === 'delete_invoice' ? context.invoiceId : context.pendencyId);
-        } else if (context.invoiceId) {
+        } else if (!contextDeletion && context.invoiceId) {
             target.id = text(context.invoiceId);
         }
         const layer = el(doc, 'div', 'radar-operational-correction-layer evaluation-retification-modal-layer');
@@ -85,15 +96,25 @@
         dialog.setAttribute('aria-labelledby', 'radar-operational-correction-title');
         const header = el(doc, 'header', 'radar-operational-correction-header');
         const kicker = el(doc, 'span', 'evaluation-retification-kicker',
-            bonus ? 'Avaliação de Notas Fiscais' : deleting ? (mode === 'delete_invoice' ? 'Exclusão de nota fiscal' : 'Exclusão de pendência') : 'Correção operacional');
-        const title = el(doc, 'h2', '', deleting
+            contextDeletion ? 'Correção de contexto' : bonus ? 'Avaliação de Notas Fiscais'
+                : deleting ? (mode === 'delete_invoice' ? 'Exclusão de nota fiscal' : 'Exclusão de pendência')
+                    : 'Correção operacional');
+        const title = el(doc, 'h2', '', contextDeletion ? 'Excluir lançamentos deste programa neste mês' : deleting
             ? (mode === 'delete_invoice' ? 'Excluir nota fiscal' : 'Excluir pendência')
             : bonus ? 'Corrigir consolidação da bonificação' : 'Corrigir análise técnica');
         title.id = 'radar-operational-correction-title';
-        const summary = el(doc, 'p', '', bonus
-            ? [context.schoolName, context.programName, context.competenceLabel].filter(Boolean).join(' · ')
+        const summary = el(doc, 'p', '', bonus || contextDeletion
+            ? [context.schoolName || context.schoolId, context.programName || context.programId,
+                context.competenceLabel || context.competence].filter(Boolean).join(' · ')
             : text(context.documentLabel || context.documentKey) + ' · ' + context.competence);
         header.append(kicker, title, summary);
+        if (contextDeletion) {
+            const explanation = el(doc, 'p', 'fiscal-bonus-explanation context-deletion-explanation',
+                'O servidor identificará as Notas Fiscais, Pendências e demais registros relacionados ao programa neste mês. '
+                + 'Os outros meses e programas, contatos gerais e registros independentes serão preservados. '
+                + 'Os lançamentos não serão transferidos automaticamente para outro contexto.');
+            header.appendChild(explanation);
+        }
         if (bonus) {
             const explanation = el(doc, 'p', 'fiscal-bonus-explanation',
                 'Nesta etapa, você pode corrigir apenas a avaliação de Notas Fiscais. '
@@ -131,7 +152,7 @@
         note.id = 'radar-operational-correction-note';
         note.maxLength = 2000;
         note.rows = 3;
-        const planTitle = el(doc, 'h3', '', 'O que vai mudar ao confirmar');
+        const planTitle = el(doc, 'h3', '', contextDeletion ? 'Confira o alcance antes de excluir' : 'O que vai mudar ao confirmar');
         const effects = el(doc, 'div', 'radar-operational-correction-effects', 'Calculando o que vai mudar…');
         effects.setAttribute('aria-live', 'polite');
         const feedback = el(doc, 'p', 'radar-operational-correction-feedback');
@@ -142,7 +163,7 @@
         const clearBtn = el(doc, 'button', 'btn btn-secondary', 'Limpar análise');
         const review = el(doc, 'button', 'btn btn-secondary', 'Revisar prévia');
         const save = el(doc, 'button', 'btn btn-primary',
-            deleting ? 'Confirmar exclusão' : 'Confirmar correção');
+            contextDeletion ? 'Confirmar exclusão do contexto' : deleting ? 'Confirmar exclusão' : 'Confirmar correção');
         for (const button of [cancel, clearBtn, review, save]) button.type = 'button';
         (deleting ? cancel : select).autofocus = true;
         clearBtn.disabled = currentChoice === 'Não analisado' || !currentChoice;
@@ -210,6 +231,10 @@
             const blockers = Array.isArray(view.blockers) ? view.blockers : [];
             if (deleting) {
                 effects.appendChild(el(doc, 'p', '', text(view.summary)));
+                if (contextDeletion) {
+                    effects.appendChild(el(doc, 'p', 'context-deletion-preserved',
+                        'Permanecem preservados os outros meses e programas, contatos gerais e registros sem vínculo inequívoco.'));
+                }
                 if (view.preserved?.bonusResult) {
                     effects.appendChild(el(doc, 'p', '',
                         'O resultado da bonificação já consolidada será preservado.'));
@@ -538,5 +563,5 @@
         void loadPreview();
         return true;
     }
-    return Object.freeze({ ANALYSES, canUse, canCorrectFiscalBonus, open });
+    return Object.freeze({ ANALYSES, canUse, canCorrectFiscalBonus, canDeleteContext, open });
 }));
