@@ -46,6 +46,8 @@ begin
       or jsonb_typeof(tgt) is distinct from 'object'
       or tgt->>'kind' is distinct from 'analysis'
       or school is null or competence is null or program is null or document is null
+      or document not in ('extCC','extINV','notaFiscal','consAssessoria',
+          'boletoInternet','declBBAgil','encampInventario')
       or exists(select 1 from jsonb_object_keys(req) as k(key)
           where k.key not in ('contractVersion','action','target','note'))
       or exists(select 1 from jsonb_object_keys(tgt) as k(key)
