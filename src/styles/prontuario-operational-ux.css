@@ -590,6 +590,38 @@ body.dark-theme #prontuario-verif-rows tr.program-block-start > td.program-conte
     text-align: left;
 }
 
+/* T4: ação contextual secundária, sem competir com Consolidar bonificação. */
+#prontuario-verif-rows [data-program-header] .program-context-delete-button {
+    display: inline-flex;
+    align-items: center;
+    max-inline-size: 100%;
+    margin-block-start: 5px;
+    padding: 3px 0;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--danger, #b91c1c);
+    font: inherit;
+    font-size: 0.74rem;
+    font-weight: 650;
+    line-height: 1.4;
+    text-align: start;
+    white-space: normal;
+    cursor: pointer;
+}
+#prontuario-verif-rows [data-program-header] .program-context-delete-button:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+#prontuario-verif-rows [data-program-header] .program-context-delete-button:focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 3px;
+}
+body.dark-theme #prontuario-verif-rows [data-program-header] .program-context-delete-button {
+    color: #fca5a5;
+}
+
+
 #prontuario-verif-rows [data-program-header] .program-context-competence {
     display: inline-block;
     color: #6335b5;
