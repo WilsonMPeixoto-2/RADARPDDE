@@ -10494,6 +10494,11 @@ function renderProntuarioVerificacoes(esc) {
                         && window.RadarPendencias.buildDocumentContextKey(pendency)
                             === exactPendencyKey
                     ));
+                    // A ação de limpar histórico também atende itens cuja última
+                    // Pendência foi Cancelada (não aparece em activePend/resolvedPend).
+                    const hasDocumentHistory = documentaryPendencies.some(pendency =>
+                        window.RadarPendencias.buildDocumentContextKey(pendency) === exactPendencyKey
+                    );
                     const isBbAgilNaLocked = doc.key === 'declBBAgil'
                         && bonifValue === 'Não se aplica';
                     const isAnaliseLocked = accessProfile === 'inventario'
@@ -10869,6 +10874,11 @@ function renderProntuarioVerificacoes(esc) {
                                     documentaryPendencies,
                                     invoiceContext
                                 );
+                                const hasAdvisoryHistory = documentaryPendencies.some(pendency =>
+                                    pendency.documentoKey === 'consAssessoria'
+                                    && String(pendency.registeredInvoiceId || pendency.registered_invoice_id || '')
+                                        === String(note.id)
+                                );
                                 const statusLabel = invoicePendency?.status === 'Aguardando reanálise'
                                     ? 'Aguardando reanálise'
                                     : analysis;
@@ -10949,7 +10959,7 @@ function renderProntuarioVerificacoes(esc) {
                                         </div>
                                         ${canViewTechnicalAnalysis ? `<div class="invoice-document-analysis">${analysisHTML}</div>` : ''}
                                         ${canUseVerificationActions ? `<div class="invoice-document-action">${actionHTML}
-                                            ${canClearItemHistory && canMutateAdvisory && (analysis !== 'Não analisado' || invoicePendency) ? `
+                                            ${canClearItemHistory && canMutateAdvisory && (analysis !== 'Não analisado' || hasAdvisoryHistory) ? `
                                                 <button type="button" class="prontuario-history-clear-button"
                                                     aria-label="Limpar histórico da Consulta à Assessoria da NF ${escapeHtml(note.numero || note.id)}"
                                                     onclick="openDocumentItemHistory('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', 'consAssessoria', this, '${escapeHtml(note.id)}')">Limpar histórico</button>
@@ -11067,7 +11077,7 @@ function renderProntuarioVerificacoes(esc) {
                                     <span class="verification-document-icon">${verificationDocumentIconSvg(doc.key)}</span>
                                     <span class="verification-document-copy">
                                         <strong>${escapeHtml(doc.name)}</strong>
-                                        ${canClearItemHistory && (analiseValue !== 'Não analisado' || rowPendency) ? `
+                                        ${canClearItemHistory && (analiseValue !== 'Não analisado' || hasDocumentHistory) ? `
                                             <button type="button" class="prontuario-history-clear-button"
                                                 aria-label="Limpar avaliações e histórico de ${escapeHtml(doc.name)}"
                                                 onclick="openDocumentItemHistory('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', this)">Limpar histórico</button>
