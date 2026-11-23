@@ -85,7 +85,7 @@
         dialog.setAttribute('aria-labelledby', 'radar-operational-correction-title');
         const header = el(doc, 'header', 'radar-operational-correction-header');
         const kicker = el(doc, 'span', 'evaluation-retification-kicker',
-            bonus ? 'Avaliação de Notas Fiscais' : deleting ? 'Exclusão com alcance causal' : 'Correção operacional');
+            bonus ? 'Avaliação de Notas Fiscais' : deleting ? 'Exclusão de lançamento' : 'Correção operacional');
         const title = el(doc, 'h2', '', deleting
             ? (mode === 'delete_invoice' ? 'Excluir nota fiscal' : 'Excluir pendência')
             : bonus ? 'Corrigir consolidação da bonificação' : 'Corrigir análise técnica');
@@ -248,6 +248,7 @@
                         'A saída provisória do PDDE Qualidade voltará para “Programa a identificar” e poderá ser identificada novamente.'));
                     continue;
                 }
+                if (text(change.before) === 'Não analisado' && text(change.after) === 'Não analisado') continue;
                 const valueChange = text(change.before) + ' → ' + text(change.after);
                 if (!transitions.has(valueChange)) transitions.set(valueChange, new Set());
                 const fieldLabel = EFFECT_LABELS[change.field] || context.documentLabel;

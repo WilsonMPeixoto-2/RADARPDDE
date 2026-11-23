@@ -31,11 +31,11 @@
     --border-focus: rgba(124, 58, 237, 0.5);
     
     /* Cores de Status */
-    --success: #10b981;
+    --success: #047857;
     --success-bg: rgba(16, 185, 129, 0.08);
-    --warning: #d97706;
+    --warning: #92400e;
     --warning-bg: rgba(217, 119, 6, 0.08);
-    --danger: #ef4444;
+    --danger: #b91c1c;
     --danger-bg: rgba(239, 68, 68, 0.08);
     --info: #2563eb;
     --info-bg: rgba(37, 99, 235, 0.08);
@@ -212,6 +212,14 @@ aside.sidebar {
     margin-bottom: 6px;
     padding-left: 8px;
     opacity: 0.7;
+}
+
+:where(button.nav-item) {
+    appearance: none;
+    width: 100%;
+    background: transparent;
+    text-align: left;
+    font: inherit;
 }
 
 .nav-item {
