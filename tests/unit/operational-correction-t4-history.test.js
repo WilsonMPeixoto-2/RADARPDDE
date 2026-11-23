@@ -91,6 +91,17 @@ test('T4 clear_item_history rejeita destino, seleção parcial e alterações de
     );
 });
 
+test('T4 clear_item_history rejeita campo desconhecido e identidade fiscal na linha documental', () => {
+    assert.throws(
+        () => buildRequest({ action: 'clear_item_history', target: { ...target, documentKey: 'internal_flags' } }),
+        /documento reconhecido/
+    );
+    assert.throws(
+        () => buildRequest({ action: 'clear_item_history', target: { ...target, id: 'ANY-INVOICE' } }),
+        /documento reconhecido/
+    );
+});
+
 test('T4 clear_item_history exige identificar todas as Pendências, tentativas e contatos antes de confirmar', () => {
     assert.equal(describePlan(fullHistoryPlan()).canApply, true);
     const missingHistory = fullHistoryPlan();
