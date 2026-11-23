@@ -454,7 +454,7 @@
                 <div class="radar-critical-dialog__body">
                     <section class="radar-team-reassignment-list-region" data-team-reassignment-list-region>
                         <h3 id="${TEAM_REASSIGNMENT_DIALOG_ID}-list-title"></h3>
-                        <ul class="radar-team-reassignment-list"
+                        <ul class="radar-team-reassignment-list" tabindex="0"
                             aria-labelledby="${TEAM_REASSIGNMENT_DIALOG_ID}-list-title"></ul>
                     </section>
                 </div>
