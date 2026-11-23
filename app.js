@@ -10426,7 +10426,7 @@ function renderProntuarioVerificacoes(esc) {
                                             <button class="btn program-consolidate-button is-disabled" disabled>Consolidada</button>
                                         ` : `
                                             <button class="btn program-consolidate-button" ${bonusReview && !bonusReview.canConsolidate ? 'disabled' : ''}
-                                                onclick="calcularEFecharBonificacao('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">${bonusReview ? 'Consolidar alterações' : 'Consolidar'}</button>
+                                                onclick="calcularEFecharBonificacao('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">${bonusReview ? 'Consolidar bonificação' : 'Consolidar'}</button>
                                         `}
                                     </div>
                                 ` : ''}
@@ -10539,7 +10539,7 @@ function renderProntuarioVerificacoes(esc) {
                                     data-school-id="${escapeHtml(esc.id)}" data-comp-key="${escapeHtml(compProgKey)}"
                                     data-school-name="${escapeHtml(esc.denominação)}" data-program-name="${escapeHtml(progName)}"
                                     data-competence-label="${escapeHtml(c.label)}" onclick="openFiscalBonusCorrection(this)">
-                                    Corrigir marca
+                                    Corrigir consolidação
                                 </button>
                             </div>`
                             : accessProfile === 'sme'
