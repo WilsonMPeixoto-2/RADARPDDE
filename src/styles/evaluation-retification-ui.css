@@ -683,7 +683,7 @@ body.dark-theme .is-fiscal-bonus .radar-operational-correction-header .fiscal-bo
 }
 
 /* Exclusão de contexto: dados críticos claros, sem transformar a prévia em alerta genérico. */
-.is-context-deletion .radar-operational-correction-header .context-deletion-explanation {
+:is(.is-context-deletion, .is-item-history) .radar-operational-correction-header .context-deletion-explanation {
     margin-top: 0.6rem;
     padding: 0.75rem 0.9rem;
     border-inline-start: 3px solid var(--danger, #b91c1c);
@@ -693,7 +693,7 @@ body.dark-theme .is-fiscal-bonus .radar-operational-correction-header .fiscal-bo
     font-size: 0.85rem;
     line-height: 1.55;
 }
-.is-context-deletion .context-deletion-preserved {
+:is(.is-context-deletion, .is-item-history) .context-deletion-preserved {
     padding: 0.65rem 0.8rem;
     border: 1px solid var(--border-color);
     border-radius: 0.55rem;
@@ -702,7 +702,7 @@ body.dark-theme .is-fiscal-bonus .radar-operational-correction-header .fiscal-bo
     line-height: 1.5;
 }
 
-.is-context-deletion .context-deletion-impact-list {
+:is(.is-context-deletion, .is-item-history) .context-deletion-impact-list {
     margin: 0;
     padding-inline-start: 1.25rem;
     display: grid;
@@ -710,71 +710,90 @@ body.dark-theme .is-fiscal-bonus .radar-operational-correction-header .fiscal-bo
     color: var(--text-main);
     font-variant-numeric: tabular-nums;
 }
-.is-context-deletion .context-deletion-impact-list li {
+:is(.is-context-deletion, .is-item-history) .context-deletion-impact-list li {
     padding-inline-start: 0.15rem;
     line-height: 1.5;
 }
-.is-context-deletion .context-deletion-impact-list li::marker {
+:is(.is-context-deletion, .is-item-history) .context-deletion-impact-list li::marker {
     color: var(--danger, #b91c1c);
 }
 
 /* A janela destrutiva deve manter a confirmação visível sem exigir
    rolagem da página ou do modal. Somente o conteúdo da prévia rola. */
-.radar-operational-correction-dialog.is-context-deletion {
+.radar-operational-correction-dialog:is(.is-context-deletion, .is-item-history) {
     grid-template-rows: auto minmax(0, 1fr) auto auto;
     overflow: hidden;
 }
-.is-context-deletion .radar-operational-correction-body {
+:is(.is-context-deletion, .is-item-history) .radar-operational-correction-body {
     min-block-size: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
 }
-.is-context-deletion .radar-operational-correction-effects {
+:is(.is-context-deletion, .is-item-history) .radar-operational-correction-effects {
     max-block-size: none;
     overflow: visible;
     overflow-wrap: anywhere;
 }
-.is-context-deletion .context-deletion-details {
+:is(.is-context-deletion, .is-item-history) .context-deletion-details {
     padding-block-start: 0.65rem;
     border-block-start: 1px solid var(--border-color, #e5e7eb);
 }
-.is-context-deletion .context-deletion-details h4 {
+:is(.is-context-deletion, .is-item-history) .context-deletion-details h4 {
     margin: 0 0 0.35rem;
     color: var(--text-main);
     font-size: 0.82rem;
     font-weight: 700;
 }
-.is-context-deletion .context-deletion-records {
+:is(.is-context-deletion, .is-item-history) .context-deletion-records {
     margin: 0;
     padding-inline-start: 1.2rem;
     display: grid;
     gap: 0.35rem;
     list-style: disc;
 }
-.is-context-deletion .context-deletion-records li {
+:is(.is-context-deletion, .is-item-history) .context-deletion-records li {
     line-height: 1.48;
     font-variant-numeric: tabular-nums;
 }
 
-.is-context-deletion .radar-operational-correction-effects {
+:is(.is-context-deletion, .is-item-history) .radar-operational-correction-effects {
     border-inline-start-color: var(--danger, #b91c1c);
 }
-body.dark-theme .is-context-deletion .context-deletion-impact-list li::marker {
+body.dark-theme :is(.is-context-deletion, .is-item-history) .context-deletion-impact-list li::marker {
     color: #fca5a5;
 }
-body.dark-theme .is-context-deletion .radar-operational-correction-effects {
+body.dark-theme :is(.is-context-deletion, .is-item-history) .radar-operational-correction-effects {
     border-inline-start-color: #fca5a5;
 }
 
-.is-context-deletion .radar-operational-correction-actions .btn-danger:not(:disabled) {
+:is(.is-context-deletion, .is-item-history) .radar-operational-correction-actions .btn-danger:not(:disabled) {
     font-weight: 700;
 }
-body.dark-theme .is-context-deletion .radar-operational-correction-header .context-deletion-explanation {
+body.dark-theme :is(.is-context-deletion, .is-item-history) .radar-operational-correction-header .context-deletion-explanation {
     background: color-mix(in srgb, #fca5a5 13%, transparent);
     color: var(--text-main);
 }
 
 
+
+/* Histórico: mesmos padrões de exclusão, com realce moderado para preservar a hierarquia. */
+.is-item-history .item-history-impact-summary {
+    color: var(--text-main);
+    font-weight: 700;
+    font-size: 0.84rem;
+    line-height: 1.4;
+}
+.is-item-history .item-history-detail h4 {
+    color: var(--text-main);
+    font-weight: 720;
+}
+:is(.is-context-deletion, .is-item-history) .radar-operational-correction-actions {
+    padding-bottom: max(4px, env(safe-area-inset-bottom));
+    background: var(--bg-card, #fff);
+}
+body.dark-theme :is(.is-context-deletion, .is-item-history) .radar-operational-correction-actions {
+    background: #171226;
+}
 .radar-operational-correction-body.is-split {
     display: grid;
     grid-template-columns: minmax(0, 1.05fr) minmax(240px, 0.95fr);
