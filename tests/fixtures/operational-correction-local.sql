@@ -43,3 +43,4 @@ values ('T4-NF1','ESC-T4-BONUS','2026-05','BASIC','ESC-T4-BONUS::2026-05::BASIC'
 
 -- Jornada real T4 permanece em banco descartável.
 \ir t4-context-deletion-local.sql
+\ir t4-item-history-local.sql
