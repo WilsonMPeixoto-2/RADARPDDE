@@ -109,4 +109,31 @@ test.describe('Gestão de Equipe — confirmação acessível de reatribuição'
     expect(calls[0].schoolIds).toHaveLength(3);
     expect(calls[0].controllerId).toBe(controller);
   });
+  test('lista extensa: permite rolagem por teclado e Escape cancela sem gravar', async ({ page }) => {
+    await page.evaluate(() => {
+      const trigger = document.getElementById('bulk-controlador-select');
+      window.__longConfirmation = window.RadarSharedInteractions.requestTeamReassignmentConfirm({
+        title: 'Conferir escolas selecionadas',
+        message: 'Confira todas as unidades antes de atribuir.',
+        listTitle: 'Escolas selecionadas (32)',
+        items: Array.from({ length: 32 }, (_, index) => 'Escola Municipal ' + (index + 1)),
+        trigger,
+        confirmLabel: 'Confirmar'
+      });
+    });
+    const dialog = page.getByRole('alertdialog', { name: 'Conferir escolas selecionadas' });
+    const list = dialog.locator('.radar-team-reassignment-list');
+    await expect(dialog).toHaveClass(/show/);
+    await expect(list.locator('li')).toHaveCount(32);
+    await expect(list).toHaveAttribute('tabindex', '0');
+    expect(await list.evaluate(el => el.scrollHeight > el.clientHeight)).toBe(true);
+    await list.focus();
+    await page.keyboard.press('End');
+    await expect.poll(() => list.evaluate(el => el.scrollTop)).toBeGreaterThan(0);
+    await page.keyboard.press('Escape');
+    await expect(dialog).not.toHaveClass(/show/);
+    expect(await page.evaluate(() => window.__longConfirmation)).toBe(false);
+    expect(await page.evaluate(() => window.__teamWrites)).toEqual([]);
+  });
+
 });
