@@ -1,13 +1,12 @@
 # Checkpoint único de continuidade operacional — RADAR T0–T6
 
-## Atualização verificada em 22/11/2026 — T4 inicial publicada; nomenclatura em homologação
+## Atualização verificada em 22–23/11/2026 — T4 inicial, D021 e Ondas 1–3 integradas na `main`
 
-- **PR #538:** integrado na `main`, commit `ca73311377f95f32e994f98dfa5bdb4b0f56b7cc`, após 21/21 workflows aprovados.
-- **Vercel Production:** deployment `dpl_84bdgsjX2HS3CuWaseM4ErXF8KwR`, `READY`. Manifesto público no domínio institucional: `operationalCorrectionRelease=true`, `bonificationCorrectionRelease=true`.
-- **Supabase institucional:** migration 65 `20261121000200_correct_fiscal_bonification` aplicada, trigger e compatibilidade R1 presentes; nenhuma migração ou alteração de escola real é necessária para corrigir rótulos.
-- **Entrega delimitada:** correção de avaliação de **Notas Fiscais** da bonificação consolidada com prévia e reconsolidação; não equivale a T4 integral. `clear_item_history`, `delete_context` e demais critérios permanecem na fila T4; T5 permanece futura.
-- **Nomenclatura T0T6-D021:** o usuário aprovou **“Corrigir consolidação”**, janela **“Corrigir consolidação da bonificação”**, campo **“Nova avaliação — Notas Fiscais”**, aviso de alcance e etapa **“Consolidar bonificação”**. Candidata de UX na branch `ux/prontuario-corrigir-consolidacao-20261122`; **não confundir branch candidata com produção até PR, CI e aceite visual**.
-- **Gate atual:** executar CI, Playwright autenticado e screenshots claro/escuro da candidata; verificar que nenhuma lógica ou migração foi alterada. Não refazer a migration 65.
+- **PR #538 (T4 inicial):** integrado na `main` em `ca73311377f95f32e994f98dfa5bdb4b0f56b7cc` após 21/21 workflows; migration 65 `20261121000200_correct_fiscal_bonification` aplicada no Supabase institucional e flag T4 ativada em Production (`operationalCorrectionRelease=true`, `bonificationCorrectionRelease=true`).
+- **PR #540 (`T0T6-D021` — Linguagem do Controlador):** integrado na `main` em `4b698b4121c9f5f356622b468fb44b71a5832915` e publicado em Production. Botão **“Corrigir consolidação”**, janela **“Corrigir consolidação da bonificação”**, campo **“Nova avaliação — Notas Fiscais”**, aviso de alcance e reconsolidação **“Consolidar bonificação”** ativos sem alterações de SQL/RPC; aceite visual humano em campo permanece registrado separadamente em `T0T6-I021-02`.
+- **Ondas 1–3 de UX/a11y integradas na `main`:** [PR #541](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/541) (`b3bf0935`, data local em contatos + confirmação/acessibilidade em Gestão de Equipe), [PR #542](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/542) (`ab8d2339`, navegação lateral `<button>` com `:where(button.nav-item)`, contraste WCAG AA nos temas claro/escuro e linguagem clara nos diálogos, 17/17 workflows verdes sem alterar o golden `prontuario.png`) e [PR #543](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/543) (`c3be209f`, compactação do painel provisório vazio do PDDE Qualidade).
+- **Integridade de Production (diagnóstico somente-leitura):** o alerta recorrente `totalIssues=3` em `public.production_integrity_check()` é pré-existente desde 18/11/2026 (`permanent_invoices_without_linked_asset`: 3 notas de 2026-10 em `04.31.001` e `04.31.024` gravadas via auditoria assistida/SQL sem `linked_asset_id`). Nenhuma mutação automática foi aplicada sobre registros reais.
+- **Entrega delimitada:** a T4 publicada cobre somente correção/limpeza da avaliação de **Notas Fiscais** de bonificação consolidada; `clear_item_history`, `delete_context` e demais critérios continuam na fila T4, e T5 permanece futura. Não refazer a migration 65.
 
 
 ## Estado em 21/11/2026

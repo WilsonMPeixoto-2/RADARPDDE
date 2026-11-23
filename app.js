@@ -12327,14 +12327,29 @@ function closeModal(id) {
     }
 }
 
+function getTodayLocalIsoDate() {
+    if (typeof window !== 'undefined' && typeof window.Temporal?.Now?.plainDateISO === 'function') {
+        return window.Temporal.Now.plainDateISO().toString();
+    }
+    const nowLocal = new Date();
+    const year = nowLocal.getFullYear();
+    const month = String(nowLocal.getMonth() + 1).padStart(2, '0');
+    const day = String(nowLocal.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function getSchoolDisplayName(escola, fallbackId = '') {
+    if (!escola) return fallbackId;
+    return escola.denominação || escola.denominaçao || escola.denominacao || escola.id || fallbackId;
+}
+
 // 16.1 Salvar Contato / Atendimento
 function openContatoModal(escolaId) {
     if (!hasRadarCapability(
         window.RadarAccessPolicy.CAPABILITIES.REGISTER_PENDENCY_CONTACT
     )) return false;
     document.getElementById('contato-escola-id').value = escolaId;
-        const nowLocal = new Date();
-        document.getElementById('contato-data-atendimento').value = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
+    document.getElementById('contato-data-atendimento').value = getTodayLocalIsoDate();
     
     // Popular pendências vinculáveis (usando == para evitar incompatibilidade entre string e número)
     const pSelect = document.getElementById('contato-pendencia');
@@ -13028,12 +13043,12 @@ function renderEquipe() {
                         <tbody>
                             ${escolas.map(e => {
                                 const currentCtrlId = e.controladorId;
-                              const schoolLabel = escapeHtml(e.denominação || e.denominacao || e.id);
+                                const schoolLabel = escapeHtml(getSchoolDisplayName(e, e.id));
                                 return `
                                     <tr>
                                         <td style="text-align: center;"><input type="checkbox" class="escola-bulk-checkbox" aria-label="Selecionar ${schoolLabel}" data-id="${escapeHtml(e.id)}" onchange="updateBulkBar()" style="cursor:pointer;"></td>
                                         <td>
-                                            <div style="font-weight: 600; color: var(--text-main);">${escapeHtml(e.denominação || e.denominaçao)}</div>
+                                            <div style="font-weight: 600; color: var(--text-main);">${schoolLabel}</div>
                                             <div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(e.designação || e.designaçao)} | ${escapeHtml(e.email)}</div>
                                         </td>
                                         <td><code>${escapeHtml(e.inep)}</code></td>
@@ -13246,9 +13261,26 @@ async function removerControlador(id, trigger = document.activeElement) {
 }
 
 async function reatribuirEscolaDirect(escolaId, novoCtrlId) {
-   const escolaObj = typeof escolas !== 'undefined' ? escolas.find(e => e.id === escolaId) : null; const escolaNome = escolaObj ? (escolaObj.denominação || escolaObj.denominacao || escolaId) : escolaId;
-    const atualCtrl = (typeof controladores !== 'undefined' && escolaObj) ? controladores.find(c => c.id === escolaObj.controladorId) : null; const novoCtrl = typeof controladores !== 'undefined' ? controladores.find(c => c.id === novoCtrlId) : null;
-    const atualNome = atualCtrl ? atualCtrl.name : (escolaObj && escolaObj.controladorId ? escolaObj.controladorId : 'Não atribuído'); const novoNome = novoCtrl ? novoCtrl.name : (novoCtrlId || 'Não atribuído'); if (!window.confirm(`Confirmar reatribuição da escola "${escolaNome}"?\nControlador atual: ${atualNome}\nNovo controlador: ${novoNome}`)) { renderEquipe(); return; } try {
+    const escolaObj = typeof escolas !== 'undefined' ? escolas.find(e => e.id === escolaId) : null;
+    const escolaNome = getSchoolDisplayName(escolaObj, escolaId);
+    const atualCtrl = (typeof controladores !== 'undefined' && escolaObj)
+        ? controladores.find(c => c.id === escolaObj.controladorId)
+        : null;
+    const novoCtrl = typeof controladores !== 'undefined'
+        ? controladores.find(c => c.id === novoCtrlId)
+        : null;
+    const atualNome = atualCtrl
+        ? atualCtrl.name
+        : (escolaObj && escolaObj.controladorId ? escolaObj.controladorId : 'Não atribuído');
+    const novoNome = novoCtrl ? novoCtrl.name : (novoCtrlId || 'Não atribuído');
+    const confirmed = window.confirm(
+        `Confirmar reatribuição da escola "${escolaNome}"?\nControlador atual: ${atualNome}\nNovo controlador: ${novoNome}`
+    );
+    if (!confirmed) {
+        renderEquipe();
+        return;
+    }
+    try {
         const result = await radarSchoolService.assignController({
             schoolId: escolaId,
             controllerId: novoCtrlId
@@ -13298,7 +13330,19 @@ async function aplicarAtribuicaoEmLote() {
     const checkboxes = document.querySelectorAll('.escola-bulk-checkbox');
     const checkedBoxes = Array.from(checkboxes).filter(cb => cb.checked);
     const targetEscolasIds = checkedBoxes.map(cb => cb.getAttribute('data-id'));
-        const ctrlNome = (typeof controladores !== 'undefined' && controladores.find(c => c.id === novoCtrlId)?.name) || (bulkSelect.options[bulkSelect.selectedIndex]?.text) || novoCtrlId; const nomesEscolas = targetEscolasIds.slice(0, 8).map(id => { const esc = typeof escolas !== 'undefined' ? escolas.find(e => e.id === id) : null; return esc ? (esc.denominação || esc.denominacao || id) : id; }); const extra = targetEscolasIds.length > 8 ? `\n... e mais ${targetEscolasIds.length - 8}` : ''; if (!window.confirm(`Confirmar atribuição em lote de ${targetEscolasIds.length} escola(s) para "${ctrlNome}"?\n\n${nomesEscolas.join('\n')}${extra}`)) return;
+    if (!targetEscolasIds.length) return;
+    const ctrlNome = (typeof controladores !== 'undefined' && controladores.find(c => c.id === novoCtrlId)?.name)
+        || (bulkSelect.options[bulkSelect.selectedIndex]?.text)
+        || novoCtrlId;
+    const nomesEscolas = targetEscolasIds.slice(0, 8).map(id => {
+        const esc = typeof escolas !== 'undefined' ? escolas.find(e => e.id === id) : null;
+        return getSchoolDisplayName(esc, id);
+    });
+    const extra = targetEscolasIds.length > 8 ? `\n... e mais ${targetEscolasIds.length - 8}` : '';
+    const confirmed = window.confirm(
+        `Confirmar atribuição em lote de ${targetEscolasIds.length} escola(s) para "${ctrlNome}"?\n\n${nomesEscolas.join('\n')}${extra}`
+    );
+    if (!confirmed) return;
     try {
         await radarSchoolService.bulkAssignController({
             schoolIds: targetEscolasIds,

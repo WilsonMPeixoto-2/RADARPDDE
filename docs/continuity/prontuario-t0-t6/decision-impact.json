@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "date": "2026-11-22",
+  "date": "2026-11-23",
   "workstream": "RADARPDDE/PRONTUARIO-T0-T6",
   "registryPath": "docs/continuity/prontuario-t0-t6/registry.json",
   "lineagePath": "docs/continuity/prontuario-t0-t6/lineage.json",
@@ -957,14 +957,14 @@
     {
       "decisionId": "T0T6-D021",
       "status": "approved",
-      "impactStatus": "initial-impact-mapping-needs-review",
+      "impactStatus": "t4-ui-verified-visual-and-future-open",
       "supersededBy": null,
       "obligations": [
         {
           "id": "T0T6-I021-01",
           "phase": "T4",
           "surface": "ui",
-          "status": "candidate",
+          "status": "verified",
           "requirementIds": [
             "T0T6-R030"
           ],
@@ -974,7 +974,10 @@
             "src/integration/operational-correction-dialog.js",
             "tests/e2e/supabase-operational-correction-local.spec.js"
           ],
-          "evidenceRefs": []
+          "evidenceRefs": [
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/540",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/commit/4b698b4121c9f5f356622b468fb44b71a5832915"
+          ]
         },
         {
           "id": "T0T6-I021-02",
@@ -990,7 +993,9 @@
             "src/styles/evaluation-retification-ui.css",
             "tests/e2e/supabase-operational-correction-local.spec.js"
           ],
-          "evidenceRefs": []
+          "evidenceRefs": [
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/540"
+          ]
         },
         {
           "id": "T0T6-I021-03",

@@ -114,6 +114,52 @@
 .quality-provisional-actions .btn { min-height: 36px; }
 .quality-provisional-empty { color: var(--text-muted); margin: 4px 0 2px; font-size: .84rem; line-height: 1.5; }
 .quality-provisional-feedback { margin: 8px 0 0; color: var(--text-muted); font-size: .83rem; }
+.quality-provisional-feedback:empty { display: none; }
+.quality-provisional-panel.is-empty {
+    margin: 10px 24px 12px;
+    padding: 11px 16px 10px;
+    border-radius: 13px;
+}
+.quality-provisional-panel.is-empty .quality-provisional-heading {
+    gap: 12px;
+    margin-bottom: 8px;
+}
+.quality-provisional-panel.is-empty .quality-provisional-intro {
+    align-items: center;
+    gap: 10px;
+}
+.quality-provisional-panel.is-empty .quality-provisional-mark {
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+}
+.quality-provisional-panel.is-empty .quality-provisional-mark svg {
+    width: 18px;
+    height: 18px;
+}
+.quality-provisional-panel.is-empty .quality-provisional-eyebrow {
+    margin-bottom: 2px;
+}
+.quality-provisional-panel.is-empty .quality-provisional-heading h3 {
+    margin: 0 0 2px;
+    font-size: 1.02rem;
+}
+.quality-provisional-panel.is-empty .quality-provisional-heading p {
+    font-size: 0.82rem;
+    line-height: 1.4;
+}
+.quality-provisional-panel.is-empty .quality-provisional-heading-actions .btn {
+    min-height: 36px;
+}
+.quality-provisional-panel.is-empty .quality-provisional-list {
+    padding-top: 8px;
+}
+.quality-provisional-panel.is-empty .quality-provisional-empty {
+    margin: 0;
+    font-size: 0.82rem;
+    line-height: 1.4;
+}
 .quality-provisional-dialog {
     color: var(--text-primary, #1e293b);
     background: var(--card-bg, #fff);
@@ -144,6 +190,7 @@
 }
 @media (max-width: 700px) {
     .quality-provisional-panel { margin: 12px; padding: 16px 14px; }
+    .quality-provisional-panel.is-empty { margin: 10px 12px; padding: 11px 12px; }
     .quality-provisional-intro { gap: 11px; flex-basis: 100%; }
     .quality-provisional-mark { width: 40px; height: 40px; flex-basis: 40px; border-radius: 11px; }
     .quality-provisional-mark svg { width: 21px; height: 21px; }
