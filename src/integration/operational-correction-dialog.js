@@ -249,9 +249,11 @@
                     const documentNames = {
                         notaFiscal: 'Nota fiscal',
                         extCC: 'Extrato da conta corrente',
-                        extCI: 'Extrato da aplicação',
+                        extCI: 'Extrato de investimentos',
+                        extINV: 'Extrato de investimentos',
                         consAssessoria: 'Consulta à assessoria',
-                        encampInventario: 'Encaminhamento ao inventário'
+                        declBBAgil: 'Declaração BB Ágil',
+                        encampInventario: 'Encaminhamento para inventariação'
                     };
                     const makeDetails = (heading, entries) => {
                         if (!Array.isArray(entries) || entries.length === 0) return null;
