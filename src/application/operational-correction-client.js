@@ -117,12 +117,17 @@
         if (action === 'clear_item_history') {
             const allowedTargetKeys = ['kind', 'id', 'schoolId', 'competence', 'programId', 'documentKey'];
             const allowedRequestKeys = ['action', 'target', 'note'];
+            const allowedHistoryKeys = ['extCC', 'extINV', 'notaFiscal', 'consAssessoria',
+                'boletoInternet', 'declBBAgil', 'encampInventario'];
+            const invoiceDocument = ['notaFiscal', 'consAssessoria'].includes(target.documentKey);
             const exactTarget = text(source.kind) === 'analysis'
-                && Boolean(target.programId) && Boolean(target.documentKey)
+                && Boolean(target.programId)
+                && allowedHistoryKeys.includes(target.documentKey)
+                && (invoiceDocument ? Boolean(target.id) : !target.id)
                 && Object.keys(source).every(key => allowedTargetKeys.includes(key));
             const exactRequest = Object.keys(input).every(key => allowedRequestKeys.includes(key));
             if (!exactTarget || !exactRequest) {
-                throw invalid('Informe exatamente o item da análise, sem seleção parcial, destino ou resultado novo.');
+                throw invalid('Informe um documento reconhecido e seu item exato, sem seleção parcial, destino ou resultado novo.');
             }
         }
 
