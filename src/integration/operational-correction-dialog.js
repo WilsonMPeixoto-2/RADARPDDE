@@ -50,7 +50,18 @@
         );
     }
     function canDeleteContext(root) {
-        return root?.RADAR_T4_CONTEXT_DELETION_PILOT === true && canUse(root);
+        if (!canUse(root)) return false;
+        const features = root?.RADAR_PDDE_CONFIG?.features;
+        const localPilot = root?.RADAR_T4_CONTEXT_DELETION_PILOT === true
+            && features?.operationalCorrectionPilot === true
+            && ['localhost', '127.0.0.1'].includes(root?.location?.hostname)
+            && root?.RADAR_PDDE_CONFIG?.deploymentTarget !== 'production';
+        const productionRelease = features?.contextDeletionRelease === true
+            && features?.bonificationCorrectionRelease === true
+            && features?.operationalCorrectionRelease === true
+            && root?.RADAR_PDDE_CONFIG?.deploymentTarget === 'production'
+            && root?.location?.protocol === 'https:';
+        return localPilot || productionRelease;
     }
     function open(root, input = {}) {
         const context = input.context || {};
