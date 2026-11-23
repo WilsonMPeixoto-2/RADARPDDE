@@ -122,8 +122,10 @@
   function render(panel) {
     const list = panel.querySelector('[data-quality-list]');
     list.replaceChildren();
+    panel.classList.toggle('is-empty', !records.length);
+    panel.dataset.empty = records.length ? 'false' : 'true';
     if (!records.length) {
-      list.append(node('p','quality-provisional-empty','Nenhuma movimentação provisória nesta competência.'));
+      list.append(node('p','quality-provisional-empty','Nenhuma movimentação provisória nesta competência — exclusivo da Conta PDDE Qualidade sem Ação Integrada definida (não abre Pendência automática).'));
       return;
     }
     const money = amount => amount == null ? 'Valor não informado'
