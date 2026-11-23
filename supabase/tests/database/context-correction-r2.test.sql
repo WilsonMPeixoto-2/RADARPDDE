@@ -3,7 +3,7 @@
 begin;
 set local role postgres;
 set local search_path = extensions, public, pg_catalog;
-select plan(21);
+select plan(22);
 
 insert into auth.users(id,email) values
   ('00000000-0000-0000-0000-00000000a601','r2-context-controller@example.test');
@@ -60,6 +60,9 @@ grant all on r2c_plan to authenticated;
 select set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000a601","role":"authenticated"}',true);
 set local role authenticated;
 
+select ok(not has_function_privilege('authenticated',
+  'radar_private.apply_operational_change_impl_r2(jsonb,text,uuid)','EXECUTE'),
+  'a aplicação pré-T4 não pode ser invocada diretamente para deixar a verificação órfã');
 select lives_ok($$ insert into r2c_plan values(public.preview_operational_change(pg_temp.r2c_request())) $$,
   'prévia autenticada do pacote completo de escola/mês/programa');
 select is((select plan #>> '{target,kind}' from r2c_plan),'program_context','contexto tem tipo semântico explícito');
