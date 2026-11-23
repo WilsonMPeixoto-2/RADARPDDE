@@ -10381,6 +10381,8 @@ function renderProntuarioVerificacoes(esc) {
                 const prog = programas.find(p => p.id === progId);
                 const progName = prog ? prog.name : progId;
                 const compProgKey = `${c.key}_${progId}`;
+                const canDeleteContext = !['inventario', 'sme'].includes(accessProfile)
+                    && window.RadarOperationalCorrectionDialog?.canDeleteContext?.(window) === true;
 
                 // A grade usa um estado vazio transitório; só um comando do usuário cria a verificação.
                 const v = buildVerificationSnapshot(
@@ -10418,6 +10420,17 @@ function renderProntuarioVerificacoes(esc) {
                                 <div class="program-context-identity">
                                     <span class="program-context-competence">${escapeHtml(c.label)}</span>
                                     <h3 class="program-context-name">${escapeHtml(progName)}</h3>
+                                    ${canDeleteContext ? `
+                                        <button type="button" class="program-context-delete-button"
+                                            data-school-id="${escapeHtml(esc.id)}"
+                                            data-comp-key="${escapeHtml(compProgKey)}"
+                                            data-school-name="${escapeHtml(esc.denominação || esc.denominacao || esc.id)}"
+                                            data-program-name="${escapeHtml(progName)}"
+                                            data-competence-label="${escapeHtml(c.label)}"
+                                            onclick="openProgramContextDeletion(this)">
+                                            Excluir lançamentos deste programa neste mês
+                                        </button>
+                                    ` : ''}
                                 </div>
                                 ${programStatusSummary}
                                 ${accessProfile !== 'inventario' && accessProfile !== 'sme' ? `
@@ -11705,6 +11718,24 @@ function openFiscalBonusCorrection(trigger) {
         context: {
             schoolId, schoolName, programName, competenceLabel, competence: competenciaKey,
             programId: contextId, documentKey: 'notaFiscal', documentLabel: 'Notas Fiscais'
+        }
+    });
+}
+
+function openProgramContextDeletion(trigger) {
+    const dialog = window.RadarOperationalCorrectionDialog;
+    if (!dialog?.canDeleteContext?.(window) || !trigger?.dataset) return false;
+    if (['inventario', 'sme'].includes(getRadarAccessProfile())) return false;
+    const { schoolId, compKey, schoolName, programName, competenceLabel } = trigger.dataset;
+    if (!schoolId || !compKey) return false;
+    const { competenciaKey, contextId } = window.RadarCompetencia.splitCompetenciaContext(compKey);
+    if (!competenciaKey || !contextId) return false;
+    return dialog.open(window, {
+        mode: 'delete_context',
+        trigger,
+        context: {
+            schoolId, schoolName, programName, competenceLabel,
+            competence: competenciaKey, programId: contextId
         }
     });
 }
