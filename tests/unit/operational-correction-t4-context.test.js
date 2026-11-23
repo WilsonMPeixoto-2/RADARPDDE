@@ -78,6 +78,10 @@ test('T4 delete_context: prévia apresenta a verificação e todas as classes de
             },
             update: []
         },
+        affectedRecords: {
+            invoices: [{ id: 'NF-SET', invoiceNumber: '1245', description: 'Materiais de expediente', amount: 189.5 }],
+            pendencies: [{ id: 'P-SET', documentKey: 'notaFiscal', status: 'Aberta' }]
+        },
         preserved: {
             otherCompetence: '2026-10',
             otherInvoiceIds: ['NF-OUT'],
@@ -93,6 +97,9 @@ test('T4 delete_context: prévia apresenta a verificação e todas as classes de
     assert.match(view.summary, /nota fiscal/);
     assert.match(view.summary, /Pendência/);
     assert.deepEqual(view.preserved, plan.preserved);
+    assert.equal(view.affectedRecords.invoices[0].invoiceNumber, '1245');
+    assert.equal(view.affectedRecords.invoices[0].description, 'Materiais de expediente');
+    assert.equal(view.affectedRecords.pendencies[0].documentKey, 'notaFiscal');
     assert.deepEqual(view.removals.find(item => item.entity === 'verifications').ids, ['VER-SET']);
 });
 
