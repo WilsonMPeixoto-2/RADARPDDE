@@ -1,7 +1,7 @@
 # RADAR PDDE — candidato de integração: excluir lançamentos de mês/programa incorreto
 
 **Escopo:** PR #546, `delete_context` da T4. **Não é a conclusão da T4 integral**: `clear_item_history` continua pendente; a correção de bonificação consolidada já foi entregue nos PRs #538/#540.
-**Estado:** preparação, **não autoriza merge/deploy** até a lista de gates ser concluída. A versão candidata deve ser fixada pelo SHA final do PR e pelos 22 workflows correspondentes.
+**Estado:** preparação com hardening do [PR #556](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/556) (`ae4ca9be`, contribuição `T0T6-C025`) incorporado; **não autoriza merge/deploy** até a lista de gates ser concluída. Baseline `main` já contém o hotfix [PR #555](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/555) (`a695f07f`, Production `dpl_6BPKPiomHXx1MawqeC2ywtkKCqfU`) sem conflito com esta branch. A versão candidata deve ser fixada pelo SHA final do PR e pelos workflows correspondentes.
 
 ## Contrato de uso
 
