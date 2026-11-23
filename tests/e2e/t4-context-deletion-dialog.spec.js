@@ -86,7 +86,7 @@ test('T4: prévia apresenta contexto completo e não grava ao cancelar', async (
     await expect(dialog).toContainText('Escola Exemplo');
     await expect(dialog).toContainText('Setembro de 2026');
     await expect(dialog).toContainText('PDDE Básico');
-    await expect(dialog).toContainText('verificação do programa');
+    await expect(dialog).toContainText('avaliação mensal do programa');
     await expect(dialog).toContainText('nota fiscal');
     await expect(dialog).toContainText('Pendência');
     await expect(dialog).toContainText('NF 1245');
