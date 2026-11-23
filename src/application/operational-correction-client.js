@@ -185,6 +185,21 @@
         const blockers = Array.isArray(plan.blockers) ? clone(plan.blockers) : [];
         const contextRootPresent = plan.action !== 'delete_context'
             || (Array.isArray(deleted.verifications) && deleted.verifications.length === 1);
+        const affectedRecords = clone(plan.affectedRecords || {});
+        const matchesDetailedIds = (entity, detailKey) => {
+            const ids = deleted[entity];
+            const records = affectedRecords[detailKey];
+            if (!Array.isArray(ids) || !Array.isArray(records) || ids.length !== records.length) return false;
+            const selected = new Set(ids.map(text));
+            const described = new Set(records.map(record => text(record?.id)));
+            return selected.size === ids.length && described.size === records.length
+                && [...selected].every(id => id && described.has(id));
+        };
+        // Não aceitar confirmação de conjunto destrutivo apresentado apenas em
+        // contagens: todos os IDs de NFs/Pendências devem estar na prévia legível.
+        const contextDetailsComplete = plan.action !== 'delete_context'
+            || (matchesDetailedIds('registered_invoices', 'invoices')
+                && matchesDetailedIds('pendencies', 'pendencies'));
         const warnings = Array.isArray(plan.warnings) ? clone(plan.warnings) : [];
         return {
             action: plan.action || null,
@@ -192,9 +207,11 @@
             removals,
             changes,
             preserved: clone(plan.preserved || {}),
+            affectedRecords,
             warnings,
             blockers,
-            canApply: blockers.length === 0 && contextRootPresent && /^[0-9a-f]{64}$/.test(text(plan.planDigest)),
+            canApply: blockers.length === 0 && contextRootPresent && contextDetailsComplete
+                && /^[0-9a-f]{64}$/.test(text(plan.planDigest)),
             summary: removals.length
                 ? `Serão excluídos: ${removals.map(item => item.label).join(', ')}.`
                 : 'Nenhum registro será excluído.'
