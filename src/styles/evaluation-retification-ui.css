@@ -682,6 +682,34 @@ body.dark-theme .is-fiscal-bonus .radar-operational-correction-header .fiscal-bo
     color: var(--text-main, #f3f0f9);
 }
 
+/* Exclusão de contexto: dados críticos claros, sem transformar a prévia em alerta genérico. */
+.is-context-deletion .radar-operational-correction-header .context-deletion-explanation {
+    margin-top: 0.6rem;
+    padding: 0.75rem 0.9rem;
+    border-inline-start: 3px solid var(--danger, #b91c1c);
+    border-radius: 0.4rem;
+    background: color-mix(in srgb, var(--danger, #b91c1c) 8%, transparent);
+    color: var(--text-main);
+    font-size: 0.85rem;
+    line-height: 1.55;
+}
+.is-context-deletion .context-deletion-preserved {
+    padding: 0.65rem 0.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.55rem;
+    background: var(--bg-card);
+    color: var(--text-main);
+    line-height: 1.5;
+}
+.is-context-deletion .radar-operational-correction-actions .btn-danger:not(:disabled) {
+    font-weight: 700;
+}
+body.dark-theme .is-context-deletion .radar-operational-correction-header .context-deletion-explanation {
+    background: color-mix(in srgb, #fca5a5 13%, transparent);
+    color: var(--text-main);
+}
+
+
 .radar-operational-correction-body.is-split {
     display: grid;
     grid-template-columns: minmax(0, 1.05fr) minmax(240px, 0.95fr);
