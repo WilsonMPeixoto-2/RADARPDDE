@@ -79,7 +79,7 @@ select is((select plan #> '{effects,delete,pendency_contacts}' from r2c_plan),'[
   'não elimina contato geral independente');
 select is((select plan #> '{effects,delete,assets}' from r2c_plan),'["R2C-AS-1"]'::jsonb,
   'bem exclusivo do pacote aparece na prévia');
-select is((select plan #> '{effects,update,0,entity}' from r2c_plan),'quality_provisional_movements',
+select is((select plan #>> '{effects,update,0,entity}' from r2c_plan),'quality_provisional_movements',
   'provisória identificada será reaberta, não eliminada');
 select is((select count(*)::int from public.verifications where id='R2C-V-A09'),1,
   'prévia é somente leitura');
