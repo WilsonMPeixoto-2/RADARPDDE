@@ -590,19 +590,74 @@ body.dark-theme #prontuario-verif-rows tr.program-block-start > td.program-conte
     text-align: left;
 }
 
-/* T4: ação contextual secundária, sem competir com Consolidar bonificação. */
-#prontuario-verif-rows [data-program-header] .program-context-delete-button {
+/* T4: menu contextual acessível, discreto até o usuário escolher uma ação. */
+#prontuario-verif-rows [data-program-header] .program-context-options {
+    display: block;
+    margin-block-start: 7px;
+    width: fit-content;
+    max-inline-size: 100%;
+}
+#prontuario-verif-rows [data-program-header] .program-context-options > summary {
     display: inline-flex;
     align-items: center;
+    gap: 8px;
     max-inline-size: 100%;
-    margin-block-start: 5px;
-    padding: 3px 0;
+    padding: 5px 9px;
+    border: 1px solid var(--border-color);
+    border-radius: 7px;
+    background: var(--bg-card);
+    color: var(--text-main);
+    font: inherit;
+    font-size: 0.73rem;
+    font-weight: 650;
+    line-height: 1.45;
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+}
+#prontuario-verif-rows [data-program-header] .program-context-options > summary::-webkit-details-marker {
+    display: none;
+}
+#prontuario-verif-rows [data-program-header] .program-context-options > summary::after {
+    content: "";
+    display: block;
+    width: 6px;
+    height: 6px;
+    border-inline-end: 1.5px solid currentColor;
+    border-block-end: 1.5px solid currentColor;
+    transform: translateY(-2px) rotate(45deg);
+    transition: transform var(--transition-fast, 150ms ease);
+}
+#prontuario-verif-rows [data-program-header] .program-context-options[open] > summary::after {
+    transform: translateY(2px) rotate(225deg);
+}
+#prontuario-verif-rows [data-program-header] .program-context-options > summary:hover {
+    border-color: var(--border-hover);
+    background: var(--bg-card-hover);
+}
+#prontuario-verif-rows [data-program-header] .program-context-options > summary:focus-visible,
+#prontuario-verif-rows [data-program-header] .program-context-delete-button:focus-visible {
+    outline: 2px solid var(--border-focus, #8b5cf6);
+    outline-offset: 3px;
+}
+#prontuario-verif-rows [data-program-header] .program-context-options-list {
+    max-inline-size: min(320px, 100%);
+    margin-block-start: 6px;
+    padding: 4px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-card);
+}
+#prontuario-verif-rows [data-program-header] .program-context-delete-button {
+    display: block;
+    inline-size: 100%;
     border: 0;
-    border-radius: 4px;
+    border-radius: 5px;
     background: transparent;
     color: var(--danger, #b91c1c);
+    padding: 8px 9px;
     font: inherit;
-    font-size: 0.74rem;
+    font-size: 0.76rem;
     font-weight: 650;
     line-height: 1.4;
     text-align: start;
@@ -610,12 +665,7 @@ body.dark-theme #prontuario-verif-rows tr.program-block-start > td.program-conte
     cursor: pointer;
 }
 #prontuario-verif-rows [data-program-header] .program-context-delete-button:hover {
-    text-decoration: underline;
-    text-underline-offset: 3px;
-}
-#prontuario-verif-rows [data-program-header] .program-context-delete-button:focus-visible {
-    outline: 2px solid var(--border-focus);
-    outline-offset: 3px;
+    background: color-mix(in srgb, var(--danger, #b91c1c) 8%, transparent);
 }
 body.dark-theme #prontuario-verif-rows [data-program-header] .program-context-delete-button {
     color: #fca5a5;
