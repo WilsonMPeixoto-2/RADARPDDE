@@ -36,10 +36,10 @@ begin
     or jsonb_typeof(tgt) is distinct from 'object'
     or tgt->>'kind' is distinct from 'program_context'
     or school is null or competence is null or program is null
-    or exists(select 1 from jsonb_object_keys(req) k
-      where k not in ('contractVersion','action','target','note'))
-    or exists(select 1 from jsonb_object_keys(tgt) k
-      where k not in ('kind','schoolId','competence','programId')) then
+    or exists(select 1 from jsonb_object_keys(req) as keys(key)
+      where keys.key not in ('contractVersion','action','target','note'))
+    or exists(select 1 from jsonb_object_keys(tgt) as keys(key)
+      where keys.key not in ('kind','schoolId','competence','programId')) then
     raise exception 'VALIDATION_ERROR: informe somente escola, competência, programa e observação opcional';
   end if;
   select * into ver from public.verifications
