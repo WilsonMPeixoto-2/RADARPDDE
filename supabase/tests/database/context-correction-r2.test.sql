@@ -3,7 +3,7 @@
 begin;
 set local role postgres;
 set local search_path = extensions, public, pg_catalog;
-select plan(25);
+select plan(27);
 
 insert into auth.users(id,email) values
   ('00000000-0000-0000-0000-00000000a601','r2-context-controller@example.test');
@@ -71,6 +71,10 @@ select is((select plan #> '{effects,delete,verifications}' from r2c_plan),'["R2C
   'apenas a verificação do contexto exato será removida');
 select is((select plan #> '{effects,delete,registered_invoices}' from r2c_plan),'["R2C-NF-1","R2C-NF-2"]'::jsonb,
   'não inclui a NF do outro mês nem a de outro programa');
+select is((select plan #>> '{affectedRecords,invoices,0,invoiceNumber}' from r2c_plan),'R2C-001',
+  'prévia identifica a primeira nota fiscal pelo número compreensível ao usuário');
+select is((select plan #>> '{affectedRecords,pendencies,0,documentKey}' from r2c_plan),'extCC',
+  'prévia identifica o documento da Pendência manual atingida');
 select is((select plan #> '{effects,delete,pendencies}' from r2c_plan),'["R2C-P-MANUAL","R2C-P-NF"]'::jsonb,
   'seleciona Pendências do programa, incluindo a manual explícita');
 select is((select plan #> '{effects,delete,pendency_attempts}' from r2c_plan),'["R2C-ATT-1"]'::jsonb,
