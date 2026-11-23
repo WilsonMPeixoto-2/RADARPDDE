@@ -22,7 +22,7 @@ async function openContextDialog(page, options = {}) {
                             delete: {
                                 verifications: ['VER-SET'],
                                 registered_invoices: ['NF-SET'],
-                                pendencies: ['P-SET'],
+                                pendencies: ['P-SET', 'P-INV'],
                                 pendency_attempts: ['ATT-SET'],
                                 pendency_contacts: ['CONT-SET'],
                                 assets: []
@@ -34,7 +34,10 @@ async function openContextDialog(page, options = {}) {
                         warnings: [],
                         affectedRecords: {
                             invoices: [{ id: 'NF-SET', invoiceNumber: '1245', description: 'Material para a secretaria', amount: 189.50 }],
-                            pendencies: [{ id: 'P-SET', documentKey: 'notaFiscal', status: 'Aberta' }]
+                            pendencies: [
+                                { id: 'P-SET', documentKey: 'notaFiscal', status: 'Aberta' },
+                                { id: 'P-INV', documentKey: 'extINV', status: 'Aguardando reanálise' }
+                            ]
                         },
                         preserved: { otherContexts: true, generalContacts: true }
                     };
@@ -89,6 +92,7 @@ test('T4: prévia apresenta contexto completo e não grava ao cancelar', async (
     await expect(dialog).toContainText('NF 1245');
     await expect(dialog).toContainText('Material para a secretaria');
     await expect(dialog).toContainText('Pendência: Nota fiscal');
+    await expect(dialog).toContainText('Pendência: Extrato de investimentos');
     await expect(dialog).toContainText('Você vai excluir os registros listados abaixo.');
     await expect(dialog).toContainText('Para registrar no lugar correto, faça um novo lançamento.');
     await expect(dialog).not.toContainText('Correção de contexto');
