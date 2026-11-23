@@ -118,7 +118,7 @@ test('T4: falha de prévia mantém confirmação indisponível', async ({ page }
     await openContextDialog(page, { failPreview: true });
     const dialog = page.getByRole('dialog', { name: 'Excluir lançamentos deste programa neste mês' });
     await expect(dialog.getByRole('button', { name: 'Confirmar exclusão do contexto' })).toBeDisabled();
-    await expect(dialog).toContainText('Prévia indisponível');
+    await expect(dialog.getByRole('alert')).toContainText('Não foi possível concluir a correção.');
     expect(await page.evaluate(() => window.__t4ContextCalls.map(c => c.name)))
         .toEqual(['preview_operational_change']);
 });
