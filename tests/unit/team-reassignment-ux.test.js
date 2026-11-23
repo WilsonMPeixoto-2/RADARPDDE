@@ -15,7 +15,7 @@ function functionSource(source, name) {
     assert.notEqual(start, -1, name + ' não encontrada');
     let depth = 0;
     let inBody = false;
-    for (let i = source.indexOf('{', start); i < source.length; i += 1) {
+    for (let i = source.indexOf(') {', start) + 2; i < source.length; i += 1) {
         if (source[i] === '{') { depth += 1; inBody = true; }
         if (source[i] === '}') { depth -= 1; if (inBody && depth === 0) return source.slice(start, i + 1); }
     }
@@ -31,8 +31,8 @@ test('o diálogo de reatribuição reutiliza a infraestrutura compartilhada em v
     assert.match(interactions, /openDialog\(dialog,/);
     assert.match(interactions, /closeDialog\(dialog\)/);
     assert.match(styles, /\.radar-team-reassignment-list/);
-    const helper = functionSource(app, 'requestTeamReassignmentConfirm');
-    assert.doesNotMatch(helper, /window\.confirm|modal-overlay active|className = 'modal'/);
+    assert.doesNotMatch(app, /function requestTeamReassignmentConfirm\(/);
+    assert.doesNotMatch(interactions, /window\.confirm|modal-overlay active|className = 'modal'/);
 });
 
 test('a reatribuição individual identifica a escola e ambos os controladores sem referência indefinida', () => {
