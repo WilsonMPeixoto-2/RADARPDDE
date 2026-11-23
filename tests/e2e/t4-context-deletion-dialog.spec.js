@@ -276,3 +276,30 @@ test('T4: menu Ações do programa fecha com Escape e clique fora sem deixar pai
     await page.locator('#test-t4-outside').click();
     await expect(menu).not.toHaveAttribute('open', '');
 });
+
+
+test('T4: confirmação permanece no campo de visão sem rolagem da janela em 1280x720', async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await openContextDialog(page);
+    const dialog = page.getByRole('dialog', { name: 'Excluir lançamentos deste programa neste mês' });
+    const confirm = dialog.getByRole('button', { name: 'Excluir estes lançamentos' });
+    await expect(confirm).toBeEnabled();
+    const geometry = await confirm.evaluate(button => {
+        const host = button.closest('[role="dialog"]');
+        const rect = button.getBoundingClientRect();
+        const shell = host.getBoundingClientRect();
+        return {
+            top: rect.top,
+            bottom: rect.bottom,
+            withinDialog: rect.top >= shell.top && rect.bottom <= shell.bottom,
+            withinViewport: rect.top >= 0 && rect.bottom <= window.innerHeight,
+            initialDialogScroll: host.scrollTop
+        };
+    });
+    expect(geometry.initialDialogScroll, 'nenhuma rolagem automática antecedeu a conferência visual').toBe(0);
+    expect(geometry.withinDialog && geometry.withinViewport,
+        'o botão destrutivo precisa ficar visível sem rolar a janela de confirmação').toBe(true);
+    await testInfo.attach('t4-footer-visible-720', {
+        body: await page.screenshot({ fullPage: false }), contentType: 'image/png'
+    });
+});
