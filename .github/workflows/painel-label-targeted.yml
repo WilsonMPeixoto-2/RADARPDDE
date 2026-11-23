@@ -45,7 +45,7 @@ jobs:
           node - <<'NODE'
           const fs = require('fs');
           const html = fs.readFileSync('index.html', 'utf8');
-          const nav = html.match(/<div class="nav-item active" id="nav-dashboard" onclick="switchView\('dashboard'\)">[\s\S]*?<span>([^<]+)<\/span>/);
+          const nav = html.match(/<(?:div|button)\b[^>]*class="nav-item active"[^>]*id="nav-dashboard"[^>]*onclick="switchView\('dashboard'\)"[^>]*>[\s\S]*?<span>([^<]+)<\/span>/);
           if (!nav) throw new Error('nav-dashboard não localizado com contrato técnico preservado.');
           if (nav[1] !== 'Painel') throw new Error(`Rótulo esperado Painel; recebido ${nav[1]}`);
           if (/id="nav-dashboard"[\s\S]{0,500}<span>Dashboard<\/span>/.test(html)) {
