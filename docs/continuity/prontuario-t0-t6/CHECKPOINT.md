@@ -1,5 +1,15 @@
 # Checkpoint único de continuidade operacional — RADAR T0–T6
 
+## Atualização verificada em 22/11/2026 — T4 inicial publicada; nomenclatura em homologação
+
+- **PR #538:** integrado na `main`, commit `ca73311377f95f32e994f98dfa5bdb4b0f56b7cc`, após 21/21 workflows aprovados.
+- **Vercel Production:** deployment `dpl_84bdgsjX2HS3CuWaseM4ErXF8KwR`, `READY`. Manifesto público no domínio institucional: `operationalCorrectionRelease=true`, `bonificationCorrectionRelease=true`.
+- **Supabase institucional:** migration 65 `20261121000200_correct_fiscal_bonification` aplicada, trigger e compatibilidade R1 presentes; nenhuma migração ou alteração de escola real é necessária para corrigir rótulos.
+- **Entrega delimitada:** correção de avaliação de **Notas Fiscais** da bonificação consolidada com prévia e reconsolidação; não equivale a T4 integral. `clear_item_history`, `delete_context` e demais critérios permanecem na fila T4; T5 permanece futura.
+- **Nomenclatura T0T6-D021:** o usuário aprovou **“Corrigir consolidação”**, janela **“Corrigir consolidação da bonificação”**, campo **“Nova avaliação — Notas Fiscais”**, aviso de alcance e etapa **“Consolidar bonificação”**. Candidata de UX na branch `ux/prontuario-corrigir-consolidacao-20261122`; **não confundir branch candidata com produção até PR, CI e aceite visual**.
+- **Gate atual:** executar CI, Playwright autenticado e screenshots claro/escuro da candidata; verificar que nenhuma lógica ou migração foi alterada. Não refazer a migration 65.
+
+
 ## Estado em 21/11/2026
 
 **T0–T3 estão tecnicamente concluídos e publicados.** A Release 1 foi integrada pelo [PR #535](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/535) e o [PR #537](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/537) fechou as três correções de acompanhamento. A homologação operacional com usuários reais continua disponível para conferir permissões e jornadas em uso.
@@ -11,7 +21,7 @@
 | Supabase institucional | A migration [`20261121000100_operational_correction_followup`](https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/9d0f50b0f42b44017591bce472581717c8a09bc0/supabase/migrations/20261121000100_operational_correction_followup.sql) consta no histórico do projeto `scnryinorqeucbfkioxo`. Consulta de leitura ao catálogo confirmou as RPCs de prévia e confirmação, a chamada de histórico, a tabela de registros administrativos e o bloqueio concorrente. |
 | Fluxos atingidos | [789 asserções SQL, quatro cenários de concorrência/idempotência e dez jornadas autenticadas T2/T3](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/44944665686). [21 ciclos funcionais](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/44944665571) em banco descartável. |
 
-**Release 2 · T4.** Retomar na branch `release/prontuario-t4-20261121`, [PR #538](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/538). O primeiro caso usa um Controlador para corrigir a marca de bonificação de um programa consolidado, com duas NFs já registradas. A correção deve preservar as análises e a Pendência fiscal, reabrir somente a bonificação do alvo e permitir reconsolidar pelo fluxo existente. A limpeza do histórico do item e a exclusão do contexto pertencem à sequência da T4. T5 tem release própria. T6 verifica cada entrega.
+**Release 2 · T4 (referência histórica de 21/11).** A candidata `release/prontuario-t4-20261121` foi integrada no [PR #538](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/538) e publicada em 22/11; **não retomar aquela branch como trabalho pendente**. O primeiro caso permite corrigir a avaliação de Notas Fiscais de um programa consolidado, preservando NF, análises e Pendência fiscal e exigindo reconsolidação do mesmo programa. Limpeza de histórico e exclusão de contexto pertencem à sequência T4; T5 tem release própria. Ver seção de atualização acima.
 
 As regras e obrigações herdadas estão no [registro](registry.json) e no [mapa de impacto](decision-impact.json). O aceite de campo continua identificado separadamente das provas em banco descartável.
 

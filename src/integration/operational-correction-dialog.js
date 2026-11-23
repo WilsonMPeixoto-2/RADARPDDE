@@ -85,28 +85,36 @@
         dialog.setAttribute('aria-labelledby', 'radar-operational-correction-title');
         const header = el(doc, 'header', 'radar-operational-correction-header');
         const kicker = el(doc, 'span', 'evaluation-retification-kicker',
-            bonus ? 'Notas Fiscais' : deleting ? 'Exclusão de lançamento' : 'Correção operacional');
+            bonus ? 'Avaliação de Notas Fiscais' : deleting ? 'Exclusão de lançamento' : 'Correção operacional');
         const title = el(doc, 'h2', '', deleting
             ? (mode === 'delete_invoice' ? 'Excluir nota fiscal' : 'Excluir pendência')
-            : bonus ? 'Corrigir bonificação' : 'Corrigir análise técnica');
+            : bonus ? 'Corrigir consolidação da bonificação' : 'Corrigir análise técnica');
         title.id = 'radar-operational-correction-title';
         const summary = el(doc, 'p', '', bonus
             ? [context.schoolName, context.programName, context.competenceLabel].filter(Boolean).join(' · ')
             : text(context.documentLabel || context.documentKey) + ' · ' + context.competence);
         header.append(kicker, title, summary);
+        if (bonus) {
+            const explanation = el(doc, 'p', 'fiscal-bonus-explanation',
+                'Nesta etapa, você pode corrigir apenas a avaliação de Notas Fiscais. '
+                + 'Se a bonificação já tiver sido consolidada, ao confirmar a alteração '
+                + 'o programa ficará com Alterações pendentes de consolidação até '
+                + 'você utilizar Consolidar bonificação.');
+            header.appendChild(explanation);
+        }
         const current = el(doc, 'p', 'radar-operational-correction-current', bonus
-            ? 'Marca atual: ' + text(input.currentValue || 'Sem marca')
+            ? 'Avaliação atual: ' + text(input.currentValue || 'Não preenchida')
             : 'Resultado atual: ' + text(input.currentValue || 'Não analisado'));
-        const label = el(doc, 'label', '', bonus ? 'Nova marca de bonificação' : 'Novo resultado');
+        const label = el(doc, 'label', '', bonus ? 'Nova avaliação — Notas Fiscais' : 'Novo resultado');
         label.htmlFor = 'radar-operational-correction-select';
         const select = el(doc, 'select', 'form-control');
         select.id = 'radar-operational-correction-select';
-        const choices = bonus ? ['', 'Sim', 'Não', 'Não se aplica', 'Limpar marca'] : ANALYSES;
+        const choices = bonus ? ['', 'Sim', 'Não', 'Não se aplica', 'Limpar resposta'] : ANALYSES;
         for (const choice of choices) {
             const option = el(doc, 'option', '', choice || 'Escolha uma opção');
             option.value = choice;
             if (bonus) option.disabled = !choice || choice === input.currentValue
-                || (choice === 'Limpar marca' && !input.currentValue);
+                || (choice === 'Limpar resposta' && !input.currentValue);
             select.appendChild(option);
         }
         // Preserva a sugestão inicial de "Correto" quando ainda não há análise;
@@ -361,7 +369,7 @@
             status('');
             try {
                 if (bonus && !select.value) {
-                    effects.textContent = 'Escolha uma marca para conferir o efeito neste programa.';
+                    effects.textContent = 'Escolha a nova avaliação para conferir o efeito neste programa.';
                     return;
                 }
                 const action = bonus || deleting ? mode : select.value === 'Não analisado'
@@ -369,7 +377,7 @@
                 const result = await client.preview({
                     action,
                     target,
-                    ...(bonus ? { changes: { bonificacao: select.value === 'Limpar marca' ? null : select.value } } : {}),
+                    ...(bonus ? { changes: { bonificacao: select.value === 'Limpar resposta' ? null : select.value } } : {}),
                     ...(action === 'correct_analysis' ? { changes: { analysis: select.value } } : {}),
                     ...(selectedPendencyIds.size > 0 && !deleting
                         ? { selectedPendencyIds: [...selectedPendencyIds] } : {})
@@ -425,8 +433,8 @@
                     : 'Correção confirmada e informações atualizadas.';
                 if (bonus) {
                     const reopened = preview.view.changes.some(change => change.field === 'bonus_result');
-                    message = reopened ? 'Marca corrigida. Consolide as alterações no cabeçalho do programa.'
-                        : 'Marca de bonificação atualizada.';
+                    message = reopened ? 'Avaliação corrigida. Para concluir, utilize Consolidar bonificação no cabeçalho do programa.'
+                        : 'Avaliação de Notas Fiscais atualizada.';
                 }
                 root.RadarSharedInteractions?.notify?.({ type: 'success', message });
             } catch (_error) {

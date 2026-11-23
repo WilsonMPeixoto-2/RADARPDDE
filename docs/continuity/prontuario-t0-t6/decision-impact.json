@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "date": "2026-11-21",
+  "date": "2026-11-22",
   "workstream": "RADARPDDE/PRONTUARIO-T0-T6",
   "registryPath": "docs/continuity/prontuario-t0-t6/registry.json",
   "lineagePath": "docs/continuity/prontuario-t0-t6/lineage.json",
@@ -91,7 +91,9 @@
             "src/application/operational-correction-client.js",
             "src/integration/operational-correction-dialog.js"
           ],
-          "evidenceRefs": ["https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/44944665686"]
+          "evidenceRefs": [
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/44944665686"
+          ]
         },
         {
           "id": "T0T6-I002-02",
@@ -109,7 +111,9 @@
             "src/integration/prontuario-operational-ux.js",
             "app.js"
           ],
-          "evidenceRefs": ["https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/44944665686"]
+          "evidenceRefs": [
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/44944665686"
+          ]
         },
         {
           "id": "T0T6-I002-03",
@@ -176,7 +180,9 @@
           "targetPaths": [
             "supabase/migrations/20261114000100_operational_correction_contract.sql"
           ],
-          "evidenceRefs": ["https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/44944665686"]
+          "evidenceRefs": [
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/44944665686"
+          ]
         },
         {
           "id": "T0T6-I003-02",
@@ -190,7 +196,9 @@
           "targetPaths": [
             "supabase/tests/database/operational-correction.test.sql"
           ],
-          "evidenceRefs": ["https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/44944665686"]
+          "evidenceRefs": [
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/44944665686"
+          ]
         }
       ]
     },
@@ -945,6 +953,76 @@
           "evidenceRefs": []
         }
       ]
+    },
+    {
+      "decisionId": "T0T6-D021",
+      "status": "approved",
+      "impactStatus": "initial-impact-mapping-needs-review",
+      "supersededBy": null,
+      "obligations": [
+        {
+          "id": "T0T6-I021-01",
+          "phase": "T4",
+          "surface": "ui",
+          "status": "candidate",
+          "requirementIds": [
+            "T0T6-R030"
+          ],
+          "acceptance": "Botão Corrigir consolidação, título da janela e campos claros, escopo Notas Fiscais, prévia e confirmação sem jargão marca; sem alterar RPC, RLS ou lógica financeira.",
+          "targetPaths": [
+            "app.js",
+            "src/integration/operational-correction-dialog.js",
+            "tests/e2e/supabase-operational-correction-local.spec.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I021-02",
+          "phase": "T4",
+          "surface": "visual",
+          "status": "gate-pending",
+          "requirementIds": [
+            "T0T6-R030",
+            "T0T6-R004"
+          ],
+          "acceptance": "A janela orienta a etapa posterior Consolidar bonificação, com texto legível e responsivo nos temas claro/escuro; comprovar por screenshots reais e aceite visual antes do merge.",
+          "targetPaths": [
+            "src/styles/evaluation-retification-ui.css",
+            "tests/e2e/supabase-operational-correction-local.spec.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I021-03",
+          "phase": "T5",
+          "surface": "ui",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R038"
+          ],
+          "acceptance": "Novas interfaces de correção/exclusão de históricos, contatos e patrimônio devem explicar objeto, efeito, preservação e próximo passo em linguagem do operador, sem jargão de implementação.",
+          "targetPaths": [
+            "app.js",
+            "src/integration/prontuario-operational-ux.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I021-04",
+          "phase": "T6",
+          "surface": "tests",
+          "status": "planned",
+          "requirementIds": [
+            "T0T6-R052"
+          ],
+          "acceptance": "Rever textos, screenshots, foco, rótulos acessíveis e compreensão do operador nas futuras releases; testes técnicos isolados não substituem qualidade de UX.",
+          "targetPaths": [
+            "tests/e2e/supabase-operational-correction-local.spec.js",
+            "tests/e2e/prontuario-correction-layout.spec.js"
+          ],
+          "evidenceRefs": []
+        }
+      ]
     }
   ],
   "trackedObligationIds": [
@@ -999,6 +1077,10 @@
     "T0T6-I019-03",
     "T0T6-I020-01",
     "T0T6-I020-02",
-    "T0T6-I020-03"
+    "T0T6-I020-03",
+    "T0T6-I021-01",
+    "T0T6-I021-02",
+    "T0T6-I021-03",
+    "T0T6-I021-04"
   ]
 }
