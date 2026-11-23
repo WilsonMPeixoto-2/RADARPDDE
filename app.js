@@ -13012,7 +13012,7 @@ function renderEquipe() {
                 <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                     <div>
                         <h2>Alocação de Escolas (${escolas.length} Unidades)</h2>
-                        <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: var(--text-muted);">Reatribua as escolas diretamente nos dropdowns para atualizar a carteira de cada controlador instantaneamente.</p>
+                        <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: var(--text-muted);">Escolha o novo Controlador. Antes de alterar a carteira, confira a unidade escolar e a atribuição proposta.</p>
                     </div>
                     
                     <!-- Barra de Ações em Lote -->
@@ -13055,7 +13055,7 @@ function renderEquipe() {
                                         <td>${escapeHtml(e.cnpj)}</td>
                                         <td><span class="badge badge-gray">${escapeHtml(getRAFromDesignacao(e.designação || e.designaçao))}</span></td>
                                         <td>
-                                            <select class="form-control select-alocacao" aria-label="Controlador responsável por ${schoolLabel}" style="max-width: 220px; font-weight: 500; border-color: var(--border-color);" onchange="reatribuirEscolaDirect('${escapeHtml(e.id)}', this.value)">
+                                            <select class="form-control select-alocacao" data-school-id="${escapeHtml(e.id)}" aria-label="Controlador responsável por ${schoolLabel}" style="max-width: 220px; font-weight: 500; border-color: var(--border-color);" onchange="reatribuirEscolaDirect('${escapeHtml(e.id)}', this.value)">
                                                 ${activeControllers.map(ctrl => `
                                                     <option value="${escapeHtml(ctrl.id)}" ${ctrl.id === currentCtrlId ? 'selected' : ''}>${escapeHtml(ctrl.name)}</option>
                                                 `).join('')}
@@ -13259,12 +13259,10 @@ async function removerControlador(id, trigger = document.activeElement) {
         });
     }
 }
-function requestTeamReassignmentConfirm({ title, message, items = [], confirmLabel = 'Confirmar reatribuição' }) { if (typeof document === 'undefined' || !document.body) { const fallbackText = [title, message, ...items].filter(Boolean).join('\n'); return Promise.resolve(typeof window !== 'undefined' && typeof window.confirm === 'function' ? window.confirm(fallbackText) : false); } return new Promise((resolve) => {
-    const overlay = document.createElement('div'); overlay.className = 'modal-overlay active'; const modal = document.createElement('div'); modal.className = 'modal'; modal.setAttribute('role', 'dialog'); modal.setAttribute('aria-modal', 'true'); const titleId = 'team-reassign-confirm-title-' + Date.now(); const h3 = document.createElement('h3'); h3.id = titleId; h3.textContent = title || 'Confirmar ação'; modal.setAttribute('aria-labelledby', titleId); modal.appendChild(h3); const p = document.createElement('p'); p.textContent = message || ''; modal.appendChild(p); if (Array.isArray(items) && items.length > 0) { const ul = document.createElement('ul'); ul.style.maxHeight = '220px'; ul.style.overflowY = 'auto'; items.forEach((item) => { const li = document.createElement('li'); li.textContent = String(item); ul.appendChild(li); }); modal.appendChild(ul); } const actions = document.createElement('div'); actions.className = 'modal-actions'; const cancelBtn = document.createElement('button'); cancelBtn.type = 'button'; cancelBtn.className = 'btn btn-secondary'; cancelBtn.textContent = 'Cancelar'; const confirmBtn = document.createElement('button'); confirmBtn.type = 'button'; confirmBtn.className = 'btn btn-primary'; confirmBtn.textContent = confirmLabel || 'Confirmar reatribuição'; actions.appendChild(cancelBtn); actions.appendChild(confirmBtn); modal.appendChild(actions); overlay.appendChild(modal); document.body.appendChild(overlay); let settled = false; const cleanup = (result) => { if (settled) return; settled = true; document.removeEventListener('keydown', onKeyDown); overlay.remove(); resolve(result); }; const onKeyDown = (e) => { if (e.key === 'Escape') { e.preventDefault(); cleanup(false); } }; document.addEventListener('keydown', onKeyDown); cancelBtn.addEventListener('click', () => cleanup(false)); confirmBtn.addEventListener('click', () => cleanup(true)); overlay.addEventListener('click', (e) => { if (e.target === overlay) cleanup(false); }); cancelBtn.focus(); }); }
-
 async function reatribuirEscolaDirect(escolaId, novoCtrlId) {
     const escolaObj = typeof escolas !== 'undefined' ? escolas.find(e => e.id === escolaId) : null;
     const escolaNome = getSchoolDisplayName(escolaObj, escolaId);
+    if (String(escolaObj?.controladorId || '') === String(novoCtrlId || '')) return;
     const atualCtrl = (typeof controladores !== 'undefined' && escolaObj)
         ? controladores.find(c => c.id === escolaObj.controladorId)
         : null;
@@ -13275,9 +13273,27 @@ async function reatribuirEscolaDirect(escolaId, novoCtrlId) {
         ? atualCtrl.name
         : (escolaObj && escolaObj.controladorId ? escolaObj.controladorId : 'Não atribuído');
     const novoNome = novoCtrl ? novoCtrl.name : (novoCtrlId || 'Não atribuído');
-    const confirmed = await requestTeamReassignmentConfirm({ title: 'Confirmar reatribuição de escola', message: `Confirmar reatribuição da escola "${escolaName}"?`, items: [`Controlador atual: ${atualNome}`, `Novo controlador: ${novoNome}`], confirmLabel: 'Confirmar reatribuição' });
+    let confirmed;
+    try {
+        confirmed = await window.RadarSharedInteractions.requestTeamReassignmentConfirm({
+            title: 'Confirmar reatribuição de escola',
+            message: `Deseja alterar o Controlador responsável por "${escolaNome}"?`,
+            listTitle: 'Alteração proposta',
+            items: [`Controlador atual: ${atualNome}`, `Novo Controlador: ${novoNome}`],
+            confirmLabel: 'Confirmar reatribuição'
+        });
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível abrir a confirmação de reatribuição.');
+        renderEquipe();
+        return;
+    }
     if (!confirmed) {
         renderEquipe();
+        requestAnimationFrame(() => {
+            const restored = Array.from(document.querySelectorAll('.select-alocacao'))
+                .find(select => select.dataset.schoolId === String(escolaId));
+            (restored || document.getElementById('team-page-title'))?.focus({ preventScroll: true });
+        });
         return;
     }
     try {
@@ -13334,11 +13350,23 @@ async function aplicarAtribuicaoEmLote() {
     const ctrlNome = (typeof controladores !== 'undefined' && controladores.find(c => c.id === novoCtrlId)?.name)
         || (bulkSelect.options[bulkSelect.selectedIndex]?.text)
         || novoCtrlId;
-    const todasEscolas = targetEscolasIds.map(id=> {
+    const todasEscolas = targetEscolasIds.map(id => {
         const esc = typeof escolas !== 'undefined' ? escolas.find(e => e.id === id) : null;
         return getSchoolDisplayName(esc, id);
     });
-    const confirmed = await requestTeamReassignmentConfirm({ title: 'Confirmar atribuição em lote', message: `Atribuir ${targetEscolasIds.length} escola(s) para "${ctrlName}"?`, items: todasEscolas, confirmLabel: 'Confirmar atribuição em lote' });
+    let confirmed;
+    try {
+        confirmed = await window.RadarSharedInteractions.requestTeamReassignmentConfirm({
+            title: 'Confirmar atribuição em lote',
+            message: `As ${targetEscolasIds.length} escolas selecionadas passarão para "${ctrlNome}". Confira a relação antes de confirmar.`,
+            listTitle: `Escolas selecionadas (${targetEscolasIds.length})`,
+            items: todasEscolas,
+            confirmLabel: 'Confirmar atribuição em lote'
+        });
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível abrir a confirmação da atribuição em lote.');
+        return;
+    }
     if (!confirmed) return;
     try {
         await radarSchoolService.bulkAssignController({
