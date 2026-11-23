@@ -126,6 +126,11 @@
     line-height: 1.5;
 }
 
+.radar-team-reassignment-list:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 2px;
+}
+
 .radar-team-reassignment-list li {
     padding: 7px 2px;
     overflow-wrap: anywhere;
