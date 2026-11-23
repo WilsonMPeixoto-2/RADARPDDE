@@ -46,14 +46,18 @@ test.describe('Gestão de Equipe — confirmação acessível de reatribuição'
     await page.evaluate(() => document.body.classList.remove('dark-theme'));
 
     await page.keyboard.press('Escape');
-    await expect(dialog).toBeHidden();
+    await expect(dialog).not.toHaveClass(/show/);
+    await expect(dialog).toHaveAttribute('aria-hidden', 'true');
+    await expect(dialog).toHaveAttribute('inert', '');
     expect(await page.evaluate(() => window.__teamWrites)).toEqual([]);
 
     const again = page.locator('select.select-alocacao').first();
     await again.selectOption(other);
     await expect(dialog).toBeVisible();
     await dialog.getByRole('button', { name: 'Confirmar reatribuição', exact: true }).click();
-    await expect(dialog).toBeHidden();
+    await expect(dialog).not.toHaveClass(/show/);
+    await expect(dialog).toHaveAttribute('aria-hidden', 'true');
+    await expect(dialog).toHaveAttribute('inert', '');
     const calls = await page.evaluate(() => window.__teamWrites);
     expect(calls).toHaveLength(1);
     expect(calls[0]).toMatchObject({ kind: 'single', controllerId: other });
@@ -85,13 +89,20 @@ test.describe('Gestão de Equipe — confirmação acessível de reatribuição'
     await page.keyboard.press('Shift+Tab');
     await expect(confirm).toBeFocused();
     await testInfo.attach('reatribuicao-lote', { body: await dialog.screenshot(), contentType: 'image/png' });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(dialog.locator('.modal-content.radar-team-reassignment-dialog')).toBeInViewport();
+    await testInfo.attach('reatribuicao-lote-mobile', { body: await dialog.screenshot(), contentType: 'image/png' });
 
     await cancel.click();
-    await expect(dialog).toBeHidden();
+    await expect(dialog).not.toHaveClass(/show/);
+    await expect(dialog).toHaveAttribute('aria-hidden', 'true');
+    await expect(dialog).toHaveAttribute('inert', '');
     expect(await page.evaluate(() => window.__teamWrites)).toEqual([]);
     await page.getByRole('button', { name: 'Aplicar em Lote' }).click();
     await dialog.getByRole('button', { name: 'Confirmar atribuição em lote' }).click();
-    await expect(dialog).toBeHidden();
+    await expect(dialog).not.toHaveClass(/show/);
+    await expect(dialog).toHaveAttribute('aria-hidden', 'true');
+    await expect(dialog).toHaveAttribute('inert', '');
     const calls = await page.evaluate(() => window.__teamWrites);
     expect(calls).toHaveLength(1);
     expect(calls[0].kind).toBe('bulk');
