@@ -125,7 +125,7 @@
     panel.classList.toggle('is-empty', !records.length);
     panel.dataset.empty = records.length ? 'false' : 'true';
     if (!records.length) {
-      list.append(node('p','quality-provisional-empty','Nenhuma movimentação provisória nesta competência — exclusivo da Conta PDDE Qualidade sem Ação Integrada definida (não abre Pendência automática).'));
+      list.append(node('p','quality-provisional-empty','Nenhuma saída provisória registrada nesta competência.'));
       return;
     }
     const money = amount => amount == null ? 'Valor não informado'
