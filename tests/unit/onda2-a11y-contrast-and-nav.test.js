@@ -85,7 +85,8 @@ test('Onda 2: diálogo de exclusão evita jargão causal e filtra transição nu
         path.join(ROOT, 'src', 'integration', 'operational-correction-dialog.js'),
         'utf8'
     );
-    assert.match(source, /'Exclusão de lançamento'/);
+    assert.match(source, /mode === 'delete_invoice' \? 'Exclusão de nota fiscal' : 'Exclusão de pendência'/);
+    assert.doesNotMatch(source, /'Exclusão de lançamento'/);
     assert.doesNotMatch(source, /Exclusão com alcance causal/);
     assert.match(source, /text\(change\.before\)\s*===\s*'Não analisado'\s*&&\s*text\(change\.after\)\s*===\s*'Não analisado'/);
 });
