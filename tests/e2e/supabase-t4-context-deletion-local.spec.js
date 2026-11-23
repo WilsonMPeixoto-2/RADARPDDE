@@ -50,11 +50,37 @@ async function openSchool(page) {
 }
 
 async function enablePilotAndOpen(page) {
-    await page.evaluate(async () => {
+    const proof = await page.evaluate(async () => {
         await window.RadarProductExtensionsReady;
         window.RADAR_T4_CONTEXT_DELETION_PILOT = true;
+        const dialog = window.RadarOperationalCorrectionDialog;
+        const repository = window.RadarApplicationServices?.data?.repository;
+        const before = {
+            pilot: window.RADAR_T4_CONTEXT_DELETION_PILOT,
+            preview: window.RADAR_OPERATIONAL_CORRECTION_PREVIEW,
+            canUse: dialog?.canUse?.(window),
+            canDelete: dialog?.canDeleteContext?.(window),
+            remote: repository?.capabilities?.().remote,
+            executeRpc: typeof repository?.executeRpc === 'function',
+            client: typeof window.RadarOperationalCorrectionClient?.createOperationalCorrectionClient === 'function',
+            program: typeof verificacoes === 'undefined' ? null :
+                Boolean(verificacoes['ESC-T4-CONTEXT']?.['2026-05_BASIC']),
+            role: window.RadarAuthContext?.authorization?.role,
+            competence: typeof activeProntuarioCompetencia === 'undefined' ? null : activeProntuarioCompetencia
+        };
         window.renderProntuario('ESC-T4-CONTEXT');
+        return {
+            ...before,
+            headers: [...document.querySelectorAll('tr[data-program-header]')]
+                .map(row => row.getAttribute('data-program-header')),
+            visibleActions: document.querySelectorAll('.program-context-delete-button').length
+        };
     });
+    expect(proof, 'Diagnóstico do piloto autenticado: ' + JSON.stringify(proof))
+        .toMatchObject({ pilot: true, preview: true, canUse: true,
+            canDelete: true, remote: true, executeRpc: true, client: true,
+            program: true, role: 'controller', competence: '2026-05',
+            visibleActions: 1 });
     const action = page.locator('tr[data-program-header="BASIC"]')
         .getByRole('button', { name: 'Excluir lançamentos deste programa neste mês' });
     await expect(action).toBeVisible();
