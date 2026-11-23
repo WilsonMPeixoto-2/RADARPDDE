@@ -3,7 +3,7 @@
 begin;
 set local role postgres;
 set local search_path = extensions, public, pg_catalog;
-select plan(27);
+select plan(33);
 
 insert into auth.users(id,email) values
   ('00000000-0000-0000-0000-00000000a601','r2-context-controller@example.test');
@@ -23,14 +23,17 @@ values
   ('R2C-V-A10','R2C-S','2043-10','R2C-A','{"notaFiscal":"Sim"}','{"notaFiscal":"Correto"}','apta'),
   ('R2C-V-B09','R2C-S','2043-09','R2C-B','{"notaFiscal":"Sim"}','{"notaFiscal":"Correto"}','apta');
 insert into public.assets(id,school_id,competence_id,description,expense_type,invoice_number,amount,status)
-values ('R2C-AS-1','R2C-S','2043-09','Patrimônio lançado no mês errado','permanente','R2C-001',1800,'Inventariada');
+values
+  ('R2C-AS-1','R2C-S','2043-09','Patrimônio lançado no mês errado','permanente','R2C-001',1800,'Inventariada'),
+  ('R2C-AS-SHARED','R2C-S','2043-09','Patrimônio compartilhado com programa vizinho','permanente','R2C-SHARED',950,'Inventariada');
 insert into public.registered_invoices
   (id,school_id,competence_id,program_id,verification_id,source_context_key,description,expense_type,invoice_number,amount,linked_asset_id,payload)
 values
   ('R2C-NF-1','R2C-S','2043-09','R2C-A','R2C-V-A09','2043-09_R2C-A','NF permanente incorreta','permanente','R2C-001',1800,'R2C-AS-1','{}'),
   ('R2C-NF-2','R2C-S','2043-09','R2C-A','R2C-V-A09','2043-09_R2C-A','NF consumo incorreta','consumo','R2C-002',120,null,'{}'),
+  ('R2C-NF-3','R2C-S','2043-09','R2C-A','R2C-V-A09','2043-09_R2C-A','NF compartilhada no pacote','permanente','R2C-SHARED',950,'R2C-AS-SHARED','{}'),
   ('R2C-NF-OUT-MONTH','R2C-S','2043-10','R2C-A','R2C-V-A10','2043-10_R2C-A','NF mês vizinho','consumo','R2C-003',210,null,'{}'),
-  ('R2C-NF-OUT-PROG','R2C-S','2043-09','R2C-B','R2C-V-B09','2043-09_R2C-B','NF programa vizinho','consumo','R2C-004',310,null,'{}');
+  ('R2C-NF-OUT-PROG','R2C-S','2043-09','R2C-B','R2C-V-B09','2043-09_R2C-B','NF programa vizinho','permanente','R2C-SHARED',950,'R2C-AS-SHARED','{}');
 insert into public.pendencies
   (id,school_id,competence_origin,program_id,document_key,status,next_actor,registered_invoice_id,resolved_at)
 values
@@ -69,12 +72,14 @@ select is((select plan #>> '{target,kind}' from r2c_plan),'program_context','con
 select is((select plan #>> '{target,competence}' from r2c_plan),'2043-09','prévia mantém a competência exata');
 select is((select plan #> '{effects,delete,verifications}' from r2c_plan),'["R2C-V-A09"]'::jsonb,
   'apenas a verificação do contexto exato será removida');
-select is((select plan #> '{effects,delete,registered_invoices}' from r2c_plan),'["R2C-NF-1","R2C-NF-2"]'::jsonb,
+select is((select plan #> '{effects,delete,registered_invoices}' from r2c_plan),'["R2C-NF-1","R2C-NF-2","R2C-NF-3"]'::jsonb,
   'não inclui a NF do outro mês nem a de outro programa');
 select is((select plan #>> '{affectedRecords,invoices,0,invoiceNumber}' from r2c_plan),'R2C-001',
   'prévia identifica a primeira nota fiscal pelo número compreensível ao usuário');
 select is((select plan #>> '{affectedRecords,pendencies,0,documentKey}' from r2c_plan),'extCC',
   'prévia identifica o documento da Pendência manual atingida');
+select is((select plan #>> '{affectedRecords,assets,0,id}' from r2c_plan),'R2C-AS-1',
+  'prévia identifica o bem exclusivo que será excluído em affectedRecords.assets');
 select is((select plan #> '{effects,delete,pendencies}' from r2c_plan),'["R2C-P-MANUAL","R2C-P-NF"]'::jsonb,
   'seleciona Pendências do programa, incluindo a manual explícita');
 select is((select plan #> '{effects,delete,pendency_attempts}' from r2c_plan),'["R2C-ATT-1"]'::jsonb,
@@ -83,6 +88,12 @@ select is((select plan #> '{effects,delete,pendency_contacts}' from r2c_plan),'[
   'não elimina contato geral independente');
 select is((select plan #> '{effects,delete,assets}' from r2c_plan),'["R2C-AS-1"]'::jsonb,
   'bem exclusivo do pacote aparece na prévia');
+select is((select plan #> '{preserved,sharedAssetIds}' from r2c_plan),'["R2C-AS-SHARED"]'::jsonb,
+  'bem compartilhado com NF vizinha é listado como preservado');
+select ok((select (plan #> '{versions,assets}') ? 'R2C-AS-SHARED' from r2c_plan),
+  'bem compartilhado entra em versions/lock para impedir corrida de bem órfão');
+select ok((select (plan #> '{versions,registered_invoices}') ? 'R2C-NF-OUT-PROG' from r2c_plan),
+  'NF vizinha ligada ao bem compartilhado entra em versions/lock sem ser excluída');
 select is((select plan #>> '{effects,update,0,entity}' from r2c_plan),'quality_provisional_movements',
   'provisória identificada será reaberta, não eliminada');
 select is((select count(*)::int from public.verifications where id='R2C-V-A09'),1,
@@ -94,18 +105,20 @@ select throws_like($$ select public.apply_operational_change(
     '%STALE_PLAN%', 'uma prévia adulterada ou antiga nunca autoriza a exclusão');
 select is((select count(*)::int from public.verifications where id='R2C-V-A09'),1,
     'falha na conferência não exclui a avaliação mensal');
-select is((select count(*)::int from public.registered_invoices where id in ('R2C-NF-1','R2C-NF-2')),2,
-    'falha na conferência mantém as duas notas fiscais');
+select is((select count(*)::int from public.registered_invoices where id in ('R2C-NF-1','R2C-NF-2','R2C-NF-3')),3,
+    'falha na conferência mantém as notas fiscais alvo');
 select lives_ok($$ select public.apply_operational_change(pg_temp.r2c_request(),
     (select plan->>'planDigest' from r2c_plan),'00000000-0000-0000-0000-00000000a661') $$,
   'aplicação única transacional confirma exclusão do contexto errado');
 select is((select count(*)::int from public.verifications where id='R2C-V-A09'),0,'verificação alvo excluída');
-select is((select count(*)::int from public.registered_invoices where id in ('R2C-NF-1','R2C-NF-2')),0,
-  'as duas NFs alvo são excluídas');
+select is((select count(*)::int from public.registered_invoices where id in ('R2C-NF-1','R2C-NF-2','R2C-NF-3')),0,
+  'as NFs alvo são excluídas');
 select is((select count(*)::int from public.pendencies where id in ('R2C-P-NF','R2C-P-MANUAL')),0,
   'Pendências dependentes excluídas');
 select is((select count(*)::int from public.assets where id='R2C-AS-1'),0,
   'bem inventariado exclusivo excluído sob guarda transacional');
+select is((select count(*)::int from public.assets where id='R2C-AS-SHARED'),1,
+  'bem compartilhado permanece intacto após a exclusão do contexto');
 select is((select count(*)::int from public.verifications where id in ('R2C-V-A10','R2C-V-B09')),2,
   'verificações de outro mês/programa preservadas');
 select is((select count(*)::int from public.registered_invoices where id in ('R2C-NF-OUT-MONTH','R2C-NF-OUT-PROG')),2,
@@ -114,6 +127,9 @@ select is((select count(*)::int from public.pendency_contacts where id='R2C-C-GE
   'contato geral permanece');
 select is((select status from public.quality_provisional_movements where id='00000000-0000-0000-0000-00000000a651'),'open',
   'provisória identificada reabre sem ficar órfã');
+select ok((select details ? 'affectedRecords' and position('R2C-001' in coalesce(details->>'text','')) > 0
+  from public.administrative_logs where id='correcao-operacional-00000000-0000-0000-0000-00000000a661'),
+  'log administrativo preserva identificação legível das NFs excluídas e affectedRecords');
 select is(public.apply_operational_change(pg_temp.r2c_request(),
     (select plan->>'planDigest' from r2c_plan),'00000000-0000-0000-0000-00000000a661')->>'replayed',
   'true','mesma operationKey devolve o recibo anterior sem nova exclusão');

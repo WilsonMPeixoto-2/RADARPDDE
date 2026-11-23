@@ -601,6 +601,7 @@ body.dark-theme #prontuario-verif-rows tr.program-block-start > td.program-conte
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    min-block-size: 32px;
     max-inline-size: 100%;
     padding: 5px 9px;
     border: 1px solid var(--border-color);
@@ -636,7 +637,8 @@ body.dark-theme #prontuario-verif-rows tr.program-block-start > td.program-conte
     background: var(--bg-card-hover);
 }
 #prontuario-verif-rows [data-program-header] .program-context-options > summary:focus-visible,
-#prontuario-verif-rows [data-program-header] .program-context-delete-button:focus-visible {
+#prontuario-verif-rows [data-program-header] .program-context-delete-button:focus-visible,
+#prontuario-verif-rows [data-program-header] .program-context-name:focus-visible {
     outline: 2px solid var(--border-focus, #8b5cf6);
     outline-offset: 3px;
 }

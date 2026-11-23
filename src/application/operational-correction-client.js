@@ -196,10 +196,11 @@
                 && [...selected].every(id => id && described.has(id));
         };
         // Não aceitar confirmação de conjunto destrutivo apresentado apenas em
-        // contagens: todos os IDs de NFs/Pendências devem estar na prévia legível.
+        // contagens: todos os IDs de NFs, Pendências e bens exclusivos devem estar na prévia legível.
         const contextDetailsComplete = plan.action !== 'delete_context'
             || (matchesDetailedIds('registered_invoices', 'invoices')
-                && matchesDetailedIds('pendencies', 'pendencies'));
+                && matchesDetailedIds('pendencies', 'pendencies')
+                && matchesDetailedIds('assets', 'assets'));
         const warnings = Array.isArray(plan.warnings) ? clone(plan.warnings) : [];
         return {
             action: plan.action || null,
