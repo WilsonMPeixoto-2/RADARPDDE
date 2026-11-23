@@ -10384,6 +10384,9 @@ function renderProntuarioVerificacoes(esc) {
                 const canDeleteContext = Boolean(verificacoes[esc.id]?.[compProgKey])
                     && !['inventario', 'sme'].includes(accessProfile)
                     && window.RadarOperationalCorrectionDialog?.canDeleteContext?.(window) === true;
+                const canClearItemHistory = !['inventario', 'sme'].includes(accessProfile)
+                    && canViewTechnicalAnalysis
+                    && window.RadarOperationalCorrectionDialog?.canClearHistory?.(window) === true;
 
                 // A grade usa um estado vazio transitório; só um comando do usuário cria a verificação.
                 const v = buildVerificationSnapshot(
@@ -10683,12 +10686,15 @@ function renderProntuarioVerificacoes(esc) {
                                 }
 
                                 const integratedDeletion = window.RadarOperationalCorrectionDialog?.canUse?.(window) === true;
+                                const canClearInvoiceHistory = canClearItemHistory && canMutateInvoice
+                                    && note.tipo !== 'a_identificar'
+                                    && (hasPendencyHistory || analysis !== 'Não analisado');
                                 const canEditInvoiceData = canMutateInvoice && !invoicePendency
                                     && note.tipo !== 'a_identificar';
                                 const canDeleteInvoice = canMutateInvoice && (
                                     integratedDeletion || (canEditInvoiceData && !hasPendencyHistory)
                                 );
-                                const editControls = (canEditInvoiceData || canDeleteInvoice)
+                                const editControls = (canEditInvoiceData || canDeleteInvoice || canClearInvoiceHistory)
                                     ? `
                                         <span class="invoice-document-inline-actions">
                                             ${canEditInvoiceData ? `
@@ -10699,6 +10705,14 @@ function renderProntuarioVerificacoes(esc) {
                                             ${canDeleteInvoice ? `
                                                 <button type="button" class="is-danger" onclick="removerNotaRegistrada('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')" aria-label="Excluir ${escapeHtml(getInvoiceDocumentTitle(note))}">
                                                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4.5h6V7M7 7l1 13h8l1-13M10 10v7M14 10v7"/></svg>
+                                                </button>
+                                            ` : ''}
+                                            ${canClearInvoiceHistory ? `
+                                                <button type="button" class="invoice-history-clear-button"
+                                                    title="Limpar avaliações e histórico desta nota sem excluir a despesa"
+                                                    aria-label="Limpar histórico de ${escapeHtml(getInvoiceDocumentTitle(note))}"
+                                                    onclick="openDocumentItemHistory('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', 'notaFiscal', this, '${escapeHtml(note.id)}')">
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="12" r="7"/><path d="M11 8v4l2.5 2M18 18l4 4M22 18l-4 4"/></svg>
                                                 </button>
                                             ` : ''}
                                         </span>
@@ -10934,7 +10948,12 @@ function renderProntuarioVerificacoes(esc) {
                                             </label>
                                         </div>
                                         ${canViewTechnicalAnalysis ? `<div class="invoice-document-analysis">${analysisHTML}</div>` : ''}
-                                        ${canUseVerificationActions ? `<div class="invoice-document-action">${actionHTML}</div>` : ''}
+                                        ${canUseVerificationActions ? `<div class="invoice-document-action">${actionHTML}
+                                            ${canClearItemHistory && canMutateAdvisory && (analysis !== 'Não analisado' || invoicePendency) ? `
+                                                <button type="button" class="prontuario-history-clear-button"
+                                                    aria-label="Limpar histórico da Consulta à Assessoria da NF ${escapeHtml(note.numero || note.id)}"
+                                                    onclick="openDocumentItemHistory('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', 'consAssessoria', this, '${escapeHtml(note.id)}')">Limpar histórico</button>
+                                            ` : ''}</div>` : ''}
                                     </div>
                                 `;
                             }).join('')
@@ -11048,6 +11067,11 @@ function renderProntuarioVerificacoes(esc) {
                                     <span class="verification-document-icon">${verificationDocumentIconSvg(doc.key)}</span>
                                     <span class="verification-document-copy">
                                         <strong>${escapeHtml(doc.name)}</strong>
+                                        ${canClearItemHistory && (analiseValue !== 'Não analisado' || rowPendency) ? `
+                                            <button type="button" class="prontuario-history-clear-button"
+                                                aria-label="Limpar avaliações e histórico de ${escapeHtml(doc.name)}"
+                                                onclick="openDocumentItemHistory('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', this)">Limpar histórico</button>
+                                        ` : ''}
                                     </span>
                                 </div>
                                 ${extraContentHTML}
@@ -11779,6 +11803,44 @@ function openProgramContextDeletion(trigger) {
         context: {
             schoolId, schoolName, programName, competenceLabel,
             competence: competenciaKey, programId: contextId
+        }
+    });
+}
+
+function openDocumentItemHistory(escolaId, compKey, documentKey, trigger = document.activeElement, invoiceId = null) {
+    const dialog = window.RadarOperationalCorrectionDialog;
+    if (!dialog?.canClearHistory?.(window)) return false;
+    if (['inventario', 'sme'].includes(getRadarAccessProfile())) return false;
+    const { competenciaKey, contextId } = window.RadarCompetencia.splitCompetenciaContext(compKey);
+    if (!competenciaKey || !contextId || !documentKey || !escolaId) return false;
+    if (['notaFiscal', 'consAssessoria'].includes(documentKey) && !invoiceId) return false;
+    const school = escolas.find(item => String(item.id) === String(escolaId));
+    const program = programas.find(item => String(item.id) === String(contextId));
+    const documentLabels = {
+        extCC: 'Extrato Conta Corrente',
+        extINV: 'Extrato Investimento',
+        declBBAgil: 'Declaração BB Ágil',
+        boletoInternet: 'Boleto de pagamento de Internet',
+        encampInventario: 'Encaminhamento para Inventariação',
+        notaFiscal: 'Nota Fiscal',
+        consAssessoria: 'Consulta à Assessoria'
+    };
+    const invoice = invoiceId && notasRegistradas.find(note => String(note.id) === String(invoiceId)
+        && String(note.escolaId) === String(escolaId));
+    return dialog.open(window, {
+        mode: 'clear_item_history',
+        trigger,
+        context: {
+            schoolId: escolaId,
+            schoolName: school ? getSchoolDisplayName(school, escolaId) : escolaId,
+            competence: competenciaKey,
+            competenceLabel: competenciaKey,
+            programId: contextId,
+            programName: program?.name || contextId,
+            documentKey,
+            documentLabel: invoice ? `${documentLabels[documentKey] || documentKey} · ${getInvoiceDocumentTitle(invoice)}`
+                : (documentLabels[documentKey] || documentKey),
+            ...(invoiceId ? { invoiceId } : {})
         }
     });
 }
