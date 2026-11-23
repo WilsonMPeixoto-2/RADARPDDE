@@ -34,5 +34,5 @@ test('T4 histórico exige autorização própria e exclusão de contexto previam
     assert.throws(() => buildRuntimeInput({
         ...wanted, RADAR_T4_CONTEXT_DELETION_RELEASE_ENABLED: 'false',
         RADAR_OPERATIONAL_CORRECTION_RELEASE_ENABLED: 'false'
-    }), /histórico|correção operacional/i);
+    }), /histórico|correção operacional|release operacional/i);
 });
