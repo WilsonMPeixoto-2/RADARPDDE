@@ -141,6 +141,10 @@ test.describe.serial('PR397 — independência com UI/Auth/Supabase reais', () =
             await page.locator('#form-dados-nota button[type="submit"]').click();
             await page.evaluate(() => window.RadarApplicationServices.data.remoteExecutionTail);
             await page.reload();
+            // Prova de prontidão do próprio produto: o Supabase pode responder
+            // antes de o bootstrap preencher o estado em memória após reload.
+            // Não esperar pelo RESULTADO esperado; somente pela inicialização.
+            await page.waitForFunction(() => window.RadarDataContext?.ready === true);
             const after = await persistedContext(page, 'ESC-INDEP-CONS');
             expect(after.bonus_result).toBe(before.bonus_result);
             for (const key of ['notaFiscal', 'extCC', 'extINV', 'declBBAgil']) expect(after.bonification[key]).toBe(before.bonification[key]);
