@@ -80,7 +80,8 @@ test('T4 delete_context: prévia apresenta a verificação e todas as classes de
         },
         affectedRecords: {
             invoices: [{ id: 'NF-SET', invoiceNumber: '1245', description: 'Materiais de expediente', amount: 189.5 }],
-            pendencies: [{ id: 'P-SET', documentKey: 'notaFiscal', status: 'Aberta' }]
+            pendencies: [{ id: 'P-SET', documentKey: 'notaFiscal', status: 'Aberta' }],
+            assets: [{ id: 'BEM-SET', description: 'Notebook institucional', status: 'Inventariada' }]
         },
         preserved: {
             otherCompetence: '2026-10',
@@ -111,19 +112,26 @@ test('T4 delete_context: impede exclusão quando os registros descritos não cor
             delete: {
                 verifications: ['V-1'],
                 registered_invoices: ['NF-1', 'NF-2'],
-                pendencies: ['P-1']
+                pendencies: ['P-1'],
+                assets: ['BEM-1']
             },
             update: []
         },
         affectedRecords: {
             invoices: [{ id: 'NF-1', invoiceNumber: '0123' }],
-            pendencies: [{ id: 'P-1', documentKey: 'notaFiscal' }]
+            pendencies: [{ id: 'P-1', documentKey: 'notaFiscal' }],
+            assets: [{ id: 'BEM-1', description: 'Projetor', status: 'Inventariada' }]
         },
         blockers: []
     };
     assert.equal(describePlan(plan).canApply, false, 'faltou descrever uma NF que será excluída');
     plan.affectedRecords.invoices.push({ id: 'NF-2', invoiceNumber: '0124' });
     assert.equal(describePlan(plan).canApply, true, 'a lista completa pode ser confirmada');
+    plan.affectedRecords.assets = [];
+    assert.equal(describePlan(plan).canApply, false, 'faltou descrever bem exclusivo (inclusive Inventariada) que será excluído');
+    plan.affectedRecords.assets = [{ id: 'BEM-OUTRO', description: 'Outro bem', status: 'Pendente' }];
+    assert.equal(describePlan(plan).canApply, false, 'não confundir bem patrimonial de outro lançamento');
+    plan.affectedRecords.assets = [{ id: 'BEM-1', description: 'Projetor', status: 'Inventariada' }];
     plan.affectedRecords.pendencies[0].id = 'P-OUTRA';
     assert.equal(describePlan(plan).canApply, false, 'não confundir Pendência de outro programa');
 });
@@ -138,10 +146,10 @@ test('T4 delete_context: o frontend solicita somente prévia e não executa excl
                 target: { ...TARGET },
                 planDigest: 'b'.repeat(64),
                 effects: {
-                    delete: { verifications: ['V-1'], registered_invoices: [], pendencies: [] },
+                    delete: { verifications: ['V-1'], registered_invoices: [], pendencies: [], assets: [] },
                     update: []
                 },
-                affectedRecords: { invoices: [], pendencies: [] },
+                affectedRecords: { invoices: [], pendencies: [], assets: [] },
                 warnings: [],
                 blockers: []
             };

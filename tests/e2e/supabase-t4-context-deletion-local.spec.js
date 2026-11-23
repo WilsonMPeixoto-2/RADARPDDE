@@ -179,6 +179,17 @@ test('T4 real: excluir contexto pelo botão preserva programa/mês vizinhos e co
     await expect(dialog.getByRole('button', { name: 'Excluir estes lançamentos' })).toBeEnabled();
     await dialog.getByRole('button', { name: 'Excluir estes lançamentos' }).click();
     await expect(dialog).toBeHidden();
+    // Prova de convergência imediata na UI ANTES do reload (AGENTS.md §7):
+    // a exclusão precisa refletir na tela e preservar foco lógico sem exigir F5.
+    await expect(page.locator('tr[data-program-header="BASIC"] .program-context-delete-button')).toHaveCount(0);
+    await expect(page.locator('#prontuario-verif-rows')).not.toContainText('T4-CTX-001');
+    await expect(page.locator('#prontuario-verif-rows')).not.toContainText('T4-CTX-002');
+    const focusAfterDelete = await page.evaluate(() => ({
+        tag: document.activeElement?.tagName || null,
+        isBody: document.activeElement === document.body
+    }));
+    expect(focusAfterDelete.isBody, 'Foco não deve cair em document.body após exclusão').toBe(false);
+
     await page.reload();
     await page.waitForFunction(() => window.RadarDataContext?.ready === true);
     await page.evaluate(async () => {

@@ -4,7 +4,7 @@ const { test, expect } = require('@playwright/test');
 
 async function openContextDialog(page, options = {}) {
     await page.goto('/');
-    await page.evaluate(async ({ enabled, failPreview }) => {
+    await page.evaluate(async ({ enabled, failPreview, previewOverride }) => {
         await window.RadarProductExtensionsReady;
         window.__t4ContextCalls = [];
         window.__t4ContextRefreshes = 0;
@@ -14,6 +14,14 @@ async function openContextDialog(page, options = {}) {
                 window.__t4ContextCalls.push({ name, args });
                 if (name === 'preview_operational_change') {
                     if (failPreview) throw new Error('Prévia indisponível');
+                    if (previewOverride) {
+                        return {
+                            ...previewOverride,
+                            action: 'delete_context',
+                            target: args.p_request.target,
+                            planDigest: 'd'.repeat(64)
+                        };
+                    }
                     return {
                         action: 'delete_context',
                         target: args.p_request.target,
@@ -33,11 +41,12 @@ async function openContextDialog(page, options = {}) {
                         blockers: [],
                         warnings: [],
                         affectedRecords: {
-                            invoices: [{ id: 'NF-SET', invoiceNumber: '1245', description: 'Material para a secretaria', amount: 189.50 }],
+                            invoices: [{ id: 'NF-SET', invoiceNumber: '1245', description: 'Material para a secretaria', amount: 189.50, expenseType: 'consumo' }],
                             pendencies: [
                                 { id: 'P-SET', documentKey: 'notaFiscal', status: 'Aberta' },
                                 { id: 'P-INV', documentKey: 'extINV', status: 'Aguardando reanálise' }
-                            ]
+                            ],
+                            assets: []
                         },
                         preserved: { otherContexts: true, generalContacts: true }
                     };
@@ -71,7 +80,11 @@ async function openContextDialog(page, options = {}) {
                 programId: 'BASIC', programName: 'PDDE Básico'
             }
         });
-    }, { enabled: options.enabled !== false, failPreview: Boolean(options.failPreview) });
+    }, {
+        enabled: options.enabled !== false,
+        failPreview: Boolean(options.failPreview),
+        previewOverride: options.previewOverride || null
+    });
 }
 
 test('T4: ação de contexto não abre sem piloto explicitamente habilitado', async ({ page }) => {
@@ -155,4 +168,111 @@ test('T4: modal mantém foco, Escape e largura em celular com tema escuro', asyn
     expect(rect.right).toBeLessThanOrEqual(rect.viewport);
     await page.keyboard.press('Escape');
     await expect(dialog).toBeHidden();
+});
+
+test('T4: prévia usa linguagem clara para Despesa a identificar, Boleto Internet e múltiplas saídas provisórias', async ({ page }) => {
+    await openContextDialog(page, {
+        previewOverride: {
+            effects: {
+                delete: {
+                    verifications: ['VER-SET'],
+                    registered_invoices: ['NF-A-ID', 'NF-NET'],
+                    pendencies: ['P-NET'],
+                    pendency_attempts: [],
+                    pendency_contacts: [],
+                    assets: ['BEM-1']
+                },
+                update: [
+                    { entity: 'quality_provisional_movements', id: 'MOV-1', field: 'status', before: 'identified', after: 'open' },
+                    { entity: 'quality_provisional_movements', id: 'MOV-2', field: 'status', before: 'identified', after: 'open' }
+                ]
+            },
+            blockers: [],
+            warnings: [],
+            affectedRecords: {
+                invoices: [
+                    { id: 'NF-A-ID', invoiceNumber: '', description: 'Débito sem documento', amount: 80, expenseType: 'a_identificar' },
+                    { id: 'NF-NET', invoiceNumber: '9001', description: 'Link banda larga', amount: 249.9, expenseType: 'boleto_internet' }
+                ],
+                pendencies: [
+                    { id: 'P-NET', documentKey: 'boletoInternet', status: 'Aberta' }
+                ],
+                assets: [
+                    { id: 'BEM-1', description: 'Roteador escolar', status: 'Inventariada' }
+                ]
+            },
+            preserved: { otherContexts: true, generalContacts: true }
+        }
+    });
+    const dialog = page.getByRole('dialog', { name: 'Excluir lançamentos deste programa neste mês' });
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText('Despesa a identificar · Débito sem documento');
+    await expect(dialog).toContainText('Boleto Internet 9001 · Link banda larga');
+    await expect(dialog).toContainText('Pendência: Boleto de pagamento de Internet · Aberta');
+    await expect(dialog).toContainText('Roteador escolar · Inventariada');
+    await expect(dialog).toContainText('2 saídas provisórias do PDDE Qualidade voltarão para “Programa a identificar”');
+    await expect(dialog).not.toContainText('boletoInternet');
+    await expect(dialog).not.toContainText('NF sem número');
+    await expect(dialog.getByRole('button', { name: 'Excluir estes lançamentos' })).toBeEnabled();
+});
+
+test('T4: prévia com bem patrimonial omitido em affectedRecords bloqueia exclusão (fail-closed)', async ({ page }) => {
+    await openContextDialog(page, {
+        previewOverride: {
+            effects: {
+                delete: {
+                    verifications: ['VER-SET'],
+                    registered_invoices: ['NF-SET'],
+                    pendencies: [],
+                    pendency_attempts: [],
+                    pendency_contacts: [],
+                    assets: ['BEM-OCULTO']
+                },
+                update: []
+            },
+            blockers: [],
+            warnings: [],
+            affectedRecords: {
+                invoices: [{ id: 'NF-SET', invoiceNumber: '1245', description: 'Compra', amount: 189.5, expenseType: 'permanente' }],
+                pendencies: [],
+                assets: []
+            },
+            preserved: { otherContexts: true }
+        }
+    });
+    const dialog = page.getByRole('dialog', { name: 'Excluir lançamentos deste programa neste mês' });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole('button', { name: 'Excluir estes lançamentos' })).toBeDisabled();
+    await expect(dialog.getByRole('alert')).toContainText('Não é possível excluir esses lançamentos agora.');
+});
+
+test('T4: menu Ações do programa fecha com Escape e clique fora sem deixar painel aberto', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(async () => {
+        await window.RadarProductExtensionsReady;
+        const wrap = document.createElement('div');
+        wrap.id = 'test-t4-menu-host';
+        wrap.innerHTML = `
+            <details class="program-context-options" name="program-context-options">
+                <summary>Ações do programa</summary>
+                <div class="program-context-options-list">
+                    <button type="button" class="program-context-delete-button">Excluir lançamentos deste programa neste mês</button>
+                </div>
+            </details>
+            <button type="button" id="test-t4-outside">Fora do menu</button>
+        `;
+        document.body.appendChild(wrap);
+    });
+    const menu = page.locator('#test-t4-menu-host details.program-context-options');
+    const summary = menu.locator('summary');
+    await summary.click();
+    await expect(menu).toHaveAttribute('open', '');
+    await page.keyboard.press('Escape');
+    await expect(menu).not.toHaveAttribute('open', '');
+    await expect(summary).toBeFocused();
+
+    await summary.click();
+    await expect(menu).toHaveAttribute('open', '');
+    await page.locator('#test-t4-outside').click();
+    await expect(menu).not.toHaveAttribute('open', '');
 });

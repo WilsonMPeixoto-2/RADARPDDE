@@ -19,6 +19,7 @@ declare
   attempts text[]:=array[]::text[];
   contacts text[]:=array[]::text[];
   assets text[]:=array[]::text[];
+  shared_assets text[]:=array[]::text[];
   updates jsonb:='[]'::jsonb;
   versions jsonb:='{}'::jsonb;
   warnings jsonb:='[]'::jsonb;
@@ -69,8 +70,16 @@ begin
     where (p.school_id=school and p.competence_origin=competence and p.program_id=program)
        or p.registered_invoice_id=any(invoices);
   if exists(select 1 from public.pendencies p where p.id=any(pendencies)
+    and p.school_id=school and p.competence_origin=competence
+    and p.program_id is null and p.registered_invoice_id=any(invoices)) then
+    blockers:=blockers||jsonb_build_array(jsonb_build_object(
+      'code','LEGACY_INVOICE_PENDENCY_REQUIRES_INDIVIDUAL_REMOVAL',
+      'message','Uma pendência antiga ligada a uma nota fiscal não tem programa definido. Exclua essa nota fiscal individualmente antes de excluir os lançamentos do programa.'));
+  end if;
+  if exists(select 1 from public.pendencies p where p.id=any(pendencies)
     and (p.school_id<>school or p.competence_origin<>competence
-      or p.program_id is distinct from program
+      or (p.program_id is not null and p.program_id<>program)
+      or (p.program_id is null and not(p.registered_invoice_id=any(invoices)))
       or (p.registered_invoice_id is not null and not(p.registered_invoice_id=any(invoices))))) then
     blockers:=blockers||jsonb_build_array(jsonb_build_object('code','CROSS_CONTEXT_DEPENDENCY',
       'message','Uma pendência está ligada a outro mês ou programa. Confira o vínculo antes de excluir.'));
@@ -95,15 +104,15 @@ begin
     blockers:=blockers||jsonb_build_array(jsonb_build_object('code','CROSS_SCHOOL_ASSET',
       'message','Um bem ligado a uma nota fiscal pertence a outra escola. Confira o cadastro antes de excluir.'));
   end if;
-  select coalesce(jsonb_agg(s.id order by s.id),'[]'::jsonb)
-    into mapped from (
+  select coalesce(array_agg(s.id order by s.id),array[]::text[])
+    into shared_assets from (
       select distinct i.linked_asset_id id from public.registered_invoices i
       where i.id=any(invoices) and i.linked_asset_id is not null
         and not(i.linked_asset_id=any(assets))
     ) s;
-  preserved:=jsonb_build_object('sharedAssetIds',mapped,'otherContexts',true,
+  preserved:=jsonb_build_object('sharedAssetIds',to_jsonb(shared_assets),'otherContexts',true,
      'generalContacts',true,'unlinkedQualityMovements',true,'automaticTransfer',false);
-  if jsonb_array_length(mapped)>0 then
+  if cardinality(shared_assets)>0 then
     warnings:=warnings||jsonb_build_array(jsonb_build_object('code','SHARED_ASSETS_PRESERVED',
       'message','Os bens que também estão vinculados a outras notas fiscais serão mantidos.'));
   end if;
@@ -134,8 +143,12 @@ begin
     end if;
   end loop;
   versions:=versions||jsonb_build_object('verifications',jsonb_build_object(ver.id,ver.row_version));
+  -- Inclui NFs vizinhas de bens compartilhados apenas em versions/lock (nunca em effects.delete)
+  -- para serializar exclusões concorrentes e impedir que um bem compartilhado fique órfão.
   select coalesce(jsonb_object_agg(i.id,i.row_version),'{}'::jsonb) into mapped
-    from public.registered_invoices i where i.id=any(invoices);
+    from public.registered_invoices i
+   where i.id=any(invoices)
+      or (cardinality(shared_assets)>0 and i.linked_asset_id=any(shared_assets));
   versions:=versions||jsonb_build_object('registered_invoices',mapped);
   select coalesce(jsonb_object_agg(p.id,p.row_version),'{}'::jsonb) into mapped
     from public.pendencies p where p.id=any(pendencies);
@@ -147,7 +160,7 @@ begin
     from public.pendency_contacts c where c.id=any(contacts);
   versions:=versions||jsonb_build_object('pendency_contacts',mapped);
   select coalesce(jsonb_object_agg(a.id,a.row_version),'{}'::jsonb) into mapped
-    from public.assets a where a.id=any(assets);
+    from public.assets a where a.id=any(assets) or a.id=any(shared_assets);
   versions:=versions||jsonb_build_object('assets',mapped);
 
   -- Identificações legíveis fazem parte do plano autenticado e de seu digest.
@@ -203,7 +216,7 @@ create function radar_private.operational_correction_log(
   p_plan jsonb,p_operation_key uuid,p_role text,p_note text
 ) returns void language plpgsql security definer
 set search_path=pg_catalog,public,radar_private as $$
-declare actor text; profile text; program_name text;
+declare actor text; profile text; program_name text; invoice_refs text;
 begin
   if p_plan->>'action' is distinct from 'delete_context' then
     perform radar_private.operational_correction_log_r2(p_plan,p_operation_key,p_role,p_note);
@@ -214,21 +227,35 @@ begin
     where u.id=auth.uid();
   select name into program_name from public.programs where id=p_plan #>> '{target,programId}';
   select label into strict profile from public.profiles where id=p_role;
+  select nullif(string_agg(
+      case
+        when lower(coalesce(item->>'expenseType',''))='a_identificar'
+          then coalesce(nullif(btrim(item->>'description'),''),'Despesa a identificar')
+        when lower(coalesce(item->>'expenseType',''))='boleto_internet'
+          then 'Boleto Internet '||coalesce(nullif(btrim(item->>'invoiceNumber'),''),'sem número')
+        else 'NF '||coalesce(nullif(btrim(item->>'invoiceNumber'),''),nullif(btrim(item->>'description'),''),'sem número')
+      end,
+      ', '
+    ),'')
+    into invoice_refs
+    from jsonb_array_elements(coalesce(p_plan #> '{affectedRecords,invoices}','[]'::jsonb)) as item;
   insert into public.administrative_logs
     (id,school_id,actor_user_id,user_identifier,profile_name,action,details)
   values ('correcao-operacional-'||p_operation_key,p_plan #>> '{target,schoolId}',
     auth.uid(),actor,profile,'Lançamentos do contexto excluídos',
     jsonb_build_object('operationKey',p_operation_key,'target',p_plan->'target',
       'counts',p_plan->'counts','preserved',p_plan->'preserved',
+      'affectedRecords',coalesce(p_plan->'affectedRecords','{}'::jsonb),
       'text',concat_ws(' · ',p_plan #>> '{target,competence}',program_name,
-        'Exclusão dos lançamentos do programa/mês',p_note)));
+        'Exclusão dos lançamentos do programa/mês',invoice_refs,p_note)));
 end $$;
 revoke all on function radar_private.operational_correction_log(jsonb,uuid,text,text)
   from public,anon,authenticated;
 
 -- Tudo abaixo acontece dentro da MESMA transação do RPC público.
 -- A aplicação R2 executa ledger, locks, versões, exclusões dependentes e receipt;
--- depois elimina a verificação raiz. Em falha, o PostgreSQL reverte o conjunto.
+-- depois elimina a verificação raiz e confere ausência de inserção concorrente no contexto.
+-- Em falha, o PostgreSQL reverte o conjunto.
 alter function radar_private.apply_operational_change_impl(jsonb,text,uuid)
   rename to apply_operational_change_impl_r2;
 -- Impede chamada direta da implementação antiga: ela não remove a raiz T4.
@@ -239,9 +266,19 @@ create function radar_private.apply_operational_change_impl(
 ) returns jsonb language plpgsql volatile security definer
 set search_path=pg_catalog,public,radar_private as $$
 declare receipt jsonb; plan jsonb; row_id text; version integer; deleted integer;
+  school text; competence text; program text;
 begin
   if p_request->>'action' is distinct from 'delete_context' then
     return radar_private.apply_operational_change_impl_r2(p_request,p_plan_digest,p_operation_key);
+  end if;
+  school:=nullif(btrim(p_request #>> '{target,schoolId}'),'');
+  competence:=nullif(btrim(p_request #>> '{target,competence}'),'');
+  program:=nullif(btrim(p_request #>> '{target,programId}'),'');
+  perform radar_private.operational_correction_capability(school);
+  if school is not null and competence is not null and program is not null then
+    perform pg_catalog.pg_advisory_xact_lock(
+      pg_catalog.hashtextextended(concat_ws('::',school,competence,program),20261123)
+    );
   end if;
   receipt:=radar_private.apply_operational_change_impl_r2(p_request,p_plan_digest,p_operation_key);
   if coalesce((receipt->>'replayed')::boolean,false) then
@@ -255,6 +292,17 @@ begin
     get diagnostics deleted=row_count;
     if deleted<>1 then raise exception 'OPTIMISTIC_CONFLICT: verifications/%',row_id; end if;
   end loop;
+  -- Garante que nenhum registro concorrente surgiu no contexto durante a exclusão.
+  if exists(select 1 from public.registered_invoices i
+      where i.school_id=plan #>> '{target,schoolId}'
+        and i.competence_id=plan #>> '{target,competence}'
+        and i.program_id=plan #>> '{target,programId}')
+     or exists(select 1 from public.pendencies p
+      where p.school_id=plan #>> '{target,schoolId}'
+        and p.competence_origin=plan #>> '{target,competence}'
+        and p.program_id=plan #>> '{target,programId}') then
+    raise exception 'OPTIMISTIC_CONFLICT: novos registros surgiram no contexto durante a exclusão; gere nova prévia';
+  end if;
   return receipt;
 end $$;
 revoke all on function radar_private.apply_operational_change_impl(jsonb,text,uuid)

@@ -263,6 +263,7 @@
                         extCI: 'Extrato de investimentos',
                         extINV: 'Extrato de investimentos',
                         consAssessoria: 'Consulta à assessoria',
+                        boletoInternet: 'Boleto de pagamento de Internet',
                         declBBAgil: 'Declaração BB Ágil',
                         encampInventario: 'Encaminhamento para inventariação'
                     };
@@ -276,13 +277,19 @@
                         return section;
                     };
                     const invoices = (records.invoices || []).map(invoice => {
-                        const number = text(invoice.invoiceNumber) || 'sem número';
+                        const expenseType = text(invoice.expenseType).toLocaleLowerCase('pt-BR');
+                        const number = text(invoice.invoiceNumber);
+                        const label = expenseType === 'a_identificar'
+                            ? 'Despesa a identificar'
+                            : expenseType === 'boleto_internet'
+                                ? (number ? 'Boleto Internet ' + number : 'Boleto Internet sem número')
+                                : 'NF ' + (number || 'sem número');
                         const description = text(invoice.description);
                         const amount = invoice.amount == null || !Number.isFinite(Number(invoice.amount))
                             ? '' : new Intl.NumberFormat('pt-BR', {
                                 style: 'currency', currency: 'BRL'
                             }).format(Number(invoice.amount));
-                        return ['NF ' + number, description, amount].filter(Boolean).join(' · ');
+                        return [label, description, amount].filter(Boolean).join(' · ');
                     });
                     const invoiceDetails = makeDetails('Notas fiscais', invoices);
                     if (invoiceDetails) effects.appendChild(invoiceDetails);
@@ -335,11 +342,11 @@
                 return;
             }
             const transitions = new Map();
+            let reopenedProvisionalCount = 0;
             for (const change of changes) {
                 if (change.entity === 'quality_provisional_movements' && change.field === 'status'
                     && change.before === 'identified' && change.after === 'open') {
-                    effects.appendChild(el(doc, 'p', '',
-                        'A saída provisória do PDDE Qualidade voltará para “Programa a identificar” e poderá ser identificada novamente.'));
+                    reopenedProvisionalCount += 1;
                     continue;
                 }
                 if (text(change.before) === 'Não analisado' && text(change.after) === 'Não analisado') continue;
@@ -347,6 +354,13 @@
                 if (!transitions.has(valueChange)) transitions.set(valueChange, new Set());
                 const fieldLabel = EFFECT_LABELS[change.field] || context.documentLabel;
                 if (fieldLabel) transitions.get(valueChange).add(fieldLabel);
+            }
+            if (reopenedProvisionalCount === 1) {
+                effects.appendChild(el(doc, 'p', '',
+                    'A saída provisória do PDDE Qualidade voltará para “Programa a identificar” e poderá ser identificada novamente.'));
+            } else if (reopenedProvisionalCount > 1) {
+                effects.appendChild(el(doc, 'p', '',
+                    reopenedProvisionalCount + ' saídas provisórias do PDDE Qualidade voltarão para “Programa a identificar” e poderão ser identificadas novamente.'));
             }
             for (const [valueChange, labels] of transitions) {
                 const scope = [...labels].join(' / ');
@@ -527,6 +541,17 @@
                         button.dataset.schoolId === target.schoolId
                         && button.dataset.compKey === previousFocus.dataset.compKey);
                     control?.focus({ preventScroll: true });
+                } else if (contextDeletion) {
+                    const programHeader = Array.from(doc.querySelectorAll?.('tr[data-program-header]') || [])
+                        .find(row => row.dataset?.programHeader === target.programId);
+                    const heading = programHeader?.querySelector?.('.program-context-name');
+                    const focusTarget = programHeader?.querySelector?.('.program-consolidate-button:not(:disabled)')
+                        || heading
+                        || doc.getElementById?.('prontuario-verif-rows');
+                    if (focusTarget === heading && heading && !heading.hasAttribute('tabindex')) {
+                        heading.setAttribute('tabindex', '-1');
+                    }
+                    focusTarget?.focus?.({ preventScroll: true });
                 }
                 root.updateAlertsBell?.();
                 let message = contextDeletion
@@ -536,9 +561,9 @@
                 if (bonus) {
                     const reopened = preview.view.changes.some(change => change.field === 'bonus_result');
                     const cleared = select.value === 'Limpar resposta';
-                    message = reopened ?(cleared
-                                        ? 'Avaliação removida. Preencha novamente Notas Fiscais para habilitar Consolidar bonificação no cabeçalho do programa.'
-                                         : 'Avaliação corrigida. Para concluir, utilize Consolidar bonificação no cabeçalho do programa.')
+                    message = reopened ? (cleared
+                        ? 'Avaliação removida. Preencha novamente Notas Fiscais para habilitar Consolidar bonificação no cabeçalho do programa.'
+                        : 'Avaliação corrigida. Para concluir, utilize Consolidar bonificação no cabeçalho do programa.')
                         : (cleared ? 'Avaliação de Notas Fiscais removida.' : 'Avaliação de Notas Fiscais atualizada.');
                 }
                 root.RadarSharedInteractions?.notify?.({ type: 'success', message });

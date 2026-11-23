@@ -10422,13 +10422,13 @@ function renderProntuarioVerificacoes(esc) {
                                     <span class="program-context-competence">${escapeHtml(c.label)}</span>
                                     <h3 class="program-context-name">${escapeHtml(progName)}</h3>
                                     ${canDeleteContext ? `
-                                        <details class="program-context-options">
+                                        <details class="program-context-options" name="program-context-options">
                                             <summary aria-label="Ações do programa: ${escapeHtml(progName)}">Ações do programa</summary>
                                             <div class="program-context-options-list">
                                                 <button type="button" class="program-context-delete-button"
                                                     data-school-id="${escapeHtml(esc.id)}"
                                                     data-comp-key="${escapeHtml(compProgKey)}"
-                                                    data-school-name="${escapeHtml(esc.denominação || esc.denominacao || esc.id)}"
+                                                    data-school-name="${escapeHtml(getSchoolDisplayName(esc, esc.id))}"
                                                     data-program-name="${escapeHtml(progName)}"
                                                     data-competence-label="${escapeHtml(c.label)}"
                                                     onclick="openProgramContextDeletion(this)">
@@ -11728,6 +11728,40 @@ function openFiscalBonusCorrection(trigger) {
     });
 }
 
+function closeOpenProgramContextMenus(options = {}) {
+    if (typeof document === 'undefined') return false;
+    const exceptMenu = options.exceptMenu || null;
+    const restoreFocus = options.restoreFocus === true;
+    let closed = false;
+    document.querySelectorAll('details.program-context-options[open]').forEach(menu => {
+        if (exceptMenu && menu === exceptMenu) return;
+        menu.removeAttribute('open');
+        closed = true;
+        if (restoreFocus) {
+            menu.querySelector('summary')?.focus?.({ preventScroll: true });
+        }
+    });
+    return closed;
+}
+
+if (typeof document !== 'undefined' && !window.__radarProgramContextMenuListenersInstalled) {
+    window.__radarProgramContextMenuListenersInstalled = true;
+    document.addEventListener('click', event => {
+        const currentMenu = event.target?.closest?.('details.program-context-options') || null;
+        closeOpenProgramContextMenus({ exceptMenu: currentMenu });
+    });
+    document.addEventListener('keydown', event => {
+        if (event.key !== 'Escape') return;
+        if (document.getElementById('radar-operational-correction-layer')
+            || document.querySelector('.modal-overlay.show, dialog[open]')) {
+            return;
+        }
+        if (closeOpenProgramContextMenus({ restoreFocus: true })) {
+            event.preventDefault();
+        }
+    });
+}
+
 function openProgramContextDeletion(trigger) {
     const dialog = window.RadarOperationalCorrectionDialog;
     if (!dialog?.canDeleteContext?.(window) || !trigger?.dataset) return false;
@@ -11736,9 +11770,12 @@ function openProgramContextDeletion(trigger) {
     if (!schoolId || !compKey) return false;
     const { competenciaKey, contextId } = window.RadarCompetencia.splitCompetenciaContext(compKey);
     if (!competenciaKey || !contextId) return false;
+    const menu = trigger.closest?.('details.program-context-options') || null;
+    const returnFocusTarget = menu?.querySelector?.('summary') || trigger;
+    if (menu) menu.removeAttribute('open');
     return dialog.open(window, {
         mode: 'delete_context',
-        trigger,
+        trigger: returnFocusTarget,
         context: {
             schoolId, schoolName, programName, competenceLabel,
             competence: competenciaKey, programId: contextId
