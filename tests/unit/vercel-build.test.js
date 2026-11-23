@@ -272,6 +272,23 @@ test('artefato Vercel Production mantém T0–T3 OFF por padrão, habilita só p
     assert.equal(t4Result.manifest.bonificationCorrectionRelease, true);
     assert.equal(t4Result.runtimeInput.features.bonificationCorrectionRelease, true);
     assert.match(t4Runtime, /bonificationCorrectionRelease["']?\s*:\s*true/);
+    assert.equal(t4Result.manifest.contextDeletionRelease, false);
+    const deleteContextDir = await createOutputDirectory(context);
+    const deletionResult = await buildVercelArtifact({
+        rootDir: projectRoot,
+        outputDir: deleteContextDir,
+        environment: {
+            VERCEL_ENV: 'production',
+            RADAR_OPERATIONAL_CORRECTION_RELEASE_ENABLED: 'true',
+            RADAR_BONIFICATION_CORRECTION_RELEASE_ENABLED: 'true',
+            RADAR_T4_CONTEXT_DELETION_RELEASE_ENABLED: 'true'
+        }
+    });
+    const deletionRuntime = await fs.readFile(path.join(deleteContextDir, 'config.runtime.js'), 'utf8');
+    assert.equal(deletionResult.manifest.contextDeletionRelease, true);
+    assert.equal(deletionResult.runtimeInput.features.contextDeletionRelease, true);
+    assert.match(deletionRuntime, /contextDeletionRelease["']?\s*:\s*true/);
+
 
     const t4WithoutReleaseDir = await createOutputDirectory(context);
     await assert.rejects(buildVercelArtifact({
