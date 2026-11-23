@@ -8,10 +8,14 @@ select no_plan();
 
 insert into auth.users(id,email)
 values ('00000000-0000-0000-0000-00000000b701','t4-history-controller@example.test');
+insert into auth.users(id,email)
+values ('00000000-0000-0000-0000-00000000b705','t4-history-sme-readonly@example.test');
 insert into public.controllers(id,name,user_id)
 values ('T4H-C','Controlador Histórico','00000000-0000-0000-0000-00000000b701');
 insert into public.user_profiles(user_id,profile_id,controller_id,cre_scope,active)
 values ('00000000-0000-0000-0000-00000000b701','controller','T4H-C','T4H-CRE',true);
+insert into public.user_profiles(user_id,profile_id,controller_id,cre_scope,active)
+values ('00000000-0000-0000-0000-00000000b705','sme_management',null,null,true);
 insert into public.schools(id,designation,denomination,cre,inep,cnpj,sici)
 values ('T4H-S','04.98.701','Escola Fictícia T4 histórico','T4H-CRE','33980701','98.701.001/0001-01','SICI-T4H');
 insert into public.competences(id,label,exercise)
@@ -52,10 +56,18 @@ select jsonb_build_object('contractVersion',1,'action','clear_item_history',
 $$;
 create temp table t4h_preview(plan jsonb);
 grant all on t4h_preview to authenticated;
+
+select set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000b705","role":"authenticated"}',true);
+set local role authenticated;
+select throws_like($ select public.preview_operational_change(pg_temp.t4h_request()) $,
+    'AUTHORIZATION_DENIED%', 'perfil SME somente leitura não pode limpar histórico');
+reset role;
 select set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000b701","role":"authenticated"}',true);
 set local role authenticated;
 
-select lives_ok($$ insert into t4h_preview select public.preview_operational_change(pg_temp.t4h_request()) $$,
+select throws_like($ select public.preview_operational_change(pg_temp.t4h_request('internal_flags')) $,
+    'VALIDATION_ERROR%', 'campo não reconhecido não pode ser usado como histórico');
+select lives_ok($ insert into t4h_preview select public.preview_operational_change(pg_temp.t4h_request()) $,
   'controlador pode visualizar limpeza explícita de todo histórico do documento');
 select is((select plan #>> '{action}' from t4h_preview),'clear_item_history',
   'operação continua distinta de clear_analysis');
