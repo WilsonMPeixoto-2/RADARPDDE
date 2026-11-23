@@ -137,7 +137,10 @@ test('T4 delete_context: o frontend solicita somente prévia e não executa excl
                 action: 'delete_context',
                 target: { ...TARGET },
                 planDigest: 'b'.repeat(64),
-                effects: { delete: { verifications: ['V-1'] }, update: [] },
+                effects: {
+                    delete: { verifications: ['V-1'], registered_invoices: [], pendencies: [] },
+                    update: []
+                },
                 affectedRecords: { invoices: [], pendencies: [] },
                 warnings: [],
                 blockers: []
