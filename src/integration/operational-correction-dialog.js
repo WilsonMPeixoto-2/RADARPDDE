@@ -243,6 +243,49 @@
                     } else {
                         effects.appendChild(el(doc, 'p', '', 'Nenhum registro foi encontrado para excluir.'));
                     }
+                    // A confirmação não depende de IDs técnicos: mostre ao
+                    // Controlador os documentos reais de cada parte do conjunto.
+                    const records = view.affectedRecords || {};
+                    const documentNames = {
+                        notaFiscal: 'Nota fiscal',
+                        extCC: 'Extrato da conta corrente',
+                        extCI: 'Extrato da aplicação',
+                        consAssessoria: 'Consulta à assessoria',
+                        encampInventario: 'Encaminhamento ao inventário'
+                    };
+                    const makeDetails = (heading, entries) => {
+                        if (!Array.isArray(entries) || entries.length === 0) return null;
+                        const section = el(doc, 'section', 'context-deletion-details');
+                        section.appendChild(el(doc, 'h4', '', heading));
+                        const list = el(doc, 'ul', 'context-deletion-records');
+                        for (const entry of entries) list.appendChild(el(doc, 'li', '', entry));
+                        section.appendChild(list);
+                        return section;
+                    };
+                    const invoices = (records.invoices || []).map(invoice => {
+                        const number = text(invoice.invoiceNumber) || 'sem número';
+                        const description = text(invoice.description);
+                        const amount = invoice.amount == null || !Number.isFinite(Number(invoice.amount))
+                            ? '' : new Intl.NumberFormat('pt-BR', {
+                                style: 'currency', currency: 'BRL'
+                            }).format(Number(invoice.amount));
+                        return ['NF ' + number, description, amount].filter(Boolean).join(' · ');
+                    });
+                    const invoiceDetails = makeDetails('Notas fiscais', invoices);
+                    if (invoiceDetails) effects.appendChild(invoiceDetails);
+                    const pendencies = (records.pendencies || []).map(item => {
+                        const document = documentNames[item.documentKey]
+                            || text(item.documentKey) || 'Documento não informado';
+                        return 'Pendência: ' + document + (text(item.status) ? ' · ' + text(item.status) : '');
+                    });
+                    const pendencyDetails = makeDetails('Pendências', pendencies);
+                    if (pendencyDetails) effects.appendChild(pendencyDetails);
+                    const assets = (records.assets || []).map(item => [
+                        text(item.description) || 'Bem sem descrição',
+                        text(item.status)
+                    ].filter(Boolean).join(' · '));
+                    const assetDetails = makeDetails('Bens vinculados', assets);
+                    if (assetDetails) effects.appendChild(assetDetails);
                     effects.appendChild(el(doc, 'p', 'context-deletion-preserved',
                         'O que será mantido: outros meses e programas, contatos gerais e registros que não pertencem a esta seleção.'));
                 } else {
