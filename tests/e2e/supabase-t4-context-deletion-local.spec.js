@@ -41,6 +41,12 @@ async function openSchool(page) {
     await page.goto('/escolas/' + SCHOOL);
     await page.waitForFunction(() => window.RadarDataContext?.ready === true);
     await expect(page.locator('#prontuario-verif-rows')).toBeVisible();
+    // A visibilidade da grade antecede a hidratação do contexto escolar remoto.
+    // Não tomar uma grade vazia por conclusão do carregamento canônico.
+    await page.waitForFunction(({ school, competence }) =>
+        typeof verificacoes !== 'undefined' &&
+        Boolean(verificacoes[school]?.[`${competence}_BASIC`]),
+        { school: SCHOOL, competence: COMPETENCE }, { timeout: 20000 });
 }
 
 async function enablePilotAndOpen(page) {
