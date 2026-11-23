@@ -21,6 +21,7 @@
         'clear_analysis',
         'correct_analysis',
         'correct_bonification',
+        'clear_item_history',
         'delete_context'
     ]);
     const TARGET_KIND_BY_ACTION = Object.freeze({
@@ -29,6 +30,7 @@
         clear_analysis: 'analysis',
         correct_analysis: 'analysis',
         correct_bonification: 'verification',
+        clear_item_history: 'analysis',
         delete_context: 'program_context'
     });
     const CORRECTABLE_ANALYSES = Object.freeze(['Correto', 'Correto (Atrasado)', 'Incorreto']);
@@ -112,6 +114,18 @@
         // T4: exclusão de contexto tem identidade fechada por escola, competência
         // e programa. Não seleciona dependências nem movimenta registros no cliente.
         // O servidor continuará sendo a única autoridade do plano e da transação.
+        if (action === 'clear_item_history') {
+            const allowedTargetKeys = ['kind', 'id', 'schoolId', 'competence', 'programId', 'documentKey'];
+            const allowedRequestKeys = ['action', 'target', 'note'];
+            const exactTarget = text(source.kind) === 'analysis'
+                && Boolean(target.programId) && Boolean(target.documentKey)
+                && Object.keys(source).every(key => allowedTargetKeys.includes(key));
+            const exactRequest = Object.keys(input).every(key => allowedRequestKeys.includes(key));
+            if (!exactTarget || !exactRequest) {
+                throw invalid('Informe exatamente o item da análise, sem seleção parcial, destino ou resultado novo.');
+            }
+        }
+
         if (action === 'delete_context') {
             const allowedTargetKeys = ['kind', 'schoolId', 'competence', 'programId'];
             const allowedRequestKeys = ['action', 'target', 'note'];
@@ -201,6 +215,12 @@
             || (matchesDetailedIds('registered_invoices', 'invoices')
                 && matchesDetailedIds('pendencies', 'pendencies')
                 && matchesDetailedIds('assets', 'assets'));
+        const itemHistoryComplete = plan.action !== 'clear_item_history'
+            || (['registered_invoices', 'assets', 'verifications']
+                .every(entity => Array.isArray(deleted[entity]) && deleted[entity].length === 0)
+                && matchesDetailedIds('pendencies', 'pendencies')
+                && matchesDetailedIds('pendency_attempts', 'attempts')
+                && matchesDetailedIds('pendency_contacts', 'contacts'));
         const warnings = Array.isArray(plan.warnings) ? clone(plan.warnings) : [];
         return {
             action: plan.action || null,
@@ -211,7 +231,7 @@
             affectedRecords,
             warnings,
             blockers,
-            canApply: blockers.length === 0 && contextRootPresent && contextDetailsComplete
+            canApply: blockers.length === 0 && contextRootPresent && contextDetailsComplete && itemHistoryComplete
                 && /^[0-9a-f]{64}$/.test(text(plan.planDigest)),
             summary: removals.length
                 ? `Serão excluídos: ${removals.map(item => item.label).join(', ')}.`
@@ -260,12 +280,15 @@
                     { p_request: previewPayload(request) },
                     'previewOperationalChange'
                 );
-                if (request.action === 'delete_context') {
+                if (request.action === 'clear_item_history' || request.action === 'delete_context') {
                     const actual = plan?.target || {};
                     const expected = request.target;
                     const sameContext = plan?.action === request.action
                         && text(actual.kind) === expected.kind
-                        && ['schoolId', 'competence', 'programId'].every(key => text(actual[key]) === expected[key]);
+                        && (request.action === 'delete_context'
+                            ? ['schoolId', 'competence', 'programId']
+                            : ['schoolId', 'competence', 'programId', 'documentKey', 'id']
+                        ).every(key => text(actual[key]) === text(expected[key]));
                     if (!sameContext) {
                         throw new OperationalCorrectionError(
                             'INVALID_PREVIEW',
