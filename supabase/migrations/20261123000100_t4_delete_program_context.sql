@@ -201,6 +201,9 @@ revoke all on function radar_private.operational_correction_log(jsonb,uuid,text,
 -- depois elimina a verificação raiz. Em falha, o PostgreSQL reverte o conjunto.
 alter function radar_private.apply_operational_change_impl(jsonb,text,uuid)
   rename to apply_operational_change_impl_r2;
+-- Impede chamada direta da implementação antiga: ela não remove a raiz T4.
+revoke all on function radar_private.apply_operational_change_impl_r2(jsonb,text,uuid)
+  from public,anon,authenticated;
 create function radar_private.apply_operational_change_impl(
   p_request jsonb,p_plan_digest text,p_operation_key uuid
 ) returns jsonb language plpgsql volatile security definer
