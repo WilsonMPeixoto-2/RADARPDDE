@@ -63,19 +63,37 @@
             && root?.location?.protocol === 'https:';
         return localPilot || productionRelease;
     }
+    function canClearHistory(root) {
+        if (!canUse(root)) return false;
+        const features = root?.RADAR_PDDE_CONFIG?.features;
+        const localPilot = root?.RADAR_T4_ITEM_HISTORY_PILOT === true
+            && features?.operationalCorrectionPilot === true
+            && ['localhost', '127.0.0.1'].includes(root?.location?.hostname)
+            && root?.RADAR_PDDE_CONFIG?.deploymentTarget !== 'production';
+        const productionRelease = features?.itemHistoryRelease === true
+            && canDeleteContext(root)
+            && root?.RADAR_PDDE_CONFIG?.deploymentTarget === 'production'
+            && root?.location?.protocol === 'https:';
+        return localPilot || productionRelease;
+    }
     function open(root, input = {}) {
         const context = input.context || {};
         const mode = input.mode || 'analysis';
         const contextDeletion = mode === 'delete_context';
-        const deleting = contextDeletion || mode === 'delete_invoice' || mode === 'delete_pendency';
+        const historyDeletion = mode === 'clear_item_history';
+        const deleting = contextDeletion || historyDeletion || mode === 'delete_invoice' || mode === 'delete_pendency';
         const bonus = mode === 'correct_bonification';
         if (bonus && !canCorrectFiscalBonus(root)) return false;
         if (contextDeletion && !canDeleteContext(root)) return false;
-        if (!bonus && !['analysis', 'delete_invoice', 'delete_pendency', 'delete_context'].includes(mode)) return false;
+        if (historyDeletion && !canClearHistory(root)) return false;
+        if (!bonus && !['analysis', 'delete_invoice', 'delete_pendency', 'delete_context', 'clear_item_history'].includes(mode)) return false;
         if (!canUse(root) || !context.schoolId || !context.competence
             || (contextDeletion && !context.programId)
             || (!deleting && (!context.programId || !context.documentKey))
-            || (deleting && !contextDeletion && !text(mode === 'delete_invoice' ? context.invoiceId : context.pendencyId))) return false;
+            || (historyDeletion && (!context.programId || !context.documentKey
+                || (['notaFiscal', 'consAssessoria'].includes(context.documentKey) && !text(context.invoiceId))))
+            || (deleting && !contextDeletion && !historyDeletion
+                && !text(mode === 'delete_invoice' ? context.invoiceId : context.pendencyId))) return false;
         const doc = root.document;
         if (doc.getElementById('radar-operational-correction-layer')) return true;
         const client = root.RadarOperationalCorrectionClient.createOperationalCorrectionClient({
@@ -87,12 +105,13 @@
             competence: context.competence,
             programId: context.programId
         } : {
+            ...(historyDeletion ? { kind: 'analysis' } : {}),
             schoolId: context.schoolId,
             competence: context.competence,
             programId: context.programId,
             documentKey: context.documentKey
         };
-        if (deleting && !contextDeletion) {
+        if (deleting && !contextDeletion && !historyDeletion) {
             target.id = text(mode === 'delete_invoice' ? context.invoiceId : context.pendencyId);
         } else if (!contextDeletion && context.invoiceId) {
             target.id = text(context.invoiceId);
@@ -103,21 +122,25 @@
         const dialog = el(doc, 'section', 'radar-operational-correction-dialog evaluation-retification-dialog');
         if (bonus) dialog.classList.add('is-fiscal-bonus');
         if (contextDeletion) dialog.classList.add('is-context-deletion');
+        if (historyDeletion) dialog.classList.add('is-item-history');
         dialog.setAttribute('role', 'dialog');
         dialog.setAttribute('aria-modal', 'true');
         dialog.setAttribute('aria-labelledby', 'radar-operational-correction-title');
         const header = el(doc, 'header', 'radar-operational-correction-header');
         const kicker = el(doc, 'span', 'evaluation-retification-kicker',
-            contextDeletion ? 'Exclusão de lançamentos' : bonus ? 'Avaliação de Notas Fiscais'
+            contextDeletion ? 'Exclusão de lançamentos' : historyDeletion ? 'Limpeza de histórico' : bonus ? 'Avaliação de Notas Fiscais'
                 : deleting ? (mode === 'delete_invoice' ? 'Exclusão de nota fiscal' : 'Exclusão de pendência')
                     : 'Correção operacional');
-        const title = el(doc, 'h2', '', contextDeletion ? 'Excluir lançamentos deste programa neste mês' : deleting
+        const title = el(doc, 'h2', '', contextDeletion ? 'Excluir lançamentos deste programa neste mês' : historyDeletion
+            ? 'Limpar todo o histórico deste item' : deleting
             ? (mode === 'delete_invoice' ? 'Excluir nota fiscal' : 'Excluir pendência')
             : bonus ? 'Corrigir consolidação da bonificação' : 'Corrigir análise técnica');
         title.id = 'radar-operational-correction-title';
-        const summary = el(doc, 'p', '', bonus || contextDeletion
+        const summary = el(doc, 'p', '', bonus || contextDeletion || historyDeletion
             ? [context.schoolName || context.schoolId, context.programName || context.programId,
-                context.competenceLabel || context.competence].filter(Boolean).join(' · ')
+                context.competenceLabel || context.competence,
+                ...(historyDeletion ? [context.documentLabel || context.documentKey] : [])]
+                .filter(Boolean).join(' · ')
             : text(context.documentLabel || context.documentKey) + ' · ' + context.competence);
         header.append(kicker, title, summary);
         if (contextDeletion) {
@@ -128,6 +151,13 @@
                 + 'Os lançamentos não serão transferidos automaticamente. '
                 + 'Para registrar no lugar correto, faça um novo lançamento.');
             header.appendChild(explanation);
+        }
+        if (historyDeletion) {
+            header.appendChild(el(doc, 'p', 'context-deletion-explanation',
+                'Esta ação apaga o histórico de avaliações e as Pendências deste item, inclusive '
+                + 'as que já foram resolvidas ou canceladas, junto com seus envios e contatos vinculados. '
+                + 'Notas fiscais, bens, outros documentos, programas e o histórico administrativo serão preservados. '
+                + 'Confira cada registro antes de confirmar. Não é possível desfazer essa exclusão pelo Prontuário.'));
         }
         if (bonus) {
             const explanation = el(doc, 'p', 'fiscal-bonus-explanation',
@@ -166,7 +196,7 @@
         note.id = 'radar-operational-correction-note';
         note.maxLength = 2000;
         note.rows = 3;
-        const planTitle = el(doc, 'h3', '', contextDeletion ? 'Confira o que será excluído' : 'O que vai mudar ao confirmar');
+        const planTitle = el(doc, 'h3', '', deleting ? 'Confira o que será excluído' : 'O que vai mudar ao confirmar');
         const effects = el(doc, 'div', 'radar-operational-correction-effects', 'Calculando o que vai mudar…');
         effects.setAttribute('aria-live', 'polite');
         const feedback = el(doc, 'p', 'radar-operational-correction-feedback');
@@ -176,9 +206,10 @@
         const cancel = el(doc, 'button', 'btn btn-secondary', 'Cancelar');
         const clearBtn = el(doc, 'button', 'btn btn-secondary', 'Limpar análise');
         const review = el(doc, 'button', 'btn btn-secondary',
-            contextDeletion ? 'Conferir novamente' : 'Revisar prévia');
-        const save = el(doc, 'button', contextDeletion ? 'btn btn-danger' : 'btn btn-primary',
-            contextDeletion ? 'Excluir estes lançamentos' : deleting ? 'Confirmar exclusão' : 'Confirmar correção');
+            contextDeletion || historyDeletion ? 'Conferir novamente' : 'Revisar prévia');
+        const save = el(doc, 'button', contextDeletion || historyDeletion ? 'btn btn-danger' : 'btn btn-primary',
+            contextDeletion ? 'Excluir estes lançamentos' : historyDeletion ? 'Limpar histórico deste item'
+                : deleting ? 'Confirmar exclusão' : 'Confirmar correção');
         for (const button of [cancel, clearBtn, review, save]) button.type = 'button';
         (deleting ? cancel : select).autofocus = true;
         clearBtn.disabled = currentChoice === 'Não analisado' || !currentChoice;
@@ -669,5 +700,5 @@
         void loadPreview();
         return true;
     }
-    return Object.freeze({ ANALYSES, canUse, canCorrectFiscalBonus, canDeleteContext, open });
+    return Object.freeze({ ANALYSES, canUse, canCorrectFiscalBonus, canDeleteContext, canClearHistory, open });
 }));
