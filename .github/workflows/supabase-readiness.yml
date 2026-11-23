@@ -30,6 +30,8 @@ on:
       - 'tests/e2e/supabase-inventory-terminal-delete.spec.js'
       - 'tests/e2e/supabase-operational-correction-local.spec.js'
       - 'tests/e2e/supabase-t4-context-deletion-local.spec.js'
+      - 'tests/e2e/supabase-t4-item-history-local.spec.js'
+      - 'tests/fixtures/t4-item-history-local.sql'
       - 'tests/fixtures/t4-context-deletion-local.sql'
       - 'tests/fixtures/quality-provisional.sql'
       - 'tests/fixtures/operational-correction-local.sql'
@@ -73,6 +75,8 @@ on:
       - 'tests/e2e/supabase-inventory-terminal-delete.spec.js'
       - 'tests/e2e/supabase-operational-correction-local.spec.js'
       - 'tests/e2e/supabase-t4-context-deletion-local.spec.js'
+      - 'tests/e2e/supabase-t4-item-history-local.spec.js'
+      - 'tests/fixtures/t4-item-history-local.sql'
       - 'tests/fixtures/t4-context-deletion-local.sql'
       - 'tests/fixtures/quality-provisional.sql'
       - 'tests/fixtures/operational-correction-local.sql'
@@ -441,6 +445,7 @@ jobs:
           npx playwright test \
             tests/e2e/supabase-operational-correction-local.spec.js \
             tests/e2e/supabase-t4-context-deletion-local.spec.js \
+            tests/e2e/supabase-t4-item-history-local.spec.js \
             --project=desktop-chromium --workers=1 --output=test-results-operational-correction
 
       - name: Publicar relatório do contrato Supabase local
