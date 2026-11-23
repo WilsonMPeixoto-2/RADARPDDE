@@ -35,7 +35,7 @@
     const MAX_NOTE_LENGTH = 2000;
 
     const ENTITY_LABELS = Object.freeze({
-        verifications: ['verificação do programa', 'verificações dos programas'],
+        verifications: ['avaliação mensal do programa', 'avaliações mensais dos programas'],
         registered_invoices: ['nota fiscal', 'notas fiscais'],
         pendencies: ['Pendência', 'Pendências'],
         pendency_attempts: ['envio da escola', 'envios da escola'],
