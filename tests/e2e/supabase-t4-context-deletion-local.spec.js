@@ -79,8 +79,10 @@ async function enablePilotAndOpen(page) {
     expect(proof, 'Diagnóstico do piloto autenticado: ' + JSON.stringify(proof))
         .toMatchObject({ pilot: true, preview: true, canUse: true,
             canDelete: true, remote: true, executeRpc: true, client: true,
-            program: true, role: 'controller', competence: '2026-05',
-            visibleActions: 1 });
+            program: true, role: 'controller', competence: '2026-05' });
+    expect(proof.headers, 'Faltam cabeçalhos após renderizar').toContain('BASIC');
+    expect(proof.visibleActions, 'Nenhuma ação de exclusão apareceu: ' + JSON.stringify(proof))
+        .toBeGreaterThan(0);
     const action = page.locator('tr[data-program-header="BASIC"]')
         .getByRole('button', { name: 'Excluir lançamentos deste programa neste mês' });
     await expect(action).toBeVisible();
