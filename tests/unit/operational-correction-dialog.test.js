@@ -71,3 +71,27 @@ test('inclui Não analisado (clear_analysis) nas opções suportadas pelo diálo
     assert.equal(Array.isArray(dialog.ANALYSES), true);
     assert.equal(dialog.ANALYSES.includes('Não analisado'), true);
 });
+
+
+test('T4: exclusão de contexto só fica disponível no piloto local explícito com repositório remoto', () => {
+    const repository = { executeRpc() {}, capabilities: () => ({ remote: true }) };
+    const root = {
+        RADAR_OPERATIONAL_CORRECTION_PREVIEW: true,
+        RadarApplicationServices: { data: { repository } },
+        RadarOperationalCorrectionClient: { createOperationalCorrectionClient() {} }
+    };
+    assert.equal(dialog.canDeleteContext(root), false);
+    assert.equal(dialog.canDeleteContext({ ...root, RADAR_T4_CONTEXT_DELETION_PILOT: true }), true);
+    assert.equal(dialog.canDeleteContext({
+        ...root,
+        RADAR_OPERATIONAL_CORRECTION_PREVIEW: false,
+        RADAR_T4_CONTEXT_DELETION_PILOT: true
+    }), false);
+    assert.equal(dialog.canDeleteContext({
+        ...root,
+        RADAR_T4_CONTEXT_DELETION_PILOT: true,
+        RadarApplicationServices: {
+            data: { repository: { executeRpc() {}, capabilities: () => ({ remote: false }) } }
+        }
+    }), false);
+});
