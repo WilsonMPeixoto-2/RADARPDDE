@@ -13259,6 +13259,8 @@ async function removerControlador(id, trigger = document.activeElement) {
         });
     }
 }
+function requestTeamReassignmentConfirm({ title, message, items = [], confirmLabel = 'Confirmar reatribuição' }) { if (typeof document === 'undefined' || !document.body) { const fallbackText = [title, message, ...items].filter(Boolean).join('\n'); return Promise.resolve(typeof window !== 'undefined' && typeof window.confirm === 'function' ? window.confirm(fallbackText) : false); } return new Promise((resolve) => {
+    const overlay = document.createElement('div'); overlay.className = 'modal-overlay active'; const modal = document.createElement('div'); modal.className = 'modal'; modal.setAttribute('role', 'dialog'); modal.setAttribute('aria-modal', 'true'); const titleId = 'team-reassign-confirm-title-' + Date.now(); const h3 = document.createElement('h3'); h3.id = titleId; h3.textContent = title || 'Confirmar ação'; modal.setAttribute('aria-labelledby', titleId); modal.appendChild(h3); const p = document.createElement('p'); p.textContent = message || ''; modal.appendChild(p); if (Array.isArray(items) && items.length > 0) { const ul = document.createElement('ul'); ul.style.maxHeight = '220px'; ul.style.overflowY = 'auto'; items.forEach((item) => { const li = document.createElement('li'); li.textContent = String(item); ul.appendChild(li); }); modal.appendChild(ul); } const actions = document.createElement('div'); actions.className = 'modal-actions'; const cancelBtn = document.createElement('button'); cancelBtn.type = 'button'; cancelBtn.className = 'btn btn-secondary'; cancelBtn.textContent = 'Cancelar'; const confirmBtn = document.createElement('button'); confirmBtn.type = 'button'; confirmBtn.className = 'btn btn-primary'; confirmBtn.textContent = confirmLabel || 'Confirmar reatribuição'; actions.appendChild(cancelBtn); actions.appendChild(confirmBtn); modal.appendChild(actions); overlay.appendChild(modal); document.body.appendChild(overlay); let settled = false; const cleanup = (result) => { if (settled) return; settled = true; document.removeEventListener('keydown', onKeyDown); overlay.remove(); resolve(result); }; const onKeyDown = (e) => { if (e.key === 'Escape') { e.preventDefault(); cleanup(false); } }; document.addEventListener('keydown', onKeyDown); cancelBtn.addEventListener('click', () => cleanup(false)); confirmBtn.addEventListener('click', () => cleanup(true)); overlay.addEventListener('click', (e) => { if (e.target === overlay) cleanup(false); }); cancelBtn.focus(); }); }
 
 async function reatribuirEscolaDirect(escolaId, novoCtrlId) {
     const escolaObj = typeof escolas !== 'undefined' ? escolas.find(e => e.id === escolaId) : null;
@@ -13273,9 +13275,7 @@ async function reatribuirEscolaDirect(escolaId, novoCtrlId) {
         ? atualCtrl.name
         : (escolaObj && escolaObj.controladorId ? escolaObj.controladorId : 'Não atribuído');
     const novoNome = novoCtrl ? novoCtrl.name : (novoCtrlId || 'Não atribuído');
-    const confirmed = window.confirm(
-        `Confirmar reatribuição da escola "${escolaNome}"?\nControlador atual: ${atualNome}\nNovo controlador: ${novoNome}`
-    );
+    const confirmed = await requestTeamReassignmentConfirm({ title: 'Confirmar reatribuição de escola', message: `Confirmar reatribuição da escola "${escolaName}"?`, items: [`Controlador atual: ${atualNome}`, `Novo controlador: ${novoNome}`], confirmLabel: 'Confirmar reatribuição' });
     if (!confirmed) {
         renderEquipe();
         return;
@@ -13334,14 +13334,11 @@ async function aplicarAtribuicaoEmLote() {
     const ctrlNome = (typeof controladores !== 'undefined' && controladores.find(c => c.id === novoCtrlId)?.name)
         || (bulkSelect.options[bulkSelect.selectedIndex]?.text)
         || novoCtrlId;
-    const nomesEscolas = targetEscolasIds.slice(0, 8).map(id => {
+    const todasEscolas = targetEscolasIds.map(id=> {
         const esc = typeof escolas !== 'undefined' ? escolas.find(e => e.id === id) : null;
         return getSchoolDisplayName(esc, id);
     });
-    const extra = targetEscolasIds.length > 8 ? `\n... e mais ${targetEscolasIds.length - 8}` : '';
-    const confirmed = window.confirm(
-        `Confirmar atribuição em lote de ${targetEscolasIds.length} escola(s) para "${ctrlNome}"?\n\n${nomesEscolas.join('\n')}${extra}`
-    );
+    const confirmed = await requestTeamReassignmentConfirm({ title: 'Confirmar atribuição em lote', message: `Atribuir ${targetEscolasIds.length} escola(s) para "${ctrlName}"?`, items: todasEscolas, confirmLabel: 'Confirmar atribuição em lote' });
     if (!confirmed) return;
     try {
         await radarSchoolService.bulkAssignController({
