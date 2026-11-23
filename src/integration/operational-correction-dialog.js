@@ -97,7 +97,7 @@
         dialog.setAttribute('aria-labelledby', 'radar-operational-correction-title');
         const header = el(doc, 'header', 'radar-operational-correction-header');
         const kicker = el(doc, 'span', 'evaluation-retification-kicker',
-            contextDeletion ? 'Correção de contexto' : bonus ? 'Avaliação de Notas Fiscais'
+            contextDeletion ? 'Exclusão de lançamentos' : bonus ? 'Avaliação de Notas Fiscais'
                 : deleting ? (mode === 'delete_invoice' ? 'Exclusão de nota fiscal' : 'Exclusão de pendência')
                     : 'Correção operacional');
         const title = el(doc, 'h2', '', contextDeletion ? 'Excluir lançamentos deste programa neste mês' : deleting
@@ -111,9 +111,11 @@
         header.append(kicker, title, summary);
         if (contextDeletion) {
             const explanation = el(doc, 'p', 'fiscal-bonus-explanation context-deletion-explanation',
-                'O servidor identificará as Notas Fiscais, Pendências e demais registros relacionados ao programa neste mês. '
-                + 'Os outros meses e programas, contatos gerais e registros independentes serão preservados. '
-                + 'Os lançamentos não serão transferidos automaticamente para outro contexto.');
+                'Você vai excluir os registros listados abaixo. Isso pode incluir notas fiscais, pendências, '
+                + 'contatos vinculados e bens cadastrados a partir dessas notas. '
+                + 'Os outros meses e programas, assim como os contatos gerais, serão preservados. '
+                + 'Os lançamentos não serão transferidos automaticamente. '
+                + 'Para registrar no lugar correto, faça um novo lançamento.');
             header.appendChild(explanation);
         }
         if (bonus) {
@@ -153,7 +155,7 @@
         note.id = 'radar-operational-correction-note';
         note.maxLength = 2000;
         note.rows = 3;
-        const planTitle = el(doc, 'h3', '', contextDeletion ? 'Confira o alcance antes de excluir' : 'O que vai mudar ao confirmar');
+        const planTitle = el(doc, 'h3', '', contextDeletion ? 'Confira o que será excluído' : 'O que vai mudar ao confirmar');
         const effects = el(doc, 'div', 'radar-operational-correction-effects', 'Calculando o que vai mudar…');
         effects.setAttribute('aria-live', 'polite');
         const feedback = el(doc, 'p', 'radar-operational-correction-feedback');
@@ -162,9 +164,10 @@
         const actions = el(doc, 'div', 'radar-operational-correction-actions');
         const cancel = el(doc, 'button', 'btn btn-secondary', 'Cancelar');
         const clearBtn = el(doc, 'button', 'btn btn-secondary', 'Limpar análise');
-        const review = el(doc, 'button', 'btn btn-secondary', 'Revisar prévia');
+        const review = el(doc, 'button', 'btn btn-secondary',
+            contextDeletion ? 'Conferir novamente' : 'Revisar prévia');
         const save = el(doc, 'button', contextDeletion ? 'btn btn-danger' : 'btn btn-primary',
-            contextDeletion ? 'Confirmar exclusão do contexto' : deleting ? 'Confirmar exclusão' : 'Confirmar correção');
+            contextDeletion ? 'Excluir estes lançamentos' : deleting ? 'Confirmar exclusão' : 'Confirmar correção');
         for (const button of [cancel, clearBtn, review, save]) button.type = 'button';
         (deleting ? cancel : select).autofocus = true;
         clearBtn.disabled = currentChoice === 'Não analisado' || !currentChoice;
@@ -231,10 +234,19 @@
             const warnings = Array.isArray(view.warnings) ? view.warnings : [];
             const blockers = Array.isArray(view.blockers) ? view.blockers : [];
             if (deleting) {
-                effects.appendChild(el(doc, 'p', '', text(view.summary)));
                 if (contextDeletion) {
+                    const removals = Array.isArray(view.removals) ? view.removals : [];
+                    if (removals.length) {
+                        const list = el(doc, 'ul', 'context-deletion-impact-list');
+                        for (const item of removals) list.appendChild(el(doc, 'li', '', item.label));
+                        effects.appendChild(list);
+                    } else {
+                        effects.appendChild(el(doc, 'p', '', 'Nenhum registro foi encontrado para excluir.'));
+                    }
                     effects.appendChild(el(doc, 'p', 'context-deletion-preserved',
-                        'Permanecem preservados os outros meses e programas, contatos gerais e registros sem vínculo inequívoco.'));
+                        'O que será mantido: outros meses e programas, contatos gerais e registros que não pertencem a esta seleção.'));
+                } else {
+                    effects.appendChild(el(doc, 'p', '', text(view.summary)));
                 }
                 if (view.preserved?.bonusResult) {
                     effects.appendChild(el(doc, 'p', '',
@@ -245,7 +257,7 @@
                         'O bem vinculado a outra nota fiscal será preservado.'));
                 }
             }
-            if (!changes.length) {
+            if (!changes.length && !contextDeletion) {
                 effects.appendChild(el(doc, 'p', '', deleting
                     ? 'Nenhuma outra informação será alterada.' : 'Nenhuma outra análise será alterada.'));
             }
@@ -416,17 +428,23 @@
                     save.disabled = false;
                     if (action === 'clear_analysis') {
                         status('Análise pronta para ser limpa. Confira o que vai mudar acima e clique em Confirmar correção.', false);
+                    } else if (contextDeletion) {
+                        status('Confira a lista acima. Se estiver tudo certo, clique em “Excluir estes lançamentos”.', false);
                     } else if (deleting) {
                         status('Confira quais registros serão excluídos e clique em Confirmar exclusão.', false);
                     }
                 } else {
-                    status('Ação pendente ou bloqueada. Confira os avisos acima antes de confirmar.', true);
+                    status(contextDeletion
+                        ? 'Não é possível excluir esses lançamentos agora. Confira o motivo acima.'
+                        : 'Ação pendente ou bloqueada. Confira os avisos acima antes de confirmar.', true);
                 }
             } catch (error) {
                 if (generation !== serial || !layer.isConnected) return;
                 if (bonus) review.hidden = false;
                 effects.textContent = '';
-                status(error?.message || 'Não foi possível obter a prévia.', true);
+                status(contextDeletion
+                    ? 'Não foi possível conferir os lançamentos. Nada foi excluído. Tente novamente.'
+                    : error?.message || 'Não foi possível obter a prévia.', true);
             }
         }
         async function synchronizeConfirmed() {
@@ -455,8 +473,10 @@
                     control?.focus({ preventScroll: true });
                 }
                 root.updateAlertsBell?.();
-                let message = deleting ? 'Exclusão confirmada. Os registros relacionados foram atualizados.'
-                    : 'Correção confirmada e informações atualizadas.';
+                let message = contextDeletion
+                    ? 'Lançamentos excluídos. Confira o programa e o mês antes de cadastrar novamente.'
+                    : deleting ? 'Exclusão confirmada. Os registros relacionados foram atualizados.'
+                        : 'Correção confirmada e informações atualizadas.';
                 if (bonus) {
                     const reopened = preview.view.changes.some(change => change.field === 'bonus_result');
                     const cleared = select.value === 'Limpar resposta';
@@ -509,10 +529,14 @@
                     uncertain = false;
                     doc.getElementById('radar-operational-correction-reload')?.remove();
                     if (bonus) review.hidden = false;
-                    status('Os dados mudaram. Revise a prévia antes de confirmar.', true);
+                    status(contextDeletion
+                        ? 'Os registros mudaram desde a conferência. Confira novamente antes de excluir.'
+                        : 'Os dados mudaram. Revise a prévia antes de confirmar.', true);
                 } else {
                     uncertain = true;
-                    status('Estado incerto: o servidor pode ter confirmado a gravação. Tente novamente com a mesma intenção ou atualize a página e confira o resultado antes de um novo lançamento.', true);
+                    status(contextDeletion
+                        ? 'Não foi possível confirmar se a exclusão terminou. Atualize a página e confira os lançamentos antes de tentar novamente.'
+                        : 'Estado incerto: o servidor pode ter confirmado a gravação. Tente novamente com a mesma intenção ou atualize a página e confira o resultado antes de um novo lançamento.', true);
                     if (!doc.getElementById('radar-operational-correction-reload')) {
                         const reload = el(doc, 'button', 'btn btn-secondary', 'Atualizar página');
                         reload.id = 'radar-operational-correction-reload';
