@@ -266,7 +266,12 @@ test('seis sessões reais medem escrita, observação, edição e falha durante 
     reconnectProof.oldHeldThroughReconnect = true;
     releaseOldResponse();
     await expect.poll(() => reconnectProof.recovery?.value, { timeout: 60000 }).toBe('Sim');
-    expect(reconnectProof.recovery.rpc).toBe('/rest/v1/rpc/read_operational_context');
+    // A atualização autenticada pode selecionar a leitura escolar delimitada
+    // sem ampliar escopo: ambas são RPCs canônicas do mesmo contexto.
+    expect([
+      '/rest/v1/rpc/read_operational_context',
+      '/rest/v1/rpc/read_school_operational_context'
+    ]).toContain(reconnectProof.recovery.rpc);
     expect(reconnectProof.recovery.startedAt).toBeGreaterThanOrEqual(reconnectProof.connectedAt);
     expect(reconnectProof.recovery.rowVersion).toBeGreaterThan(reconnectProof.old.rowVersion);
     expect(reconnectProof.recovery.releasedAt).toBeUndefined();
