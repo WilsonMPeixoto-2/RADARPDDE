@@ -85,7 +85,7 @@ test('Onda 3: compactação do painel provisório vazio vive em quality-provisio
     assert.match(qualityCss, /\.quality-provisional-feedback:empty\s*\{\s*display:\s*none;\s*\}/);
     assert.doesNotMatch(unidentifiedCss, /quality-provisional-panel/);
     assert.match(qualityJs, /panel\.classList\.toggle\('is-empty',\s*!records\.length\)/);
-    assert.match(qualityJs, /exclusivo da Conta PDDE Qualidade sem Ação Integrada definida/);
+    assert.match(qualityJs, /Nenhuma saída provisória registrada nesta competência\./);
 });
 
 test('T4 D021: runbook de publicação não mantém resquício de Corrigir marca no passo de smoke', () => {

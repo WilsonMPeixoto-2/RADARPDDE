@@ -13,10 +13,12 @@
     'use strict';
 
     const CONTROLLER_DIALOG_ID = 'radar-controller-deactivation-dialog';
+    const TEAM_REASSIGNMENT_DIALOG_ID = 'radar-team-reassignment-dialog';
     const FEEDBACK_REGION_ID = 'radar-feedback-region';
     const invoiceSubmissionLocks = new WeakSet();
     const invoiceSubmissionUiState = new WeakMap();
     let activeRequest = null;
+    let activeTeamReassignment = null;
 
     class InteractionError extends Error {
         constructor(code, message) {
@@ -361,7 +363,7 @@
         if (!root?.document) {
             return Promise.reject(new InteractionError('DOM_UNAVAILABLE', 'Interface indisponível.'));
         }
-        if (activeRequest) {
+        if (activeRequest || activeTeamReassignment) {
             return Promise.reject(new InteractionError(
                 'INTERACTION_IN_PROGRESS',
                 'Conclua ou cancele a confirmação aberta antes de continuar.'
@@ -427,6 +429,136 @@
         });
     }
 
+    function ensureTeamReassignmentDialog(documentRef) {
+        let dialog = documentRef.getElementById(TEAM_REASSIGNMENT_DIALOG_ID);
+        if (dialog) return dialog;
+
+        dialog = documentRef.createElement('div');
+        dialog.id = TEAM_REASSIGNMENT_DIALOG_ID;
+        dialog.className = 'modal-overlay radar-shared-dialog';
+        dialog.setAttribute('role', 'alertdialog');
+        dialog.setAttribute('aria-modal', 'true');
+        dialog.setAttribute('aria-labelledby', TEAM_REASSIGNMENT_DIALOG_ID + '-title');
+        dialog.setAttribute('aria-describedby', TEAM_REASSIGNMENT_DIALOG_ID + '-description');
+        dialog.setAttribute('aria-hidden', 'true');
+        dialog.setAttribute('inert', '');
+        // DOM explícito: evita novo sink innerHTML e mantém o lint de segurança.
+        const content = documentRef.createElement('div');
+        content.className = 'modal-content radar-team-reassignment-dialog';
+        const header = documentRef.createElement('header');
+        header.className = 'radar-critical-dialog__header';
+        const headerText = documentRef.createElement('div');
+        const heading = documentRef.createElement('h2');
+        heading.id = TEAM_REASSIGNMENT_DIALOG_ID + '-title';
+        const description = documentRef.createElement('p');
+        description.id = TEAM_REASSIGNMENT_DIALOG_ID + '-description';
+        headerText.append(heading, description);
+        const close = documentRef.createElement('button');
+        close.type = 'button';
+        close.className = 'btn-close';
+        close.dataset.teamReassignmentClose = '';
+        close.setAttribute('aria-label', 'Fechar');
+        close.textContent = '×';
+        header.append(headerText, close);
+
+        const body = documentRef.createElement('div');
+        body.className = 'radar-critical-dialog__body';
+        const listRegion = documentRef.createElement('section');
+        listRegion.className = 'radar-team-reassignment-list-region';
+        listRegion.dataset.teamReassignmentListRegion = '';
+        const listHeading = documentRef.createElement('h3');
+        listHeading.id = TEAM_REASSIGNMENT_DIALOG_ID + '-list-title';
+        const list = documentRef.createElement('ul');
+        list.className = 'radar-team-reassignment-list';
+        list.tabIndex = 0;
+        list.setAttribute('aria-labelledby', listHeading.id);
+        listRegion.append(listHeading, list);
+        body.appendChild(listRegion);
+
+        const footer = documentRef.createElement('footer');
+        footer.className = 'modal-footer radar-critical-dialog__footer';
+        const cancel = documentRef.createElement('button');
+        cancel.type = 'button';
+        cancel.className = 'btn btn-secondary';
+        cancel.dataset.teamReassignmentCancel = '';
+        cancel.textContent = 'Cancelar';
+        cancel.autofocus = true;
+        const confirm = documentRef.createElement('button');
+        confirm.type = 'button';
+        confirm.className = 'btn btn-primary';
+        confirm.dataset.teamReassignmentConfirm = '';
+        footer.append(cancel, confirm);
+        content.append(header, body, footer);
+        dialog.appendChild(content);
+        documentRef.body.appendChild(dialog);
+
+        dialog.querySelector('[data-team-reassignment-close]')
+            .addEventListener('click', () => finishTeamReassignment(false));
+        dialog.querySelector('[data-team-reassignment-cancel]')
+            .addEventListener('click', () => finishTeamReassignment(false));
+        dialog.querySelector('[data-team-reassignment-confirm]')
+            .addEventListener('click', () => finishTeamReassignment(true));
+        dialog.addEventListener('click', event => {
+            if (event.target === dialog) finishTeamReassignment(false);
+        });
+        // O gerenciador de modais existente aplica a mesma regra de Escape e
+        // confinamento de Tab dos demais diálogos. Este listener também resolve
+        // a Promise se a captura global tiver fechado o modal primeiro.
+        dialog.addEventListener('keydown', event => {
+            if (event.key !== 'Escape' || !activeTeamReassignment) return;
+            event.preventDefault();
+            finishTeamReassignment(false);
+        });
+        return dialog;
+    }
+
+    function finishTeamReassignment(confirmed) {
+        const request = activeTeamReassignment;
+        if (!request) return;
+        activeTeamReassignment = null;
+        closeDialog(request.dialog);
+        request.resolve(Boolean(confirmed));
+    }
+
+    function requestTeamReassignmentConfirm(input = {}) {
+        if (!root?.document?.body) {
+            return Promise.reject(new InteractionError('DOM_UNAVAILABLE', 'Interface indisponível.'));
+        }
+        if (activeRequest || activeTeamReassignment) {
+            return Promise.reject(new InteractionError(
+                'INTERACTION_IN_PROGRESS',
+                'Conclua ou cancele a confirmação aberta antes de continuar.'
+            ));
+        }
+
+        const dialog = ensureTeamReassignmentDialog(root.document);
+        const items = Array.isArray(input.items) ? input.items.map(text).filter(Boolean) : [];
+        dialog.querySelector('#' + TEAM_REASSIGNMENT_DIALOG_ID + '-title').textContent =
+            text(input.title) || 'Confirmar atribuição';
+        dialog.querySelector('#' + TEAM_REASSIGNMENT_DIALOG_ID + '-description').textContent =
+            text(input.message);
+        dialog.querySelector('#' + TEAM_REASSIGNMENT_DIALOG_ID + '-list-title').textContent =
+            text(input.listTitle) || 'Alteração proposta';
+        const region = dialog.querySelector('[data-team-reassignment-list-region]');
+        region.hidden = items.length === 0;
+        const list = dialog.querySelector('.radar-team-reassignment-list');
+        list.replaceChildren();
+        for (const item of items) {
+            const row = root.document.createElement('li');
+            row.textContent = item;
+            list.appendChild(row);
+        }
+        const cancel = dialog.querySelector('[data-team-reassignment-cancel]');
+        dialog.querySelector('[data-team-reassignment-confirm]').textContent =
+            text(input.confirmLabel) || 'Confirmar reatribuição';
+        const trigger = input.trigger || root.document.activeElement;
+
+        return new Promise(resolve => {
+            activeTeamReassignment = { dialog, resolve };
+            openDialog(dialog, trigger, cancel);
+        });
+    }
+
     return Object.freeze({
         InteractionError,
         buildControllerDeactivationModel,
@@ -435,6 +567,7 @@
         formatControllerDeactivationSuccess,
         guardInvoiceSubmission,
         requestControllerDeactivation,
+        requestTeamReassignmentConfirm,
         notify
     });
 }));

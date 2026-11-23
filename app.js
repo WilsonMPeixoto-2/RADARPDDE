@@ -13012,7 +13012,7 @@ function renderEquipe() {
                 <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                     <div>
                         <h2>Alocação de Escolas (${escolas.length} Unidades)</h2>
-                        <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: var(--text-muted);">Reatribua as escolas diretamente nos dropdowns para atualizar a carteira de cada controlador instantaneamente.</p>
+                        <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: var(--text-muted);">Escolha o novo Controlador. Antes de alterar a carteira, confira a unidade escolar e a atribuição proposta.</p>
                     </div>
                     
                     <!-- Barra de Ações em Lote -->
@@ -13055,7 +13055,7 @@ function renderEquipe() {
                                         <td>${escapeHtml(e.cnpj)}</td>
                                         <td><span class="badge badge-gray">${escapeHtml(getRAFromDesignacao(e.designação || e.designaçao))}</span></td>
                                         <td>
-                                            <select class="form-control select-alocacao" aria-label="Controlador responsável por ${schoolLabel}" style="max-width: 220px; font-weight: 500; border-color: var(--border-color);" onchange="reatribuirEscolaDirect('${escapeHtml(e.id)}', this.value)">
+                                            <select class="form-control select-alocacao" data-school-id="${escapeHtml(e.id)}" aria-label="Controlador responsável por ${schoolLabel}" style="max-width: 220px; font-weight: 500; border-color: var(--border-color);" onchange="reatribuirEscolaDirect('${escapeHtml(e.id)}', this.value)">
                                                 ${activeControllers.map(ctrl => `
                                                     <option value="${escapeHtml(ctrl.id)}" ${ctrl.id === currentCtrlId ? 'selected' : ''}>${escapeHtml(ctrl.name)}</option>
                                                 `).join('')}
@@ -13259,10 +13259,10 @@ async function removerControlador(id, trigger = document.activeElement) {
         });
     }
 }
-
 async function reatribuirEscolaDirect(escolaId, novoCtrlId) {
     const escolaObj = typeof escolas !== 'undefined' ? escolas.find(e => e.id === escolaId) : null;
     const escolaNome = getSchoolDisplayName(escolaObj, escolaId);
+    if (String(escolaObj?.controladorId || '') === String(novoCtrlId || '')) return;
     const atualCtrl = (typeof controladores !== 'undefined' && escolaObj)
         ? controladores.find(c => c.id === escolaObj.controladorId)
         : null;
@@ -13273,11 +13273,27 @@ async function reatribuirEscolaDirect(escolaId, novoCtrlId) {
         ? atualCtrl.name
         : (escolaObj && escolaObj.controladorId ? escolaObj.controladorId : 'Não atribuído');
     const novoNome = novoCtrl ? novoCtrl.name : (novoCtrlId || 'Não atribuído');
-    const confirmed = window.confirm(
-        `Confirmar reatribuição da escola "${escolaNome}"?\nControlador atual: ${atualNome}\nNovo controlador: ${novoNome}`
-    );
+    let confirmed;
+    try {
+        confirmed = await window.RadarSharedInteractions.requestTeamReassignmentConfirm({
+            title: 'Confirmar reatribuição de escola',
+            message: `Deseja alterar o Controlador responsável por "${escolaNome}"?`,
+            listTitle: 'Alteração proposta',
+            items: [`Controlador atual: ${atualNome}`, `Novo Controlador: ${novoNome}`],
+            confirmLabel: 'Confirmar reatribuição'
+        });
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível abrir a confirmação de reatribuição.');
+        renderEquipe();
+        return;
+    }
     if (!confirmed) {
         renderEquipe();
+        requestAnimationFrame(() => {
+            const restored = Array.from(document.querySelectorAll('.select-alocacao'))
+                .find(select => select.dataset.schoolId === String(escolaId));
+            (restored || document.getElementById('team-page-title'))?.focus({ preventScroll: true });
+        });
         return;
     }
     try {
@@ -13334,14 +13350,23 @@ async function aplicarAtribuicaoEmLote() {
     const ctrlNome = (typeof controladores !== 'undefined' && controladores.find(c => c.id === novoCtrlId)?.name)
         || (bulkSelect.options[bulkSelect.selectedIndex]?.text)
         || novoCtrlId;
-    const nomesEscolas = targetEscolasIds.slice(0, 8).map(id => {
+    const todasEscolas = targetEscolasIds.map(id => {
         const esc = typeof escolas !== 'undefined' ? escolas.find(e => e.id === id) : null;
         return getSchoolDisplayName(esc, id);
     });
-    const extra = targetEscolasIds.length > 8 ? `\n... e mais ${targetEscolasIds.length - 8}` : '';
-    const confirmed = window.confirm(
-        `Confirmar atribuição em lote de ${targetEscolasIds.length} escola(s) para "${ctrlNome}"?\n\n${nomesEscolas.join('\n')}${extra}`
-    );
+    let confirmed;
+    try {
+        confirmed = await window.RadarSharedInteractions.requestTeamReassignmentConfirm({
+            title: 'Confirmar atribuição em lote',
+            message: `As ${targetEscolasIds.length} escolas selecionadas passarão para "${ctrlNome}". Confira a relação antes de confirmar.`,
+            listTitle: `Escolas selecionadas (${targetEscolasIds.length})`,
+            items: todasEscolas,
+            confirmLabel: 'Confirmar atribuição em lote'
+        });
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível abrir a confirmação da atribuição em lote.');
+        return;
+    }
     if (!confirmed) return;
     try {
         await radarSchoolService.bulkAssignController({
