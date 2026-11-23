@@ -58,7 +58,7 @@ begin
           (i.school_id<>school or i.competence_id is distinct from competence
           or i.program_id is distinct from program))) then
     blockers:=blockers||jsonb_build_array(jsonb_build_object('code','CONTEXT_INCONSISTENT',
-      'message','Uma nota possui contexto divergente do vínculo de verificação.'));
+      'message','Uma nota fiscal está associada a outro mês ou programa. Confira o cadastro antes de excluir.'));
   end if;
 
   select coalesce(array_agg(p.id order by p.id),array[]::text[])
@@ -70,7 +70,7 @@ begin
       or p.program_id is distinct from program
       or (p.registered_invoice_id is not null and not(p.registered_invoice_id=any(invoices))))) then
     blockers:=blockers||jsonb_build_array(jsonb_build_object('code','CROSS_CONTEXT_DEPENDENCY',
-      'message','Uma Pendência está vinculada a um contexto diferente.'));
+      'message','Uma pendência está ligada a outro mês ou programa. Confira o vínculo antes de excluir.'));
   end if;
   select coalesce(array_agg(a.id order by a.id),array[]::text[])
     into attempts from public.pendency_attempts a where a.pendency_id=any(pendencies);
@@ -78,7 +78,7 @@ begin
     into contacts from public.pendency_contacts c where c.pendency_id=any(pendencies);
   if exists(select 1 from public.pendency_contacts c where c.id=any(contacts) and c.school_id<>school) then
     blockers:=blockers||jsonb_build_array(jsonb_build_object('code','CROSS_SCHOOL_CONTACT',
-      'message','Um contato vinculado pertence a outra escola.'));
+      'message','Um contato ligado à pendência pertence a outra escola. Confira esse vínculo antes de excluir.'));
   end if;
 
   -- Bem exclusivo é dependente; compartilhado e patrimônio manual são preservados.
@@ -90,7 +90,7 @@ begin
        where neighbor.linked_asset_id=a.id and not(neighbor.id=any(invoices)));
   if exists(select 1 from public.assets a where a.id=any(assets) and a.school_id<>school) then
     blockers:=blockers||jsonb_build_array(jsonb_build_object('code','CROSS_SCHOOL_ASSET',
-      'message','Um bem vinculado pertence a outra escola.'));
+      'message','Um bem ligado a uma nota fiscal pertence a outra escola. Confira o cadastro antes de excluir.'));
   end if;
   select coalesce(jsonb_agg(s.id order by s.id),'[]'::jsonb)
     into mapped from (
@@ -102,17 +102,17 @@ begin
      'generalContacts',true,'unlinkedQualityMovements',true,'automaticTransfer',false);
   if jsonb_array_length(mapped)>0 then
     warnings:=warnings||jsonb_build_array(jsonb_build_object('code','SHARED_ASSETS_PRESERVED',
-      'message','Bens compartilhados com outras notas serão preservados.'));
+      'message','Os bens que também estão vinculados a outras notas fiscais serão mantidos.'));
   end if;
   if exists(select 1 from public.assets a where a.id=any(assets) and a.status='Inventariada') then
     warnings:=warnings||jsonb_build_array(jsonb_build_object('code','ASSET_INVENTORIED_DELETED',
-      'message','Bem Inventariado exclusivo será excluído no RADAR; atos externos não serão desfeitos.'));
+      'message','Um bem já marcado como inventariado será excluído do RADAR com sua nota fiscal. Isso não cancela registros patrimoniais feitos fora do sistema.'));
   end if;
   if exists(select 1 from public.pendencies p where p.school_id=school
        and p.competence_origin=competence and p.program_id is null
        and p.registered_invoice_id is null) then
     warnings:=warnings||jsonb_build_array(jsonb_build_object('code','LEGACY_PENDENCY_PRESERVED',
-      'message','Pendências sem programa identificado serão preservadas.'));
+      'message','As pendências sem programa definido serão mantidas.'));
   end if;
 
   -- Identificada por NF do pacote: desfazer identificação sem destruir a saída.
@@ -121,7 +121,7 @@ begin
       order by m.id loop
     if movement.status<>'identified' or movement.school_id<>school or movement.competence_id<>competence then
       blockers:=blockers||jsonb_build_array(jsonb_build_object('code','QUALITY_MOVEMENT_INCONSISTENT',
-        'message','Saída provisória vinculada não corresponde ao contexto.'));
+        'message','Uma saída do PDDE Qualidade está ligada a outro mês ou programa. Confira esse registro antes de excluir.'));
     else
       updates:=updates||jsonb_build_array(jsonb_build_object('entity','quality_provisional_movements',
         'id',movement.id::text,'field','status','before','identified','after','open'));
