@@ -30,11 +30,12 @@ test.describe('Gestão de Equipe — confirmação acessível de reatribuição'
     expect(other).toBeTruthy();
     await select.selectOption(other);
 
-    const dialog = page.getByRole('alertdialog', { name: 'Confirmar reatribuição de escola' });
+    const dialog = page.locator('#radar-team-reassignment-dialog');
+    await expect(page.getByRole('alertdialog', { name: 'Confirmar reatribuição de escola' })).toBeVisible();
     await expect(dialog).toBeVisible();
     await expect(dialog).toContainText(schoolName.replace('Controlador responsável por ', ''));
     await expect(dialog).toContainText('Controlador atual:');
-    await expect(dialog).toContainText('Novo controlador:');
+    await expect(dialog).toContainText('Novo Controlador:');
     await expect(dialog).toHaveClass(/show/);
     await expect(dialog).toHaveCSS('opacity', '1');
     await expect(dialog.locator('.modal-content.radar-team-reassignment-dialog')).toBeVisible();
@@ -73,7 +74,8 @@ test.describe('Gestão de Equipe — confirmação acessível de reatribuição'
     await page.locator('#bulk-controlador-select').selectOption(controller);
     await page.getByRole('button', { name: 'Aplicar em Lote' }).click();
 
-    const dialog = page.getByRole('alertdialog', { name: 'Confirmar atribuição em lote' });
+    const dialog = page.locator('#radar-team-reassignment-dialog');
+    await expect(page.getByRole('alertdialog', { name: 'Confirmar atribuição em lote' })).toBeVisible();
     await expect(dialog).toBeVisible();
     await expect(dialog).toContainText('3 escolas selecionadas');
     const list = dialog.locator('.radar-team-reassignment-list');
@@ -91,7 +93,7 @@ test.describe('Gestão de Equipe — confirmação acessível de reatribuição'
     await testInfo.attach('reatribuicao-lote', { body: await dialog.screenshot(), contentType: 'image/png' });
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(dialog.locator('.modal-content.radar-team-reassignment-dialog')).toBeInViewport();
-    await testInfo.attach('reatribuicao-lote-mobile', { body: await dialog.screenshot(), contentType: 'image/png' });
+    await testInfo.attach('reatribuicao-lote-mobile', { body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
 
     await cancel.click();
     await expect(dialog).not.toHaveClass(/show/);
@@ -121,7 +123,8 @@ test.describe('Gestão de Equipe — confirmação acessível de reatribuição'
         confirmLabel: 'Confirmar'
       });
     });
-    const dialog = page.getByRole('alertdialog', { name: 'Conferir escolas selecionadas' });
+    const dialog = page.locator('#radar-team-reassignment-dialog');
+    await expect(page.getByRole('alertdialog', { name: 'Conferir escolas selecionadas' })).toBeVisible();
     const list = dialog.locator('.radar-team-reassignment-list');
     await expect(dialog).toHaveClass(/show/);
     await expect(list.locator('li')).toHaveCount(32);
