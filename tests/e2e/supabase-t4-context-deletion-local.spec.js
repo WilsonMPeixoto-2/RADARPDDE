@@ -105,7 +105,10 @@ async function enablePilotAndOpen(page) {
     await expect(menu.locator('summary')).toHaveText('Ações do programa');
     const action = menu.getByRole('button', { name: 'Excluir lançamentos deste programa neste mês' });
     await expect(action).toBeHidden();
-    await menu.locator('summary').click();
+    // Abrir pelo teclado comprova o menu sem depender apenas do clique do mouse.
+    await menu.locator('summary').focus();
+    await page.keyboard.press('Enter');
+    await expect(menu).toHaveAttribute('open', '');
     await expect(action).toBeVisible();
     await action.click();
     return page.getByRole('dialog', { name: 'Excluir lançamentos deste programa neste mês' });
