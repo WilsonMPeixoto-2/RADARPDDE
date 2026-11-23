@@ -717,6 +717,34 @@ body.dark-theme .is-fiscal-bonus .radar-operational-correction-header .fiscal-bo
 .is-context-deletion .context-deletion-impact-list li::marker {
     color: var(--danger, #b91c1c);
 }
+
+.is-context-deletion .radar-operational-correction-effects {
+    max-block-size: min(48vh, 450px);
+    overflow-y: auto;
+    overflow-wrap: anywhere;
+}
+.is-context-deletion .context-deletion-details {
+    padding-block-start: 0.65rem;
+    border-block-start: 1px solid var(--border-color, #e5e7eb);
+}
+.is-context-deletion .context-deletion-details h4 {
+    margin: 0 0 0.35rem;
+    color: var(--text-main);
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+.is-context-deletion .context-deletion-records {
+    margin: 0;
+    padding-inline-start: 1.2rem;
+    display: grid;
+    gap: 0.35rem;
+    list-style: disc;
+}
+.is-context-deletion .context-deletion-records li {
+    line-height: 1.48;
+    font-variant-numeric: tabular-nums;
+}
+
 .is-context-deletion .radar-operational-correction-effects {
     border-inline-start-color: var(--danger, #b91c1c);
 }
