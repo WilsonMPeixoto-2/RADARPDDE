@@ -98,6 +98,10 @@ test('T4 real: prévia e cancelamento não alteram escola, NFs, Pendências ou p
     await expect(dialog).toContainText('avaliação mensal do programa');
     await expect(dialog).toContainText('notas fiscais');
     await expect(dialog).toContainText('Pendências');
+    await expect(dialog).toContainText('NF T4-CTX-001');
+    await expect(dialog).toContainText('Bem lançado no mês e programa errados');
+    await expect(dialog).toContainText('NF T4-CTX-002');
+    await expect(dialog).toContainText('Pendência: Nota fiscal');
     await expect(dialog.getByRole('button', { name: 'Excluir estes lançamentos' })).toBeEnabled();
     await testInfo.attach('t4-context-preview-desktop', {
         body: await dialog.screenshot(), contentType: 'image/png'
