@@ -17,6 +17,7 @@
     const FEEDBACK_REGION_ID = 'radar-feedback-region';
     const invoiceSubmissionLocks = new WeakSet();
     const invoiceSubmissionUiState = new WeakMap();
+    const documentEscapeListeners = new WeakSet();
     let activeRequest = null;
     let activeTeamReassignment = null;
 
@@ -219,7 +220,30 @@
         return notice;
     }
 
+    function ensureDocumentEscapeListener(documentRef) {
+        if (!documentRef || typeof documentRef.addEventListener !== 'function') return;
+        if (documentEscapeListeners.has(documentRef)) return;
+        documentEscapeListeners.add(documentRef);
+        // Listener no documento garante que Escape sempre resolva a Promise e
+        // libere o estado mesmo quando o foco caiu em document.body (ex.: após
+        // clique em texto não focável do diálogo) e modal-accessibility.js já
+        // fechou o overlay na fase de captura.
+        documentRef.addEventListener('keydown', event => {
+            if (event.key !== 'Escape') return;
+            if (activeTeamReassignment) {
+                event.preventDefault();
+                finishTeamReassignment(false);
+                return;
+            }
+            if (activeRequest && !activeRequest.pending) {
+                event.preventDefault();
+                finishActiveRequest(null, { restoreFocus: true });
+            }
+        });
+    }
+
     function ensureControllerDialog(documentRef) {
+        ensureDocumentEscapeListener(documentRef);
         let dialog = documentRef.getElementById(CONTROLLER_DIALOG_ID);
         if (dialog) return dialog;
 
@@ -430,6 +454,7 @@
     }
 
     function ensureTeamReassignmentDialog(documentRef) {
+        ensureDocumentEscapeListener(documentRef);
         let dialog = documentRef.getElementById(TEAM_REASSIGNMENT_DIALOG_ID);
         if (dialog) return dialog;
 

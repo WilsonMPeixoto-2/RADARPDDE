@@ -51,3 +51,9 @@ test('a reatribuição em lote mostra todas as escolas e o controlador escolhido
     assert.match(source, /RadarSharedInteractions\.requestTeamReassignmentConfirm/);
     assert.match(source, /bulkAssignController/);
 });
+
+test('Escape disparado no document (foco fora do diálogo) resolve a confirmação sem deadlock', () => {
+    assert.match(interactions, /ensureDocumentEscapeListener/);
+    assert.match(interactions, /documentRef\.addEventListener\('keydown'/);
+    assert.match(interactions, /if \(activeTeamReassignment\) \{[\s\S]*?finishTeamReassignment\(false\)/);
+});
