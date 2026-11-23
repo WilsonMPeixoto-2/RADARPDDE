@@ -73,7 +73,17 @@ async function enablePilotAndOpen(page) {
             ...before,
             headers: [...document.querySelectorAll('tr[data-program-header]')]
                 .map(row => row.getAttribute('data-program-header')),
-            visibleActions: document.querySelectorAll('.program-context-delete-button').length
+            visibleActions: document.querySelectorAll('.program-context-delete-button').length,
+            actionDetails: [...document.querySelectorAll('.program-context-delete-button')]
+                .map(button => ({
+                    program: button.closest('tr[data-program-header]')?.dataset.programHeader,
+                    text: button.textContent?.trim(),
+                    display: getComputedStyle(button).display,
+                    visibility: getComputedStyle(button).visibility,
+                    hasLayout: Boolean(button.getClientRects().length),
+                    inertAncestor: Boolean(button.closest('[inert]')),
+                    ariaHiddenAncestor: Boolean(button.closest('[aria-hidden="true"]'))
+                }))
         };
     });
     expect(proof, 'Diagnóstico do piloto autenticado: ' + JSON.stringify(proof))
@@ -83,6 +93,12 @@ async function enablePilotAndOpen(page) {
     expect(proof.headers, 'Faltam cabeçalhos após renderizar').toContain('BASIC');
     expect(proof.visibleActions, 'Nenhuma ação de exclusão apareceu: ' + JSON.stringify(proof))
         .toBeGreaterThan(0);
+    const targetButton = proof.actionDetails.find(item => item.program === 'BASIC');
+    expect(targetButton, 'Botão PDDE Básico inexistente: ' + JSON.stringify(proof))
+        .toBeDefined();
+    expect(targetButton.hasLayout && !targetButton.inertAncestor && !targetButton.ariaHiddenAncestor,
+        'Botão PDDE Básico presente, mas inacessível: ' + JSON.stringify(proof))
+        .toBe(true);
     const action = page.locator('tr[data-program-header="BASIC"]')
         .getByRole('button', { name: 'Excluir lançamentos deste programa neste mês' });
     await expect(action).toBeVisible();
