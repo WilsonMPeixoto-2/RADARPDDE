@@ -25,6 +25,9 @@ declare
   blockers jsonb:='[]'::jsonb;
   preserved jsonb:='{}'::jsonb;
   mapped jsonb;
+  preview_invoices jsonb := '[]'::jsonb;
+  preview_pendencies jsonb := '[]'::jsonb;
+  preview_assets jsonb := '[]'::jsonb;
   plan jsonb;
   movement record;
 begin
@@ -147,6 +150,30 @@ begin
     from public.assets a where a.id=any(assets);
   versions:=versions||jsonb_build_object('assets',mapped);
 
+  -- Identificações legíveis fazem parte do plano autenticado e de seu digest.
+  -- O operador confere cada registro; o cliente não escolhe nem amplia os IDs.
+  select coalesce(jsonb_agg(jsonb_build_object(
+    'id',i.id,'invoiceNumber',i.invoice_number,
+    'description',i.description,'amount',i.amount,
+    'expenseType',i.expense_type
+  ) order by i.id),'[]'::jsonb)
+  into preview_invoices
+  from public.registered_invoices i where i.id=any(invoices);
+
+  select coalesce(jsonb_agg(jsonb_build_object(
+    'id',p.id,'documentKey',p.document_key,
+    'status',p.status
+  ) order by p.id),'[]'::jsonb)
+  into preview_pendencies
+  from public.pendencies p where p.id=any(pendencies);
+
+  select coalesce(jsonb_agg(jsonb_build_object(
+    'id',a.id,'description',a.description,
+    'status',a.status
+  ) order by a.id),'[]'::jsonb)
+  into preview_assets
+  from public.assets a where a.id=any(assets);
+
   plan:=jsonb_build_object('contractVersion',1,'action','delete_context',
     'target',jsonb_build_object('kind','program_context','schoolId',school,
       'competence',competence,'programId',program),
@@ -160,7 +187,10 @@ begin
       'pendencies',cardinality(pendencies),'attempts',cardinality(attempts),
       'contacts',cardinality(contacts),'assets',cardinality(assets),
       'updates',jsonb_array_length(updates)),
-    'versions',versions,'preserved',preserved,'warnings',warnings,'blockers',blockers);
+    'versions',versions,'preserved',preserved,
+    'affectedRecords',jsonb_build_object('invoices',preview_invoices,
+      'pendencies',preview_pendencies,'assets',preview_assets),
+    'warnings',warnings,'blockers',blockers);
   return plan||jsonb_build_object('planDigest',encode(sha256(convert_to(plan::text,'UTF8')),'hex'));
 end $$;
 revoke all on function radar_private.operational_correction_build_plan(jsonb)
