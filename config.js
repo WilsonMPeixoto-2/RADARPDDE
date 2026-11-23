@@ -283,6 +283,11 @@
         // T4 não herda o opt-in T0–T3. A segunda autorização permanece OFF até a migration 65.
         const bonificationCorrectionRelease = input.features?.bonificationCorrectionRelease === true
             && operationalCorrectionRelease === true;
+        // A exclusão de contexto tem autorização separada e continua OFF até
+        // que o banco institucional tenha a migration 66 e o deploy seja aprovado.
+        const contextDeletionRelease = input.features?.contextDeletionRelease === true
+            && operationalCorrectionRelease === true
+            && bonificationCorrectionRelease === true;
 
         if (!isLocal && !validCredentials) {
             diagnostics.push('Conexão Supabase bloqueada: URL ou chave publicável inválida.');
@@ -310,7 +315,8 @@
                 supabaseRepositoryEnabled: isLocal ? false : requestedRepository,
                 ...(operationalCorrectionPilot ? { operationalCorrectionPilot: true } : {}),
                 ...(operationalCorrectionRelease ? { operationalCorrectionRelease: true } : {}),
-                ...(bonificationCorrectionRelease ? { bonificationCorrectionRelease: true } : {})
+                ...(bonificationCorrectionRelease ? { bonificationCorrectionRelease: true } : {}),
+                ...(contextDeletionRelease ? { contextDeletionRelease: true } : {})
             },
             supabase: {
                 url: connectionEnabled && !productionBlocked ? rawUrl : '',
