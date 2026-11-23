@@ -59,15 +59,15 @@ grant all on t4h_preview to authenticated;
 
 select set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000b705","role":"authenticated"}',true);
 set local role authenticated;
-select throws_like($ select public.preview_operational_change(pg_temp.t4h_request()) $,
+select throws_like($$ select public.preview_operational_change(pg_temp.t4h_request()) $$,
     'AUTHORIZATION_DENIED%', 'perfil SME somente leitura não pode limpar histórico');
 reset role;
 select set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000b701","role":"authenticated"}',true);
 set local role authenticated;
 
-select throws_like($ select public.preview_operational_change(pg_temp.t4h_request('internal_flags')) $,
+select throws_like($$ select public.preview_operational_change(pg_temp.t4h_request('internal_flags')) $$,
     'VALIDATION_ERROR%', 'campo não reconhecido não pode ser usado como histórico');
-select lives_ok($ insert into t4h_preview select public.preview_operational_change(pg_temp.t4h_request()) $,
+select lives_ok($$ insert into t4h_preview select public.preview_operational_change(pg_temp.t4h_request()) $$,
   'controlador pode visualizar limpeza explícita de todo histórico do documento');
 select is((select plan #>> '{action}' from t4h_preview),'clear_item_history',
   'operação continua distinta de clear_analysis');
