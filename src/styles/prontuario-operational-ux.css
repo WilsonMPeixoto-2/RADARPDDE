@@ -1624,3 +1624,46 @@ body.dark-theme .fiscal-bonus-edit {
     background: var(--bg-sidebar);
     border: 1px solid var(--border-color);
 }
+
+/* T4: limpar histórico permanece uma ação secundária, sempre identificável. */
+#prontuario-verif-rows .prontuario-history-clear-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    min-block-size: 34px;
+    max-inline-size: 100%;
+    padding: 5px 9px;
+    margin-block: 3px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-card);
+    color: var(--text-muted);
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 680;
+    line-height: 1.3;
+    white-space: normal;
+    text-align: center;
+    cursor: pointer;
+}
+#prontuario-verif-rows .prontuario-history-clear-button:hover {
+    border-color: var(--danger, #b91c1c);
+    color: var(--danger, #b91c1c);
+    background: color-mix(in srgb, var(--danger, #b91c1c) 5%, var(--bg-card));
+}
+#prontuario-verif-rows .prontuario-history-clear-button:focus-visible,
+#prontuario-verif-rows .invoice-history-clear-button:focus-visible {
+    outline: 2px solid var(--border-focus, #8b5cf6);
+    outline-offset: 2px;
+}
+body.dark-theme #prontuario-verif-rows .prontuario-history-clear-button:hover {
+    color: #fca5a5;
+    border-color: #fca5a5;
+}
+@media (max-width: 700px) {
+    #prontuario-verif-rows .prontuario-history-clear-button {
+        min-block-size: 40px;
+        font-size: 0.78rem;
+    }
+}
