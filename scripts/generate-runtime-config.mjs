@@ -108,6 +108,10 @@ function buildRuntimeInput(environment = {}) {
         environment.RADAR_T4_CONTEXT_DELETION_RELEASE_ENABLED,
         'RADAR_T4_CONTEXT_DELETION_RELEASE_ENABLED'
     );
+    const itemHistoryRelease = parseBoolean(
+        environment.RADAR_T4_ITEM_HISTORY_RELEASE_ENABLED,
+        'RADAR_T4_ITEM_HISTORY_RELEASE_ENABLED'
+    );
     const url = String(environment.RADAR_SUPABASE_URL || '').trim();
     const publishableKey = String(environment.RADAR_SUPABASE_PUBLISHABLE_KEY || '').trim();
 
@@ -158,6 +162,9 @@ function buildRuntimeInput(environment = {}) {
     if (contextDeletionRelease && (!operationalCorrectionRelease || !bonificationCorrectionRelease)) {
         throw new Error('T4 exclusão de contexto exige release operacional e bonificação autorizados em produção.');
     }
+    if (itemHistoryRelease && (!contextDeletionRelease || !operationalCorrectionRelease || !bonificationCorrectionRelease)) {
+        throw new Error('T4 histórico exige exclusão de contexto, bonificação e correção operacional autorizadas em produção.');
+    }
 
     if (dataMode === 'local') {
         return {
@@ -197,7 +204,8 @@ function buildRuntimeInput(environment = {}) {
             ...(operationalCorrectionPilot ? { operationalCorrectionPilot: true } : {}),
             ...(operationalCorrectionRelease ? { operationalCorrectionRelease: true } : {}),
             ...(bonificationCorrectionRelease ? { bonificationCorrectionRelease: true } : {}),
-            ...(contextDeletionRelease ? { contextDeletionRelease: true } : {})
+            ...(contextDeletionRelease ? { contextDeletionRelease: true } : {}),
+            ...(itemHistoryRelease ? { itemHistoryRelease: true } : {})
         },
         supabase: {
             url,
