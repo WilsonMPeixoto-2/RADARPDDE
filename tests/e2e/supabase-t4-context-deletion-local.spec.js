@@ -119,6 +119,12 @@ test('T4 real: excluir contexto pelo botão preserva programa/mês vizinhos e co
     await expect(dialog).toBeHidden();
     await page.reload();
     await page.waitForFunction(() => window.RadarDataContext?.ready === true);
+    await page.evaluate(async () => {
+        await window.RadarProductExtensionsReady;
+        window.RADAR_T4_CONTEXT_DELETION_PILOT = true;
+        window.renderProntuario('ESC-T4-CONTEXT');
+    });
+    await expect(page.locator('tr[data-program-header="BASIC"] .program-context-delete-button')).toHaveCount(0);
     const after = await snapshot(page);
 
     expect(after.verifications).not.toContain('ESC-T4-CONTEXT::2026-05::BASIC');
