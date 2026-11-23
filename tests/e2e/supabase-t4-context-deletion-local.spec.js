@@ -96,11 +96,16 @@ async function enablePilotAndOpen(page) {
     const targetButton = proof.actionDetails.find(item => item.program === 'BASIC');
     expect(targetButton, 'Botão PDDE Básico inexistente: ' + JSON.stringify(proof))
         .toBeDefined();
-    expect(targetButton.hasLayout && !targetButton.inertAncestor && !targetButton.ariaHiddenAncestor,
-        'Botão PDDE Básico presente, mas inacessível: ' + JSON.stringify(proof))
+    expect(!targetButton.inertAncestor && !targetButton.ariaHiddenAncestor,
+        'Ação PDDE Básico não pode ficar inacessível: ' + JSON.stringify(proof))
         .toBe(true);
-    const action = page.locator('tr[data-program-header="BASIC"]')
-        .getByRole('button', { name: 'Excluir lançamentos deste programa neste mês' });
+    const program = page.locator('tr[data-program-header="BASIC"]');
+    const menu = program.locator('details.program-context-options');
+    await expect(menu).toBeVisible();
+    await expect(menu.locator('summary')).toHaveText('Ações do programa');
+    const action = menu.getByRole('button', { name: 'Excluir lançamentos deste programa neste mês' });
+    await expect(action).toBeHidden();
+    await menu.locator('summary').click();
     await expect(action).toBeVisible();
     await action.click();
     return page.getByRole('dialog', { name: 'Excluir lançamentos deste programa neste mês' });
