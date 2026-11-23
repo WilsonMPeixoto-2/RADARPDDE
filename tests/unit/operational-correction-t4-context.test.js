@@ -103,6 +103,7 @@ test('T4 delete_context: o frontend solicita somente prévia e não executa excl
             calls.push({ name, args });
             return {
                 action: 'delete_context',
+                target: { ...TARGET },
                 planDigest: 'b'.repeat(64),
                 effects: { delete: { verifications: ['V-1'] }, update: [] },
                 warnings: [],
@@ -133,4 +134,38 @@ test('T4 delete_context: bloqueio do plano remoto impede confirmação mesmo com
         () => client.prepareConfirmation({ request: buildRequest({ action: 'delete_context', target: TARGET }), plan, view: describePlan(plan) }),
         error => error.code === 'PLAN_BLOCKED'
     );
+});
+
+test('T4 delete_context: prévia sem raiz verificável não autoriza exclusão', () => {
+    const empty = {
+        action: 'delete_context', planDigest: 'd'.repeat(64),
+        effects: { delete: { verifications: [], registered_invoices: [] }, update: [] },
+        blockers: []
+    };
+    assert.equal(describePlan(empty).canApply, false);
+});
+
+test('T4 delete_context: não aceita uma prévia retornada para outra competência ou programa', async () => {
+    for (const foreignTarget of [
+        { ...TARGET, competence: '2026-10' },
+        { ...TARGET, programId: 'CONECTADA' },
+        { ...TARGET, schoolId: 'ESC-2' }
+    ]) {
+        const repository = {
+            async executeRpc() {
+                return {
+                    action: 'delete_context',
+                    target: foreignTarget,
+                    planDigest: 'e'.repeat(64),
+                    effects: { delete: { verifications: ['VER-OUTRA'] }, update: [] },
+                    blockers: []
+                };
+            }
+        };
+        const client = createOperationalCorrectionClient({ repository });
+        await assert.rejects(
+            () => client.preview({ action: 'delete_context', target: TARGET }),
+            error => error instanceof OperationalCorrectionError && error.code === 'INVALID_PREVIEW'
+        );
+    }
 });
