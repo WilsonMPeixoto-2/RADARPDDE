@@ -701,6 +701,30 @@ body.dark-theme .is-fiscal-bonus .radar-operational-correction-header .fiscal-bo
     color: var(--text-main);
     line-height: 1.5;
 }
+
+.is-context-deletion .context-deletion-impact-list {
+    margin: 0;
+    padding-inline-start: 1.25rem;
+    display: grid;
+    gap: 0.35rem;
+    color: var(--text-main);
+    font-variant-numeric: tabular-nums;
+}
+.is-context-deletion .context-deletion-impact-list li {
+    padding-inline-start: 0.15rem;
+    line-height: 1.5;
+}
+.is-context-deletion .context-deletion-impact-list li::marker {
+    color: var(--danger, #b91c1c);
+}
+.is-context-deletion .radar-operational-correction-effects {
+    border-inline-start-color: var(--danger, #b91c1c);
+}
+body.dark-theme .is-context-deletion .context-deletion-impact-list li::marker,
+body.dark-theme .is-context-deletion .radar-operational-correction-effects {
+    border-inline-start-color: #fca5a5;
+}
+
 .is-context-deletion .radar-operational-correction-actions .btn-danger:not(:disabled) {
     font-weight: 700;
 }
