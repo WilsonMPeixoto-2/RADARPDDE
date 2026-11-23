@@ -221,3 +221,32 @@ test('release T0–T3 permanece OFF por padrão e exige autorização de produç
         );
     }
 });
+
+test('env da exclusão de contexto exige autorização independente da bonificação em Production', async () => {
+    const { buildRuntimeInput } = await loadGenerator();
+    const base = {
+        RADAR_DATA_MODE: 'supabase-production',
+        RADAR_ENVIRONMENT: 'production',
+        RADAR_SUPABASE_REPOSITORY_ENABLED: 'true',
+        RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED: 'true',
+        RADAR_SUPABASE_URL: 'https://example.supabase.co',
+        RADAR_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_example',
+        RADAR_OPERATIONAL_CORRECTION_RELEASE_ENABLED: 'true',
+        RADAR_BONIFICATION_CORRECTION_RELEASE_ENABLED: 'true'
+    };
+    assert.notEqual(buildRuntimeInput(base).features.contextDeletionRelease, true);
+    assert.throws(() => buildRuntimeInput({
+        ...base,
+        RADAR_BONIFICATION_CORRECTION_RELEASE_ENABLED: 'false',
+        RADAR_T4_CONTEXT_DELETION_RELEASE_ENABLED: 'true'
+    }), /exclusão de contexto|release|autoriz/i);
+    const enabled = buildRuntimeInput({
+        ...base, RADAR_T4_CONTEXT_DELETION_RELEASE_ENABLED: 'true'
+    });
+    assert.equal(enabled.features.contextDeletionRelease, true);
+    assert.throws(() => buildRuntimeInput({
+        ...base,
+        RADAR_T4_CONTEXT_DELETION_RELEASE_ENABLED: 'true',
+        RADAR_ENVIRONMENT: 'preview'
+    }), /produção|production/i);
+});
