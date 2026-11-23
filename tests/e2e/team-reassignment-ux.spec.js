@@ -60,7 +60,6 @@ test.describe('Gestão de Equipe — confirmação acessível de reatribuição'
   });
 
   test('reatribuição em lote: lista completa rolável, foco contido, cancelamento e confirmação', async ({ page }, testInfo) => {
-    const chosen = page.locator('.escola-bulk-checkbox').slice(0, 3);
     for (let index = 0; index < 3; index++) await page.locator('.escola-bulk-checkbox').nth(index).check();
     const schoolNames = await page.locator('.escola-bulk-checkbox').evaluateAll(nodes =>
       nodes.slice(0, 3).map(el => el.getAttribute('aria-label').replace('Selecionar ', '')));
@@ -72,7 +71,7 @@ test.describe('Gestão de Equipe — confirmação acessível de reatribuição'
 
     const dialog = page.getByRole('alertdialog', { name: 'Confirmar atribuição em lote' });
     await expect(dialog).toBeVisible();
-    await expect(dialog).toContainText('3 escola(s)');
+    await expect(dialog).toContainText('3 escolas selecionadas');
     const list = dialog.locator('.radar-team-reassignment-list');
     await expect(list.locator('li')).toHaveCount(3);
     for (const school of schoolNames) await expect(list).toContainText(school);
@@ -82,7 +81,9 @@ test.describe('Gestão de Equipe — confirmação acessível de reatribuição'
     await expect(cancel).toBeFocused();
     await confirm.focus();
     await page.keyboard.press('Tab');
-    await expect(cancel).toBeFocused();
+    await expect(dialog.getByRole('button', { name: 'Fechar' })).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(confirm).toBeFocused();
     await testInfo.attach('reatribuicao-lote', { body: await dialog.screenshot(), contentType: 'image/png' });
 
     await cancel.click();
