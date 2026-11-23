@@ -91,6 +91,7 @@
         const backdrop = el(doc, 'div', 'radar-operational-correction-backdrop evaluation-retification-backdrop');
         const dialog = el(doc, 'section', 'radar-operational-correction-dialog evaluation-retification-dialog');
         if (bonus) dialog.classList.add('is-fiscal-bonus');
+        if (contextDeletion) dialog.classList.add('is-context-deletion');
         dialog.setAttribute('role', 'dialog');
         dialog.setAttribute('aria-modal', 'true');
         dialog.setAttribute('aria-labelledby', 'radar-operational-correction-title');
@@ -162,7 +163,7 @@
         const cancel = el(doc, 'button', 'btn btn-secondary', 'Cancelar');
         const clearBtn = el(doc, 'button', 'btn btn-secondary', 'Limpar análise');
         const review = el(doc, 'button', 'btn btn-secondary', 'Revisar prévia');
-        const save = el(doc, 'button', 'btn btn-primary',
+        const save = el(doc, 'button', contextDeletion ? 'btn btn-danger' : 'btn btn-primary',
             contextDeletion ? 'Confirmar exclusão do contexto' : deleting ? 'Confirmar exclusão' : 'Confirmar correção');
         for (const button of [cancel, clearBtn, review, save]) button.type = 'button';
         (deleting ? cancel : select).autofocus = true;
