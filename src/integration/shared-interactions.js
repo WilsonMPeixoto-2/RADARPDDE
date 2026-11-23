@@ -442,28 +442,54 @@
         dialog.setAttribute('aria-describedby', TEAM_REASSIGNMENT_DIALOG_ID + '-description');
         dialog.setAttribute('aria-hidden', 'true');
         dialog.setAttribute('inert', '');
-        dialog.innerHTML = `
-            <div class="modal-content radar-team-reassignment-dialog">
-                <header class="radar-critical-dialog__header">
-                    <div>
-                        <h2 id="${TEAM_REASSIGNMENT_DIALOG_ID}-title"></h2>
-                        <p id="${TEAM_REASSIGNMENT_DIALOG_ID}-description"></p>
-                    </div>
-                    <button type="button" class="btn-close" data-team-reassignment-close aria-label="Fechar">×</button>
-                </header>
-                <div class="radar-critical-dialog__body">
-                    <section class="radar-team-reassignment-list-region" data-team-reassignment-list-region>
-                        <h3 id="${TEAM_REASSIGNMENT_DIALOG_ID}-list-title"></h3>
-                        <ul class="radar-team-reassignment-list" tabindex="0"
-                            aria-labelledby="${TEAM_REASSIGNMENT_DIALOG_ID}-list-title"></ul>
-                    </section>
-                </div>
-                <footer class="modal-footer radar-critical-dialog__footer">
-                    <button type="button" class="btn btn-secondary" data-team-reassignment-cancel autofocus>Cancelar</button>
-                    <button type="button" class="btn btn-primary" data-team-reassignment-confirm></button>
-                </footer>
-            </div>
-        `;
+        // DOM explícito: evita novo sink innerHTML e mantém o lint de segurança.
+        const content = documentRef.createElement('div');
+        content.className = 'modal-content radar-team-reassignment-dialog';
+        const header = documentRef.createElement('header');
+        header.className = 'radar-critical-dialog__header';
+        const headerText = documentRef.createElement('div');
+        const heading = documentRef.createElement('h2');
+        heading.id = TEAM_REASSIGNMENT_DIALOG_ID + '-title';
+        const description = documentRef.createElement('p');
+        description.id = TEAM_REASSIGNMENT_DIALOG_ID + '-description';
+        headerText.append(heading, description);
+        const close = documentRef.createElement('button');
+        close.type = 'button';
+        close.className = 'btn-close';
+        close.dataset.teamReassignmentClose = '';
+        close.setAttribute('aria-label', 'Fechar');
+        close.textContent = '×';
+        header.append(headerText, close);
+
+        const body = documentRef.createElement('div');
+        body.className = 'radar-critical-dialog__body';
+        const listRegion = documentRef.createElement('section');
+        listRegion.className = 'radar-team-reassignment-list-region';
+        listRegion.dataset.teamReassignmentListRegion = '';
+        const listHeading = documentRef.createElement('h3');
+        listHeading.id = TEAM_REASSIGNMENT_DIALOG_ID + '-list-title';
+        const list = documentRef.createElement('ul');
+        list.className = 'radar-team-reassignment-list';
+        list.tabIndex = 0;
+        list.setAttribute('aria-labelledby', listHeading.id);
+        listRegion.append(listHeading, list);
+        body.appendChild(listRegion);
+
+        const footer = documentRef.createElement('footer');
+        footer.className = 'modal-footer radar-critical-dialog__footer';
+        const cancel = documentRef.createElement('button');
+        cancel.type = 'button';
+        cancel.className = 'btn btn-secondary';
+        cancel.dataset.teamReassignmentCancel = '';
+        cancel.textContent = 'Cancelar';
+        cancel.autofocus = true;
+        const confirm = documentRef.createElement('button');
+        confirm.type = 'button';
+        confirm.className = 'btn btn-primary';
+        confirm.dataset.teamReassignmentConfirm = '';
+        footer.append(cancel, confirm);
+        content.append(header, body, footer);
+        dialog.appendChild(content);
         documentRef.body.appendChild(dialog);
 
         dialog.querySelector('[data-team-reassignment-close]')
