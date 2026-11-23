@@ -139,4 +139,33 @@ test.describe('Gestão de Equipe — confirmação acessível de reatribuição'
     expect(await page.evaluate(() => window.__teamWrites)).toEqual([]);
   });
 
+  test('Escape após clique em área não focável do diálogo cancela sem deadlock e permite nova reatribuição', async ({ page }) => {
+    const select = page.locator('select.select-alocacao').first();
+    const original = await select.inputValue();
+    const other = await select.evaluate(el => [...el.options].find(option => option.value && option.value !== el.value)?.value);
+    expect(other).toBeTruthy();
+
+    await select.selectOption(other);
+    const dialog = page.locator('#radar-team-reassignment-dialog');
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toHaveClass(/show/);
+
+    // Clicar no título não focável retira o foco dos botões para document.body.
+    await dialog.locator('#radar-team-reassignment-dialog-title').click();
+    await page.keyboard.press('Escape');
+
+    await expect(dialog).not.toHaveClass(/show/);
+    await expect(dialog).toHaveAttribute('aria-hidden', 'true');
+    await expect(dialog).toHaveAttribute('inert', '');
+    await expect(page.locator('select.select-alocacao').first()).toHaveValue(original);
+    expect(await page.evaluate(() => window.__teamWrites)).toEqual([]);
+
+    // Uma segunda confirmação deve abrir normalmente, sem erro INTERACTION_IN_PROGRESS.
+    await page.locator('select.select-alocacao').first().selectOption(other);
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toHaveClass(/show/);
+    await dialog.getByRole('button', { name: 'Cancelar' }).click();
+    await expect(dialog).not.toHaveClass(/show/);
+  });
+
 });
