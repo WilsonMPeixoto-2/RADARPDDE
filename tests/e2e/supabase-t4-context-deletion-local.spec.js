@@ -95,10 +95,10 @@ test('T4 real: prévia e cancelamento não alteram escola, NFs, Pendências ou p
     await expect(dialog).toContainText('Escola Fictícia de Correção de Contexto');
     await expect(dialog).toContainText('Maio');
     await expect(dialog).toContainText('PDDE Básico');
-    await expect(dialog).toContainText('verificação do programa');
+    await expect(dialog).toContainText('avaliação mensal do programa');
     await expect(dialog).toContainText('notas fiscais');
     await expect(dialog).toContainText('Pendências');
-    await expect(dialog.getByRole('button', { name: 'Confirmar exclusão do contexto' })).toBeEnabled();
+    await expect(dialog.getByRole('button', { name: 'Excluir estes lançamentos' })).toBeEnabled();
     await testInfo.attach('t4-context-preview-desktop', {
         body: await dialog.screenshot(), contentType: 'image/png'
     });
@@ -120,8 +120,8 @@ test('T4 real: excluir contexto pelo botão preserva programa/mês vizinhos e co
     expect(before.invoices).toContain('T4-CTX-NF-JUNE');
 
     const dialog = await enablePilotAndOpen(page);
-    await expect(dialog.getByRole('button', { name: 'Confirmar exclusão do contexto' })).toBeEnabled();
-    await dialog.getByRole('button', { name: 'Confirmar exclusão do contexto' }).click();
+    await expect(dialog.getByRole('button', { name: 'Excluir estes lançamentos' })).toBeEnabled();
+    await dialog.getByRole('button', { name: 'Excluir estes lançamentos' }).click();
     await expect(dialog).toBeHidden();
     await page.reload();
     await page.waitForFunction(() => window.RadarDataContext?.ready === true);
