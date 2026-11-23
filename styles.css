@@ -86,7 +86,7 @@ body.dark-theme {
     --border-focus: rgba(157, 125, 252, 0.6);
     
     /* Cores de Status */
-    --success: #047857;
+    --success: #10b981;
     --success-bg: rgba(16, 185, 129, 0.15);
     --warning: #f59e0b;
     --warning-bg: rgba(245, 158, 11, 0.15);
@@ -214,6 +214,14 @@ aside.sidebar {
     opacity: 0.7;
 }
 
+:where(button.nav-item) {
+    appearance: none;
+    width: 100%;
+    background: transparent;
+    text-align: left;
+    font: inherit;
+}
+
 .nav-item {
     display: flex;
     align-items: center;
@@ -226,13 +234,6 @@ aside.sidebar {
     cursor: pointer;
     transition: var(--transition-fast);
     border: 1px solid transparent;
-}
-button.nav-item {
-   width: 100%;
-   border: 0;
-   background: transparent;
-   text-align: left;
-   font: inherit;
 }
 
 .nav-item svg {
