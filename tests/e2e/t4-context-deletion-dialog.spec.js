@@ -52,6 +52,8 @@ async function openContextDialog(page, options = {}) {
             document,
             RADAR_OPERATIONAL_CORRECTION_PREVIEW: true,
             RADAR_T4_CONTEXT_DELETION_PILOT: enabled,
+            RADAR_PDDE_CONFIG: { deploymentTarget: 'local', features: { operationalCorrectionPilot: true } },
+            location: window.location,
             RadarApplicationServices: { data: { repository } },
             RadarOperationalCorrectionClient: window.RadarOperationalCorrectionClient,
             RadarOperationalContextRefreshController: {
