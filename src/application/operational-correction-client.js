@@ -20,19 +20,22 @@
         'delete_pendency',
         'clear_analysis',
         'correct_analysis',
-        'correct_bonification'
+        'correct_bonification',
+        'delete_context'
     ]);
     const TARGET_KIND_BY_ACTION = Object.freeze({
         delete_invoice: 'invoice',
         delete_pendency: 'pendency',
         clear_analysis: 'analysis',
         correct_analysis: 'analysis',
-        correct_bonification: 'verification'
+        correct_bonification: 'verification',
+        delete_context: 'program_context'
     });
     const CORRECTABLE_ANALYSES = Object.freeze(['Correto', 'Correto (Atrasado)', 'Incorreto']);
     const MAX_NOTE_LENGTH = 2000;
 
     const ENTITY_LABELS = Object.freeze({
+        verifications: ['verificação do programa', 'verificações dos programas'],
         registered_invoices: ['nota fiscal', 'notas fiscais'],
         pendencies: ['Pendência', 'Pendências'],
         pendency_attempts: ['envio da escola', 'envios da escola'],
@@ -106,6 +109,21 @@
             }
         }
 
+        // T4: exclusão de contexto tem identidade fechada por escola, competência
+        // e programa. Não seleciona dependências nem movimenta registros no cliente.
+        // O servidor continuará sendo a única autoridade do plano e da transação.
+        if (action === 'delete_context') {
+            const allowedTargetKeys = ['kind', 'schoolId', 'competence', 'programId'];
+            const allowedRequestKeys = ['action', 'target', 'note'];
+            const exactTarget = text(source.kind) === 'program_context'
+                && Boolean(target.programId)
+                && Object.keys(source).every(key => allowedTargetKeys.includes(key));
+            const exactRequest = Object.keys(input).every(key => allowedRequestKeys.includes(key));
+            if (!exactTarget || !exactRequest) {
+                throw invalid('Informe exatamente escola, competência e programa, sem destino ou seleção parcial de registros.');
+            }
+        }
+
         const request = { contractVersion: CONTRACT_VERSION, action, target };
         if (action === 'correct_bonification') {
             const mark = input.changes?.bonificacao;
@@ -165,6 +183,8 @@
                 : plan.action === 'correct_bonification' ? 'Sem marca' : 'Não analisado')
         }));
         const blockers = Array.isArray(plan.blockers) ? clone(plan.blockers) : [];
+        const contextRootPresent = plan.action !== 'delete_context'
+            || (Array.isArray(deleted.verifications) && deleted.verifications.length === 1);
         const warnings = Array.isArray(plan.warnings) ? clone(plan.warnings) : [];
         return {
             action: plan.action || null,
@@ -174,7 +194,7 @@
             preserved: clone(plan.preserved || {}),
             warnings,
             blockers,
-            canApply: blockers.length === 0 && /^[0-9a-f]{64}$/.test(text(plan.planDigest)),
+            canApply: blockers.length === 0 && contextRootPresent && /^[0-9a-f]{64}$/.test(text(plan.planDigest)),
             summary: removals.length
                 ? `Serão excluídos: ${removals.map(item => item.label).join(', ')}.`
                 : 'Nenhum registro será excluído.'
@@ -222,6 +242,19 @@
                     { p_request: previewPayload(request) },
                     'previewOperationalChange'
                 );
+                if (request.action === 'delete_context') {
+                    const actual = plan?.target || {};
+                    const expected = request.target;
+                    const sameContext = plan?.action === request.action
+                        && text(actual.kind) === expected.kind
+                        && ['schoolId', 'competence', 'programId'].every(key => text(actual[key]) === expected[key]);
+                    if (!sameContext) {
+                        throw new OperationalCorrectionError(
+                            'INVALID_PREVIEW',
+                            'A prévia não corresponde exatamente à escola, competência e programa selecionados.'
+                        );
+                    }
+                }
                 return { request, plan, view: describePlan(plan) };
             } catch (error) {
                 throw toCorrectionError(error);
