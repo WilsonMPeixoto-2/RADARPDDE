@@ -10422,15 +10422,20 @@ function renderProntuarioVerificacoes(esc) {
                                     <span class="program-context-competence">${escapeHtml(c.label)}</span>
                                     <h3 class="program-context-name">${escapeHtml(progName)}</h3>
                                     ${canDeleteContext ? `
-                                        <button type="button" class="program-context-delete-button"
-                                            data-school-id="${escapeHtml(esc.id)}"
-                                            data-comp-key="${escapeHtml(compProgKey)}"
-                                            data-school-name="${escapeHtml(esc.denominação || esc.denominacao || esc.id)}"
-                                            data-program-name="${escapeHtml(progName)}"
-                                            data-competence-label="${escapeHtml(c.label)}"
-                                            onclick="openProgramContextDeletion(this)">
-                                            Excluir lançamentos deste programa neste mês
-                                        </button>
+                                        <details class="program-context-options">
+                                            <summary aria-label="Ações do programa: ${escapeHtml(progName)}">Ações do programa</summary>
+                                            <div class="program-context-options-list">
+                                                <button type="button" class="program-context-delete-button"
+                                                    data-school-id="${escapeHtml(esc.id)}"
+                                                    data-comp-key="${escapeHtml(compProgKey)}"
+                                                    data-school-name="${escapeHtml(esc.denominação || esc.denominacao || esc.id)}"
+                                                    data-program-name="${escapeHtml(progName)}"
+                                                    data-competence-label="${escapeHtml(c.label)}"
+                                                    onclick="openProgramContextDeletion(this)">
+                                                    Excluir lançamentos deste programa neste mês
+                                                </button>
+                                            </div>
+                                        </details>
                                     ` : ''}
                                 </div>
                                 ${programStatusSummary}
