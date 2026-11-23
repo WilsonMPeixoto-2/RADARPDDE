@@ -288,6 +288,9 @@
         const contextDeletionRelease = input.features?.contextDeletionRelease === true
             && operationalCorrectionRelease === true
             && bonificationCorrectionRelease === true;
+        // A limpeza de histórico é uma operação distinta, com ativação própria.
+        const itemHistoryRelease = input.features?.itemHistoryRelease === true
+            && contextDeletionRelease === true;
 
         if (!isLocal && !validCredentials) {
             diagnostics.push('Conexão Supabase bloqueada: URL ou chave publicável inválida.');
@@ -316,7 +319,8 @@
                 ...(operationalCorrectionPilot ? { operationalCorrectionPilot: true } : {}),
                 ...(operationalCorrectionRelease ? { operationalCorrectionRelease: true } : {}),
                 ...(bonificationCorrectionRelease ? { bonificationCorrectionRelease: true } : {}),
-                ...(contextDeletionRelease ? { contextDeletionRelease: true } : {})
+                ...(contextDeletionRelease ? { contextDeletionRelease: true } : {}),
+                ...(itemHistoryRelease ? { itemHistoryRelease: true } : {})
             },
             supabase: {
                 url: connectionEnabled && !productionBlocked ? rawUrl : '',
