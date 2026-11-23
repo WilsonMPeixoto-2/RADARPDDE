@@ -232,3 +232,15 @@
     gap: 8px;
     margin-top: 20px;
 }
+
+#quality-provisional-panel.is-empty {
+    padding: 10px 14px;
+    gap: 6px 14px;
+}
+
+#quality-provisional-panel.is-empty .quality-provisional-empty {
+    margin: 0;
+    font-size: 0.84rem;
+    line-height: 1.4;
+}
+
