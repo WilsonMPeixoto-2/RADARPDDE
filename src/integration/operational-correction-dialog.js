@@ -85,7 +85,7 @@
         dialog.setAttribute('aria-labelledby', 'radar-operational-correction-title');
         const header = el(doc, 'header', 'radar-operational-correction-header');
         const kicker = el(doc, 'span', 'evaluation-retification-kicker',
-            bonus ? 'Avaliação de Notas Fiscais' : deleting ? 'Exclusão de lançamento' : 'Correção operacional');
+            bonus ? 'Avaliação de Notas Fiscais' : deleting ? (mode === 'delete_invoice' ? 'Exclusão de nota fiscal' : 'Exclusão de pendência') : 'Correção operacional');
         const title = el(doc, 'h2', '', deleting
             ? (mode === 'delete_invoice' ? 'Excluir nota fiscal' : 'Excluir pendência')
             : bonus ? 'Corrigir consolidação da bonificação' : 'Corrigir análise técnica');
@@ -433,8 +433,11 @@
                     : 'Correção confirmada e informações atualizadas.';
                 if (bonus) {
                     const reopened = preview.view.changes.some(change => change.field === 'bonus_result');
-                    message = reopened ? 'Avaliação corrigida. Para concluir, utilize Consolidar bonificação no cabeçalho do programa.'
-                        : 'Avaliação de Notas Fiscais atualizada.';
+                    const cleared = select.value === 'Limpar resposta';
+                    message = reopened ?(cleared
+                                        ? 'Avaliação removida. Preencha novamente Notas Fiscais para habilitar Consolidar bonificação no cabeçalho do programa.'
+                                         : 'Avaliação corrigida. Para concluir, utilize Consolidar bonificação no cabeçalho do programa.')
+                        : (cleared ? 'Avaliação de Notas Fiscais removida.' : 'Avaliação de Notas Fiscais atualizada.');
                 }
                 root.RadarSharedInteractions?.notify?.({ type: 'success', message });
             } catch (_error) {
