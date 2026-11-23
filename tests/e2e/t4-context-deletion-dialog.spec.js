@@ -82,6 +82,11 @@ test('T4: prévia apresenta contexto completo e não grava ao cancelar', async (
     await expect(dialog).toContainText('verificação do programa');
     await expect(dialog).toContainText('nota fiscal');
     await expect(dialog).toContainText('Pendência');
+    await expect(dialog).toContainText('Você vai excluir os registros listados abaixo.');
+    await expect(dialog).toContainText('Para registrar no lugar correto, faça um novo lançamento.');
+    await expect(dialog).not.toContainText('Correção de contexto');
+    await expect(dialog).not.toContainText('O servidor identificará');
+    await expect(dialog.locator('.context-deletion-impact-list li')).toHaveCount(5);
     await expect(dialog).toContainText(/não (?:serão )?transferid/i);
     await expect(dialog).toContainText(/outros meses e programas|outros programas e meses/i);
     await dialog.getByRole('button', { name: 'Cancelar' }).click();
@@ -97,8 +102,8 @@ test('T4: prévia apresenta contexto completo e não grava ao cancelar', async (
 test('T4: confirmar exclui exatamente o contexto pré-visualizado e atualiza uma vez', async ({ page }) => {
     await openContextDialog(page);
     const dialog = page.getByRole('dialog', { name: 'Excluir lançamentos deste programa neste mês' });
-    await expect(dialog.getByRole('button', { name: 'Confirmar exclusão do contexto' })).toBeEnabled();
-    await dialog.getByRole('button', { name: 'Confirmar exclusão do contexto' }).click();
+    await expect(dialog.getByRole('button', { name: 'Excluir estes lançamentos' })).toBeEnabled();
+    await dialog.getByRole('button', { name: 'Excluir estes lançamentos' }).click();
     await expect(dialog).toBeHidden();
     const record = await page.evaluate(() => ({
         calls: window.__t4ContextCalls, refreshed: window.__t4ContextRefreshes
@@ -117,8 +122,8 @@ test('T4: confirmar exclui exatamente o contexto pré-visualizado e atualiza uma
 test('T4: falha de prévia mantém confirmação indisponível', async ({ page }) => {
     await openContextDialog(page, { failPreview: true });
     const dialog = page.getByRole('dialog', { name: 'Excluir lançamentos deste programa neste mês' });
-    await expect(dialog.getByRole('button', { name: 'Confirmar exclusão do contexto' })).toBeDisabled();
-    await expect(dialog.getByRole('alert')).toContainText('Não foi possível concluir a correção.');
+    await expect(dialog.getByRole('button', { name: 'Excluir estes lançamentos' })).toBeDisabled();
+    await expect(dialog.getByRole('alert')).toContainText('Não foi possível conferir os lançamentos. Nada foi excluído.');
     expect(await page.evaluate(() => window.__t4ContextCalls.map(c => c.name)))
         .toEqual(['preview_operational_change']);
 });
