@@ -10381,7 +10381,8 @@ function renderProntuarioVerificacoes(esc) {
                 const prog = programas.find(p => p.id === progId);
                 const progName = prog ? prog.name : progId;
                 const compProgKey = `${c.key}_${progId}`;
-                const canDeleteContext = !['inventario', 'sme'].includes(accessProfile)
+                const canDeleteContext = Boolean(verificacoes[esc.id]?.[compProgKey])
+                    && !['inventario', 'sme'].includes(accessProfile)
                     && window.RadarOperationalCorrectionDialog?.canDeleteContext?.(window) === true;
 
                 // A grade usa um estado vazio transitório; só um comando do usuário cria a verificação.
