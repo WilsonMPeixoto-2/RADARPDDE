@@ -720,7 +720,9 @@ body.dark-theme .is-fiscal-bonus .radar-operational-correction-header .fiscal-bo
 .is-context-deletion .radar-operational-correction-effects {
     border-inline-start-color: var(--danger, #b91c1c);
 }
-body.dark-theme .is-context-deletion .context-deletion-impact-list li::marker,
+body.dark-theme .is-context-deletion .context-deletion-impact-list li::marker {
+    color: #fca5a5;
+}
 body.dark-theme .is-context-deletion .radar-operational-correction-effects {
     border-inline-start-color: #fca5a5;
 }
