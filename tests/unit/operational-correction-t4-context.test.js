@@ -89,7 +89,7 @@ test('T4 delete_context: prévia apresenta a verificação e todas as classes de
     };
     const view = describePlan(plan);
     assert.equal(view.canApply, true);
-    assert.match(view.summary, /verificação do programa/);
+    assert.match(view.summary, /avaliação mensal do programa/);
     assert.match(view.summary, /nota fiscal/);
     assert.match(view.summary, /Pendência/);
     assert.deepEqual(view.preserved, plan.preserved);
