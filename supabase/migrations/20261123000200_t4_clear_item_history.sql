@@ -89,14 +89,6 @@ begin
     from jsonb_array_elements(blockers) as b(item)
     where b.item->>'code'<>'NO_EFFECT';
 
-  if jsonb_array_length(blockers)>0 then
-    return (plan - 'planDigest')
-      || jsonb_build_object('action','clear_item_history',
-        'selectedPendencyIds',null,
-        'blockers',blockers,
-        'planDigest','');
-  end if;
-
   deleted:=coalesce(plan #> '{effects,delete}','{}'::jsonb);
   if jsonb_array_length(coalesce(deleted->'registered_invoices','[]'::jsonb))>0
     or jsonb_array_length(coalesce(deleted->'assets','[]'::jsonb))>0
@@ -135,9 +127,9 @@ begin
 
   original_update:=coalesce(plan #> '{effects,update}','[]'::jsonb);
   if cardinality(affected_pendencies)=0
-    and not exists(select 1 from jsonb_array_elements(original_update) u
-      where u->>'before' is distinct from u->>'after'
-        and (u->>'before') is distinct from 'Não analisado')
+    and not exists(select 1 from jsonb_array_elements(original_update) as item(value)
+      where item.value->>'before' is distinct from item.value->>'after'
+        and (item.value->>'before') is distinct from 'Não analisado')
   then
     blockers:=jsonb_build_array(jsonb_build_object('code','NO_EFFECT',
       'message','Este item já está sem avaliação e não possui histórico a excluir.'));
