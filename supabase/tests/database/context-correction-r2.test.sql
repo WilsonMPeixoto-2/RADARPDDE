@@ -88,16 +88,16 @@ select is((select plan #>> '{effects,update,0,entity}' from r2c_plan),'quality_p
 select is((select count(*)::int from public.verifications where id='R2C-V-A09'),1,
   'prévia é somente leitura');
 -- A confirmação só pode aplicar o mesmo conjunto efetivamente revisado.
-select throws_like($ select public.apply_operational_change(
+select throws_like($$ select public.apply_operational_change(
     pg_temp.r2c_request(), repeat('0',64),
-    '00000000-0000-0000-0000-00000000a662'::uuid) $,
+    '00000000-0000-0000-0000-00000000a662'::uuid) $$,
     '%STALE_PLAN%', 'uma prévia adulterada ou antiga nunca autoriza a exclusão');
 select is((select count(*)::int from public.verifications where id='R2C-V-A09'),1,
     'falha na conferência não exclui a avaliação mensal');
 select is((select count(*)::int from public.registered_invoices where id in ('R2C-NF-1','R2C-NF-2')),2,
     'falha na conferência mantém as duas notas fiscais');
-select lives_ok($ select public.apply_operational_change(pg_temp.r2c_request(),
-    (select plan->>'planDigest' from r2c_plan),'00000000-0000-0000-0000-00000000a661') $,
+select lives_ok($$ select public.apply_operational_change(pg_temp.r2c_request(),
+    (select plan->>'planDigest' from r2c_plan),'00000000-0000-0000-0000-00000000a661') $$,
   'aplicação única transacional confirma exclusão do contexto errado');
 select is((select count(*)::int from public.verifications where id='R2C-V-A09'),0,'verificação alvo excluída');
 select is((select count(*)::int from public.registered_invoices where id in ('R2C-NF-1','R2C-NF-2')),0,
