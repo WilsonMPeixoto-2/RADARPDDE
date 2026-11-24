@@ -216,7 +216,8 @@ comment on function radar_private.operational_correction_build_plan(jsonb) is
 
 -- T4: escritores de Pendências cooperam com a exclusão do contexto.
 -- A chave de contexto já usada na migration 66 serializa exclusões e novas
--- Pendências. Não aguardar advisory lock dentro de trigger de linha:
+-- Pendências. Escritores comuns compartilham a trava, sem conflito entre si.
+-- Não aguardar advisory lock dentro de trigger de linha:
 -- UPDATE pode já deter uma row lock.
 create function radar_private.t4_try_pendency_context_lock(
   p_school text,p_competence text,p_program text
@@ -224,7 +225,7 @@ create function radar_private.t4_try_pendency_context_lock(
 set search_path=pg_catalog,public,radar_private as $$
 begin
   if p_school is not null and p_competence is not null and p_program is not null then
-    if not pg_catalog.pg_try_advisory_xact_lock(
+    if not pg_catalog.pg_try_advisory_xact_lock_shared(
       pg_catalog.hashtextextended(concat_ws('::',p_school,p_competence,p_program),20261123)
     ) then
       raise exception 'OPTIMISTIC_CONFLICT: contexto em correção concorrente; tente novamente';
@@ -232,6 +233,20 @@ begin
   end if;
 end $$;
 revoke all on function radar_private.t4_try_pendency_context_lock(text,text,text) from public,anon,authenticated;
+
+-- A Pendência legada vinculada a NF também coopera com o contexto real da NF,
+-- mesmo quando a sua própria identificação de programa está incompleta.
+create function radar_private.t4_try_pendency_invoice_lock(p_invoice text)
+returns void language plpgsql security definer
+set search_path=pg_catalog,public,radar_private as $$
+begin
+  if p_invoice is not null then
+    perform radar_private.t4_try_pendency_context_lock(i.school_id,i.competence_id,i.program_id)
+      from public.registered_invoices i where i.id=p_invoice;
+  end if;
+end $$;
+revoke all on function radar_private.t4_try_pendency_invoice_lock(text) from public,anon,authenticated;
+
 create function radar_private.t4_pendency_context_trigger()
 returns trigger language plpgsql security definer
 set search_path=pg_catalog,public,radar_private as $$
@@ -243,8 +258,10 @@ begin
       return new;
     end if;
     perform radar_private.t4_try_pendency_context_lock(old.school_id,old.competence_origin,old.program_id);
+    perform radar_private.t4_try_pendency_invoice_lock(old.registered_invoice_id);
   end if;
   perform radar_private.t4_try_pendency_context_lock(new.school_id,new.competence_origin,new.program_id);
+  perform radar_private.t4_try_pendency_invoice_lock(new.registered_invoice_id);
   return new;
 end $$;
 revoke all on function radar_private.t4_pendency_context_trigger() from public,anon,authenticated;

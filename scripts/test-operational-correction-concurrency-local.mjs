@@ -470,6 +470,35 @@ try {
     assert.equal(await sql(`select count(*) from public.pendencies where id in ('${phantom}','${pendencyId}')`), '2');
     assert.equal(await sql(`select count(*) from radar_private.operational_change_ledger where operation_key='${historyKey}'`), '0');
     console.log('PASS [T4]: phantom e movimentação concorrente bloqueados; escritor vencedor invalida a prévia sem perda de histórico.');
+
+    // A correção real entra primeiro e retém o lock até o COMMIT.
+    // Prova de exclusão e de tentativa concorrente rejeitada enquanto o
+    // resultado da correção ainda não está visível para a segunda sessão.
+    const fresh = await startSession(asController(USER,
+        `select public.preview_operational_change(${quoteJson(historyRequest)})::text;`), 'occ-t4-preview-fresh');
+    assert.equal(fresh.code, 0, fresh.stderr);
+    const freshPlan = parseJsonResult(fresh.stdout, 'T4 fresh history');
+    assert.deepEqual(freshPlan.blockers, []);
+    const applyBarrier = spawn('psql', args, { env: { ...process.env, PGAPPNAME: 'occ-t4-apply-winner' } });
+    barriers.push(applyBarrier);
+    const winKey = '1b4a6c0f-9a28-4d62-8e13-77a5c8a00106';
+    const winningSQL = asController(USER, `select public.apply_operational_change(
+        ${quoteJson(historyRequest)}, '${freshPlan.planDigest}', '${winKey}'::uuid)::text;`);
+    applyBarrier.stdin.write(winningSQL.replace(/commit;\s*$/, '') + '\n');
+    await awaitCondition("select count(*) from pg_stat_activity where application_name='occ-t4-apply-winner' and state='idle in transaction'", '1');
+    const afterApplyInsert = await startSession(`begin; set local statement_timeout='5s';
+        ${insertPhantom.replace(phantom, 'OCC-RACE-T4-PHANTOM-LATE')} commit;`, 'occ-t4-late-writer');
+    assert.notEqual(afterApplyInsert.code, 0);
+    assert.match(afterApplyInsert.stderr, /OPTIMISTIC_CONFLICT/);
+    applyBarrier.stdin.end('commit;\n\\q\n');
+    await awaitCondition("select count(*) from pg_stat_activity where application_name='occ-t4-apply-winner'", '0');
+    assert.equal(await sql(`select count(*) from public.pendencies
+        where school_id='${SCHOOL}' and competence_origin='${COMPETENCE}'
+          and program_id='${PROGRAM}' and document_key='extINV'`), '0');
+    assert.equal(await sql(`select count(*) from radar_private.operational_change_ledger
+        where operation_key='${winKey}' and status='committed'`), '1');
+    console.log('PASS [T4 apply vencedor]: limpeza real confirmada, phantom tardio recusado e nenhum registro residual.');
+
 } finally {
     barriers.forEach(proc => { if (proc.exitCode === null) proc.kill(); });
     clients.forEach(proc => { if (proc.exitCode === null) proc.kill(); });
