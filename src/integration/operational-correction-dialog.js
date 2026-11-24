@@ -207,7 +207,18 @@
         } else {
             bodyGrid.append(effectsCol);
         }
-        dialog.append(header, bodyGrid, feedback, actions);
+        if (contextDeletion) {
+            // Uma única região rolável para o conteúdo. A decisão e o feedback
+            // ficam fora dela, disponíveis mesmo em telas de pouca altura.
+            const scroll = el(doc, 'div', 'context-deletion-scroll');
+            scroll.setAttribute('role', 'region');
+            scroll.setAttribute('aria-label', 'Detalhes da exclusão');
+            scroll.setAttribute('tabindex', '0');
+            scroll.append(header, bodyGrid);
+            dialog.append(scroll, feedback, actions);
+        } else {
+            dialog.append(header, bodyGrid, feedback, actions);
+        }
         layer.append(backdrop, dialog);
         doc.body.appendChild(layer);
         const inertSiblings = [];

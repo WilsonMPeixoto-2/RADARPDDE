@@ -276,3 +276,35 @@ test('T4: menu Ações do programa fecha com Escape e clique fora sem deixar pai
     await page.locator('#test-t4-outside').click();
     await expect(menu).not.toHaveAttribute('open', '');
 });
+
+test('T4: decisão e feedback permanecem visíveis durante rolagem da prévia em desktop curto e celular', async ({ page }) => {
+    for (const viewport of [{ width: 1280, height: 720 }, { width: 390, height: 844 }, { width: 390, height: 540 }]) {
+        await page.setViewportSize(viewport);
+        await openContextDialog(page);
+        const dialog = page.getByRole('dialog', { name: 'Excluir lançamentos deste programa neste mês' });
+        const scroll = dialog.getByRole('region', { name: 'Detalhes da exclusão' });
+        const save = dialog.getByRole('button', { name: 'Excluir estes lançamentos' });
+        const cancel = dialog.getByRole('button', { name: 'Cancelar' });
+        const review = dialog.getByRole('button', { name: 'Conferir novamente' });
+        await expect(save).toBeEnabled();
+        const assertActions = async () => {
+            for (const control of [save, cancel, review]) {
+                await expect(control).toBeInViewport({ ratio: 1 });
+                const visible = await control.evaluate(el => {
+                    const r = el.getBoundingClientRect();
+                    const d = el.closest('[role="dialog"]').getBoundingClientRect();
+                    const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+                    return r.top >= d.top && r.bottom <= d.bottom &&
+                        r.left >= d.left && r.right <= d.right && el.contains(hit);
+                });
+                expect(visible, 'Ação não pode estar cortada ou coberta pelo conteúdo').toBe(true);
+            }
+        };
+        await assertActions();
+        await scroll.evaluate(el => { el.scrollTop = el.scrollHeight; });
+        await expect(scroll.getByText(/O que será mantido:/)).toBeInViewport();
+        await assertActions();
+        await cancel.click();
+        await expect(dialog).toBeHidden();
+    }
+});

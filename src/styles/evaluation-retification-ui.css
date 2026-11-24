@@ -683,6 +683,51 @@ body.dark-theme .is-fiscal-bonus .radar-operational-correction-header .fiscal-bo
 }
 
 /* Exclusão de contexto: dados críticos claros, sem transformar a prévia em alerta genérico. */
+.radar-operational-correction-dialog.is-context-deletion {
+    grid-template-rows: minmax(0, 1fr) auto auto;
+    max-height: min(820px, calc(100dvh - 48px));
+    overflow: hidden;
+    gap: 12px;
+}
+
+.is-context-deletion .context-deletion-scroll {
+    display: grid;
+    align-content: start;
+    gap: 16px;
+    min-block-size: 0;
+    min-inline-size: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    padding-inline-end: 6px;
+}
+
+.is-context-deletion .context-deletion-scroll:focus-visible {
+    outline: 2px solid var(--text-main, #252133);
+    outline-offset: -2px;
+    border-radius: 6px;
+}
+
+@media (max-width: 700px) {
+    .radar-operational-correction-dialog.is-context-deletion {
+        max-height: 92dvh;
+    }
+
+    .is-context-deletion .radar-operational-correction-actions {
+        justify-content: stretch;
+    }
+
+    .is-context-deletion .radar-operational-correction-actions button {
+        flex: 1 1 auto;
+        white-space: normal;
+        min-block-size: 44px;
+    }
+
+    .is-context-deletion .radar-operational-correction-actions .btn-danger {
+        flex-basis: 100%;
+    }
+}
+
 .is-context-deletion .radar-operational-correction-header .context-deletion-explanation {
     margin-top: 0.6rem;
     padding: 0.75rem 0.9rem;
@@ -719,8 +764,8 @@ body.dark-theme .is-fiscal-bonus .radar-operational-correction-header .fiscal-bo
 }
 
 .is-context-deletion .radar-operational-correction-effects {
-    max-block-size: min(48vh, 450px);
-    overflow-y: auto;
+    max-block-size: none;
+    overflow: visible;
     overflow-wrap: anywhere;
 }
 .is-context-deletion .context-deletion-details {
