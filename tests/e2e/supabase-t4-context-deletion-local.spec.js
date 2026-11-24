@@ -224,6 +224,72 @@ test('T4 real: perfil somente leitura não pode prever nem confirmar exclusão c
     expect(await snapshot(page)).toEqual(before);
 });
 
+test('T4 real: mudança de uma NF em outra sessão invalida a prévia e impede exclusão parcial', async ({ page, browser }, testInfo) => {
+    test.setTimeout(60_000);
+    await login(page, 'controller');
+    await openSchool(page);
+    const before = await snapshot(page);
+    const dialog = await enablePilotAndOpen(page);
+    const save = dialog.getByRole('button', { name: 'Excluir estes lançamentos' });
+    await expect(save).toBeEnabled();
+    await expect(dialog).toContainText('Material de expediente no contexto errado');
+
+    const second = await browser.newContext({ baseURL: testInfo.project.use.baseURL });
+    const changedDescription = 'Material de expediente — retificado em outra sessão';
+    let original;
+    let changed = false;
+    try {
+        const other = await second.newPage();
+        await login(other, 'controller');
+        original = await other.evaluate(async () => {
+            const { data, error } = await window.RadarSessionContext.service.client
+                .from('registered_invoices').select('description,row_version')
+                .eq('id', 'T4-CTX-NF-B').single();
+            if (error) throw new Error(error.message);
+            return data;
+        });
+        const updated = await other.evaluate(async description => {
+            const { data, error } = await window.RadarSessionContext.service.client
+                .from('registered_invoices').update({ description })
+                .eq('id', 'T4-CTX-NF-B').select('description,row_version').single();
+            if (error) throw new Error(error.message);
+            return data;
+        }, changedDescription);
+        changed = true;
+        expect(updated.description).toBe(changedDescription);
+        expect(updated.row_version).toBeGreaterThan(original.row_version);
+
+        // O primeiro Controlador confirma a prévia antiga pelo botão real.
+        await save.click();
+        await expect(dialog).toBeVisible();
+        await expect(dialog.getByRole('alert')).toContainText(
+            'Os registros mudaram desde a conferência. Confira novamente antes de excluir.');
+        await expect(save).toBeDisabled();
+        expect(await snapshot(page)).toEqual(before);
+
+        await dialog.getByRole('button', { name: 'Conferir novamente' }).click();
+        await expect(dialog).toContainText(changedDescription);
+        await expect(save).toBeEnabled();
+        await dialog.getByRole('button', { name: 'Cancelar' }).click();
+        await expect(dialog).toBeHidden();
+        expect(await snapshot(page)).toEqual(before);
+    } finally {
+        try {
+            if (changed) {
+                const other = second.pages()[0];
+                await other.evaluate(async description => {
+                    const { error } = await window.RadarSessionContext.service.client
+                        .from('registered_invoices').update({ description })
+                        .eq('id', 'T4-CTX-NF-B');
+                    if (error) throw new Error(error.message);
+                }, original.description);
+            }
+        } finally {
+            await second.close();
+        }
+    }
+});
+
 test('T4 real: excluir contexto pelo botão preserva programa/mês vizinhos e contato geral', async ({ page, browser }, testInfo) => {
     // A jornada inclui duas sessões independentes e uma recarga real.
     test.setTimeout(60_000);
