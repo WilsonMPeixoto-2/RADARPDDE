@@ -90,13 +90,13 @@ async function openContextDialog(page, options = {}) {
 test('T4: ação de contexto não abre sem piloto explicitamente habilitado', async ({ page }) => {
     await openContextDialog(page, { enabled: false });
     expect(await page.evaluate(() => window.__t4ContextOpened)).toBe(false);
-    await expect(page.getByRole('dialog', { name: /Excluir lançamentos deste programa neste mês/ })).toHaveCount(0);
+    await expect(page.getByRole('dialog', { name: /Excluir lançamentos do mês/ })).toHaveCount(0);
     expect(await page.evaluate(() => window.__t4ContextCalls)).toEqual([]);
 });
 
 test('T4: prévia apresenta contexto completo e não grava ao cancelar', async ({ page }) => {
     await openContextDialog(page);
-    const dialog = page.getByRole('dialog', { name: 'Excluir lançamentos deste programa neste mês' });
+    const dialog = page.getByRole('dialog', { name: 'Excluir lançamentos do mês' });
     await expect(dialog).toBeVisible();
     await expect(dialog).toContainText('Escola Exemplo');
     await expect(dialog).toContainText('Setembro de 2026');
@@ -133,7 +133,7 @@ test('T4: prévia apresenta contexto completo e não grava ao cancelar', async (
 
 test('T4: confirmar exclui exatamente o contexto pré-visualizado e atualiza uma vez', async ({ page }) => {
     await openContextDialog(page);
-    const dialog = page.getByRole('dialog', { name: 'Excluir lançamentos deste programa neste mês' });
+    const dialog = page.getByRole('dialog', { name: 'Excluir lançamentos do mês' });
     await expect(dialog.getByRole('button', { name: 'Excluir estes lançamentos' })).toBeEnabled();
     await dialog.getByRole('button', { name: 'Excluir estes lançamentos' }).click();
     await expect(dialog).toBeHidden();
@@ -153,7 +153,7 @@ test('T4: confirmar exclui exatamente o contexto pré-visualizado e atualiza uma
 
 test('T4: falha de prévia mantém confirmação indisponível', async ({ page }) => {
     await openContextDialog(page, { failPreview: true });
-    const dialog = page.getByRole('dialog', { name: 'Excluir lançamentos deste programa neste mês' });
+    const dialog = page.getByRole('dialog', { name: 'Excluir lançamentos do mês' });
     await expect(dialog.getByRole('button', { name: 'Excluir estes lançamentos' })).toBeDisabled();
     await expect(dialog.getByRole('alert')).toContainText('Não foi possível conferir os lançamentos. Nada foi excluído.');
     expect(await page.evaluate(() => window.__t4ContextCalls.map(c => c.name)))
@@ -164,7 +164,7 @@ test('T4: modal mantém foco, Escape e largura em celular com tema escuro', asyn
     await page.setViewportSize({ width: 390, height: 844 });
     await openContextDialog(page);
     await page.evaluate(() => document.body.classList.add('dark-theme'));
-    const dialog = page.getByRole('dialog', { name: 'Excluir lançamentos deste programa neste mês' });
+    const dialog = page.getByRole('dialog', { name: 'Excluir lançamentos do mês' });
     await expect(dialog).toBeVisible();
     const rect = await dialog.evaluate(el => {
         const r = el.getBoundingClientRect();
@@ -210,7 +210,7 @@ test('T4: prévia usa linguagem clara para Despesa a identificar, Boleto Interne
             preserved: { otherContexts: true, generalContacts: true }
         }
     });
-    const dialog = page.getByRole('dialog', { name: 'Excluir lançamentos deste programa neste mês' });
+    const dialog = page.getByRole('dialog', { name: 'Excluir lançamentos do mês' });
     await expect(dialog).toBeVisible();
     await expect(dialog).toContainText('Despesa a identificar · Débito sem documento');
     await expect(dialog).toContainText('Boleto Internet 9001 · Link banda larga');
@@ -246,7 +246,7 @@ test('T4: prévia com bem patrimonial omitido em affectedRecords bloqueia exclus
             preserved: { otherContexts: true }
         }
     });
-    const dialog = page.getByRole('dialog', { name: 'Excluir lançamentos deste programa neste mês' });
+    const dialog = page.getByRole('dialog', { name: 'Excluir lançamentos do mês' });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole('button', { name: 'Excluir estes lançamentos' })).toBeDisabled();
     await expect(dialog.getByRole('alert')).toContainText('Não é possível excluir esses lançamentos agora.');
@@ -262,7 +262,7 @@ test('T4: menu Ações do programa fecha com Escape e clique fora sem deixar pai
             <details class="program-context-options" name="program-context-options">
                 <summary>Ações do programa</summary>
                 <div class="program-context-options-list">
-                    <button type="button" class="program-context-delete-button">Excluir lançamentos deste programa neste mês</button>
+                    <button type="button" class="program-context-delete-button">Excluir lançamentos do mês</button>
                 </div>
             </details>
             <button type="button" id="test-t4-outside">Fora do menu</button>
@@ -287,7 +287,7 @@ test('T4: menu Ações do programa fecha com Escape e clique fora sem deixar pai
 test('T4: confirmação permanece no campo de visão sem rolagem da janela em 1280x720', async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await openContextDialog(page);
-    const dialog = page.getByRole('dialog', { name: 'Excluir lançamentos deste programa neste mês' });
+    const dialog = page.getByRole('dialog', { name: 'Excluir lançamentos do mês' });
     const confirm = dialog.getByRole('button', { name: 'Excluir estes lançamentos' });
     await expect(confirm).toBeEnabled();
     const geometry = await confirm.evaluate(button => {
@@ -314,7 +314,7 @@ test('T4: confirmação permanece no campo de visão sem rolagem da janela em 12
 test('T4: ações da confirmação têm explicações visíveis ao passar o mouse e navegar pelo teclado', async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await openContextDialog(page);
-    const dialog = page.getByRole('dialog', { name: 'Excluir lançamentos deste programa neste mês' });
+    const dialog = page.getByRole('dialog', { name: 'Excluir lançamentos do mês' });
     const confirm = dialog.getByRole('button', { name: 'Excluir estes lançamentos' });
     await expect(confirm).toBeEnabled();
     await expect(confirm).toHaveAttribute('aria-description', /mês.*programa/i);
@@ -354,7 +354,7 @@ test('T4: decisão e feedback permanecem visíveis durante rolagem da prévia em
     for (const viewport of [{ width: 1280, height: 720 }, { width: 390, height: 844 }, { width: 390, height: 540 }]) {
         await page.setViewportSize(viewport);
         await openContextDialog(page);
-        const dialog = page.getByRole('dialog', { name: 'Excluir lançamentos deste programa neste mês' });
+        const dialog = page.getByRole('dialog', { name: 'Excluir lançamentos do mês' });
         const scroll = dialog.getByRole('region', { name: 'Prévia completa da operação' });
         const save = dialog.getByRole('button', { name: 'Excluir estes lançamentos' });
         const cancel = dialog.getByRole('button', { name: 'Cancelar' });

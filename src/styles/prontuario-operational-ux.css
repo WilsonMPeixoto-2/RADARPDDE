@@ -1726,3 +1726,117 @@ body.dark-theme #prontuario-verif-rows .prontuario-history-clear-button:hover {
         overflow-wrap: anywhere;
     }
 }
+
+/* D021 — ações inequívocas e leitura integral da grade por largura disponível. */
+#prontuario-verif-rows [data-program-header] .program-context-identity > .program-context-delete-button {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    max-inline-size: 100%;
+    min-block-size: 34px;
+    margin-block-start: 6px;
+    border: 1px solid color-mix(in srgb, var(--danger, #b91c1c) 35%, var(--border-color));
+    border-radius: 8px;
+    background: var(--bg-card);
+    padding: 5px 10px;
+    line-height: 1.3;
+}
+#prontuario-verif-rows .prontuario-history-clear-button,
+#prontuario-verif-rows .invoice-history-clear-button {
+    color: var(--danger, #b91c1c);
+    border-color: color-mix(in srgb, var(--danger, #b91c1c) 25%, var(--border-color));
+}
+body.dark-theme #prontuario-verif-rows .prontuario-history-clear-button,
+body.dark-theme #prontuario-verif-rows .invoice-history-clear-button { color: #fca5a5; }
+#prontuario-verif-rows .verification-document-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+#prontuario-verif-rows .verification-document-cell { align-items: flex-start; }
+#prontuario-verif-rows .inventory-document-links { margin-inline-start: 0; }
+#prontuario-verif-rows .inventory-document-link { grid-template-columns: 16px minmax(0, 1fr); align-items: start; padding-block: 8px; }
+#prontuario-verif-rows .inventory-document-link-copy strong,
+#prontuario-verif-rows .inventory-document-link-copy span {
+    white-space: normal; overflow: visible; overflow-wrap: anywhere;
+}
+#prontuario-verif-rows .inventory-document-link-status {
+    grid-column: 2; justify-self: start; max-inline-size: 100%;
+    white-space: normal; overflow-wrap: anywhere; border-radius: 7px;
+}
+#prontuario-verif-rows .prontuario-compact-label { display: none; }
+#prontuario-verif-rows [data-program-header] .program-consolidate-button {
+    min-inline-size: 0; max-inline-size: 100%; white-space: normal; line-height: 1.3;
+}
+#prontuario-verif-rows .invoice-document-action { flex-wrap: wrap; gap: 6px; align-items: center; }
+
+/* Não comprimir uma tabela de desktop até que as ações desapareçam.
+   A mesma estrutura e os mesmos controles passam a cartões por documento. */
+@container prontuario-table (inline-size < 920px) {
+    #tab-verificacoes .prontuario-evaluation-table {
+        display: block; width: 100%; min-width: 0; max-width: 100%; table-layout: auto;
+    }
+    #tab-verificacoes .prontuario-evaluation-table > colgroup { display: none; }
+    #tab-verificacoes .prontuario-evaluation-table > thead {
+        position: absolute; width: 1px; height: 1px; overflow: hidden;
+        clip-path: inset(50%); white-space: nowrap;
+    }
+    #prontuario-verif-rows { display: block; width: 100%; min-width: 0; }
+    #prontuario-verif-rows > tr:not(.verification-document-row),
+    #prontuario-verif-rows > tr:not(.verification-document-row) > td {
+        display: block; width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box;
+    }
+    #prontuario-verif-rows [data-program-header] .program-context-header,
+    #prontuario-verif-rows [data-program-header] .program-context-header[data-col-count="3"],
+    #prontuario-verif-rows [data-program-header] .program-context-header[data-col-count="2"] {
+        display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: 12px; padding: 14px;
+    }
+    #prontuario-verif-rows [data-program-header] .program-status-summary {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(min(120px, 100%), 1fr)); gap: 8px;
+    }
+    #prontuario-verif-rows [data-program-header] .program-status-summary .badge { min-width: 0; white-space: normal; }
+    #prontuario-verif-rows [data-program-header] .program-context-consolidate { width: 100%; padding: 0; }
+    #prontuario-verif-rows [data-program-header] .program-consolidate-button { width: 100%; min-height: 44px; }
+    #prontuario-verif-rows [data-program-header] .program-context-delete-button { min-block-size: 44px; }
+    #prontuario-verif-rows tr.verification-document-row {
+        display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+        border-bottom: 1px solid var(--border-color);
+    }
+    #prontuario-verif-rows tr.verification-document-row > td {
+        display: block; min-width: 0; max-width: 100%; box-sizing: border-box;
+        padding: 9px 12px; border-bottom: 0; white-space: normal;
+    }
+    #prontuario-verif-rows tr.verification-document-row > .verification-document-name-cell,
+    #prontuario-verif-rows tr.verification-document-row > .verification-document-action-cell { grid-column: 1 / -1; }
+    #prontuario-verif-rows tr.verification-document-row > .verification-document-action-cell:empty { display: none; }
+    #prontuario-verif-rows .prontuario-compact-label {
+        display: block; margin-bottom: 6px; font-size: .72rem; font-weight: 700; color: var(--text-muted);
+    }
+    #prontuario-verif-rows tr.verification-document-row > td.verification-document-bonif-cell > .btn-group-toggle,
+    #prontuario-verif-rows tr.verification-document-row > td.verification-document-analysis-cell > .select-analise {
+        width: 100%; min-width: 0; max-width: 100%; min-height: 44px; box-sizing: border-box;
+    }
+    #prontuario-verif-rows .btn-toggle { min-width: 0; padding-inline: 5px; }
+    #prontuario-verif-rows .prontuario-history-clear-button { min-block-size: 44px; }
+    #prontuario-verif-rows .invoice-document-host-row > td { padding: 8px; }
+    #prontuario-verif-rows .invoice-document-panel,
+    #prontuario-verif-rows .invoice-document-list { min-width: 0; max-width: 100%; }
+    #prontuario-verif-rows .invoice-document-panel-header {
+        display: flex; flex-direction: column; align-items: stretch; gap: 10px; padding: 12px;
+    }
+    #prontuario-verif-rows .invoice-document-panel-summary { display: flex; flex-wrap: wrap; gap: 10px; }
+    #prontuario-verif-rows .invoice-summary-block { flex: 1 1 145px; min-width: 0; }
+    #prontuario-verif-rows .invoice-document-list-head { display: none; }
+    #prontuario-verif-rows .invoice-document-list .invoice-document-row {
+        display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 12px;
+        min-height: 0; min-width: 0; max-width: 100%;
+    }
+    #prontuario-verif-rows .invoice-document-row > * { min-width: 0; max-width: 100%; grid-column: 1; }
+    #prontuario-verif-rows .invoice-document-meta { flex-wrap: wrap; }
+    #prontuario-verif-rows .invoice-document-meta span { white-space: normal; overflow-wrap: anywhere; }
+    #prontuario-verif-rows .invoice-document-analysis { flex-wrap: wrap; gap: 6px; }
+    #prontuario-verif-rows .invoice-document-analysis::before {
+        content: "Análise técnica"; color: var(--text-muted); font-size: .72rem; font-weight: 700; flex-basis: 100%;
+    }
+    #prontuario-verif-rows .invoice-document-analysis-select { min-width: 0; width: 100%; max-width: 100%; min-height: 44px; }
+    #prontuario-verif-rows .invoice-document-footer { flex-wrap: wrap; padding: 12px; }
+    #prontuario-verif-rows .invoice-document-footer > button { min-width: 0; max-width: 100%; white-space: normal; min-height: 44px; }
+    #prontuario-verif-rows .has-readable-actions .radar-labelled-action { min-block-size: 44px; }
+    #prontuario-verif-rows .service-advisory-delivery label { white-space: normal; max-width: 100%; }
+}

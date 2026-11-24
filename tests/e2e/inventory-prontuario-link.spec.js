@@ -113,10 +113,10 @@ test.describe('Prontuário — vínculo patrimonial da inventariação', () => {
       `[data-inventory-linked-invoice-id="${context.invoiceId}"]`
     );
     await expect(linked).toBeVisible();
-    await expect(row.getByText('1 aquisição patrimonial vinculada', { exact: true })).toBeVisible();
+    await expect(row.getByText('1 nota fiscal de bem permanente', { exact: true })).toBeVisible();
     await expect(linked.getByText('NF: Teste 2', { exact: true })).toBeVisible();
     await expect(linked.getByText('Impressora · R$ 2.000,00', { exact: true })).toBeVisible();
-    await expect(linked.getByText('Encaminhada', { exact: true })).toBeVisible();
+    await expect(linked.getByText('Encaminhada para inventariação', { exact: true })).toBeVisible();
 
     await page.evaluate(escolaId => renderProntuario(escolaId), context.escolaId);
     const rerenderedRow = page.locator(
@@ -126,6 +126,25 @@ test.describe('Prontuário — vínculo patrimonial da inventariação', () => {
     await expect(
       rerenderedRow.locator(`[data-inventory-linked-invoice-id="${context.invoiceId}"]`)
     ).toHaveCount(1);
+
+    // O mesmo cadastro informa situações distintas; nenhuma delas significa perda física do bem.
+    await page.evaluate(({ escolaId, invoiceId }) => {
+      const source = notasRegistradas.find(item => item.id === invoiceId);
+      const asset = bens.find(item => item.id === source.bemId);
+      asset.status = 'Não encaminhada';
+      notasRegistradas.push(
+        { ...source, id: 'e2e-permanente-sem-vinculo', numero: 'Sem vínculo', bemId: null },
+        { ...source, id: 'e2e-permanente-vinculo-ausente', numero: 'Vínculo ausente', bemId: 'e2e-asset-ausente' }
+      );
+      rebuildOperationalIndexes();
+      renderProntuario(escolaId);
+    }, context);
+    await expect(row.locator('[data-inventory-linked-invoice-id="' + context.invoiceId + '"]'))
+      .toContainText('Aguardando encaminhamento para inventariação');
+    await expect(row.locator('[data-inventory-linked-invoice-id="e2e-permanente-sem-vinculo"]'))
+      .toContainText('Nota fiscal sem vínculo com bem patrimonial');
+    await expect(row.locator('[data-inventory-linked-invoice-id="e2e-permanente-vinculo-ausente"]'))
+      .toContainText('Bem vinculado indisponível nesta consulta');
 
     const overflow = await rerenderedRow.evaluate(element => ({
       clientWidth: element.clientWidth,

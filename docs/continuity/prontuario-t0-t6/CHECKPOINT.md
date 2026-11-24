@@ -1,5 +1,11 @@
 # Checkpoint único de continuidade operacional — RADAR T0–T6
 
+## 24/11/2026 — T4 publicada; revisão visual de campo em execução
+
+PR #546 integrado em `2771ac0d`; migrations 66/67 confirmadas no histórico institucional. Deployment [`dpl_BRv9bntwggsvXt1K8dTFR5YhDo1n`](https://vercel.com/wilson-m-peixotos-projects/radarpdde-fix/BRv9bntwggsvXt1K8dTFR5YhDo1n) READY, quatro flags true no manifesto. [Evidência de publicação](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/546#issuecomment-7132018891). Backup anterior e aceite visual de campo não comprovados naquela sessão. Não reaplicar migrations. O proprietário identificou, nas capturas móveis de produção, rótulos ambíguos, exclusão escondida, consolidação recortada e situações patrimoniais sem contexto. Branch `fix/prontuario-comunicacao-visual-20261124` corrige a apresentação em lote único, sem mudança de dados/RPC, com testes de layout, alcance e estados. CI e inspeção visual da candidata ainda necessários. T5 não iniciada.
+
+Os estados Draft e flags OFF das seções seguintes são fotografias históricas.
+
 ## Execução complementar em 24/11/2026 — PR #546
 
 - A baseline `f1fecf29` comprovou as duas jornadas autenticadas de exclusão e cancelamento; o job Preview condicional não executou. A captura da prévia real no artefato [Supabase readiness](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45267244475) mostrou os comandos de decisão fora da área inicial. O código candidato foi corrigido em [`584bd788`](https://github.com/WilsonMPeixoto-2/RADARPDDE/commit/584bd788d5940203d25a5fc1907ebe5a161cd3ab), com região de rolagem própria e comandos fora dela.

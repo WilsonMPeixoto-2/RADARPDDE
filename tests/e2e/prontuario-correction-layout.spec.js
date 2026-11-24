@@ -127,3 +127,39 @@ test('programa com despesas mantém vínculos, acesso por teclado e leitura nos 
         await expect(fiscal.getByRole('button', { name: 'Visualizar pendência', exact: true })).toBeVisible();
     }
 });
+
+for (const viewport of [{ width: 390, height: 844 }, { width: 716, height: 900 }]) {
+    test(`Prontuário compacto sem rolagem horizontal para consolidar em ${viewport.width}px`, async ({ page }, testInfo) => {
+        await page.setViewportSize(viewport);
+        const context = await prepareSchool(page, { withOpenUnidentified: true });
+        await page.evaluate(async ({ schoolId, compKey }) => {
+            await window.RadarProductExtensionsReady;
+            const v = verificacoes[schoolId][compKey];
+            for (const key of ['extCC', 'extINV', 'notaFiscal', 'declBBAgil']) v.bonificacao[key] = 'Sim';
+            v.bonificacao.consAssessoria = 'Não se aplica';
+            v.bonificacao.encampInventario = 'Não se aplica';
+            rebuildOperationalIndexes();
+            switchView('prontuario', schoolId);
+        }, context);
+        const header = page.locator('[data-program-header="BASIC"]');
+        const action = header.getByRole('button', { name: 'Consolidar bonificação', exact: true });
+        const wrapper = page.locator('.prontuario-evaluation-table-wrap');
+        const row = page.locator('tr[data-program-id="BASIC"][data-document-key="extCC"]');
+        for (const theme of ['light', 'dark']) {
+            if (theme === 'dark') await page.getByRole('button', { name: 'Mudar para tema escuro', exact: true }).click();
+            await action.scrollIntoViewIfNeeded();
+            await expect(action).toBeInViewport({ ratio: 1 });
+            expect(await wrapper.evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(2);
+            await expect(row.locator('.prontuario-compact-label').first()).toBeVisible();
+            const rects = await row.evaluate(el => [...el.querySelectorAll('td')].filter(x => x.getClientRects().length).map(x => {
+                const r = x.getBoundingClientRect();
+                return r.left >= -1 && r.right <= document.documentElement.clientWidth + 1;
+            }));
+            expect(rects.every(Boolean)).toBe(true);
+            await page.screenshot({ path: testInfo.outputPath(`prontuario-compacto-${viewport.width}-${theme}.png`), animations: 'disabled' });
+        }
+        await action.click();
+        await expect(page.getByRole('alertdialog', { name: 'Consolidar bonificação', exact: true })).toBeVisible();
+        await page.getByRole('alertdialog', { name: 'Consolidar bonificação', exact: true }).getByRole('button', { name: 'Cancelar', exact: true }).click();
+    });
+}
