@@ -8,11 +8,17 @@
     "stages": [
       "T4"
     ],
-    "pr": 546,
-    "branch": "feat/t4-delete-context-contract-20261123",
+    "pr": 561,
+    "branch": "main",
     "checkpointPath": "docs/continuity/prontuario-t0-t6/CHECKPOINT.md",
     "decisionsPath": "docs/continuity/prontuario-t0-t6/registry.json",
-    "status": "t4-delete-context-e-clear-item-history-candidatos; gates-e-release-pendentes"
+    "status": "publicada",
+    "productionEvidence": "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/561#issuecomment-7140925977",
+    "mergeSha": "cc09e6e85efbd69c357c09a99df01f9af7273762",
+    "vercelDeployment": "dpl_jpae66LEivn8xhmqzhGTdTdQNZnN",
+    "nextStage": "T5",
+    "nextStageStatus": "não iniciada",
+    "validationNotes": "Escopo de implementação T4 publicado; comparador baseline inconclusivo na integração, candidata passou; ver checkpoint para limites de aceite e backup."
   },
   "decisions": [
     {

@@ -3,9 +3,11 @@
 **Rota persistente de retomada T0–T6:** [registro/protocolo](../continuity/prontuario-t0-t6/README.md), [decisões e sugestões rastreadas](../continuity/prontuario-t0-t6/registry.json) e [checkpoint operacional](../continuity/prontuario-t0-t6/CHECKPOINT.md). Classe: **registro de proveniência e estado transitório**, subordinado às decisões funcionais aprovadas. O [handoff de 15/11](../handoff/2026-11-15-prontuario-integracao-verificada.md) e as seções antigas com título “vigente” são **fontes históricas datadas**, não roteadores de execução concorrentes. Atualizar checkpoint e registro antes de encerrar chat com avanço material.
 
 
-## Precedência em 21/11/2026
+## Precedência em 24/11/2026
 
-O [checkpoint vigente](../continuity/prontuario-t0-t6/CHECKPOINT.md) registra o encerramento técnico de T0–T3 e a publicação da Release 1. O [plano integrado](../superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md) rege T4 no [PR #538](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/538). O [plano da Release 1](../releases/2026-11-20-prontuario-t0-t3-release-1.md) documenta o que foi entregue.
+**T0–T4: implementação publicada. T5: próxima frente, ainda não iniciada.** O escopo T4 foi entregue pelos PRs #538, #546 (incorporou #558), #560 e #561, com migrations 64–67 já registradas no Supabase institucional e as quatro flags de correção habilitadas em Production. A correção visual final foi publicada em `cc09e6e85efbd69c357c09a99df01f9af7273762`, deployment `dpl_jpae66LEivn8xhmqzhGTdTdQNZnN`, READY. [Evidência da publicação](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/561#issuecomment-7140925977). Não reaplicar migrations nem repetir T4. A próxima execução segue o escopo aprovado de T5 e o mapa de obrigações D020; T6 acompanha cada entrega. Ressalvas de validação histórica, comparação operacional e aceite de campo estão no checkpoint; publicação não significa aprovação humana de todos os viewports.
+
+As seções históricas do plano, runbooks, handoffs e matrizes não substituem o [checkpoint atual](../continuity/prontuario-t0-t6/CHECKPOINT.md). O mapa de obrigações mantém obrigações futuras de T5/T6 mesmo quando uma decisão foi aplicada em T4.
 
 ## Arquivo histórico — fotografia anterior ao PR #535 (16–20/11, superada pela rota acima)
 
