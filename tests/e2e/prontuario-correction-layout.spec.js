@@ -29,7 +29,8 @@ test(`contexto horizontal mantém consolidação e análise após edição em ${
     await expect(confirmation).toBeVisible();
     await expect(confirmation).toContainText('PDDE Básico');
     await expect(confirmation).toContainText('Apta ou Inapta');
-    await expect(confirmation).toContainText('Notas fiscais, análises técnicas e Pendências não serão alteradas.');
+    await expect(confirmation.locator('.bonification-preservation')).toContainText('Notas fiscais, análises técnicas e Pendências não serão alteradas.');
+    await expect(confirmation.locator('.bonification-context-label')).toHaveText(['Escola', 'Mês de referência', 'Programa']);
     await confirmation.getByRole('button', { name: 'Cancelar', exact: true }).click();
     await expect(confirmation).toBeHidden();
     await expect(consolidateButton).toBeEnabled();

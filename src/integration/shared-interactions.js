@@ -565,12 +565,42 @@
         dialog.querySelector('#' + TEAM_REASSIGNMENT_DIALOG_ID + '-list-title').textContent =
             text(input.listTitle) || 'Alteração proposta';
         const region = dialog.querySelector('[data-team-reassignment-list-region]');
+        const contextual = input.variant === 'bonification';
+        dialog.classList.toggle('is-bonification-confirmation', contextual);
+        let protection = dialog.querySelector('[data-operation-preservation]');
+        if (!protection) {
+            protection = root.document.createElement('section');
+            protection.className = 'bonification-preservation';
+            protection.dataset.operationPreservation = '';
+            region.after(protection);
+        }
+        protection.hidden = !contextual || !text(input.preserved);
+        protection.replaceChildren();
+        if (!protection.hidden) {
+            const heading = root.document.createElement('h3');
+            const mark = root.document.createElement('span');
+            mark.className = 'bonification-preservation-icon';
+            mark.setAttribute('aria-hidden', 'true');
+            mark.textContent = '✓';
+            heading.append(mark, root.document.createTextNode(' O que será preservado'));
+            const copy = root.document.createElement('p');
+            copy.textContent = text(input.preserved);
+            protection.append(heading, copy);
+        }
         region.hidden = items.length === 0;
         const list = dialog.querySelector('.radar-team-reassignment-list');
         list.replaceChildren();
-        for (const item of items) {
+        for (const [index, item] of items.entries()) {
             const row = root.document.createElement('li');
-            row.textContent = item;
+            const label = contextual ? text(input.itemLabels?.[index]) : '';
+            if (label) {
+                const name = root.document.createElement('span');
+                name.className = 'bonification-context-label';
+                name.textContent = label;
+                const value = root.document.createElement('strong');
+                value.textContent = item;
+                row.append(name, value);
+            } else row.textContent = item;
             list.appendChild(row);
         }
         const cancel = dialog.querySelector('[data-team-reassignment-cancel]');

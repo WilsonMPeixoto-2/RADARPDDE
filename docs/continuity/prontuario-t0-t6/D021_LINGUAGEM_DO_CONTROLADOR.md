@@ -56,3 +56,8 @@ A prévia deve usar os nomes dos documentos e situações reconhecíveis pelo Co
 ### Consolidação com confirmação explícita
 
 Tanto a primeira consolidação como a reconsolidação são iniciadas pelo botão **Consolidar bonificação**. Antes de gravar, o diálogo compartilhado mostra a escola, o mês e o programa e explica que o resultado Apta/Inapta será calculado e registrado, sem alterar as notas fiscais, a análise técnica ou as Pendências. Cancelar ou Escape não grava. O botão final é **Confirmar consolidação**. O comando canônico de cálculo e suas permissões permanecem inalterados. A confirmação é testada no fluxo visual e na jornada autenticada; aceite no SHA final ainda necessário.
+
+
+### Design da informação — confirmação T4
+
+Identificar escola, mês, programa e documento com rótulos próprios. Distinguir por estrutura, não somente por cores: aviso de irreversibilidade breve; quantitativos de exclusão com destaque numérico calculado da prévia real; área de preservação antes da listagem extensa; detalhes agrupados e rodapé acessível. Na consolidação, separar o efeito (cálculo e registro de Apta/Inapta), o contexto e os dados que não serão alterados. Proibido condensar por omissão de vínculos, avisos, bloqueadores ou transições. Verificar desktop, móvel, tema escuro e consistência do foco por screenshots reais. Mudança de apresentação somente, sem modificar RPCs, migrations ou critérios de consolidação.

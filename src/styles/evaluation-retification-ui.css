@@ -976,3 +976,207 @@ body.dark-theme .is-fiscal-bonus .fiscal-bonus-transition strong {
     font-size: 0.82rem;
     line-height: 1.45;
 }
+
+
+/* T4 — design da informação. O significado não depende de cor ou ícone.
+   A confirmação conserva uma única região rolável e rodapé sempre acessível. */
+:is(.is-context-deletion, .is-item-history) .radar-operational-correction-header {
+    gap: 10px;
+    padding-bottom: 10px;
+}
+.correction-scope-fields {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.85fr) minmax(0, 1fr);
+    gap: 9px 16px;
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--bg-card);
+}
+.correction-scope-field {
+    min-width: 0;
+}
+.correction-scope-field dt {
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    font-weight: 650;
+    line-height: 1.3;
+}
+.correction-scope-field dd {
+    margin: 3px 0 0;
+    color: var(--text-main);
+    font-size: 0.83rem;
+    font-weight: 700;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+.correction-scope-field:nth-child(4) {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--border-color);
+    padding-top: 7px;
+}
+.correction-caution {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid color-mix(in srgb, var(--danger, #b91c1c) 20%, var(--border-color));
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--danger, #b91c1c) 5%, var(--bg-card));
+}
+.correction-caution-icon,
+.correction-preservation-icon {
+    display: inline-grid;
+    flex: 0 0 24px;
+    width: 24px;
+    height: 24px;
+    place-items: center;
+    border-radius: 50%;
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+.correction-caution-icon {
+    color: var(--danger, #b91c1c);
+    background: color-mix(in srgb, var(--danger, #b91c1c) 12%, transparent);
+}
+.correction-caution-copy strong {
+    display: block;
+    color: var(--text-main);
+    font-size: 0.82rem;
+}
+.correction-caution-copy p {
+    margin-top: 2px;
+    font-size: 0.77rem;
+    line-height: 1.35;
+}
+.radar-operational-correction-dialog:is(.is-context-deletion, .is-item-history) {
+    gap: 10px;
+}
+:is(.is-context-deletion, .is-item-history) .radar-operational-correction-effects {
+    gap: 12px;
+    padding: 0 1px 4px;
+    border: 0;
+    background: transparent;
+}
+:is(.is-context-deletion, .is-item-history) .context-deletion-impact-list.correction-impact-tiles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+    padding: 0;
+    list-style: none;
+}
+:is(.is-context-deletion, .is-item-history) .correction-impact-tiles li {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+    padding: 8px 10px;
+    border: 1px solid color-mix(in srgb, var(--danger, #b91c1c) 18%, var(--border-color));
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--danger, #b91c1c) 4%, var(--bg-card));
+}
+.correction-impact-count {
+    flex: 0 0 auto;
+    font-size: 1.38rem;
+    font-weight: 770;
+    line-height: 1;
+    color: var(--danger, #b91c1c);
+    font-variant-numeric: tabular-nums;
+}
+.correction-impact-name {
+    color: var(--text-main);
+    font-size: 0.73rem;
+    font-weight: 620;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+.correction-preservation-panel {
+    padding: 9px 11px;
+    border: 1px solid color-mix(in srgb, #15803d 25%, var(--border-color));
+    border-radius: 10px;
+    background: color-mix(in srgb, #15803d 5%, var(--bg-card));
+}
+.correction-panel-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    color: var(--text-main);
+    font-size: 0.82rem;
+    font-weight: 720;
+}
+.correction-preservation-icon {
+    color: #15803d;
+    background: color-mix(in srgb, #15803d 13%, transparent);
+}
+:is(.is-context-deletion, .is-item-history) .correction-preservation-panel .context-deletion-preserved {
+    margin: 4px 0 0 32px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-size: 0.79rem;
+    line-height: 1.4;
+}
+.correction-next-step {
+    padding: 8px 10px;
+    border-inline-start: 2px solid var(--primary, #6335b5);
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    line-height: 1.4;
+}
+:is(.is-context-deletion, .is-item-history) .context-deletion-details {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 9px;
+    background: var(--bg-card);
+}
+:is(.is-context-deletion, .is-item-history) .context-deletion-records {
+    gap: 0;
+    padding: 0;
+    list-style: none;
+}
+:is(.is-context-deletion, .is-item-history) .context-deletion-records li {
+    padding-block: 6px;
+    font-size: 0.79rem;
+}
+:is(.is-context-deletion, .is-item-history) .context-deletion-records li + li {
+    border-top: 1px solid var(--border-color);
+}
+.correction-effect-transition {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 8px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-card);
+    font-size: 0.78rem;
+}
+.correction-effect-label {
+    color: var(--text-muted);
+}
+body.dark-theme .correction-impact-count,
+body.dark-theme .correction-caution-icon {
+    color: #fca5a5;
+}
+body.dark-theme .correction-preservation-icon {
+    color: #86efac;
+}
+@media (max-width: 700px) {
+    .correction-scope-fields {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 7px 10px;
+        padding: 8px 10px;
+    }
+    .correction-scope-field:first-child {
+        grid-column: 1 / -1;
+    }
+    .correction-scope-field:nth-child(4) {
+        padding-top: 5px;
+    }
+    :is(.is-context-deletion, .is-item-history) .context-deletion-impact-list.correction-impact-tiles {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

@@ -12405,8 +12405,11 @@ async function requestBonificationConsolidation(escolaId, compKey, trigger = doc
     try {
         const confirmed = await confirmation({
             title: 'Consolidar bonificação',
-            message: 'O RADAR calculará e registrará o resultado Apta ou Inapta deste programa com base nas avaliações de bonificação. Notas fiscais, análises técnicas e Pendências não serão alteradas.',
-            listTitle: 'Escola, mês e programa',
+            variant: 'bonification',
+            message: 'O resultado Apta ou Inapta será calculado e registrado com base nas avaliações de bonificação.',
+            preserved: 'Notas fiscais, análises técnicas e Pendências não serão alteradas.',
+            listTitle: 'Contexto da consolidação',
+            itemLabels: ['Escola', 'Mês de referência', 'Programa'],
             items: [
                 school ? getSchoolDisplayName(school, escolaId) : escolaId,
                 month?.label || competenciaKey,

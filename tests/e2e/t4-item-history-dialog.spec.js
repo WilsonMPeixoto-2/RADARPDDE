@@ -105,7 +105,12 @@ test('T4 histórico: prévia legível e Cancelar preserva a operação', async (
     await expect(dialog).toContainText('Pendências — inclusive resolvidas e canceladas (2)');
     await expect(dialog).toContainText('Envios documentais vinculados (1)');
     await expect(dialog).toContainText('Contatos vinculados às Pendências (1)');
-    await expect(dialog).toContainText('Notas fiscais, bens, outros documentos, programas');
+    await expect(dialog.locator('.correction-preservation-panel')).toContainText('Notas fiscais, bens, outros documentos, programas');
+    await expect(dialog.locator('.correction-scope-field dt')).toHaveText(['Escola', 'Mês de referência', 'Programa', 'Documento']);
+    await expect(dialog.locator('.correction-impact-count')).toHaveText(['2', '1', '1']);
+    expect(await dialog.locator('.correction-preservation-panel').evaluate(panel =>
+        Boolean(panel.compareDocumentPosition(panel.parentElement.querySelector('.context-deletion-details')) & Node.DOCUMENT_POSITION_FOLLOWING)
+    )).toBe(true);
     await expect(dialog).toContainText('Extrato da conta corrente');
     await expect(dialog).not.toContainText('· extCC');
     await expect(dialog).not.toContainText('H-P-2');

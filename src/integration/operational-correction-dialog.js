@@ -32,6 +32,42 @@
         button.setAttribute('aria-description', description);
         return button;
     }
+    // Design da informação: escopo identificado, quantidades reais e proteção
+    // visualmente distinta. A lista completa de registros continua no DOM.
+    function scopeFields(doc, entries) {
+        const scope = el(doc, 'dl', 'correction-scope-fields');
+        for (const [label, value] of entries) {
+            if (!text(value)) continue;
+            const field = el(doc, 'div', 'correction-scope-field');
+            field.append(el(doc, 'dt', '', label), el(doc, 'dd', '', value));
+            scope.appendChild(field);
+        }
+        return scope;
+    }
+    function impactTiles(doc, removals) {
+        const list = el(doc, 'ul', 'context-deletion-impact-list correction-impact-tiles');
+        list.setAttribute('aria-label', 'Quantidades de registros a excluir');
+        for (const item of removals) {
+            const count = Array.isArray(item.ids) ? item.ids.length : 0;
+            if (!count) continue;
+            const cell = el(doc, 'li', 'correction-impact-tile');
+            const name = text(item.label).replace(/^\d+\s+/, '');
+            cell.dataset.entity = text(item.entity);
+            cell.append(el(doc, 'strong', 'correction-impact-count', String(count)),
+                doc.createTextNode(' '), el(doc, 'span', 'correction-impact-name', name));
+            list.appendChild(cell);
+        }
+        return list;
+    }
+    function preservationPanel(doc, description) {
+        const panel = el(doc, 'section', 'correction-preservation-panel');
+        const heading = el(doc, 'h4', 'correction-panel-heading');
+        const icon = el(doc, 'span', 'correction-preservation-icon', '✓');
+        icon.setAttribute('aria-hidden', 'true');
+        heading.append(icon, el(doc, 'span', '', 'O que será preservado'));
+        panel.append(heading, el(doc, 'p', 'context-deletion-preserved', description));
+        return panel;
+    }
     function repositoryOf(root) {
         // Autoridade: mesmo repositório já composto pelo app.js.
         return root?.RadarApplicationServices?.data?.repository
@@ -150,22 +186,26 @@
             context.competenceLabel || context.competence,
             ...(!bonus && !contextDeletion ? [context.documentLabel || context.documentKey] : [])
         ].filter(Boolean).join(' · '));
-        header.append(kicker, title, summary);
-        if (contextDeletion) {
-            const explanation = el(doc, 'p', 'fiscal-bonus-explanation context-deletion-explanation',
-                'Você vai excluir os registros listados abaixo. Isso pode incluir notas fiscais, pendências, '
-                + 'contatos vinculados e bens cadastrados a partir dessas notas. '
-                + 'Os outros meses e programas, assim como os contatos gerais, serão preservados. '
-                + 'Os lançamentos não serão transferidos automaticamente. '
-                + 'Para registrar no lugar correto, faça um novo lançamento.');
-            header.appendChild(explanation);
-        }
-        if (historyDeletion) {
-            header.appendChild(el(doc, 'p', 'context-deletion-explanation',
-                'Serão removidas a avaliação atual e todas as Pendências deste item (inclusive resolvidas ou canceladas), '
-                + 'com seus envios e contatos vinculados. '
-                + 'Notas fiscais, bens, outros documentos, programas e o histórico administrativo serão preservados. '
-                + 'Não é possível desfazer pelo Prontuário.'));
+        header.append(kicker, title);
+        if (contextDeletion || historyDeletion) {
+            header.appendChild(scopeFields(doc, [
+                ['Escola', context.schoolName || context.schoolId],
+                ['Mês de referência', context.competenceLabel || context.competence],
+                ['Programa', context.programName || context.programId],
+                ...(historyDeletion ? [['Documento', context.documentLabel || context.documentKey]] : [])
+            ]));
+            const caution = el(doc, 'div', 'correction-caution');
+            const mark = el(doc, 'span', 'correction-caution-icon', '!');
+            mark.setAttribute('aria-hidden', 'true');
+            const message = el(doc, 'div', 'correction-caution-copy');
+            message.append(el(doc, 'strong', '', 'Exclusão definitiva no Prontuário'),
+                el(doc, 'p', '', contextDeletion
+                    ? 'Você vai excluir os registros listados abaixo.'
+                    : 'A avaliação atual e o histórico deste item serão removidos.'));
+            caution.append(mark, message);
+            header.appendChild(caution);
+        } else {
+            header.appendChild(summary);
         }
         if (deleting && !contextDeletion && !historyDeletion) {
             header.appendChild(el(doc, 'p', 'context-deletion-explanation',
@@ -309,12 +349,15 @@
                 if (contextDeletion) {
                     const removals = Array.isArray(view.removals) ? view.removals : [];
                     if (removals.length) {
-                        const list = el(doc, 'ul', 'context-deletion-impact-list');
-                        for (const item of removals) list.appendChild(el(doc, 'li', '', item.label));
-                        effects.appendChild(list);
+                        effects.appendChild(impactTiles(doc, removals));
                     } else {
                         effects.appendChild(el(doc, 'p', '', 'Nenhum registro foi encontrado para excluir.'));
                     }
+                    effects.appendChild(preservationPanel(doc,
+                        'Outros meses e programas, contatos gerais e registros fora desta seleção.'));
+                    const next = el(doc, 'p', 'correction-next-step',
+                        'Os lançamentos não serão transferidos automaticamente. Para registrar no lugar correto, faça um novo lançamento.');
+                    effects.appendChild(next);
                     // A confirmação não depende de IDs técnicos: mostre ao
                     // Controlador os documentos reais de cada parte do conjunto.
                     const records = view.affectedRecords || {};
@@ -367,11 +410,14 @@
                     ].filter(Boolean).join(' · '));
                     const assetDetails = makeDetails('Bens vinculados', assets);
                     if (assetDetails) effects.appendChild(assetDetails);
-                    effects.appendChild(el(doc, 'p', 'context-deletion-preserved',
-                        'O que será mantido: outros meses e programas, contatos gerais e registros que não pertencem a esta seleção.'));
+
                 } else if (historyDeletion) {
                     const records = view.affectedRecords || {};
-                    effects.appendChild(el(doc, 'p', 'item-history-impact-summary', text(view.summary)));
+                    const removals = Array.isArray(view.removals) ? view.removals : [];
+                    if (removals.length) effects.appendChild(impactTiles(doc, removals));
+                    else effects.appendChild(el(doc, 'p', '', text(view.summary)));
+                    effects.appendChild(preservationPanel(doc,
+                        'Notas fiscais, bens, outros documentos, programas, bonificação, contatos gerais e registros administrativos de auditoria.'));
                     const documentNames = {
                         extCC: 'Extrato da conta corrente', extCI: 'Extrato de investimentos',
                         extINV: 'Extrato de investimentos', notaFiscal: 'Nota fiscal',
@@ -408,13 +454,11 @@
                         section.appendChild(list);
                         effects.appendChild(section);
                     }
-                    effects.appendChild(el(doc, 'p', 'context-deletion-preserved',
-                        'Serão mantidos: notas fiscais e despesas, bens, bonificação, outros itens, outros meses/programas, '
-                        + 'contatos gerais e registros administrativos de auditoria.'));
+
                 } else {
                     effects.appendChild(el(doc, 'p', '', text(view.summary)));
                 }
-                if (view.preserved?.bonusResult) {
+                if (view.preserved?.bonusResult && !historyDeletion) {
                     effects.appendChild(el(doc, 'p', '',
                         'O resultado da bonificação já consolidada será preservado.'));
                 }
@@ -467,7 +511,14 @@
             }
             for (const [valueChange, labels] of transitions) {
                 const scope = [...labels].join(' / ');
-                effects.appendChild(el(doc, 'p', '', scope ? scope + ' — ' + valueChange : valueChange));
+                if (contextDeletion || historyDeletion) {
+                    const transition = el(doc, 'div', 'correction-effect-transition');
+                    if (scope) transition.appendChild(el(doc, 'span', 'correction-effect-label', scope));
+                    transition.appendChild(el(doc, 'strong', '', valueChange));
+                    effects.appendChild(transition);
+                } else {
+                    effects.appendChild(el(doc, 'p', '', scope ? scope + ' — ' + valueChange : valueChange));
+                }
             }
             for (const item of [...warnings, ...blockers]) {
                 effects.appendChild(el(doc, 'p', '', text(item?.message || item?.code || item)));
@@ -609,9 +660,9 @@
                         actionHelp(save, 'Define a análise como Não analisado e aplica apenas os efeitos mostrados na prévia.');
                         status('Análise pronta para ser limpa. Confira o que vai mudar acima e clique em Confirmar correção.', false);
                     } else if (contextDeletion) {
-                        status('Confira a lista acima. Se estiver tudo certo, clique em “Excluir estes lançamentos”.', false);
+                        status('Prévia pronta. Confira antes de excluir.', false);
                     } else if (historyDeletion) {
-                        status('Confira os registros vinculados e use “Limpar histórico deste item” para confirmar.', false);
+                        status('Prévia pronta. Confira antes de limpar.', false);
                     } else if (deleting) {
                         status('Confira quais registros serão excluídos e clique em Confirmar exclusão.', false);
                     }

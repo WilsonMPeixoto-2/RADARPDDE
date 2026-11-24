@@ -113,6 +113,12 @@ test('T4: prévia apresenta contexto completo e não grava ao cancelar', async (
     await expect(dialog).not.toContainText('Correção de contexto');
     await expect(dialog).not.toContainText('O servidor identificará');
     await expect(dialog.locator('.context-deletion-impact-list li')).toHaveCount(5);
+    await expect(dialog.locator('.correction-impact-tile .correction-impact-count')).toHaveCount(5);
+    await expect(dialog.locator('.correction-scope-field dt')).toHaveText(['Escola', 'Mês de referência', 'Programa']);
+    await expect(dialog.locator('.correction-preservation-panel')).toContainText('O que será preservado');
+    expect(await dialog.locator('.correction-preservation-panel').evaluate(panel =>
+        Boolean(panel.compareDocumentPosition(panel.parentElement.querySelector('.context-deletion-details')) & Node.DOCUMENT_POSITION_FOLLOWING)
+    )).toBe(true);
     await expect(dialog).toContainText(/não (?:serão )?transferid/i);
     await expect(dialog).toContainText(/outros meses e programas|outros programas e meses/i);
     await dialog.getByRole('button', { name: 'Cancelar' }).click();
