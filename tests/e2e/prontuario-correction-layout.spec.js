@@ -219,6 +219,21 @@ test('modo PC em tela estreita conserva a grade e as ações da NF sem empilhame
         expect(invoice.height).toBeLessThanOrEqual(160);
         const bonus = page.locator('tr[data-program-id="BASIC"][data-document-key="notaFiscal"] .invoice-summary-block.is-bonification');
         expect(await bonus.evaluate(el => Math.abs(el.firstElementChild.getBoundingClientRect().left - el.lastElementChild.getBoundingClientRect().left))).toBeLessThanOrEqual(4);
+        const summary = bonus.locator('..');
+        const spacing = await summary.evaluate(el => {
+            const toggle = el.querySelector('.invoice-bonification-toggle');
+            const pending = el.querySelector('.invoice-summary-block.is-pendencies');
+            const bounds = toggle.getBoundingClientRect();
+            const other = pending.getBoundingClientRect();
+            const parent = el.getBoundingClientRect();
+            return {
+                separated: bounds.right + 4 <= other.left || other.right + 4 <= bounds.left
+                    || bounds.bottom + 4 <= other.top || other.bottom + 4 <= bounds.top,
+                contained: bounds.right <= parent.right + 1 && other.right <= parent.right + 1,
+                allOptionsVisible: [...toggle.children].every(child => child.getBoundingClientRect().right <= bounds.right + 1)
+            };
+        });
+        expect(spacing).toEqual({ separated: true, contained: true, allOptionsVisible: true });
         await program.scrollIntoViewIfNeeded();
         await testInfo.attach(`modo-pc-cabecalho-${theme}`, { body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
         await nf.scrollIntoViewIfNeeded();

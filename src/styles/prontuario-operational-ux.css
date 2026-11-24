@@ -1870,7 +1870,12 @@ body.dark-theme #prontuario-verif-rows .invoice-history-clear-button { color: #f
         padding: 0; border: 0; gap: 4px;
     }
     #prontuario-verif-rows .invoice-summary-block.is-bonification > span { text-align: start; align-self: flex-start; }
-    #prontuario-verif-rows .invoice-summary-block.is-pendencies { align-items: center; justify-content: flex-start; }
+    #prontuario-verif-rows .invoice-summary-block.is-bonification { flex: 1 1 168px; min-width: min(168px, 100%); }
+    #prontuario-verif-rows .invoice-bonification-toggle { max-width: 100%; }
+    #prontuario-verif-rows .invoice-bonification-toggle button,
+    #prontuario-verif-rows .invoice-bonification-toggle.is-readonly > span { min-width: 52px; flex: 1 1 auto; padding-inline: 8px; }
+    #prontuario-verif-rows .invoice-summary-block.is-pendencies { flex: 0 1 auto; align-items: center; justify-content: flex-start; flex-wrap: wrap; max-width: 100%; }
+    #prontuario-verif-rows .invoice-summary-block.is-pendencies strong { white-space: normal; }
     #prontuario-verif-rows .invoice-document-list .invoice-document-row {
         grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 10px; padding: 10px 12px;
     }
@@ -1922,7 +1927,7 @@ body.dark-theme #prontuario-verif-rows .invoice-history-clear-button { color: #f
     #prontuario-verif-rows tr.verification-document-row > td.verification-document-bonif-cell > .btn-group-toggle,
     #prontuario-verif-rows tr.verification-document-row > td.verification-document-analysis-cell > .select-analise { min-height: 36px; }
     #prontuario-verif-rows .verification-document-action-cell button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
-    #prontuario-verif-rows .invoice-document-panel-header { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.4fr); align-items: center; }
+    #prontuario-verif-rows .invoice-document-panel-header { grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); align-items: center; }
     #prontuario-verif-rows .invoice-document-list-head,
     #prontuario-verif-rows .invoice-document-list .invoice-document-row { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, .85fr) minmax(0, .85fr) minmax(0, .85fr); gap: 8px; padding: 9px 12px; align-items: center; }
     #prontuario-verif-rows .invoice-document-list.no-analysis .invoice-document-list-head,
@@ -1933,7 +1938,8 @@ body.dark-theme #prontuario-verif-rows .invoice-history-clear-button { color: #f
     #prontuario-verif-rows .invoice-document-list.no-analysis.no-actions .invoice-document-row { grid-template-columns: minmax(0, 1.45fr) minmax(0, .85fr); }
     #prontuario-verif-rows .invoice-document-list .invoice-document-row > * { grid-column: auto; min-width: 0; align-self: center; }
     #prontuario-verif-rows .invoice-document-analysis::before { content: none; }
-    #prontuario-verif-rows .invoice-document-analysis-select { min-height: 36px; }
+    #prontuario-verif-rows .invoice-document-analysis-select { min-height: 36px; padding-inline: 7px 22px; font-size: .75rem; }
+    #prontuario-verif-rows tr.verification-document-row > td.verification-document-analysis-cell > .select-analise { padding-inline: 7px 20px; font-size: .75rem; }
     #prontuario-verif-rows .invoice-document-meta { flex-direction: column; align-items: flex-start; gap: 3px; }
     #prontuario-verif-rows .invoice-document-status { white-space: normal; max-width: 100%; }
     #prontuario-verif-rows .invoice-document-identity { gap: 8px; }
