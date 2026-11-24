@@ -1840,3 +1840,114 @@ body.dark-theme #prontuario-verif-rows .invoice-history-clear-button { color: #f
     #prontuario-verif-rows .has-readable-actions .radar-labelled-action { min-block-size: 44px; }
     #prontuario-verif-rows .service-advisory-delivery label { white-space: normal; max-width: 100%; }
 }
+
+/* D021 — grade compacta proporcional à área de trabalho, inclusive modo PC no celular. */
+@container prontuario-table (inline-size < 920px) {
+    #prontuario-verif-rows [data-program-header] .program-context-header,
+    #prontuario-verif-rows [data-program-header] .program-context-header[data-col-count="3"],
+    #prontuario-verif-rows [data-program-header] .program-context-header[data-col-count="2"] {
+        gap: 8px; padding: 10px 12px;
+    }
+    #prontuario-verif-rows [data-program-header] .program-status-summary { gap: 6px 12px; }
+    #prontuario-verif-rows [data-program-header] .program-consolidate-button:disabled { min-height: 34px; }
+    #prontuario-verif-rows [data-program-header] .program-context-identity > .program-context-delete-button { min-block-size: 36px; }
+    #prontuario-verif-rows tr.verification-document-row > td { padding: 7px 10px; }
+    #prontuario-verif-rows .verification-document-cell { align-items: center; }
+    #prontuario-verif-rows .verification-document-copy { gap: 2px; }
+    #prontuario-verif-rows .prontuario-history-clear-button { margin: 0; min-block-size: 36px; }
+    #prontuario-verif-rows .verification-document-action-cell > .evaluation-retification-inline-actions,
+    #prontuario-verif-rows .verification-document-action-cell > .invoice-pendency-view-button + .evaluation-retification-inline-actions {
+        display: inline-flex; margin-top: 0; vertical-align: middle;
+    }
+    #prontuario-verif-rows .invoice-document-panel-header {
+        display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 10px 12px;
+    }
+    #prontuario-verif-rows .invoice-document-panel-title { min-width: 0; text-align: start; }
+    #prontuario-verif-rows .invoice-document-panel-title > div { min-width: 0; text-align: start; }
+    #prontuario-verif-rows .invoice-document-panel-summary { align-items: center; gap: 8px; }
+    #prontuario-verif-rows .invoice-summary-block {
+        min-height: 0; min-width: 0; align-items: flex-start; text-align: start;
+        padding: 0; border: 0; gap: 4px;
+    }
+    #prontuario-verif-rows .invoice-summary-block.is-bonification > span { text-align: start; align-self: flex-start; }
+    #prontuario-verif-rows .invoice-summary-block.is-pendencies { align-items: center; justify-content: flex-start; }
+    #prontuario-verif-rows .invoice-document-list .invoice-document-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 10px; padding: 10px 12px;
+    }
+    #prontuario-verif-rows .invoice-document-row > .invoice-document-identity { grid-column: 1 / -1; align-items: flex-start; }
+    #prontuario-verif-rows .invoice-document-row > .invoice-document-meta,
+    #prontuario-verif-rows .invoice-document-row > .service-advisory-delivery { grid-column: 1 / -1; }
+    #prontuario-verif-rows .invoice-document-row > .invoice-document-analysis { grid-column: 1; }
+    #prontuario-verif-rows .invoice-document-row > .invoice-document-action { grid-column: 2; align-self: end; }
+    #prontuario-verif-rows .invoice-document-analysis { align-items: flex-start; justify-content: flex-start; }
+    #prontuario-verif-rows .invoice-document-analysis::before { text-align: start; }
+    #prontuario-verif-rows .invoice-document-row > .invoice-document-action:has(> .invoice-document-empty-action) { visibility: hidden; }
+    #prontuario-verif-rows .invoice-document-inline-actions.has-readable-actions { gap: 4px; }
+    #prontuario-verif-rows .has-readable-actions .radar-labelled-action { min-block-size: 36px; }
+    #prontuario-verif-rows .invoice-document-title-line > strong { white-space: normal; overflow-wrap: anywhere; }
+    #prontuario-verif-rows .invoice-document-action > * { max-width: 100%; }
+    #prontuario-verif-rows .invoice-document-action button { white-space: normal; }
+}
+
+@container prontuario-table (inline-size >= 620px) and (inline-size < 920px) {
+    #tab-verificacoes .prontuario-evaluation-table { display: table; table-layout: fixed; }
+    #tab-verificacoes .prontuario-evaluation-table > colgroup { display: table-column-group; }
+    #tab-verificacoes .prontuario-evaluation-table > thead {
+        position: static; width: auto; height: auto; overflow: visible; clip-path: none; white-space: normal;
+    }
+    #tab-verificacoes .prontuario-evaluation-table > thead th { padding: 8px 10px; font-size: .68rem; }
+    #prontuario-verif-rows { display: table-row-group; width: auto; }
+    #prontuario-verif-rows > tr:not(.verification-document-row),
+    #prontuario-verif-rows tr.verification-document-row { display: table-row; width: auto; }
+    #prontuario-verif-rows > tr:not(.verification-document-row) > td,
+    #prontuario-verif-rows tr.verification-document-row > td { display: table-cell; width: auto; max-width: none; vertical-align: middle; }
+    #prontuario-verif-rows tr.verification-document-row > .verification-document-action-cell:empty { display: table-cell; }
+    #prontuario-verif-rows .prontuario-compact-label { display: none; }
+    #tab-verificacoes .prontuario-evaluation-table[data-col-count="4"] .prontuario-col-doc { width: 35%; }
+    #tab-verificacoes .prontuario-evaluation-table[data-col-count="4"] .prontuario-col-bonif { width: 22%; }
+    #tab-verificacoes .prontuario-evaluation-table[data-col-count="4"] .prontuario-col-analise { width: 21%; }
+    #tab-verificacoes .prontuario-evaluation-table[data-col-count="4"] .prontuario-col-action { width: 22%; }
+    #prontuario-verif-rows [data-program-header] .program-context-header { grid-template-columns: 35% 22% 21% 22%; gap: 0; padding: 8px 0; align-items: center; }
+    #prontuario-verif-rows [data-program-header] .program-context-header[data-col-count="3"] { grid-template-columns: 44% 30% 26%; gap: 0; padding: 8px 0; align-items: center; }
+    #prontuario-verif-rows [data-program-header] .program-context-header[data-col-count="2"] { grid-template-columns: 64% 36%; gap: 0; padding: 8px 0; align-items: center; }
+    #prontuario-verif-rows [data-program-header] .program-status-summary { display: contents; }
+    #prontuario-verif-rows [data-program-header] .program-context-identity,
+    #prontuario-verif-rows [data-program-header] .program-status-summary > div,
+    #prontuario-verif-rows [data-program-header] .program-context-consolidate { padding-inline: 10px; min-width: 0; }
+    #prontuario-verif-rows [data-program-header] .program-consolidate-button { font-size: .77rem; padding: 7px; min-height: 38px; }
+    #prontuario-verif-rows [data-program-header] .program-context-delete-button { font-size: .72rem; }
+    #prontuario-verif-rows tr.verification-document-row > td { border-bottom: 1px solid var(--border-color); }
+    #prontuario-verif-rows .verification-document-copy strong { overflow-wrap: anywhere; }
+    #prontuario-verif-rows .verification-document-icon { width: 30px; height: 30px; flex-basis: 30px; }
+    #prontuario-verif-rows tr.verification-document-row > td.verification-document-bonif-cell > .btn-group-toggle,
+    #prontuario-verif-rows tr.verification-document-row > td.verification-document-analysis-cell > .select-analise { min-height: 36px; }
+    #prontuario-verif-rows .verification-document-action-cell button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+    #prontuario-verif-rows .invoice-document-panel-header { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.4fr); align-items: center; }
+    #prontuario-verif-rows .invoice-document-list-head,
+    #prontuario-verif-rows .invoice-document-list .invoice-document-row { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, .85fr) minmax(0, .85fr) minmax(0, .85fr); gap: 8px; padding: 9px 12px; align-items: center; }
+    #prontuario-verif-rows .invoice-document-list.no-analysis .invoice-document-list-head,
+    #prontuario-verif-rows .invoice-document-list.no-analysis .invoice-document-row,
+    #prontuario-verif-rows .invoice-document-list.no-actions .invoice-document-list-head,
+    #prontuario-verif-rows .invoice-document-list.no-actions .invoice-document-row { grid-template-columns: minmax(0, 1.45fr) minmax(0, .85fr) minmax(0, .85fr); }
+    #prontuario-verif-rows .invoice-document-list.no-analysis.no-actions .invoice-document-list-head,
+    #prontuario-verif-rows .invoice-document-list.no-analysis.no-actions .invoice-document-row { grid-template-columns: minmax(0, 1.45fr) minmax(0, .85fr); }
+    #prontuario-verif-rows .invoice-document-list .invoice-document-row > * { grid-column: auto; min-width: 0; align-self: center; }
+    #prontuario-verif-rows .invoice-document-analysis::before { content: none; }
+    #prontuario-verif-rows .invoice-document-analysis-select { min-height: 36px; }
+    #prontuario-verif-rows .invoice-document-meta { flex-direction: column; align-items: flex-start; gap: 3px; }
+    #prontuario-verif-rows .invoice-document-status { white-space: normal; max-width: 100%; }
+    #prontuario-verif-rows .invoice-document-identity { gap: 8px; }
+    #prontuario-verif-rows .invoice-document-identity .invoice-document-icon { width: 30px; height: 30px; flex-basis: 30px; }
+
+    /* A NF permanece em uma linha de leitura; as ações cadastrais usam uma faixa comum abaixo. */
+    #prontuario-verif-rows .invoice-document-list:not(.no-analysis):not(.no-actions) .invoice-document-row:has(.has-readable-actions):not(:has(.invoice-legacy-badge, .invoice-provisional-label)) .invoice-document-identity,
+    #prontuario-verif-rows .invoice-document-list:not(.no-analysis):not(.no-actions) .invoice-document-row:has(.has-readable-actions):not(:has(.invoice-legacy-badge, .invoice-provisional-label)) .invoice-document-copy,
+    #prontuario-verif-rows .invoice-document-list:not(.no-analysis):not(.no-actions) .invoice-document-row:has(.has-readable-actions):not(:has(.invoice-legacy-badge, .invoice-provisional-label)) .invoice-document-title-line { display: contents; }
+    #prontuario-verif-rows .invoice-document-list:not(.no-analysis):not(.no-actions) .invoice-document-row:has(.has-readable-actions):not(:has(.invoice-legacy-badge, .invoice-provisional-label)) .invoice-document-identity > .invoice-document-icon { grid-column: 1; grid-row: 1; justify-self: start; }
+    #prontuario-verif-rows .invoice-document-list:not(.no-analysis):not(.no-actions) .invoice-document-row:has(.has-readable-actions):not(:has(.invoice-legacy-badge, .invoice-provisional-label)) .invoice-document-title-line > strong { grid-column: 1; grid-row: 1; margin-inline-start: 38px; }
+    #prontuario-verif-rows .invoice-document-list:not(.no-analysis):not(.no-actions) .invoice-document-row:has(.has-readable-actions):not(:has(.invoice-legacy-badge, .invoice-provisional-label)) .invoice-document-meta { grid-column: 2; grid-row: 1; }
+    #prontuario-verif-rows .invoice-document-list:not(.no-analysis):not(.no-actions) .invoice-document-row:has(.has-readable-actions):not(:has(.invoice-legacy-badge, .invoice-provisional-label)) .invoice-document-analysis { grid-column: 3; grid-row: 1; }
+    #prontuario-verif-rows .invoice-document-list:not(.no-analysis):not(.no-actions) .invoice-document-row:has(.has-readable-actions):not(:has(.invoice-legacy-badge, .invoice-provisional-label)) .invoice-document-action { grid-column: 4; grid-row: 1; }
+    #prontuario-verif-rows .invoice-document-list:not(.no-analysis):not(.no-actions) .invoice-document-row:has(.has-readable-actions):not(:has(.invoice-legacy-badge, .invoice-provisional-label)) .invoice-document-inline-actions { grid-column: 1 / -1; grid-row: 2; padding-inline-start: 38px; align-items: center; }
+    #prontuario-verif-rows .has-readable-actions .radar-labelled-action { min-block-size: 32px; }
+}
