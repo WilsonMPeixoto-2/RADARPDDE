@@ -94,5 +94,5 @@ test('T4 D021: runbook de publicação não mantém resquício de Corrigir marca
         'utf8'
     );
     assert.doesNotMatch(runbook, /Corrigir marca/);
-    assert.match(runbook, /encontrar \*\*Corrigir consolidação\*\*/);
+    assert.match(runbook, /encontrar \*\*Corrigir bonificação\*\*/);
 });

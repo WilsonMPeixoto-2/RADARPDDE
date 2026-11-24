@@ -34,17 +34,17 @@ test(`contexto horizontal mantém consolidação e análise após edição em ${
     await confirmation.getByRole('button', { name: 'Cancelar', exact: true }).click();
     await expect(confirmation).toBeHidden();
     await expect(consolidateButton).toBeEnabled();
-    await expect(header.getByRole('button', { name: 'Consolidada', exact: true })).toHaveCount(0);
+    await expect(header.getByRole('button', { name: 'Bonificação consolidada', exact: true })).toHaveCount(0);
     await consolidateButton.click();
     await confirmation.getByRole('button', { name: 'Confirmar consolidação', exact: true }).click();
     await expect(confirmation).toBeHidden();
-    await expect(header.getByRole('button', { name: 'Consolidada', exact: true })).toBeDisabled();
+    await expect(header.getByRole('button', { name: 'Bonificação consolidada', exact: true })).toBeDisabled();
     await expect(header.locator('[data-status-dimension="bonificacao"]')).toHaveText(/^apta$/i);
     const row = page.locator('tr[data-program-id="BASIC"][data-document-key="extCC"]');
     await row.locator('select.select-analise').selectOption('Correto');
     await expect(row.locator('select.select-analise')).toHaveValue('Correto');
     await expect(header.locator('[data-status-dimension="bonificacao"]')).toHaveText(/^apta$/i);
-    await expect(header.getByRole('button', { name: 'Consolidada', exact: true })).toBeDisabled();
+    await expect(header.getByRole('button', { name: 'Bonificação consolidada', exact: true })).toBeDisabled();
     const state = await page.evaluate(({ schoolId, compKey }) => ({
         bonus: verificacoes[schoolId][compKey].resultadoBonif,
         analysis: verificacoes[schoolId][compKey].analise.extCC

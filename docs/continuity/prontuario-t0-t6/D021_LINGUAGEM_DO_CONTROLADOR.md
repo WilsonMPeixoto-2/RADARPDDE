@@ -78,3 +78,5 @@ O #560 resolveu o recorte, mas a captura do proprietário revelou perda de densi
 
 ## Revisão integrada aprovada em 24/11/2026
 A correção da bonificação abrange critérios manuais, com a regra de N/A do BB Ágil expressa na prévia, e conferência de projeções de Assessoria e Inventariação exclusivamente a partir dos fatos registrados. Não fabricar entrega, inventariação ou baixa externa. Ações destrutivas discretas e identificadas, contexto da escola, mês e programa perceptível durante navegação, próxima providência patrimonial e acesso ao Registro de Capital. Reutilizar confirmações estruturadas. Não encerrar T5 ou aplicar a migration sem homologação.
+
+Rótulos da revisão integrada: **Editar despesa**, **Corrigir análise técnica**, **Redefinir como não analisado**, **Corrigir bonificação**, **Excluir lançamentos deste programa** e **Bonificação consolidada**. Redefinir o resultado não equivale à exclusão de todas as pendências. As confirmações permanecem autoritativas. O acesso ao Registro de Capital é uma orientação, não uma gravação patrimonial.

@@ -108,7 +108,7 @@ test('controlador lança agosto, consolida APTA e recupera o estado após nova s
   }, context);
   expect(consolidationScroll.result).toBe(true);
   expect(Math.abs(consolidationScroll.after - consolidationScroll.before)).toBeLessThanOrEqual(4);
-  await expect(basicProgramFirstRow.getByRole('button', { name: 'Consolidada', exact: true })).toBeVisible();
+  await expect(basicProgramFirstRow.getByRole('button', { name: 'Bonificação consolidada', exact: true })).toBeVisible();
 
   const consolidated = await page.evaluate(({ escolaId, compProgKey }) => {
     const verification = verificacoes[escolaId][compProgKey];
@@ -152,7 +152,7 @@ test('controlador lança agosto, consolida APTA e recupera o estado após nova s
   }, context);
 
   await expect(programRows(page, 'BASIC').first().getByRole('button', {
-    name: 'Consolidada',
+    name: 'Bonificação consolidada',
     exact: true
   })).toBeVisible();
   expect(await page.evaluate(({ escolaId, compProgKey }) => ({
