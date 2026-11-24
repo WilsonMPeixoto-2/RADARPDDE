@@ -100,18 +100,13 @@ async function enablePilotAndOpen(page) {
         'Ação PDDE Básico não pode ficar inacessível: ' + JSON.stringify(proof))
         .toBe(true);
     const program = page.locator('tr[data-program-header="BASIC"]');
-    const menu = program.locator('details.program-context-options');
-    await expect(menu).toBeVisible();
-    await expect(menu.locator('summary')).toHaveText('Ações do programa');
-    const action = menu.getByRole('button', { name: 'Excluir lançamentos deste programa neste mês' });
-    await expect(action).toBeHidden();
-    // Abrir pelo teclado comprova o menu sem depender apenas do clique do mouse.
-    await menu.locator('summary').focus();
-    await page.keyboard.press('Enter');
-    await expect(menu).toHaveAttribute('open', '');
+    const action = program.getByRole('button', { name: 'Excluir lançamentos do mês', exact: true });
     await expect(action).toBeVisible();
-    await action.click();
-    return page.getByRole('dialog', { name: 'Excluir lançamentos deste programa neste mês' });
+    await expect(program.locator('details.program-context-options')).toHaveCount(0);
+    await action.focus();
+    await expect(action).toBeFocused();
+    await page.keyboard.press('Enter');
+    return page.getByRole('dialog', { name: 'Excluir lançamentos do mês' });
 }
 
 async function snapshot(page) {

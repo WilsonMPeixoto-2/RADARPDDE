@@ -85,7 +85,7 @@ async function openHistory(page, options = {}) {
             }
         });
     }, opts);
-    return page.getByRole('dialog', { name: 'Limpar todo o histórico deste item' });
+    return page.getByRole('dialog', { name: 'Excluir análise técnica e pendências' });
 }
 
 test('T4 histórico: recurso OFF não abre janela nem chama RPC', async ({ page }) => {
@@ -114,10 +114,12 @@ test('T4 histórico: prévia legível e Cancelar preserva a operação', async (
     await expect(dialog).toContainText('Extrato da conta corrente');
     await expect(dialog).not.toContainText('· extCC');
     await expect(dialog).not.toContainText('H-P-2');
-    const confirm = dialog.getByRole('button', { name: 'Limpar histórico deste item' });
+    const confirm = dialog.getByRole('button', { name: 'Excluir análise e pendências' });
     await expect(confirm).toBeEnabled();
-    await expect(confirm).toHaveAttribute('data-tooltip', /Pendências.*preserva a despesa/i);
-    await expect(confirm).toHaveAttribute('aria-description', /preserva a despesa/i);
+    for (const attribute of ['data-tooltip', 'aria-description']) {
+        await expect(confirm).toHaveAttribute(attribute, /exclui a análise técnica, as pendências listadas e seus envios e contatos/i);
+        await expect(confirm).toHaveAttribute(attribute, /preserva a bonificação, a nota fiscal e os bens/i);
+    }
     await expect(dialog.getByRole('button', { name: 'Conferir novamente' })).toHaveAttribute('data-tooltip', /não exclui/i);
     await expect(dialog.getByRole('button', { name: 'Cancelar' })).toHaveAttribute('data-tooltip', /sem alterar/i);
     expect((await page.evaluate(() => window.__t4HistoryCalls)).map(x => x.name)).toEqual(['preview_operational_change']);
@@ -129,14 +131,14 @@ test('T4 histórico: prévia legível e Cancelar preserva a operação', async (
 
 test('T4 histórico: prévia de outro programa bloqueia gravação', async ({ page }) => {
     const dialog = await openHistory(page, { corrupt: true });
-    await expect(dialog.getByRole('button', { name: 'Limpar histórico deste item' })).toBeDisabled();
+    await expect(dialog.getByRole('button', { name: 'Excluir análise e pendências' })).toBeDisabled();
     expect(await page.evaluate(() => window.__t4HistoryCalls.length)).toBe(1);
 });
 
 test('T4 histórico: confirmação usa um único RPC, alvo exato, e sincroniza a escola', async ({ page }) => {
     const dialog = await openHistory(page);
-    await expect(dialog.getByRole('button', { name: 'Limpar histórico deste item' })).toBeEnabled();
-    await dialog.getByRole('button', { name: 'Limpar histórico deste item' }).click();
+    await expect(dialog.getByRole('button', { name: 'Excluir análise e pendências' })).toBeEnabled();
+    await dialog.getByRole('button', { name: 'Excluir análise e pendências' }).click();
     await expect(dialog).toHaveCount(0);
     const saved = await page.evaluate(() => ({
         calls: window.__t4HistoryCalls,
@@ -160,7 +162,7 @@ test('T4 histórico: confirmação usa um único RPC, alvo exato, e sincroniza a
 test('T4 histórico: lista extensa mantém botão visível, desktop', async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     const dialog = await openHistory(page, { many: true });
-    const action = dialog.getByRole('button', { name: 'Limpar histórico deste item' });
+    const action = dialog.getByRole('button', { name: 'Excluir análise e pendências' });
     await expect(action).toBeEnabled();
     const rect = await action.evaluate(button => {
         const dialogRect = button.closest('[role="dialog"]').getBoundingClientRect();
@@ -179,7 +181,7 @@ test('T4 histórico: lista extensa mantém botão visível, desktop', async ({ p
 test('T4 histórico: tela móvel preserva contexto, ação, rolagem e teclado', async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 390, height: 844 });
     const dialog = await openHistory(page, { many: true });
-    const action = dialog.getByRole('button', { name: 'Limpar histórico deste item' });
+    const action = dialog.getByRole('button', { name: 'Excluir análise e pendências' });
     await expect(action).toBeEnabled();
     const rect = await action.evaluate(button => {
         const r = button.getBoundingClientRect();

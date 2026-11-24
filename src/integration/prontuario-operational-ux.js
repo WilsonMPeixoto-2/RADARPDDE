@@ -123,13 +123,23 @@
         const invoiceNumber = text(invoice?.numero) || invoiceId || 'sem número';
         const description = text(invoice?.desc || invoice?.descricao || asset?.item || asset?.descricao)
             || 'Bem permanente';
-        const status = text(asset?.status) || 'Bem vinculado não localizado';
+        const status = text(asset?.status);
+        const assetId = text(invoice?.bemId || invoice?.linkedAssetId || invoice?.linked_asset_id);
+        const statusLabel = ({
+            'Inventariada': 'Bem inventariado',
+            'Encaminhada': 'Encaminhada para inventariação',
+            'Não encaminhada': 'Aguardando encaminhamento para inventariação'
+        })[status] || (asset
+            ? 'Situação da inventariação não informada'
+            : assetId
+                ? 'Bem vinculado indisponível nesta consulta'
+                : 'Nota fiscal sem vínculo com bem patrimonial');
         entry.className = 'inventory-document-link';
         entry.dataset.inventoryLinkedInvoiceId = invoiceId;
         entry.setAttribute('role', 'group');
         entry.setAttribute(
             'aria-label',
-            `NF ${invoiceNumber}; ${description}; ${formatCurrency(invoice?.valor)}; ${status}`
+            `NF ${invoiceNumber}; ${description}; ${formatCurrency(invoice?.valor)}; ${statusLabel}`
         );
 
         const connector = root.document.createElement('span');
@@ -147,7 +157,7 @@
 
         const badge = root.document.createElement('span');
         badge.className = `inventory-document-link-status ${inventoryStatusClass(status)}`;
-        badge.textContent = status;
+        badge.textContent = statusLabel;
         if (text(asset?.processoInventario)) {
             badge.title = `Processo de inventário: ${text(asset.processoInventario)}`;
         }
@@ -185,15 +195,15 @@
         panel.dataset.inventoryDocumentLinks = 'true';
         panel.setAttribute(
             'aria-label',
-            'Aquisições permanentes vinculadas ao encaminhamento para inventariação'
+            'Notas fiscais de bens permanentes e situação da inventariação'
         );
         panel.replaceChildren();
 
         const caption = root.document.createElement('span');
         caption.className = 'inventory-document-links-caption';
         caption.textContent = permanentInvoices.length === 1
-            ? '1 aquisição patrimonial vinculada'
-            : `${permanentInvoices.length} aquisições patrimoniais vinculadas`;
+            ? '1 nota fiscal de bem permanente'
+            : `${permanentInvoices.length} notas fiscais de bens permanentes`;
         panel.appendChild(caption);
 
         permanentInvoices.forEach(invoice => {

@@ -68,8 +68,9 @@ async function openHistoryByRealButton(page, documentKey = 'extCC', invoiceId = 
         : row;
     const button = invoice.locator('.invoice-history-clear-button, .prontuario-history-clear-button');
     await expect(button).toBeVisible();
+    await expect(button).toContainText('Excluir análise e pendências');
     await button.click();
-    return page.getByRole('dialog', { name: 'Limpar todo o histórico deste item' });
+    return page.getByRole('dialog', { name: 'Excluir análise técnica e pendências' });
 }
 
 async function readState(page) {
@@ -110,7 +111,7 @@ test('T4 histórico real: botão visível, prévia exata e cancelamento sem efei
     await expect(dialog).toContainText('Envios documentais vinculados (1)');
     await expect(dialog).toContainText('Contatos vinculados às Pendências (1)');
     await expect(dialog).not.toContainText('T4H-P-OTHER-DOC');
-    await expect(dialog.getByRole('button', { name: 'Limpar histórico deste item' })).toBeEnabled();
+    await expect(dialog.getByRole('button', { name: 'Excluir análise e pendências' })).toBeEnabled();
     await testInfo.attach('t4-history-real-preview-desktop', {
         body: await page.screenshot({ fullPage: false }), contentType: 'image/png'
     });
@@ -127,8 +128,8 @@ test('T4 histórico real: confirma, preserva vizinhos, converge antes do F5 e em
     expect(before.pendencies).toContain('T4H-P-RES');
     expect(before.verifications.find(v => v.id.endsWith('2026-05::BASIC')).bonus_result).toBe('apta');
     const dialog = await openHistoryByRealButton(page);
-    await expect(dialog.getByRole('button', { name: 'Limpar histórico deste item' })).toBeEnabled();
-    await dialog.getByRole('button', { name: 'Limpar histórico deste item' }).click();
+    await expect(dialog.getByRole('button', { name: 'Excluir análise e pendências' })).toBeEnabled();
+    await dialog.getByRole('button', { name: 'Excluir análise e pendências' }).click();
     await expect(dialog).toBeHidden();
 
     const row = page.locator('tr[data-program-id="BASIC"][data-document-key="extCC"]');
@@ -180,9 +181,9 @@ test('T4 histórico real: NF individual é preservada, histórico removido e foc
     await openSchool(page);
     const before = await readState(page);
     const dialog = await openHistoryByRealButton(page, 'notaFiscal', 'T4H-NF-1');
-    await expect(dialog.getByRole('button', { name: 'Limpar histórico deste item' })).toBeEnabled();
+    await expect(dialog.getByRole('button', { name: 'Excluir análise e pendências' })).toBeEnabled();
     await testInfo.attach('t4-nf-historico-real', { body: await dialog.screenshot(), contentType: 'image/png' });
-    await dialog.getByRole('button', { name: 'Limpar histórico deste item' }).click();
+    await dialog.getByRole('button', { name: 'Excluir análise e pendências' }).click();
     await expect(dialog).toBeHidden();
     const after = await readState(page);
     expect(after.invoices).toEqual(before.invoices);
@@ -204,9 +205,9 @@ test('T4 histórico real: Assessoria preserva análise fiscal, NF vizinha e boni
     const before = await readState(page);
     const neighbor = await readInvoice(page, 'T4H-NF-SVC-2');
     const dialog = await openHistoryByRealButton(page, 'consAssessoria', 'T4H-NF-SVC');
-    await expect(dialog.getByRole('button', { name: 'Limpar histórico deste item' })).toBeEnabled();
+    await expect(dialog.getByRole('button', { name: 'Excluir análise e pendências' })).toBeEnabled();
     await testInfo.attach('t4-assessoria-historico-real', { body: await dialog.screenshot(), contentType: 'image/png' });
-    await dialog.getByRole('button', { name: 'Limpar histórico deste item' }).click();
+    await dialog.getByRole('button', { name: 'Excluir análise e pendências' }).click();
     await expect(dialog).toBeHidden();
     const after = await readState(page);
     expect(after.invoices).toEqual(before.invoices);

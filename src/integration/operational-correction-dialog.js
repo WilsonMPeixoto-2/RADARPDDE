@@ -182,11 +182,11 @@
         dialog.setAttribute('aria-labelledby', 'radar-operational-correction-title');
         const header = el(doc, 'header', 'radar-operational-correction-header');
         const kicker = el(doc, 'span', 'evaluation-retification-kicker',
-            contextDeletion ? 'Exclusão de lançamentos' : historyDeletion ? 'Limpeza de histórico' : bonus ? 'Avaliação de Notas Fiscais'
+            contextDeletion ? 'Exclusão de lançamentos' : historyDeletion ? 'Exclusão de análise e pendências' : bonus ? 'Avaliação de Notas Fiscais'
                 : deleting ? (mode === 'delete_invoice' ? 'Exclusão de nota fiscal' : 'Exclusão de pendência')
                     : 'Correção operacional');
-        const title = el(doc, 'h2', '', contextDeletion ? 'Excluir lançamentos deste programa neste mês' : historyDeletion
-            ? 'Limpar todo o histórico deste item' : deleting
+        const title = el(doc, 'h2', '', contextDeletion ? 'Excluir lançamentos do mês' : historyDeletion
+            ? 'Excluir análise técnica e pendências' : deleting
             ? (mode === 'delete_invoice' ? 'Excluir nota fiscal' : 'Excluir pendência')
             : bonus ? 'Corrigir consolidação da bonificação' : 'Corrigir análise técnica');
         title.id = 'radar-operational-correction-title';
@@ -207,7 +207,7 @@
                 el(doc, 'p', '', contextDeletion
                     ? 'Você vai excluir os registros listados abaixo.'
                     : historyDeletion
-                        ? 'A avaliação atual e o histórico deste item serão removidos.'
+                        ? 'A análise técnica voltará a Não analisado. Serão excluídas as pendências vinculadas, inclusive resolvidas e canceladas, seus envios e contatos. A bonificação e os documentos cadastrados serão preservados.'
                         : mode === 'delete_invoice'
                             ? 'A despesa e os vínculos indicados na prévia serão excluídos.'
                             : 'A Pendência e os vínculos indicados na prévia serão excluídos.'));
@@ -266,7 +266,7 @@
         const review = el(doc, 'button', 'btn btn-secondary',
             contextDeletion || historyDeletion ? 'Conferir novamente' : 'Revisar prévia');
         const save = el(doc, 'button', deleting ? 'btn btn-danger' : 'btn btn-primary',
-            contextDeletion ? 'Excluir estes lançamentos' : historyDeletion ? 'Limpar histórico deste item'
+            contextDeletion ? 'Excluir estes lançamentos' : historyDeletion ? 'Excluir análise e pendências'
                 : deleting ? 'Confirmar exclusão' : 'Confirmar correção');
         for (const button of [cancel, clearBtn, review, save]) button.type = 'button';
         actionHelp(cancel, 'Fecha esta janela sem alterar os registros.');
@@ -275,7 +275,7 @@
         actionHelp(save, contextDeletion
             ? 'Exclui os registros conferidos deste mês e programa. Não transfere lançamentos.'
             : historyDeletion
-                ? 'Remove a avaliação e as Pendências listadas; preserva a despesa e os registros independentes.'
+                ? 'Exclui a análise técnica, as pendências listadas e seus envios e contatos. Preserva a bonificação, a nota fiscal e os bens.'
                 : mode === 'delete_invoice'
                     ? 'Exclui a despesa selecionada e os vínculos indicados na prévia.'
                     : mode === 'delete_pendency'
@@ -674,7 +674,7 @@
                     } else if (contextDeletion) {
                         status('Prévia pronta. Confira antes de excluir.', false);
                     } else if (historyDeletion) {
-                        status('Prévia pronta. Confira antes de limpar.', false);
+                        status('Prévia pronta. Confira antes de excluir a análise e as pendências.', false);
                     } else if (deleting) {
                         status('Prévia pronta. Confira antes de excluir.', false);
                     }
@@ -682,7 +682,7 @@
                     status(contextDeletion
                         ? 'Não é possível excluir esses lançamentos agora. Confira o motivo acima.'
                         : historyDeletion
-                            ? 'Não é possível limpar este histórico agora. Confira o motivo acima.'
+                            ? 'Não é possível excluir a análise e as pendências agora. Confira o motivo acima.'
                             : 'Ação pendente ou bloqueada. Confira os avisos acima antes de confirmar.', true);
                 }
             } catch (error) {

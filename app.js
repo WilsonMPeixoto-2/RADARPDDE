@@ -9941,7 +9941,7 @@ function renderProntuario(escolaId) {
                             }).join('')}
                         </div>
                         <div class="table-responsive prontuario-evaluation-table-wrap" tabindex="0" role="region" aria-label="Avaliações mensais por programa">
-                            <table class="data-table prontuario-evaluation-table" data-col-count="${2 + (canViewTechnicalAnalysis ? 1 : 0) + (canUseVerificationActions ? 1 : 0)}" aria-label="Avaliações mensais por programa">
+                            <table role="table" class="data-table prontuario-evaluation-table" data-col-count="${2 + (canViewTechnicalAnalysis ? 1 : 0) + (canUseVerificationActions ? 1 : 0)}" aria-label="Avaliações mensais por programa">
                                 <colgroup>
                                     <col class="prontuario-col-doc">
                                     <col class="prontuario-col-bonif">
@@ -9956,7 +9956,7 @@ function renderProntuario(escolaId) {
                                         ${canUseVerificationActions ? '<th scope="col">Providência</th>' : ''}
                                     </tr>
                                 </thead>
-                                <tbody id="prontuario-verif-rows">
+                                <tbody role="rowgroup" id="prontuario-verif-rows">
                                     <!-- Injetado por Render Competência da Escola -->
                                 </tbody>
                             </table>
@@ -10418,28 +10418,23 @@ function renderProntuarioVerificacoes(esc) {
                     !Array.isArray(doc.programIds) || doc.programIds.includes(progId)
                 ));
                 rowsHTML += `
-                    <tr class="program-block-start" data-program-header="${escapeHtml(progId)}" data-program-id="${escapeHtml(progId)}">
-                        <td class="program-context-cell" colspan="${visibleColumnCount}">
+                    <tr role="row" class="program-block-start" data-program-header="${escapeHtml(progId)}" data-program-id="${escapeHtml(progId)}">
+                        <td role="cell" class="program-context-cell" colspan="${visibleColumnCount}">
                             <div class="program-context-header" data-col-count="${visibleColumnCount}">
                                 <div class="program-context-identity">
                                     <span class="program-context-competence">${escapeHtml(c.label)}</span>
                                     <h3 class="program-context-name">${escapeHtml(progName)}</h3>
                                     ${canDeleteContext ? `
-                                        <details class="program-context-options" name="program-context-options">
-                                            <summary class="radar-action-help" aria-label="Ações do programa: ${escapeHtml(progName)}" data-tooltip="Mostra as ações disponíveis para este programa no mês selecionado." aria-description="Mostra as ações disponíveis para este programa no mês selecionado.">Ações do programa</summary>
-                                            <div class="program-context-options-list">
-                                                <button type="button" class="program-context-delete-button radar-action-help"
-                                                    data-tooltip="Abre a conferência dos lançamentos deste mês e programa. A exclusão depende da sua confirmação." aria-description="Abre a conferência dos lançamentos deste mês e programa. A exclusão depende da sua confirmação."
+                                        <button type="button" class="program-context-delete-button radar-action-help"
+                                                    data-tooltip="Confira as avaliações, a bonificação, as despesas e as pendências deste programa no mês selecionado antes de confirmar a exclusão." aria-description="Confira as avaliações, a bonificação, as despesas e as pendências deste programa no mês selecionado antes de confirmar a exclusão."
                                                     data-school-id="${escapeHtml(esc.id)}"
                                                     data-comp-key="${escapeHtml(compProgKey)}"
                                                     data-school-name="${escapeHtml(getSchoolDisplayName(esc, esc.id))}"
                                                     data-program-name="${escapeHtml(progName)}"
                                                     data-competence-label="${escapeHtml(c.label)}"
                                                     onclick="openProgramContextDeletion(this)">
-                                                    Excluir lançamentos deste programa neste mês
+                                                    Excluir lançamentos do mês
                                                 </button>
-                                            </div>
-                                        </details>
                                     ` : ''}
                                 </div>
                                 ${programStatusSummary}
@@ -10708,20 +10703,20 @@ function renderProntuarioVerificacoes(esc) {
                                         <span class="invoice-document-inline-actions has-readable-actions">
                                             ${canEditInvoiceData ? `
                                                 <button type="button" class="radar-labelled-action radar-action-help" data-tooltip="Edita os dados da despesa, como tipo, descrição e valor, não o resultado da análise técnica." aria-description="Edita os dados da despesa, como tipo, descrição e valor, não o resultado da análise técnica." onclick="abrirEditarNota('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')" aria-label="Editar ${escapeHtml(getInvoiceDocumentTitle(note))}">
-                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg><span>Editar</span>
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg><span>Editar despesa</span>
                                                 </button>
                                             ` : ''}
                                             ${canDeleteInvoice ? `
                                                 <button type="button" class="is-danger radar-labelled-action radar-action-help" data-tooltip="Abre a confirmação de exclusão desta despesa e dos vínculos afetados." aria-description="Abre a confirmação de exclusão desta despesa e dos vínculos afetados." onclick="removerNotaRegistrada('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')" aria-label="Excluir ${escapeHtml(getInvoiceDocumentTitle(note))}">
-                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4.5h6V7M7 7l1 13h8l1-13M10 10v7M14 10v7"/></svg><span>Excluir</span>
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4.5h6V7M7 7l1 13h8l1-13M10 10v7M14 10v7"/></svg><span>Excluir despesa</span>
                                                 </button>
                                             ` : ''}
                                             ${canClearInvoiceHistory ? `
                                                 <button type="button" class="invoice-history-clear-button radar-labelled-action radar-action-help"
-                                                    data-tooltip="Limpa a análise e o histórico da nota. Preserva a despesa cadastrada; exige confirmação." aria-description="Limpa a análise e o histórico da nota. Preserva a despesa cadastrada; exige confirmação."
-                                                    aria-label="Limpar histórico de ${escapeHtml(getInvoiceDocumentTitle(note))}"
+                                                    data-tooltip="Exclui a análise técnica desta nota, suas pendências, envios e contatos vinculados. Preserva a nota fiscal, a bonificação e os bens. Exige confirmação." aria-description="Exclui a análise técnica desta nota, suas pendências, envios e contatos vinculados. Preserva a nota fiscal, a bonificação e os bens. Exige confirmação."
+                                                    aria-label="Excluir análise e pendências de ${escapeHtml(getInvoiceDocumentTitle(note))}"
                                                     onclick="openDocumentItemHistory('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', 'notaFiscal', this, '${escapeHtml(note.id)}')">
-                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="12" r="7"/><path d="M11 8v4l2.5 2M18 18l4 4M22 18l-4 4"/></svg><span>Limpar histórico</span>
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="12" r="7"/><path d="M11 8v4l2.5 2M18 18l4 4M22 18l-4 4"/></svg><span>Excluir análise e pendências</span>
                                                 </button>
                                             ` : ''}
                                         </span>
@@ -10760,9 +10755,9 @@ function renderProntuarioVerificacoes(esc) {
                             <tr
                                 data-program-id="${escapeHtml(progId)}"
                                 data-document-key="notaFiscal"
-                                class="invoice-document-host-row"
+                                role="row" class="invoice-document-host-row"
                             >
-                                <td colspan="${visibleColumnCount}">
+                                <td role="cell" colspan="${visibleColumnCount}">
                                     <section class="invoice-document-panel" data-invoice-document-panel>
                                         <div class="invoice-document-panel-header">
                                             <div class="invoice-document-panel-title">
@@ -10966,9 +10961,9 @@ function renderProntuarioVerificacoes(esc) {
                                         ${canUseVerificationActions ? `<div class="invoice-document-action">${actionHTML}
                                             ${canClearItemHistory && canMutateAdvisory && (analysis !== 'Não analisado' || hasAdvisoryHistory) ? `
                                                 <button type="button" class="prontuario-history-clear-button radar-action-help"
-                                                    data-tooltip="Limpa a avaliação e o histórico da Consulta à Assessoria desta nota. A despesa permanece." aria-description="Limpa a avaliação e o histórico da Consulta à Assessoria desta nota. A despesa permanece."
-                                                    aria-label="Limpar histórico da Consulta à Assessoria da NF ${escapeHtml(note.numero || note.id)}"
-                                                    onclick="openDocumentItemHistory('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', 'consAssessoria', this, '${escapeHtml(note.id)}')">Limpar histórico</button>
+                                                    data-tooltip="Exclui a análise da consulta à Assessoria, suas pendências, envios e contatos vinculados. Preserva a nota fiscal, a análise fiscal, a bonificação e os bens. Exige confirmação." aria-description="Exclui a análise da consulta à Assessoria, suas pendências, envios e contatos vinculados. Preserva a nota fiscal, a análise fiscal, a bonificação e os bens. Exige confirmação."
+                                                    aria-label="Excluir análise e pendências da Consulta à Assessoria da NF ${escapeHtml(note.numero || note.id)}"
+                                                    onclick="openDocumentItemHistory('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', 'consAssessoria', this, '${escapeHtml(note.id)}')">Excluir análise e pendências</button>
                                             ` : ''}</div>` : ''}
                                     </div>
                                 `;
@@ -10979,9 +10974,9 @@ function renderProntuarioVerificacoes(esc) {
                             <tr
                                 data-program-id="${escapeHtml(progId)}"
                                 data-document-key="consAssessoria"
-                                class="invoice-document-host-row service-advisory-host-row"
+                                role="row" class="invoice-document-host-row service-advisory-host-row"
                             >
-                                <td colspan="${visibleColumnCount}">
+                                <td role="cell" colspan="${visibleColumnCount}">
                                     <section class="invoice-document-panel service-advisory-panel" data-service-advisory-panel>
                                         <div class="invoice-document-panel-header">
                                             <div class="invoice-document-panel-title">
@@ -11073,31 +11068,31 @@ function renderProntuarioVerificacoes(esc) {
 
                     rowsHTML += `
                         <tr
-                            class="verification-document-row ${idx % 2 === 1 ? 'is-striped' : ''}"
+                            role="row" class="verification-document-row ${idx % 2 === 1 ? 'is-striped' : ''}"
                             data-program-id="${escapeHtml(progId)}"
                             data-document-key="${escapeHtml(doc.key)}"
                             ${rowPendency ? `data-pendency-ref="${escapeHtml(encodePendencyIdReference(rowPendency.id))}" tabindex="-1"` : ''}
                         >
-                            <td class="verification-document-name-cell">
+                            <td class="verification-document-name-cell" role="cell">
                                 <div class="verification-document-cell">
                                     <span class="verification-document-icon">${verificationDocumentIconSvg(doc.key)}</span>
                                     <span class="verification-document-copy">
                                         <strong>${escapeHtml(doc.name)}</strong>
                                         ${canClearItemHistory && (analiseValue !== 'Não analisado' || hasDocumentHistory) ? `
                                             <button type="button" class="prontuario-history-clear-button radar-action-help"
-                                                data-tooltip="Limpa a análise e todo o histórico deste documento, incluindo Pendências encerradas. Exige confirmação." aria-description="Limpa a análise e todo o histórico deste documento, incluindo Pendências encerradas. Exige confirmação."
-                                                aria-label="Limpar avaliações e histórico de ${escapeHtml(doc.name)}"
-                                                onclick="openDocumentItemHistory('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', this)">Limpar histórico</button>
+                                                data-tooltip="Exclui a análise técnica e as pendências deste documento, inclusive encerradas, com seus envios e contatos vinculados. Preserva o documento e a bonificação. Exige confirmação." aria-description="Exclui a análise técnica e as pendências deste documento, inclusive encerradas, com seus envios e contatos vinculados. Preserva o documento e a bonificação. Exige confirmação."
+                                                aria-label="Excluir análise e pendências de ${escapeHtml(doc.name)}"
+                                                onclick="openDocumentItemHistory('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', this)">Excluir análise e pendências</button>
                                         ` : ''}
                                     </span>
                                 </div>
                                 ${extraContentHTML}
                             </td>
-                            <td class="verification-document-bonif-cell">${bonificationCellHTML}</td>
+                            <td class="verification-document-bonif-cell" role="cell"><span class="prontuario-compact-label" aria-hidden="true">Bonificação</span>${bonificationCellHTML}</td>
                             ${canViewTechnicalAnalysis ? `
-                                <td class="verification-document-analysis-cell">${analysisCellHTML}</td>
+                                <td class="verification-document-analysis-cell" role="cell"><span class="prontuario-compact-label" aria-hidden="true">Análise técnica</span>${analysisCellHTML}</td>
                             ` : ''}
-                            ${canUseVerificationActions ? `<td class="verification-document-action-cell" data-verification-cell="action">${pendStatusHTML}</td>` : ''}
+                            ${canUseVerificationActions ? `<td role="cell" class="verification-document-action-cell" data-verification-cell="action">${pendStatusHTML}</td>` : ''}
                         </tr>
                     `;
                 });
