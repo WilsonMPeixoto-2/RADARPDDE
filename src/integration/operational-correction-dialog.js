@@ -663,7 +663,7 @@
             }
             if (event.key === 'Tab') {
                 const controls = Array.from(dialog.querySelectorAll(
-                    'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled)'
+                    'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), .context-deletion-scroll[tabindex="0"]'
                 ));
                 const first = controls[0], last = controls.at(-1);
                 if (event.shiftKey && doc.activeElement === first) {

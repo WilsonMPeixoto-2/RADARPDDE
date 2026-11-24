@@ -1,5 +1,11 @@
 # Checkpoint único de continuidade operacional — RADAR T0–T6
 
+## Execução complementar em 24/11/2026 — PR #546
+
+- A baseline `f1fecf29` comprovou as duas jornadas autenticadas de exclusão e cancelamento; o job Preview condicional não executou. A captura da prévia real no artefato [Supabase readiness](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45267244475) mostrou os comandos de decisão fora da área inicial. O código candidato foi corrigido em [`584bd788`](https://github.com/WilsonMPeixoto-2/RADARPDDE/commit/584bd788d5940203d25a5fc1907ebe5a161cd3ab), com região de rolagem própria e comandos fora dela.
+- As contraprovas de perfil somente leitura e alteração entre sessões foram versionadas em `14d8d3ca` e `f65b4b2f`. O runbook de recuperação foi aprofundado em `cf7ec1f7`. O lote acrescenta navegação por teclado e capturas autenticadas em desktop/claro, desktop/escuro e celular/escuro, bem como a reconciliação do modelo, catálogo e matriz funcional.
+- **Não considerar os testes do novo HEAD aprovados antes da execução; não declarar aceite visual humano por automação.** A candidata segue em Draft, flag de Production desativada, migration 66 não aplicada institucionalmente; `clear_item_history` continua fora do PR.
+
 ## Atualização verificada em 22–23/11/2026 — T4 inicial, D021, Ondas 1–3, hotfix #555 e candidato T4 `delete_context` (#546)
 
 - **PR #538 (T4 inicial):** integrado na `main` em `ca73311377f95f32e994f98dfa5bdb4b0f56b7cc` após 21/21 workflows; migration 65 `20261121000200_correct_fiscal_bonification` aplicada no Supabase institucional e flag T4 ativada em Production (`operationalCorrectionRelease=true`, `bonificationCorrectionRelease=true`).

@@ -155,9 +155,35 @@ test('T4 real: prévia e cancelamento não alteram escola, NFs, Pendências ou p
     await expect(dialog).toContainText('NF T4-CTX-002');
     await expect(dialog).toContainText('Pendência: Nota fiscal');
     await expect(dialog.getByRole('button', { name: 'Excluir estes lançamentos' })).toBeEnabled();
-    await testInfo.attach('t4-context-preview-desktop', {
-        body: await dialog.screenshot(), contentType: 'image/png'
-    });
+    const scroll = dialog.getByRole('region', { name: 'Detalhes da exclusão' });
+    const viewport = page.viewportSize();
+    const initialDark = await page.evaluate(() => document.body.classList.contains('dark-theme'));
+    try {
+        for (const variant of [
+            { name: 'desktop-claro', width: 1440, height: 900, dark: false },
+            { name: 'desktop-escuro', width: 1280, height: 720, dark: true },
+            { name: 'celular-escuro', width: 390, height: 844, dark: true }
+        ]) {
+            await page.setViewportSize({ width: variant.width, height: variant.height });
+            await page.evaluate(dark => document.body.classList.toggle('dark-theme', dark), variant.dark);
+            await scroll.evaluate(el => { el.scrollTop = 0; });
+            for (const name of ['Cancelar', 'Conferir novamente', 'Excluir estes lançamentos']) {
+                await expect(dialog.getByRole('button', { name, exact: true })).toBeInViewport({ ratio: 1 });
+            }
+            await testInfo.attach('t4-context-preview-' + variant.name, {
+                body: await page.screenshot(), contentType: 'image/png'
+            });
+            await scroll.evaluate(el => { el.scrollTop = el.scrollHeight; });
+            await expect(scroll.getByText(/O que será mantido:/)).toBeInViewport();
+            await expect(dialog.getByRole('button', { name: 'Excluir estes lançamentos' })).toBeInViewport({ ratio: 1 });
+            await testInfo.attach('t4-context-preview-final-' + variant.name, {
+                body: await page.screenshot(), contentType: 'image/png'
+            });
+        }
+    } finally {
+        if (viewport) await page.setViewportSize(viewport);
+        await page.evaluate(dark => document.body.classList.toggle('dark-theme', dark), initialDark);
+    }
     await dialog.getByRole('button', { name: 'Cancelar' }).click();
     await expect(dialog).toBeHidden();
     expect(await snapshot(page)).toEqual(before);

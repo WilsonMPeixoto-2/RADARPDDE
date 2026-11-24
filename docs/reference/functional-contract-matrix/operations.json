@@ -680,6 +680,62 @@
     "next": "controlled-write"
   },
   {
+    "id": "CTX-01",
+    "surface": "school-record",
+    "action": "Excluir lançamentos do mês/programa incorreto por prévia e confirmação do contexto exato (candidato T4; liberação explícita)",
+    "mode": "write",
+    "criticality": "P0",
+    "allow": [
+      "controller",
+      "federal_assistant",
+      "technical_admin"
+    ],
+    "deny": [
+      "anonymous",
+      "sme_management",
+      "inventory"
+    ],
+    "anchors": [
+      [
+        "app.js",
+        "openProgramContextDeletion"
+      ],
+      [
+        "src/integration/operational-correction-dialog.js",
+        "canDeleteContext"
+      ],
+      [
+        "src/application/operational-correction-client.js",
+        "delete_context"
+      ],
+      [
+        "supabase/migrations/20261123000100_t4_delete_program_context.sql",
+        "apply_operational_change"
+      ]
+    ],
+    "service": "RadarOperationalCorrectionDialog + RadarOperationalCorrectionClient",
+    "repository": "preview_operational_change + apply_operational_change",
+    "resources": [
+      "verifications",
+      "registered_invoices",
+      "pendencies",
+      "pendency_attempts",
+      "pendency_contacts",
+      "assets",
+      "quality_provisional_movements",
+      "administrative_logs"
+    ],
+    "reload": true,
+    "concurrency": "row_version + digest + lock + idempotência",
+    "compensation": "atomic_rpc; recuperação pós-confirmação exige procedimento próprio",
+    "evidence": "contextDeletion",
+    "coverage": "partial",
+    "gaps": [
+      "PR #546: provas autenticadas da baseline anterior registradas; exigir CI no SHA final, prova dos consumidores/exportações, aprovação visual humana e autorização específica de release. A migration 66 não foi aplicada institucionalmente."
+    ],
+    "next": "controlled-write"
+  },
+  {
     "id": "ASSET-01",
     "surface": "inventory",
     "action": "Cadastrar bem permanente manualmente",

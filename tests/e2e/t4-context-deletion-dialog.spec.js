@@ -301,6 +301,11 @@ test('T4: decisão e feedback permanecem visíveis durante rolagem da prévia em
             }
         };
         await assertActions();
+        await cancel.focus();
+        await page.keyboard.press('Shift+Tab');
+        await expect(scroll).toBeFocused();
+        await page.keyboard.press('Tab');
+        await expect(cancel).toBeFocused();
         await scroll.evaluate(el => { el.scrollTop = el.scrollHeight; });
         await expect(scroll.getByText(/O que será mantido:/)).toBeInViewport();
         await assertActions();
