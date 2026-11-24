@@ -683,7 +683,7 @@ body.dark-theme .is-fiscal-bonus .radar-operational-correction-header .fiscal-bo
 }
 
 /* Exclusão de contexto: dados críticos claros, sem transformar a prévia em alerta genérico. */
-:is(.is-context-deletion, .is-item-history) .radar-operational-correction-header .context-deletion-explanation {
+.is-destructive .radar-operational-correction-header .context-deletion-explanation {
     margin-top: 0.6rem;
     padding: 0.75rem 0.9rem;
     border-inline-start: 3px solid var(--danger, #b91c1c);
@@ -693,7 +693,7 @@ body.dark-theme .is-fiscal-bonus .radar-operational-correction-header .fiscal-bo
     font-size: 0.85rem;
     line-height: 1.55;
 }
-:is(.is-context-deletion, .is-item-history) .context-deletion-preserved {
+.is-destructive .context-deletion-preserved {
     padding: 0.65rem 0.8rem;
     border: 1px solid var(--border-color);
     border-radius: 0.55rem;
@@ -702,7 +702,7 @@ body.dark-theme .is-fiscal-bonus .radar-operational-correction-header .fiscal-bo
     line-height: 1.5;
 }
 
-:is(.is-context-deletion, .is-item-history) .context-deletion-impact-list {
+.is-structured-correction .context-deletion-impact-list {
     margin: 0;
     padding-inline-start: 1.25rem;
     display: grid;
@@ -710,66 +710,66 @@ body.dark-theme .is-fiscal-bonus .radar-operational-correction-header .fiscal-bo
     color: var(--text-main);
     font-variant-numeric: tabular-nums;
 }
-:is(.is-context-deletion, .is-item-history) .context-deletion-impact-list li {
+.is-structured-correction .context-deletion-impact-list li {
     padding-inline-start: 0.15rem;
     line-height: 1.5;
 }
-:is(.is-context-deletion, .is-item-history) .context-deletion-impact-list li::marker {
+.is-structured-correction .context-deletion-impact-list li::marker {
     color: var(--danger, #b91c1c);
 }
 
 /* A janela destrutiva deve manter a confirmação visível sem exigir
    rolagem da página ou do modal. Somente o conteúdo da prévia rola. */
-.radar-operational-correction-dialog:is(.is-context-deletion, .is-item-history) {
+.radar-operational-correction-dialog.is-destructive {
     grid-template-rows: auto minmax(0, 1fr) auto auto;
     overflow: hidden;
 }
-:is(.is-context-deletion, .is-item-history) .radar-operational-correction-body {
+.is-destructive .radar-operational-correction-body {
     min-block-size: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
 }
-:is(.is-context-deletion, .is-item-history) .radar-operational-correction-effects {
+.is-destructive .radar-operational-correction-effects {
     max-block-size: none;
     overflow: visible;
     overflow-wrap: anywhere;
 }
-:is(.is-context-deletion, .is-item-history) .context-deletion-details {
+.is-destructive .context-deletion-details {
     padding-block-start: 0.65rem;
     border-block-start: 1px solid var(--border-color, #e5e7eb);
 }
-:is(.is-context-deletion, .is-item-history) .context-deletion-details h4 {
+.is-destructive .context-deletion-details h4 {
     margin: 0 0 0.35rem;
     color: var(--text-main);
     font-size: 0.82rem;
     font-weight: 700;
 }
-:is(.is-context-deletion, .is-item-history) .context-deletion-records {
+.is-destructive .context-deletion-records {
     margin: 0;
     padding-inline-start: 1.2rem;
     display: grid;
     gap: 0.35rem;
     list-style: disc;
 }
-:is(.is-context-deletion, .is-item-history) .context-deletion-records li {
+.is-destructive .context-deletion-records li {
     line-height: 1.48;
     font-variant-numeric: tabular-nums;
 }
 
-:is(.is-context-deletion, .is-item-history) .radar-operational-correction-effects {
+.is-destructive .radar-operational-correction-effects {
     border-inline-start-color: var(--danger, #b91c1c);
 }
-body.dark-theme :is(.is-context-deletion, .is-item-history) .context-deletion-impact-list li::marker {
+body.dark-theme .is-structured-correction .context-deletion-impact-list li::marker {
     color: #fca5a5;
 }
-body.dark-theme :is(.is-context-deletion, .is-item-history) .radar-operational-correction-effects {
+body.dark-theme .is-destructive .radar-operational-correction-effects {
     border-inline-start-color: #fca5a5;
 }
 
-:is(.is-context-deletion, .is-item-history) .radar-operational-correction-actions .btn-danger:not(:disabled) {
+.is-destructive .radar-operational-correction-actions .btn-danger:not(:disabled) {
     font-weight: 700;
 }
-body.dark-theme :is(.is-context-deletion, .is-item-history) .radar-operational-correction-header .context-deletion-explanation {
+body.dark-theme .is-destructive .radar-operational-correction-header .context-deletion-explanation {
     background: color-mix(in srgb, #fca5a5 13%, transparent);
     color: var(--text-main);
 }
@@ -787,11 +787,11 @@ body.dark-theme :is(.is-context-deletion, .is-item-history) .radar-operational-c
     color: var(--text-main);
     font-weight: 720;
 }
-:is(.is-context-deletion, .is-item-history) .radar-operational-correction-actions {
+.is-destructive .radar-operational-correction-actions {
     padding-bottom: max(4px, env(safe-area-inset-bottom));
     background: var(--bg-card, #fff);
 }
-body.dark-theme :is(.is-context-deletion, .is-item-history) .radar-operational-correction-actions {
+body.dark-theme .is-destructive .radar-operational-correction-actions {
     background: #171226;
 }
 .radar-operational-correction-body.is-split {
@@ -980,7 +980,7 @@ body.dark-theme .is-fiscal-bonus .fiscal-bonus-transition strong {
 
 /* T4 — design da informação. O significado não depende de cor ou ícone.
    A confirmação conserva uma única região rolável e rodapé sempre acessível. */
-:is(.is-context-deletion, .is-item-history) .radar-operational-correction-header {
+.is-destructive .radar-operational-correction-header {
     gap: 10px;
     padding-bottom: 10px;
 }
@@ -1050,22 +1050,22 @@ body.dark-theme .is-fiscal-bonus .fiscal-bonus-transition strong {
     font-size: 0.77rem;
     line-height: 1.35;
 }
-.radar-operational-correction-dialog:is(.is-context-deletion, .is-item-history) {
+.radar-operational-correction-dialog.is-destructive {
     gap: 10px;
 }
-:is(.is-context-deletion, .is-item-history) .radar-operational-correction-effects {
+.is-destructive .radar-operational-correction-effects {
     gap: 12px;
     padding: 0 1px 4px;
     border: 0;
     background: transparent;
 }
-:is(.is-context-deletion, .is-item-history) .context-deletion-impact-list.correction-impact-tiles {
+.is-structured-correction .context-deletion-impact-list.correction-impact-tiles {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 7px;
     padding: 0;
     list-style: none;
 }
-:is(.is-context-deletion, .is-item-history) .correction-impact-tiles li {
+.is-structured-correction .correction-impact-tiles li {
     display: flex;
     align-items: center;
     gap: 9px;
@@ -1109,7 +1109,7 @@ body.dark-theme .is-fiscal-bonus .fiscal-bonus-transition strong {
     color: #15803d;
     background: color-mix(in srgb, #15803d 13%, transparent);
 }
-:is(.is-context-deletion, .is-item-history) .correction-preservation-panel .context-deletion-preserved {
+.is-structured-correction .correction-preservation-panel .context-deletion-preserved {
     margin: 4px 0 0 32px;
     padding: 0;
     border: 0;
@@ -1124,22 +1124,22 @@ body.dark-theme .is-fiscal-bonus .fiscal-bonus-transition strong {
     font-size: 0.78rem;
     line-height: 1.4;
 }
-:is(.is-context-deletion, .is-item-history) .context-deletion-details {
+.is-destructive .context-deletion-details {
     padding: 10px 12px;
     border: 1px solid var(--border-color);
     border-radius: 9px;
     background: var(--bg-card);
 }
-:is(.is-context-deletion, .is-item-history) .context-deletion-records {
+.is-destructive .context-deletion-records {
     gap: 0;
     padding: 0;
     list-style: none;
 }
-:is(.is-context-deletion, .is-item-history) .context-deletion-records li {
+.is-destructive .context-deletion-records li {
     padding-block: 6px;
     font-size: 0.79rem;
 }
-:is(.is-context-deletion, .is-item-history) .context-deletion-records li + li {
+.is-destructive .context-deletion-records li + li {
     border-top: 1px solid var(--border-color);
 }
 .correction-effect-transition {
@@ -1176,7 +1176,7 @@ body.dark-theme .correction-preservation-icon {
     .correction-scope-field:nth-child(4) {
         padding-top: 5px;
     }
-    :is(.is-context-deletion, .is-item-history) .context-deletion-impact-list.correction-impact-tiles {
+    .is-structured-correction .context-deletion-impact-list.correction-impact-tiles {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
@@ -1184,7 +1184,7 @@ body.dark-theme .correction-preservation-icon {
 
 /* A região de conferência contém contexto, efeitos e detalhes, e pode ser
    percorrida pelo teclado. Não ocupar a área fixa com todo o contexto. */
-:is(.is-context-deletion, .is-item-history) .radar-operational-correction-body.is-single {
+.is-destructive .radar-operational-correction-body.is-single {
     display: grid;
     align-content: start;
     gap: 12px;
@@ -1193,7 +1193,7 @@ body.dark-theme .correction-preservation-icon {
     scrollbar-gutter: stable;
     padding-inline-end: 4px;
 }
-:is(.is-context-deletion, .is-item-history) .radar-operational-correction-body:focus-visible {
+.is-destructive .radar-operational-correction-body:focus-visible {
     outline: 2px solid var(--primary, #6335b5);
     outline-offset: -2px;
     border-radius: 6px;
@@ -1205,10 +1205,80 @@ body.dark-theme .correction-preservation-icon {
     opacity: 0;
 }
 @media (max-width: 700px) {
-    .radar-operational-correction-dialog:is(.is-context-deletion, .is-item-history) {
+    .radar-operational-correction-dialog.is-destructive {
         max-height: min(96dvh, calc(100dvh - 12px));
     }
-    :is(.is-context-deletion, .is-item-history) .radar-operational-correction-body.is-single {
+    .is-destructive .radar-operational-correction-body.is-single {
         gap: 10px;
+    }
+}
+
+
+/* Uma única família de confirmação: análise, bonificação e exclusões individuais.
+   Contexto e efeitos compartilham o mesmo vocabulário visual. */
+.radar-operational-correction-dialog.is-structured-correction {
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    overflow: hidden;
+    gap: 12px;
+}
+.is-structured-correction .radar-operational-correction-body {
+    min-block-size: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    align-content: start;
+}
+.is-structured-correction .correction-scope-fields {
+    grid-column: 1 / -1;
+}
+.is-structured-correction:not(.is-destructive) .radar-operational-correction-body.is-split {
+    gap: 16px;
+    padding-inline-end: 3px;
+}
+.is-structured-correction:not(.is-destructive) .radar-operational-correction-effects {
+    border: 0;
+    padding: 0 1px;
+    background: transparent;
+    gap: 12px;
+}
+.is-structured-correction .correction-removal-panel {
+    display: grid;
+    gap: 8px;
+}
+.is-structured-correction:not(.is-destructive) .context-deletion-impact-list.correction-impact-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.is-structured-correction .correction-plan-notice {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-inline-start: 3px solid var(--warning, #b45309);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--warning, #b45309) 5%, var(--bg-card));
+    line-height: 1.5;
+}
+.is-structured-correction .correction-plan-notice[data-level="blocker"] {
+    border-inline-start-color: var(--danger, #b91c1c);
+}
+.is-structured-correction .radar-operational-correction-feedback[data-status="info"] {
+    color: var(--text-muted);
+    font-size: 0.77rem;
+}
+.is-structured-correction .radar-operational-correction-feedback:empty {
+    display: none;
+}
+.is-structured-correction .radar-operational-correction-actions {
+    padding-top: 10px;
+}
+.radar-operational-correction-layer:not([data-pointer-help="true"]):not([data-keyboard-help="true"]) .radar-action-help[data-tooltip]::after {
+    visibility: hidden;
+    opacity: 0;
+}
+@media (max-width: 700px) {
+    .radar-operational-correction-dialog.is-structured-correction {
+        max-height: min(96dvh, calc(100dvh - 12px));
+        gap: 10px;
+    }
+    .is-structured-correction:not(.is-destructive) .radar-operational-correction-body.is-split {
+        gap: 12px;
     }
 }

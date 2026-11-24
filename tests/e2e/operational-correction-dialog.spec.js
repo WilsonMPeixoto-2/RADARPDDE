@@ -66,11 +66,14 @@ test('cancelar prévia não grava e observação é opcional', async ({ page }) 
         .toEqual(['preview_operational_change']);
 });
 
-test('salvar sem justificativa confirma RPC e atualiza a interface', async ({ page }) => {
+test('salvar sem justificativa confirma RPC e atualiza a interface', async ({ page }, testInfo) => {
     await page.goto('/');
     const dialog = await controlledDialog(page);
     await dialog.getByLabel('Novo resultado').selectOption('Correto');
     await expect(dialog.getByText('Incorreto → Correto')).toBeVisible();
+    await expect(dialog.locator('.correction-scope-fields')).toBeVisible();
+    await expect(dialog.locator('.correction-effect-transition strong')).toHaveText('Incorreto → Correto');
+    await testInfo.attach('t4-correcao-analise-design', { body: await dialog.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
     await dialog.getByRole('button', { name: 'Confirmar correção' }).click();
     await expect(dialog).toBeHidden();
     const state = await page.evaluate(() => ({
@@ -314,7 +317,7 @@ test('botão Limpar análise prepara a prévia do que vai mudar e pede confirma�
 });
 
 
-test('diálogo de exclusão de NF mostra efeitos reais antes de confirmar', async ({ page }) => {
+test('diálogo de exclusão de NF mostra efeitos reais antes de confirmar', async ({ page }, testInfo) => {
     await page.goto('/');
     await page.evaluate(async () => {
         await window.RadarProductExtensionsReady;
@@ -357,6 +360,12 @@ test('diálogo de exclusão de NF mostra efeitos reais antes de confirmar', asyn
     await expect(dialog.getByText(/1 nota fiscal/)).toBeVisible();
     await expect(dialog.getByText(/1 Pendência/)).toBeVisible();
     await expect(dialog.getByText(/1 bem patrimonial/)).toBeVisible();
+    await expect(dialog.locator('.correction-impact-count')).toHaveCount(4);
+    await expect(dialog.locator('.correction-scope-field dt')).toHaveText(['Escola', 'Mês de referência', 'Programa', 'Documento']);
+    await expect(dialog.locator('.correction-preservation-panel')).toContainText('bonificação já consolidada será preservado');
+    await expect(dialog.locator('.correction-effect-transition strong')).toHaveText('Incorreto → Não analisado');
+    await expect(dialog.getByRole('button', { name: 'Confirmar exclusão' })).toHaveClass(/btn-danger/);
+    await testInfo.attach('t4-exclusao-nota-fiscal-design', { body: await dialog.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
     await expect(dialog.getByLabel('Novo resultado')).toHaveCount(0);
     expect(await page.evaluate(() => window.__deleteRequests.filter(x => x.name === 'apply_operational_change'))).toHaveLength(0);
     await dialog.getByRole('button', { name: 'Confirmar exclusão' }).click();
@@ -366,7 +375,7 @@ test('diálogo de exclusão de NF mostra efeitos reais antes de confirmar', asyn
     expect(calls.find(x => x.name === 'apply_operational_change').args.p_request.target.id).toBe('NF-100');
 });
 
-test('diálogo de exclusão de Pendência preserva decisão do usuário antes da escrita', async ({ page }) => {
+test('diálogo de exclusão de Pendência preserva decisão do usuário antes da escrita', async ({ page }, testInfo) => {
     await page.goto('/');
     await page.evaluate(async () => {
         await window.RadarProductExtensionsReady;
@@ -400,6 +409,15 @@ test('diálogo de exclusão de Pendência preserva decisão do usuário antes da
     });
     const dialog = page.getByRole('dialog', { name: 'Excluir pendência' });
     await expect(dialog.getByText(/1 Pendência/)).toBeVisible();
+    await expect(dialog.locator('.correction-impact-count')).toHaveText(['1', '1']);
+    await expect(dialog.locator('.correction-scope-field dt')).toHaveText(['Escola', 'Mês de referência', 'Programa', 'Documento']);
+    await expect(dialog.locator('.correction-preservation-panel')).toContainText('Nenhuma outra informação será alterada.');
+    await expect(dialog.getByRole('button', { name: 'Confirmar exclusão' })).toHaveClass(/btn-danger/);
+    await testInfo.attach('t4-exclusao-pendencia-design', { body: await dialog.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.evaluate(() => document.body.classList.add('dark-theme'));
+    await expect(dialog.getByRole('button', { name: 'Confirmar exclusão' })).toBeInViewport();
+    await testInfo.attach('t4-exclusao-pendencia-mobile-dark', { body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
     await dialog.getByRole('button', { name: 'Cancelar' }).click();
     await expect(dialog).toBeHidden();
     expect(await page.evaluate(() => window.__pendDeleteCalls.filter(x => x.name === 'apply_operational_change'))).toHaveLength(0);

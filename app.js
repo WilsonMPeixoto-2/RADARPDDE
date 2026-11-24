@@ -11862,6 +11862,16 @@ function openDocumentItemHistory(escolaId, compKey, documentKey, trigger = docum
     });
 }
 
+function operationalCorrectionDisplayContext(schoolId, competence, programId) {
+    const school = escolas.find(item => String(item.id) === String(schoolId));
+    const program = programas.find(item => String(item.id) === String(programId));
+    return {
+        schoolName: school ? getSchoolDisplayName(school, schoolId) : schoolId,
+        programName: program?.name || programId,
+        competenceLabel: COMPETENCIAS.find(item => item.key === competence)?.label || competence
+    };
+}
+
 function openInvoiceOperationalCorrection(invoiceId, escolaId, documentKey = 'notaFiscal',
     trigger = document.activeElement, suggestedValue = '') {
     const invoice = notasRegistradas.find(note => String(note.id) === String(invoiceId)
@@ -11896,6 +11906,7 @@ function openInvoiceOperationalCorrection(invoiceId, escolaId, documentKey = 'no
             schoolId: escolaId,
             competence: context.competenciaKey,
             programId: context.contextId,
+            ...operationalCorrectionDisplayContext(escolaId, context.competenciaKey, context.contextId),
             documentKey,
             invoiceId: invoice.id,
             documentLabel: documentKey === 'consAssessoria'
@@ -11948,6 +11959,7 @@ function excluirPendenciaOperacional(pendencyId, trigger = document.activeElemen
             schoolId,
             competence,
             programId: String(item.programaId || item.programId || item.program_id || ''),
+            ...operationalCorrectionDisplayContext(schoolId, competence, String(item.programaId || item.programId || item.program_id || '')),
             documentKey: String(item.documentoKey || item.documentKey || item.document_key || ''),
             pendencyId: item.id,
             linkedInvoiceId: String(item.registeredInvoiceId || item.registered_invoice_id || ''),
@@ -12358,6 +12370,7 @@ async function removerNotaRegistrada(notaId, escolaId) {
                 schoolId: escolaId,
                 competence: context.competenciaKey,
                 programId: context.contextId,
+                ...operationalCorrectionDisplayContext(escolaId, context.competenciaKey, context.contextId),
                 documentKey: 'notaFiscal',
                 invoiceId: nota.id,
                 documentLabel: getInvoiceDocumentTitle(nota)
