@@ -125,7 +125,8 @@ begin
             'pendency_contacts','[]'::jsonb,'assets','[]'::jsonb)),
         'counts',jsonb_build_object('invoices',0,'pendencies',0,'attempts',0,'contacts',0,'assets',0,'updates',jsonb_array_length(v_updates)),
         'versions',v_versions || jsonb_build_object('verifications',jsonb_build_object(v_verification.id,v_verification.row_version)),
-        'preserved',jsonb_build_object('analysis',v_verification.analysis),
+        'preserved',jsonb_build_object('analysis',case when v_doc='declBBAgil' and v_next_analysis is not null
+            then coalesce(v_verification.analysis,'{}'::jsonb) - 'declBBAgil' else v_verification.analysis end),
         'warnings','[]'::jsonb,'blockers',v_blockers);
     return v_plan || jsonb_build_object('planDigest', encode(sha256(convert_to(v_plan::text,'UTF8')),'hex'));
 end

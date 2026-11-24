@@ -157,6 +157,7 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 716, height: 900 }
                 await expect(row.locator('.prontuario-compact-label').first()).toBeHidden();
                 expect(await row.evaluate(el => getComputedStyle(el).display)).toBe('table-row');
             }
+            await expect(page.locator('[data-prontuario-active-context]')).toContainText('Mês em análise:');
             const rects = await row.evaluate(el => [...el.querySelectorAll('td')].filter(x => x.getClientRects().length).map(x => {
                 const r = x.getBoundingClientRect();
                 return r.left >= -1 && r.right <= document.documentElement.clientWidth + 1;

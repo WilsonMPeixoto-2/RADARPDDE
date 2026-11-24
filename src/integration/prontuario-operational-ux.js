@@ -541,7 +541,8 @@
     }
     function scheduleVisibleContext() {
         if (contextFrame) return;
-        contextFrame = root.requestAnimationFrame(updateVisibleContext);
+        if (typeof root.requestAnimationFrame === 'function') contextFrame = root.requestAnimationFrame(updateVisibleContext);
+        else updateVisibleContext();
     }
     function enhanceProntuario(referenceDate = new Date(), schoolId = '') {
         scheduleVisibleContext();

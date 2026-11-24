@@ -1994,5 +1994,5 @@ body.dark-theme #prontuario-verif-rows :is(.program-context-delete-button, .pron
 
 #prontuario-verif-rows .program-context-delete-button { display: inline-flex; align-items: center; gap: 5px; text-align: start; }
 #prontuario-verif-rows .program-consolidate-button { white-space: normal; line-height: 1.35; }
-#prontuario-verif-rows .verification-document-analysis-cell .select-analise { text-overflow: ellipsis; }
+#prontuario-verif-rows .verification-document-analysis-cell .select-analise { min-inline-size: 0; }
 #prontuario-verif-rows .contextual-bonus-edit { font-size: .72rem; }
