@@ -378,13 +378,13 @@
 
     function invoiceEditLabel(root, invoice = {}) {
         if (typeof root?.getInvoiceDocumentTitle === 'function') {
-            return `Editar lançamento: ${text(root.getInvoiceDocumentTitle(invoice))}`;
+            return `Editar despesa: ${text(root.getInvoiceDocumentTitle(invoice))}`;
         }
         const type = normalizeType(invoice.tipo || invoice.expense_type);
         const number = text(invoice.numero || invoice.invoice_number || invoice.id);
-        if (type === UNIDENTIFIED_EXPENSE_TYPE) return 'Editar lançamento: despesa a identificar';
-        if (type === 'boleto_internet') return `Editar lançamento: Boleto Internet ${number}`;
-        return `Editar lançamento: NF ${number}`;
+        if (type === UNIDENTIFIED_EXPENSE_TYPE) return 'Editar despesa: despesa a identificar';
+        if (type === 'boleto_internet') return `Editar despesa: Boleto Internet ${number}`;
+        return `Editar despesa: NF ${number}`;
     }
 
     function presentInvoiceEditButton(root, button, invoice) {
@@ -399,7 +399,7 @@
             'style',
             'width:auto;height:30px;padding:0 9px;display:inline-flex;align-items:center;gap:5px;opacity:1;white-space:nowrap;border:1px solid rgba(91,33,182,.18);background:rgba(91,33,182,.06);font-size:.72rem;font-weight:700;'
         );
-        button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg><span>Editar lançamento</span>';
+        button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg><span>Editar despesa</span>';
         return button;
     }
 
@@ -492,7 +492,7 @@
         if (!form) return;
         root.document.getElementById('invoice-edit-context')?.remove();
         const heading = root.document.querySelector('#modal-dados-nota h3');
-        if (heading) heading.textContent = 'Editar lançamento';
+        if (heading) heading.textContent = 'Editar despesa';
         const context = invoiceContext(invoice);
         const school = (state.schools || []).find(item => text(item.id) === context.schoolId);
         const program = (state.programs || []).find(item => text(item.id) === text(invoice.programaId || invoice.program_id));

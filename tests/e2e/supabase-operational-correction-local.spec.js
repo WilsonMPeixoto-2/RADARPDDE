@@ -260,8 +260,8 @@ test('T2 documental (correct_analysis e clear_analysis): RPC real, F5 e segunda 
     await expect(extSelect).toHaveValue('Correto');
     expect(rpcCalls).toEqual([]);
 
-    // Retificação pelo botão Editar análise (sem justificativa obrigatória):
-    await extRow.getByRole('button', { name: 'Editar análise', exact: true }).click();
+    // Retificação pelo botão Corrigir análise técnica (sem justificativa obrigatória):
+    await extRow.getByRole('button', { name: 'Corrigir análise técnica', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Corrigir análise técnica' });
     await expect(dialog).toBeVisible();
     await expect(page.locator('#app-layout')).toHaveJSProperty('inert', true);
@@ -294,11 +294,11 @@ test('T2 documental (correct_analysis e clear_analysis): RPC real, F5 e segunda 
         );
         await expect(assistantExtRow.locator('select.select-analise')).toHaveValue('Correto (Atrasado)');
 
-        // Limpar análise (clear_analysis) pela sessão do Assistente:
-        await assistantExtRow.getByRole('button', { name: 'Editar análise', exact: true }).click();
+        // Redefinir como não analisado (clear_analysis) pela sessão do Assistente:
+        await assistantExtRow.getByRole('button', { name: 'Corrigir análise técnica', exact: true }).click();
         const clearDialog = assistantPage.getByRole('dialog', { name: 'Corrigir análise técnica' });
         await expect(clearDialog).toBeVisible();
-        await clearDialog.getByRole('button', { name: 'Limpar análise', exact: true }).click();
+        await clearDialog.getByRole('button', { name: 'Redefinir como não analisado', exact: true }).click();
         await expect(clearDialog.getByText('Correto (Atrasado) → Não analisado')).toBeVisible();
         await clearDialog.getByRole('button', { name: 'Confirmar correção', exact: true }).click();
         await expect(clearDialog).toBeHidden();
@@ -363,7 +363,7 @@ test('T2 Consulta à Assessoria + A-01 real + Corrigir análise pela gaveta: RPC
     await expect(advisoryRow).toBeVisible();
     const advisorySelect = advisoryRow.getByLabel(`Análise da consulta à Assessoria para a NF ${serviceNumber}`);
     const advisoryCheckbox = advisoryRow.getByLabel(`Consulta enviada à Assessoria para a NF ${serviceNumber}`);
-    await expect(advisoryRow.getByRole('button', { name: 'Editar análise', exact: true })).toHaveCount(0);
+    await expect(advisoryRow.getByRole('button', { name: 'Corrigir análise técnica', exact: true })).toHaveCount(0);
 
     // Marcar envio à Assessoria antes da análise para que bonification.consAssessoria = 'Sim'
     // (evitando normalização automática para Correto (Atrasado) sob bonus_result = 'apta'):
@@ -371,11 +371,11 @@ test('T2 Consulta à Assessoria + A-01 real + Corrigir análise pela gaveta: RPC
     await settleWrites(page);
     await expect(advisoryCheckbox).toBeChecked();
 
-    // 1ª análise em 1 clique ('Não analisado' -> 'Correto') grava direto e reconcilia Editar análise:
+    // 1ª análise em 1 clique ('Não analisado' -> 'Correto') grava direto e reconcilia Corrigir análise técnica:
     await advisorySelect.selectOption('Correto');
     await settleWrites(page);
     await expect(advisorySelect).toHaveValue('Correto');
-    await expect(advisoryRow.getByRole('button', { name: 'Editar análise', exact: true })).toBeVisible();
+    await expect(advisoryRow.getByRole('button', { name: 'Corrigir análise técnica', exact: true })).toBeVisible();
     expect(rpcUrls).toEqual([]);
 
     // Retificação pelo <select> ('Correto' -> 'Correto (Atrasado)') abre diálogo T2 real:
@@ -408,7 +408,7 @@ test('T2 Consulta à Assessoria + A-01 real + Corrigir análise pela gaveta: RPC
     await closePreviewDrawerIfOpen(page);
 
     await expect(advisoryCheckbox).toBeDisabled();
-    await expect(advisoryRow.getByRole('button', { name: 'Editar análise', exact: true })).toHaveCount(0);
+    await expect(advisoryRow.getByRole('button', { name: 'Corrigir análise técnica', exact: true })).toHaveCount(0);
     const viewPendencyBtn = advisoryRow.getByRole('button', { name: 'Visualizar pendência', exact: true });
     await expect(viewPendencyBtn).toBeVisible();
 
@@ -431,9 +431,9 @@ test('T2 Consulta à Assessoria + A-01 real + Corrigir análise pela gaveta: RPC
     await fixDialog.getByRole('button', { name: 'Confirmar correção', exact: true }).click();
     await expect(fixDialog).toBeHidden();
 
-    // Reconciliação pós-apply restaura controles e Editar análise:
+    // Reconciliação pós-apply restaura controles e Corrigir análise técnica:
     await expect(advisoryRow.getByRole('button', { name: 'Visualizar pendência', exact: true })).toHaveCount(0);
-    await expect(advisoryRow.getByRole('button', { name: 'Editar análise', exact: true })).toBeVisible();
+    await expect(advisoryRow.getByRole('button', { name: 'Corrigir análise técnica', exact: true })).toBeVisible();
     await expect(advisoryRow.getByLabel(`Análise da consulta à Assessoria para a NF ${serviceNumber}`)).toHaveValue('Correto');
 
     // F5 + conferência direta no PostgreSQL:
@@ -607,7 +607,7 @@ test('RLS e perfil somente leitura (SME): sem controles de correção/exclusão 
     await loginAs(page, 'sme_management');
     await openSchool(page, 'sme_management');
 
-    await expect(page.getByRole('button', { name: 'Editar análise', exact: true })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Corrigir análise técnica', exact: true })).toHaveCount(0);
     await expect(page.locator('button[aria-label^="Excluir NF:"]')).toHaveCount(0);
     await expect(page.locator('.service-advisory-row .invoice-pendency-view-button')).toHaveCount(0);
 
@@ -758,7 +758,7 @@ test('T1/T2 preserva a NF retificada e seu histórico ao excluir somente a Pend�
     const [original] = await readPendenciesForInvoice(page, invoice.id);
     expect(original).toMatchObject({ status: 'Aberta', payload: { documentSnapshot: { numero: number } } });
 
-    await controllerRow.getByRole('button', { name: /Editar lançamento/ }).click();
+    await controllerRow.getByRole('button', { name: /Editar despesa/ }).click();
     const form = page.locator('#modal-dados-nota');
     await form.locator('#nota-numero').fill(revised);
     await form.locator('#nota-desc').fill('Material de sala conferido');
@@ -1126,9 +1126,9 @@ test('T2 mantém o resumo antigo na nota única e permite a primeira análise de
     await loginAs(page, 'controller');
     await openSchool(page, 'controller', 'ESC-OCC-LEGACY');
     const may = page.locator('.invoice-document-row[data-invoice-id="OCC-LEG-MAI"]');
-    await may.getByRole('button', { name: 'Editar análise', exact: true }).click();
+    await may.getByRole('button', { name: 'Corrigir análise técnica', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Corrigir análise técnica' });
-    await dialog.getByRole('button', { name: 'Limpar análise', exact: true }).click();
+    await dialog.getByRole('button', { name: 'Redefinir como não analisado', exact: true }).click();
     await expect(dialog.getByText('Correto → Não analisado')).toBeVisible();
     await expect(dialog.getByRole('button', { name: 'Confirmar correção' })).toBeEnabled();
     await testInfo.attach('previa-da-unica-nota-antiga', { body: await dialog.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
@@ -1169,8 +1169,8 @@ test('T4 · corrigir bonificação fiscal, preservar notas e consolidar o progra
     const header = page.locator('[data-program-header="BASIC"]');
     const neighbor = page.locator('[data-program-header="CONECTADA"]');
     const fiscal = page.locator('tr[data-program-id="BASIC"][data-document-key="notaFiscal"] [data-invoice-document-panel]');
-    const edit = fiscal.getByRole('button', { name: 'Corrigir consolidação' });
-    const dialog = page.getByRole('dialog', { name: 'Corrigir consolidação da bonificação' });
+    const edit = fiscal.getByRole('button', { name: 'Corrigir bonificação' });
+    const dialog = page.getByRole('dialog', { name: 'Corrigir bonificação' });
     const confirm = dialog.getByRole('button', { name: 'Confirmar correção' });
     const choice = dialog.getByLabel('Nova avaliação — Notas Fiscais');
 
@@ -1192,7 +1192,7 @@ test('T4 · corrigir bonificação fiscal, preservar notas e consolidar o progra
     await expect(header.getByText('Alterações pendentes de consolidação')).toBeVisible();
     await expect(fiscal.locator('.fiscal-bonus-control strong')).toHaveText('Não se aplica');
     await expect(fiscal.locator('.invoice-document-row')).toHaveCount(2);
-    await expect(neighbor.getByRole('button', { name: 'Consolidada' })).toBeDisabled();
+    await expect(neighbor.getByRole('button', { name: 'Bonificação consolidada' })).toBeDisabled();
     await testInfo.attach('t4-notas-preservadas', { body: await fiscal.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
     // O cabeçalho da unidade é fixo. Centralizar a linha preserva o contexto
     // do programa na captura e aproxima a janela da leitura real do operador.
@@ -1244,10 +1244,10 @@ test('T4 · corrigir bonificação fiscal, preservar notas e consolidar o progra
     await testInfo.attach('t4-confirmacao-reconsolidacao', { body: await consolidationDialog.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
     await consolidationDialog.getByRole('button', { name: 'Confirmar consolidação', exact: true }).click();
     await expect(consolidationDialog).toBeHidden();
-    await expect(header.getByRole('button', { name: 'Consolidada', exact: true })).toBeDisabled();
+    await expect(header.getByRole('button', { name: 'Bonificação consolidada', exact: true })).toBeDisabled();
     await page.reload();
     await waitForApp(page, 'controller');
-    await expect(header.getByRole('button', { name: 'Consolidada', exact: true })).toBeDisabled();
+    await expect(header.getByRole('button', { name: 'Bonificação consolidada', exact: true })).toBeDisabled();
     await expect(header).not.toContainText('Alterações pendentes de consolidação');
     await expect(fiscal.locator('.invoice-document-row')).toHaveCount(2);
 
@@ -1265,4 +1265,29 @@ test('T4 · corrigir bonificação fiscal, preservar notas e consolidar o progra
     } finally {
         await afterSession.close();
     }
+});
+
+test('revisão integrada · corrigir extrato consolidado sem apagar despesas', async ({ page }, testInfo) => {
+    test.setTimeout(90000);
+    await loginAs(page, 'controller');
+    await openSchool(page, 'controller', 'ESC-T4-BONUS');
+    const header = page.locator('[data-program-header="BASIC"]');
+    const row = page.locator('tr[data-program-id="BASIC"][data-document-key="extCC"]');
+    const notes = page.locator('tr[data-program-id="BASIC"][data-document-key="notaFiscal"] .invoice-document-row');
+    await expect(notes).toHaveCount(2);
+    await row.getByRole('button', {name:'Corrigir bonificação', exact:true}).click();
+    const dialog = page.getByRole('dialog', {name:'Corrigir bonificação', exact:true});
+    const select = dialog.locator('#radar-operational-correction-select');
+    await expect(select.locator('option[value="Não se aplica"]')).toHaveCount(0);
+    await select.selectOption('Não');
+    await expect(dialog.getByRole('button',{name:'Confirmar correção'})).toBeEnabled();
+    await testInfo.attach('revisao-bonificacao-extrato', {body:await dialog.screenshot({animations:'disabled'}),contentType:'image/png'});
+    await dialog.getByRole('button',{name:'Confirmar correção'}).click();
+    await expect(header).toContainText('Alterações pendentes de consolidação');
+    await expect(row.locator('.active-nao')).toHaveCount(1);
+    await expect(notes).toHaveCount(2);
+    await page.reload();
+    await waitForApp(page,'controller');
+    await expect(row.locator('.active-nao')).toHaveCount(1);
+    await expect(notes).toHaveCount(2);
 });

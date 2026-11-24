@@ -988,7 +988,7 @@ body.dark-theme #prontuario-verif-rows .invoice-document-row.is-striped {
     }
 }
 
-/* Evita truncamento precoce do título de Despesa a identificar ao lado do botão Editar lançamento. */
+/* Evita truncamento precoce do título de Despesa a identificar ao lado do botão Editar despesa. */
 #prontuario-verif-rows .invoice-document-title-line:has(.invoice-retification-edit-action) {
     flex-wrap: wrap;
     row-gap: 4px;
@@ -1991,3 +1991,8 @@ body.dark-theme #prontuario-verif-rows :is(.program-context-delete-button, .pron
     #tab-verificacoes .prontuario-evaluation-table[data-col-count="4"] .prontuario-col-action { width: 21%; }
     #prontuario-verif-rows [data-program-header] .program-context-header[data-col-count="4"] { grid-template-columns: 32% 22% 25% 21%; }
 }
+
+#prontuario-verif-rows .program-context-delete-button { display: inline-flex; align-items: center; gap: 5px; text-align: start; }
+#prontuario-verif-rows .program-consolidate-button { white-space: normal; line-height: 1.35; }
+#prontuario-verif-rows .verification-document-analysis-cell .select-analise { text-overflow: ellipsis; }
+#prontuario-verif-rows .contextual-bonus-edit { font-size: .72rem; }

@@ -241,7 +241,7 @@
         const values = isAnalysis
             ? [...new Set([currentValue, ...ANALYSIS_VALUES])]
             : availableBonificationValues(row, currentValue === 'Não preenchido' ? '' : currentValue);
-        const title = isAnalysis ? 'Editar análise técnica' : 'Editar bonificação';
+        const title = isAnalysis ? 'Corrigir análise técnica' : 'Corrigir bonificação';
         const selectLabel = isAnalysis ? 'Nova análise técnica' : 'Nova bonificação';
         const selectId = 'evaluation-retification-value';
         const currentDisplay = currentValue;
@@ -310,7 +310,7 @@
             </section>
         `;
         layer.querySelector('#evaluation-retification-title').textContent = title;
-        layer.querySelector('.evaluation-retification-header p').textContent = `${context.documentLabel} · ${context.programId} · ${context.competence} · Escola ${context.schoolId}`;
+        layer.querySelector('.evaluation-retification-header p').textContent = `${context.documentLabel} · ${context.programName || context.programId} · ${context.competenceLabel || context.competence} · ${context.schoolName || ('Escola ' + context.schoolId)}`;
         layer.querySelector('#evaluation-retification-guidance').textContent = isAnalysis
             ? 'Use esta edição para corrigir um erro de lançamento. Se a escola enviou um documento novo ou corrigido, use Registrar novo envio e depois Reanalisar na Pendência.'
             : 'Corrija a marcação de entrega. Escolher Não preenchido desfaz o lançamento e retorna a análise para Não analisado.';
@@ -384,7 +384,7 @@
                 }
             }
             feedback.textContent = undoBlocked
-                ? 'Existe Pendência ativa. Primeiro use Editar análise para corrigir o lançamento e justificar a anulação da Pendência.'
+                ? 'Existe Pendência ativa. Primeiro use Corrigir análise técnica para corrigir o lançamento e justificar a anulação da Pendência.'
                 : '';
         };
 
@@ -516,10 +516,19 @@
         button.type = 'button';
         button.className = 'btn btn-secondary btn-sm evaluation-retification-trigger';
         button.dataset.evaluationRetificationAction = mode;
-        const label = mode === 'analysis' ? 'Editar análise' : 'Editar bonificação';
+        const label = mode === 'analysis' ? 'Corrigir análise técnica' : 'Corrigir bonificação';
         button.setAttribute('aria-label', label);
         button.textContent = label;
         button.addEventListener('click', () => {
+            if (mode === 'bonification' && root.RadarOperationalCorrectionDialog?.canCorrectFiscalBonus?.(root)
+                && ['extCC', 'extINV', 'notaFiscal', 'declBBAgil'].includes(context.documentKey)) {
+                const current = verificationFor(root, context);
+                if (root.RadarOperationalCorrectionDialog.open(root, {
+                    mode: 'correct_bonification', context,
+                    currentValue: current?.bonificacao?.[context.documentKey] || current?.bonification?.[context.documentKey] || '',
+                    trigger: button
+                }) === true) return;
+            }
             if (mode === 'analysis' && root.RADAR_OPERATIONAL_CORRECTION_PREVIEW === true) {
                 const current = verificationFor(root, context);
                 const currentValue = current?.analise?.[context.documentKey]

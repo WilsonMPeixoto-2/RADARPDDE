@@ -188,10 +188,10 @@
             contextDeletion ? 'Exclusão de lançamentos' : historyDeletion ? 'Exclusão de análise e pendências' : bonus ? 'Avaliação de entrega · ' + bonusDocument
                 : deleting ? (mode === 'delete_invoice' ? 'Exclusão de nota fiscal' : 'Exclusão de pendência')
                     : 'Correção operacional');
-        const title = el(doc, 'h2', '', contextDeletion ? 'Excluir lançamentos do mês' : historyDeletion
+        const title = el(doc, 'h2', '', contextDeletion ? 'Excluir lançamentos deste programa' : historyDeletion
             ? 'Excluir análise técnica e pendências' : deleting
             ? (mode === 'delete_invoice' ? 'Excluir nota fiscal' : 'Excluir pendência')
-            : bonus ? 'Corrigir consolidação da bonificação' : 'Corrigir análise técnica');
+            : bonus ? 'Corrigir bonificação' : 'Corrigir análise técnica');
         title.id = 'radar-operational-correction-title';
         header.append(kicker, title);
         const scope = scopeFields(doc, [
@@ -223,7 +223,7 @@
         if (bonus) {
             const explanation = el(doc, 'p', 'fiscal-bonus-explanation',
                 (derivedBonus
-                    ? 'Este critério é calculado pelos registros vinculados. A correção recalcula a avaliação sem inventar envios ou atos patrimoniais. '
+                    ? 'Este critério é calculado pelos registros vinculados. Confira a avaliação resultante. Os envios e os registros patrimoniais não serão modificados. '
                     : 'Corrija apenas a avaliação de entrega deste documento. ')
                 + 'Se a bonificação já estiver consolidada, o programa ficará com Alterações pendentes de consolidação até você utilizar Consolidar bonificação.');
             header.appendChild(explanation);
@@ -266,7 +266,7 @@
         feedback.setAttribute('aria-live', 'polite');
         const actions = el(doc, 'div', 'radar-operational-correction-actions');
         const cancel = el(doc, 'button', 'btn btn-secondary', 'Cancelar');
-        const clearBtn = el(doc, 'button', 'btn btn-secondary', 'Limpar análise');
+        const clearBtn = el(doc, 'button', 'btn btn-secondary', 'Redefinir como não analisado');
         const review = el(doc, 'button', 'btn btn-secondary',
             contextDeletion || historyDeletion ? 'Conferir novamente' : 'Revisar prévia');
         const save = el(doc, 'button', deleting ? 'btn btn-danger' : 'btn btn-primary',
@@ -503,7 +503,10 @@
                     }
                 }
                 effects.appendChild(preservationPanel(doc,
-                    'As notas fiscais, as análises individuais e as pendências serão preservadas.'));
+                    'As notas fiscais, as análises individuais e as pendências serão preservadas.'
+                    + (context.documentKey === 'declBBAgil'
+                        ? ' A análise da declaração só muda na transição de ou para Não se aplica, conforme a prévia.'
+                        : ' Outros critérios e registros patrimoniais permanecem intactos.')));
                 for (const item of [...warnings, ...blockers]) effects.appendChild(el(doc, 'p', '', text(item.message || item.code)));
                 return;
             }

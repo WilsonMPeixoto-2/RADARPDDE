@@ -10434,7 +10434,8 @@ function renderProntuarioVerificacoes(esc) {
                                                     data-program-name="${escapeHtml(progName)}"
                                                     data-competence-label="${escapeHtml(c.label)}"
                                                     onclick="openProgramContextDeletion(this)">
-                                                    Excluir lançamentos do mês
+                                                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M9 7V4.5h6V7M7 7l1 13h8l1-13M10 10v7M14 10v7"/></svg>
+                                                    Excluir lançamentos deste programa
                                                 </button>
                                     ` : ''}
                                 </div>
@@ -10442,7 +10443,7 @@ function renderProntuarioVerificacoes(esc) {
                                 ${accessProfile !== 'inventario' && accessProfile !== 'sme' ? `
                                     <div class="program-context-consolidate">
                                         ${v.resultadoBonif ? `
-                                            <button type="button" class="btn program-consolidate-button radar-action-help is-disabled" data-tooltip="Calcula e registra o resultado da bonificação deste mês e programa. Não altera a análise técnica." aria-description="Calcula e registra o resultado da bonificação deste mês e programa. Não altera a análise técnica." disabled>Consolidada</button>
+                                            <button type="button" class="btn program-consolidate-button radar-action-help is-disabled" data-tooltip="Calcula e registra o resultado da bonificação deste mês e programa. Não altera a análise técnica." aria-description="Calcula e registra o resultado da bonificação deste mês e programa. Não altera a análise técnica." disabled>Bonificação consolidada</button>
                                         ` : `
                                             <button type="button" class="btn program-consolidate-button radar-action-help" ${bonusReview && !bonusReview.canConsolidate ? 'disabled' : ''}
                                                 data-tooltip="Calcula e registra o resultado da bonificação deste mês e programa. Não altera a análise técnica." aria-description="Calcula e registra o resultado da bonificação deste mês e programa. Não altera a análise técnica."
@@ -10576,7 +10577,7 @@ function renderProntuarioVerificacoes(esc) {
                                     data-school-id="${escapeHtml(esc.id)}" data-comp-key="${escapeHtml(compProgKey)}"
                                     data-school-name="${escapeHtml(getSchoolDisplayName(esc, esc.id))}" data-program-name="${escapeHtml(progName)}"
                                     data-competence-label="${escapeHtml(c.label)}" data-document-key="notaFiscal" data-document-label="Notas Fiscais" onclick="openFiscalBonusCorrection(this)">
-                                    Corrigir consolidação
+                                    Corrigir bonificação
                                 </button>
                             </div>`
                             : accessProfile === 'sme'
@@ -10696,7 +10697,7 @@ function renderProntuarioVerificacoes(esc) {
                                             aria-describedby="fiscal-invoice-title-${escapeHtml(note.id)}"
                                             onclick="beginInvoiceDocumentAnalysisEdit('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')">
                                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg>
-                                            <span>Editar análise</span>
+                                            <span>Corrigir análise técnica</span>
                                         </button>
                                     `;
                                 }
@@ -10940,7 +10941,7 @@ function renderProntuarioVerificacoes(esc) {
                                                 aria-describedby="advisory-invoice-title-${escapeHtml(note.id)}"
                                                 onclick="openInvoiceOperationalCorrection('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}', 'consAssessoria', this)">
                                                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg>
-                                                <span>Editar análise</span>
+                                                <span>Corrigir análise técnica</span>
                                             </button>
                                         `
                                         : '<span aria-hidden="true" class="invoice-document-empty-action">—</span>';
@@ -11063,7 +11064,7 @@ function renderProntuarioVerificacoes(esc) {
                         </div>
                     `;
 
-                    if (correctionAvailable && (isBonificationLocked || bonusReview || doc.key === 'encampInventario')) {
+                    if (correctionAvailable && (v.resultadoBonif || bonusReview || doc.key === 'encampInventario')) {
                         bonificationCellHTML += bonusCorrectionButton;
                     }
                     let analysisCellHTML = `
