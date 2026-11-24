@@ -424,9 +424,9 @@
         const guidance = contextCell.querySelector?.('.program-bonus-pending span');
         if (review && guidance && guidance.textContent !== review.guidance) guidance.textContent = review.guidance;
         button.disabled = Boolean(review && !review.canConsolidate);
-        button.textContent = review ? 'Consolidar bonificação' : 'Consolidar';
+        button.textContent = 'Consolidar bonificação';
         button.removeAttribute('onclick');
-        button.onclick = () => root.calcularEFecharBonificacao?.(schoolId, compKey);
+        button.onclick = () => root.requestBonificationConsolidation?.(schoolId, compKey, button);
         button.dataset.radarConsolidationState = review ? 'pending' : 'open';
         return true;
     }

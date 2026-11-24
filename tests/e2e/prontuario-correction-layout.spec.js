@@ -22,7 +22,21 @@ test(`contexto horizontal mantém consolidação e análise após edição em ${
     await expect(header).toContainText('PDDE Básico');
     await expect(header).toContainText('Maio');
     await expect(header.locator('[data-status-dimension="analise"]')).toContainText('Não analisado');
-    await header.getByRole('button', { name: 'Consolidar', exact: true }).click();
+    const consolidateButton = header.getByRole('button', { name: 'Consolidar bonificação', exact: true });
+    await expect(consolidateButton).toHaveAttribute('data-tooltip', /calcula.*resultado/i);
+    await consolidateButton.click();
+    const confirmation = page.getByRole('alertdialog', { name: 'Consolidar bonificação', exact: true });
+    await expect(confirmation).toBeVisible();
+    await expect(confirmation).toContainText('PDDE Básico');
+    await expect(confirmation).toContainText('Apta ou Inapta');
+    await expect(confirmation).toContainText('Notas fiscais, análises técnicas e Pendências não serão alteradas.');
+    await confirmation.getByRole('button', { name: 'Cancelar', exact: true }).click();
+    await expect(confirmation).toBeHidden();
+    await expect(consolidateButton).toBeEnabled();
+    await expect(header.getByRole('button', { name: 'Consolidada', exact: true })).toHaveCount(0);
+    await consolidateButton.click();
+    await confirmation.getByRole('button', { name: 'Confirmar consolidação', exact: true }).click();
+    await expect(confirmation).toBeHidden();
     await expect(header.getByRole('button', { name: 'Consolidada', exact: true })).toBeDisabled();
     await expect(header.locator('[data-status-dimension="bonificacao"]')).toHaveText(/^apta$/i);
     const row = page.locator('tr[data-program-id="BASIC"][data-document-key="extCC"]');
@@ -98,7 +112,7 @@ test('programa com despesas mantém vínculos, acesso por teclado e leitura nos 
     const advisory = page.locator('tr[data-program-id="BASIC"][data-document-key="consAssessoria"]');
     await expect(advisory.locator('.invoice-document-row')).toHaveCount(1);
     await expect(advisory).toContainText('NF-DEMO-02');
-    const consolidate = header.getByRole('button', { name: 'Consolidar', exact: true });
+    const consolidate = header.getByRole('button', { name: 'Consolidar bonificação', exact: true });
     await consolidate.focus();
     await page.keyboard.press('Tab');
     await expect(page.locator('tr[data-program-id="BASIC"][data-document-key="extCC"]')

@@ -39,7 +39,13 @@ test('reabre e reconsolida a ação do programa a partir do estado autoritativo'
     let consolidatedCalls = 0;
     const root = {
         getRadarAccessProfile: () => 'assistente',
-        calcularEFecharBonificacao: () => { consolidatedCalls += 1; }
+        requestBonificationConsolidation: (schoolId, compKey, trigger) => {
+            assert.equal(schoolId, 'ESC-1');
+            assert.equal(compKey, '2026-08_BASIC');
+            assert.equal(trigger, button);
+            consolidatedCalls += 1;
+        },
+        calcularEFecharBonificacao: () => { throw new Error('Não gravar sem confirmação pela interface'); }
     };
 
     assert.equal(reconciler.syncConsolidationAction(
@@ -61,7 +67,7 @@ test('reabre e reconsolida a ação do programa a partir do estado autoritativo'
         rows
     ), true);
     assert.equal(button.disabled, false);
-    assert.equal(button.textContent, 'Consolidar');
+    assert.equal(button.textContent, 'Consolidar bonificação');
     assert.equal(button.dataset.radarConsolidationState, 'open');
     button.onclick();
     assert.equal(consolidatedCalls, 1);

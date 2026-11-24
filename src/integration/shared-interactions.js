@@ -593,6 +593,9 @@
         guardInvoiceSubmission,
         requestControllerDeactivation,
         requestTeamReassignmentConfirm,
+        // Reaproveita o diálogo genérico já acessível, com título, mensagem,
+        // lista e ação final definidos pelo chamador (sem lógica de equipe).
+        requestOperationalConfirmation: requestTeamReassignmentConfirm,
         notify
     });
 }));

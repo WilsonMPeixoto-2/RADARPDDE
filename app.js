@@ -10446,10 +10446,11 @@ function renderProntuarioVerificacoes(esc) {
                                 ${accessProfile !== 'inventario' && accessProfile !== 'sme' ? `
                                     <div class="program-context-consolidate">
                                         ${v.resultadoBonif ? `
-                                            <button class="btn program-consolidate-button is-disabled" disabled>Consolidada</button>
+                                            <button type="button" class="btn program-consolidate-button radar-action-help is-disabled" data-tooltip="Calcula e registra o resultado da bonificação deste mês e programa. Não altera a análise técnica." aria-description="Calcula e registra o resultado da bonificação deste mês e programa. Não altera a análise técnica." disabled>Consolidada</button>
                                         ` : `
-                                            <button class="btn program-consolidate-button" ${bonusReview && !bonusReview.canConsolidate ? 'disabled' : ''}
-                                                onclick="calcularEFecharBonificacao('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">${bonusReview ? 'Consolidar bonificação' : 'Consolidar'}</button>
+                                            <button type="button" class="btn program-consolidate-button radar-action-help" ${bonusReview && !bonusReview.canConsolidate ? 'disabled' : ''}
+                                                data-tooltip="Calcula e registra o resultado da bonificação deste mês e programa. Não altera a análise técnica." aria-description="Calcula e registra o resultado da bonificação deste mês e programa. Não altera a análise técnica."
+                                                onclick="requestBonificationConsolidation('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', this)">Consolidar bonificação</button>
                                         `}
                                     </div>
                                 ` : ''}
@@ -12390,6 +12391,38 @@ async function removerNotaRegistrada(notaId, escolaId) {
 
 
 // 14.4 Regra de Consolidação de Bonificação (Apta / Inapta)
+// A entrada pela interface confirma explicitamente o alcance; o comando
+// canônico de gravação permanece independente para os demais chamadores.
+async function requestBonificationConsolidation(escolaId, compKey, trigger = document.activeElement) {
+    if (['inventario', 'sme'].includes(getRadarAccessProfile())) return false;
+    const { competenciaKey, contextId } = window.RadarCompetencia.splitCompetenciaContext(compKey);
+    if (!escolaId || !competenciaKey || !contextId) return false;
+    const school = escolas.find(item => String(item.id) === String(escolaId));
+    const program = programas.find(item => String(item.id) === String(contextId));
+    const month = COMPETENCIAS.find(item => item.key === competenciaKey);
+    const confirmation = window.RadarSharedInteractions?.requestOperationalConfirmation;
+    if (typeof confirmation !== 'function') return false;
+    try {
+        const confirmed = await confirmation({
+            title: 'Consolidar bonificação',
+            message: 'O RADAR calculará e registrará o resultado Apta ou Inapta deste programa com base nas avaliações de bonificação. Notas fiscais, análises técnicas e Pendências não serão alteradas.',
+            listTitle: 'Escola, mês e programa',
+            items: [
+                school ? getSchoolDisplayName(school, escolaId) : escolaId,
+                month?.label || competenciaKey,
+                program?.name || contextId
+            ],
+            confirmLabel: 'Confirmar consolidação',
+            trigger
+        });
+        if (!confirmed) return false;
+        return calcularEFecharBonificacao(escolaId, compKey);
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível confirmar a consolidação.');
+        return false;
+    }
+}
+
 async function calcularEFecharBonificacao(escolaId, compKey) {
     const accessProfile = getRadarAccessProfile();
     if (accessProfile === 'inventario' || accessProfile === 'sme') return false;

@@ -51,3 +51,8 @@ Na T4, cada botão operacional deve ter nome compreensível no seu contexto, com
 A prévia deve usar os nomes dos documentos e situações reconhecíveis pelo Controlador, não chaves de persistência como `extCC` nem IDs internos no texto principal. As referências técnicas podem permanecer disponíveis para rastreabilidade. Preservar os rótulos de bonificação já aprovados na tabela D021; explicitar o escopo pela ajuda contextual.
 
 **Estado:** implementação candidata no PR #558, sujeita a verificação de hover/teclado, capturas de tela e E2E no SHA final. Sem mudança de SQL, regras de negócio, permissões ou produção por este complemento.
+
+
+### Consolidação com confirmação explícita
+
+Tanto a primeira consolidação como a reconsolidação são iniciadas pelo botão **Consolidar bonificação**. Antes de gravar, o diálogo compartilhado mostra a escola, o mês e o programa e explica que o resultado Apta/Inapta será calculado e registrado, sem alterar as notas fiscais, a análise técnica ou as Pendências. Cancelar ou Escape não grava. O botão final é **Confirmar consolidação**. O comando canônico de cálculo e suas permissões permanecem inalterados. A confirmação é testada no fluxo visual e na jornada autenticada; aceite no SHA final ainda necessário.

@@ -477,6 +477,27 @@ test('T3 exclusão de NF (delete_invoice) com Pendência preserva NF vizinha e b
         if (request.url().includes('/rest/v1/rpc/apply_operational_change')) rpcActions.push('apply');
     });
 
+    // Uma tentativa interrompida pode deixar a própria NF incorreta no banco
+    // descartável. Não permitir que esse resíduo altere a prévia do retry.
+    // O escopo é somente o par de NFs sintéticas criado por esta jornada.
+    if (testInfo.retry) {
+        execFileSync('psql', ['postgresql://postgres:postgres@127.0.0.1:54322/postgres',
+            '-X', '-1', '-v', 'ON_ERROR_STOP=1', '-c', `
+                create temp table t3_retry_invoices on commit drop as
+                select id from public.registered_invoices
+                 where school_id = 'ESC-OTHER' and competence_id = '2026-05'
+                   and program_id = 'BASIC' and expense_type = 'consumo'
+                   and (invoice_number ~ '^OCC-KEEP-[0-9]+$'
+                        or invoice_number ~ '^OCC-DEL-[0-9]+$');
+                delete from public.pendency_contacts
+                 where pendency_id in (select id from public.pendencies
+                    where registered_invoice_id in (select id from t3_retry_invoices));
+                delete from public.pendencies
+                 where registered_invoice_id in (select id from t3_retry_invoices);
+                delete from public.registered_invoices
+                 where id in (select id from t3_retry_invoices);
+            `]);
+    }
     const keepNumber = `OCC-KEEP-${Date.now()}`;
     const deleteNumber = `OCC-DEL-${Date.now()}`;
 
@@ -1206,6 +1227,19 @@ test('T4 · corrigir bonificação fiscal, preservar notas e consolidar o progra
     await confirm.click();
     await expect(consolidate).toBeEnabled();
     await consolidate.click();
+    const consolidationDialog = page.getByRole('alertdialog', { name: 'Consolidar bonificação', exact: true });
+    await expect(consolidationDialog).toBeVisible();
+    await expect(consolidationDialog).toContainText('Escola Horizonte');
+    await expect(consolidationDialog).toContainText('PDDE Básico');
+    await expect(consolidationDialog).toContainText('Notas fiscais, análises técnicas e Pendências não serão alteradas.');
+    await consolidationDialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
+    await expect(consolidationDialog).toBeHidden();
+    await expect(header).toContainText('Alterações pendentes de consolidação');
+    await expect(consolidate).toBeEnabled();
+    await consolidate.click();
+    await testInfo.attach('t4-confirmacao-reconsolidacao', { body: await consolidationDialog.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
+    await consolidationDialog.getByRole('button', { name: 'Confirmar consolidação', exact: true }).click();
+    await expect(consolidationDialog).toBeHidden();
     await expect(header.getByRole('button', { name: 'Consolidada', exact: true })).toBeDisabled();
     await page.reload();
     await waitForApp(page, 'controller');
