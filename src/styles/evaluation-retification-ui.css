@@ -915,53 +915,32 @@ body.dark-theme .is-fiscal-bonus .fiscal-bonus-transition strong {
     display: none;
 }
 
-/* Ajuda contextual T4. O nome da ação continua visível; o tooltip complementa
-   tanto o mouse como a navegação por teclado, sem criar um segundo diálogo. */
-.radar-action-help[data-tooltip] {
-    position: relative;
-}
-.radar-action-help[data-tooltip]::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    z-index: 95;
-    inset-block-end: calc(100% + 7px);
-    inset-inline-start: 0;
+/* Ajuda contextual sem recorte por tabelas ou janelas roláveis. */
+.radar-floating-tooltip {
+    position: fixed;
+    z-index: 1000;
+    inset: auto;
+    margin: 0;
     inline-size: max-content;
-    max-inline-size: min(270px, 72vw);
+    max-inline-size: min(280px, calc(100vw - 16px));
     box-sizing: border-box;
-    padding: 8px 10px;
+    padding: 9px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
     background: #261a35;
     color: #fff;
     font-family: var(--font-body, inherit);
-    font-size: 0.74rem;
+    font-size: 0.75rem;
     font-weight: 500;
-    line-height: 1.45;
+    line-height: 1.5;
     text-align: start;
     white-space: normal;
-    overflow-wrap: break-word;
-    pointer-events: none;
-    opacity: 0;
-    visibility: hidden;
+    overflow-wrap: anywhere;
+    pointer-events: auto;
     box-shadow: 0 6px 16px rgba(25, 17, 40, 0.22);
 }
-@media (hover: hover) {
-    .radar-action-help[data-tooltip]:hover::after {
-        visibility: visible;
-        opacity: 1;
-    }
-}
-.radar-action-help[data-tooltip]:focus-visible::after {
-    visibility: visible;
-    opacity: 1;
-}
-.radar-operational-correction-actions .radar-action-help[data-tooltip]:last-child::after {
-    inset-inline-start: auto;
-    inset-inline-end: 0;
-}
-.radar-action-help[data-tooltip]:disabled::after {
-    visibility: hidden;
-    opacity: 0;
+.radar-floating-tooltip[hidden] {
+    display: none;
 }
 .radar-operational-correction-header .correction-confirmation-hint {
     font-size: 0.82rem;
@@ -1200,10 +1179,6 @@ body.dark-theme .correction-preservation-icon {
 }
 /* O foco inicial é uma proteção da ação destrutiva, não um pedido de ajuda.
    Hover continua funcionando; Tab/Shift+Tab habilitam a ajuda por teclado. */
-.radar-operational-correction-layer:not([data-keyboard-help="true"]) .radar-action-help[data-tooltip]:focus-visible:not(:hover)::after {
-    visibility: hidden;
-    opacity: 0;
-}
 @media (max-width: 700px) {
     .radar-operational-correction-dialog.is-destructive {
         max-height: min(96dvh, calc(100dvh - 12px));
@@ -1268,10 +1243,6 @@ body.dark-theme .correction-preservation-icon {
 }
 .is-structured-correction .radar-operational-correction-actions {
     padding-top: 10px;
-}
-.radar-operational-correction-layer:not([data-pointer-help="true"]):not([data-keyboard-help="true"]) .radar-action-help[data-tooltip]::after {
-    visibility: hidden;
-    opacity: 0;
 }
 @media (max-width: 700px) {
     .radar-operational-correction-dialog.is-structured-correction {

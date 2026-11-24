@@ -1710,3 +1710,19 @@ body.dark-theme #prontuario-verif-rows .prontuario-history-clear-button:hover {
         font-size: 0.77rem;
     }
 }
+
+/* O cabeçalho pode ser mais largo que a área visível da tabela em celular.
+   Limitar o menu pela viewport, não pela largura intrínseca da tabela. */
+@media (max-width: 700px) {
+    #prontuario-verif-rows [data-program-header] .program-context-options {
+        max-inline-size: min(100%, calc(100vw - 104px));
+    }
+    #prontuario-verif-rows [data-program-header] .program-context-options-list {
+        box-sizing: border-box;
+        max-inline-size: 100%;
+    }
+    #prontuario-verif-rows [data-program-header] .program-context-delete-button {
+        min-block-size: 44px;
+        overflow-wrap: anywhere;
+    }
+}

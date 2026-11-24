@@ -191,9 +191,7 @@ test('T4 histórico: tela móvel preserva contexto, ação, rolagem e teclado', 
     expect(rect.width).toBeGreaterThan(60);
     const cancel = dialog.getByRole('button', { name: 'Cancelar', exact: true });
     await expect(cancel).toBeFocused();
-    await expect.poll(() => cancel.evaluate(button =>
-        getComputedStyle(button, '::after').visibility
-    )).toBe('hidden');
+    await expect(page.locator('#radar-action-help-tooltip')).toBeHidden();
     const previewBody = dialog.getByRole('region', { name: 'Prévia completa da operação' });
     await expect(previewBody).toBeVisible();
     const layout = await previewBody.evaluate(region => ({

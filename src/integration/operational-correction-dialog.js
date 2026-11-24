@@ -723,11 +723,11 @@
                         .find(row => row.dataset?.documentKey === target.documentKey
                             && row.dataset?.programId === target.programId);
                     const invoiceRow = target.id
-                        ? Array.from(itemRow?.querySelectorAll?.('[data-invoice-id]') || [])
-                            .find(row => row.dataset.invoiceId === target.id)
+                        ? Array.from(itemRow?.querySelectorAll?.('[data-invoice-id], [data-service-advisory-invoice]') || [])
+                            .find(row => (row.dataset.invoiceId || row.dataset.serviceAdvisoryInvoice) === target.id)
                         : null;
                     const focusTarget = target.id
-                        ? invoiceRow?.querySelector?.('.invoice-history-clear-button:not(:disabled)')
+                        ? invoiceRow?.querySelector?.('.invoice-history-clear-button:not(:disabled), .prontuario-history-clear-button:not(:disabled)')
                             || invoiceRow || itemRow?.querySelector?.('.verification-document-copy strong')
                             || doc.getElementById?.('prontuario-verif-rows')
                         : itemRow?.querySelector?.('.prontuario-history-clear-button:not(:disabled)')

@@ -159,5 +159,70 @@ select is((select count(*)::int from public.pendencies where id='T4H-P-INVOICE')
     'remove histórico fiscal selecionado');
 select is((select bonus_result from public.verifications where id='T4H-V-A09'),
     'apta','limpeza fiscal preserva bonificação consolidada');
+
+-- Assessoria: limpar somente histórico da nota, preservar análise fiscal,
+-- nota vizinha, contatos gerais e resultado da bonificação.
+reset role;
+update public.verifications
+   set bonification = bonification || '{"consAssessoria":"Sim","consEnviada":true}'::jsonb,
+       analysis = analysis || '{"consAssessoria":"Incorreto"}'::jsonb
+ where id='T4H-V-A09';
+insert into public.registered_invoices
+  (id,school_id,competence_id,program_id,verification_id,source_context_key,description,expense_type,invoice_number,amount,payload)
+values
+ ('T4H-NF-SVC-1','T4H-S','2043-09','T4H-A','T4H-V-A09','2043-09_T4H-A','Serviço alvo','servico','T4H-SVC-01',420,
+  '{"analiseDocumentoFiscal":"Correto","consultaAssessoriaEnviada":true,"analiseConsultaAssessoria":"Incorreto"}'),
+ ('T4H-NF-SVC-2','T4H-S','2043-09','T4H-A','T4H-V-A09','2043-09_T4H-A','Serviço vizinho','servico','T4H-SVC-02',310,
+  '{"analiseDocumentoFiscal":"Correto","consultaAssessoriaEnviada":true,"analiseConsultaAssessoria":"Correto"}');
+insert into public.pendencies
+ (id,school_id,competence_origin,program_id,document_key,status,next_actor,registered_invoice_id,resolved_at)
+values
+ ('T4H-P-SVC-ACT','T4H-S','2043-09','T4H-A','consAssessoria','Aberta','Escola','T4H-NF-SVC-1',null),
+ ('T4H-P-SVC-RES','T4H-S','2043-09','T4H-A','consAssessoria','Resolvida','Controlador','T4H-NF-SVC-1',now());
+insert into public.pendency_attempts(id,pendency_id,attempt_number) values ('T4H-A-SVC-RES','T4H-P-SVC-RES',1);
+insert into public.pendency_contacts(id,school_id,pendency_id,contact_type,contact_date,description)
+values ('T4H-C-SVC-RES','T4H-S','T4H-P-SVC-RES','email',current_date,'Contato Assessoria');
+set local role authenticated;
+create temp table t4h_svc_plan as
+select public.preview_operational_change(pg_temp.t4h_request('consAssessoria','T4H-NF-SVC-1')) as plan;
+select is((select plan #> '{effects,delete,pendencies}' from t4h_svc_plan),'["T4H-P-SVC-ACT","T4H-P-SVC-RES"]'::jsonb,'prévia exata de Assessoria');
+select is((select plan #> '{effects,delete,pendency_attempts}' from t4h_svc_plan),'["T4H-A-SVC-RES"]'::jsonb,'prévia inclui envio');
+select is((select plan #> '{effects,delete,pendency_contacts}' from t4h_svc_plan),'["T4H-C-SVC-RES"]'::jsonb,'prévia inclui contato');
+select is((select plan #> '{effects,delete,registered_invoices}' from t4h_svc_plan),'[]'::jsonb,'preserva despesas');
+select lives_ok($$ select public.apply_operational_change(
+  pg_temp.t4h_request('consAssessoria','T4H-NF-SVC-1'),
+  (select plan->>'planDigest' from t4h_svc_plan),'00000000-0000-0000-0000-00000000b708') $$,
+  'limpeza autenticada de Assessoria');
+select is((select count(*)::int from public.pendencies where id in ('T4H-P-SVC-ACT','T4H-P-SVC-RES')),0,'remove histórico da nota alvo');
+select is((select count(*)::int from public.pendency_attempts where id='T4H-A-SVC-RES'),0,'remove envio vinculado');
+select is((select count(*)::int from public.pendency_contacts where id='T4H-C-SVC-RES'),0,'remove contato vinculado');
+select is((select count(*)::int from public.pendency_contacts where id='T4H-C-GENERAL'),1,'preserva contato geral');
+select is((select count(*)::int from public.registered_invoices where id in ('T4H-NF-SVC-1','T4H-NF-SVC-2')),2,'preserva ambas as notas');
+select is((select payload->>'analiseConsultaAssessoria' from public.registered_invoices where id='T4H-NF-SVC-1'),'Não analisado','limpa análise de Assessoria alvo');
+select is((select payload->>'analiseDocumentoFiscal' from public.registered_invoices where id='T4H-NF-SVC-1'),'Correto','preserva análise fiscal');
+select is((select payload->>'analiseConsultaAssessoria' from public.registered_invoices where id='T4H-NF-SVC-2'),'Correto','preserva nota vizinha');
+select is((select analysis->>'consAssessoria' from public.verifications where id='T4H-V-A09'),'Não analisado','recomputa resumo mensal');
+select is((select bonification->>'consAssessoria' from public.verifications where id='T4H-V-A09'),'Sim','preserva bonificação de Assessoria');
+select is((select bonus_result from public.verifications where id='T4H-V-A09'),'apta','preserva resultado consolidado');
+
+-- Despesa a identificar: bloqueio no servidor, não apenas ausência do botão.
+reset role;
+insert into public.registered_invoices
+  (id,school_id,competence_id,program_id,verification_id,source_context_key,description,expense_type,invoice_number,amount,payload)
+values ('T4H-NF-AID','T4H-S','2043-09','T4H-A','T4H-V-A09','2043-09_T4H-A','Saída a identificar','a_identificar',null,195,'{"analiseDocumentoFiscal":"Incorreto"}');
+insert into public.pendencies
+  (id,school_id,competence_origin,program_id,document_key,status,next_actor,registered_invoice_id)
+values ('T4H-P-AID','T4H-S','2043-09','T4H-A','notaFiscal','Aberta','Escola','T4H-NF-AID');
+set local role authenticated;
+create temp table t4h_aid_plan as
+select public.preview_operational_change(pg_temp.t4h_request('notaFiscal','T4H-NF-AID')) as plan;
+select ok((select plan->'blockers' @> '[{"code":"MANDATORY_ANALYSIS"}]'::jsonb from t4h_aid_plan),'bloqueador MANDATORY_ANALYSIS na prévia');
+select throws_like($$ select public.apply_operational_change(
+  pg_temp.t4h_request('notaFiscal','T4H-NF-AID'),
+  (select plan->>'planDigest' from t4h_aid_plan),'00000000-0000-0000-0000-00000000b709') $$,
+  '%PLAN_BLOCKED%','recusa limpar histórico de despesa a identificar');
+select is((select count(*)::int from public.registered_invoices where id='T4H-NF-AID'),1,'preserva despesa');
+select is((select count(*)::int from public.pendencies where id='T4H-P-AID'),1,'preserva Pendência obrigatória');
+
 select * from finish();
 rollback;

@@ -45,7 +45,7 @@ async function openSchool(page) {
     await expect(page.locator('#prontuario-verif-rows')).toBeVisible();
 }
 
-async function openHistoryByRealButton(page) {
+async function openHistoryByRealButton(page, documentKey = 'extCC', invoiceId = null) {
     const state = await page.evaluate(async () => {
         await window.RadarProductExtensionsReady;
         window.RADAR_T4_ITEM_HISTORY_PILOT = true;
@@ -62,8 +62,11 @@ async function openHistoryByRealButton(page) {
     expect(state).toMatchObject({
         canUse: true, canClearHistory: true, role: 'controller', remote: true
     });
-    const row = page.locator('tr[data-program-id="BASIC"][data-document-key="extCC"]');
-    const button = row.locator('.prontuario-history-clear-button');
+    const row = page.locator(`tr[data-program-id="BASIC"][data-document-key="${documentKey}"]`);
+    const invoice = invoiceId
+        ? row.locator(`[data-invoice-id="${invoiceId}"], [data-service-advisory-invoice="${invoiceId}"]`)
+        : row;
+    const button = invoice.locator('.invoice-history-clear-button, .prontuario-history-clear-button');
     await expect(button).toBeVisible();
     await button.click();
     return page.getByRole('dialog', { name: 'Limpar todo o histórico deste item' });
@@ -160,4 +163,97 @@ test('T4 histórico real: confirma, preserva vizinhos, converge antes do F5 e em
     } finally {
         await another.close();
     }
+});
+
+
+async function readInvoice(page, id) {
+    return page.evaluate(async invoiceId => {
+        const result = await window.RadarSessionContext.service.client.from('registered_invoices')
+            .select('id,payload').eq('id', invoiceId).single();
+        if (result.error) throw new Error(result.error.message);
+        return result.data;
+    }, id);
+}
+
+test('T4 histórico real: NF individual é preservada, histórico removido e foco retorna à NF', async ({ page }, testInfo) => {
+    await login(page, 'controller');
+    await openSchool(page);
+    const before = await readState(page);
+    const dialog = await openHistoryByRealButton(page, 'notaFiscal', 'T4H-NF-1');
+    await expect(dialog.getByRole('button', { name: 'Limpar histórico deste item' })).toBeEnabled();
+    await testInfo.attach('t4-nf-historico-real', { body: await dialog.screenshot(), contentType: 'image/png' });
+    await dialog.getByRole('button', { name: 'Limpar histórico deste item' }).click();
+    await expect(dialog).toBeHidden();
+    const after = await readState(page);
+    expect(after.invoices).toEqual(before.invoices);
+    expect(after.pendencies).not.toContain('T4H-P-INVOICE');
+    expect(after.pendencies).toContain('T4H-P-AID');
+    expect(after.pendencies).toContain('T4H-P-SVC-ACT');
+    await expect.poll(async () => (await readInvoice(page, 'T4H-NF-1')).payload.analiseDocumentoFiscal).toBe('Não analisado');
+    await expect.poll(() => page.evaluate(() =>
+        document.activeElement?.closest('[data-invoice-id]')?.dataset.invoiceId)).toBe('T4H-NF-1');
+    expect(after.verifications.find(v => v.id.endsWith('2026-05::BASIC')).bonus_result).toBe('apta');
+    await page.reload();
+    await page.waitForFunction(() => window.RadarDataContext?.ready === true);
+    expect(await readState(page)).toEqual(after);
+});
+
+test('T4 histórico real: Assessoria preserva análise fiscal, NF vizinha e bonificação', async ({ page }, testInfo) => {
+    await login(page, 'controller');
+    await openSchool(page);
+    const before = await readState(page);
+    const neighbor = await readInvoice(page, 'T4H-NF-SVC-2');
+    const dialog = await openHistoryByRealButton(page, 'consAssessoria', 'T4H-NF-SVC');
+    await expect(dialog.getByRole('button', { name: 'Limpar histórico deste item' })).toBeEnabled();
+    await testInfo.attach('t4-assessoria-historico-real', { body: await dialog.screenshot(), contentType: 'image/png' });
+    await dialog.getByRole('button', { name: 'Limpar histórico deste item' }).click();
+    await expect(dialog).toBeHidden();
+    const after = await readState(page);
+    expect(after.invoices).toEqual(before.invoices);
+    expect(after.pendencies).not.toContain('T4H-P-SVC-ACT');
+    expect(after.pendencies).not.toContain('T4H-P-SVC-RES');
+    expect(after.attempts).not.toContain('T4H-ATT-SVC-1');
+    expect(after.contacts).not.toContain('T4H-CONTACT-SVC-1');
+    expect(after.contacts).toContain('T4H-GENERAL');
+    expect(after.pendencies).toContain('T4H-P-AID');
+    const invoice = await readInvoice(page, 'T4H-NF-SVC');
+    expect(invoice.payload.analiseConsultaAssessoria).toBe('Não analisado');
+    expect(invoice.payload.analiseDocumentoFiscal).toBe('Correto');
+    expect(await readInvoice(page, 'T4H-NF-SVC-2')).toEqual(neighbor);
+    const monthly = after.verifications.find(v => v.id.endsWith('2026-05::BASIC'));
+    expect(monthly.analysis.consAssessoria).toBe('Não analisado');
+    expect(monthly.bonus_result).toBe('apta');
+    expect(monthly.bonification.consAssessoria).toBe('Sim');
+    await expect.poll(() => page.evaluate(() =>
+        document.activeElement?.closest('[data-service-advisory-invoice]')?.dataset.serviceAdvisoryInvoice)).toBe('T4H-NF-SVC');
+});
+
+test('T4 histórico real: despesa a identificar protegida no Prontuário e no RPC autenticado', async ({ page }) => {
+    await login(page, 'controller');
+    await openSchool(page);
+    await page.evaluate(() => {
+        window.RADAR_T4_ITEM_HISTORY_PILOT = true;
+        window.renderProntuario('ESC-T4-HISTORY');
+    });
+    const row = page.locator('[data-invoice-id="T4H-NF-AID"]');
+    await expect(row).toBeVisible();
+    await expect(row.locator('.invoice-history-clear-button')).toHaveCount(0);
+    const before = await readState(page);
+    const result = await page.evaluate(async () => {
+        const db = window.RadarSessionContext.service.client;
+        const request = {
+            contractVersion: 1, action: 'clear_item_history',
+            target: { kind: 'analysis', schoolId: 'ESC-T4-HISTORY', competence: '2026-05',
+                programId: 'BASIC', documentKey: 'notaFiscal', id: 'T4H-NF-AID' }
+        };
+        const preview = await db.rpc('preview_operational_change', { p_request: request });
+        if (preview.error) throw new Error(preview.error.message);
+        const apply = await db.rpc('apply_operational_change', {
+            p_request: request, p_plan_digest: preview.data.planDigest, p_operation_key: crypto.randomUUID()
+        });
+        return { blockers: preview.data.blockers, error: apply.error?.message };
+    });
+    expect(result.blockers).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'MANDATORY_ANALYSIS' })]));
+    expect(result.error).toContain('PLAN_BLOCKED');
+    expect(await readState(page)).toEqual(before);
 });

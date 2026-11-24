@@ -105,6 +105,134 @@
         return registry[source];
     }
 
+
+    // A single delegated tooltip, also for dynamically replaced table rows.
+    // Top layer avoids clipping by scroll containers; manual visibility lets
+    // pointer and keyboard follow the same dismiss/hover/persistence contract.
+    function installActionHelp(root) {
+        const doc = root.document;
+        const selector = '.radar-action-help[data-tooltip]';
+        const id = 'radar-action-help-tooltip';
+        let active = null;
+        let tooltip = null;
+        let timer = null;
+        let keyboard = false;
+        let focused = false;
+        let hovered = false;
+
+        const triggerFor = node => node?.closest?.(selector);
+        const cancelTimer = () => { if (timer !== null) root.clearTimeout(timer); timer = null; };
+        const isOpen = () => Boolean(active && tooltip && !tooltip.hidden);
+
+        function position() {
+            if (!isOpen() || !active.isConnected) return;
+            const anchor = active.getBoundingClientRect();
+            const rect = tooltip.getBoundingClientRect();
+            const width = root.innerWidth || doc.documentElement.clientWidth;
+            const height = root.innerHeight || doc.documentElement.clientHeight;
+            const x = Math.max(8, Math.min(anchor.left + (anchor.width - rect.width) / 2, width - rect.width - 8));
+            const above = anchor.top - rect.height - 6;
+            const below = anchor.bottom + 6;
+            const y = above >= 8 ? above : Math.max(8, Math.min(below, height - rect.height - 8));
+            tooltip.style.left = Math.round(x) + 'px';
+            tooltip.style.top = Math.round(y) + 'px';
+        }
+
+        function hide() {
+            cancelTimer();
+            if (!active) return false;
+            const tokens = (active.getAttribute('aria-describedby') || '').split(/\s+/).filter(token => token && token !== id);
+            if (tokens.length) active.setAttribute('aria-describedby', tokens.join(' '));
+            else active.removeAttribute('aria-describedby');
+            if (tooltip?.matches?.(':popover-open')) tooltip.hidePopover();
+            if (tooltip) tooltip.hidden = true;
+            active = null;
+            focused = hovered = false;
+            return true;
+        }
+
+        function show(trigger, fromKeyboard) {
+            if (!trigger?.isConnected || trigger.disabled || !trigger.dataset.tooltip) return;
+            cancelTimer();
+            if (active === trigger && isOpen()) {
+                if (fromKeyboard) focused = true;
+                else hovered = true;
+                position();
+                return;
+            }
+            hide();
+            if (!tooltip) {
+                tooltip = doc.createElement('div');
+                tooltip.id = id;
+                tooltip.className = 'radar-floating-tooltip';
+                tooltip.setAttribute('role', 'tooltip');
+                if (typeof tooltip.showPopover === 'function') tooltip.setAttribute('popover', 'manual');
+                tooltip.hidden = true;
+            }
+            const host = trigger.closest('[role="dialog"]') || doc.body;
+            host.appendChild(tooltip);
+            tooltip.inert = false;
+            tooltip.textContent = trigger.dataset.tooltip;
+            active = trigger;
+            focused = fromKeyboard;
+            hovered = !fromKeyboard;
+            const tokens = new Set((trigger.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean));
+            tokens.add(id);
+            trigger.setAttribute('aria-describedby', [...tokens].join(' '));
+            tooltip.hidden = false;
+            if (typeof tooltip.showPopover === 'function') tooltip.showPopover();
+            position();
+        }
+
+        function deferHide() {
+            cancelTimer();
+            if (!focused && !hovered) timer = root.setTimeout(() => { if (!focused && !hovered) hide(); }, 180);
+        }
+
+        doc.addEventListener('pointerover', event => {
+            if (event.pointerType === 'touch') return;
+            if (tooltip?.contains(event.target) && isOpen()) {
+                hovered = true;
+                cancelTimer();
+                return;
+            }
+            const trigger = triggerFor(event.target);
+            if (trigger && !trigger.contains(event.relatedTarget)) show(trigger, false);
+        });
+        doc.addEventListener('pointerout', event => {
+            if (!isOpen()) return;
+            if (!active.contains(event.target) && !tooltip.contains(event.target)) return;
+            if (active.contains(event.relatedTarget) || tooltip.contains(event.relatedTarget)) return;
+            hovered = false;
+            deferHide();
+        });
+        doc.addEventListener('focusin', event => {
+            const trigger = triggerFor(event.target);
+            if (keyboard && trigger && trigger.matches(':focus-visible')) show(trigger, true);
+        });
+        doc.addEventListener('focusout', event => {
+            if (!active?.contains(event.target)) return;
+            focused = false;
+            deferHide();
+        });
+        doc.addEventListener('pointerdown', () => { keyboard = false; hide(); }, true);
+        doc.addEventListener('keydown', event => {
+            if (event.key === 'Tab') keyboard = true;
+            if (event.key === 'Escape' && isOpen()) {
+                hide();
+                event.preventDefault();
+                event.stopImmediatePropagation();
+            }
+        }, true);
+        doc.addEventListener('scroll', position, true);
+        root.addEventListener('resize', position);
+        if (typeof root.MutationObserver === 'function') {
+            new root.MutationObserver(() => {
+                if (active && !active.isConnected) hide();
+            }).observe(doc.body, { childList: true, subtree: true });
+        }
+    }
+
     function install(root) {
         if (!root || root.__radarFloatingUIInstalled) return false;
         const document = root.document;
@@ -342,6 +470,7 @@
             getAutoUpdateCount: () => cleanups.size,
             isVendorLoaded: () => Boolean(root.FloatingUIDOM)
         });
+        installActionHelp(root);
         root.__radarFloatingUIInstalled = true;
         return true;
     }

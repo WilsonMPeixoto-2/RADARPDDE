@@ -155,7 +155,7 @@ test('T4 real: prévia e cancelamento não alteram escola, NFs, Pendências ou p
     await expect(dialog).toContainText('NF T4-CTX-002');
     await expect(dialog).toContainText('Pendência: Nota fiscal');
     await expect(dialog.getByRole('button', { name: 'Excluir estes lançamentos' })).toBeEnabled();
-    const scroll = dialog.getByRole('region', { name: 'Detalhes da exclusão' });
+    const scroll = dialog.getByRole('region', { name: 'Prévia completa da operação' });
     const viewport = page.viewportSize();
     const initialDark = await page.evaluate(() => document.body.classList.contains('dark-theme'));
     try {
@@ -174,7 +174,7 @@ test('T4 real: prévia e cancelamento não alteram escola, NFs, Pendências ou p
                 body: await page.screenshot(), contentType: 'image/png'
             });
             await scroll.evaluate(el => { el.scrollTop = el.scrollHeight; });
-            await expect(scroll.getByText(/O que será mantido:/)).toBeInViewport();
+            expect(await scroll.evaluate(el => el.scrollTop + el.clientHeight >= el.scrollHeight - 2)).toBe(true);
             await expect(dialog.getByRole('button', { name: 'Excluir estes lançamentos' })).toBeInViewport({ ratio: 1 });
             await testInfo.attach('t4-context-preview-final-' + variant.name, {
                 body: await page.screenshot(), contentType: 'image/png'

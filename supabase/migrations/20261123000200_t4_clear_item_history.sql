@@ -221,7 +221,7 @@ comment on function radar_private.operational_correction_build_plan(jsonb) is
 create function radar_private.t4_try_pendency_context_lock(
   p_school text,p_competence text,p_program text
 ) returns void language plpgsql security definer
-set search_path=pg_catalog,public,radar_private as $
+set search_path=pg_catalog,public,radar_private as $$
 begin
   if p_school is not null and p_competence is not null and p_program is not null then
     if not pg_catalog.pg_try_advisory_xact_lock(
@@ -230,11 +230,11 @@ begin
       raise exception 'OPTIMISTIC_CONFLICT: contexto em correção concorrente; tente novamente';
     end if;
   end if;
-end $;
+end $$;
 revoke all on function radar_private.t4_try_pendency_context_lock(text,text,text) from public,anon,authenticated;
 create function radar_private.t4_pendency_context_trigger()
 returns trigger language plpgsql security definer
-set search_path=pg_catalog,public,radar_private as $
+set search_path=pg_catalog,public,radar_private as $$
 begin
   if tg_op='UPDATE' then
     if (old.school_id,old.competence_origin,old.program_id,old.document_key,old.registered_invoice_id)
@@ -246,7 +246,7 @@ begin
   end if;
   perform radar_private.t4_try_pendency_context_lock(new.school_id,new.competence_origin,new.program_id);
   return new;
-end $;
+end $$;
 revoke all on function radar_private.t4_pendency_context_trigger() from public,anon,authenticated;
 create trigger pendencies_t4_context_lock
 before insert or update of school_id,competence_origin,program_id,document_key,registered_invoice_id
@@ -258,7 +258,7 @@ returns void
 language plpgsql
 security definer
 set search_path = pg_catalog, public, radar_private
-as $
+as $$
 declare
     v_action text := p_plan ->> 'action';
     v_pendency_id text := p_plan #>> '{effects,delete,pendencies,0}';
@@ -303,7 +303,7 @@ begin
 exception when lock_not_available then
     raise exception 'OPTIMISTIC_CONFLICT: registro em atualização concorrente; gere nova prévia';
 end
-$;
+$$;
 revoke all on function radar_private.operational_correction_lock(jsonb) from public,anon,authenticated;
 
 alter function radar_private.apply_operational_change_impl(jsonb,text,uuid) rename to apply_operational_change_impl_r3;
@@ -311,7 +311,7 @@ revoke all on function radar_private.apply_operational_change_impl_r3(jsonb,text
 create function radar_private.apply_operational_change_impl(
   p_request jsonb,p_plan_digest text,p_operation_key uuid
 ) returns jsonb language plpgsql volatile security definer
-set search_path=pg_catalog,public,radar_private as $
+set search_path=pg_catalog,public,radar_private as $$
 declare
   tgt jsonb := coalesce(p_request->'target','{}'::jsonb);
   school text := nullif(btrim(tgt->>'schoolId'),'');
@@ -337,15 +337,15 @@ begin
       and p.document_key=document and p.registered_invoice_id is not distinct from item_id)
   then raise exception 'OPTIMISTIC_CONFLICT: novas Pendências surgiram; gere nova prévia'; end if;
   return receipt;
-end $;
+end $$;
 revoke all on function radar_private.apply_operational_change_impl(jsonb,text,uuid) from public,anon,authenticated;
 grant execute on function radar_private.apply_operational_change_impl(jsonb,text,uuid) to authenticated,service_role;
 create or replace function public.apply_operational_change(
   p_request jsonb,p_plan_digest text,p_operation_key uuid
 ) returns jsonb language sql volatile security invoker
-set search_path=pg_catalog,radar_private as $
+set search_path=pg_catalog,radar_private as $$
   select radar_private.apply_operational_change_impl(p_request,p_plan_digest,p_operation_key)
-$;
+$$;
 revoke all on function public.apply_operational_change(jsonb,text,uuid) from public,anon;
 grant execute on function public.apply_operational_change(jsonb,text,uuid) to authenticated,service_role;
 
