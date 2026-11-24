@@ -384,10 +384,14 @@ test('T2 Consulta à Assessoria + A-01 real + Corrigir análise pela gaveta: RPC
     const retifyDialog = page.getByRole('dialog', { name: 'Corrigir análise técnica' });
     await expect(retifyDialog).toBeVisible();
     await expect(retifyDialog.getByLabel('Novo resultado')).toHaveValue('Correto (Atrasado)');
-    await expect(retifyDialog.getByText(
-        'Consulta à Assessoria da nota fiscal / Resumo da Assessoria do programa — Correto → Correto (Atrasado)',
-        { exact: true }
-    )).toBeVisible();
+    const advisoryTransition = retifyDialog.locator('.correction-effect-transition').filter({
+        has: retifyDialog.getByText('Consulta à Assessoria da nota fiscal / Resumo da Assessoria do programa', { exact: true })
+    });
+    await expect(advisoryTransition).toHaveCount(1);
+    await expect(advisoryTransition.locator('.correction-effect-label')).toHaveText(
+        'Consulta à Assessoria da nota fiscal / Resumo da Assessoria do programa');
+    await expect(advisoryTransition.locator('strong')).toHaveText('Correto → Correto (Atrasado)');
+    await expect(advisoryTransition).toBeVisible();
     await retifyDialog.getByRole('button', { name: 'Confirmar correção', exact: true }).click();
     await expect(retifyDialog).toBeHidden();
     await expect(advisorySelect).toHaveValue('Correto (Atrasado)');

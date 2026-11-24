@@ -121,5 +121,43 @@ select ok((select details->>'operationKey'='00000000-0000-0000-0000-00000000b702
 select is(public.apply_operational_change(pg_temp.t4h_request(),
   (select plan->>'planDigest' from t4h_preview),'00000000-0000-0000-0000-00000000b702')->>'replayed',
   'true','retry da mesma operação devolve recibo sem excluir duas vezes');
+-- NF individual: comprovar o bloqueio estruturado do legado e, depois,
+-- a limpeza do histórico com preservação da despesa e da nota vizinha.
+reset role;
+insert into public.pendencies
+  (id,school_id,competence_origin,program_id,document_key,status,next_actor,registered_invoice_id,resolved_at)
+values ('T4H-P-NF-LEGACY','T4H-S','2043-09',null,'notaFiscal','Resolvida','Controlador','T4H-NF-1',now());
+set local role authenticated;
+create temp table t4h_nf_legacy as
+select public.preview_operational_change(pg_temp.t4h_request('notaFiscal','T4H-NF-1')) as plan;
+select ok((select plan->'blockers' @> '[{"code":"LEGACY_PENDENCY_CONTEXT_CONFLICT"}]'::jsonb from t4h_nf_legacy),
+    'NF com Pendência legada devolve bloqueador estruturado na prévia');
+select throws_like($$ select public.apply_operational_change(
+    pg_temp.t4h_request('notaFiscal','T4H-NF-1'),
+    (select plan->>'planDigest' from t4h_nf_legacy),
+    '00000000-0000-0000-0000-00000000b706') $$,
+    '%PLAN_BLOCKED%', 'bloqueador impede execução, mesmo com digest da prévia');
+select is((select count(*)::int from public.pendencies where id in ('T4H-P-INVOICE','T4H-P-NF-LEGACY')),2,
+    'bloqueio não remove registros');
+reset role;
+delete from public.pendencies where id='T4H-P-NF-LEGACY';
+set local role authenticated;
+create temp table t4h_nf_plan as
+select public.preview_operational_change(pg_temp.t4h_request('notaFiscal','T4H-NF-1')) as plan;
+select is((select plan #> '{effects,delete,pendencies}' from t4h_nf_plan),
+    '["T4H-P-INVOICE"]'::jsonb,'prévia de NF inclui somente histórico da despesa selecionada');
+select lives_ok($$ select public.apply_operational_change(
+    pg_temp.t4h_request('notaFiscal','T4H-NF-1'),
+    (select plan->>'planDigest' from t4h_nf_plan),
+    '00000000-0000-0000-0000-00000000b707') $$,
+    'limpeza autenticada do histórico fiscal executada');
+select is((select count(*)::int from public.registered_invoices where id in ('T4H-NF-1','T4H-NF-2')),2,
+    'limpeza fiscal preserva ambas as notas');
+select is((select payload->>'analiseDocumentoFiscal' from public.registered_invoices where id='T4H-NF-2'),
+    'Correto','preserva análise da nota vizinha');
+select is((select count(*)::int from public.pendencies where id='T4H-P-INVOICE'),0,
+    'remove histórico fiscal selecionado');
+select is((select bonus_result from public.verifications where id='T4H-V-A09'),
+    'apta','limpeza fiscal preserva bonificação consolidada');
 select * from finish();
 rollback;

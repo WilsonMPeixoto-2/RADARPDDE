@@ -127,13 +127,22 @@ test('diálogo permanece dentro do viewport de 390 px em tema escuro', async ({ 
     const dialog = await controlledDialog(page);
     const geometry = await dialog.evaluate(node => {
         const r = node.getBoundingClientRect();
+        const body = node.querySelector('.radar-operational-correction-body');
         return { left: r.left, right: r.right,
             viewport: document.documentElement.clientWidth,
-            overflowY: getComputedStyle(node).overflowY };
+            overflowY: getComputedStyle(node).overflowY,
+            bodyOverflowY: getComputedStyle(body).overflowY,
+            bodyHeight: body.clientHeight, bodyWidth: body.clientWidth,
+            bodyScrollWidth: body.scrollWidth };
     });
     expect(geometry.left).toBeGreaterThanOrEqual(0);
     expect(geometry.right).toBeLessThanOrEqual(geometry.viewport);
-    expect(geometry.overflowY).toBe('auto');
+    expect(geometry.overflowY).toBe('hidden');
+    expect(geometry.bodyOverflowY).toBe('auto');
+    expect(geometry.bodyHeight).toBeGreaterThan(0);
+    expect(geometry.bodyScrollWidth).toBeLessThanOrEqual(geometry.bodyWidth + 1);
+    await expect(dialog.getByRole('region', { name: 'Prévia completa da operação' })).toHaveAttribute('tabindex', '0');
+    await expect(dialog.getByRole('button', { name: 'Confirmar correção' })).toBeInViewport();
 });
 
 test('RadarDataContext artificial não substitui repositório canônico local', async ({ page }) => {

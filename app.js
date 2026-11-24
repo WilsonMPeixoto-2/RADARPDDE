@@ -10567,7 +10567,7 @@ function renderProntuarioVerificacoes(esc) {
                                 <button type="button" class="fiscal-bonus-edit radar-action-help"
                                     data-tooltip="Corrige a avaliação de Notas Fiscais da bonificação, sem excluir notas. Se necessário, consolide novamente." aria-description="Corrige a avaliação de Notas Fiscais da bonificação, sem excluir notas. Se necessário, consolide novamente."
                                     data-school-id="${escapeHtml(esc.id)}" data-comp-key="${escapeHtml(compProgKey)}"
-                                    data-school-name="${escapeHtml(esc.denominação)}" data-program-name="${escapeHtml(progName)}"
+                                    data-school-name="${escapeHtml(getSchoolDisplayName(esc, esc.id))}" data-program-name="${escapeHtml(progName)}"
                                     data-competence-label="${escapeHtml(c.label)}" onclick="openFiscalBonusCorrection(this)">
                                     Corrigir consolidação
                                 </button>

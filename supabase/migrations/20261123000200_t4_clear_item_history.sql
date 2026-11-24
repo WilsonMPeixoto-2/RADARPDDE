@@ -36,6 +36,7 @@ declare
   counts jsonb;
   preserved jsonb;
   original_update jsonb;
+  legacy_context_conflict boolean := false;
 begin
   if req->>'action' is distinct from 'clear_item_history' then
     return radar_private.operational_correction_build_plan_r3(p_request);
@@ -60,15 +61,13 @@ begin
 
   -- Não inferir que uma Pendência antiga sem programa pertence à análise
   -- somente pela escola/mês/documento. NF individual exige vínculo FK explícito.
-  if item_id is not null and exists(
+  legacy_context_conflict := item_id is not null and exists(
       select 1 from public.pendencies p
       where p.registered_invoice_id=item_id and p.document_key=document
         and (p.school_id is distinct from school
           or p.competence_origin is distinct from competence
           or p.program_id is distinct from program)
-  ) then
-    raise exception 'PLAN_BLOCKED: há Pendência de NF com contexto incompleto ou divergente. Exclua-a individualmente pelo ID, depois retome a limpeza';
-  end if;
+  );
 
   select coalesce(array_agg(p.id order by p.id),array[]::text[]),
          coalesce(array_agg(p.id order by p.id) filter
@@ -128,13 +127,20 @@ begin
     from public.pendencies p where p.id=any(affected_pendencies);
 
   original_update:=coalesce(plan #> '{effects,update}','[]'::jsonb);
-  if cardinality(affected_pendencies)=0
+  if jsonb_array_length(blockers)=0 and not legacy_context_conflict
+    and cardinality(affected_pendencies)=0
     and not exists(select 1 from jsonb_array_elements(original_update) as item(value)
       where item.value->>'before' is distinct from item.value->>'after'
         and (item.value->>'before') is distinct from 'Não analisado')
   then
     blockers:=jsonb_build_array(jsonb_build_object('code','NO_EFFECT',
       'message','Este item já está sem avaliação e não possui histórico a excluir.'));
+  end if;
+
+  if legacy_context_conflict then
+    blockers:=blockers || jsonb_build_array(jsonb_build_object(
+      'code','LEGACY_PENDENCY_CONTEXT_CONFLICT',
+      'message','Há Pendência vinculada à nota com contexto incompleto ou divergente. Confira a Pendência individualmente antes de retomar a limpeza.'));
   end if;
 
   deleted:=deleted || jsonb_build_object(
