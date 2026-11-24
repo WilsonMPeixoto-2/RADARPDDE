@@ -128,7 +128,7 @@ test('programa com despesas mantém vínculos, acesso por teclado e leitura nos 
     }
 });
 
-for (const viewport of [{ width: 390, height: 844 }, { width: 716, height: 900 }]) {
+for (const viewport of [{ width: 390, height: 844 }, { width: 716, height: 900 }, { width: 980, height: 1000 }]) {
     test(`Prontuário compacto sem rolagem horizontal para consolidar em ${viewport.width}px`, async ({ page }, testInfo) => {
         await page.setViewportSize(viewport);
         const context = await prepareSchool(page, { withOpenUnidentified: true });
@@ -150,16 +150,94 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 716, height: 900 }
             await action.scrollIntoViewIfNeeded();
             await expect(action).toBeInViewport({ ratio: 1 });
             expect(await wrapper.evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(2);
-            await expect(row.locator('.prontuario-compact-label').first()).toBeVisible();
+            const contentWidth = await wrapper.evaluate(el => el.clientWidth);
+            if (contentWidth < 620) {
+                await expect(row.locator('.prontuario-compact-label').first()).toBeVisible();
+            } else {
+                await expect(row.locator('.prontuario-compact-label').first()).toBeHidden();
+                expect(await row.evaluate(el => getComputedStyle(el).display)).toBe('table-row');
+            }
             const rects = await row.evaluate(el => [...el.querySelectorAll('td')].filter(x => x.getClientRects().length).map(x => {
                 const r = x.getBoundingClientRect();
                 return r.left >= -1 && r.right <= document.documentElement.clientWidth + 1;
             }));
             expect(rects.every(Boolean)).toBe(true);
-            await page.screenshot({ path: testInfo.outputPath(`prontuario-compacto-${viewport.width}-${theme}.png`), animations: 'disabled' });
+            await testInfo.attach(`prontuario-compacto-${viewport.width}-${theme}`, {
+                body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png'
+            });
         }
         await action.click();
         await expect(page.getByRole('alertdialog', { name: 'Consolidar bonificação', exact: true })).toBeVisible();
         await page.getByRole('alertdialog', { name: 'Consolidar bonificação', exact: true }).getByRole('button', { name: 'Cancelar', exact: true }).click();
     });
 }
+
+test('modo PC em tela estreita conserva a grade e as ações da NF sem empilhamento desnecessário', async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 980, height: 1050 });
+    const context = await prepareSchool(page, { withOpenUnidentified: true });
+    await page.evaluate(async ({ schoolId, compKey }) => {
+        await window.RadarProductExtensionsReady;
+        const services = window.RadarApplicationServices;
+        if (services.data.repository.capabilities().remote) throw new Error('Fixture exige ambiente local.');
+        await services.invoices.save({ schoolId, compKey, expenseType: 'consumo',
+            invoiceNumber: 'PC-COMPACTO-01', description: 'Material de consumo', amount: 1068.10, profile: 'controlador' });
+        rebuildOperationalIndexes();
+        persist();
+        switchView('prontuario', schoolId);
+    }, context);
+    const wrap = page.locator('.prontuario-evaluation-table-wrap');
+    const program = page.locator('[data-program-header="BASIC"]');
+    const regular = page.locator('tr[data-program-id="BASIC"][data-document-key="extCC"]');
+    const nf = page.locator('tr[data-program-id="BASIC"][data-document-key="notaFiscal"] .invoice-document-row').filter({ hasText: 'PC-COMPACTO-01' });
+    for (const theme of ['light', 'dark']) {
+        if (theme === 'dark') await page.getByRole('button', { name: 'Mudar para tema escuro', exact: true }).click();
+        await expect(nf).toBeVisible();
+        const measure = await wrap.evaluate(el => {
+            const header = el.querySelector('[data-program-header="BASIC"] .program-context-header');
+            const row = el.querySelector('tr[data-program-id="BASIC"][data-document-key="extCC"]');
+            const cells = [...row.cells].map(cell => cell.getBoundingClientRect());
+            return { width: el.clientWidth, overflow: el.scrollWidth - el.clientWidth,
+                display: getComputedStyle(row).display, rowHeight: row.offsetHeight,
+                headerHeight: header.offsetHeight, aligned: cells.every(cell => Math.abs(cell.top - cells[0].top) <= 2) };
+        });
+        expect(measure.width).toBeGreaterThanOrEqual(620);
+        expect(measure.overflow).toBeLessThanOrEqual(2);
+        expect(measure.display).toBe('table-row');
+        expect(measure.aligned).toBe(true);
+        expect(measure.rowHeight).toBeLessThanOrEqual(150);
+        expect(measure.headerHeight).toBeLessThanOrEqual(130);
+        const invoice = await nf.evaluate(el => {
+            const title = el.querySelector('.invoice-document-title-line > strong').getBoundingClientRect();
+            const meta = el.querySelector('.invoice-document-meta').getBoundingClientRect();
+            const actions = el.querySelector('.invoice-document-inline-actions').getBoundingClientRect();
+            return { overflow: el.scrollWidth - el.clientWidth, height: el.offsetHeight,
+                horizontal: meta.left > title.right, actionsBelow: actions.top >= title.bottom - 2 };
+        });
+        expect(invoice.overflow).toBeLessThanOrEqual(2);
+        expect(invoice.horizontal).toBe(true);
+        expect(invoice.actionsBelow).toBe(true);
+        expect(invoice.height).toBeLessThanOrEqual(160);
+        const bonus = page.locator('tr[data-program-id="BASIC"][data-document-key="notaFiscal"] .invoice-summary-block.is-bonification');
+        expect(await bonus.evaluate(el => Math.abs(el.firstElementChild.getBoundingClientRect().left - el.lastElementChild.getBoundingClientRect().left))).toBeLessThanOrEqual(4);
+        const summary = bonus.locator('..');
+        const spacing = await summary.evaluate(el => {
+            const toggle = el.querySelector('.invoice-bonification-toggle');
+            const pending = el.querySelector('.invoice-summary-block.is-pendencies');
+            const bounds = toggle.getBoundingClientRect();
+            const other = pending.getBoundingClientRect();
+            const parent = el.getBoundingClientRect();
+            return {
+                separated: bounds.right + 4 <= other.left || other.right + 4 <= bounds.left
+                    || bounds.bottom + 4 <= other.top || other.bottom + 4 <= bounds.top,
+                contained: bounds.right <= parent.right + 1 && other.right <= parent.right + 1,
+                allOptionsVisible: [...toggle.children].every(child => child.getBoundingClientRect().right <= bounds.right + 1)
+            };
+        });
+        expect(spacing).toEqual({ separated: true, contained: true, allOptionsVisible: true });
+        await program.scrollIntoViewIfNeeded();
+        await testInfo.attach(`modo-pc-cabecalho-${theme}`, { body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
+        await nf.scrollIntoViewIfNeeded();
+        await testInfo.attach(`modo-pc-notas-${theme}`, { body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
+        await expect(regular.locator('select.select-analise')).toBeVisible();
+    }
+});
