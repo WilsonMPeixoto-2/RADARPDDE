@@ -116,8 +116,10 @@ test('T4 histórico: prévia legível e Cancelar preserva a operação', async (
     await expect(dialog).not.toContainText('H-P-2');
     const confirm = dialog.getByRole('button', { name: 'Excluir análise e pendências' });
     await expect(confirm).toBeEnabled();
-    await expect(confirm).toHaveAttribute('data-tooltip', /Pendências.*preserva a despesa/i);
-    await expect(confirm).toHaveAttribute('aria-description', /preserva a despesa/i);
+    for (const attribute of ['data-tooltip', 'aria-description']) {
+        await expect(confirm).toHaveAttribute(attribute, /exclui a análise técnica, as pendências listadas e seus envios e contatos/i);
+        await expect(confirm).toHaveAttribute(attribute, /preserva a bonificação, a nota fiscal e os bens/i);
+    }
     await expect(dialog.getByRole('button', { name: 'Conferir novamente' })).toHaveAttribute('data-tooltip', /não exclui/i);
     await expect(dialog.getByRole('button', { name: 'Cancelar' })).toHaveAttribute('data-tooltip', /sem alterar/i);
     expect((await page.evaluate(() => window.__t4HistoryCalls)).map(x => x.name)).toEqual(['preview_operational_change']);
