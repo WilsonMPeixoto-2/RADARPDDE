@@ -1176,7 +1176,7 @@ test('T4 · corrigir bonificação fiscal, preservar notas e consolidar o progra
 
     await edit.click();
     await expect(dialog).toContainText('Escola Horizonte');
-    await expect(dialog.getByText('Nesta etapa, você pode corrigir apenas a avaliação de Notas Fiscais.')).toBeVisible();
+    await expect(dialog).toContainText('Corrija apenas a avaliação de entrega deste documento.');
     await expect(dialog).toContainText('Alterações pendentes de consolidação');
     await expect(dialog).toContainText('Consolidar bonificação');
     await expect(dialog.getByText('Avaliação atual: Sim')).toBeVisible();

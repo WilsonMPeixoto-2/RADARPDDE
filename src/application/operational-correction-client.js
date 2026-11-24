@@ -146,9 +146,13 @@
         const request = { contractVersion: CONTRACT_VERSION, action, target };
         if (action === 'correct_bonification') {
             const mark = input.changes?.bonificacao;
-            if (!target.programId || target.documentKey !== 'notaFiscal'
-                || ![null, 'Sim', 'Não', 'Não se aplica'].includes(mark)) {
-                throw invalid('Informe o programa e a nova marca de Notas Fiscais.');
+            const manual = ['extCC', 'extINV', 'notaFiscal', 'declBBAgil'];
+            const derived = ['consAssessoria', 'encampInventario'];
+            if (!target.programId || ![...manual, ...derived].includes(target.documentKey)
+                || ![null, 'Sim', 'Não', 'Não se aplica'].includes(mark)
+                || (['extCC', 'extINV'].includes(target.documentKey) && mark === 'Não se aplica')
+                || (derived.includes(target.documentKey) && mark !== null)) {
+                throw invalid('Informe o programa e uma avaliação válida para este critério.');
             }
             request.changes = { bonificacao: mark };
         }
@@ -285,14 +289,16 @@
                     { p_request: previewPayload(request) },
                     'previewOperationalChange'
                 );
-                if (request.action === 'clear_item_history' || request.action === 'delete_context') {
+                if (request.action === 'clear_item_history' || request.action === 'delete_context' || request.action === 'correct_bonification') {
                     const actual = plan?.target || {};
                     const expected = request.target;
                     const sameContext = plan?.action === request.action
                         && text(actual.kind) === expected.kind
                         && (request.action === 'delete_context'
                             ? ['schoolId', 'competence', 'programId']
-                            : ['schoolId', 'competence', 'programId', 'documentKey', 'id']
+                            : request.action === 'correct_bonification'
+                                ? ['schoolId', 'competence', 'programId', 'documentKey']
+                                : ['schoolId', 'competence', 'programId', 'documentKey', 'id']
                         ).every(key => text(actual[key]) === text(expected[key]));
                     if (!sameContext) {
                         throw new OperationalCorrectionError(

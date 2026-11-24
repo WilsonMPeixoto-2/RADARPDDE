@@ -1,7 +1,7 @@
 -- Release 2, D011/D014. Toda a massa existe apenas nesta transação.
 begin;
 set local search_path = extensions, public, pg_catalog;
-select plan(16);
+select plan(25);
 
 insert into auth.users(id,email) values ('00000000-0000-0000-0000-00000000a401','r2-controlador@example.test');
 insert into public.controllers(id,name,user_id) values ('R2-CTRL','Controlador T4','00000000-0000-0000-0000-00000000a401');
@@ -73,5 +73,32 @@ select public.save_verification_with_log(to_jsonb(v) || '{"bonification":{"notaF
     v.row_version,'{"id":"R2-LOG-CONSOLIDACAO","action":"Bonificação consolidada"}') from public.verifications v where id='R2-V-R2-A';
 select ok((select bonus_result='apta' and not (payload ? 'bonificacaoPendenteConsolidacao')
     from public.verifications where id='R2-V-R2-A'),'gravar o novo resultado pela RPC canônica encerra o aviso');
+-- Critérios adicionais: nenhuma edição direta dos fatos de origem.
+create function pg_temp.request_for(doc text,mark text) returns jsonb language sql as $
+  select jsonb_set(pg_temp.request(mark),'{target,documentKey}',to_jsonb(doc))
+$;
+select lives_ok($select public.apply_operational_change(pg_temp.request_for('extCC','Não'),
+    public.preview_operational_change(pg_temp.request_for('extCC','Não'))->>'planDigest','00000000-0000-0000-0000-00000000a413')$,
+    'Controlador corrige extrato de conta corrente consolidado');
+select ok((select bonification->>'extCC'='Não' and bonification->>'extINV'='Sim' and bonus_result is null
+    from public.verifications where id='R2-V-R2-A'),'reabre apenas bonificação do contexto e preserva outro extrato');
+select throws_ok($select public.preview_operational_change(pg_temp.request_for('extINV','Não se aplica'))$,
+    'P0001','VALIDATION_ERROR: extratos não admitem Não se aplica','extrato obrigatório não admite N/A');
+select lives_ok($select public.apply_operational_change(pg_temp.request_for('extINV','Não'),
+    public.preview_operational_change(pg_temp.request_for('extINV','Não'))->>'planDigest','00000000-0000-0000-0000-00000000a414')$,
+    'Controlador corrige extrato de investimento sem excluir registros');
+select lives_ok($select public.apply_operational_change(pg_temp.request_for('declBBAgil','Não se aplica'),
+    public.preview_operational_change(pg_temp.request_for('declBBAgil','Não se aplica'))->>'planDigest','00000000-0000-0000-0000-00000000a415')$,
+    'BB Ágil N/A usa a regra de neutralidade sem excluir pendência ou nota');
+select ok((select bonification->>'declBBAgil'='Não se aplica' and analysis->>'declBBAgil'='Correto'
+    from public.verifications where id='R2-V-R2-A'),'BB Ágil N/A fica tecnicamente neutro');
+select lives_ok($select public.apply_operational_change(pg_temp.request_for('declBBAgil','Sim'),
+    public.preview_operational_change(pg_temp.request_for('declBBAgil','Sim'))->>'planDigest','00000000-0000-0000-0000-00000000a416')$,
+    'sair de N/A permite nova avaliação técnica');
+select ok((select analysis->>'declBBAgil'='Não analisado' and bonification->>'extCC'='Não'
+    from public.verifications where id='R2-V-R2-A'),'sair de N/A não altera os demais critérios');
+select throws_ok($select public.preview_operational_change(pg_temp.request_for('consAssessoria','Sim'))$,
+    'P0001','VALIDATION_ERROR: critério derivado exige conferência dos registros de origem, não escolha manual',
+    'não inventa entrega à Assessoria por marcação direta');
 select * from finish();
 rollback;

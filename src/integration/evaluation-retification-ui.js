@@ -99,6 +99,8 @@
             programId,
             documentKey,
             compKey: `${competence}_${programId}`,
+            ...(typeof root.operationalCorrectionDisplayContext === 'function'
+                ? root.operationalCorrectionDisplayContext(schoolId, competence, programId) : {}),
             documentLabel: DOCUMENT_LABELS[documentKey] || documentKey
         };
     }
@@ -576,8 +578,9 @@
 
             const bonificationGroup = row.querySelector('.btn-group-toggle');
             const consolidated = Boolean(verification.resultadoBonif || verification.bonus_result) && currentProfile(root) !== 'assistente';
-            if (consolidated) row.querySelector('[data-evaluation-retification-actions="bonification"]')?.remove();
-            if (bonificationGroup && !consolidated && !DERIVED_BONIFICATION_DOCUMENTS.has(context.documentKey)) {
+            const integratedBonus = Boolean(row.querySelector('.contextual-bonus-edit'));
+            if (consolidated || integratedBonus) row.querySelector('[data-evaluation-retification-actions="bonification"]')?.remove();
+            if (bonificationGroup && !consolidated && !integratedBonus && !DERIVED_BONIFICATION_DOCUMENTS.has(context.documentKey)) {
                 const bonificationCell = bonificationGroup.closest('td');
                 if (bonificationCell) {
                     const area = ensureActionArea(root, bonificationCell, 'bonification');

@@ -135,6 +135,9 @@
         const historyDeletion = mode === 'clear_item_history';
         const deleting = contextDeletion || historyDeletion || mode === 'delete_invoice' || mode === 'delete_pendency';
         const bonus = mode === 'correct_bonification';
+        const derivedBonus = bonus && ['consAssessoria', 'encampInventario'].includes(context.documentKey);
+        const bonusDocument = context.documentLabel || context.documentKey;
+        const mandatoryBonus = ['extCC', 'extINV'].includes(context.documentKey);
         if (bonus && !canCorrectFiscalBonus(root)) return false;
         if (contextDeletion && !canDeleteContext(root)) return false;
         if (historyDeletion && !canClearHistory(root)) return false;
@@ -182,7 +185,7 @@
         dialog.setAttribute('aria-labelledby', 'radar-operational-correction-title');
         const header = el(doc, 'header', 'radar-operational-correction-header');
         const kicker = el(doc, 'span', 'evaluation-retification-kicker',
-            contextDeletion ? 'Exclusão de lançamentos' : historyDeletion ? 'Exclusão de análise e pendências' : bonus ? 'Avaliação de Notas Fiscais'
+            contextDeletion ? 'Exclusão de lançamentos' : historyDeletion ? 'Exclusão de análise e pendências' : bonus ? 'Avaliação de entrega · ' + bonusDocument
                 : deleting ? (mode === 'delete_invoice' ? 'Exclusão de nota fiscal' : 'Exclusão de pendência')
                     : 'Correção operacional');
         const title = el(doc, 'h2', '', contextDeletion ? 'Excluir lançamentos do mês' : historyDeletion
@@ -215,24 +218,25 @@
         }
         if (!deleting && !bonus) {
             header.appendChild(el(doc, 'p', 'correction-confirmation-hint',
-                'Escolha o resultado e confira os efeitos. Nada será gravado antes da confirmação.'));
+                'Escolha o novo resultado e confira os efeitos. Para apagar todas as pendências vinculadas ao item, use Excluir análise e pendências no Prontuário. Nada será gravado antes da confirmação.'));
         }
         if (bonus) {
             const explanation = el(doc, 'p', 'fiscal-bonus-explanation',
-                'Nesta etapa, você pode corrigir apenas a avaliação de Notas Fiscais. '
-                + 'Se a bonificação já tiver sido consolidada, ao confirmar a alteração '
-                + 'o programa ficará com Alterações pendentes de consolidação até '
-                + 'você utilizar Consolidar bonificação.');
+                (derivedBonus
+                    ? 'Este critério é calculado pelos registros vinculados. A correção recalcula a avaliação sem inventar envios ou atos patrimoniais. '
+                    : 'Corrija apenas a avaliação de entrega deste documento. ')
+                + 'Se a bonificação já estiver consolidada, o programa ficará com Alterações pendentes de consolidação até você utilizar Consolidar bonificação.');
             header.appendChild(explanation);
         }
         const current = el(doc, 'p', 'radar-operational-correction-current', bonus
             ? 'Avaliação atual: ' + text(input.currentValue || 'Não preenchida')
             : 'Resultado atual: ' + text(input.currentValue || 'Não analisado'));
-        const label = el(doc, 'label', '', bonus ? 'Nova avaliação — Notas Fiscais' : 'Novo resultado');
+        const label = el(doc, 'label', '', bonus ? 'Nova avaliação — ' + bonusDocument : 'Novo resultado');
         label.htmlFor = 'radar-operational-correction-select';
         const select = el(doc, 'select', 'form-control');
         select.id = 'radar-operational-correction-select';
-        const choices = bonus ? ['', 'Sim', 'Não', 'Não se aplica', 'Limpar resposta'] : ANALYSES;
+        const choices = bonus ? (derivedBonus ? ['Recalcular pelos registros vinculados']
+            : ['', 'Sim', 'Não', ...(!mandatoryBonus ? ['Não se aplica'] : []), 'Limpar resposta']) : ANALYSES;
         for (const choice of choices) {
             const option = el(doc, 'option', '', choice || 'Escolha uma opção');
             option.value = choice;
@@ -244,7 +248,7 @@
         // "Não analisado" permanece disponível para limpeza deliberada.
         const currentChoice = text(input.currentValue);
         const suggestedValue = text(input.suggestedValue);
-        select.value = bonus ? '' : ANALYSES.includes(suggestedValue)
+        select.value = bonus ? (derivedBonus ? 'Recalcular pelos registros vinculados' : '') : ANALYSES.includes(suggestedValue)
             ? suggestedValue
             : currentChoice !== 'Não analisado' && ANALYSES.includes(currentChoice)
                 ? currentChoice : 'Correto';
@@ -281,7 +285,7 @@
                     : mode === 'delete_pendency'
                         ? 'Exclui a Pendência selecionada e os vínculos indicados na prévia.'
                         : bonus
-                            ? 'Grava a nova avaliação de Notas Fiscais. Se necessário, consolide a bonificação novamente.'
+                            ? 'Grava a avaliação deste critério conforme a prévia. Se necessário, consolide a bonificação novamente.'
                             : 'Grava o resultado e os efeitos indicados na prévia.');
         (deleting ? cancel : select).autofocus = true;
         clearBtn.disabled = currentChoice === 'Não analisado' || !currentChoice;
@@ -482,11 +486,17 @@
             if (protections.length) effects.appendChild(preservationPanel(doc, protections.join(' ')));
             if (bonus) {
                 for (const change of changes) {
-                    if (change.field === 'bonification.notaFiscal') {
+                    if (change.field === 'bonification.' + context.documentKey) {
                         const pair = el(doc, 'div', 'fiscal-bonus-transition');
                         pair.append(el(doc, 'span', '', change.before), el(doc, 'span', 'fiscal-bonus-arrow', '→'),
                             el(doc, 'strong', '', change.after));
                         effects.appendChild(pair);
+                    } else if (change.field.startsWith('analysis.') || change.field === 'bonification.consEnviada') {
+                        const transition = el(doc, 'div', 'correction-effect-transition');
+                        transition.append(el(doc, 'span', 'correction-effect-label',
+                            EFFECT_LABELS[change.field] || 'Análise técnica de ' + bonusDocument),
+                            el(doc, 'strong', '', text(change.before) + ' → ' + text(change.after)));
+                        effects.appendChild(transition);
                     } else if (change.field === 'bonus_result') {
                         effects.appendChild(el(doc, 'p', '', 'O resultado ' + text(change.before).toLocaleUpperCase('pt-BR')
                             + ' deste programa será reaberto para consolidação.'));
@@ -654,7 +664,7 @@
                 const result = await client.preview({
                     action,
                     target,
-                    ...(bonus ? { changes: { bonificacao: select.value === 'Limpar resposta' ? null : select.value } } : {}),
+                    ...(bonus ? { changes: { bonificacao: derivedBonus || select.value === 'Limpar resposta' ? null : select.value } } : {}),
                     ...(action === 'correct_analysis' ? { changes: { analysis: select.value } } : {}),
                     ...(selectedPendencyIds.size > 0 && !deleting
                         ? { selectedPendencyIds: [...selectedPendencyIds] } : {})
@@ -670,7 +680,7 @@
                     save.disabled = false;
                     if (action === 'clear_analysis') {
                         actionHelp(save, 'Define a análise como Não analisado e aplica apenas os efeitos mostrados na prévia.');
-                        status('Análise pronta para ser limpa. Confira o que vai mudar acima e clique em Confirmar correção.', false);
+                        status('A análise atual voltará a Não analisado. Apenas os efeitos indicados serão aplicados; não é a exclusão de todo o histórico. Confira e confirme.', false);
                     } else if (contextDeletion) {
                         status('Prévia pronta. Confira antes de excluir.', false);
                     } else if (historyDeletion) {
@@ -716,7 +726,8 @@
                 if (bonus && previousFocus?.dataset) {
                     const control = Array.from(doc.querySelectorAll('.fiscal-bonus-edit')).find(button =>
                         button.dataset.schoolId === target.schoolId
-                        && button.dataset.compKey === previousFocus.dataset.compKey);
+                        && button.dataset.compKey === previousFocus.dataset.compKey
+                        && (button.dataset.documentKey || 'notaFiscal') === target.documentKey);
                     control?.focus({ preventScroll: true });
                 } else if (historyDeletion) {
                     const itemRow = Array.from(doc.querySelectorAll?.('tr[data-document-key]') || [])
@@ -753,16 +764,16 @@
                 let message = contextDeletion
                     ? 'Lançamentos excluídos. Confira o programa e o mês antes de cadastrar novamente.'
                     : historyDeletion
-                        ? 'Histórico do item limpo. A nota fiscal, a bonificação e os demais documentos foram preservados.'
+                        ? 'Análise e pendências vinculadas excluídas. A bonificação e os documentos cadastrados foram preservados.'
                         : deleting ? 'Exclusão confirmada. Os registros relacionados foram atualizados.'
                             : 'Correção confirmada e informações atualizadas.';
                 if (bonus) {
                     const reopened = preview.view.changes.some(change => change.field === 'bonus_result');
                     const cleared = select.value === 'Limpar resposta';
                     message = reopened ? (cleared
-                        ? 'Avaliação removida. Preencha novamente Notas Fiscais para habilitar Consolidar bonificação no cabeçalho do programa.'
+                        ? 'Avaliação removida. Preencha novamente ' + bonusDocument + ' para habilitar Consolidar bonificação no cabeçalho do programa.'
                         : 'Avaliação corrigida. Para concluir, utilize Consolidar bonificação no cabeçalho do programa.')
-                        : (cleared ? 'Avaliação de Notas Fiscais removida.' : 'Avaliação de Notas Fiscais atualizada.');
+                        : (cleared ? 'Avaliação removida: ' + bonusDocument + '.' : 'Avaliação atualizada: ' + bonusDocument + '.');
                 }
                 root.RadarSharedInteractions?.notify?.({ type: 'success', message });
             } catch (_error) {

@@ -1957,3 +1957,37 @@ body.dark-theme #prontuario-verif-rows .invoice-history-clear-button { color: #f
     #prontuario-verif-rows .invoice-document-list:not(.no-analysis):not(.no-actions) .invoice-document-row:has(.has-readable-actions):not(:has(.invoice-legacy-badge, .invoice-provisional-label)) .invoice-document-inline-actions { grid-column: 1 / -1; grid-row: 2; padding-inline-start: 38px; align-items: center; }
     #prontuario-verif-rows .has-readable-actions .radar-labelled-action { min-block-size: 32px; }
 }
+
+/* Revisão integrada: ações de rotina em primeiro plano e contexto persistente. */
+.prontuario-school-header .prontuario-active-context { margin: 4px 0 0; color: var(--text-main); font-size: .75rem; font-weight: 650; line-height: 1.4; overflow-wrap: anywhere; }
+.prontuario-school-header .prontuario-active-context[hidden] { display: none; }
+#prontuario-verif-rows .program-context-delete-button,
+#prontuario-verif-rows .prontuario-history-clear-button,
+#prontuario-verif-rows .invoice-history-clear-button,
+#prontuario-verif-rows .invoice-document-inline-actions .is-danger {
+    background: transparent; box-shadow: none; color: var(--danger, #b91c1c);
+    border-color: transparent; white-space: normal; line-height: 1.35;
+}
+#prontuario-verif-rows .program-context-delete-button:hover,
+#prontuario-verif-rows .program-context-delete-button:focus-visible,
+#prontuario-verif-rows .prontuario-history-clear-button:hover,
+#prontuario-verif-rows .prontuario-history-clear-button:focus-visible,
+#prontuario-verif-rows .invoice-history-clear-button:hover,
+#prontuario-verif-rows .invoice-history-clear-button:focus-visible {
+    background: color-mix(in srgb, #b91c1c 7%, var(--bg-card));
+    border-color: color-mix(in srgb, #b91c1c 24%, var(--border-color));
+}
+body.dark-theme #prontuario-verif-rows :is(.program-context-delete-button, .prontuario-history-clear-button, .invoice-history-clear-button, .invoice-document-inline-actions .is-danger) { color: #fca5a5; }
+#prontuario-verif-rows .contextual-bonus-edit { display: inline-flex; margin-block-start: 4px; white-space: normal; max-inline-size: 100%; min-block-size: 32px; line-height: 1.3; text-align: start; }
+#prontuario-verif-rows .inventory-document-next { grid-column: 2; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 4px; min-width: 0; color: var(--text-muted); font-size: .72rem; line-height: 1.45; }
+#prontuario-verif-rows .inventory-document-next > span { flex-basis: 100%; overflow-wrap: anywhere; }
+#prontuario-verif-rows .inventory-document-next button { max-width: 100%; white-space: normal; }
+#prontuario-verif-rows .verification-document-action-cell .evaluation-retification-trigger,
+#prontuario-verif-rows .invoice-analysis-edit-button { max-width: 100%; white-space: normal; line-height: 1.35; }
+@container prontuario-table (inline-size >= 620px) and (inline-size < 920px) {
+    #tab-verificacoes .prontuario-evaluation-table[data-col-count="4"] .prontuario-col-doc { width: 32%; }
+    #tab-verificacoes .prontuario-evaluation-table[data-col-count="4"] .prontuario-col-bonif { width: 22%; }
+    #tab-verificacoes .prontuario-evaluation-table[data-col-count="4"] .prontuario-col-analise { width: 25%; }
+    #tab-verificacoes .prontuario-evaluation-table[data-col-count="4"] .prontuario-col-action { width: 21%; }
+    #prontuario-verif-rows [data-program-header] .program-context-header[data-col-count="4"] { grid-template-columns: 32% 22% 25% 21%; }
+}

@@ -163,6 +163,26 @@
         }
 
         entry.append(connector, copy, badge);
+        if (status !== 'Inventariada') {
+            const guidance = root.document.createElement('div');
+            guidance.className = 'inventory-document-next';
+            const message = root.document.createElement('span');
+            message.textContent = status === 'Encaminhada'
+                ? 'Próxima providência: acompanhar o processamento da inventariação.'
+                : status === 'Não encaminhada'
+                    ? 'Próxima providência: conferir e registrar o encaminhamento para inventariação.'
+                    : 'Próxima providência: conferir o cadastro e o vínculo patrimonial desta nota. Não indica perda física do bem.';
+            guidance.appendChild(message);
+            if (root.document.getElementById('prontuario-tab-capital') && typeof root.activateProntuarioTab === 'function') {
+                const button = root.document.createElement('button');
+                button.type = 'button';
+                button.className = 'btn btn-secondary btn-sm inventory-document-open-capital';
+                button.textContent = 'Abrir Registro de Capital';
+                button.addEventListener('click', () => root.activateProntuarioTab('tab-capital'));
+                guidance.appendChild(button);
+            }
+            entry.appendChild(guidance);
+        }
         return entry;
     }
 
@@ -497,7 +517,34 @@
         return true;
     }
 
+    let contextFrame = 0;
+    function updateVisibleContext() {
+        contextFrame = 0;
+        const label = root.document.querySelector('[data-prontuario-active-context]');
+        const tab = root.document.getElementById('tab-verificacoes');
+        if (!label) return;
+        const active = tab?.classList.contains('active') && tab.getClientRects().length > 0;
+        const month = getActiveCompetenceKey();
+        label.hidden = !active || !month;
+        if (label.hidden) return;
+        const headers = [...tab.querySelectorAll('[data-program-header]')];
+        const headerBottom = label.closest('.prontuario-school-header')?.getBoundingClientRect().bottom || 0;
+        const table = tab.querySelector('.prontuario-evaluation-table-wrap');
+        const inTable = table && table.getBoundingClientRect().top <= headerBottom
+            && table.getBoundingClientRect().bottom > headerBottom;
+        const current = inTable ? headers.filter(row => row.getBoundingClientRect().top <= headerBottom + 2).at(-1) : null;
+        const program = text(current?.querySelector('.program-context-name')?.textContent);
+        const monthLabel = headers[0]?.querySelector('.program-context-competence')?.textContent
+            || root.RadarCompetencia?.formatCompetencia?.(month) || month;
+        const next = 'Mês em análise: ' + text(monthLabel) + (program ? ' · Programa: ' + program : '');
+        if (label.textContent !== next) label.textContent = next;
+    }
+    function scheduleVisibleContext() {
+        if (contextFrame) return;
+        contextFrame = root.requestAnimationFrame(updateVisibleContext);
+    }
     function enhanceProntuario(referenceDate = new Date(), schoolId = '') {
+        scheduleVisibleContext();
         const rows = getVerificationRows();
         decorateCompetenceTabs(referenceDate);
         if (!rows.length) {
@@ -520,6 +567,9 @@
         if (installed || typeof root.renderProntuario !== 'function') return installed;
 
         installed = true;
+        root.addEventListener('scroll', scheduleVisibleContext, { passive: true, capture: true });
+        root.addEventListener('resize', scheduleVisibleContext, { passive: true });
+        root.document.addEventListener('click', scheduleVisibleContext);
         originalRenderProntuario = root.renderProntuario;
         root.renderProntuario = function renderProntuarioWithOperationalUx(...args) {
             renderedSchoolId = text(args[0]) || renderedSchoolId;
