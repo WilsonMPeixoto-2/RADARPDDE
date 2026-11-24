@@ -385,7 +385,7 @@ test('T2 Consulta à Assessoria + A-01 real + Corrigir análise pela gaveta: RPC
     await expect(retifyDialog).toBeVisible();
     await expect(retifyDialog.getByLabel('Novo resultado')).toHaveValue('Correto (Atrasado)');
     const advisoryTransition = retifyDialog.locator('.correction-effect-transition').filter({
-        has: retifyDialog.getByText('Consulta à Assessoria da nota fiscal / Resumo da Assessoria do programa', { exact: true })
+        hasText: 'Consulta à Assessoria da nota fiscal / Resumo da Assessoria do programa'
     });
     await expect(advisoryTransition).toHaveCount(1);
     await expect(advisoryTransition.locator('.correction-effect-label')).toHaveText(

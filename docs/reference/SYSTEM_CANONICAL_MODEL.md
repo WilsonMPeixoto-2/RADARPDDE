@@ -603,6 +603,12 @@ usuário exclui NF elegível
 
 NF com histórico protegido não pode desaparecer apagando a trilha documental.
 
+### 9.10.1 Exclusão do pacote lançado no mês ou programa errado — contrato de destino T4
+
+Esta operação é distinta da exclusão de uma NF isolada. A identidade é escola + competência + programa; não há transferência automática entre contextos. O candidato T4 usa prévia e confirmação transacional, digest e versões dos registros para impedir exclusão baseada em uma lista desatualizada. Inclui avaliação mensal, despesas e dependentes comprovados, preservando programas e competências vizinhos, contatos gerais e bens compartilhados. A saída provisória identificada retorna ao estado de identificação quando a despesa correspondente é removida. O histórico administrativo da própria correção permanece. A rotina não promove baixa em sistema patrimonial externo.
+
+A disponibilidade exige capacidade do perfil, backend compatível e liberação explícita. A flag de release é desativada por padrão. A referência temporal de implementação e homologação está no [checkpoint](../continuity/prontuario-t0-t6/CHECKPOINT.md); este contrato não declara a publicação da T4.
+
 ## 9.11 Retificação
 
 ```text

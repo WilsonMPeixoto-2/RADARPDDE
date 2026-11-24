@@ -155,12 +155,165 @@ test('T4 real: prévia e cancelamento não alteram escola, NFs, Pendências ou p
     await expect(dialog).toContainText('NF T4-CTX-002');
     await expect(dialog).toContainText('Pendência: Nota fiscal');
     await expect(dialog.getByRole('button', { name: 'Excluir estes lançamentos' })).toBeEnabled();
-    await testInfo.attach('t4-context-preview-desktop', {
-        body: await dialog.screenshot(), contentType: 'image/png'
-    });
+    const scroll = dialog.getByRole('region', { name: 'Detalhes da exclusão' });
+    const viewport = page.viewportSize();
+    const initialDark = await page.evaluate(() => document.body.classList.contains('dark-theme'));
+    try {
+        for (const variant of [
+            { name: 'desktop-claro', width: 1440, height: 900, dark: false },
+            { name: 'desktop-escuro', width: 1280, height: 720, dark: true },
+            { name: 'celular-escuro', width: 390, height: 844, dark: true }
+        ]) {
+            await page.setViewportSize({ width: variant.width, height: variant.height });
+            await page.evaluate(dark => document.body.classList.toggle('dark-theme', dark), variant.dark);
+            await scroll.evaluate(el => { el.scrollTop = 0; });
+            for (const name of ['Cancelar', 'Conferir novamente', 'Excluir estes lançamentos']) {
+                await expect(dialog.getByRole('button', { name, exact: true })).toBeInViewport({ ratio: 1 });
+            }
+            await testInfo.attach('t4-context-preview-' + variant.name, {
+                body: await page.screenshot(), contentType: 'image/png'
+            });
+            await scroll.evaluate(el => { el.scrollTop = el.scrollHeight; });
+            await expect(scroll.getByText(/O que será mantido:/)).toBeInViewport();
+            await expect(dialog.getByRole('button', { name: 'Excluir estes lançamentos' })).toBeInViewport({ ratio: 1 });
+            await testInfo.attach('t4-context-preview-final-' + variant.name, {
+                body: await page.screenshot(), contentType: 'image/png'
+            });
+        }
+    } finally {
+        if (viewport) await page.setViewportSize(viewport);
+        await page.evaluate(dark => document.body.classList.toggle('dark-theme', dark), initialDark);
+    }
     await dialog.getByRole('button', { name: 'Cancelar' }).click();
     await expect(dialog).toBeHidden();
     expect(await snapshot(page)).toEqual(before);
+});
+
+test('T4 real: perfil somente leitura não pode prever nem confirmar exclusão com digest válido do Controlador', async ({ page, browser }, testInfo) => {
+    test.setTimeout(60_000);
+    await login(page, 'controller');
+    await openSchool(page);
+    const before = await snapshot(page);
+    expect(before.invoices).toContain('T4-CTX-NF-A');
+    expect(before.verifications).toContain('ESC-T4-CONTEXT::2026-05::BASIC');
+
+    const request = {
+        contractVersion: 1,
+        action: 'delete_context',
+        target: { kind: 'program_context', schoolId: SCHOOL, competence: COMPETENCE, programId: 'BASIC' }
+    };
+    const plan = await page.evaluate(async p_request => {
+        const { data, error } = await window.RadarSessionContext.service.client.rpc(
+            'preview_operational_change', { p_request });
+        if (error) throw new Error(error.message);
+        return data;
+    }, request);
+    expect(plan.planDigest).toMatch(/^[a-f0-9]{64}$/i);
+    expect(plan.blockers).toEqual([]);
+    expect(plan.effects.delete.registered_invoices).toContain('T4-CTX-NF-A');
+
+    const second = await browser.newContext({ baseURL: testInfo.project.use.baseURL });
+    try {
+        const reader = await second.newPage();
+        await login(reader, 'sme_management');
+        await reader.goto('/escolas/' + SCHOOL);
+        await reader.waitForFunction(() => window.RadarDataContext?.ready === true &&
+            window.RadarAuthContext?.authorization?.role === 'sme_management');
+        await expect(reader.locator('#prontuario-verif-rows')).toBeVisible();
+        await reader.evaluate(async school => {
+            await window.RadarProductExtensionsReady;
+            window.RADAR_T4_CONTEXT_DELETION_PILOT = true;
+            window.renderProntuario(school);
+        }, SCHOOL);
+        await expect(reader.locator('.program-context-delete-button')).toHaveCount(0);
+
+        // Testa a autoridade do servidor, não apenas a ausência do botão.
+        // O digest legítimo é obtido na outra sessão; não é inventado nem adulterado.
+        const denied = await reader.evaluate(async ({ p_request, p_plan_digest }) => {
+            const client = window.RadarSessionContext.service.client;
+            const preview = await client.rpc('preview_operational_change', { p_request });
+            const apply = await client.rpc('apply_operational_change', {
+                p_request, p_plan_digest,
+                p_operation_key: '00000000-0000-4000-8000-000000000546'
+            });
+            return [preview, apply].map(result => ({
+                data: result.data, error: result.error?.message || null
+            }));
+        }, { p_request: request, p_plan_digest: plan.planDigest });
+        for (const attempt of denied) {
+            expect(attempt.data).toBeNull();
+            expect(attempt.error).toMatch(/AUTHORIZATION_DENIED/);
+        }
+    } finally {
+        await second.close();
+    }
+    expect(await snapshot(page)).toEqual(before);
+});
+
+test('T4 real: mudança de uma NF em outra sessão invalida a prévia e impede exclusão parcial', async ({ page, browser }, testInfo) => {
+    test.setTimeout(60_000);
+    await login(page, 'controller');
+    await openSchool(page);
+    const before = await snapshot(page);
+    const dialog = await enablePilotAndOpen(page);
+    const save = dialog.getByRole('button', { name: 'Excluir estes lançamentos' });
+    await expect(save).toBeEnabled();
+    await expect(dialog).toContainText('Material de expediente no contexto errado');
+
+    const second = await browser.newContext({ baseURL: testInfo.project.use.baseURL });
+    const changedDescription = 'Material de expediente — retificado em outra sessão';
+    let original;
+    let changed = false;
+    try {
+        const other = await second.newPage();
+        await login(other, 'controller');
+        original = await other.evaluate(async () => {
+            const { data, error } = await window.RadarSessionContext.service.client
+                .from('registered_invoices').select('description,row_version')
+                .eq('id', 'T4-CTX-NF-B').single();
+            if (error) throw new Error(error.message);
+            return data;
+        });
+        const updated = await other.evaluate(async description => {
+            const { data, error } = await window.RadarSessionContext.service.client
+                .from('registered_invoices').update({ description })
+                .eq('id', 'T4-CTX-NF-B').select('description,row_version').single();
+            if (error) throw new Error(error.message);
+            return data;
+        }, changedDescription);
+        changed = true;
+        expect(updated.description).toBe(changedDescription);
+        expect(updated.row_version).toBeGreaterThan(original.row_version);
+
+        // O primeiro Controlador confirma a prévia antiga pelo botão real.
+        await save.click();
+        await expect(dialog).toBeVisible();
+        await expect(dialog.getByRole('alert')).toContainText(
+            'Os registros mudaram desde a conferência. Confira novamente antes de excluir.');
+        await expect(save).toBeDisabled();
+        expect(await snapshot(page)).toEqual(before);
+
+        await dialog.getByRole('button', { name: 'Conferir novamente' }).click();
+        await expect(dialog).toContainText(changedDescription);
+        await expect(save).toBeEnabled();
+        await dialog.getByRole('button', { name: 'Cancelar' }).click();
+        await expect(dialog).toBeHidden();
+        expect(await snapshot(page)).toEqual(before);
+    } finally {
+        try {
+            if (changed) {
+                const other = second.pages()[0];
+                await other.evaluate(async description => {
+                    const { error } = await window.RadarSessionContext.service.client
+                        .from('registered_invoices').update({ description })
+                        .eq('id', 'T4-CTX-NF-B');
+                    if (error) throw new Error(error.message);
+                }, original.description);
+            }
+        } finally {
+            await second.close();
+        }
+    }
 });
 
 test('T4 real: excluir contexto pelo botão preserva programa/mês vizinhos e contato geral', async ({ page, browser }, testInfo) => {

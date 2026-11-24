@@ -722,10 +722,18 @@
                     const itemRow = Array.from(doc.querySelectorAll?.('tr[data-document-key]') || [])
                         .find(row => row.dataset?.documentKey === target.documentKey
                             && row.dataset?.programId === target.programId);
-                    const focusTarget = itemRow?.querySelector?.('.prontuario-history-clear-button')
-                        || itemRow?.querySelector?.('.verification-document-copy strong')
-                        || doc.getElementById?.('prontuario-verif-rows');
-                    if (focusTarget?.tagName === 'STRONG' && !focusTarget.hasAttribute('tabindex')) {
+                    const invoiceRow = target.id
+                        ? Array.from(itemRow?.querySelectorAll?.('[data-invoice-id]') || [])
+                            .find(row => row.dataset.invoiceId === target.id)
+                        : null;
+                    const focusTarget = target.id
+                        ? invoiceRow?.querySelector?.('.invoice-history-clear-button:not(:disabled)')
+                            || invoiceRow || itemRow?.querySelector?.('.verification-document-copy strong')
+                            || doc.getElementById?.('prontuario-verif-rows')
+                        : itemRow?.querySelector?.('.prontuario-history-clear-button:not(:disabled)')
+                            || itemRow?.querySelector?.('.verification-document-copy strong')
+                            || doc.getElementById?.('prontuario-verif-rows');
+                    if (focusTarget && focusTarget.tabIndex < 0 && !focusTarget.hasAttribute('tabindex')) {
                         focusTarget.setAttribute('tabindex', '-1');
                     }
                     focusTarget?.focus?.({ preventScroll: true });

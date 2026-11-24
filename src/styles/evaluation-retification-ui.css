@@ -1282,3 +1282,10 @@ body.dark-theme .correction-preservation-icon {
         gap: 12px;
     }
 }
+
+/* Integração #546: ações integralmente visíveis em viewports curtos. */
+@media (max-width: 700px) {
+    .is-destructive .radar-operational-correction-actions { justify-content: stretch; }
+    .is-destructive .radar-operational-correction-actions button { flex: 1 1 auto; white-space: normal; min-block-size: 44px; }
+    .is-destructive .radar-operational-correction-actions .btn-danger { flex-basis: 100%; }
+}

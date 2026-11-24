@@ -22,7 +22,13 @@ test('a matriz funcional canônica é válida', async () => {
     const { loadMatrix, validateMatrix } = await api();
     const matrix = loadMatrix(ROOT);
     assert.deepEqual(validateMatrix(matrix, ROOT), []);
-    assert.equal(matrix.operations.length, 44);
+    assert.equal(matrix.operations.length, 45);
+    const contextDeletion = matrix.operations.find(item => item.id === 'CTX-01');
+    assert.ok(contextDeletion);
+    assert.equal(contextDeletion.coverage, 'partial');
+    assert.deepEqual(contextDeletion.deny, ['anonymous', 'sme_management', 'inventory']);
+    assert.equal(contextDeletion.reload, true);
+    assert.equal(contextDeletion.evidence, 'contextDeletion');
 });
 
 test('IDs duplicados são rejeitados', async () => {
