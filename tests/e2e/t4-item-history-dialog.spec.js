@@ -189,8 +189,34 @@ test('T4 histórico: tela móvel preserva contexto, ação, rolagem e teclado', 
     expect(rect.top).toBeGreaterThanOrEqual(0);
     expect(rect.bottom).toBeLessThanOrEqual(rect.viewportHeight);
     expect(rect.width).toBeGreaterThan(60);
+    const cancel = dialog.getByRole('button', { name: 'Cancelar', exact: true });
+    await expect(cancel).toBeFocused();
+    await expect.poll(() => cancel.evaluate(button =>
+        getComputedStyle(button, '::after').visibility
+    )).toBe('hidden');
+    const previewBody = dialog.getByRole('region', { name: 'Prévia completa da operação' });
+    await expect(previewBody).toBeVisible();
+    const layout = await previewBody.evaluate(region => ({
+        height: region.clientHeight, content: region.scrollHeight
+    }));
+    expect(layout.height).toBeGreaterThanOrEqual(430);
+    expect(layout.content).toBeGreaterThan(layout.height);
     await testInfo.attach('t4-history-mobile-390px', {
-        body: await page.screenshot({ fullPage: false }), contentType: 'image/png'
+        body: await page.screenshot({ fullPage: false, animations: 'disabled' }), contentType: 'image/png'
+    });
+    // A região precisa aceitar teclado, e não somente gestos de toque.
+    await previewBody.focus();
+    await page.keyboard.press('End');
+    await expect.poll(() => previewBody.evaluate(region =>
+        Math.abs(region.scrollHeight - region.clientHeight - region.scrollTop)
+    )).toBeLessThanOrEqual(2);
+    const lastRecord = previewBody.locator('.context-deletion-records li').last();
+    await expect(lastRecord).toBeInViewport();
+    await expect(action).toBeInViewport();
+    await page.evaluate(() => document.body.classList.add('dark-theme'));
+    await previewBody.evaluate(region => { region.scrollTop = 0; });
+    await testInfo.attach('t4-history-mobile-dark-390px', {
+        body: await page.screenshot({ fullPage: false, animations: 'disabled' }), contentType: 'image/png'
     });
     await page.keyboard.press('Escape');
     await expect(dialog).toHaveCount(0);

@@ -187,14 +187,16 @@
             ...(!bonus && !contextDeletion ? [context.documentLabel || context.documentKey] : [])
         ].filter(Boolean).join(' · '));
         header.append(kicker, title);
+        let scope = null;
+        let caution = null;
         if (contextDeletion || historyDeletion) {
-            header.appendChild(scopeFields(doc, [
+            scope = scopeFields(doc, [
                 ['Escola', context.schoolName || context.schoolId],
                 ['Mês de referência', context.competenceLabel || context.competence],
                 ['Programa', context.programName || context.programId],
                 ...(historyDeletion ? [['Documento', context.documentLabel || context.documentKey]] : [])
-            ]));
-            const caution = el(doc, 'div', 'correction-caution');
+            ]);
+            caution = el(doc, 'div', 'correction-caution');
             const mark = el(doc, 'span', 'correction-caution-icon', '!');
             mark.setAttribute('aria-hidden', 'true');
             const message = el(doc, 'div', 'correction-caution-copy');
@@ -203,7 +205,6 @@
                     ? 'Você vai excluir os registros listados abaixo.'
                     : 'A avaliação atual e o histórico deste item serão removidos.'));
             caution.append(mark, message);
-            header.appendChild(caution);
         } else {
             header.appendChild(summary);
         }
@@ -306,6 +307,12 @@
             }
             bodyGrid.append(inputsCol, effectsCol);
         } else {
+            if (scope && caution) {
+                bodyGrid.setAttribute('role', 'region');
+                bodyGrid.setAttribute('aria-label', 'Prévia completa da operação');
+                bodyGrid.tabIndex = 0;
+                bodyGrid.append(scope, caution);
+            }
             bodyGrid.append(effectsCol);
         }
         dialog.append(header, bodyGrid, feedback, actions);
@@ -830,9 +837,10 @@
                 close();
             }
             if (event.key === 'Tab') {
+                layer.dataset.keyboardHelp = 'true';
                 const controls = Array.from(dialog.querySelectorAll(
-                    'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled)'
-                ));
+                    'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]'
+                )).filter(control => !control.hidden && control.getClientRects().length > 0);
                 const first = controls[0], last = controls.at(-1);
                 if (event.shiftKey && doc.activeElement === first) {
                     event.preventDefault(); last?.focus();
