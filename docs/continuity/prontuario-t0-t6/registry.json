@@ -1,18 +1,18 @@
 {
   "schemaVersion": 1,
   "workstream": "RADARPDDE/PRONTUARIO-T0-T6",
-  "date": "2026-11-22",
+  "date": "2026-11-24",
   "authorityNote": "Contratos aprovados e ADRs prevalecem; registro documenta proveniência, revisão e estado, não modifica regra por si.",
   "active": {
     "release": "R2",
     "stages": [
       "T4"
     ],
-    "pr": 538,
-    "branch": "main",
+    "pr": 546,
+    "branch": "feat/t4-delete-context-contract-20261123",
     "checkpointPath": "docs/continuity/prontuario-t0-t6/CHECKPOINT.md",
     "decisionsPath": "docs/continuity/prontuario-t0-t6/registry.json",
-    "status": "primeiro-caso-T4-publicado; demais-casos-T4-pendentes"
+    "status": "t4-delete-context-e-clear-item-history-candidatos; gates-e-release-pendentes"
   },
   "decisions": [
     {
@@ -578,6 +578,41 @@
       ],
       "rationale": "Complementa 128fa3c7 sem sobreposição: compacta os 12 meses em linha única a 1280px e garante Notas Fiscais acima da dobra em 1440×900, corrige truncamento de Despesa a identificar e color-scheme/forced-colors, expõe operationalCorrectionRelease no manifesto Vercel com simetria fail-closed em config.js, adiciona jornada G3 de convivência de cliente sem flag + rejeição de prévia obsoleta (T0T6-I018-02), rebaixa blocos históricos nos roteadores e entrega runbook operacional Gate G4.",
       "integratedRef": ""
+    },
+    {
+      "id": "T0T6-C025",
+      "agent": "Antigravity",
+      "stage": "T4",
+      "title": "Hardening SQL, cliente fail-closed, D021 e acessibilidade do T4 delete_context no PR #556",
+      "status": "incorporated",
+      "originRef": "fix/antigravity-t4-delete-context-hardening-20261123@af2740b8",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/556",
+      "decisionIds": [
+        "T0T6-D002",
+        "T0T6-D004",
+        "T0T6-D007",
+        "T0T6-D011",
+        "T0T6-D015",
+        "T0T6-D021"
+      ],
+      "rationale": "Endurece a candidata T4 delete_context do PR #546: trava bens compartilhados e NFs vizinhas em versions/planDigest sem incluí-los em effects.delete, serializa delete_context com pg_advisory_xact_lock + verificação pós-deleção, separa bloqueio de pendência legada sem program_id, enriquece trilha administrativa, exige paridade fail-closed de assets no cliente, aplica rótulos D021 (boletoInternet, expenseType, reaberturas plurais), corrige foco pós-exclusão/cancelamento e menu <details name> com fechamento por clique fora/Escape e alvo >= 32px. Validado em 838 testes pgTAP (33 em context-correction-r2.test.sql) e 13/13 E2E autenticados.",
+      "integratedRef": "https://github.com/WilsonMPeixoto-2/RADARPDDE/commit/ae4ca9bed646acdd7fc89705b090b70414c7a2d7"
+    },
+    {
+      "id": "T0T6-C026",
+      "agent": "ChatGPT",
+      "stage": "T4",
+      "title": "Candidata clear_item_history, D021 e proteção concorrente",
+      "status": "accepted-for-validation",
+      "originRef": "feat/t4-clear-item-history-chatgpt-20261123@15ed2d34",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/558",
+      "decisionIds": [
+        "T0T6-D004",
+        "T0T6-D011",
+        "T0T6-D015",
+        "T0T6-D021"
+      ],
+      "rationale": "Código remoto candidato de limpeza de histórico, redesign de confirmações e proteção de concorrência; incorpora achados da auditoria Antigravity. Branch local do swarm não recuperada no remoto; não alegar integração das alterações locais ou homologação do SHA final."
     }
   ],
   "previousRelease": {

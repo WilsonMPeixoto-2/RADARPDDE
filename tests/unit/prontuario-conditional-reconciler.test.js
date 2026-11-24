@@ -18,7 +18,7 @@ function createButton() {
 }
 
 function createProgramRows(button, noteRowOverride = {}) {
-    const contextCell = { querySelector: selector => selector === 'button' ? button : null };
+    const contextCell = { querySelector: selector => ['button', '.program-consolidate-button'].includes(selector) ? button : null };
     const first = {
         dataset: { programId: 'BASIC', documentKey: 'extCC' },
         querySelector: selector => selector === 'td[rowspan]' ? contextCell : null,
@@ -39,7 +39,13 @@ test('reabre e reconsolida a ação do programa a partir do estado autoritativo'
     let consolidatedCalls = 0;
     const root = {
         getRadarAccessProfile: () => 'assistente',
-        calcularEFecharBonificacao: () => { consolidatedCalls += 1; }
+        requestBonificationConsolidation: (schoolId, compKey, trigger) => {
+            assert.equal(schoolId, 'ESC-1');
+            assert.equal(compKey, '2026-08_BASIC');
+            assert.equal(trigger, button);
+            consolidatedCalls += 1;
+        },
+        calcularEFecharBonificacao: () => { throw new Error('Não gravar sem confirmação pela interface'); }
     };
 
     assert.equal(reconciler.syncConsolidationAction(
@@ -61,10 +67,62 @@ test('reabre e reconsolida a ação do programa a partir do estado autoritativo'
         rows
     ), true);
     assert.equal(button.disabled, false);
-    assert.equal(button.textContent, 'Consolidar');
+    assert.equal(button.textContent, 'Consolidar bonificação');
     assert.equal(button.dataset.radarConsolidationState, 'open');
     button.onclick();
     assert.equal(consolidatedCalls, 1);
+});
+
+test('T4: botão de excluir lançamentos não pode virar Consolidada durante reconciliação', () => {
+    const deletion = createButton();
+    deletion.textContent = 'Excluir lançamentos deste programa neste mês';
+    deletion.onclick = () => { throw new Error('Não acionar exclusão na reconciliação'); };
+    const originalHandler = deletion.onclick;
+    const consolidation = createButton();
+    consolidation.textContent = 'Consolidar bonificação';
+    const cell = {
+        querySelector(selector) {
+            if (selector === 'button') return deletion; // A exclusão vem primeiro no cabeçalho.
+            if (selector === '.program-consolidate-button') return consolidation;
+            return null;
+        }
+    };
+    const rows = [{
+        dataset: { programId: 'BASIC', documentKey: 'extCC' },
+        querySelector(selector) {
+            return selector === 'td[rowspan]' ? cell : null;
+        }
+    }];
+    const root = { getRadarAccessProfile: () => 'controlador' };
+
+    assert.equal(reconciler.syncConsolidationAction(
+        root, 'ESC-1', '2026-05_BASIC', { resultadoBonif: 'apta' }, rows
+    ), true);
+    assert.equal(consolidation.textContent, 'Consolidada');
+    assert.equal(consolidation.disabled, true);
+    assert.equal(deletion.textContent, 'Excluir lançamentos deste programa neste mês');
+    assert.equal(deletion.disabled, false);
+    assert.equal(deletion.onclick, originalHandler);
+    assert.equal(deletion.dataset.radarConsolidationState, undefined);
+});
+
+test('T4: sem botão de consolidar, reconciliação não altera a ação de exclusão', () => {
+    const deletion = createButton();
+    deletion.textContent = 'Excluir lançamentos deste programa neste mês';
+    const rows = [{
+        dataset: { programId: 'BASIC', documentKey: 'extCC' },
+        querySelector(selector) {
+            return selector === 'td[rowspan]' ? {
+                querySelector(asked) { return asked === 'button' ? deletion : null; }
+            } : null;
+        }
+    }];
+    const root = { getRadarAccessProfile: () => 'controlador' };
+    assert.equal(reconciler.syncConsolidationAction(
+        root, 'ESC-1', '2026-05_BASIC', { resultadoBonif: 'apta' }, rows
+    ), false);
+    assert.equal(deletion.disabled, false);
+    assert.equal(deletion.textContent, 'Excluir lançamentos deste programa neste mês');
 });
 
 test('mantém A identificar disponível independentemente da bonificação e consolidação', () => {

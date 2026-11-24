@@ -104,6 +104,14 @@ function buildRuntimeInput(environment = {}) {
         environment.RADAR_BONIFICATION_CORRECTION_RELEASE_ENABLED,
         'RADAR_BONIFICATION_CORRECTION_RELEASE_ENABLED'
     );
+    const contextDeletionRelease = parseBoolean(
+        environment.RADAR_T4_CONTEXT_DELETION_RELEASE_ENABLED,
+        'RADAR_T4_CONTEXT_DELETION_RELEASE_ENABLED'
+    );
+    const itemHistoryRelease = parseBoolean(
+        environment.RADAR_T4_ITEM_HISTORY_RELEASE_ENABLED,
+        'RADAR_T4_ITEM_HISTORY_RELEASE_ENABLED'
+    );
     const url = String(environment.RADAR_SUPABASE_URL || '').trim();
     const publishableKey = String(environment.RADAR_SUPABASE_PUBLISHABLE_KEY || '').trim();
 
@@ -151,6 +159,12 @@ function buildRuntimeInput(environment = {}) {
     if (bonificationCorrectionRelease && !operationalCorrectionRelease) {
         throw new Error('T4 em produção exige release operacional T0–T3 ativo e autorização própria.');
     }
+    if (contextDeletionRelease && (!operationalCorrectionRelease || !bonificationCorrectionRelease)) {
+        throw new Error('T4 exclusão de contexto exige release operacional e bonificação autorizados em produção.');
+    }
+    if (itemHistoryRelease && (!contextDeletionRelease || !operationalCorrectionRelease || !bonificationCorrectionRelease)) {
+        throw new Error('T4 histórico exige exclusão de contexto, bonificação e correção operacional autorizadas em produção.');
+    }
 
     if (dataMode === 'local') {
         return {
@@ -189,7 +203,9 @@ function buildRuntimeInput(environment = {}) {
             supabaseRepositoryEnabled: true,
             ...(operationalCorrectionPilot ? { operationalCorrectionPilot: true } : {}),
             ...(operationalCorrectionRelease ? { operationalCorrectionRelease: true } : {}),
-            ...(bonificationCorrectionRelease ? { bonificationCorrectionRelease: true } : {})
+            ...(bonificationCorrectionRelease ? { bonificationCorrectionRelease: true } : {}),
+            ...(contextDeletionRelease ? { contextDeletionRelease: true } : {}),
+            ...(itemHistoryRelease ? { itemHistoryRelease: true } : {})
         },
         supabase: {
             url,

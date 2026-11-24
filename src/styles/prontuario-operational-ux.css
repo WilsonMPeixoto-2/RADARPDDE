@@ -590,6 +590,90 @@ body.dark-theme #prontuario-verif-rows tr.program-block-start > td.program-conte
     text-align: left;
 }
 
+/* T4: menu contextual acessível, discreto até o usuário escolher uma ação. */
+#prontuario-verif-rows [data-program-header] .program-context-options {
+    display: block;
+    margin-block-start: 7px;
+    width: fit-content;
+    max-inline-size: 100%;
+}
+#prontuario-verif-rows [data-program-header] .program-context-options > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-block-size: 32px;
+    max-inline-size: 100%;
+    padding: 5px 9px;
+    border: 1px solid var(--border-color);
+    border-radius: 7px;
+    background: var(--bg-card);
+    color: var(--text-main);
+    font: inherit;
+    font-size: 0.73rem;
+    font-weight: 650;
+    line-height: 1.45;
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+}
+#prontuario-verif-rows [data-program-header] .program-context-options > summary::-webkit-details-marker {
+    display: none;
+}
+#prontuario-verif-rows [data-program-header] .program-context-options > summary::after {
+    content: "";
+    display: block;
+    width: 6px;
+    height: 6px;
+    border-inline-end: 1.5px solid currentColor;
+    border-block-end: 1.5px solid currentColor;
+    transform: translateY(-2px) rotate(45deg);
+    transition: transform var(--transition-fast, 150ms ease);
+}
+#prontuario-verif-rows [data-program-header] .program-context-options[open] > summary::after {
+    transform: translateY(2px) rotate(225deg);
+}
+#prontuario-verif-rows [data-program-header] .program-context-options > summary:hover {
+    border-color: var(--border-hover);
+    background: var(--bg-card-hover);
+}
+#prontuario-verif-rows [data-program-header] .program-context-options > summary:focus-visible,
+#prontuario-verif-rows [data-program-header] .program-context-delete-button:focus-visible,
+#prontuario-verif-rows [data-program-header] .program-context-name:focus-visible {
+    outline: 2px solid var(--border-focus, #8b5cf6);
+    outline-offset: 3px;
+}
+#prontuario-verif-rows [data-program-header] .program-context-options-list {
+    max-inline-size: min(320px, 100%);
+    margin-block-start: 6px;
+    padding: 4px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-card);
+}
+#prontuario-verif-rows [data-program-header] .program-context-delete-button {
+    display: block;
+    inline-size: 100%;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--danger, #b91c1c);
+    padding: 8px 9px;
+    font: inherit;
+    font-size: 0.76rem;
+    font-weight: 650;
+    line-height: 1.4;
+    text-align: start;
+    white-space: normal;
+    cursor: pointer;
+}
+#prontuario-verif-rows [data-program-header] .program-context-delete-button:hover {
+    background: color-mix(in srgb, var(--danger, #b91c1c) 8%, transparent);
+}
+body.dark-theme #prontuario-verif-rows [data-program-header] .program-context-delete-button {
+    color: #fca5a5;
+}
+
+
 #prontuario-verif-rows [data-program-header] .program-context-competence {
     display: inline-block;
     color: #6335b5;
@@ -1539,4 +1623,106 @@ body.dark-theme .fiscal-bonus-edit {
     color: var(--text-muted);
     background: var(--bg-sidebar);
     border: 1px solid var(--border-color);
+}
+
+/* T4: limpar histórico permanece uma ação secundária, sempre identificável. */
+#prontuario-verif-rows .prontuario-history-clear-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    min-block-size: 34px;
+    max-inline-size: 100%;
+    padding: 5px 9px;
+    margin-block: 3px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-card);
+    color: var(--text-muted);
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 680;
+    line-height: 1.3;
+    white-space: normal;
+    text-align: center;
+    cursor: pointer;
+}
+#prontuario-verif-rows .prontuario-history-clear-button:hover {
+    border-color: var(--danger, #b91c1c);
+    color: var(--danger, #b91c1c);
+    background: color-mix(in srgb, var(--danger, #b91c1c) 5%, var(--bg-card));
+}
+#prontuario-verif-rows .prontuario-history-clear-button:focus-visible,
+#prontuario-verif-rows .invoice-history-clear-button:focus-visible {
+    outline: 2px solid var(--border-focus, #8b5cf6);
+    outline-offset: 2px;
+}
+body.dark-theme #prontuario-verif-rows .prontuario-history-clear-button:hover {
+    color: #fca5a5;
+    border-color: #fca5a5;
+}
+@media (max-width: 700px) {
+    #prontuario-verif-rows .prontuario-history-clear-button {
+        min-block-size: 40px;
+        font-size: 0.78rem;
+    }
+}
+
+/* Ações da despesa: rótulos compactos, em linha própria, sem depender dos ícones. */
+#prontuario-verif-rows .invoice-document-title-line:has(> .has-readable-actions) {
+    flex-wrap: wrap;
+    row-gap: 2px;
+}
+#prontuario-verif-rows .invoice-document-inline-actions.has-readable-actions {
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    gap: 3px;
+    opacity: 1;
+}
+#prontuario-verif-rows .has-readable-actions .radar-labelled-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    inline-size: auto;
+    max-inline-size: 100%;
+    min-block-size: 30px;
+    padding: 4px 6px;
+    font-family: var(--font-body, inherit);
+    font-size: 0.71rem;
+    font-weight: 650;
+    line-height: 1.25;
+    white-space: normal;
+    text-align: start;
+}
+#prontuario-verif-rows .has-readable-actions .radar-labelled-action svg {
+    flex: 0 0 14px;
+    inline-size: 14px;
+    block-size: 14px;
+}
+#prontuario-verif-rows .has-readable-actions .radar-labelled-action:focus-visible {
+    outline: 2px solid var(--border-focus, #8b5cf6);
+    outline-offset: 2px;
+}
+@media (max-width: 700px) {
+    #prontuario-verif-rows .has-readable-actions .radar-labelled-action {
+        min-block-size: 38px;
+        font-size: 0.77rem;
+    }
+}
+
+/* O cabeçalho pode ser mais largo que a área visível da tabela em celular.
+   Limitar o menu pela viewport, não pela largura intrínseca da tabela. */
+@media (max-width: 700px) {
+    #prontuario-verif-rows [data-program-header] .program-context-options {
+        max-inline-size: min(100%, calc(100vw - 104px));
+    }
+    #prontuario-verif-rows [data-program-header] .program-context-options-list {
+        box-sizing: border-box;
+        max-inline-size: 100%;
+    }
+    #prontuario-verif-rows [data-program-header] .program-context-delete-button {
+        min-block-size: 44px;
+        overflow-wrap: anywhere;
+    }
 }

@@ -40,3 +40,7 @@ values ('T4-NF1','ESC-T4-BONUS','2026-05','BASIC','ESC-T4-BONUS::2026-05::BASIC'
         'Papel para as atividades','consumo','1042',125,'{"analiseDocumentoFiscal":"Incorreto"}'),
        ('T4-NF2','ESC-T4-BONUS','2026-05','BASIC','ESC-T4-BONUS::2026-05::BASIC','2026-05_BASIC',
         'Material de desenho','consumo','1058',85,'{"analiseDocumentoFiscal":"Correto"}');
+
+-- Jornada real T4 permanece em banco descartável.
+\ir t4-context-deletion-local.sql
+\ir t4-item-history-local.sql

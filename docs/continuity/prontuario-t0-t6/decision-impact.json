@@ -149,7 +149,7 @@
           "id": "T0T6-I002-05",
           "phase": "T4",
           "surface": "ui",
-          "status": "planned",
+          "status": "candidate",
           "requirementIds": [
             "T0T6-R024",
             "T0T6-R040"
@@ -158,7 +158,10 @@
           "targetPaths": [
             "src/integration/operational-correction-dialog.js"
           ],
-          "evidenceRefs": []
+          "evidenceRefs": [
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/546",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/556"
+          ]
         }
       ]
     },
@@ -226,29 +229,37 @@
           "id": "T0T6-I004-02",
           "phase": "T4",
           "surface": "ui",
-          "status": "planned",
+          "status": "candidate",
           "requirementIds": [
             "T0T6-R032"
           ],
           "acceptance": "clear_item_history é comando distinto com escopo completo explícito.",
           "targetPaths": [
-            "src/integration/operational-correction-dialog.js"
+            "src/integration/operational-correction-dialog.js",
+            "supabase/migrations/20261123000200_t4_clear_item_history.sql",
+            "tests/e2e/supabase-t4-item-history-local.spec.js"
           ],
-          "evidenceRefs": []
+          "evidenceRefs": [
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/558"
+          ]
         },
         {
           "id": "T0T6-I004-03",
           "phase": "T4",
           "surface": "tests",
-          "status": "planned",
+          "status": "candidate",
           "requirementIds": [
             "T0T6-R032"
           ],
           "acceptance": "Exclusão não invade história independente.",
           "targetPaths": [
-            "supabase/tests/database/operational-correction.test.sql"
+            "supabase/tests/database/operational-correction.test.sql",
+            "supabase/tests/database/context-correction-r2.test.sql"
           ],
-          "evidenceRefs": []
+          "evidenceRefs": [
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/546",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/556"
+          ]
         }
       ]
     },
@@ -872,7 +883,7 @@
           "id": "T0T6-I019-02",
           "phase": "T4",
           "surface": "reports",
-          "status": "planned",
+          "status": "candidate",
           "requirementIds": [
             "T0T6-R043"
           ],
@@ -880,7 +891,10 @@
           "targetPaths": [
             "src/domain/excel-sme-export-model.js"
           ],
-          "evidenceRefs": []
+          "evidenceRefs": [
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/546",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/556"
+          ]
         },
         {
           "id": "T0T6-I019-03",

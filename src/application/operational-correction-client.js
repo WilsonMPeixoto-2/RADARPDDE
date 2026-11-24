@@ -20,19 +20,24 @@
         'delete_pendency',
         'clear_analysis',
         'correct_analysis',
-        'correct_bonification'
+        'correct_bonification',
+        'clear_item_history',
+        'delete_context'
     ]);
     const TARGET_KIND_BY_ACTION = Object.freeze({
         delete_invoice: 'invoice',
         delete_pendency: 'pendency',
         clear_analysis: 'analysis',
         correct_analysis: 'analysis',
-        correct_bonification: 'verification'
+        correct_bonification: 'verification',
+        clear_item_history: 'analysis',
+        delete_context: 'program_context'
     });
     const CORRECTABLE_ANALYSES = Object.freeze(['Correto', 'Correto (Atrasado)', 'Incorreto']);
     const MAX_NOTE_LENGTH = 2000;
 
     const ENTITY_LABELS = Object.freeze({
+        verifications: ['avaliação mensal do programa', 'avaliações mensais dos programas'],
         registered_invoices: ['nota fiscal', 'notas fiscais'],
         pendencies: ['Pendência', 'Pendências'],
         pendency_attempts: ['envio da escola', 'envios da escola'],
@@ -106,6 +111,38 @@
             }
         }
 
+        // T4: exclusão de contexto tem identidade fechada por escola, competência
+        // e programa. Não seleciona dependências nem movimenta registros no cliente.
+        // O servidor continuará sendo a única autoridade do plano e da transação.
+        if (action === 'clear_item_history') {
+            const allowedTargetKeys = ['kind', 'id', 'schoolId', 'competence', 'programId', 'documentKey'];
+            const allowedRequestKeys = ['action', 'target', 'note'];
+            const allowedHistoryKeys = ['extCC', 'extINV', 'notaFiscal', 'consAssessoria',
+                'boletoInternet', 'declBBAgil', 'encampInventario'];
+            const invoiceDocument = ['notaFiscal', 'consAssessoria'].includes(target.documentKey);
+            const exactTarget = text(source.kind) === 'analysis'
+                && Boolean(target.programId)
+                && allowedHistoryKeys.includes(target.documentKey)
+                && (invoiceDocument ? Boolean(target.id) : !target.id)
+                && Object.keys(source).every(key => allowedTargetKeys.includes(key));
+            const exactRequest = Object.keys(input).every(key => allowedRequestKeys.includes(key));
+            if (!exactTarget || !exactRequest) {
+                throw invalid('Informe um documento reconhecido e seu item exato, sem seleção parcial, destino ou resultado novo.');
+            }
+        }
+
+        if (action === 'delete_context') {
+            const allowedTargetKeys = ['kind', 'schoolId', 'competence', 'programId'];
+            const allowedRequestKeys = ['action', 'target', 'note'];
+            const exactTarget = text(source.kind) === 'program_context'
+                && Boolean(target.programId)
+                && Object.keys(source).every(key => allowedTargetKeys.includes(key));
+            const exactRequest = Object.keys(input).every(key => allowedRequestKeys.includes(key));
+            if (!exactTarget || !exactRequest) {
+                throw invalid('Informe exatamente escola, competência e programa, sem destino ou seleção parcial de registros.');
+            }
+        }
+
         const request = { contractVersion: CONTRACT_VERSION, action, target };
         if (action === 'correct_bonification') {
             const mark = input.changes?.bonificacao;
@@ -165,6 +202,30 @@
                 : plan.action === 'correct_bonification' ? 'Sem marca' : 'Não analisado')
         }));
         const blockers = Array.isArray(plan.blockers) ? clone(plan.blockers) : [];
+        const contextRootPresent = plan.action !== 'delete_context'
+            || (Array.isArray(deleted.verifications) && deleted.verifications.length === 1);
+        const affectedRecords = clone(plan.affectedRecords || {});
+        const matchesDetailedIds = (entity, detailKey) => {
+            const ids = deleted[entity];
+            const records = affectedRecords[detailKey];
+            if (!Array.isArray(ids) || !Array.isArray(records) || ids.length !== records.length) return false;
+            const selected = new Set(ids.map(text));
+            const described = new Set(records.map(record => text(record?.id)));
+            return selected.size === ids.length && described.size === records.length
+                && [...selected].every(id => id && described.has(id));
+        };
+        // Não aceitar confirmação de conjunto destrutivo apresentado apenas em
+        // contagens: todos os IDs de NFs, Pendências e bens exclusivos devem estar na prévia legível.
+        const contextDetailsComplete = plan.action !== 'delete_context'
+            || (matchesDetailedIds('registered_invoices', 'invoices')
+                && matchesDetailedIds('pendencies', 'pendencies')
+                && matchesDetailedIds('assets', 'assets'));
+        const itemHistoryComplete = plan.action !== 'clear_item_history'
+            || (['registered_invoices', 'assets', 'verifications']
+                .every(entity => Array.isArray(deleted[entity]) && deleted[entity].length === 0)
+                && matchesDetailedIds('pendencies', 'pendencies')
+                && matchesDetailedIds('pendency_attempts', 'attempts')
+                && matchesDetailedIds('pendency_contacts', 'contacts'));
         const warnings = Array.isArray(plan.warnings) ? clone(plan.warnings) : [];
         return {
             action: plan.action || null,
@@ -172,9 +233,11 @@
             removals,
             changes,
             preserved: clone(plan.preserved || {}),
+            affectedRecords,
             warnings,
             blockers,
-            canApply: blockers.length === 0 && /^[0-9a-f]{64}$/.test(text(plan.planDigest)),
+            canApply: blockers.length === 0 && contextRootPresent && contextDetailsComplete && itemHistoryComplete
+                && /^[0-9a-f]{64}$/.test(text(plan.planDigest)),
             summary: removals.length
                 ? `Serão excluídos: ${removals.map(item => item.label).join(', ')}.`
                 : 'Nenhum registro será excluído.'
@@ -222,6 +285,22 @@
                     { p_request: previewPayload(request) },
                     'previewOperationalChange'
                 );
+                if (request.action === 'clear_item_history' || request.action === 'delete_context') {
+                    const actual = plan?.target || {};
+                    const expected = request.target;
+                    const sameContext = plan?.action === request.action
+                        && text(actual.kind) === expected.kind
+                        && (request.action === 'delete_context'
+                            ? ['schoolId', 'competence', 'programId']
+                            : ['schoolId', 'competence', 'programId', 'documentKey', 'id']
+                        ).every(key => text(actual[key]) === text(expected[key]));
+                    if (!sameContext) {
+                        throw new OperationalCorrectionError(
+                            'INVALID_PREVIEW',
+                            'A prévia não corresponde exatamente à escola, competência e programa selecionados.'
+                        );
+                    }
+                }
                 return { request, plan, view: describePlan(plan) };
             } catch (error) {
                 throw toCorrectionError(error);

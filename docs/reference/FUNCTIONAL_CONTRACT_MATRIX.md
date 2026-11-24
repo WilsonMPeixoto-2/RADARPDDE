@@ -1,6 +1,6 @@
 # Matriz funcional ponta a ponta
 
-**Atualizado em:** 2026-10-08  
+**Atualizado em:** 2026-11-24  
 **Baseline de origem:** `a5a67d34b6dcab04903b6657fb9fa01f0aba9d11`  
 **Fonte canônica:** `functional-contract-matrix.json` e arquivos JSON do diretório `functional-contract-matrix/`
 
@@ -8,12 +8,12 @@
 
 ## Resumo executivo
 
-A matriz contém **44 operações** distribuídas entre 13 superfícies.
+A matriz contém **45 operações** distribuídas entre 13 superfícies.
 
 | Cobertura | Operações |
 |---|---:|
 | Comprovada | 18 |
-| Parcial | 26 |
+| Parcial | 27 |
 | Lacuna | 0 |
 | Decisão pendente | 0 |
 
@@ -21,7 +21,7 @@ A matriz contém **44 operações** distribuídas entre 13 superfícies.
 |---|---:|
 | Nenhuma; manter regressão | 14 |
 | Smoke autenticado de leitura | 6 |
-| Escrita controlada e reversível | 19 |
+| Escrita controlada e reversível | 20 |
 | Observação contínua em Production | 5 |
 
 ## Perfis
@@ -82,6 +82,7 @@ A matriz contém **44 operações** distribuídas entre 13 superfícies.
 | `INV-02` | Excluir documento fiscal sem histórico de Pendência individual nem bem Inventariada e reverter efeitos vinculados, preservando bonificação/consolidação; operação separada da retificação | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.remove + proteção histórica e patrimonial terminal → deleteInvoiceWithEffects + triggers de histórico e patrimônio terminal (registered_invoices, assets, verifications, pendencies, administrative_logs) | Comprovada | Nenhuma; manter regressão |
 | `INV-03` | Registrar envio, análise, pendência, novo envio e reanálise da Assessoria por nota fiscal de serviço sem depender nem reabrir bonificação/consolidação | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.updateServiceAdvisory + RadarServiceAdvisoryPendency → saveInvoiceWithEffects + save_service_advisory_with_pendency + register_service_advisory_attempt + reanalyze_service_advisory_pendency (registered_invoices, verifications, pendencies, pendency_attempts, administrative_logs) | Parcial | Escrita controlada e reversível |
 | `INV-04` | Analisar cada documento fiscal, abrir Pendência por invoice e manter resumo técnico derivado sem depender nem reabrir bonificação/consolidação | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.updateDocumentAnalysis + PendencyService.open/registerAttempt/reanalyze → saveInvoiceWithEffects + save_invoice_document_with_pendency + register_invoice_document_attempt + reanalyze_invoice_document_pendency (registered_invoices, assets, verifications, pendencies, pendency_attempts, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `CTX-01` | Excluir lançamentos do mês/programa incorreto por prévia e confirmação do contexto exato (candidato T4; liberação explícita) | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | RadarOperationalCorrectionDialog + RadarOperationalCorrectionClient → preview_operational_change + apply_operational_change (verifications, registered_invoices, pendencies, pendency_attempts, pendency_contacts, assets, quality_provisional_movements, administrative_logs) | Parcial | Escrita controlada e reversível |
 
 ### Pendências
 
@@ -170,6 +171,7 @@ A matriz contém **44 operações** distribuídas entre 13 superfícies.
 - **INV-01 — Cadastrar Nota Fiscal/despesa e retificar dados editáveis do mesmo lançamento independentemente da bonificação/consolidação; A identificar nasce atomicamente; corrigir classificação com histórico exclusivamente fiscal encerrado/cancelado, sem Assessoria ou patrimônio terminal:** A prova da Fase 2 com Auth/RLS, versões, efeitos e reload foi concluída no candidato final do #404, conforme docs/evidence/2026-10-01-controller-type-retification/REPORT.md. O smoke publicado foi observacional, sem CRUD em Production. Cobertura parcial preservada: a reconciliação documental de 08/10 não reavaliou a cobertura integral de INV-01 nem executou nova prova controlada.
 - **INV-03 — Registrar envio, análise, pendência, novo envio e reanálise da Assessoria por nota fiscal de serviço sem depender nem reabrir bonificação/consolidação:** Abertura, novo envio e reanálise individual, isolamento entre NFs, tentativa imutável, bootstrap crítico e RPCs possuem regressões unitárias/E2E/pgTAP; falta apenas a homologação autenticada final da interface publicada com refresh/releitura.
 - **INV-04 — Analisar cada documento fiscal, abrir Pendência por invoice e manter resumo técnico derivado sem depender nem reabrir bonificação/consolidação:** Análise individual, resumo derivado, Pendência por invoice, a_identificar, patrimônio, legado, fronteira rowVersion e RPC de abertura possuem regressões e smoke transacional real; falta homologação autenticada final da interface publicada com refresh/releitura.
+- **CTX-01 — Excluir lançamentos do mês/programa incorreto por prévia e confirmação do contexto exato (candidato T4; liberação explícita):** PR #546: provas autenticadas da baseline anterior registradas; exigir CI no SHA final, prova dos consumidores/exportações, aprovação visual humana e autorização específica de release. A migration 66 não foi aplicada institucionalmente.
 - **ASSET-01 — Cadastrar bem permanente manualmente:** Falta prova controlada de criação, status inicial e releitura.
 - **ASSET-02 — Editar campo patrimonial autorizado:** A persistência genérica foi removida e a edição rápida ficou restrita ao campo permitido, com versão e log; falta prova controlada por perfil, conflito e releitura no ambiente de homologação.
 - **AUD-01 — Registrar evento administrativo de domínio:** Falta prova padronizada de autoria e recorte de leitura após persistência em Production.

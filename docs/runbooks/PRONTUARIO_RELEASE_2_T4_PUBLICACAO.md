@@ -28,3 +28,17 @@ Se ocorrer regressão, desligar **apenas** `RADAR_BONIFICATION_CORRECTION_RELEAS
 ## Contrato do Excel institucional
 
 O modelo XLSX e o CSV legado incluem apenas bonificações atualmente consolidadas. Com `bonificacaoPendenteConsolidacao=true`, o programa fica ausente da base e sínteses enquanto aguarda reconsolidação; após a ação válida, volta a aparecer no **novo** arquivo. Os 12 campos, quatro abas e programas vizinhos são preservados. A prova de referência está no teste autenticado de T4 e nos dois anexos `t4-excel-pendente` e `t4-excel-reconsolidado` do relatório Playwright em Supabase descartável.
+
+
+## Encerramento integral da T4 — candidatas #546 e #558
+
+O primeiro caso acima já foi publicado. Para os dois comandos restantes, preservar T0–T3 e bonificação ativos; as novas flags começam OFF. Consultar o [runbook de histórico](../releases/2026-11-23-t4-item-history-candidate.md) e a preparação de [exclusão do contexto](../releases/2026-11-23-t4-context-deletion-merge-preparation.md).
+
+1. Validar a combinação #546 + #558 no mesmo SHA, incluindo CI obrigatório, pgTAP, duas sessões PostgreSQL, jornadas autenticadas, provas de isolamento NF/Assessoria/a_identificar e inspeção visual desktop/mobile em ambos os temas.
+2. Integrar #558 sobre #546; congelar e validar novamente o SHA final de #546. Não liberar apenas a primeira metade da candidata.
+3. Antes do merge à main: conferir backup recuperável, histórico remoto (65 migrations), autorização de aplicação e catálogo. Aplicar somente 66 e 67, sem seed nem CRUD de registros institucionais. Validar o catálogo em leitura.
+4. Integrar #546 na main, verificar deploy READY e manifesto com as duas novas flags OFF; as melhorias visuais sem flag já devem estar homologadas.
+5. Ativar explicitamente RADAR_T4_CONTEXT_DELETION_RELEASE_ENABLED e RADAR_T4_ITEM_HISTORY_RELEASE_ENABLED somente para Production, preservar as flags anteriores, redeployar o mesmo SHA e confirmar manifesto e smoke não destrutivo.
+6. Registrar evidências e atualizar CHECKPOINT. Não marcar T4 publicada antes de concluir os seis passos; T5 não é parte desta release.
+
+Rollback de schema depende de ensaio em clone e aprovação. Flags OFF contêm novas operações, mas não recuperam dados já excluídos.

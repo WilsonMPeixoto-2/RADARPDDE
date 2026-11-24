@@ -682,6 +682,118 @@ body.dark-theme .is-fiscal-bonus .radar-operational-correction-header .fiscal-bo
     color: var(--text-main, #f3f0f9);
 }
 
+/* Exclusão de contexto: dados críticos claros, sem transformar a prévia em alerta genérico. */
+.is-destructive .radar-operational-correction-header .context-deletion-explanation {
+    margin-top: 0.6rem;
+    padding: 0.75rem 0.9rem;
+    border-inline-start: 3px solid var(--danger, #b91c1c);
+    border-radius: 0.4rem;
+    background: color-mix(in srgb, var(--danger, #b91c1c) 8%, transparent);
+    color: var(--text-main);
+    font-size: 0.85rem;
+    line-height: 1.55;
+}
+.is-destructive .context-deletion-preserved {
+    padding: 0.65rem 0.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.55rem;
+    background: var(--bg-card);
+    color: var(--text-main);
+    line-height: 1.5;
+}
+
+.is-structured-correction .context-deletion-impact-list {
+    margin: 0;
+    padding-inline-start: 1.25rem;
+    display: grid;
+    gap: 0.35rem;
+    color: var(--text-main);
+    font-variant-numeric: tabular-nums;
+}
+.is-structured-correction .context-deletion-impact-list li {
+    padding-inline-start: 0.15rem;
+    line-height: 1.5;
+}
+.is-structured-correction .context-deletion-impact-list li::marker {
+    color: var(--danger, #b91c1c);
+}
+
+/* A janela destrutiva deve manter a confirmação visível sem exigir
+   rolagem da página ou do modal. Somente o conteúdo da prévia rola. */
+.radar-operational-correction-dialog.is-destructive {
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    overflow: hidden;
+}
+.is-destructive .radar-operational-correction-body {
+    min-block-size: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+.is-destructive .radar-operational-correction-effects {
+    max-block-size: none;
+    overflow: visible;
+    overflow-wrap: anywhere;
+}
+.is-destructive .context-deletion-details {
+    padding-block-start: 0.65rem;
+    border-block-start: 1px solid var(--border-color, #e5e7eb);
+}
+.is-destructive .context-deletion-details h4 {
+    margin: 0 0 0.35rem;
+    color: var(--text-main);
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+.is-destructive .context-deletion-records {
+    margin: 0;
+    padding-inline-start: 1.2rem;
+    display: grid;
+    gap: 0.35rem;
+    list-style: disc;
+}
+.is-destructive .context-deletion-records li {
+    line-height: 1.48;
+    font-variant-numeric: tabular-nums;
+}
+
+.is-destructive .radar-operational-correction-effects {
+    border-inline-start-color: var(--danger, #b91c1c);
+}
+body.dark-theme .is-structured-correction .context-deletion-impact-list li::marker {
+    color: #fca5a5;
+}
+body.dark-theme .is-destructive .radar-operational-correction-effects {
+    border-inline-start-color: #fca5a5;
+}
+
+.is-destructive .radar-operational-correction-actions .btn-danger:not(:disabled) {
+    font-weight: 700;
+}
+body.dark-theme .is-destructive .radar-operational-correction-header .context-deletion-explanation {
+    background: color-mix(in srgb, #fca5a5 13%, transparent);
+    color: var(--text-main);
+}
+
+
+
+/* Histórico: mesmos padrões de exclusão, com realce moderado para preservar a hierarquia. */
+.is-item-history .item-history-impact-summary {
+    color: var(--text-main);
+    font-weight: 700;
+    font-size: 0.84rem;
+    line-height: 1.4;
+}
+.is-item-history .item-history-detail h4 {
+    color: var(--text-main);
+    font-weight: 720;
+}
+.is-destructive .radar-operational-correction-actions {
+    padding-bottom: max(4px, env(safe-area-inset-bottom));
+    background: var(--bg-card, #fff);
+}
+body.dark-theme .is-destructive .radar-operational-correction-actions {
+    background: #171226;
+}
 .radar-operational-correction-body.is-split {
     display: grid;
     grid-template-columns: minmax(0, 1.05fr) minmax(240px, 0.95fr);
@@ -801,4 +913,350 @@ body.dark-theme .is-fiscal-bonus .fiscal-bonus-transition strong {
 .is-fiscal-bonus .radar-operational-correction-actions button[hidden],
 .is-fiscal-bonus .radar-operational-correction-feedback:empty {
     display: none;
+}
+
+/* Ajuda contextual sem recorte por tabelas ou janelas roláveis. */
+.radar-floating-tooltip {
+    position: fixed;
+    z-index: 1000;
+    inset: auto;
+    margin: 0;
+    inline-size: max-content;
+    max-inline-size: min(280px, calc(100vw - 16px));
+    box-sizing: border-box;
+    padding: 9px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background: #261a35;
+    color: #fff;
+    font-family: var(--font-body, inherit);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.5;
+    text-align: start;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    pointer-events: auto;
+    box-shadow: 0 6px 16px rgba(25, 17, 40, 0.22);
+}
+.radar-floating-tooltip[hidden] {
+    display: none;
+}
+.radar-operational-correction-header .correction-confirmation-hint {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.45;
+}
+.radar-operational-correction-dialog:not(.is-context-deletion):not(.is-item-history) .context-deletion-explanation {
+    padding: 0.6rem 0.75rem;
+    border-inline-start: 3px solid var(--danger, #b91c1c);
+    border-radius: 0.4rem;
+    background: color-mix(in srgb, var(--danger, #b91c1c) 7%, transparent);
+    font-size: 0.82rem;
+    line-height: 1.45;
+}
+
+
+/* T4 — design da informação. O significado não depende de cor ou ícone.
+   A confirmação conserva uma única região rolável e rodapé sempre acessível. */
+.is-destructive .radar-operational-correction-header {
+    gap: 10px;
+    padding-bottom: 10px;
+}
+.correction-scope-fields {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.85fr) minmax(0, 1fr);
+    gap: 9px 16px;
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--bg-card);
+}
+.correction-scope-field {
+    min-width: 0;
+}
+.correction-scope-field dt {
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    font-weight: 650;
+    line-height: 1.3;
+}
+.correction-scope-field dd {
+    margin: 3px 0 0;
+    color: var(--text-main);
+    font-size: 0.83rem;
+    font-weight: 700;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+.correction-scope-field:nth-child(4) {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--border-color);
+    padding-top: 7px;
+}
+.correction-caution {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid color-mix(in srgb, var(--danger, #b91c1c) 20%, var(--border-color));
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--danger, #b91c1c) 5%, var(--bg-card));
+}
+.correction-caution-icon,
+.correction-preservation-icon {
+    display: inline-grid;
+    flex: 0 0 24px;
+    width: 24px;
+    height: 24px;
+    place-items: center;
+    border-radius: 50%;
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+.correction-caution-icon {
+    color: var(--danger, #b91c1c);
+    background: color-mix(in srgb, var(--danger, #b91c1c) 12%, transparent);
+}
+.correction-caution-copy strong {
+    display: block;
+    color: var(--text-main);
+    font-size: 0.82rem;
+}
+.correction-caution-copy p {
+    margin-top: 2px;
+    font-size: 0.77rem;
+    line-height: 1.35;
+}
+.radar-operational-correction-dialog.is-destructive {
+    gap: 10px;
+}
+.is-destructive .radar-operational-correction-effects {
+    gap: 12px;
+    padding: 0 1px 4px;
+    border: 0;
+    background: transparent;
+}
+.is-structured-correction .context-deletion-impact-list.correction-impact-tiles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+    padding: 0;
+    list-style: none;
+}
+.is-structured-correction .correction-impact-tiles li {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+    padding: 8px 10px;
+    border: 1px solid color-mix(in srgb, var(--danger, #b91c1c) 18%, var(--border-color));
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--danger, #b91c1c) 4%, var(--bg-card));
+}
+.correction-impact-count {
+    flex: 0 0 auto;
+    font-size: 1.38rem;
+    font-weight: 770;
+    line-height: 1;
+    color: var(--danger, #b91c1c);
+    font-variant-numeric: tabular-nums;
+}
+.correction-impact-name {
+    color: var(--text-main);
+    font-size: 0.73rem;
+    font-weight: 620;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+.correction-preservation-panel {
+    padding: 9px 11px;
+    border: 1px solid color-mix(in srgb, #15803d 25%, var(--border-color));
+    border-radius: 10px;
+    background: color-mix(in srgb, #15803d 5%, var(--bg-card));
+}
+.correction-panel-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    color: var(--text-main);
+    font-size: 0.82rem;
+    font-weight: 720;
+}
+.correction-preservation-icon {
+    color: #15803d;
+    background: color-mix(in srgb, #15803d 13%, transparent);
+}
+.is-structured-correction .correction-preservation-panel .context-deletion-preserved {
+    margin: 4px 0 0 32px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-size: 0.79rem;
+    line-height: 1.4;
+}
+.correction-next-step {
+    padding: 8px 10px;
+    border-inline-start: 2px solid var(--primary, #6335b5);
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    line-height: 1.4;
+}
+.is-destructive .context-deletion-details {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 9px;
+    background: var(--bg-card);
+}
+.is-destructive .context-deletion-records {
+    gap: 0;
+    padding: 0;
+    list-style: none;
+}
+.is-destructive .context-deletion-records li {
+    padding-block: 6px;
+    font-size: 0.79rem;
+}
+.is-destructive .context-deletion-records li + li {
+    border-top: 1px solid var(--border-color);
+}
+.correction-effect-transition {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 8px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-card);
+    font-size: 0.78rem;
+}
+.correction-effect-label {
+    color: var(--text-muted);
+}
+body.dark-theme .correction-impact-count,
+body.dark-theme .correction-caution-icon {
+    color: #fca5a5;
+}
+body.dark-theme .correction-preservation-icon {
+    color: #86efac;
+}
+@media (max-width: 700px) {
+    .correction-scope-fields {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 7px 10px;
+        padding: 8px 10px;
+    }
+    .correction-scope-field:first-child {
+        grid-column: 1 / -1;
+    }
+    .correction-scope-field:nth-child(4) {
+        padding-top: 5px;
+    }
+    .is-structured-correction .context-deletion-impact-list.correction-impact-tiles {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+
+/* A região de conferência contém contexto, efeitos e detalhes, e pode ser
+   percorrida pelo teclado. Não ocupar a área fixa com todo o contexto. */
+.is-destructive .radar-operational-correction-body.is-single {
+    display: grid;
+    align-content: start;
+    gap: 12px;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--text-muted) 55%, transparent) transparent;
+    scrollbar-gutter: stable;
+    padding-inline-end: 4px;
+}
+.is-destructive .radar-operational-correction-body:focus-visible {
+    outline: 2px solid var(--primary, #6335b5);
+    outline-offset: -2px;
+    border-radius: 6px;
+}
+/* O foco inicial é uma proteção da ação destrutiva, não um pedido de ajuda.
+   Hover continua funcionando; Tab/Shift+Tab habilitam a ajuda por teclado. */
+@media (max-width: 700px) {
+    .radar-operational-correction-dialog.is-destructive {
+        max-height: min(96dvh, calc(100dvh - 12px));
+    }
+    .is-destructive .radar-operational-correction-body.is-single {
+        gap: 10px;
+    }
+}
+
+
+/* Uma única família de confirmação: análise, bonificação e exclusões individuais.
+   Contexto e efeitos compartilham o mesmo vocabulário visual. */
+.radar-operational-correction-dialog.is-structured-correction {
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    overflow: hidden;
+    gap: 12px;
+}
+.is-structured-correction .radar-operational-correction-body {
+    min-block-size: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    align-content: start;
+}
+.is-structured-correction .correction-scope-fields {
+    grid-column: 1 / -1;
+}
+.is-structured-correction:not(.is-destructive) .radar-operational-correction-body.is-split {
+    gap: 16px;
+    padding-inline-end: 3px;
+}
+.is-structured-correction:not(.is-destructive) .radar-operational-correction-effects {
+    border: 0;
+    padding: 0 1px;
+    background: transparent;
+    gap: 12px;
+}
+.is-structured-correction .correction-removal-panel {
+    display: grid;
+    gap: 8px;
+}
+.is-structured-correction:not(.is-destructive) .context-deletion-impact-list.correction-impact-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.is-structured-correction .correction-plan-notice {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-inline-start: 3px solid var(--warning, #b45309);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--warning, #b45309) 5%, var(--bg-card));
+    line-height: 1.5;
+}
+.is-structured-correction .correction-plan-notice[data-level="blocker"] {
+    border-inline-start-color: var(--danger, #b91c1c);
+}
+.is-structured-correction .radar-operational-correction-feedback[data-status="info"] {
+    color: var(--text-muted);
+    font-size: 0.77rem;
+}
+.is-structured-correction .radar-operational-correction-feedback:empty {
+    display: none;
+}
+.is-structured-correction .radar-operational-correction-actions {
+    padding-top: 10px;
+}
+@media (max-width: 700px) {
+    .radar-operational-correction-dialog.is-structured-correction {
+        max-height: min(96dvh, calc(100dvh - 12px));
+        gap: 10px;
+    }
+    .is-structured-correction:not(.is-destructive) .radar-operational-correction-body.is-split {
+        gap: 12px;
+    }
+}
+
+/* Integração #546: ações integralmente visíveis em viewports curtos. */
+@media (max-width: 700px) {
+    .is-destructive .radar-operational-correction-actions { justify-content: stretch; }
+    .is-destructive .radar-operational-correction-actions button { flex: 1 1 auto; white-space: normal; min-block-size: 44px; }
+    .is-destructive .radar-operational-correction-actions .btn-danger { flex-basis: 100%; }
 }

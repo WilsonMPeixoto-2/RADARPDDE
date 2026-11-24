@@ -424,6 +424,81 @@ try {
         reanalysisLog: 1, rejectedLog: 0, rejectedLedger: 0
     });
     console.log('PASS [Case 4]: reanálise e correção simultâneas preservam o resultado e o histórico, sem deadlock.');
+
+    // T4: reject both a phantom INSERT and a move out of the protected context.
+    // Controlled barrier owns exactly the advisory key used by apply.
+    const t4Barrier = spawn('psql', args, { env: { ...process.env, PGAPPNAME: 'occ-t4-context-barrier' } });
+    barriers.push(t4Barrier);
+    t4Barrier.stdin.write(`begin; select pg_advisory_xact_lock(hashtextextended('${SCHOOL}::${COMPETENCE}::${PROGRAM}',20261123));\n`);
+    await awaitCondition("select count(*) from pg_stat_activity where application_name = 'occ-t4-context-barrier' and state = 'idle in transaction'", '1');
+    const phantom = 'OCC-RACE-T4-PHANTOM';
+    const insertPhantom = `insert into public.pendencies (id,school_id,competence_origin,program_id,document_key,status,next_actor,resolved_at)
+        values ('${phantom}','${SCHOOL}','${COMPETENCE}','${PROGRAM}','extINV','Resolvida','Controlador',now());`;
+    const rejected = await startSession(`begin; set local statement_timeout='5s'; ${insertPhantom} commit;`, 'occ-t4-phantom');
+    assert.notEqual(rejected.code, 0, 'A criação concorrente não pode entrar no contexto protegido');
+    assert.match(rejected.stderr, /OPTIMISTIC_CONFLICT/);
+    const moved = await startSession(`begin; set local statement_timeout='5s';
+        update public.pendencies set program_id=null where id='${pendencyId}'; commit;`, 'occ-t4-move');
+    assert.notEqual(moved.code, 0, 'A movimentação concorrente não pode sair do contexto protegido');
+    assert.match(moved.stderr, /OPTIMISTIC_CONFLICT/);
+    t4Barrier.stdin.end('commit;\n\\q\n');
+    await awaitCondition("select count(*) from pg_stat_activity where application_name='occ-t4-context-barrier'", '0');
+    assert.equal(await sql(`select count(*) from public.pendencies where id='${phantom}'`), '0');
+    assert.equal(await sql(`select program_id from public.pendencies where id='${pendencyId}'`), PROGRAM);
+
+    // The opposite order: a real writer enters first and commits while clear
+    // waits on the context. The earlier preview must be rejected, not expanded.
+    const historyRequest = { ...clearRequest, action: 'clear_item_history' };
+    const historyPreview = await startSession(asController(USER,
+        `select public.preview_operational_change(${quoteJson(historyRequest)})::text;`), 'occ-t4-preview');
+    assert.equal(historyPreview.code, 0, historyPreview.stderr);
+    const historyPlan = parseJsonResult(historyPreview.stdout, 'T4 history before writer');
+    assert.deepEqual(historyPlan.blockers, []);
+    const writer = spawn('psql', args, { env: { ...process.env, PGAPPNAME: 'occ-t4-writer' } });
+    barriers.push(writer);
+    writer.stdin.write(`begin; ${insertPhantom}\n`);
+    await awaitCondition("select count(*) from pg_stat_activity where application_name='occ-t4-writer' and state='idle in transaction'", '1');
+    const historyKey = '1b4a6c0f-9a28-4d62-8e13-77a5c8a00105';
+    const history = startSession(asController(USER,
+        `set local statement_timeout='15s'; select public.apply_operational_change(
+          ${quoteJson(historyRequest)}, '${historyPlan.planDigest}', '${historyKey}'::uuid)::text;`), 'occ-t4-history');
+    await awaitCondition(waitingFor('occ-t4-history','occ-t4-writer'), '1');
+    writer.stdin.end('commit;\n\\q\n');
+    const staleHistory = await history;
+    assert.notEqual(staleHistory.code, 0);
+    assert.match(staleHistory.stderr, /STALE_PLAN/);
+    assert.equal(await sql(`select count(*) from public.pendencies where id in ('${phantom}','${pendencyId}')`), '2');
+    assert.equal(await sql(`select count(*) from radar_private.operational_change_ledger where operation_key='${historyKey}'`), '0');
+    console.log('PASS [T4]: phantom e movimentação concorrente bloqueados; escritor vencedor invalida a prévia sem perda de histórico.');
+
+    // A correção real entra primeiro e retém o lock até o COMMIT.
+    // Prova de exclusão e de tentativa concorrente rejeitada enquanto o
+    // resultado da correção ainda não está visível para a segunda sessão.
+    const fresh = await startSession(asController(USER,
+        `select public.preview_operational_change(${quoteJson(historyRequest)})::text;`), 'occ-t4-preview-fresh');
+    assert.equal(fresh.code, 0, fresh.stderr);
+    const freshPlan = parseJsonResult(fresh.stdout, 'T4 fresh history');
+    assert.deepEqual(freshPlan.blockers, []);
+    const applyBarrier = spawn('psql', args, { env: { ...process.env, PGAPPNAME: 'occ-t4-apply-winner' } });
+    barriers.push(applyBarrier);
+    const winKey = '1b4a6c0f-9a28-4d62-8e13-77a5c8a00106';
+    const winningSQL = asController(USER, `select public.apply_operational_change(
+        ${quoteJson(historyRequest)}, '${freshPlan.planDigest}', '${winKey}'::uuid)::text;`);
+    applyBarrier.stdin.write(winningSQL.replace(/commit;\s*$/, '') + '\n');
+    await awaitCondition("select count(*) from pg_stat_activity where application_name='occ-t4-apply-winner' and state='idle in transaction'", '1');
+    const afterApplyInsert = await startSession(`begin; set local statement_timeout='5s';
+        ${insertPhantom.replace(phantom, 'OCC-RACE-T4-PHANTOM-LATE')} commit;`, 'occ-t4-late-writer');
+    assert.notEqual(afterApplyInsert.code, 0);
+    assert.match(afterApplyInsert.stderr, /OPTIMISTIC_CONFLICT/);
+    applyBarrier.stdin.end('commit;\n\\q\n');
+    await awaitCondition("select count(*) from pg_stat_activity where application_name='occ-t4-apply-winner'", '0');
+    assert.equal(await sql(`select count(*) from public.pendencies
+        where school_id='${SCHOOL}' and competence_origin='${COMPETENCE}'
+          and program_id='${PROGRAM}' and document_key='extINV'`), '0');
+    assert.equal(await sql(`select count(*) from radar_private.operational_change_ledger
+        where operation_key='${winKey}' and status='committed'`), '1');
+    console.log('PASS [T4 apply vencedor]: limpeza real confirmada, phantom tardio recusado e nenhum registro residual.');
+
 } finally {
     barriers.forEach(proc => { if (proc.exitCode === null) proc.kill(); });
     clients.forEach(proc => { if (proc.exitCode === null) proc.kill(); });

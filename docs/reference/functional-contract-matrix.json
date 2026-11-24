@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-08",
+  "updatedAt": "2026-11-24",
   "sourceCommit": "a5a67d34b6dcab04903b6657fb9fa01f0aba9d11",
   "profiles": [
     {
@@ -430,6 +430,20 @@
         "tests/e2e/task-9-pendencias.spec.js"
       ],
       "database": [],
+      "production": []
+    },
+    "contextDeletion": {
+      "unit": [
+        "tests/unit/operational-correction-t4-context.test.js",
+        "tests/unit/operational-correction-dialog.test.js"
+      ],
+      "e2e": [
+        "tests/e2e/supabase-t4-context-deletion-local.spec.js",
+        "tests/e2e/t4-context-deletion-dialog.spec.js"
+      ],
+      "database": [
+        "supabase/tests/database/context-correction-r2.test.sql"
+      ],
       "production": []
     }
   },

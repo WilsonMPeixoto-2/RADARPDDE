@@ -24,6 +24,58 @@
         if (value !== undefined) node.textContent = value;
         return node;
     };
+    // A ajuda complementa o rótulo: leitura por tecnologia assistiva e tooltip
+    // ao passar o mouse ou chegar ao botão pelo teclado, sem executar a ação.
+    function actionHelp(button, description) {
+        button.classList.add('radar-action-help');
+        button.setAttribute('data-tooltip', description);
+        button.setAttribute('aria-description', description);
+        return button;
+    }
+    // Design da informação: escopo identificado, quantidades reais e proteção
+    // visualmente distinta. A lista completa de registros continua no DOM.
+    function formatCompetence(value) {
+        const key = text(value);
+        const match = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(key);
+        if (!match) return key;
+        const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        return months[Number(match[2]) - 1] + ' ' + match[1];
+    }
+    function scopeFields(doc, entries) {
+        const scope = el(doc, 'dl', 'correction-scope-fields');
+        for (const [label, value] of entries) {
+            if (!text(value)) continue;
+            const field = el(doc, 'div', 'correction-scope-field');
+            field.append(el(doc, 'dt', '', label), el(doc, 'dd', '', value));
+            scope.appendChild(field);
+        }
+        return scope;
+    }
+    function impactTiles(doc, removals) {
+        const list = el(doc, 'ul', 'context-deletion-impact-list correction-impact-tiles');
+        list.setAttribute('aria-label', 'Quantidades de registros a excluir');
+        for (const item of removals) {
+            const count = Array.isArray(item.ids) ? item.ids.length : 0;
+            if (!count) continue;
+            const cell = el(doc, 'li', 'correction-impact-tile');
+            const name = text(item.label).replace(/^\d+\s+/, '');
+            cell.dataset.entity = text(item.entity);
+            cell.append(el(doc, 'strong', 'correction-impact-count', String(count)),
+                doc.createTextNode(' '), el(doc, 'span', 'correction-impact-name', name));
+            list.appendChild(cell);
+        }
+        return list;
+    }
+    function preservationPanel(doc, description) {
+        const panel = el(doc, 'section', 'correction-preservation-panel');
+        const heading = el(doc, 'h4', 'correction-panel-heading');
+        const icon = el(doc, 'span', 'correction-preservation-icon', '✓');
+        icon.setAttribute('aria-hidden', 'true');
+        heading.append(icon, el(doc, 'span', '', 'O que será preservado'));
+        panel.append(heading, el(doc, 'p', 'context-deletion-preserved', description));
+        return panel;
+    }
     function repositoryOf(root) {
         // Autoridade: mesmo repositório já composto pelo app.js.
         return root?.RadarApplicationServices?.data?.repository
@@ -49,51 +101,122 @@
                 && features?.bonificationCorrectionRelease === true)
         );
     }
+    function canDeleteContext(root) {
+        if (!canUse(root)) return false;
+        const features = root?.RADAR_PDDE_CONFIG?.features;
+        const localPilot = root?.RADAR_T4_CONTEXT_DELETION_PILOT === true
+            && features?.operationalCorrectionPilot === true
+            && ['localhost', '127.0.0.1'].includes(root?.location?.hostname)
+            && root?.RADAR_PDDE_CONFIG?.deploymentTarget !== 'production';
+        const productionRelease = features?.contextDeletionRelease === true
+            && features?.bonificationCorrectionRelease === true
+            && features?.operationalCorrectionRelease === true
+            && root?.RADAR_PDDE_CONFIG?.deploymentTarget === 'production'
+            && root?.location?.protocol === 'https:';
+        return localPilot || productionRelease;
+    }
+    function canClearHistory(root) {
+        if (!canUse(root)) return false;
+        const features = root?.RADAR_PDDE_CONFIG?.features;
+        const localPilot = root?.RADAR_T4_ITEM_HISTORY_PILOT === true
+            && features?.operationalCorrectionPilot === true
+            && ['localhost', '127.0.0.1'].includes(root?.location?.hostname)
+            && root?.RADAR_PDDE_CONFIG?.deploymentTarget !== 'production';
+        const productionRelease = features?.itemHistoryRelease === true
+            && canDeleteContext(root)
+            && root?.RADAR_PDDE_CONFIG?.deploymentTarget === 'production'
+            && root?.location?.protocol === 'https:';
+        return localPilot || productionRelease;
+    }
     function open(root, input = {}) {
         const context = input.context || {};
         const mode = input.mode || 'analysis';
-        const deleting = mode === 'delete_invoice' || mode === 'delete_pendency';
+        const contextDeletion = mode === 'delete_context';
+        const historyDeletion = mode === 'clear_item_history';
+        const deleting = contextDeletion || historyDeletion || mode === 'delete_invoice' || mode === 'delete_pendency';
         const bonus = mode === 'correct_bonification';
         if (bonus && !canCorrectFiscalBonus(root)) return false;
-        if (!bonus && !['analysis', 'delete_invoice', 'delete_pendency'].includes(mode)) return false;
+        if (contextDeletion && !canDeleteContext(root)) return false;
+        if (historyDeletion && !canClearHistory(root)) return false;
+        if (!bonus && !['analysis', 'delete_invoice', 'delete_pendency', 'delete_context', 'clear_item_history'].includes(mode)) return false;
         if (!canUse(root) || !context.schoolId || !context.competence
+            || (contextDeletion && !context.programId)
             || (!deleting && (!context.programId || !context.documentKey))
-            || (deleting && !text(mode === 'delete_invoice' ? context.invoiceId : context.pendencyId))) return false;
+            || (historyDeletion && (!context.programId || !context.documentKey
+                || (['notaFiscal', 'consAssessoria'].includes(context.documentKey) && !text(context.invoiceId))))
+            || (deleting && !contextDeletion && !historyDeletion
+                && !text(mode === 'delete_invoice' ? context.invoiceId : context.pendencyId))) return false;
         const doc = root.document;
         if (doc.getElementById('radar-operational-correction-layer')) return true;
         const client = root.RadarOperationalCorrectionClient.createOperationalCorrectionClient({
             repository: repositoryOf(root)
         });
-        const target = {
+        const target = contextDeletion ? {
+            kind: 'program_context',
+            schoolId: context.schoolId,
+            competence: context.competence,
+            programId: context.programId
+        } : {
+            ...(historyDeletion ? { kind: 'analysis' } : {}),
             schoolId: context.schoolId,
             competence: context.competence,
             programId: context.programId,
             documentKey: context.documentKey
         };
-        if (deleting) {
+        if (deleting && !contextDeletion && !historyDeletion) {
             target.id = text(mode === 'delete_invoice' ? context.invoiceId : context.pendencyId);
-        } else if (context.invoiceId) {
+        } else if (!contextDeletion && context.invoiceId) {
             target.id = text(context.invoiceId);
         }
         const layer = el(doc, 'div', 'radar-operational-correction-layer evaluation-retification-modal-layer');
         layer.id = 'radar-operational-correction-layer';
         const backdrop = el(doc, 'div', 'radar-operational-correction-backdrop evaluation-retification-backdrop');
         const dialog = el(doc, 'section', 'radar-operational-correction-dialog evaluation-retification-dialog');
+        dialog.classList.add('is-structured-correction');
+        if (deleting) dialog.classList.add('is-destructive');
         if (bonus) dialog.classList.add('is-fiscal-bonus');
+        if (contextDeletion) dialog.classList.add('is-context-deletion');
+        if (historyDeletion) dialog.classList.add('is-item-history');
         dialog.setAttribute('role', 'dialog');
         dialog.setAttribute('aria-modal', 'true');
         dialog.setAttribute('aria-labelledby', 'radar-operational-correction-title');
         const header = el(doc, 'header', 'radar-operational-correction-header');
         const kicker = el(doc, 'span', 'evaluation-retification-kicker',
-            bonus ? 'Avaliação de Notas Fiscais' : deleting ? (mode === 'delete_invoice' ? 'Exclusão de nota fiscal' : 'Exclusão de pendência') : 'Correção operacional');
-        const title = el(doc, 'h2', '', deleting
+            contextDeletion ? 'Exclusão de lançamentos' : historyDeletion ? 'Limpeza de histórico' : bonus ? 'Avaliação de Notas Fiscais'
+                : deleting ? (mode === 'delete_invoice' ? 'Exclusão de nota fiscal' : 'Exclusão de pendência')
+                    : 'Correção operacional');
+        const title = el(doc, 'h2', '', contextDeletion ? 'Excluir lançamentos deste programa neste mês' : historyDeletion
+            ? 'Limpar todo o histórico deste item' : deleting
             ? (mode === 'delete_invoice' ? 'Excluir nota fiscal' : 'Excluir pendência')
             : bonus ? 'Corrigir consolidação da bonificação' : 'Corrigir análise técnica');
         title.id = 'radar-operational-correction-title';
-        const summary = el(doc, 'p', '', bonus
-            ? [context.schoolName, context.programName, context.competenceLabel].filter(Boolean).join(' · ')
-            : text(context.documentLabel || context.documentKey) + ' · ' + context.competence);
-        header.append(kicker, title, summary);
+        header.append(kicker, title);
+        const scope = scopeFields(doc, [
+            ['Escola', context.schoolName || context.schoolId],
+            ['Mês de referência', context.competenceLabel || formatCompetence(context.competence)],
+            ['Programa', context.programName || context.programId],
+            ...(!contextDeletion ? [['Documento', context.documentLabel || context.documentKey]] : [])
+        ]);
+        let caution = null;
+        if (deleting) {
+            caution = el(doc, 'div', 'correction-caution');
+            const mark = el(doc, 'span', 'correction-caution-icon', '!');
+            mark.setAttribute('aria-hidden', 'true');
+            const message = el(doc, 'div', 'correction-caution-copy');
+            message.append(el(doc, 'strong', '', 'Exclusão definitiva no Prontuário'),
+                el(doc, 'p', '', contextDeletion
+                    ? 'Você vai excluir os registros listados abaixo.'
+                    : historyDeletion
+                        ? 'A avaliação atual e o histórico deste item serão removidos.'
+                        : mode === 'delete_invoice'
+                            ? 'A despesa e os vínculos indicados na prévia serão excluídos.'
+                            : 'A Pendência e os vínculos indicados na prévia serão excluídos.'));
+            caution.append(mark, message);
+        }
+        if (!deleting && !bonus) {
+            header.appendChild(el(doc, 'p', 'correction-confirmation-hint',
+                'Escolha o resultado e confira os efeitos. Nada será gravado antes da confirmação.'));
+        }
         if (bonus) {
             const explanation = el(doc, 'p', 'fiscal-bonus-explanation',
                 'Nesta etapa, você pode corrigir apenas a avaliação de Notas Fiscais. '
@@ -131,7 +254,7 @@
         note.id = 'radar-operational-correction-note';
         note.maxLength = 2000;
         note.rows = 3;
-        const planTitle = el(doc, 'h3', '', 'O que vai mudar ao confirmar');
+        const planTitle = el(doc, 'h3', '', deleting ? 'Confira o que será excluído' : 'O que vai mudar ao confirmar');
         const effects = el(doc, 'div', 'radar-operational-correction-effects', 'Calculando o que vai mudar…');
         effects.setAttribute('aria-live', 'polite');
         const feedback = el(doc, 'p', 'radar-operational-correction-feedback');
@@ -140,10 +263,26 @@
         const actions = el(doc, 'div', 'radar-operational-correction-actions');
         const cancel = el(doc, 'button', 'btn btn-secondary', 'Cancelar');
         const clearBtn = el(doc, 'button', 'btn btn-secondary', 'Limpar análise');
-        const review = el(doc, 'button', 'btn btn-secondary', 'Revisar prévia');
-        const save = el(doc, 'button', 'btn btn-primary',
-            deleting ? 'Confirmar exclusão' : 'Confirmar correção');
+        const review = el(doc, 'button', 'btn btn-secondary',
+            contextDeletion || historyDeletion ? 'Conferir novamente' : 'Revisar prévia');
+        const save = el(doc, 'button', deleting ? 'btn btn-danger' : 'btn btn-primary',
+            contextDeletion ? 'Excluir estes lançamentos' : historyDeletion ? 'Limpar histórico deste item'
+                : deleting ? 'Confirmar exclusão' : 'Confirmar correção');
         for (const button of [cancel, clearBtn, review, save]) button.type = 'button';
+        actionHelp(cancel, 'Fecha esta janela sem alterar os registros.');
+        actionHelp(clearBtn, 'Prepara o resultado Não analisado. Confira os efeitos antes de confirmar.');
+        actionHelp(review, 'Consulta novamente os efeitos. Este botão não exclui nem grava registros.');
+        actionHelp(save, contextDeletion
+            ? 'Exclui os registros conferidos deste mês e programa. Não transfere lançamentos.'
+            : historyDeletion
+                ? 'Remove a avaliação e as Pendências listadas; preserva a despesa e os registros independentes.'
+                : mode === 'delete_invoice'
+                    ? 'Exclui a despesa selecionada e os vínculos indicados na prévia.'
+                    : mode === 'delete_pendency'
+                        ? 'Exclui a Pendência selecionada e os vínculos indicados na prévia.'
+                        : bonus
+                            ? 'Grava a nova avaliação de Notas Fiscais. Se necessário, consolide a bonificação novamente.'
+                            : 'Grava o resultado e os efeitos indicados na prévia.');
         (deleting ? cancel : select).autofocus = true;
         clearBtn.disabled = currentChoice === 'Não analisado' || !currentChoice;
         save.disabled = true;
@@ -156,6 +295,11 @@
             : 'radar-operational-correction-body is-split');
         const effectsCol = el(doc, 'aside', 'radar-operational-correction-preview-col');
         effectsCol.append(planTitle, effects);
+        bodyGrid.setAttribute('role', 'region');
+        bodyGrid.setAttribute('aria-label', 'Prévia completa da operação');
+        bodyGrid.tabIndex = 0;
+        bodyGrid.appendChild(scope);
+        if (caution) bodyGrid.appendChild(caution);
         if (!deleting) {
             const inputsCol = el(doc, 'div', 'radar-operational-correction-inputs-col');
             if (bonus) {
@@ -209,20 +353,133 @@
             const warnings = Array.isArray(view.warnings) ? view.warnings : [];
             const blockers = Array.isArray(view.blockers) ? view.blockers : [];
             if (deleting) {
-                effects.appendChild(el(doc, 'p', '', text(view.summary)));
-                if (view.preserved?.bonusResult) {
-                    effects.appendChild(el(doc, 'p', '',
-                        'O resultado da bonificação já consolidada será preservado.'));
-                }
-                if (view.preserved?.sharedAssetId) {
-                    effects.appendChild(el(doc, 'p', '',
-                        'O bem vinculado a outra nota fiscal será preservado.'));
+                if (contextDeletion) {
+                    const removals = Array.isArray(view.removals) ? view.removals : [];
+                    if (removals.length) {
+                        effects.appendChild(impactTiles(doc, removals));
+                    } else {
+                        effects.appendChild(el(doc, 'p', '', 'Nenhum registro foi encontrado para excluir.'));
+                    }
+                    effects.appendChild(preservationPanel(doc,
+                        'Outros meses e programas, contatos gerais e registros fora desta seleção.'));
+                    const next = el(doc, 'p', 'correction-next-step',
+                        'Os lançamentos não serão transferidos automaticamente. Para registrar no lugar correto, faça um novo lançamento.');
+                    effects.appendChild(next);
+                    // A confirmação não depende de IDs técnicos: mostre ao
+                    // Controlador os documentos reais de cada parte do conjunto.
+                    const records = view.affectedRecords || {};
+                    const documentNames = {
+                        notaFiscal: 'Nota fiscal',
+                        extCC: 'Extrato da conta corrente',
+                        extCI: 'Extrato de investimentos',
+                        extINV: 'Extrato de investimentos',
+                        consAssessoria: 'Consulta à assessoria',
+                        boletoInternet: 'Boleto de pagamento de Internet',
+                        declBBAgil: 'Declaração BB Ágil',
+                        encampInventario: 'Encaminhamento para inventariação'
+                    };
+                    const makeDetails = (heading, entries) => {
+                        if (!Array.isArray(entries) || entries.length === 0) return null;
+                        const section = el(doc, 'section', 'context-deletion-details');
+                        section.appendChild(el(doc, 'h4', '', heading));
+                        const list = el(doc, 'ul', 'context-deletion-records');
+                        for (const entry of entries) list.appendChild(el(doc, 'li', '', entry));
+                        section.appendChild(list);
+                        return section;
+                    };
+                    const invoices = (records.invoices || []).map(invoice => {
+                        const expenseType = text(invoice.expenseType).toLocaleLowerCase('pt-BR');
+                        const number = text(invoice.invoiceNumber);
+                        const label = expenseType === 'a_identificar'
+                            ? 'Despesa a identificar'
+                            : expenseType === 'boleto_internet'
+                                ? (number ? 'Boleto Internet ' + number : 'Boleto Internet sem número')
+                                : 'NF ' + (number || 'sem número');
+                        const description = text(invoice.description);
+                        const amount = invoice.amount == null || !Number.isFinite(Number(invoice.amount))
+                            ? '' : new Intl.NumberFormat('pt-BR', {
+                                style: 'currency', currency: 'BRL'
+                            }).format(Number(invoice.amount));
+                        return [label, description, amount].filter(Boolean).join(' · ');
+                    });
+                    const invoiceDetails = makeDetails('Notas fiscais', invoices);
+                    if (invoiceDetails) effects.appendChild(invoiceDetails);
+                    const pendencies = (records.pendencies || []).map(item => {
+                        const document = documentNames[item.documentKey]
+                            || text(item.documentKey) || 'Documento não informado';
+                        return 'Pendência: ' + document + (text(item.status) ? ' · ' + text(item.status) : '');
+                    });
+                    const pendencyDetails = makeDetails('Pendências', pendencies);
+                    if (pendencyDetails) effects.appendChild(pendencyDetails);
+                    const assets = (records.assets || []).map(item => [
+                        text(item.description) || 'Bem sem descrição',
+                        text(item.status)
+                    ].filter(Boolean).join(' · '));
+                    const assetDetails = makeDetails('Bens vinculados', assets);
+                    if (assetDetails) effects.appendChild(assetDetails);
+
+                } else if (historyDeletion) {
+                    const records = view.affectedRecords || {};
+                    const removals = Array.isArray(view.removals) ? view.removals : [];
+                    if (removals.length) effects.appendChild(impactTiles(doc, removals));
+                    else effects.appendChild(el(doc, 'p', '', text(view.summary)));
+                    effects.appendChild(preservationPanel(doc,
+                        'Notas fiscais, bens, outros documentos, programas, bonificação, contatos gerais e registros administrativos de auditoria.'));
+                    const documentNames = {
+                        extCC: 'Extrato da conta corrente', extCI: 'Extrato de investimentos',
+                        extINV: 'Extrato de investimentos', notaFiscal: 'Nota fiscal',
+                        consAssessoria: 'Consulta à Assessoria', boletoInternet: 'Boleto de Internet',
+                        declBBAgil: 'Declaração BB Ágil', encampInventario: 'Encaminhamento para inventariação'
+                    };
+                    const contactNames = { email: 'E-mail', telefone: 'Telefone', whatsapp: 'WhatsApp', presencial: 'Presencial' };
+                    const historyPendencies = records.pendencies || [];
+                    const pendencyLabels = new Map(historyPendencies.map((item, index) => [text(item.id),
+                        'Pendência ' + (index + 1) + (text(item.status) ? ' (' + text(item.status) + ')' : '')]));
+                    const historyReference = item => pendencyLabels.get(text(item.pendencyId)) || 'Pendência vinculada';
+                    const rows = [
+                        ['Pendências — inclusive resolvidas e canceladas', historyPendencies,
+                            item => [pendencyLabels.get(text(item.id)), documentNames[item.documentKey]
+                                || text(context.documentLabel) || 'Documento selecionado'].filter(Boolean).join(' · ')],
+                        ['Envios documentais vinculados', records.attempts || [],
+                            item => ['Envio', item.attemptNumber ? 'tentativa ' + item.attemptNumber : '',
+                                historyReference(item)].filter(Boolean).join(' · ')],
+                        ['Contatos vinculados às Pendências', records.contacts || [],
+                            item => [contactNames[text(item.contactType).toLowerCase()] || text(item.contactType) || 'Contato',
+                                text(item.description), historyReference(item)].filter(Boolean).join(' · ')]
+                    ];
+                    for (const [heading, entries, format] of rows) {
+                        if (!Array.isArray(entries) || entries.length === 0) continue;
+                        const section = el(doc, 'section', 'context-deletion-details item-history-detail');
+                        section.appendChild(el(doc, 'h4', '', heading + ' (' + entries.length + ')'));
+                        const list = el(doc, 'ul', 'context-deletion-records');
+                        for (const entry of entries) {
+                            const row = el(doc, 'li', '', format(entry));
+                            // Referência estável para a auditoria, sem poluir a leitura principal.
+                            if (entry.id) row.setAttribute('title', 'Referência do registro: ' + text(entry.id));
+                            list.appendChild(row);
+                        }
+                        section.appendChild(list);
+                        effects.appendChild(section);
+                    }
+
+                } else {
+                    const removals = Array.isArray(view.removals) ? view.removals : [];
+                    if (removals.length) effects.appendChild(impactTiles(doc, removals));
+                    else effects.appendChild(el(doc, 'p', '', text(view.summary)));
                 }
             }
-            if (!changes.length) {
-                effects.appendChild(el(doc, 'p', '', deleting
-                    ? 'Nenhuma outra informação será alterada.' : 'Nenhuma outra análise será alterada.'));
+            const protections = [];
+            if (view.preserved?.bonusResult && !historyDeletion && !bonus) {
+                protections.push('O resultado da bonificação já consolidada será preservado.');
             }
+            if (view.preserved?.sharedAssetId) {
+                protections.push('O bem vinculado a outra nota fiscal será preservado.');
+            }
+            if (!changes.length && !contextDeletion && !bonus) {
+                protections.push(deleting
+                    ? 'Nenhuma outra informação será alterada.' : 'Nenhuma outra análise será alterada.');
+            }
+            if (protections.length) effects.appendChild(preservationPanel(doc, protections.join(' ')));
             if (bonus) {
                 for (const change of changes) {
                     if (change.field === 'bonification.notaFiscal') {
@@ -235,17 +492,17 @@
                             + ' deste programa será reaberto para consolidação.'));
                     }
                 }
-                effects.appendChild(el(doc, 'p', 'fiscal-bonus-preserved',
+                effects.appendChild(preservationPanel(doc,
                     'As notas fiscais, as análises individuais e as pendências serão preservadas.'));
                 for (const item of [...warnings, ...blockers]) effects.appendChild(el(doc, 'p', '', text(item.message || item.code)));
                 return;
             }
             const transitions = new Map();
+            let reopenedProvisionalCount = 0;
             for (const change of changes) {
                 if (change.entity === 'quality_provisional_movements' && change.field === 'status'
                     && change.before === 'identified' && change.after === 'open') {
-                    effects.appendChild(el(doc, 'p', '',
-                        'A saída provisória do PDDE Qualidade voltará para “Programa a identificar” e poderá ser identificada novamente.'));
+                    reopenedProvisionalCount += 1;
                     continue;
                 }
                 if (text(change.before) === 'Não analisado' && text(change.after) === 'Não analisado') continue;
@@ -254,12 +511,24 @@
                 const fieldLabel = EFFECT_LABELS[change.field] || context.documentLabel;
                 if (fieldLabel) transitions.get(valueChange).add(fieldLabel);
             }
+            if (reopenedProvisionalCount === 1) {
+                effects.appendChild(el(doc, 'p', '',
+                    'A saída provisória do PDDE Qualidade voltará para “Programa a identificar” e poderá ser identificada novamente.'));
+            } else if (reopenedProvisionalCount > 1) {
+                effects.appendChild(el(doc, 'p', '',
+                    reopenedProvisionalCount + ' saídas provisórias do PDDE Qualidade voltarão para “Programa a identificar” e poderão ser identificadas novamente.'));
+            }
             for (const [valueChange, labels] of transitions) {
                 const scope = [...labels].join(' / ');
-                effects.appendChild(el(doc, 'p', '', scope ? scope + ' — ' + valueChange : valueChange));
+                const transition = el(doc, 'div', 'correction-effect-transition');
+                if (scope) transition.appendChild(el(doc, 'span', 'correction-effect-label', scope));
+                transition.appendChild(el(doc, 'strong', '', valueChange));
+                effects.appendChild(transition);
             }
             for (const item of [...warnings, ...blockers]) {
-                effects.appendChild(el(doc, 'p', '', text(item?.message || item?.code || item)));
+                const notice = el(doc, 'p', 'correction-plan-notice', text(item?.message || item?.code || item));
+                notice.dataset.level = blockers.includes(item) ? 'blocker' : 'warning';
+                effects.appendChild(notice);
                 if (['AMBIGUOUS_CONSEQUENCE', 'INCOMPLETE_PENDENCY_SELECTION'].includes(item?.code)
                     && Array.isArray(item.candidates)) {
                     candidatePendencyIds = item.candidates.map(text).filter(Boolean);
@@ -284,6 +553,7 @@
                             'Ir para abertura de Pendência'
                         );
                         altBtn.type = 'button';
+                        actionHelp(altBtn, 'Abre o formulário de Pendência deste item. Nada é gravado nesta etapa.');
                         altBtn.dataset.operationalCorrectionAlt = 'open-pendency';
                         altBtn.addEventListener('click', () => {
                             close();
@@ -309,6 +579,7 @@
                     const action = el(doc, 'button', 'btn btn-secondary btn-sm',
                         'Excluir despesa lançada por engano');
                     action.type = 'button';
+                    actionHelp(action, 'Abre a conferência de exclusão da despesa. Você ainda precisará confirmar.');
                     action.dataset.operationalCorrectionAlt = 'delete-invoice-instead';
                     action.addEventListener('click', () => {
                         close();
@@ -322,6 +593,7 @@
                     const guidance = el(doc, 'button', 'btn btn-secondary btn-sm',
                         'Excluir despesa e Pendência juntas');
                     guidance.type = 'button';
+                    actionHelp(guidance, 'Abre a conferência da despesa e dos registros vinculados antes de excluir.');
                     guidance.dataset.operationalCorrectionAlt = 'delete-linked-invoice';
                     guidance.addEventListener('click', () => {
                         close();
@@ -353,7 +625,12 @@
                 }
                 effects.appendChild(group);
             }
-            if (!deleting && view.removals?.length) effects.appendChild(el(doc, 'p', '', text(view.summary)));
+            if (!deleting && view.removals?.length) {
+                const removalPanel = el(doc, 'section', 'correction-removal-panel');
+                removalPanel.append(el(doc, 'h4', 'correction-panel-heading', 'Registros que serão excluídos'),
+                    impactTiles(doc, view.removals));
+                effects.appendChild(removalPanel);
+            }
         }
         async function loadPreview() {
             // Não criar uma nova operação enquanto o resultado anterior for incerto.
@@ -386,21 +663,35 @@
                 if (bonus) review.hidden = true;
                 preview = result;
                 renderPlan(result.view);
+                if (action === 'correct_analysis') {
+                    actionHelp(save, 'Grava o novo resultado da análise técnica e os efeitos indicados na prévia.');
+                }
                 if (result.view.canApply) {
                     save.disabled = false;
                     if (action === 'clear_analysis') {
+                        actionHelp(save, 'Define a análise como Não analisado e aplica apenas os efeitos mostrados na prévia.');
                         status('Análise pronta para ser limpa. Confira o que vai mudar acima e clique em Confirmar correção.', false);
+                    } else if (contextDeletion) {
+                        status('Prévia pronta. Confira antes de excluir.', false);
+                    } else if (historyDeletion) {
+                        status('Prévia pronta. Confira antes de limpar.', false);
                     } else if (deleting) {
-                        status('Confira quais registros serão excluídos e clique em Confirmar exclusão.', false);
+                        status('Prévia pronta. Confira antes de excluir.', false);
                     }
                 } else {
-                    status('Ação pendente ou bloqueada. Confira os avisos acima antes de confirmar.', true);
+                    status(contextDeletion
+                        ? 'Não é possível excluir esses lançamentos agora. Confira o motivo acima.'
+                        : historyDeletion
+                            ? 'Não é possível limpar este histórico agora. Confira o motivo acima.'
+                            : 'Ação pendente ou bloqueada. Confira os avisos acima antes de confirmar.', true);
                 }
             } catch (error) {
                 if (generation !== serial || !layer.isConnected) return;
                 if (bonus) review.hidden = false;
                 effects.textContent = '';
-                status(error?.message || 'Não foi possível obter a prévia.', true);
+                status(contextDeletion
+                    ? 'Não foi possível conferir os lançamentos. Nada foi excluído. Tente novamente.'
+                    : error?.message || 'Não foi possível obter a prévia.', true);
             }
         }
         async function synchronizeConfirmed() {
@@ -427,16 +718,50 @@
                         button.dataset.schoolId === target.schoolId
                         && button.dataset.compKey === previousFocus.dataset.compKey);
                     control?.focus({ preventScroll: true });
+                } else if (historyDeletion) {
+                    const itemRow = Array.from(doc.querySelectorAll?.('tr[data-document-key]') || [])
+                        .find(row => row.dataset?.documentKey === target.documentKey
+                            && row.dataset?.programId === target.programId);
+                    const invoiceRow = target.id
+                        ? Array.from(itemRow?.querySelectorAll?.('[data-invoice-id], [data-service-advisory-invoice]') || [])
+                            .find(row => (row.dataset.invoiceId || row.dataset.serviceAdvisoryInvoice) === target.id)
+                        : null;
+                    const focusTarget = target.id
+                        ? invoiceRow?.querySelector?.('.invoice-history-clear-button:not(:disabled), .prontuario-history-clear-button:not(:disabled)')
+                            || invoiceRow || itemRow?.querySelector?.('.verification-document-copy strong')
+                            || doc.getElementById?.('prontuario-verif-rows')
+                        : itemRow?.querySelector?.('.prontuario-history-clear-button:not(:disabled)')
+                            || itemRow?.querySelector?.('.verification-document-copy strong')
+                            || doc.getElementById?.('prontuario-verif-rows');
+                    if (focusTarget && focusTarget.tabIndex < 0 && !focusTarget.hasAttribute('tabindex')) {
+                        focusTarget.setAttribute('tabindex', '-1');
+                    }
+                    focusTarget?.focus?.({ preventScroll: true });
+                } else if (contextDeletion) {
+                    const programHeader = Array.from(doc.querySelectorAll?.('tr[data-program-header]') || [])
+                        .find(row => row.dataset?.programHeader === target.programId);
+                    const heading = programHeader?.querySelector?.('.program-context-name');
+                    const focusTarget = programHeader?.querySelector?.('.program-consolidate-button:not(:disabled)')
+                        || heading
+                        || doc.getElementById?.('prontuario-verif-rows');
+                    if (focusTarget === heading && heading && !heading.hasAttribute('tabindex')) {
+                        heading.setAttribute('tabindex', '-1');
+                    }
+                    focusTarget?.focus?.({ preventScroll: true });
                 }
                 root.updateAlertsBell?.();
-                let message = deleting ? 'Exclusão confirmada. Os registros relacionados foram atualizados.'
-                    : 'Correção confirmada e informações atualizadas.';
+                let message = contextDeletion
+                    ? 'Lançamentos excluídos. Confira o programa e o mês antes de cadastrar novamente.'
+                    : historyDeletion
+                        ? 'Histórico do item limpo. A nota fiscal, a bonificação e os demais documentos foram preservados.'
+                        : deleting ? 'Exclusão confirmada. Os registros relacionados foram atualizados.'
+                            : 'Correção confirmada e informações atualizadas.';
                 if (bonus) {
                     const reopened = preview.view.changes.some(change => change.field === 'bonus_result');
                     const cleared = select.value === 'Limpar resposta';
-                    message = reopened ?(cleared
-                                        ? 'Avaliação removida. Preencha novamente Notas Fiscais para habilitar Consolidar bonificação no cabeçalho do programa.'
-                                         : 'Avaliação corrigida. Para concluir, utilize Consolidar bonificação no cabeçalho do programa.')
+                    message = reopened ? (cleared
+                        ? 'Avaliação removida. Preencha novamente Notas Fiscais para habilitar Consolidar bonificação no cabeçalho do programa.'
+                        : 'Avaliação corrigida. Para concluir, utilize Consolidar bonificação no cabeçalho do programa.')
                         : (cleared ? 'Avaliação de Notas Fiscais removida.' : 'Avaliação de Notas Fiscais atualizada.');
                 }
                 root.RadarSharedInteractions?.notify?.({ type: 'success', message });
@@ -452,6 +777,7 @@
                     'Alteração gravada. Atualize a página para conferir o resultado.'));
                 const reload = el(doc, 'button', 'btn btn-secondary btn-sm', 'Atualizar página');
                 reload.type = 'button';
+                actionHelp(reload, 'Recarrega a página para conferir o resultado já gravado.');
                 reload.addEventListener('click', () => root.location.reload());
                 notice.appendChild(reload);
                 doc.body.appendChild(notice);
@@ -483,10 +809,14 @@
                     uncertain = false;
                     doc.getElementById('radar-operational-correction-reload')?.remove();
                     if (bonus) review.hidden = false;
-                    status('Os dados mudaram. Revise a prévia antes de confirmar.', true);
+                    status(contextDeletion || historyDeletion
+                        ? 'Os registros mudaram desde a conferência. Confira novamente antes de excluir.'
+                        : 'Os dados mudaram. Revise a prévia antes de confirmar.', true);
                 } else {
                     uncertain = true;
-                    status('Estado incerto: o servidor pode ter confirmado a gravação. Tente novamente com a mesma intenção ou atualize a página e confira o resultado antes de um novo lançamento.', true);
+                    status(contextDeletion
+                        ? 'Não foi possível confirmar se a exclusão terminou. Atualize a página e confira os lançamentos antes de tentar novamente.'
+                        : 'Estado incerto: o servidor pode ter confirmado a gravação. Tente novamente com a mesma intenção ou atualize a página e confira o resultado antes de um novo lançamento.', true);
                     if (!doc.getElementById('radar-operational-correction-reload')) {
                         const reload = el(doc, 'button', 'btn btn-secondary', 'Atualizar página');
                         reload.id = 'radar-operational-correction-reload';
@@ -514,15 +844,17 @@
             void loadPreview();
         });
         backdrop.addEventListener('click', () => close());
+        layer.addEventListener('pointermove', () => { layer.dataset.pointerHelp = 'true'; }, { once: true });
         layer.addEventListener('keydown', event => {
             if (event.key === 'Escape') {
                 event.preventDefault();
                 close();
             }
             if (event.key === 'Tab') {
+                layer.dataset.keyboardHelp = 'true';
                 const controls = Array.from(dialog.querySelectorAll(
-                    'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled)'
-                ));
+                    'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), summary, [tabindex="0"]'
+                )).filter(control => !control.hidden && control.getClientRects().length > 0);
                 const first = controls[0], last = controls.at(-1);
                 if (event.shiftKey && doc.activeElement === first) {
                     event.preventDefault(); last?.focus();
@@ -538,5 +870,5 @@
         void loadPreview();
         return true;
     }
-    return Object.freeze({ ANALYSES, canUse, canCorrectFiscalBonus, open });
+    return Object.freeze({ ANALYSES, canUse, canCorrectFiscalBonus, canDeleteContext, canClearHistory, open });
 }));

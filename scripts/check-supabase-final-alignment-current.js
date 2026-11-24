@@ -6,7 +6,8 @@ const path = require('node:path');
 const legacyAlignment = require('./check-supabase-final-alignment.js');
 
 const root = path.resolve(__dirname, '..');
-const EXPECTED_MIGRATION_COUNT = 65;
+// Contagem do pacote local candidato; não informa quantas migrations estão aplicadas em Production.
+const EXPECTED_MIGRATION_COUNT = 67;
 const OBSOLETE_FINDINGS = Object.freeze([
     'Build Vercel incompleto: /RADAR_DATA_MODE:\\s*[\'\"]supabase-preview[\'\"]/',
     'Conjunto final deve conter 33 migrations; encontrado:'

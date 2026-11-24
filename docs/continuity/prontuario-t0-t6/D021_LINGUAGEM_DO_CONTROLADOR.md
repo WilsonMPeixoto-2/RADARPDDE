@@ -42,3 +42,25 @@ O texto não deve prometer reabrir bonificação se a avaliação já era inconc
 5. O PR de UX não altera SQL nem o contrato da RPC; deploy ocorre somente após CI e aceite humano apropriado.
 
 **Fonte:** decisão expressa pelo proprietário na conversa RADAR PDDE de 22/11/2026; não há permalink público verificável do chat. O registro mantém a proveniência textual sem inventar URL.
+
+
+## Complemento aprovado em 23/11/2026 — ações claras e confirmação
+
+Na T4, cada botão operacional deve ter nome compreensível no seu contexto, com explicação breve no hover/foco de teclado; os controles de nota fiscal não dependem exclusivamente de ícones. A janela de conferência já existente é a confirmação da alteração: mostra o item, o alcance, o que será excluído ou alterado, o que permanece e a ação explícita de confirmação. Não duplicar confirmações nem acrescentar uma confirmação a ações exclusivamente de consulta ou cancelamento.
+
+A prévia deve usar os nomes dos documentos e situações reconhecíveis pelo Controlador, não chaves de persistência como `extCC` nem IDs internos no texto principal. As referências técnicas podem permanecer disponíveis para rastreabilidade. Preservar os rótulos de bonificação já aprovados na tabela D021; explicitar o escopo pela ajuda contextual.
+
+**Estado:** implementação candidata no PR #558, sujeita a verificação de hover/teclado, capturas de tela e E2E no SHA final. Sem mudança de SQL, regras de negócio, permissões ou produção por este complemento.
+
+
+### Consolidação com confirmação explícita
+
+Tanto a primeira consolidação como a reconsolidação são iniciadas pelo botão **Consolidar bonificação**. Antes de gravar, o diálogo compartilhado mostra a escola, o mês e o programa e explica que o resultado Apta/Inapta será calculado e registrado, sem alterar as notas fiscais, a análise técnica ou as Pendências. Cancelar ou Escape não grava. O botão final é **Confirmar consolidação**. O comando canônico de cálculo e suas permissões permanecem inalterados. A confirmação é testada no fluxo visual e na jornada autenticada; aceite no SHA final ainda necessário.
+
+
+### Design da informação — confirmação T4
+
+Identificar escola, mês, programa e documento com rótulos próprios. Distinguir por estrutura, não somente por cores: aviso de irreversibilidade breve; quantitativos de exclusão com destaque numérico calculado da prévia real; área de preservação antes da listagem extensa; detalhes agrupados e rodapé acessível. Na consolidação, separar o efeito (cálculo e registro de Apta/Inapta), o contexto e os dados que não serão alterados. Proibido condensar por omissão de vínculos, avisos, bloqueadores ou transições. Verificar desktop, móvel, tema escuro e consistência do foco por screenshots reais. Mudança de apresentação somente, sem modificar RPCs, migrations ou critérios de consolidação.
+
+
+**Cobertura transversal obrigatória:** o mesmo sistema de informação visual deve abranger análise técnica (corrigir/limpar), correção de bonificação, exclusão de NF, exclusão de Pendência, limpeza de histórico e exclusão do contexto mensal; reconsolidação usa o diálogo compartilhado já reformulado. Nenhuma modalidade pode voltar à prévia textual corrida. Exclusões usam a semântica visual destrutiva, quantitativos vindos do plano, transições separadas por campo, preservações sustentadas pelo plano e contexto nominal. Capturas de cada modalidade são requisito de aceite. Não alterar o motor de correção para adequar aparência.

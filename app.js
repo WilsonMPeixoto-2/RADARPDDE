@@ -10381,6 +10381,12 @@ function renderProntuarioVerificacoes(esc) {
                 const prog = programas.find(p => p.id === progId);
                 const progName = prog ? prog.name : progId;
                 const compProgKey = `${c.key}_${progId}`;
+                const canDeleteContext = Boolean(verificacoes[esc.id]?.[compProgKey])
+                    && !['inventario', 'sme'].includes(accessProfile)
+                    && window.RadarOperationalCorrectionDialog?.canDeleteContext?.(window) === true;
+                const canClearItemHistory = !['inventario', 'sme'].includes(accessProfile)
+                    && canViewTechnicalAnalysis
+                    && window.RadarOperationalCorrectionDialog?.canClearHistory?.(window) === true;
 
                 // A grade usa um estado vazio transitório; só um comando do usuário cria a verificação.
                 const v = buildVerificationSnapshot(
@@ -10418,15 +10424,33 @@ function renderProntuarioVerificacoes(esc) {
                                 <div class="program-context-identity">
                                     <span class="program-context-competence">${escapeHtml(c.label)}</span>
                                     <h3 class="program-context-name">${escapeHtml(progName)}</h3>
+                                    ${canDeleteContext ? `
+                                        <details class="program-context-options" name="program-context-options">
+                                            <summary class="radar-action-help" aria-label="Ações do programa: ${escapeHtml(progName)}" data-tooltip="Mostra as ações disponíveis para este programa no mês selecionado." aria-description="Mostra as ações disponíveis para este programa no mês selecionado.">Ações do programa</summary>
+                                            <div class="program-context-options-list">
+                                                <button type="button" class="program-context-delete-button radar-action-help"
+                                                    data-tooltip="Abre a conferência dos lançamentos deste mês e programa. A exclusão depende da sua confirmação." aria-description="Abre a conferência dos lançamentos deste mês e programa. A exclusão depende da sua confirmação."
+                                                    data-school-id="${escapeHtml(esc.id)}"
+                                                    data-comp-key="${escapeHtml(compProgKey)}"
+                                                    data-school-name="${escapeHtml(getSchoolDisplayName(esc, esc.id))}"
+                                                    data-program-name="${escapeHtml(progName)}"
+                                                    data-competence-label="${escapeHtml(c.label)}"
+                                                    onclick="openProgramContextDeletion(this)">
+                                                    Excluir lançamentos deste programa neste mês
+                                                </button>
+                                            </div>
+                                        </details>
+                                    ` : ''}
                                 </div>
                                 ${programStatusSummary}
                                 ${accessProfile !== 'inventario' && accessProfile !== 'sme' ? `
                                     <div class="program-context-consolidate">
                                         ${v.resultadoBonif ? `
-                                            <button class="btn program-consolidate-button is-disabled" disabled>Consolidada</button>
+                                            <button type="button" class="btn program-consolidate-button radar-action-help is-disabled" data-tooltip="Calcula e registra o resultado da bonificação deste mês e programa. Não altera a análise técnica." aria-description="Calcula e registra o resultado da bonificação deste mês e programa. Não altera a análise técnica." disabled>Consolidada</button>
                                         ` : `
-                                            <button class="btn program-consolidate-button" ${bonusReview && !bonusReview.canConsolidate ? 'disabled' : ''}
-                                                onclick="calcularEFecharBonificacao('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">${bonusReview ? 'Consolidar bonificação' : 'Consolidar'}</button>
+                                            <button type="button" class="btn program-consolidate-button radar-action-help" ${bonusReview && !bonusReview.canConsolidate ? 'disabled' : ''}
+                                                data-tooltip="Calcula e registra o resultado da bonificação deste mês e programa. Não altera a análise técnica." aria-description="Calcula e registra o resultado da bonificação deste mês e programa. Não altera a análise técnica."
+                                                onclick="requestBonificationConsolidation('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', this)">Consolidar bonificação</button>
                                         `}
                                     </div>
                                 ` : ''}
@@ -10472,6 +10496,11 @@ function renderProntuarioVerificacoes(esc) {
                         && window.RadarPendencias.buildDocumentContextKey(pendency)
                             === exactPendencyKey
                     ));
+                    // A ação de limpar histórico também atende itens cuja última
+                    // Pendência foi Cancelada (não aparece em activePend/resolvedPend).
+                    const hasDocumentHistory = documentaryPendencies.some(pendency =>
+                        window.RadarPendencias.buildDocumentContextKey(pendency) === exactPendencyKey
+                    );
                     const isBbAgilNaLocked = doc.key === 'declBBAgil'
                         && bonifValue === 'Não se aplica';
                     const isAnaliseLocked = accessProfile === 'inventario'
@@ -10535,9 +10564,10 @@ function renderProntuarioVerificacoes(esc) {
                         const fiscalBonificationHTML = editableFiscalBonus
                             ? `<div class="fiscal-bonus-control">
                                 <strong>${escapeHtml(bonifValue || 'Sem marca')}</strong>
-                                <button type="button" class="fiscal-bonus-edit"
+                                <button type="button" class="fiscal-bonus-edit radar-action-help"
+                                    data-tooltip="Corrige a avaliação de Notas Fiscais da bonificação, sem excluir notas. Se necessário, consolide novamente." aria-description="Corrige a avaliação de Notas Fiscais da bonificação, sem excluir notas. Se necessário, consolide novamente."
                                     data-school-id="${escapeHtml(esc.id)}" data-comp-key="${escapeHtml(compProgKey)}"
-                                    data-school-name="${escapeHtml(esc.denominação)}" data-program-name="${escapeHtml(progName)}"
+                                    data-school-name="${escapeHtml(getSchoolDisplayName(esc, esc.id))}" data-program-name="${escapeHtml(progName)}"
                                     data-competence-label="${escapeHtml(c.label)}" onclick="openFiscalBonusCorrection(this)">
                                     Corrigir consolidação
                                 </button>
@@ -10654,7 +10684,8 @@ function renderProntuarioVerificacoes(esc) {
                                     && ['Correto', 'Correto (Atrasado)'].includes(analysis)
                                     && !editingAnalysis) {
                                     actionHTML = `
-                                        <button type="button" class="invoice-analysis-edit-button"
+                                        <button type="button" class="invoice-analysis-edit-button radar-action-help"
+                                            data-tooltip="Permite corrigir o resultado da análise técnica e conferir os efeitos antes de confirmar." aria-description="Permite corrigir o resultado da análise técnica e conferir os efeitos antes de confirmar."
                                             aria-describedby="fiscal-invoice-title-${escapeHtml(note.id)}"
                                             onclick="beginInvoiceDocumentAnalysisEdit('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')">
                                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg>
@@ -10664,22 +10695,33 @@ function renderProntuarioVerificacoes(esc) {
                                 }
 
                                 const integratedDeletion = window.RadarOperationalCorrectionDialog?.canUse?.(window) === true;
+                                const canClearInvoiceHistory = canClearItemHistory && canMutateInvoice
+                                    && note.tipo !== 'a_identificar'
+                                    && (hasPendencyHistory || analysis !== 'Não analisado');
                                 const canEditInvoiceData = canMutateInvoice && !invoicePendency
                                     && note.tipo !== 'a_identificar';
                                 const canDeleteInvoice = canMutateInvoice && (
                                     integratedDeletion || (canEditInvoiceData && !hasPendencyHistory)
                                 );
-                                const editControls = (canEditInvoiceData || canDeleteInvoice)
+                                const editControls = (canEditInvoiceData || canDeleteInvoice || canClearInvoiceHistory)
                                     ? `
-                                        <span class="invoice-document-inline-actions">
+                                        <span class="invoice-document-inline-actions has-readable-actions">
                                             ${canEditInvoiceData ? `
-                                                <button type="button" onclick="abrirEditarNota('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')" aria-label="Editar ${escapeHtml(getInvoiceDocumentTitle(note))}">
-                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg>
+                                                <button type="button" class="radar-labelled-action radar-action-help" data-tooltip="Edita os dados da despesa, como tipo, descrição e valor, não o resultado da análise técnica." aria-description="Edita os dados da despesa, como tipo, descrição e valor, não o resultado da análise técnica." onclick="abrirEditarNota('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')" aria-label="Editar ${escapeHtml(getInvoiceDocumentTitle(note))}">
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg><span>Editar</span>
                                                 </button>
                                             ` : ''}
                                             ${canDeleteInvoice ? `
-                                                <button type="button" class="is-danger" onclick="removerNotaRegistrada('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')" aria-label="Excluir ${escapeHtml(getInvoiceDocumentTitle(note))}">
-                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4.5h6V7M7 7l1 13h8l1-13M10 10v7M14 10v7"/></svg>
+                                                <button type="button" class="is-danger radar-labelled-action radar-action-help" data-tooltip="Abre a confirmação de exclusão desta despesa e dos vínculos afetados." aria-description="Abre a confirmação de exclusão desta despesa e dos vínculos afetados." onclick="removerNotaRegistrada('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')" aria-label="Excluir ${escapeHtml(getInvoiceDocumentTitle(note))}">
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4.5h6V7M7 7l1 13h8l1-13M10 10v7M14 10v7"/></svg><span>Excluir</span>
+                                                </button>
+                                            ` : ''}
+                                            ${canClearInvoiceHistory ? `
+                                                <button type="button" class="invoice-history-clear-button radar-labelled-action radar-action-help"
+                                                    data-tooltip="Limpa a análise e o histórico da nota. Preserva a despesa cadastrada; exige confirmação." aria-description="Limpa a análise e o histórico da nota. Preserva a despesa cadastrada; exige confirmação."
+                                                    aria-label="Limpar histórico de ${escapeHtml(getInvoiceDocumentTitle(note))}"
+                                                    onclick="openDocumentItemHistory('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', 'notaFiscal', this, '${escapeHtml(note.id)}')">
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="12" r="7"/><path d="M11 8v4l2.5 2M18 18l4 4M22 18l-4 4"/></svg><span>Limpar histórico</span>
                                                 </button>
                                             ` : ''}
                                         </span>
@@ -10836,6 +10878,11 @@ function renderProntuarioVerificacoes(esc) {
                                     documentaryPendencies,
                                     invoiceContext
                                 );
+                                const hasAdvisoryHistory = documentaryPendencies.some(pendency =>
+                                    pendency.documentoKey === 'consAssessoria'
+                                    && String(pendency.registeredInvoiceId || pendency.registered_invoice_id || '')
+                                        === String(note.id)
+                                );
                                 const statusLabel = invoicePendency?.status === 'Aguardando reanálise'
                                     ? 'Aguardando reanálise'
                                     : analysis;
@@ -10881,7 +10928,8 @@ function renderProntuarioVerificacoes(esc) {
                                     `
                                     : canEditAdvisoryAnalysis
                                         ? `
-                                            <button type="button" class="invoice-analysis-edit-button"
+                                            <button type="button" class="invoice-analysis-edit-button radar-action-help"
+                                            data-tooltip="Permite corrigir o resultado da análise técnica e conferir os efeitos antes de confirmar." aria-description="Permite corrigir o resultado da análise técnica e conferir os efeitos antes de confirmar."
                                                 aria-describedby="advisory-invoice-title-${escapeHtml(note.id)}"
                                                 onclick="openInvoiceOperationalCorrection('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}', 'consAssessoria', this)">
                                                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg>
@@ -10915,7 +10963,13 @@ function renderProntuarioVerificacoes(esc) {
                                             </label>
                                         </div>
                                         ${canViewTechnicalAnalysis ? `<div class="invoice-document-analysis">${analysisHTML}</div>` : ''}
-                                        ${canUseVerificationActions ? `<div class="invoice-document-action">${actionHTML}</div>` : ''}
+                                        ${canUseVerificationActions ? `<div class="invoice-document-action">${actionHTML}
+                                            ${canClearItemHistory && canMutateAdvisory && (analysis !== 'Não analisado' || hasAdvisoryHistory) ? `
+                                                <button type="button" class="prontuario-history-clear-button radar-action-help"
+                                                    data-tooltip="Limpa a avaliação e o histórico da Consulta à Assessoria desta nota. A despesa permanece." aria-description="Limpa a avaliação e o histórico da Consulta à Assessoria desta nota. A despesa permanece."
+                                                    aria-label="Limpar histórico da Consulta à Assessoria da NF ${escapeHtml(note.numero || note.id)}"
+                                                    onclick="openDocumentItemHistory('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', 'consAssessoria', this, '${escapeHtml(note.id)}')">Limpar histórico</button>
+                                            ` : ''}</div>` : ''}
                                     </div>
                                 `;
                             }).join('')
@@ -11029,6 +11083,12 @@ function renderProntuarioVerificacoes(esc) {
                                     <span class="verification-document-icon">${verificationDocumentIconSvg(doc.key)}</span>
                                     <span class="verification-document-copy">
                                         <strong>${escapeHtml(doc.name)}</strong>
+                                        ${canClearItemHistory && (analiseValue !== 'Não analisado' || hasDocumentHistory) ? `
+                                            <button type="button" class="prontuario-history-clear-button radar-action-help"
+                                                data-tooltip="Limpa a análise e todo o histórico deste documento, incluindo Pendências encerradas. Exige confirmação." aria-description="Limpa a análise e todo o histórico deste documento, incluindo Pendências encerradas. Exige confirmação."
+                                                aria-label="Limpar avaliações e histórico de ${escapeHtml(doc.name)}"
+                                                onclick="openDocumentItemHistory('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', this)">Limpar histórico</button>
+                                        ` : ''}
                                     </span>
                                 </div>
                                 ${extraContentHTML}
@@ -11709,6 +11769,109 @@ function openFiscalBonusCorrection(trigger) {
     });
 }
 
+function closeOpenProgramContextMenus(options = {}) {
+    if (typeof document === 'undefined') return false;
+    const exceptMenu = options.exceptMenu || null;
+    const restoreFocus = options.restoreFocus === true;
+    let closed = false;
+    document.querySelectorAll('details.program-context-options[open]').forEach(menu => {
+        if (exceptMenu && menu === exceptMenu) return;
+        menu.removeAttribute('open');
+        closed = true;
+        if (restoreFocus) {
+            menu.querySelector('summary')?.focus?.({ preventScroll: true });
+        }
+    });
+    return closed;
+}
+
+if (typeof document !== 'undefined' && !window.__radarProgramContextMenuListenersInstalled) {
+    window.__radarProgramContextMenuListenersInstalled = true;
+    document.addEventListener('click', event => {
+        const currentMenu = event.target?.closest?.('details.program-context-options') || null;
+        closeOpenProgramContextMenus({ exceptMenu: currentMenu });
+    });
+    document.addEventListener('keydown', event => {
+        if (event.key !== 'Escape') return;
+        if (document.getElementById('radar-operational-correction-layer')
+            || document.querySelector('.modal-overlay.show, dialog[open]')) {
+            return;
+        }
+        if (closeOpenProgramContextMenus({ restoreFocus: true })) {
+            event.preventDefault();
+        }
+    });
+}
+
+function openProgramContextDeletion(trigger) {
+    const dialog = window.RadarOperationalCorrectionDialog;
+    if (!dialog?.canDeleteContext?.(window) || !trigger?.dataset) return false;
+    if (['inventario', 'sme'].includes(getRadarAccessProfile())) return false;
+    const { schoolId, compKey, schoolName, programName, competenceLabel } = trigger.dataset;
+    if (!schoolId || !compKey) return false;
+    const { competenciaKey, contextId } = window.RadarCompetencia.splitCompetenciaContext(compKey);
+    if (!competenciaKey || !contextId) return false;
+    const menu = trigger.closest?.('details.program-context-options') || null;
+    const returnFocusTarget = menu?.querySelector?.('summary') || trigger;
+    if (menu) menu.removeAttribute('open');
+    return dialog.open(window, {
+        mode: 'delete_context',
+        trigger: returnFocusTarget,
+        context: {
+            schoolId, schoolName, programName, competenceLabel,
+            competence: competenciaKey, programId: contextId
+        }
+    });
+}
+
+function openDocumentItemHistory(escolaId, compKey, documentKey, trigger = document.activeElement, invoiceId = null) {
+    const dialog = window.RadarOperationalCorrectionDialog;
+    if (!dialog?.canClearHistory?.(window)) return false;
+    if (['inventario', 'sme'].includes(getRadarAccessProfile())) return false;
+    const { competenciaKey, contextId } = window.RadarCompetencia.splitCompetenciaContext(compKey);
+    if (!competenciaKey || !contextId || !documentKey || !escolaId) return false;
+    if (['notaFiscal', 'consAssessoria'].includes(documentKey) && !invoiceId) return false;
+    const school = escolas.find(item => String(item.id) === String(escolaId));
+    const program = programas.find(item => String(item.id) === String(contextId));
+    const documentLabels = {
+        extCC: 'Extrato Conta Corrente',
+        extINV: 'Extrato Investimento',
+        declBBAgil: 'Declaração BB Ágil',
+        boletoInternet: 'Boleto de pagamento de Internet',
+        encampInventario: 'Encaminhamento para Inventariação',
+        notaFiscal: 'Nota Fiscal',
+        consAssessoria: 'Consulta à Assessoria'
+    };
+    const invoice = invoiceId && notasRegistradas.find(note => String(note.id) === String(invoiceId)
+        && String(note.escolaId) === String(escolaId));
+    return dialog.open(window, {
+        mode: 'clear_item_history',
+        trigger,
+        context: {
+            schoolId: escolaId,
+            schoolName: school ? getSchoolDisplayName(school, escolaId) : escolaId,
+            competence: competenciaKey,
+            competenceLabel: COMPETENCIAS.find(item => item.key === competenciaKey)?.label || competenciaKey,
+            programId: contextId,
+            programName: program?.name || contextId,
+            documentKey,
+            documentLabel: invoice ? `${documentLabels[documentKey] || documentKey} · ${getInvoiceDocumentTitle(invoice)}`
+                : (documentLabels[documentKey] || documentKey),
+            ...(invoiceId ? { invoiceId } : {})
+        }
+    });
+}
+
+function operationalCorrectionDisplayContext(schoolId, competence, programId) {
+    const school = escolas.find(item => String(item.id) === String(schoolId));
+    const program = programas.find(item => String(item.id) === String(programId));
+    return {
+        schoolName: school ? getSchoolDisplayName(school, schoolId) : schoolId,
+        programName: program?.name || programId,
+        competenceLabel: COMPETENCIAS.find(item => item.key === competence)?.label || competence
+    };
+}
+
 function openInvoiceOperationalCorrection(invoiceId, escolaId, documentKey = 'notaFiscal',
     trigger = document.activeElement, suggestedValue = '') {
     const invoice = notasRegistradas.find(note => String(note.id) === String(invoiceId)
@@ -11743,6 +11906,7 @@ function openInvoiceOperationalCorrection(invoiceId, escolaId, documentKey = 'no
             schoolId: escolaId,
             competence: context.competenciaKey,
             programId: context.contextId,
+            ...operationalCorrectionDisplayContext(escolaId, context.competenciaKey, context.contextId),
             documentKey,
             invoiceId: invoice.id,
             documentLabel: documentKey === 'consAssessoria'
@@ -11795,6 +11959,7 @@ function excluirPendenciaOperacional(pendencyId, trigger = document.activeElemen
             schoolId,
             competence,
             programId: String(item.programaId || item.programId || item.program_id || ''),
+            ...operationalCorrectionDisplayContext(schoolId, competence, String(item.programaId || item.programId || item.program_id || '')),
             documentKey: String(item.documentoKey || item.documentKey || item.document_key || ''),
             pendencyId: item.id,
             linkedInvoiceId: String(item.registeredInvoiceId || item.registered_invoice_id || ''),
@@ -12205,6 +12370,7 @@ async function removerNotaRegistrada(notaId, escolaId) {
                 schoolId: escolaId,
                 competence: context.competenciaKey,
                 programId: context.contextId,
+                ...operationalCorrectionDisplayContext(escolaId, context.competenciaKey, context.contextId),
                 documentKey: 'notaFiscal',
                 invoiceId: nota.id,
                 documentLabel: getInvoiceDocumentTitle(nota)
@@ -12238,6 +12404,41 @@ async function removerNotaRegistrada(notaId, escolaId) {
 
 
 // 14.4 Regra de Consolidação de Bonificação (Apta / Inapta)
+// A entrada pela interface confirma explicitamente o alcance; o comando
+// canônico de gravação permanece independente para os demais chamadores.
+async function requestBonificationConsolidation(escolaId, compKey, trigger = document.activeElement) {
+    if (['inventario', 'sme'].includes(getRadarAccessProfile())) return false;
+    const { competenciaKey, contextId } = window.RadarCompetencia.splitCompetenciaContext(compKey);
+    if (!escolaId || !competenciaKey || !contextId) return false;
+    const school = escolas.find(item => String(item.id) === String(escolaId));
+    const program = programas.find(item => String(item.id) === String(contextId));
+    const month = COMPETENCIAS.find(item => item.key === competenciaKey);
+    const confirmation = window.RadarSharedInteractions?.requestOperationalConfirmation;
+    if (typeof confirmation !== 'function') return false;
+    try {
+        const confirmed = await confirmation({
+            title: 'Consolidar bonificação',
+            variant: 'bonification',
+            message: 'O resultado Apta ou Inapta será calculado e registrado com base nas avaliações de bonificação.',
+            preserved: 'Notas fiscais, análises técnicas e Pendências não serão alteradas.',
+            listTitle: 'Contexto da consolidação',
+            itemLabels: ['Escola', 'Mês de referência', 'Programa'],
+            items: [
+                school ? getSchoolDisplayName(school, escolaId) : escolaId,
+                month?.label || competenciaKey,
+                program?.name || contextId
+            ],
+            confirmLabel: 'Confirmar consolidação',
+            trigger
+        });
+        if (!confirmed) return false;
+        return calcularEFecharBonificacao(escolaId, compKey);
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível confirmar a consolidação.');
+        return false;
+    }
+}
+
 async function calcularEFecharBonificacao(escolaId, compKey) {
     const accessProfile = getRadarAccessProfile();
     if (accessProfile === 'inventario' || accessProfile === 'sme') return false;

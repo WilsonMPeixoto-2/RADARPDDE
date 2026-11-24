@@ -403,7 +403,9 @@
 
     function syncConsolidationAction(root, schoolId, compKey, verification, rows) {
         const contextCell = findProgramContext(root, rows);
-        const button = contextCell?.querySelector?.('button');
+        // O botão de excluir contexto pode aparecer antes do de consolidar.
+        // Nunca tratar a primeira ação genérica do cabeçalho como consolidação.
+        const button = contextCell?.querySelector?.('.program-consolidate-button');
         if (!button) return false;
         const profile = text(root.getRadarAccessProfile?.()).toLocaleLowerCase('pt-BR');
         if (profile === 'inventario' || profile === 'sme') return false;
@@ -422,9 +424,9 @@
         const guidance = contextCell.querySelector?.('.program-bonus-pending span');
         if (review && guidance && guidance.textContent !== review.guidance) guidance.textContent = review.guidance;
         button.disabled = Boolean(review && !review.canConsolidate);
-        button.textContent = review ? 'Consolidar bonificação' : 'Consolidar';
+        button.textContent = 'Consolidar bonificação';
         button.removeAttribute('onclick');
-        button.onclick = () => root.calcularEFecharBonificacao?.(schoolId, compKey);
+        button.onclick = () => root.requestBonificationConsolidation?.(schoolId, compKey, button);
         button.dataset.radarConsolidationState = review ? 'pending' : 'open';
         return true;
     }

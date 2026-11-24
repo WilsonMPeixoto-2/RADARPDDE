@@ -290,3 +290,39 @@ test('ativação simultânea de piloto e release falha fechado nos dois lados no
     assert.notEqual(simultaneous.features.operationalCorrectionPilot, true);
     assert.notEqual(simultaneous.features.operationalCorrectionRelease, true);
 });
+
+test('exclusão de contexto T4 não herda bonificação e só libera produção com autorização própria', () => {
+    const base = {
+        deploymentTarget: 'production',
+        dataMode: DATA_MODES.SUPABASE_PRODUCTION,
+        environment: 'production',
+        productionActivationApproved: true,
+        features: {
+            supabaseRepositoryEnabled: true,
+            operationalCorrectionRelease: true,
+            bonificationCorrectionRelease: true
+        },
+        supabase: {
+            url: 'https://example.supabase.co',
+            publishableKey: 'sb_publishable_example'
+        }
+    };
+    assert.notEqual(createRuntimeConfig(base).features.contextDeletionRelease, true);
+    const authorized = createRuntimeConfig({
+        ...base,
+        features: { ...base.features, contextDeletionRelease: true }
+    });
+    assert.equal(authorized.features.contextDeletionRelease, true);
+    for (const change of [
+        { deploymentTarget: 'preview' },
+        { productionActivationApproved: false },
+        { features: { ...base.features, bonificationCorrectionRelease: false, contextDeletionRelease: true } },
+        { features: { ...base.features, operationalCorrectionRelease: false, contextDeletionRelease: true } },
+        { supabase: { ...base.supabase, url: 'http://127.0.0.1:54321' } }
+    ]) {
+        const candidate = createRuntimeConfig({ ...base, ...change,
+            features: change.features || { ...base.features, contextDeletionRelease: true }
+        });
+        assert.notEqual(candidate.features.contextDeletionRelease, true);
+    }
+});

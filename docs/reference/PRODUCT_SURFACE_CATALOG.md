@@ -228,6 +228,8 @@ A **bonificação é editada diretamente pelos próprios controles Sim/Não/N/A*
 | Conta PDDE Qualidade | no contexto escola/competência, registrar saídas antes de conhecer a Ação Integrada; reencontrar/editar os dados conhecidos e identificar depois pelo formulário fiscal. Provisório não conta como NF nem cria Pendência; os estados Programa a identificar/Identificada distinguem o que ainda precisa de ação |
 | Leitura humana | primeiro confirma escola/competência/programa; depois trabalha documentos individualmente sem perder o contexto da unidade |
 
+**Evolução T4 — exclusão de contexto:** a ação contextual fica em **Ações do programa**, no cabeçalho do programa existente. A prévia identifica escola, mês e programa, registros a excluir e registros preservados; a confirmação explícita não transfere lançamentos. O conteúdo pode rolar, mas Cancelar, Conferir novamente e Excluir estes lançamentos devem permanecer acessíveis. Perfis sem capacidade de correção não recebem a ação. A disponibilização efetiva depende da release documentada no checkpoint; não presumir ativação em Production.
+
 ## S-06 — Capital e Inventário
 
 | Campo | Contrato |

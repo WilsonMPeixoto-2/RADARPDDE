@@ -9,11 +9,11 @@
 
 **Genealogia de decisões e requisitos desde 13/11:** [atlas de continuidade T0–T6](continuity/prontuario-t0-t6/LINEAGE.md) e [fonte estruturada](continuity/prontuario-t0-t6/lineage.json). Não basta reler plano original nem tratar 22 contribuições catalogadas como conhecimento exaustivo; seguir requisitos com origem por blob SHA e pendências históricas explícitas. O atlas não autoriza escrever no Supabase institucional.
 
-## Etapa vigente em 21/11/2026 — Release 2 (T4)
+## Etapa vigente em 23/11/2026 — Release 2 (T4)
 
-**T0–T3 tecnicamente concluídos e publicados.** O [checkpoint](continuity/prontuario-t0-t6/CHECKPOINT.md) reúne o merge `9d0f50b0`, as 20 verificações aprovadas, o deploy de produção no mesmo commit e a migration 64 instalada. A homologação operacional com usuários reais tem acompanhamento próprio.
+**T0–T3 e parcela inicial de T4 publicados na `main`.** O [checkpoint](continuity/prontuario-t0-t6/CHECKPOINT.md) consolida a publicação da Release 1 (`9d0f50b0`, migration 64), da correção de bonificação consolidada com linguagem D021 ([PR #538](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/538), [PR #540](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/540), migration 65), das Ondas 1–3 de UX/a11y ([PRs #541–#545](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/545)) e do hotfix [PR #555](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/555) (`a695f07f`, deployment Production `dpl_6BPKPiomHXx1MawqeC2ywtkKCqfU`).
 
-**Execução de T4.** [PR #538](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/538), branch `release/prontuario-t4-20261121`. O primeiro caso cobre correção de bonificação consolidada e preservação de notas e programas vizinhos. Seguir o [plano aprovado](superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md#t4--bonificação-corrigível-e-limpeza-do-contexto-errado).
+**Candidata ativa de T4 (`delete_context`).** Draft [PR #546](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/546), branch `feat/t4-delete-context-contract-20261123` (com hardening [PR #556](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/556) integrado em `ae4ca9be` e flag `RADAR_T4_CONTEXT_DELETION_RELEASE_ENABLED=false` por padrão). `clear_item_history` está implementada como candidata no [PR #558](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/558), empilhado sobre #546, com migration 67 e flag própria OFF; a frente T5 permanece pendente; nenhuma migration institucional ou ativação de flag em Production está autorizada sem fechamento dos gates e decisão explícita. Seguir o [plano aprovado](superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md#t4--bonificação-corrigível-e-limpeza-do-contexto-errado).
 
 ## Arquivo histórico — fotografia anterior ao PR #535 (16–20/11, superada pelo CHECKPOINT acima)
 
