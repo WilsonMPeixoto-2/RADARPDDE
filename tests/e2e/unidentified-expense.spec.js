@@ -320,7 +320,7 @@ test.describe('Prontuário — despesa a identificar', () => {
     await expect(row.getByRole('button', { name: /Excluir/ })).toHaveCount(0);
     await expect(row.getByRole('button', { name: 'Visualizar pendência' })).toHaveCount(0);
 
-    const editButton = row.getByRole('button', { name: 'Editar lançamento: despesa a identificar' });
+    const editButton = row.getByRole('button', { name: 'Editar despesa: despesa a identificar' });
     await expect(editButton).toHaveCount(1);
     await editButton.click();
     await expect(page.locator('#nota-tipo')).toHaveValue('a_identificar');

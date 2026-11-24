@@ -120,14 +120,14 @@ test.describe('Descoberta da retificação de lançamentos', () => {
     await waitForProductExtensions(page);
   });
 
-  test('controlador encontra Editar lançamento e entende o que pode corrigir com Pendência ativa', async ({ page }, testInfo) => {
+  test('controlador encontra Editar despesa e entende o que pode corrigir com Pendência ativa', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
     const context = await prepareRetificationContext(page);
     const row = invoiceRow(page, context.invoiceId);
 
-    const editButton = row.getByRole('button', { name: /Editar lançamento/ });
+    const editButton = row.getByRole('button', { name: /Editar despesa/ });
     await expect(editButton).toBeVisible();
-    await expect(editButton).toContainText('Editar lançamento');
+    await expect(editButton).toContainText('Editar despesa');
     await editButton.click();
 
     const guidance = page.locator('[data-auditable-retification-guidance]');
@@ -181,9 +181,9 @@ test.describe('Descoberta da retificação de lançamentos', () => {
     const context = await prepareRetificationContext(page, { unidentified: true });
     const row = invoiceRow(page, context.invoiceId);
 
-    const editButton = row.getByRole('button', { name: /Editar lançamento/ });
+    const editButton = row.getByRole('button', { name: /Editar despesa/ });
     await expect(editButton).toBeVisible();
-    await expect(editButton).toContainText('Editar lançamento');
+    await expect(editButton).toContainText('Editar despesa');
     await editButton.click();
 
     const guidance = page.locator('[data-auditable-retification-guidance]');

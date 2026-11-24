@@ -41,7 +41,7 @@ async function prepare(page, { type = 'consumo', status = 'Resolvida', key = 'no
     }, { type, status, key, assetStatus });
 }
 function row(page) { return page.locator('.invoice-document-row[data-invoice-id="TYPE-RETIFICATION-UI"]'); }
-async function edit(page) { await row(page).getByRole('button', { name: /Editar lançamento/ }).click(); }
+async function edit(page) { await row(page).getByRole('button', { name: /Editar despesa/ }).click(); }
 async function capture(page, info, name) {
     await info.attach(name, { body: await page.screenshot({ path: info.outputPath(name + '.png'), animations: 'disabled' }), contentType: 'image/png' });
 }
@@ -55,7 +55,7 @@ test('corrige classificação por UI, permite cancelar e confirma antes de salva
     const context = await prepare(page);
     await edit(page);
     const modal = page.locator('#modal-dados-nota');
-    await expect(modal.getByRole('heading', { name: 'Editar lançamento', exact: true })).toBeVisible();
+    await expect(modal.getByRole('heading', { name: 'Editar despesa', exact: true })).toBeVisible();
     await expect(modal.locator('#invoice-edit-context')).toContainText('NF-150');
     await expect(modal.locator('#nota-tipo')).toBeEnabled();
     await modal.locator('#nota-tipo').selectOption('servico');
@@ -131,7 +131,7 @@ for (const size of [{ width: 1366, height: 768 }, { width: 1920, height: 1080 }]
         await edit(page);
         const modal = page.locator('#modal-dados-nota');
         await modal.locator('#nota-tipo').selectOption('permanente');
-        await expect(modal.getByRole('heading', { name: 'Editar lançamento', exact: true })).toBeInViewport({ ratio: 1 });
+        await expect(modal.getByRole('heading', { name: 'Editar despesa', exact: true })).toBeInViewport({ ratio: 1 });
         await expect(modal.getByRole('button', { name: 'Confirmar nova classificação', exact: true })).toBeInViewport({ ratio: 1 });
         await capture(page, info, 'modal-' + size.width);
         await modal.getByRole('button', { name: 'Confirmar nova classificação', exact: true }).click();

@@ -32,7 +32,7 @@ test('Controlador corrige classificação com histórico fiscal encerrado pela U
     const modal = page.locator('#modal-dados-nota');
     const field = modal.locator('#nota-tipo');
     for (const type of ['servico', 'permanente', 'consumo']) {
-        await row(page, 'TYPE-REMOTE').getByRole('button', { name: /Editar lançamento/ }).click();
+        await row(page, 'TYPE-REMOTE').getByRole('button', { name: /Editar despesa/ }).click();
         await expect(field).toBeEnabled();
         await field.selectOption(type);
         await modal.getByRole('button', { name: 'Confirmar nova classificação', exact: true }).click();
@@ -65,7 +65,7 @@ test('Controlador corrige classificação com histórico fiscal encerrado pela U
         previous = current;
         await page.reload();
         await page.evaluate(() => window.RadarProductExtensionsReady);
-        await row(page, 'TYPE-REMOTE').getByRole('button', { name: /Editar lançamento/ }).click();
+        await row(page, 'TYPE-REMOTE').getByRole('button', { name: /Editar despesa/ }).click();
         await expect(field).toHaveValue(type);
         await info.attach('classificacao-' + type, { body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
         await modal.getByRole('button', { name: 'Cancelar', exact: true }).click();
@@ -77,7 +77,7 @@ test('Controlador corrige classificação com histórico fiscal encerrado pela U
         ['TYPE-ACTIVE', 'Encerre a Pendência'],
         ['TYPE-ADVISORY', 'histórico de Consulta à Assessoria']
     ]) {
-        await row(page, id).getByRole('button', { name: /Editar lançamento/ }).click();
+        await row(page, id).getByRole('button', { name: /Editar despesa/ }).click();
         await expect(field).toBeDisabled();
         await expect(modal.locator('[data-auditable-retification-type-hint]')).toContainText(reason);
         await info.attach(id, { body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
