@@ -163,6 +163,67 @@ test('T4 real: prévia e cancelamento não alteram escola, NFs, Pendências ou p
     expect(await snapshot(page)).toEqual(before);
 });
 
+test('T4 real: perfil somente leitura não pode prever nem confirmar exclusão com digest válido do Controlador', async ({ page, browser }, testInfo) => {
+    test.setTimeout(60_000);
+    await login(page, 'controller');
+    await openSchool(page);
+    const before = await snapshot(page);
+    expect(before.invoices).toContain('T4-CTX-NF-A');
+    expect(before.verifications).toContain('ESC-T4-CONTEXT::2026-05::BASIC');
+
+    const request = {
+        contractVersion: 1,
+        action: 'delete_context',
+        target: { kind: 'program_context', schoolId: SCHOOL, competence: COMPETENCE, programId: 'BASIC' }
+    };
+    const plan = await page.evaluate(async p_request => {
+        const { data, error } = await window.RadarSessionContext.service.client.rpc(
+            'preview_operational_change', { p_request });
+        if (error) throw new Error(error.message);
+        return data;
+    }, request);
+    expect(plan.planDigest).toMatch(/^[a-f0-9]{64}$/i);
+    expect(plan.blockers).toEqual([]);
+    expect(plan.effects.delete.registered_invoices).toContain('T4-CTX-NF-A');
+
+    const second = await browser.newContext({ baseURL: testInfo.project.use.baseURL });
+    try {
+        const reader = await second.newPage();
+        await login(reader, 'sme_management');
+        await reader.goto('/escolas/' + SCHOOL);
+        await reader.waitForFunction(() => window.RadarDataContext?.ready === true &&
+            window.RadarAuthContext?.authorization?.role === 'sme_management');
+        await expect(reader.locator('#prontuario-verif-rows')).toBeVisible();
+        await reader.evaluate(async school => {
+            await window.RadarProductExtensionsReady;
+            window.RADAR_T4_CONTEXT_DELETION_PILOT = true;
+            window.renderProntuario(school);
+        }, SCHOOL);
+        await expect(reader.locator('.program-context-delete-button')).toHaveCount(0);
+
+        // Testa a autoridade do servidor, não apenas a ausência do botão.
+        // O digest legítimo é obtido na outra sessão; não é inventado nem adulterado.
+        const denied = await reader.evaluate(async ({ p_request, p_plan_digest }) => {
+            const client = window.RadarSessionContext.service.client;
+            const preview = await client.rpc('preview_operational_change', { p_request });
+            const apply = await client.rpc('apply_operational_change', {
+                p_request, p_plan_digest,
+                p_operation_key: '00000000-0000-4000-8000-000000000546'
+            });
+            return [preview, apply].map(result => ({
+                data: result.data, error: result.error?.message || null
+            }));
+        }, { p_request: request, p_plan_digest: plan.planDigest });
+        for (const attempt of denied) {
+            expect(attempt.data).toBeNull();
+            expect(attempt.error).toMatch(/AUTHORIZATION_DENIED/);
+        }
+    } finally {
+        await second.close();
+    }
+    expect(await snapshot(page)).toEqual(before);
+});
+
 test('T4 real: excluir contexto pelo botão preserva programa/mês vizinhos e contato geral', async ({ page, browser }, testInfo) => {
     // A jornada inclui duas sessões independentes e uma recarga real.
     test.setTimeout(60_000);
