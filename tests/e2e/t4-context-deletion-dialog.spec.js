@@ -303,3 +303,27 @@ test('T4: confirmação permanece no campo de visão sem rolagem da janela em 12
         body: await page.screenshot({ fullPage: false }), contentType: 'image/png'
     });
 });
+
+
+test('T4: ações da confirmação têm explicações visíveis ao passar o mouse e navegar pelo teclado', async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await openContextDialog(page);
+    const dialog = page.getByRole('dialog', { name: 'Excluir lançamentos deste programa neste mês' });
+    const confirm = dialog.getByRole('button', { name: 'Excluir estes lançamentos' });
+    await expect(confirm).toBeEnabled();
+    await expect(confirm).toHaveAttribute('aria-description', /mês.*programa/i);
+    await expect(confirm).toHaveAttribute('data-tooltip', /mês.*programa/i);
+    await confirm.hover();
+    await expect.poll(() => confirm.evaluate(button => getComputedStyle(button, '::after').visibility)).toBe('visible');
+    await testInfo.attach('t4-confirmation-tooltip-desktop', { body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
+    await page.mouse.move(0, 0);
+    await dialog.getByRole('button', { name: 'Cancelar' }).focus();
+    await page.keyboard.press('Tab');
+    const review = dialog.getByRole('button', { name: 'Conferir novamente' });
+    await expect(review).toBeFocused();
+    await expect.poll(() => review.evaluate(button => getComputedStyle(button, '::after').visibility)).toBe('visible');
+    expect(await page.evaluate(() => window.__t4ContextCalls.map(c => c.name))).toEqual(['preview_operational_change']);
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+    expect(await page.evaluate(() => window.__t4ContextCalls.map(c => c.name))).toEqual(['preview_operational_change']);
+});

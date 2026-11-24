@@ -42,3 +42,12 @@ O texto não deve prometer reabrir bonificação se a avaliação já era inconc
 5. O PR de UX não altera SQL nem o contrato da RPC; deploy ocorre somente após CI e aceite humano apropriado.
 
 **Fonte:** decisão expressa pelo proprietário na conversa RADAR PDDE de 22/11/2026; não há permalink público verificável do chat. O registro mantém a proveniência textual sem inventar URL.
+
+
+## Complemento aprovado em 23/11/2026 — ações claras e confirmação
+
+Na T4, cada botão operacional deve ter nome compreensível no seu contexto, com explicação breve no hover/foco de teclado; os controles de nota fiscal não dependem exclusivamente de ícones. A janela de conferência já existente é a confirmação da alteração: mostra o item, o alcance, o que será excluído ou alterado, o que permanece e a ação explícita de confirmação. Não duplicar confirmações nem acrescentar uma confirmação a ações exclusivamente de consulta ou cancelamento.
+
+A prévia deve usar os nomes dos documentos e situações reconhecíveis pelo Controlador, não chaves de persistência como `extCC` nem IDs internos no texto principal. As referências técnicas podem permanecer disponíveis para rastreabilidade. Preservar os rótulos de bonificação já aprovados na tabela D021; explicitar o escopo pela ajuda contextual.
+
+**Estado:** implementação candidata no PR #558, sujeita a verificação de hover/teclado, capturas de tela e E2E no SHA final. Sem mudança de SQL, regras de negócio, permissões ou produção por este complemento.

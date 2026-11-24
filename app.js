@@ -10426,9 +10426,10 @@ function renderProntuarioVerificacoes(esc) {
                                     <h3 class="program-context-name">${escapeHtml(progName)}</h3>
                                     ${canDeleteContext ? `
                                         <details class="program-context-options" name="program-context-options">
-                                            <summary aria-label="Ações do programa: ${escapeHtml(progName)}">Ações do programa</summary>
+                                            <summary class="radar-action-help" aria-label="Ações do programa: ${escapeHtml(progName)}" data-tooltip="Mostra as ações disponíveis para este programa no mês selecionado." aria-description="Mostra as ações disponíveis para este programa no mês selecionado.">Ações do programa</summary>
                                             <div class="program-context-options-list">
-                                                <button type="button" class="program-context-delete-button"
+                                                <button type="button" class="program-context-delete-button radar-action-help"
+                                                    data-tooltip="Abre a conferência dos lançamentos deste mês e programa. A exclusão depende da sua confirmação." aria-description="Abre a conferência dos lançamentos deste mês e programa. A exclusão depende da sua confirmação."
                                                     data-school-id="${escapeHtml(esc.id)}"
                                                     data-comp-key="${escapeHtml(compProgKey)}"
                                                     data-school-name="${escapeHtml(getSchoolDisplayName(esc, esc.id))}"
@@ -10562,7 +10563,8 @@ function renderProntuarioVerificacoes(esc) {
                         const fiscalBonificationHTML = editableFiscalBonus
                             ? `<div class="fiscal-bonus-control">
                                 <strong>${escapeHtml(bonifValue || 'Sem marca')}</strong>
-                                <button type="button" class="fiscal-bonus-edit"
+                                <button type="button" class="fiscal-bonus-edit radar-action-help"
+                                    data-tooltip="Corrige a avaliação de Notas Fiscais da bonificação, sem excluir notas. Se necessário, consolide novamente." aria-description="Corrige a avaliação de Notas Fiscais da bonificação, sem excluir notas. Se necessário, consolide novamente."
                                     data-school-id="${escapeHtml(esc.id)}" data-comp-key="${escapeHtml(compProgKey)}"
                                     data-school-name="${escapeHtml(esc.denominação)}" data-program-name="${escapeHtml(progName)}"
                                     data-competence-label="${escapeHtml(c.label)}" onclick="openFiscalBonusCorrection(this)">
@@ -10681,7 +10683,8 @@ function renderProntuarioVerificacoes(esc) {
                                     && ['Correto', 'Correto (Atrasado)'].includes(analysis)
                                     && !editingAnalysis) {
                                     actionHTML = `
-                                        <button type="button" class="invoice-analysis-edit-button"
+                                        <button type="button" class="invoice-analysis-edit-button radar-action-help"
+                                            data-tooltip="Permite corrigir o resultado da análise técnica e conferir os efeitos antes de confirmar." aria-description="Permite corrigir o resultado da análise técnica e conferir os efeitos antes de confirmar."
                                             aria-describedby="fiscal-invoice-title-${escapeHtml(note.id)}"
                                             onclick="beginInvoiceDocumentAnalysisEdit('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')">
                                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg>
@@ -10701,23 +10704,23 @@ function renderProntuarioVerificacoes(esc) {
                                 );
                                 const editControls = (canEditInvoiceData || canDeleteInvoice || canClearInvoiceHistory)
                                     ? `
-                                        <span class="invoice-document-inline-actions">
+                                        <span class="invoice-document-inline-actions has-readable-actions">
                                             ${canEditInvoiceData ? `
-                                                <button type="button" onclick="abrirEditarNota('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')" aria-label="Editar ${escapeHtml(getInvoiceDocumentTitle(note))}">
-                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg>
+                                                <button type="button" class="radar-labelled-action radar-action-help" data-tooltip="Edita os dados da despesa, como tipo, descrição e valor, não o resultado da análise técnica." aria-description="Edita os dados da despesa, como tipo, descrição e valor, não o resultado da análise técnica." onclick="abrirEditarNota('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')" aria-label="Editar ${escapeHtml(getInvoiceDocumentTitle(note))}">
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg><span>Editar</span>
                                                 </button>
                                             ` : ''}
                                             ${canDeleteInvoice ? `
-                                                <button type="button" class="is-danger" onclick="removerNotaRegistrada('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')" aria-label="Excluir ${escapeHtml(getInvoiceDocumentTitle(note))}">
-                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4.5h6V7M7 7l1 13h8l1-13M10 10v7M14 10v7"/></svg>
+                                                <button type="button" class="is-danger radar-labelled-action radar-action-help" data-tooltip="Abre a confirmação de exclusão desta despesa e dos vínculos afetados." aria-description="Abre a confirmação de exclusão desta despesa e dos vínculos afetados." onclick="removerNotaRegistrada('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')" aria-label="Excluir ${escapeHtml(getInvoiceDocumentTitle(note))}">
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4.5h6V7M7 7l1 13h8l1-13M10 10v7M14 10v7"/></svg><span>Excluir</span>
                                                 </button>
                                             ` : ''}
                                             ${canClearInvoiceHistory ? `
-                                                <button type="button" class="invoice-history-clear-button"
-                                                    title="Limpar avaliações e histórico desta nota sem excluir a despesa"
+                                                <button type="button" class="invoice-history-clear-button radar-labelled-action radar-action-help"
+                                                    data-tooltip="Limpa a análise e o histórico da nota. Preserva a despesa cadastrada; exige confirmação." aria-description="Limpa a análise e o histórico da nota. Preserva a despesa cadastrada; exige confirmação."
                                                     aria-label="Limpar histórico de ${escapeHtml(getInvoiceDocumentTitle(note))}"
                                                     onclick="openDocumentItemHistory('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', 'notaFiscal', this, '${escapeHtml(note.id)}')">
-                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="12" r="7"/><path d="M11 8v4l2.5 2M18 18l4 4M22 18l-4 4"/></svg>
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="12" r="7"/><path d="M11 8v4l2.5 2M18 18l4 4M22 18l-4 4"/></svg><span>Limpar histórico</span>
                                                 </button>
                                             ` : ''}
                                         </span>
@@ -10924,7 +10927,8 @@ function renderProntuarioVerificacoes(esc) {
                                     `
                                     : canEditAdvisoryAnalysis
                                         ? `
-                                            <button type="button" class="invoice-analysis-edit-button"
+                                            <button type="button" class="invoice-analysis-edit-button radar-action-help"
+                                            data-tooltip="Permite corrigir o resultado da análise técnica e conferir os efeitos antes de confirmar." aria-description="Permite corrigir o resultado da análise técnica e conferir os efeitos antes de confirmar."
                                                 aria-describedby="advisory-invoice-title-${escapeHtml(note.id)}"
                                                 onclick="openInvoiceOperationalCorrection('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}', 'consAssessoria', this)">
                                                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg>
@@ -10960,7 +10964,8 @@ function renderProntuarioVerificacoes(esc) {
                                         ${canViewTechnicalAnalysis ? `<div class="invoice-document-analysis">${analysisHTML}</div>` : ''}
                                         ${canUseVerificationActions ? `<div class="invoice-document-action">${actionHTML}
                                             ${canClearItemHistory && canMutateAdvisory && (analysis !== 'Não analisado' || hasAdvisoryHistory) ? `
-                                                <button type="button" class="prontuario-history-clear-button"
+                                                <button type="button" class="prontuario-history-clear-button radar-action-help"
+                                                    data-tooltip="Limpa a avaliação e o histórico da Consulta à Assessoria desta nota. A despesa permanece." aria-description="Limpa a avaliação e o histórico da Consulta à Assessoria desta nota. A despesa permanece."
                                                     aria-label="Limpar histórico da Consulta à Assessoria da NF ${escapeHtml(note.numero || note.id)}"
                                                     onclick="openDocumentItemHistory('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', 'consAssessoria', this, '${escapeHtml(note.id)}')">Limpar histórico</button>
                                             ` : ''}</div>` : ''}
@@ -11078,7 +11083,8 @@ function renderProntuarioVerificacoes(esc) {
                                     <span class="verification-document-copy">
                                         <strong>${escapeHtml(doc.name)}</strong>
                                         ${canClearItemHistory && (analiseValue !== 'Não analisado' || hasDocumentHistory) ? `
-                                            <button type="button" class="prontuario-history-clear-button"
+                                            <button type="button" class="prontuario-history-clear-button radar-action-help"
+                                                data-tooltip="Limpa a análise e todo o histórico deste documento, incluindo Pendências encerradas. Exige confirmação." aria-description="Limpa a análise e todo o histórico deste documento, incluindo Pendências encerradas. Exige confirmação."
                                                 aria-label="Limpar avaliações e histórico de ${escapeHtml(doc.name)}"
                                                 onclick="openDocumentItemHistory('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', this)">Limpar histórico</button>
                                         ` : ''}
@@ -11844,7 +11850,7 @@ function openDocumentItemHistory(escolaId, compKey, documentKey, trigger = docum
             schoolId: escolaId,
             schoolName: school ? getSchoolDisplayName(school, escolaId) : escolaId,
             competence: competenciaKey,
-            competenceLabel: competenciaKey,
+            competenceLabel: COMPETENCIAS.find(item => item.key === competenciaKey)?.label || competenciaKey,
             programId: contextId,
             programName: program?.name || contextId,
             documentKey,

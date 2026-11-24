@@ -1667,3 +1667,46 @@ body.dark-theme #prontuario-verif-rows .prontuario-history-clear-button:hover {
         font-size: 0.78rem;
     }
 }
+
+/* Ações da despesa: rótulos compactos, em linha própria, sem depender dos ícones. */
+#prontuario-verif-rows .invoice-document-title-line:has(> .has-readable-actions) {
+    flex-wrap: wrap;
+    row-gap: 2px;
+}
+#prontuario-verif-rows .invoice-document-inline-actions.has-readable-actions {
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    gap: 3px;
+    opacity: 1;
+}
+#prontuario-verif-rows .has-readable-actions .radar-labelled-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    inline-size: auto;
+    max-inline-size: 100%;
+    min-block-size: 30px;
+    padding: 4px 6px;
+    font-family: var(--font-body, inherit);
+    font-size: 0.71rem;
+    font-weight: 650;
+    line-height: 1.25;
+    white-space: normal;
+    text-align: start;
+}
+#prontuario-verif-rows .has-readable-actions .radar-labelled-action svg {
+    flex: 0 0 14px;
+    inline-size: 14px;
+    block-size: 14px;
+}
+#prontuario-verif-rows .has-readable-actions .radar-labelled-action:focus-visible {
+    outline: 2px solid var(--border-focus, #8b5cf6);
+    outline-offset: 2px;
+}
+@media (max-width: 700px) {
+    #prontuario-verif-rows .has-readable-actions .radar-labelled-action {
+        min-block-size: 38px;
+        font-size: 0.77rem;
+    }
+}

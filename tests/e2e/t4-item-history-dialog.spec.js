@@ -106,7 +106,16 @@ test('T4 histórico: prévia legível e Cancelar preserva a operação', async (
     await expect(dialog).toContainText('Envios documentais vinculados (1)');
     await expect(dialog).toContainText('Contatos vinculados às Pendências (1)');
     await expect(dialog).toContainText('Notas fiscais, bens, outros documentos, programas');
-    await expect(dialog.getByRole('button', { name: 'Limpar histórico deste item' })).toBeEnabled();
+    await expect(dialog).toContainText('Extrato da conta corrente');
+    await expect(dialog).not.toContainText('· extCC');
+    await expect(dialog).not.toContainText('H-P-2');
+    const confirm = dialog.getByRole('button', { name: 'Limpar histórico deste item' });
+    await expect(confirm).toBeEnabled();
+    await expect(confirm).toHaveAttribute('data-tooltip', /Pendências.*preserva a despesa/i);
+    await expect(confirm).toHaveAttribute('aria-description', /preserva a despesa/i);
+    await expect(dialog.getByRole('button', { name: 'Conferir novamente' })).toHaveAttribute('data-tooltip', /não exclui/i);
+    await expect(dialog.getByRole('button', { name: 'Cancelar' })).toHaveAttribute('data-tooltip', /sem alterar/i);
+    expect((await page.evaluate(() => window.__t4HistoryCalls)).map(x => x.name)).toEqual(['preview_operational_change']);
     await dialog.getByRole('button', { name: 'Cancelar' }).click();
     await expect(dialog).toHaveCount(0);
     expect((await page.evaluate(() => window.__t4HistoryCalls)).map(x => x.name))

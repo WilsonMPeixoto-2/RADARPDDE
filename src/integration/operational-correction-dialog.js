@@ -24,6 +24,14 @@
         if (value !== undefined) node.textContent = value;
         return node;
     };
+    // A ajuda complementa o rótulo: leitura por tecnologia assistiva e tooltip
+    // ao passar o mouse ou chegar ao botão pelo teclado, sem executar a ação.
+    function actionHelp(button, description) {
+        button.classList.add('radar-action-help');
+        button.setAttribute('data-tooltip', description);
+        button.setAttribute('aria-description', description);
+        return button;
+    }
     function repositoryOf(root) {
         // Autoridade: mesmo repositório já composto pelo app.js.
         return root?.RadarApplicationServices?.data?.repository
@@ -136,12 +144,12 @@
             ? (mode === 'delete_invoice' ? 'Excluir nota fiscal' : 'Excluir pendência')
             : bonus ? 'Corrigir consolidação da bonificação' : 'Corrigir análise técnica');
         title.id = 'radar-operational-correction-title';
-        const summary = el(doc, 'p', '', bonus || contextDeletion || historyDeletion
-            ? [context.schoolName || context.schoolId, context.programName || context.programId,
-                context.competenceLabel || context.competence,
-                ...(historyDeletion ? [context.documentLabel || context.documentKey] : [])]
-                .filter(Boolean).join(' · ')
-            : text(context.documentLabel || context.documentKey) + ' · ' + context.competence);
+        const summary = el(doc, 'p', '', [
+            context.schoolName || (bonus || contextDeletion || historyDeletion ? context.schoolId : ''),
+            context.programName || (bonus || contextDeletion || historyDeletion ? context.programId : ''),
+            context.competenceLabel || context.competence,
+            ...(!bonus && !contextDeletion ? [context.documentLabel || context.documentKey] : [])
+        ].filter(Boolean).join(' · '));
         header.append(kicker, title, summary);
         if (contextDeletion) {
             const explanation = el(doc, 'p', 'fiscal-bonus-explanation context-deletion-explanation',
@@ -154,10 +162,18 @@
         }
         if (historyDeletion) {
             header.appendChild(el(doc, 'p', 'context-deletion-explanation',
-                'Esta ação apaga o histórico de avaliações e as Pendências deste item, inclusive '
-                + 'as que já foram resolvidas ou canceladas, junto com seus envios e contatos vinculados. '
+                'Serão removidas a avaliação atual e todas as Pendências deste item (inclusive resolvidas ou canceladas), '
+                + 'com seus envios e contatos vinculados. '
                 + 'Notas fiscais, bens, outros documentos, programas e o histórico administrativo serão preservados. '
-                + 'Confira cada registro antes de confirmar. Não é possível desfazer essa exclusão pelo Prontuário.'));
+                + 'Não é possível desfazer pelo Prontuário.'));
+        }
+        if (deleting && !contextDeletion && !historyDeletion) {
+            header.appendChild(el(doc, 'p', 'context-deletion-explanation',
+                'Confira os registros e vínculos que serão excluídos. A exclusão só será realizada depois da sua confirmação.'));
+        }
+        if (!deleting && !bonus) {
+            header.appendChild(el(doc, 'p', 'correction-confirmation-hint',
+                'Escolha o resultado e confira os efeitos. Nada será gravado antes da confirmação.'));
         }
         if (bonus) {
             const explanation = el(doc, 'p', 'fiscal-bonus-explanation',
@@ -211,6 +227,20 @@
             contextDeletion ? 'Excluir estes lançamentos' : historyDeletion ? 'Limpar histórico deste item'
                 : deleting ? 'Confirmar exclusão' : 'Confirmar correção');
         for (const button of [cancel, clearBtn, review, save]) button.type = 'button';
+        actionHelp(cancel, 'Fecha esta janela sem alterar os registros.');
+        actionHelp(clearBtn, 'Prepara o resultado Não analisado. Confira os efeitos antes de confirmar.');
+        actionHelp(review, 'Consulta novamente os efeitos. Este botão não exclui nem grava registros.');
+        actionHelp(save, contextDeletion
+            ? 'Exclui os registros conferidos deste mês e programa. Não transfere lançamentos.'
+            : historyDeletion
+                ? 'Remove a avaliação e as Pendências listadas; preserva a despesa e os registros independentes.'
+                : mode === 'delete_invoice'
+                    ? 'Exclui a despesa selecionada e os vínculos indicados na prévia.'
+                    : mode === 'delete_pendency'
+                        ? 'Exclui a Pendência selecionada e os vínculos indicados na prévia.'
+                        : bonus
+                            ? 'Grava a nova avaliação de Notas Fiscais. Se necessário, consolide a bonificação novamente.'
+                            : 'Grava o resultado e os efeitos indicados na prévia.');
         (deleting ? cancel : select).autofocus = true;
         clearBtn.disabled = currentChoice === 'Não analisado' || !currentChoice;
         save.disabled = true;
@@ -342,22 +372,39 @@
                 } else if (historyDeletion) {
                     const records = view.affectedRecords || {};
                     effects.appendChild(el(doc, 'p', 'item-history-impact-summary', text(view.summary)));
+                    const documentNames = {
+                        extCC: 'Extrato da conta corrente', extCI: 'Extrato de investimentos',
+                        extINV: 'Extrato de investimentos', notaFiscal: 'Nota fiscal',
+                        consAssessoria: 'Consulta à Assessoria', boletoInternet: 'Boleto de Internet',
+                        declBBAgil: 'Declaração BB Ágil', encampInventario: 'Encaminhamento para inventariação'
+                    };
+                    const contactNames = { email: 'E-mail', telefone: 'Telefone', whatsapp: 'WhatsApp', presencial: 'Presencial' };
+                    const historyPendencies = records.pendencies || [];
+                    const pendencyLabels = new Map(historyPendencies.map((item, index) => [text(item.id),
+                        'Pendência ' + (index + 1) + (text(item.status) ? ' (' + text(item.status) + ')' : '')]));
+                    const historyReference = item => pendencyLabels.get(text(item.pendencyId)) || 'Pendência vinculada';
                     const rows = [
-                        ['Pendências — inclusive resolvidas e canceladas', records.pendencies || [],
-                            item => ['Pendência', text(item.status), text(item.documentKey)].filter(Boolean).join(' · ')],
+                        ['Pendências — inclusive resolvidas e canceladas', historyPendencies,
+                            item => [pendencyLabels.get(text(item.id)), documentNames[item.documentKey]
+                                || text(context.documentLabel) || 'Documento selecionado'].filter(Boolean).join(' · ')],
                         ['Envios documentais vinculados', records.attempts || [],
                             item => ['Envio', item.attemptNumber ? 'tentativa ' + item.attemptNumber : '',
-                                item.pendencyId ? 'da Pendência ' + text(item.pendencyId) : ''].filter(Boolean).join(' · ')],
+                                historyReference(item)].filter(Boolean).join(' · ')],
                         ['Contatos vinculados às Pendências', records.contacts || [],
-                            item => [text(item.contactType) || 'Contato', text(item.description),
-                                item.pendencyId ? 'Pendência ' + text(item.pendencyId) : ''].filter(Boolean).join(' · ')]
+                            item => [contactNames[text(item.contactType).toLowerCase()] || text(item.contactType) || 'Contato',
+                                text(item.description), historyReference(item)].filter(Boolean).join(' · ')]
                     ];
                     for (const [heading, entries, format] of rows) {
                         if (!Array.isArray(entries) || entries.length === 0) continue;
                         const section = el(doc, 'section', 'context-deletion-details item-history-detail');
                         section.appendChild(el(doc, 'h4', '', heading + ' (' + entries.length + ')'));
                         const list = el(doc, 'ul', 'context-deletion-records');
-                        for (const entry of entries) list.appendChild(el(doc, 'li', '', format(entry)));
+                        for (const entry of entries) {
+                            const row = el(doc, 'li', '', format(entry));
+                            // Referência estável para a auditoria, sem poluir a leitura principal.
+                            if (entry.id) row.setAttribute('title', 'Referência do registro: ' + text(entry.id));
+                            list.appendChild(row);
+                        }
                         section.appendChild(list);
                         effects.appendChild(section);
                     }
@@ -448,6 +495,7 @@
                             'Ir para abertura de Pendência'
                         );
                         altBtn.type = 'button';
+                        actionHelp(altBtn, 'Abre o formulário de Pendência deste item. Nada é gravado nesta etapa.');
                         altBtn.dataset.operationalCorrectionAlt = 'open-pendency';
                         altBtn.addEventListener('click', () => {
                             close();
@@ -473,6 +521,7 @@
                     const action = el(doc, 'button', 'btn btn-secondary btn-sm',
                         'Excluir despesa lançada por engano');
                     action.type = 'button';
+                    actionHelp(action, 'Abre a conferência de exclusão da despesa. Você ainda precisará confirmar.');
                     action.dataset.operationalCorrectionAlt = 'delete-invoice-instead';
                     action.addEventListener('click', () => {
                         close();
@@ -486,6 +535,7 @@
                     const guidance = el(doc, 'button', 'btn btn-secondary btn-sm',
                         'Excluir despesa e Pendência juntas');
                     guidance.type = 'button';
+                    actionHelp(guidance, 'Abre a conferência da despesa e dos registros vinculados antes de excluir.');
                     guidance.dataset.operationalCorrectionAlt = 'delete-linked-invoice';
                     guidance.addEventListener('click', () => {
                         close();
@@ -550,9 +600,13 @@
                 if (bonus) review.hidden = true;
                 preview = result;
                 renderPlan(result.view);
+                if (action === 'correct_analysis') {
+                    actionHelp(save, 'Grava o novo resultado da análise técnica e os efeitos indicados na prévia.');
+                }
                 if (result.view.canApply) {
                     save.disabled = false;
                     if (action === 'clear_analysis') {
+                        actionHelp(save, 'Define a análise como Não analisado e aplica apenas os efeitos mostrados na prévia.');
                         status('Análise pronta para ser limpa. Confira o que vai mudar acima e clique em Confirmar correção.', false);
                     } else if (contextDeletion) {
                         status('Confira a lista acima. Se estiver tudo certo, clique em “Excluir estes lançamentos”.', false);
@@ -652,6 +706,7 @@
                     'Alteração gravada. Atualize a página para conferir o resultado.'));
                 const reload = el(doc, 'button', 'btn btn-secondary btn-sm', 'Atualizar página');
                 reload.type = 'button';
+                actionHelp(reload, 'Recarrega a página para conferir o resultado já gravado.');
                 reload.addEventListener('click', () => root.location.reload());
                 notice.appendChild(reload);
                 doc.body.appendChild(notice);
