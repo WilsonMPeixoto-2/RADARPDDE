@@ -29,6 +29,8 @@ O prompt recebido não é uma especificação exaustiva de qualidade visual. O a
 
 O objetivo é evitar regressões em que serviços, handlers, módulos, migrations ou testes aparentem estar corretos, mas a funcionalidade falhe quando o usuário navega, clica, preenche, salva, atualiza a página ou retorna ao registro.
 
+**Usabilidade desde a concepção — D023:** a experiência humana acompanha a concepção, a implementação e a validação de cada mudança percebida pelo usuário, inclusive para pessoas pouco experientes em sistemas. A revisão final pelo olhar de quem não conhece a implementação confirma esse trabalho contínuo; não é acabamento opcional posterior. Aplicar os critérios permanentes de [clareza e facilidade de uso](PRODUCT_SURFACE_CATALOG.md#28-clareza-e-facilidade-de-uso-permanentes).
+
 ## 2. Escopo obrigatório
 
 Este gate é permanente e se aplica a todas as frentes futuras na medida do impacto da mudança, incluindo:
@@ -267,14 +269,16 @@ A superfície pode ser aprovada quando, no estado representativo:
 
 1. **orientação:** a pessoa identifica tela, contexto, registro e estado sem consultar outra fonte;
 2. **prioridade:** a hierarquia visual faz a informação mais importante chamar atenção antes das secundárias;
-3. **ação:** a próxima ação relevante é descobrível, nomeada em linguagem compatível com a tarefa e visualmente diferenciada;
-4. **leitura:** textos, valores e controles necessários estão integralmente legíveis e possuem espaço compatível com seu conteúdo real;
+3. **ação:** a próxima ação relevante é descobrível, nomeada em linguagem natural, com verbo consistente, objeto claro quando necessário e efeito coerente com o rótulo;
+4. **leitura:** textos, valores e controles necessários estão integralmente legíveis, com tipografia, contraste e espaço adequados ao conteúdo real e a pessoas pouco experientes;
 5. **composição:** o elemento novo parece parte da mesma interface e não degrada elementos preexistentes;
 6. **feedback:** depois da ação, a pessoa entende o que mudou, o novo estado e, quando aplicável, quem deve agir;
 7. **continuidade:** navegar, voltar e recarregar não destrói o contexto necessário para continuar;
 8. **responsividade:** a mesma intenção permanece legível e operável nas larguras desktop suportadas afetadas pela mudança;
-9. **densidade:** a quantidade de informação não esconde a tarefa principal nem cria competição desnecessária entre ações;
-10. **coerência semântica:** datas, estados, nomes e rótulos são apresentados de forma humana e consistente entre superfícies que tratam o mesmo fato.
+9. **densidade:** hierarquia, agrupamento, respiro e detalhes progressivos reduzem a carga visual sem ocultar informação essencial, diminuir texto necessário ou afastar desnecessariamente a tarefa principal;
+10. **coerência semântica:** datas, estados, nomes, rótulos e cores são consistentes entre superfícies que tratam o mesmo fato; confirmações são proporcionais e explicam efeitos e preservações, sem duplicação.
+
+Aplicar os critérios ao impacto real da mudança e reutilizar provas pertinentes. A troca de agente não exige repetir autorização já registrada; o aceite humano previsto conserva seu alcance. Inspeção realizada pelo agente não deve ser atribuída ao proprietário. Uma confirmação operacional suficiente não recebe outra por rotina, e consulta/cancelamento não exigem confirmação.
 
 Não existe obrigação de colocar tudo acima da dobra. Existe obrigação de não esconder de forma enganosa o que é necessário para decidir ou agir.
 

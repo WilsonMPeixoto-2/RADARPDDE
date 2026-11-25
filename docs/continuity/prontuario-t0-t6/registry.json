@@ -9,11 +9,29 @@
       "T5"
     ],
     "pr": 565,
-    "branch": "feat/t5-historico-granular-20261125",
+    "branch": "main",
     "checkpointPath": "docs/continuity/prontuario-t0-t6/CHECKPOINT.md",
     "decisionsPath": "docs/continuity/prontuario-t0-t6/registry.json",
-    "status": "candidata-em-homologacao",
-    "validationNotes": "PR #565 sobre o #564 publicado. Histórico granular, orientação gerencial D022, piloto documental real somente leitura e desempenho medido. Migration69/flagT5 não ativadas institucionalmente; CI e captura são provas por SHA."
+    "status": "publicada",
+    "validationNotes": "PR #565 integrado em 31c27155 em 25/11/2026 às 11h21 de Brasília; candidata 85e482b0 com 25/25 workflows aprovados, preservando o retry de pré-production e o teste T3 intermitente. O registro de publicação do PR confirma a migration 69 e a ativação T5 às 11h35; manifesto oficial com granularHistoryRelease true. Monitor 45654478619 aprovado às 13h30: SHA exato, 54 assets, bloqueio anônimo 401 e CORS 200/403. Jornadas de escrita homologadas em banco descartável; verificação produtiva somente leitura. Publicação não encerra a lacuna de Inventário, o piloto documental limitado a três PDFs nem a medição de desempenho ponta a ponta.",
+    "productionEvidence": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45654478619",
+    "mergeSha": "31c27155eb2169032a36cb050082ae080965053d",
+    "candidateBranch": "feat/t5-historico-granular-20261125",
+    "candidateSha": "85e482b05227bd2268fe1007e44bade853eddc61",
+    "vercelDeployment": "https://vercel.com/wilson-m-peixotos-projects/radarpdde-fix/9bzP49Kxyn5yYq6gAK8csEEanhjY",
+    "vercelDeploymentId": "dpl_9bzP49Kxyn5yYq6gAK8csEEanhjY",
+    "migrationVersion": "20261125064516",
+    "migrationCount": 69,
+    "productionFlags": {
+      "RADAR_T5_GRANULAR_HISTORY_RELEASE_ENABLED": true
+    },
+    "productionEvidenceRefs": [
+      "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565",
+      "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45654478619",
+      "https://radarpdde-fix.vercel.app/radar-build-manifest.json"
+    ],
+    "nextStage": "Pós-T5 / T6",
+    "nextStageStatus": "Concluir e comprovar a correção das sugestões do perfil Inventário; reconciliar obrigações por superfície, integração documental e desempenho percebido. A correção relatada em outro ambiente ainda não tem integração ou publicação comprovada."
   },
   "decisions": [
     {
@@ -236,6 +254,16 @@
       "title": "Inteligência operacional utilizável, sugestões contextuais, piloto documental real e desempenho comprovado",
       "decision": "Implementar orientação gerencial nas telas existentes, derivar próximas ações do estado real de cada escola, experimentar com pequena amostra documental real em modo somente leitura e otimizar gargalos medidos com equivalência demonstrada. Conservar proveniência, autoridades de domínio e separação entre resultado candidato e decisão administrativa.",
       "sourcePath": "docs/continuity/prontuario-t0-t6/D022_INTELIGENCIA_DOCUMENTOS_DESEMPENHO.md",
+      "supersedes": []
+    },
+    {
+      "id": "T0T6-D023",
+      "date": "2026-11-25",
+      "stage": "T0-T6",
+      "status": "approved",
+      "title": "Continuidade remota sistemática e usabilidade humana em todas as fases",
+      "decision": "Manter sistematicamente no GitHub decisões, mudanças de prioridades e regras, planos, alterações, testes e resultados favoráveis e desfavoráveis, evidências por SHA e próximo ato, permitindo retomada correta por outro agente. Desenvolver em paralelo a solução técnica e sua apresentação compreensível ao usuário humano, com linguagem natural, ações e confirmações claras, cores semanticamente consistentes, tipografia, espaçamento e densidade que facilitem a operação em todas as fases e evoluções do RADAR. Complementa D020/D021; cumprimento permanente, sem certificar globalmente a UI nem ampliar autorizações institucionais.",
+      "sourcePath": "docs/continuity/prontuario-t0-t6/D023_CONTINUIDADE_REMOTA_E_USABILIDADE.md",
       "supersedes": []
     }
   ],
@@ -651,7 +679,7 @@
       "agent": "ChatGPT / implementação paralela",
       "stage": "T5",
       "title": "Histórico granular e incremento operacional solicitado em D022",
-      "status": "accepted-for-validation",
+      "status": "incorporated",
       "originRef": "feat/t5-historico-granular-20261125, candidata inicial 1e9991b2f533aa1838919ac92048c59c9939b9d5",
       "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565",
       "decisionIds": [
@@ -662,7 +690,8 @@
         "T0T6-D021",
         "T0T6-D022"
       ],
-      "rationale": "Oito ações granulares com prévia/apply transacional, interface contextual e contraprovas de independência; orientação de trabalho nas superfícies existentes, otimização equivalente de projeções e piloto documental só leitura. Homologação do HEAD, revisão visual e publicação são estados separados; ver checkpoint e provas do PR."
+      "rationale": "Oito ações granulares, orientação operacional, projeções otimizadas e piloto documental foram incorporados pelo PR #565 e publicados em 31c27155, com migration 69 e flag T5 ativas conforme o registro de publicação. O alcance permanece limitado: sugestões para o perfil Inventário têm achado P2 aberto; o piloto lê três PDFs autorizados, sem importação pela interface; o ganho de CPU não demonstra aceleração global. As provas, o aceite humano de cada superfície e as pendências futuras continuam independentes.",
+      "integratedRef": "https://github.com/WilsonMPeixoto-2/RADARPDDE/commit/31c27155eb2169032a36cb050082ae080965053d"
     }
   ],
   "previousRelease": {
@@ -679,7 +708,7 @@
     "mergeSha": "7523782bdc572a631783deeae2ea59be048dd725",
     "vercelDeployment": "https://vercel.com/wilson-m-peixotos-projects/radarpdde-fix/32j4myukPALqLX5iCnZZ5sF5bDTH",
     "nextStage": "T5",
-    "nextStageStatus": "implementação em feat/t5-historico-granular-20261125; migration 69 e flag ainda candidatas",
+    "nextStageStatus": "A passagem histórica do #564 iniciou T5 como candidata em feat/t5-historico-granular-20261125; a R3 foi posteriormente integrada e publicada no PR #565. Estado corrente e limites em active e no checkpoint.",
     "validationNotes": "PR #564 publicado após autorização expressa, 20/20 workflows da candidata e 10/10 do push. Sem mudança institucional de banco; próximo ato T5 em branch própria, conforme checkpoint."
   },
   "earlierReleases": [

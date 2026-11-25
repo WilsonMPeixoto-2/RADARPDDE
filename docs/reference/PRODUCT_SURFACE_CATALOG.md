@@ -2,10 +2,10 @@
 
 # Catálogo de superfícies do RADAR PDDE
 
-**Correções T0–T4 e continuidade:** o [contrato de correção](PRONTUARIO_CORRECAO_CONTRATO.md) distingue correção operacional de regularização documental. As seções abaixo incorporam a autoridade de prévia/confirmação transacional para correção, limpeza e exclusão causal; justificativa obrigatória ou bloqueio genérico por histórico não deve ser restaurado a partir de rotas legadas. O estado de publicação e as capacidades candidatas de T5 estão no [checkpoint](../continuity/prontuario-t0-t6/CHECKPOINT.md).
+**Correções T0–T5 e continuidade:** o [contrato de correção](PRONTUARIO_CORRECAO_CONTRATO.md) distingue correção operacional de regularização documental. As seções abaixo incorporam a autoridade de prévia/confirmação transacional para correção, limpeza e exclusão causal; justificativa obrigatória ou bloqueio genérico por histórico não deve ser restaurado a partir de rotas legadas. O estado de publicação e a cobertura por perfil/ambiente estão no [checkpoint](../continuity/prontuario-t0-t6/CHECKPOINT.md).
 
 **Estado:** referência operacional vigente  
-**Atualizado em:** 25 de novembro de 2026 (correções T0–T4)
+**Atualizado em:** 25 de novembro de 2026 (reconciliação T5 e clareza permanente D023)
 
 ## 1. Regra de leitura
 
@@ -144,6 +144,19 @@ qual objetivo o usuário tem aqui?
 
 Se o comportamento estiver correto e o problema for apenas de compreensão, localização ou hierarquia, classificar como apresentação/navegação. Não alterar regra de negócio para resolver um problema de interface.
 
+### 2.8 Clareza e facilidade de uso permanentes
+
+A [D023](../continuity/prontuario-t0-t6/D023_CONTINUIDADE_REMOTA_E_USABILIDADE.md) explicita que uma pessoa com pouca experiência em sistemas deve reconhecer o contexto, encontrar a ação e compreender seu resultado. Essa exigência acompanha concepção, implementação e validação em todas as fases do produto, em paralelo à engenharia.
+
+- **Linguagem e ações:** usar frases diretas e verbos consistentes para ações equivalentes. Nomear o objeto quando necessário e preservar os rótulos funcionais aprovados. O botão deve descrever o que fará; consultar, editar, corrigir, consolidar e excluir mantêm efeitos distinguíveis. Termos internos ficam na documentação técnica ou no diagnóstico, quando necessário.
+- **Confirmação útil:** usar uma confirmação proporcional ao efeito. A prévia existente informa contexto, alterações, preservações e consequência; não recebe uma segunda confirmação em sequência. Consulta e cancelamento mantêm execução direta, e edições simples não ganham barreiras de rotina. Ajuda complementar deve ser alcançável por teclado e toque, sem depender apenas de hover.
+- **Cor com significado:** reutilizar a semântica dos estados e ações e a identidade estrutural existente. Cor complementa rótulo ou ícone; não é a única pista. Conferir contraste nos temas suportados e evitar sinais contraditórios entre telas.
+- **Composição e respiro:** reduzir carga visual por hierarquia, agrupamento, alinhamento, espaçamento entre programas/itens e apresentação progressiva de detalhes secundários. Contexto, consequências e controles necessários à decisão permanecem encontráveis. Evitar tanto blocos textuais densos como cartões artificialmente altos que afastem a tarefa principal.
+- **Tipografia e interação:** manter fonte legível, tamanhos e pesos coerentes, destaque seletivo, rótulos compreensíveis, alvos acionáveis e foco perceptível. Resolver falta de espaço pela composição, sem reduzir ou cortar texto essencial para fazê-lo caber. Conferir conteúdo realista, zoom e larguras afetadas pela mudança.
+- **Sequência e feedback:** mostrar o que aconteceu, o estado resultante e o próximo passo. Erro deve permitir recuperar a tarefa preservando os dados úteis. Simplificar a apresentação não autoriza ocultar vínculo, restrição ou consequência material.
+
+Esses critérios orientam o trabalho e a revisão da superfície afetada; seu registro não certifica retroativamente todas as telas.
+
 ## 3. Superfícies
 
 ## S-01 — Dashboard
@@ -159,7 +172,7 @@ Se o comportamento estiver correto e o problema for apenas de compreensão, loca
 | Restrições | universos não sobrepostos e ações somente por capacidade |
 | Leitura humana | cartões funcionam como filtros de triagem; “próximas ações” privilegia a providência corrente, não substitui o histórico completo |
 
-**Orientação gerencial D022, candidata no PR #565:** reutiliza a fila para apresentar reanálises prontas, análise fiscal a conferir, despesas a identificar, patrimônio por etapa, bonificação em apuração/pendente de reconsolidação e acompanhamento em aberto. Cada item explica o motivo e abre o registro correspondente. As contagens mostram o universo carregado e o filtro escolar/mensal; não são taxa de regularidade nem obrigação sobre contextos inexistentes. Os dois relógios de Pendência permanecem distinguíveis. A capacidade do usuário continua sendo a autoridade de acesso.
+**Orientação gerencial D022:** reutiliza a fila para apresentar reanálises prontas, análise fiscal a conferir, despesas a identificar, patrimônio por etapa, bonificação em apuração/pendente de reconsolidação e acompanhamento em aberto. Cada item explica o motivo e abre o registro correspondente. As contagens mostram o universo carregado e o filtro escolar/mensal; não são taxa de regularidade nem obrigação sobre contextos inexistentes. Os dois relógios de Pendência permanecem distinguíveis. A capacidade do usuário continua sendo a autoridade de acesso. A cobertura efetiva por perfil, inclusive a pendência de integração das sugestões no Dashboard próprio do Inventário, fica no checkpoint; disponibilidade de lógica patrimonial não prova que sua interface foi alcançada por esse perfil.
 
 ## S-02 — Carteira de Escolas
 
@@ -238,7 +251,7 @@ Durante a gravação, os controles impedem duplicidade e exibem falha de forma p
 
 **Exclusão de contexto:** a ação contextual fica em **Ações do programa**, no cabeçalho do programa existente. A prévia identifica escola, mês e programa, registros a excluir e registros preservados; a confirmação explícita não transfere lançamentos. O conteúdo pode rolar, mas Cancelar, Conferir novamente e Excluir estes lançamentos devem permanecer acessíveis. Perfis sem capacidade de correção não recebem a ação. A disponibilização efetiva depende da release documentada no checkpoint; não presumir ativação em Production.
 
-**Próximos passos da escola, candidata D022:** apresentação compacta por padrão, com contagem e uma ação visível; filtros, justificativa da sugestão e demais itens ao expandir. A orientação mantém a escola e a competência do Prontuário e conduz ao item real com foco após a hidratação. Não deve deslocar desnecessariamente o trabalho fiscal para fora da área inicial, esconder ações existentes ou substituir a decisão do operador.
+**Próximos passos da escola, D022:** apresentação compacta por padrão, com contagem e uma ação visível; filtros, justificativa da sugestão e demais itens ao expandir. A orientação mantém a escola e a competência do Prontuário e conduz ao item real com foco após a hidratação. Não deve deslocar desnecessariamente o trabalho fiscal para fora da área inicial, esconder ações existentes ou substituir a decisão do operador.
 
 ## S-06 — Capital e Inventário
 

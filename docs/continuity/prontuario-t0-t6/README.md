@@ -18,7 +18,7 @@
 ## Genealogia verificável desde as ideias de origem
 
 - [Atlas com linha evolutiva, contradições e lacunas](LINEAGE.md)
-- [25 fontes/67 requisitos em JSON, incluindo origens exclusivas de outras branches](lineage.json)
+- [Fontes e requisitos em JSON, incluindo origens exclusivas de outras branches](lineage.json)
 
 **Consulta obrigatória antes de novos planos:** localizar o ID `T0T6-Rxxx`, sua fonte original e transições; conferir o código **real** da release. Não tratar fonte histórica como integralmente vigente ou integralmente superada. Fontes ainda sem revisão integral permanecem marcadas como lacunas, não contam como cobertura comprovada.
 
@@ -31,6 +31,8 @@
 
 ## O que registrar e quando
 
+A [D023](D023_CONTINUIDADE_REMOTA_E_USABILIDADE.md) explicita a manutenção sistemática desta trilha e a usabilidade humana em paralelo à engenharia, em todas as fases. Atualizar em cada avanço material, sem esperar o esgotamento da cota. O sucessor precisa localizar objetivo, decisões/regras, prioridades, autorizações vigentes, alterações, branch/PR/SHA, testes e resultados inclusive desfavoráveis, limites e próximo ato.
+
 | Evento material | Registro obrigatório na mesma entrega remota |
 |---|---|
 | Nova regra/decisão do proprietário, objetivo alterado, reversão de proposta | Nova entrada `T0T6-Dxxx`; quando superar anterior, usar `supersedes` e marcar a anterior `superseded`; vincular contrato/plano se for mudança funcional |
@@ -40,6 +42,8 @@
 | Release, merge, migration e deploy autorizados | Registrar separadamente estado de branch/CI/backup/banco/versão Vercel, autorização, artefatos e evidência pós-deploy. Nunca confundir candidato, validado ou publicado |
 
 **Frequência:** no mesmo commit/PR da alteração **material**, no fechamento de cada ciclo e sempre antes da passagem de contexto. Não exigir reabrir planejamento para cada comentário menor. Preservar histórico: mudar status acrescentando fonte/justificativa, sem apagar a trilha anterior. Não deixar três arquivos dizerem “vigente” para SHAs diferentes.
+
+**Conferência de passagem:** confirmar que o ref/PR e os arquivos podem ser lidos no GitHub antes de declarar a continuidade registrada. Distinguir arquivo local, commit remoto, PR integrado e release publicada. Se houver impedimento de gravação remota, declarar o que permanece local e como recuperar, sem encerrar como sincronizado. A troca de agente não revoga autorizações existentes nem dispensa suas condições. Não publicar credenciais ou documentos/dados escolares identificáveis; manter referências autorizadas às evidências privadas.
 
 ## Como classificar uma sugestão de colaborador
 

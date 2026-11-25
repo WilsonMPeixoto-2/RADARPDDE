@@ -1076,7 +1076,7 @@
     {
       "decisionId": "T0T6-D022",
       "status": "approved",
-      "impactStatus": "implementation-and-validation-in-progress",
+      "impactStatus": "published-in-pr565-coverage-and-evidence-reconciliation-open",
       "supersededBy": null,
       "obligations": [
         {
@@ -1149,6 +1149,144 @@
           ],
           "evidenceRefs": []
         }
+      ],
+      "reconciliationNote": "Implementação integrada e publicada em 31c27155 pelo PR #565. Os estados das obrigações permanecem candidate enquanto a evidência e o aceite de cada alcance são reconciliados: achado Inventário aberto, piloto documental de três PDFs sem importação pela UI e ganho de CPU sem comprovação de aceleração global. Não certificar todas as superfícies apenas pelo merge ou CI."
+    },
+    {
+      "decisionId": "T0T6-D023",
+      "status": "approved",
+      "impactStatus": "permanent-obligations-per-delivery",
+      "supersededBy": null,
+      "obligations": [
+        {
+          "id": "T0T6-I023-01",
+          "phase": "T0",
+          "surface": "governance",
+          "status": "preserve",
+          "requirementIds": [
+            "T0T6-R072"
+          ],
+          "acceptance": "Registrar no GitHub remoto cada decisão material, mudança de prioridade ou regra, plano, alteração, teste com resultado favorável ou desfavorável, evidência por SHA, limitação, autorização aplicável e próximo ato; confirmar disponibilidade remota antes do handoff e retomar conferindo o estado atual. A obrigação vale para todas as fases e frentes, sem depender da memória ou cota do agente.",
+          "targetPaths": [
+            "AGENTS.md",
+            "docs/continuity/prontuario-t0-t6/CHECKPOINT.md",
+            "docs/reference/DECISION_IMPACT_POLICY.md"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I023-02",
+          "phase": "T1",
+          "surface": "visual",
+          "status": "preserve",
+          "requirementIds": [
+            "T0T6-R072",
+            "T0T6-R073"
+          ],
+          "acceptance": "Conceber e inspecionar a composição para o usuário humano em paralelo ao trabalho técnico: contexto, hierarquia, linguagem, tipografia, espaço, densidade, cores semânticas e ações legíveis nas larguras afetadas. Registrar remotamente as decisões visuais, capturas efetivamente examinadas, limites, resultados e próximo ato, sem tratar CI como aceite humano.",
+          "targetPaths": [
+            "docs/reference/PRODUCT_SURFACE_CATALOG.md",
+            "docs/reference/FRONTEND_USER_VALIDATION_GATE.md",
+            "docs/continuity/prontuario-t0-t6/CHECKPOINT.md",
+            "styles.css"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I023-03",
+          "phase": "T2",
+          "surface": "ui",
+          "status": "preserve",
+          "requirementIds": [
+            "T0T6-R072",
+            "T0T6-R073"
+          ],
+          "acceptance": "Apresentar análise e Pendências com linguagem natural, contexto e relação inequívoca entre rótulo do botão, ação, resultado e próximo passo; avaliar a jornada renderizada e registrar no GitHub as decisões, alterações, provas e pendências no mesmo ciclo material.",
+          "targetPaths": [
+            "app.js",
+            "src/integration/prontuario-operational-ux.js",
+            "src/integration/task-9-pendencias-page.js",
+            "docs/reference/FRONTEND_USER_VALIDATION_GATE.md",
+            "docs/continuity/prontuario-t0-t6/CHECKPOINT.md"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I023-04",
+          "phase": "T3",
+          "surface": "ui",
+          "status": "preserve",
+          "requirementIds": [
+            "T0T6-R072",
+            "T0T6-R073"
+          ],
+          "acceptance": "Explicar na confirmação existente o objeto e as consequências materiais da exclusão, as preservações e como continuar; usar linguagem compreensível, cores e hierarquia consistentes sem criar confirmação adicional para consultas ou edições simples. Registrar remotamente regra, autorização, testes, resultado observado e lacunas da jornada.",
+          "targetPaths": [
+            "src/integration/operational-correction-dialog.js",
+            "src/integration/prontuario-operational-ux.js",
+            "docs/reference/FRONTEND_USER_VALIDATION_GATE.md",
+            "docs/continuity/prontuario-t0-t6/CHECKPOINT.md"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I023-05",
+          "phase": "T4",
+          "surface": "ui",
+          "status": "preserve",
+          "requirementIds": [
+            "T0T6-R072",
+            "T0T6-R073"
+          ],
+          "acceptance": "Distinguir corrigir, consolidar e excluir pelo nome e efeito das ações; explicar estado, consequência e etapa seguinte sem jargão, com tipografia, espaçamento e densidade úteis. Preservar D021 e registrar no GitHub mudanças de regra ou linguagem, evidências da composição e da jornada, resultados e próximo ato.",
+          "targetPaths": [
+            "app.js",
+            "src/integration/operational-correction-dialog.js",
+            "src/styles/evaluation-retification-ui.css",
+            "docs/reference/FRONTEND_USER_VALIDATION_GATE.md",
+            "docs/continuity/prontuario-t0-t6/CHECKPOINT.md"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I023-06",
+          "phase": "T5",
+          "surface": "ui",
+          "status": "preserve",
+          "requirementIds": [
+            "T0T6-R072",
+            "T0T6-R073"
+          ],
+          "acceptance": "Apresentar históricos, contatos, patrimônio e próximas ações com contexto, objeto, efeito, preservação e continuação compreensíveis por perfil, inclusive Inventário, nos viewports afetados. Trabalhar técnica e experiência humana em paralelo; registrar remotamente a cobertura efetiva, capturas, resultados, falhas e pendências, sem confundir correção local com publicação.",
+          "targetPaths": [
+            "src/integration/granular-correction-ui.js",
+            "src/integration/operational-guidance.js",
+            "src/domain/operational-guidance.js",
+            "app.js",
+            "docs/reference/FRONTEND_USER_VALIDATION_GATE.md",
+            "docs/continuity/prontuario-t0-t6/CHECKPOINT.md"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I023-07",
+          "phase": "T6",
+          "surface": "tests",
+          "status": "preserve",
+          "requirementIds": [
+            "T0T6-R072",
+            "T0T6-R073"
+          ],
+          "acceptance": "Em cada entrega, verificar proporcionalmente regra técnica, jornada real e composição humana, distinguindo teste automatizado, inspeção do agente, aceite do proprietário e publicação. Antes de interrupção ou handoff, deixar no GitHub branch/PR/SHA, decisões e prioridades, resultados favoráveis e desfavoráveis, limites, autorizações já concedidas e próximo ato verificável; preservar obrigações futuras e histórico.",
+          "targetPaths": [
+            "docs/reference/ENGINEERING_METHOD.md",
+            "docs/reference/FRONTEND_USER_VALIDATION_GATE.md",
+            "docs/continuity/prontuario-t0-t6/CHECKPOINT.md",
+            "tests/unit/prontuario-continuity.test.js",
+            "tests/unit/prontuario-decision-impact.test.js"
+          ],
+          "evidenceRefs": []
+        }
       ]
     }
   ],
@@ -1212,6 +1350,13 @@
     "T0T6-I022-01",
     "T0T6-I022-02",
     "T0T6-I022-03",
-    "T0T6-I022-04"
+    "T0T6-I022-04",
+    "T0T6-I023-01",
+    "T0T6-I023-02",
+    "T0T6-I023-03",
+    "T0T6-I023-04",
+    "T0T6-I023-05",
+    "T0T6-I023-06",
+    "T0T6-I023-07"
   ]
 }
