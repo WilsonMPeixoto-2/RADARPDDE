@@ -178,8 +178,12 @@ test('Inventário recebe orientação no recorte patrimonial e abre o bem exato 
     await expect(page.locator('#prontuario-tab-capital')).toHaveAttribute('aria-selected', 'true');
     await expect(asset.getByText('Mesa sintética para conferência', { exact: true })).toBeVisible();
 
+    const inventoryAction = asset.getByRole('button', { name: 'Inventariar', exact: true });
+    await expect(inventoryAction).toBeVisible();
+
     async function captureAssetDestination(name) {
         await visualAssetsReady(page);
+        await asset.scrollIntoViewIfNeeded();
         const geometry = await asset.evaluate(row => {
             const bounds = node => {
                 const { x, y, width, height } = node.getBoundingClientRect();
@@ -188,7 +192,9 @@ test('Inventário recebe orientação no recorte patrimonial e abre o bem exato 
             const tableViewport = row.closest('.table-responsive');
             return { viewport: { width: innerWidth, height: innerHeight }, documentWidth: document.documentElement.scrollWidth,
                 focused: document.activeElement === row, row: bounds(row),
-                identity: bounds(row.querySelector('td:first-child strong')), tableViewport: bounds(tableViewport),
+                identity: bounds(row.querySelector('td:first-child strong')),
+                action: bounds(row.querySelector('.capital-actions button.btn-primary')),
+                tableViewport: bounds(tableViewport),
                 tableScroll: { left: tableViewport.scrollLeft, width: tableViewport.scrollWidth, visibleWidth: tableViewport.clientWidth } };
         });
         await testInfo.attach(`orientacao-inventario-destino-${name}-geometria`, {
@@ -197,11 +203,15 @@ test('Inventário recebe orientação no recorte patrimonial e abre o bem exato 
         await capture(page, testInfo, `orientacao-inventario-destino-${name}`);
         expect.soft(geometry.focused).toBe(true);
         expect.soft(geometry.documentWidth).toBeLessThanOrEqual(geometry.viewport.width + 1);
-        // A tabela pode rolar horizontalmente; a identidade e sua área visível não podem ficar cortadas.
-        for (const [label, bounds] of [['Identidade do bem', geometry.identity], ['Área da tabela', geometry.tableViewport]]) {
+        // A lista inteira pode ultrapassar a altura da tela. O bem e a ação,
+        // porém, devem caber juntos na largura do viewport, sem rolagem lateral.
+        expect.soft(geometry.tableScroll.width).toBeLessThanOrEqual(geometry.tableScroll.visibleWidth + 1);
+        expect.soft(geometry.tableScroll.left).toBe(0);
+        for (const [label, bounds] of [['Identidade do bem', geometry.identity], ['Ação Inventariar', geometry.action]]) {
             expect.soft(bounds.width, label).toBeGreaterThan(0);
             expect.soft(bounds.height, label).toBeGreaterThan(0);
-            expect.soft(bounds.x, label).toBeGreaterThanOrEqual(0);
+            expect.soft(bounds.x, label).toBeGreaterThanOrEqual(geometry.tableViewport.x - 1);
+            expect.soft(bounds.x + bounds.width, label).toBeLessThanOrEqual(geometry.tableViewport.x + geometry.tableViewport.width + 1);
             expect.soft(bounds.x + bounds.width, label).toBeLessThanOrEqual(geometry.viewport.width + 1);
             expect.soft(bounds.y, label).toBeGreaterThanOrEqual(0);
             expect.soft(bounds.y + bounds.height, label).toBeLessThanOrEqual(geometry.viewport.height + 1);
@@ -212,6 +222,26 @@ test('Inventário recebe orientação no recorte patrimonial e abre o bem exato 
     await page.setViewportSize({ width: 1440, height: 900 });
     await asset.scrollIntoViewIfNeeded();
     await captureAssetDestination('desktop');
+
+    // Prova da ação real em viewport móvel (tema claro), sem realizar a mutação.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await ensureMobileMenuClosed(page);
+    await setTheme(page, false);
+    await asset.scrollIntoViewIfNeeded();
+    await expect(inventoryAction).toBeInViewport({ ratio: 1 });
+    expect((await inventoryAction.boundingBox()).height).toBeGreaterThanOrEqual(44);
+    expect(await asset.evaluate(row => row.closest('.table-responsive').scrollLeft)).toBe(0);
+    await capture(page, testInfo, 'orientacao-inventario-acao-celular-claro');
+    await inventoryAction.click();
+    const confirmation = page.locator('#modal-inventario-confirm');
+    await expect(confirmation).toHaveClass(/show/);
+    await expect(confirmation.locator('#inventario-bem-id')).toHaveValue('GUIDANCE-ASSET');
+    await expect(confirmation.locator('#inventario-bem-nome')).toHaveText('Mesa sintética para conferência');
+    await expect(confirmation.locator('#inventario-bem-escola')).toContainText('Escola Sintética de Orientação');
+    await capture(page, testInfo, 'orientacao-inventario-confirmacao-celular');
+    await confirmation.getByRole('button', { name: 'Cancelar', exact: true }).click();
+    await expect(confirmation).not.toHaveClass(/show/);
+    expect(await asset.evaluate(row => row.closest('.table-responsive').scrollLeft)).toBe(0);
     const after = await page.evaluate(async schoolId => {
         const result = await window.RadarSessionContext.service.client.from('assets').select('*').eq('school_id', schoolId).order('id');
         if (result.error) throw new Error(result.error.message);

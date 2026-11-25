@@ -2024,3 +2024,119 @@ body.dark-theme #prontuario-verif-rows :is(.program-context-delete-button, .pron
 #prontuario-verif-rows .program-consolidate-button { white-space: normal; line-height: 1.35; }
 #prontuario-verif-rows .verification-document-analysis-cell .select-analise { min-inline-size: 0; }
 #prontuario-verif-rows .contextual-bonus-edit { font-size: .72rem; }
+
+
+/* Registro de Capital: no celular, cada bem conserva a identidade, os dados e
+   as ações no mesmo cartão. A tabela e os controles canônicos são únicos;
+   desktop mantém a apresentação tabular e a semântica é explícita no HTML. */
+#tab-capital .capital-mobile-label {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    #tab-capital .prontuario-capital-responsive {
+        position: relative;
+        overflow: visible;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        scrollbar-gutter: auto;
+    }
+
+    #tab-capital .prontuario-capital-table {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    #tab-capital .prontuario-capital-table > thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+
+    #tab-capital .prontuario-capital-table > tbody {
+        display: grid;
+        gap: 12px;
+        min-width: 0;
+    }
+
+    #tab-capital .prontuario-capital-table > tbody > tr {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        min-width: 0;
+        padding: 14px;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        background: var(--bg-card);
+    }
+
+    #tab-capital .prontuario-capital-table > tbody > tr > td {
+        display: block;
+        min-width: 0;
+        padding: 0;
+        border: 0;
+        overflow-wrap: anywhere;
+        white-space: normal;
+    }
+
+    #tab-capital .prontuario-capital-table > tbody > tr > td:is(:first-child, :nth-child(n+4), [colspan]) {
+        grid-column: 1 / -1;
+    }
+
+    #tab-capital .prontuario-capital-table > tbody > tr > td:first-child strong {
+        font-size: 1rem;
+        max-width: 100%;
+    }
+
+    #tab-capital .prontuario-capital-table .capital-mobile-label {
+        display: block;
+        margin-bottom: 3px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-muted);
+    }
+
+    #tab-capital .prontuario-capital-table .badge {
+        max-width: 100%;
+        white-space: normal;
+    }
+
+    #tab-capital .prontuario-capital-table .form-control {
+        min-height: 44px;
+        max-width: 100%;
+    }
+
+    #tab-capital .prontuario-capital-table td.capital-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+    }
+
+    #tab-capital .prontuario-capital-table .capital-actions > .capital-mobile-label {
+        flex-basis: 100%;
+        margin-bottom: 0;
+    }
+
+    #tab-capital .prontuario-capital-table .inventory-correction-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        width: 100%;
+    }
+
+    #tab-capital .prontuario-capital-table .capital-actions .btn {
+        min-height: 44px;
+        max-width: 100%;
+        white-space: normal;
+        text-align: start;
+    }
+}

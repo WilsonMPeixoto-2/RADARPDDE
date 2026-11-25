@@ -10188,32 +10188,34 @@ function renderProntuario(escolaId) {
                                 <button class="btn btn-secondary btn-sm" onclick="openNovoCapitalModal('${escapeHtml(esc.id)}')">Registrar Nova Compra</button>
                             ` : ''}
                         </div>
-                        <div class="table-responsive">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Descrição do Bem</th>
-                                        <th>Mês Compra</th>
-                                        <th>Valor</th>
-                                        <th>Nota Fiscal</th>
-                                        <th>Patrimônio</th>
-                                        <th>Ações</th>
+                        <div class="table-responsive prontuario-capital-responsive">
+                            <table class="data-table prontuario-capital-table" role="table" aria-label="Bens permanentes da unidade">
+                                <thead role="rowgroup">
+                                    <tr role="row">
+                                        <th scope="col" role="columnheader">Descrição do Bem</th>
+                                        <th scope="col" role="columnheader">Mês Compra</th>
+                                        <th scope="col" role="columnheader">Valor</th>
+                                        <th scope="col" role="columnheader">Nota Fiscal</th>
+                                        <th scope="col" role="columnheader">Patrimônio</th>
+                                        <th scope="col" role="columnheader">Ações</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody role="rowgroup">
                                     ${bens.filter(b => b.escolaId === esc.id).length === 0 ? `
-                                        <tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:32px;">Nenhuma aquisição de capital cadastrada neste exercício.</td></tr>
+                                        <tr role="row"><td role="cell" colspan="6" style="text-align:center; color:var(--text-muted); padding:32px;">Nenhuma aquisição de capital cadastrada neste exercício.</td></tr>
                                     ` : bens.filter(b => b.escolaId === esc.id).map(b => {
                                         let statusCls = b.status === 'Não encaminhada' ? 'badge-danger' : b.status === 'Encaminhada' ? 'badge-warning' : 'badge-success';
                                         return `
-                                            <tr data-asset-id="${escapeHtml(b.id)}">
-                                                <td><strong>${escapeHtml(b.item)}</strong></td>
-                                                <td>${escapeHtml(formatCompetenciaText(b.competencia))}</td>
-                                                <td>R$ ${b.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                                                <td>
-                                                    <input type="text" class="form-control" style="width:110px; font-size:0.75rem; padding:4px;" value="${escapeHtml(b.notaFiscal)}" onchange="updateCapitalDoc('${escapeHtml(b.id)}', 'notaFiscal', this.value)" placeholder="NF-XXXX" ${accessProfile === 'inventario' || accessProfile === 'sme' ? 'disabled' : ''}>
+                                            <tr data-asset-id="${escapeHtml(b.id)}" role="row">
+                                                <td role="cell"><strong>${escapeHtml(b.item)}</strong></td>
+                                                <td role="cell"><span class="capital-mobile-label" aria-hidden="true">Mês da compra</span>${escapeHtml(formatCompetenciaText(b.competencia))}</td>
+                                                <td role="cell"><span class="capital-mobile-label" aria-hidden="true">Valor</span>R$ ${b.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                                                <td role="cell">
+                                                    <span class="capital-mobile-label" aria-hidden="true">Nota fiscal</span>
+                                                    <input type="text" aria-label="Nota fiscal do bem" class="form-control" style="width:110px; font-size:0.75rem; padding:4px;" value="${escapeHtml(b.notaFiscal)}" onchange="updateCapitalDoc('${escapeHtml(b.id)}', 'notaFiscal', this.value)" placeholder="NF-XXXX" ${accessProfile === 'inventario' || accessProfile === 'sme' ? 'disabled' : ''}>
                                                 </td>
-                                                <td>
+                                                <td role="cell" class="capital-status">
+                                                    <span class="capital-mobile-label" aria-hidden="true">Situação patrimonial</span>
                                                     <span class="badge ${statusCls}">${escapeHtml(b.status)}</span>
                                                     ${b.status === 'Inventariada' && b.inventariadoPor ? `
                                                         <br><small style="color:var(--text-muted); font-size:0.7rem;">Por: <strong>${escapeHtml(b.inventariadoPor)}</strong>${b.inventariadoEm ? ' em ' + escapeHtml(b.inventariadoEm) : ''}</small>
@@ -10222,7 +10224,8 @@ function renderProntuario(escolaId) {
                                                         <br><small style="color:var(--text-muted); font-size:0.7rem; font-style:italic;">Obs: ${escapeHtml(b.observacoes)}</small>
                                                     ` : ''}
                                                 </td>
-                                                <td>
+                                                <td role="cell" class="capital-actions">
+                                                    <span class="capital-mobile-label" aria-hidden="true">Ações</span>
                                                     ${b.status === 'Não encaminhada' ? `
                                                         <button class="btn btn-primary btn-sm" onclick="encaminharCapital('${escapeHtml(b.id)}')" ${accessProfile === 'inventario' || accessProfile === 'sme' ? 'disabled' : ''}>Encaminhar</button>
                                                     ` : (b.status === 'Encaminhada' && accessProfile === 'inventario') ? `
