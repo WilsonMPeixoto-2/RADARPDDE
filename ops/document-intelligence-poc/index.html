@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Análise documental assistida — demonstração</title>
+  <style>
+    :root{color-scheme:light;--ink:#202134;--muted:#5b6071;--line:#d7dce5;--accent:#6144a7;--surface:#fff;--paper:#f4f5f8;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    *{box-sizing:border-box}body{margin:0;color:var(--ink);background:var(--paper);line-height:1.5}header,main{max-width:1280px;margin:auto;padding:24px}header{padding-top:36px;padding-bottom:12px}.eyebrow{font-size:.8rem;font-weight:750;color:var(--accent);letter-spacing:.08em;text-transform:uppercase}h1{font-size:clamp(1.75rem,3.2vw,2.6rem);line-height:1.15;letter-spacing:-.035em;margin:10px 0}h2{font-size:1.2rem;margin:0 0 12px}h3{font-size:1rem;margin:0 0 8px}p{margin:0 0 12px}.intro{max-width:850px;color:var(--muted)}.notice{border-left:4px solid var(--accent);background:#ece7f6;padding:12px 16px;margin:18px 0 0;border-radius:0 6px 6px 0;font-size:.9rem}.layout{display:grid;grid-template-columns:340px minmax(0,1fr);gap:20px;align-items:start}.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px}.caption{color:var(--muted);font-size:.87rem}.queue{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:8px}.queue button{width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:7px;padding:12px;cursor:pointer;color:inherit;font:inherit}.queue button[aria-current=true]{border:2px solid var(--accent);padding:11px;background:#f6f3fc}.queue strong{display:block}.queue span{display:block;font-size:.84rem;margin-top:4px;color:var(--muted)}button:focus-visible,a:focus-visible,textarea:focus-visible{outline:3px solid #3359d6;outline-offset:3px}.badge{display:inline-block;padding:4px 9px;border-radius:4px;background:#f0ebf9;color:#523680;font-weight:650;font-size:.85rem;margin-bottom:12px}.badge[data-kind=compatible]{background:#e5f3ed;color:#1f634c}.badge[data-kind=amount-difference],.badge[data-kind=ambiguous]{background:#fff0d9;color:#805111}.comparison{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0}.comparison div{border:1px solid var(--line);border-radius:6px;padding:12px}.comparison dt{font-size:.8rem;color:var(--muted)}.comparison dd{font-size:1.6rem;font-weight:700;margin:0}.sources{display:grid;gap:12px}.sources details{border:1px solid var(--line);border-radius:6px;padding:12px}.sources summary{cursor:pointer;font-weight:650}.sources pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:.82rem;background:#f6f7fa;padding:12px;border-radius:4px;line-height:1.6}.fingerprint{overflow-wrap:anywhere;font-size:.74rem;color:var(--muted)}.review{border-top:1px solid var(--line);padding-top:18px;margin-top:20px}label{display:block;font-size:.88rem;font-weight:650;margin-bottom:6px}textarea{font:inherit;width:100%;min-height:80px;padding:10px;border:1px solid #9ca5b8;border-radius:5px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.actions button{font:inherit;font-size:.88rem;font-weight:650;padding:10px 12px;border:1px solid var(--accent);border-radius:5px;color:var(--accent);background:#fff;cursor:pointer}.actions button.primary{background:var(--accent);color:#fff}.actions button:disabled{opacity:.5;cursor:not-allowed}.outcome{font-weight:650;margin-top:12px}.footer{margin:20px 0 0;font-size:.8rem;color:var(--muted)}.error{color:#a32636}a{color:var(--accent)}[hidden]{display:none!important}
+    @media(max-width:800px){header,main{padding:18px}.layout{grid-template-columns:1fr}.queue{grid-template-columns:repeat(2,minmax(0,1fr))}.panel{padding:16px}}
+    @media(max-width:430px){.queue,.comparison{grid-template-columns:1fr}.comparison dd{font-size:1.4rem}.actions button{width:100%}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="eyebrow">RADAR · pesquisa de produto</div>
+    <h1>Do documento à revisão humana</h1>
+    <p class="intro">Compare a nota com o débito, confira a origem da informação e decida o próximo passo. Uma correspondência de dados ajuda a análise; a decisão administrativa continua humana.</p>
+    <p class="notice"><strong>Demonstração com dados fictícios.</strong> As extrações são simuladas. Nenhum serviço externo é consultado e nenhuma informação é gravada no RADAR.</p>
+  </header>
+  <main>
+    <div class="layout">
+      <section class="panel" aria-labelledby="queue-title">
+        <h2 id="queue-title">Cinco situações para conferir</h2>
+        <p class="caption">Selecione uma nota para ver o resultado e suas evidências.</p>
+        <ul class="queue" id="queue"></ul>
+      </section>
+      <section class="panel" id="detail" aria-labelledby="detail-title" aria-busy="true">
+        <h2 id="detail-title" tabindex="-1">Carregando exemplo…</h2>
+        <div id="content" hidden>
+          <span class="badge" id="status"></span>
+          <p id="explanation"></p>
+          <p class="caption" id="context"></p>
+          <dl class="comparison"><div><dt>Total da nota</dt><dd id="invoice-amount"></dd></div><div><dt>Débito candidato</dt><dd id="payment-amount"></dd></div></dl>
+          <h3>Fontes da comparação</h3>
+          <div class="sources" id="sources"></div>
+          <div class="review">
+            <h3>Revisão da demonstração</h3>
+            <label for="review-note">Sua observação</label>
+            <textarea id="review-note" placeholder="Descreva o que você conferiu nas fontes fictícias."></textarea>
+            <div class="actions">
+              <button class="primary" id="confirm" type="button">Confirmar correspondência no exemplo</button>
+              <button id="request-review" type="button">Encaminhar para revisão documental</button>
+            </div>
+            <p class="outcome" id="decision" role="status" aria-live="polite"></p>
+            <p class="caption">A revisão fica apenas nesta página. Não altera análise, Pendência, bonificação ou registros institucionais.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+    <p class="footer">Protótipo isolado · <a href="README.md">Método e limites</a> · O limiar de confiança é ilustrativo e precisa de calibração antes de qualquer uso real.</p>
+  </main>
+  <script type="module">
+    import { reconcileBundle, reviewProposal } from './reconcile.mjs';
+    const $ = id => document.getElementById(id);
+    const labels = { compatible:'Correspondência a conferir', 'amount-difference':'Diferença de valores', ambiguous:'Mais de uma correspondência', 'no-correspondence':'Sem correspondência suficiente', 'review-extraction':'Extração precisa de revisão' };
+    const explanations = {
+      compatible:'Referência, beneficiário, contexto, moeda e valor coincidem. Confira as fontes antes de confirmar a correspondência.',
+      'amount-difference':'O débito tem a mesma referência e beneficiário, mas o valor difere. Retenções, tarifas ou parcelas precisam ser conferidas; a diferença não prova irregularidade.',
+      ambiguous:'Há mais de uma alocação possível. O sistema mantém as opções visíveis e aguarda uma identificação humana.',
+      'no-correspondence':'Um valor igual, sozinho, não identifica um pagamento. A referência e o beneficiário também precisam corresponder.',
+      'review-extraction':'Um campo está incerto ou sua fonte/contexto precisa ser conferido. A sugestão não pode ser tratada como correspondência comprovada.'
+    };
+    const currency = cents => cents === null ? 'A conferir' : new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(cents/100);
+    const decisions = new Map();
+    let bundle, result, selected;
+    function show(proposal, focus = false) {
+      selected = proposal;
+      const invoice = bundle.invoices.find(item => item.id === proposal.invoiceId);
+      $('detail-title').textContent = `Nota ${invoice.fields.number}`;
+      $('status').textContent = labels[proposal.outcome]; $('status').dataset.kind = proposal.outcome;
+      $('explanation').textContent = explanations[proposal.outcome];
+      $('context').textContent = 'Escola de demonstração · Outubro/2026 · Programa de demonstração';
+      $('invoice-amount').textContent = currency(proposal.invoiceAmountCents);
+      $('payment-amount').textContent = proposal.paymentIds.length > 1 ? `${proposal.paymentIds.length} débitos possíveis` : currency(proposal.paymentAmountCents);
+      $('sources').replaceChildren();
+      for (const evidence of proposal.evidence) {
+        const source = bundle.documents.find(item => item.id === evidence.source.documentId);
+        const details = document.createElement('details');
+        const summary = document.createElement('summary'); summary.textContent = source.title;
+        const pre = document.createElement('pre'); pre.textContent = source.text;
+        const fingerprint = document.createElement('p'); fingerprint.className = 'fingerprint';
+        fingerprint.textContent = `Fonte sintética · página ${evidence.source.page} · ${evidence.source.anchor} · versão ${source.version} · SHA-256 ${source.sha256}`;
+        details.append(summary,pre,fingerprint); $('sources').append(details);
+      }
+      $('confirm').disabled = proposal.outcome !== 'compatible';
+      $('review-note').value = decisions.get(proposal.id)?.note || '';
+      $('decision').textContent = decisions.has(proposal.id) ? 'Revisão da demonstração registrada nesta página.' : '';
+      $('decision').classList.remove('error');
+      for (const button of $('queue').querySelectorAll('button')) button.setAttribute('aria-current',String(button.dataset.id === proposal.id));
+      if (focus) $('detail-title').focus();
+    }
+    async function review(action) {
+      const proposal = selected;
+      try {
+        if (!$('review-note').value.trim()) { $('review-note').focus(); throw new Error('Escreva uma breve observação sobre a conferência.'); }
+        const decision = await reviewProposal(proposal,{action,reviewer:'Revisor da demonstração',note:$('review-note').value},bundle.documents);
+        decisions.set(proposal.id,decision);
+        if (selected.id !== proposal.id) return;
+        $('decision').classList.remove('error');
+        $('decision').textContent = action === 'confirm-correspondence' ? 'Correspondência conferida no exemplo. Nenhuma decisão administrativa foi criada.' : 'Revisão documental indicada no exemplo. Nenhuma Pendência foi criada.';
+      } catch(error) {
+        if (selected.id !== proposal.id) return;
+        $('decision').classList.add('error'); $('decision').textContent = error.message;
+      }
+    }
+    $('confirm').addEventListener('click',()=>review('confirm-correspondence'));
+    $('request-review').addEventListener('click',()=>review('request-document-review'));
+    try {
+      const response = await fetch('./fixtures/synthetic-case.json');
+      if (!response.ok) throw new Error('Não foi possível abrir a fixture sintética.');
+      bundle = await response.json(); result = await reconcileBundle(bundle);
+      for (const proposal of result.proposals) {
+        const invoice = bundle.invoices.find(item=>item.id===proposal.invoiceId);
+        const item = document.createElement('li'); const button = document.createElement('button');
+        button.type='button'; button.dataset.id=proposal.id;
+        const title=document.createElement('strong'); title.textContent=`Nota ${invoice.fields.number}`;
+        const caption=document.createElement('span'); caption.textContent=labels[proposal.outcome];
+        button.append(title,caption); button.addEventListener('click',()=>show(proposal,true)); item.append(button); $('queue').append(item);
+      }
+      $('content').hidden=false; show(result.proposals[0]);
+    } catch(error) { $('detail-title').textContent='Demonstração indisponível'; $('detail').append(document.createTextNode(error.message)); }
+    finally { $('detail').setAttribute('aria-busy','false'); }
+  </script>
+</body>
+</html>

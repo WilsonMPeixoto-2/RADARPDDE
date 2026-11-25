@@ -1,5 +1,28 @@
 # Checkpoint único de continuidade operacional — RADAR T0–T6
 
+## 25/11/2026 — PR #562 publicado; missão posterior em execução
+
+**Produção verificada:** [PR #562](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/562), candidato `0b082bf49470d7bc549ed4865544203971168728` com 21/21 workflows aprovados, merge `6dd6a9f9f8147deb39c5813baad0b5521427b8bd`. O proprietário aprovou as telas e a guarda cifrada do backup no padrão anterior do GitHub. Essas autorizações foram executadas e não precisam ser solicitadas novamente para registrar a publicação já feita.
+
+| Marco concluído | Evidência |
+|---|---|
+| Backup recuperável antes da migration | [Run 45546167245](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45546167245), artefato cifrado `14991439022`, cinco schemas, leitura consistente, restauração isolada e decifragem autenticada verificadas. SHA-256 do ZIP: `be3364661a2ebdd671c6b5b2217f79faf97107de8bfe27c1ee292c7d7604a5a3`. |
+| Dry-run e migration 68 | [Run 45547732347](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45547732347), artefato `14992920550`; única migration `20261124000100_extend_bonification_correction.sql`, 67 → 68, pós-verificação aprovada. |
+| Publicação do frontend | [Vercel](https://vercel.com/wilson-m-peixotos-projects/radarpdde-fix/7PcaBDGHirK6CtfnYQNCPKVvprUi), SHA `6dd6a9f9`, endereço [RADAR](https://radarpdde-fix.vercel.app). |
+| Verificação posterior | [Smoke 45547911796](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45547911796) aprovado no SHA exato do merge; catálogo Supabase confirmou 68 migrations. Os três alertas patrimoniais preexistentes permaneceram iguais, sem correção automática. |
+
+**Próxima entrega autorizada:** executar a missão de evolução integral do prompt recebido em 25/11, na branch `feat/evolucao-integral-pos-t4-20261125`, baseada em `6dd6a9f9`. A instrução posterior do proprietário foi “é para executar este prompt”, superando o preâmbulo do anexo que pedia apenas reescrita. A missão cobre revisão integrada T0–T4, experiência visual, engenharia, inteligência operacional, estudo documental futuro, propostas priorizadas, preparação T5 e Guia do Controlador. Não há permalink da conversa no repositório; este registro preserva a proveniência sem inventar uma URL.
+
+**Limites da nova candidata:** banco institucional somente leitura; dados reais detalhados fora do repositório público; protótipo documental sintético sem conexão ao Microsoft Graph, OCR ou IA externos; nenhum merge ou deploy automático. A publicação anterior não estende sua autorização à nova entrega.
+
+**Estado da preparação T5:** helper puro reforçado e contraprovas, sem novo consumidor de produção, RPC, migration ou interface de mutação. As oito obrigações de UI continuam `planned`. [Evidências desta candidata](../../evidence/2026-11-25-evolucao-pos-t4.md) e [estudo documental](../../research/2026-11-25-inteligencia-operacional-documental.md) distinguem implementação, hipótese e trabalho futuro.
+
+**Próximo ato:** concluir revisão e testes proporcionais do novo SHA, publicar branch/PR para revisão, obter e examinar as capturas reais da nova interface pelos workflows existentes. Ausência de Chromium no ambiente local não constitui aprovação navegada. Não repetir backup, migration 68 ou homologação do PR #562 para validar alterações de guia e leitura de histórico.
+
+## Arquivo histórico — estados anteriores à publicação de #562
+
+Os cortes abaixo conservam suas evidências e ressalvas próprias. Para o estado vigente, usar a seção de 25/11 acima.
+
 ## 24/11/2026 — encerramento da implementação e publicação T4
 
 A evidência de publicação do **PR #561** é a referência ativa de R2 em registry.json. A reexecução do comparador terminou com sucesso: 11/11 workflows aprovados no HEAD `0d3625ea`. A revisão integrada aprovada pelo proprietário em seguida corrige linguagem, hierarquia, contexto e bonificação em uma única candidata. T5 mantém suas obrigações futuras de histórico granular. Não confundir candidata com nova publicação.

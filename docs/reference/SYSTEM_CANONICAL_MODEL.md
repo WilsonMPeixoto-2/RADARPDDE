@@ -2,10 +2,10 @@
 
 # Modelo canônico integrado do RADAR PDDE
 
-**Evolução aprovada, ainda em implementação:** ler [contrato Prontuário/correção](PRONTUARIO_CORRECAO_CONTRATO.md) e [handoff corrente](../handoff/2026-11-14-prontuario-correcao-integrada.md). As regras abaixo descrevem a baseline efetiva; justificativas obrigatórias e bloqueios por histórico/terminalidade são alvo de revisão deliberada, não motivo para impedir a execução aprovada. Nenhuma aprovação de plano, isoladamente, altera Production.
+**Correções T0–T4 e continuidade:** o [contrato de correção](PRONTUARIO_CORRECAO_CONTRATO.md) distingue correção operacional de regularização documental. As seções abaixo incorporam a autoridade de prévia/confirmação transacional para correção, limpeza e exclusão causal; justificativa obrigatória ou bloqueio genérico por histórico não deve ser restaurado a partir de rotas legadas. O estado de publicação e as capacidades ainda futuras de T5 estão no [checkpoint](../continuity/prontuario-t0-t6/CHECKPOINT.md).
 
 **Classe documental:** Canônico — modelo funcional e arquitetural integrado  
-**Atualizado em:** 26 de setembro de 2026  
+**Atualizado em:** 25 de novembro de 2026 (reconciliação das correções T0–T4)
 **Finalidade:** leitura obrigatória antes de qualquer análise funcional, correção, implementação, refatoração ou auditoria do produto  
 **Estado mutável do projeto:** `docs/CURRENT_STAGE.md`
 
@@ -242,7 +242,7 @@ school + competence + program
 
 Cada linha em `registered_invoices` tem identidade própria. Para análise documental individual e Pendência fiscal, a identidade canônica é o `registered_invoice_id`.
 
-**Regra de independência operacional:** o ciclo de despesas é independente do ciclo de bonificação. Para perfis com capacidade de escrita em despesas, cadastrar, editar, excluir, analisar documento fiscal, operar Consulta Assessoria e seguir Pendência/novo envio/reanálise **não depende** do valor de `bonification.notaFiscal` nem de `bonus_result`. Essas operações preservam a bonificação e o resultado consolidado; não os reabrem como efeito colateral.
+**Regra de independência operacional:** o ciclo de despesas é independente do ciclo de bonificação. Para perfis com capacidade de escrita em despesas, cadastrar, editar, excluir, analisar documento fiscal, operar Consulta Assessoria e seguir Pendência/novo envio/reanálise **não depende** do valor de `bonification.notaFiscal` nem de `bonus_result`. Essas operações não reabrem o resultado consolidado da bonificação. Critérios derivados de Assessoria/Inventário acompanham os registros de origem conforme suas regras expressas; não se deve confundir essa projeção com uma nova consolidação.
 
 ### 7.3 Pendência documental genérica
 
@@ -341,7 +341,7 @@ controle visível
 → refresh/releitura
 ```
 
-Bonificação, análise e Pendência são dimensões independentes. Uma não deve ser inferida automaticamente da outra fora das regras expressas.
+Bonificação, análise e Pendência são dimensões independentes. Uma não deve ser inferida automaticamente da outra fora das regras expressas. O caminho acima descreve o lançamento ordinário; correções operacionais já existentes usam `RadarOperationalCorrectionClient`, `preview_operational_change` e `apply_operational_change`, com alvo, efeitos, versões e confirmação conforme §9.11.
 
 ## 9.3 Cadastrar/editar Nota Fiscal ou despesa identificada
 
@@ -370,7 +370,7 @@ Efeitos por tipo:
 - `boleto_internet`: tipo de gasto de NF, somente Educação Conectada;
 - `a_identificar`: não usa o fluxo comum de uma despesa identificada.
 
-A `verification` é necessária como vínculo estrutural do contexto escolar/mês/programa, mas **não significa que a bonificação tenha começado**. A primeira despesa pode materializar essa linha com bonificação ainda vazia. Alterar uma despesa nunca limpa `bonus_result`; alterar a própria bonificação continua submetido às regras de `VerificationService`, inclusive às restrições pós-consolidação.
+A `verification` é necessária como vínculo estrutural do contexto escolar/mês/programa, mas **não significa que a bonificação tenha começado**. A primeira despesa pode materializar essa linha com bonificação ainda vazia. Alterar uma despesa nunca limpa `bonus_result`; corrigir a própria bonificação usa a autoridade específica de correção e pode deixar o programa pendente de nova consolidação (§9.11). A consolidação anterior não é bloqueio genérico para corrigir.
 
 A retificação cadastral do mesmo lançamento permite descrição, número/referência e valor mesmo com Pendência ativa. A correção de tipo é permitida com histórico exclusivamente fiscal (`notaFiscal`), quando todas as Pendências estão Resolvidas/Canceladas e nunca houve `consAssessoria`. Contexto e histórico permanecem; `a_identificar` não muda de tipo pelo editor e um bem já `Inventariada` não pode ser removido por essa conversão. O contrato é compartilhado entre editor e autoridade de salvamento no `InvoiceService`, com antes/depois no log e as versões esperadas no comando atômico existente.
 
@@ -571,11 +571,11 @@ Proteções atuais:
 
 - `InventoryService.forward()` rejeita reencaminhamento indevido;
 - trigger `assets_protect_inventoried_terminal_state` impede rebaixamento de status;
-- `assets_protect_inventoried_terminal_delete` preserva o bem terminal contra DELETE;
-- `registered_invoices_protect_inventoried_delete` preserva sua NF, inclusive quando a chamada pede manter o bem; a decisão trava a linha patrimonial para serializar com inventariação concorrente;
+- `assets_protect_inventoried_terminal_delete` preserva o bem terminal contra DELETE ordinário;
+- `registered_invoices_protect_inventoried_delete` preserva sua NF no caminho ordinário; a exclusão composta autorizada de T3/T4 é uma exceção transacional planejada, não um DELETE irrestrito. O plano identifica bem exclusivo, preserva bem compartilhado e serializa com alterações concorrentes;
 - edição posterior da NF vinculada deve preservar status, processo e metadados da inventariação.
 
-Nota permanente e bem derivado devem permanecer coerentes no mesmo contexto.
+Nota permanente e bem derivado devem permanecer coerentes no mesmo contexto. Corrigir o cadastro/estado patrimonial individualmente é obrigação própria de T5; a exclusão causal já disponível não entrega esse editor nem realiza baixa no SIGMA ou em outro sistema externo.
 
 `encampInventario` é derivado do conjunto de bens permanentes vinculados:
 
@@ -585,45 +585,41 @@ Nota permanente e bem derivado devem permanecer coerentes no mesmo contexto.
 
 ## 9.10 Excluir Nota Fiscal
 
-A exclusão comum só é permitida quando não existe histórico individual de Pendência que precise ser preservado nem vínculo com bem `Inventariada`. `InvoiceService.remove` confere o patrimônio antes do planejamento e novamente dentro da mutação serializada, usando o vínculo e o bem atuais. Edição cadastral permitida continua disponível.
-
-A recusa é também transacional no banco: excluir a NF sem pedir remoção do bem não contorna a proteção. Importações substitutivas que tentem apagar patrimônio terminal também são recusadas; testes de importação/rollback devem usar registros elegíveis. Isso não substitui o procedimento próprio de recuperação por backup.
+A exclusão causal autorizada identifica a NF por ID, mostra suas dependências e exige confirmação do plano do servidor. Histórico individual ou bem `Inventariada` não constituem recusa genérica nessa operação: as Pendências fiscais/Assessoria da própria NF, suas tentativas e contatos vinculados e o bem exclusivo podem integrar a exclusão prevista. Bem compartilhado, nota vizinha, contatos gerais e resultado consolidado da bonificação são preservados. Resumos e critérios derivados são recalculados conforme os registros restantes; a prévia informa os efeitos concretos antes de gravar.
 
 ```text
-usuário exclui NF elegível
-→ InvoiceService.remove
-→ proteção histórica e patrimonial terminal
-→ deleteInvoiceWithEffects
-→ remoção/ajuste do bem vinculado quando aplicável
-→ recálculo das projeções da verification
-→ log
-→ retorno autoritativo
-→ tela/releitura
+usuário escolhe a NF
+→ preview_operational_change / delete_invoice
+→ identifica dependências e preservações por ID
+→ confirmação explícita do alcance
+→ apply_operational_change com digest, versões e idempotência
+→ efeitos causais na mesma transação + registro administrativo
+→ retorno autoritativo e releitura das projeções
 ```
 
-NF com histórico protegido não pode desaparecer apagando a trilha documental.
+Se a despesa originou uma identificação do PDDE Qualidade, a saída provisória vinculada volta a aguardar identificação. A operação não transfere lançamentos, não executa baixa patrimonial externa e não elimina a auditoria administrativa da correção. As proteções das rotas ordinárias, importações e DELETE direto continuam válidas; não contornar a autoridade composta com `InvoiceService.remove` ou exclusões avulsas.
 
-### 9.10.1 Exclusão do pacote lançado no mês ou programa errado — contrato de destino T4
+### 9.10.1 Excluir lançamentos do mês ou programa incorreto
 
-Esta operação é distinta da exclusão de uma NF isolada. A identidade é escola + competência + programa; não há transferência automática entre contextos. O candidato T4 usa prévia e confirmação transacional, digest e versões dos registros para impedir exclusão baseada em uma lista desatualizada. Inclui avaliação mensal, despesas e dependentes comprovados, preservando programas e competências vizinhos, contatos gerais e bens compartilhados. A saída provisória identificada retorna ao estado de identificação quando a despesa correspondente é removida. O histórico administrativo da própria correção permanece. A rotina não promove baixa em sistema patrimonial externo.
+Esta operação tem identidade escola + competência + programa e é distinta da exclusão de uma NF isolada. A prévia de `delete_context` identifica avaliação mensal, despesas e dependentes comprovados; digest e versões impedem confirmação baseada numa lista desatualizada. Programas e competências vizinhos, contatos gerais e bens compartilhados permanecem. Uma saída provisória identificada retorna ao estado de identificação quando sua despesa é removida. O histórico administrativo da correção permanece.
 
-A disponibilidade exige capacidade do perfil, backend compatível e liberação explícita. A flag de release é desativada por padrão. A referência temporal de implementação e homologação está no [checkpoint](../continuity/prontuario-t0-t6/CHECKPOINT.md); este contrato não declara a publicação da T4.
+A ação fica em **Ações do programa**. É uma exclusão seguida, se necessário, de novo cadastro no contexto correto; não há transferência automática. Exige capacidade efetiva e backend compatível, com a disponibilidade de release registrada no [checkpoint](../continuity/prontuario-t0-t6/CHECKPOINT.md).
 
-## 9.11 Retificação
+## 9.11 Correção, limpeza e regularização
 
-```text
-contexto consolidado
-→ Assistente informa justificativa
-→ compara antes/depois
-→ altera somente campos autorizados
-→ registra autoria e diferença
-→ preserva histórico
-```
+O operador autorizado confere o objeto, o estado atual, os efeitos e as preservações antes de confirmar. A observação da correção é opcional. Novos documentos recebidos continuam pelo ciclo de **Novo envio → Reanalisar**; corrigir erro de lançamento não exige um envio ou uma reanálise fictícios.
 
-Retificação de bonificação não resolve, cancela ou reabre Pendência automaticamente e não altera análise técnica por associação implícita.
+| Intenção | Autoridade e alcance |
+|---|---|
+| Corrigir uma análise | `correct_analysis`: altera o resultado do item identificado e apenas os efeitos causais apresentados. NF e Assessoria permanecem individuais por nota. |
+| Retirar o resultado atual | `clear_analysis`: retorna a análise a **Não analisado** e aplica somente os efeitos da prévia; não equivale a excluir todo o histórico. |
+| Excluir uma Pendência específica | `delete_pendency`: atua na identidade selecionada e nos dependentes demonstrados; as restrições materiais, inclusive Pendência obrigatória, continuam explícitas. |
+| Excluir análise e Pendências do item | `clear_item_history`: remove as Pendências do item em qualquer estado e seus envios, reanálises e contatos vinculados. Preserva o documento, despesa, patrimônio, outros itens, contatos gerais, bonificação e auditoria administrativa. |
+| Corrigir bonificação | `correct_bonification`: corrige ou confere o critério autorizado, preservando dimensões independentes. Se havia resultado consolidado, o programa passa a **Alterações pendentes de consolidação** até **Consolidar bonificação**. |
 
-Na restauração autorizada em 13/09/2026, desfazer explicitamente uma marcação para **Não preenchido** retorna sua análise dependente para **Não analisado**, com log; é bloqueado enquanto houver Pendência ativa ou notas fiscais cadastradas naquele documento. Corrigir **Incorreto** lançado por engano é outra operação: `RadarEvaluationRetification.correctTechnicalAnalysis` exige confirmação e justificativa e usa `retify_verification_with_pendency_cancel` para atualizar avaliação, anular a Pendência e registrar auditoria atomicamente, preservando tentativas e histórico. Documento novo/corrigido continua exigindo novo envio e reanálise. Análises agregadas de NF/Assessoria não recebem esse comando.
+A correção de bonificação não resolve, cancela ou reabre Pendências automaticamente. Extratos não admitem **Não se aplica**. Assessoria e Encaminhamento ao Inventário são critérios derivados dos registros de origem, sem escolha manual de resultado. A Declaração BB Ágil possui regra expressa ao entrar/sair de **Não se aplica**: sua análise vai a **Correto**/**Não analisado**, e Pendência ativa exige conferência/correção prévia. Essa exceção é apresentada no plano e não autoriza efeitos implícitos sobre outros itens.
 
+Após reconsolidar, novas consultas/exportações usam os dados atuais; um XLSX já baixado não é regravado pelo servidor. Não confundir sucesso da gravação com sucesso da atualização local: recibo confirmado exige reconciliação, sem repetir a mutação apenas para recuperar a tela.
 
 ## 9.12 Gestão de Equipe
 
@@ -784,7 +780,7 @@ Superada pelo PR #282. Performance é observação/diagnóstico.
 
 ### `Inventariada` passível de rebaixamento por resalvamento
 
-Superada pelo PR #265. `Inventariada` é terminal.
+Superada pelo PR #265 para resalvamento ordinário. `Inventariada` continua terminal nesse fluxo; a exclusão causal expressamente planejada em T3/T4 é exceção controlada (§9.10), e o editor granular de retificação patrimonial permanece obrigação de T5.
 
 ### Repetir escrita remota após resposta perdida para recuperar UI
 
@@ -808,8 +804,8 @@ Superada pelos guardrails posteriores. Commit remoto confirmado e reconciliaçã
 14. Pendência da NF A nunca bloqueia a NF B.
 15. Novo envio não resolve Pendência.
 16. Reanálise exige tentativa/contexto/versionamento válidos.
-17. Histórico documental não é apagado para simplificar estado atual.
-18. `Inventariada` é terminal.
+17. Correções não apagam história independente; limpezas/exclusões explícitas atingem somente o alcance causal mostrado e preservam auditoria administrativa.
+18. `Inventariada` é terminal no fluxo ordinário; exceções de correção/exclusão exigem comando autorizado e transacional.
 19. NF permanente e bem vinculado mantêm coerência transacional.
 20. Controlador não redistribui `controller_id` por edição comum.
 21. Identidade institucional da escola não é sintetizada.

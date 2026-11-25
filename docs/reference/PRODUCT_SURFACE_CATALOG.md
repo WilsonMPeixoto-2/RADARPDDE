@@ -2,10 +2,10 @@
 
 # Catálogo de superfícies do RADAR PDDE
 
-**Evolução aprovada, ainda em implementação:** ler [contrato Prontuário/correção](PRONTUARIO_CORRECAO_CONTRATO.md) e [handoff corrente](../handoff/2026-11-14-prontuario-correcao-integrada.md). As regras abaixo descrevem a baseline efetiva; justificativas obrigatórias e bloqueios por histórico/terminalidade são alvo de revisão deliberada, não motivo para impedir a execução aprovada. Nenhuma aprovação de plano, isoladamente, altera Production.
+**Correções T0–T4 e continuidade:** o [contrato de correção](PRONTUARIO_CORRECAO_CONTRATO.md) distingue correção operacional de regularização documental. As seções abaixo incorporam a autoridade de prévia/confirmação transacional para correção, limpeza e exclusão causal; justificativa obrigatória ou bloqueio genérico por histórico não deve ser restaurado a partir de rotas legadas. O estado de publicação e as capacidades ainda futuras de T5 estão no [checkpoint](../continuity/prontuario-t0-t6/CHECKPOINT.md).
 
 **Estado:** referência operacional vigente  
-**Atualizado em:** 25 de setembro de 2026
+**Atualizado em:** 25 de novembro de 2026 (correções T0–T4)
 
 ## 1. Regra de leitura
 
@@ -210,9 +210,13 @@ Reanálise preserva também descrição, tipo e valor. Snapshot pode identificar
 documento histórico ausente da coleção corrente; legado sem vínculo não recebe
 uma NF inventada. Documentos genéricos continuam com seus rótulos próprios.
 
-### Edição explícita no Prontuário (restauração autorizada em 13/09/2026)
+### Edição e correção explícitas no Prontuário
 
-A **bonificação é editada diretamente pelos próprios controles Sim/Não/N/A**, sem botão ou modal separado: selecionar outra opção substitui o valor atual e clicar novamente na opção já selecionada volta ao estado não preenchido quando a regra do documento permitir. O resultado recebe feedback visual de sucesso. A ação **Editar análise** permanece explícita para correção da análise técnica. Quando a correção de um `Incorreto` possui Pendência ativa, o formulário mostra documento, escola, programa, mês e mudança proposta, exige confirmação e justificativa e diferencia a correção do operador do fluxo de novo envio/reanálise da escola. O histórico identifica **Anulada por edição da avaliação**. Durante a gravação os controles ficam bloqueados; falha permanece visível; commit confirmado com projeção pendente pede atualização da página sem anunciar sucesso completo. Edição individual das notas e Assessoria permanece nas próprias notas.
+Os controles de bonificação registram o critério no contexto escola/mês/programa. A correção de valor já existente, inclusive após consolidação, oferece prévia com avaliação atual, nova avaliação, efeitos e preservações. Critérios derivados são conferidos a partir dos registros de origem; não permitem inventar manualmente uma entrega. A própria correção pode deixar a bonificação **pendente de consolidação**, com próximo passo **Consolidar bonificação**.
+
+A análise técnica tem ação explícita por item. Corrigir análise, retirar o resultado atual, excluir uma Pendência, excluir análise e Pendências do item, excluir uma despesa e excluir o contexto possuem alcances distintos. A interface explica esses alcances antes da confirmação, com observação opcional na correção. Documento novo/corrigido recebido da escola continua pelo fluxo de envio/reanálise. Edição de notas e Assessoria mantém a identidade individual da NF.
+
+Durante a gravação, os controles impedem duplicidade e exibem falha de forma persistente. Um recibo confirmado com projeção local pendente solicita atualização sem repetir a mutação. Os contratos detalhados e as exceções expressas constam do [modelo canônico, §9.10–9.11](SYSTEM_CANONICAL_MODEL.md#910-excluir-nota-fiscal).
 
 ## S-05 — Prontuário
 
@@ -228,7 +232,7 @@ A **bonificação é editada diretamente pelos próprios controles Sim/Não/N/A*
 | Conta PDDE Qualidade | no contexto escola/competência, registrar saídas antes de conhecer a Ação Integrada; reencontrar/editar os dados conhecidos e identificar depois pelo formulário fiscal. Provisório não conta como NF nem cria Pendência; os estados Programa a identificar/Identificada distinguem o que ainda precisa de ação |
 | Leitura humana | primeiro confirma escola/competência/programa; depois trabalha documentos individualmente sem perder o contexto da unidade |
 
-**Evolução T4 — exclusão de contexto:** a ação contextual fica em **Ações do programa**, no cabeçalho do programa existente. A prévia identifica escola, mês e programa, registros a excluir e registros preservados; a confirmação explícita não transfere lançamentos. O conteúdo pode rolar, mas Cancelar, Conferir novamente e Excluir estes lançamentos devem permanecer acessíveis. Perfis sem capacidade de correção não recebem a ação. A disponibilização efetiva depende da release documentada no checkpoint; não presumir ativação em Production.
+**Exclusão de contexto:** a ação contextual fica em **Ações do programa**, no cabeçalho do programa existente. A prévia identifica escola, mês e programa, registros a excluir e registros preservados; a confirmação explícita não transfere lançamentos. O conteúdo pode rolar, mas Cancelar, Conferir novamente e Excluir estes lançamentos devem permanecer acessíveis. Perfis sem capacidade de correção não recebem a ação. A disponibilização efetiva depende da release documentada no checkpoint; não presumir ativação em Production.
 
 ## S-06 — Capital e Inventário
 
