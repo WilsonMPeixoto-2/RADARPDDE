@@ -7,7 +7,7 @@ module.exports = defineConfig({
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
-  workers: 2,
+  workers: 1,
   timeout: 90000,
   expect: { timeout: 15000 },
   reporter: process.env.CI
@@ -19,7 +19,7 @@ module.exports = defineConfig({
     viewport: { width: 1440, height: 900 },
     reducedMotion: 'reduce',
     trace: {
-      mode: 'retain-on-failure-and-retries',
+      mode: 'on-first-retry',
       screenshots: true,
       snapshots: { dom: true, aria: true, screen: true },
       sources: true
