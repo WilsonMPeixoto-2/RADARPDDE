@@ -49,6 +49,43 @@ test('aceita scripts, testes, globs, configuração Playwright e ação local ex
     assert.ok(result.references.some(item => item.kind === 'local-action' && item.reference === '.github/actions/example'));
 });
 
+test('resolve referências e diretórios de trabalho sob caminhos de checkout', async () => {
+    const checker = await import(CHECKER_URL);
+    const root = createRepository();
+
+    write(root, 'ops/scripts/release.mjs', 'export const ok = true;\n');
+    write(root, '.github/workflows/checkout-paths.yml', `name: Checkout paths
+on: workflow_dispatch
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout operations
+        uses: actions/checkout@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        with:
+          path: operations
+      - run: node operations/ops/scripts/release.mjs
+      - run: node operations/ops/scripts/missing.mjs
+      - name: Checkout candidate
+        uses: actions/checkout@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        with:
+          ref: 0123456789012345678901234567890123456789
+          path: candidate
+      - working-directory: candidate
+        run: npm ci
+`);
+
+    const result = checker.analyzeWorkflowReferences(root);
+
+    assert.equal(result.passed, false);
+    assert.deepEqual(result.violations, [{
+        workflow: '.github/workflows/checkout-paths.yml',
+        kind: 'node-script',
+        reference: 'operations/ops/scripts/missing.mjs',
+        code: 'MISSING_LOCAL_REFERENCE'
+    }]);
+});
+
 test('bloqueia arquivo de teste inexistente chamado por node --test', async () => {
     const checker = await import(CHECKER_URL);
     const root = createRepository();
