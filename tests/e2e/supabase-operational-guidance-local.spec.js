@@ -7,6 +7,7 @@ const enabled = process.env.RADAR_E2E_SUPABASE_LOCAL === '1';
 // Gate Auth real separado do piloto de correção; a fixture não altera a base anterior.
 // eslint-disable-next-line playwright/no-skipped-test
 test.skip(!enabled, 'Exige Supabase local descartável e operational-guidance-local.sql.');
+test.use({ locale: 'pt-BR' });
 const users = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../supabase/fixtures/auth-users.json'), 'utf8'));
 const password = process.env.RADAR_AUTH_FIXTURE_PASSWORD || '';
 if (enabled && !password) throw new Error('Credencial efêmera da fixture Auth não fornecida.');
@@ -64,7 +65,7 @@ async function showGroup(page, group) {
 async function snapshot(page) {
     return page.evaluate(async schoolId => {
         const client = window.RadarSessionContext.service.client;
-        const tables = ['verifications', 'registered_invoices', 'pendencies', 'assets'];
+        const tables = ['verifications', 'registered_invoices', 'pendencies', 'assets', 'quality_provisional_movements'];
         const results = await Promise.all(tables.map(table => client.from(table).select('*').eq('school_id', schoolId).order('id')));
         const state = {};
         results.forEach((result, index) => {
@@ -102,21 +103,40 @@ test('orientação autenticada sem pilotos nasce compacta e conserva a área fis
     const queueItems = dashboard.locator('[data-guidance-group]');
     await expect(queueItems.first()).toBeVisible();
     expect(await queueItems.evaluateAll(items => items.every(item => item.dataset.guidanceGroup === 'analysis'))).toBe(true);
-    await capture(page, testInfo, 'orientacao-dashboard-fila-analise', dashboard);
+    await capture(page, testInfo, 'orientacao-dashboard-fila-analise');
 
     const panel = await openSchool(page);
     await expect(panel.locator('#operational-school-guidance-content')).toBeHidden();
+    const quality = page.getByRole('region', { name: 'Saídas sem ação definida', exact: true });
+    await expect(quality).toHaveClass(/is-empty/);
+    const qualityDetails = quality.locator('[data-quality-details]');
+    await expect(qualityDetails).toHaveAttribute('aria-expanded', 'false');
+    const fiscalSection = page.locator('#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="notaFiscal"]');
+    await expect(fiscalSection).toHaveCount(1);
+    const fiscalTitle = fiscalSection.locator('.invoice-document-panel-title strong');
+    await expect(fiscalTitle).toHaveText('Notas Fiscais');
+    await expect(fiscalSection.locator('.invoice-bonification-toggle button')).toHaveText(['Sim', 'Não', 'N/A']);
     const invoice = page.locator('.invoice-document-row[data-invoice-id="GUIDANCE-FISCAL"]');
     await expect(invoice).toBeVisible();
     const composition = await page.evaluate(() => {
         const bounds = node => {
             const box = node.getBoundingClientRect();
-            return { top: box.top, bottom: box.bottom, height: box.height, left: box.left, right: box.right };
+            return { top: box.top, bottom: box.bottom, height: box.height, width: box.width, left: box.left, right: box.right };
         };
+        const fiscal = document.querySelector('#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="notaFiscal"]');
+        const quality = document.getElementById('quality-provisional-panel');
         const invoice = document.querySelector('.invoice-document-row[data-invoice-id="GUIDANCE-FISCAL"]');
         const heading = invoice?.querySelector('.invoice-document-title, .invoice-document-identity') || invoice;
-        return { scrollY: window.scrollY, viewport: { width: window.innerWidth, height: window.innerHeight },
+        return { scrollY: window.scrollY, contentScrollTop: document.querySelector('main.content-area').scrollTop,
+            viewport: { width: window.innerWidth, height: window.innerHeight },
             compact: bounds(document.querySelector('#operational-school-guidance')),
+            quality: { ...bounds(quality), empty: quality.classList.contains('is-empty'),
+                expanded: quality.querySelector('[data-quality-details]').getAttribute('aria-expanded') === 'true' },
+            monthlyCard: bounds(quality.closest('.panel-card')),
+            monthlyHeader: bounds(quality.closest('.panel-card').querySelector('.panel-header')),
+            fiscalTitle: bounds(fiscal.querySelector('.invoice-document-panel-title strong')),
+            bonificationControls: Array.from(fiscal.querySelectorAll('.invoice-bonification-toggle button'))
+                .map(button => ({ label: button.textContent.trim(), ...bounds(button) })),
             invoice: bounds(invoice), invoiceIdentity: bounds(heading) };
     });
     await testInfo.attach('orientacao-composicao-1440x900', {
@@ -126,8 +146,28 @@ test('orientação autenticada sem pilotos nasce compacta e conserva a área fis
     // Preservar também as capturas seguintes se a composição precisar de ajuste;
     // soft mantém a falha do gate, sem interromper a coleta somente de leitura.
     expect.soft(composition.scrollY).toBe(0);
-    expect.soft(composition.invoiceIdentity.top).toBeGreaterThanOrEqual(0);
-    expect.soft(composition.invoiceIdentity.top).toBeLessThan(composition.viewport.height);
+    expect.soft(composition.contentScrollTop).toBe(0);
+    // O contrato da primeira tela cobre a seção fiscal e seus controles.
+    // A identidade e o foco de cada nota são exercitados na jornada seguinte.
+    for (const [label, bounds] of [['Título da seção Notas Fiscais', composition.fiscalTitle],
+        ...composition.bonificationControls.map(control => [`Bonificação: ${control.label}`, control])]) {
+        expect.soft(bounds.height, label).toBeGreaterThan(0);
+        expect.soft(bounds.width, label).toBeGreaterThan(0);
+        expect.soft(bounds.top, label).toBeGreaterThanOrEqual(0);
+        expect.soft(bounds.bottom, label).toBeLessThanOrEqual(composition.viewport.height);
+        expect.soft(bounds.left, label).toBeGreaterThanOrEqual(0);
+        expect.soft(bounds.right, label).toBeLessThanOrEqual(composition.viewport.width);
+    }
+    await qualityDetails.click();
+    await expect(qualityDetails).toHaveAttribute('aria-expanded', 'true');
+    await expect(quality.getByText('Registre saídas do extrato enquanto a Ação Integrada correspondente ainda não foi identificada.', { exact: true })).toBeVisible();
+    await expect(quality.getByText('Nenhuma saída provisória registrada nesta competência.', { exact: true })).toBeVisible();
+    await expect(quality.getByRole('button', { name: 'Atualizar', exact: true })).toBeVisible();
+    await expect(quality.getByRole('button', { name: 'Registrar saída', exact: true })).toBeVisible();
+    await capture(page, testInfo, 'orientacao-quality-vazio-expandido-desktop');
+    await qualityDetails.click();
+    await expect(qualityDetails).toHaveAttribute('aria-expanded', 'false');
+    await expect(quality.getByText('Nenhuma saída provisória registrada nesta competência.', { exact: true })).toBeHidden();
     await panel.locator('[data-action="toggle-operational-guidance"]').click();
     await expect(panel.locator('#operational-school-guidance-content')).toBeVisible();
     await capture(page, testInfo, 'orientacao-prontuario-expandida-desktop', panel);

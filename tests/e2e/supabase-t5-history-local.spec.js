@@ -10,6 +10,7 @@ const enabled = process.env.RADAR_E2E_OPERATIONAL_CORRECTION_LOCAL === '1';
 // A suíte obrigatória é executada com este opt-in no job Supabase real.
 // eslint-disable-next-line playwright/no-skipped-test
 test.skip(!enabled, 'Exige Supabase local descartável com Auth real e migration T5.');
+test.use({ locale: 'pt-BR' });
 test.describe.configure({ mode: 'default' });
 const users = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../supabase/fixtures/auth-users.json'), 'utf8'));
 const password = process.env.RADAR_AUTH_FIXTURE_PASSWORD || '';

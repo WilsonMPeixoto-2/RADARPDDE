@@ -106,6 +106,30 @@ A jornada confirmou o valor final no banco, nos observadores, no Dashboard e ap�
 
 O volume de aborts sinaliza trabalho de leitura cancelado sob a latência induzida. **Não foi medido o atraso até o dado ficar visível durante atividade contínua**, portanto a convergência final não comprova equivalência de atualização entre baseline e candidata. Os snapshots de `pg_stat_statements` observam somente `read_operational_context` e `read_school_operational_context`, não atribuem SQL a cada sessão e não registram o instante de reset das estatísticas. Bytes excluem escrita, protocolo, outros endpoints e corpos desconhecidos. São duas execuções diagnósticas únicas em runners separados, não uma amostra estatística de produção; patrimônio, Pendências, horas de uso e a comparação isolada de D022 permanecem fora da cobertura.
 
+### Ensaio do código corrigido: `b9bd42b4`
+
+O [run `45573070537`](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45573070537), tentativa 1, aprovou os dois ensaios e o comparador, sem reexecução solicitada. O HEAD foi `b9bd42b4e53cf0b4ef7444b5ea096ceaa026dd72`; o merge de validação efetivamente executado foi `69d324091bbec9c5c10923331ddca69f8250c534`, sobre a mesma main `7523782b`. O baseline permanece `d9bf67f7` (PR #408). Jobs: baseline `139064208910`, candidata `139064209301` e comparador `139069898473`.
+
+O [artefato `15003523962`](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45573070537/artifacts/15003523962) foi preservado integralmente em [resumo atual](2026-11-25-t5-performance/operational-session-comparison-b9bd42b4.md) e [JSON atual](2026-11-25-t5-performance/operational-session-comparison-b9bd42b4.json). As cópias `c601c8ee` acima continuam disponíveis. O harness, fixtures, instrumentação, comparador e workflow não mudaram entre os dois runs; cada variante ainda teve somente uma execução em runner separado.
+
+| Medida atual | Baseline PR #408 → candidata | Variação |
+|---|---:|---:|
+| Bytes de leitura observados | 39.866.789 → 10.656.717 | −73,27% |
+| Chamadas SQL concluídas / tempo SQL | 56 → 54 / 14.001,81 → 9.602,89 ms | −3,57% / −31,42% |
+| Leituras tentadas / abortadas | 32 → 88 / 1 → 60 | +175% / +59 abortadas |
+| Substituições / mutações de DOM | 330 → 327 / 91.111 → 100.801 | −0,91% / +10,64% |
+| Long tasks / duração acumulada | 1.873 → 2.018 / 162.185 → 181.997 ms | +7,74% / +12,22% |
+| Bloqueio acumulado de long tasks | 68.535 → 81.097 ms | +18,33% |
+| Render síncrono | 5.368,80 → 6.111,20 ms | +13,83% |
+
+O comparador registrou **sete avisos**: seis regressões de custo — tentativas de leitura, mutações de DOM, quantidade, duração e bloqueio de long tasks, e render síncrono — mais a atualização durante atividade não comparável (`baseline-freshness-not-comparable`). Os avisos relativos a chamadas SQL e substituições de DOM, presentes no ensaio anterior, não apareceram neste. Isso preserva uma leitura mista: menos bytes/tempo SQL observado, com mais trabalho de leitura e interface.
+
+O P95 HTTP de gravação piorou nas três sessões escritoras: 344,54→357,45 ms, 375,92→401,27 ms e 320,73→351,50 ms. Nos últimos 100 eventos de avaliação instrumentados, clique até estado estável teve P95 de 587,60→658,80 ms na sessão 1 e 643,30→629,30 ms na sessão 3; a sessão fiscal não tem essa medida. As leituras das sessões 2 e 3 da candidata têm somente uma resposta bem-sucedida cada, insuficiente para caracterizar uma distribuição de latência.
+
+**Variação entre runs:** o render absoluto da candidata quase não mudou, 6.094,00→6.111,20 ms (+0,28%), enquanto o baseline variou de 4.833,30 para 5.368,80 ms. Portanto, a queda do excesso relativo de 26,08% para 13,83% não demonstra aceleração causada pelos reparos. A duração e o bloqueio absolutos de long tasks da candidata aumentaram entre runs. A sessão fiscal continua concentrando o render medido, agora 5.434,00/6.111,20 ms (88,92%), com 301 chamadas para 300 gravações; o instrumento não isola o custo da orientação gerencial.
+
+As duas variantes mantiveram 1.107 gravações bem-sucedidas para 1.107 gestos, convergência final e recuperação Realtime; zero erros de página na janela observada. A candidata continuou sem quadros de opacidade reduzida amostrados. Permanecem os limites já descritos: massa sintética, latência induzida, intervalos SQL/navegador diferentes, atualização contínua não medida e baseline histórico que não isola D022. O ensaio não estabelece ganho global de latência nem um SLO de custo.
+
 ## Experiência com documentos reais
 
 O proprietário autorizou pequena amostra real. Foram obtidos três PDFs acessíveis no Drive: declaração BB Ágil, relação de bens e termo de doação. Cada arquivo tem uma página e texto nativo. Os bytes foram preservados, identificados por SHA-256 e as três páginas renderizadas foram conferidas pelo integrador. Os documentos e resultados identificáveis permanecem fora deste repositório público.
@@ -125,7 +149,7 @@ A amostra comprova leitura desses layouts e os controles acima; não mede precis
 
 ## Homologação e continuidade
 
-O comando completo `npm run test:readiness` passou localmente no lote consolidado: **1.590 unitários e 8 integrações**, zero falhas e zero skips. Após os reparos de inicialização/logout, composição visual e identidade tipada, a execução integral passou novamente com **1.594 unitários e 8 integrações**, incluindo continuidade, arquitetura, matriz funcional, referências, lint, configuração, artefatos e tipos. A execução do extrator Python foi conferida separadamente com suas duas contraprovas e os três PDFs autorizados.
+O comando completo `npm run test:readiness` passou localmente no lote consolidado: **1.590 unitários e 8 integrações**, zero falhas e zero skips. Após os reparos de inicialização/logout, composição visual e identidade tipada, a execução integral passou novamente com **1.594 unitários e 8 integrações**. O lote seguinte, que compacta somente os estados carregando/vazio do Qualidade e conserva suas ações, passou **1.599 unitários e 8 integrações**, incluindo continuidade, arquitetura, matriz funcional, referências, lint, configuração, artefatos e tipos. As cinco contraprovas adicionais cobrem a apresentação do Qualidade, estados, capacidade e mudança de contexto; a composição autenticada ainda precisa de nova captura. A execução do extrator Python foi conferida separadamente com suas duas contraprovas e os três PDFs autorizados.
 
 Os testes públicos são sintéticos e exercitam contraprovas de escopo, alteração de fonte, datas inválidas, valores e ambiguidade. As jornadas de interface usam o RADAR/Supabase descartável nos workflows existentes. Conferir resultado e capturas do HEAD no PR #565; evidência local de CPU e inspeção dos PDFs não substituem os testes de interface, concorrência e publicação da T5.
 

@@ -393,6 +393,12 @@ de haver programas vinculados à escola. A leitura/CRUD é dirigida à escola e
 competência no Supabase; o painel usa retorno remoto, reload ou Atualizar,
 sem bootstrap global nem polling próprio. Modos sem Supabase não expõem esse painel.
 
+Durante a consulta e quando não há registros, a apresentação é compacta, com
+Atualizar e Registrar saída acessíveis e descrição completa em Ver detalhes.
+Carregamento não antecipa conclusão de ausência de registros. Resultados existentes
+e erros permanecem expandidos; trocar escola/competência recolhe os detalhes vazios.
+Essa apresentação não altera consultas, capacidades, estados ou a autoridade de gravação.
+
 Ao conhecer a Ação Integrada, o operador escolhe um programa Qualidade vinculado
 à escola e utiliza o formulário fiscal existente. `InvoiceService` e Repository
 encaminham a identificação para `identify_quality_provisional_movement`:

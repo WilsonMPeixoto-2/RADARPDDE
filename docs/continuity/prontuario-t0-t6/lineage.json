@@ -1548,11 +1548,15 @@
         "src/integration/operational-guidance.js",
         "src/styles/operational-guidance.css",
         "src/integration/cycle-b-dashboard.js",
+        "src/integration/quality-provisional-ux.js",
+        "src/styles/quality-provisional.css",
+        "src/styles/prontuario-operational-ux.css",
         "app.js"
       ],
       "testPaths": [
         "tests/unit/operational-guidance.test.js",
         "tests/unit/operational-guidance-ui.test.js",
+        "tests/unit/quality-provisional-presentation.test.js",
         "tests/e2e/supabase-operational-guidance-local.spec.js"
       ]
     },

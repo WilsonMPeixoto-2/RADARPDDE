@@ -2,7 +2,7 @@
   'use strict';
   const PROGRAMS = new Set(['CONECTADA','PROEC','ED_FAMILIA','ADOLESCENCIAS','LEITURA','TEMPO_APRENDER']);
   const TABLE = 'quality_provisional_movements';
-  let context = null, records = [], generation = 0, saving = false;
+  let context = null, records = [], generation = 0, saving = false, emptyDetailsExpanded = false;
   const doc = root.document;
   const byId = id => doc.getElementById(id);
   const node = (tag, cls, value) => {
@@ -119,6 +119,24 @@
     byId('nota-modal-intro').textContent =
       'Ao salvar, esta saída será vinculada à despesa no programa escolhido.';
   }
+  function present(panel, state) {
+    const hasRecords = state === 'records';
+    const expanded = hasRecords || state === 'error' || emptyDetailsExpanded;
+    const toggle = panel.querySelector('[data-quality-details]');
+    const status = panel.querySelector('[data-quality-compact-status]');
+    const toggleWasFocused = doc.activeElement === toggle;
+    panel.dataset.qualityState = state;
+    panel.classList.toggle('is-compact', !expanded);
+    panel.classList.toggle('is-loading', state === 'loading');
+    panel.querySelector('#quality-provisional-description').hidden = !expanded;
+    panel.querySelector('[data-quality-list]').hidden = !expanded;
+    toggle.hidden = hasRecords || state === 'error';
+    toggle.setAttribute('aria-expanded', String(expanded));
+    toggle.textContent = expanded ? 'Recolher detalhes' : 'Ver detalhes';
+    if (toggle.hidden && toggleWasFocused) panel.querySelector('[data-quality-new]').focus({ preventScroll: true });
+    status.hidden = expanded;
+    status.textContent = state === 'loading' ? 'Consultando…' : state === 'empty' ? 'Nenhuma saída provisória' : '';
+  }
   function render(panel) {
     const list = panel.querySelector('[data-quality-list]');
     list.replaceChildren();
@@ -126,6 +144,7 @@
     panel.dataset.empty = records.length ? 'false' : 'true';
     if (!records.length) {
       list.append(node('p','quality-provisional-empty','Nenhuma saída provisória registrada nesta competência.'));
+      present(panel, 'empty');
       return;
     }
     const money = amount => amount == null ? 'Valor não informado'
@@ -173,6 +192,7 @@
       card.append(actions);
       list.append(card);
     }
+    present(panel, 'records');
   }
   async function hydrate(input = {}) {
     const panel = byId('quality-provisional-panel');
@@ -180,12 +200,19 @@
     const programs = (input.programs || []).filter(p => PROGRAMS.has(p.id));
     if (!input.canEdit || !client()) { panel.hidden = true; return; }
     panel.hidden = false;
+    if (context?.schoolId !== input.schoolId || context?.competence !== input.competence) emptyDetailsExpanded = false;
     context = { schoolId: input.schoolId, competence: input.competence, programs, canEdit: true };
     const id = ++generation;
+    panel.querySelector('[data-quality-details]').onclick = () => {
+      emptyDetailsExpanded = !emptyDetailsExpanded;
+      present(panel, panel.dataset.qualityState);
+    };
     panel.querySelector('[data-quality-new]').onclick = () => openEditor(null);
     panel.querySelector('[data-quality-refresh]').onclick = () => hydrate(context);
     const list = panel.querySelector('[data-quality-list]');
     list.textContent = 'Consultando movimentações…';
+    panel.classList.remove('is-empty');
+    present(panel, 'loading');
     try {
       const { data, error } = await client().from(TABLE)
         .select('id,school_id,competence_id,debit_date,amount,description,document_reference,observation,status,registered_invoice_id,row_version,created_at')
@@ -196,7 +223,10 @@
       records = data || [];
       render(panel);
     } catch (error) {
-      if (id === generation) list.textContent = 'Erro ao consultar registros: ' + problem(error);
+      if (id === generation) {
+        list.textContent = 'Erro ao consultar registros: ' + problem(error);
+        present(panel, 'error');
+      }
     }
   }
   root.RadarQualityProvisional = Object.freeze({ hydrate });

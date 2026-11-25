@@ -10,6 +10,7 @@
     color: var(--text-main);
 }
 .quality-provisional-panel[hidden] { display: none !important; }
+.quality-provisional-panel [hidden] { display: none !important; }
 .quality-provisional-heading {
     display: flex;
     align-items: center;
@@ -160,6 +161,47 @@
     font-size: 0.82rem;
     line-height: 1.4;
 }
+
+/* O estado sem registros ocupa uma faixa; a explicação continua disponível
+   por um controle explícito. A consulta usa a mesma geometria, sem afirmar
+   que não existem registros antes de o banco responder. */
+.quality-provisional-compact-status {
+    color: var(--text-muted);
+    font-size: .82rem;
+    line-height: 1.4;
+}
+.quality-provisional-panel.is-compact {
+    margin: 6px 24px;
+    padding: 6px 10px;
+    border-radius: 10px;
+    box-shadow: none;
+}
+.quality-provisional-panel.is-compact .quality-provisional-heading {
+    gap: 8px;
+    margin: 0;
+}
+.quality-provisional-panel.is-compact .quality-provisional-intro {
+    align-items: center;
+    flex: 1 1 360px;
+}
+.quality-provisional-panel.is-compact .quality-provisional-mark { display: none; }
+.quality-provisional-panel.is-compact .quality-provisional-copy {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+}
+.quality-provisional-panel.is-compact .quality-provisional-eyebrow,
+.quality-provisional-panel.is-compact .quality-provisional-heading h3 { margin: 0; }
+.quality-provisional-panel.is-compact .quality-provisional-heading h3 { font-size: 1.02rem; }
+.quality-provisional-panel.is-compact .quality-provisional-heading-actions { gap: 6px; }
+.quality-provisional-panel.is-compact .quality-provisional-heading-actions .btn {
+    min-height: 36px;
+    padding-block: 6px;
+}
+@media (min-width: 1100px) {
+    .quality-provisional-panel.is-compact { margin-block: 4px; padding-block: 2px; }
+}
 .quality-provisional-dialog {
     color: var(--text-primary, #1e293b);
     background: var(--card-bg, #fff);
@@ -198,4 +240,6 @@
     .quality-provisional-heading-actions [data-quality-new] { flex: 1 1 auto; }
     .quality-provisional-form-grid { grid-template-columns: 1fr; }
     .quality-provisional-dialog { padding: 18px; }
+    .quality-provisional-panel.is-compact { margin: 8px 12px; padding: 8px 10px; }
+    .quality-provisional-panel.is-compact .quality-provisional-heading-actions .btn { min-height: 44px; }
 }

@@ -9994,10 +9994,14 @@ function renderProntuario(escolaId) {
                                     <div class="quality-provisional-copy">
                                         <span class="quality-provisional-eyebrow">NOVO RECURSO · PDDE QUALIDADE</span>
                                         <h3 id="quality-provisional-title">Saídas sem ação definida</h3>
-                                        <p>Registre saídas do extrato enquanto a Ação Integrada correspondente ainda não foi identificada.</p>
+                                        <span class="quality-provisional-compact-status" data-quality-compact-status role="status" hidden></span>
+                                        <p id="quality-provisional-description">Registre saídas do extrato enquanto a Ação Integrada correspondente ainda não foi identificada.</p>
                                     </div>
                                 </div>
                                 <div class="quality-provisional-heading-actions">
+                                    <button type="button" id="quality-provisional-details-toggle" data-quality-details
+                                        class="btn btn-secondary btn-sm" aria-expanded="false"
+                                        aria-controls="quality-provisional-description quality-provisional-list" hidden>Ver detalhes</button>
                                     <button type="button" data-quality-refresh class="btn btn-secondary btn-sm">Atualizar</button>
                                     <button type="button" data-quality-new class="btn btn-primary btn-sm">
                                         <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
@@ -10005,7 +10009,7 @@ function renderProntuario(escolaId) {
                                     </button>
                                 </div>
                             </div>
-                            <div class="quality-provisional-list" data-quality-list aria-live="polite"></div>
+                            <div id="quality-provisional-list" class="quality-provisional-list" data-quality-list aria-live="polite"></div>
                             <p class="quality-provisional-feedback" id="quality-provisional-feedback" role="status" aria-live="polite"></p>
                         </section>
                         <div class="comp-tabs-container" role="group" aria-label="Competências mensais" style="display: flex; gap: 8px; flex-wrap: wrap; padding: 0 24px 20px 24px; border-bottom: 1px solid var(--border-color); width: 100%;">

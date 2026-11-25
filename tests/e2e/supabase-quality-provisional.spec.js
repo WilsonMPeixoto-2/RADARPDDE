@@ -46,6 +46,13 @@ test('Controlador registra saída sem programa, reencontra e identifica uma úni
     .getByRole('link', { name: 'Ver Unidade', exact: true }).click();
   const panel = page.getByRole('region', { name: 'Saídas sem ação definida' });
   await expect(panel).toBeVisible();
+  await expect(panel).toHaveClass(/is-empty/);
+  const details = panel.locator('[data-quality-details]');
+  await expect(details).toHaveAttribute('aria-expanded', 'false');
+  await expect(panel.getByRole('button', { name: 'Atualizar', exact: true })).toBeVisible();
+  await expect(panel.getByRole('button', { name: 'Registrar saída', exact: true })).toBeVisible();
+  await details.click();
+  await expect(details).toHaveAttribute('aria-expanded', 'true');
   await expect(panel.getByText('NOVO RECURSO · PDDE QUALIDADE', { exact: true })).toBeVisible();
   await expect(panel.getByText('Registre saídas do extrato enquanto a Ação Integrada correspondente ainda não foi identificada.', { exact: true })).toBeVisible();
   await expect(panel.getByText('Não são Notas Fiscais nem Pendências.')).toHaveCount(0);

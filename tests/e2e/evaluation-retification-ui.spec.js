@@ -219,7 +219,7 @@ test.describe('retificação formal de avaliações no Preview', () => {
 });
 
 
-test('edição mantém erro visível e impede fechamento ou segundo envio enquanto salva', async ({ page }) => {
+test('edição mantém erro visível e impede fechamento ou segundo envio enquanto salva', async ({ page }, testInfo) => {
   await page.goto('/');
   await page.evaluate(() => window.RadarProductExtensionsReady);
   await seedIncorrectEvaluationWithPendency(page);
@@ -228,31 +228,105 @@ test('edição mantém erro visível e impede fechamento ou segundo envio enquan
   const dialog = page.getByRole('dialog', { name: 'Corrigir análise técnica', exact: true });
   await dialog.getByLabel('Nova análise técnica').selectOption('Não analisado');
   const contentArea = page.locator('main.content-area');
-  const beforeScroll = await contentArea.evaluate(element => {
-    element.scrollTop = Math.min(650, Math.max(0, element.scrollHeight - element.clientHeight));
-    return element.scrollTop;
-  });
-  expect(beforeScroll).toBeGreaterThan(50);
   await page.evaluate(() => {
-    window.__evaluationSaveCalls = 0;
-    RadarApplicationServices.verifications.correctTechnicalAnalysis = () => {
-      window.__evaluationSaveCalls++;
-      return new Promise((_resolve, reject) => { window.__rejectEvaluationSave = reject; });
+    const rect = element => {
+      if (!element) return null;
+      const { top, left, width, height } = element.getBoundingClientRect();
+      return { top, left, width, height };
     };
+    const main = document.querySelector('main.content-area');
+    const form = document.getElementById('evaluation-retification-form');
+    const submit = document.getElementById('evaluation-retification-submit');
+    const scrollApi = window.RadarProntuarioScrollPreservation;
+    window.__evaluationScrollTrace = [];
+    const record = (stage, captureSnapshot = null) => {
+      const active = document.activeElement;
+      const layer = document.getElementById('evaluation-retification-modal-layer');
+      window.__evaluationScrollTrace.push({
+        stage, at: performance.now(), captureSnapshot,
+        scrollTop: main.scrollTop, scrollHeight: main.scrollHeight, clientHeight: main.clientHeight,
+        main: rect(main), row: rect(document.querySelector('#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="extINV"]')),
+        guidance: rect(document.getElementById('operational-school-guidance')),
+        dialog: rect(layer?.querySelector('[role="dialog"]')), submit: rect(submit),
+        layerPosition: layer ? getComputedStyle(layer).position : null,
+        focus: { tag: active?.tagName, id: active?.id, inMain: main.contains(active), rect: rect(active) },
+        saving: form.getAttribute('aria-busy'), submitDisabled: submit.disabled,
+        fonts: { status: document.fonts?.status, faces: [...new Set(Array.from(document.fonts || [], font => font.family + ':' + font.status))] },
+        pendingStyles: Array.from(document.querySelectorAll('link[rel="stylesheet"], link[as="style"]'))
+          .filter(link => !link.sheet).map(link => new URL(link.href, location.href).pathname),
+        extensionsLoading: window.RadarProductExtensionsLoading === true,
+        extensionFailures: window.RADAR_PRODUCT_EXTENSION_FAILURES?.length || 0
+      });
+    };
+    window.__recordEvaluationScroll = record;
+    window.__restoreEvaluationScrollProbe = () => { window.RadarProntuarioScrollPreservation = scrollApi; };
+    window.RadarProntuarioScrollPreservation = Object.freeze({
+      ...scrollApi,
+      capture(root) {
+        const snapshot = scrollApi.capture(root);
+        record('capture-after-pending', snapshot);
+        return snapshot;
+      }
+    });
+    submit.addEventListener('pointerdown', () => record('pointerdown'), { capture: true, once: true });
+    form.addEventListener('submit', () => record('submit-entry'), { capture: true, once: true });
+    record('before-stabilization');
   });
-  await dialog.getByRole('button', { name: 'Salvar edição', exact: true }).click();
-  await expect(dialog.getByLabel('Nova análise técnica')).toBeDisabled();
-  await expect(dialog.getByRole('button', { name: 'Fechar edição', exact: true })).toBeDisabled();
-  await page.keyboard.press('Escape');
-  await expect(dialog).toBeVisible();
-  await page.evaluate(() => window.__rejectEvaluationSave(new Error('Conexão interrompida; alteração não confirmada.')));
-  await expect(dialog.getByRole('alert')).toContainText('Conexão interrompida; alteração não confirmada.');
-  await expect(dialog.getByRole('button', { name: 'Salvar edição', exact: true })).toBeEnabled();
-  await expect(row.locator('select.select-analise')).toHaveValue('Correto');
-  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-  const afterScroll = await contentArea.evaluate(element => element.scrollTop);
-  expect(Math.abs(afterScroll - beforeScroll)).toBeLessThanOrEqual(4);
-  expect(await page.evaluate(() => window.__evaluationSaveCalls)).toBe(1);
+  try {
+    await page.waitForFunction(() => Array.from(document.querySelectorAll(
+      'link[rel="stylesheet"], link[as="style"][data-radar-nonblocking-style]'
+    )).filter(link => new URL(link.href, location.href).origin === location.origin)
+      .every(link => Boolean(link.sheet)));
+    await page.evaluate(async () => {
+      if (document.fonts?.ready) await document.fonts.ready;
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      window.__recordEvaluationScroll('after-stabilization');
+    });
+    const beforeScroll = await contentArea.evaluate(element => {
+      element.scrollTop = Math.min(650, Math.max(0, element.scrollHeight - element.clientHeight));
+      window.__recordEvaluationScroll('before-click');
+      return element.scrollTop;
+    });
+    expect(beforeScroll).toBeGreaterThan(50);
+    await page.evaluate(() => {
+      window.__evaluationSaveCalls = 0;
+      RadarApplicationServices.verifications.correctTechnicalAnalysis = () => {
+        window.__evaluationSaveCalls++;
+        return new Promise((_resolve, reject) => { window.__rejectEvaluationSave = reject; });
+      };
+    });
+    await dialog.getByRole('button', { name: 'Salvar edição', exact: true }).click();
+    await expect(dialog.getByLabel('Nova análise técnica')).toBeDisabled();
+    await expect(dialog.getByRole('button', { name: 'Fechar edição', exact: true })).toBeDisabled();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeVisible();
+    await page.evaluate(() => window.__rejectEvaluationSave(new Error('Conexão interrompida; alteração não confirmada.')));
+    await expect(dialog.getByRole('alert')).toContainText('Conexão interrompida; alteração não confirmada.');
+    await expect(dialog.getByRole('button', { name: 'Salvar edição', exact: true })).toBeEnabled();
+    await expect(row.locator('select.select-analise')).toHaveValue('Correto');
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const afterScroll = await contentArea.evaluate(element => {
+      window.__recordEvaluationScroll('after-error');
+      return element.scrollTop;
+    });
+    expect(Math.abs(afterScroll - beforeScroll)).toBeLessThanOrEqual(4);
+    expect(await page.evaluate(() => window.__evaluationSaveCalls)).toBe(1);
+  } finally {
+    const observations = await page.evaluate(() => {
+      window.__restoreEvaluationScrollProbe();
+      return window.__evaluationScrollTrace;
+    });
+    const report = { schemaVersion: 1, retry: testInfo.retry, allowedDisplacement: 4, observations };
+    await testInfo.attach('evaluation-save-scroll-geometry', {
+      body: Buffer.from(JSON.stringify(report, null, 2)), contentType: 'application/json'
+    });
+    console.log('[evaluation-save-scroll]', JSON.stringify({
+      retry: testInfo.retry,
+      observations: observations.map(({ stage, scrollTop, scrollHeight, clientHeight, fonts, pendingStyles, captureSnapshot }) => (
+        { stage, scrollTop, scrollHeight, clientHeight, fontStatus: fonts.status, pendingStyles, captureSnapshot }
+      ))
+    }));
+  }
 });
 
 test('commit confirmado com projeção pendente exige atualização sem falsa confirmação de sucesso', async ({ page }) => {
