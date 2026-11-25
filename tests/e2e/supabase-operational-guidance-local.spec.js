@@ -119,13 +119,15 @@ test('orientação autenticada sem pilotos nasce compacta e conserva a área fis
             compact: bounds(document.querySelector('#operational-school-guidance')),
             invoice: bounds(invoice), invoiceIdentity: bounds(heading) };
     });
-    expect(composition.scrollY).toBe(0);
-    expect(composition.invoiceIdentity.top).toBeGreaterThanOrEqual(0);
-    expect(composition.invoiceIdentity.top).toBeLessThan(composition.viewport.height);
     await testInfo.attach('orientacao-composicao-1440x900', {
         body: Buffer.from(JSON.stringify(composition, null, 2)), contentType: 'application/json'
     });
     await capture(page, testInfo, 'orientacao-prontuario-recolhida-desktop');
+    // Preservar também as capturas seguintes se a composição precisar de ajuste;
+    // soft mantém a falha do gate, sem interromper a coleta somente de leitura.
+    expect.soft(composition.scrollY).toBe(0);
+    expect.soft(composition.invoiceIdentity.top).toBeGreaterThanOrEqual(0);
+    expect.soft(composition.invoiceIdentity.top).toBeLessThan(composition.viewport.height);
     await panel.locator('[data-action="toggle-operational-guidance"]').click();
     await expect(panel.locator('#operational-school-guidance-content')).toBeVisible();
     await capture(page, testInfo, 'orientacao-prontuario-expandida-desktop', panel);

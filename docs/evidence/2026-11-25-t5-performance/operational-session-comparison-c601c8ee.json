@@ -1,0 +1,2915 @@
+{
+  "schemaVersion": 1,
+  "status": "diagnostic-comparison-complete",
+  "metadata": {
+    "runId": "45569519301",
+    "runAttempt": "1",
+    "workflowSha": "cc332efcea15da43f31b765ae6b16b6275f087f7",
+    "sources": [
+      {
+        "variant": "baseline",
+        "path": "operational-sustained/baseline/session-report.json",
+        "sha256": "c942332e1ed05ade788df3812965c7820d20fa36b95516070ba7d7858243ba37"
+      },
+      {
+        "variant": "baseline",
+        "path": "operational-sustained/pg-stat-before.json",
+        "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+      },
+      {
+        "variant": "baseline",
+        "path": "operational-sustained/pg-stat-after.json",
+        "sha256": "e7d06ec97eaa441a41ce28b3ef852d9954139b35376f5114e932eafaf3c9e374"
+      },
+      {
+        "variant": "candidate",
+        "path": "operational-sustained/candidate/session-report.json",
+        "sha256": "aef1b8dea0382fd714524a6fe29b2ae491e98202d2223f59a23ec130828842b5"
+      },
+      {
+        "variant": "candidate",
+        "path": "operational-sustained/pg-stat-before.json",
+        "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+      },
+      {
+        "variant": "candidate",
+        "path": "operational-sustained/pg-stat-after.json",
+        "sha256": "1269bef6ca6f663d685887e72b4655167a83325960e51ddc1d40d8e477cfb1a9"
+      }
+    ]
+  },
+  "costBudgets": {
+    "status": "not-established",
+    "mode": "report-only",
+    "note": "No operational cost SLO is established here. Timer-derived read limits are not cost acceptance criteria; a completed comparison is not release approval."
+  },
+  "baseline": {
+    "generatedAt": "2026-11-25T07:47:31.803Z",
+    "rounds": 400,
+    "gestures": [
+      406,
+      300,
+      401,
+      0,
+      0,
+      0
+    ],
+    "finalValue": "Não",
+    "faults": {
+      "readLatencyMs": 0,
+      "failObserverRead": false,
+      "failuresInjected": 1,
+      "reconnectProof": {
+        "old": {
+          "startedAt": 1795592835110,
+          "capturedAt": 1795592835226,
+          "rpc": "/rest/v1/rpc/read_operational_context",
+          "value": "Não",
+          "rowVersion": 404,
+          "releasedAt": 1795592838951
+        },
+        "connectedAt": 1795592835896,
+        "oldHeldThroughReconnect": true,
+        "recovery": {
+          "startedAt": 1795592839204,
+          "capturedAt": 1795592839431,
+          "rpc": "/rest/v1/rpc/read_operational_context",
+          "value": "Sim",
+          "rowVersion": 405,
+          "releasedAt": 1795592839851
+        },
+        "uiOldBeforeRecovery": true,
+        "recoverySource": "session-realtime-reconnect-inflight-finished-refresh",
+        "uiConvergedAfterRecovery": true
+      },
+      "realtimeDisconnects": 1,
+      "realtimeRecovered": true
+    },
+    "totals": {
+      "gestures": 1107,
+      "writeAttempts": 1107,
+      "successfulWrites": 1107,
+      "readAttempts": 26,
+      "successfulReadResponses": 24,
+      "abortedReadAttempts": 1,
+      "readHttpErrors": 1,
+      "readNetworkErrors": 0,
+      "payloadBytes": 31890653,
+      "staleLoads": 1,
+      "abortedLoads": 1,
+      "failedLoads": 1,
+      "stateApplies": 1131,
+      "renderCalls": 1127,
+      "domReplacements": 324,
+      "domMutations": 91321,
+      "sampledOpacityFrames": 11121,
+      "fadedOpacityFrames": 766,
+      "nearlyInvisibleFrames": 686,
+      "pageErrors": 0,
+      "elapsedMs": 488067.999971,
+      "readsPerWrite": 0.023486901535682024,
+      "readsPerMinute": 3.196275928953941,
+      "pendingRefreshSessions": 0,
+      "longTaskCount": 1810,
+      "longTaskTotalMs": 148472,
+      "longTaskBlockingMs": 57972,
+      "applyMeasuredCount": 1131,
+      "applyTotalMs": 25275.199999999226,
+      "renderMeasuredCount": 1127,
+      "renderTotalMs": 4833.299999999814,
+      "longTasksPerMinute": 222.50997813102433
+    },
+    "sessions": [
+      {
+        "session": 1,
+        "elapsedMs": 488067.999971,
+        "gestures": 406,
+        "writeAttempts": 406,
+        "successfulWrites": 406,
+        "readAttempts": 4,
+        "successfulReadResponses": 3,
+        "abortedReadAttempts": 1,
+        "readHttpErrors": 0,
+        "readNetworkErrors": 0,
+        "payloadBytes": 3986797,
+        "readsPerWrite": 0.009852216748768473,
+        "readsPerMinute": 0.49173475830060626,
+        "successfulReadDurationMs": {
+          "samples": 3,
+          "p50": 1249.5044160000398,
+          "p95": 1433.1285769999995,
+          "p99": 1433.1285769999995,
+          "max": 1433.1285769999995
+        },
+        "successfulWriteDurationMs": {
+          "samples": 406,
+          "p50": 206.63729100000637,
+          "p95": 328.93875600001775,
+          "p99": 390.7618460000376,
+          "max": 571.9329829999988
+        },
+        "writeTiming": {
+          "status": "available",
+          "sampleCount": 100,
+          "clickToFeedback": {
+            "p50": 0.1000000000349246,
+            "p95": 0.5
+          },
+          "rpc": {
+            "p50": null,
+            "p95": null
+          },
+          "apply": {
+            "p50": 1.2000000000698492,
+            "p95": 2.299999999930151
+          },
+          "clickToStable": {
+            "p50": 315.20000000006985,
+            "p95": 649.5
+          }
+        },
+        "browserPerformance": {
+          "status": "recorded",
+          "longTaskCount": 643,
+          "longTaskTotalMs": 49352,
+          "longTaskBlockingMs": 17202,
+          "applyMeasuredCount": 409,
+          "applyTotalMs": 8036.199999999662,
+          "renderMeasuredCount": 409,
+          "renderTotalMs": 161.30000000001746,
+          "longTasksSupported": true,
+          "longTaskMaxMs": 499,
+          "applyMaxMs": 230.70000000006985,
+          "renderMaxMs": 79.80000000004657,
+          "applySampleDurationMs": {
+            "samples": 100,
+            "p50": 18.70000000006985,
+            "p95": 43.5,
+            "p99": 69.40000000002328,
+            "max": 230.70000000006985
+          }
+        },
+        "longTaskCount": 643,
+        "longTaskTotalMs": 49352,
+        "longTaskBlockingMs": 17202,
+        "applyMeasuredCount": 409,
+        "applyTotalMs": 8036.199999999662,
+        "renderMeasuredCount": 409,
+        "renderTotalMs": 161.30000000001746,
+        "longTasksPerMinute": 79.04636239682246,
+        "staleLoads": 1,
+        "abortedLoads": 1,
+        "failedLoads": 0,
+        "refreshSources": {
+          "session-realtime-refresh": 4
+        },
+        "stateApplies": 409,
+        "renderCalls": 409,
+        "domReplacements": 3,
+        "domMutations": 27959,
+        "sampledOpacityFrames": 1765,
+        "fadedOpacityFrames": 6,
+        "nearlyInvisibleFrames": 6,
+        "minOpacity": 0,
+        "pageErrors": 0,
+        "pendingRefreshAtSnapshot": false
+      },
+      {
+        "session": 2,
+        "elapsedMs": 488032.12821299996,
+        "gestures": 300,
+        "writeAttempts": 300,
+        "successfulWrites": 300,
+        "readAttempts": 4,
+        "successfulReadResponses": 4,
+        "abortedReadAttempts": 0,
+        "readHttpErrors": 0,
+        "readNetworkErrors": 0,
+        "payloadBytes": 5314887,
+        "readsPerWrite": 0.013333333333333334,
+        "readsPerMinute": 0.4917709022125134,
+        "successfulReadDurationMs": {
+          "samples": 4,
+          "p50": 934.650410000002,
+          "p95": 1459.5109520000005,
+          "p99": 1459.5109520000005,
+          "max": 1459.5109520000005
+        },
+        "successfulWriteDurationMs": {
+          "samples": 300,
+          "p50": 171.92891900002724,
+          "p95": 379.99480899999617,
+          "p99": 444.1866459999583,
+          "max": 491.50388699996984
+        },
+        "writeTiming": {
+          "status": "unavailable",
+          "sampleCount": 0,
+          "clickToFeedback": {
+            "p50": null,
+            "p95": null
+          },
+          "rpc": {
+            "p50": null,
+            "p95": null
+          },
+          "apply": {
+            "p50": null,
+            "p95": null
+          },
+          "clickToStable": {
+            "p50": null,
+            "p95": null
+          }
+        },
+        "browserPerformance": {
+          "status": "recorded",
+          "longTaskCount": 538,
+          "longTaskTotalMs": 49388,
+          "longTaskBlockingMs": 22488,
+          "applyMeasuredCount": 304,
+          "applyTotalMs": 8318.099999999802,
+          "renderMeasuredCount": 304,
+          "renderTotalMs": 4222.700000000099,
+          "longTasksSupported": true,
+          "longTaskMaxMs": 486,
+          "applyMaxMs": 185.5,
+          "renderMaxMs": 68.20000000006985,
+          "applySampleDurationMs": {
+            "samples": 100,
+            "p50": 23.099999999976717,
+            "p95": 47.90000000002328,
+            "p99": 124.30000000004657,
+            "max": 185.5
+          }
+        },
+        "longTaskCount": 538,
+        "longTaskTotalMs": 49388,
+        "longTaskBlockingMs": 22488,
+        "applyMeasuredCount": 304,
+        "applyTotalMs": 8318.099999999802,
+        "renderMeasuredCount": 304,
+        "renderTotalMs": 4222.700000000099,
+        "longTasksPerMinute": 66.14318634758305,
+        "staleLoads": 0,
+        "abortedLoads": 0,
+        "failedLoads": 0,
+        "refreshSources": {
+          "session-realtime-refresh": 4
+        },
+        "stateApplies": 304,
+        "renderCalls": 304,
+        "domReplacements": 304,
+        "domMutations": 34364,
+        "sampledOpacityFrames": 1585,
+        "fadedOpacityFrames": 732,
+        "nearlyInvisibleFrames": 652,
+        "minOpacity": 0,
+        "pageErrors": 0,
+        "pendingRefreshAtSnapshot": false
+      },
+      {
+        "session": 3,
+        "elapsedMs": 488049.662352,
+        "gestures": 401,
+        "writeAttempts": 401,
+        "successfulWrites": 401,
+        "readAttempts": 4,
+        "successfulReadResponses": 4,
+        "abortedReadAttempts": 0,
+        "readHttpErrors": 0,
+        "readNetworkErrors": 0,
+        "payloadBytes": 5314887,
+        "readsPerWrite": 0.00997506234413965,
+        "readsPerMinute": 0.4917532343806907,
+        "successfulReadDurationMs": {
+          "samples": 4,
+          "p50": 1088.1706760000015,
+          "p95": 1540.4625410000008,
+          "p99": 1540.4625410000008,
+          "max": 1540.4625410000008
+        },
+        "successfulWriteDurationMs": {
+          "samples": 401,
+          "p50": 198.8473519999534,
+          "p95": 308.42488100001356,
+          "p99": 363.6731030000374,
+          "max": 462.2792570000165
+        },
+        "writeTiming": {
+          "status": "available",
+          "sampleCount": 100,
+          "clickToFeedback": {
+            "p50": 0.09999999997671694,
+            "p95": 0.39999999990686774
+          },
+          "rpc": {
+            "p50": null,
+            "p95": null
+          },
+          "apply": {
+            "p50": 1.099999999976717,
+            "p95": 2
+          },
+          "clickToStable": {
+            "p50": 305.79999999993015,
+            "p95": 625.7999999999302
+          }
+        },
+        "browserPerformance": {
+          "status": "recorded",
+          "longTaskCount": 616,
+          "longTaskTotalMs": 47026,
+          "longTaskBlockingMs": 16226,
+          "applyMeasuredCount": 405,
+          "applyTotalMs": 7723.59999999986,
+          "renderMeasuredCount": 405,
+          "renderTotalMs": 210.59999999968568,
+          "longTasksSupported": true,
+          "longTaskMaxMs": 692,
+          "applyMaxMs": 200.19999999995343,
+          "renderMaxMs": 71.30000000004657,
+          "applySampleDurationMs": {
+            "samples": 100,
+            "p50": 17.400000000023283,
+            "p95": 39.29999999993015,
+            "p99": 120.5,
+            "max": 200.19999999995343
+          }
+        },
+        "longTaskCount": 616,
+        "longTaskTotalMs": 47026,
+        "longTaskBlockingMs": 16226,
+        "applyMeasuredCount": 405,
+        "applyTotalMs": 7723.59999999986,
+        "renderMeasuredCount": 405,
+        "renderTotalMs": 210.59999999968568,
+        "longTasksPerMinute": 75.72999809462637,
+        "staleLoads": 0,
+        "abortedLoads": 0,
+        "failedLoads": 0,
+        "refreshSources": {
+          "session-realtime-refresh": 4
+        },
+        "stateApplies": 405,
+        "renderCalls": 405,
+        "domReplacements": 4,
+        "domMutations": 27734,
+        "sampledOpacityFrames": 1720,
+        "fadedOpacityFrames": 8,
+        "nearlyInvisibleFrames": 8,
+        "minOpacity": 0,
+        "pageErrors": 0,
+        "pendingRefreshAtSnapshot": false
+      },
+      {
+        "session": 4,
+        "elapsedMs": 488044.89209800004,
+        "gestures": 0,
+        "writeAttempts": 0,
+        "successfulWrites": 0,
+        "readAttempts": 6,
+        "successfulReadResponses": 5,
+        "abortedReadAttempts": 0,
+        "readHttpErrors": 1,
+        "readNetworkErrors": 0,
+        "payloadBytes": 6644306,
+        "readsPerWrite": null,
+        "readsPerMinute": 0.7376370613212186,
+        "successfulReadDurationMs": {
+          "samples": 5,
+          "p50": 1124.312629000051,
+          "p95": 4236.160442999972,
+          "p99": 4236.160442999972,
+          "max": 4236.160442999972
+        },
+        "successfulWriteDurationMs": {
+          "samples": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "writeTiming": {
+          "status": "unavailable",
+          "sampleCount": 0
+        },
+        "browserPerformance": {
+          "status": "recorded",
+          "longTaskCount": 5,
+          "longTaskTotalMs": 929,
+          "longTaskBlockingMs": 679,
+          "applyMeasuredCount": 5,
+          "applyTotalMs": 443.39999999993597,
+          "renderMeasuredCount": 5,
+          "renderTotalMs": 114.5,
+          "longTasksSupported": true,
+          "longTaskMaxMs": 321,
+          "applyMaxMs": 165.5,
+          "renderMaxMs": 48.59999999997672,
+          "applySampleDurationMs": {
+            "samples": 5,
+            "p50": 74,
+            "p95": 165.5,
+            "p99": 165.5,
+            "max": 165.5
+          }
+        },
+        "longTaskCount": 5,
+        "longTaskTotalMs": 929,
+        "longTaskBlockingMs": 679,
+        "applyMeasuredCount": 5,
+        "applyTotalMs": 443.39999999993597,
+        "renderMeasuredCount": 5,
+        "renderTotalMs": 114.5,
+        "longTasksPerMinute": 0.6146975511010155,
+        "staleLoads": 0,
+        "abortedLoads": 0,
+        "failedLoads": 1,
+        "refreshSources": {
+          "session-realtime-refresh": 3,
+          "session-realtime-retry-refresh": 1,
+          "session-sustained-reconnect-probe-refresh": 1,
+          "session-realtime-reconnect-inflight-finished-refresh": 1
+        },
+        "stateApplies": 5,
+        "renderCalls": 5,
+        "domReplacements": 5,
+        "domMutations": 585,
+        "sampledOpacityFrames": 2032,
+        "fadedOpacityFrames": 10,
+        "nearlyInvisibleFrames": 10,
+        "minOpacity": 0,
+        "pageErrors": 0,
+        "pendingRefreshAtSnapshot": false
+      },
+      {
+        "session": 5,
+        "elapsedMs": 488044.254022,
+        "gestures": 0,
+        "writeAttempts": 0,
+        "successfulWrites": 0,
+        "readAttempts": 4,
+        "successfulReadResponses": 4,
+        "abortedReadAttempts": 0,
+        "readHttpErrors": 0,
+        "readNetworkErrors": 0,
+        "payloadBytes": 5314889,
+        "readsPerWrite": null,
+        "readsPerMinute": 0.4917586838122702,
+        "successfulReadDurationMs": {
+          "samples": 4,
+          "p50": 1024.0539200000349,
+          "p95": 1462.9671100000014,
+          "p99": 1462.9671100000014,
+          "max": 1462.9671100000014
+        },
+        "successfulWriteDurationMs": {
+          "samples": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "writeTiming": {
+          "status": "unavailable",
+          "sampleCount": 0
+        },
+        "browserPerformance": {
+          "status": "recorded",
+          "longTaskCount": 4,
+          "longTaskTotalMs": 877,
+          "longTaskBlockingMs": 677,
+          "applyMeasuredCount": 4,
+          "applyTotalMs": 352.8999999999651,
+          "renderMeasuredCount": 4,
+          "renderTotalMs": 124.20000000001164,
+          "longTasksSupported": true,
+          "longTaskMaxMs": 339,
+          "applyMaxMs": 139.89999999990687,
+          "renderMaxMs": 59.30000000001746,
+          "applySampleDurationMs": {
+            "samples": 4,
+            "p50": 73.80000000004657,
+            "p95": 139.89999999990687,
+            "p99": 139.89999999990687,
+            "max": 139.89999999990687
+          }
+        },
+        "longTaskCount": 4,
+        "longTaskTotalMs": 877,
+        "longTaskBlockingMs": 677,
+        "applyMeasuredCount": 4,
+        "applyTotalMs": 352.8999999999651,
+        "renderMeasuredCount": 4,
+        "renderTotalMs": 124.20000000001164,
+        "longTasksPerMinute": 0.4917586838122702,
+        "staleLoads": 0,
+        "abortedLoads": 0,
+        "failedLoads": 0,
+        "refreshSources": {
+          "session-realtime-focusout-refresh": 1,
+          "session-realtime-refresh": 3
+        },
+        "stateApplies": 4,
+        "renderCalls": 4,
+        "domReplacements": 4,
+        "domMutations": 468,
+        "sampledOpacityFrames": 2004,
+        "fadedOpacityFrames": 10,
+        "nearlyInvisibleFrames": 10,
+        "minOpacity": 0,
+        "pageErrors": 0,
+        "pendingRefreshAtSnapshot": false
+      },
+      {
+        "session": 6,
+        "elapsedMs": 488030.364303,
+        "gestures": 0,
+        "writeAttempts": 0,
+        "successfulWrites": 0,
+        "readAttempts": 4,
+        "successfulReadResponses": 4,
+        "abortedReadAttempts": 0,
+        "readHttpErrors": 0,
+        "readNetworkErrors": 0,
+        "payloadBytes": 5314887,
+        "readsPerWrite": null,
+        "readsPerMinute": 0.491772679642107,
+        "successfulReadDurationMs": {
+          "samples": 4,
+          "p50": 795.518647000019,
+          "p95": 1534.7644569999975,
+          "p99": 1534.7644569999975,
+          "max": 1534.7644569999975
+        },
+        "successfulWriteDurationMs": {
+          "samples": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "writeTiming": {
+          "status": "unavailable",
+          "sampleCount": 0
+        },
+        "browserPerformance": {
+          "status": "recorded",
+          "longTaskCount": 4,
+          "longTaskTotalMs": 900,
+          "longTaskBlockingMs": 700,
+          "applyMeasuredCount": 4,
+          "applyTotalMs": 401,
+          "renderMeasuredCount": 0,
+          "renderTotalMs": 0,
+          "longTasksSupported": true,
+          "longTaskMaxMs": 320,
+          "applyMaxMs": 151.20000000006985,
+          "renderMaxMs": 0,
+          "applySampleDurationMs": {
+            "samples": 4,
+            "p50": 82.10000000000582,
+            "p95": 151.20000000006985,
+            "p99": 151.20000000006985,
+            "max": 151.20000000006985
+          }
+        },
+        "longTaskCount": 4,
+        "longTaskTotalMs": 900,
+        "longTaskBlockingMs": 700,
+        "applyMeasuredCount": 4,
+        "applyTotalMs": 401,
+        "renderMeasuredCount": 0,
+        "renderTotalMs": 0,
+        "longTasksPerMinute": 0.491772679642107,
+        "staleLoads": 0,
+        "abortedLoads": 0,
+        "failedLoads": 0,
+        "refreshSources": {
+          "session-realtime-refresh": 4
+        },
+        "stateApplies": 4,
+        "renderCalls": 0,
+        "domReplacements": 4,
+        "domMutations": 211,
+        "sampledOpacityFrames": 2015,
+        "fadedOpacityFrames": 0,
+        "nearlyInvisibleFrames": 0,
+        "minOpacity": 1,
+        "pageErrors": 0,
+        "pendingRefreshAtSnapshot": false
+      }
+    ],
+    "sql": {
+      "calls": 51,
+      "totalExecMs": 11553.032292,
+      "meanExecMs": 226.53004494117647,
+      "rows": 51,
+      "signatures": [
+        {
+          "queryId": "7145021936814103127",
+          "role": "authenticated",
+          "before": null,
+          "after": {
+            "role": "authenticated",
+            "rows": 51,
+            "calls": 51,
+            "queryId": "7145021936814103127",
+            "maxExecMs": 433.674251,
+            "meanExecMs": 226.530044941176,
+            "totalExecMs": 11553.032292
+          },
+          "delta": {
+            "calls": 51,
+            "rows": 51,
+            "totalExecMs": 11553.032292,
+            "meanExecMs": 226.53004494117647
+          }
+        }
+      ],
+      "maxDeltaExecMs": null,
+      "note": "Completed calls recorded by pg_stat_statements; not HTTP attempts. Snapshot max is not an interval maximum when a prior baseline exists. Reset epoch is not recorded by this artifact schema; counter regression/disappearance is rejected, but reset followed by regrowth cannot be excluded."
+    },
+    "convergence": {
+      "status": "asserted-by-passed-journey",
+      "finalValue": "Não",
+      "reloadInitialCompetence": "2026-10",
+      "note": "Passed journey asserts final database/UI/reload state and reconnect recovery; it does not measure freshness lag during continuous activity."
+    },
+    "limits": [
+      "Massa sintética calibrada; não clone de Production.",
+      "Seis sessões/quatro Controladores: três escritores, dois observadores escolares e um Dashboard; inclui abas da mesma identidade.",
+      "Esta jornada mede avaliações e CRUD fiscal; não certifica patrimônio, Pendências, horas de uso ou staging.",
+      "Latência e HTTP 500 são induzidos no transporte; dados e Realtime são reais.",
+      "Um socket real é desconectado; snapshot SQL anterior é retido até recovery ser solicitado. UI só converge após a nova resposta global de recovery. A sonda antiga acrescenta uma leitura nas duas variantes."
+    ]
+  },
+  "candidate": {
+    "generatedAt": "2026-11-25T07:47:25.149Z",
+    "rounds": 400,
+    "gestures": [
+      406,
+      300,
+      401,
+      0,
+      0,
+      0
+    ],
+    "finalValue": "Não",
+    "faults": {
+      "readLatencyMs": 0,
+      "failObserverRead": false,
+      "failuresInjected": 1,
+      "reconnectProof": {
+        "old": {
+          "startedAt": 1795592829559,
+          "capturedAt": 1795592829760,
+          "rpc": "/rest/v1/rpc/read_operational_context",
+          "value": "Não",
+          "rowVersion": 404,
+          "releasedAt": 1795592832712
+        },
+        "connectedAt": 1795592830613,
+        "oldHeldThroughReconnect": true,
+        "recovery": {
+          "startedAt": 1795592833123,
+          "capturedAt": 1795592833355,
+          "rpc": "/rest/v1/rpc/read_operational_context",
+          "value": "Sim",
+          "rowVersion": 405,
+          "releasedAt": 1795592833595
+        },
+        "uiOldBeforeRecovery": true,
+        "recoverySource": "session-realtime-reconnect-inflight-finished-refresh",
+        "uiConvergedAfterRecovery": true
+      },
+      "realtimeDisconnects": 1,
+      "realtimeRecovered": true
+    },
+    "totals": {
+      "gestures": 1107,
+      "writeAttempts": 1107,
+      "successfulWrites": 1107,
+      "readAttempts": 110,
+      "successfulReadResponses": 26,
+      "abortedReadAttempts": 83,
+      "readHttpErrors": 1,
+      "readNetworkErrors": 0,
+      "payloadBytes": 11984786,
+      "staleLoads": 84,
+      "abortedLoads": 83,
+      "failedLoads": 1,
+      "stateApplies": 1132,
+      "renderCalls": 1128,
+      "domReplacements": 325,
+      "domMutations": 102959,
+      "sampledOpacityFrames": 10258,
+      "fadedOpacityFrames": 0,
+      "nearlyInvisibleFrames": 0,
+      "pageErrors": 0,
+      "elapsedMs": 500306.009309,
+      "readsPerWrite": 0.0993676603432701,
+      "readsPerMinute": 13.19192629549987,
+      "pendingRefreshSessions": 0,
+      "longTaskCount": 1922,
+      "longTaskTotalMs": 167601,
+      "longTaskBlockingMs": 71501,
+      "applyMeasuredCount": 1132,
+      "applyTotalMs": 25038.500000001048,
+      "renderMeasuredCount": 1128,
+      "renderTotalMs": 6093.999999999767,
+      "longTasksPerMinute": 230.49893036318866
+    },
+    "sessions": [
+      {
+        "session": 1,
+        "elapsedMs": 500306.009309,
+        "gestures": 406,
+        "writeAttempts": 406,
+        "successfulWrites": 406,
+        "readAttempts": 23,
+        "successfulReadResponses": 3,
+        "abortedReadAttempts": 20,
+        "readHttpErrors": 0,
+        "readNetworkErrors": 0,
+        "payloadBytes": 3989003,
+        "readsPerWrite": 0.05665024630541872,
+        "readsPerMinute": 2.7583118617863365,
+        "successfulReadDurationMs": {
+          "samples": 3,
+          "p50": 1269.058061000018,
+          "p95": 2952.28897600004,
+          "p99": 2952.28897600004,
+          "max": 2952.28897600004
+        },
+        "successfulWriteDurationMs": {
+          "samples": 406,
+          "p50": 211.93030899998848,
+          "p95": 355.2288300000073,
+          "p99": 481.4369880000013,
+          "max": 546.5917400000035
+        },
+        "writeTiming": {
+          "status": "available",
+          "sampleCount": 100,
+          "clickToFeedback": {
+            "p50": 0.09999999997671694,
+            "p95": 0.40000000002328306
+          },
+          "rpc": {
+            "p50": null,
+            "p95": null
+          },
+          "apply": {
+            "p50": 1.099999999976717,
+            "p95": 2.6000000000931323
+          },
+          "clickToStable": {
+            "p50": 331.0999999999767,
+            "p95": 558.7999999999302
+          }
+        },
+        "browserPerformance": {
+          "status": "recorded",
+          "longTaskCount": 623,
+          "longTaskTotalMs": 50083,
+          "longTaskBlockingMs": 18933,
+          "applyMeasuredCount": 409,
+          "applyTotalMs": 7892.000000001572,
+          "renderMeasuredCount": 409,
+          "renderTotalMs": 187.5999999998603,
+          "longTasksSupported": true,
+          "longTaskMaxMs": 567,
+          "applyMaxMs": 103.69999999995343,
+          "renderMaxMs": 59.79999999993015,
+          "applySampleDurationMs": {
+            "samples": 100,
+            "p50": 21.599999999976717,
+            "p95": 50.5,
+            "p99": 100,
+            "max": 103.69999999995343
+          }
+        },
+        "longTaskCount": 623,
+        "longTaskTotalMs": 50083,
+        "longTaskBlockingMs": 18933,
+        "applyMeasuredCount": 409,
+        "applyTotalMs": 7892.000000001572,
+        "renderMeasuredCount": 409,
+        "renderTotalMs": 187.5999999998603,
+        "longTasksPerMinute": 74.71427347360381,
+        "staleLoads": 20,
+        "abortedLoads": 20,
+        "failedLoads": 0,
+        "refreshSources": {
+          "session-realtime-school-refresh": 11,
+          "session-realtime-school-cooldown-expired-refresh": 13,
+          "session-realtime-school-focusout-refresh": 2
+        },
+        "stateApplies": 409,
+        "renderCalls": 409,
+        "domReplacements": 3,
+        "domMutations": 27258,
+        "sampledOpacityFrames": 1610,
+        "fadedOpacityFrames": 0,
+        "nearlyInvisibleFrames": 0,
+        "minOpacity": 1,
+        "pageErrors": 0,
+        "pendingRefreshAtSnapshot": false
+      },
+      {
+        "session": 2,
+        "elapsedMs": 500258.57805400004,
+        "gestures": 300,
+        "writeAttempts": 300,
+        "successfulWrites": 300,
+        "readAttempts": 48,
+        "successfulReadResponses": 2,
+        "abortedReadAttempts": 46,
+        "readHttpErrors": 0,
+        "readNetworkErrors": 0,
+        "payloadBytes": 2659646,
+        "readsPerWrite": 0.16,
+        "readsPerMinute": 5.757022720536179,
+        "successfulReadDurationMs": {
+          "samples": 2,
+          "p50": 623.5369050000445,
+          "p95": 2272.2883799999836,
+          "p99": 2272.2883799999836,
+          "max": 2272.2883799999836
+        },
+        "successfulWriteDurationMs": {
+          "samples": 300,
+          "p50": 207.7041259999969,
+          "p95": 405.09702200000174,
+          "p99": 494.2424260000116,
+          "max": 557.9224440000253
+        },
+        "writeTiming": {
+          "status": "unavailable",
+          "sampleCount": 0,
+          "clickToFeedback": {
+            "p50": null,
+            "p95": null
+          },
+          "rpc": {
+            "p50": null,
+            "p95": null
+          },
+          "apply": {
+            "p50": null,
+            "p95": null
+          },
+          "clickToStable": {
+            "p50": null,
+            "p95": null
+          }
+        },
+        "browserPerformance": {
+          "status": "recorded",
+          "longTaskCount": 651,
+          "longTaskTotalMs": 61865,
+          "longTaskBlockingMs": 29315,
+          "applyMeasuredCount": 301,
+          "applyTotalMs": 7810.000000000524,
+          "renderMeasuredCount": 301,
+          "renderTotalMs": 5308.699999999779,
+          "longTasksSupported": true,
+          "longTaskMaxMs": 407,
+          "applyMaxMs": 83.5,
+          "renderMaxMs": 48,
+          "applySampleDurationMs": {
+            "samples": 100,
+            "p50": 26.79999999993015,
+            "p95": 50.699999999953434,
+            "p99": 79.5,
+            "max": 83.5
+          }
+        },
+        "longTaskCount": 651,
+        "longTaskTotalMs": 61865,
+        "longTaskBlockingMs": 29315,
+        "applyMeasuredCount": 301,
+        "applyTotalMs": 7810.000000000524,
+        "renderMeasuredCount": 301,
+        "renderTotalMs": 5308.699999999779,
+        "longTasksPerMinute": 78.07962064727194,
+        "staleLoads": 47,
+        "abortedLoads": 46,
+        "failedLoads": 0,
+        "refreshSources": {
+          "session-realtime-school-write-settled-refresh": 45,
+          "session-realtime-school-cooldown-expired-refresh": 2,
+          "session-realtime-school-refresh": 2
+        },
+        "stateApplies": 301,
+        "renderCalls": 301,
+        "domReplacements": 301,
+        "domMutations": 46356,
+        "sampledOpacityFrames": 1517,
+        "fadedOpacityFrames": 0,
+        "nearlyInvisibleFrames": 0,
+        "minOpacity": 1,
+        "pageErrors": 0,
+        "pendingRefreshAtSnapshot": false
+      },
+      {
+        "session": 3,
+        "elapsedMs": 500237.23941800004,
+        "gestures": 401,
+        "writeAttempts": 401,
+        "successfulWrites": 401,
+        "readAttempts": 18,
+        "successfulReadResponses": 1,
+        "abortedReadAttempts": 17,
+        "readHttpErrors": 0,
+        "readNetworkErrors": 0,
+        "payloadBytes": 1329353,
+        "readsPerWrite": 0.04488778054862843,
+        "readsPerMinute": 2.1589756117647774,
+        "successfulReadDurationMs": {
+          "samples": 1,
+          "p50": 3049.1610450000153,
+          "p95": 3049.1610450000153,
+          "p99": 3049.1610450000153,
+          "max": 3049.1610450000153
+        },
+        "successfulWriteDurationMs": {
+          "samples": 401,
+          "p50": 209.3700639999879,
+          "p95": 357.98035299999174,
+          "p99": 437.5415229999926,
+          "max": 547.6567229999928
+        },
+        "writeTiming": {
+          "status": "available",
+          "sampleCount": 100,
+          "clickToFeedback": {
+            "p50": 0.09999999997671694,
+            "p95": 0.30000000004656613
+          },
+          "rpc": {
+            "p50": null,
+            "p95": null
+          },
+          "apply": {
+            "p50": 1.1999999999534339,
+            "p95": 3.099999999976717
+          },
+          "clickToStable": {
+            "p50": 332.0999999999767,
+            "p95": 647.5
+          }
+        },
+        "browserPerformance": {
+          "status": "recorded",
+          "longTaskCount": 624,
+          "longTaskTotalMs": 49175,
+          "longTaskBlockingMs": 17975,
+          "applyMeasuredCount": 402,
+          "applyTotalMs": 7544.099999998696,
+          "renderMeasuredCount": 402,
+          "renderTotalMs": 131.29999999993015,
+          "longTasksSupported": true,
+          "longTaskMaxMs": 525,
+          "applyMaxMs": 94.90000000002328,
+          "renderMaxMs": 106.80000000004657,
+          "applySampleDurationMs": {
+            "samples": 100,
+            "p50": 20,
+            "p95": 40.5,
+            "p99": 54.09999999997672,
+            "max": 94.90000000002328
+          }
+        },
+        "longTaskCount": 624,
+        "longTaskTotalMs": 49175,
+        "longTaskBlockingMs": 17975,
+        "applyMeasuredCount": 402,
+        "applyTotalMs": 7544.099999998696,
+        "renderMeasuredCount": 402,
+        "renderTotalMs": 131.29999999993015,
+        "longTasksPerMinute": 74.84448787451228,
+        "staleLoads": 17,
+        "abortedLoads": 17,
+        "failedLoads": 0,
+        "refreshSources": {
+          "session-realtime-school-refresh": 3,
+          "session-realtime-school-inflight-finished-refresh": 1,
+          "session-realtime-school-cooldown-expired-refresh": 9,
+          "session-realtime-school-write-settled-refresh": 4,
+          "session-realtime-school-focusout-refresh": 2
+        },
+        "stateApplies": 402,
+        "renderCalls": 402,
+        "domReplacements": 1,
+        "domMutations": 26620,
+        "sampledOpacityFrames": 1610,
+        "fadedOpacityFrames": 0,
+        "nearlyInvisibleFrames": 0,
+        "minOpacity": 1,
+        "pageErrors": 0,
+        "pendingRefreshAtSnapshot": false
+      },
+      {
+        "session": 4,
+        "elapsedMs": 500225.28919700003,
+        "gestures": 0,
+        "writeAttempts": 0,
+        "successfulWrites": 0,
+        "readAttempts": 9,
+        "successfulReadResponses": 8,
+        "abortedReadAttempts": 0,
+        "readHttpErrors": 1,
+        "readNetworkErrors": 0,
+        "payloadBytes": 2665358,
+        "readsPerWrite": null,
+        "readsPerMinute": 1.0795135944982897,
+        "successfulReadDurationMs": {
+          "samples": 8,
+          "p50": 2286.511714,
+          "p95": 3661.341473999957,
+          "p99": 3661.341473999957,
+          "max": 3661.341473999957
+        },
+        "successfulWriteDurationMs": {
+          "samples": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "writeTiming": {
+          "status": "unavailable",
+          "sampleCount": 0
+        },
+        "browserPerformance": {
+          "status": "recorded",
+          "longTaskCount": 8,
+          "longTaskTotalMs": 2257,
+          "longTaskBlockingMs": 1857,
+          "applyMeasuredCount": 8,
+          "applyTotalMs": 720.9000000000815,
+          "renderMeasuredCount": 8,
+          "renderTotalMs": 205.80000000016298,
+          "longTasksSupported": true,
+          "longTaskMaxMs": 398,
+          "applyMaxMs": 184.70000000001164,
+          "renderMaxMs": 63.5,
+          "applySampleDurationMs": {
+            "samples": 8,
+            "p50": 63.20000000006985,
+            "p95": 184.70000000001164,
+            "p99": 184.70000000001164,
+            "max": 184.70000000001164
+          }
+        },
+        "longTaskCount": 8,
+        "longTaskTotalMs": 2257,
+        "longTaskBlockingMs": 1857,
+        "applyMeasuredCount": 8,
+        "applyTotalMs": 720.9000000000815,
+        "renderMeasuredCount": 8,
+        "renderTotalMs": 205.80000000016298,
+        "longTasksPerMinute": 0.9595676395540353,
+        "staleLoads": 0,
+        "abortedLoads": 0,
+        "failedLoads": 1,
+        "refreshSources": {
+          "session-realtime-school-refresh": 7,
+          "session-sustained-reconnect-probe-refresh": 1,
+          "session-realtime-reconnect-inflight-finished-refresh": 1
+        },
+        "stateApplies": 8,
+        "renderCalls": 8,
+        "domReplacements": 8,
+        "domMutations": 1194,
+        "sampledOpacityFrames": 1845,
+        "fadedOpacityFrames": 0,
+        "nearlyInvisibleFrames": 0,
+        "minOpacity": 1,
+        "pageErrors": 0,
+        "pendingRefreshAtSnapshot": false
+      },
+      {
+        "session": 5,
+        "elapsedMs": 500221.34479,
+        "gestures": 0,
+        "writeAttempts": 0,
+        "successfulWrites": 0,
+        "readAttempts": 8,
+        "successfulReadResponses": 8,
+        "abortedReadAttempts": 0,
+        "readHttpErrors": 0,
+        "readNetworkErrors": 0,
+        "payloadBytes": 8780,
+        "readsPerWrite": null,
+        "readsPerMinute": 0.9595752060550531,
+        "successfulReadDurationMs": {
+          "samples": 8,
+          "p50": 1423.9977789999975,
+          "p95": 2640.1827160000103,
+          "p99": 2640.1827160000103,
+          "max": 2640.1827160000103
+        },
+        "successfulWriteDurationMs": {
+          "samples": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "writeTiming": {
+          "status": "unavailable",
+          "sampleCount": 0
+        },
+        "browserPerformance": {
+          "status": "recorded",
+          "longTaskCount": 8,
+          "longTaskTotalMs": 2723,
+          "longTaskBlockingMs": 2323,
+          "applyMeasuredCount": 8,
+          "applyTotalMs": 663.800000000163,
+          "renderMeasuredCount": 8,
+          "renderTotalMs": 260.6000000000349,
+          "longTasksSupported": true,
+          "longTaskMaxMs": 631,
+          "applyMaxMs": 185.69999999995343,
+          "renderMaxMs": 56.20000000006985,
+          "applySampleDurationMs": {
+            "samples": 8,
+            "p50": 62.10000000009313,
+            "p95": 185.69999999995343,
+            "p99": 185.69999999995343,
+            "max": 185.69999999995343
+          }
+        },
+        "longTaskCount": 8,
+        "longTaskTotalMs": 2723,
+        "longTaskBlockingMs": 2323,
+        "applyMeasuredCount": 8,
+        "applyTotalMs": 663.800000000163,
+        "renderMeasuredCount": 8,
+        "renderTotalMs": 260.6000000000349,
+        "longTasksPerMinute": 0.9595752060550531,
+        "staleLoads": 0,
+        "abortedLoads": 0,
+        "failedLoads": 0,
+        "refreshSources": {
+          "session-realtime-school-focusout-refresh": 1,
+          "session-realtime-school-refresh": 7
+        },
+        "stateApplies": 8,
+        "renderCalls": 8,
+        "domReplacements": 8,
+        "domMutations": 1232,
+        "sampledOpacityFrames": 1835,
+        "fadedOpacityFrames": 0,
+        "nearlyInvisibleFrames": 0,
+        "minOpacity": 1,
+        "pageErrors": 0,
+        "pendingRefreshAtSnapshot": false
+      },
+      {
+        "session": 6,
+        "elapsedMs": 500232.724133,
+        "gestures": 0,
+        "writeAttempts": 0,
+        "successfulWrites": 0,
+        "readAttempts": 4,
+        "successfulReadResponses": 4,
+        "abortedReadAttempts": 0,
+        "readHttpErrors": 0,
+        "readNetworkErrors": 0,
+        "payloadBytes": 1332646,
+        "readsPerWrite": null,
+        "readsPerMinute": 0.4797766887721438,
+        "successfulReadDurationMs": {
+          "samples": 4,
+          "p50": 681.9154210000415,
+          "p95": 1386.7651100000003,
+          "p99": 1386.7651100000003,
+          "max": 1386.7651100000003
+        },
+        "successfulWriteDurationMs": {
+          "samples": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "writeTiming": {
+          "status": "unavailable",
+          "sampleCount": 0
+        },
+        "browserPerformance": {
+          "status": "recorded",
+          "longTaskCount": 8,
+          "longTaskTotalMs": 1498,
+          "longTaskBlockingMs": 1098,
+          "applyMeasuredCount": 4,
+          "applyTotalMs": 407.70000000001164,
+          "renderMeasuredCount": 0,
+          "renderTotalMs": 0,
+          "longTasksSupported": true,
+          "longTaskMaxMs": 497,
+          "applyMaxMs": 164.09999999997672,
+          "renderMaxMs": 0,
+          "applySampleDurationMs": {
+            "samples": 4,
+            "p50": 90.40000000002328,
+            "p95": 164.09999999997672,
+            "p99": 164.09999999997672,
+            "max": 164.09999999997672
+          }
+        },
+        "longTaskCount": 8,
+        "longTaskTotalMs": 1498,
+        "longTaskBlockingMs": 1098,
+        "applyMeasuredCount": 4,
+        "applyTotalMs": 407.70000000001164,
+        "renderMeasuredCount": 0,
+        "renderTotalMs": 0,
+        "longTasksPerMinute": 0.9595533775442876,
+        "staleLoads": 0,
+        "abortedLoads": 0,
+        "failedLoads": 0,
+        "refreshSources": {
+          "session-realtime-school-refresh": 4
+        },
+        "stateApplies": 4,
+        "renderCalls": 0,
+        "domReplacements": 4,
+        "domMutations": 299,
+        "sampledOpacityFrames": 1841,
+        "fadedOpacityFrames": 0,
+        "nearlyInvisibleFrames": 0,
+        "minOpacity": 1,
+        "pageErrors": 0,
+        "pendingRefreshAtSnapshot": false
+      }
+    ],
+    "sql": {
+      "calls": 56,
+      "totalExecMs": 9172.371994000001,
+      "meanExecMs": 163.7923570357143,
+      "rows": 56,
+      "signatures": [
+        {
+          "queryId": "502317007102243559",
+          "role": "authenticated",
+          "before": null,
+          "after": {
+            "role": "authenticated",
+            "rows": 39,
+            "calls": 39,
+            "queryId": "502317007102243559",
+            "maxExecMs": 364.136783,
+            "meanExecMs": 195.711356692308,
+            "totalExecMs": 7632.742911
+          },
+          "delta": {
+            "calls": 39,
+            "rows": 39,
+            "totalExecMs": 7632.742911,
+            "meanExecMs": 195.7113566923077
+          }
+        },
+        {
+          "queryId": "1768514264548670856",
+          "role": "authenticated",
+          "before": null,
+          "after": {
+            "role": "authenticated",
+            "rows": 17,
+            "calls": 17,
+            "queryId": "1768514264548670856",
+            "maxExecMs": 128.681723,
+            "meanExecMs": 90.5664166470588,
+            "totalExecMs": 1539.629083
+          },
+          "delta": {
+            "calls": 17,
+            "rows": 17,
+            "totalExecMs": 1539.629083,
+            "meanExecMs": 90.56641664705883
+          }
+        }
+      ],
+      "maxDeltaExecMs": null,
+      "note": "Completed calls recorded by pg_stat_statements; not HTTP attempts. Snapshot max is not an interval maximum when a prior baseline exists. Reset epoch is not recorded by this artifact schema; counter regression/disappearance is rejected, but reset followed by regrowth cannot be excluded."
+    },
+    "convergence": {
+      "status": "asserted-by-passed-journey",
+      "finalValue": "Não",
+      "reloadInitialCompetence": "2026-10",
+      "note": "Passed journey asserts final database/UI/reload state and reconnect recovery; it does not measure freshness lag during continuous activity."
+    },
+    "limits": [
+      "Massa sintética calibrada; não clone de Production.",
+      "Seis sessões/quatro Controladores: três escritores, dois observadores escolares e um Dashboard; inclui abas da mesma identidade.",
+      "Esta jornada mede avaliações e CRUD fiscal; não certifica patrimônio, Pendências, horas de uso ou staging.",
+      "Latência e HTTP 500 são induzidos no transporte; dados e Realtime são reais.",
+      "Um socket real é desconectado; snapshot SQL anterior é retido até recovery ser solicitado. UI só converge após a nova resposta global de recovery. A sonda antiga acrescenta uma leitura nas duas variantes."
+    ]
+  },
+  "changes": {
+    "gestures": {
+      "baseline": 1107,
+      "candidate": 1107,
+      "absolute": 0,
+      "percent": 0,
+      "percentUnavailableReason": null
+    },
+    "writeAttempts": {
+      "baseline": 1107,
+      "candidate": 1107,
+      "absolute": 0,
+      "percent": 0,
+      "percentUnavailableReason": null
+    },
+    "successfulWrites": {
+      "baseline": 1107,
+      "candidate": 1107,
+      "absolute": 0,
+      "percent": 0,
+      "percentUnavailableReason": null
+    },
+    "readAttempts": {
+      "baseline": 26,
+      "candidate": 110,
+      "absolute": 84,
+      "percent": 323.0769230769231,
+      "percentUnavailableReason": null
+    },
+    "successfulReadResponses": {
+      "baseline": 24,
+      "candidate": 26,
+      "absolute": 2,
+      "percent": 8.333333333333334,
+      "percentUnavailableReason": null
+    },
+    "abortedReadAttempts": {
+      "baseline": 1,
+      "candidate": 83,
+      "absolute": 82,
+      "percent": 8200,
+      "percentUnavailableReason": null
+    },
+    "readHttpErrors": {
+      "baseline": 1,
+      "candidate": 1,
+      "absolute": 0,
+      "percent": 0,
+      "percentUnavailableReason": null
+    },
+    "readNetworkErrors": {
+      "baseline": 0,
+      "candidate": 0,
+      "absolute": 0,
+      "percent": null,
+      "percentUnavailableReason": "zero-baseline"
+    },
+    "payloadBytes": {
+      "baseline": 31890653,
+      "candidate": 11984786,
+      "absolute": -19905867,
+      "percent": -62.41912638163916,
+      "percentUnavailableReason": null
+    },
+    "staleLoads": {
+      "baseline": 1,
+      "candidate": 84,
+      "absolute": 83,
+      "percent": 8300,
+      "percentUnavailableReason": null
+    },
+    "abortedLoads": {
+      "baseline": 1,
+      "candidate": 83,
+      "absolute": 82,
+      "percent": 8200,
+      "percentUnavailableReason": null
+    },
+    "failedLoads": {
+      "baseline": 1,
+      "candidate": 1,
+      "absolute": 0,
+      "percent": 0,
+      "percentUnavailableReason": null
+    },
+    "stateApplies": {
+      "baseline": 1131,
+      "candidate": 1132,
+      "absolute": 1,
+      "percent": 0.08841732979664015,
+      "percentUnavailableReason": null
+    },
+    "renderCalls": {
+      "baseline": 1127,
+      "candidate": 1128,
+      "absolute": 1,
+      "percent": 0.08873114463176575,
+      "percentUnavailableReason": null
+    },
+    "domReplacements": {
+      "baseline": 324,
+      "candidate": 325,
+      "absolute": 1,
+      "percent": 0.30864197530864196,
+      "percentUnavailableReason": null
+    },
+    "domMutations": {
+      "baseline": 91321,
+      "candidate": 102959,
+      "absolute": 11638,
+      "percent": 12.744056679186606,
+      "percentUnavailableReason": null
+    },
+    "sampledOpacityFrames": {
+      "baseline": 11121,
+      "candidate": 10258,
+      "absolute": -863,
+      "percent": -7.760093516770074,
+      "percentUnavailableReason": null
+    },
+    "fadedOpacityFrames": {
+      "baseline": 766,
+      "candidate": 0,
+      "absolute": -766,
+      "percent": -100,
+      "percentUnavailableReason": null
+    },
+    "nearlyInvisibleFrames": {
+      "baseline": 686,
+      "candidate": 0,
+      "absolute": -686,
+      "percent": -100,
+      "percentUnavailableReason": null
+    },
+    "pageErrors": {
+      "baseline": 0,
+      "candidate": 0,
+      "absolute": 0,
+      "percent": null,
+      "percentUnavailableReason": "zero-baseline"
+    },
+    "longTaskCount": {
+      "baseline": 1810,
+      "candidate": 1922,
+      "absolute": 112,
+      "percent": 6.1878453038674035,
+      "percentUnavailableReason": null
+    },
+    "longTaskTotalMs": {
+      "baseline": 148472,
+      "candidate": 167601,
+      "absolute": 19129,
+      "percent": 12.883910771054476,
+      "percentUnavailableReason": null
+    },
+    "longTaskBlockingMs": {
+      "baseline": 57972,
+      "candidate": 71501,
+      "absolute": 13529,
+      "percent": 23.33712826881943,
+      "percentUnavailableReason": null
+    },
+    "applyMeasuredCount": {
+      "baseline": 1131,
+      "candidate": 1132,
+      "absolute": 1,
+      "percent": 0.08841732979664015,
+      "percentUnavailableReason": null
+    },
+    "applyTotalMs": {
+      "baseline": 25275.199999999226,
+      "candidate": 25038.500000001048,
+      "absolute": -236.6999999981781,
+      "percent": -0.9364911058990052,
+      "percentUnavailableReason": null
+    },
+    "renderMeasuredCount": {
+      "baseline": 1127,
+      "candidate": 1128,
+      "absolute": 1,
+      "percent": 0.08873114463176575,
+      "percentUnavailableReason": null
+    },
+    "renderTotalMs": {
+      "baseline": 4833.299999999814,
+      "candidate": 6093.999999999767,
+      "absolute": 1260.6999999999534,
+      "percent": 26.08362816295289,
+      "percentUnavailableReason": null
+    },
+    "elapsedMs": {
+      "baseline": 488067.999971,
+      "candidate": 500306.009309,
+      "absolute": 12238.009337999974,
+      "percent": 2.507439401625825,
+      "percentUnavailableReason": null
+    },
+    "readsPerMinute": {
+      "baseline": 3.196275928953941,
+      "candidate": 13.19192629549987,
+      "absolute": 9.995650366545929,
+      "percent": 312.7280181288118,
+      "percentUnavailableReason": null
+    },
+    "longTasksPerMinute": {
+      "baseline": 222.50997813102433,
+      "candidate": 230.49893036318866,
+      "absolute": 7.988952232164337,
+      "percent": 3.590379316589599,
+      "percentUnavailableReason": null
+    },
+    "sqlCalls": {
+      "baseline": 51,
+      "candidate": 56,
+      "absolute": 5,
+      "percent": 9.803921568627452,
+      "percentUnavailableReason": null
+    },
+    "sqlTotalExecMs": {
+      "baseline": 11553.032292,
+      "candidate": 9172.371994000001,
+      "absolute": -2380.660297999999,
+      "percent": -20.606367556407754,
+      "percentUnavailableReason": null
+    }
+  },
+  "perSessionChanges": [
+    {
+      "session": 1,
+      "gestures": {
+        "baseline": 406,
+        "candidate": 406,
+        "absolute": 0,
+        "percent": 0,
+        "percentUnavailableReason": null
+      },
+      "writeAttempts": {
+        "baseline": 406,
+        "candidate": 406,
+        "absolute": 0,
+        "percent": 0,
+        "percentUnavailableReason": null
+      },
+      "successfulWrites": {
+        "baseline": 406,
+        "candidate": 406,
+        "absolute": 0,
+        "percent": 0,
+        "percentUnavailableReason": null
+      },
+      "readAttempts": {
+        "baseline": 4,
+        "candidate": 23,
+        "absolute": 19,
+        "percent": 475,
+        "percentUnavailableReason": null
+      },
+      "successfulReadResponses": {
+        "baseline": 3,
+        "candidate": 3,
+        "absolute": 0,
+        "percent": 0,
+        "percentUnavailableReason": null
+      },
+      "abortedReadAttempts": {
+        "baseline": 1,
+        "candidate": 20,
+        "absolute": 19,
+        "percent": 1900,
+        "percentUnavailableReason": null
+      },
+      "readHttpErrors": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "readNetworkErrors": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "payloadBytes": {
+        "baseline": 3986797,
+        "candidate": 3989003,
+        "absolute": 2206,
+        "percent": 0.055332639208868675,
+        "percentUnavailableReason": null
+      },
+      "staleLoads": {
+        "baseline": 1,
+        "candidate": 20,
+        "absolute": 19,
+        "percent": 1900,
+        "percentUnavailableReason": null
+      },
+      "abortedLoads": {
+        "baseline": 1,
+        "candidate": 20,
+        "absolute": 19,
+        "percent": 1900,
+        "percentUnavailableReason": null
+      },
+      "failedLoads": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "stateApplies": {
+        "baseline": 409,
+        "candidate": 409,
+        "absolute": 0,
+        "percent": 0,
+        "percentUnavailableReason": null
+      },
+      "renderCalls": {
+        "baseline": 409,
+        "candidate": 409,
+        "absolute": 0,
+        "percent": 0,
+        "percentUnavailableReason": null
+      },
+      "domReplacements": {
+        "baseline": 3,
+        "candidate": 3,
+        "absolute": 0,
+        "percent": 0,
+        "percentUnavailableReason": null
+      },
+      "domMutations": {
+        "baseline": 27959,
+        "candidate": 27258,
+        "absolute": -701,
+        "percent": -2.5072427483100252,
+        "percentUnavailableReason": null
+      },
+      "sampledOpacityFrames": {
+        "baseline": 1765,
+        "candidate": 1610,
+        "absolute": -155,
+        "percent": -8.78186968838527,
+        "percentUnavailableReason": null
+      },
+      "fadedOpacityFrames": {
+        "baseline": 6,
+        "candidate": 0,
+        "absolute": -6,
+        "percent": -100,
+        "percentUnavailableReason": null
+      },
+      "nearlyInvisibleFrames": {
+        "baseline": 6,
+        "candidate": 0,
+        "absolute": -6,
+        "percent": -100,
+        "percentUnavailableReason": null
+      },
+      "pageErrors": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "longTaskCount": {
+        "baseline": 643,
+        "candidate": 623,
+        "absolute": -20,
+        "percent": -3.1104199066874028,
+        "percentUnavailableReason": null
+      },
+      "longTaskTotalMs": {
+        "baseline": 49352,
+        "candidate": 50083,
+        "absolute": 731,
+        "percent": 1.4811963041011509,
+        "percentUnavailableReason": null
+      },
+      "longTaskBlockingMs": {
+        "baseline": 17202,
+        "candidate": 18933,
+        "absolute": 1731,
+        "percent": 10.062783397279386,
+        "percentUnavailableReason": null
+      },
+      "applyMeasuredCount": {
+        "baseline": 409,
+        "candidate": 409,
+        "absolute": 0,
+        "percent": 0,
+        "percentUnavailableReason": null
+      },
+      "applyTotalMs": {
+        "baseline": 8036.199999999662,
+        "candidate": 7892.000000001572,
+        "absolute": -144.1999999980908,
+        "percent": -1.7943804285370804,
+        "percentUnavailableReason": null
+      },
+      "renderMeasuredCount": {
+        "baseline": 409,
+        "candidate": 409,
+        "absolute": 0,
+        "percent": 0,
+        "percentUnavailableReason": null
+      },
+      "renderTotalMs": {
+        "baseline": 161.30000000001746,
+        "candidate": 187.5999999998603,
+        "absolute": 26.29999999984284,
+        "percent": 16.30502169859888,
+        "percentUnavailableReason": null
+      },
+      "readsPerMinute": {
+        "baseline": 0.49173475830060626,
+        "candidate": 2.7583118617863365,
+        "absolute": 2.26657710348573,
+        "percent": 460.9348973659761,
+        "percentUnavailableReason": null
+      },
+      "longTasksPerMinute": {
+        "baseline": 79.04636239682246,
+        "candidate": 74.71427347360381,
+        "absolute": -4.332088923218649,
+        "percent": -5.480440581782916,
+        "percentUnavailableReason": null
+      }
+    },
+    {
+      "session": 2,
+      "gestures": {
+        "baseline": 300,
+        "candidate": 300,
+        "absolute": 0,
+        "percent": 0,
+        "percentUnavailableReason": null
+      },
+      "writeAttempts": {
+        "baseline": 300,
+        "candidate": 300,
+        "absolute": 0,
+        "percent": 0,
+        "percentUnavailableReason": null
+      },
+      "successfulWrites": {
+        "baseline": 300,
+        "candidate": 300,
+        "absolute": 0,
+        "percent": 0,
+        "percentUnavailableReason": null
+      },
+      "readAttempts": {
+        "baseline": 4,
+        "candidate": 48,
+        "absolute": 44,
+        "percent": 1100,
+        "percentUnavailableReason": null
+      },
+      "successfulReadResponses": {
+        "baseline": 4,
+        "candidate": 2,
+        "absolute": -2,
+        "percent": -50,
+        "percentUnavailableReason": null
+      },
+      "abortedReadAttempts": {
+        "baseline": 0,
+        "candidate": 46,
+        "absolute": 46,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "readHttpErrors": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "readNetworkErrors": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "payloadBytes": {
+        "baseline": 5314887,
+        "candidate": 2659646,
+        "absolute": -2655241,
+        "percent": -49.958559796285414,
+        "percentUnavailableReason": null
+      },
+      "staleLoads": {
+        "baseline": 0,
+        "candidate": 47,
+        "absolute": 47,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "abortedLoads": {
+        "baseline": 0,
+        "candidate": 46,
+        "absolute": 46,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "failedLoads": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "stateApplies": {
+        "baseline": 304,
+        "candidate": 301,
+        "absolute": -3,
+        "percent": -0.9868421052631579,
+        "percentUnavailableReason": null
+      },
+      "renderCalls": {
+        "baseline": 304,
+        "candidate": 301,
+        "absolute": -3,
+        "percent": -0.9868421052631579,
+        "percentUnavailableReason": null
+      },
+      "domReplacements": {
+        "baseline": 304,
+        "candidate": 301,
+        "absolute": -3,
+        "percent": -0.9868421052631579,
+        "percentUnavailableReason": null
+      },
+      "domMutations": {
+        "baseline": 34364,
+        "candidate": 46356,
+        "absolute": 11992,
+        "percent": 34.896985217087646,
+        "percentUnavailableReason": null
+      },
+      "sampledOpacityFrames": {
+        "baseline": 1585,
+        "candidate": 1517,
+        "absolute": -68,
+        "percent": -4.290220820189274,
+        "percentUnavailableReason": null
+      },
+      "fadedOpacityFrames": {
+        "baseline": 732,
+        "candidate": 0,
+        "absolute": -732,
+        "percent": -100,
+        "percentUnavailableReason": null
+      },
+      "nearlyInvisibleFrames": {
+        "baseline": 652,
+        "candidate": 0,
+        "absolute": -652,
+        "percent": -100,
+        "percentUnavailableReason": null
+      },
+      "pageErrors": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "longTaskCount": {
+        "baseline": 538,
+        "candidate": 651,
+        "absolute": 113,
+        "percent": 21.00371747211896,
+        "percentUnavailableReason": null
+      },
+      "longTaskTotalMs": {
+        "baseline": 49388,
+        "candidate": 61865,
+        "absolute": 12477,
+        "percent": 25.263221835263625,
+        "percentUnavailableReason": null
+      },
+      "longTaskBlockingMs": {
+        "baseline": 22488,
+        "candidate": 29315,
+        "absolute": 6827,
+        "percent": 30.358413376022767,
+        "percentUnavailableReason": null
+      },
+      "applyMeasuredCount": {
+        "baseline": 304,
+        "candidate": 301,
+        "absolute": -3,
+        "percent": -0.9868421052631579,
+        "percentUnavailableReason": null
+      },
+      "applyTotalMs": {
+        "baseline": 8318.099999999802,
+        "candidate": 7810.000000000524,
+        "absolute": -508.0999999992782,
+        "percent": -6.108366093209871,
+        "percentUnavailableReason": null
+      },
+      "renderMeasuredCount": {
+        "baseline": 304,
+        "candidate": 301,
+        "absolute": -3,
+        "percent": -0.9868421052631579,
+        "percentUnavailableReason": null
+      },
+      "renderTotalMs": {
+        "baseline": 4222.700000000099,
+        "candidate": 5308.699999999779,
+        "absolute": 1085.9999999996799,
+        "percent": 25.718142420717893,
+        "percentUnavailableReason": null
+      },
+      "readsPerMinute": {
+        "baseline": 0.4917709022125134,
+        "candidate": 5.757022720536179,
+        "absolute": 5.265251818323666,
+        "percent": 1070.6716876974442,
+        "percentUnavailableReason": null
+      },
+      "longTasksPerMinute": {
+        "baseline": 66.14318634758305,
+        "candidate": 78.07962064727194,
+        "absolute": 11.936434299688884,
+        "percent": 18.0463551256252,
+        "percentUnavailableReason": null
+      }
+    },
+    {
+      "session": 3,
+      "gestures": {
+        "baseline": 401,
+        "candidate": 401,
+        "absolute": 0,
+        "percent": 0,
+        "percentUnavailableReason": null
+      },
+      "writeAttempts": {
+        "baseline": 401,
+        "candidate": 401,
+        "absolute": 0,
+        "percent": 0,
+        "percentUnavailableReason": null
+      },
+      "successfulWrites": {
+        "baseline": 401,
+        "candidate": 401,
+        "absolute": 0,
+        "percent": 0,
+        "percentUnavailableReason": null
+      },
+      "readAttempts": {
+        "baseline": 4,
+        "candidate": 18,
+        "absolute": 14,
+        "percent": 350,
+        "percentUnavailableReason": null
+      },
+      "successfulReadResponses": {
+        "baseline": 4,
+        "candidate": 1,
+        "absolute": -3,
+        "percent": -75,
+        "percentUnavailableReason": null
+      },
+      "abortedReadAttempts": {
+        "baseline": 0,
+        "candidate": 17,
+        "absolute": 17,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "readHttpErrors": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "readNetworkErrors": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "payloadBytes": {
+        "baseline": 5314887,
+        "candidate": 1329353,
+        "absolute": -3985534,
+        "percent": -74.98812298361189,
+        "percentUnavailableReason": null
+      },
+      "staleLoads": {
+        "baseline": 0,
+        "candidate": 17,
+        "absolute": 17,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "abortedLoads": {
+        "baseline": 0,
+        "candidate": 17,
+        "absolute": 17,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "failedLoads": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "stateApplies": {
+        "baseline": 405,
+        "candidate": 402,
+        "absolute": -3,
+        "percent": -0.7407407407407407,
+        "percentUnavailableReason": null
+      },
+      "renderCalls": {
+        "baseline": 405,
+        "candidate": 402,
+        "absolute": -3,
+        "percent": -0.7407407407407407,
+        "percentUnavailableReason": null
+      },
+      "domReplacements": {
+        "baseline": 4,
+        "candidate": 1,
+        "absolute": -3,
+        "percent": -75,
+        "percentUnavailableReason": null
+      },
+      "domMutations": {
+        "baseline": 27734,
+        "candidate": 26620,
+        "absolute": -1114,
+        "percent": -4.016730367058484,
+        "percentUnavailableReason": null
+      },
+      "sampledOpacityFrames": {
+        "baseline": 1720,
+        "candidate": 1610,
+        "absolute": -110,
+        "percent": -6.395348837209302,
+        "percentUnavailableReason": null
+      },
+      "fadedOpacityFrames": {
+        "baseline": 8,
+        "candidate": 0,
+        "absolute": -8,
+        "percent": -100,
+        "percentUnavailableReason": null
+      },
+      "nearlyInvisibleFrames": {
+        "baseline": 8,
+        "candidate": 0,
+        "absolute": -8,
+        "percent": -100,
+        "percentUnavailableReason": null
+      },
+      "pageErrors": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "longTaskCount": {
+        "baseline": 616,
+        "candidate": 624,
+        "absolute": 8,
+        "percent": 1.2987012987012987,
+        "percentUnavailableReason": null
+      },
+      "longTaskTotalMs": {
+        "baseline": 47026,
+        "candidate": 49175,
+        "absolute": 2149,
+        "percent": 4.569812444179815,
+        "percentUnavailableReason": null
+      },
+      "longTaskBlockingMs": {
+        "baseline": 16226,
+        "candidate": 17975,
+        "absolute": 1749,
+        "percent": 10.778996672007889,
+        "percentUnavailableReason": null
+      },
+      "applyMeasuredCount": {
+        "baseline": 405,
+        "candidate": 402,
+        "absolute": -3,
+        "percent": -0.7407407407407407,
+        "percentUnavailableReason": null
+      },
+      "applyTotalMs": {
+        "baseline": 7723.59999999986,
+        "candidate": 7544.099999998696,
+        "absolute": -179.50000000116415,
+        "percent": -2.324045781774916,
+        "percentUnavailableReason": null
+      },
+      "renderMeasuredCount": {
+        "baseline": 405,
+        "candidate": 402,
+        "absolute": -3,
+        "percent": -0.7407407407407407,
+        "percentUnavailableReason": null
+      },
+      "renderTotalMs": {
+        "baseline": 210.59999999968568,
+        "candidate": 131.29999999993015,
+        "absolute": -79.29999999975553,
+        "percent": -37.65432098759444,
+        "percentUnavailableReason": null
+      },
+      "readsPerMinute": {
+        "baseline": 0.4917532343806907,
+        "candidate": 2.1589756117647774,
+        "absolute": 1.6672223773840866,
+        "percent": 339.0363826450009,
+        "percentUnavailableReason": null
+      },
+      "longTasksPerMinute": {
+        "baseline": 75.72999809462637,
+        "candidate": 74.84448787451228,
+        "absolute": -0.8855102201140852,
+        "percent": -1.1692991448482806,
+        "percentUnavailableReason": null
+      }
+    },
+    {
+      "session": 4,
+      "gestures": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "writeAttempts": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "successfulWrites": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "readAttempts": {
+        "baseline": 6,
+        "candidate": 9,
+        "absolute": 3,
+        "percent": 50,
+        "percentUnavailableReason": null
+      },
+      "successfulReadResponses": {
+        "baseline": 5,
+        "candidate": 8,
+        "absolute": 3,
+        "percent": 60,
+        "percentUnavailableReason": null
+      },
+      "abortedReadAttempts": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "readHttpErrors": {
+        "baseline": 1,
+        "candidate": 1,
+        "absolute": 0,
+        "percent": 0,
+        "percentUnavailableReason": null
+      },
+      "readNetworkErrors": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "payloadBytes": {
+        "baseline": 6644306,
+        "candidate": 2665358,
+        "absolute": -3978948,
+        "percent": -59.88508054866829,
+        "percentUnavailableReason": null
+      },
+      "staleLoads": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "abortedLoads": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "failedLoads": {
+        "baseline": 1,
+        "candidate": 1,
+        "absolute": 0,
+        "percent": 0,
+        "percentUnavailableReason": null
+      },
+      "stateApplies": {
+        "baseline": 5,
+        "candidate": 8,
+        "absolute": 3,
+        "percent": 60,
+        "percentUnavailableReason": null
+      },
+      "renderCalls": {
+        "baseline": 5,
+        "candidate": 8,
+        "absolute": 3,
+        "percent": 60,
+        "percentUnavailableReason": null
+      },
+      "domReplacements": {
+        "baseline": 5,
+        "candidate": 8,
+        "absolute": 3,
+        "percent": 60,
+        "percentUnavailableReason": null
+      },
+      "domMutations": {
+        "baseline": 585,
+        "candidate": 1194,
+        "absolute": 609,
+        "percent": 104.1025641025641,
+        "percentUnavailableReason": null
+      },
+      "sampledOpacityFrames": {
+        "baseline": 2032,
+        "candidate": 1845,
+        "absolute": -187,
+        "percent": -9.202755905511811,
+        "percentUnavailableReason": null
+      },
+      "fadedOpacityFrames": {
+        "baseline": 10,
+        "candidate": 0,
+        "absolute": -10,
+        "percent": -100,
+        "percentUnavailableReason": null
+      },
+      "nearlyInvisibleFrames": {
+        "baseline": 10,
+        "candidate": 0,
+        "absolute": -10,
+        "percent": -100,
+        "percentUnavailableReason": null
+      },
+      "pageErrors": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "longTaskCount": {
+        "baseline": 5,
+        "candidate": 8,
+        "absolute": 3,
+        "percent": 60,
+        "percentUnavailableReason": null
+      },
+      "longTaskTotalMs": {
+        "baseline": 929,
+        "candidate": 2257,
+        "absolute": 1328,
+        "percent": 142.94940796555437,
+        "percentUnavailableReason": null
+      },
+      "longTaskBlockingMs": {
+        "baseline": 679,
+        "candidate": 1857,
+        "absolute": 1178,
+        "percent": 173.49042709867453,
+        "percentUnavailableReason": null
+      },
+      "applyMeasuredCount": {
+        "baseline": 5,
+        "candidate": 8,
+        "absolute": 3,
+        "percent": 60,
+        "percentUnavailableReason": null
+      },
+      "applyTotalMs": {
+        "baseline": 443.39999999993597,
+        "candidate": 720.9000000000815,
+        "absolute": 277.5000000001455,
+        "percent": 62.58457374835038,
+        "percentUnavailableReason": null
+      },
+      "renderMeasuredCount": {
+        "baseline": 5,
+        "candidate": 8,
+        "absolute": 3,
+        "percent": 60,
+        "percentUnavailableReason": null
+      },
+      "renderTotalMs": {
+        "baseline": 114.5,
+        "candidate": 205.80000000016298,
+        "absolute": 91.30000000016298,
+        "percent": 79.73799126651788,
+        "percentUnavailableReason": null
+      },
+      "readsPerMinute": {
+        "baseline": 0.7376370613212186,
+        "candidate": 1.0795135944982897,
+        "absolute": 0.341876533177071,
+        "percent": 46.34752659590055,
+        "percentUnavailableReason": null
+      },
+      "longTasksPerMinute": {
+        "baseline": 0.6146975511010155,
+        "candidate": 0.9595676395540353,
+        "absolute": 0.3448700884530198,
+        "percent": 56.10402836896059,
+        "percentUnavailableReason": null
+      }
+    },
+    {
+      "session": 5,
+      "gestures": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "writeAttempts": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "successfulWrites": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "readAttempts": {
+        "baseline": 4,
+        "candidate": 8,
+        "absolute": 4,
+        "percent": 100,
+        "percentUnavailableReason": null
+      },
+      "successfulReadResponses": {
+        "baseline": 4,
+        "candidate": 8,
+        "absolute": 4,
+        "percent": 100,
+        "percentUnavailableReason": null
+      },
+      "abortedReadAttempts": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "readHttpErrors": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "readNetworkErrors": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "payloadBytes": {
+        "baseline": 5314889,
+        "candidate": 8780,
+        "absolute": -5306109,
+        "percent": -99.83480369956926,
+        "percentUnavailableReason": null
+      },
+      "staleLoads": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "abortedLoads": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "failedLoads": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "stateApplies": {
+        "baseline": 4,
+        "candidate": 8,
+        "absolute": 4,
+        "percent": 100,
+        "percentUnavailableReason": null
+      },
+      "renderCalls": {
+        "baseline": 4,
+        "candidate": 8,
+        "absolute": 4,
+        "percent": 100,
+        "percentUnavailableReason": null
+      },
+      "domReplacements": {
+        "baseline": 4,
+        "candidate": 8,
+        "absolute": 4,
+        "percent": 100,
+        "percentUnavailableReason": null
+      },
+      "domMutations": {
+        "baseline": 468,
+        "candidate": 1232,
+        "absolute": 764,
+        "percent": 163.24786324786325,
+        "percentUnavailableReason": null
+      },
+      "sampledOpacityFrames": {
+        "baseline": 2004,
+        "candidate": 1835,
+        "absolute": -169,
+        "percent": -8.43313373253493,
+        "percentUnavailableReason": null
+      },
+      "fadedOpacityFrames": {
+        "baseline": 10,
+        "candidate": 0,
+        "absolute": -10,
+        "percent": -100,
+        "percentUnavailableReason": null
+      },
+      "nearlyInvisibleFrames": {
+        "baseline": 10,
+        "candidate": 0,
+        "absolute": -10,
+        "percent": -100,
+        "percentUnavailableReason": null
+      },
+      "pageErrors": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "longTaskCount": {
+        "baseline": 4,
+        "candidate": 8,
+        "absolute": 4,
+        "percent": 100,
+        "percentUnavailableReason": null
+      },
+      "longTaskTotalMs": {
+        "baseline": 877,
+        "candidate": 2723,
+        "absolute": 1846,
+        "percent": 210.4903078677309,
+        "percentUnavailableReason": null
+      },
+      "longTaskBlockingMs": {
+        "baseline": 677,
+        "candidate": 2323,
+        "absolute": 1646,
+        "percent": 243.1314623338257,
+        "percentUnavailableReason": null
+      },
+      "applyMeasuredCount": {
+        "baseline": 4,
+        "candidate": 8,
+        "absolute": 4,
+        "percent": 100,
+        "percentUnavailableReason": null
+      },
+      "applyTotalMs": {
+        "baseline": 352.8999999999651,
+        "candidate": 663.800000000163,
+        "absolute": 310.9000000001979,
+        "percent": 88.09861150474035,
+        "percentUnavailableReason": null
+      },
+      "renderMeasuredCount": {
+        "baseline": 4,
+        "candidate": 8,
+        "absolute": 4,
+        "percent": 100,
+        "percentUnavailableReason": null
+      },
+      "renderTotalMs": {
+        "baseline": 124.20000000001164,
+        "candidate": 260.6000000000349,
+        "absolute": 136.40000000002328,
+        "percent": 109.82286634461393,
+        "percentUnavailableReason": null
+      },
+      "readsPerMinute": {
+        "baseline": 0.4917586838122702,
+        "candidate": 0.9595752060550531,
+        "absolute": 0.46781652224278286,
+        "percent": 95.1313190071439,
+        "percentUnavailableReason": null
+      },
+      "longTasksPerMinute": {
+        "baseline": 0.4917586838122702,
+        "candidate": 0.9595752060550531,
+        "absolute": 0.46781652224278286,
+        "percent": 95.1313190071439,
+        "percentUnavailableReason": null
+      }
+    },
+    {
+      "session": 6,
+      "gestures": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "writeAttempts": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "successfulWrites": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "readAttempts": {
+        "baseline": 4,
+        "candidate": 4,
+        "absolute": 0,
+        "percent": 0,
+        "percentUnavailableReason": null
+      },
+      "successfulReadResponses": {
+        "baseline": 4,
+        "candidate": 4,
+        "absolute": 0,
+        "percent": 0,
+        "percentUnavailableReason": null
+      },
+      "abortedReadAttempts": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "readHttpErrors": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "readNetworkErrors": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "payloadBytes": {
+        "baseline": 5314887,
+        "candidate": 1332646,
+        "absolute": -3982241,
+        "percent": -74.92616494010127,
+        "percentUnavailableReason": null
+      },
+      "staleLoads": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "abortedLoads": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "failedLoads": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "stateApplies": {
+        "baseline": 4,
+        "candidate": 4,
+        "absolute": 0,
+        "percent": 0,
+        "percentUnavailableReason": null
+      },
+      "renderCalls": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "domReplacements": {
+        "baseline": 4,
+        "candidate": 4,
+        "absolute": 0,
+        "percent": 0,
+        "percentUnavailableReason": null
+      },
+      "domMutations": {
+        "baseline": 211,
+        "candidate": 299,
+        "absolute": 88,
+        "percent": 41.70616113744076,
+        "percentUnavailableReason": null
+      },
+      "sampledOpacityFrames": {
+        "baseline": 2015,
+        "candidate": 1841,
+        "absolute": -174,
+        "percent": -8.635235732009926,
+        "percentUnavailableReason": null
+      },
+      "fadedOpacityFrames": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "nearlyInvisibleFrames": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "pageErrors": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "longTaskCount": {
+        "baseline": 4,
+        "candidate": 8,
+        "absolute": 4,
+        "percent": 100,
+        "percentUnavailableReason": null
+      },
+      "longTaskTotalMs": {
+        "baseline": 900,
+        "candidate": 1498,
+        "absolute": 598,
+        "percent": 66.44444444444444,
+        "percentUnavailableReason": null
+      },
+      "longTaskBlockingMs": {
+        "baseline": 700,
+        "candidate": 1098,
+        "absolute": 398,
+        "percent": 56.857142857142854,
+        "percentUnavailableReason": null
+      },
+      "applyMeasuredCount": {
+        "baseline": 4,
+        "candidate": 4,
+        "absolute": 0,
+        "percent": 0,
+        "percentUnavailableReason": null
+      },
+      "applyTotalMs": {
+        "baseline": 401,
+        "candidate": 407.70000000001164,
+        "absolute": 6.7000000000116415,
+        "percent": 1.6708229426462946,
+        "percentUnavailableReason": null
+      },
+      "renderMeasuredCount": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "renderTotalMs": {
+        "baseline": 0,
+        "candidate": 0,
+        "absolute": 0,
+        "percent": null,
+        "percentUnavailableReason": "zero-baseline"
+      },
+      "readsPerMinute": {
+        "baseline": 0.491772679642107,
+        "candidate": 0.4797766887721438,
+        "absolute": -0.011995990869963225,
+        "percent": -2.4393365810181726,
+        "percentUnavailableReason": null
+      },
+      "longTasksPerMinute": {
+        "baseline": 0.491772679642107,
+        "candidate": 0.9595533775442876,
+        "absolute": 0.4677806979021806,
+        "percent": 95.12132683796365,
+        "percentUnavailableReason": null
+      }
+    }
+  ],
+  "warnings": [
+    {
+      "code": "cost-regression",
+      "metric": "readAttempts",
+      "baseline": 26,
+      "candidate": 110,
+      "absolute": 84,
+      "percent": 323.0769230769231,
+      "percentUnavailableReason": null
+    },
+    {
+      "code": "cost-regression",
+      "metric": "sqlCalls",
+      "baseline": 51,
+      "candidate": 56,
+      "absolute": 5,
+      "percent": 9.803921568627452,
+      "percentUnavailableReason": null
+    },
+    {
+      "code": "cost-regression",
+      "metric": "domReplacements",
+      "baseline": 324,
+      "candidate": 325,
+      "absolute": 1,
+      "percent": 0.30864197530864196,
+      "percentUnavailableReason": null
+    },
+    {
+      "code": "cost-regression",
+      "metric": "domMutations",
+      "baseline": 91321,
+      "candidate": 102959,
+      "absolute": 11638,
+      "percent": 12.744056679186606,
+      "percentUnavailableReason": null
+    },
+    {
+      "code": "cost-regression",
+      "metric": "longTaskCount",
+      "baseline": 1810,
+      "candidate": 1922,
+      "absolute": 112,
+      "percent": 6.1878453038674035,
+      "percentUnavailableReason": null
+    },
+    {
+      "code": "cost-regression",
+      "metric": "longTaskTotalMs",
+      "baseline": 148472,
+      "candidate": 167601,
+      "absolute": 19129,
+      "percent": 12.883910771054476,
+      "percentUnavailableReason": null
+    },
+    {
+      "code": "cost-regression",
+      "metric": "longTaskBlockingMs",
+      "baseline": 57972,
+      "candidate": 71501,
+      "absolute": 13529,
+      "percent": 23.33712826881943,
+      "percentUnavailableReason": null
+    },
+    {
+      "code": "cost-regression",
+      "metric": "renderTotalMs",
+      "baseline": 4833.299999999814,
+      "candidate": 6093.999999999767,
+      "absolute": 1260.6999999999534,
+      "percent": 26.08362816295289,
+      "percentUnavailableReason": null
+    },
+    {
+      "code": "baseline-freshness-not-comparable",
+      "message": "Baseline includes stale/aborted reads. Fewer completed SQL calls or payload bytes can reflect deferred updates; final convergence alone does not establish equal freshness during activity."
+    }
+  ],
+  "limitations": [
+    "Browser read attempts include aborts before or after sending; they are not completed database statements.",
+    "pg_stat_statements spans a different interval, including bootstrap/reload outside browser observation; SQL cannot be assigned to individual sessions from these snapshots.",
+    "Payload is observed read response body bytes, including observed error bodies; it excludes unknown bodies, protocol overhead, writes and other endpoints.",
+    "DOM replacement/mutation counts are distinct from render calls. Sampled panel opacity is not comprehensive flicker or layout stability measurement.",
+    "Read durations use successful responses only (nearest-rank percentiles), include induced transport latency and exclude aborted requests.",
+    "Write HTTP durations cover observed successful write requests. UI write/apply summaries are copied from the instrumented subset (currently at most the last 100 evaluation samples); they are not all gestures. Null RPC/UI timing is unavailable, not zero. Aggregate p95/p99 cannot be reconstructed from session percentiles.",
+    "Browser long-task/apply/render timing is optional: older artifacts report not-recorded, not zero. Long-task availability depends on browser support; synchronous render duration does not include subsequent asynchronous rendering/paint.",
+    "Session indices follow the same workload order. Samples end before reload; the passed report attests reload assertions separately.",
+    "Completed observation records do not include requests still in flight at snapshot time. Absence of recorded errors does not certify unobserved intervals.",
+    "Massa sintética calibrada; não clone de Production.",
+    "Seis sessões/quatro Controladores: três escritores, dois observadores escolares e um Dashboard; inclui abas da mesma identidade.",
+    "Esta jornada mede avaliações e CRUD fiscal; não certifica patrimônio, Pendências, horas de uso ou staging.",
+    "Latência e HTTP 500 são induzidos no transporte; dados e Realtime são reais.",
+    "Um socket real é desconectado; snapshot SQL anterior é retido até recovery ser solicitado. UI só converge após a nova resposta global de recovery. A sonda antiga acrescenta uma leitura nas duas variantes."
+  ]
+}

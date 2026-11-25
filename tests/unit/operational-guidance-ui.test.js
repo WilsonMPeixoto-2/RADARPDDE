@@ -11,6 +11,40 @@ const guidance = require('../../src/domain/operational-guidance.js');
 const app = fs.readFileSync(path.join(__dirname, '../../app.js'), 'utf8');
 const tree = acorn.parse(app, { ecmaVersion: 'latest', sourceType: 'script' });
 const navigationNode = tree.body.find(node => node.type === 'FunctionDeclaration' && node.id.name === 'openOperationalGuidanceTarget');
+const inputNode = tree.body.find(node => node.type === 'FunctionDeclaration' && node.id.name === 'getOperationalGuidanceInput');
+const codecNode = tree.body.find(node => node.type === 'FunctionDeclaration' && node.id.name === 'encodePendencyIdReference');
+const encodePendencyIdReference = vm.runInNewContext('(' + app.slice(codecNode.start, codecNode.end) + ')');
+
+test('ponte real aguarda competência inicializada no startup e após saída com contexto reiniciado', () => {
+    function freshCompetenceApi() {
+        const sandbox = { module: { exports: {} } };
+        vm.createContext(sandbox);
+        vm.runInContext(fs.readFileSync(path.join(__dirname, '../../src/domain/competence-context.js'), 'utf8'), sandbox);
+        return sandbox.module.exports;
+    }
+    const context = {
+        operationalGuidanceDashboardSchoolIds: ['ESC-A'], activeProntuarioCompetencia: '2026-05',
+        currentView: 'dashboard', activeSchoolId: 'ESC-A',
+        escolas: [{ id: 'ESC-A' }], programas: [], pendencias: [], notasRegistradas: [], bens: [], verificacoes: {},
+        getRadarAccessProfile: () => 'controlador', hasRadarCapability: () => true, encodePendencyIdReference,
+        window: { RadarCompetenceContext: freshCompetenceApi(),
+            RadarApplicationServices: { data: { repository: { capabilities: () => ({ remote: true }) }, currentOperationalCompetence: '2026-05' } },
+            RadarAccessPolicy: { normalizeProfile: role => role, CAPABILITIES: { OPEN_PENDENCY: 'open-pendency' } },
+            RadarAuthContext: { authorization: { role: 'technical_admin' } }
+        }
+    };
+    vm.createContext(context);
+    vm.runInContext(app.slice(inputNode.start, inputNode.end), context);
+    assert.equal(context.getOperationalGuidanceInput().ready, false);
+    assert.equal(context.getOperationalGuidanceInput().competence, '');
+    context.window.RadarCompetenceContext.initialize({ competences: ['2026-05'], currentExercise: '2026', closingCompetence: '2026-05' });
+    assert.equal(context.getOperationalGuidanceInput().ready, true);
+    assert.equal(context.getOperationalGuidanceInput().competence, '2026-05');
+    context.window.RadarCompetenceContext = freshCompetenceApi();
+    context.currentView = 'prontuario';
+    assert.equal(context.getOperationalGuidanceInput('ESC-A').ready, false);
+    assert.equal(context.getOperationalGuidanceInput('ESC-A').competence, '');
+});
 
 function navigationHarness({ fiscal = true, inventory = false, initialMonth = '2026-05',
     rendered = true, focusable = true, afterHydration } = {}) {
@@ -72,6 +106,18 @@ test('navegação real abre a Pendência identificada, limpa filtro anterior e n
     assert.equal(await navigate({ entity: 'pendency', id: 'P-1', schoolId: 'ESC-A', competence: '2026-05' }), true);
     assert.deepEqual(calls.slice(0, 4), [['hydrated'], ['view', 'pendencias', undefined], ['clear-filters'], ['pendency', 'P-1']]);
     assert.equal(context.document.activeElement, nodes.drawer);
+});
+
+test('navegação da orientação não confunde número123, string123 ou zero no mesmo recorte', async () => {
+    const { navigate, calls, context, nodes } = navigationHarness();
+    const ids = [123, '123', 0];
+    context.pendencias = ids.map(id => ({ id, escolaId: 'ESC-A', competenciaOrigem: '2026-05', programaId: 'BASIC' }));
+    for (const id of ids) {
+        nodes.drawer.dataset.pendencyId = id;
+        assert.equal(await navigate({ entity: 'pendency', id, schoolId: 'ESC-A', competence: '2026-05', programId: 'BASIC' }), true);
+        assert.equal(context.document.activeElement, nodes.drawer);
+    }
+    assert.deepEqual(calls.filter(call => call[0] === 'pendency').map(call => call[1]), ids);
 });
 
 test('Inventário navega ao bem sem exigir flags T5 e sem liberar análise fiscal', async () => {
@@ -167,14 +213,42 @@ class PanelNode {
 }
 function descendants(node) { return node.childNodes.flatMap(child => [child, ...descendants(child)]); }
 
+test('botões usam referências tipadas do codec, preservam zero e nunca transformam ID hostil em HTML ou handler', async () => {
+    const ids = [123, '123', 0, `pend-'/</div><img src=x onerror=alert(1)>`];
+    const panel = new PanelNode('section');
+    const calls = [];
+    const root = { document: { createElement: tag => new PanelNode(tag) }, RadarOperationalGuidance: guidance,
+        encodePendencyIdReference, openOperationalGuidanceTarget: target => { calls.push(target.id); return true; } };
+    const input = { ready: true, competence: '2026-05', encodePendencyIdReference, capabilities: { fiscal: true },
+        schools: [{ id: 'ESC-A' }], pendencies: ids.map(id => ({ id, escolaId: 'ESC-A', competenciaOrigem: '2026-05',
+            programaId: 'BASIC', documentoKey: 'extCC', status: 'Aberta' })) };
+    ui.renderPanel(root, panel, input);
+    const buttons = descendants(panel).filter(node => node.tagName === 'button' && node.dataset.action === 'open-operational-guidance');
+    assert.equal(buttons.length, ids.length);
+    for (const id of ids) {
+        const button = buttons.find(node => node.dataset.pendencyRef === encodePendencyIdReference(id));
+        assert.ok(button);
+        assert.equal(button.dataset.guidanceTargetId, String(id));
+        assert.equal(button.attributes.onclick, undefined);
+        button.click();
+    }
+    await Promise.resolve();
+    assert.deepEqual(calls, ids);
+    assert.equal(descendants(panel).filter(node => node.tagName === 'img').length, 0);
+    ui.renderPanel(root, panel, { ...input, pendencies: input.pendencies.filter(record => record.id === 0) }, { schoolMode: true });
+    const shortcut = panel.childNodes[0].childNodes.find(node => node.dataset.action === 'open-operational-guidance');
+    assert.equal(shortcut.dataset.guidanceTargetId, '0');
+    assert.equal(shortcut.dataset.pendencyRef, encodePendencyIdReference(0));
+});
+
 test('escola começa compacta, com próximo passo navegável, e só expõe a fila após expansão explícita', async () => {
     const panel = new PanelNode('section');
     panel.id = 'operational-school-guidance';
     const navigated = [];
-    const root = { document: { createElement: tag => new PanelNode(tag) }, RadarOperationalGuidance: guidance,
+    const root = { document: { createElement: tag => new PanelNode(tag) }, RadarOperationalGuidance: guidance, encodePendencyIdReference,
         openOperationalGuidanceTarget: target => { navigated.push(target); return true; } };
     const input = { ready: true, competence: '2026-05', now: '2026-05-20T12:00:00Z',
-        capabilities: { fiscal: true }, schools: [{ id: 'ESC-A', denominação: 'Escola A' }],
+        capabilities: { fiscal: true }, encodePendencyIdReference, schools: [{ id: 'ESC-A', denominação: 'Escola A' }],
         pendencies: [{ id: 'P-1', escolaId: 'ESC-A', competenciaOrigem: '2026-05',
             programaId: 'BASIC', documentoKey: 'extCC', status: 'Aberta' }], programs: [{ id: 'BASIC', name: 'PDDE Básico' }] };
     assert.equal(ui.renderPanel(root, panel, input, { schoolMode: true }), true);

@@ -1234,6 +1234,21 @@ body.dark-theme .correction-preservation-icon {
 .is-structured-correction .correction-plan-notice[data-level="blocker"] {
     border-inline-start-color: var(--danger, #b91c1c);
 }
+.is-granular-correction .radar-operational-correction-effects {
+    min-inline-size: 0;
+    grid-template-columns: minmax(0, 1fr);
+}
+.is-granular-correction .correction-plan-notice {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+}
+.is-granular-correction [data-operational-correction-alt] {
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: start;
+}
 .is-structured-correction .radar-operational-correction-feedback[data-status="info"] {
     color: var(--text-muted);
     font-size: 0.77rem;

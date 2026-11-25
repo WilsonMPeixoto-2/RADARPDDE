@@ -436,6 +436,7 @@ jobs:
           --project=desktop-chromium --output=test-results-late-auth
 
       - name: Exercitar correção operacional autenticada (T2–T5) com piloto local
+        id: operational-correction-e2e
         shell: bash
         env:
           RADAR_E2E_OPERATIONAL_CORRECTION_LOCAL: '1'
@@ -458,6 +459,10 @@ jobs:
             --project=desktop-chromium --workers=1 --output=test-results-operational-correction
 
       - name: Exercitar orientação operacional autenticada sem piloto de correção
+        # Esta prova de leitura é independente das correções T2–T5. Uma falha
+        # nesse grupo não deve esconder o diagnóstico da orientação, mas uma
+        # falha anterior de infraestrutura/Auth continua impedindo sua execução.
+        if: ${{ !cancelled() && (success() || steps.operational-correction-e2e.outcome == 'failure') }}
         shell: bash
         env:
           RADAR_E2E_SUPABASE_LOCAL: '1'

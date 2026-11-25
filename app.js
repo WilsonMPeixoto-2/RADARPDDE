@@ -5659,8 +5659,10 @@ function setOperationalGuidanceDashboardSchools(schoolIds) {
 
 function getOperationalGuidanceInput(schoolId = null) {
     const selectedIds = schoolId ? new Set([String(schoolId)]) : new Set(operationalGuidanceDashboardSchoolIds);
-    const competence = schoolId ? activeProntuarioCompetencia
-        : window.RadarCompetenceContext?.getState?.()?.activeKey;
+    const competenceContext = window.RadarCompetenceContext;
+    const competence = competenceContext?.isInitialized?.() === true
+        ? schoolId ? activeProntuarioCompetencia : competenceContext.getState().activeKey
+        : '';
     const service = window.RadarApplicationServices?.data;
     const remote = service?.repository?.capabilities?.().remote === true;
     const role = window.RadarAccessPolicy.normalizeProfile(window.RadarAuthContext?.authorization?.role);
@@ -5673,7 +5675,7 @@ function getOperationalGuidanceInput(schoolId = null) {
         competence: competence || '',
         now: new Date().toISOString(),
         schools: escolas.filter(school => selectedIds.has(String(school.id))),
-        programs: programas, pendencies: pendencias, invoices: notasRegistradas,
+        programs: programas, pendencies: pendencias, invoices: notasRegistradas, encodePendencyIdReference,
         assets: bens, verifications: verificacoes,
         capabilities: { fiscal, inventory: role === 'inventario' || (!role && profile === 'inventario') }
     };
@@ -5692,7 +5694,8 @@ async function openOperationalGuidanceTarget(target = {}) {
         }
         const source = target.entity === 'pendency' ? pendencias
             : target.entity === 'invoice' ? notasRegistradas : bens;
-        const records = source.filter(record => String(record.id) === String(target.id)
+        const records = source.filter(record => (target.entity === 'pendency'
+            ? record.id === target.id : String(record.id) === String(target.id))
             && String(record.escolaId) === String(target.schoolId));
         return records.length === 1 ? window.RadarOperationalGuidance.contextOf(records[0]) : null;
     }

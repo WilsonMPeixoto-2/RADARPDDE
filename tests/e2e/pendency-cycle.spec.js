@@ -1204,25 +1204,6 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
       ))
     }))).toEqual({ injected: false, injectedElement: false });
 
-    const controllerPendencyActions = page.locator(
-      '#cycle-b-action-queue .cycle-b-action-item > button[data-pendency-ref]'
-    );
-    await expect(controllerPendencyActions).toHaveCount(3);
-    const hostileDashboardAction = page.locator(
-      '#cycle-b-action-queue .cycle-b-action-item'
-    ).filter({ hasText: context.documents[2] }).getByRole('button', {
-      name: 'Abrir pendência',
-      exact: true
-    });
-    await expect(hostileDashboardAction).toHaveAttribute(
-      'onclick',
-      'openCycleBOperationalAction(this)'
-    );
-    expect(JSON.parse(await hostileDashboardAction.getAttribute('data-pendency-ref'))).toEqual({
-      type: 'string',
-      value: context.hostileId
-    });
-
     const selectedReference = () => page.evaluate(() => ({
       idType: typeof activePendencyDetailId,
       id: activePendencyDetailId,
@@ -1231,12 +1212,43 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
         : null
     }));
 
-    await hostileDashboardAction.click();
-    await expect.poll(selectedReference).toEqual({
-      idType: 'string',
-      id: context.hostileId,
-      focusedReference: { type: 'string', value: context.hostileId }
-    });
+    const guidance = page.locator('[data-operational-guidance="dashboard"]');
+    const controllerPendencyActions = guidance.locator(
+      '[data-guidance-group="follow_up"] > button[data-action="open-operational-guidance"][data-pendency-ref]'
+    );
+    const expectedReferences = [
+      { type: 'number', value: context.numericId },
+      { type: 'string', value: context.stringNumericId },
+      { type: 'string', value: context.hostileId }
+    ];
+    for (const [index, reference] of expectedReferences.entries()) {
+      await page.evaluate(() => switchView('dashboard'));
+      await expect(guidance).toHaveCount(1);
+      await guidance.locator('button[data-guidance-filter="follow_up"]').click();
+      await expect(controllerPendencyActions).toHaveCount(3);
+      expect(await controllerPendencyActions.evaluateAll(elements => elements.map(element => ({
+        handler: element.getAttribute('onclick'),
+        reference: JSON.parse(element.dataset.pendencyRef)
+      })))).toEqual(expect.arrayContaining(expectedReferences.map(expected => ({
+        handler: null, reference: expected
+      }))));
+
+      const dashboardAction = guidance.locator('[data-guidance-group="follow_up"]')
+        .filter({ hasText: context.documents[index] })
+        .locator('button[data-action="open-operational-guidance"]');
+      await expect(dashboardAction).toHaveCount(1);
+      expect(JSON.parse(await dashboardAction.getAttribute('data-pendency-ref'))).toEqual(reference);
+      await dashboardAction.click();
+      await expect.poll(selectedReference).toEqual({
+        idType: reference.type,
+        id: reference.value,
+        focusedReference: reference
+      });
+    }
+    expect(await page.evaluate(() => ({
+      injected: window.__pendencyAlertInjected,
+      injectedElement: Boolean(document.querySelector('[onerror*="__pendencyAlertInjected"]'))
+    }))).toEqual({ injected: false, injectedElement: false });
 
     await openAlertsDropdown();
     await bellPendencyAlerts.filter({ hasText: context.documents[0] }).click();

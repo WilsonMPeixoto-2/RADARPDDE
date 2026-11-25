@@ -20,22 +20,56 @@ async function settleWrites(page) {
   await page.evaluate(() => window.RadarApplicationServices.data.remoteExecutionTail);
 }
 
+async function scrollGeometry(anchor) {
+  return anchor.evaluate(element => {
+    const bounds = node => {
+      if (!node) return null;
+      const { top, bottom, left, width, height } = node.getBoundingClientRect();
+      return { top, bottom, left, width, height };
+    };
+    const content = document.querySelector('main.content-area');
+    const programHeader = Array.from(document.querySelectorAll('[data-program-header]'))
+      .find(node => node.dataset.programHeader === element.dataset.programId);
+    return {
+      scrollTop: content.scrollTop,
+      scrollHeight: content.scrollHeight,
+      clientHeight: content.clientHeight,
+      viewport: { width: window.innerWidth, height: window.innerHeight },
+      content: bounds(content), anchor: bounds(element),
+      guidance: bounds(document.getElementById('operational-school-guidance')),
+      schoolHeader: bounds(document.querySelector('.prontuario-school-header')),
+      programHeader: bounds(programHeader)
+    };
+  });
+}
+
 async function setStableScrollProbe(page, anchor) {
-  const contentArea = page.locator('main.content-area');
   await anchor.evaluate(element => {
     element.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
   });
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(resolve)));
-  const beforeScroll = await contentArea.evaluate(element => element.scrollTop);
-  const beforeAnchorTop = await anchor.evaluate(element => element.getBoundingClientRect().top);
+  const before = await scrollGeometry(anchor);
+  const beforeScroll = before.scrollTop;
+  const beforeAnchorTop = before.anchor.top;
   expect(beforeScroll).toBeGreaterThan(50);
-  return { contentArea, anchor, beforeScroll, beforeAnchorTop };
+  return { anchor, beforeScroll, beforeAnchorTop, before };
 }
 
-async function expectScrollPreserved(page, probe) {
+async function expectScrollPreserved(page, probe, testInfo, stage) {
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-  const afterScroll = await probe.contentArea.evaluate(element => element.scrollTop);
-  const afterAnchorTop = await probe.anchor.evaluate(element => element.getBoundingClientRect().top);
+  const after = await scrollGeometry(probe.anchor);
+  const afterScroll = after.scrollTop;
+  const afterAnchorTop = after.anchor.top;
+  const geometryPath = testInfo.outputPath(`ancora-${stage}.json`);
+  fs.writeFileSync(geometryPath, JSON.stringify({
+    before: probe.before, after,
+    anchorDisplacement: afterAnchorTop - probe.beforeAnchorTop,
+    allowedDisplacement: 4
+  }, null, 2) + '\n');
+  await testInfo.attach(`ancora-${stage}-geometria`, { path: geometryPath, contentType: 'application/json' });
+  const screenshotPath = testInfo.outputPath(`ancora-${stage}.png`);
+  await page.screenshot({ path: screenshotPath });
+  await testInfo.attach(`ancora-${stage}-tela`, { path: screenshotPath, contentType: 'image/png' });
   expect(afterScroll).toBeGreaterThan(0);
   expect(Math.abs(afterAnchorTop - probe.beforeAnchorTop)).toBeLessThanOrEqual(4);
 }
@@ -87,7 +121,7 @@ test('edição explícita salva, desfaz e retifica Pendência atomicamente sem b
   const editScroll = await setStableScrollProbe(page, row);
   await dialog.getByRole('button', { name: 'Salvar edição', exact: true }).click();
   await expect(dialog).toBeHidden();
-  await expectScrollPreserved(page, editScroll);
+  await expectScrollPreserved(page, editScroll, testInfo, 'editar-analise');
   await expect(row.locator('select.select-analise')).toHaveValue('Não analisado');
   await expect.poll(async () => (await verification(page)).analysis.extCC).toBe('Não analisado');
 
@@ -115,7 +149,7 @@ test('edição explícita salva, desfaz e retifica Pendência atomicamente sem b
   const pendencySaveScroll = await setStableScrollProbe(page, row);
   await pendencyForm.locator('button[type="submit"]').click();
   await expect(pendencyForm).not.toHaveClass(/show/);
-  await expectScrollPreserved(page, pendencySaveScroll);
+  await expectScrollPreserved(page, pendencySaveScroll, testInfo, 'salvar-pendencia');
   await expect(pendencyForm).toHaveAttribute('aria-hidden', 'true');
   await expect.poll(async () => (await verification(page)).analysis.extCC).toBe('Incorreto');
   const viewPendency = row.getByRole('button', { name: 'Visualizar pendência', exact: true });
@@ -147,7 +181,7 @@ test('edição explícita salva, desfaz e retifica Pendência atomicamente sem b
   expect(saved.administrative_log.action).toBe('Avaliação técnica retificada');
   await expect(dialog).toBeHidden();
   await expect(row.locator('select.select-analise')).toHaveValue('Correto');
-  await expectScrollPreserved(page, formalRetificationScroll);
+  await expectScrollPreserved(page, formalRetificationScroll, testInfo, 'retificar-e-anular');
   await expect(page.locator('#pendency-notice')).toContainText('Avaliação retificada e Pendência anulada com sucesso.');
   await expect.poll(async () => (await verification(page)).row_version).toBe(saved.verification.row_version);
   await page.reload();

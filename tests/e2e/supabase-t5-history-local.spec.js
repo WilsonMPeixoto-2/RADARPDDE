@@ -286,10 +286,16 @@ test('T5 ambiguidade real: nenhum efeito sem escolha; alcance completo explícit
     expect(await snapshot(page, data.school)).toEqual(before);
     await page.setViewportSize({ width: 390, height: 844 });
     await screenshot(testInfo, dialog, 't5-ambiguidade-alcance-celular-real');
+    await dialog.locator('.radar-operational-correction-body').evaluate(node => { node.scrollTop = node.scrollHeight; });
+    await screenshot(testInfo, dialog, 't5-ambiguidade-efeitos-celular-real');
+    expect(await dialog.locator('.radar-operational-correction-effects')
+        .evaluate(node => node.scrollWidth <= node.clientWidth + 1)).toBe(true);
     await dialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
     expect(await snapshot(page, data.school)).toEqual(before);
 
     await page.setViewportSize({ width: 1280, height: 900 });
+    // A correção fecha sua gaveta de origem; após cancelar, o operador abre os detalhes novamente.
+    await openPendency(page, data, 'P', 'aguardando');
     dialog = await openCorrection(page, 'delete_review', data.id('OLD'));
     const completePreview = page.waitForResponse(response => response.url().endsWith('/rpc/preview_operational_change')
         && response.request().postDataJSON()?.p_request?.action === 'delete_pendency');
@@ -397,6 +403,10 @@ test('T5 Inventário real: corrige conclusão e exclui bem independente sem pode
     await page.setViewportSize({ width: 390, height: 844 });
     expect(await dialog.evaluate(node => node.scrollWidth <= node.clientWidth + 1)).toBe(true);
     await screenshot(testInfo, dialog, 't5-correcao-inventariada-celular-real');
+    await dialog.locator('.radar-operational-correction-body').evaluate(node => { node.scrollTop = node.scrollHeight; });
+    await screenshot(testInfo, dialog, 't5-correcao-inventariada-efeitos-celular-real');
+    expect(await dialog.locator('.radar-operational-correction-effects')
+        .evaluate(node => node.scrollWidth <= node.clientWidth + 1)).toBe(true);
     await page.setViewportSize({ width: 1280, height: 900 });
     await confirm(page, dialog);
     after = await snapshot(page, data.school);

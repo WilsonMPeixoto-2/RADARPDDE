@@ -46,6 +46,12 @@
             return false;
         }
     }
+    function setTargetReference(root, node, target) {
+        const id = target.id;
+        if (id !== undefined && id !== null) node.dataset.guidanceTargetId = String(id);
+        else if (target.contextKey) node.dataset.guidanceTargetId = target.contextKey;
+        if (target.entity === 'pendency') node.dataset.pendencyRef = root.encodePendencyIdReference(id);
+    }
     function renderItem(root, item, schoolMode) {
         const doc = root.document;
         const card = element(doc, 'article', 'operational-guidance-item');
@@ -53,7 +59,7 @@
         card.dataset.guidanceKey = item.key;
         card.dataset.guidanceGroup = item.group;
         card.dataset.schoolId = item.schoolId;
-        if (item.target.id) card.dataset.guidanceTargetId = item.target.id;
+        setTargetReference(root, card, item.target);
         const heading = element(doc, 'div', 'operational-guidance-item-heading');
         if (!schoolMode) heading.appendChild(element(doc, 'p', 'operational-guidance-school',
             [item.schoolName, item.schoolDesignation].filter(Boolean).join(' · ')));
@@ -75,7 +81,7 @@
         const button = element(doc, 'button', 'btn btn-secondary btn-sm', buttonLabels[item.target.entity]);
         button.type = 'button';
         button.dataset.action = 'open-operational-guidance';
-        button.dataset.guidanceTargetId = item.target.id || item.target.contextKey;
+        setTargetReference(root, button, item.target);
         button.setAttribute('aria-label', `${buttonLabels[item.target.entity]}: ${item.title} — ${item.schoolName}`);
         button.addEventListener('click', () => { void navigate(root, item); });
         card.appendChild(button);
@@ -98,7 +104,7 @@
         const header = element(doc, 'div', 'panel-header operational-guidance-header');
         const heading = element(doc, 'div', 'operational-guidance-heading');
         if (!schoolMode) heading.appendChild(element(doc, 'span', 'operational-guidance-kicker', 'Organizar o trabalho'));
-        heading.appendChild(element(doc, 'h2', '', schoolMode ? 'Próximos passos desta escola' : 'Próximas ações operacionais'));
+        heading.appendChild(element(doc, 'h2', '', schoolMode ? 'Próximos passos' : 'Próximas ações operacionais'));
         const refresh = element(doc, 'button', 'btn btn-secondary btn-sm', 'Atualizar sugestões');
         refresh.type = 'button';
         refresh.dataset.action = 'refresh-operational-guidance';
@@ -118,16 +124,17 @@
             content.id = `${panel.id}-content`;
             const count = model.items.length;
             heading.appendChild(element(doc, 'p', 'operational-guidance-compact-count',
-                `${count} sugest${count === 1 ? 'ão' : 'ões'} · ${competenceLabel(model.scope.competence)}`));
+                `${count} sugest${count === 1 ? 'ão' : 'ões'}`));
             const next = model.items[0];
             if (next) {
                 const shortcut = element(doc, 'button', 'operational-guidance-next');
                 shortcut.type = 'button';
                 shortcut.dataset.action = 'open-operational-guidance';
-                shortcut.dataset.guidanceTargetId = next.target.id || next.target.contextKey;
+                setTargetReference(root, shortcut, next.target);
                 shortcut.append(element(doc, 'span', 'operational-guidance-next-label', 'Próximo passo'),
                     element(doc, 'strong', '', [next.title, next.programName].filter(Boolean).join(' · ')));
                 shortcut.setAttribute('aria-label', `Abrir próximo passo: ${next.title}`);
+                shortcut.setAttribute('title', [next.title, next.programName].filter(Boolean).join(' · '));
                 shortcut.addEventListener('click', () => { void navigate(root, next); });
                 header.appendChild(shortcut);
             }

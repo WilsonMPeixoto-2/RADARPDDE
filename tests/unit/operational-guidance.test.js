@@ -2,13 +2,21 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const guidance = require('../../src/domain/operational-guidance.js');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+const acorn = require('acorn');
+const appSource = fs.readFileSync(path.join(__dirname, '../../app.js'), 'utf8');
+const codecNode = acorn.parse(appSource, { ecmaVersion: 'latest', sourceType: 'script' }).body
+    .find(node => node.type === 'FunctionDeclaration' && node.id.name === 'encodePendencyIdReference');
+const encodePendencyIdReference = vm.runInNewContext('(' + appSource.slice(codecNode.start, codecNode.end) + ')');
 
 function fixture(overrides = {}) {
     return {
         now: '2026-05-20T12:00:00Z', competence: '2026-05',
         schools: [{ id: 'ESC-A', denominação: 'Escola A', designação: '04.31.001', programasIds: ['BASIC', 'LEITURA'] }],
         programs: [{ id: 'BASIC', name: 'PDDE Básico' }, { id: 'LEITURA', name: 'PDDE Leitura' }],
-        capabilities: { fiscal: true, inventory: false },
+        capabilities: { fiscal: true, inventory: false }, encodePendencyIdReference,
         pendencies: [], invoices: [], assets: [], verifications: {}, ...overrides
     };
 }
@@ -37,6 +45,22 @@ test('fila distingue trabalho pronto para reanálise, providência externa e doi
     assert.equal(model.items[1].stageDays, 2);
     assert.equal(model.items[1].historicDays, 49);
     assert.deepEqual(model.items[0].target, { entity: 'pendency', id: 'REANALISE', schoolId: 'ESC-A', competence: '2026-05', programId: 'BASIC' });
+});
+
+test('Pendências preservam IDs legados tipados, zero e referências hostis pelo codec existente', () => {
+    const ids = [123, '123', 0, `pend-'/</div><img src=x onerror=alert(1)>`];
+    const model = guidance.buildGuidance(fixture({ pendencies: ids.map(id => pendency(id)) }));
+    assert.equal(model.items.length, ids.length);
+    assert.equal(model.scope.duplicateIdentities, 0);
+    assert.equal(new Set(model.items.map(item => item.key)).size, ids.length);
+    for (const id of ids) {
+        const item = model.items.find(candidate => candidate.target.id === id);
+        assert.ok(item, `Referência ${encodePendencyIdReference(id)} preservada`);
+        assert.ok(item.key.includes(encodePendencyIdReference(id)));
+    }
+    const duplicate = guidance.buildGuidance(fixture({ pendencies: [pendency(123), pendency(123), pendency('123')] }));
+    assert.equal(duplicate.scope.duplicateIdentities, 1);
+    assert.deepEqual(duplicate.items.map(item => item.target.id), ['123']);
 });
 
 test('datas ausentes, futuras e sem envio não viram prazo zero nem falsa duração de etapa', () => {
@@ -169,9 +193,10 @@ test('Pendência manual mantém a área responsável registrada, sem atribuí-la
 
 test('orientação é leitura pura, identidade ambígua não produz botão e nova chamada usa estado corrigido', () => {
     const source = fixture({ pendencies: [pendency('P-1')], invoices: [invoice('DUP'), invoice('DUP')] });
-    const before = structuredClone(source);
+    const before = JSON.stringify(source);
     const first = guidance.buildGuidance(source);
-    assert.deepEqual(source, before);
+    assert.equal(JSON.stringify(source), before);
+    assert.equal(source.encodePendencyIdReference, encodePendencyIdReference);
     assert.equal(first.scope.duplicateIdentities, 1);
     assert.equal(first.items.length, 1);
     source.pendencies[0].status = 'Resolvida';

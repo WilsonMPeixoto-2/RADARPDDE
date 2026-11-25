@@ -77,25 +77,37 @@
         const inventory = capabilities.inventory === true || fiscal;
         const inScope = record => schoolById.has(text(record.escolaId || record.school_id))
             && (!competence || contextOf(record).competence === competence);
+        const encodePendencyReference = input.encodePendencyIdReference;
+        if (list(input.pendencies).length && typeof encodePendencyReference !== 'function') {
+            throw new Error('O codec de referências de Pendências ainda não está disponível.');
+        }
+        function identityKey(entity, id) {
+            if (entity === 'pendency') {
+                try { return `${entity}:${encodePendencyReference(id)}`; }
+                catch (_invalidReference) { return null; }
+            }
+            return text(id) ? `${entity}:${text(id)}` : null;
+        }
         const seen = new Map();
         const duplicateIds = new Set();
         for (const [entity, records] of [['pendency', input.pendencies], ['invoice', input.invoices], ['asset', input.assets]]) {
             for (const record of list(records)) {
-                const key = `${entity}:${text(record.id)}`;
-                if (!text(record.id) || seen.has(key)) duplicateIds.add(key);
+                const key = identityKey(entity, record.id);
+                if (!key) continue;
+                if (seen.has(key)) duplicateIds.add(key);
                 seen.set(key, true);
             }
         }
         scope.duplicateIdentities = duplicateIds.size;
         function add(entity, record, group, title, reason, target, extra = {}) {
-            const id = text(record.id);
-            if (!id || duplicateIds.has(`${entity}:${id}`)) return;
+            const identity = identityKey(entity, record.id);
+            if (!identity || duplicateIds.has(identity)) return;
             const schoolId = text(record.escolaId || record.school_id);
             const school = schoolById.get(schoolId);
             if (!school) return;
             const context = contextOf(record);
             items.push({
-                key: `${entity}:${schoolId}:${id}:${group}`, group, title, reason,
+                key: `${identity}:${schoolId}:${group}`, group, title, reason,
                 schoolId, schoolName: text(school.denominação || school.denominacao || school.name || school.id),
                 schoolDesignation: text(school.designação || school.designacao),
                 competence: context.competence, programId: context.programId,

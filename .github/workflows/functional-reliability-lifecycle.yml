@@ -126,6 +126,19 @@ jobs:
           --project=desktop-chromium
           --workers=1
 
+      - name: Preservar capturas e geometria em artefato pequeno
+        if: ${{ always() && steps.impact.outputs.run_full != 'false' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: functional-lifecycle-visual-${{ github.run_id }}
+          path: |
+            test-results/**/*.png
+            test-results/**/error-context.md
+            test-results/**/*.json
+            playwright-report/data/*.png
+          if-no-files-found: warn
+          retention-days: 7
+
       - name: Publicar evidências das jornadas
         if: ${{ always() && steps.impact.outputs.run_full != 'false' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9

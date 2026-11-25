@@ -238,7 +238,7 @@ test.describe('Polimento visual global', () => {
     await expect(viewPendency).toBeVisible();
     await viewPendency.click();
     await expect(page.locator('#pendency-preview-drawer')).toBeVisible();
-    await expect(page.getByText('Próximo passo', { exact: true })).toBeVisible();
+    await expect(page.locator('#pendency-preview-drawer').getByText('Próximo passo', { exact: true })).toBeVisible();
     await shot(page, testInfo, '12-drawer-pendencia-polido');
 
     const registerSubmission = page.locator('#pendency-preview-drawer')
