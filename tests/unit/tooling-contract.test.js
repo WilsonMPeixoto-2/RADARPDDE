@@ -278,8 +278,9 @@ test('tooling A/B fixa ambiente, qualidade CSS, revisão de dependências e regr
     assert.match(dependabot, /css-quality:/);
     assert.match(dependencyReview, /actions\/dependency-review-action@[0-9a-f]{40}/);
     assert.match(visualWorkflow, /npm run test:visual/);
-    assert.match(visualConfig, /workers:\s*2/);
     const visual = require('../../playwright.visual.config');
+    // As capturas do guia usam o mesmo perfil serial homologado do E2E desktop.
+    assert.equal(visual.workers, 1);
     for (const project of visual.projects) {
         assert.deepEqual({ ...visual.use, ...project.use }.viewport, { width: 1440, height: 900 });
     }

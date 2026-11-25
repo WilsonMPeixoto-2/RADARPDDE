@@ -2,7 +2,7 @@
 
 **Base:** `6dd6a9f9f8147deb39c5813baad0b5521427b8bd` · **Branch de trabalho:** `feat/evolucao-integral-pos-t4-20261125`.
 
-**Candidata de revisão:** [PR #564](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/564), sem merge. O código funcional e as capturas desta primeira rodada correspondem a `16b9a5baf6c25b0da872c060a691898cabed4c63`; resultados posteriores devem identificar seu próprio SHA.
+**Candidata de revisão:** [PR #564](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/564), sem merge. A prova visual final corresponde ao head `5e5bbe03c1c42a58c60b108647f28da54584ae38`, exercitado pelo merge de CI `ab5cf41b1bdd336e71b986e718cef07f041026c0`: **18/18 casos aprovados, sem falha, repetição ou caso ignorado**. Resultados das rodadas anteriores permanecem identificados por seus próprios SHAs.
 
 Evidência da evolução após a publicação de #562. Estas mudanças ainda precisam de revisão, gates e publicação próprios; este documento não substitui o plano T5.
 
@@ -39,7 +39,7 @@ node --check tests/e2e/school-timeline.spec.js
 git diff --check
 ```
 
-O E2E `tests/e2e/school-timeline.spec.js` foi atualizado e executado na CI. A projeção integral, o recorte SME e a recuperação de falha passaram. Duas jornadas adicionais falharam por usar `getByLabel` exato num rótulo que contém o `select` e suas opções, embora a árvore de acessibilidade mostrasse `combobox "Tipo de movimentação"`. O seletor foi corrigido para esse papel e nome acessível exatos, preservando as verificações de comportamento. A comprovação final depende da execução dessa correção; a instalação local de Chromium havia retornado HTTP 403.
+O E2E `tests/e2e/school-timeline.spec.js` foi atualizado e executado na CI. A primeira rodada encontrou duas jornadas com `getByLabel` exato num rótulo que contém o `select` e suas opções, embora a árvore de acessibilidade mostrasse `combobox "Tipo de movimentação"`. O seletor foi corrigido para esse papel e nome acessível exatos, preservando as verificações de comportamento. Na prova final abaixo, os **cinco casos do histórico passaram**, incluindo projeção integral, recorte SME, filtros, responsividade/tema escuro e recuperação de falha. O Chromium foi executado no GitHub Actions; não se apresenta essa execução como navegação manual no computador do proprietário.
 
 ### Obrigações T5 preservadas
 
@@ -83,13 +83,17 @@ A revisão preserva a composição aprovada do Prontuário e aprimora tarefas co
 - Estados vazios distinguem ausência de movimentos de busca sem resultado. Falha de carregamento oferece nova tentativa explícita.
 - Modal **Registrar Contato** mostra nome e código da escola. O estado vazio de Registros Internos usa a linguagem da superfície, sem o rótulo técnico “log”.
 
-Não foram alteradas RPCs, capacidades ou regras de negócio por essas melhorias. E2E nos workflows existentes deve provar busca, filtro, contexto, ausência de transbordamento e capturas dos viewports relevantes antes de declarar a nova interface homologada. As capturas da baseline já publicada são evidência de antes; não devem ser apresentadas como capturas da candidata atual.
+Não foram alteradas RPCs, capacidades ou regras de negócio por essas melhorias. Os E2E existentes comprovaram busca, filtro, contexto e ausência de transbordamento nos cenários exercitados. As capturas da baseline já publicada são evidência de antes, identificadas separadamente das capturas da candidata.
 
-### Provas visuais efetivamente obtidas
+### Provas visuais finais e seus limites
 
-O [workflow de regressão visual 45550728981](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45550728981) aprovou **5/5 cenários** no SHA `16b9a5ba`. O artefato `14993179915` foi baixado e seu ZIP conferido pelo SHA-256 `ee8984e3ab2326ccd7c73a15a66e56e543bbbe30ffa2db1875e802ebc71ca699`. As imagens do contato em 1440 e 390 pixels e do histórico vazio em 1440 pixels foram examinadas: escola e código permanecem legíveis, campos e ações cabem no modal móvel, e o histórico explicita competência, filtros e a ação para consultar outro mês.
+O [workflow de regressão visual 45556056812](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45556056812) aprovou **18/18 cenários** na candidata `5e5bbe03`: cinco casos do histórico, sete do guia, um da demonstração documental e cinco cenários visuais anteriores. O `report.json` registra 18 resultados esperados, zero inesperados, zero instáveis e zero ignorados, com uma execução por caso.
 
-A comparação anterior usa `6dd6a9f9`, [run 45547911799](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45547911799), artefato `14991858881`, ZIP SHA-256 `01ef49bc345b6df2f78f747a07a4a8fc51eb875739a23ba7c619c3145e2e465a`. Os dois pares antes/depois preservam o mesmo viewport de 1440 × 900 e os PNGs originais. São cenários com fixtures de teste; a comparação não registra operações sobre escolas reais.
+O artefato leve `14995133984` (`visual-captures-45556056812`, 9.368.309 bytes) foi baixado e conferido: ZIP SHA-256 `640ce2cc77388e85a1d02326b92719e2cae7a494a3a880b4a36f9e0a32e9becc`. Contém 28 PNGs e um PDF. As capturas de contato em 1440/390, histórico vazio em 1440, histórico preenchido móvel, POC e guia foram inspecionadas. Escola e código permanecem legíveis no contato; o histórico distingue competência, filtros, eventos e ausência de resultados; o guia mantém título e conteúdo legíveis nos dois temas.
+
+A comparação de antes usa `6dd6a9f9`, [run 45547911799](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45547911799), artefato `14991858881`, ZIP SHA-256 `01ef49bc345b6df2f78f747a07a4a8fc51eb875739a23ba7c619c3145e2e465a`. Os dois pares antes/depois (contato e histórico vazio) preservam o mesmo viewport de 1440 × 900 e os PNGs originais. São fixtures de teste; não registram operações sobre escolas reais.
+
+**Limites observados:** nas capturas de 960 px, a busca do cabeçalho global cobre parte do controle de competência. O conteúdo do guia permanece legível, mas essas imagens não comprovam perfeição do cabeçalho global; sem comparação equivalente da baseline, não se atribui a origem desse comportamento. No histórico preenchido desktop, a posição de rolagem da captura deixa parte dos filtros atrás do cabeçalho fixo; essa imagem não é usada como prova de visibilidade integral dos filtros. A galeria apresenta a captura desktop do histórico vazio e a preenchida móvel. Não se extrapola a inspeção para dispositivos físicos ou jornadas não exercitadas.
 
 O projeto Vercel ignorou o deploy desta branch, conforme sua configuração vigente que constrói somente `main`. Um status de integração Vercel bem-sucedido não representa uma URL de preview publicada. Guia, demonstração documental e comparação visual são entregues também como HTMLs autossuficientes privados.
 
@@ -116,6 +120,8 @@ O guia foi reorganizado em oito tarefas: localizar escola/mês; escolher a corre
 
 Três capturas reais da homologação autenticada local do PR #562 substituem a sequência extensa de imagens antigas. A origem e os hashes constam em `assets/controller-guide/README.md`. Essas imagens documentam operações T0–T4 já publicadas; a revisão do layout do próprio guia exige suas capturas novas. A ajuda contextual pode abrir diretamente um tópico por `RadarControllerGuide.openTopic`, com busca limpa e foco no destino, sem fabricar uma rota paralela.
 
+A revisão reduziu o guia público de 16 para **8 capítulos** e de 3.160 para **1.896 palavras**. A prova final percorreu a busca, o sumário e o controle real de tema em 1440, 960 e 390 px, mantendo as verificações de título desobstruído, rolagem estável e transbordamento. As sete capturas finais foram inspecionadas com a ressalva externa de 960 px acima. O PDF final foi renderizado e examinado nas **sete páginas A4**: oito tarefas presentes, quadro e explicações íntegros, capítulo 02 junto de seu título e introdução. PDF SHA-256 `8225c402a4c1f50d2d5354e1fcadc12232c1557d53ba61401cb91f1f342f79c2`.
+
 ## Continuidade e limite desta entrega
 
 ### Validação automatizada obtida
@@ -127,10 +133,18 @@ Três capturas reais da homologação autenticada local do PR #562 substituem a 
 - [Desktop completo 45550728881](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45550728881), em `16b9a5ba`: **293 aprovados, 2 falhas, 1 instável que passou na repetição e 90 ignorados**, entre 386 casos. As duas falhas foram os seletores do histórico descritos acima. Os sete testes do guia e o teste da POC passaram diretamente. O teste preexistente de posição na edição apresentou deslocamento de 47 px na primeira tentativa, acima do limite de 4 px; a repetição passou. No [preprod 45550729074](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45550729074), foram 294 aprovados, as mesmas duas falhas, 90 ignorados e nenhuma repetição necessária; seus outros sete jobs passaram.
 - Artefato desktop `14993887231`, ZIP SHA-256 `18c3484df0961d09f92bfe6caea9bf065737a353f71efbed9c7f2bd6c6431f92`, baixado e conferido. A inspeção visual revelou sobreposição da busca fixa do guia sobre o cabeçalho global durante a rolagem, apesar de seus testes anteriores passarem. O ajuste de layout recebe nova captura; esse primeiro conjunto não certifica o layout final do guia.
 
-A suíte visual existente foi ampliada para os cinco testes do histórico, sete do guia e um da demonstração, mantendo os cinco cenários anteriores. A coleta confirmou **18 casos em cinco arquivos**; coleta não significa execução aprovada. Nenhum workflow paralelo novo foi criado.
+### Fechamento da validação visual e ajuste do contrato de tooling
+
+Os resultados históricos acima não são apresentados como aprovação da ponta. Depois deles, a inspeção conduziu ao ajuste de CSS do guia em `3ed5cb73`; os commits `4e27e5d4` e `5e5bbe03` alteraram somente testes e coleta de evidências, sem nova mudança no produto. O teste passa a acionar o controle real de tema antes da navegação e conserva suas verificações; seu limite total de 60 segundos cobre seis estados, sete capturas e um PDF.
+
+A suíte visual ampliada mantém **18 casos em cinco arquivos**. Rodadas com dois workers e rastreamento contínuo ultrapassaram o orçamento desse teste em pontos diferentes da coleta. O perfil final usa um worker e trace na primeira repetição, como o E2E desktop já homologado. Não remove casos, não relaxa asserções de comportamento e não amplia novamente os limites de tempo. A execução final `45556056812` aprovou os 18 casos diretamente. O [workflow Nomenclatura Painel 45556055702](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45556055702) também aprovou o guia.
+
+O contrato estático de tooling ainda exigia literalmente `workers: 2`. Essa divergência causou falha no [Validar RADAR 45556056390](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45556056390), nos dois runners do [comparativo Ubuntu 45556056794](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45556056794) e no job de readiness do [Supabase 45556055526](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45556055526). Neste último, 1.523 de 1.524 testes unitários passaram e a mesma guarda foi a única falha; os jobs `supabase-local` e `migration-smoke` passaram. O teste foi atualizado para conferir `visual.workers === 1` na configuração carregada. A contraprova local reproduziu a falha antiga; após o ajuste, **15/15 testes do contrato passaram**. Essa última alteração é apenas de teste e documentação: a interface continua idêntica à capturada em `5e5bbe03`. Os workflows da nova ponta devem ser consultados no PR; o resultado local não é rotulado como aprovação remota.
+
+Nenhum workflow paralelo novo foi criado. A coleta leve deixa PNGs, PDF e relatórios acessíveis sem duplicar os traces do relatório completo.
 
 As contagens acima pertencem a suítes diferentes e podem conter cobertura repetida. Não foram somadas para fabricar um total de casos distintos. A homologação da nova ponta deve ser consultada no PR; capturas de uma ponta anterior só se aplicam à nova se os arquivos da interface permanecerem idênticos.
 
 O [checkpoint](../continuity/prontuario-t0-t6/CHECKPOINT.md) foi reconciliado com a publicação de #562, o backup recuperável, a migration 68 e o smoke de produção. Modelo canônico e catálogo de superfícies agora distinguem correção composta de rotas ordinárias legadas, limpeza de análise de exclusão de histórico e terminalidade ordinária de patrimônio de exclusão causal autorizada.
 
-`npm run check:continuity` confirmou a integridade do registro: 21 decisões, 56 obrigações; as oito obrigações de UI da T5 continuam planejadas. Essa verificação documental não prova funcionamento de interface. Resultados da CI e capturas do novo SHA devem ser acrescentados quando efetivamente obtidos; nenhum merge/deploy desta candidata foi autorizado pelo prompt.
+`npm run check:continuity` confirmou a integridade do registro: 21 decisões, 56 obrigações; as oito obrigações de UI da T5 continuam planejadas. Essa verificação documental não prova funcionamento de interface. A descrição do PR conserva o estado mais recente da CI; nenhum merge/deploy desta candidata foi autorizado pelo prompt.
