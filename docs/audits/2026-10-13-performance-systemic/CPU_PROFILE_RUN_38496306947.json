@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "title": "CPU e resposta visual de tres operacoes do RADAR em banco descartavel",
+  "runId": 38496306947,
+  "runUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/38496306947",
+  "runStatus": "success",
+  "artifactIds": {
+    "baseline": 11864693873,
+    "candidate": 11864219267,
+    "comparison": 11864414518
+  },
+  "scope": "Um gesto por tipo e variante; teste Chromium / Supabase isolado; nao extrapolar para tempo da Production",
+  "samples": {
+    "baseline": [
+      {
+        "operation": "bonificacao",
+        "wallMs": 452,
+        "longTaskMs": 72,
+        "domMutations": 66,
+        "mainReplacements": 0,
+        "contextReads": 0,
+        "rpc": "save_verification_with_log",
+        "cloneValueSelfCpuMs": 37
+      },
+      {
+        "operation": "analise_tecnica",
+        "wallMs": 373,
+        "longTaskMs": 65,
+        "domMutations": 59,
+        "mainReplacements": 0,
+        "contextReads": 0,
+        "rpc": "save_verification_with_log",
+        "cloneValueSelfCpuMs": 35
+      },
+      {
+        "operation": "nova_nota_fiscal",
+        "wallMs": 1003,
+        "longTaskMs": 178,
+        "domMutations": 109,
+        "mainReplacements": 1,
+        "contextReads": 0,
+        "rpc": "save_invoice_with_effects_v2",
+        "cloneValueSelfCpuMs": 54
+      }
+    ],
+    "candidate": [
+      {
+        "operation": "bonificacao",
+        "wallMs": 468,
+        "longTaskMs": 90,
+        "domMutations": 66,
+        "mainReplacements": 0,
+        "contextReads": 0,
+        "rpc": "save_verification_with_log",
+        "cloneValueSelfCpuMs": 43
+      },
+      {
+        "operation": "analise_tecnica",
+        "wallMs": 343,
+        "longTaskMs": 62,
+        "domMutations": 59,
+        "mainReplacements": 0,
+        "contextReads": 0,
+        "rpc": "save_verification_with_log",
+        "cloneValueSelfCpuMs": 35
+      },
+      {
+        "operation": "nova_nota_fiscal",
+        "wallMs": 992,
+        "longTaskMs": 194,
+        "domMutations": 109,
+        "mainReplacements": 1,
+        "contextReads": 0,
+        "rpc": "save_invoice_with_effects_v2",
+        "cloneValueSelfCpuMs": 49
+      }
+    ]
+  },
+  "profileCaveats": [
+    "Amostra unica nao fornece percentis ou regressao estatistica.",
+    "Tempos da sessao incluem latencia do servidor e espera, alem de codigo JS.",
+    "Amostras (idle) e (program) do CDP nao atribuem CPU a funcoes aplicativas; total amostrado de CPU nao e aditivo ao wallclock.",
+    "As contagens de DOM sao registros do MutationObserver, e nao numero de renders.",
+    "ContextReads:0 indica ausencia de read_operational_context/read_school_operational_context na janela; nao exclui outros REST, websockets, dados antes e depois.",
+    "Custo cloneValueSelfCpuMs e aproximacao por amostragem, nao cronometro exato da funcao.",
+    "A confirmacao visual foi verificada e os tres testes passaram, mas nao sao garantias de Production."
+  ],
+  "sourceReview": {
+    "cloneRoutine": "src/data/repository-contract.js:116-126",
+    "transaction": "src/application/unit-of-work.js:119-140,172-177",
+    "snapshotMerge": "src/application/data-service.js:213-228,1075-1097,1171-1177",
+    "scopedState": "src/application/state-port.js:31-59,294-303,338-388",
+    "observedMechanism": "Clones do conteudo das entidades alteradas, mesmo quando a operacao altera um unico registro de uma escola; escopo atual e por entidade, nao demonstradamente por linha escolar.",
+    "safety": "As copias servem a rollback, serializacao e consistencia. Proibido remove-las sem prova funcional de equivalencia."
+  },
+  "longRunComparison": {
+    "runId": 38496306947,
+    "rounds": 400,
+    "writesPerVariant": 1107,
+    "metrics": {
+      "payloadBytes": {
+        "baseline": 37211842,
+        "candidate": 9315410,
+        "percentChange": -74.9665
+      },
+      "readAttempts": {
+        "baseline": 76,
+        "candidate": 48
+      },
+      "longTaskTotalMs": {
+        "baseline": 144899,
+        "candidate": 158367,
+        "percentChange": 9.29475
+      },
+      "longTaskBlockingMs": {
+        "baseline": 57099,
+        "candidate": 67017,
+        "percentChange": 17.36983
+      },
+      "elapsedMs": {
+        "baseline": 477056.395259,
+        "candidate": 447567.016909,
+        "percentChange": -6.18153
+      }
+    },
+    "interpretation": "Menos trafego e menor tempo total neste ensaio coexistem com mais custo acumulado de long tasks; resultados variam entre corridas, sem conclusao populacional."
+  },
+  "relatedCi": {
+    "fullDesktopRunId": 38496307068,
+    "conclusion": "failure",
+    "outcome": "221 passed, 70 skipped, 1 failed",
+    "failure": "unidentified-expense-user-journey.spec.js, assercao de posicao vertical: orientacao y=123.787 < base do cabecalho y=125.562 (diferenca ~1.775 px); retry timeout ao capturar screenshot.",
+    "interpretation": "Teste legado nao alterado pelos PRs #446/#447. Causa tecnica precisa ser confirmada independentemente; nao afrouxar assercao, nem atribuir regressao ao teste de CPU."
+  }
+}
