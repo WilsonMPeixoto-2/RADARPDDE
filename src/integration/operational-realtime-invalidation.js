@@ -24,7 +24,9 @@
     const DEFAULT_DEBOUNCE_MS = 2000;
     // A rajada pode prolongar a janela trailing, mas não adiar a releitura
     // indefinidamente. O limite é de agendamento, não de latência da RPC.
-    const MAX_DEBOUNCE_WINDOWS = 3;
+    // Limite experimental de 30 s com debounce de 2 s, alinhado ao intervalo
+    // ordinário do controlador de refresh. Não é SLA de convergência.
+    const MAX_DEBOUNCE_WINDOWS = 15;
     const SCHOOL_AGGREGATE_VIEWS = new Set(['dashboard', 'escolas', 'competencias']);
     const SCHOOL_SCOPED_ENTITIES = new Set([
         'verifications',
