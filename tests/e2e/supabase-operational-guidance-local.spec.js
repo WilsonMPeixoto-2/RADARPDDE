@@ -14,11 +14,32 @@ if (enabled && !password) throw new Error('Credencial efêmera da fixture Auth n
 const SCHOOL = 'ESC-GUIDANCE-LOCAL';
 const COMPETENCE = '2026-05';
 
+async function visualAssetsReady(page) {
+    // Os bootstraps aguardam scripts; as folhas de estilo e a marca são carregadas à parte.
+    await page.waitForFunction(() => {
+        const links = [...document.querySelectorAll('link[rel="stylesheet"], link[data-radar-nonblocking-style]')]
+            .filter(link => new URL(link.href, location.href).origin === location.origin);
+        const required = ['/src/styles/painel-controlador-expressiva.css',
+            '/src/styles/global-visual-polish.css', '/src/styles/operational-guidance.css'];
+        return required.every(pathname => links.some(link => new URL(link.href, location.href).pathname === pathname))
+            && links.every(link => link.rel === 'stylesheet' && link.sheet !== null);
+    });
+    const brand = page.locator('.sidebar-logo img.radar-original-logo');
+    await expect(brand).toHaveCount(1);
+    await expect.poll(() => brand.evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
+    await brand.evaluate(image => image.decode());
+    await page.evaluate(async () => {
+        await document.fonts.ready;
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    });
+}
+
 async function ready(page) {
     await page.waitForFunction(() => window.RadarDataContext?.ready === true
         && window.RadarAuthContext?.authorization?.role === 'controller');
     await page.evaluate(() => window.RadarProductExtensionsReady);
     await expect(page.locator('#app-layout')).toBeVisible();
+    await visualAssetsReady(page);
 }
 
 async function login(page) {
@@ -86,7 +107,21 @@ async function setTheme(page, dark) {
 }
 
 async function capture(page, testInfo, name, locator = null) {
-    await testInfo.attach(name, { body: locator ? await locator.screenshot() : await page.screenshot(), contentType: 'image/png' });
+    await visualAssetsReady(page);
+    const options = { animations: 'disabled' };
+    await testInfo.attach(name, { body: locator ? await locator.screenshot(options) : await page.screenshot(options), contentType: 'image/png' });
+}
+
+async function ensureMobileMenuClosed(page) {
+    const menu = page.locator('#mobile-menu-button');
+    const sidebar = page.locator('aside.sidebar');
+    await expect(menu).toBeVisible();
+    if (await menu.getAttribute('aria-expanded') === 'true') {
+        await sidebar.getByRole('button', { name: 'Fechar menu de navegação', exact: true }).click();
+    }
+    await expect(sidebar).toHaveAttribute('aria-hidden', 'true');
+    await expect(sidebar).toHaveCSS('visibility', 'hidden');
+    await expect.poll(() => sidebar.evaluate(node => node.getBoundingClientRect().right)).toBeLessThanOrEqual(0);
 }
 
 test('orientação autenticada sem pilotos nasce compacta e conserva a área fiscal no desktop, escuro e celular', async ({ page }, testInfo) => {
@@ -103,6 +138,8 @@ test('orientação autenticada sem pilotos nasce compacta e conserva a área fis
     const queueItems = dashboard.locator('[data-guidance-group]');
     await expect(queueItems.first()).toBeVisible();
     expect(await queueItems.evaluateAll(items => items.every(item => item.dataset.guidanceGroup === 'analysis'))).toBe(true);
+    await queueItems.first().scrollIntoViewIfNeeded();
+    await expect(queueItems.first()).toBeInViewport({ ratio: 1 });
     await capture(page, testInfo, 'orientacao-dashboard-fila-analise');
 
     const panel = await openSchool(page);
@@ -174,6 +211,7 @@ test('orientação autenticada sem pilotos nasce compacta e conserva a área fis
     await setTheme(page, true);
     await capture(page, testInfo, 'orientacao-prontuario-expandida-escuro', panel);
     await page.setViewportSize({ width: 390, height: 844 });
+    await ensureMobileMenuClosed(page);
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
     await capture(page, testInfo, 'orientacao-prontuario-expandida-celular', panel);
     await page.setViewportSize({ width: 1440, height: 900 });

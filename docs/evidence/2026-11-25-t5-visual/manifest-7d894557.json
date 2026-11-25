@@ -1,0 +1,185 @@
+{
+  "status": "Seleção técnica de evidências nativas; não representa aceite final do proprietário nem aprovação integral do run.",
+  "repository": "WilsonMPeixoto-2/RADARPDDE",
+  "pullRequest": 565,
+  "candidateSha": "7d8945577fd71dc2a0af3921484aecb72e8f9e08",
+  "candidateTree": "b55f9e1ef919647e2aa4ff00a04cd7b7ff969542",
+  "testCheckoutSha": "a5c1b39953002f949b07741954fd9f5b63ba316c",
+  "runId": 45577125292,
+  "runUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45577125292",
+  "dataScope": "Auth e RLS reais em Supabase local descartável, com escolas e registros sintéticos de fixtures; sem imagens institucionais.",
+  "pixelChanges": false,
+  "testResults": {
+    "D022": {
+      "passed": 2,
+      "failed": 0,
+      "flaky": 0
+    },
+    "T5": {
+      "passed": 6,
+      "failed": 0,
+      "flaky": 0
+    },
+    "combinedT2ToT5": {
+      "passed": 26,
+      "failed": 1,
+      "flaky": 0
+    }
+  },
+  "knownFailure": "A jornada T3 de Qualidade falhou na identificação de uma saída porque o parágrafo informativo e o input do editor tinham o mesmo ID. O reparo posterior renomeia somente o parágrafo e suas referências; não integra o SHA destas imagens e exige o próximo CI.",
+  "artifacts": [
+    {
+      "kind": "guidance",
+      "id": 15005226606,
+      "sha256": "5e7afeedf52ba934e32e3f3eca0421fbf8f85c2aff104bff6606c304bfc2851c",
+      "bytes": 1988695
+    },
+    {
+      "kind": "correction",
+      "id": 15004399181,
+      "sha256": "df4e019259bfcbcf7aae6ce5fe529d2de99f2b07af17ff3e574a9bd3a91de094",
+      "bytes": 86688330
+    }
+  ],
+  "images": [
+    {
+      "file": "02-prontuario-compacto-1440x900.png",
+      "attachment": "orientacao-prontuario-recolhida-desktop",
+      "artifactId": 15005226606,
+      "test": "orientação autenticada sem pilotos nasce compacta e conserva a área fiscal no desktop, escuro e celular",
+      "attempt": 0,
+      "width": 1440,
+      "height": 900,
+      "bytes": 399073,
+      "sha256": "0150884645043881bb7c2ffc50804762aaf0b2de4765cf160000fdaba6f24b04",
+      "caption": "O resumo da escola mostra a próxima ação e a expansão. Qualidade vazio ocupa 42 px; o título fiscal e os três controles ficam inteiros na primeira tela.",
+      "humanReview": "Geometria fiscal aprovada. A marca lateral ainda não aparece nesta captura; a próxima execução aguardará o carregamento da imagem.",
+      "sourceArchivePath": "playwright-report-operational-guidance/data/06d2da852e3c30e755c6632995a9395510b99b09.png",
+      "integratorReviewed": true
+    },
+    {
+      "file": "03-prontuario-proximas-acoes-desktop.png",
+      "attachment": "orientacao-prontuario-expandida-desktop",
+      "artifactId": 15005226606,
+      "test": "orientação autenticada sem pilotos nasce compacta e conserva a área fiscal no desktop, escuro e celular",
+      "attempt": 0,
+      "width": 1141,
+      "height": 648,
+      "bytes": 73414,
+      "sha256": "4e1f67afe45b528f7471ec668d196703144ab6b9c0b5c6b1698e2ee1174fe9aa",
+      "caption": "Sugestões baseadas nos registros carregados, com motivo e destino. A antiguidade da Pendência e a espera da etapa atual aparecem separadas.",
+      "humanReview": "Texto, filtros, cobertura e ações legíveis; três de cinco sugestões visíveis com ação para expandir a lista.",
+      "sourceArchivePath": "playwright-report-operational-guidance/data/60a70d07804fc6c789e9c4d3ef83f3d8be1cad52.png",
+      "integratorReviewed": true
+    },
+    {
+      "file": "04-prontuario-proximas-acoes-escuro.png",
+      "attachment": "orientacao-prontuario-expandida-escuro",
+      "artifactId": 15005226606,
+      "test": "orientação autenticada sem pilotos nasce compacta e conserva a área fiscal no desktop, escuro e celular",
+      "attempt": 0,
+      "width": 1141,
+      "height": 648,
+      "bytes": 101309,
+      "sha256": "8d73f1c68bf9d26a8f9207b2c704aa83c6f4bd05b211438a2d29701df4d97631",
+      "caption": "A orientação expandida mantém motivos, contagens, contexto e ações no tema escuro.",
+      "humanReview": "Inspeção nativa: cartões e controles legíveis, sem corte lateral.",
+      "sourceArchivePath": "playwright-report-operational-guidance/data/790123b5fdb048f429c4ed41f044f905074ffd6f.png",
+      "integratorReviewed": true
+    },
+    {
+      "file": "06-qualidade-vazia-detalhes-desktop.png",
+      "attachment": "orientacao-quality-vazio-expandido-desktop",
+      "artifactId": 15005226606,
+      "test": "orientação autenticada sem pilotos nasce compacta e conserva a área fiscal no desktop, escuro e celular",
+      "attempt": 0,
+      "width": 1440,
+      "height": 900,
+      "bytes": 440916,
+      "sha256": "3249204786b054488c8de3e055f41ed2004bf983c92790e957b926f13250ff7c",
+      "caption": "Ver detalhes revela a explicação completa do estado sem registros. Atualizar e Registrar saída permanecem acessíveis.",
+      "humanReview": "Expansão visual aprovada; esta imagem não comprova o salvamento de uma nova saída.",
+      "sourceArchivePath": "playwright-report-operational-guidance/data/d2ae1f95b66f973c3adb790a39c6466026b56ce6.png",
+      "integratorReviewed": true
+    },
+    {
+      "file": "07-t5-reanalise-individual-desktop.png",
+      "attachment": "t5-excluir-reanalise-real",
+      "artifactId": 15004399181,
+      "test": "T5 exclusões reais: revisão antiga preserva cancelamento/envio posterior; excluir última revisão e envio não revive substituído",
+      "attempt": 0,
+      "width": 780,
+      "height": 684,
+      "bytes": 53690,
+      "sha256": "12af05035d9e3c4a5741b9eb79e719c20a18a1b9dcc2947b49f56343fec828fc",
+      "caption": "A exclusão individual identifica escola, competência, programa, documento, envio e reanálise selecionada, e informa o que será preservado.",
+      "humanReview": "Contexto e confirmação legíveis; o corpo possui rolagem para os demais efeitos.",
+      "sourceArchivePath": "playwright-report-operational-correction/data/bfc2ff20a8efb89bd8a4392880ab1ab413793046.png",
+      "integratorReviewed": true
+    },
+    {
+      "file": "08-t5-ambiguidade-efeitos-celular.png",
+      "attachment": "t5-ambiguidade-efeitos-celular-real",
+      "artifactId": 15004399181,
+      "test": "T5 ambiguidade real: nenhum efeito sem escolha; alcance completo explícito preserva contato geral",
+      "attempt": 0,
+      "width": 390,
+      "height": 811,
+      "bytes": 47932,
+      "sha256": "f903a61adc19dd3c25724a182a5df4779ead716e52230763386f10c6493fecfb",
+      "caption": "Quando a história não comprova o alcance, a confirmação permanece bloqueada e a interface oferece escolhas explícitas para outra prévia.",
+      "humanReview": "Corpo rolado aos efeitos. Aviso e alternativas cabem na largura móvel; nenhum texto foi recomposto.",
+      "sourceArchivePath": "playwright-report-operational-correction/data/876270e5ee5e338f611b7198cff331e3ade2a254.png",
+      "integratorReviewed": true
+    },
+    {
+      "file": "09-t5-inventario-efeitos-celular.png",
+      "attachment": "t5-correcao-inventariada-efeitos-celular-real",
+      "artifactId": 15004399181,
+      "test": "T5 Inventário real: corrige conclusão e exclui bem independente sem poder apagar despesa fiscal",
+      "attempt": 0,
+      "width": 390,
+      "height": 811,
+      "bytes": 49907,
+      "sha256": "de87c2cbbd8bb5f4a2b018e5cb0e65232bf1a91bdb32e486a64ac6aee156e317",
+      "caption": "A prévia patrimonial mostra antes/depois e esclarece que a correção no RADAR não desfaz atos nos sistemas externos.",
+      "humanReview": "Corpo rolado aos efeitos, tema escuro. Situação, data, responsável, aviso e confirmação legíveis.",
+      "sourceArchivePath": "playwright-report-operational-correction/data/cdc2afa42acd3b28734ab24df7c5a77b48841e55.png",
+      "integratorReviewed": true
+    }
+  ],
+  "excluded": [
+    {
+      "attachment": "orientacao-dashboard-fila-analise",
+      "artifactId": 15005226606,
+      "sha256": "c724e359bcece43fb5da17836cf6ed0f647a01d6b2c4207a47815e0f3f235be8",
+      "reason": "KPIs capturados com bloco roxo e primeiro cartão sem texto visível; o item acionável da fila também ficou fora do enquadramento. O próximo teste aguardará assets/transições e rolará o primeiro item.",
+      "sourceArchivePath": "playwright-report-operational-guidance/data/f6f6b43f4c7092d8ebc05cafe6534dd50a6fe472.png"
+    },
+    {
+      "attachment": "orientacao-prontuario-expandida-celular",
+      "artifactId": 15005226606,
+      "sha256": "a668b55033cad72c75060dc5b3cb831e22645d2d0ae4e1d3032bd97dbd2fee68",
+      "reason": "A navegação lateral ficou sobreposta após o resize e ocultou parte da orientação. O próximo teste aguardará o menu fechado/fora do viewport.",
+      "sourceArchivePath": "playwright-report-operational-guidance/data/3178c6afe916edcce1ad67298c4ba845628b0aa6.png"
+    },
+    {
+      "attachment": "t5-envio-texto-link-real",
+      "artifactId": 15004399181,
+      "sha256": "36a1e97ac9618a566a5d2a0f9f1ca7119a6756c52f07c3677b26f834f99ea1f7",
+      "reason": "A entrada nativa do Chromium apresenta 06/12/2026, enquanto o contexto textual apresenta 12/06/2026. A imagem foi omitida por ambiguidade visual; não houve mudança de pixels ou redesenho do input.",
+      "sourceArchivePath": "playwright-report-operational-correction/data/6a038c6fcf16b455c39b5444e101bc660f43bec7.png"
+    }
+  ],
+  "geometry": {
+    "sourceAttachment": "orientacao-composicao-1440x900",
+    "sha256": "ccc4f2e257f65ce13794a0b24438000d51da6ec8983fea9229ff53ef59adb0eb",
+    "sourceArtifactId": 15005226606,
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "repositoryPath": "docs/evidence/2026-11-25-t5-visual/geometry/orientacao-composicao-7d894557.json"
+  },
+  "imageAvailability": "Os PNGs permanecem nos artefatos originais indicados; este manifesto versiona nomes, hashes, proveniência e leitura humana."
+}

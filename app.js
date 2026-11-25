@@ -9995,13 +9995,13 @@ function renderProntuario(escolaId) {
                                         <span class="quality-provisional-eyebrow">NOVO RECURSO · PDDE QUALIDADE</span>
                                         <h3 id="quality-provisional-title">Saídas sem ação definida</h3>
                                         <span class="quality-provisional-compact-status" data-quality-compact-status role="status" hidden></span>
-                                        <p id="quality-provisional-description">Registre saídas do extrato enquanto a Ação Integrada correspondente ainda não foi identificada.</p>
+                                        <p id="quality-provisional-summary-description">Registre saídas do extrato enquanto a Ação Integrada correspondente ainda não foi identificada.</p>
                                     </div>
                                 </div>
                                 <div class="quality-provisional-heading-actions">
                                     <button type="button" id="quality-provisional-details-toggle" data-quality-details
                                         class="btn btn-secondary btn-sm" aria-expanded="false"
-                                        aria-controls="quality-provisional-description quality-provisional-list" hidden>Ver detalhes</button>
+                                        aria-controls="quality-provisional-summary-description quality-provisional-list" hidden>Ver detalhes</button>
                                     <button type="button" data-quality-refresh class="btn btn-secondary btn-sm">Atualizar</button>
                                     <button type="button" data-quality-new class="btn btn-primary btn-sm">
                                         <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>

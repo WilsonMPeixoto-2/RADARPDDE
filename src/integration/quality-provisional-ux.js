@@ -128,7 +128,7 @@
     panel.dataset.qualityState = state;
     panel.classList.toggle('is-compact', !expanded);
     panel.classList.toggle('is-loading', state === 'loading');
-    panel.querySelector('#quality-provisional-description').hidden = !expanded;
+    panel.querySelector('#quality-provisional-summary-description').hidden = !expanded;
     panel.querySelector('[data-quality-list]').hidden = !expanded;
     toggle.hidden = hasRecords || state === 'error';
     toggle.setAttribute('aria-expanded', String(expanded));

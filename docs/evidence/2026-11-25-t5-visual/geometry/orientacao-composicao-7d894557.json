@@ -1,0 +1,95 @@
+{
+  "scrollY": 0,
+  "contentScrollTop": 0,
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "compact": {
+    "top": 301.1875,
+    "bottom": 335.1875,
+    "height": 34,
+    "width": 1140.8125,
+    "left": 279.1875,
+    "right": 1420
+  },
+  "quality": {
+    "top": 486.015625,
+    "bottom": 528.015625,
+    "height": 42,
+    "width": 1042.8125,
+    "left": 328.1875,
+    "right": 1371,
+    "empty": true,
+    "expanded": false
+  },
+  "monthlyCard": {
+    "top": 450.1875,
+    "bottom": 2393.65625,
+    "height": 1943.46875,
+    "width": 1140.8125,
+    "left": 279.1875,
+    "right": 1420
+  },
+  "monthlyHeader": {
+    "top": 451.1875,
+    "bottom": 482.015625,
+    "height": 30.828125,
+    "width": 1090.8125,
+    "left": 304.1875,
+    "right": 1395
+  },
+  "fiscalTitle": {
+    "top": 833.765625,
+    "bottom": 857.09375,
+    "height": 23.328125,
+    "width": 106,
+    "left": 398.1875,
+    "right": 504.1875
+  },
+  "bonificationControls": [
+    {
+      "label": "Sim",
+      "top": 848.296875,
+      "bottom": 886.296875,
+      "height": 38,
+      "width": 68,
+      "left": 677.078125,
+      "right": 745.078125
+    },
+    {
+      "label": "Não",
+      "top": 848.296875,
+      "bottom": 886.296875,
+      "height": 38,
+      "width": 68,
+      "left": 745.078125,
+      "right": 813.078125
+    },
+    {
+      "label": "N/A",
+      "top": 848.296875,
+      "bottom": 886.296875,
+      "height": 38,
+      "width": 68,
+      "left": 813.078125,
+      "right": 881.078125
+    }
+  ],
+  "invoice": {
+    "top": 944.296875,
+    "bottom": 1034.296875,
+    "height": 90,
+    "width": 1044.8125,
+    "left": 322.1875,
+    "right": 1367
+  },
+  "invoiceIdentity": {
+    "top": 963.296875,
+    "bottom": 1014.296875,
+    "height": 51,
+    "width": 323.875,
+    "left": 338.1875,
+    "right": 662.0625
+  }
+}

@@ -13,11 +13,12 @@ function deferred() {
     return { promise, resolve };
 }
 
-function setup(responses, { remote = true } = {}) {
+function setup(responses, { remote = true, realMarkup = false, dataClient = null } = {}) {
     const document = { activeElement: null };
     class Element {
         constructor(tag) {
             this.tagName = tag;
+            if (['input', 'textarea', 'select'].includes(tag)) this.value = '';
             this.children = [];
             this.dataset = {};
             this.attributes = {};
@@ -38,29 +39,69 @@ function setup(responses, { remote = true } = {}) {
         get textContent() { return (this.text || '') + this.children.map(child => child.textContent).join(''); }
         append(...nodes) { this.children.push(...nodes); }
         replaceChildren(...nodes) { this.text = ''; this.children = [...nodes]; }
-        setAttribute(key, value) { this.attributes[key] = value; }
+        setAttribute(key, value) {
+            this.attributes[key] = String(value);
+            if (key === 'id') this.id = String(value);
+            if (key === 'class') this.className = String(value);
+            if (key.startsWith('data-')) this.dataset[key.slice(5).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())] = String(value);
+        }
         addEventListener(type, callback) { this[`on${type}`] = callback; }
         focus(options) { document.activeElement = this; this.focusOptions = options; }
+        showModal() { this.open = true; }
+        close() { this.open = false; }
     }
-    const panel = new Element('section');
-    const description = new Element('p');
-    const list = new Element('div');
-    const toggle = new Element('button');
-    const status = new Element('span');
-    const refresh = new Element('button');
-    const create = new Element('button');
+    // Ler as tags/IDs reais mantém a ordem documental de getElementById.
+    // Não há mapa por ID que possa sobrescrever e esconder uma duplicidade.
+    function realElements(markup) {
+        return Array.from(markup.matchAll(/<([a-z][\w:-]*)\b([^>]*?)>/gi), match => {
+            const element = new Element(match[1].toLowerCase());
+            element.offset = match.index;
+            for (const attribute of match[2].matchAll(/\b(id|class|aria-controls|data-[\w-]+)(?:="([^"]*)")?/g)) {
+                element.setAttribute(attribute[1], attribute[2] || '');
+            }
+            element.hidden = /(?:^|\s)hidden(?:\s|$)/.test(match[2]);
+            return element;
+        });
+    }
+    const find = (elements, selector) => elements.find(element => selector.startsWith('#')
+        ? element.id === selector.slice(1)
+        : selector.startsWith('[') ? Object.hasOwn(element.attributes, selector.slice(1, -1))
+            : element.tagName === selector) || null;
+    const appMarkup = realMarkup ? fs.readFileSync(path.join(__dirname, '../../app.js'), 'utf8') : '';
+    const indexMarkup = realMarkup ? fs.readFileSync(path.join(__dirname, '../../index.html'), 'utf8') : '';
+    const panelMarkup = realMarkup ? appMarkup.match(/<section\b[^>]*id="quality-provisional-panel"[\s\S]*?<\/section>/)?.[0] : '';
+    if (realMarkup) assert.ok(panelMarkup, 'Painel real do app deve ser encontrado');
+    const panelElements = realElements(panelMarkup || '');
+    const indexElements = realElements(indexMarkup);
+    const pick = (selector, tag) => realMarkup ? find(panelElements, selector) : new Element(tag);
+    const panel = pick('#quality-provisional-panel', 'section');
+    const description = pick('p', 'p');
+    const list = pick('[data-quality-list]', 'div');
+    const toggle = pick('[data-quality-details]', 'button');
+    const status = pick('[data-quality-compact-status]', 'span');
+    const refresh = pick('[data-quality-refresh]', 'button');
+    const create = pick('[data-quality-new]', 'button');
     description.textContent = 'Registre saídas do extrato enquanto a Ação Integrada correspondente ainda não foi identificada.';
     const selectors = new Map([
-        ['#quality-provisional-description', description], ['[data-quality-list]', list],
+        ['#quality-provisional-summary-description', description], ['[data-quality-list]', list],
         ['[data-quality-details]', toggle], ['[data-quality-compact-status]', status],
         ['[data-quality-refresh]', refresh], ['[data-quality-new]', create]
     ]);
-    panel.querySelector = selector => selectors.get(selector) || null;
+    panel.querySelector = selector => realMarkup ? find(panelElements, selector) : selectors.get(selector) || null;
     panel.append(description, list, toggle, status, refresh, create);
-    document.getElementById = id => id === 'quality-provisional-panel' ? panel : null;
+    const orderedElements = [...panelElements, ...indexElements];
+    document.getElementById = id => realMarkup ? orderedElements.find(element => element.id === id) || null
+        : id === 'quality-provisional-panel' ? panel : null;
+    if (realMarkup) {
+        const dialogMarkup = indexMarkup.match(/<dialog\b[^>]*id="quality-provisional-dialog"[\s\S]*?<\/dialog>/);
+        assert.ok(dialogMarkup, 'Editor real do index deve ser encontrado');
+        const dialogElements = indexElements.filter(element => element.offset >= dialogMarkup.index
+            && element.offset < dialogMarkup.index + dialogMarkup[0].length);
+        document.getElementById('quality-provisional-dialog').querySelector = selector => find(dialogElements, selector);
+    }
     document.createElement = tag => new Element(tag);
     const queries = [];
-    const client = { from(table) {
+    const client = dataClient || { from(table) {
         const calls = [['from', table]];
         queries.push(calls);
         const result = responses.shift();
@@ -78,7 +119,7 @@ function setup(responses, { remote = true } = {}) {
     };
     function Option(label, value) { const option = new Element('option'); option.textContent = label; option.value = value; return option; }
     vm.runInNewContext(source, { window: root, Option, Intl, Date });
-    return { root, panel, description, list, toggle, status, refresh, create, queries };
+    return { root, panel, description, list, toggle, status, refresh, create, queries, panelElements, indexElements };
 }
 
 const input = { schoolId: 'ESC-SINTETICA', competence: '2026-05', canEdit: true,
@@ -172,4 +213,70 @@ test('apresentação não amplia capacidade nem habilita consulta remota no modo
         assert.equal(ui.panel.hidden, true);
         assert.equal(ui.queries.length, 0);
     }
+});
+
+test('Qualidade real: IDs do painel e formulário são únicos e o disclosure controla só a informação', () => {
+    const ui = setup([], { realMarkup: true });
+    const elements = [...ui.panelElements, ...ui.indexElements];
+    const ids = elements.map(element => element.id).filter(id => id?.startsWith('quality-provisional-'));
+    assert.equal(new Set(ids).size, ids.length, 'IDs reais da apresentação não podem colidir com campos do editor');
+    const field = ui.root.document.getElementById('quality-provisional-description');
+    assert.equal(field.tagName, 'input');
+    assert.ok(ui.indexElements.includes(field));
+    const controlled = ui.toggle.attributes['aria-controls'].split(/\s+/);
+    assert.equal(controlled.length, 2);
+    assert.equal(new Set(controlled).size, 2);
+    for (const id of controlled) {
+        const target = ui.root.document.getElementById(id);
+        assert.ok(ui.panelElements.includes(target), `${id} deve pertencer à apresentação`);
+        assert.notEqual(target, field, 'Disclosure não pode esconder ou alterar o campo editável');
+    }
+});
+
+test('Qualidade real: descrição preenchida no input é enviada ao insert e ao formulário de identificação', async () => {
+    const inserted = [];
+    const persisted = [];
+    const dataClient = { from(table) {
+        assert.equal(table, 'quality_provisional_movements');
+        const query = {};
+        for (const method of ['select', 'eq', 'order']) query[method] = () => query;
+        query.limit = async () => ({ data: persisted, error: null });
+        query.insert = values => {
+            inserted.push(JSON.parse(JSON.stringify(values)));
+            persisted.push({ id: 'SAIDA-DESCRICAO', row_version: 1, status: 'open', ...values });
+            return query;
+        };
+        query.maybeSingle = async () => ({ data: { id: 'SAIDA-DESCRICAO' }, error: null });
+        return query;
+    } };
+    const ui = setup([], { realMarkup: true, dataClient });
+    await ui.root.RadarQualityProvisional.hydrate(input);
+    ui.create.onclick();
+    const descriptionInput = ui.indexElements.find(element => element.tagName === 'input'
+        && element.id === 'quality-provisional-description');
+    assert.ok(descriptionInput, 'Campo real do editor deve ser encontrado por seu tipo e ID');
+    const expected = 'Materiais para atividades escolares — descrição preservada';
+    descriptionInput.value = expected;
+    const doc = ui.root.document;
+    doc.getElementById('quality-provisional-amount').value = '42.50';
+    doc.getElementById('quality-provisional-reference').value = 'REF-SINTETICA';
+    const dialog = doc.getElementById('quality-provisional-dialog');
+    await dialog.querySelector('form').onsubmit({ preventDefault() {} });
+    assert.equal(inserted.length, 1);
+    assert.equal(inserted[0].description, expected);
+    assert.equal(inserted[0].amount, 42.5);
+    assert.equal(dialog.open, false);
+    assert.match(ui.list.textContent, /Materiais para atividades escolares/);
+
+    const opened = [];
+    ui.root.openModalDadosNota = (...context) => { opened.push(context); return true; };
+    const descendants = element => [element, ...element.children.flatMap(descendants)];
+    const rendered = descendants(ui.list);
+    rendered.find(element => element.tagName === 'select').value = 'LEITURA';
+    rendered.find(element => element.tagName === 'button' && element.textContent === 'Identificar despesa').onclick();
+    assert.deepEqual(opened, [['ESC-SINTETICA', '2026-05_LEITURA']]);
+    assert.equal(doc.getElementById('nota-desc').value, expected);
+    assert.equal(doc.getElementById('nota-quality-provisional-id').value, 'SAIDA-DESCRICAO');
+    assert.equal(doc.getElementById('nota-quality-provisional-version').value, 1);
+    assert.equal(doc.getElementById('nota-valor').value, 42.5);
 });

@@ -1,0 +1,458 @@
+{
+  "schemaVersion": 1,
+  "retry": 0,
+  "allowedDisplacement": 4,
+  "observations": [
+    {
+      "stage": "before-stabilization",
+      "at": 1151.7999999999956,
+      "captureSnapshot": null,
+      "scrollTop": 517,
+      "scrollHeight": 2647,
+      "clientHeight": 720,
+      "main": {
+        "top": 0,
+        "left": 228,
+        "width": 1052,
+        "height": 720
+      },
+      "row": {
+        "top": 329.015625,
+        "left": 274,
+        "width": 950,
+        "height": 63.8125
+      },
+      "guidance": {
+        "top": -223.0625,
+        "left": 248,
+        "width": 1012,
+        "height": 34
+      },
+      "dialog": {
+        "top": 61.59375,
+        "left": 250,
+        "width": 780,
+        "height": 596.8125
+      },
+      "submit": {
+        "top": 595.40625,
+        "left": 881,
+        "width": 122,
+        "height": 40
+      },
+      "layerPosition": "fixed",
+      "focus": {
+        "tag": "BUTTON",
+        "id": "",
+        "inMain": true,
+        "rect": {
+          "top": 336.015625,
+          "left": 1050,
+          "width": 158,
+          "height": 46.8125
+        }
+      },
+      "saving": null,
+      "submitDisabled": false,
+      "fonts": {
+        "status": "loaded",
+        "faces": [
+          "Outfit:unloaded",
+          "Outfit:loaded",
+          "Plus Jakarta Sans:unloaded",
+          "Plus Jakarta Sans:loaded"
+        ]
+      },
+      "pendingStyles": [],
+      "extensionsLoading": false,
+      "extensionFailures": 0
+    },
+    {
+      "stage": "after-stabilization",
+      "at": 1296,
+      "captureSnapshot": null,
+      "scrollTop": 470,
+      "scrollHeight": 2600,
+      "clientHeight": 720,
+      "main": {
+        "top": 0,
+        "left": 228,
+        "width": 1052,
+        "height": 720
+      },
+      "row": {
+        "top": 329.015625,
+        "left": 274,
+        "width": 950,
+        "height": 63.8125
+      },
+      "guidance": {
+        "top": -176.0625,
+        "left": 248,
+        "width": 1012,
+        "height": 34
+      },
+      "dialog": {
+        "top": 61.59375,
+        "left": 250,
+        "width": 780,
+        "height": 596.8125
+      },
+      "submit": {
+        "top": 595.40625,
+        "left": 881,
+        "width": 122,
+        "height": 40
+      },
+      "layerPosition": "fixed",
+      "focus": {
+        "tag": "SELECT",
+        "id": "evaluation-retification-value",
+        "inMain": false,
+        "rect": {
+          "top": 278.453125,
+          "left": 277,
+          "width": 394.234375,
+          "height": 44
+        }
+      },
+      "saving": null,
+      "submitDisabled": false,
+      "fonts": {
+        "status": "loaded",
+        "faces": [
+          "Outfit:unloaded",
+          "Outfit:loaded",
+          "Plus Jakarta Sans:unloaded",
+          "Plus Jakarta Sans:loaded"
+        ]
+      },
+      "pendingStyles": [],
+      "extensionsLoading": false,
+      "extensionFailures": 0
+    },
+    {
+      "stage": "before-click",
+      "at": 1385.2999999999956,
+      "captureSnapshot": null,
+      "scrollTop": 650,
+      "scrollHeight": 2600,
+      "clientHeight": 720,
+      "main": {
+        "top": 0,
+        "left": 228,
+        "width": 1052,
+        "height": 720
+      },
+      "row": {
+        "top": 149.015625,
+        "left": 274,
+        "width": 950,
+        "height": 63.8125
+      },
+      "guidance": {
+        "top": -356.0625,
+        "left": 248,
+        "width": 1012,
+        "height": 34
+      },
+      "dialog": {
+        "top": 61.59375,
+        "left": 250,
+        "width": 780,
+        "height": 596.8125
+      },
+      "submit": {
+        "top": 595.40625,
+        "left": 881,
+        "width": 122,
+        "height": 40
+      },
+      "layerPosition": "fixed",
+      "focus": {
+        "tag": "SELECT",
+        "id": "evaluation-retification-value",
+        "inMain": false,
+        "rect": {
+          "top": 278.453125,
+          "left": 277,
+          "width": 394.234375,
+          "height": 44
+        }
+      },
+      "saving": null,
+      "submitDisabled": false,
+      "fonts": {
+        "status": "loaded",
+        "faces": [
+          "Outfit:unloaded",
+          "Outfit:loaded",
+          "Plus Jakarta Sans:unloaded",
+          "Plus Jakarta Sans:loaded"
+        ]
+      },
+      "pendingStyles": [],
+      "extensionsLoading": false,
+      "extensionFailures": 0
+    },
+    {
+      "stage": "pointerdown",
+      "at": 1575.7999999999956,
+      "captureSnapshot": null,
+      "scrollTop": 650,
+      "scrollHeight": 2600,
+      "clientHeight": 720,
+      "main": {
+        "top": 0,
+        "left": 228,
+        "width": 1052,
+        "height": 720
+      },
+      "row": {
+        "top": 149.015625,
+        "left": 274,
+        "width": 950,
+        "height": 63.8125
+      },
+      "guidance": {
+        "top": -356.0625,
+        "left": 248,
+        "width": 1012,
+        "height": 34
+      },
+      "dialog": {
+        "top": 61.59375,
+        "left": 250,
+        "width": 780,
+        "height": 596.8125
+      },
+      "submit": {
+        "top": 595.40625,
+        "left": 881,
+        "width": 122,
+        "height": 40
+      },
+      "layerPosition": "fixed",
+      "focus": {
+        "tag": "SELECT",
+        "id": "evaluation-retification-value",
+        "inMain": false,
+        "rect": {
+          "top": 278.453125,
+          "left": 277,
+          "width": 394.234375,
+          "height": 44
+        }
+      },
+      "saving": null,
+      "submitDisabled": false,
+      "fonts": {
+        "status": "loaded",
+        "faces": [
+          "Outfit:unloaded",
+          "Outfit:loaded",
+          "Plus Jakarta Sans:unloaded",
+          "Plus Jakarta Sans:loaded"
+        ]
+      },
+      "pendingStyles": [],
+      "extensionsLoading": false,
+      "extensionFailures": 0
+    },
+    {
+      "stage": "submit-entry",
+      "at": 1576.9000000000015,
+      "captureSnapshot": null,
+      "scrollTop": 650,
+      "scrollHeight": 2600,
+      "clientHeight": 720,
+      "main": {
+        "top": 0,
+        "left": 228,
+        "width": 1052,
+        "height": 720
+      },
+      "row": {
+        "top": 149.015625,
+        "left": 274,
+        "width": 950,
+        "height": 63.8125
+      },
+      "guidance": {
+        "top": -356.0625,
+        "left": 248,
+        "width": 1012,
+        "height": 34
+      },
+      "dialog": {
+        "top": 61.59375,
+        "left": 250,
+        "width": 780,
+        "height": 596.8125
+      },
+      "submit": {
+        "top": 595.40625,
+        "left": 881,
+        "width": 122,
+        "height": 40
+      },
+      "layerPosition": "fixed",
+      "focus": {
+        "tag": "BUTTON",
+        "id": "evaluation-retification-submit",
+        "inMain": false,
+        "rect": {
+          "top": 595.40625,
+          "left": 881,
+          "width": 122,
+          "height": 40
+        }
+      },
+      "saving": null,
+      "submitDisabled": false,
+      "fonts": {
+        "status": "loaded",
+        "faces": [
+          "Outfit:unloaded",
+          "Outfit:loaded",
+          "Plus Jakarta Sans:unloaded",
+          "Plus Jakarta Sans:loaded"
+        ]
+      },
+      "pendingStyles": [],
+      "extensionsLoading": false,
+      "extensionFailures": 0
+    },
+    {
+      "stage": "capture-after-pending",
+      "at": 1581.0999999999985,
+      "captureSnapshot": {
+        "top": 650,
+        "left": 0
+      },
+      "scrollTop": 650,
+      "scrollHeight": 2600,
+      "clientHeight": 720,
+      "main": {
+        "top": 0,
+        "left": 228,
+        "width": 1052,
+        "height": 720
+      },
+      "row": {
+        "top": 149.015625,
+        "left": 274,
+        "width": 950,
+        "height": 63.8125
+      },
+      "guidance": {
+        "top": -356.0625,
+        "left": 248,
+        "width": 1012,
+        "height": 34
+      },
+      "dialog": {
+        "top": 61.59375,
+        "left": 250,
+        "width": 780,
+        "height": 596.8125
+      },
+      "submit": {
+        "top": 595.40625,
+        "left": 852,
+        "width": 151,
+        "height": 40
+      },
+      "layerPosition": "fixed",
+      "focus": {
+        "tag": "BUTTON",
+        "id": "evaluation-retification-submit",
+        "inMain": false,
+        "rect": {
+          "top": 595.40625,
+          "left": 852,
+          "width": 151,
+          "height": 40
+        }
+      },
+      "saving": "true",
+      "submitDisabled": true,
+      "fonts": {
+        "status": "loaded",
+        "faces": [
+          "Outfit:unloaded",
+          "Outfit:loaded",
+          "Plus Jakarta Sans:unloaded",
+          "Plus Jakarta Sans:loaded"
+        ]
+      },
+      "pendingStyles": [],
+      "extensionsLoading": false,
+      "extensionFailures": 0
+    },
+    {
+      "stage": "after-error",
+      "at": 1978.7999999999956,
+      "captureSnapshot": null,
+      "scrollTop": 650,
+      "scrollHeight": 2600,
+      "clientHeight": 720,
+      "main": {
+        "top": 0,
+        "left": 228,
+        "width": 1052,
+        "height": 720
+      },
+      "row": {
+        "top": 149.015625,
+        "left": 274,
+        "width": 950,
+        "height": 63.8125
+      },
+      "guidance": {
+        "top": -356.0625,
+        "left": 248,
+        "width": 1012,
+        "height": 34
+      },
+      "dialog": {
+        "top": 58.921875,
+        "left": 250,
+        "width": 780,
+        "height": 602.15625
+      },
+      "submit": {
+        "top": 595.40625,
+        "left": 881,
+        "width": 122,
+        "height": 40
+      },
+      "layerPosition": "fixed",
+      "focus": {
+        "tag": "BUTTON",
+        "id": "evaluation-retification-submit",
+        "inMain": false,
+        "rect": {
+          "top": 595.40625,
+          "left": 881,
+          "width": 122,
+          "height": 40
+        }
+      },
+      "saving": null,
+      "submitDisabled": false,
+      "fonts": {
+        "status": "loaded",
+        "faces": [
+          "Outfit:unloaded",
+          "Outfit:loaded",
+          "Plus Jakarta Sans:unloaded",
+          "Plus Jakarta Sans:loaded"
+        ]
+      },
+      "pendingStyles": [],
+      "extensionsLoading": false,
+      "extensionFailures": 0
+    }
+  ]
+}
