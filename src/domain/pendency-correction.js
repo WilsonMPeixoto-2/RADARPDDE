@@ -425,6 +425,16 @@
 
         nextPendency.motivo = nextPendency.errosAtuais?.[0] || null;
         nextPendency.cancelamento = null;
+        // Espelhos legados não podem ressuscitar projeções ao recarregar/salvar.
+        for (const [alias, value] of Object.entries({
+            resolved_at: nextPendency.dataResolucao,
+            canceled_at: null,
+            responsible_area: nextPendency.responsavel,
+            next_actor: nextPendency.proximoAtor,
+            reason: nextPendency.motivo
+        })) {
+            if (Object.prototype.hasOwnProperty.call(nextPendency, alias)) nextPendency[alias] = value;
+        }
 
         nextPendency.tentativas = attempts;
 

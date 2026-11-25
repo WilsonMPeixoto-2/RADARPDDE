@@ -12,10 +12,12 @@ insert into auth.users(id,email) values
  ('00000000-0000-0000-0000-00000000c504','t5-backend-original-author@example.test');
 insert into public.controllers(id,name,user_id) values
  ('T5B-CTRL','Controlador colaborador T5','00000000-0000-0000-0000-00000000c501');
-insert into public.user_profiles(user_id,profile_id,controller_id,cre_scope,active) values
- ('00000000-0000-0000-0000-00000000c501','controller','T5B-CTRL','T5B-CRE',true),
- ('00000000-0000-0000-0000-00000000c502','inventory',null,'T5B-CRE',true),
- ('00000000-0000-0000-0000-00000000c503','sme_management',null,null,true);
+insert into public.inventory_team_members(id,name,user_id)
+ values('T5B-MEMBER','Inventariador sintético','00000000-0000-0000-0000-00000000c502');
+insert into public.user_profiles(user_id,profile_id,controller_id,inventory_member_id,cre_scope,active) values
+ ('00000000-0000-0000-0000-00000000c501','controller','T5B-CTRL',null,'T5B-CRE',true),
+ ('00000000-0000-0000-0000-00000000c502','inventory',null,'T5B-MEMBER','T5B-CRE',true),
+ ('00000000-0000-0000-0000-00000000c503','sme_management',null,null,null,true);
 insert into public.schools(id,designation,denomination,cre,inep,cnpj,sici) values
  ('T5B-S','04.99.501','Escola sintética correção granular','T5B-CRE','33999501','98.501.001/0001-01','T5B-SICI'),
  ('T5B-OTHER','04.99.502','Escola de outra CRE','T5B-OTHER-CRE','33999502','98.502.001/0001-01','T5B-OTHER');
@@ -71,6 +73,8 @@ end $$;
 select pg_temp.t5b_attempt('TEXT',1,'correto');
 select pg_temp.t5b_attempt('DATE',1,'correto');
 select pg_temp.t5b_attempt('REVIEW',1,'correto');
+update public.pendencies set payload=payload||'{"resolved_at":"2045-03-05T12:00:00Z","responsible_area":"Escola","next_actor":"Escola","reason":"Motivo legado"}'::jsonb
+ where id in ('T5B-P-REVIEW','T5B-P-DATE');
 select pg_temp.t5b_attempt('DELETE',1,null,'substituida_antes_da_analise');
 select pg_temp.t5b_attempt('DELETE',2,null);
 select pg_temp.t5b_attempt('PREVIOUS',1,'incorreto');
@@ -106,7 +110,6 @@ insert into public.pendency_contacts(id,school_id,pendency_id,contact_type,conta
   '{"pendency_id":"T5B-P-CONTACT","official_charge":true,"cobrancaEnvioRegistro":true,"description":"Texto legado"}',
   '00000000-0000-0000-0000-00000000c504'),
  ('T5B-C-STALE','T5B-S',null,'Telefone','2045-03-03','Contato concorrente','{}','00000000-0000-0000-0000-00000000c504');
-insert into public.inventory_team_members(id,name) values('T5B-MEMBER','Inventariador sintético');
 insert into public.assets(id,school_id,competence_id,description,expense_type,status,inventory_process,inventoried_at,inventoried_by_member_id,payload)
  values('T5B-ASSET-MANUAL','T5B-S','2045-03','Bem manual independente','permanente','Inventariada','PROC-MANUAL',
   '2045-03-04T12:00:00Z','T5B-MEMBER','{}'),
@@ -183,6 +186,8 @@ select is((select bonification->>'extCC' from public.verifications where id='T5B
 select is((select bonus_result from public.verifications where id='T5B-V-DATE'),'apta','atraso preserva resultado consolidado');
 select is((select submitted_at from public.pendency_attempts where id='T5B-P-DATE-A1'),
  '2045-03-02T12:00:00Z'::timestamptz,'data corrigível não substitui submitted_at');
+select ok((select payload->>'responsible_area'='' and payload->>'next_actor'='' and payload->>'reason'=''
+ from public.pendencies where id='T5B-P-DATE'),'aliases legados não reatribuem responsável ou motivo depois de recompor resolução');
 
 insert into t5b_saved(key,request,plan) select 'delete-review',req,public.preview_operational_change(req)
  from (select pg_temp.t5b_request('delete_review','T5B-P-REVIEW-A1') req) s;
@@ -193,6 +198,10 @@ select lives_ok($$update t5b_saved set receipt=public.apply_operational_change(r
 select is((select status from public.pendencies where id='T5B-P-REVIEW'),'Aguardando reanálise','envio válido volta à reanálise');
 select is((select analysis->>'extCC' from public.verifications where id='T5B-V-REVIEW'),'Não analisado','sem revisão restante não fabrica análise Incorreto');
 select is((select payload->'errosAtuais' from public.pendencies where id='T5B-P-REVIEW'),'[]'::jsonb,'retira erros dependentes');
+select ok((select payload->'resolved_at'='null'::jsonb and payload->'dataResolucao'='null'::jsonb
+ and payload->'canceled_at'='null'::jsonb and payload->>'reason'=''
+ and payload->>'responsible_area'='Controlador' and payload->>'next_actor'='Controlador'
+ from public.pendencies where id='T5B-P-REVIEW'),'aliases não ressuscitam resolução ou erros no próximo save após excluir revisão');
 select ok((select result is null and analyzed_at is null and not payload ? 'analisadoPor' and not payload ? 'analisadoPorId'
  and not payload ? 'authenticatedRoleAnalise' and not payload ? 'actingProfileAnalise'
  from public.pendency_attempts where id='T5B-P-REVIEW-A1'),'retira resultado e autoria operacional da revisão removida');

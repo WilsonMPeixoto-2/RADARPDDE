@@ -132,7 +132,7 @@ select throws_like(
     $$ select public.preview_operational_change(pg_temp.occ_req('acao_inventada', '{"kind":"invoice","id":"OCC-NF-1"}')) $$,
     'VALIDATION_ERROR%', 'ação desconhecida é rejeitada');
 select throws_like(
-    $$ select public.preview_operational_change(pg_temp.occ_req('correct_contact', '{"kind":"contact","id":"OCC-C-1"}')) $$,
+    $$ select public.preview_operational_change(pg_temp.occ_req('undo_quality_identification', '{"kind":"quality_movement","id":"OCC-FUTURE"}')) $$,
     'ACTION_NOT_AVAILABLE%', 'ação de lote futuro falha explicitamente, sem falso sucesso');
 select throws_like(
     $$ select public.preview_operational_change(pg_temp.occ_req('delete_invoice', '{"kind":"invoice","id":"OCC-NF-1","competence":"2041-04"}')) $$,

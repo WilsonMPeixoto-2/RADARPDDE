@@ -60,6 +60,20 @@ test('editar somente observação mantém erros legados sem criar mudança de re
     }
 });
 
+test('recomposição sincroniza aliases para que o reload não ressuscite a resolução removida', () => {
+    const pendency = samplePendency();
+    Object.assign(pendency, {
+        resolved_at: '2026-10-12T00:00:00Z', canceled_at: '2026-10-01T00:00:00Z',
+        responsible_area: 'Escola', next_actor: 'Escola', reason: 'Motivo antigo'
+    });
+    const result = rebuildPendencyAfterCorrection({ pendency, action: 'delete_review', targetId: 'T-2' });
+    assert.equal(result.pendency.resolved_at, null);
+    assert.equal(result.pendency.canceled_at, null);
+    assert.equal(result.pendency.responsible_area, 'Controlador');
+    assert.equal(result.pendency.next_actor, 'Controlador');
+    assert.equal(result.pendency.reason, 'Assinatura ausente');
+});
+
 test('excluir A2 mantém reabertura entre A1 e A2 quando seus erros estão comprovados', () => {
     const pendency = samplePendency();
     Object.assign(pendency.tentativas[0], { resultado: 'correto', errosEncontrados: [] });

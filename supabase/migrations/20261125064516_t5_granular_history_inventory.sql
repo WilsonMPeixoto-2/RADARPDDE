@@ -241,7 +241,10 @@ begin
      'resolved_at',analysis_time,'canceled_at',null,'reason',coalesce(errors->>0,''));
    next_payload:=next_payload||jsonb_build_object('status',status_value,
      'responsavel',next_pendency->'responsible_area','proximoAtor',next_pendency->'next_actor',
-     'dataResolucao',analysis_time,'cancelamento',null,'errosAtuais',errors,'motivo',coalesce(errors->>0,''));
+     'dataResolucao',analysis_time,'cancelamento',null,'errosAtuais',errors,'motivo',coalesce(errors->>0,''),
+     'responsible_area',next_pendency->'responsible_area','next_actor',next_pendency->'next_actor',
+     'resolved_at',next_pendency->'resolved_at','canceled_at',next_pendency->'canceled_at',
+     'reason',next_pendency->'reason');
  end if;
  next_pendency:=next_pendency||jsonb_build_object('payload',next_payload);
  return jsonb_build_object('pendency',next_pendency,'attempt',changed_attempt,'attempts',next_attempts,
