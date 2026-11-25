@@ -47,16 +47,16 @@ async function visualAssetsReady(page) {
     });
 }
 
-async function ready(page) {
-    await page.waitForFunction(() => window.RadarDataContext?.ready === true
-        && window.RadarAuthContext?.authorization?.role === 'controller');
+async function ready(page, role = 'controller') {
+    await page.waitForFunction(expected => window.RadarDataContext?.ready === true
+        && window.RadarAuthContext?.authorization?.role === expected, role);
     await page.evaluate(() => window.RadarProductExtensionsReady);
     await expect(page.locator('#app-layout')).toBeVisible();
     await visualAssetsReady(page);
 }
 
-async function login(page) {
-    const account = users.find(user => user.profileId === 'controller' && user.active);
+async function login(page, role = 'controller') {
+    const account = users.find(user => user.profileId === role && user.active);
     await page.goto('/');
     const runtime = await page.evaluate(() => ({
         mode: window.RADAR_PDDE_CONFIG?.dataMode,
@@ -72,7 +72,7 @@ async function login(page) {
     await page.locator('#radar-auth-email').fill(account.email);
     await page.locator('#radar-auth-password').fill(password);
     await page.locator('#radar-auth-form button[type="submit"]').click();
-    await ready(page);
+    await ready(page, role);
     await page.locator('#global-competence-select').selectOption(COMPETENCE);
     await page.waitForFunction(() => window.RadarApplicationServices.data.currentOperationalCompetence === '2026-05');
 }
@@ -136,6 +136,89 @@ async function ensureMobileMenuClosed(page) {
     await expect(sidebar).toHaveCSS('visibility', 'hidden');
     await expect.poll(() => sidebar.evaluate(node => node.getBoundingClientRect().right)).toBeLessThanOrEqual(0);
 }
+
+test('Inventário recebe orientação no recorte patrimonial e abre o bem exato após reload no celular e desktop', async ({ page }, testInfo) => {
+    test.setTimeout(90000);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await login(page, 'inventory');
+    const before = await page.evaluate(async schoolId => {
+        const result = await window.RadarSessionContext.service.client.from('assets').select('*').eq('school_id', schoolId).order('id');
+        if (result.error) throw new Error(result.error.message);
+        return result.data;
+    }, SCHOOL);
+    const dashboard = page.locator('[data-operational-guidance="dashboard"]');
+    const card = dashboard.locator('[data-guidance-target-id="GUIDANCE-ASSET"][data-guidance-group="inventory"]');
+    await expect(dashboard).toHaveCount(1);
+    await expect(card).toContainText('Conferir inventariação');
+    await expect(card).toContainText('Escola Sintética de Orientação');
+    await expect(dashboard.locator('[data-guidance-filter="analysis"], [data-guidance-filter="bonus"]')).toHaveCount(0);
+    await expect(dashboard.locator('[data-guidance-group]:not([data-guidance-group="inventory"])')).toHaveCount(0);
+    await page.getByText('Já Inventariados', { exact: true }).click();
+    await expect(card).toHaveCount(0);
+    await page.getByText('Aguardando Inventariação', { exact: true }).click();
+    await expect(card).toBeVisible();
+    await card.scrollIntoViewIfNeeded();
+    await expect(card).toBeInViewport({ ratio: 1 });
+    await capture(page, testInfo, 'orientacao-inventario-dashboard-desktop');
+    await page.reload();
+    await ready(page, 'inventory');
+    await expect(card).toBeVisible();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await ensureMobileMenuClosed(page);
+    await setTheme(page, true);
+    await card.scrollIntoViewIfNeeded();
+    await expect(card).toBeInViewport({ ratio: 1 });
+    const box = await card.boundingBox();
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(390);
+    await capture(page, testInfo, 'orientacao-inventario-dashboard-celular');
+    await card.locator('[data-action="open-operational-guidance"]').click();
+    const asset = page.locator('#tab-capital tr[data-asset-id="GUIDANCE-ASSET"]');
+    await expect(asset).toBeFocused();
+    await expect(page.locator('#prontuario-tab-capital')).toHaveAttribute('aria-selected', 'true');
+    await expect(asset.getByText('Mesa sintética para conferência', { exact: true })).toBeVisible();
+
+    async function captureAssetDestination(name) {
+        await visualAssetsReady(page);
+        const geometry = await asset.evaluate(row => {
+            const bounds = node => {
+                const { x, y, width, height } = node.getBoundingClientRect();
+                return { x, y, width, height };
+            };
+            const tableViewport = row.closest('.table-responsive');
+            return { viewport: { width: innerWidth, height: innerHeight }, documentWidth: document.documentElement.scrollWidth,
+                focused: document.activeElement === row, row: bounds(row),
+                identity: bounds(row.querySelector('td:first-child strong')), tableViewport: bounds(tableViewport),
+                tableScroll: { left: tableViewport.scrollLeft, width: tableViewport.scrollWidth, visibleWidth: tableViewport.clientWidth } };
+        });
+        await testInfo.attach(`orientacao-inventario-destino-${name}-geometria`, {
+            body: Buffer.from(JSON.stringify(geometry, null, 2)), contentType: 'application/json'
+        });
+        await capture(page, testInfo, `orientacao-inventario-destino-${name}`);
+        expect.soft(geometry.focused).toBe(true);
+        expect.soft(geometry.documentWidth).toBeLessThanOrEqual(geometry.viewport.width + 1);
+        // A tabela pode rolar horizontalmente; a identidade e sua área visível não podem ficar cortadas.
+        for (const [label, bounds] of [['Identidade do bem', geometry.identity], ['Área da tabela', geometry.tableViewport]]) {
+            expect.soft(bounds.width, label).toBeGreaterThan(0);
+            expect.soft(bounds.height, label).toBeGreaterThan(0);
+            expect.soft(bounds.x, label).toBeGreaterThanOrEqual(0);
+            expect.soft(bounds.x + bounds.width, label).toBeLessThanOrEqual(geometry.viewport.width + 1);
+            expect.soft(bounds.y, label).toBeGreaterThanOrEqual(0);
+            expect.soft(bounds.y + bounds.height, label).toBeLessThanOrEqual(geometry.viewport.height + 1);
+        }
+    }
+
+    await captureAssetDestination('celular');
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await asset.scrollIntoViewIfNeeded();
+    await captureAssetDestination('desktop');
+    const after = await page.evaluate(async schoolId => {
+        const result = await window.RadarSessionContext.service.client.from('assets').select('*').eq('school_id', schoolId).order('id');
+        if (result.error) throw new Error(result.error.message);
+        return result.data;
+    }, SCHOOL);
+    expect(after).toEqual(before);
+});
 
 test('orientação autenticada sem pilotos nasce compacta e conserva a área fiscal no desktop, escuro e celular', async ({ page }, testInfo) => {
     test.setTimeout(90000);

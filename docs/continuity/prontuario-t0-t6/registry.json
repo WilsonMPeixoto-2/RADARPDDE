@@ -690,8 +690,25 @@
         "T0T6-D021",
         "T0T6-D022"
       ],
-      "rationale": "Oito ações granulares, orientação operacional, projeções otimizadas e piloto documental foram incorporados pelo PR #565 e publicados em 31c27155, com migration 69 e flag T5 ativas conforme o registro de publicação. O alcance permanece limitado: sugestões para o perfil Inventário têm achado P2 aberto; o piloto lê três PDFs autorizados, sem importação pela interface; o ganho de CPU não demonstra aceleração global. As provas, o aceite humano de cada superfície e as pendências futuras continuam independentes.",
+      "rationale": "Oito ações granulares, orientação operacional, projeções otimizadas e piloto documental foram incorporados pelo PR #565 e publicados em 31c27155, com migration 69 e flag T5 ativas conforme o registro de publicação. O alcance permanece limitado: a correção das sugestões para o perfil Inventário é rastreada separadamente em C029 e no PR #569; o piloto lê três PDFs autorizados, sem importação pela interface; o ganho de CPU não demonstra aceleração global. As provas, o aceite humano de cada superfície e as pendências futuras continuam independentes.",
       "integratedRef": "https://github.com/WilsonMPeixoto-2/RADARPDDE/commit/31c27155eb2169032a36cb050082ae080965053d"
+    },
+    {
+      "id": "T0T6-C029",
+      "agent": "ChatGPT / reparo local recuperado e revisão independente",
+      "stage": "Pós-T5 / reparo focal D022",
+      "title": "Orientação patrimonial do Inventário com recorte da fila e navegação ao bem",
+      "status": "incorporated",
+      "originRef": "Branch local fix/t6-orientacao-inventario-20261125, base 31c27155eb2169032a36cb050082ae080965053d, alterações não commitadas; diff recuperado SHA-256 8bbbf4d7e3f8a5ec68eda8a5826400d9cb777eeb16723a4b50cb123d9eb3589b",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/tree/fix/orientacao-inventario-20261125",
+      "decisionIds": [
+        "T0T6-D020",
+        "T0T6-D021",
+        "T0T6-D022",
+        "T0T6-D023"
+      ],
+      "rationale": "Reparo original reaproveitado no commit funcional d31b3f9c e complementado somente com o recorte dos bens já filtrados na fila. Passaram 29 testes focais, 1.604 unitários e 3/3 jornadas de orientação no Supabase descartável (run45688491640), sem repetição. Quatro capturas foram inspecionadas pela raiz e por revisão independente e preservadas no repositório. Contribuição incorporada ao candidato e comprovada; o fechamento do PR #569 registra o SHA de integração e a publicação. Sem novas regras, capacidades, CSS, migrations, fixtures ou escrita institucional. A prova responsiva Chromium não homologa dispositivo físico, WebKit nem a ação de escrita à direita da tabela móvel. Mantido o escopo objetivo solicitado, sem encerrar T6 integralmente.",
+      "integratedRef": "https://github.com/WilsonMPeixoto-2/RADARPDDE/commit/d31b3f9ca1f4e2a94f4b3fe2e67ce7e38be76f33"
     }
   ],
   "previousRelease": {

@@ -23,7 +23,8 @@ test('ponte real aguarda competência inicializada no startup e após saída com
         return sandbox.module.exports;
     }
     const context = {
-        operationalGuidanceDashboardSchoolIds: ['ESC-A'], activeProntuarioCompetencia: '2026-05',
+        operationalGuidanceDashboardSchoolIds: ['ESC-A'], operationalGuidanceDashboardAssetIds: null,
+        activeProntuarioCompetencia: '2026-05',
         currentView: 'dashboard', activeSchoolId: 'ESC-A',
         escolas: [{ id: 'ESC-A' }], programas: [], pendencias: [], notasRegistradas: [], bens: [], verificacoes: {},
         getRadarAccessProfile: () => 'controlador', hasRadarCapability: () => true, encodePendencyIdReference,
@@ -212,6 +213,95 @@ class PanelNode {
     click() { return this.listeners.click?.({ target: this }); }
 }
 function descendants(node) { return node.childNodes.flatMap(child => [child, ...descendants(child)]); }
+
+test('Dashboard de Inventário alcança a orientação e renova o universo de escolas autorizado', () => {
+    const calls = [];
+    const context = {
+        document: { getElementById: () => ({ innerHTML: '' }) },
+        getRadarAccessProfile: () => 'inventario',
+        escolas: [{ id: 'ESC-A', designação: '04.01.001' }, { id: 'ESC-B', designação: '04.01.002' }],
+        bens: [], controladores: [], programas: [], activeInventarioSubFilter: 'all',
+        escapeHtml: value => String(value || ''),
+        operationalGuidanceDashboardSchoolIds: ['ESC-ANTIGA'], operationalGuidanceDashboardAssetIds: null,
+        window: { RadarOperationalGuidanceUi: { renderDashboard: () => calls.push('guidance') } }
+    };
+    vm.createContext(context);
+    for (const name of ['setOperationalGuidanceDashboardSchools', 'renderDashboardInventario', 'renderDashboard']) {
+        const node = tree.body.find(entry => entry.type === 'FunctionDeclaration' && entry.id.name === name);
+        vm.runInContext(app.slice(node.start, node.end), context);
+    }
+    context.renderDashboard();
+    assert.deepEqual(calls, ['guidance']);
+    assert.deepEqual(Array.from(context.operationalGuidanceDashboardSchoolIds), ['ESC-A', 'ESC-B']);
+    context.escolas = [];
+    context.renderDashboard();
+    assert.deepEqual(Array.from(context.operationalGuidanceDashboardSchoolIds), []);
+});
+
+test('sugestões seguem o subfiltro patrimonial sem carregar o recorte para o Prontuário ou outro Dashboard', () => {
+    const context = {
+        escolas: [{ id: 'ESC-A', designação: '04.01.001', denominação: 'Escola A' }],
+        bens: [
+            { id: 'B-ENC', escolaId: 'ESC-A', competencia: '2026-05', programaId: 'BASIC', status: 'Encaminhada', item: 'Mesa', valor: 100 },
+            { id: 'B-NAO', escolaId: 'ESC-A', competencia: '2026-05', programaId: 'BASIC', status: 'Não encaminhada', item: 'Cadeira', valor: 50 },
+            { id: 'B-FIM', escolaId: 'ESC-A', competencia: '2026-05', programaId: 'BASIC', status: 'Inventariada', item: 'Armário', valor: 200 }
+        ],
+        controladores: [], programas: [{ id: 'BASIC', name: 'PDDE Básico' }], pendencias: [], notasRegistradas: [], verificacoes: {},
+        COMPETENCIAS: [{ key: '2026-05', label: 'Maio de 2026' }], activeInventarioSubFilter: 'all',
+        operationalGuidanceDashboardSchoolIds: [], operationalGuidanceDashboardAssetIds: null,
+        currentView: 'dashboard', activeSchoolId: 'ESC-A', activeProntuarioCompetencia: '2026-05',
+        escapeHtml: value => String(value || ''), renderInventoryCorrectionActions: () => '',
+        getRadarAccessProfile: () => 'inventario', hasRadarCapability: () => false, encodePendencyIdReference,
+        window: {
+            RadarCompetenceContext: { isInitialized: () => true, getState: () => ({ activeKey: '2026-05' }) },
+            RadarAccessPolicy: { normalizeProfile: role => role, CAPABILITIES: { OPEN_PENDENCY: 'open-pendency' } },
+            RadarAuthContext: { authorization: { role: 'inventario' } }
+        }
+    };
+    vm.createContext(context);
+    for (const name of ['setOperationalGuidanceDashboardSchools', 'renderDashboardInventario', 'getOperationalGuidanceInput']) {
+        const node = tree.body.find(entry => entry.type === 'FunctionDeclaration' && entry.id.name === name);
+        vm.runInContext(app.slice(node.start, node.end), context);
+    }
+    const ids = schoolId => guidance.buildGuidance(context.getOperationalGuidanceInput(schoolId))
+        .items.map(item => item.target.id).sort();
+    for (const [filter, expected] of [
+        ['aguardando', ['B-ENC']], ['naoEncamp', ['B-NAO']], ['concluido', []], ['all', ['B-ENC', 'B-NAO']]
+    ]) {
+        context.activeInventarioSubFilter = filter;
+        context.renderDashboardInventario({ innerHTML: '' });
+        assert.deepEqual(ids(), expected, filter);
+    }
+    context.activeInventarioSubFilter = 'concluido';
+    context.renderDashboardInventario({ innerHTML: '' });
+    context.currentView = 'prontuario';
+    assert.deepEqual(ids('ESC-A'), ['B-ENC', 'B-NAO']);
+    context.currentView = 'dashboard';
+    context.setOperationalGuidanceDashboardSchools(['ESC-A']);
+    assert.deepEqual(ids(), ['B-ENC', 'B-NAO']);
+    context.bens = [];
+    context.renderDashboardInventario({ innerHTML: '' });
+    assert.deepEqual(ids(), []);
+    assert.deepEqual(Array.from(context.getOperationalGuidanceInput().schools), []);
+});
+
+test('entrada do Dashboard mostra sugestões patrimoniais para Inventário e respeita perfil de consulta', () => {
+    const panel = new PanelNode('section');
+    panel.querySelector = () => null;
+    const input = { view: 'dashboard', ready: true, competence: '2026-05',
+        capabilities: { fiscal: false, inventory: true }, schools: [{ id: 'ESC-A' }],
+        assets: [{ id: 'B-1', escolaId: 'ESC-A', competencia: '2026-05', status: 'Encaminhada', item: 'Mesa' }],
+        invoices: [{ id: 'NF-1', escolaId: 'ESC-A', competencia: '2026-05', programaId: 'BASIC' }] };
+    const root = { document: { createElement: tag => new PanelNode(tag),
+        getElementById: id => ['main-container', 'operational-work-guidance'].includes(id) ? panel : null },
+        getOperationalGuidanceInput: () => input, RadarOperationalGuidance: guidance };
+    assert.equal(ui.renderDashboard(root), true);
+    const cards = descendants(panel).filter(node => node.dataset.guidanceGroup);
+    assert.deepEqual(cards.map(node => node.dataset.guidanceTargetId), ['B-1']);
+    assert.doesNotMatch(panel.textContent, /Conferir despesa|análise fiscal|bonificação/);
+    input.capabilities.inventory = false;
+    assert.equal(ui.renderDashboard(root), false);
+});
 
 test('botões usam referências tipadas do codec, preservam zero e nunca transformam ID hostil em HTML ou handler', async () => {
     const ids = [123, '123', 0, `pend-'/</div><img src=x onerror=alert(1)>`];

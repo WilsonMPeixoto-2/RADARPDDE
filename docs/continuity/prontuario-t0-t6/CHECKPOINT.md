@@ -1,5 +1,25 @@
 # Checkpoint único de continuidade operacional — RADAR T0–T6
 
+## 25/11/2026 — reparo focal do Inventário: provas e continuidade
+
+**Direção do proprietário:** “Ok, continue, mas vamos tentar não ampliar demais os escopo definidos e continuar de forma objetiva”. Nesta execução: orientação patrimonial no Dashboard do Inventário, respeito ao filtro existente e abertura do bem correto. Não iniciar outras funcionalidades, reformulação visual, documentos, desempenho ou encerramento integral de T6.
+
+**Trabalho recuperado, contribuição C029:** foi localizado outro checkout com a branch local `fix/t6-orientacao-inventario-20261125`, HEAD `31c27155eb2169032a36cb050082ae080965053d`, e reparo ainda não commitado. Foram aproveitados somente `app.js`, `src/integration/operational-guidance.js` e seus unitários/E2E; os registros anteriores daquele checkout não sobrepõem D023. SHA-256 do diff desses quatro arquivos na recuperação: `8bbbf4d7e3f8a5ec68eda8a5826400d9cb777eeb16723a4b50cb123d9eb3589b`. Não existe SHA próprio da alteração original; a branch remota nova preserva o código recuperado e o complemento revisado.
+
+**Entrega focal:** [PR #569](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/569), branch `fix/orientacao-inventario-20261125`, baseada em `ac57c4a084453faeb55225a7aa94b5e36e1250ec`. Código funcional testado em `d31b3f9ca1f4e2a94f4b3fe2e67ce7e38be76f33`. O reparo liga o Dashboard à orientação, prepara seu universo e aceita a capacidade patrimonial. O complemento reutiliza `filteredBens` para limitar as sugestões ao filtro já escolhido; não replica regras de status. O recorte vazio continua vazio, é limpo pelos demais Dashboards e não limita o Prontuário. Textos, função de navegação, capacidades fiscais, RLS, comandos, CSS e migrations permanecem com seus contratos existentes.
+
+**Prova local:** os dois testes recuperados falharam na base publicada e passaram com o patch; o caso adicional de dois bens da mesma escola em estados diferentes revelou que o filtro “Aguardando” também mostrava o bem não encaminhado. Após o complemento, **29/29 focais e 1.604/1.604 unitários passaram**, sem falhas ou testes ignorados. Revisão independente de produto e unitários aprovada.
+
+**Prova autenticada e visual concluída:** [Supabase readiness 45688491640](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45688491640) passou; a etapa de orientação aprovou **3/3 testes em 24,1 s**, sem falhas, testes ignorados, intermitência ou repetição. O teste Inventário passou em 5,701 s: login real `inventory`, filtro concluído/aguardando, reload, alvo e foco exatos e snapshots dos bens antes/depois idênticos. As quatro capturas foram abertas pela raiz e por revisão independente: card e ação legíveis, escola/bem corretos, Registro de Capital ativo e nenhuma sobreposição ou overflow da página. [Imagens, geometrias e proveniência preservadas no repositório](../../evidence/2026-11-25-inventario-orientacao/README.md), pois os anexos originais do CI expiram em um dia.
+
+**Limites da prova:** Supabase descartável e dados sintéticos; Chromium em 1440×900 e 390×844. Dashboard capturado após rolar até a sugestão. No celular, a tabela conserva a rolagem horizontal existente e a identidade do bem fica visível; a ação de escrita na coluna à direita não foi executada. Isso não é homologação institucional de escrita, dispositivo físico ou WebKit. Não houve fixture, workflow ou benchmark manual adicional.
+
+**Próximo ato e fechamento:** consultar a seção final do [PR #569](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/569) para o SHA efetivamente integrado e a conferência do manifesto publicado. Após esse fechamento, não repetir este reparo ou reabrir o T5 por causa de um SHA documental posterior. As outras frentes abaixo mantêm seu próprio escopo; esta entrega não encerra T6 integralmente. Integrado, testado, inspecionado e publicado continuam estados distintos.
+
+**Fechamento anterior confirmado:** D023 foi integrada no [PR #567](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/567) e publicada em `ac57c4a0`, com cinco flags T0–T5 ativas. A suíte desktop que estava em execução concluiu com sucesso às 14h38min55s: 296 testes aprovados e 98 ignorados por escopo. Os cinco workflows da candidata documental terminaram com sucesso; [pré-production finalizada às 14h39](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45664682852).
+
+**Sinal separado, sem ampliação desta tarefa:** o monitor de integridade de Production [45678308704](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45678308704), sobre `ac57c4a0`, terminou com falha às 15h45. A causa não foi examinada nesta correção; não atribuir ao reparo nem tratar como prova de alteração dos dados. Preservar o sinal para triagem própria.
+
 ## 25/11/2026 — T5 ativo em produção; registro permanente D023
 
 ### Baseline funcional e prova de publicação

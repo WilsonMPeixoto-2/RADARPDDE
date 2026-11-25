@@ -1553,7 +1553,7 @@
       "decisionIds": [
         "T0T6-D022"
       ],
-      "evidence": "Orientação operacional incorporada e publicada no PR #565, main 31c27155eb2169032a36cb050082ae080965053d. Dashboard/Prontuário têm provas de navegação e composição por SHA, porém o review P2 do PR registra orientação inacessível ao perfil Inventário (discussion_r4696399446); correção posterior relatada ainda sem integração/publicação comprovada. A publicação não encerra a cobertura e o aceite de todas as superfícies. Fontes: https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565 e https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565#discussion_r4696399446.",
+      "evidence": "Orientação operacional publicada no PR #565, em 31c27155. A lacuna P2 do Dashboard do Inventário foi corrigida no candidato d31b3f9c do PR #569, com filtro patrimonial, Auth real, 3/3 jornadas de orientação aprovadas sem repetição e quatro capturas inspecionadas. C029 e docs/evidence/2026-11-25-inventario-orientacao/README.md preservam as provas e seus limites; o fechamento de https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/569 registra integração/publicação. Esta correção focal não encerra o aceite de todas as superfícies de D022 ou T6.",
       "codePaths": [
         "src/domain/operational-guidance.js",
         "src/integration/operational-guidance.js",
@@ -1582,10 +1582,12 @@
       "decisionIds": [
         "T0T6-D022"
       ],
-      "evidence": "Motor e consumidores de próximas ações incorporados e publicados no PR #565, main 31c27155eb2169032a36cb050082ae080965053d, com motivo, contexto e navegação sem mutação automática. A cobertura de Inventário permanece incompleta no Dashboard conforme o review P2; a fonte publicada não comprova a correção relatada em outro ambiente nem fecha todos os perfis. Fontes: https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565 e https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565#discussion_r4696399446.",
+      "evidence": "Motor e consumidores de próximas ações publicados no PR #565, em 31c27155, com motivo, contexto e navegação sem mutação automática. A lacuna do Dashboard do Inventário foi corrigida no candidato d31b3f9ca1f4e2a94f4b3fe2e67ce7e38be76f33 do PR #569 (C029): subfiltro existente preservado, 3/3 jornadas de orientação com Auth real no Supabase descartável e quatro capturas desktop/celular inspecionadas, sem repetição. Evidência permanente: docs/evidence/2026-11-25-inventario-orientacao/README.md. O fechamento de https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/569 registra integração/publicação; esta prova focal não declara todas as obrigações de D022 ou T6 encerradas.",
       "codePaths": [
         "src/domain/operational-guidance.js",
-        "src/domain/operational-projection.js"
+        "src/domain/operational-projection.js",
+        "app.js",
+        "src/integration/operational-guidance.js"
       ],
       "testPaths": [
         "tests/unit/operational-guidance.test.js",
