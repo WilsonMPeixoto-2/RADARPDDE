@@ -130,6 +130,37 @@ O P95 HTTP de gravação piorou nas três sessões escritoras: 344,54→357,45 m
 
 As duas variantes mantiveram 1.107 gravações bem-sucedidas para 1.107 gestos, convergência final e recuperação Realtime; zero erros de página na janela observada. A candidata continuou sem quadros de opacidade reduzida amostrados. Permanecem os limites já descritos: massa sintética, latência induzida, intervalos SQL/navegador diferentes, atualização contínua não medida e baseline histórico que não isola D022. O ensaio não estabelece ganho global de latência nem um SLO de custo.
 
+### Ensaio adicional do código corrigido: `bd90e642`
+
+O [run `45580200196`](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45580200196), tentativa 1, aprovou candidata, baseline e comparador. O HEAD foi `bd90e64201dec6218a339153a84a890c4d6dab2d`; o merge de validação executado foi `38f52387bf29a6a649c8761e138809f0b4ac5eea`. O baseline histórico continua `d9bf67f7d8a1ce2e468ec3c793ff992d8e10dfd6` (PR #408). Jobs: candidata `139088031453`, baseline `139088031940` e comparador `139094419749`.
+
+Foi baixado somente o [comparador de 15.483 bytes, artefato `15007052034`](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45580200196/artifacts/15007052034). As cópias integrais estão no [resumo bd90](2026-11-25-t5-performance/operational-session-comparison-bd90e642.md) e no [JSON bd90](2026-11-25-t5-performance/operational-session-comparison-bd90e642.json), que conserva os hashes das fontes. Os ensaios `c601c8ee` e `b9bd42b4` permanecem preservados, inclusive seus resultados desfavoráveis.
+
+| Cópia integral | SHA-256 |
+|---|---|
+| JSON bd90 | `076592a28c05d715db27ffa0c338986476bbce474b1bb2179bdc442d1180ba33` |
+| Markdown bd90 | `4ef66f7c901f874a344030f5b26d68b38a21251230b240aad03ec0809f72a13b` |
+
+As duas variantes mantiveram 400 rodadas, 1.107 gestos e 1.107 gravações bem-sucedidas, convergência final, recuperação Realtime e zero erros de página no intervalo observado. O comparador continua `diagnostic-comparison-complete`, com orçamento de custo não estabelecido e modo somente relatório.
+
+| Medida neste run | Baseline PR #408 → candidata | Variação |
+|---|---:|---:|
+| Leituras tentadas / respostas bem-sucedidas | 26 → 42 / 25 → 19 | +61,54% / −24% |
+| Leituras abortadas | 0 → 22 | +22 |
+| Bytes de leitura observados | 33.218.773 → 11.972.687 | −63,96% |
+| Chamadas SQL concluídas / tempo SQL | 52 → 46 / 8.431,74 → 5.004,25 ms | −11,54% / −40,65% |
+| Substituições / mutações de DOM | 325 → 319 / 91.438 → 107.745 | −1,85% / +17,83% |
+| Long tasks / duração acumulada | 1.200 → 915 / 89.266 → 65.578 ms | −23,75% / −26,54% |
+| Bloqueio acumulado de long tasks | 29.266 → 19.828 ms | −32,25% |
+| Aplicação de estado / render síncrono | 19.509,10 → 15.184,70 / 3.934,30 → 4.129,70 ms | −22,17% / +4,97% |
+| Janela observada | 439.490 → 424.404 ms | −3,43% |
+
+Há **três avisos de regressão de custo**, referentes a tentativas de leitura, mutações de DOM e render síncrono. Neste run, quantidade, duração e bloqueio de long tasks diminuíram; nos anteriores, aumentaram. Portanto, o retrato de custo mudou materialmente, mas ainda contém resultados desfavoráveis. O P95 HTTP de gravação melhorou nas três sessões escritoras: 259,05→235,76 ms, 305,22→249,89 ms e 266,10→231,35 ms. Clique até estado estável permaneceu misto nas últimas 100 avaliações instrumentadas: P95 de 484,60→571,10 ms na sessão 1 e 545,50→496,90 ms na sessão 3; a sessão fiscal não possui essa medida.
+
+**A variação entre execuções também atingiu o baseline histórico:** de `b9bd42b4` para este run, seu render acumulado passou de 5.368,80 para 3.934,30 ms e sua duração acumulada de long tasks passou de 162.185 para 89.266 ms. Na candidata, os mesmos valores passaram de 6.111,20 para 4.129,70 ms e de 181.997 para 65.578 ms. Cada variante teve uma execução em runner separado; não há repetição controlada suficiente para atribuir a mudança aos reparos ou estabelecer ganho causal de D022. O ensaio não é uma estimativa de latência de Production.
+
+**A atualização contínua segue sem medição.** A ausência do aviso automático `baseline-freshness-not-comparable` neste comparador não comprova equivalência: houve 19 respostas de leitura bem-sucedidas e 22 abortos na candidata, contra 25 respostas e nenhum aborto no baseline. A convergência final não mede o atraso durante atividade. Mantêm-se os demais limites dos ensaios anteriores: massa sintética, latência/erro HTTP induzidos, snapshots SQL com intervalo diferente do navegador, render apenas síncrono e ausência de SLO de custo. Nenhuma suíte foi reexecutada para produzir esta síntese.
+
 ## Experiência com documentos reais
 
 O proprietário autorizou pequena amostra real. Foram obtidos três PDFs acessíveis no Drive: declaração BB Ágil, relação de bens e termo de doação. Cada arquivo tem uma página e texto nativo. Os bytes foram preservados, identificados por SHA-256 e as três páginas renderizadas foram conferidas pelo integrador. Os documentos e resultados identificáveis permanecem fora deste repositório público.

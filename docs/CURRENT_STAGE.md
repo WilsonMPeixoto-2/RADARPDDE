@@ -23,6 +23,8 @@
 
 **Corte posterior `7d894557`:** D022 2/2, seis T5, visual desktop 18/18 e ciclos autenticados 21/21 aprovados. A composição inicial comporta Qualidade e todos os controles fiscais em 1440 × 900. Uma colisão de ID no texto novo do Qualidade foi detectada por T3 e pré-production e recebeu reparo mínimo, com duas contraprovas RED/GREEN e **1.601 unitários + 8 integrações** no readiness local integral. As jornadas de identificação/edição/releitura e as capturas do Dashboard/celular exigem resultado próprio do novo SHA. Consultar HEAD e homologação no PR #565, conforme o checkpoint; não reutilizar o sucesso parcial como aprovação de toda a execução anterior.
 
+**Produto validado no corte `bd90e642`:** 27/27 T2–T5, 17 + 4 Auth/histórico e pré-production completa aprovados, inclusive os dois fluxos Qualidade e o contrato de IDs únicos; visual 18/18. D022 expirou no guard de assets do próprio teste porque uma folha relativa usa pathname prefixado na rota de escola. O reparo seguinte é restrito ao E2E e ao registro de evidências, sem mudança de produto ou schema. O resultado do HEAD e as capturas finais ficam no PR #565; detalhes e proveniência estão no checkpoint.
+
 ## Arquivo histórico — fotografia anterior ao PR #535 (16–20/11, superada pelo CHECKPOINT acima)
 
 > **Não usar como fila corrente:** a seção abaixo preserva evidências anteriores ao fatiamento da Release 1 em [PR #535](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/535). Para retomar a execução atual, siga exclusivamente [CHECKPOINT.md](continuity/prontuario-t0-t6/CHECKPOINT.md), [registry.json](continuity/prontuario-t0-t6/registry.json) e [Plano da Release 1](releases/2026-11-20-prontuario-t0-t3-release-1.md).

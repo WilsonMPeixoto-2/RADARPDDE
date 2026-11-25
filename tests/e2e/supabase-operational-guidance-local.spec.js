@@ -16,14 +16,27 @@ const COMPETENCE = '2026-05';
 
 async function visualAssetsReady(page) {
     // Os bootstraps aguardam scripts; as folhas de estilo e a marca são carregadas à parte.
-    await page.waitForFunction(() => {
-        const links = [...document.querySelectorAll('link[rel="stylesheet"], link[data-radar-nonblocking-style]')]
-            .filter(link => new URL(link.href, location.href).origin === location.origin);
-        const required = ['/src/styles/painel-controlador-expressiva.css',
-            '/src/styles/global-visual-polish.css', '/src/styles/operational-guidance.css'];
-        return required.every(pathname => links.some(link => new URL(link.href, location.href).pathname === pathname))
-            && links.every(link => link.rel === 'stylesheet' && link.sheet !== null);
-    });
+    try {
+        await page.waitForFunction(() => {
+            const links = [...document.querySelectorAll('link[rel="stylesheet"], link[data-radar-nonblocking-style]')]
+                .filter(link => new URL(link.href, location.href).origin === location.origin);
+            const required = ['/src/styles/painel-controlador-expressiva.css',
+                '/src/styles/global-visual-polish.css', '/src/styles/operational-guidance.css'];
+            return required.every(pathname => links.some(link => {
+                const declared = link.getAttribute('href');
+                return declared === pathname || declared === pathname.slice(1)
+                    || new URL(link.href, location.href).pathname === pathname;
+            })) && links.every(link => link.rel === 'stylesheet' && link.sheet !== null);
+        }, undefined, { timeout: 15000 });
+    } catch (error) {
+        const styles = await page.locator('link[rel="stylesheet"], link[data-radar-nonblocking-style]').evaluateAll(links => (
+            links.map(link => ({
+                declared: link.getAttribute('href'), resolved: link.href,
+                rel: link.rel, sheetLoaded: link.sheet !== null
+            }))
+        ));
+        throw new Error(`Folhas de estilo não ficaram prontas em 15 s: ${JSON.stringify(styles)}`, { cause: error });
+    }
     const brand = page.locator('.sidebar-logo img.radar-original-logo');
     await expect(brand).toHaveCount(1);
     await expect.poll(() => brand.evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
