@@ -130,6 +130,14 @@
         return date.toLocaleString('pt-BR', withTime
             ? { dateStyle: 'short', timeStyle: 'short' } : { dateStyle: 'short' });
     }
+    function verificationContextLabel(record = {}) {
+        const competence = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(text(record.competence));
+        const month = competence
+            ? new Date(Number(competence[1]), Number(competence[2]) - 1, 1)
+                .toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+            : text(record.competence);
+        return [text(record.programName || record.programId), month].filter(Boolean).join(' · ');
+    }
     function describeRecord(action, record = {}) {
         const kind = OPERATIONS[action]?.kind;
         const values = recordValues(action, record);
@@ -334,6 +342,9 @@
     function renderPreview(root, container, action, view, context = {}, alternatives = {}) {
         const doc = root.document;
         const operation = OPERATIONS[action];
+        const verificationRecords = Array.isArray(view.affectedRecords?.verifications)
+            ? view.affectedRecords.verifications : [];
+        const verificationById = new Map(verificationRecords.map(record => [text(record.id), record]));
         const changes = (Array.isArray(view.changes) ? view.changes : []).flatMap(change => {
             if (change.field !== 'payload') return [change];
             const result = [];
@@ -350,7 +361,7 @@
         const preservation = element(doc, 'section', 'correction-preservation-panel');
         preservation.append(element(doc, 'h4', 'correction-panel-heading', 'O que será preservado'));
         const preserveText = action === 'correct_inventory'
-            ? 'O resultado da bonificação, as entregas e as avaliações fiscais. O encaminhamento ao Inventário será recalculado conforme os registros, com o efeito indicado nesta prévia.'
+            ? 'O resultado da bonificação, a entrega das Notas Fiscais e suas avaliações fiscais. O encaminhamento ao Inventário será recalculado conforme os registros, com o efeito indicado nesta prévia.'
             : operation.kind === 'asset'
                 ? 'Os demais bens e os registros fora desta seleção. A prévia informa se o encaminhamento deste programa precisa ser atualizado.'
             : operation.kind === 'contact'
@@ -358,6 +369,14 @@
                 : 'A bonificação, a avaliação de entrega e os registros independentes deste envio ou desta reanálise.';
         preservation.appendChild(element(doc, 'p', '', preserveText));
         container.appendChild(preservation);
+        if (verificationRecords.length > 1) {
+            const scope = element(doc, 'section', 'correction-related-contexts');
+            scope.appendChild(element(doc, 'h4', 'correction-panel-heading', 'Programas e meses conferidos nesta correção'));
+            const list = element(doc, 'ul', '');
+            for (const record of verificationRecords) list.appendChild(element(doc, 'li', '', verificationContextLabel(record)));
+            scope.appendChild(list);
+            container.appendChild(scope);
+        }
         const removalItems = (view.removals || []).filter(item => (item.ids || []).length);
         if (removalItems.length) {
             const removals = element(doc, 'ul', 'context-deletion-impact-list correction-impact-tiles');
@@ -383,6 +402,10 @@
                 const label = field === 'status' ? (statusLabels[change.entity] || 'Situação do registro')
                     : field === 'observation' && operation.kind === 'review' ? 'Observação da reanálise' : fieldLabel;
                 row.appendChild(element(doc, 'h4', 'correction-panel-heading', label));
+                if (change.entity === 'verifications') {
+                    const related = verificationById.get(text(change.id));
+                    if (related) row.appendChild(element(doc, 'p', 'correction-change-context', verificationContextLabel(related)));
+                }
                 for (const [side, name] of [['before', 'Antes'], ['after', 'Depois']]) {
                     const cell = element(doc, 'div', `correction-value is-${side}`);
                     cell.append(element(doc, 'span', 'correction-value-label', name),
@@ -423,6 +446,6 @@
     return {
         OPERATIONS, FIELD_LABELS, RESULT_LABELS, canUse, effectiveCapability,
         recordValues, describeRecord, recordAuthor, createFields, readChanges, setDisabled, validate,
-        explanation, humanValue, renderPreview, own
+        explanation, humanValue, renderPreview, verificationContextLabel, own
     };
 }));

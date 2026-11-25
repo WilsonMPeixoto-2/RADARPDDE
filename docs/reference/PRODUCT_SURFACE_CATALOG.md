@@ -159,6 +159,8 @@ Se o comportamento estiver correto e o problema for apenas de compreensão, loca
 | Restrições | universos não sobrepostos e ações somente por capacidade |
 | Leitura humana | cartões funcionam como filtros de triagem; “próximas ações” privilegia a providência corrente, não substitui o histórico completo |
 
+**Orientação gerencial D022, candidata no PR #565:** reutiliza a fila para apresentar reanálises prontas, análise fiscal a conferir, despesas a identificar, patrimônio por etapa, bonificação em apuração/pendente de reconsolidação e acompanhamento em aberto. Cada item explica o motivo e abre o registro correspondente. As contagens mostram o universo carregado e o filtro escolar/mensal; não são taxa de regularidade nem obrigação sobre contextos inexistentes. Os dois relógios de Pendência permanecem distinguíveis. A capacidade do usuário continua sendo a autoridade de acesso.
+
 ## S-02 — Carteira de Escolas
 
 | Campo | Contrato |
@@ -235,6 +237,8 @@ Durante a gravação, os controles impedem duplicidade e exibem falha de forma p
 | Leitura humana | primeiro confirma escola/competência/programa; depois trabalha documentos individualmente sem perder o contexto da unidade |
 
 **Exclusão de contexto:** a ação contextual fica em **Ações do programa**, no cabeçalho do programa existente. A prévia identifica escola, mês e programa, registros a excluir e registros preservados; a confirmação explícita não transfere lançamentos. O conteúdo pode rolar, mas Cancelar, Conferir novamente e Excluir estes lançamentos devem permanecer acessíveis. Perfis sem capacidade de correção não recebem a ação. A disponibilização efetiva depende da release documentada no checkpoint; não presumir ativação em Production.
+
+**Próximos passos da escola, candidata D022:** apresentação compacta por padrão, com contagem e uma ação visível; filtros, justificativa da sugestão e demais itens ao expandir. A orientação mantém a escola e a competência do Prontuário e conduz ao item real com foco após a hidratação. Não deve deslocar desnecessariamente o trabalho fiscal para fora da área inicial, esconder ações existentes ou substituir a decisão do operador.
 
 ## S-06 — Capital e Inventário
 

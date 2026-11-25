@@ -54,7 +54,7 @@ A matriz contém **49 operações** distribuídas entre 13 superfícies.
 
 | ID | Ação | Modo | Perfis autorizados | Serviço e persistência | Cobertura | Próxima prova |
 |---|---|---|---|---|---|---|
-| `READ-01` | Consultar indicadores e cartões do dashboard | read / P0 | Controlador, Assistente de Verbas Federais, Gestão SME, Equipe de Inventário, Administrador técnico | OperationalProjection.dashboard → SupabaseRepository.read (schools, verifications, pendencies, assets) | Parcial | Smoke autenticado de leitura |
+| `READ-01` | Consultar indicadores, cartões e orientação operacional do dashboard | read / P0 | Controlador, Assistente de Verbas Federais, Gestão SME, Equipe de Inventário, Administrador técnico | OperationalProjection.dashboard / OperationalGuidance.buildGuidance → SupabaseRepository.read (schools, verifications, pendencies, assets) | Parcial | Smoke autenticado de leitura |
 
 ### Carteira
 
@@ -155,7 +155,7 @@ A matriz contém **49 operações** distribuídas entre 13 superfícies.
 
 - **AUTH-01 — Entrar, restaurar sessão e aplicar perfil/escopos:** Falta smoke autenticado recorrente em Production para todos os perfis.
 - **NAV-02 — Pesquisar escolas, programas, competências e pendências autorizadas:** Falta prova autenticada de que resultados não vazam recursos fora do escopo em Production.
-- **READ-01 — Consultar indicadores e cartões do dashboard:** Falta smoke autenticado recorrente em Production por perfil.
+- **READ-01 — Consultar indicadores, cartões e orientação operacional do dashboard:** Falta smoke autenticado recorrente em Production por perfil.
 - **READ-02 — Pesquisar, filtrar e abrir escola na Carteira:** Falta smoke autenticado recorrente em Production por perfil.
 - **READ-03 — Consultar prontuário e timeline da unidade:** Falta smoke autenticado recorrente em Production e comparação de recortes SME/Inventário.
 - **READ-04 — Consultar lista e detalhe de pendências:** Falta smoke autenticado recorrente em Production por recorte de perfil.

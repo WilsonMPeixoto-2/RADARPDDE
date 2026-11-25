@@ -279,6 +279,14 @@ Duas telas podem mostrar o mesmo fato sob projeções diferentes, desde que a di
 
 Essas métricas não devem ser unificadas.
 
+### 8.1.1 Orientação operacional contextual — candidata D022
+
+O incremento do PR #565 organiza sugestões de próxima ação no Dashboard e no Prontuário a partir dos registros já carregados. A indicação informa objeto, motivo, escola, competência e programa conhecidos e conduz ao fluxo existente; não decide análise nem grava um evento por conta própria. Reutiliza `operational-projection`, `invoice-document-analysis`, `fluxo-operacional`, competência canônica e capacidades reais.
+
+O recorte informa escolas e registros considerados. Contexto mensal ausente não é criado para gerar sugestão; campo de análise ausente não comprova falta de arquivo. Resultado histórico de bonificação com indicação explícita de consolidação pendente exige próximo passo de reconsolidação. Isso conserva a diferença entre resultado anterior e avaliações modificadas. A tela da escola começa compacta para preservar o acesso aos documentos; o operador pode expandir a orientação.
+
+A experiência documental autorizada em D022 é somente leitura, com fonte/página/hash e revisão humana. Fatos extraídos, compatibilidade entre documentos e registros existentes são camadas distintas; sugestão não é conclusão administrativa nem autorização automática para comandos institucionais. A ativação da candidata e as provas por SHA ficam no checkpoint.
+
 ### 8.2 Nota Fiscal
 
 - bonificação de `notaFiscal`: agregada no contexto mensal;

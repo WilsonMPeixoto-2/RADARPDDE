@@ -69,7 +69,10 @@ async function openPendency(page, data, suffix = 'P', tab = 'resolvida', role = 
     await ready(page, role);
     await page.locator('#pendency-tab-' + tab).click();
     await page.locator('#pendency-filter-school').selectOption(data.school);
-    const trigger = page.locator(`[data-action="open-pendency-detail"][data-pendency-ref*="${data.id(suffix)}"]`);
+    // A mesma Pendência possui marcação desktop e celular; apenas uma está visível.
+    const record = page.locator(`.pendency-tab-panel:visible [data-pendency-id="${data.id(suffix)}"]:visible`);
+    await expect(record).toHaveCount(1);
+    const trigger = record.getByRole('button', { name: 'Ver detalhes', exact: true });
     await expect(trigger).toHaveCount(1);
     await trigger.click();
     const drawer = page.locator('#pendency-detail-drawer');
@@ -95,8 +98,15 @@ async function openCorrection(page, action, id) {
     return dialog;
 }
 
+async function reviewPreview(dialog) {
+    await dialog.getByRole('button', { name: 'Revisar prévia', exact: true }).click();
+    await expect(dialog.getByRole('button', { name: 'Confirmar correção', exact: true })).toBeEnabled();
+}
+
 async function confirm(page, dialog, deleting = false) {
     const button = dialog.getByRole('button', { name: deleting ? 'Confirmar exclusão' : 'Confirmar correção', exact: true });
+    // fill() emite input; a tela descarta a prévia anterior até o operador revisá-la.
+    if (!deleting) await reviewPreview(dialog);
     await expect(button).toBeEnabled();
     const responsePromise = page.waitForResponse(response => response.url().endsWith('/rpc/apply_operational_change'));
     await button.click();
@@ -165,6 +175,7 @@ test('T5 histórico real: texto/link preservam resultado e autoria; data recalcu
     await dialog.locator('#radar-granular-field-driveUrl').fill('https://example.test/t5/documento-corrigido');
     await dialog.locator('#radar-granular-field-observation').fill('');
     await expect(dialog.locator('#radar-granular-field-observation')).not.toHaveAttribute('required', '');
+    await reviewPreview(dialog);
     await screenshot(testInfo, dialog, 't5-envio-texto-link-real');
     const receipt = await confirm(page, dialog);
     let after = await snapshot(page, data.school);
@@ -422,6 +433,7 @@ test('T5 Auth real: SME negado; edição de colega invalida prévia e retry repe
     const before = await snapshot(page, data.school);
     const dialog = await openCorrection(page, 'correct_contact', data.id('LINKED'));
     await dialog.locator('#radar-granular-field-description').fill('Texto do controlador após conferência');
+    await reviewPreview(dialog);
     const confirmButton = dialog.getByRole('button', { name: 'Confirmar correção', exact: true });
     await expect(confirmButton).toBeEnabled();
     const context = await browser.newContext();

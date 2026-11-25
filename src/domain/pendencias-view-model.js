@@ -5,6 +5,7 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function () {
     'use strict';
 
+    const TEXT_COLLATOR = new Intl.Collator('pt-BR', { numeric: true, sensitivity: 'base' });
     const VERSION = '1.0.0';
     const STATUS_KEYS = Object.freeze({
         'Aberta': 'aberta',
@@ -406,10 +407,7 @@
     }
 
     function compareText(left, right) {
-        return String(left || '').localeCompare(String(right || ''), 'pt-BR', {
-            sensitivity: 'base',
-            numeric: true
-        });
+        return TEXT_COLLATOR.compare(String(left || ''), String(right || ''));
     }
 
     function compareTieBreakers(left, right) {
@@ -517,14 +515,14 @@
             });
     }
 
-    function createGroupModel(totalRecords, filteredRecords, key, status) {
+    function createGroupModel(totalCount, filteredRecords, key, status) {
         return {
             key,
             status,
-            records: sortPendencyRecords(filteredRecords, status),
+            records: filteredRecords,
             counts: {
                 filtered: filteredRecords.length,
-                total: totalRecords.length
+                total: totalCount
             }
         };
     }
@@ -532,29 +530,33 @@
     function createPendencyPageModel(input = {}) {
         const records = buildPendencyRecords(input);
         const filteredRecords = applyPendencyFilters(records, input.filters || {});
-        const totalGroups = groupPendencyRecords(records);
+        const totalCounts = { aberta: 0, aguardando: 0, resolvida: 0, cancelada: 0 };
+        records.forEach(record => {
+            if (Object.hasOwn(STATUS_KEYS, record.status)) totalCounts[STATUS_KEYS[record.status]] += 1;
+        });
+        // Only the displayed groups need ordering; totals need one counting pass.
         const filteredGroups = groupPendencyRecords(filteredRecords);
         const groups = {
             aberta: createGroupModel(
-                totalGroups.aberta,
+                totalCounts.aberta,
                 filteredGroups.aberta,
                 'aberta',
                 'Aberta'
             ),
             aguardando: createGroupModel(
-                totalGroups.aguardando,
+                totalCounts.aguardando,
                 filteredGroups.aguardando,
                 'aguardando',
                 'Aguardando reanálise'
             ),
             resolvida: createGroupModel(
-                totalGroups.resolvida,
+                totalCounts.resolvida,
                 filteredGroups.resolvida,
                 'resolvida',
                 'Resolvida'
             ),
             cancelada: createGroupModel(
-                totalGroups.cancelada,
+                totalCounts.cancelada,
                 filteredGroups.cancelada,
                 'cancelada',
                 'Cancelada'
@@ -565,7 +567,7 @@
             records,
             filteredRecords,
             groups,
-            activeTotal: totalGroups.aberta.length + totalGroups.aguardando.length,
+            activeTotal: totalCounts.aberta + totalCounts.aguardando,
             filteredTotal: filteredRecords.length,
             total: records.length,
             filters: { ...(input.filters || {}) }

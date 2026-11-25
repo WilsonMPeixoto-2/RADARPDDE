@@ -4,21 +4,16 @@
   "date": "2026-11-25",
   "authorityNote": "Contratos aprovados e ADRs prevalecem; registro documenta proveniência, revisão e estado, não modifica regra por si.",
   "active": {
-    "release": "R2",
+    "release": "R3",
     "stages": [
-      "T4"
+      "T5"
     ],
-    "pr": 564,
-    "branch": "main",
+    "pr": 565,
+    "branch": "feat/t5-historico-granular-20261125",
     "checkpointPath": "docs/continuity/prontuario-t0-t6/CHECKPOINT.md",
     "decisionsPath": "docs/continuity/prontuario-t0-t6/registry.json",
-    "status": "publicada",
-    "productionEvidence": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45560905562",
-    "mergeSha": "7523782bdc572a631783deeae2ea59be048dd725",
-    "vercelDeployment": "https://vercel.com/wilson-m-peixotos-projects/radarpdde-fix/32j4myukPALqLX5iCnZZ5sF5bDTH",
-    "nextStage": "T5",
-    "nextStageStatus": "implementação em feat/t5-historico-granular-20261125; migration 69 e flag ainda candidatas",
-    "validationNotes": "PR #564 publicado após autorização expressa, 20/20 workflows da candidata e 10/10 do push. Sem mudança institucional de banco; próximo ato T5 em branch própria, conforme checkpoint."
+    "status": "candidata-em-homologacao",
+    "validationNotes": "PR #565 sobre o #564 publicado. Histórico granular, orientação gerencial D022, piloto documental real somente leitura e desempenho medido. Migration69/flagT5 não ativadas institucionalmente; CI e captura são provas por SHA."
   },
   "decisions": [
     {
@@ -231,6 +226,16 @@
       "title": "Linguagem do Controlador na correção de consolidação",
       "decision": "A ação visível é Corrigir consolidação, não Corrigir marca. A janela informa que esta entrega corrige apenas a avaliação de Notas Fiscais, explica o efeito após confirmar e apresenta Consolidar bonificação como etapa distinta e necessária. Em T4/T5, labels, avisos, erros, contexto e próximos passos usam linguagem operacional compreensível sem instruções externas; aprovações de regra e controle de acesso são preservados.",
       "sourcePath": "docs/continuity/prontuario-t0-t6/D021_LINGUAGEM_DO_CONTROLADOR.md",
+      "supersedes": []
+    },
+    {
+      "id": "T0T6-D022",
+      "date": "2026-11-25",
+      "stage": "T5-T6",
+      "status": "approved",
+      "title": "Inteligência operacional utilizável, sugestões contextuais, piloto documental real e desempenho comprovado",
+      "decision": "Implementar orientação gerencial nas telas existentes, derivar próximas ações do estado real de cada escola, experimentar com pequena amostra documental real em modo somente leitura e otimizar gargalos medidos com equivalência demonstrada. Conservar proveniência, autoridades de domínio e separação entre resultado candidato e decisão administrativa.",
+      "sourcePath": "docs/continuity/prontuario-t0-t6/D022_INTELIGENCIA_DOCUMENTOS_DESEMPENHO.md",
       "supersedes": []
     }
   ],
@@ -640,21 +645,58 @@
       ],
       "rationale": "Integrado e publicado no PR #564 após autorização expressa; 20/20 workflows da candidata, 10/10 após merge e smoke do SHA exato. Entrega histórico legível, guia e helper preparatório; T5 funcional é a frente seguinte, não se considera encerrada por esta publicação.",
       "integratedRef": "https://github.com/WilsonMPeixoto-2/RADARPDDE/commit/7523782bdc572a631783deeae2ea59be048dd725"
+    },
+    {
+      "id": "T0T6-C028",
+      "agent": "ChatGPT / implementação paralela",
+      "stage": "T5",
+      "title": "Histórico granular e incremento operacional solicitado em D022",
+      "status": "accepted-for-validation",
+      "originRef": "feat/t5-historico-granular-20261125, candidata inicial 1e9991b2f533aa1838919ac92048c59c9939b9d5",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565",
+      "decisionIds": [
+        "T0T6-D002",
+        "T0T6-D007",
+        "T0T6-D011",
+        "T0T6-D020",
+        "T0T6-D021",
+        "T0T6-D022"
+      ],
+      "rationale": "Oito ações granulares com prévia/apply transacional, interface contextual e contraprovas de independência; orientação de trabalho nas superfícies existentes, otimização equivalente de projeções e piloto documental só leitura. Homologação do HEAD, revisão visual e publicação são estados separados; ver checkpoint e provas do PR."
     }
   ],
   "previousRelease": {
-    "release": "R1",
+    "release": "R2",
     "stages": [
-      "T0",
-      "T1",
-      "T2",
-      "T3"
+      "T4"
     ],
-    "status": "tecnicamente-concluida-e-publicada",
-    "pr": 537,
-    "mergeSha": "9d0f50b0f42b44017591bce472581717c8a09bc0",
-    "migrationVersion": "20261121000100",
-    "vercelDeployment": "dpl_9ZWdbvmkc2YeBUdpamLkU3rU37NN",
-    "checkpointPath": "docs/continuity/prontuario-t0-t6/CHECKPOINT.md"
-  }
+    "pr": 564,
+    "branch": "main",
+    "checkpointPath": "docs/continuity/prontuario-t0-t6/CHECKPOINT.md",
+    "decisionsPath": "docs/continuity/prontuario-t0-t6/registry.json",
+    "status": "publicada",
+    "productionEvidence": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45560905562",
+    "mergeSha": "7523782bdc572a631783deeae2ea59be048dd725",
+    "vercelDeployment": "https://vercel.com/wilson-m-peixotos-projects/radarpdde-fix/32j4myukPALqLX5iCnZZ5sF5bDTH",
+    "nextStage": "T5",
+    "nextStageStatus": "implementação em feat/t5-historico-granular-20261125; migration 69 e flag ainda candidatas",
+    "validationNotes": "PR #564 publicado após autorização expressa, 20/20 workflows da candidata e 10/10 do push. Sem mudança institucional de banco; próximo ato T5 em branch própria, conforme checkpoint."
+  },
+  "earlierReleases": [
+    {
+      "release": "R1",
+      "stages": [
+        "T0",
+        "T1",
+        "T2",
+        "T3"
+      ],
+      "status": "tecnicamente-concluida-e-publicada",
+      "pr": 537,
+      "mergeSha": "9d0f50b0f42b44017591bce472581717c8a09bc0",
+      "migrationVersion": "20261121000100",
+      "vercelDeployment": "dpl_9ZWdbvmkc2YeBUdpamLkU3rU37NN",
+      "checkpointPath": "docs/continuity/prontuario-t0-t6/CHECKPOINT.md"
+    }
+  ]
 }

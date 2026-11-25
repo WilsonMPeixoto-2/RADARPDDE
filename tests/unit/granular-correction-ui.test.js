@@ -198,3 +198,21 @@ test('ambiguidade somente oferece alternativas autorizadas pelo plano e exige no
     button.dispatch('click');
     assert.deepEqual(requested, alternative);
 });
+
+test('bem compartilhado mantém programa e competência em cada alteração e expõe todos os contextos conferidos', () => {
+    const container = new DomNode('div');
+    const contexts = [
+        { id: 'V-BASIC-10', schoolId: 'ESC-1', competence: '2026-10', programId: 'BASIC', programName: 'PDDE Básico' },
+        { id: 'V-LEITURA-11', schoolId: 'ESC-1', competence: '2026-11', programId: 'LEITURA', programName: 'PDDE Leitura' }
+    ];
+    ui.renderPreview(rootContext(), container, 'correct_inventory', {
+        changes: contexts.map(record => ({ entity: 'verifications', id: record.id,
+            field: 'analysis.encampInventario', before: 'Correto', after: 'Não analisado' })),
+        affectedRecords: { verifications: contexts }, removals: [], warnings: [], blockers: []
+    });
+    const transitions = container.querySelectorAll('section').filter(node => node.dataset.correctionChange);
+    assert.equal(transitions.length, 2);
+    assert.match(transitions[0].textContent, /PDDE Básico · outubro de 2026/);
+    assert.match(transitions[1].textContent, /PDDE Leitura · novembro de 2026/);
+    assert.match(container.textContent, /Programas e meses conferidos nesta correção/);
+});

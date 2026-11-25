@@ -1347,6 +1347,17 @@ body.dark-theme .correction-preservation-icon {
 .correction-before-after > h4 {
     grid-column: 1 / -1;
 }
+.correction-before-after > .correction-change-context {
+    grid-column: 1 / -1;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+.correction-related-contexts ul {
+    margin: 7px 0 0;
+    padding-inline-start: 18px;
+    line-height: 1.6;
+}
 .correction-value {
     display: grid;
     align-content: start;

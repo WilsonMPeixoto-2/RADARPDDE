@@ -1072,6 +1072,79 @@
           "evidenceRefs": []
         }
       ]
+    },
+    {
+      "decisionId": "T0T6-D022",
+      "status": "approved",
+      "impactStatus": "implementation-and-validation-in-progress",
+      "supersededBy": null,
+      "obligations": [
+        {
+          "id": "T0T6-I022-01",
+          "phase": "T5",
+          "surface": "ui",
+          "status": "candidate",
+          "requirementIds": [
+            "T0T6-R068"
+          ],
+          "acceptance": "Inteligência operacional aparece no Dashboard e no Prontuário com universo e navegação aos registros existentes.",
+          "targetPaths": [
+            "src/domain/operational-guidance.js",
+            "app.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I022-02",
+          "phase": "T5",
+          "surface": "domain",
+          "status": "candidate",
+          "requirementIds": [
+            "T0T6-R069"
+          ],
+          "acceptance": "Sugestões distinguem espera da escola, reanálise, análise individual, patrimônio e fechamento conforme dados e capacidade, sem mutação automática.",
+          "targetPaths": [
+            "src/domain/operational-guidance.js",
+            "src/domain/operational-projection.js"
+          ],
+          "evidenceRefs": []
+        },
+        {
+          "id": "T0T6-I022-03",
+          "phase": "T5",
+          "surface": "reports",
+          "status": "candidate",
+          "requirementIds": [
+            "T0T6-R070"
+          ],
+          "acceptance": "Executar extração e conferência de pequena amostra real com origem/página/hash, preservando exercício e revisão humana; entrega privada, testes públicos sintéticos.",
+          "targetPaths": [
+            "ops/document-intelligence-poc/local-pdf-pilot/README.md",
+            "ops/document-intelligence-poc/local-pdf-pilot/extract_pdf.py",
+            "ops/document-intelligence-poc/local-pdf-pilot/analyze.mjs",
+            "tests/unit/local-document-pilot.test.js"
+          ],
+          "evidenceRefs": [
+            "docs/evidence/2026-11-25-t5-inteligencia-documentos-desempenho.md"
+          ]
+        },
+        {
+          "id": "T0T6-I022-04",
+          "phase": "T5",
+          "surface": "tests",
+          "status": "candidate",
+          "requirementIds": [
+            "T0T6-R071"
+          ],
+          "acceptance": "Comparar baseline e candidato com resultados integralmente equivalentes, workload, ambiente, mediana/p95 e limites da medição.",
+          "targetPaths": [
+            "scripts/benchmark-operational-projections.mjs",
+            "tests/operational-projection.test.js",
+            "tests/pendencias-view-model.test.js"
+          ],
+          "evidenceRefs": []
+        }
+      ]
     }
   ],
   "trackedObligationIds": [
@@ -1130,6 +1203,10 @@
     "T0T6-I021-01",
     "T0T6-I021-02",
     "T0T6-I021-03",
-    "T0T6-I021-04"
+    "T0T6-I021-04",
+    "T0T6-I022-01",
+    "T0T6-I022-02",
+    "T0T6-I022-03",
+    "T0T6-I022-04"
   ]
 }

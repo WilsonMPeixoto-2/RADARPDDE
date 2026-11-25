@@ -24,6 +24,8 @@
 
 A evolução pós-T4 do PR #564 já foi publicada com autorização do proprietário. A instrução posterior “Siga para próxima etapa” inicia a implementação de T5 em branch própria: correção/exclusão granular de envios, reanálises, contatos e patrimônio, com retificação manual opcional. O estado por SHA e as provas ficam em `CURRENT_STAGE.md` e no checkpoint, evitando repetir releases concluídas. As oito obrigações de UI do mapa D020 não se encerram apenas com um helper ou teste unitário. Testes usam dados sintéticos e Supabase descartável; a ativação institucional da nova migration e da flag T5 exige publicação própria.
 
+**Prioridade adicional expressa em 25/11 (D022):** no PR #565, transformar dados existentes em orientação gerencial na interface, sugerir próximas ações por escola, executar uma pequena experiência documental real autorizada e comprovar otimizações quantitativamente. Ler [D022](docs/continuity/prontuario-t0-t6/D022_INTELIGENCIA_DOCUMENTOS_DESEMPENHO.md). A amostra real é somente leitura e fica fora das fixtures e do repositório público; não autoriza lançamentos institucionais automáticos.
+
 Ler [CHECKPOINT.md](docs/continuity/prontuario-t0-t6/CHECKPOINT.md), [plano aprovado T0–T6](docs/superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md) e [contrato funcional](docs/reference/PRONTUARIO_CORRECAO_CONTRATO.md). Um escritor por branch. Nenhuma autorização nova de mutação institucional decorre desta publicação.
 
 ## Arquivo histórico — leitura da frente anterior ao fatiamento em releases (14–20/11, superada pela rota de continuidade acima)

@@ -4,6 +4,7 @@
 **Data:** 25/11/2026.
 **Base publicada:** `7523782bdc572a631783deeae2ea59be048dd725`, PR #564.
 **Branch:** `feat/t5-historico-granular-20261125`.
+**Candidata:** [PR #565](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565).
 
 ## Objetivo e escopo
 
@@ -40,6 +41,16 @@ O script de concorrência já existente recebe duas contraprovas T5: envio simul
 O comando completo `npm run test:readiness` foi aprovado localmente: **1.550 testes unitários e 8 de integração**, sem falhas ou skips, além de continuidade, sintaxe, matriz funcional, arquitetura, referências dos workflows, lint, configuração, artefatos e tipos. Testes focalizados do helper, cliente, flags e UI também foram executados. O parser PostgreSQL/PLpgSQL validou a estrutura da migration e do pgTAP, sem equivaler à execução de banco. A suíte autenticada contém seis jornadas no RADAR real com Auth/RLS descartável, dados sintéticos, controles de interface, gravação, releitura e outra sessão. Capturas pertencem a essas execuções, sem dados institucionais.
 
 O CI do SHA candidato deve registrar separadamente: readiness completo, migrations/pgTAP, concorrência, jornadas autenticadas, regressão visual e inspeção dos artefatos. Resultados, SHA e URLs de runs serão reconciliados no PR e no checkpoint após a execução. Esta fotografia não declara esses gates aprovados antes de observá-los.
+
+## Incremento operacional solicitado em D022
+
+**Retorno do navegador em `411efd87`:** o run [45566937315](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45566937315) passou SQL/pgTAP/concorrência e as suítes Auth anteriores, mas o grupo T2–T5 teve 20 jornadas aprovadas e 7 falhas. Cinco casos T5 usavam seletor que contava simultaneamente a representação desktop e móvel da Pendência; o caso patrimonial preenchia os campos sem acionar “Revisar prévia”. Os testes passam a escolher o ID exato no painel visível e a seguir a revisão explícita da interface. O cenário T4 excedeu 90 segundos em fases diferentes; a candidata preserva a segunda sessão da Assistente para ambas as exportações, elimina um terceiro login redundante e registra durações por fase, sem aumentar o limite ou retirar asserções. Essas correções exigem novo resultado remoto, não tornam a execução anterior aprovada.
+
+O artefato conjunto desse run tinha 561.235.955 bytes, acima do limite de download do conector (536.870.912 bytes). O mesmo workflow separa agora relatórios por grupo e publica capturas/contextos pequenos, mantendo os relatórios completos e traces. Não foi possível inspecionar as imagens desse arquivo excedente; a inspeção deve ocorrer nos artefatos acessíveis da próxima execução.
+
+A instrução adicional do proprietário foi registrada em [D022](../continuity/prontuario-t0-t6/D022_INTELIGENCIA_DOCUMENTOS_DESEMPENHO.md), com obrigações próprias. A candidata acrescenta orientação gerencial às superfícies existentes, sugestões de próxima ação com contexto e navegação, piloto local de leitura documental real e otimizações comprovadas. A prova específica fica em [inteligência, documentos e desempenho](2026-11-25-t5-inteligencia-documentos-desempenho.md).
+
+O CI descartável do commit `411efd871bba13822b43d6b5e9f1a997a6d99511` aprovou **1.007 asserções pgTAP em 47 arquivos**, incluindo as **101 da T5**, na [verificação CLI v3](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45566937304). O pós-aplicação enumerou corretamente as 69 migrations. Isso comprova aquele contrato SQL; as jornadas autenticadas, concorrência e alterações posteriores exigem os resultados do HEAD correspondente.
 
 ## Ativação e limites
 

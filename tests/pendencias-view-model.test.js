@@ -391,6 +391,44 @@ test('cria modelo de página com totais e contagens filtradas por aba', () => {
   assert.equal(model.filteredTotal, 4);
 });
 
+test('página mantém totais e ordenação após filtro vazio e após excluir a última pendência visível', () => {
+  const input = baseInput({ pendencias: structuredClone(PENDENCIES), filters: { query: 'não há correspondência' } });
+  const original = JSON.stringify(input);
+  const empty = ViewModel.createPendencyPageModel(input);
+  assert.equal(empty.filteredTotal, 0);
+  assert.equal(empty.activeTotal, 4);
+  assert.deepEqual(Object.values(empty.groups).map(group => group.counts), [
+    { filtered: 0, total: 3 }, { filtered: 0, total: 1 },
+    { filtered: 0, total: 1 }, { filtered: 0, total: 1 }
+  ]);
+  assert.equal(JSON.stringify(input), original);
+
+  input.filters = {};
+  const all = ViewModel.createPendencyPageModel(input);
+  assert.deepEqual(all.groups.aberta.records.map(record => record.id), [
+    'legacy-incomplete', 'pend-open-old', 'pend-open-new'
+  ]);
+  input.pendencias = input.pendencias.filter(pendency => pendency.status !== 'Aguardando reanálise');
+  const removed = ViewModel.createPendencyPageModel(input);
+  assert.deepEqual(removed.groups.aguardando.counts, { filtered: 0, total: 0 });
+  assert.equal(removed.activeTotal, 3);
+});
+
+test('desempates numéricos em português preservam data nula ao final e não alteram os registros', () => {
+  const common = { openedAt: '2026-06-01', ra: '2ª R.A.', schoolDesignation: 'Escola Águia' };
+  const records = [
+    { ...common, id: 'p-10' },
+    { ...common, id: 'p-1', ra: '10ª R.A.' },
+    { ...common, id: 'p-2', schoolDesignation: 'ESCOLA AGUIA' },
+    { ...common, id: 'p-0', openedAt: null }
+  ];
+  const before = structuredClone(records);
+  assert.deepEqual(ViewModel.sortPendencyRecords(records, 'Aberta').map(record => record.id), [
+    'p-2', 'p-10', 'p-1', 'p-0'
+  ]);
+  assert.deepEqual(records, before);
+});
+
 test('propaga edição de número e descrição da Nota Fiscal vinculada para item, projeção e busca de Pendências', () => {
   const pendenciesWithLinkedInvoice = [
     ...PENDENCIES,

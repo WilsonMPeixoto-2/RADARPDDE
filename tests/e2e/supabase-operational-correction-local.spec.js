@@ -1154,6 +1154,9 @@ test('T4 · corrigir bonificação fiscal, preservar notas e consolidar o progra
     // Jornada integrada: duas sessões autenticadas, exportação e capturas em dois temas.
     // O timeout padrão de 30 s interrompia a captura escura antes de testar a consolidação.
     test.setTimeout(90_000);
+    const startedAt = Date.now();
+    const phaseTimings = [];
+    const recordPhase = phase => phaseTimings.push({ phase, elapsedMs: Date.now() - startedAt });
     const school = 'ESC-T4-BONUS';
     if (testInfo.retry) {
         execFileSync('psql', ['postgresql://postgres:postgres@127.0.0.1:54322/postgres',
@@ -1166,6 +1169,7 @@ test('T4 · corrigir bonificação fiscal, preservar notas e consolidar o progra
     await page.setViewportSize({ width: 1440, height: 900 });
     await loginAs(page, 'controller');
     await openSchool(page, 'controller', school);
+    recordPhase('controlador-autenticado');
     const header = page.locator('[data-program-header="BASIC"]');
     const neighbor = page.locator('[data-program-header="CONECTADA"]');
     const fiscal = page.locator('tr[data-program-id="BASIC"][data-document-key="notaFiscal"] [data-invoice-document-panel]');
@@ -1200,7 +1204,10 @@ test('T4 · corrigir bonificação fiscal, preservar notas e consolidar o progra
     await testInfo.attach('t4-prontuario', { body: await page.screenshot(), contentType: 'image/png' });
     await testInfo.attach('t4-programa-pendente', { body: await header.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
 
-    const session = await browser.newContext();
+    recordPhase('correcao-e-capturas');
+    // A segunda sessão permanece aberta para observar também a reconsolidação.
+    // Evita um terceiro login frio sem reduzir a releitura nem as duas exportações.
+    const session = await browser.newContext({ baseURL: testInfo.project.use.baseURL });
     try {
         const other = await session.newPage();
         await loginAs(other, 'federal_assistant');
@@ -1213,57 +1220,62 @@ test('T4 · corrigir bonificação fiscal, preservar notas e consolidar o progra
         expect(pendingResults.filter(row => /Conectada/i.test(row.program))).toEqual([
             { program: 'Educação Conectada', status: 'APTA' }
         ]);
-    } finally {
-        await session.close();
-    }
+        recordPhase('segunda-sessao-exportacao-pendente');
 
-    await page.reload();
-    await waitForApp(page, 'controller');
-    await edit.click();
-    await choice.selectOption('Limpar resposta');
-    await confirm.click();
-    const consolidate = header.getByRole('button', { name: 'Consolidar bonificação', exact: true });
-    await expect(header).toContainText('Preencha para consolidar: Notas Fiscais');
-    await expect(consolidate).toBeDisabled();
-    await testInfo.attach('t4-marca-limpa', { body: await header.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
-    await edit.click();
-    await choice.selectOption('Sim');
-    await confirm.click();
-    await expect(consolidate).toBeEnabled();
-    await consolidate.click();
-    const consolidationDialog = page.getByRole('alertdialog', { name: 'Consolidar bonificação', exact: true });
-    await expect(consolidationDialog).toBeVisible();
-    await expect(consolidationDialog).toContainText('Escola Horizonte');
-    await expect(consolidationDialog).toContainText('PDDE Básico');
-    await expect(consolidationDialog).toContainText('Notas fiscais, análises técnicas e Pendências não serão alteradas.');
-    await consolidationDialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
-    await expect(consolidationDialog).toBeHidden();
-    await expect(header).toContainText('Alterações pendentes de consolidação');
-    await expect(consolidate).toBeEnabled();
-    await consolidate.click();
-    await testInfo.attach('t4-confirmacao-reconsolidacao', { body: await consolidationDialog.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
-    await consolidationDialog.getByRole('button', { name: 'Confirmar consolidação', exact: true }).click();
-    await expect(consolidationDialog).toBeHidden();
-    await expect(header.getByRole('button', { name: 'Bonificação consolidada', exact: true })).toBeDisabled();
-    await page.reload();
-    await waitForApp(page, 'controller');
-    await expect(header.getByRole('button', { name: 'Bonificação consolidada', exact: true })).toBeDisabled();
-    await expect(header).not.toContainText('Alterações pendentes de consolidação');
-    await expect(fiscal.locator('.invoice-document-row')).toHaveCount(2);
+        await page.reload();
+        await waitForApp(page, 'controller');
+        await edit.click();
+        await choice.selectOption('Limpar resposta');
+        await confirm.click();
+        const consolidate = header.getByRole('button', { name: 'Consolidar bonificação', exact: true });
+        await expect(header).toContainText('Preencha para consolidar: Notas Fiscais');
+        await expect(consolidate).toBeDisabled();
+        await testInfo.attach('t4-marca-limpa', { body: await header.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
+        await edit.click();
+        await choice.selectOption('Sim');
+        await confirm.click();
+        await expect(consolidate).toBeEnabled();
+        await consolidate.click();
+        const consolidationDialog = page.getByRole('alertdialog', { name: 'Consolidar bonificação', exact: true });
+        await expect(consolidationDialog).toBeVisible();
+        await expect(consolidationDialog).toContainText('Escola Horizonte');
+        await expect(consolidationDialog).toContainText('PDDE Básico');
+        await expect(consolidationDialog).toContainText('Notas fiscais, análises técnicas e Pendências não serão alteradas.');
+        await consolidationDialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
+        await expect(consolidationDialog).toBeHidden();
+        await expect(header).toContainText('Alterações pendentes de consolidação');
+        await expect(consolidate).toBeEnabled();
+        await consolidate.click();
+        await testInfo.attach('t4-confirmacao-reconsolidacao', { body: await consolidationDialog.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
+        await consolidationDialog.getByRole('button', { name: 'Confirmar consolidação', exact: true }).click();
+        await expect(consolidationDialog).toBeHidden();
+        await expect(header.getByRole('button', { name: 'Bonificação consolidada', exact: true })).toBeDisabled();
+        await page.reload();
+        await waitForApp(page, 'controller');
+        await expect(header.getByRole('button', { name: 'Bonificação consolidada', exact: true })).toBeDisabled();
+        await expect(header).not.toContainText('Alterações pendentes de consolidação');
+        await expect(fiscal.locator('.invoice-document-row')).toHaveCount(2);
 
-    const afterSession = await browser.newContext({ baseURL: testInfo.project.use.baseURL });
-    try {
-        const assistant = await afterSession.newPage();
-        await loginAs(assistant, 'federal_assistant');
-        const consolidatedResults = await exportInstitutionalSchoolResults(assistant, school, testInfo, 'reconsolidado');
+        recordPhase('reconsolidacao-e-releitura-controlador');
+        await other.reload();
+        await waitForApp(other, 'federal_assistant');
+        const consolidatedResults = await exportInstitutionalSchoolResults(other, school, testInfo, 'reconsolidado');
         expect(consolidatedResults.filter(row => /Básico/i.test(row.program))).toEqual([
             { program: 'PDDE Básico', status: 'APTA' }
         ]);
         expect(consolidatedResults.filter(row => /Conectada/i.test(row.program))).toEqual([
             { program: 'Educação Conectada', status: 'APTA' }
         ]);
+        recordPhase('segunda-sessao-exportacao-reconsolidada');
     } finally {
-        await afterSession.close();
+        try {
+            await session.close();
+        } finally {
+            await testInfo.attach('t4-stage-durations.json', {
+                body: Buffer.from(JSON.stringify({ totalMs: Date.now() - startedAt, phases: phaseTimings }, null, 2)),
+                contentType: 'application/json'
+            });
+        }
     }
 });
 

@@ -4210,6 +4210,7 @@ let activeEquipeTab = 'controladores'; // controladores, inventario
 let currentProfile = 'controlador'; // controlador, assistente, sme, inventario
 let currentExercise = '2026';
 let currentView = 'dashboard'; // dashboard, escolas, competencias, pendencias, inventario, auditoria, sme-config
+let operationalGuidanceDashboardSchoolIds = [];
 
 function getRadarAccessProfile() {
     return window.RadarAccessPolicy.resolveEffectiveProfile(
@@ -5652,6 +5653,106 @@ function handleGlobalSearch(e) {
 // 7. RENDER DA TELA: DASHBOARDS
 // ==========================================
 
+function setOperationalGuidanceDashboardSchools(schoolIds) {
+    operationalGuidanceDashboardSchoolIds = [...new Set((Array.isArray(schoolIds) ? schoolIds : []).map(String))];
+}
+
+function getOperationalGuidanceInput(schoolId = null) {
+    const selectedIds = schoolId ? new Set([String(schoolId)]) : new Set(operationalGuidanceDashboardSchoolIds);
+    const competence = schoolId ? activeProntuarioCompetencia
+        : window.RadarCompetenceContext?.getState?.()?.activeKey;
+    const service = window.RadarApplicationServices?.data;
+    const remote = service?.repository?.capabilities?.().remote === true;
+    const role = window.RadarAccessPolicy.normalizeProfile(window.RadarAuthContext?.authorization?.role);
+    const profile = getRadarAccessProfile();
+    const fiscal = hasRadarCapability(window.RadarAccessPolicy.CAPABILITIES.OPEN_PENDENCY);
+    return {
+        view: currentView,
+        currentSchoolId: activeSchoolId,
+        ready: Boolean(competence) && (!remote || service.currentOperationalCompetence === competence),
+        competence: competence || '',
+        now: new Date().toISOString(),
+        schools: escolas.filter(school => selectedIds.has(String(school.id))),
+        programs: programas, pendencies: pendencias, invoices: notasRegistradas,
+        assets: bens, verifications: verificacoes,
+        capabilities: { fiscal, inventory: role === 'inventario' || (!role && profile === 'inventario') }
+    };
+}
+
+async function openOperationalGuidanceTarget(target = {}) {
+    const input = getOperationalGuidanceInput(target.schoolId);
+    const fiscal = input.capabilities.fiscal;
+    const inventory = input.capabilities.inventory || fiscal;
+    if (!target.schoolId || !['pendency', 'invoice', 'asset', 'verification'].includes(target.entity)
+        || (target.entity === 'asset' ? !inventory : !fiscal)) return false;
+    function resolveContext() {
+        if (target.entity === 'verification') {
+            if (!verificacoes[target.schoolId]?.[target.contextKey]) return null;
+            return window.RadarOperationalGuidance.contextOf({ contextKey: target.contextKey });
+        }
+        const source = target.entity === 'pendency' ? pendencias
+            : target.entity === 'invoice' ? notasRegistradas : bens;
+        const records = source.filter(record => String(record.id) === String(target.id)
+            && String(record.escolaId) === String(target.schoolId));
+        return records.length === 1 ? window.RadarOperationalGuidance.contextOf(records[0]) : null;
+    }
+    function matchesContext(context) {
+        return context && (!target.competence || context.competence === target.competence)
+            && (!target.programId || context.programId === target.programId);
+    }
+    const context = resolveContext();
+    if (!matchesContext(context)) return false;
+    const competence = context.competence;
+    if (competence && window.RadarCompetenceContext?.isInitialized?.()
+        && window.RadarCompetenceContext.getState().activeKey !== competence) {
+        window.RadarCompetenceContext.select(competence, { source: 'operational-guidance' });
+    }
+    await window.RadarGlobalCompetenceSelector?.whenHydrated?.();
+    const hydratedContext = resolveContext();
+    if (!matchesContext(hydratedContext) || hydratedContext.competence !== context.competence
+        || hydratedContext.programId !== context.programId) return false;
+    const afterRender = async () => {
+        const frame = callback => window.requestAnimationFrame
+            ? window.requestAnimationFrame(callback) : window.setTimeout(callback, 0);
+        await new Promise(frame);
+        await new Promise(frame);
+    };
+    function focusRecord(node) {
+        if (!node || !node.getClientRects().length) return false;
+        node.tabIndex = -1;
+        node.scrollIntoView({ block: 'center', behavior: 'auto' });
+        node.focus({ preventScroll: true });
+        return document.activeElement === node;
+    }
+    if (target.entity === 'pendency') {
+        await switchView('pendencias');
+        window.clearPendencyFilters?.();
+        if (window.openPendencyDetail?.(target.id) !== true) return false;
+        await afterRender();
+        const drawer = document.getElementById('pendency-detail-drawer');
+        return window.elementMatchesPendencyIdReference?.(drawer, target.id) === true && focusRecord(drawer);
+    }
+    activeProntuarioCompetencia = competence || null;
+    await switchView('prontuario', target.schoolId);
+    await afterRender();
+    if (!activateProntuarioTab(target.entity === 'asset' ? 'tab-capital' : 'tab-verificacoes')) return false;
+    await afterRender();
+    const nodes = target.entity === 'invoice'
+        ? document.querySelectorAll('[data-invoice-id]')
+        : target.entity === 'asset'
+            ? document.querySelectorAll('[data-asset-id]')
+            : document.querySelectorAll('[data-program-header]');
+    const match = Array.from(nodes).find(node => target.entity === 'invoice'
+        ? node.dataset.invoiceId === String(target.id)
+        : target.entity === 'asset'
+            ? node.dataset.assetId === String(target.id)
+            : node.dataset.programHeader === String(context.programId));
+    for (let parent = match?.parentElement; parent; parent = parent.parentElement) {
+        if (parent.tagName === 'DETAILS') parent.open = true;
+    }
+    return focusRecord(match);
+}
+
 function renderDashboard() {
     const container = document.getElementById('main-container');
     const accessProfile = getRadarAccessProfile();
@@ -5669,6 +5770,9 @@ function renderDashboard() {
         renderDashboardSME(container);
     } else if (accessProfile === 'inventario') {
         renderDashboardInventario(container);
+    }
+    if (['controlador', 'assistente'].includes(accessProfile)) {
+        window.RadarOperationalGuidanceUi?.renderDashboard?.(window);
     }
 }
 
@@ -5705,6 +5809,7 @@ function renderDashboardControlador(container) {
         });
     }
 
+    setOperationalGuidanceDashboardSchools(targetEscolas.map(school => school.id));
     const carteiraRAs = [...new Set(escolas
 
         .filter(e => e.controladorId === activeControladorId)
@@ -6061,6 +6166,7 @@ function renderDashboardAssistente(container) {
         filteredEscolas = filteredEscolas.filter(e => e.denominação.toLowerCase().includes(cleanQuery));
     }
 
+    setOperationalGuidanceDashboardSchools(filteredEscolas.map(school => school.id));
     const escolasListHTML = filteredEscolas.length === 0 
         ? `<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:32px;">Nenhuma unidade escolar encontrada neste filtro.</td></tr>`
         : filteredEscolas.map(e => {
@@ -6860,7 +6966,7 @@ function renderDashboardInventario(container) {
 
                     return `
 
-                        <tr>
+                        <tr data-asset-id="${escapeHtml(b.id)}">
 
                             <td>
 
@@ -10084,7 +10190,7 @@ function renderProntuario(escolaId) {
                                     ` : bens.filter(b => b.escolaId === esc.id).map(b => {
                                         let statusCls = b.status === 'Não encaminhada' ? 'badge-danger' : b.status === 'Encaminhada' ? 'badge-warning' : 'badge-success';
                                         return `
-                                            <tr>
+                                            <tr data-asset-id="${escapeHtml(b.id)}">
                                                 <td><strong>${escapeHtml(b.item)}</strong></td>
                                                 <td>${escapeHtml(formatCompetenciaText(b.competencia))}</td>
                                                 <td>R$ ${b.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
@@ -10165,6 +10271,9 @@ function renderProntuario(escolaId) {
         ).map(id => ({ id, name: programas.find(program => program.id === id)?.name || id })),
         canEdit: accessProfile === 'controlador' || accessProfile === 'assistente'
     });
+    if (!document.getElementById('prontuario-verif-rows')) {
+        window.RadarOperationalGuidanceUi?.renderSchool?.(window, esc.id);
+    }
 }
 
 // Mantém a identidade da consulta contextual para abrir a prévia do servidor.
@@ -11165,6 +11274,7 @@ function renderProntuarioVerificacoes(esc) {
     }
 
     container.innerHTML = rowsHTML;
+    window.RadarOperationalGuidanceUi?.renderSchool?.(window, esc.id);
 }
 
 function changeProntuarioCompetencia(escolaId, compKey) {

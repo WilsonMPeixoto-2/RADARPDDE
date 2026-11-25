@@ -144,11 +144,14 @@
     },
     "read": {
       "unit": [
-        "tests/unit/access-policy.test.js"
+        "tests/unit/access-policy.test.js",
+        "tests/unit/operational-guidance.test.js",
+        "tests/unit/operational-guidance-ui.test.js"
       ],
       "e2e": [
         "tests/e2e/canonical-routes.spec.js",
-        "tests/e2e/supabase-full-contract.spec.js"
+        "tests/e2e/supabase-full-contract.spec.js",
+        "tests/e2e/supabase-operational-guidance-local.spec.js"
       ],
       "database": [
         "supabase/tests/database/rls.test.sql"

@@ -1,6 +1,6 @@
 # Checkpoint único de continuidade operacional — RADAR T0–T6
 
-## 25/11/2026 — PR #564 publicado; T5 em implementação
+## 25/11/2026 — PR #564 publicado; PR #565 em implementação e homologação
 
 O proprietário autorizou “Pode fazer merge em produção”. A publicação do [PR #564](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/564) foi concluída em `7523782bdc572a631783deeae2ea59be048dd725`, árvore `b83aae17ceef279207cb0da9de7ac0e467be3cdd`, idêntica à candidata `4a14d63389da7f85e2594c1a3f3156238566a78a`. Merge às 03h28 de 25/11 (Brasília). Não houve migration, alteração de dados institucionais ou ampliação das flags nessa entrega.
 
@@ -14,6 +14,12 @@ O proprietário autorizou “Pode fazer merge em produção”. A publicação d
 **Instrução de continuidade:** “Siga para próxima etapa”, na mesma conversa de 25/11. Sem permalink disponível; este registro não inventa URL da conversa. Implementar T5 na branch `feat/t5-historico-granular-20261125`, base `7523782b`, com as oito ações do plano e retificação manual opcional. Três frentes paralelas cobrem banco, telas e testes; o integrador mantém o cliente, o helper, a ativação e a continuidade. Migration criada pelo CLI: `20261125064516_t5_granular_history_inventory.sql` (69ª somente no pacote candidato).
 
 [Escopo, transições, provas e limites da candidata T5](../../evidence/2026-11-25-t5-historico-granular.md).
+
+**Candidata remota:** [PR #565](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565), primeiro commit `1e9991b2f533aa1838919ac92048c59c9939b9d5`. A prontidão local aprovou 1.550 unitários e 8 integrações. O primeiro CI aplicou as 69 migrations, mas encontrou uma lista pós-aplicação ainda com 68: corrigida em `47af14745e382dd26e54737e42ab30aef1bb336e`, com guarda de origem e testes. Esse commit também trata reabertura independente remanescente, correção textual de erros legados e contexto de bens compartilhados. Conferir os resultados atuais do PR antes de declarar homologação integral.
+
+**Novo direcionamento do proprietário:** [D022](D022_INTELIGENCIA_DOCUMENTOS_DESEMPENHO.md). Acrescentar orientação gerencial e próximas ações às telas existentes; medir/otimizar projeções; executar piloto de leitura com pequena amostra real. A medição de CPU e sua contraprova estão em [artefato reproduzível](../../evidence/2026-11-25-t5-performance/operational-projection-cpu.json). O recorte real usa três PDFs e consulta cadastral por leitura; fontes e resultados identificáveis não entram no repositório. O estudo anterior exclusivamente sintético não encerra essa nova instrução.
+
+**Prontidão local do incremento D022:** 1.590 testes unitários e 8 integrações aprovados, sem falhas ou skips. Inclui a orientação gerencial e o piloto documental /2; o benchmark específico preservou os resultados em oito cenários. No commit anterior `411efd87`, o Supabase descartável aprovou 69 migrations, 1.007 testes pgTAP e as provas de concorrência. As novas jornadas/capturas D022 ainda precisam de resultado remoto próprio.
 
 **Próximo ato:** concluir a integração, rodar os gates existentes com Supabase/Auth/RLS descartável, examinar capturas reais da T5 e entregar candidata revisável com resultados e limites. A flag `RADAR_T5_GRANULAR_HISTORY_RELEASE_ENABLED` permanece OFF. Aplicação institucional e publicação da T5 dependem de autorização própria; não refazer o #562/#564 nem tratar o helper preparatório já publicado como a interface T5 concluída.
 
