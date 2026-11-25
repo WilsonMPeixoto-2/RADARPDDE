@@ -10,15 +10,12 @@ const { pathToFileURL } = require('node:url');
 const projectRoot = path.resolve(__dirname, '../..');
 const builderUrl = pathToFileURL(path.join(projectRoot, 'scripts/build-vercel.mjs')).href;
 const guideAssetsBuilderUrl = pathToFileURL(path.join(projectRoot, 'scripts/copy-controller-guide-assets.mjs')).href;
-const guideAssetRoot = path.join('docs', 'evidence', 'global-baseline', 'desktop');
+const guideAssetRoot = path.join('assets', 'controller-guide');
 
 const GUIDE_SCREENSHOTS = Object.freeze([
-    'controlador__dashboard__padrao__desktop.png',
-    'controlador__carteira__resultado__desktop.png',
-    'controlador__competencias__padrao__desktop.png',
-    'controlador__pendencias__padrao__desktop.png',
-    'controlador__inventario__padrao__desktop.png',
-    'controlador__registros-internos__padrao__desktop.png'
+    'prontuario.png',
+    'corrigir-bonificacao.png',
+    'excluir-analise-pendencias.png'
 ]);
 
 async function createOutputDirectory(context) {
@@ -27,7 +24,7 @@ async function createOutputDirectory(context) {
     return path.join(temporaryRoot, 'dist');
 }
 
-test('publica os seis prints usados pelo Guia no artefato real da Vercel', async context => {
+test('publica as três capturas sintéticas atuais do Guia no artefato da Vercel', async context => {
     const { buildVercelArtifact } = await import(builderUrl);
     const { copyControllerGuideAssets } = await import(guideAssetsBuilderUrl);
     const outputDir = await createOutputDirectory(context);

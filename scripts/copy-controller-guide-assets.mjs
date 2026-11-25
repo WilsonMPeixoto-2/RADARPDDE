@@ -9,14 +9,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const root = path.resolve(__dirname, '..');
 
-const GUIDE_ASSET_ROOT = path.join('docs', 'evidence', 'global-baseline', 'desktop');
+const GUIDE_ASSET_ROOT = path.join('assets', 'controller-guide');
 const GUIDE_SCREENSHOTS = Object.freeze([
-    'controlador__dashboard__padrao__desktop.png',
-    'controlador__carteira__resultado__desktop.png',
-    'controlador__competencias__padrao__desktop.png',
-    'controlador__pendencias__padrao__desktop.png',
-    'controlador__inventario__padrao__desktop.png',
-    'controlador__registros-internos__padrao__desktop.png'
+    'prontuario.png',
+    'corrigir-bonificacao.png',
+    'excluir-analise-pendencias.png'
 ]);
 
 async function copyControllerGuideAssets({
