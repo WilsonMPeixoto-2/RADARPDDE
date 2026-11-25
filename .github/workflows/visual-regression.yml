@@ -77,8 +77,19 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: visual-regression-${{ github.run_id }}
+          path: playwright-report-visual/
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Publicar capturas para revisão
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: visual-captures-${{ github.run_id }}
           path: |
-            playwright-report-visual/
-            test-results/
+            playwright-report-visual/index.html
+            playwright-report-visual/data/*.png
+            playwright-report-visual/data/*.pdf
+            playwright-report-visual/data/*.md
           retention-days: 14
           if-no-files-found: warn

@@ -1,5 +1,13 @@
 const { test, expect } = require('@playwright/test');
 
+async function chooseTheme(page, dark) {
+  const button = page.locator('#theme-toggle-btn');
+  const currentDark = await page.locator('body').evaluate(element => element.classList.contains('dark-theme'));
+  if (currentDark !== dark) await button.click();
+  await expect.poll(() => page.locator('body').evaluate(element => element.classList.contains('dark-theme'))).toBe(dark);
+  await expect(button).toHaveAttribute('aria-label', dark ? 'Mudar para tema claro' : 'Mudar para tema escuro');
+}
+
 test.describe('Guia do Controlador', () => {
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário focal do guia no desktop.');
@@ -118,43 +126,45 @@ test.describe('Guia do Controlador', () => {
   });
 
   test('quadro de decisões cabe nos três tamanhos e nos dois temas', async ({ page }, testInfo) => {
+    // Seis estados navegados, sete capturas e a impressão do manual completo.
+    test.setTimeout(60_000);
     await page.locator('#nav-guia-controlador').click();
     const guide = page.locator('#controller-guide-root');
     const table = guide.locator('.controller-guide-decision-table');
     const chapterTitle = guide.locator('#guia-corrigir-title');
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.evaluate(() => document.fonts.ready);
-    await testInfo.attach('guia-inicio-desktop', { body: await page.screenshot(), contentType: 'image/png' });
+    await testInfo.attach('guia-inicio-desktop', { body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
     for (const width of [1440, 960, 390]) {
       await page.setViewportSize({ width, height: 900 });
-      await guide.locator('.controller-guide-toc').getByRole('button', { name: /Escolher a correção$/ }).click();
-      await expect(chapterTitle).toBeInViewport();
-      await expect.poll(() => guide.locator('#guia-corrigir').evaluate(element => (
-        Math.abs(element.getBoundingClientRect().top - parseFloat(getComputedStyle(element).scrollMarginTop))
-      ))).toBeLessThanOrEqual(1);
-      // A navegação pelo sumário deve deixar o título descoberto pelos cabeçalhos.
-      await expect.poll(() => chapterTitle.evaluate(element => {
-        const bounds = element.getBoundingClientRect();
-        const top = document.elementFromPoint(bounds.left + Math.min(20, bounds.width / 2), bounds.top + Math.min(10, bounds.height / 2));
-        return Boolean(top && element.contains(top));
-      })).toBe(true);
-      const metrics = await table.evaluate(element => ({
-        width: element.getBoundingClientRect().width,
-        parentWidth: element.parentElement.getBoundingClientRect().width,
-        scrollWidth: element.scrollWidth,
-        clientWidth: element.clientWidth
-      }));
-      expect(metrics.width).toBeLessThanOrEqual(metrics.parentWidth + 1);
-      expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth + 1);
-      await expect(table.getByText('Redefinir como não analisado', { exact: true })).toBeVisible();
       for (const theme of ['claro', 'escuro']) {
-        await page.evaluate(dark => document.body.classList.toggle('dark-theme', dark), theme === 'escuro');
+        // Escolha pelo controle real, antes de navegar para a tarefa no sumário.
+        await chooseTheme(page, theme === 'escuro');
+        await guide.locator('.controller-guide-toc').getByRole('button', { name: /Escolher a correção$/ }).click();
         await expect(chapterTitle).toBeInViewport();
-        await testInfo.attach(`guia-correcoes-${width}-${theme}`, { body: await page.screenshot(), contentType: 'image/png' });
+        await expect.poll(() => guide.locator('#guia-corrigir').evaluate(element => (
+          Math.abs(element.getBoundingClientRect().top - parseFloat(getComputedStyle(element).scrollMarginTop))
+        ))).toBeLessThanOrEqual(1);
+        // A navegação pelo sumário deve deixar o título descoberto pelos cabeçalhos.
+        await expect.poll(() => chapterTitle.evaluate(element => {
+          const bounds = element.getBoundingClientRect();
+          const top = document.elementFromPoint(bounds.left + Math.min(20, bounds.width / 2), bounds.top + Math.min(10, bounds.height / 2));
+          return Boolean(top && element.contains(top));
+        })).toBe(true);
+        const metrics = await table.evaluate(element => ({
+          width: element.getBoundingClientRect().width,
+          parentWidth: element.parentElement.getBoundingClientRect().width,
+          scrollWidth: element.scrollWidth,
+          clientWidth: element.clientWidth
+        }));
+        expect(metrics.width).toBeLessThanOrEqual(metrics.parentWidth + 1);
+        expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth + 1);
+        await expect(table.getByText('Redefinir como não analisado', { exact: true })).toBeVisible();
+        await testInfo.attach(`guia-correcoes-${width}-${theme}`, { body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
       }
-      await page.evaluate(() => document.body.classList.remove('dark-theme'));
     }
     // A impressão deve incluir o manual completo, mesmo após uma busca ativa.
+    await chooseTheme(page, false);
     await guide.locator('#controller-guide-search').fill('inventariacao');
     await page.evaluate(() => document.body.classList.add('controller-guide-printing'));
     await page.emulateMedia({ media: 'print' });
