@@ -2,7 +2,7 @@
 
 # Catálogo de superfícies do RADAR PDDE
 
-**Correções T0–T4 e continuidade:** o [contrato de correção](PRONTUARIO_CORRECAO_CONTRATO.md) distingue correção operacional de regularização documental. As seções abaixo incorporam a autoridade de prévia/confirmação transacional para correção, limpeza e exclusão causal; justificativa obrigatória ou bloqueio genérico por histórico não deve ser restaurado a partir de rotas legadas. O estado de publicação e as capacidades ainda futuras de T5 estão no [checkpoint](../continuity/prontuario-t0-t6/CHECKPOINT.md).
+**Correções T0–T4 e continuidade:** o [contrato de correção](PRONTUARIO_CORRECAO_CONTRATO.md) distingue correção operacional de regularização documental. As seções abaixo incorporam a autoridade de prévia/confirmação transacional para correção, limpeza e exclusão causal; justificativa obrigatória ou bloqueio genérico por histórico não deve ser restaurado a partir de rotas legadas. O estado de publicação e as capacidades candidatas de T5 estão no [checkpoint](../continuity/prontuario-t0-t6/CHECKPOINT.md).
 
 **Estado:** referência operacional vigente  
 **Atualizado em:** 25 de novembro de 2026 (correções T0–T4)
@@ -218,6 +218,8 @@ A análise técnica tem ação explícita por item. Corrigir análise, retirar o
 
 Durante a gravação, os controles impedem duplicidade e exibem falha de forma persistente. Um recibo confirmado com projeção local pendente solicita atualização sem repetir a mutação. Os contratos detalhados e as exceções expressas constam do [modelo canônico, §9.10–9.11](SYSTEM_CANONICAL_MODEL.md#910-excluir-nota-fiscal).
 
+**Histórico granular T5:** a lista completa mostra ações junto ao envio, à reanálise ou ao contato identificado. O resumo da gaveta permite chegar ao histórico completo. A correção apresenta campos editáveis, Antes/Depois, estado resultante e o que permanece; observações extras são opcionais. A exclusão de reanálise não se confunde com exclusão do envio. Se a causalidade for insuficiente, a pessoa escolhe um alcance explícito e recebe outra prévia. O recibo da correção pertence à auditoria e não deve reaparecer como reanálise operacional. A disponibilização depende da release T5 documentada no checkpoint.
+
 ## S-05 — Prontuário
 
 | Campo | Contrato |
@@ -245,6 +247,8 @@ Durante a gravação, os controles impedem duplicidade e exibem falha de forma p
 | Backend | `InventoryService`, `assets` e RPCs compostas |
 | Restrições | perfil Inventário não recebe módulos não patrimoniais; SME não ganha mutação patrimonial por simples acesso visual |
 | Leitura humana | fila de trabalho patrimonial: distinguir o que ainda não foi encaminhado, o que aguarda inventariação e o que já foi concluído |
+
+**Correção patrimonial T5:** a ação aparece junto ao bem no Inventário e no Prontuário, conforme capacidade real. O formulário distingue corrigir o registro no RADAR de alterar o sistema patrimonial externo. Informa o efeito da reversão de Inventariada, a preservação das avaliações fiscais/bonificação e os vínculos com NF. Bem independente pode ser excluído; para bem derivado, a próxima ação é corrigir o inventário ou abrir a exclusão causal da despesa quando o perfil permite. Não exigir baixa física fictícia para corrigir lançamento digitado por engano.
 
 ## S-07 — Registros Internos
 

@@ -249,14 +249,16 @@
                 );
             }
 
-            const item = text(input.item);
-            const reason = text(input.reason || input.motivo);
-            const responsible = text(input.responsible || input.responsavel);
-            const observation = text(input.observation || input.observacao);
-            if (!item || !reason || !responsible || !observation) {
+            const supplied = (field, alias, previous) => Object.hasOwn(input, field)
+                ? input[field] : (alias && Object.hasOwn(input, alias) ? input[alias] : previous);
+            const item = text(supplied('item', null, initialPendency.item));
+            const reason = text(supplied('reason', 'motivo', initialPendency.motivo));
+            const responsible = text(supplied('responsible', 'responsavel', initialPendency.responsavel));
+            const observation = text(supplied('observation', 'observacao', initialPendency.observacao));
+            if (!item || !reason || !responsible) {
                 fail(
                     'VALIDATION_FAILED',
-                    'Item, motivo, responsável e observação são obrigatórios na retificação da Pendência.',
+                    'Informe o item, o motivo e o responsável pela Pendência. A observação é opcional.',
                     'retifyManualDetails',
                     { pendencyId }
                 );
@@ -688,6 +690,10 @@
         const content = drawer.querySelector('#pendency-preview-content');
         const reasonField = content?.querySelector('.pendency-preview-field:has(#pendency-preview-reason)');
         if (!content || !reasonField) return false;
+        const observation = content.querySelector('#pendency-preview-observation');
+        if (observation) observation.required = false;
+        const observationLabel = content.querySelector('label[for="pendency-preview-observation"]');
+        if (observationLabel) observationLabel.textContent = 'Observação (opcional)';
 
         if (!content.querySelector('#pendency-preview-item')) {
             const itemField = root.document.createElement('div');

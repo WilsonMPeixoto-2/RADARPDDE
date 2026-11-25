@@ -22,7 +22,7 @@ test('a matriz funcional canônica é válida', async () => {
     const { loadMatrix, validateMatrix } = await api();
     const matrix = loadMatrix(ROOT);
     assert.deepEqual(validateMatrix(matrix, ROOT), []);
-    assert.equal(matrix.operations.length, 45);
+    assert.equal(matrix.operations.length, 49);
     const contextDeletion = matrix.operations.find(item => item.id === 'CTX-01');
     assert.ok(contextDeletion);
     assert.equal(contextDeletion.coverage, 'partial');

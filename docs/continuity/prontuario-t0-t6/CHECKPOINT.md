@@ -1,5 +1,26 @@
 # Checkpoint único de continuidade operacional — RADAR T0–T6
 
+## 25/11/2026 — PR #564 publicado; T5 em implementação
+
+O proprietário autorizou “Pode fazer merge em produção”. A publicação do [PR #564](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/564) foi concluída em `7523782bdc572a631783deeae2ea59be048dd725`, árvore `b83aae17ceef279207cb0da9de7ac0e467be3cdd`, idêntica à candidata `4a14d63389da7f85e2594c1a3f3156238566a78a`. Merge às 03h28 de 25/11 (Brasília). Não houve migration, alteração de dados institucionais ou ampliação das flags nessa entrega.
+
+| Prova concluída | Evidência |
+|---|---|
+| 20/20 workflows da candidata e 10/10 do push aprovados | Registro de publicação no [PR #564](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/564). |
+| Supabase descartável do merge | [45560905549](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45560905549): 1.524 unitários, 8 integrações, 906 pgTAP em 46 arquivos e 42 jornadas autenticadas. |
+| Publicação e manifesto do SHA exato | [Vercel](https://vercel.com/wilson-m-peixotos-projects/radarpdde-fix/32j4myukPALqLX5iCnZZ5sF5bDTH), [RADAR](https://radarpdde-fix.vercel.app), quatro flags T0–T4 ativas. |
+| Verificação pós-publicação | [Smoke 45560905562](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45560905562): 54 recursos, RLS anônimo e CORS; [navegador público 45560905653](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45560905653): 6/6; [visual 45560905732](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45560905732): 18/18. |
+
+**Instrução de continuidade:** “Siga para próxima etapa”, na mesma conversa de 25/11. Sem permalink disponível; este registro não inventa URL da conversa. Implementar T5 na branch `feat/t5-historico-granular-20261125`, base `7523782b`, com as oito ações do plano e retificação manual opcional. Três frentes paralelas cobrem banco, telas e testes; o integrador mantém o cliente, o helper, a ativação e a continuidade. Migration criada pelo CLI: `20261125064516_t5_granular_history_inventory.sql` (69ª somente no pacote candidato).
+
+[Escopo, transições, provas e limites da candidata T5](../../evidence/2026-11-25-t5-historico-granular.md).
+
+**Próximo ato:** concluir a integração, rodar os gates existentes com Supabase/Auth/RLS descartável, examinar capturas reais da T5 e entregar candidata revisável com resultados e limites. A flag `RADAR_T5_GRANULAR_HISTORY_RELEASE_ENABLED` permanece OFF. Aplicação institucional e publicação da T5 dependem de autorização própria; não refazer o #562/#564 nem tratar o helper preparatório já publicado como a interface T5 concluída.
+
+## Arquivo histórico — estado anterior à publicação do PR #564
+
+As seções seguintes são fotografias datadas. A candidata pós-T4 mencionada como “em revisão” abaixo foi publicada conforme a seção vigente acima.
+
 ## 25/11/2026 — PR #562 publicado; missão posterior em execução
 
 **Produção verificada:** [PR #562](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/562), candidato `0b082bf49470d7bc549ed4865544203971168728` com 21/21 workflows aprovados, merge `6dd6a9f9f8147deb39c5813baad0b5521427b8bd`. O proprietário aprovou as telas e a guarda cifrada do backup no padrão anterior do GitHub. Essas autorizações foram executadas e não precisam ser solicitadas novamente para registrar a publicação já feita.

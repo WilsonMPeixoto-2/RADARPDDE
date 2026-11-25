@@ -120,6 +120,8 @@ O perfil:
 
 As políticas patrimoniais são específicas e não derivam de uma permissão genérica de escrita escolar.
 
+**Extensão T5 candidata:** `correct_inventory` e `delete_asset` reconhecem a capacidade patrimonial efetiva de Inventário dentro da CRE, inclusive para corrigir Inventariada. A exceção transacional permite recompor somente `encampInventario` derivado; não concede edição fiscal, de contatos ou do resultado da bonificação. `delete_asset` só remove bem independente. Exclusão causal de NF continua exclusiva dos perfis com capacidade fiscal. Controlador/Assistente mantêm colaboração entre escolas conforme ADR-056, sem trava por autoria ou carteira pessoal. Gestão SME e anônimo não executam as novas mutações. Migration 69 e flag T5 precisam de publicação própria; o checkpoint distingue candidato de banco efetivamente publicado.
+
 ## 7. Gestão SME
 
 - consulta identificação e bonificação;

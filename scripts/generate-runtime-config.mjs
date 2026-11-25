@@ -112,6 +112,10 @@ function buildRuntimeInput(environment = {}) {
         environment.RADAR_T4_ITEM_HISTORY_RELEASE_ENABLED,
         'RADAR_T4_ITEM_HISTORY_RELEASE_ENABLED'
     );
+    const granularHistoryRelease = parseBoolean(
+        environment.RADAR_T5_GRANULAR_HISTORY_RELEASE_ENABLED,
+        'RADAR_T5_GRANULAR_HISTORY_RELEASE_ENABLED'
+    );
     const url = String(environment.RADAR_SUPABASE_URL || '').trim();
     const publishableKey = String(environment.RADAR_SUPABASE_PUBLISHABLE_KEY || '').trim();
 
@@ -165,6 +169,9 @@ function buildRuntimeInput(environment = {}) {
     if (itemHistoryRelease && (!contextDeletionRelease || !operationalCorrectionRelease || !bonificationCorrectionRelease)) {
         throw new Error('T4 histórico exige exclusão de contexto, bonificação e correção operacional autorizadas em produção.');
     }
+    if (granularHistoryRelease && !itemHistoryRelease) {
+        throw new Error('T5 histórico granular exige a release de histórico T4 previamente autorizada em produção.');
+    }
 
     if (dataMode === 'local') {
         return {
@@ -205,7 +212,8 @@ function buildRuntimeInput(environment = {}) {
             ...(operationalCorrectionRelease ? { operationalCorrectionRelease: true } : {}),
             ...(bonificationCorrectionRelease ? { bonificationCorrectionRelease: true } : {}),
             ...(contextDeletionRelease ? { contextDeletionRelease: true } : {}),
-            ...(itemHistoryRelease ? { itemHistoryRelease: true } : {})
+            ...(itemHistoryRelease ? { itemHistoryRelease: true } : {}),
+            ...(granularHistoryRelease ? { granularHistoryRelease: true } : {})
         },
         supabase: {
             url,

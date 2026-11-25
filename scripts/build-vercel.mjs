@@ -187,7 +187,8 @@ function createPublicBuildManifest(runtimeInput, environment = {}) {
         operationalCorrectionRelease: runtimeInput.features.operationalCorrectionRelease === true,
         bonificationCorrectionRelease: runtimeInput.features.bonificationCorrectionRelease === true,
         contextDeletionRelease: runtimeInput.features.contextDeletionRelease === true,
-        itemHistoryRelease: runtimeInput.features.itemHistoryRelease === true
+        itemHistoryRelease: runtimeInput.features.itemHistoryRelease === true,
+        granularHistoryRelease: runtimeInput.features.granularHistoryRelease === true
     });
 }
 

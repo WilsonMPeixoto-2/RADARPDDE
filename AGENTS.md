@@ -20,9 +20,9 @@
 
 **REGRA DE CONHECIMENTO HISTÓRICO T0–T6:** consultar [genealogia por requisito](docs/continuity/prontuario-t0-t6/LINEAGE.md) e [fonte por SHA](docs/continuity/prontuario-t0-t6/lineage.json) antes de considerar qualquer ideia inédita, revogada ou implementada. Conferir evolução da mesma ideia entre especificações, novas decisões e código/testes do HEAD. A matriz distingue fontes ainda não examinadas integralmente e não deve ser rotulada de completa enquanto mantiver lacunas.
 
-## Frente vigente — T4 publicada; evolução após T4 e preparação da T5
+## Frente vigente — T5 em implementação após a publicação T0–T4
 
-**T0–T4 publicados, incluindo a revisão integrada do PR #562. T5 permanece em preparação.** A publicação verificada em 25/11/2026 corresponde a `6dd6a9f9f8147deb39c5813baad0b5521427b8bd`, com 68 migrations institucionais. O [smoke de produção](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45547911796) aprovou o mesmo SHA do merge. Backup recuperável, dry-run, aplicação da migration 68 e integridade posterior estão documentados no checkpoint. A missão posterior trabalha na branch `feat/evolucao-integral-pos-t4-20261125`: histórico legível, Guia do Controlador, análise agregada e protótipo documental isolado, além de helper preparatório T5. Não autoriza merge ou publicação automática dessa nova candidata; as oito obrigações de UI da T5 permanecem planejadas. Reutilizar as provas da publicação sem repetir operações institucionais já concluídas.
+A evolução pós-T4 do PR #564 já foi publicada com autorização do proprietário. A instrução posterior “Siga para próxima etapa” inicia a implementação de T5 em branch própria: correção/exclusão granular de envios, reanálises, contatos e patrimônio, com retificação manual opcional. O estado por SHA e as provas ficam em `CURRENT_STAGE.md` e no checkpoint, evitando repetir releases concluídas. As oito obrigações de UI do mapa D020 não se encerram apenas com um helper ou teste unitário. Testes usam dados sintéticos e Supabase descartável; a ativação institucional da nova migration e da flag T5 exige publicação própria.
 
 Ler [CHECKPOINT.md](docs/continuity/prontuario-t0-t6/CHECKPOINT.md), [plano aprovado T0–T6](docs/superpowers/plans/2026-11-14-prontuario-visual-correcao-integrada.md) e [contrato funcional](docs/reference/PRONTUARIO_CORRECAO_CONTRATO.md). Um escritor por branch. Nenhuma autorização nova de mutação institucional decorre desta publicação.
 
@@ -184,7 +184,7 @@ Preservar, entre outros, os invariantes do modelo canônico:
 - Pendência da NF A não bloqueia NF B;
 - novo envio não resolve Pendência;
 - reanálise exige tentativa/contexto/versionamento válidos;
-- `Inventariada` é terminal;
+- `Inventariada` é terminal no fluxo ordinário; correção explícita segue o contrato transacional e as capacidades patrimoniais da T5;
 - commit remoto confirmado e sincronização local são fronteiras diferentes;
 - coleções operacionais crescentes não devem voltar ao bootstrap global quando o contexto pode ser limitado;
 - wrapper de performance não é autoridade de negócio;

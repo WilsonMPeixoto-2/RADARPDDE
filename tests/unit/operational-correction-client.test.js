@@ -198,3 +198,59 @@ test('prévia de bonificação não pode confirmar outro critério', async () =>
     await assert.rejects(client.preview({action:'correct_bonification',target:{...target,documentKey:'extCC'},changes:{bonificacao:'Sim'}}),
         error => error.code === 'INVALID_PREVIEW');
 });
+
+test('T5 corrige texto de reanálise e limpa contato sem exigir novo resultado ou mês artificial', () => {
+    const review = buildRequest({ action: 'correct_review', target: { schoolId: 'ESC-1', id: 'A-1' }, changes: { observation: '' } });
+    assert.deepEqual(review.changes, { observation: '' });
+    assert.deepEqual(review.target, { kind: 'review', schoolId: 'ESC-1', id: 'A-1' });
+    const contact = buildRequest({ action: 'correct_contact', target: { schoolId: 'ESC-1', id: 'C-1' },
+        changes: { description: '', officialCharge: false, pendencyId: null } });
+    assert.deepEqual(contact.changes, { description: '', officialCharge: false, pendencyId: null });
+    assert.equal('competence' in contact.target, false);
+});
+
+test('T5 rejeita transferência de contexto, autoria fabricada e link executável', () => {
+    const attempt = { action: 'correct_attempt', target: { schoolId: 'ESC-1', id: 'A-1' } };
+    for (const changes of [{ createdBy: 'OUTRO' }, { schoolId: 'ESC-2' }, {}, { driveUrl: 'javascript:alert(1)' }]) {
+        assert.throws(() => buildRequest({ ...attempt, changes }), OperationalCorrectionError);
+    }
+    assert.throws(() => buildRequest({ action: 'delete_contact', target: { schoolId: 'ESC-1', id: 'C-1' },
+        changes: { pendencyId: null } }), /exclusão não aceita/);
+    assert.throws(() => buildRequest({ ...attempt, target: { ...attempt.target, kind: 'review' }, changes: { observation: 'x' } }), /registro exato/);
+});
+
+function granularPlan(overrides = {}) {
+    return {
+        action: 'delete_review', target: { kind: 'review', id: 'A-1', schoolId: 'ESC-1' },
+        planDigest: DIGEST, blockers: [],
+        effects: { delete: {}, update: [{ entity: 'pendency_attempts', id: 'A-1', field: 'analyzed_at', before: '2026-11-20', after: null }] },
+        affectedRecords: { attempts: [{ id: 'A-1', pendencyId: 'P-1', number: 2 }] },
+        ...overrides
+    };
+}
+
+test('T5 rejeita prévia trocada por outro registro, escola, ação ou contexto informado', async () => {
+    for (const change of [
+        { target: { kind: 'review', id: 'A-2', schoolId: 'ESC-1', competence: '2026-11' } },
+        { target: { kind: 'review', id: 'A-1', schoolId: 'ESC-2', competence: '2026-11' } },
+        { target: { kind: 'review', id: 'A-1', schoolId: 'ESC-1', competence: '2026-10' } },
+        { action: 'delete_attempt' }
+    ]) {
+        const client = createOperationalCorrectionClient({ repository: fakeRepository([granularPlan(change)]) });
+        await assert.rejects(client.preview({ action: 'delete_review', target: { id: 'A-1', schoolId: 'ESC-1', competence: '2026-11' } }),
+            error => error.code === 'INVALID_PREVIEW');
+    }
+});
+
+test('T5 exige alvo e remoções discriminadas, mantém null de data e oferece alternativa sem confirmar ambiguidade', () => {
+    const valid = describePlan(granularPlan());
+    assert.equal(valid.canApply, true);
+    assert.equal(valid.changes[0].after, null, 'data removida não vira rótulo de análise');
+    assert.equal(describePlan(granularPlan({ affectedRecords: { attempts: [{ id: 'A-2' }] } })).canApply, false);
+    assert.equal(describePlan(granularPlan({ effects: { delete: { pendency_contacts: ['C-1'] } } })).canApply, false);
+    const alternative = { action: 'delete_pendency', label: 'Excluir esta Pendência com seu histórico',
+        target: { kind: 'pendency', id: 'P-1', schoolId: 'ESC-1', competence: '2026-11' } };
+    const ambiguous = describePlan(granularPlan({ blockers: [{ code: 'AMBIGUOUS_PENDENCY_HISTORY', message: 'Escolha o alcance.' }], alternatives: [alternative] }));
+    assert.equal(ambiguous.canApply, false);
+    assert.deepEqual(ambiguous.alternatives, [alternative]);
+});

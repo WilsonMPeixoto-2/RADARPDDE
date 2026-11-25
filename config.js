@@ -291,6 +291,9 @@
         // A limpeza de histórico é uma operação distinta, com ativação própria.
         const itemHistoryRelease = input.features?.itemHistoryRelease === true
             && contextDeletionRelease === true;
+        // T5 só é publicada após aplicar sua migration e autorizar esta release.
+        const granularHistoryRelease = input.features?.granularHistoryRelease === true
+            && itemHistoryRelease === true;
 
         if (!isLocal && !validCredentials) {
             diagnostics.push('Conexão Supabase bloqueada: URL ou chave publicável inválida.');
@@ -320,7 +323,8 @@
                 ...(operationalCorrectionRelease ? { operationalCorrectionRelease: true } : {}),
                 ...(bonificationCorrectionRelease ? { bonificationCorrectionRelease: true } : {}),
                 ...(contextDeletionRelease ? { contextDeletionRelease: true } : {}),
-                ...(itemHistoryRelease ? { itemHistoryRelease: true } : {})
+                ...(itemHistoryRelease ? { itemHistoryRelease: true } : {}),
+                ...(granularHistoryRelease ? { granularHistoryRelease: true } : {})
             },
             supabase: {
                 url: connectionEnabled && !productionBlocked ? rawUrl : '',

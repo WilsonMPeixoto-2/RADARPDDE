@@ -274,6 +274,64 @@ test('retificação manual rejeita opções novas fora do cadastro canônico', a
     );
 });
 
+function createManualDetailsHarness(overrides = {}) {
+    const state = {
+        pendencies: [{
+            id: 'manual-parcial', escolaId: 'ESC-1', competencia: '2026-05',
+            item: 'Outro', documentoKey: 'Outro', motivo: 'Documento ausente',
+            responsavel: 'Escola', status: 'Cancelada', observacao: 'Detalhe antigo',
+            cancelamento: { dataHora: '2026-10-01T14:00:00Z', justificativa: '' },
+            historico: [{ id: 'evento-real', tipo: 'cancelamento', usuario: 'Outra controladora' }],
+            tentativas: [], rowVersion: 7, ...overrides
+        }],
+        logs: []
+    };
+    const calls = [];
+    const service = new PendencyService({
+        dataService: createDataService(calls), getState: () => state,
+        appendLog(action, details) {
+            const log = { id: 'log-retificacao', action, details };
+            state.logs.push(log);
+            return log;
+        },
+        getCurrentProfile: () => 'assistente', getAuthenticatedRole: () => 'federal_assistant'
+    });
+    retification.protectPendencyService(service);
+    return { state, service, calls };
+}
+
+test('T5 permite limpar somente observação manual, sem reabrir ou converter a Pendência', async () => {
+    const { state, service, calls } = createManualDetailsHarness();
+    const original = structuredClone(state.pendencies[0]);
+    await service.retifyManualDetails({ pendencyId: original.id, observation: '' });
+    assert.equal(state.pendencies[0].observacao, '');
+    assert.deepEqual(state.pendencies[0], { ...original, observacao: '' });
+    assert.equal(state.logs.length, 1);
+    assert.match(state.logs[0].details, /Observação/);
+    assert.equal(calls[0].remoteResultIsAuthoritative, true);
+});
+
+test('T5 campos omitidos preservam detalhe existente e observação vazia vence alias antigo', async () => {
+    const { state, service } = createManualDetailsHarness();
+    await service.retifyManualDetails({ pendencyId: 'manual-parcial', responsible: 'Verbas Federais' });
+    assert.equal(state.pendencies[0].observacao, 'Detalhe antigo');
+    assert.equal(state.pendencies[0].responsavel, 'Verbas Federais');
+    await service.retifyManualDetails({ pendencyId: 'manual-parcial', observation: '', observacao: 'Alias antigo' });
+    assert.equal(state.pendencies[0].observacao, '');
+});
+
+test('T5 opcionalidade não apaga a categoria mínima nem transforma Pendência documental em manual', async () => {
+    const { state, service, calls } = createManualDetailsHarness();
+    const original = structuredClone(state.pendencies[0]);
+    await assert.rejects(() => service.retifyManualDetails({ pendencyId: original.id, item: '' }),
+        error => error.code === 'VALIDATION_FAILED');
+    assert.deepEqual(state.pendencies[0], original);
+    assert.equal(calls.length, 0);
+    const documentary = createManualDetailsHarness({ programaId: 'BASIC', documentoKey: 'notaFiscal', registeredInvoiceId: 'NF-REAL' });
+    await assert.rejects(() => documentary.service.retifyManualDetails({ pendencyId: original.id, observation: '' }),
+        error => error.code === 'INVALID_RETIFICATION_TARGET');
+});
+
 test('edita NF sem modificar Pendência canônica fora da transação; projeção reflete dados atuais', async () => {
     const harness = createInvoiceHarness();
     harness.state.pendencies[0].item = 'PDDE Básico - NF: NF-1';

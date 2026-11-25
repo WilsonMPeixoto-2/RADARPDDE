@@ -512,7 +512,7 @@
   {
     "id": "INV-02",
     "surface": "school-record",
-    "action": "Excluir documento fiscal sem histórico de Pendência individual nem bem Inventariada e reverter efeitos vinculados, preservando bonificação/consolidação; operação separada da retificação",
+    "action": "Excluir despesa e seus dependentes causais por prévia/confirmacão, inclusive com histórico ou bem Inventariada; preservar NF vizinha e bonificação",
     "mode": "write",
     "criticality": "P0",
     "allow": [
@@ -527,32 +527,16 @@
     ],
     "anchors": [
       [
-        "src/application/invoice-service.js",
-        "async remove"
+        "src/application/operational-correction-client.js",
+        "delete_invoice"
       ],
       [
-        "src/application/invoice-service.js",
-        "assertDeletionHistorySafe"
-      ],
-      [
-        "src/data/supabase-repository.js",
-        "deleteInvoiceWithEffects"
-      ],
-      [
-        "supabase/migrations/20260823045000_service_advisory_corrective_submission.sql",
-        "protect_service_advisory_invoice_history"
-      ],
-      [
-        "src/application/invoice-service.js",
-        "assertDeletionAssetSafe"
-      ],
-      [
-        "supabase/migrations/20261011193500_inventory_terminal_delete_protection.sql",
-        "registered_invoices_protect_inventoried_delete"
+        "supabase/migrations/20261114000100_operational_correction_contract.sql",
+        "operational_correction_build_plan"
       ]
     ],
-    "service": "InvoiceService.remove + proteção histórica e patrimonial terminal",
-    "repository": "deleteInvoiceWithEffects + triggers de histórico e patrimônio terminal",
+    "service": "RadarOperationalCorrectionClient (exclusão causal explícita)",
+    "repository": "preview_operational_change + apply_operational_change",
     "resources": [
       "registered_invoices",
       "assets",
@@ -561,7 +545,7 @@
       "administrative_logs"
     ],
     "reload": true,
-    "concurrency": "row_version",
+    "concurrency": "row_version + planDigest + operationKey",
     "compensation": "atomic_rpc",
     "evidence": "invoice",
     "coverage": "covered",
@@ -949,5 +933,175 @@
       "Falta prova padronizada de autoria e recorte de leitura após persistência em Production."
     ],
     "next": "controlled-write"
+  },
+  {
+    "mode": "write",
+    "criticality": "P0",
+    "allow": [
+      "controller",
+      "federal_assistant",
+      "technical_admin"
+    ],
+    "deny": [
+      "anonymous",
+      "sme_management",
+      "inventory"
+    ],
+    "anchors": [
+      [
+        "src/application/operational-correction-client.js",
+        "buildRequest"
+      ],
+      [
+        "supabase/migrations/20261125064516_t5_granular_history_inventory.sql",
+        "operational_correction_build_plan"
+      ]
+    ],
+    "service": "RadarOperationalCorrectionClient + diálogo de correção",
+    "repository": "preview_operational_change + apply_operational_change",
+    "reload": true,
+    "concurrency": "row_version + planDigest + operationKey",
+    "compensation": "atomic_rpc",
+    "evidence": "granular-correction",
+    "coverage": "partial",
+    "gaps": [
+      "Candidata T5: comprovar Auth/RLS, gravação/releitura e experiência visual no SHA final; não publicada."
+    ],
+    "next": "controlled-write",
+    "id": "PEND-07",
+    "surface": "pendencies",
+    "action": "Corrigir/excluir envio ou reanálise pelo ID persistido e recompor somente efeitos causais; preservar história independente",
+    "resources": [
+      "pendency_attempts",
+      "pendencies",
+      "registered_invoices",
+      "verifications",
+      "administrative_logs"
+    ]
+  },
+  {
+    "mode": "write",
+    "criticality": "P0",
+    "allow": [
+      "controller",
+      "federal_assistant",
+      "technical_admin"
+    ],
+    "deny": [
+      "anonymous",
+      "sme_management",
+      "inventory"
+    ],
+    "anchors": [
+      [
+        "src/application/operational-correction-client.js",
+        "buildRequest"
+      ],
+      [
+        "supabase/migrations/20261125064516_t5_granular_history_inventory.sql",
+        "operational_correction_build_plan"
+      ]
+    ],
+    "service": "RadarOperationalCorrectionClient + diálogo de correção",
+    "repository": "preview_operational_change + apply_operational_change",
+    "reload": true,
+    "concurrency": "row_version + planDigest + operationKey",
+    "compensation": "atomic_rpc",
+    "evidence": "granular-correction",
+    "coverage": "partial",
+    "gaps": [
+      "Candidata T5: comprovar Auth/RLS, gravação/releitura e experiência visual no SHA final; não publicada."
+    ],
+    "next": "controlled-write",
+    "id": "PEND-08",
+    "surface": "pendencies",
+    "action": "Corrigir/excluir contato geral ou vinculado por ID, sem resolver Pendência nem apagar mensagens externas",
+    "resources": [
+      "pendency_contacts",
+      "pendencies",
+      "administrative_logs"
+    ]
+  },
+  {
+    "mode": "write",
+    "criticality": "P0",
+    "allow": [
+      "controller",
+      "federal_assistant",
+      "technical_admin"
+    ],
+    "deny": [
+      "anonymous",
+      "sme_management",
+      "inventory"
+    ],
+    "anchors": [
+      [
+        "src/integration/auditable-retification.js",
+        "retifyManualDetails"
+      ]
+    ],
+    "service": "RadarAuditableRetification.retifyManualDetails",
+    "repository": "PendencyService.persistPendencyCommand",
+    "reload": true,
+    "concurrency": "row_version + planDigest + operationKey",
+    "compensation": "atomic_rpc",
+    "evidence": "granular-correction",
+    "coverage": "partial",
+    "gaps": [
+      "Candidata T5: comprovar Auth/RLS, gravação/releitura e experiência visual no SHA final; não publicada."
+    ],
+    "next": "controlled-write",
+    "id": "PEND-09",
+    "surface": "pendencies",
+    "action": "Retificar detalhes de ocorrência manual com observação opcional, preservando origem manual e classificação mínima",
+    "resources": [
+      "pendencies",
+      "administrative_logs"
+    ]
+  },
+  {
+    "mode": "write",
+    "criticality": "P0",
+    "allow": [
+      "controller",
+      "federal_assistant",
+      "inventory",
+      "technical_admin"
+    ],
+    "deny": [
+      "anonymous",
+      "sme_management"
+    ],
+    "anchors": [
+      [
+        "src/application/operational-correction-client.js",
+        "buildRequest"
+      ],
+      [
+        "supabase/migrations/20261125064516_t5_granular_history_inventory.sql",
+        "operational_correction_build_plan"
+      ]
+    ],
+    "service": "RadarOperationalCorrectionClient + diálogo de correção",
+    "repository": "preview_operational_change + apply_operational_change",
+    "reload": true,
+    "concurrency": "row_version + planDigest + operationKey",
+    "compensation": "atomic_rpc",
+    "evidence": "granular-correction",
+    "coverage": "partial",
+    "gaps": [
+      "Candidata T5: comprovar Auth/RLS, gravação/releitura e experiência visual no SHA final; não publicada."
+    ],
+    "next": "controlled-write",
+    "id": "ASSET-05",
+    "surface": "inventory",
+    "action": "Corrigir inventário, inclusive desfazer Inventariada, ou excluir bem manual independente com prévia de efeitos e preservação fiscal",
+    "resources": [
+      "assets",
+      "registered_invoices",
+      "verifications",
+      "administrative_logs"
+    ]
   }
 ]

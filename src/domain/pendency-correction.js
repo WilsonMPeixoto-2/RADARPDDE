@@ -51,6 +51,79 @@
             && text(deliveryStatus) === 'Não';
     }
 
+    function calendarDate(value) {
+        const match = text(value).match(/^(\d{4}-\d{2}-\d{2})(?:$|T)/);
+        if (!match) return null;
+        const parsed = new Date(`${match[1]}T00:00:00Z`);
+        return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === match[1]
+            ? match[1] : null;
+    }
+
+    function supplied(input, keys) {
+        const key = keys.find(name => Object.prototype.hasOwnProperty.call(input, name));
+        return key === undefined ? { present: false } : { present: true, value: input[key] };
+    }
+
+    function correctAnalysis(attempt, verification) {
+        const available = calendarDate(attempt.dataDisponibilizacao);
+        const deadline = calendarDate(verification.bonusDeadline ?? verification.bonifPrazo);
+        const late = Boolean(available && deadline && available > deadline)
+            || requiresLateCorrect({
+                bonusResult: verification.bonusResult ?? verification.resultadoBonif,
+                deliveryStatus: verification.deliveryStatus ?? verification.bonificationValue
+            });
+        return late ? 'Correto (Atrasado)' : 'Correto';
+    }
+
+    const REVIEW_EVENT_TYPES = new Set(['reanalise_correta', 'reanalise_incorreta', 'arquivo_indisponivel']);
+
+    function reconcileHistory(pendency, action, targetId, attempt, changes) {
+        if (!Array.isArray(pendency.historico)) return;
+        pendency.historico = pendency.historico.flatMap(event => {
+            if (text(event?.tentativaId) !== text(targetId)) return [event];
+            const reviewEvent = REVIEW_EVENT_TYPES.has(text(event.tipo));
+            if (action === 'delete_attempt' || (action === 'delete_review' && reviewEvent)) return [];
+            if (action === 'correct_review' && reviewEvent) {
+                const next = { ...event };
+                const resultChanged = supplied(changes, ['resultado', 'result']).present;
+                if (resultChanged) {
+                    const types = { correto: 'reanalise_correta', incorreto: 'reanalise_incorreta', arquivo_indisponivel: 'arquivo_indisponivel' };
+                    const details = {
+                        correto: 'Reanálise confirmou a correção do documento.',
+                        incorreto: 'Reanálise identificou erros no documento corrigido.',
+                        arquivo_indisponivel: 'Reanálise não localizou um arquivo acessível.'
+                    };
+                    next.tipo = types[attempt.resultado];
+                    next.detalhe = details[attempt.resultado];
+                }
+                if (supplied(changes, ['dataAnalise', 'analyzedAt', 'date']).present) next.dataHora = attempt.dataAnalise;
+                if (resultChanged || supplied(changes, ['errosEncontrados', 'errors']).present) next.erros = [...attempt.errosEncontrados];
+                if (supplied(changes, ['observacaoAnalise', 'observation', 'note']).present) next.observacao = attempt.observacaoAnalise;
+                return [next];
+            }
+            if (action === 'correct_attempt' && event.tipo === 'novo_envio') {
+                const next = { ...event };
+                if (supplied(changes, ['dataDisponibilizacao', 'availableAt', 'date']).present) next.dataDisponibilizacao = attempt.dataDisponibilizacao;
+                if (supplied(changes, ['link', 'driveUrl']).present) next.link = attempt.link;
+                if (supplied(changes, ['observacaoEscola', 'observacao', 'observation', 'note']).present) next.observacao = attempt.observacao;
+                // dataHora e autoria registram quando/por quem o envio ocorreu.
+                return [next];
+            }
+            return [event];
+        });
+    }
+
+    function alternatives(pendency) {
+        const schoolId = text(pendency.escolaId || pendency.schoolId);
+        const competence = text(pendency.competenciaOrigem || pendency.competencia);
+        const id = text(pendency.id);
+        return id && schoolId && competence ? [{
+            action: 'delete_pendency',
+            label: 'Excluir esta Pendência com seu histórico',
+            target: { kind: 'pendency', id, schoolId, competence }
+        }] : [];
+    }
+
     function cloneAttempt(attempt) {
         const raw = attempt && typeof attempt === 'object' ? attempt : {};
         // Identidade, sequência e versão pertencem ao registro persistido.
@@ -93,7 +166,7 @@
             .sort((left, right) => Number(left.numero) - Number(right.numero));
     }
 
-    function projectionScope(pendency, attempts, targetId) {
+    function projectionScope(pendency, attempts, targetId, action, changes) {
         if (text(pendency.status) === PENDENCY_STATUS.CANCELLED) return 'preserve';
         const numbers = attempts.map(item => Number(item.numero));
         if (numbers.some(number => !Number.isInteger(number) || number < 1)
@@ -121,6 +194,9 @@
             if (!Number.isFinite(attemptAt) || eventTimes.some(time => !Number.isFinite(time))) return 'ambiguous';
             const lastStateAt = Math.max(...eventTimes);
             if (lastStateAt === attemptAt) return 'ambiguous';
+            const correctedDate = supplied(changes, ['dataAnalise', 'analyzedAt', 'date']);
+            if (action === 'correct_review' && correctedDate.present
+                && (Date.parse(correctedDate.value) >= lastStateAt) !== (attemptAt >= lastStateAt)) return 'ambiguous';
             if (lastStateAt > attemptAt) return 'preserve';
         }
         const expectedStatus = latest.status === ATTEMPT_STATUS.WAITING_REVIEW
@@ -134,8 +210,9 @@
      * Recompõe o estado da Pendência e da análise técnica vinculada a partir
      * do esquema real de `src/domain/pendencias.js` (`tentativas`) e da regra
      * real `requiresLateCorrect` de `src/domain/fluxo-operacional.js`.
-     * Helper preparatório T5, sem persistência. affectedAnalysis=null significa
-     * preservar a análise vigente; ambiguidade nunca fornece uma recomposição.
+     * Projeção pura T5, sem persistência. O servidor refaz a decisão na transação.
+     * affectedAnalysis=null preserva a análise; 'Não analisado' retira o resultado
+     * dependente. Ambiguidade nunca aplica uma recomposição ou amplia o alcance.
      */
     function rebuildPendencyAfterCorrection({
         pendency,
@@ -150,12 +227,13 @@
         }
 
         const nextPendency = JSON.parse(JSON.stringify(pendency));
-        const sourceAttempts = Array.isArray(nextPendency.tentativas)
-            ? nextPendency.tentativas
-            : (Array.isArray(externalAttempts) ? externalAttempts.map(cloneAttempt) : []);
+        const sourceAttempts = Array.isArray(externalAttempts)
+            ? externalAttempts.map(cloneAttempt)
+            : (Array.isArray(nextPendency.tentativas) ? nextPendency.tentativas : []);
         const attempts = sourceAttempts.map(cloneAttempt);
 
-        const normalizedAction = text(action);
+        const aliases = { delete_submission: 'delete_attempt', correct_submission: 'correct_attempt' };
+        const normalizedAction = aliases[text(action)] || text(action);
         const { index: targetIdx, ambiguity } = resolveTargetAttemptIndex(attempts, targetId);
 
         if (ambiguity) {
@@ -163,7 +241,7 @@
                 pendency: nextPendency,
                 attempts: sourceAttempts,
                 affectedAnalysis: null,
-                ambiguity
+                ambiguity: { ...ambiguity, alternatives: alternatives(nextPendency) }
             };
         }
 
@@ -182,6 +260,11 @@
             target.resultado = null;
             target.errosEncontrados = [];
             target.observacaoAnalise = '';
+            target.analisadoPor = null;
+            for (const key of ['analisadoPorId', 'authenticatedRoleAnalise', 'actingProfileAnalise',
+                'analyzedBy', 'analyzedByUserId', 'reviewedBy', 'reviewedByUserId', 'reviewerProfile']) {
+                if (Object.prototype.hasOwnProperty.call(target, key)) target[key] = null;
+            }
         } else if (normalizedAction === 'correct_review') {
             if (targetIdx < 0) {
                 throw new Error('Nenhuma tentativa disponível para corrigir reanálise.');
@@ -190,48 +273,60 @@
             if (target.status !== ATTEMPT_STATUS.REVIEWED) {
                 throw new Error('A tentativa selecionada não possui reanálise concluída para correção.');
             }
-            const nextResult = text(changes.resultado || changes.result).toLowerCase();
+            const result = supplied(changes, ['resultado', 'result']);
+            const nextResult = text(result.present ? result.value : target.resultado).toLowerCase();
             if (!Object.values(REVIEW_RESULTS).includes(nextResult)) {
                 throw new Error(`Resultado de reanálise inválido: ${nextResult}`);
             }
-            const nextDate = text(changes.dataAnalise || changes.date || target.dataAnalise) || null;
+            const date = supplied(changes, ['dataAnalise', 'analyzedAt', 'date']);
+            const nextDate = text(date.present ? date.value : target.dataAnalise) || null;
+            if (date.present && (!nextDate || !Number.isFinite(Date.parse(nextDate)) || !calendarDate(nextDate))) {
+                throw new Error('Data de reanálise inválida.');
+            }
+            const errors = supplied(changes, ['errosEncontrados', 'errors']);
             const nextErrors = nextResult === REVIEW_RESULTS.CORRECT
-                ? [] : normalizeErrors(changes.errosEncontrados || changes.errors || target.errosEncontrados);
+                ? [] : nextResult === REVIEW_RESULTS.UNAVAILABLE
+                    ? ['Arquivo não localizado ou inacessível']
+                    : normalizeErrors(errors.present ? errors.value : target.errosEncontrados);
             changesProjection = nextResult !== text(target.resultado).toLowerCase()
                 || nextDate !== (text(target.dataAnalise) || null)
                 || JSON.stringify(nextErrors) !== JSON.stringify(normalizeErrors(target.errosEncontrados));
             target.resultado = nextResult;
             target.dataAnalise = nextDate;
-            target.observacaoAnalise = text(
-                changes.observacaoAnalise !== undefined
-                    ? changes.observacaoAnalise
-                    : (changes.note !== undefined ? changes.note : target.observacaoAnalise)
-            );
+            const observation = supplied(changes, ['observacaoAnalise', 'observation', 'note']);
+            if (observation.present) target.observacaoAnalise = text(observation.value);
             target.errosEncontrados = nextErrors;
-        } else if (normalizedAction === 'delete_submission') {
+        } else if (normalizedAction === 'delete_attempt') {
             if (targetIdx < 0) {
                 throw new Error('Nenhuma tentativa disponível para excluir envio.');
             }
             attempts.splice(targetIdx, 1);
-        } else if (normalizedAction === 'correct_submission') {
+        } else if (normalizedAction === 'correct_attempt') {
             if (targetIdx < 0) {
                 throw new Error('Nenhuma tentativa disponível para corrigir envio.');
             }
             const target = attempts[targetIdx];
             changesProjection = false;
-            if (changes.dataDisponibilizacao !== undefined || changes.date !== undefined) {
-                const nextDate = text(changes.dataDisponibilizacao ?? changes.date) || null;
-                changesProjection = nextDate !== (text(target.dataDisponibilizacao) || null);
+            const date = supplied(changes, ['dataDisponibilizacao', 'availableAt', 'date']);
+            if (date.present) {
+                const nextDate = calendarDate(date.value);
+                if (!nextDate) throw new Error('Data de disponibilização inválida.');
+                changesProjection = target.status === ATTEMPT_STATUS.REVIEWED
+                    && nextDate !== (text(target.dataDisponibilizacao) || null);
                 target.dataDisponibilizacao = nextDate;
             }
-            if (changes.observacaoEscola !== undefined || changes.note !== undefined) {
-                target.observacaoEscola = text(changes.observacaoEscola ?? changes.note);
+            const observation = supplied(changes, ['observacaoEscola', 'observacao', 'observation', 'note']);
+            if (observation.present) {
+                target.observacao = text(observation.value);
+                if (Object.prototype.hasOwnProperty.call(target, 'observacaoEscola')) target.observacaoEscola = target.observacao;
             }
+            const link = supplied(changes, ['link', 'driveUrl']);
+            if (link.present) target.link = text(link.value) || null;
         } else {
             throw new Error(`Ação de correção de histórico desconhecida: ${normalizedAction}`);
         }
 
-        const scope = changesProjection ? projectionScope(nextPendency, sourceAttempts, targetId) : 'preserve';
+        const scope = changesProjection ? projectionScope(nextPendency, sourceAttempts, targetId, normalizedAction, changes) : 'preserve';
         if (scope === 'ambiguous') {
             return {
                 pendency: nextPendency,
@@ -240,10 +335,13 @@
                 ambiguity: {
                     code: 'AMBIGUOUS_PENDENCY_HISTORY',
                     message: 'O histórico não comprova qual estado depende desta tentativa; confira a sequência antes de corrigir.',
-                    candidates: sourceAttempts.map(item => item.id)
+                    candidates: sourceAttempts.map(item => item.id),
+                    alternatives: alternatives(nextPendency)
                 }
             };
         }
+        reconcileHistory(nextPendency, normalizedAction, targetId,
+            attempts.find(item => text(item.id) === text(targetId)), changes);
         if (scope === 'preserve') {
             nextPendency.tentativas = attempts;
             return { pendency: nextPendency, attempts, affectedAnalysis: null, ambiguity: null };
@@ -251,47 +349,47 @@
 
         const activeAttempts = activeAttemptsInOrder(attempts);
         const latest = activeAttempts.length ? activeAttempts[activeAttempts.length - 1] : null;
-        let affectedAnalysis = 'Incorreto';
+        let affectedAnalysis = 'Não analisado';
 
         if (!latest) {
             nextPendency.status = PENDENCY_STATUS.OPEN;
             nextPendency.responsavel = ACTORS.SCHOOL;
             nextPendency.proximoAtor = ACTORS.SCHOOL;
             nextPendency.dataResolucao = null;
+            const opening = (nextPendency.historico || []).filter(event => event.tipo === 'abertura');
+            nextPendency.errosAtuais = opening.length === 1 ? normalizeErrors(opening[0].erros) : [];
         } else if (latest.status === ATTEMPT_STATUS.WAITING_REVIEW) {
             nextPendency.status = PENDENCY_STATUS.WAITING_REVIEW;
             nextPendency.responsavel = ACTORS.CONTROLLER;
             nextPendency.proximoAtor = ACTORS.CONTROLLER;
             nextPendency.dataResolucao = null;
-            const previousReviewedIncorrect = activeAttempts
+            const previousReviewed = activeAttempts
                 .slice(0, -1)
                 .reverse()
-                .find(item => item.status === ATTEMPT_STATUS.REVIEWED && normalizeErrors(item.errosEncontrados).length > 0);
-            if (previousReviewedIncorrect) {
-                nextPendency.errosAtuais = normalizeErrors(previousReviewedIncorrect.errosEncontrados);
-            }
+                .find(item => item.status === ATTEMPT_STATUS.REVIEWED && Object.values(REVIEW_RESULTS).includes(item.resultado));
+            nextPendency.errosAtuais = previousReviewed ? normalizeErrors(previousReviewed.errosEncontrados) : [];
+            if (previousReviewed) affectedAnalysis = previousReviewed.resultado === REVIEW_RESULTS.CORRECT
+                ? correctAnalysis(previousReviewed, verification) : 'Incorreto';
         } else if (latest.status === ATTEMPT_STATUS.REVIEWED) {
             if (latest.resultado === REVIEW_RESULTS.CORRECT) {
                 nextPendency.status = PENDENCY_STATUS.RESOLVED;
                 nextPendency.responsavel = null;
                 nextPendency.proximoAtor = null;
-                nextPendency.dataResolucao = latest.dataAnalise || nextPendency.dataResolucao || null;
-                const isLate = requiresLateCorrect({
-                    bonusResult: verification.bonusResult ?? verification.resultadoBonif,
-                    deliveryStatus: verification.deliveryStatus ?? verification.bonificationValue
-                });
-                affectedAnalysis = isLate ? 'Correto (Atrasado)' : 'Correto';
+                nextPendency.dataResolucao = calendarDate(latest.dataAnalise);
+                nextPendency.errosAtuais = [];
+                affectedAnalysis = correctAnalysis(latest, verification);
             } else {
                 nextPendency.status = PENDENCY_STATUS.OPEN;
                 nextPendency.responsavel = ACTORS.SCHOOL;
                 nextPendency.proximoAtor = ACTORS.SCHOOL;
                 nextPendency.dataResolucao = null;
-                if (normalizeErrors(latest.errosEncontrados).length > 0) {
-                    nextPendency.errosAtuais = normalizeErrors(latest.errosEncontrados);
-                }
+                nextPendency.errosAtuais = normalizeErrors(latest.errosEncontrados);
                 affectedAnalysis = 'Incorreto';
             }
         }
+
+        nextPendency.motivo = nextPendency.errosAtuais?.[0] || null;
+        nextPendency.cancelamento = null;
 
         nextPendency.tentativas = attempts;
 

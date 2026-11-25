@@ -6854,6 +6854,7 @@ function renderDashboardInventario(container) {
                     if (b.observacoes) {
                         statusBadge += `<div class="inventory-item-observation"><strong>Observação:</strong> ${escapeHtml(b.observacoes)}</div>`;
                     }
+                    actionBtn += renderInventoryCorrectionActions(b);
 
 
 
@@ -10105,6 +10106,7 @@ function renderProntuario(escolaId) {
                                                     ` : (b.status === 'Encaminhada' && accessProfile === 'inventario') ? `
                                                         <button class="btn btn-primary btn-sm" onclick="inventariarBem('${escapeHtml(b.id)}')">Inventariar</button>
                                                     ` : `<span style="font-size:0.75rem; color:var(--text-muted)">${b.status === 'Encaminhada' ? 'Encaminhado' : 'Inventariado'}</span>`}
+                                                    ${renderInventoryCorrectionActions(b)}
                                                 </td>
                                             </tr>
                                         `;
@@ -10165,17 +10167,38 @@ function renderProntuario(escolaId) {
     });
 }
 
+// Mantém a identidade da consulta contextual para abrir a prévia do servidor.
+// Este cache não grava nem projeta consequências no estado de negócio.
+const schoolContactCorrectionRecords = new Map();
+
+function contactCorrectionActions(contact, schoolId = contact.escolaId || contact.school_id) {
+    if (!contact?.id || !schoolId) return [];
+    return [['correct_contact', 'Corrigir contato'], ['delete_contact', 'Excluir contato']]
+        .filter(([action]) => window.RadarOperationalCorrectionDialog?.canCorrectGranular?.(window, action));
+}
+
+function contactCorrectionActionsHTML(contact) {
+    const schoolId = contact.escolaId || contact.school_id;
+    const actions = contactCorrectionActions(contact, schoolId);
+    if (!actions.length) return '';
+    return `<div class="contact-correction-actions">${actions.map(([action, label]) => `
+        <button type="button" class="btn btn-secondary btn-sm" data-action="${action.replaceAll('_', '-')}"
+            data-correction-target-id="${escapeHtml(contact.id)}" data-school-id="${escapeHtml(schoolId)}"
+            onclick="openGranularContactCorrection(this)">${label}</button>`).join('')}</div>`;
+}
+
 function schoolContactHistoryHTML(records) {
     return records.length === 0 ? `
                                 <div style="color:var(--text-muted); padding:24px; text-align:center;">Nenhum registro de contato lançado. Use o botão "Registrar Contato" para lançar.</div>
                             ` : records.sort((a,b) => String(b.dataRegistro || '').localeCompare(String(a.dataRegistro || ''))).map(c => `
-                                <div class="contact-card">
+                                <div class="contact-card" data-contact-id="${escapeHtml(c.id || '')}">
                                     <div class="contact-meta">
                                         <span class="contact-type-tag">${escapeHtml(c.tipo)}</span>
                                         <span>Atendimento: ${new Date(c.dataAtendimento).toLocaleDateString('pt-BR')} (Registro: ${new Date(c.dataRegistro).toLocaleString('pt-BR')})</span>
                                     </div>
                                     <div class="contact-desc">${escapeHtml(c.desc)}</div>
                                     ${(c.responsavel || c.usuario) ? `<div class="contact-author">Registrado por ${escapeHtml(c.responsavel || c.usuario)}</div>` : ''}
+                                    ${contactCorrectionActionsHTML(c)}
                                 </div>
                             `).join('');
 }
@@ -10192,6 +10215,11 @@ async function loadProntuarioContactHistory(panel) {
         const records = await service.readSchoolContacts(schoolId);
         if (!timeline.isConnected || activeSchoolId !== schoolId) return;
         const legacy = records.map(record => ({
+            ...record,
+            id: record.id,
+            escolaId: record.school_id,
+            pendenciaId: record.pendency_id || null,
+            rowVersion: record.row_version,
             tipo: record.contact_type,
             dataAtendimento: record.contact_date,
             dataRegistro: record.created_at || record.payload?.dataRegistro || record.contact_date,
@@ -10201,6 +10229,7 @@ async function loadProntuarioContactHistory(panel) {
                 || record.created_by_name
                 || ''
         }));
+        schoolContactCorrectionRecords.set(schoolId, legacy);
         const fragment = document.createDocumentFragment();
         if (!legacy.length) {
             const empty = document.createElement('p');
@@ -10210,6 +10239,7 @@ async function loadProntuarioContactHistory(panel) {
         legacy.sort((a, b) => String(b.dataRegistro || '').localeCompare(String(a.dataRegistro || ''))).forEach(contact => {
             const card = document.createElement('div');
             card.className = 'contact-card';
+            card.dataset.contactId = contact.id || '';
             const meta = document.createElement('div');
             meta.className = 'contact-meta';
             const type = document.createElement('span');
@@ -10227,6 +10257,23 @@ async function loadProntuarioContactHistory(panel) {
                 author.className = 'contact-author';
                 author.textContent = `Registrado por ${contact.responsavel}`;
                 card.appendChild(author);
+            }
+            const contactActions = contactCorrectionActions(contact, schoolId);
+            if (contactActions.length) {
+                const actions = document.createElement('div');
+                actions.className = 'contact-correction-actions';
+                contactActions.forEach(([action, label]) => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'btn btn-secondary btn-sm';
+                    button.textContent = label;
+                    button.dataset.action = action.replaceAll('_', '-');
+                    button.dataset.correctionTargetId = contact.id;
+                    button.dataset.schoolId = schoolId;
+                    button.addEventListener('click', () => openGranularContactCorrection(button));
+                    actions.appendChild(button);
+                });
+                card.appendChild(actions);
             }
             fragment.appendChild(card);
         });
@@ -11483,6 +11530,11 @@ function renderPendencyDrawer() {
             </section>
         ` : ''}
         <div class="pendency-preview-actions">
+            ${!edit && window.RadarOperationalCorrectionDialog?.canCorrectGranular?.(window, 'correct_attempt') ? `
+                <button type="button" class="btn btn-secondary btn-sm"
+                    data-action="open-correction-history" data-pendency-ref="${escapeHtml(pendencyReference)}"
+                    onclick="openFullPendencyCorrectionHistory(this)">Ver histórico completo</button>
+            ` : ''}
             ${canRegisterNext ? `
                 <button
                     type="button"
@@ -11551,6 +11603,13 @@ function openPendencyDrawerWorkflowAction(action, source) {
     if (action === 'register') return abrirModalRegistrarNovoEnvio(trigger);
     if (action === 'reanalyze') return abrirModalReanalisarPendencia(trigger);
     return false;
+}
+
+function openFullPendencyCorrectionHistory(source) {
+    let pendencyId;
+    try { pendencyId = resolvePendencyIdReference(source); } catch (_error) { return false; }
+    closePendencyDrawer();
+    return window.openPendencyDetail?.(pendencyId) === true;
 }
 
 function openUnidentifiedExpensePendencyEdit(source) {
@@ -11882,6 +11941,150 @@ function operationalCorrectionDisplayContext(schoolId, competence, programId) {
         programName: program?.name || programId,
         competenceLabel: COMPETENCIAS.find(item => item.key === competence)?.label || competence
     };
+}
+
+function granularPendencyContext(pendencyId) {
+    const summary = window.RadarTask9PendencyPage?.getPendencyRecordById?.(pendencyId);
+    const pendency = pendencias.find(item => String(item.id) === String(pendencyId));
+    if (!summary && !pendency) return null;
+    const schoolId = summary?.schoolId || pendency.escolaId;
+    const competence = summary?.competence || pendency?.competenciaOrigem || pendency?.competencia || '';
+    const programId = summary?.programId || pendency?.programaId || '';
+    const invoiceId = summary?.registeredInvoiceId || pendency?.registeredInvoiceId || null;
+    const invoice = notasRegistradas.find(item => String(item.id) === String(invoiceId || ''));
+    return {
+        schoolId, competence, programId, pendencyId,
+        ...operationalCorrectionDisplayContext(schoolId, competence, programId),
+        documentKey: summary?.documentKey || pendency?.documentoKey || '',
+        documentLabel: [summary?.documentName || pendency?.item || 'Pendência',
+            invoice ? getInvoiceDocumentTitle(invoice) : summary?.invoiceIdentityLabel].filter(Boolean).join(' · '),
+        ...(invoiceId ? { invoiceId } : {}),
+        attempts: summary?.attempts || pendency?.tentativas || [],
+        contacts: summary?.contacts || contatos.filter(contact => String(contact.pendenciaId || contact.pendency_id || '') === String(pendencyId))
+    };
+}
+
+function closePendencyCorrectionSource() {
+    if (document.getElementById('pendency-detail-drawer')) window.closePendencyDetail?.();
+    const drawer = document.getElementById('pendency-preview-drawer');
+    if (drawer && !drawer.hidden) closePendencyDrawer();
+}
+
+function openGranularPendencyCorrection(trigger) {
+    const mode = String(trigger?.dataset?.action || '').replaceAll('-', '_');
+    if (!['correct_attempt', 'delete_attempt', 'correct_review', 'delete_review', 'correct_contact', 'delete_contact'].includes(mode)
+        || !window.RadarOperationalCorrectionDialog?.canCorrectGranular?.(window, mode)) return false;
+    const id = String(trigger?.dataset?.correctionTargetId || '');
+    let pendencyId;
+    try { pendencyId = resolvePendencyIdReference(trigger); } catch (_error) { return false; }
+    const source = granularPendencyContext(pendencyId);
+    if (!source || !id) return false;
+    const contact = mode.endsWith('_contact');
+    const matches = (contact ? source.contacts : source.attempts).filter(record => String(record.id) === id);
+    if (matches.length !== 1) return false;
+    const { attempts: _attempts, contacts: _contacts, ...context } = source;
+    const record = matches[0];
+    closePendencyCorrectionSource();
+    return window.RadarOperationalCorrectionDialog.open(window, {
+        mode, trigger, record,
+        context: { ...context, targetId: id },
+        afterRefresh() {
+            renderPendencias();
+            if (window.RadarTask9PendencyPage?.getPendencyRecordById?.(pendencyId)) {
+                window.openPendencyDetail?.(pendencyId);
+            }
+        }
+    });
+}
+
+function openGranularContactCorrection(trigger) {
+    const mode = String(trigger?.dataset?.action || '').replaceAll('-', '_');
+    if (!['correct_contact', 'delete_contact'].includes(mode)
+        || !window.RadarOperationalCorrectionDialog?.canCorrectGranular?.(window, mode)) return false;
+    const schoolId = String(trigger?.dataset?.schoolId || '');
+    const id = String(trigger?.dataset?.correctionTargetId || '');
+    const schoolRecords = schoolContactCorrectionRecords.get(schoolId)
+        || contatos.filter(contact => String(contact.escolaId || contact.school_id) === schoolId);
+    const matches = schoolRecords.filter(contact => String(contact.id) === id);
+    if (!id || matches.length !== 1) return false;
+    const record = matches[0];
+    const pendencyId = record.pendenciaId || record.pendency_id || null;
+    const pendencyContext = pendencyId ? granularPendencyContext(pendencyId) : null;
+    return window.RadarOperationalCorrectionDialog.open(window, {
+        mode, trigger, record,
+        context: {
+            schoolId, targetId: id, pendencyId,
+            ...operationalCorrectionDisplayContext(schoolId, '', ''),
+            ...(pendencyContext ? {
+                competence: pendencyContext.competence, programId: pendencyContext.programId,
+                competenceLabel: pendencyContext.competenceLabel, programName: pendencyContext.programName,
+                documentKey: pendencyContext.documentKey, documentLabel: pendencyContext.documentLabel
+            } : { documentLabel: pendencyId ? 'Contato vinculado à Pendência' : 'Contato geral da escola' })
+        },
+        async afterRefresh() {
+            renderProntuario(schoolId);
+            activateProntuarioTab('tab-contatos');
+        }
+    });
+}
+
+function renderInventoryCorrectionActions(asset) {
+    if (!asset?.id) return '';
+    const actions = [['correct_inventory', 'Corrigir registro patrimonial'], ['delete_asset', 'Excluir registro patrimonial']]
+        .filter(([action]) => window.RadarOperationalCorrectionDialog?.canCorrectGranular?.(window, action));
+    if (!actions.length) return '';
+    return `<div class="inventory-correction-actions">${actions.map(([action, label]) => `
+        <button type="button" class="btn btn-secondary btn-sm" data-action="${action.replaceAll('_', '-')}"
+            data-correction-target-id="${escapeHtml(asset.id)}"
+            onclick="openGranularInventoryCorrection(this)">${label}</button>`).join('')}</div>`;
+}
+
+function openGranularInventoryCorrection(trigger) {
+    const mode = String(trigger?.dataset?.action || '').replaceAll('-', '_');
+    if (!['correct_inventory', 'delete_asset'].includes(mode)
+        || !window.RadarOperationalCorrectionDialog?.canCorrectGranular?.(window, mode)) return false;
+    const id = String(trigger?.dataset?.correctionTargetId || '');
+    const matches = bens.filter(asset => String(asset.id) === id);
+    if (!id || matches.length !== 1) return false;
+    const record = matches[0];
+    const linkedInvoices = notasRegistradas.filter(invoice => String(invoice.bemId || '') === id);
+    const invoice = linkedInvoices.length === 1 ? linkedInvoices[0] : null;
+    const schoolId = record.escolaId;
+    const competence = record.competencia || '';
+    const programId = record.programaId || '';
+    const displayProgramId = programId || invoice?.programaId || '';
+    const sourceView = currentView;
+    return window.RadarOperationalCorrectionDialog.open(window, {
+        mode, trigger, record,
+        context: {
+            schoolId, targetId: id, competence, programId,
+            ...operationalCorrectionDisplayContext(schoolId, competence, displayProgramId),
+            documentLabel: invoice ? getInvoiceDocumentTitle(invoice) : (record.notaFiscal ? `Nota fiscal ${record.notaFiscal}` : 'Bem patrimonial'),
+            linkedInvoiceId: invoice?.id || null,
+            inventoryMembers: getActiveInventoryMembers().map(member => ({ id: member.id, name: member.name })),
+            inventoriedByName: record.inventariadoPor || equipeInventario.find(member => String(member.id) === String(record.inventariadorId || ''))?.name || ''
+        },
+        afterRefresh() {
+            if (sourceView === 'inventario') renderInventarioView();
+            else if (sourceView === 'dashboard') renderDashboard();
+            else {
+                renderProntuario(schoolId);
+                activateProntuarioTab('tab-capital');
+            }
+        }
+    });
+}
+
+function openManualPendencyDetails(trigger) {
+    if (!window.RadarOperationalCorrectionDialog?.canCorrectGranular?.(window, 'correct_attempt')) return false;
+    let pendencyId;
+    try { pendencyId = resolvePendencyIdReference(trigger); } catch (_error) { return false; }
+    const pendency = pendencias.find(item => String(item.id) === String(pendencyId));
+    if (!pendency || !window.RadarAuditableRetification?.isManualPendency?.(pendency)) return false;
+    closePendencyCorrectionSource();
+    if (!openPendencyDrawer(pendencyId)) return false;
+    editPendencyDrawer();
+    return true;
 }
 
 function openInvoiceOperationalCorrection(invoiceId, escolaId, documentKey = 'notaFiscal',

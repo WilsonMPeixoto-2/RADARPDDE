@@ -22,7 +22,11 @@
         'correct_analysis',
         'correct_bonification',
         'clear_item_history',
-        'delete_context'
+        'delete_context',
+        'delete_attempt', 'correct_attempt',
+        'delete_review', 'correct_review',
+        'delete_contact', 'correct_contact',
+        'correct_inventory', 'delete_asset'
     ]);
     const TARGET_KIND_BY_ACTION = Object.freeze({
         delete_invoice: 'invoice',
@@ -31,8 +35,19 @@
         correct_analysis: 'analysis',
         correct_bonification: 'verification',
         clear_item_history: 'analysis',
-        delete_context: 'program_context'
+        delete_context: 'program_context',
+        delete_attempt: 'attempt', correct_attempt: 'attempt',
+        delete_review: 'review', correct_review: 'review',
+        delete_contact: 'contact', correct_contact: 'contact',
+        correct_inventory: 'asset', delete_asset: 'asset'
     });
+    const GRANULAR_CHANGES = Object.freeze({
+        correct_attempt: ['availableAt', 'driveUrl', 'observation'],
+        correct_review: ['result', 'analyzedAt', 'errors', 'observation'],
+        correct_contact: ['contactType', 'contactDate', 'description', 'officialCharge', 'pendencyId'],
+        correct_inventory: ['status', 'inventoryProcess', 'inventoriedAt', 'inventoriedByMemberId', 'notes']
+    });
+    const GRANULAR_KINDS = new Set(['attempt', 'review', 'contact', 'asset']);
     const CORRECTABLE_ANALYSES = Object.freeze(['Correto', 'Correto (Atrasado)', 'Incorreto']);
     const MAX_NOTE_LENGTH = 2000;
 
@@ -79,6 +94,40 @@
         return new OperationalCorrectionError('VALIDATION_FAILED', message);
     }
 
+    function granularChanges(action, input) {
+        const allowed = GRANULAR_CHANGES[action];
+        if (!allowed) {
+            if (input !== undefined) throw invalid('A exclusão não aceita alterações em outros campos.');
+            return null;
+        }
+        if (!input || Array.isArray(input) || typeof input !== 'object'
+            || !Object.keys(input).length || Object.keys(input).some(key => !allowed.includes(key))) {
+            throw invalid('Escolha os campos deste registro que deseja corrigir.');
+        }
+        const changes = {};
+        for (const [key, value] of Object.entries(input)) {
+            if (key === 'officialCharge') {
+                if (typeof value !== 'boolean') throw invalid('Informe se o contato é uma cobrança oficial.');
+                changes[key] = value;
+            } else if (key === 'errors') {
+                if (!Array.isArray(value) || value.some(item => typeof item !== 'string')) throw invalid('Informe os erros da reanálise em uma lista.');
+                changes[key] = [...new Set(value.map(text).filter(Boolean))];
+            } else {
+                if (value !== null && typeof value !== 'string') throw invalid('O valor informado não é válido para este campo.');
+                changes[key] = value === null ? null : text(value);
+            }
+        }
+        if ('result' in changes && !['correto', 'incorreto', 'arquivo_indisponivel'].includes(changes.result)) {
+            throw invalid('Escolha um resultado válido para a reanálise.');
+        }
+        if (changes.driveUrl) {
+            let url;
+            try { url = new URL(changes.driveUrl); } catch (_) { throw invalid('Informe um link completo, começando com https:// ou http://.'); }
+            if (!['https:', 'http:'].includes(url.protocol)) throw invalid('O link deve usar https:// ou http://.');
+        }
+        return changes;
+    }
+
     // Monta o pedido canônico. Justificativa/observação é sempre opcional
     // (decisão do usuário de 14/11/2026); quando informada, segue como note.
     function buildRequest(input = {}) {
@@ -87,20 +136,30 @@
             throw invalid(`Ação de correção não suportada: ${action || '(vazia)'}`);
         }
         const source = input.target || {};
+        const granular = GRANULAR_KINDS.has(TARGET_KIND_BY_ACTION[action]);
         const target = {
             kind: TARGET_KIND_BY_ACTION[action],
             schoolId: text(source.schoolId),
             competence: text(source.competence)
         };
-        if (!target.schoolId || !target.competence) {
+        if (!target.schoolId || (!granular && !target.competence)) {
             throw invalid('Escola e competência são obrigatórias para a correção.');
         }
+        if (granular && !target.competence) delete target.competence;
         for (const key of ['id', 'programId', 'documentKey']) {
             const value = text(source[key]);
             if (value) target[key] = value;
         }
         if (['invoice', 'pendency'].includes(target.kind) && !target.id) {
             throw invalid('Informe o registro a ser excluído.');
+        }
+        if (granular) {
+            const targetKeys = ['kind', 'id', 'schoolId', 'competence', 'programId', 'documentKey'];
+            if (!target.id || (source.kind && source.kind !== target.kind)
+                || Object.keys(source).some(key => !targetKeys.includes(key))
+                || Object.keys(input).some(key => !['action', 'target', 'changes', 'note'].includes(key))) {
+                throw invalid('Selecione o registro exato nesta escola, sem transferir seu contexto.');
+            }
         }
         if (target.kind === 'analysis') {
             if (!target.programId || !target.documentKey) {
@@ -144,6 +203,10 @@
         }
 
         const request = { contractVersion: CONTRACT_VERSION, action, target };
+        if (granular) {
+            const changes = granularChanges(action, input.changes);
+            if (changes) request.changes = changes;
+        }
         if (action === 'correct_bonification') {
             const mark = input.changes?.bonificacao;
             const manual = ['extCC', 'extINV', 'notaFiscal', 'declBBAgil'];
@@ -201,9 +264,11 @@
             entity: item.entity,
             id: item.id,
             field: item.field,
-            before: item.before ?? (plan.action === 'correct_bonification' ? 'Sem marca' : 'Não analisado'),
-            after: item.after ?? (item.field === 'bonus_result' ? 'Pendente de consolidação'
-                : plan.action === 'correct_bonification' ? 'Sem marca' : 'Não analisado')
+            before: GRANULAR_KINDS.has(TARGET_KIND_BY_ACTION[plan.action]) ? item.before ?? null
+                : item.before ?? (plan.action === 'correct_bonification' ? 'Sem marca' : 'Não analisado'),
+            after: GRANULAR_KINDS.has(TARGET_KIND_BY_ACTION[plan.action]) ? item.after ?? null
+                : item.after ?? (item.field === 'bonus_result' ? 'Pendente de consolidação'
+                    : plan.action === 'correct_bonification' ? 'Sem marca' : 'Não analisado')
         }));
         const blockers = Array.isArray(plan.blockers) ? clone(plan.blockers) : [];
         const contextRootPresent = plan.action !== 'delete_context'
@@ -230,6 +295,14 @@
                 && matchesDetailedIds('pendencies', 'pendencies')
                 && matchesDetailedIds('pendency_attempts', 'attempts')
                 && matchesDetailedIds('pendency_contacts', 'contacts'));
+        const granular = GRANULAR_KINDS.has(TARGET_KIND_BY_ACTION[plan.action]);
+        const detailKey = { attempt: 'attempts', review: 'attempts', contact: 'contacts', asset: 'assets' }[plan.target?.kind];
+        const granularDetailsComplete = !granular || (Boolean(detailKey)
+            && Array.isArray(affectedRecords[detailKey])
+            && affectedRecords[detailKey].some(record => text(record?.id) === text(plan.target?.id))
+            && [['pendency_attempts', 'attempts'], ['pendency_contacts', 'contacts'], ['assets', 'assets'],
+                ['pendencies', 'pendencies'], ['registered_invoices', 'invoices']]
+                .every(([entity, key]) => !(deleted[entity]?.length) || matchesDetailedIds(entity, key)));
         const warnings = Array.isArray(plan.warnings) ? clone(plan.warnings) : [];
         return {
             action: plan.action || null,
@@ -240,7 +313,8 @@
             affectedRecords,
             warnings,
             blockers,
-            canApply: blockers.length === 0 && contextRootPresent && contextDetailsComplete && itemHistoryComplete
+            alternatives: Array.isArray(plan.alternatives) ? clone(plan.alternatives) : [],
+            canApply: blockers.length === 0 && contextRootPresent && contextDetailsComplete && itemHistoryComplete && granularDetailsComplete
                 && /^[0-9a-f]{64}$/.test(text(plan.planDigest)),
             summary: removals.length
                 ? `Serão excluídos: ${removals.map(item => item.label).join(', ')}.`
@@ -305,6 +379,13 @@
                             'INVALID_PREVIEW',
                             'A prévia não corresponde exatamente à escola, competência e programa selecionados.'
                         );
+                    }
+                }
+                if (GRANULAR_KINDS.has(request.target.kind)) {
+                    const actual = plan?.target || {};
+                    if (plan?.action !== request.action
+                        || Object.keys(request.target).some(key => text(actual[key]) !== text(request.target[key]))) {
+                        throw new OperationalCorrectionError('INVALID_PREVIEW', 'A prévia não corresponde ao registro escolhido nesta escola.');
                     }
                 }
                 return { request, plan, view: describePlan(plan) };

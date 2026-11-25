@@ -57,6 +57,7 @@
         '/src/integration/auditable-retification.js',
         '/src/integration/evaluation-retification.js',
         '/src/application/operational-correction-client.js',
+        '/src/integration/granular-correction-ui.js',
         '/src/integration/operational-correction-dialog.js',
         '/src/integration/evaluation-retification-ui.js'
     ]);
@@ -74,6 +75,7 @@
         '/src/integration/auditable-retification.js',
         '/src/integration/evaluation-retification.js',
         '/src/application/operational-correction-client.js',
+        '/src/integration/granular-correction-ui.js',
         '/src/integration/operational-correction-dialog.js',
         '/src/integration/evaluation-retification-ui.js'
     ]);

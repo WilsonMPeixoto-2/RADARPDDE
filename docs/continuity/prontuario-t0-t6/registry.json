@@ -8,17 +8,17 @@
     "stages": [
       "T4"
     ],
-    "pr": 562,
+    "pr": 564,
     "branch": "main",
     "checkpointPath": "docs/continuity/prontuario-t0-t6/CHECKPOINT.md",
     "decisionsPath": "docs/continuity/prontuario-t0-t6/registry.json",
     "status": "publicada",
-    "productionEvidence": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45547911796",
-    "mergeSha": "6dd6a9f9f8147deb39c5813baad0b5521427b8bd",
-    "vercelDeployment": "https://vercel.com/wilson-m-peixotos-projects/radarpdde-fix/7PcaBDGHirK6CtfnYQNCPKVvprUi",
+    "productionEvidence": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45560905562",
+    "mergeSha": "7523782bdc572a631783deeae2ea59be048dd725",
+    "vercelDeployment": "https://vercel.com/wilson-m-peixotos-projects/radarpdde-fix/32j4myukPALqLX5iCnZZ5sF5bDTH",
     "nextStage": "T5",
-    "nextStageStatus": "preparação técnica; implementação funcional T5 ainda não iniciada",
-    "validationNotes": "PR #562 publicado após 21/21 workflows do candidato, aceite visual, backup recuperável e migration 68. Smoke posterior aprovado no SHA do merge. Nova candidata pós-T4 em branch própria, sem autorização automática de publicação; ver checkpoint."
+    "nextStageStatus": "implementação em feat/t5-historico-granular-20261125; migration 69 e flag ainda candidatas",
+    "validationNotes": "PR #564 publicado após autorização expressa, 20/20 workflows da candidata e 10/10 do push. Sem mudança institucional de banco; próximo ato T5 em branch própria, conforme checkpoint."
   },
   "decisions": [
     {
@@ -625,7 +625,7 @@
       "agent": "ChatGPT / revisão paralela",
       "stage": "Pós-T4 / preparação T5",
       "title": "Histórico com envio preservado, guia por tarefa e identidade explícita no helper preparatório",
-      "status": "accepted-for-validation",
+      "status": "incorporated",
       "originRef": "feat/evolucao-integral-pos-t4-20261125, base 6dd6a9f9f8147deb39c5813baad0b5521427b8bd",
       "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/564",
       "decisionIds": [
@@ -638,8 +638,8 @@
         "T0T6-D020",
         "T0T6-D021"
       ],
-      "rationale": "Contraprovas demonstraram perda do envio na timeline após reanálise, autoria/observação incorretas e recomposição preparatória ambígua por posição do array. Candidata conserva fatos e identidades, oferece leitura filtrável e guia alinhado a T0–T4. O helper não é consumido em produção, não encerra T5 e mantém as oito obrigações de UI planejadas. Provas do novo SHA e capturas devem ser registradas no PR antes da conclusão.",
-      "integratedRef": ""
+      "rationale": "Integrado e publicado no PR #564 após autorização expressa; 20/20 workflows da candidata, 10/10 após merge e smoke do SHA exato. Entrega histórico legível, guia e helper preparatório; T5 funcional é a frente seguinte, não se considera encerrada por esta publicação.",
+      "integratedRef": "https://github.com/WilsonMPeixoto-2/RADARPDDE/commit/7523782bdc572a631783deeae2ea59be048dd725"
     }
   ],
   "previousRelease": {

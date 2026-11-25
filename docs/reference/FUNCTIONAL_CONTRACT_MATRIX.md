@@ -1,19 +1,19 @@
 # Matriz funcional ponta a ponta
 
-**Atualizado em:** 2026-11-24  
-**Baseline de origem:** `a5a67d34b6dcab04903b6657fb9fa01f0aba9d11`  
+**Atualizado em:** 2026-11-25  
+**Baseline de origem:** `7523782bdc572a631783deeae2ea59be048dd725`  
 **Fonte canônica:** `functional-contract-matrix.json` e arquivos JSON do diretório `functional-contract-matrix/`
 
 > Arquivo gerado por `scripts/check-functional-contract-matrix.mjs`. Não editar manualmente.
 
 ## Resumo executivo
 
-A matriz contém **45 operações** distribuídas entre 13 superfícies.
+A matriz contém **49 operações** distribuídas entre 13 superfícies.
 
 | Cobertura | Operações |
 |---|---:|
 | Comprovada | 18 |
-| Parcial | 27 |
+| Parcial | 31 |
 | Lacuna | 0 |
 | Decisão pendente | 0 |
 
@@ -21,7 +21,7 @@ A matriz contém **45 operações** distribuídas entre 13 superfícies.
 |---|---:|
 | Nenhuma; manter regressão | 14 |
 | Smoke autenticado de leitura | 6 |
-| Escrita controlada e reversível | 20 |
+| Escrita controlada e reversível | 24 |
 | Observação contínua em Production | 5 |
 
 ## Perfis
@@ -79,7 +79,7 @@ A matriz contém **45 operações** distribuídas entre 13 superfícies.
 |---|---|---|---|---|---|---|
 | `READ-03` | Consultar prontuário e timeline da unidade | read / P0 | Controlador, Assistente de Verbas Federais, Gestão SME, Equipe de Inventário, Administrador técnico | RadarSchoolTimeline.project → SupabaseRepository.read (schools, verifications, pendencies, pendency_attempts, pendency_contacts, registered_invoices, assets, administrative_logs) | Parcial | Smoke autenticado de leitura |
 | `INV-01` | Cadastrar Nota Fiscal/despesa e retificar dados editáveis do mesmo lançamento independentemente da bonificação/consolidação; A identificar nasce atomicamente; corrigir classificação com histórico exclusivamente fiscal encerrado/cancelado, sem Assessoria ou patrimônio terminal | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.save + saveUnidentifiedExpenseWithPendency + RadarAuditableRetification → saveInvoiceWithEffects + save_unidentified_expense_with_pendency (registered_invoices, assets, verifications, pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
-| `INV-02` | Excluir documento fiscal sem histórico de Pendência individual nem bem Inventariada e reverter efeitos vinculados, preservando bonificação/consolidação; operação separada da retificação | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.remove + proteção histórica e patrimonial terminal → deleteInvoiceWithEffects + triggers de histórico e patrimônio terminal (registered_invoices, assets, verifications, pendencies, administrative_logs) | Comprovada | Nenhuma; manter regressão |
+| `INV-02` | Excluir despesa e seus dependentes causais por prévia/confirmacão, inclusive com histórico ou bem Inventariada; preservar NF vizinha e bonificação | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | RadarOperationalCorrectionClient (exclusão causal explícita) → preview_operational_change + apply_operational_change (registered_invoices, assets, verifications, pendencies, administrative_logs) | Comprovada | Nenhuma; manter regressão |
 | `INV-03` | Registrar envio, análise, pendência, novo envio e reanálise da Assessoria por nota fiscal de serviço sem depender nem reabrir bonificação/consolidação | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.updateServiceAdvisory + RadarServiceAdvisoryPendency → saveInvoiceWithEffects + save_service_advisory_with_pendency + register_service_advisory_attempt + reanalyze_service_advisory_pendency (registered_invoices, verifications, pendencies, pendency_attempts, administrative_logs) | Parcial | Escrita controlada e reversível |
 | `INV-04` | Analisar cada documento fiscal, abrir Pendência por invoice e manter resumo técnico derivado sem depender nem reabrir bonificação/consolidação | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.updateDocumentAnalysis + PendencyService.open/registerAttempt/reanalyze → saveInvoiceWithEffects + save_invoice_document_with_pendency + register_invoice_document_attempt + reanalyze_invoice_document_pendency (registered_invoices, assets, verifications, pendencies, pendency_attempts, administrative_logs) | Parcial | Escrita controlada e reversível |
 | `CTX-01` | Excluir lançamentos do mês/programa incorreto por prévia e confirmação do contexto exato (candidato T4; liberação explícita) | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | RadarOperationalCorrectionDialog + RadarOperationalCorrectionClient → preview_operational_change + apply_operational_change (verifications, registered_invoices, pendencies, pendency_attempts, pendency_contacts, assets, quality_provisional_movements, administrative_logs) | Parcial | Escrita controlada e reversível |
@@ -96,6 +96,9 @@ A matriz contém **45 operações** distribuídas entre 13 superfícies.
 | `PEND-04` | Cancelar pendência com justificativa | write / P1 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.cancel → savePendencyCommand (pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
 | `PEND-05` | Reabrir pendência cancelada ou resolvida | write / P1 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.reopen → savePendencyCommand (pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
 | `PEND-06` | Registrar contato ou cobrança associado à pendência | write / P1 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.registerContact → savePendencyContactWithLog (pendency_contacts, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `PEND-07` | Corrigir/excluir envio ou reanálise pelo ID persistido e recompor somente efeitos causais; preservar história independente | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | RadarOperationalCorrectionClient + diálogo de correção → preview_operational_change + apply_operational_change (pendency_attempts, pendencies, registered_invoices, verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `PEND-08` | Corrigir/excluir contato geral ou vinculado por ID, sem resolver Pendência nem apagar mensagens externas | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | RadarOperationalCorrectionClient + diálogo de correção → preview_operational_change + apply_operational_change (pendency_contacts, pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `PEND-09` | Retificar detalhes de ocorrência manual com observação opcional, preservando origem manual e classificação mínima | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | RadarAuditableRetification.retifyManualDetails → PendencyService.persistPendencyCommand (pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
 
 ### Configurações SME
 
@@ -125,6 +128,7 @@ A matriz contém **45 operações** distribuídas entre 13 superfícies.
 | `ASSET-02` | Editar campo patrimonial autorizado | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InventoryService.updateAsset → saveAssetWithLog (assets, administrative_logs) | Parcial | Escrita controlada e reversível |
 | `ASSET-03` | Encaminhar bem para inventariação | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InventoryService.forward → save_asset_with_verification_and_log (assets, verifications, schools, administrative_logs) | Comprovada | Nenhuma; manter regressão |
 | `ASSET-04` | Concluir inventariação e registrar responsável | write / P0 | Controlador, Assistente de Verbas Federais, Equipe de Inventário, Administrador técnico | InventoryService.inventory → saveAssetWithLog (assets, administrative_logs) | Comprovada | Nenhuma; manter regressão |
+| `ASSET-05` | Corrigir inventário, inclusive desfazer Inventariada, ou excluir bem manual independente com prévia de efeitos e preservação fiscal | write / P0 | Controlador, Assistente de Verbas Federais, Equipe de Inventário, Administrador técnico | RadarOperationalCorrectionClient + diálogo de correção → preview_operational_change + apply_operational_change (assets, registered_invoices, verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
 
 ### Registros Internos
 
@@ -175,6 +179,10 @@ A matriz contém **45 operações** distribuídas entre 13 superfícies.
 - **ASSET-01 — Cadastrar bem permanente manualmente:** Falta prova controlada de criação, status inicial e releitura.
 - **ASSET-02 — Editar campo patrimonial autorizado:** A persistência genérica foi removida e a edição rápida ficou restrita ao campo permitido, com versão e log; falta prova controlada por perfil, conflito e releitura no ambiente de homologação.
 - **AUD-01 — Registrar evento administrativo de domínio:** Falta prova padronizada de autoria e recorte de leitura após persistência em Production.
+- **PEND-07 — Corrigir/excluir envio ou reanálise pelo ID persistido e recompor somente efeitos causais; preservar história independente:** Candidata T5: comprovar Auth/RLS, gravação/releitura e experiência visual no SHA final; não publicada.
+- **PEND-08 — Corrigir/excluir contato geral ou vinculado por ID, sem resolver Pendência nem apagar mensagens externas:** Candidata T5: comprovar Auth/RLS, gravação/releitura e experiência visual no SHA final; não publicada.
+- **PEND-09 — Retificar detalhes de ocorrência manual com observação opcional, preservando origem manual e classificação mínima:** Candidata T5: comprovar Auth/RLS, gravação/releitura e experiência visual no SHA final; não publicada.
+- **ASSET-05 — Corrigir inventário, inclusive desfazer Inventariada, ou excluir bem manual independente com prévia de efeitos e preservação fiscal:** Candidata T5: comprovar Auth/RLS, gravação/releitura e experiência visual no SHA final; não publicada.
 - **TECH-01 — Planejar, validar, importar, reconciliar ou reverter snapshot canônico:** A execução remota real depende de pacote autorizado, janela operacional, snapshot de retorno e reconciliação final.
 
 ## Uso operacional

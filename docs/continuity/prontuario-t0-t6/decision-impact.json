@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "date": "2026-11-23",
+  "date": "2026-11-25",
   "workstream": "RADARPDDE/PRONTUARIO-T0-T6",
   "registryPath": "docs/continuity/prontuario-t0-t6/registry.json",
   "lineagePath": "docs/continuity/prontuario-t0-t6/lineage.json",
@@ -57,14 +57,18 @@
           "id": "T0T6-I001-03",
           "phase": "T5",
           "surface": "ui",
-          "status": "planned",
+          "status": "candidate",
           "requirementIds": [
             "T0T6-R014",
             "T0T6-R019"
           ],
           "acceptance": "Os futuros formulários mantêm contexto e decisão visíveis, sem wizard artificial.",
           "targetPaths": [
-            "src/integration/prontuario-operational-ux.js"
+            "src/integration/prontuario-operational-ux.js",
+            "src/integration/granular-correction-ui.js",
+            "src/integration/operational-correction-dialog.js",
+            "src/integration/task-9-pendencias-page.js",
+            "app.js"
           ],
           "evidenceRefs": []
         }
@@ -119,14 +123,18 @@
           "id": "T0T6-I002-03",
           "phase": "T5",
           "surface": "ui",
-          "status": "planned",
+          "status": "candidate",
           "requirementIds": [
             "T0T6-R038"
           ],
           "acceptance": "O futuro editor de Inventariada distingue retificação autorizada de baixa externa do SIGMA e informa efeitos relacionados.",
           "targetPaths": [
             "src/integration/prontuario-operational-ux.js",
-            "src/application/inventory-service.js"
+            "src/application/inventory-service.js",
+            "src/integration/granular-correction-ui.js",
+            "src/integration/operational-correction-dialog.js",
+            "src/integration/task-9-pendencias-page.js",
+            "app.js"
           ],
           "evidenceRefs": []
         },
@@ -387,13 +395,17 @@
           "id": "T0T6-I008-02",
           "phase": "T5",
           "surface": "ui",
-          "status": "planned",
+          "status": "candidate",
           "requirementIds": [
             "T0T6-R009"
           ],
           "acceptance": "Design futuro preserva avaliação fiscal e assessoria independentes em cada NF.",
           "targetPaths": [
-            "src/integration/prontuario-operational-ux.js"
+            "src/integration/prontuario-operational-ux.js",
+            "src/integration/granular-correction-ui.js",
+            "src/integration/operational-correction-dialog.js",
+            "src/integration/task-9-pendencias-page.js",
+            "app.js"
           ],
           "evidenceRefs": []
         }
@@ -460,13 +472,17 @@
           "id": "T0T6-I010-02",
           "phase": "T5",
           "surface": "ui",
-          "status": "planned",
+          "status": "candidate",
           "requirementIds": [
             "T0T6-R035"
           ],
           "acceptance": "Editor identifica tentativa explícita e comunica alvo sem adivinhação.",
           "targetPaths": [
-            "src/integration/prontuario-operational-ux.js"
+            "src/integration/prontuario-operational-ux.js",
+            "src/integration/granular-correction-ui.js",
+            "src/integration/operational-correction-dialog.js",
+            "src/integration/task-9-pendencias-page.js",
+            "app.js"
           ],
           "evidenceRefs": []
         }
@@ -512,13 +528,17 @@
           "id": "T0T6-I011-03",
           "phase": "T5",
           "surface": "ui",
-          "status": "planned",
+          "status": "candidate",
           "requirementIds": [
             "T0T6-R038"
           ],
           "acceptance": "Corrigir Inventariada não altera bonificação ou o estado de entrega.",
           "targetPaths": [
-            "src/integration/prontuario-operational-ux.js"
+            "src/integration/prontuario-operational-ux.js",
+            "src/integration/granular-correction-ui.js",
+            "src/integration/operational-correction-dialog.js",
+            "src/integration/task-9-pendencias-page.js",
+            "app.js"
           ],
           "evidenceRefs": []
         },
@@ -564,13 +584,17 @@
           "id": "T0T6-I012-02",
           "phase": "T5",
           "surface": "ui",
-          "status": "planned",
+          "status": "candidate",
           "requirementIds": [
             "T0T6-R047"
           ],
           "acceptance": "Novos formulários respeitam capacidade efetiva e colaboração entre controladores.",
           "targetPaths": [
-            "src/integration/prontuario-operational-ux.js"
+            "src/integration/prontuario-operational-ux.js",
+            "src/integration/granular-correction-ui.js",
+            "src/integration/operational-correction-dialog.js",
+            "src/integration/task-9-pendencias-page.js",
+            "app.js"
           ],
           "evidenceRefs": []
         }
@@ -938,7 +962,7 @@
           "id": "T0T6-I020-02",
           "phase": "T5",
           "surface": "ui",
-          "status": "planned",
+          "status": "candidate",
           "requirementIds": [
             "T0T6-R038",
             "T0T6-R067"
@@ -947,7 +971,10 @@
           "targetPaths": [
             "src/integration/prontuario-operational-ux.js",
             "app.js",
-            "styles.css"
+            "styles.css",
+            "src/integration/granular-correction-ui.js",
+            "src/integration/operational-correction-dialog.js",
+            "src/integration/task-9-pendencias-page.js"
           ],
           "evidenceRefs": []
         },
@@ -1015,14 +1042,17 @@
           "id": "T0T6-I021-03",
           "phase": "T5",
           "surface": "ui",
-          "status": "planned",
+          "status": "candidate",
           "requirementIds": [
             "T0T6-R038"
           ],
           "acceptance": "Novas interfaces de correção/exclusão de históricos, contatos e patrimônio devem explicar objeto, efeito, preservação e próximo passo em linguagem do operador, sem jargão de implementação.",
           "targetPaths": [
             "app.js",
-            "src/integration/prontuario-operational-ux.js"
+            "src/integration/prontuario-operational-ux.js",
+            "src/integration/granular-correction-ui.js",
+            "src/integration/operational-correction-dialog.js",
+            "src/integration/task-9-pendencias-page.js"
           ],
           "evidenceRefs": []
         },
