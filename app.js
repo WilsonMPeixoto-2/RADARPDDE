@@ -10401,9 +10401,9 @@ async function loadProntuarioContactHistory(panel) {
     }
 }
 
-// Auditoria interna e uma aba consultada sob demanda: nao reconstruir todas as
-// linhas historicas durante cada gravacao fiscal na aba de verificacoes.
-// O filtro, a ordem, o escaping e o HTML sao os mesmos da renderizacao anterior.
+// Consultar os registros internos apenas ao abrir a aba de Auditoria.
+// Criar nos DOM preserva o conteudo/ordem e evita HTML dinamico ou nova
+// montagem de centenas de linhas durante cada gravacao fiscal.
 function renderProntuarioAuditHistory(targetPanel, schoolId) {
     const body = targetPanel?.querySelector('[data-school-audit-history]');
     if (!body || body.dataset.auditLoaded === 'true') return false;
@@ -10411,16 +10411,32 @@ function renderProntuarioAuditHistory(targetPanel, schoolId) {
     if (!esc) return false;
     const schoolLogs = logs.filter(log => log.detalhes.includes(esc.denominação)
         || log.detalhes.includes(esc.id));
-    body.innerHTML = `${schoolLogs.length === 0 ? `
-                                        <tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:24px;">Nenhum registro interno para esta unidade.</td></tr>
-                                    ` : schoolLogs.map(l => `
-                                        <tr>
-                                            <td>${new Date(l.dataHora).toLocaleString('pt-BR')}</td>
-                                            <td>${escapeHtml(l.usuario)} (${escapeHtml(l.perfil)})</td>
-                                            <td><strong>${escapeHtml(l.acao)}</strong></td>
-                                            <td>${escapeHtml(l.detalhes)}</td>
-                                        </tr>
-                                    `).join('')}`;
+    const doc = body.ownerDocument;
+    const fragment = doc.createDocumentFragment();
+    const makeCell = (value, tag = 'td') => {
+        const cell = doc.createElement(tag);
+        cell.textContent = String(value || '');
+        return cell;
+    };
+    if (schoolLogs.length === 0) {
+        const row = doc.createElement('tr');
+        const cell = makeCell('Nenhum registro interno para esta unidade.');
+        cell.colSpan = 4;
+        cell.style.cssText = 'text-align:center; color:var(--text-muted); padding:24px;';
+        row.appendChild(cell);
+        fragment.appendChild(row);
+    } else {
+        for (const log of schoolLogs) {
+            const row = doc.createElement('tr');
+            const author = makeCell(`${String(log.usuario || '')} (${String(log.perfil || '')})`);
+            const action = doc.createElement('td');
+            action.appendChild(makeCell(log.acao, 'strong'));
+            row.append(makeCell(new Date(log.dataHora).toLocaleString('pt-BR')),
+                author, action, makeCell(log.detalhes));
+            fragment.appendChild(row);
+        }
+    }
+    body.replaceChildren(fragment);
     body.dataset.auditLoaded = 'true';
     return true;
 }
