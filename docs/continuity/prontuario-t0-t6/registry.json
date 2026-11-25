@@ -1,24 +1,24 @@
 {
   "schemaVersion": 1,
   "workstream": "RADARPDDE/PRONTUARIO-T0-T6",
-  "date": "2026-11-24",
+  "date": "2026-11-25",
   "authorityNote": "Contratos aprovados e ADRs prevalecem; registro documenta proveniência, revisão e estado, não modifica regra por si.",
   "active": {
     "release": "R2",
     "stages": [
       "T4"
     ],
-    "pr": 561,
+    "pr": 562,
     "branch": "main",
     "checkpointPath": "docs/continuity/prontuario-t0-t6/CHECKPOINT.md",
     "decisionsPath": "docs/continuity/prontuario-t0-t6/registry.json",
     "status": "publicada",
-    "productionEvidence": "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/561#issuecomment-7140925977",
-    "mergeSha": "cc09e6e85efbd69c357c09a99df01f9af7273762",
-    "vercelDeployment": "dpl_jpae66LEivn8xhmqzhGTdTdQNZnN",
+    "productionEvidence": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45547911796",
+    "mergeSha": "6dd6a9f9f8147deb39c5813baad0b5521427b8bd",
+    "vercelDeployment": "https://vercel.com/wilson-m-peixotos-projects/radarpdde-fix/7PcaBDGHirK6CtfnYQNCPKVvprUi",
     "nextStage": "T5",
-    "nextStageStatus": "não iniciada",
-    "validationNotes": "Escopo de implementação T4 publicado; comparador baseline inconclusivo na integração, candidata passou; ver checkpoint para limites de aceite e backup."
+    "nextStageStatus": "preparação técnica; implementação funcional T5 ainda não iniciada",
+    "validationNotes": "PR #562 publicado após 21/21 workflows do candidato, aceite visual, backup recuperável e migration 68. Smoke posterior aprovado no SHA do merge. Nova candidata pós-T4 em branch própria, sem autorização automática de publicação; ver checkpoint."
   },
   "decisions": [
     {
@@ -619,6 +619,27 @@
         "T0T6-D021"
       ],
       "rationale": "Código remoto candidato de limpeza de histórico, redesign de confirmações e proteção de concorrência; incorpora achados da auditoria Antigravity. Branch local do swarm não recuperada no remoto; não alegar integração das alterações locais ou homologação do SHA final."
+    },
+    {
+      "id": "T0T6-C027",
+      "agent": "ChatGPT / revisão paralela",
+      "stage": "Pós-T4 / preparação T5",
+      "title": "Histórico com envio preservado, guia por tarefa e identidade explícita no helper preparatório",
+      "status": "accepted-for-validation",
+      "originRef": "feat/evolucao-integral-pos-t4-20261125, base 6dd6a9f9f8147deb39c5813baad0b5521427b8bd",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/564",
+      "decisionIds": [
+        "T0T6-D001",
+        "T0T6-D002",
+        "T0T6-D004",
+        "T0T6-D008",
+        "T0T6-D010",
+        "T0T6-D011",
+        "T0T6-D020",
+        "T0T6-D021"
+      ],
+      "rationale": "Contraprovas demonstraram perda do envio na timeline após reanálise, autoria/observação incorretas e recomposição preparatória ambígua por posição do array. Candidata conserva fatos e identidades, oferece leitura filtrável e guia alinhado a T0–T4. O helper não é consumido em produção, não encerra T5 e mantém as oito obrigações de UI planejadas. Provas do novo SHA e capturas devem ser registradas no PR antes da conclusão.",
+      "integratedRef": ""
     }
   ],
   "previousRelease": {

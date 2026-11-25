@@ -1,5 +1,13 @@
 const { test, expect } = require('@playwright/test');
 
+async function chooseTheme(page, dark) {
+  const button = page.locator('#theme-toggle-btn');
+  const currentDark = await page.locator('body').evaluate(element => element.classList.contains('dark-theme'));
+  if (currentDark !== dark) await button.click();
+  await expect.poll(() => page.locator('body').evaluate(element => element.classList.contains('dark-theme'))).toBe(dark);
+  await expect(button).toHaveAttribute('aria-label', dark ? 'Mudar para tema claro' : 'Mudar para tema escuro');
+}
+
 test.describe('Guia do Controlador', () => {
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário focal do guia no desktop.');
@@ -26,7 +34,7 @@ test.describe('Guia do Controlador', () => {
     await expect(guide.getByRole('heading', { level: 1, name: 'Guia do Controlador' })).toBeVisible();
     await expect(guide).toContainText('Painel do Controlador');
     await expect(guide).toContainText('Abrir Painel');
-    await expect(guide.locator('[data-guide-section]')).toHaveCount(16);
+    await expect(guide.locator('[data-guide-section]')).toHaveCount(8);
 
     for (const content of [
       'Avaliação mensal',
@@ -39,6 +47,13 @@ test.describe('Guia do Controlador', () => {
       'Registrar novo envio',
       'Aguardando reanálise',
       'Registrar Contato',
+      'Editar despesa',
+      'Corrigir análise técnica',
+      'Redefinir como não analisado',
+      'Excluir análise e pendências',
+      'Excluir lançamentos deste programa',
+      'Corrigir bonificação',
+      'Alterações pendentes de consolidação',
       'Cancelar pendência',
       'Reabrir pendência',
       'Histórico cronológico',
@@ -50,10 +65,13 @@ test.describe('Guia do Controlador', () => {
     await expect(guide.getByRole('button', { name: /Salvar em PDF/ })).toBeVisible();
 
     const screenshots = guide.locator('.controller-guide-figure img');
-    expect(await screenshots.count()).toBeGreaterThanOrEqual(6);
-    await expect.poll(async () => screenshots.evaluateAll(images => images.every(image => (
-      image.complete && image.naturalWidth > 0 && image.naturalHeight > 0
-    )))).toBe(true);
+    await expect(screenshots).toHaveCount(3);
+    for (const screenshot of await screenshots.all()) {
+      await screenshot.scrollIntoViewIfNeeded();
+      await expect.poll(() => screenshot.evaluate(image => (
+        image.complete && image.naturalWidth > 0 && image.naturalHeight > 0
+      ))).toBe(true);
+    }
 
     const search = guide.locator('#controller-guide-search');
     await search.fill('reanálise');
@@ -66,10 +84,10 @@ test.describe('Guia do Controlador', () => {
     await page.locator('#nav-guia-controlador').click();
 
     const guide = page.locator('#controller-guide-root');
-    const target = guide.locator('#guia-reanalise');
+    const target = guide.locator('#guia-pendencia');
     const initialUrl = new URL(page.url());
 
-    await guide.locator('.controller-guide-toc').getByRole('button', { name: /Reanálise$/ }).click();
+    await guide.locator('.controller-guide-toc').getByRole('button', { name: /Pendências e reanálise$/ }).click();
 
     await expect(guide).toBeVisible();
     await expect(target).toBeInViewport();
@@ -79,6 +97,88 @@ test.describe('Guia do Controlador', () => {
     expect(finalUrl.pathname).toBe(initialUrl.pathname);
     expect(finalUrl.search).toBe(initialUrl.search);
     expect(finalUrl.hash).toBe('');
+  });
+
+  test('busca sem acentos e sumário recuperam uma tarefa ocultada pelo filtro', async ({ page }) => {
+    await page.locator('#nav-guia-controlador').click();
+    const guide = page.locator('#controller-guide-root');
+    const search = guide.locator('#controller-guide-search');
+
+    await search.fill('inventariacao');
+    await expect(guide.locator('#guia-inventario')).toBeVisible();
+    await expect(guide.locator('#guia-pendencia')).toBeHidden();
+    await guide.locator('.controller-guide-toc').getByRole('button', { name: /Pendências e reanálise$/ }).click();
+    await expect(search).toHaveValue('');
+    await expect(guide.locator('#guia-pendencia')).toBeVisible();
+    await expect(guide.locator('#guia-pendencia')).toBeFocused();
+    expect(new URL(page.url()).hash).toBe('');
+  });
+
+  test('ajuda contextual abre uma tarefa conhecida sem mudar a rota operacional', async ({ page }) => {
+    const initialUrl = page.url();
+    expect(await page.evaluate(() => RadarControllerGuide.openTopic('#guia-corrigir'))).toBe(true);
+    const chapter = page.locator('#guia-corrigir');
+    await expect(chapter).toBeInViewport();
+    await expect(chapter).toBeFocused();
+    expect(await page.evaluate(() => RadarControllerGuide.openTopic('destino-inexistente'))).toBe(false);
+    await expect(chapter).toBeVisible();
+    expect(page.url()).toBe(initialUrl);
+  });
+
+  test('quadro de decisões cabe nos três tamanhos e nos dois temas', async ({ page }, testInfo) => {
+    // Seis estados navegados, sete capturas e a impressão do manual completo.
+    test.setTimeout(60_000);
+    await page.locator('#nav-guia-controlador').click();
+    const guide = page.locator('#controller-guide-root');
+    const table = guide.locator('.controller-guide-decision-table');
+    const chapterTitle = guide.locator('#guia-corrigir-title');
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.evaluate(() => document.fonts.ready);
+    await testInfo.attach('guia-inicio-desktop', { body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
+    for (const width of [1440, 960, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const theme of ['claro', 'escuro']) {
+        // Escolha pelo controle real, antes de navegar para a tarefa no sumário.
+        await chooseTheme(page, theme === 'escuro');
+        await guide.locator('.controller-guide-toc').getByRole('button', { name: /Escolher a correção$/ }).click();
+        await expect(chapterTitle).toBeInViewport();
+        await expect.poll(() => guide.locator('#guia-corrigir').evaluate(element => (
+          Math.abs(element.getBoundingClientRect().top - parseFloat(getComputedStyle(element).scrollMarginTop))
+        ))).toBeLessThanOrEqual(1);
+        // A navegação pelo sumário deve deixar o título descoberto pelos cabeçalhos.
+        await expect.poll(() => chapterTitle.evaluate(element => {
+          const bounds = element.getBoundingClientRect();
+          const top = document.elementFromPoint(bounds.left + Math.min(20, bounds.width / 2), bounds.top + Math.min(10, bounds.height / 2));
+          return Boolean(top && element.contains(top));
+        })).toBe(true);
+        const metrics = await table.evaluate(element => ({
+          width: element.getBoundingClientRect().width,
+          parentWidth: element.parentElement.getBoundingClientRect().width,
+          scrollWidth: element.scrollWidth,
+          clientWidth: element.clientWidth
+        }));
+        expect(metrics.width).toBeLessThanOrEqual(metrics.parentWidth + 1);
+        expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth + 1);
+        await expect(table.getByText('Redefinir como não analisado', { exact: true })).toBeVisible();
+        await testInfo.attach(`guia-correcoes-${width}-${theme}`, { body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
+      }
+    }
+    // A impressão deve incluir o manual completo, mesmo após uma busca ativa.
+    await chooseTheme(page, false);
+    await guide.locator('#controller-guide-search').fill('inventariacao');
+    await page.evaluate(() => document.body.classList.add('controller-guide-printing'));
+    await page.emulateMedia({ media: 'print' });
+    await expect(guide.locator('[data-guide-section]:visible')).toHaveCount(8);
+    await page.evaluate(async () => {
+      await Promise.all(Array.from(document.querySelectorAll('.controller-guide-figure img'), async image => {
+        image.loading = 'eager';
+        await image.decode();
+      }));
+    });
+    await testInfo.attach('guia-controlador-completo', {
+      body: await page.pdf({ format: 'A4', printBackground: true, preferCSSPageSize: true }),
+      contentType: 'application/pdf'
+    });
   });
 
   test('herda a identidade lilás vigente do RADAR', async ({ page }) => {
@@ -110,6 +210,12 @@ test.describe('Guia do Controlador', () => {
     await page.evaluate(() => switchProfile('controlador'));
     await page.locator('#nav-guia-controlador').click();
 
+    await page.getByRole('button', { name: 'Abrir Painel', exact: true }).click();
+    await expect(page.locator('#nav-dashboard')).toHaveClass(/active/);
+    await expect(page.locator('#main-container').getByRole('heading', { name: 'Painel do Controlador', exact: true })).toBeVisible();
+
+    await page.locator('#nav-guia-controlador').click();
+    await expect(page.locator('#controller-guide-root')).toBeVisible();
     await page.locator('#guia-pendencia [data-guide-view="pendencias"]').click();
     await expect(page.locator('#nav-pendencias')).toHaveClass(/active/);
     await expect(page.locator('#main-container')).toContainText('Pendências');

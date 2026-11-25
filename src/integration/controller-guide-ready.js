@@ -18,7 +18,14 @@
         if (!targetId) return false;
         const target = root.document.getElementById(targetId);
         if (!target) return false;
+        // O sumário continua útil mesmo quando a busca ocultou seu destino.
+        const search = root.document.querySelector('#controller-guide-search');
+        if (search?.value) {
+            search.value = '';
+            search.dispatchEvent(new root.Event('input', { bubbles: true }));
+        }
         target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        target.focus?.({ preventScroll: true });
         return true;
     }
 

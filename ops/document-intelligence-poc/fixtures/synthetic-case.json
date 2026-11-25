@@ -1,0 +1,358 @@
+{
+  "schemaVersion": 1,
+  "synthetic": true,
+  "description": "Extrações simuladas de documentos inteiramente fictícios; nenhum OCR ou serviço externo foi chamado.",
+  "documents": [
+    {
+      "id": "doc-invoice-001",
+      "version": "demo-v1",
+      "title": "Nota sintética DEMO-001",
+      "text": "DOCUMENTO SINTÉTICO — NÃO É NOTA FISCAL\nNúmero: DEMO-001\nBeneficiário fictício: SUPRIMENTOS-DEMO\nTotal BRL: 1250.00\nContexto confirmado da demonstração: ESCOLA-DEMO / 2026-10 / PROGRAMA-DEMO\n",
+      "sha256": "1d3a7699ca85863bcb311aacd9705f1ee67b0b8a3663df882546d1d9ac5d15ff"
+    },
+    {
+      "id": "doc-invoice-002",
+      "version": "demo-v1",
+      "title": "Nota sintética DEMO-002",
+      "text": "DOCUMENTO SINTÉTICO — NÃO É NOTA FISCAL\nNúmero: DEMO-002\nBeneficiário fictício: SERVICOS-DEMO\nTotal BRL: 500.00\nContexto confirmado da demonstração: ESCOLA-DEMO / 2026-10 / PROGRAMA-DEMO\n",
+      "sha256": "5464bdd6cf511a082e5bbd95bc0779633228ff6e4f5c703c3f81dce557fe873a"
+    },
+    {
+      "id": "doc-invoice-003",
+      "version": "demo-v1",
+      "title": "Nota sintética DEMO-003",
+      "text": "DOCUMENTO SINTÉTICO — NÃO É NOTA FISCAL\nNúmero: DEMO-003\nBeneficiário fictício: MATERIAIS-DEMO\nTotal BRL: 750.00\nContexto confirmado da demonstração: ESCOLA-DEMO / 2026-10 / PROGRAMA-DEMO\n",
+      "sha256": "76892fb033fdebcb88aca5d665027ac85814ecc801d40a19e6d2dbd5ec70f70d"
+    },
+    {
+      "id": "doc-invoice-004",
+      "version": "demo-v1",
+      "title": "Nota sintética DEMO-004",
+      "text": "DOCUMENTO SINTÉTICO — NÃO É NOTA FISCAL\nNúmero: DEMO-004\nBeneficiário fictício: LIVROS-DEMO\nTotal BRL: 1250.00\nContexto confirmado da demonstração: ESCOLA-DEMO / 2026-10 / PROGRAMA-DEMO\n",
+      "sha256": "0c04ed9fde2f3c574d51aa31fc8f6e03d789267d5737b764ad87665308325050"
+    },
+    {
+      "id": "doc-invoice-005",
+      "version": "demo-v1",
+      "title": "Nota sintética DEMO-005",
+      "text": "DOCUMENTO SINTÉTICO — NÃO É NOTA FISCAL\nNúmero: DEMO-005\nBeneficiário fictício: INTERNET-DEMO\nTotal BRL: 90.00\nContexto confirmado da demonstração: ESCOLA-DEMO / 2026-10 / PROGRAMA-DEMO\n",
+      "sha256": "d5cbd2db69d0cdac8277c3096884f2253a6fe83528d192d197296ce692def944"
+    },
+    {
+      "id": "doc-payment-p001",
+      "version": "demo-v1",
+      "title": "Débito sintético p001",
+      "text": "EXTRATO SINTÉTICO — NÃO É COMPROVANTE BANCÁRIO\nTransação: p001\nReferência documental: DEMO-001\nBeneficiário fictício: SUPRIMENTOS-DEMO\nDébito BRL: 1250.00\n",
+      "sha256": "523ef68b1fefb1fb0d5396736078b7a0cdf57ee48b37fc3069a9cbda224a9cb1"
+    },
+    {
+      "id": "doc-payment-p002",
+      "version": "demo-v1",
+      "title": "Débito sintético p002",
+      "text": "EXTRATO SINTÉTICO — NÃO É COMPROVANTE BANCÁRIO\nTransação: p002\nReferência documental: DEMO-002\nBeneficiário fictício: SERVICOS-DEMO\nDébito BRL: 480.00\n",
+      "sha256": "a7c628427aaccd54c2cf7fab6c9669c5b494eb0c8a1e439b5f016e21388f5ccc"
+    },
+    {
+      "id": "doc-payment-p003a",
+      "version": "demo-v1",
+      "title": "Débito sintético p003a",
+      "text": "EXTRATO SINTÉTICO — NÃO É COMPROVANTE BANCÁRIO\nTransação: p003a\nReferência documental: DEMO-003\nBeneficiário fictício: MATERIAIS-DEMO\nDébito BRL: 750.00\n",
+      "sha256": "cada448dbbd3c8fc4febc1523bfadc6512986db10ec69a154d28979b8aaa0bec"
+    },
+    {
+      "id": "doc-payment-p003b",
+      "version": "demo-v1",
+      "title": "Débito sintético p003b",
+      "text": "EXTRATO SINTÉTICO — NÃO É COMPROVANTE BANCÁRIO\nTransação: p003b\nReferência documental: DEMO-003\nBeneficiário fictício: MATERIAIS-DEMO\nDébito BRL: 750.00\n",
+      "sha256": "200606df48414f5a17ea87e98462de93902c457fd03542f7c54cd0f87b8ada7a"
+    },
+    {
+      "id": "doc-payment-p004",
+      "version": "demo-v1",
+      "title": "Débito sintético p004",
+      "text": "EXTRATO SINTÉTICO — NÃO É COMPROVANTE BANCÁRIO\nTransação: p004\nReferência documental: DEMO-OUTRA\nBeneficiário fictício: OUTRO-BENEFICIARIO-DEMO\nDébito BRL: 1250.00\n",
+      "sha256": "ce9bffea7fd0a42d7b6d2c372661a395e29cf2ce540c544ff441c2ea70148f0b"
+    },
+    {
+      "id": "doc-payment-p005",
+      "version": "demo-v1",
+      "title": "Débito sintético p005",
+      "text": "EXTRATO SINTÉTICO — NÃO É COMPROVANTE BANCÁRIO\nTransação: p005\nReferência documental: DEMO-005\nBeneficiário fictício: INTERNET-DEMO\nDébito BRL: 90.00\n",
+      "sha256": "fa1d33a18c40045e95d6bb62bb0cd978c602356071e81b7f3e175538634470b7"
+    }
+  ],
+  "invoices": [
+    {
+      "id": "invoice-001",
+      "origin": "document_extraction",
+      "confidence": 0.99,
+      "context": {
+        "schoolId": "ESCOLA-DEMO",
+        "competenceId": "2026-10",
+        "programId": "PROGRAMA-DEMO",
+        "confirmed": true
+      },
+      "source": {
+        "documentId": "doc-invoice-001",
+        "version": "demo-v1",
+        "sha256": "1d3a7699ca85863bcb311aacd9705f1ee67b0b8a3663df882546d1d9ac5d15ff",
+        "page": 1,
+        "anchor": "Número, beneficiário e total do documento sintético"
+      },
+      "fields": {
+        "number": "DEMO-001",
+        "partyKey": "SUPRIMENTOS-DEMO",
+        "amountDecimal": "1250.00",
+        "currency": "BRL"
+      }
+    },
+    {
+      "id": "invoice-002",
+      "origin": "document_extraction",
+      "confidence": 0.99,
+      "context": {
+        "schoolId": "ESCOLA-DEMO",
+        "competenceId": "2026-10",
+        "programId": "PROGRAMA-DEMO",
+        "confirmed": true
+      },
+      "source": {
+        "documentId": "doc-invoice-002",
+        "version": "demo-v1",
+        "sha256": "5464bdd6cf511a082e5bbd95bc0779633228ff6e4f5c703c3f81dce557fe873a",
+        "page": 1,
+        "anchor": "Número, beneficiário e total do documento sintético"
+      },
+      "fields": {
+        "number": "DEMO-002",
+        "partyKey": "SERVICOS-DEMO",
+        "amountDecimal": "500.00",
+        "currency": "BRL"
+      }
+    },
+    {
+      "id": "invoice-003",
+      "origin": "document_extraction",
+      "confidence": 0.99,
+      "context": {
+        "schoolId": "ESCOLA-DEMO",
+        "competenceId": "2026-10",
+        "programId": "PROGRAMA-DEMO",
+        "confirmed": true
+      },
+      "source": {
+        "documentId": "doc-invoice-003",
+        "version": "demo-v1",
+        "sha256": "76892fb033fdebcb88aca5d665027ac85814ecc801d40a19e6d2dbd5ec70f70d",
+        "page": 1,
+        "anchor": "Número, beneficiário e total do documento sintético"
+      },
+      "fields": {
+        "number": "DEMO-003",
+        "partyKey": "MATERIAIS-DEMO",
+        "amountDecimal": "750.00",
+        "currency": "BRL"
+      }
+    },
+    {
+      "id": "invoice-004",
+      "origin": "document_extraction",
+      "confidence": 0.99,
+      "context": {
+        "schoolId": "ESCOLA-DEMO",
+        "competenceId": "2026-10",
+        "programId": "PROGRAMA-DEMO",
+        "confirmed": true
+      },
+      "source": {
+        "documentId": "doc-invoice-004",
+        "version": "demo-v1",
+        "sha256": "0c04ed9fde2f3c574d51aa31fc8f6e03d789267d5737b764ad87665308325050",
+        "page": 1,
+        "anchor": "Número, beneficiário e total do documento sintético"
+      },
+      "fields": {
+        "number": "DEMO-004",
+        "partyKey": "LIVROS-DEMO",
+        "amountDecimal": "1250.00",
+        "currency": "BRL"
+      }
+    },
+    {
+      "id": "invoice-005",
+      "origin": "document_extraction",
+      "confidence": 0.61,
+      "context": {
+        "schoolId": "ESCOLA-DEMO",
+        "competenceId": "2026-10",
+        "programId": "PROGRAMA-DEMO",
+        "confirmed": true
+      },
+      "source": {
+        "documentId": "doc-invoice-005",
+        "version": "demo-v1",
+        "sha256": "d5cbd2db69d0cdac8277c3096884f2253a6fe83528d192d197296ce692def944",
+        "page": 1,
+        "anchor": "Número, beneficiário e total do documento sintético"
+      },
+      "fields": {
+        "number": "DEMO-005",
+        "partyKey": "INTERNET-DEMO",
+        "amountDecimal": "90.00",
+        "currency": "BRL"
+      }
+    }
+  ],
+  "payments": [
+    {
+      "id": "p001",
+      "origin": "document_extraction",
+      "confidence": 0.99,
+      "context": {
+        "schoolId": "ESCOLA-DEMO",
+        "competenceId": "2026-10",
+        "programId": "PROGRAMA-DEMO",
+        "confirmed": true
+      },
+      "source": {
+        "documentId": "doc-payment-p001",
+        "version": "demo-v1",
+        "sha256": "523ef68b1fefb1fb0d5396736078b7a0cdf57ee48b37fc3069a9cbda224a9cb1",
+        "page": 1,
+        "anchor": "Referência, beneficiário e débito do extrato sintético"
+      },
+      "fields": {
+        "reference": "DEMO-001",
+        "partyKey": "SUPRIMENTOS-DEMO",
+        "amountDecimal": "1250.00",
+        "currency": "BRL",
+        "direction": "debit"
+      }
+    },
+    {
+      "id": "p002",
+      "origin": "document_extraction",
+      "confidence": 0.99,
+      "context": {
+        "schoolId": "ESCOLA-DEMO",
+        "competenceId": "2026-10",
+        "programId": "PROGRAMA-DEMO",
+        "confirmed": true
+      },
+      "source": {
+        "documentId": "doc-payment-p002",
+        "version": "demo-v1",
+        "sha256": "a7c628427aaccd54c2cf7fab6c9669c5b494eb0c8a1e439b5f016e21388f5ccc",
+        "page": 1,
+        "anchor": "Referência, beneficiário e débito do extrato sintético"
+      },
+      "fields": {
+        "reference": "DEMO-002",
+        "partyKey": "SERVICOS-DEMO",
+        "amountDecimal": "480.00",
+        "currency": "BRL",
+        "direction": "debit"
+      }
+    },
+    {
+      "id": "p003a",
+      "origin": "document_extraction",
+      "confidence": 0.99,
+      "context": {
+        "schoolId": "ESCOLA-DEMO",
+        "competenceId": "2026-10",
+        "programId": "PROGRAMA-DEMO",
+        "confirmed": true
+      },
+      "source": {
+        "documentId": "doc-payment-p003a",
+        "version": "demo-v1",
+        "sha256": "cada448dbbd3c8fc4febc1523bfadc6512986db10ec69a154d28979b8aaa0bec",
+        "page": 1,
+        "anchor": "Referência, beneficiário e débito do extrato sintético"
+      },
+      "fields": {
+        "reference": "DEMO-003",
+        "partyKey": "MATERIAIS-DEMO",
+        "amountDecimal": "750.00",
+        "currency": "BRL",
+        "direction": "debit"
+      }
+    },
+    {
+      "id": "p003b",
+      "origin": "document_extraction",
+      "confidence": 0.99,
+      "context": {
+        "schoolId": "ESCOLA-DEMO",
+        "competenceId": "2026-10",
+        "programId": "PROGRAMA-DEMO",
+        "confirmed": true
+      },
+      "source": {
+        "documentId": "doc-payment-p003b",
+        "version": "demo-v1",
+        "sha256": "200606df48414f5a17ea87e98462de93902c457fd03542f7c54cd0f87b8ada7a",
+        "page": 1,
+        "anchor": "Referência, beneficiário e débito do extrato sintético"
+      },
+      "fields": {
+        "reference": "DEMO-003",
+        "partyKey": "MATERIAIS-DEMO",
+        "amountDecimal": "750.00",
+        "currency": "BRL",
+        "direction": "debit"
+      }
+    },
+    {
+      "id": "p004",
+      "origin": "document_extraction",
+      "confidence": 0.99,
+      "context": {
+        "schoolId": "ESCOLA-DEMO",
+        "competenceId": "2026-10",
+        "programId": "PROGRAMA-DEMO",
+        "confirmed": true
+      },
+      "source": {
+        "documentId": "doc-payment-p004",
+        "version": "demo-v1",
+        "sha256": "ce9bffea7fd0a42d7b6d2c372661a395e29cf2ce540c544ff441c2ea70148f0b",
+        "page": 1,
+        "anchor": "Referência, beneficiário e débito do extrato sintético"
+      },
+      "fields": {
+        "reference": "DEMO-OUTRA",
+        "partyKey": "OUTRO-BENEFICIARIO-DEMO",
+        "amountDecimal": "1250.00",
+        "currency": "BRL",
+        "direction": "debit"
+      }
+    },
+    {
+      "id": "p005",
+      "origin": "document_extraction",
+      "confidence": 0.99,
+      "context": {
+        "schoolId": "ESCOLA-DEMO",
+        "competenceId": "2026-10",
+        "programId": "PROGRAMA-DEMO",
+        "confirmed": true
+      },
+      "source": {
+        "documentId": "doc-payment-p005",
+        "version": "demo-v1",
+        "sha256": "fa1d33a18c40045e95d6bb62bb0cd978c602356071e81b7f3e175538634470b7",
+        "page": 1,
+        "anchor": "Referência, beneficiário e débito do extrato sintético"
+      },
+      "fields": {
+        "reference": "DEMO-005",
+        "partyKey": "INTERNET-DEMO",
+        "amountDecimal": "90.00",
+        "currency": "BRL",
+        "direction": "debit"
+      }
+    }
+  ]
+}

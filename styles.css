@@ -2051,7 +2051,8 @@ body.dark-theme .modal-content {
     width: min(720px, calc(100vw - 32px));
 }
 
-#modal-dados-nota .expense-modal-context {
+#modal-dados-nota .expense-modal-context,
+#modal-contato .contact-school-context {
     margin: 0 0 12px;
     padding: 9px 12px;
     border: 1px solid var(--border-color);

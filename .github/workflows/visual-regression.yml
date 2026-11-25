@@ -10,6 +10,10 @@ on:
       - 'src/**'
       - 'tests/e2e/global-visual-polish.spec.js'
       - 'tests/e2e/unidentified-expense-visual.spec.js'
+      - 'tests/e2e/school-timeline.spec.js'
+      - 'tests/e2e/controller-guide.spec.js'
+      - 'tests/e2e/document-intelligence-poc.spec.js'
+      - 'ops/document-intelligence-poc/**'
       - 'tests/support/unidentified-expense-fixture.js'
       - 'tests/e2e/**-snapshots/**'
       - playwright.visual.config.js
@@ -25,6 +29,10 @@ on:
       - 'src/**'
       - 'tests/e2e/global-visual-polish.spec.js'
       - 'tests/e2e/unidentified-expense-visual.spec.js'
+      - 'tests/e2e/school-timeline.spec.js'
+      - 'tests/e2e/controller-guide.spec.js'
+      - 'tests/e2e/document-intelligence-poc.spec.js'
+      - 'ops/document-intelligence-poc/**'
       - 'tests/support/unidentified-expense-fixture.js'
       - 'tests/e2e/**-snapshots/**'
       - playwright.visual.config.js
@@ -42,7 +50,7 @@ concurrency:
 
 jobs:
   desktop:
-    name: Seis baselines críticos
+    name: Histórico, guia e fluxos essenciais
     runs-on: ubuntu-26.04
     timeout-minutes: 25
     steps:
@@ -69,8 +77,19 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: visual-regression-${{ github.run_id }}
+          path: playwright-report-visual/
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Publicar capturas para revisão
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: visual-captures-${{ github.run_id }}
           path: |
-            playwright-report-visual/
-            test-results/
+            playwright-report-visual/index.html
+            playwright-report-visual/data/*.png
+            playwright-report-visual/data/*.pdf
+            playwright-report-visual/data/*.md
           retention-days: 14
           if-no-files-found: warn

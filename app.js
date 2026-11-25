@@ -10135,7 +10135,7 @@ function renderProntuario(escolaId) {
                                 </thead>
                                 <tbody>
                                     ${logs.filter(l => l.detalhes.includes(esc.denominação) || l.detalhes.includes(esc.id)).length === 0 ? `
-                                        <tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:24px;">Nenhum log para esta unidade.</td></tr>
+                                        <tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:24px;">Nenhum registro interno para esta unidade.</td></tr>
                                     ` : logs.filter(l => l.detalhes.includes(esc.denominação) || l.detalhes.includes(esc.id)).map(l => `
                                         <tr>
                                             <td>${new Date(l.dataHora).toLocaleString('pt-BR')}</td>
@@ -12562,6 +12562,15 @@ function openContatoModal(escolaId) {
         window.RadarAccessPolicy.CAPABILITIES.REGISTER_PENDENCY_CONTACT
     )) return false;
     document.getElementById('contato-escola-id').value = escolaId;
+    const schoolContext = document.getElementById('contato-escola-contexto');
+    const school = escolas.find(item => String(item.id) === String(escolaId));
+    const schoolName = getSchoolDisplayName(school, String(escolaId));
+    if (schoolContext) {
+        schoolContext.textContent = schoolName === String(escolaId)
+            ? `Escola: ${escolaId}`
+            : `Escola: ${schoolName} (${escolaId})`;
+        schoolContext.hidden = false;
+    }
     document.getElementById('contato-data-atendimento').value = getTodayLocalIsoDate();
     
     // Popular pendências vinculáveis (usando == para evitar incompatibilidade entre string e número)

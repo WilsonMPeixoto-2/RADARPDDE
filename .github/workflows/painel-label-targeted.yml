@@ -44,6 +44,7 @@ jobs:
           node scripts/check-functional-contract-matrix.mjs
           node - <<'NODE'
           const fs = require('fs');
+          const vm = require('node:vm');
           const html = fs.readFileSync('index.html', 'utf8');
           const nav = html.match(/<(?:div|button)\b[^>]*class="nav-item active"[^>]*id="nav-dashboard"[^>]*onclick="switchView\('dashboard'\)"[^>]*>[\s\S]*?<span>([^<]+)<\/span>/);
           if (!nav) throw new Error('nav-dashboard não localizado com contrato técnico preservado.');
@@ -52,7 +53,17 @@ jobs:
             throw new Error('Dashboard ainda aparece como rótulo do menu.');
           }
           const guide = fs.readFileSync('src/integration/controller-guide.js', 'utf8');
-          if (!guide.includes("routeLabel: 'Abrir Painel'")) throw new Error('Guia não usa Abrir Painel.');
+          const main = { innerHTML: '', querySelector: () => null, querySelectorAll: () => [] };
+          const window = {
+            document: { querySelector: selector => selector === '#main-container' ? main : null, querySelectorAll: () => [] },
+            addEventListener() {}, scrollTo() {}, setTimeout() {}
+          };
+          vm.runInNewContext(guide, { window, globalThis: window });
+          window.RadarControllerGuide.render();
+          const panelAction = main.innerHTML.match(/<button\b[^>]*data-guide-view=["']dashboard["'][^>]*>([\s\S]*?)<\/button>/);
+          if (!panelAction || panelAction[1].replace(/<[^>]*>/g, '').trim() !== 'Abrir Painel') {
+            throw new Error('Guia deve renderizar Abrir Painel com destino dashboard.');
+          }
           const navigation = fs.readFileSync('src/integration/navigation-context.js', 'utf8');
           if (!navigation.includes("dashboard: 'Painel'")) throw new Error('Contexto de navegação não usa Painel.');
           NODE
