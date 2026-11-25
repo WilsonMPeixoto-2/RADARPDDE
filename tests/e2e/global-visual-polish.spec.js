@@ -113,7 +113,7 @@ test.describe('Polimento visual global', () => {
   });
 
   test('Prontuário, abas, formulários e modais preservam elementos e ganham acabamento', async ({ page }, testInfo) => {
-    await openProntuario(page);
+    const schoolContext = await openProntuario(page);
     await expect(page.locator('.prontuario-school-header')).toBeVisible();
     await expect(page.locator('.prontuario-flowbar')).toBeVisible();
 
@@ -144,11 +144,17 @@ test.describe('Polimento visual global', () => {
     await contactButton.click();
     const contactModal = page.locator('#modal-contato');
     await expect(contactModal).toHaveClass(/show/);
+    await expect(contactModal.locator('#contato-escola-contexto')).toContainText(String(schoolContext.schoolId));
     const contactFooter = contactModal.locator('.modal-footer');
     await expect(contactFooter).toBeVisible();
     const sticky = await contactFooter.evaluate(element => getComputedStyle(element).position);
     expect(sticky).toBe('sticky');
     await shot(page, testInfo, '06-modal-contato-polido');
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(contactModal.locator('#contato-escola-contexto')).toBeVisible();
+    expect(await contactModal.evaluate(element => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+    await shot(page, testInfo, '06b-modal-contato-contexto-celular');
+    await page.setViewportSize({ width: 1440, height: 900 });
     await contactModal.locator('.btn-close').click();
 
     await page.getByRole('tab', { name: 'Histórico de Contatos', exact: true }).click();

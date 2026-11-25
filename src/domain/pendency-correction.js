@@ -51,53 +51,91 @@
             && text(deliveryStatus) === 'Não';
     }
 
-    function cloneAttempt(attempt, index) {
+    function cloneAttempt(attempt) {
         const raw = attempt && typeof attempt === 'object' ? attempt : {};
-        return {
-            ...raw,
-            id: text(raw.id) || `tentativa-${index + 1}`,
-            numero: Number(raw.numero) > 0 ? Number(raw.numero) : index + 1,
-            dataDisponibilizacao: text(raw.dataDisponibilizacao || raw.date) || null,
-            observacaoEscola: text(raw.observacaoEscola || raw.note),
-            status: text(raw.status) || ATTEMPT_STATUS.WAITING_REVIEW,
-            dataAnalise: text(raw.dataAnalise) || null,
-            resultado: text(raw.resultado) ? text(raw.resultado).toLowerCase() : null,
-            errosEncontrados: normalizeErrors(raw.errosEncontrados || raw.errors),
-            observacaoAnalise: text(raw.observacaoAnalise)
-        };
+        // Identidade, sequência e versão pertencem ao registro persistido.
+        // Corrigir um alvo não normaliza nem renumera os demais registros.
+        return JSON.parse(JSON.stringify(raw));
     }
 
     function resolveTargetAttemptIndex(attempts, targetId) {
         if (!attempts.length) {
             return { index: -1, ambiguity: null };
         }
+        const ids = attempts.map(item => text(item.id));
+        if (ids.some(id => !id) || new Set(ids).size !== ids.length) {
+            return { index: -1, ambiguity: {
+                code: 'AMBIGUOUS_ATTEMPT_IDENTITY',
+                message: 'Há tentativas sem identidade única; confira o registro original antes de corrigir.',
+                candidates: [...new Set(ids.filter(Boolean))]
+            } };
+        }
         const normalizedTarget = text(targetId);
         if (normalizedTarget) {
-            const idx = attempts.findIndex(item => (
-                text(item.id) === normalizedTarget || String(item.numero) === normalizedTarget
-            ));
+            const idx = attempts.findIndex(item => text(item.id) === normalizedTarget);
             if (idx === -1) {
                 throw new Error(`Tentativa alvo não encontrada na Pendência: ${normalizedTarget}`);
             }
             return { index: idx, ambiguity: null };
         }
-        if (attempts.length > 1) {
-            return {
-                index: -1,
-                ambiguity: {
-                    code: 'AMBIGUOUS_ATTEMPT_TARGET',
-                    message: 'A Pendência possui múltiplas tentativas; informe targetId explicitamente.',
-                    candidates: attempts.map(item => item.id)
-                }
-            };
+        return {
+            index: -1,
+            ambiguity: {
+                code: 'AMBIGUOUS_ATTEMPT_TARGET',
+                message: 'Informe a identidade da tentativa que será corrigida.',
+                candidates: ids
+            }
+        };
+    }
+
+    function activeAttemptsInOrder(attempts) {
+        return attempts.filter(item => text(item.status) !== ATTEMPT_STATUS.SUPERSEDED)
+            .sort((left, right) => Number(left.numero) - Number(right.numero));
+    }
+
+    function projectionScope(pendency, attempts, targetId) {
+        if (text(pendency.status) === PENDENCY_STATUS.CANCELLED) return 'preserve';
+        const numbers = attempts.map(item => Number(item.numero));
+        if (numbers.some(number => !Number.isInteger(number) || number < 1)
+            || new Set(numbers).size !== numbers.length
+            || attempts.some(item => !Object.values(ATTEMPT_STATUS).includes(text(item.status)))) {
+            return 'ambiguous';
         }
-        return { index: 0, ambiguity: null };
+        const latest = activeAttemptsInOrder(attempts).at(-1);
+        if (!latest) return 'preserve';
+        if (text(latest.id) !== text(targetId)) {
+            const target = attempts.find(item => text(item.id) === text(targetId));
+            // Um envio ainda não analisado pode continuar exibindo erros de uma
+            // reanálise anterior. A posição do alvo não prova independência.
+            if (latest.status === ATTEMPT_STATUS.WAITING_REVIEW
+                && target?.status === ATTEMPT_STATUS.REVIEWED) return 'ambiguous';
+            return 'preserve';
+        }
+
+        const stateEvents = (Array.isArray(pendency.historico) ? pendency.historico : [])
+            .filter(event => ['cancelamento', 'reabertura'].includes(text(event?.tipo)));
+        if (stateEvents.length) {
+            const attemptAt = Date.parse(latest.status === ATTEMPT_STATUS.REVIEWED
+                ? latest.dataAnalise : latest.dataRegistro || latest.dataDisponibilizacao);
+            const eventTimes = stateEvents.map(event => Date.parse(event.dataHora));
+            if (!Number.isFinite(attemptAt) || eventTimes.some(time => !Number.isFinite(time))) return 'ambiguous';
+            const lastStateAt = Math.max(...eventTimes);
+            if (lastStateAt === attemptAt) return 'ambiguous';
+            if (lastStateAt > attemptAt) return 'preserve';
+        }
+        const expectedStatus = latest.status === ATTEMPT_STATUS.WAITING_REVIEW
+            ? PENDENCY_STATUS.WAITING_REVIEW
+            : text(latest.resultado).toLowerCase() === REVIEW_RESULTS.CORRECT
+                ? PENDENCY_STATUS.RESOLVED : PENDENCY_STATUS.OPEN;
+        return text(pendency.status) === expectedStatus ? 'rebuild' : 'ambiguous';
     }
 
     /**
      * Recompõe o estado da Pendência e da análise técnica vinculada a partir
      * do esquema real de `src/domain/pendencias.js` (`tentativas`) e da regra
      * real `requiresLateCorrect` de `src/domain/fluxo-operacional.js`.
+     * Helper preparatório T5, sem persistência. affectedAnalysis=null significa
+     * preservar a análise vigente; ambiguidade nunca fornece uma recomposição.
      */
     function rebuildPendencyAfterCorrection({
         pendency,
@@ -114,7 +152,7 @@
         const nextPendency = JSON.parse(JSON.stringify(pendency));
         const sourceAttempts = Array.isArray(nextPendency.tentativas)
             ? nextPendency.tentativas
-            : (Array.isArray(externalAttempts) ? externalAttempts : []);
+            : (Array.isArray(externalAttempts) ? externalAttempts.map(cloneAttempt) : []);
         const attempts = sourceAttempts.map(cloneAttempt);
 
         const normalizedAction = text(action);
@@ -123,11 +161,13 @@
         if (ambiguity) {
             return {
                 pendency: nextPendency,
-                attempts,
-                affectedAnalysis: 'Incorreto',
+                attempts: sourceAttempts,
+                affectedAnalysis: null,
                 ambiguity
             };
         }
+
+        let changesProjection = true;
 
         if (normalizedAction === 'delete_review') {
             if (targetIdx < 0) {
@@ -147,36 +187,42 @@
                 throw new Error('Nenhuma tentativa disponível para corrigir reanálise.');
             }
             const target = attempts[targetIdx];
+            if (target.status !== ATTEMPT_STATUS.REVIEWED) {
+                throw new Error('A tentativa selecionada não possui reanálise concluída para correção.');
+            }
             const nextResult = text(changes.resultado || changes.result).toLowerCase();
             if (!Object.values(REVIEW_RESULTS).includes(nextResult)) {
                 throw new Error(`Resultado de reanálise inválido: ${nextResult}`);
             }
-            target.status = ATTEMPT_STATUS.REVIEWED;
+            const nextDate = text(changes.dataAnalise || changes.date || target.dataAnalise) || null;
+            const nextErrors = nextResult === REVIEW_RESULTS.CORRECT
+                ? [] : normalizeErrors(changes.errosEncontrados || changes.errors || target.errosEncontrados);
+            changesProjection = nextResult !== text(target.resultado).toLowerCase()
+                || nextDate !== (text(target.dataAnalise) || null)
+                || JSON.stringify(nextErrors) !== JSON.stringify(normalizeErrors(target.errosEncontrados));
             target.resultado = nextResult;
-            target.dataAnalise = text(changes.dataAnalise || changes.date || target.dataAnalise) || null;
+            target.dataAnalise = nextDate;
             target.observacaoAnalise = text(
                 changes.observacaoAnalise !== undefined
                     ? changes.observacaoAnalise
                     : (changes.note !== undefined ? changes.note : target.observacaoAnalise)
             );
-            target.errosEncontrados = nextResult === REVIEW_RESULTS.CORRECT
-                ? []
-                : normalizeErrors(changes.errosEncontrados || changes.errors || target.errosEncontrados);
+            target.errosEncontrados = nextErrors;
         } else if (normalizedAction === 'delete_submission') {
             if (targetIdx < 0) {
                 throw new Error('Nenhuma tentativa disponível para excluir envio.');
             }
             attempts.splice(targetIdx, 1);
-            attempts.forEach((item, index) => {
-                item.numero = index + 1;
-            });
         } else if (normalizedAction === 'correct_submission') {
             if (targetIdx < 0) {
                 throw new Error('Nenhuma tentativa disponível para corrigir envio.');
             }
             const target = attempts[targetIdx];
+            changesProjection = false;
             if (changes.dataDisponibilizacao !== undefined || changes.date !== undefined) {
-                target.dataDisponibilizacao = text(changes.dataDisponibilizacao ?? changes.date) || null;
+                const nextDate = text(changes.dataDisponibilizacao ?? changes.date) || null;
+                changesProjection = nextDate !== (text(target.dataDisponibilizacao) || null);
+                target.dataDisponibilizacao = nextDate;
             }
             if (changes.observacaoEscola !== undefined || changes.note !== undefined) {
                 target.observacaoEscola = text(changes.observacaoEscola ?? changes.note);
@@ -185,7 +231,25 @@
             throw new Error(`Ação de correção de histórico desconhecida: ${normalizedAction}`);
         }
 
-        const activeAttempts = attempts.filter(item => item.status !== ATTEMPT_STATUS.SUPERSEDED);
+        const scope = changesProjection ? projectionScope(nextPendency, sourceAttempts, targetId) : 'preserve';
+        if (scope === 'ambiguous') {
+            return {
+                pendency: nextPendency,
+                attempts: sourceAttempts,
+                affectedAnalysis: null,
+                ambiguity: {
+                    code: 'AMBIGUOUS_PENDENCY_HISTORY',
+                    message: 'O histórico não comprova qual estado depende desta tentativa; confira a sequência antes de corrigir.',
+                    candidates: sourceAttempts.map(item => item.id)
+                }
+            };
+        }
+        if (scope === 'preserve') {
+            nextPendency.tentativas = attempts;
+            return { pendency: nextPendency, attempts, affectedAnalysis: null, ambiguity: null };
+        }
+
+        const activeAttempts = activeAttemptsInOrder(attempts);
         const latest = activeAttempts.length ? activeAttempts[activeAttempts.length - 1] : null;
         let affectedAnalysis = 'Incorreto';
 
@@ -202,7 +266,7 @@
             const previousReviewedIncorrect = activeAttempts
                 .slice(0, -1)
                 .reverse()
-                .find(item => item.status === ATTEMPT_STATUS.REVIEWED && item.errosEncontrados.length > 0);
+                .find(item => item.status === ATTEMPT_STATUS.REVIEWED && normalizeErrors(item.errosEncontrados).length > 0);
             if (previousReviewedIncorrect) {
                 nextPendency.errosAtuais = normalizeErrors(previousReviewedIncorrect.errosEncontrados);
             }
@@ -222,7 +286,7 @@
                 nextPendency.responsavel = ACTORS.SCHOOL;
                 nextPendency.proximoAtor = ACTORS.SCHOOL;
                 nextPendency.dataResolucao = null;
-                if (latest.errosEncontrados.length > 0) {
+                if (normalizeErrors(latest.errosEncontrados).length > 0) {
                     nextPendency.errosAtuais = normalizeErrors(latest.errosEncontrados);
                 }
                 affectedAnalysis = 'Incorreto';

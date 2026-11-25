@@ -183,24 +183,40 @@
             }
 
             list(pendency?.tentativas || pendency?.attempts).forEach(attempt => {
-                const reviewedAt = attempt?.dataAnalise || attempt?.reviewed_at;
-                const registeredAt = attempt?.dataRegistro || attempt?.created_at;
-                const reviewed = Boolean(validIso(reviewedAt));
-                pushEvent(events, {
-                    type: reviewed ? 'pendency_attempt_reviewed' : 'pendency_attempt_registered',
-                    title: reviewed ? 'Reanálise concluída' : 'Novo envio registrado',
-                    description: text(attempt?.observacao || attempt?.notes || attempt?.resultado || attempt?.result),
-                    actor: reviewed
-                        ? (attempt?.analisadoPorNome || attempt?.reviewed_by_name)
-                        : (attempt?.registradoPorNome || attempt?.created_by_name),
-                    status: text(attempt?.resultado || attempt?.result || attempt?.status),
-                    occurredAt: reviewedAt || registeredAt,
+                const payload = attempt?.payload || {};
+                const reviewedAt = attempt?.dataAnalise || attempt?.analyzed_at || attempt?.reviewed_at;
+                const registeredAt = attempt?.dataRegistro || attempt?.submitted_at || attempt?.created_at;
+                const source = {
                     competenceKey: input.competenceKey,
                     programId,
                     pendencyId,
-                    visibility: reviewed ? 'technical' : 'managerial',
                     sourceEntity: 'pendency_attempts',
                     sourceId: attempt?.id
+                };
+                // Envio e reanálise são fatos distintos da mesma tentativa.
+                // O resultado técnico posterior não apaga nem reclassifica o envio.
+                pushEvent(events, {
+                    ...source,
+                    type: 'pendency_attempt_registered',
+                    title: 'Novo envio registrado',
+                    description: text(attempt?.observacao || attempt?.observation || attempt?.observacaoEscola || attempt?.notes),
+                    actor: attempt?.registradoPorNome || attempt?.registradoPor
+                        || payload.registradoPor || attempt?.created_by_name,
+                    status: 'Registrado',
+                    occurredAt: registeredAt,
+                    visibility: 'managerial'
+                });
+                pushEvent(events, {
+                    ...source,
+                    type: 'pendency_attempt_reviewed',
+                    title: 'Reanálise concluída',
+                    description: text(attempt?.observacaoAnalise || payload.observacaoAnalise
+                        || attempt?.resultado || attempt?.result),
+                    actor: attempt?.analisadoPorNome || attempt?.analisadoPor
+                        || payload.analisadoPor || attempt?.reviewed_by_name,
+                    status: text(attempt?.resultado || attempt?.result || attempt?.status),
+                    occurredAt: reviewedAt,
+                    visibility: 'technical'
                 });
             });
         });

@@ -184,3 +184,62 @@ test('cada evento expõe contrato completo e serializável', () => {
     assert.doesNotThrow(() => JSON.stringify(event));
   });
 });
+
+test('reanálise preserva o evento de envio com identidade, data, autor e observação próprios', () => {
+  const input = fixture();
+  const attempt = input.pendencies[0].tentativas[0];
+  attempt.registradoPor = 'Direção da escola';
+  attempt.analisadoPor = 'Controlador da reanálise';
+  delete attempt.analisadoPorNome;
+  attempt.observacao = 'Documento enviado para conferência.';
+  attempt.observacaoAnalise = 'Assinatura validada na reanálise.';
+  const events = timeline.buildSchoolTimeline({ ...input, accessProfile: 'controlador' })
+    .filter(event => event.sourceEntity === 'pendency_attempts');
+  assert.equal(events.length, 2);
+  const submission = events.find(event => event.type === 'pendency_attempt_registered');
+  const review = events.find(event => event.type === 'pendency_attempt_reviewed');
+  assert.equal(submission.occurredAt, '2026-08-19T11:00:00.000Z');
+  assert.equal(submission.actor, 'Direção da escola');
+  assert.equal(submission.description, attempt.observacao);
+  assert.equal(review.occurredAt, '2026-08-20T14:30:00.000Z');
+  assert.equal(review.actor, 'Controlador da reanálise');
+  assert.equal(review.description, attempt.observacaoAnalise);
+  assert.notEqual(submission.id, review.id);
+  assert.equal(submission.sourceId, review.sourceId);
+  assert.equal(submission.pendencyId, 'pendency-1');
+  assert.equal(submission.status, 'Registrado', 'o envio não recebe o resultado posterior da reanálise');
+  assert.equal(review.status, 'correto');
+  assert.ok(events.indexOf(review) < events.indexOf(submission));
+});
+
+test('Gestão SME continua vendo o envio após a reanálise sem receber seu resultado técnico', () => {
+  const input = fixture();
+  const attempt = input.pendencies[0].tentativas[0];
+  const before = timeline.buildSchoolTimeline({
+    ...input, accessProfile: 'sme',
+    pendencies: [{ ...input.pendencies[0], tentativas: [{ ...attempt, dataAnalise: null, resultado: null }] }]
+  }).find(event => event.type === 'pendency_attempt_registered');
+  const after = timeline.buildSchoolTimeline({ ...input, accessProfile: 'sme' })
+    .filter(event => event.sourceEntity === 'pendency_attempts');
+  assert.equal(after.length, 1);
+  assert.equal(after[0].type, 'pendency_attempt_registered');
+  assert.equal(after[0].id, before.id);
+  assert.equal(after[0].description, before.description);
+  assert.equal(after[0].status, 'Registrado');
+});
+
+test('eventos de tentativa usam datas canônicas sem fabricar envio ou reanálise sem data válida', () => {
+  const input = fixture();
+  input.pendencies[0].tentativas = [{
+    id: 'canonical-attempt', submitted_at: '2026-08-19T11:00:00Z',
+    analyzed_at: '2026-08-20T14:30:00Z', result: 'incorreto',
+    observation: 'Envio recebido.', payload: { observacaoAnalise: 'Valor divergente.' }
+  }];
+  let events = timeline.buildSchoolTimeline(input).filter(event => event.sourceEntity === 'pendency_attempts');
+  assert.equal(events.length, 2);
+  assert.equal(events[0].description, 'Valor divergente.');
+  input.pendencies[0].tentativas[0].submitted_at = 'inválida';
+  input.pendencies[0].tentativas[0].analyzed_at = null;
+  events = timeline.buildSchoolTimeline(input).filter(event => event.sourceEntity === 'pendency_attempts');
+  assert.equal(events.length, 0);
+});
