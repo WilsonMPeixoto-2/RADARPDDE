@@ -169,3 +169,73 @@ test('logout limpa contexto local somente depois de encerrar a sessão', async (
     assert.equal(state.status, 'signed_out');
     assert.equal(service.getAuthorizationContext(), null);
 });
+
+
+test('timeout de consulta institucional após login não encerra a sessão do Supabase', async () => {
+    const client = createClient({
+        userProfiles: [activeProfile()],
+        tableErrors: {
+            user_profiles: { status: 500, code: '57014', message: 'statement timeout' }
+        }
+    });
+    const service = new SessionService({ client });
+
+    await assert.rejects(
+        service.signIn({ email: 'controller@radar.local', password: 'fixture' }),
+        error => error instanceof SessionError && error.code === 'AUTHORIZATION_UNAVAILABLE'
+    );
+
+    assert.equal(client.signOutCalls.length, 0);
+    assert.equal(service.getAuthorizationContext(), null);
+});
+
+test('refresh do JWT com timeout de perfil bloqueia o ambiente sem emitir SIGNED_OUT fictício', async () => {
+    const options = { userProfiles: [activeProfile()], tableErrors: {} };
+    const client = createClient(options);
+    const service = new SessionService({ client });
+    await service.initialize();
+    assert.equal(service.getState().status, 'authenticated');
+
+    options.tableErrors.user_profiles = {
+        status: 500, code: '57014', message: 'statement timeout'
+    };
+    client.listeners[0]('TOKEN_REFRESHED', {
+        user: { id: 'user-1', email: 'controller@radar.local' }
+    });
+    await new Promise(resolve => setImmediate(resolve));
+
+    const state = service.getState();
+    assert.equal(state.status, 'authorization_unavailable');
+    assert.equal(state.authorization, null);
+    assert.equal(client.signOutCalls.length, 0);
+});
+
+test('falha temporária na restauração de sessão mantém credenciais no cliente sem acesso institucional', async () => {
+    const client = createClient({
+        getSessionError: { status: 503, code: 'NETWORK_ERROR', message: 'temporarily unavailable' }
+    });
+    const service = new SessionService({ client });
+    await assert.rejects(
+        service.restore(),
+        error => error instanceof SessionError && error.code === 'SESSION_UNAVAILABLE'
+    );
+    assert.equal(service.getAuthorizationContext(), null);
+    assert.equal(client.signOutCalls.length, 0);
+});
+
+
+test('falha explícita de permissão não é classificada como timeout transitório', async () => {
+    const client = createClient({
+        userProfiles: [activeProfile()],
+        tableErrors: { user_profiles: {
+            status: 403, code: '42501', message: 'permission denied'
+        } }
+    });
+    const service = new SessionService({ client });
+    await assert.rejects(
+        service.signIn({ email: 'controller@radar.local', password: 'fixture' }),
+        error => error instanceof SessionError && error.code === 'AUTHORIZATION_UNAVAILABLE'
+    );
+    assert.equal(client.signOutCalls.length, 1);
+    assert.equal(service.getAuthorizationContext(), null);
+});
