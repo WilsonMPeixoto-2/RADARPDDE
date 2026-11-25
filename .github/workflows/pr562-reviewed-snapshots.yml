@@ -1,0 +1,43 @@
+name: Transferência pontual de referências visuais revisadas
+on:
+  push:
+    branches: [fix/prontuario-revisao-integrada-20261124]
+    paths: ['.github/workflows/pr562-reviewed-snapshots.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  extract:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 8
+    strategy:
+      matrix:
+        capture: [prontuario, drawer-despesa-a-identificar]
+    steps:
+      - name: Obter artefato exato da revisão visual
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: visual-regression-45514348300
+          repository: WilsonMPeixoto-2/RADARPDDE
+          run-id: 45514348300
+          github-token: ${{ github.token }}
+          path: reviewed
+      - name: Verificar e transferir somente PNG revisado
+        env:
+          CAPTURE: ${{ matrix.capture }}
+        run: |
+          python3 - <<'PY'
+          import pathlib, hashlib, os, base64
+          name = os.environ['CAPTURE']
+          expected = {
+            'prontuario': '2bff305c530b226d253eb14b73c755bb1cbd35d57bab2db27bb2f4d207ac5b24',
+            'drawer-despesa-a-identificar': '544da959a7d17f31816a8b2604564f44f5ff54da9c3052345ae202e658a2b06f'
+          }
+          found = [p for p in pathlib.Path('reviewed').rglob(name+'-actual.png') if 'retry' not in str(p)]
+          assert len(found)==1, found
+          data = found[0].read_bytes()
+          assert hashlib.sha256(data).hexdigest()==expected[name]
+          b64=base64.b64encode(data).decode()
+          for i in range(0,len(b64),4096):
+              print(f'REVIEWED_PNG {name} {i//4096:04d} {b64[i:i+4096]}')
+          PY
