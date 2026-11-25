@@ -1961,6 +1961,34 @@ body.dark-theme #prontuario-verif-rows .invoice-history-clear-button { color: #f
 /* Revisão integrada: ações de rotina em primeiro plano e contexto persistente. */
 .prontuario-school-header .prontuario-active-context { margin: 4px 0 0; color: var(--text-main); font-size: .75rem; font-weight: 650; line-height: 1.4; overflow-wrap: anywhere; }
 .prontuario-school-header .prontuario-active-context[hidden] { display: none; }
+
+/* Qualidade vazio ou em consulta: retirar espaçamentos duplicados da área
+   mensal, mantendo textos e controles inteiros na primeira tela desktop.
+   Abrir detalhes ou carregar registros devolve o espaçamento completo. */
+@media (min-width: 1100px) {
+    #tab-verificacoes > .panel-card:has(> #quality-provisional-panel.is-compact:not([hidden])) {
+        padding-block-start: 0;
+    }
+    #tab-verificacoes > .panel-card:has(> #quality-provisional-panel.is-compact:not([hidden])) > .panel-header {
+        padding-block-start: 8px;
+        margin-block-end: 4px;
+    }
+    #tab-verificacoes > .panel-card:has(> #quality-provisional-panel.is-compact:not([hidden])) .comp-tabs-container {
+        padding-block: 2px 4px !important;
+    }
+    #tab-verificacoes > .panel-card:has(> #quality-provisional-panel.is-compact:not([hidden])) .prontuario-evaluation-table > thead th {
+        padding-block: 6px;
+    }
+    #tab-verificacoes > .panel-card:has(> #quality-provisional-panel.is-compact:not([hidden])) [data-program-header] .program-context-header {
+        padding-block: 6px;
+    }
+    #tab-verificacoes > .panel-card:has(> #quality-provisional-panel.is-compact:not([hidden])) tr.verification-document-row > td {
+        padding-block: 4px;
+    }
+    #tab-verificacoes > .panel-card:has(> #quality-provisional-panel.is-compact:not([hidden])) .invoice-document-panel-header {
+        padding-block: 8px;
+    }
+}
 #prontuario-verif-rows .program-context-delete-button,
 #prontuario-verif-rows .prontuario-history-clear-button,
 #prontuario-verif-rows .invoice-history-clear-button,

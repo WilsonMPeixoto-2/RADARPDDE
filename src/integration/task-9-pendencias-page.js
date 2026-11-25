@@ -269,6 +269,13 @@
         if (!drawer) {
             buttons.push(`<button class="btn btn-secondary btn-sm" data-action="open-pendency-detail" data-pendency-ref="${reference}" onclick="openPendencyDetail(this)">Ver detalhes</button>`);
         }
+        if (drawer && root.RadarAuditableRetification?.isManualPendency?.(record.pendency)
+            && root.RadarOperationalCorrectionDialog?.canCorrectGranular?.(root, 'correct_attempt')) {
+            buttons.push(`<button type="button" class="btn btn-secondary btn-sm"
+                data-action="edit-manual-pendency" data-pendency-ref="${reference}"
+                data-correction-target-id="${escapeHtml(String(record.id))}"
+                onclick="openManualPendencyDetails(this)">Editar detalhes</button>`);
+        }
         if (record.status === 'Aberta'
             && documentary
             && hasCapability(root.RadarAccessPolicy.CAPABILITIES.REGISTER_CORRECTIVE_SUBMISSION)) {
@@ -741,6 +748,26 @@
         return labels[item.type] || String(item.type || 'Movimentação').replaceAll('_', ' ');
     }
 
+    function renderGranularActions(record, kind, item) {
+        const id = String(item?.id || '').trim();
+        if (!id) return '';
+        const source = kind === 'contact' ? record.contacts : record.attempts;
+        if (source.filter(candidate => String(candidate.id) === id).length !== 1) return '';
+        const actions = kind === 'attempt'
+            ? [['correct_attempt', 'Corrigir envio'], ['delete_attempt', 'Excluir envio']]
+            : kind === 'review'
+                ? [['correct_review', 'Corrigir reanálise'], ['delete_review', 'Excluir reanálise']]
+                : [['correct_contact', 'Corrigir contato'], ['delete_contact', 'Excluir contato']];
+        const visible = actions.filter(([action]) => root.RadarOperationalCorrectionDialog?.canCorrectGranular?.(root, action));
+        if (!visible.length) return '';
+        return `<div class="pendency-event-actions" aria-label="Ações ${kind === 'review' ? 'da reanálise' : kind === 'contact' ? 'do contato' : 'do envio'}">
+            ${visible.map(([action, label]) => `<button type="button" class="btn btn-secondary btn-sm"
+                data-action="${action.replaceAll('_', '-')}" data-correction-target-id="${escapeHtml(id)}"
+                data-pendency-ref="${escapeHtml(encodePendencyIdReference(record.id))}"
+                onclick="openGranularPendencyCorrection(this)">${label}</button>`).join('')}
+        </div>`;
+    }
+
     function renderAttempts(record) {
         if (!record.attempts.length) return '<p class="pendency-muted">Nenhum envio corretivo registrado.</p>';
         return `
@@ -753,7 +780,7 @@
                         substituida_antes_da_analise: 'Substituída antes da análise'
                     };
                     return `
-                        <li>
+                        <li data-attempt-id="${escapeHtml(attempt.id || '')}">
                             <div class="pendency-attempt-heading">
                                 <strong>Tentativa ${Number.isInteger(attempt.numero) ? attempt.numero : '—'}</strong>
                                 <span class="badge badge-gray">${escapeHtml(statusLabels[attempt.status] || attempt.status || 'Sem status')}</span>
@@ -768,6 +795,11 @@
                                 ? `<div>${renderErrors({ errors: attempt.errosEncontrados }, { full: true })}</div>`
                                 : ''}
                             ${link ? `<a class="btn btn-secondary btn-sm" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">Abrir arquivo</a>` : ''}
+                            ${renderGranularActions(record, 'attempt', attempt)}
+                            ${attempt.resultado ? `<div class="pendency-review-correction-actions">
+                                <span class="pendency-history-action-label">Reanálise deste envio</span>
+                                ${renderGranularActions(record, 'review', attempt)}
+                            </div>` : ''}
                         </li>
                     `;
                 }).join('')}
@@ -780,11 +812,12 @@
         return `
             <ul class="pendency-contact-list">
                 ${[...record.contacts].sort((a, b) => String(b.dataHora || b.data || '').localeCompare(String(a.dataHora || a.data || ''))).map(contact => `
-                    <li>
+                    <li data-contact-id="${escapeHtml(contact.id || '')}">
                         <strong>${escapeHtml(contact.tipo || 'Contato')}</strong>
                         <time>${escapeHtml(formatDateTime(contact.dataHora || contact.data))}</time>
                         <p>${escapeHtml(contact.descricao || contact.observacao || 'Sem descrição.')}</p>
                         ${contact.responsavel ? `<small>Registrado por ${escapeHtml(contact.responsavel)}</small>` : ''}
+                        ${renderGranularActions(record, 'contact', contact)}
                     </li>
                 `).join('')}
             </ul>
@@ -1316,7 +1349,12 @@
                     id: record.id, schoolId: record.schoolId,
                     competence: record.competence, programId: record.programId,
                     documentKey: record.documentKey, registeredInvoiceId: record.registeredInvoiceId,
-                    item: record.item, status: record.status
+                    item: record.item, status: record.status,
+                    schoolName: record.schoolName, programName: record.programName,
+                    documentName: record.documentName, invoiceIdentityLabel: record.invoiceIdentityLabel,
+                    attempts: record.attempts.map(attempt => ({ ...attempt,
+                        errosEncontrados: [...(attempt.errosEncontrados || [])] })),
+                    contacts: record.contacts.map(contact => ({ ...contact }))
                 };
             },
             getFilterSummary: () => getFilterSummary(getPageModel()),

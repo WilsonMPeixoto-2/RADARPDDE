@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-24",
-  "sourceCommit": "a5a67d34b6dcab04903b6657fb9fa01f0aba9d11",
+  "updatedAt": "2026-11-25",
+  "sourceCommit": "7523782bdc572a631783deeae2ea59be048dd725",
   "profiles": [
     {
       "id": "anonymous",
@@ -144,11 +144,14 @@
     },
     "read": {
       "unit": [
-        "tests/unit/access-policy.test.js"
+        "tests/unit/access-policy.test.js",
+        "tests/unit/operational-guidance.test.js",
+        "tests/unit/operational-guidance-ui.test.js"
       ],
       "e2e": [
         "tests/e2e/canonical-routes.spec.js",
-        "tests/e2e/supabase-full-contract.spec.js"
+        "tests/e2e/supabase-full-contract.spec.js",
+        "tests/e2e/supabase-operational-guidance-local.spec.js"
       ],
       "database": [
         "supabase/tests/database/rls.test.sql"
@@ -443,6 +446,20 @@
       ],
       "database": [
         "supabase/tests/database/context-correction-r2.test.sql"
+      ],
+      "production": []
+    },
+    "granular-correction": {
+      "unit": [
+        "tests/unit/pendency-correction.test.js",
+        "tests/unit/operational-correction-client.test.js",
+        "tests/unit/t5-granular-history-runtime.test.js"
+      ],
+      "e2e": [
+        "tests/e2e/supabase-t5-history-local.spec.js"
+      ],
+      "database": [
+        "supabase/tests/database/t5-granular-correction.test.sql"
       ],
       "production": []
     }

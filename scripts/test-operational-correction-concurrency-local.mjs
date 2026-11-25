@@ -499,6 +499,95 @@ try {
         where operation_key='${winKey}' and status='committed'`), '1');
     console.log('PASS [T4 apply vencedor]: limpeza real confirmada, phantom tardio recusado e nenhum registro residual.');
 
+    // T5: apply retém o lock causal enquanto a confirmação ainda não foi
+    // publicada. Novo envio não pode nascer fora da lista de versões do plano.
+    await sql(`
+        update public.verifications set analysis=analysis||'{"declBBAgil":"Correto"}'::jsonb
+            where id='${VERIFICATION}';
+        insert into public.pendencies(id,school_id,competence_origin,program_id,document_key,status,resolved_at,payload)
+        values('OCC-T5-P','${SCHOOL}','${COMPETENCE}','${PROGRAM}','declBBAgil','Resolvida',now(),'{"historico":[]}'::jsonb);
+        insert into public.pendency_attempts(id,pendency_id,attempt_number,submitted_at,available_at,analyzed_at,result,payload)
+        values('OCC-T5-A1','OCC-T5-P',1,now(),now(),now(),'correto','{"status":"analisada","analisadoPor":"Autor original"}'::jsonb);
+    `);
+    const t5ReviewRequest = {
+        contractVersion: 1,
+        action: 'delete_review',
+        target: { kind: 'review', id: 'OCC-T5-A1', schoolId: SCHOOL }
+    };
+    const t5ReviewPreview = await startSession(asController(USER,
+        `select public.preview_operational_change(${quoteJson(t5ReviewRequest)})::text;`), 'occ-t5-preview');
+    assert.equal(t5ReviewPreview.code, 0, t5ReviewPreview.stderr);
+    const t5ReviewPlan = parseJsonResult(t5ReviewPreview.stdout, 'T5 review');
+    assert.deepEqual(t5ReviewPlan.blockers, []);
+    const t5ReviewKey = '1b4a6c0f-9a28-4d62-8e13-77a5c8a00107';
+    const t5ReviewWinner = spawn('psql', args, { env: { ...process.env, PGAPPNAME: 'occ-t5-review-winner' } });
+    barriers.push(t5ReviewWinner);
+    t5ReviewWinner.stdin.write(asController(USER,
+        `select public.apply_operational_change(${quoteJson(t5ReviewRequest)},'${t5ReviewPlan.planDigest}','${t5ReviewKey}'::uuid)::text;`
+    ).replace(/commit;\s*$/, '') + '\n');
+    await awaitCondition("select count(*) from pg_stat_activity where application_name='occ-t5-review-winner' and state='idle in transaction'", '1');
+    const appendedAttempt = await startSession(`begin; set local statement_timeout='5s';
+        insert into public.pendency_attempts(id,pendency_id,attempt_number,submitted_at,payload)
+        values('OCC-T5-A2','OCC-T5-P',2,now(),'{"status":"aguardando"}'); commit;`, 'occ-t5-attempt-append');
+    assert.notEqual(appendedAttempt.code, 0, 'Novo envio não pode ultrapassar o conjunto causal confirmado');
+    assert.match(appendedAttempt.stderr, /OPTIMISTIC_CONFLICT/);
+    t5ReviewWinner.stdin.end('commit;\n\\q\n');
+    await awaitCondition("select count(*) from pg_stat_activity where application_name='occ-t5-review-winner'", '0');
+    assert.equal(await sql("select status from public.pendencies where id='OCC-T5-P'"), 'Aguardando reanálise');
+    assert.equal(await sql("select count(*) from public.pendency_attempts where id='OCC-T5-A2'"), '0');
+    assert.equal(await sql(`select count(*) from radar_private.operational_change_ledger where operation_key='${t5ReviewKey}' and status='committed'`), '1');
+    console.log('PASS [T5 histórico]: revisão excluída atomicamente, envio concorrente rejeitado antes de virar phantom.');
+
+    // O agregado patrimonial inclui NFs legadas sem verification_id. Mesmo uma
+    // INSERT sem FK da verificação precisa cooperar com o lock de contexto.
+    await sql(`
+        insert into public.assets(id,school_id,competence_id,description,expense_type,status)
+        values('OCC-T5-ASSET','${SCHOOL}','${COMPETENCE}','Bem de concorrência T5','permanente','Não encaminhada');
+        insert into public.registered_invoices(id,school_id,competence_id,program_id,verification_id,source_context_key,
+            description,expense_type,invoice_number,amount,linked_asset_id,payload)
+        values('OCC-T5-NF','${SCHOOL}','${COMPETENCE}','${PROGRAM}','${VERIFICATION}','${COMPETENCE}_${PROGRAM}',
+            'NF de concorrência T5','permanente','OCC-T5',100,'OCC-T5-ASSET','{"analiseDocumentoFiscal":"Correto"}');
+    `);
+    const t5AssetRequest = {
+        contractVersion: 1,
+        action: 'correct_inventory',
+        target: { kind: 'asset', id: 'OCC-T5-ASSET', schoolId: SCHOOL },
+        changes: { status: 'Encaminhada' }
+    };
+    const t5AssetPreview = await startSession(asController(USER,
+        `select public.preview_operational_change(${quoteJson(t5AssetRequest)})::text;`), 'occ-t5-asset-preview');
+    assert.equal(t5AssetPreview.code, 0, t5AssetPreview.stderr);
+    const t5AssetPlan = parseJsonResult(t5AssetPreview.stdout, 'T5 inventory');
+    assert.deepEqual(t5AssetPlan.blockers, []);
+    const t5AssetKey = '1b4a6c0f-9a28-4d62-8e13-77a5c8a00108';
+    const t5AssetWinner = spawn('psql', args, { env: { ...process.env, PGAPPNAME: 'occ-t5-asset-winner' } });
+    barriers.push(t5AssetWinner);
+    t5AssetWinner.stdin.write(asController(USER,
+        `select public.apply_operational_change(${quoteJson(t5AssetRequest)},'${t5AssetPlan.planDigest}','${t5AssetKey}'::uuid)::text;`
+    ).replace(/commit;\s*$/, '') + '\n');
+    await awaitCondition("select count(*) from pg_stat_activity where application_name='occ-t5-asset-winner' and state='idle in transaction'", '1');
+    const phantomInvoice = await startSession(`begin; set local statement_timeout='5s';
+        insert into public.registered_invoices(id,school_id,competence_id,program_id,verification_id,source_context_key,
+            description,expense_type,invoice_number,amount,payload)
+        values('OCC-T5-NF-PHANTOM','${SCHOOL}','${COMPETENCE}','${PROGRAM}',null,'${COMPETENCE}_${PROGRAM}',
+            'NF legada concorrente','consumo','OCC-T5-NEW',50,'{"analiseDocumentoFiscal":"Incorreto"}'); commit;`,
+    'occ-t5-invoice-phantom');
+    assert.notEqual(phantomInvoice.code, 0, 'NF sem verification_id também deve respeitar contexto protegido');
+    assert.match(phantomInvoice.stderr, /OPTIMISTIC_CONFLICT/);
+    const linkedInvoice = await startSession(`begin; set local statement_timeout='5s';
+        insert into public.registered_invoices(id,school_id,competence_id,program_id,description,expense_type,
+            invoice_number,amount,linked_asset_id)
+        values('OCC-T5-NF-LINKED-PHANTOM','${SCHOOL}','${COMPETENCE}',null,'Vínculo concorrente','permanente',
+            'OCC-T5-LINK',100,'OCC-T5-ASSET'); commit;`, 'occ-t5-invoice-asset-phantom');
+    assert.notEqual(linkedInvoice.code, 0, 'Novo vínculo de bem sem programa deve respeitar lock do bem');
+    assert.match(linkedInvoice.stderr, /OPTIMISTIC_CONFLICT/);
+    t5AssetWinner.stdin.end('commit;\n\\q\n');
+    await awaitCondition("select count(*) from pg_stat_activity where application_name='occ-t5-asset-winner'", '0');
+    assert.equal(await sql("select status from public.assets where id='OCC-T5-ASSET'"), 'Encaminhada');
+    assert.equal(await sql("select count(*) from public.registered_invoices where id in ('OCC-T5-NF-PHANTOM','OCC-T5-NF-LINKED-PHANTOM')"), '0');
+    assert.equal(await sql(`select count(*) from radar_private.operational_change_ledger where operation_key='${t5AssetKey}' and status='committed'`), '1');
+    console.log('PASS [T5 patrimônio]: correção confirmada, NF sem verification_id e vínculo sem programa rejeitados sem órfãos.');
+
 } finally {
     barriers.forEach(proc => { if (proc.exitCode === null) proc.kill(); });
     clients.forEach(proc => { if (proc.exitCode === null) proc.kill(); });

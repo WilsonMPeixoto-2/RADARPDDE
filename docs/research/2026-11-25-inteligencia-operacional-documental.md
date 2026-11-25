@@ -1,5 +1,7 @@
 # Inteligência operacional e análise documental assistida
 
+> **Evolução posterior no mesmo dia:** a instrução expressa [D022](../continuity/prontuario-t0-t6/D022_INTELIGENCIA_DOCUMENTOS_DESEMPENHO.md) levou à implementação candidata de orientação gerencial na interface, otimização medida e pequena experiência documental real. Consulte [a evidência do PR #565](../evidence/2026-11-25-t5-inteligencia-documentos-desempenho.md). As seções abaixo preservam o estudo inicial do #564 e seus limites naquele momento; a referência a uma amostra ainda não examinada não descreve o piloto posterior.
+
 **Data:** 25/11/2026. **Classe:** estudo de viabilidade e prova de conceito; não altera contratos funcionais nem o escopo aprovado de T5. **Base de produto examinada:** `6dd6a9f9f8147deb39c5813baad0b5521427b8bd`.
 
 ## 1. Decisão de arquitetura

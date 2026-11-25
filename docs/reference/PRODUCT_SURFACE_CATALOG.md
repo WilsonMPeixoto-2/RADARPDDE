@@ -2,7 +2,7 @@
 
 # Catálogo de superfícies do RADAR PDDE
 
-**Correções T0–T4 e continuidade:** o [contrato de correção](PRONTUARIO_CORRECAO_CONTRATO.md) distingue correção operacional de regularização documental. As seções abaixo incorporam a autoridade de prévia/confirmação transacional para correção, limpeza e exclusão causal; justificativa obrigatória ou bloqueio genérico por histórico não deve ser restaurado a partir de rotas legadas. O estado de publicação e as capacidades ainda futuras de T5 estão no [checkpoint](../continuity/prontuario-t0-t6/CHECKPOINT.md).
+**Correções T0–T4 e continuidade:** o [contrato de correção](PRONTUARIO_CORRECAO_CONTRATO.md) distingue correção operacional de regularização documental. As seções abaixo incorporam a autoridade de prévia/confirmação transacional para correção, limpeza e exclusão causal; justificativa obrigatória ou bloqueio genérico por histórico não deve ser restaurado a partir de rotas legadas. O estado de publicação e as capacidades candidatas de T5 estão no [checkpoint](../continuity/prontuario-t0-t6/CHECKPOINT.md).
 
 **Estado:** referência operacional vigente  
 **Atualizado em:** 25 de novembro de 2026 (correções T0–T4)
@@ -159,6 +159,8 @@ Se o comportamento estiver correto e o problema for apenas de compreensão, loca
 | Restrições | universos não sobrepostos e ações somente por capacidade |
 | Leitura humana | cartões funcionam como filtros de triagem; “próximas ações” privilegia a providência corrente, não substitui o histórico completo |
 
+**Orientação gerencial D022, candidata no PR #565:** reutiliza a fila para apresentar reanálises prontas, análise fiscal a conferir, despesas a identificar, patrimônio por etapa, bonificação em apuração/pendente de reconsolidação e acompanhamento em aberto. Cada item explica o motivo e abre o registro correspondente. As contagens mostram o universo carregado e o filtro escolar/mensal; não são taxa de regularidade nem obrigação sobre contextos inexistentes. Os dois relógios de Pendência permanecem distinguíveis. A capacidade do usuário continua sendo a autoridade de acesso.
+
 ## S-02 — Carteira de Escolas
 
 | Campo | Contrato |
@@ -218,6 +220,8 @@ A análise técnica tem ação explícita por item. Corrigir análise, retirar o
 
 Durante a gravação, os controles impedem duplicidade e exibem falha de forma persistente. Um recibo confirmado com projeção local pendente solicita atualização sem repetir a mutação. Os contratos detalhados e as exceções expressas constam do [modelo canônico, §9.10–9.11](SYSTEM_CANONICAL_MODEL.md#910-excluir-nota-fiscal).
 
+**Histórico granular T5:** a lista completa mostra ações junto ao envio, à reanálise ou ao contato identificado. O resumo da gaveta permite chegar ao histórico completo. A correção apresenta campos editáveis, Antes/Depois, estado resultante e o que permanece; observações extras são opcionais. A exclusão de reanálise não se confunde com exclusão do envio. Se a causalidade for insuficiente, a pessoa escolhe um alcance explícito e recebe outra prévia. O recibo da correção pertence à auditoria e não deve reaparecer como reanálise operacional. A disponibilização depende da release T5 documentada no checkpoint.
+
 ## S-05 — Prontuário
 
 | Campo | Contrato |
@@ -229,10 +233,12 @@ Durante a gravação, os controles impedem duplicidade e exibem falha de forma p
 | SME | identificação e bonificação, sem análise técnica ou controles operacionais quando o papel real é SME |
 | Navegação | retorno contextual com competência, filtros, rolagem e foco |
 | Independência de despesas | Controlador e Assistente podem cadastrar, editar, excluir e operar os fluxos derivados de despesas conforme suas capacidades, sem depender de Sim/Não/N/A ou consolidação da bonificação; a própria bonificação mantém suas regras de edição |
-| Conta PDDE Qualidade | no contexto escola/competência, registrar saídas antes de conhecer a Ação Integrada; reencontrar/editar os dados conhecidos e identificar depois pelo formulário fiscal. Provisório não conta como NF nem cria Pendência; os estados Programa a identificar/Identificada distinguem o que ainda precisa de ação |
+| Conta PDDE Qualidade | no contexto escola/competência, registrar saídas antes de conhecer a Ação Integrada; reencontrar/editar os dados conhecidos e identificar depois pelo formulário fiscal. Provisório não conta como NF nem cria Pendência; os estados Programa a identificar/Identificada distinguem o que ainda precisa de ação. Carregamento e ausência de registros usam apresentação compacta, com Atualizar e Registrar saída diretamente acessíveis e texto completo em Ver detalhes; registros e erros permanecem expandidos |
 | Leitura humana | primeiro confirma escola/competência/programa; depois trabalha documentos individualmente sem perder o contexto da unidade |
 
 **Exclusão de contexto:** a ação contextual fica em **Ações do programa**, no cabeçalho do programa existente. A prévia identifica escola, mês e programa, registros a excluir e registros preservados; a confirmação explícita não transfere lançamentos. O conteúdo pode rolar, mas Cancelar, Conferir novamente e Excluir estes lançamentos devem permanecer acessíveis. Perfis sem capacidade de correção não recebem a ação. A disponibilização efetiva depende da release documentada no checkpoint; não presumir ativação em Production.
+
+**Próximos passos da escola, candidata D022:** apresentação compacta por padrão, com contagem e uma ação visível; filtros, justificativa da sugestão e demais itens ao expandir. A orientação mantém a escola e a competência do Prontuário e conduz ao item real com foco após a hidratação. Não deve deslocar desnecessariamente o trabalho fiscal para fora da área inicial, esconder ações existentes ou substituir a decisão do operador.
 
 ## S-06 — Capital e Inventário
 
@@ -245,6 +251,8 @@ Durante a gravação, os controles impedem duplicidade e exibem falha de forma p
 | Backend | `InventoryService`, `assets` e RPCs compostas |
 | Restrições | perfil Inventário não recebe módulos não patrimoniais; SME não ganha mutação patrimonial por simples acesso visual |
 | Leitura humana | fila de trabalho patrimonial: distinguir o que ainda não foi encaminhado, o que aguarda inventariação e o que já foi concluído |
+
+**Correção patrimonial T5:** a ação aparece junto ao bem no Inventário e no Prontuário, conforme capacidade real. O formulário distingue corrigir o registro no RADAR de alterar o sistema patrimonial externo. Informa o efeito da reversão de Inventariada, a preservação das avaliações fiscais/bonificação e os vínculos com NF. Bem independente pode ser excluído; para bem derivado, a próxima ação é corrigir o inventário ou abrir a exclusão causal da despesa quando o perfil permite. Não exigir baixa física fictícia para corrigir lançamento digitado por engano.
 
 ## S-07 — Registros Internos
 

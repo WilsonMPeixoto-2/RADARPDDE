@@ -64,13 +64,13 @@ test('impacto T0–T6: erro em alvo ou requisito impede falso verde', async () =
   assert.ok(err.some(x => x.includes('inventado-nao-existe.js')));
 });
 
-test('impacto T0–T6: consulta de design deve recuperar obrigações da regra patrimonial futura', async () => {
+test('impacto T0–T6: consulta de design recupera obrigações patrimoniais da candidata T5', async () => {
   const { queryDecisionImpact } = await load();
   const f = fixtures();
   const found = queryDecisionImpact(f.impact, { phase: 'T5', surface: 'ui' });
   assert.ok(found.some(x => x.decisionId === 'T0T6-D002'
     && x.obligation.requirementIds.includes('T0T6-R038')
-    && x.obligation.status === 'planned'));
+    && x.obligation.status === 'candidate'));
 });
 
 test('impacto T0–T6: decisões válidas devem ser consultáveis em várias fases, sem fechar pendência futura', async () => {
@@ -134,7 +134,7 @@ test('consulta de impacto recusa filtros ignorados e encontra as obrigações no
     assert.doesNotMatch(result.stdout, /obrigações aplicáveis/);
   }
   for (const file of ['./app.js', 'styles.css']) {
-    const result = query('--file=' + file, '--phase=T5', '--surface=ui', '--status=planned');
+    const result = query('--file=' + file, '--phase=T5', '--surface=ui', '--status=candidate');
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stdout, /T0T6-D020 \/ T0T6-I020-02/);
   }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "date": "2026-11-20",
+  "date": "2026-11-25",
   "feature": "PRONTUARIO_T0_T6",
   "baselineCommit": "eb0768aefd843d45dbf1f43adcb5340430da73e2",
   "authority": "Proveniência, não fonte de regra nem certificação de Production.",
@@ -265,6 +265,17 @@
       "url": null,
       "reviewStatus": "not-recovered",
       "note": "As seis pranchas conceituais de 13/11 são citadas em S001 §7, mas seus binários aprovados não foram localizados na árvore da release. Screenshots históricos e golden não equivalem a essas pranchas."
+    },
+    {
+      "id": "S026",
+      "location": "release-branch",
+      "role": "direcionamento-expresso-inteligencia-documentos-desempenho",
+      "path": "docs/continuity/prontuario-t0-t6/D022_INTELIGENCIA_DOCUMENTOS_DESEMPENHO.md",
+      "contentSha": "b1aa683eb028ad9fcbf9316038f39e6050e1a0c5",
+      "reviewStatus": "reviewed",
+      "ref": "feat/t5-historico-granular-20261125",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/feat/t5-historico-granular-20261125/docs/continuity/prontuario-t0-t6/D022_INTELIGENCIA_DOCUMENTOS_DESEMPENHO.md",
+      "note": "Transcrição da instrução na conversa de 25/11; sem permalink do chat. Fonte versionada nesta candidata."
     }
   ],
   "requirements": [
@@ -1519,6 +1530,99 @@
       "evidence": "Fontes exclusivamente em branches e reconciliações anteriores são rastreadas por SHA; algumas ainda aguardam revisão integral.",
       "codePaths": [],
       "testPaths": []
+    },
+    {
+      "id": "T0T6-R068",
+      "label": "Indicadores operacionais acionáveis na interface",
+      "phase": "T5-T6",
+      "state": "candidate-partial",
+      "sourceIds": [
+        "S026"
+      ],
+      "decisionIds": [
+        "T0T6-D022"
+      ],
+      "evidence": "Instrução expressa e incremento candidato no PR #565. Conclusões dependem das provas de cada superfície; não representa publicação.",
+      "codePaths": [
+        "src/domain/operational-guidance.js",
+        "src/integration/operational-guidance.js",
+        "src/styles/operational-guidance.css",
+        "src/integration/cycle-b-dashboard.js",
+        "src/integration/quality-provisional-ux.js",
+        "src/styles/quality-provisional.css",
+        "src/styles/prontuario-operational-ux.css",
+        "app.js"
+      ],
+      "testPaths": [
+        "tests/unit/operational-guidance.test.js",
+        "tests/unit/operational-guidance-ui.test.js",
+        "tests/unit/quality-provisional-presentation.test.js",
+        "tests/e2e/supabase-operational-guidance-local.spec.js"
+      ]
+    },
+    {
+      "id": "T0T6-R069",
+      "label": "Próxima ação por escola com motivo e autoridade",
+      "phase": "T5-T6",
+      "state": "candidate-partial",
+      "sourceIds": [
+        "S026"
+      ],
+      "decisionIds": [
+        "T0T6-D022"
+      ],
+      "evidence": "Instrução expressa e incremento candidato no PR #565. Conclusões dependem das provas de cada superfície; não representa publicação.",
+      "codePaths": [
+        "src/domain/operational-guidance.js",
+        "src/domain/operational-projection.js"
+      ],
+      "testPaths": [
+        "tests/unit/operational-guidance.test.js",
+        "tests/unit/operational-guidance-ui.test.js",
+        "tests/e2e/supabase-operational-guidance-local.spec.js"
+      ]
+    },
+    {
+      "id": "T0T6-R070",
+      "label": "Pequena amostra documental real e proveniência",
+      "phase": "T5-T6",
+      "state": "candidate-partial",
+      "sourceIds": [
+        "S026"
+      ],
+      "decisionIds": [
+        "T0T6-D022"
+      ],
+      "evidence": "Instrução expressa e incremento candidato no PR #565. Conclusões dependem das provas de cada superfície; não representa publicação.",
+      "codePaths": [
+        "ops/document-intelligence-poc/local-pdf-pilot/extract_pdf.py",
+        "ops/document-intelligence-poc/local-pdf-pilot/analyze.mjs",
+        "ops/document-intelligence-poc/local-pdf-pilot/run.mjs"
+      ],
+      "testPaths": [
+        "tests/unit/local-document-pilot.test.js",
+        "tests/unit/local-document-extractor.test.py"
+      ]
+    },
+    {
+      "id": "T0T6-R071",
+      "label": "Otimização comprovada de gargalos mensurados",
+      "phase": "T5-T6",
+      "state": "candidate-partial",
+      "sourceIds": [
+        "S026"
+      ],
+      "decisionIds": [
+        "T0T6-D022"
+      ],
+      "evidence": "Instrução expressa e incremento candidato no PR #565. Conclusões dependem das provas de cada superfície; não representa publicação.",
+      "codePaths": [
+        "scripts/benchmark-operational-projections.mjs"
+      ],
+      "testPaths": [
+        "tests/operational-projection.test.js",
+        "tests/pendencias-view-model.test.js"
+      ]
     }
   ],
   "gaps": [

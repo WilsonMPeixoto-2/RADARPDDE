@@ -29,12 +29,16 @@ on:
       - 'tests/e2e/supabase-late-auth-actions.spec.js'
       - 'tests/e2e/supabase-inventory-terminal-delete.spec.js'
       - 'tests/e2e/supabase-operational-correction-local.spec.js'
+      - 'tests/e2e/supabase-t5-history-local.spec.js'
+      - 'tests/e2e/supabase-operational-guidance-local.spec.js'
       - 'tests/e2e/supabase-t4-context-deletion-local.spec.js'
       - 'tests/e2e/supabase-t4-item-history-local.spec.js'
       - 'tests/fixtures/t4-item-history-local.sql'
       - 'tests/fixtures/t4-context-deletion-local.sql'
       - 'tests/fixtures/quality-provisional.sql'
       - 'tests/fixtures/operational-correction-local.sql'
+      - 'tests/fixtures/t5-history-local.sql'
+      - 'tests/fixtures/operational-guidance-local.sql'
       - 'tests/e2e/exercise-management.spec.js'
       - 'tests/e2e/frontend-contract.spec.js'
       - 'docs/architecture/supabase-readiness.md'
@@ -74,12 +78,16 @@ on:
       - 'tests/e2e/supabase-late-auth-actions.spec.js'
       - 'tests/e2e/supabase-inventory-terminal-delete.spec.js'
       - 'tests/e2e/supabase-operational-correction-local.spec.js'
+      - 'tests/e2e/supabase-t5-history-local.spec.js'
+      - 'tests/e2e/supabase-operational-guidance-local.spec.js'
       - 'tests/e2e/supabase-t4-context-deletion-local.spec.js'
       - 'tests/e2e/supabase-t4-item-history-local.spec.js'
       - 'tests/fixtures/t4-item-history-local.sql'
       - 'tests/fixtures/t4-context-deletion-local.sql'
       - 'tests/fixtures/quality-provisional.sql'
       - 'tests/fixtures/operational-correction-local.sql'
+      - 'tests/fixtures/t5-history-local.sql'
+      - 'tests/fixtures/operational-guidance-local.sql'
       - 'tests/e2e/exercise-management.spec.js'
       - 'tests/e2e/frontend-contract.spec.js'
       - 'docs/architecture/supabase-readiness.md'
@@ -427,7 +435,8 @@ jobs:
           tests/e2e/supabase-inventory-terminal-delete.spec.js
           --project=desktop-chromium --output=test-results-late-auth
 
-      - name: Exercitar correção operacional autenticada (T2/T3) com piloto local
+      - name: Exercitar correção operacional autenticada (T2–T5) com piloto local
+        id: operational-correction-e2e
         shell: bash
         env:
           RADAR_E2E_OPERATIONAL_CORRECTION_LOCAL: '1'
@@ -446,7 +455,31 @@ jobs:
             tests/e2e/supabase-operational-correction-local.spec.js \
             tests/e2e/supabase-t4-context-deletion-local.spec.js \
             tests/e2e/supabase-t4-item-history-local.spec.js \
+            tests/e2e/supabase-t5-history-local.spec.js \
             --project=desktop-chromium --workers=1 --output=test-results-operational-correction
+
+      - name: Exercitar orientação operacional autenticada sem piloto de correção
+        # Esta prova de leitura é independente das correções T2–T5. Uma falha
+        # nesse grupo não deve esconder o diagnóstico da orientação, mas uma
+        # falha anterior de infraestrutura/Auth continua impedindo sua execução.
+        if: ${{ !cancelled() && (success() || steps.operational-correction-e2e.outcome == 'failure') }}
+        shell: bash
+        env:
+          RADAR_E2E_SUPABASE_LOCAL: '1'
+          PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report-operational-guidance
+        run: |
+          set -euo pipefail
+          psql 'postgresql://postgres:postgres@127.0.0.1:54322/postgres' -X -1 -v ON_ERROR_STOP=1 -f tests/fixtures/operational-guidance-local.sql
+          RADAR_DATA_MODE=supabase-preview \
+          RADAR_ENVIRONMENT=test \
+          RADAR_SUPABASE_REPOSITORY_ENABLED=true \
+          RADAR_OPERATIONAL_CORRECTION_PREVIEW=false \
+          RADAR_T5_GRANULAR_HISTORY_RELEASE_ENABLED=false \
+          RADAR_SUPABASE_URL="${RADAR_SUPABASE_URL}" \
+          RADAR_SUPABASE_PUBLISHABLE_KEY="${RADAR_SUPABASE_PUBLISHABLE_KEY}" \
+          npm run generate:runtime-config
+          npx playwright test tests/e2e/supabase-operational-guidance-local.spec.js \
+            --project=desktop-chromium --workers=1 --output=test-results-operational-guidance
 
       - name: Publicar relatório do contrato Supabase local
         if: ${{ !cancelled() }}
@@ -455,11 +488,59 @@ jobs:
           name: playwright-report-supabase-local
           path: |
             playwright-report/
-            playwright-report-late-auth/
-            playwright-report-operational-correction/
             test-results/
+          if-no-files-found: warn
+          retention-days: 1
+
+      - name: Publicar relatório de login tardio
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report-late-auth
+          path: |
+            playwright-report-late-auth/
             test-results-late-auth/
+          if-no-files-found: warn
+          retention-days: 1
+
+      - name: Publicar relatório de correções T2–T5
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report-operational-correction
+          path: |
+            playwright-report-operational-correction/
             test-results-operational-correction/
+          if-no-files-found: warn
+          retention-days: 1
+
+      - name: Publicar relatório de orientação operacional
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report-operational-guidance
+          path: |
+            playwright-report-operational-guidance/
+            test-results-operational-guidance/
+          if-no-files-found: warn
+          retention-days: 1
+
+      # O arquivo conjunto do run 45566937315 excedeu 512 MiB no download.
+      # Manter provas visuais/contextos pequenos, sem remover os relatórios completos.
+      - name: Publicar capturas e contextos das jornadas operacionais
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: operational-visual-evidence
+          path: |
+            test-results-operational-correction/**/*.png
+            test-results-operational-correction/**/error-context.md
+            test-results-operational-correction/**/*.json
+            playwright-report-operational-correction/data/*.png
+            test-results-operational-guidance/**/*.png
+            test-results-operational-guidance/**/error-context.md
+            test-results-operational-guidance/**/*.json
+            playwright-report-operational-guidance/data/*.png
           if-no-files-found: warn
           retention-days: 1
 

@@ -128,12 +128,19 @@
             && root?.location?.protocol === 'https:';
         return localPilot || productionRelease;
     }
+    function canCorrectGranular(root, action) {
+        return root?.RadarGranularCorrectionUi?.canUse?.(root, action) === true;
+    }
     function open(root, input = {}) {
         const context = input.context || {};
         const mode = input.mode || 'analysis';
+        const granularApi = root?.RadarGranularCorrectionUi;
+        const granularOperation = granularApi?.OPERATIONS?.[mode] || null;
+        const granular = Boolean(granularOperation);
         const contextDeletion = mode === 'delete_context';
         const historyDeletion = mode === 'clear_item_history';
-        const deleting = contextDeletion || historyDeletion || mode === 'delete_invoice' || mode === 'delete_pendency';
+        const deleting = contextDeletion || historyDeletion || mode === 'delete_invoice'
+            || mode === 'delete_pendency' || granularOperation?.deleting === true;
         const bonus = mode === 'correct_bonification';
         const derivedBonus = bonus && ['consAssessoria', 'encampInventario'].includes(context.documentKey);
         const bonusDocument = context.documentLabel || context.documentKey;
@@ -141,20 +148,30 @@
         if (bonus && !canCorrectFiscalBonus(root)) return false;
         if (contextDeletion && !canDeleteContext(root)) return false;
         if (historyDeletion && !canClearHistory(root)) return false;
-        if (!bonus && !['analysis', 'delete_invoice', 'delete_pendency', 'delete_context', 'clear_item_history'].includes(mode)) return false;
-        if (!canUse(root) || !context.schoolId || !context.competence
+        if (granular && !canCorrectGranular(root, mode)) return false;
+        if (!bonus && !granular && !['analysis', 'delete_invoice', 'delete_pendency', 'delete_context', 'clear_item_history'].includes(mode)) return false;
+        if (!canUse(root) || !context.schoolId
+            || (granular && !text(context.targetId || input.record?.id))
+            || (!granular && (!context.competence
             || (contextDeletion && !context.programId)
             || (!deleting && (!context.programId || !context.documentKey))
             || (historyDeletion && (!context.programId || !context.documentKey
                 || (['notaFiscal', 'consAssessoria'].includes(context.documentKey) && !text(context.invoiceId))))
             || (deleting && !contextDeletion && !historyDeletion
-                && !text(mode === 'delete_invoice' ? context.invoiceId : context.pendencyId))) return false;
+                && !text(mode === 'delete_invoice' ? context.invoiceId : context.pendencyId))))) return false;
         const doc = root.document;
         if (doc.getElementById('radar-operational-correction-layer')) return true;
         const client = root.RadarOperationalCorrectionClient.createOperationalCorrectionClient({
             repository: repositoryOf(root)
         });
-        const target = contextDeletion ? {
+        const target = granular ? {
+            kind: granularOperation.kind,
+            id: text(context.targetId || input.record?.id),
+            schoolId: context.schoolId,
+            ...(context.competence ? { competence: context.competence } : {}),
+            ...(context.programId ? { programId: context.programId } : {}),
+            ...(context.documentKey ? { documentKey: context.documentKey } : {})
+        } : contextDeletion ? {
             kind: 'program_context',
             schoolId: context.schoolId,
             competence: context.competence,
@@ -166,9 +183,9 @@
             programId: context.programId,
             documentKey: context.documentKey
         };
-        if (deleting && !contextDeletion && !historyDeletion) {
+        if (!granular && deleting && !contextDeletion && !historyDeletion) {
             target.id = text(mode === 'delete_invoice' ? context.invoiceId : context.pendencyId);
-        } else if (!contextDeletion && context.invoiceId) {
+        } else if (!granular && !contextDeletion && context.invoiceId) {
             target.id = text(context.invoiceId);
         }
         const layer = el(doc, 'div', 'radar-operational-correction-layer evaluation-retification-modal-layer');
@@ -180,15 +197,17 @@
         if (bonus) dialog.classList.add('is-fiscal-bonus');
         if (contextDeletion) dialog.classList.add('is-context-deletion');
         if (historyDeletion) dialog.classList.add('is-item-history');
+        if (granular) dialog.classList.add('is-granular-correction');
         dialog.setAttribute('role', 'dialog');
         dialog.setAttribute('aria-modal', 'true');
         dialog.setAttribute('aria-labelledby', 'radar-operational-correction-title');
         const header = el(doc, 'header', 'radar-operational-correction-header');
         const kicker = el(doc, 'span', 'evaluation-retification-kicker',
-            contextDeletion ? 'Exclusão de lançamentos' : historyDeletion ? 'Exclusão de análise e pendências' : bonus ? 'Avaliação de entrega · ' + bonusDocument
+            granular ? granularOperation.family
+                : contextDeletion ? 'Exclusão de lançamentos' : historyDeletion ? 'Exclusão de análise e pendências' : bonus ? 'Avaliação de entrega · ' + bonusDocument
                 : deleting ? (mode === 'delete_invoice' ? 'Exclusão de nota fiscal' : 'Exclusão de pendência')
                     : 'Correção operacional');
-        const title = el(doc, 'h2', '', contextDeletion ? 'Excluir lançamentos deste programa' : historyDeletion
+        const title = el(doc, 'h2', '', granular ? granularOperation.title : contextDeletion ? 'Excluir lançamentos deste programa' : historyDeletion
             ? 'Excluir análise técnica e pendências' : deleting
             ? (mode === 'delete_invoice' ? 'Excluir nota fiscal' : 'Excluir pendência')
             : bonus ? 'Corrigir bonificação' : 'Corrigir análise técnica');
@@ -198,8 +217,20 @@
             ['Escola', context.schoolName || context.schoolId],
             ['Mês de referência', context.competenceLabel || formatCompetence(context.competence)],
             ['Programa', context.programName || context.programId],
-            ...(!contextDeletion ? [['Documento', context.documentLabel || context.documentKey]] : [])
+            ...(!contextDeletion ? [['Documento', context.documentLabel || context.documentKey]] : []),
+            ...(granular ? [[granularOperation.object, granularApi.describeRecord(mode, input.record)],
+                ['Registrado por', granularApi.recordAuthor(mode, input.record)]] : [])
         ]);
+        if (granular) {
+            scope.dataset.correctionTargetId = target.id;
+            scope.setAttribute('title', 'Referência do registro: ' + target.id);
+            for (const field of scope.children) {
+                if (field.querySelector('dt')?.textContent === granularOperation.object) {
+                    field.classList.add('correction-selected-record');
+                }
+            }
+            header.appendChild(el(doc, 'p', 'correction-confirmation-hint', granularApi.explanation(mode, context)));
+        }
         let caution = null;
         if (deleting) {
             caution = el(doc, 'div', 'correction-caution');
@@ -207,7 +238,9 @@
             mark.setAttribute('aria-hidden', 'true');
             const message = el(doc, 'div', 'correction-caution-copy');
             message.append(el(doc, 'strong', '', 'Exclusão definitiva no Prontuário'),
-                el(doc, 'p', '', contextDeletion
+                el(doc, 'p', '', granular
+                    ? 'Somente o registro selecionado e os efeitos indicados na prévia serão aplicados. Confira antes de confirmar.'
+                    : contextDeletion
                     ? 'Você vai excluir os registros listados abaixo.'
                     : historyDeletion
                         ? 'A análise técnica voltará a Não analisado. Serão excluídas as pendências vinculadas, inclusive resolvidas e canceladas, seus envios e contatos. A bonificação e os documentos cadastrados serão preservados.'
@@ -216,7 +249,7 @@
                             : 'A Pendência e os vínculos indicados na prévia serão excluídos.'));
             caution.append(mark, message);
         }
-        if (!deleting && !bonus) {
+        if (!deleting && !bonus && !granular) {
             header.appendChild(el(doc, 'p', 'correction-confirmation-hint',
                 'Escolha o novo resultado e confira os efeitos. Para apagar todas as pendências vinculadas ao item, use Excluir análise e pendências no Prontuário. Nada será gravado antes da confirmação.'));
         }
@@ -258,6 +291,8 @@
         note.id = 'radar-operational-correction-note';
         note.maxLength = 2000;
         note.rows = 3;
+        const granularForm = granular && !deleting
+            ? granularApi.createFields(root, mode, input.record, context) : null;
         const planTitle = el(doc, 'h3', '', deleting ? 'Confira o que será excluído' : 'O que vai mudar ao confirmar');
         const effects = el(doc, 'div', 'radar-operational-correction-effects', 'Calculando o que vai mudar…');
         effects.setAttribute('aria-live', 'polite');
@@ -291,7 +326,7 @@
         clearBtn.disabled = currentChoice === 'Não analisado' || !currentChoice;
         save.disabled = true;
         actions.append(cancel);
-        if (!deleting && !bonus) actions.append(clearBtn);
+        if (!deleting && !bonus && !granular) actions.append(clearBtn);
         if (bonus) review.hidden = true;
         actions.append(review, save);
         const bodyGrid = el(doc, 'div', deleting
@@ -306,7 +341,12 @@
         if (caution) bodyGrid.appendChild(caution);
         if (!deleting) {
             const inputsCol = el(doc, 'div', 'radar-operational-correction-inputs-col');
-            if (bonus) {
+            if (granular) {
+                inputsCol.appendChild(granularForm.container);
+                const optionalNote = el(doc, 'details', 'fiscal-bonus-note');
+                optionalNote.append(el(doc, 'summary', '', 'Observação sobre a correção (opcional)'), noteLabel, note);
+                inputsCol.appendChild(optionalNote);
+            } else if (bonus) {
                 inputsCol.append(current, label, select);
                 const optionalNote = el(doc, 'details', 'fiscal-bonus-note');
                 const toggle = el(doc, 'summary', '', 'Adicionar observação');
@@ -353,6 +393,28 @@
         }
         function renderPlan(view) {
             effects.replaceChildren();
+            if (granular) {
+                granularApi.renderPreview(root, effects, mode, view, context, {
+                    openAlternative(alternative) {
+                        const next = alternative?.target;
+                        if (!next || !['delete_pendency', 'clear_item_history', 'delete_invoice', 'correct_inventory'].includes(alternative.action)) return;
+                        close(false, false);
+                        open(root, {
+                            ...input,
+                            mode: alternative.action,
+                            context: {
+                                ...context,
+                                ...next,
+                                schoolId: next.schoolId,
+                                pendencyId: next.kind === 'pendency' ? next.id : context.pendencyId,
+                                invoiceId: next.kind === 'invoice' || next.kind === 'analysis' ? next.id : context.invoiceId,
+                                targetId: next.id
+                            }
+                        });
+                    }
+                });
+                return;
+            }
             const changes = Array.isArray(view.changes) ? view.changes : [];
             const warnings = Array.isArray(view.warnings) ? view.warnings : [];
             const blockers = Array.isArray(view.blockers) ? view.blockers : [];
@@ -658,15 +720,25 @@
             effects.textContent = 'Calculando o que vai mudar…';
             status('');
             try {
+                if (granularForm && !granularApi.validate(granularForm)) {
+                    effects.textContent = 'Confira os campos indicados para preparar a prévia.';
+                    return;
+                }
+                const granularChanges = granularForm ? granularApi.readChanges(granularForm) : null;
+                if (granularChanges && Object.keys(granularChanges).length === 0) {
+                    effects.textContent = 'Altere os campos necessários e confira a prévia antes de confirmar.';
+                    return;
+                }
                 if (bonus && !select.value) {
                     effects.textContent = 'Escolha a nova avaliação para conferir o efeito neste programa.';
                     return;
                 }
-                const action = bonus || deleting ? mode : select.value === 'Não analisado'
+                const action = granular || bonus || deleting ? mode : select.value === 'Não analisado'
                     ? 'clear_analysis' : 'correct_analysis';
                 const result = await client.preview({
                     action,
                     target,
+                    ...(granularChanges ? { changes: granularChanges } : {}),
                     ...(bonus ? { changes: { bonificacao: derivedBonus || select.value === 'Limpar resposta' ? null : select.value } } : {}),
                     ...(action === 'correct_analysis' ? { changes: { analysis: select.value } } : {}),
                     ...(selectedPendencyIds.size > 0 && !deleting
@@ -721,7 +793,9 @@
                     throw new Error('A tela não foi sincronizada.');
                 }
                 root.rebuildOperationalIndexes?.();
-                if (doc?.querySelector?.('.pendency-page-header') && typeof root.renderPendencias === 'function') {
+                if (typeof input.afterRefresh === 'function') {
+                    await input.afterRefresh();
+                } else if (doc?.querySelector?.('.pendency-page-header') && typeof root.renderPendencias === 'function') {
                     root.renderPendencias();
                 } else {
                     root.renderProntuario?.(target.schoolId);
@@ -770,6 +844,13 @@
                         ? 'Análise e pendências vinculadas excluídas. A bonificação e os documentos cadastrados foram preservados.'
                         : deleting ? 'Exclusão confirmada. Os registros relacionados foram atualizados.'
                             : 'Correção confirmada e informações atualizadas.';
+                if (granular) {
+                    message = granularOperation.kind === 'asset'
+                        ? (deleting ? 'Registro patrimonial excluído.' : 'Registro patrimonial corrigido.') + ' Confira a situação no Inventário.'
+                        : granularOperation.kind === 'contact'
+                            ? (deleting ? 'Contato excluído.' : 'Contato corrigido.') + ' As Pendências foram preservadas.'
+                            : (deleting ? 'Registro excluído.' : 'Registro corrigido.') + ' Confira a próxima ação na Pendência.';
+                }
                 if (bonus) {
                     const reopened = preview.view.changes.some(change => change.field === 'bonus_result');
                     const cleared = select.value === 'Limpar resposta';
@@ -807,6 +888,7 @@
             review.disabled = true;
             select.disabled = true;
             note.disabled = true;
+            granularApi?.setDisabled(granularForm, true);
             try {
                 if (!confirmation) confirmation = client.prepareConfirmation(preview);
                 // Mesmo payload nas tentativas idempotentes após erro de rede.
@@ -848,6 +930,7 @@
                 review.disabled = uncertain || committed;
                 select.disabled = uncertain || committed;
                 note.disabled = uncertain || committed;
+                granularApi?.setDisabled(granularForm, uncertain || committed);
                 save.disabled = committed || !preview?.view?.canApply;
             }
         }
@@ -877,12 +960,26 @@
                 }
             }
         });
-        if (!deleting) select.addEventListener('change', loadPreview);
+        if (!deleting && !granular) select.addEventListener('change', loadPreview);
+        if (granularForm) {
+            granularForm.container.addEventListener('input', () => {
+                if (uncertain || pending || committed) return;
+                serial += 1;
+                preview = null;
+                confirmation = null;
+                submittedNote = null;
+                save.disabled = true;
+                effects.textContent = 'Confira a prévia com os valores atualizados antes de confirmar.';
+                status('Os campos foram alterados. A prévia anterior foi descartada.');
+            });
+            granularForm.container.addEventListener('change', () => { void loadPreview(); });
+        }
         review.addEventListener('click', loadPreview);
         save.addEventListener('click', apply);
-        (deleting ? cancel : select).focus({ preventScroll: true });
+        const firstControl = granularForm?.fields.values().next().value?.control;
+        (deleting ? cancel : firstControl || select).focus({ preventScroll: true });
         void loadPreview();
         return true;
     }
-    return Object.freeze({ ANALYSES, canUse, canCorrectFiscalBonus, canDeleteContext, canClearHistory, open });
+    return Object.freeze({ ANALYSES, canUse, canCorrectFiscalBonus, canDeleteContext, canClearHistory, canCorrectGranular, open });
 }));

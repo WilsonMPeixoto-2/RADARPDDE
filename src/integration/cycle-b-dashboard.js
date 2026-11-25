@@ -289,6 +289,7 @@
         const targetSchools = getTargetSchools();
         const fullProjection = buildProjection(targetSchools, competenceKey);
         const filteredSchools = filterSchools(targetSchools, fullProjection, competenceKey);
+        root.setOperationalGuidanceDashboardSchools?.(filteredSchools.map(school => school.id));
         const filteredProjection = buildProjection(filteredSchools, competenceKey);
         const targetIds = new Set(targetSchools.map(school => school.id));
         const schoolsWithPendingAssets = new Set(
@@ -469,6 +470,7 @@
             : currentProfile;
         if (typeof currentView !== 'undefined' && currentView === 'dashboard' && profile === 'controlador') {
             enhanceDashboard();
+            root.RadarOperationalGuidanceUi?.renderDashboard?.(root);
         }
         return true;
     }

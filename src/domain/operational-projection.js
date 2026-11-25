@@ -5,6 +5,8 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function () {
     'use strict';
 
+    const TEXT_COLLATOR = new Intl.Collator('pt-BR', { numeric: true, sensitivity: 'base' });
+
     const DOCUMENT_LABELS = Object.freeze({
         extCC: 'Extrato Conta Corrente',
         extINV: 'Extrato Investimento',
@@ -267,15 +269,33 @@
             if (waiting) return waiting;
             const priority = (right.priority || 0) - (left.priority || 0);
             if (priority) return priority;
-            const ra = String(left.ra || '').localeCompare(String(right.ra || ''), 'pt-BR', { numeric: true, sensitivity: 'base' });
+            const ra = TEXT_COLLATOR.compare(String(left.ra || ''), String(right.ra || ''));
             if (ra) return ra;
-            return String(left.schoolDesignation || '').localeCompare(String(right.schoolDesignation || ''), 'pt-BR', { numeric: true, sensitivity: 'base' });
+            return TEXT_COLLATOR.compare(String(left.schoolDesignation || ''), String(right.schoolDesignation || ''));
         });
     }
 
+    function groupRecordsBySchool(records) {
+        const groups = new Map();
+        (Array.isArray(records) ? records : []).forEach(record => {
+            let group = groups.get(record.escolaId);
+            if (!group) {
+                group = [];
+                groups.set(record.escolaId, group);
+            }
+            group.push(record);
+        });
+        return groups;
+    }
+
     function buildOperationalProjection(input = {}) {
+        // Per-call indexes preserve fresh corrections without rescanning all schools' records.
+        const pendenciesBySchool = groupRecordsBySchool(input.pendencias);
+        const contactsBySchool = groupRecordsBySchool(input.contatos);
         const schools = (Array.isArray(input.escolas) ? input.escolas : []).map(school => buildSchoolProjection({
             ...input,
+            pendencias: pendenciesBySchool.get(school.id) || [],
+            contatos: contactsBySchool.get(school.id) || [],
             school,
             competence: input.competencia
         }));

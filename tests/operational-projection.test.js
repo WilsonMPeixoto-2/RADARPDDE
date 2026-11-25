@@ -160,3 +160,66 @@ test('ordena ações pela maior espera e usa R.A. e designação como desempate'
     ['04.10.001', '04.31.003', '04.31.002']
   );
 });
+
+test('índices da chamada preservam escola, competência e última movimentação sem alterar a entrada', () => {
+  const input = baseInput({
+    competencia: ' 2026-05 ',
+    pendencias: [
+      ...pendencias,
+      { ...pendencias[0], id: 'other-school', escolaId: '04.10.002' },
+      { ...pendencias[0], id: 'other-month', competenciaOrigem: '2026-06' }
+    ],
+    contatos: [...contatos, {
+      id: 'newer-other-school', escolaId: '04.10.002', dataHora: '2026-07-12T10:00:00.000Z'
+    }]
+  });
+  const before = JSON.stringify(input);
+  const model = Projection.buildOperationalProjection(input);
+
+  assert.deepEqual(model.schools[0], Projection.buildSchoolProjection({
+    ...input, school: schools[0], competence: input.competencia
+  }));
+  assert.equal(model.totals.activePendencies, 2);
+  assert.deepEqual(model.schools[0].activePendencies.map(item => item.id), ['open-1', 'await-1']);
+  assert.equal(model.schools[0].latestMovement.at, contatos[0].dataHora);
+  assert.equal(JSON.stringify(input), before);
+});
+
+test('recalcula após corrigir, acrescentar contato e excluir sem cache entre chamadas', () => {
+  const input = baseInput({
+    pendencias: structuredClone([pendencias[0]]), contatos: [],
+    getProgramTechnicalStatus: () => 'correto'
+  });
+  assert.equal(Projection.buildOperationalProjection(input).schools[0].nextAction.actor, 'Escola');
+
+  input.pendencias[0].status = 'Aguardando reanálise';
+  input.pendencias[0].tentativas.push({
+    id: 'new-send', status: 'aguardando', dataRegistro: '2026-07-11T12:00:00.000Z'
+  });
+  input.contatos.push({ escolaId: schools[0].id, dataHora: '2026-07-12T10:00:00.000Z', descricao: 'Novo contato.' });
+  const corrected = Projection.buildOperationalProjection(input).schools[0];
+  assert.equal(corrected.nextAction.actor, 'Controlador');
+  assert.equal(corrected.nextAction.waitingDays, 1);
+  assert.equal(corrected.latestMovement.detail, 'Novo contato.');
+
+  input.pendencias.splice(0);
+  input.contatos.splice(0);
+  const removed = Projection.buildOperationalProjection(input).schools[0];
+  assert.equal(removed.activeCount, 0);
+  assert.equal(removed.latestMovement, null);
+  assert.equal(removed.nextAction.label, 'Sem ação pendente');
+});
+
+test('desempate português conserva ordem estável de acentos e caixa com comparação numérica', () => {
+  const records = [
+    { id: 'ra-10', waitingDays: 2, priority: 1, ra: '10ª R.A.', schoolDesignation: 'Escola 1' },
+    { id: 'school-10', waitingDays: 2, priority: 1, ra: '2ª R.A.', schoolDesignation: 'Escola 10' },
+    { id: 'school-2', waitingDays: 2, priority: 1, ra: '2ª R.A.', schoolDesignation: 'Escola 2' },
+    { id: 'accented-2', waitingDays: 2, priority: 1, ra: '2ª R.A.', schoolDesignation: 'ÉSCOLA 2' }
+  ];
+  const before = structuredClone(records);
+  assert.deepEqual(Projection.sortOperationalActions(records).map(item => item.id), [
+    'school-2', 'accented-2', 'school-10', 'ra-10'
+  ]);
+  assert.deepEqual(records, before);
+});

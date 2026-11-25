@@ -181,7 +181,7 @@
   {
     "id": "READ-01",
     "surface": "dashboard",
-    "action": "Consultar indicadores e cartões do dashboard",
+    "action": "Consultar indicadores, cartões e orientação operacional do dashboard",
     "mode": "read",
     "criticality": "P0",
     "allow": [
@@ -202,9 +202,17 @@
       [
         "src/integration/cycle-b-dashboard-result.js",
         ""
+      ],
+      [
+        "src/domain/operational-guidance.js",
+        ""
+      ],
+      [
+        "src/integration/operational-guidance.js",
+        ""
       ]
     ],
-    "service": "OperationalProjection.dashboard",
+    "service": "OperationalProjection.dashboard / OperationalGuidance.buildGuidance",
     "repository": "SupabaseRepository.read",
     "resources": [
       "schools",

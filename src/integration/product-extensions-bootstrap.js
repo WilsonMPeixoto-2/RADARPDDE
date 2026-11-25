@@ -24,7 +24,8 @@
         '/src/styles/inventory-icon-refinement.css',
         '/src/styles/evaluation-retification-ui.css',
         '/src/styles/sidebar-prontuario-polish.css',
-        '/src/styles/global-visual-polish.css'
+        '/src/styles/global-visual-polish.css',
+        '/src/styles/operational-guidance.css'
     ]);
     const scripts = Object.freeze([
         // Regra crítica: "Incorreto" nunca pode cair no handler-base sem a pendência atômica.
@@ -40,6 +41,8 @@
         '/src/integration/controller-guide-ready.js',
         '/src/integration/unidentified-expense-ux.js',
         '/src/integration/prontuario-operational-ux.js',
+        '/src/domain/operational-guidance.js',
+        '/src/integration/operational-guidance.js',
         '/src/integration/operational-readiness-bridge.js',
         '/src/integration/operational-context-refresh.js',
         '/src/integration/operational-realtime-invalidation.js',
@@ -57,6 +60,7 @@
         '/src/integration/auditable-retification.js',
         '/src/integration/evaluation-retification.js',
         '/src/application/operational-correction-client.js',
+        '/src/integration/granular-correction-ui.js',
         '/src/integration/operational-correction-dialog.js',
         '/src/integration/evaluation-retification-ui.js'
     ]);
@@ -74,6 +78,7 @@
         '/src/integration/auditable-retification.js',
         '/src/integration/evaluation-retification.js',
         '/src/application/operational-correction-client.js',
+        '/src/integration/granular-correction-ui.js',
         '/src/integration/operational-correction-dialog.js',
         '/src/integration/evaluation-retification-ui.js'
     ]);
