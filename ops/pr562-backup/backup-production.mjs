@@ -13,6 +13,36 @@ const REQUIRED = ['public', 'radar_private', 'auth', 'storage', 'supabase_migrat
 const qid = value => '"' + String(value).replaceAll('"', '""') + '"';
 const sqlString = value => "'" + String(value).replaceAll("'", "''") + "'";
 const digest = value => createHash('sha256').update(value).digest('hex');
+const TIMEOUT = { docker: 30000, query: 300000, backup: 900000, archive: 120000 };
+
+function progress(label, outcome) {
+  console.log(`[${new Date().toISOString()}] PR562 backup: ${label} — ${outcome}`);
+}
+
+async function stage(label, action) {
+  progress(label, 'START');
+  try {
+    const result = await action();
+    progress(label, 'DONE');
+    return result;
+  } catch (error) {
+    progress(label, 'FAILED');
+    throw error;
+  }
+}
+
+function stopChild(child) {
+  // Stop only this explicitly spawned process group; never signal other runner jobs.
+  if (child.exitCode === null && !child.signalCode) {
+    try {
+      if (process.platform !== 'win32' && child.pid) process.kill(-child.pid, 'SIGKILL');
+      else child.kill('SIGKILL');
+    } catch { child.kill('SIGKILL'); }
+  }
+  child.stdin?.destroy();
+  child.stdout?.destroy();
+  child.stderr?.destroy();
+}
 
 export function validateBackupPaths({ privateDir, outputDir, publicKeyFile }) {
   if (![privateDir, outputDir, publicKeyFile].every(value => typeof value === 'string' && path.isAbsolute(value))) {
@@ -54,53 +84,76 @@ async function fileHash(file) {
 }
 
 // This module only sends explicitly listed libpq variables into the container.
-async function exec(command, args, { env = process.env, input, output, label = command } = {}) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(command, args, { env, stdio: ['pipe', 'pipe', 'pipe'] });
-    const parts = [];
-    let stderr = '';
-    let sink;
-    if (output) { sink = createWriteStream(output, { mode: 0o600 }); sink.once('error', () => { child.kill(); reject(new Error(`${label}: private output failed`)); }); child.stdout.pipe(sink); }
-    else child.stdout.on('data', chunk => parts.push(chunk));
-    child.stderr.on('data', chunk => { stderr += chunk.toString(); });
-    child.once('error', () => reject(new Error(`${label}: process launch failed`)));
-    child.once('close', async code => {
-      if (sink) await new Promise(done => sink.writableFinished ? done() : sink.once('finish', done));
-      if (code !== 0) {
-        if (process.env.BACKUP_PRIVATE_DIR) {
-          await writeFile(path.join(process.env.BACKUP_PRIVATE_DIR, 'failure-private.txt'), stderr, { mode: 0o600 });
-        }
-        reject(new Error(`${label}: failed; details remain private on the ephemeral runner`));
-      } else resolve(Buffer.concat(parts).toString('utf8').trim());
-    });
-    child.stdin.end(input);
+export async function exec(command, args, { env = process.env, input, output, label = command, timeoutMs = TIMEOUT.docker } = {}) {
+  progress(label, 'START');
+  const child = spawn(command, args, { env, detached: process.platform !== 'win32', stdio: ['pipe', 'pipe', 'pipe'] });
+  const parts = [];
+  let stderr = '';
+  let timer;
+  let timedOut = false;
+  const sink = output ? createWriteStream(output, { mode: 0o600 }) : undefined;
+  child.stderr.on('data', chunk => { if (stderr.length < 65536) stderr += chunk.toString().slice(0, 65536 - stderr.length); });
+  child.stdin.on('error', () => {});
+  const completion = new Promise((resolve, reject) => {
+    child.once('error', reject);
+    child.once('close', code => code === 0 ? resolve() : reject(new Error('Subprocess failed')));
   });
+  const outputComplete = sink ? pipeline(child.stdout, sink) : new Promise((resolve, reject) => {
+    child.stdout.on('data', chunk => parts.push(chunk));
+    child.stdout.once('end', resolve);
+    child.stdout.once('error', reject);
+  });
+  const deadline = new Promise((resolve, reject) => {
+    timer = setTimeout(() => {
+      timedOut = true;
+      stopChild(child);
+      sink?.destroy();
+      reject(new Error('Subprocess deadline reached'));
+    }, timeoutMs);
+  });
+  try {
+    child.stdin.end(input);
+    await Promise.race([Promise.all([completion, outputComplete]), deadline]);
+    progress(label, 'DONE');
+    return Buffer.concat(parts).toString('utf8').trim();
+  } catch {
+    stopChild(child);
+    sink?.destroy();
+    if (process.env.BACKUP_PRIVATE_DIR) {
+      await writeFile(path.join(process.env.BACKUP_PRIVATE_DIR, 'failure-private.txt'), stderr, { mode: 0o600 }).catch(() => {});
+    }
+    progress(label, timedOut ? 'TIMED OUT' : 'FAILED');
+    throw new Error(`${label}: ${timedOut ? 'timed out' : 'failed'}; details remain private on the ephemeral runner`);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 function dockerArgs(env, executable, args) {
-  const forwarded = ['PGHOST', 'PGPORT', 'PGUSER', 'PGPASSWORD', 'PGDATABASE', 'PGSSLMODE', 'PGOPTIONS'];
+  const forwarded = ['PGHOST', 'PGPORT', 'PGUSER', 'PGPASSWORD', 'PGDATABASE', 'PGSSLMODE', 'PGOPTIONS', 'PGCONNECT_TIMEOUT'];
   return ['exec', '-i', ...forwarded.flatMap(key => ['--env', key]), CONTAINER, executable, ...args];
 }
 
 function pg(env, executable, args, options = {}) {
-  return exec('docker', dockerArgs(env, executable, args), { ...options, env: { ...process.env, ...env } });
+  const timeoutMs = ['pg_dump', 'pg_dumpall', 'pg_restore'].includes(executable) && !args.includes('--list') ? TIMEOUT.backup : TIMEOUT.query;
+  return exec('docker', dockerArgs(env, executable, args), { timeoutMs, ...options, env: { ...process.env, PGCONNECT_TIMEOUT: '30', ...env } });
 }
 
 async function query(env, sql, snapshot) {
   const body = snapshot
     ? `BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY; SET TRANSACTION SNAPSHOT ${sqlString(snapshot)}; ${sql} COMMIT;`
     : sql;
-  return pg(env, 'psql', ['-X', '-q', '-A', '-t', '-v', 'ON_ERROR_STOP=1'], { input: body, label: 'Read metadata/fingerprint' });
+  return pg(env, 'psql', ['-X', '-q', '-A', '-t', '-v', 'ON_ERROR_STOP=1'], { input: body, label: snapshot ? 'Read source snapshot metadata' : 'Read disposable metadata' });
 }
 
 export async function closeSnapshot(child) {
-  if (child.exitCode !== null) {
+  if (child.exitCode !== null || child.signalCode) {
     if (child.exitCode !== 0) throw new Error('Read-only snapshot session failed');
     return;
   }
   await new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
-      child.kill();
+      stopChild(child);
       reject(new Error('Read-only snapshot close timed out'));
     }, 10000);
     child.once('close', code => {
@@ -114,11 +167,12 @@ export async function closeSnapshot(child) {
 
 async function keepSnapshot(env) {
   const child = spawn('docker', dockerArgs(env, 'psql', ['-X', '-q', '-A', '-t', '-v', 'ON_ERROR_STOP=1']), {
-    env: { ...process.env, ...env }, stdio: ['pipe', 'pipe', 'pipe']
+    env: { ...process.env, PGCONNECT_TIMEOUT: '30', ...env }, detached: process.platform !== 'win32', stdio: ['pipe', 'pipe', 'pipe']
   });
+  child.stdin.on('error', () => {});
   const snapshot = await new Promise((resolve, reject) => {
     let out = '';
-    const timer = setTimeout(() => { child.kill(); reject(new Error('Read-only snapshot creation timed out')); }, 45000);
+    const timer = setTimeout(() => { stopChild(child); reject(new Error('Read-only snapshot creation timed out')); }, 45000);
     child.stdout.on('data', chunk => {
       out += chunk;
       const match = out.match(/RADAR_SNAPSHOT:([0-9A-Fa-f-]+)/);
@@ -135,7 +189,8 @@ async function keepSnapshot(env) {
 async function poolerEnvironment() {
   if (!process.env.SUPABASE_ACCESS_TOKEN || !process.env.SUPABASE_DB_PASSWORD) throw new Error('Required existing Actions secrets are unavailable');
   const response = await fetch(`https://api.supabase.com/v1/projects/${PROJECT}/config/database/pooler`, {
-    headers: { Authorization: `Bearer ${process.env.SUPABASE_ACCESS_TOKEN}` }
+    headers: { Authorization: `Bearer ${process.env.SUPABASE_ACCESS_TOKEN}` },
+    signal: AbortSignal.timeout(30000)
   });
   if (!response.ok) throw new Error(`Read-only pooler discovery failed (${response.status})`);
   const configurations = await response.json();
@@ -144,7 +199,7 @@ async function poolerEnvironment() {
   // The official Session pooler uses port 5432; transaction pooling is unsuitable for a held snapshot.
   return {
     PGHOST: config.db_host, PGPORT: '5432', PGUSER: `postgres.${PROJECT}`, PGPASSWORD: process.env.SUPABASE_DB_PASSWORD,
-    PGDATABASE: 'postgres', PGSSLMODE: 'require',
+    PGDATABASE: 'postgres', PGSSLMODE: 'require', PGCONNECT_TIMEOUT: '30',
     PGOPTIONS: '-c default_transaction_read_only=on -c statement_timeout=900000 -c lock_timeout=10000 -c search_path=pg_catalog,public'
   };
 }
@@ -202,24 +257,24 @@ async function sealDirectory(privateDir, publicKeyFile, outputDir, label) {
   const archiveDir = await mkdtemp(path.join(path.dirname(privateDir), 'pr562-backup-archive-'));
   try {
     const archive = path.join(archiveDir, 'backup.tar.gz');
-    await exec('tar', ['--create', '--gzip', '--file', archive, '--directory', privateDir, '.'], { label });
+    await exec('tar', ['--create', '--gzip', '--file', archive, '--directory', privateDir, '.'], { label, timeoutMs: TIMEOUT.archive });
     await chmod(archive, 0o600);
-    return await encryptArchive(archive, publicKeyFile, outputDir);
+    return await stage('Encrypt archive and compute recovery checksums', () => encryptArchive(archive, publicKeyFile, outputDir));
   } finally {
     await rm(archiveDir, { recursive: true, force: true });
   }
 }
 
 async function main() {
-  const { privateDir, outputDir, publicKeyFile } = await backupPaths();
-  const source = await poolerEnvironment();
+  const { privateDir, outputDir, publicKeyFile } = await stage('Prepare private backup paths', () => backupPaths());
+  const source = await stage('Discover source session endpoint', () => poolerEnvironment());
   // Managed functions in the unchanged archive use superuser-only SET parameters.
   // Supabase's existing local administrator is used exclusively inside the disposable container.
-  const local = { PGHOST: '127.0.0.1', PGPORT: '5432', PGUSER: 'supabase_admin', PGPASSWORD: 'postgres', PGDATABASE: 'radar_pr562_restore', PGSSLMODE: 'disable', PGOPTIONS: '-c statement_timeout=900000 -c search_path=pg_catalog,public' };
+  const local = { PGHOST: '127.0.0.1', PGPORT: '5432', PGUSER: 'supabase_admin', PGPASSWORD: 'postgres', PGDATABASE: 'radar_pr562_restore', PGSSLMODE: 'disable', PGCONNECT_TIMEOUT: '30', PGOPTIONS: '-c statement_timeout=900000 -c search_path=pg_catalog,public' };
   if (await query({ ...local, PGDATABASE: 'postgres' }, 'SHOW is_superuser;') !== 'on') {
     throw new Error('Disposable restore requires the existing local superuser; Production access remains read-only');
   }
-  const keeper = await keepSnapshot(source);
+  const keeper = await stage('Open source read-only snapshot', () => keepSnapshot(source));
   let sourceFingerprint;
   let tables;
   try {
@@ -228,7 +283,7 @@ async function main() {
     if (!info.version.startsWith('17.')) throw new Error('Source PostgreSQL major differs from the approved disposable major');
     if (info.storageObjects !== 0 || info.vaultSecrets !== 0) throw new Error('Storage objects or Vault secrets require an additional encrypted recovery plan; do not claim a complete backup');
     tables = JSON.parse(await query(source, `SELECT json_agg(json_build_object('schema',n.nspname,'name',c.relname) ORDER BY n.nspname,c.relname) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname IN (${REQUIRED.map(sqlString).join(',')}) AND c.relkind IN ('r','p');`, keeper.snapshot));
-    sourceFingerprint = await fingerprint(source, tables, keeper.snapshot);
+    sourceFingerprint = await stage('Fingerprint consistent source snapshot', () => fingerprint(source, tables, keeper.snapshot));
     await writeFile(path.join(privateDir, 'source-fingerprint.json'), JSON.stringify(sourceFingerprint, null, 2));
     await pg(source, 'pg_dump', ['--format=custom', '--snapshot', keeper.snapshot, '--lock-wait-timeout=10s'], { output: path.join(privateDir, 'database.dump'), label: 'Read full logical database archive' });
     await pg(source, 'pg_dumpall', ['--roles-only', '--no-role-passwords'], { output: path.join(privateDir, 'roles.sql'), label: 'Read cluster role definitions without passwords' });
@@ -238,14 +293,14 @@ async function main() {
     const missingRoles = roles.filter(name => !locals.includes(name));
     if (missingRoles.length) await query({ ...local, PGDATABASE: 'postgres' }, missingRoles.map(name => `CREATE ROLE ${qid(name)} NOLOGIN;`).join('\n'));
     await pg({ ...local, PGDATABASE: 'postgres' }, 'createdb', ['--template=template0', local.PGDATABASE], { label: 'Create isolated verification database' });
-  } finally { await keeper.close(); }
+  } finally { await stage('Close source read-only snapshot', () => keeper.close()); }
   await exec('docker', ['cp', path.join(privateDir, 'database.dump'), `${CONTAINER}:/tmp/pr562-production.dump`], { label: 'Copy archive to disposable container' });
   // Disable every container network before restore so restored SQL cannot contact the source or external services.
   const networks = JSON.parse(await exec('docker', ['inspect', '--format', '{{json .NetworkSettings.Networks}}', CONTAINER], { label: 'Inspect disposable networks' }));
   for (const network of Object.keys(networks)) {
     await exec('docker', ['network', 'disconnect', '--force', network, CONTAINER], { label: 'Isolate disposable restore network' });
   }
-  const toc = await pg(local, 'pg_restore', ['--list', '/tmp/pr562-production.dump']);
+  const toc = await pg(local, 'pg_restore', ['--list', '/tmp/pr562-production.dump'], { label: 'Inspect private archive contents' });
   // PostgreSQL omits the default public schema definition when pg_database_owner owns it.
   for (const schema of REQUIRED.filter(name => name !== 'public')) {
     if (!toc.includes(`SCHEMA - ${schema} `)) throw new Error(`Required schema is absent from archive: ${schema}`);
@@ -256,7 +311,7 @@ async function main() {
   for (const schema of REQUIRED) {
     if (!restoredSchemas.includes(schema)) throw new Error(`Required schema is absent after restore: ${schema}`);
   }
-  const restored = await fingerprint(local, tables);
+  const restored = await stage('Fingerprint isolated restored database', () => fingerprint(local, tables));
   await writeFile(path.join(privateDir, 'restored-fingerprint.json'), JSON.stringify(restored, null, 2));
   if (JSON.stringify(restored) !== JSON.stringify(sourceFingerprint)) throw new Error('Restored database content/definitions differ from the source snapshot');
   const envelope = await sealDirectory(privateDir, publicKeyFile, outputDir, 'Package private logical backup');
@@ -272,6 +327,7 @@ async function main() {
     opsCommit: process.env.GITHUB_SHA || null, runId: process.env.GITHUB_RUN_ID || null
   };
   await writeFile(path.join(outputDir, 'evidence.json'), JSON.stringify(evidence, null, 2) + '\n', { mode: 0o600 });
+  progress('Write verified restoration evidence', 'DONE');
   console.log('Read-only Production backup restored and verified on the disposable runner; only encrypted files and sanitized evidence may be uploaded.');
 }
 

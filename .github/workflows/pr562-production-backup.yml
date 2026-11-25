@@ -25,6 +25,7 @@ jobs:
     timeout-minutes: 45
     env:
       SUPABASE_TELEMETRY_DISABLED: '1'
+      PGCONNECT_TIMEOUT: '30'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -61,6 +62,7 @@ jobs:
           node ops/pr562-backup/backup-key.mjs prepare
           cp "${RUNNER_TEMP}/pr562-release-gate.json" "${BACKUP_OUTPUT_DIR}/release-gate.json"
       - name: Criar snapshot somente leitura e provar restauração isolada
+        timeout-minutes: 35
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
@@ -90,6 +92,7 @@ jobs:
           if-no-files-found: error
       - name: Remover cópia em claro e PostgreSQL descartável
         if: always()
+        timeout-minutes: 3
         shell: bash
         run: |
           rm -rf -- "${RUNNER_TEMP}/pr562-backup-private"
