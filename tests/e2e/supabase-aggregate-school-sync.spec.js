@@ -207,7 +207,7 @@ test('Dashboard e Carteira convergem por escola em criação, edição, exclusã
     const drawer = writer.locator('#pendency-preview-drawer');
     await drawer.getByRole('button', { name: /Fechar/ }).first().click();
     const card = writer.locator(`.invoice-document-row[data-invoice-id="${invoice.id}"]`);
-    await card.getByRole('button', { name: /^(?:Editar lançamento:|Editar NF:|Editar Despesa a identificar)/ }).click();
+    await card.getByRole('button', { name: /^(?:Editar despesa:|Editar NF:|Editar Despesa a identificar)/ }).click();
     await modal.locator('#nota-valor').fill('175.50');
     await modal.locator('button[type="submit"]').click();
     await expect(modal).not.toHaveClass(/show/);

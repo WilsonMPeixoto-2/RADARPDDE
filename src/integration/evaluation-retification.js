@@ -348,7 +348,7 @@
                     persistence.expectedVersion = rowVersionOf(verification);
                     assertExpectedVersion(verification, input);
                     if (service.findActivePendency(state, schoolId, compKey, documentKey)) {
-                        fail('ACTIVE_PENDENCY', 'Existe Pendência ativa neste documento. Use Editar análise para corrigir o lançamento e justificar sua anulação antes de desfazer a entrega.', 'undoBonification');
+                        fail('ACTIVE_PENDENCY', 'Existe Pendência ativa neste documento. Use Corrigir análise técnica para corrigir o lançamento e justificar sua anulação antes de desfazer a entrega.', 'undoBonification');
                     }
                     if (documentKey === 'notaFiscal' && list(state.registeredInvoices).some(note => (
                         text(note.escolaId || note.school_id) === schoolId && text(note.compKey) === compKey

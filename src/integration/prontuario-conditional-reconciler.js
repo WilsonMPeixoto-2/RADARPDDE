@@ -413,7 +413,7 @@
         const consolidated = Boolean(text(verification?.resultadoBonif || verification?.bonus_result));
         if (consolidated) {
             button.disabled = true;
-            button.textContent = 'Consolidada';
+            button.textContent = 'Bonificação consolidada';
             button.removeAttribute('onclick');
             button.onclick = null;
             button.dataset.radarConsolidationState = 'consolidated';
@@ -606,7 +606,7 @@
                             editBtn.appendChild?.(svg);
                         }
                         const labelSpan = root.document.createElement('span');
-                        labelSpan.textContent = 'Editar análise';
+                        labelSpan.textContent = 'Corrigir análise técnica';
                         editBtn.appendChild?.(labelSpan);
                         editBtn.addEventListener('click', () => {
                             root.openInvoiceOperationalCorrection?.(invoice.id, schoolId, 'consAssessoria', editBtn);

@@ -117,7 +117,7 @@ test.describe('Edição auditável de lançamentos', () => {
     const context = await prepareContext(page);
     const invoiceRow = fiscalRow(page).locator(`.invoice-document-row[data-invoice-id="${context.invoiceId}"]`);
 
-    const editButton = invoiceRow.getByRole('button', { name: /Editar lançamento/ });
+    const editButton = invoiceRow.getByRole('button', { name: /Editar despesa/ });
     await expect(editButton).toBeVisible();
     await editButton.click();
 
@@ -190,7 +190,7 @@ test.describe('Edição auditável de lançamentos', () => {
     const context = await prepareContext(page, { unidentified: true });
     const invoiceRow = fiscalRow(page).locator(`.invoice-document-row[data-invoice-id="${context.invoiceId}"]`);
 
-    const editButton = invoiceRow.getByRole('button', { name: /Editar/ }).filter({ hasNotText: 'Editar análise' });
+    const editButton = invoiceRow.getByRole('button', { name: /Editar/ }).filter({ hasNotText: 'Corrigir análise técnica' });
     await expect(editButton).toHaveCount(1);
     await editButton.click();
 
@@ -236,7 +236,7 @@ test.describe('Edição auditável de lançamentos', () => {
 
     // A linha de a_identificar não exibe a referência opcional como rótulo; o campo
     // deve, porém, reabrir com o valor corrente corrigido, sem recorrer ao snapshot histórico.
-    await refreshed.getByRole('button', { name: /Editar/ }).filter({ hasNotText: 'Editar análise' }).click();
+    await refreshed.getByRole('button', { name: /Editar/ }).filter({ hasNotText: 'Corrigir análise técnica' }).click();
     await expect(page.locator('#nota-numero')).toHaveValue('REF-CORRIGIDA');
     await expect(page.locator('#nota-desc')).toHaveValue('Débito corrigido, documentação ainda pendente');
     await page.locator('#modal-dados-nota button[type="button"]', { hasText: 'Cancelar' }).click();

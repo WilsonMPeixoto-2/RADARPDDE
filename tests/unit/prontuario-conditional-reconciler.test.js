@@ -56,7 +56,7 @@ test('reabre e reconsolida a ação do programa a partir do estado autoritativo'
         rows
     ), true);
     assert.equal(button.disabled, true);
-    assert.equal(button.textContent, 'Consolidada');
+    assert.equal(button.textContent, 'Bonificação consolidada');
     assert.equal(button.dataset.radarConsolidationState, 'consolidated');
 
     assert.equal(reconciler.syncConsolidationAction(
@@ -98,7 +98,7 @@ test('T4: botão de excluir lançamentos não pode virar Consolidada durante rec
     assert.equal(reconciler.syncConsolidationAction(
         root, 'ESC-1', '2026-05_BASIC', { resultadoBonif: 'apta' }, rows
     ), true);
-    assert.equal(consolidation.textContent, 'Consolidada');
+    assert.equal(consolidation.textContent, 'Bonificação consolidada');
     assert.equal(consolidation.disabled, true);
     assert.equal(deletion.textContent, 'Excluir lançamentos deste programa neste mês');
     assert.equal(deletion.disabled, false);
@@ -359,7 +359,7 @@ test('toggleBonif de Nota Fiscal preserva posição dentro do reconciliador sem 
     assert.equal(area.scrollLeft, 9);
 });
 
-test('syncServicePendencyControls sincroniza botão Editar análise na coluna Ação da Assessoria quando T2 está ativo', () => {
+test('syncServicePendencyControls sincroniza botão Corrigir análise técnica na coluna Ação da Assessoria quando T2 está ativo', () => {
     const replacedNodes = [];
     const actionCell = {
         querySelector: () => null,

@@ -181,3 +181,20 @@ test('apply congela o payload da requisicao na primeira tentativa para evitar ID
     assert.deepEqual(applies[1].args.p_request, applies[0].args.p_request);
     assert.equal(applies[1].args.p_request.note, 'Nota original na primeira tentativa');
 });
+
+test('correção da bonificação aceita critérios manuais e recalcula somente critérios derivados', () => {
+    for (const [documentKey, mark] of [['extCC','Não'], ['extINV','Sim'], ['declBBAgil','Não se aplica'], ['notaFiscal','Sim'], ['consAssessoria',null], ['encampInventario',null]]) {
+        const request = buildRequest({ action: 'correct_bonification', target: { ...target, documentKey }, changes: { bonificacao: mark } });
+        assert.equal(request.target.documentKey, documentKey);
+        assert.equal(request.changes.bonificacao, mark);
+    }
+    for (const [documentKey, mark] of [['extCC','Não se aplica'], ['extINV','Não se aplica'], ['consAssessoria','Sim'], ['encampInventario','Não'], ['boletoInternet','Sim']]) {
+        assert.throws(() => buildRequest({ action: 'correct_bonification', target: { ...target, documentKey }, changes: { bonificacao: mark } }), OperationalCorrectionError);
+    }
+});
+test('prévia de bonificação não pode confirmar outro critério', async () => {
+    const client = createOperationalCorrectionClient({ repository: fakeRepository([{...plan, action:'correct_bonification',
+        target:{...target,kind:'verification',documentKey:'extINV'}}]) });
+    await assert.rejects(client.preview({action:'correct_bonification',target:{...target,documentKey:'extCC'},changes:{bonificacao:'Sim'}}),
+        error => error.code === 'INVALID_PREVIEW');
+});

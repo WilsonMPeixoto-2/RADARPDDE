@@ -194,7 +194,7 @@ test.describe('Prontuário — análise individual de Notas Fiscais', () => {
     await expect(invoiceRow(page, service1234).locator('.invoice-document-status'))
       .toHaveText('Correto');
     const editAnalysisButton = invoiceRow(page, service1234)
-      .getByRole('button', { name: 'Editar análise' });
+      .getByRole('button', { name: 'Corrigir análise técnica' });
     await expect(editAnalysisButton).toBeVisible();
     await invoiceRow(page, service1234).scrollIntoViewIfNeeded();
     const beforeEditMode = await contentArea.evaluate(element => element.scrollTop);

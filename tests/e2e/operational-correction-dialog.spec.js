@@ -113,7 +113,7 @@ test('flag sem Supabase impede gravação e não abre modal legado', async ({ pa
     await prepareSchool(page);
     await page.evaluate(() => { window.RADAR_OPERATIONAL_CORRECTION_PREVIEW = true; });
     const edit = page.locator('#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="extCC"]')
-        .getByRole('button', { name: 'Editar análise' });
+        .getByRole('button', { name: 'Corrigir análise técnica' });
     await edit.click();
     await expect(page.locator('#evaluation-retification-modal-layer')).toHaveCount(0);
     await expect(page.locator('#radar-operational-correction-layer')).toHaveCount(0);
@@ -156,7 +156,7 @@ test('RadarDataContext artificial não substitui repositório canônico local', 
         } } };
     });
     await page.locator('#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="extCC"]')
-        .getByRole('button', { name: 'Editar análise' }).click();
+        .getByRole('button', { name: 'Corrigir análise técnica' }).click();
     await expect(page.getByRole('dialog', { name: 'Corrigir análise técnica' })).toHaveCount(0);
     await expect(page.locator('#pendency-notice')).toContainText(/conexão autenticada/);
     expect(await page.evaluate(() => window.__spoofedCalls)).toEqual([]);
@@ -185,7 +185,7 @@ test('botão real encontra o repositório em RadarApplicationServices.data', asy
         };
     });
     await page.locator('#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="extCC"]')
-        .getByRole('button', { name: 'Editar análise' }).click();
+        .getByRole('button', { name: 'Corrigir análise técnica' }).click();
     const dialog = page.getByRole('dialog', { name: 'Corrigir análise técnica' });
     await expect(dialog.getByText('Não analisado → Correto')).toBeVisible();
     expect(await page.evaluate(() => window.__canonicalCalls)).toEqual(['preview_operational_change']);
@@ -307,15 +307,16 @@ test('AMBIGUOUS_CONSEQUENCE exige seleção explícita de Pendências candidatas
     expect(applyCall.args.p_request.selectedPendencyIds).toEqual(['PEND-CAND-1', 'PEND-CAND-2']);
 });
 
-test('botão Limpar análise prepara a prévia do que vai mudar e pede confirmação antes de gravar', async ({ page }) => {
+test('botão Redefinir como não analisado prepara a prévia do que vai mudar e pede confirmação antes de gravar', async ({ page }) => {
     await page.goto('/');
     const dialog = await controlledDialog(page);
     await expect(dialog.getByRole('heading', { name: 'O que vai mudar ao confirmar' })).toBeVisible();
-    const clearButton = dialog.getByRole('button', { name: 'Limpar análise' });
+    const clearButton = dialog.getByRole('button', { name: 'Redefinir como não analisado' });
     await expect(clearButton).toBeEnabled();
     await clearButton.click();
     await expect(dialog.getByText('Incorreto → Não analisado')).toBeVisible();
-    await expect(dialog.getByText(/Análise pronta para ser limpa/)).toBeVisible();
+    await expect(dialog.getByRole('status').filter({ hasText: 'A análise atual voltará a Não analisado. Apenas os efeitos indicados serão aplicados; não é a exclusão de todo o histórico. Confira e confirme.' })).toBeVisible();
+    await expect(dialog.getByRole('button', { name: 'Confirmar correção' })).toBeEnabled();
     await expect(clearButton).toBeDisabled();
     // Ainda não gravou nada antes da confirmação explícita:
     expect(await page.evaluate(() => window.__auditRpc.filter(c => c.name === 'apply_operational_change').length)).toBe(0);
@@ -595,7 +596,7 @@ test('confirmação acionada na fila de Pendências re-renderiza renderPendencia
     expect(await page.evaluate(() => window.__renderedViews)).toEqual(['pendencias']);
 });
 
-test('linha de Consulta à Assessoria preserva 1ª análise em 1 clique, reconcilia botão Editar análise com aria-describedby e intercepta retificação no select e no botão para abrir diálogo T2', async ({ page }) => {
+test('linha de Consulta à Assessoria preserva 1ª análise em 1 clique, reconcilia botão Corrigir análise técnica com aria-describedby e intercepta retificação no select e no botão para abrir diálogo T2', async ({ page }) => {
     const { schoolId, competence, compKey } = await prepareSchool(page);
     await page.evaluate(({ sid, comp, cKey }) => {
         const repository = window.RadarApplicationServices?.data?.repository;
@@ -647,15 +648,15 @@ test('linha de Consulta à Assessoria preserva 1ª análise em 1 clique, reconci
     await expect(advisoryRow).toBeVisible();
     const advisorySelect = advisoryRow.getByLabel('Análise da consulta à Assessoria para a NF 777');
     await expect(advisorySelect).toHaveValue('Não analisado');
-    await expect(advisoryRow.getByRole('button', { name: 'Editar análise', exact: true })).toHaveCount(0);
+    await expect(advisoryRow.getByRole('button', { name: 'Corrigir análise técnica', exact: true })).toHaveCount(0);
 
-    // 1ª análise em 1 clique ('Não analisado' -> 'Correto') grava direto e reconcilia o botão Editar análise sem reload:
+    // 1ª análise em 1 clique ('Não analisado' -> 'Correto') grava direto e reconcilia o botão Corrigir análise técnica sem reload:
     await advisorySelect.selectOption('Correto');
     await expect(advisorySelect).toHaveValue('Correto');
     await expect(advisorySelect).toHaveClass(/is-correct/);
     expect(await page.evaluate(() => window.__advisoryPreviewRequests)).toEqual([]);
 
-    const editBtn = advisoryRow.getByRole('button', { name: 'Editar análise', exact: true });
+    const editBtn = advisoryRow.getByRole('button', { name: 'Corrigir análise técnica', exact: true });
     await expect(editBtn).toBeVisible();
     await expect(editBtn).toHaveAttribute('aria-describedby', 'advisory-invoice-title-NF-SVC-77');
     await expect(advisoryRow.locator('#advisory-invoice-title-NF-SVC-77')).toHaveText('NF 777');
@@ -669,7 +670,7 @@ test('linha de Consulta à Assessoria preserva 1ª análise em 1 clique, reconci
     await dialog.getByRole('button', { name: 'Cancelar' }).click();
     await expect(dialog).toBeHidden();
 
-    // Retificação pelo botão explícito Editar análise:
+    // Retificação pelo botão explícito Corrigir análise técnica:
     await editBtn.click();
     await expect(dialog).toBeVisible();
     await expect(dialog.getByLabel('Novo resultado')).toHaveValue('Correto');
@@ -699,7 +700,7 @@ test('linha de Consulta à Assessoria preserva 1ª análise em 1 clique, reconci
     ]);
 });
 
-test('A-01 em navegador: reconciliação incremental da Assessoria substitui Editar análise por Visualizar pendência, mantém acesso a Corrigir análise na gaveta e aplica inert no modal T2', async ({ page }) => {
+test('A-01 em navegador: reconciliação incremental da Assessoria substitui Corrigir análise técnica por Visualizar pendência, mantém acesso a Corrigir análise na gaveta e aplica inert no modal T2', async ({ page }) => {
     const { schoolId, competence, compKey } = await prepareSchool(page);
     await page.evaluate(({ sid, comp, cKey }) => {
         const repository = window.RadarApplicationServices?.data?.repository;
@@ -750,7 +751,7 @@ test('A-01 em navegador: reconciliação incremental da Assessoria substitui Edi
     const advisoryRow = page.locator('.service-advisory-row[data-service-advisory-invoice="NF-SVC-88"]');
     const advisorySelect = advisoryRow.getByLabel('Análise da consulta à Assessoria para a NF 888');
     const advisoryCheckbox = advisoryRow.getByLabel('Consulta enviada à Assessoria para a NF 888');
-    await expect(advisoryRow.getByRole('button', { name: 'Editar análise', exact: true })).toBeVisible();
+    await expect(advisoryRow.getByRole('button', { name: 'Corrigir análise técnica', exact: true })).toBeVisible();
     await expect(advisorySelect).toBeEnabled();
     await expect(advisoryCheckbox).toBeEnabled();
 
@@ -779,7 +780,7 @@ test('A-01 em navegador: reconciliação incremental da Assessoria substitui Edi
 
     await expect(advisorySelect).toBeDisabled();
     await expect(advisoryCheckbox).toBeDisabled();
-    await expect(advisoryRow.getByRole('button', { name: 'Editar análise', exact: true })).toHaveCount(0);
+    await expect(advisoryRow.getByRole('button', { name: 'Corrigir análise técnica', exact: true })).toHaveCount(0);
 
     const viewBtn = advisoryRow.getByRole('button', { name: 'Visualizar pendência', exact: true });
     await expect(viewBtn).toBeVisible();
@@ -813,7 +814,7 @@ test('A-01 em navegador: reconciliação incremental da Assessoria substitui Edi
     ));
     expect(appShellInertAfterClose).toBe(false);
 
-    // Resolver a Pendência e reconciliar restaura Editar análise e destrava os controles:
+    // Resolver a Pendência e reconciliar restaura Corrigir análise técnica e destrava os controles:
     await page.evaluate(({ sid, cKey }) => {
         const note = notasRegistradas.find(item => item.id === 'NF-SVC-88');
         note.analiseConsultaAssessoria = 'Correto';
@@ -825,7 +826,7 @@ test('A-01 em navegador: reconciliação incremental da Assessoria substitui Edi
     await expect(advisorySelect).toBeEnabled();
     await expect(advisoryCheckbox).toBeEnabled();
     await expect(advisoryRow.getByRole('button', { name: 'Visualizar pendência', exact: true })).toHaveCount(0);
-    await expect(advisoryRow.getByRole('button', { name: 'Editar análise', exact: true })).toBeVisible();
+    await expect(advisoryRow.getByRole('button', { name: 'Corrigir análise técnica', exact: true })).toBeVisible();
 
     // Contraprova de perfil SME com Pendência ativa: nenhum botão de ação é exposto na reconciliação:
     await page.evaluate(({ sid, cKey }) => {
@@ -843,6 +844,6 @@ test('A-01 em navegador: reconciliação incremental da Assessoria substitui Edi
     await expect(advisorySelect).toBeDisabled();
     await expect(advisoryCheckbox).toBeDisabled();
     await expect(advisoryRow.getByRole('button', { name: 'Visualizar pendência', exact: true })).toHaveCount(0);
-    await expect(advisoryRow.getByRole('button', { name: 'Editar análise', exact: true })).toHaveCount(0);
+    await expect(advisoryRow.getByRole('button', { name: 'Corrigir análise técnica', exact: true })).toHaveCount(0);
 });
 

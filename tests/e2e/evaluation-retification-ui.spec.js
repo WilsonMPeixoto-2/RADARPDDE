@@ -71,11 +71,11 @@ test.describe('retificação formal de avaliações no Preview', () => {
       '#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="extCC"]'
     );
     await expect(row.locator('select.select-analise')).toHaveValue('Incorreto');
-    await expect(row.getByRole('button', { name: 'Editar análise' })).toBeVisible();
+    await expect(row.getByRole('button', { name: 'Corrigir análise técnica' })).toBeVisible();
 
-    await row.getByRole('button', { name: 'Editar análise' }).click();
+    await row.getByRole('button', { name: 'Corrigir análise técnica' }).click();
 
-    const dialog = page.getByRole('dialog', { name: 'Editar análise técnica' });
+    const dialog = page.getByRole('dialog', { name: 'Corrigir análise técnica' });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByTestId('evaluation-current-value')).toHaveText('Incorreto');
     await dialog.getByLabel('Nova análise técnica').selectOption('Correto');
@@ -172,7 +172,7 @@ test.describe('retificação formal de avaliações no Preview', () => {
     const na = row.getByRole('button', { name: 'N/A', exact: true });
     const successNotice = page.locator('#pendency-notice');
 
-    await expect(row.getByRole('button', { name: 'Editar bonificação' })).toBeHidden();
+    await expect(row.getByRole('button', { name: 'Corrigir bonificação' })).toBeHidden();
     await expect(sim).toHaveClass(/active-sim/);
 
     await nao.click();
@@ -224,8 +224,8 @@ test('edição mantém erro visível e impede fechamento ou segundo envio enquan
   await page.evaluate(() => window.RadarProductExtensionsReady);
   await seedIncorrectEvaluationWithPendency(page);
   const row = page.locator('#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="extINV"]');
-  await row.getByRole('button', { name: 'Editar análise', exact: true }).click();
-  const dialog = page.getByRole('dialog', { name: 'Editar análise técnica', exact: true });
+  await row.getByRole('button', { name: 'Corrigir análise técnica', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Corrigir análise técnica', exact: true });
   await dialog.getByLabel('Nova análise técnica').selectOption('Não analisado');
   const contentArea = page.locator('main.content-area');
   const beforeScroll = await contentArea.evaluate(element => {
@@ -260,8 +260,8 @@ test('commit confirmado com projeção pendente exige atualização sem falsa co
   await page.evaluate(() => window.RadarProductExtensionsReady);
   await seedIncorrectEvaluationWithPendency(page);
   const row = page.locator('#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="extINV"]');
-  await row.getByRole('button', { name: 'Editar análise', exact: true }).click();
-  const dialog = page.getByRole('dialog', { name: 'Editar análise técnica', exact: true });
+  await row.getByRole('button', { name: 'Corrigir análise técnica', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Corrigir análise técnica', exact: true });
   await dialog.getByLabel('Nova análise técnica').selectOption('Não analisado');
   await page.evaluate(() => {
     RadarApplicationServices.verifications.correctTechnicalAnalysis = async () => ({

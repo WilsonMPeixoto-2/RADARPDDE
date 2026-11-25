@@ -85,13 +85,13 @@ function createHarness() {
     return { root, appended };
 }
 
-test('retificação com histórico expõe ação textual Editar lançamento em vez de ícone opaco', () => {
+test('retificação com histórico expõe ação textual Editar despesa em vez de ícone opaco', () => {
     const { root, appended } = createHarness();
 
     assert.equal(retification.decorateInvoiceRows(root), true);
     assert.equal(appended.length, 1);
 
     const button = appended[0];
-    assert.match(button.getAttribute('aria-label'), /^Editar lançamento:/);
-    assert.match(button.innerHTML, />Editar lançamento<|>Editar lançamento<\/span>/);
+    assert.match(button.getAttribute('aria-label'), /^Editar despesa:/);
+    assert.match(button.innerHTML, />Editar despesa<|>Editar despesa<\/span>/);
 });

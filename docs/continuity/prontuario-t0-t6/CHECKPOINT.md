@@ -2,6 +2,8 @@
 
 ## 24/11/2026 — encerramento da implementação e publicação T4
 
+A evidência de publicação do **PR #561** é a referência ativa de R2 em registry.json. A reexecução do comparador terminou com sucesso: 11/11 workflows aprovados no HEAD `0d3625ea`. A revisão integrada aprovada pelo proprietário em seguida corrige linguagem, hierarquia, contexto e bonificação em uma única candidata. T5 mantém suas obrigações futuras de histórico granular. Não confundir candidata com nova publicação.
+
 **T0–T4: implementação publicada. T5: próxima frente, ainda não iniciada.** O escopo T4 foi entregue pelos PRs #538, #546 (incorporou #558), #560 e #561, com migrations 64–67 já registradas no Supabase institucional e as quatro flags de correção habilitadas em Production. A correção visual final foi publicada em `cc09e6e85efbd69c357c09a99df01f9af7273762`, deployment `dpl_jpae66LEivn8xhmqzhGTdTdQNZnN`, READY. [Evidência da publicação](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/561#issuecomment-7140925977). Não reaplicar migrations nem repetir T4. A próxima execução segue o escopo aprovado de T5 e o mapa de obrigações D020; T6 acompanha cada entrega. Ressalvas de validação histórica, comparação operacional e aceite de campo estão no checkpoint; publicação não significa aprovação humana de todos os viewports.
 
 - Release funcional T4: #546 (HEAD `c6ac5b96`, 24/24 workflows, integração #558), merge `2771ac0d`, migrations 66/67 confirmadas, flags ativas. [Evidência](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/546#issuecomment-7132018891). A correção de comunicação visual #560 foi publicada em `3ef5f3f3`, 17/17 workflows.

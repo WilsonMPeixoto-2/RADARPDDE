@@ -15,11 +15,11 @@
 
 ## Ordem de publicação (sem atalhos)
 
-1. **Homologação:** comprovar CI no SHA exato (incluindo Auth/RLS, pgTAP, concorrência, XLSX gerado, responsividade e screenshots), confirmar aceite visual do proprietário para o botão **Corrigir consolidação**, prévia, aviso **Alterações pendentes de consolidação** e consolidação.
+1. **Homologação:** comprovar CI no SHA exato (incluindo Auth/RLS, pgTAP, concorrência, XLSX gerado, responsividade e screenshots), confirmar aceite visual do proprietário para o botão **Corrigir bonificação**, prévia, aviso **Alterações pendentes de consolidação** e consolidação.
 2. **Merge com T4 desativada:** integrar o PR à `main` sem configurar `RADAR_BONIFICATION_CORRECTION_RELEASE_ENABLED=true`. A publicação automatizada da Vercel pode ocorrer com a feature T4 OFF; verificar o manifesto público e o deploy no mesmo SHA. T0–T3 continuam disponíveis.
 3. **Migration institucional:** conferir previamente o histórico remoto das 64 migrations e o projeto institucional correto. Executar exclusivamente a migration **65**, com a autorização institucional de publicação apropriada, sem importação de dados nem seed de testes. Validar a presença de `20261121000200_correct_fiscal_bonification`, funções e trigger correspondentes por leitura SQL, sem executar CRUD de escolas reais.
 4. **Ativação explícita e redeploy:** somente após migração verificada, configurar `RADAR_BONIFICATION_CORRECTION_RELEASE_ENABLED=true` para **Production**, preservar `RADAR_OPERATIONAL_CORRECTION_RELEASE_ENABLED=true`, publicar novo deployment. Verificar `READY`, SHA e manifesto com ambas as flags `true`.
-5. **Smoke:** um Controlador autorizado deve conseguir encontrar **Corrigir consolidação** e abrir a prévia; navegar entre programas e verificar que o histórico e as notas são preservados. Não confirmar alterações em registros de escolas reais durante smoke sem autorização específica. Registrar data, commit, migration, deployment, perfis e evidências.
+5. **Smoke:** um Controlador autorizado deve conseguir encontrar **Corrigir bonificação** e abrir a prévia; navegar entre programas e verificar que o histórico e as notas são preservados. Não confirmar alterações em registros de escolas reais durante smoke sem autorização específica. Registrar data, commit, migration, deployment, perfis e evidências.
 
 ## Recuperação
 

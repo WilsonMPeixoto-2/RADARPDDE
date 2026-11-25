@@ -79,7 +79,7 @@ async function invoiceCycle(page, index) {
   const [invoice] = await remoteInvoice(page, number);
   expect(invoice).toMatchObject({ amount: 250, expense_type: 'consumo' });
   const card = page.locator(`.invoice-document-row[data-invoice-id="${invoice.id}"]`);
-  await card.getByRole('button', { name: /^Editar (?:lançamento:|NF:)/ }).click();
+  await card.getByRole('button', { name: /^Editar (?:despesa:|lançamento:|NF:)/ }).click();
   await modal.locator('#nota-valor').fill('315.50');
   await modal.locator('button[type="submit"]').click();
   await expect(modal).not.toHaveClass(/show/);

@@ -79,8 +79,8 @@ test('edição explícita salva, desfaz e retifica Pendência atomicamente sem b
   await expect(row.locator('select.select-analise')).toHaveValue('Correto');
   await expect.poll(async () => (await verification(page)).analysis.extCC).toBe('Correto');
 
-  await row.getByRole('button', { name: 'Editar análise', exact: true }).click();
-  let dialog = page.getByRole('dialog', { name: 'Editar análise técnica', exact: true });
+  await row.getByRole('button', { name: 'Corrigir análise técnica', exact: true }).click();
+  let dialog = page.getByRole('dialog', { name: 'Corrigir análise técnica', exact: true });
   await expect(dialog).toContainText('Registrar novo envio');
   await dialog.getByLabel('Nova análise técnica').selectOption('Não analisado');
   await expect(dialog.locator('.evaluation-retification-preview')).toHaveText('Correto → Não analisado');
@@ -91,7 +91,7 @@ test('edição explícita salva, desfaz e retifica Pendência atomicamente sem b
   await expect(row.locator('select.select-analise')).toHaveValue('Não analisado');
   await expect.poll(async () => (await verification(page)).analysis.extCC).toBe('Não analisado');
 
-  await expect(row.getByRole('button', { name: 'Editar bonificação', exact: true })).toBeHidden();
+  await expect(row.getByRole('button', { name: 'Corrigir bonificação', exact: true })).toBeHidden();
   await sim.click();
   await settleWrites(page);
   await expect(page.locator('#pendency-notice')).toContainText('Bonificação desfeita com sucesso.');
@@ -126,8 +126,8 @@ test('edição explícita salva, desfaz e retifica Pendência atomicamente sem b
   await preview.locator('.pendency-preview-close').click();
   await expect(preview).toBeHidden();
 
-  await row.getByRole('button', { name: 'Editar análise', exact: true }).click();
-  dialog = page.getByRole('dialog', { name: 'Editar análise técnica', exact: true });
+  await row.getByRole('button', { name: 'Corrigir análise técnica', exact: true }).click();
+  dialog = page.getByRole('dialog', { name: 'Corrigir análise técnica', exact: true });
   await dialog.getByLabel('Nova análise técnica').selectOption('Correto');
   const submit = dialog.getByRole('button', { name: 'Confirmar retificação e anular Pendência' });
   await expect(submit).toBeDisabled();

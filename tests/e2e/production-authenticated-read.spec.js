@@ -430,7 +430,7 @@ test('conta real autorizada conclui ciclo fiscal criar, editar, reler e excluir 
 
     let card = page.locator(`.invoice-document-row[data-invoice-id="${remote[0].id}"]`);
     await expect(card).toBeVisible();
-    await card.getByRole('button', { name: /^Editar (?:lançamento:|NF:)/ }).click();
+    await card.getByRole('button', { name: /^Editar (?:despesa:|lançamento:|NF:)/ }).click();
     await modal.locator('#nota-valor').fill('2.34');
     await modal.locator('button[type="submit"]').click();
     await expect(modal).not.toHaveClass(/show/);

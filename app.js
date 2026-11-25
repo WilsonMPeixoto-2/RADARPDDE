@@ -9633,6 +9633,7 @@ function renderProntuario(escolaId) {
                 <p>${accessProfile === 'sme'
                     ? 'Consulta mensal das informações de bonificação da unidade escolar.'
                     : 'Acompanhamento e Histórico Unificado da Unidade Escolar'}</p>
+                <p class="prontuario-active-context" data-prontuario-active-context hidden></p>
             </div>
             <div class="prontuario-actions prontuario-data-actions" role="group" aria-label="Dados cadastrais da unidade">
         ${showProntuarioActions ? `
@@ -10433,7 +10434,8 @@ function renderProntuarioVerificacoes(esc) {
                                                     data-program-name="${escapeHtml(progName)}"
                                                     data-competence-label="${escapeHtml(c.label)}"
                                                     onclick="openProgramContextDeletion(this)">
-                                                    Excluir lançamentos do mês
+                                                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M9 7V4.5h6V7M7 7l1 13h8l1-13M10 10v7M14 10v7"/></svg>
+                                                    Excluir lançamentos deste programa
                                                 </button>
                                     ` : ''}
                                 </div>
@@ -10441,7 +10443,7 @@ function renderProntuarioVerificacoes(esc) {
                                 ${accessProfile !== 'inventario' && accessProfile !== 'sme' ? `
                                     <div class="program-context-consolidate">
                                         ${v.resultadoBonif ? `
-                                            <button type="button" class="btn program-consolidate-button radar-action-help is-disabled" data-tooltip="Calcula e registra o resultado da bonificação deste mês e programa. Não altera a análise técnica." aria-description="Calcula e registra o resultado da bonificação deste mês e programa. Não altera a análise técnica." disabled>Consolidada</button>
+                                            <button type="button" class="btn program-consolidate-button radar-action-help is-disabled" data-tooltip="Calcula e registra o resultado da bonificação deste mês e programa. Não altera a análise técnica." aria-description="Calcula e registra o resultado da bonificação deste mês e programa. Não altera a análise técnica." disabled>Bonificação consolidada</button>
                                         ` : `
                                             <button type="button" class="btn program-consolidate-button radar-action-help" ${bonusReview && !bonusReview.canConsolidate ? 'disabled' : ''}
                                                 data-tooltip="Calcula e registra o resultado da bonificação deste mês e programa. Não altera a análise técnica." aria-description="Calcula e registra o resultado da bonificação deste mês e programa. Não altera a análise técnica."
@@ -10464,6 +10466,17 @@ function renderProntuarioVerificacoes(esc) {
                         .getEffectiveDocumentState(v, progId, doc.key);
                     const bonifValue = effectiveDocumentState.bonification;
                     const analiseValue = effectiveDocumentState.analysis;
+                    const correctionAvailable = !['inventario', 'sme'].includes(accessProfile)
+                        && Boolean(verificacoes[esc.id]?.[compProgKey])
+                        && window.RadarOperationalCorrectionDialog?.canCorrectFiscalBonus?.(window)
+                        && ['extCC', 'extINV', 'declBBAgil', 'consAssessoria', 'encampInventario'].includes(doc.key);
+                    const bonusCorrectionButton = correctionAvailable ? `
+                        <button type="button" class="fiscal-bonus-edit radar-action-help contextual-bonus-edit"
+                            data-school-id="${escapeHtml(esc.id)}" data-comp-key="${escapeHtml(compProgKey)}"
+                            data-school-name="${escapeHtml(getSchoolDisplayName(esc, esc.id))}" data-program-name="${escapeHtml(progName)}"
+                            data-competence-label="${escapeHtml(c.label)}" data-document-key="${escapeHtml(doc.key)}" data-document-label="${escapeHtml(doc.name)}"
+                            data-tooltip="Corrige somente a avaliação da bonificação deste documento, com conferência dos efeitos." aria-description="Corrige somente a avaliação da bonificação deste documento, com conferência dos efeitos."
+                            onclick="openFiscalBonusCorrection(this)">Corrigir bonificação</button>` : '';
                     const isBonificationLocked = (v.resultadoBonif && accessProfile !== 'assistente')
                         || accessProfile === 'inventario'
                         || accessProfile === 'sme';
@@ -10563,8 +10576,8 @@ function renderProntuarioVerificacoes(esc) {
                                     data-tooltip="Corrige a avaliação de Notas Fiscais da bonificação, sem excluir notas. Se necessário, consolide novamente." aria-description="Corrige a avaliação de Notas Fiscais da bonificação, sem excluir notas. Se necessário, consolide novamente."
                                     data-school-id="${escapeHtml(esc.id)}" data-comp-key="${escapeHtml(compProgKey)}"
                                     data-school-name="${escapeHtml(getSchoolDisplayName(esc, esc.id))}" data-program-name="${escapeHtml(progName)}"
-                                    data-competence-label="${escapeHtml(c.label)}" onclick="openFiscalBonusCorrection(this)">
-                                    Corrigir consolidação
+                                    data-competence-label="${escapeHtml(c.label)}" data-document-key="notaFiscal" data-document-label="Notas Fiscais" onclick="openFiscalBonusCorrection(this)">
+                                    Corrigir bonificação
                                 </button>
                             </div>`
                             : accessProfile === 'sme'
@@ -10684,7 +10697,7 @@ function renderProntuarioVerificacoes(esc) {
                                             aria-describedby="fiscal-invoice-title-${escapeHtml(note.id)}"
                                             onclick="beginInvoiceDocumentAnalysisEdit('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')">
                                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg>
-                                            <span>Editar análise</span>
+                                            <span>Corrigir análise técnica</span>
                                         </button>
                                     `;
                                 }
@@ -10928,7 +10941,7 @@ function renderProntuarioVerificacoes(esc) {
                                                 aria-describedby="advisory-invoice-title-${escapeHtml(note.id)}"
                                                 onclick="openInvoiceOperationalCorrection('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}', 'consAssessoria', this)">
                                                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg>
-                                                <span>Editar análise</span>
+                                                <span>Corrigir análise técnica</span>
                                             </button>
                                         `
                                         : '<span aria-hidden="true" class="invoice-document-empty-action">—</span>';
@@ -10998,6 +11011,7 @@ function renderProntuarioVerificacoes(esc) {
                                                         <span class="is-nao ${bonifValue === 'Não' ? 'is-selected' : ''}">Não</span>
                                                         <span class="is-na ${bonifValue === 'Não se aplica' ? 'is-selected' : ''}">N/A</span>
                                                     </div>
+                                                    ${bonusCorrectionButton}
                                                 </div>
                                                 ${activeServicePendencyCount > 0 ? `
                                                     <div class="invoice-summary-block is-pendencies">
@@ -11050,6 +11064,9 @@ function renderProntuarioVerificacoes(esc) {
                         </div>
                     `;
 
+                    if (correctionAvailable && (v.resultadoBonif || bonusReview || doc.key === 'encampInventario')) {
+                        bonificationCellHTML += bonusCorrectionButton;
+                    }
                     let analysisCellHTML = `
                         <select class="select-analise select-analise-comp analise-${analiseValue.toLowerCase().replace(/\s+/g, '-').replace(/[()]/g, '')}"
                                 aria-label="Análise técnica de ${escapeHtml(doc.name)} no programa ${escapeHtml(progName)}"
@@ -11750,16 +11767,16 @@ async function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElem
 // Correção operacional unificada no ambiente isolado: a prévia do servidor
 // informa todos os dependentes antes de permitir salvar/excluir.
 function openFiscalBonusCorrection(trigger) {
-    const { schoolId, compKey, schoolName, programName, competenceLabel } = trigger.dataset;
+    const { schoolId, compKey, schoolName, programName, competenceLabel, documentKey = 'notaFiscal', documentLabel = 'Notas Fiscais' } = trigger.dataset;
     const { competenciaKey, contextId } = window.RadarCompetencia.splitCompetenciaContext(compKey);
     if (['inventario', 'sme'].includes(getRadarAccessProfile())) return false;
     return window.RadarOperationalCorrectionDialog.open(window, {
         mode: 'correct_bonification',
         trigger,
-        currentValue: verificacoes[schoolId]?.[compKey]?.bonificacao?.notaFiscal || '',
+        currentValue: verificacoes[schoolId]?.[compKey]?.bonificacao?.[documentKey] || '',
         context: {
             schoolId, schoolName, programName, competenceLabel, competence: competenciaKey,
-            programId: contextId, documentKey: 'notaFiscal', documentLabel: 'Notas Fiscais'
+            programId: contextId, documentKey, documentLabel
         }
     });
 }

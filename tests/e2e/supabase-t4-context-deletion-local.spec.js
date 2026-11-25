@@ -100,13 +100,13 @@ async function enablePilotAndOpen(page) {
         'Ação PDDE Básico não pode ficar inacessível: ' + JSON.stringify(proof))
         .toBe(true);
     const program = page.locator('tr[data-program-header="BASIC"]');
-    const action = program.getByRole('button', { name: 'Excluir lançamentos do mês', exact: true });
+    const action = program.getByRole('button', { name: 'Excluir lançamentos deste programa', exact: true });
     await expect(action).toBeVisible();
     await expect(program.locator('details.program-context-options')).toHaveCount(0);
     await action.focus();
     await expect(action).toBeFocused();
     await page.keyboard.press('Enter');
-    return page.getByRole('dialog', { name: 'Excluir lançamentos do mês' });
+    return page.getByRole('dialog', { name: 'Excluir lançamentos deste programa' });
 }
 
 async function snapshot(page) {
