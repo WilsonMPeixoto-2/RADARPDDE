@@ -205,8 +205,11 @@ async function poolerEnvironment() {
 }
 
 async function fingerprint(env, tables, snapshot) {
+  // Sort fixed-width row digests, not complete JSON payloads; duplicates remain in the aggregate.
   const selects = tables.map(({ schema, name }) => `SELECT ${sqlString(schema + '.' + name)} AS name, count(*) AS rows,
-    md5(coalesce(jsonb_agg(to_jsonb(t) ORDER BY to_jsonb(t)::text)::text, '[]')) AS hash FROM ${qid(schema)}.${qid(name)} t`);
+    encode(sha256(convert_to(coalesce(string_agg(row_hash, '' ORDER BY row_hash COLLATE "C"), ''), 'UTF8')), 'hex') AS hash
+    FROM (SELECT encode(sha256(convert_to(to_jsonb(t)::text, 'UTF8')), 'hex') AS row_hash
+      FROM ${qid(schema)}.${qid(name)} t) row_hashes`);
   const rows = JSON.parse(await query(env, `SELECT coalesce(json_agg(x ORDER BY name), '[]'::json) FROM (${selects.join(' UNION ALL ')}) x;`, snapshot));
   const schemas = REQUIRED.map(sqlString).join(',');
   // A logical restore preserves visible column order, not gaps left by dropped columns.
@@ -323,6 +326,7 @@ async function main() {
     originalOwnershipAndClusterRoles: 'preserved in archive; local verifier uses no-owner and existing local platform roles',
     restoreVerified: true, storageObjectCount: 0, vaultSecretCount: 0,
     snapshotFingerprintSha256: digest(JSON.stringify(sourceFingerprint)),
+    rowFingerprintAlgorithm: 'SHA256 of sorted fixed-width row SHA256 digests; duplicates preserved',
     ciphertextSha256: envelope.ciphertextSha256, recipientSpkiSha256: envelope.recipientSpkiSha256,
     opsCommit: process.env.GITHUB_SHA || null, runId: process.env.GITHUB_RUN_ID || null
   };
