@@ -44,9 +44,23 @@ export function change(baseline, candidate) {
         percentUnavailableReason: baseline === 0 ? 'zero-baseline' : null };
 }
 
+const RENDER_PARTS = ['rebuildOperationalIndexes', 'renderProntuarioVerificacoes', 'guidanceSchoolEntry'];
+function summarizeRenderBreakdown(breakdown, label) {
+    if (breakdown == null) return null;
+    requireCondition(typeof breakdown === 'object' && !Array.isArray(breakdown), `${label}: invalid render breakdown`);
+    return Object.fromEntries(RENDER_PARTS.map(name => {
+        const metric = breakdown[name];
+        if (metric === null) return [name, null];
+        requireCondition(metric && typeof metric === 'object', `${label}: missing ${name}`);
+        return [name, { count: count(metric.count, `${label}.${name}.count`),
+            totalMs: number(metric.totalMs, `${label}.${name}.totalMs`),
+            maxMs: number(metric.maxMs, `${label}.${name}.maxMs`) }];
+    }));
+}
+
 function browserPerformanceSummary(performance, label) {
     const empty = Object.fromEntries(OPTIONAL_SUM_FIELDS.map(field => [field, null]));
-    if (performance == null) return { status: 'not-recorded', ...empty };
+    if (performance == null) return { status: 'not-recorded', ...empty, renderBreakdown: null };
     const { longTasks, applyRemoteState, renderProntuario } = performance;
     requireCondition(longTasks && typeof longTasks.supported === 'boolean', `${label}: missing long task support status`);
     for (const [name, timing] of Object.entries({ applyRemoteState, renderProntuario })) {
@@ -70,7 +84,8 @@ function browserPerformanceSummary(performance, label) {
         longTasksSupported: longTasks.supported,
         longTaskMaxMs: longTasks.supported ? longTasks.maxMs : null,
         applyMaxMs: applyRemoteState.maxMs, renderMaxMs: renderProntuario.maxMs,
-        applySampleDurationMs: percentiles(applyRemoteState.samplesMs) };
+        applySampleDurationMs: percentiles(applyRemoteState.samplesMs),
+        renderBreakdown: summarizeRenderBreakdown(performance.renderBreakdown, `${label}.renderBreakdown`) };
 }
 
 function percentiles(values) {
@@ -78,6 +93,24 @@ function percentiles(values) {
     const percentile = fraction => sorted.length ? sorted[Math.ceil(fraction * sorted.length) - 1] : null;
     return { samples: sorted.length, p50: percentile(0.5), p95: percentile(0.95),
         p99: percentile(0.99), max: sorted.at(-1) ?? null };
+}
+
+const FISCAL_OPERATIONS = ['create', 'update', 'delete'];
+function summarizeFiscalTiming(report, label) {
+    if (report.fiscalTimings === undefined) return { status: 'not-recorded', operations: null };
+    const expectedPerOperation = Math.max(2, Math.floor(report.rounds / 4));
+    requireCondition(Array.isArray(report.fiscalTimings)
+        && report.gestures[1] === expectedPerOperation * 3
+        && report.fiscalTimings.length === report.gestures[1],
+    `${label}: fiscal timings must cover every fiscal gesture`);
+    const groups = Object.fromEntries(FISCAL_OPERATIONS.map(name => [name, []]));
+    for (const [index, item] of report.fiscalTimings.entries()) {
+        requireCondition(item && FISCAL_OPERATIONS.includes(item.operation), `${label}.fiscalTimings[${index}]: invalid operation`);
+        groups[item.operation].push(number(item.durationMs, `${label}.fiscalTimings[${index}].durationMs`));
+    }
+    for (const name of FISCAL_OPERATIONS) requireCondition(groups[name].length === expectedPerOperation,
+        `${label}: incomplete fiscal operation ${name}`);
+    return { status: 'recorded', operations: Object.fromEntries(FISCAL_OPERATIONS.map(name => [name, percentiles(groups[name])])) };
 }
 
 function writeTimingSummary(timing, label) {
@@ -239,6 +272,7 @@ function summarizeExperiment(input, variant) {
     const sql = sqlDelta(input.sqlBefore, input.sqlAfter, `${variant}.sql`);
     return { generatedAt: report.generatedAt, rounds: report.rounds, gestures: report.gestures,
         finalValue: report.finalValue, faults: report.faults, totals, sessions, sql,
+        fiscalTiming: summarizeFiscalTiming(report, variant),
         convergence: { status: 'asserted-by-passed-journey', finalValue: report.finalValue,
             reloadInitialCompetence: report.reloadInitialCompetence,
             note: 'Passed journey asserts final database/UI/reload state and reconnect recovery; it does not measure freshness lag during continuous activity.' },
@@ -327,6 +361,27 @@ export function renderComparisonMarkdown(comparison) {
     for (const variant of ['baseline', 'candidate']) for (const session of comparison[variant].sessions) {
         lines.push(`| ${variant} | ${session.session} | ${session.browserPerformance.status} | ${format(session.longTasksPerMinute)} | ${format(session.longTaskTotalMs)} / ${format(session.longTaskBlockingMs)} | ${format(session.applyMeasuredCount)} / ${format(session.applyTotalMs)} | ${format(session.renderMeasuredCount)} / ${format(session.renderTotalMs)} |`);
     }
+    lines.push('', '## Fiscal click to confirmed visible result', '',
+        'Includes Playwright action/auto-wait, RPC, settle and visible assertion; excludes subsequent diagnostic read.',
+        '| Variant | Operation | Samples | p50 ms | p95 ms | Max ms |',
+        '|---|---|---:|---:|---:|---:|');
+    for (const variant of ['baseline', 'candidate']) {
+        const timing = comparison[variant].fiscalTiming;
+        for (const name of FISCAL_OPERATIONS) {
+            const item = timing.operations?.[name];
+            lines.push(`| ${variant} | ${name} | ${item?.samples ?? 'n/a'} | ${format(item?.p50 ?? null)} | ${format(item?.p95 ?? null)} | ${format(item?.max ?? null)} |`);
+        }
+    }
+    lines.push('', '## Fiscal session render breakdown (inclusive, not additive)', '',
+        'Synchronous function entry timings overlap; guidance entry covers only calls through the public renderSchool reference. Missing instrumentation is n/a.',
+        '| Variant | Function | Count | Total ms | Max ms |', '|---|---|---:|---:|---:|');
+    for (const variant of ['baseline', 'candidate']) {
+        const breakdown = comparison[variant].sessions[1]?.browserPerformance.renderBreakdown;
+        for (const name of RENDER_PARTS) {
+            const metric = breakdown?.[name];
+            lines.push(`| ${variant} | ${name} | ${format(metric?.count ?? null)} | ${format(metric?.totalMs ?? null)} | ${format(metric?.maxMs ?? null)} |`);
+        }
+    }
     lines.push('', '## SQL baseline/delta', '', '| Variant | Query ID | Role | Before calls | After calls | Delta calls | Delta execution ms | Delta mean ms |',
         '|---|---|---|---:|---:|---:|---:|---:|');
     for (const variant of ['baseline', 'candidate']) for (const signature of comparison[variant].sql.signatures) {
@@ -383,5 +438,11 @@ export async function main(args = process.argv.slice(2), env = process.env) {
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
     main().then(comparison => {
         process.stdout.write(`Comparison saved; cost budgets ${comparison.costBudgets.status}; ${comparison.warnings.length} diagnostic warnings.\n`);
+        for (const variant of ['baseline', 'candidate']) {
+            const result = comparison[variant];
+            process.stdout.write(`Fiscal diagnostic ${variant}: ${JSON.stringify({
+                timing: result.fiscalTiming, render: result.sessions[1]?.browserPerformance.renderBreakdown ?? null
+            })}\n`);
+        }
     }).catch(error => { process.stderr.write(`${error.message}\n`); process.exitCode = 1; });
 }

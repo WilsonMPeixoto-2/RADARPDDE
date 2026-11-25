@@ -2,6 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const { performance } = require('node:perf_hooks');
 const { test, expect } = require('@playwright/test');
 const { createOperationalReadTracker } = require('../support/operational-read-tracker.js');
 const { observeOperationalSession } = require('../support/operational-session-observer.js');
@@ -64,7 +65,7 @@ async function remoteInvoice(page, number) {
     return result.data;
   }, number);
 }
-async function invoiceCycle(page, index) {
+async function invoiceCycle(page, index, fiscalTimings) {
   const number = `OPS-NF-${index}`;
   await row(page, 'notaFiscal').getByRole('button', { name: 'Adicionar Nota', exact: true }).click();
   const modal = page.locator('#modal-dados-nota');
@@ -73,21 +74,35 @@ async function invoiceCycle(page, index) {
   await modal.locator('#nota-numero').fill(number);
   await modal.locator('#nota-desc').fill(`Material operacional ${index}`);
   await modal.locator('#nota-valor').fill('250');
+  // Wall clock in the test runner: includes click/auto-wait, RPC, local apply
+  // and visible assertion, not the extra diagnostic SQL/REST read below.
+  const visibleCard = page.locator('.invoice-document-row').filter({
+    has: page.getByText(`NF: ${number}`, { exact: true })
+  });
+  let startedAt = performance.now();
   await modal.locator('button[type="submit"]').click();
   await expect(modal).not.toHaveClass(/show/);
   await settle(page);
+  await expect(visibleCard).toBeVisible();
+  await expect(visibleCard.locator('.invoice-document-meta strong')).toHaveText(/250,00$/);
+  fiscalTimings.push({ operation: 'create', durationMs: performance.now() - startedAt });
   const [invoice] = await remoteInvoice(page, number);
   expect(invoice).toMatchObject({ amount: 250, expense_type: 'consumo' });
   const card = page.locator(`.invoice-document-row[data-invoice-id="${invoice.id}"]`);
   await card.getByRole('button', { name: /^Editar (?:despesa:|lançamento:|NF:)/ }).click();
   await modal.locator('#nota-valor').fill('315.50');
+  startedAt = performance.now();
   await modal.locator('button[type="submit"]').click();
   await expect(modal).not.toHaveClass(/show/);
   await settle(page);
+  await expect(card.locator('.invoice-document-meta strong')).toHaveText(/315,50$/);
+  fiscalTimings.push({ operation: 'update', durationMs: performance.now() - startedAt });
   expect((await remoteInvoice(page, number))[0].amount).toBe(315.5);
+  startedAt = performance.now();
   await card.getByRole('button', { name: /^Excluir NF:/ }).click();
   await settle(page);
   await expect(card).toHaveCount(0);
+  fiscalTimings.push({ operation: 'delete', durationMs: performance.now() - startedAt });
   expect(await remoteInvoice(page, number)).toEqual([]);
   return 3;
 }
@@ -100,6 +115,7 @@ test('seis sessões reais medem escrita, observação, edição e falha durante 
   const pages = await Promise.all(contexts.map(context => context.newPage()));
   const observations = [];
   const gestures = [0, 0, 0, 0, 0, 0];
+  const fiscalTimings = [];
   const faults = { readLatencyMs: 0, failObserverRead: false, failuresInjected: 0 };
   const observerReads = createOperationalReadTracker();
   const reconnectProof = {};
@@ -209,7 +225,7 @@ test('seis sessões reais medem escrita, observação, edição e falha durante 
     };
     const invoiceWriter = async () => {
       for (let n = 0; n < Math.max(2, Math.floor(rounds / 4)); n += 1) {
-        gestures[1] += await invoiceCycle(pages[1], n);
+        gestures[1] += await invoiceCycle(pages[1], n, fiscalTimings);
         await pause(300);
       }
     };
@@ -302,7 +318,7 @@ test('seis sessões reais medem escrita, observação, edição e falha durante 
     });
     expect(db.bonification.extCC).toBe(finalValue);
     const samples = await Promise.all(observations.map(observer => observer.snapshot()));
-    report = { samples, finalValue, gestures, faults: { ...faults } };
+    report = { samples, finalValue, gestures, fiscalTimings, faults: { ...faults } };
     await pages[3].screenshot({ path: testInfo.outputPath('observer-before-reload.png'), fullPage: true });
     stage = 'reload';
     await pages[3].reload();
@@ -334,12 +350,14 @@ test('seis sessões reais medem escrita, observação, edição e falha durante 
   } finally {
     releaseOldResponse();
     releaseRecoveryResponse();
-    if (!report) report = { samples: await Promise.all(observations.map(observer => observer.snapshot().catch(() => null))), gestures, faults };
+    if (!report) report = { samples: await Promise.all(observations.map(observer => observer.snapshot().catch(() => null))), gestures, fiscalTimings, faults };
     const serialized = JSON.stringify({ schemaVersion: 1, generatedAt: new Date().toISOString(),
       variant: process.env.RADAR_OPERATIONAL_VARIANT || 'candidate', stage, outcome, failure,
       rounds, ...report, limits: ['Massa sintética calibrada; não clone de Production.',
         'Seis sessões/quatro Controladores: três escritores, dois observadores escolares e um Dashboard; inclui abas da mesma identidade.',
         'Esta jornada mede avaliações e CRUD fiscal; não certifica patrimônio, Pendências, horas de uso ou staging.',
+        'Tempos fiscais incluem auto-wait do Playwright, clique, RPC, settle e confirmação visual; excluem leitura remota diagnóstica posterior. Não medem paint, edição do formulário ou confirmação humana real.',
+        'Tempos de funções síncronas são inclusivos e podem se sobrepor; guidanceSchoolEntry observa somente a entrada pública renderSchool, não todo trabalho interno de orientação.',
         'Latência e HTTP 500 são induzidos no transporte; dados e Realtime são reais.',
         'Um socket real é desconectado; snapshot SQL anterior é retido até recovery ser solicitado. UI só converge após a nova resposta global de recovery. A sonda antiga acrescenta uma leitura nas duas variantes.'] }, null, 2);
     expect(serialized).not.toContain(password);

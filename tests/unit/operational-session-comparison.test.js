@@ -208,3 +208,33 @@ test('comparação inclui leituras escolares e globais no mesmo custo contextual
     assert.equal(result.candidate.sessions[0].readAttempts, 3);
     assert.equal(result.candidate.sessions[0].payloadBytes, 200);
 });
+
+test('preserva compatibilidade histórica e resume os três gestos fiscais sem inventar métricas ausentes', async () => {
+    const { compareOperationalSessions, renderComparisonMarkdown } = await modulePromise;
+    const inputs = pair();
+    assert.equal(compareOperationalSessions(inputs).baseline.fiscalTiming.status, 'not-recorded');
+    for (const input of Object.values(inputs)) {
+        const second = structuredClone(input.report.samples[0]);
+        const writes = second.requests.filter(request => request.path === WRITE_PATH);
+        second.requests.push(...writes, ...writes);
+        second.writes = 6;
+        input.report.samples.push(second);
+        input.report.gestures.push(6);
+        input.report.fiscalTimings = ['create', 'update', 'delete'].flatMap(operation => [
+            { operation, durationMs: 10 }, { operation, durationMs: 30 }
+        ]);
+    }
+    const result = compareOperationalSessions(inputs);
+    assert.deepEqual(result.candidate.fiscalTiming.operations.create,
+        { samples: 2, p50: 10, p95: 30, p99: 30, max: 30 });
+    assert.equal(result.candidate.sessions[1].browserPerformance.renderBreakdown, null);
+    assert.match(renderComparisonMarkdown(result), /Fiscal click to confirmed visible result/);
+    assert.match(renderComparisonMarkdown(result), /candidate \| create \| 2 \| 10 \| 30 \| 30/);
+    inputs.candidate.report.fiscalTimings[0].operation = 'update';
+    assert.throws(() => compareOperationalSessions(inputs), /incomplete fiscal operation/);
+    inputs.candidate.report.fiscalTimings[0].operation = 'create';
+    inputs.candidate.report.fiscalTimings[0].durationMs = -1;
+    assert.throws(() => compareOperationalSessions(inputs), /nonnegative number/);
+    inputs.candidate.report.fiscalTimings.pop();
+    assert.throws(() => compareOperationalSessions(inputs), /every fiscal gesture/);
+});
