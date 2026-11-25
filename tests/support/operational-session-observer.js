@@ -107,6 +107,35 @@ async function observeOperationalSession(page) {
       try { return render.apply(this, args); }
       finally { recordDuration(counters.performance.renderProntuario, start); }
     };
+    // Inclusive timings: the verification renderer includes guidance when it
+    // calls it, and both can run within renderProntuario. Never sum these rows.
+    const breakdown = counters.performance.renderBreakdown = {};
+    for (const name of ['rebuildOperationalIndexes', 'renderProntuarioVerificacoes']) {
+      const original = window[name];
+      breakdown[name] = typeof original === 'function' ? { count: 0, totalMs: 0, maxMs: 0 } : null;
+      if (!breakdown[name]) continue;
+      window[name] = function observedRenderPart(...args) {
+        const start = performance.now();
+        try { return original.apply(this, args); }
+        finally { recordDuration(breakdown[name], start); }
+      };
+    }
+    // The guidance API itself is frozen. Replace only the test page's global
+    // reference, retaining every entry and freezing the instrumentation copy.
+    // Internal lexical calls (e.g. refresh) are not intercepted by this wrapper.
+    const guidance = window.RadarOperationalGuidanceUi;
+    breakdown.guidanceSchoolEntry = typeof guidance?.renderSchool === 'function'
+      ? { count: 0, totalMs: 0, maxMs: 0 } : null;
+    if (breakdown.guidanceSchoolEntry) {
+      window.RadarOperationalGuidanceUi = Object.freeze({
+        ...guidance,
+        renderSchool(...args) {
+          const start = performance.now();
+          try { return guidance.renderSchool.apply(guidance, args); }
+          finally { recordDuration(breakdown.guidanceSchoolEntry, start); }
+        }
+      });
+    }
     const main = document.getElementById('main-container');
     new MutationObserver(records => {
       counters.mutations += records.length;
