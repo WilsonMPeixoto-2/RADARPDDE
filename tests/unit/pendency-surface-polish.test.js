@@ -103,3 +103,9 @@ test('botão da planilha usa verde Excel com estados acessíveis', () => {
   assert.match(pendencyCss, /\.pendency-export-button\.btn-primary:focus-visible/);
   assert.match(pendencyCss, /outline: 3px solid rgba\(33, 115, 70, 0\.28\)/);
 });
+
+
+test('observações de Pendências respeitam parágrafos cadastrados sem expor HTML', () => {
+  assert.match(pendencyPageSource, /escapeHtml\([\s\S]*?record\.observation/);
+  assert.match(pendencyCss, /\.pendency-drawer-section\.is-observation p\s*\{\s*white-space:\s*pre-line;/);
+});
