@@ -315,7 +315,8 @@ test('botão Redefinir como não analisado prepara a prévia do que vai mudar e 
     await expect(clearButton).toBeEnabled();
     await clearButton.click();
     await expect(dialog.getByText('Incorreto → Não analisado')).toBeVisible();
-    await expect(dialog.getByText(/Análise pronta para ser limpa/)).toBeVisible();
+    await expect(dialog.getByRole('status').filter({ hasText: 'A análise atual voltará a Não analisado. Apenas os efeitos indicados serão aplicados; não é a exclusão de todo o histórico. Confira e confirme.' })).toBeVisible();
+    await expect(dialog.getByRole('button', { name: 'Confirmar correção' })).toBeEnabled();
     await expect(clearButton).toBeDisabled();
     // Ainda não gravou nada antes da confirmação explícita:
     expect(await page.evaluate(() => window.__auditRpc.filter(c => c.name === 'apply_operational_change').length)).toBe(0);
