@@ -2,6 +2,8 @@
 
 Descreva o problema ou objetivo humano desta entrega e a superfície afetada.
 
+Nas mudanças percebidas pelo usuário, registre a jornada, linguagem, ação principal e resultado esperado definidos em paralelo à solução técnica, considerando também pessoas pouco experientes.
+
 ## Mudança
 
 Explique a menor alteração coerente aplicada e quais regras ou invariantes permanecem inalterados.
@@ -33,6 +35,8 @@ Sem justificar pela implementação, descreva em linguagem comum:
 - [ ] Não há conteúdo necessário cortado, encoberto ou sobreposto.
 - [ ] Não há overflow inesperado que prejudique leitura ou ação.
 - [ ] A ação principal tem prioridade visual coerente sobre ações secundárias.
+- [ ] Rótulos descrevem seus efeitos em linguagem natural; confirmações são proporcionais, sem etapas duplicadas.
+- [ ] Cores mantêm significado consistente, com texto/ícone; tipografia e foco são legíveis nas condições afetadas.
 - [ ] Espaçamento, alinhamento, densidade e hierarquia continuam coerentes com os elementos preexistentes.
 - [ ] O novo elemento foi inspecionado no conjunto da tela, não apenas isoladamente.
 - [ ] Feedback comunica consequência material, não apenas “sucesso técnico”.
@@ -82,6 +86,8 @@ Sem justificar pela implementação, descreva em linguagem comum:
 ## Revisão de continuidade
 
 Descreva os efeitos em superfícies vizinhas e o que acontece ao navegar, voltar e recarregar quando material.
+
+**Passagem entre agentes:** indique decisões/prioridades e autorizações mantidas, branch/PR/SHA remoto, resultados favoráveis e desfavoráveis, limites e próximo ato. Confirme que o registro remoto foi atualizado; não deixe a única cópia em conversa ou ambiente temporário. Consulte a [política permanente](../docs/reference/DECISION_IMPACT_POLICY.md) e a [D023](../docs/continuity/prontuario-t0-t6/D023_CONTINUIDADE_REMOTA_E_USABILIDADE.md). Esse registro é proporcional à mudança e não cria outra aprovação ou suíte de testes por rotina.
 
 ## Limites e pendências
 

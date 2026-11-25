@@ -34,6 +34,8 @@ Antes de editar código:
 
 O primeiro trabalho de uma correção é confirmar que a lacuna ainda existe. Encontrar que a proteção já está implementada é um resultado válido e, muitas vezes, melhor que escrever outro hotfix.
 
+Nas mudanças percebidas pelo usuário, definir desde o início a jornada, a linguagem, a ação principal, o resultado esperado e os critérios de leitura/acessibilidade do [catálogo de superfícies](PRODUCT_SURFACE_CATALOG.md#28-clareza-e-facilidade-de-uso-permanentes). Desenvolver e revisar esses aspectos em paralelo às regras, à persistência e aos testes, com esforço proporcional à mudança e considerando usuários pouco experientes. Esse compromisso permanente está registrado na [D023](../continuity/prontuario-t0-t6/D023_CONTINUIDADE_REMOTA_E_USABILIDADE.md).
+
 ## 3. Sequência de raciocínio
 
 Usar esta sequência em problemas materiais:
@@ -273,7 +275,7 @@ Quando materialmente possível, essa revisão deve usar uma reprodução diferen
 
 Para qualquer mudança percebida pelo usuário, a revisão adversarial possui uma segunda perspectiva obrigatória: **o produto visto de fora**.
 
-Depois da implementação técnica, o agente deve interromper a leitura do código e observar a interface renderizada como se não soubesse como ela foi construída. O objetivo não é “confirmar o componente”, mas tentar refutar a ideia de que o resultado é suficientemente claro para uso humano.
+Durante a evolução e novamente no fechamento da mudança, o agente deve interromper a leitura do código e observar a interface renderizada como uma pessoa que não conhece a implementação. O objetivo não é “confirmar o componente”, mas tentar refutar a ideia de que o resultado é suficientemente claro para uso humano. Essa revisão independente complementa a atenção à usabilidade mantida desde a concepção.
 
 Perguntas mínimas:
 
@@ -423,6 +425,8 @@ Para mudanças P0/P1 ou transversais, a revisão adversarial faz parte do trabal
 Este método deve ser aplicado independentemente de quem estiver executando a tarefa: ChatGPT, Codex, Astra, outro agente ou revisão humana.
 
 Uma nova conversa não deve depender da memória da conversa anterior para conhecer estas práticas. Por isso este documento faz parte da rota obrigatória de `AGENTS.md`.
+
+Aplicar o [registro contínuo e a passagem de trabalho](DECISION_IMPACT_POLICY.md#registro-contínuo-e-passagem-de-trabalho--reforço-de-25112026) em cada avanço material: decisões, prioridades, regras, autorizações, resultados favoráveis e desfavoráveis, limites e próximo ato precisam estar no GitHub remoto antes da transferência. Confirmar a disponibilidade remota e reutilizar as fontes da frente, sem criar outro diário concorrente.
 
 Ao produzir nova evidência metodológica relevante:
 

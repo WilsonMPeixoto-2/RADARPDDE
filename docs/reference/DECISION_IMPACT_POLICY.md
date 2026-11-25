@@ -17,7 +17,7 @@ Toda aprovação material deve conter uma matriz dos **desdobramentos aplicávei
 | Domínio e dados | Quais estados, invariantes e vínculos o novo comportamento modifica ou preserva? |
 | Banco e autorização | Quais tabelas, migrations, RPCs, RLS, permissões, triggers, versões e auditorias são atingidos? |
 | Serviços e sincronização | Qual escritor é autoridade e como o estado converge após gravação, reload, retry e segunda sessão? |
-| UI, UX e acessibilidade | Como ações, mensagens, contexto, foco, teclado, temas e layout apresentarão a regra? |
+| UI, UX e acessibilidade | Desde a concepção e em paralelo à engenharia, como ações, mensagens, contexto, foco, teclado, temas e layout tornarão a regra compreensível e utilizável? |
 | Fluxos relacionados | Há efeitos em NF, Bonificação, Pendências, Assessoria, Inventário, Contatos ou provisória Qualidade? |
 | Consultas e exportações | O que muda nas projeções, busca, indicadores, filtros e Excel/relatórios? |
 | Testes e provas | Quais testes antigos se tornam inválidos, quais devem ser preservados e quais novos cenários negativos/positivos são exigidos? |
@@ -41,7 +41,15 @@ O mesmo princípio vale para qualquer decisão: uma melhoria de backend hoje pod
 5. **Retomar pela regra, não pelo agente:** em novo chat, carregar documento canônico, mapa de impactos, SHA atual, decisões supervenientes e obrigações abertas antes de modificar qualquer arquivo. Verificar sua relevância também para telas vizinhas e trabalho futuro.
 6. **Validar por camadas e por release:** cada PR descreve obrigações cumpridas e não cumpridas, testes/CI por SHA e aceite humano. Candidato, aprovado e publicado são estados distintos.
 
-O catálogo `docs/continuity/prontuario-t0-t6/decision-impact.json` é a **primeira implantação** desta política e acompanha as decisões D001–D020, inclusive obrigações futuras do inventário. `npm run decisions:impact -- --query --phase=T5 --surface=ui` consulta os compromissos pertinentes. A versão inicial **não cataloga exaustivamente todos os ADRs ou todos os chats históricos do RADAR**; cada frente deverá adotar o mesmo padrão sem criar um segundo contrato concorrente.
+### Registro contínuo e passagem de trabalho — reforço de 25/11/2026
+
+A [D023](../continuity/prontuario-t0-t6/D023_CONTINUIDADE_REMOTA_E_USABILIDADE.md) reafirma dois deveres permanentes: continuidade remota e usabilidade humana em paralelo à engenharia. A cada avanço material e antes de transferir a execução ou encerrar a entrega, atualizar a trilha remota existente com decisões e regras recebidas, prioridades, alternativas adotadas ou descartadas e seu motivo, autorizações já concedidas, branch/PR/SHA, testes executados e seus resultados, limites da prova, estado das tarefas e próximo passo concreto. Não esperar o esgotamento da cota do agente para registrar trabalho recuperável.
+
+Reutilizar registro, checkpoint e evidências da frente, sem criar fontes concorrentes nem registrar cada chamada de ferramenta. Confirmar a gravação remota antes de afirmar que o trabalho está disponível ao próximo agente; quando não for possível, declarar precisamente o que ainda não foi sincronizado. A troca de agente não invalida decisões ou autorizações anteriores dentro do alcance registrado. Preservar resultados negativos e separar **proposto, implementado, testado, inspecionado, aceito e publicado**.
+
+O sucessor deve conseguir responder, a partir do GitHub: qual objetivo está vigente, qual regra o governa, o que mudou, por que mudou, em qual versão, quais provas existem, o que permanece incerto e qual ação vem a seguir. Referências a evidências privadas devem respeitar o acesso autorizado; não publicar credenciais, documentos ou dados escolares identificáveis. Uma atualização exclusivamente documental não exige repetir testes funcionais já válidos nem produzir ciclos de commits apenas para registrar o próprio SHA.
+
+O catálogo `docs/continuity/prontuario-t0-t6/decision-impact.json` é a **primeira implantação** desta política; decisões e obrigações atuais estão na sua fonte estruturada, inclusive as que atravessam releases. `npm run decisions:impact -- --query --phase=T5 --surface=ui` consulta os compromissos pertinentes. O catálogo **não cobre exaustivamente todos os ADRs ou todos os chats históricos do RADAR**; cada frente deverá adotar o mesmo padrão sem criar um segundo contrato concorrente.
 
 ## Consistência na revisão de PRs e entre branches
 

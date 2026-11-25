@@ -1,6 +1,41 @@
 # Checkpoint único de continuidade operacional — RADAR T0–T6
 
-## 25/11/2026 — PR #564 publicado; PR #565 em implementação e homologação
+## 25/11/2026 — T5 ativo em produção; registro permanente D023
+
+### Baseline funcional e prova de publicação
+
+Conferência somente leitura realizada em 25/11, cerca de 13h50 de Brasília. O [PR #565](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565) foi integrado às 11h21 em `31c27155eb2169032a36cb050082ae080965053d`. A candidata final foi `85e482b05227bd2268fe1007e44bade853eddc61`; o PR conserva o fechamento dos testes e a seção posterior de publicação.
+
+| Camada | Resultado e fonte |
+|---|---|
+| GitHub | `main` conferida no merge #565; status Vercel concluído. [Commit](https://github.com/WilsonMPeixoto-2/RADARPDDE/commit/31c27155eb2169032a36cb050082ae080965053d). |
+| Vercel | Deployment `dpl_9bzP49Kxyn5yYq6gAK8csEEanhjY`, concluído às 11h35. [Deployment](https://vercel.com/wilson-m-peixotos-projects/radarpdde-fix/9bzP49Kxyn5yYq6gAK8csEEanhjY). |
+| Configuração publicada | [Manifesto oficial](https://radarpdde-fix.vercel.app/radar-build-manifest.json): HTTP 200, SHA do merge, `production`, `supabase-production`, `operationalCorrectionRelease`, `bonificationCorrectionRelease`, `contextDeletionRelease`, `itemHistoryRelease` e `granularHistoryRelease` iguais a `true`. |
+| Banco institucional | Consulta direta confirmou `ACTIVE_HEALTHY` e 69 migrations, incluindo `20261125064516_t5_granular_history_inventory`. A seção de publicação do PR também registra a conferência anterior das 13 funções e cinco gatilhos; esses corpos não foram novamente comparados nesta análise. |
+| Homologação do candidato | 25 workflows concluídos. No conjunto T2–T5, 26 casos passaram diretamente e um T3 passou na repetição; preservar a classificação de intermitência. [Readiness](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45583215832). |
+| Monitor produtivo | [45654478619](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45654478619), concluído às 13h30: SHA correto, 54 recursos, bloqueio anônimo e CORS verificados. |
+
+**Ativação T5 concluída.** Oito operações liberadas por configuração: corrigir/excluir envio, reanálise, contato e registro patrimonial, respeitando capacidade e vínculo. A publicação não equivale a executar as oito escritas sobre escolas reais: as jornadas de escrita foram homologadas no descartável e a conferência produtiva foi de leitura. Não repetir migration, backup ou liberação já concluídos apenas para atualizar o registro.
+
+### Decisão nova e alteração documental em curso
+
+O proprietário reafirmou os dois pilares da [D023](D023_CONTINUIDADE_REMOTA_E_USABILIDADE.md): registrar sistematicamente no GitHub o trabalho material e sua continuidade, e desenvolver a experiência humana em paralelo à solução técnica em todas as fases. A transcrição fiel e o limite de proveniência estão na decisão; não há permalink da conversa disponível. D020/D021 são preservadas e complementadas.
+
+A branch documental `docs/continuidade-usabilidade-20261125` incorpora D023, fonte S027, requisitos R072/R073 e obrigações permanentes por fase; reforça política, catálogo, método, gate e modelo de PR; reconcilia os roteadores com a publicação real. Não altera aplicação, CSS, banco, permissões ou configuração. Verificadores, revisão e SHA de gravação remota pertencem ao PR dessa alteração; não declarar a integração documental antes do resultado GitHub. A release funcional R3 permanece associada ao PR #565.
+
+### Pendências e próximo ato
+
+1. **Inventário:** [achado P2 do #565](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565#discussion_r4696399446). O perfil tem Dashboard próprio, mas não recebe as sugestões novas em `31c27155`. A correção foi relatada em outro ambiente sem commit remoto integrado comprovado nesta conferência. Localizar e aproveitar esse trabalho antes de refazê-lo; provar login, sugestão, abertura do bem correto e composição desktop/celular. O E2E D022 do release autentica Controlador e não comprova esse perfil.
+2. **T6:** vincular as obrigações à evidência final e manter explícitas as lacunas de cobertura, compatibilidade e aceite. Não marcar todas como verificadas por causa do merge ou dos testes agregados.
+3. **D022 documental:** o piloto com três PDFs reais de 2025 está concluído como experiência de leitura; importação e análise dentro da interface continuam evolução distinta. Fontes identificáveis permanecem privadas.
+4. **D022 desempenho:** CPU de projeções otimizada; jornada completa com resultados mistos. A atualização durante atividade contínua não foi medida. [Evidências e limites](../../evidence/2026-11-25-t5-inteligencia-documentos-desempenho.md).
+5. **Fila histórica:** PRs e issues de manutenção, investigação e propostas precisam de triagem por SHA; sua existência não demonstra defeito atual nem autoriza merge integral de branches antigas.
+
+O próximo agente começa por este bloco, pelas decisões supervenientes e pelo estado remoto real. Relato de trabalho local, código publicado, teste aprovado, inspeção do agente, aceite do proprietário e produção habilitada permanecem estados diferentes. Atualizações exclusivamente documentais posteriores não reabrem a release nem exigem um ciclo de commits para registrar seu próprio SHA.
+
+## Arquivo histórico — PR #564 publicado; PR #565 em implementação e homologação
+
+Fotografia anterior ao merge e à ativação T5 acima. As referências a flag OFF, migration candidata e próximos atos de homologação conservam a história; não são a fila atual.
 
 O proprietário autorizou “Pode fazer merge em produção”. A publicação do [PR #564](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/564) foi concluída em `7523782bdc572a631783deeae2ea59be048dd725`, árvore `b83aae17ceef279207cb0da9de7ac0e467be3cdd`, idêntica à candidata `4a14d63389da7f85e2594c1a3f3156238566a78a`. Merge às 03h28 de 25/11 (Brasília). Não houve migration, alteração de dados institucionais ou ampliação das flags nessa entrega.
 
@@ -187,7 +222,7 @@ O filtro por arquivo passa a cobrir as entradas efetivas `app.js` e `styles.css`
 
 A diretriz do proprietário **D020** exige coerência de decisões também entre chats, não apenas branches. [Protocolo](DECISION_IMPACT_PROTOCOL.md) e [mapa](decision-impact.json) registram obrigações de cada decisão aprovada em várias fases e superfícies. O primeiro corte mantém **obrigações futuras de Inventário T5 e reconsolidação T4 em aberto**, mesmo com códigos T2/T3 candidatos. Consultar `npm run decisions:impact -- --query --phase=T5 --surface=ui` antes de novo layout; `check:continuity` passa também a verificar esse mapa. A auditoria integral de todas as conversas e a cobertura semântica de cada obrigação **não estão concluídas**.
 
-## Próximo ato verificável — sem reiniciar auditoria integral
+## Próximo ato registrado em 20/11 — histórico
 
 1. Conferir **HEAD e CI atuais do PR #535**, `main` e `#534`; verificar se surgiram novos commits nas branches colaboradoras desde a última triagem.
 2. Reabrir **apenas** a divergência visual T1 contra o golden anterior; comparar aparência com a direção de arte já aprovada e obter aceite humano, inclusive posição das NFs em 1440×900, tema escuro, teclado e outros viewports. **Não atualizar golden automaticamente.**

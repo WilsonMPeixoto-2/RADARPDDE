@@ -9,7 +9,29 @@
 
 **Genealogia de decisões e requisitos desde 13/11:** [atlas de continuidade T0–T6](continuity/prontuario-t0-t6/LINEAGE.md) e [fonte estruturada](continuity/prontuario-t0-t6/lineage.json). Não basta reler plano original nem tratar 22 contribuições catalogadas como conhecimento exaustivo; seguir requisitos com origem por blob SHA e pendências históricas explícitas. O atlas não autoriza escrever no Supabase institucional.
 
-## Etapa vigente em 25/11/2026 — PR #564 publicado; candidata T5 no PR #565
+## Etapa vigente em 25/11/2026 — T5 publicado; continuidade e usabilidade permanentes
+
+**Baseline funcional conferida em 25/11, cerca de 13h50 de Brasília:** [PR #565 integrado](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565), merge `31c27155eb2169032a36cb050082ae080965053d` às 11h21. O [manifesto oficial](https://radarpdde-fix.vercel.app/radar-build-manifest.json) respondeu HTTP 200 no mesmo SHA, `production` / `supabase-production`, com as cinco liberações T0–T5 ativas. A Vercel registra o [deployment concluído às 11h35](https://vercel.com/wilson-m-peixotos-projects/radarpdde-fix/9bzP49Kxyn5yYq6gAK8csEEanhjY). Consulta direta ao Supabase confirmou `ACTIVE_HEALTHY` e 69 migrations, incluindo `20261125064516_t5_granular_history_inventory`. O bloqueio de ativação T5 foi superado. Esta fotografia não substitui nova leitura do ambiente quando o SHA atual for necessário.
+
+**Provas e limites:** a candidata `85e482b05227bd2268fe1007e44bade853eddc61` encerrou 25 workflows aprovados; no bloco T2–T5, 26 casos passaram diretamente e um T3 na repetição. O [monitor produtivo de 13h30](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45654478619) passou no merge. Escritas foram homologadas no Supabase descartável; a conferência institucional desta análise foi somente leitura. O [checkpoint único](continuity/prontuario-t0-t6/CHECKPOINT.md) mantém os links, estados e próximo ato; não reaplicar a migration nem repetir a liberação para reconciliar documentos.
+
+**Diretriz atual do proprietário:** [D023 — continuidade remota sistemática e usabilidade humana permanente](continuity/prontuario-t0-t6/D023_CONTINUIDADE_REMOTA_E_USABILIDADE.md). Decisões, regras, prioridades, autorizações, mudanças, testes e resultados, limites e planos de retomada devem acompanhar cada avanço material no GitHub remoto. A experiência humana evolui junto com a engenharia em todas as fases, observando linguagem natural, botão/efeito, confirmações proporcionais, cores, tipografia, respiro, carga visual e acessibilidade. A origem foi incorporada à política, catálogo, método e gate existentes; registrar uma diretriz não certifica retroativamente todas as telas.
+
+**Pendências posteriores à publicação, com alcance separado:**
+
+| Frente | Situação e próximo passo verificável |
+|---|---|
+| Orientação do Inventário | O painel próprio existe, mas as sugestões novas não são acionadas nesse perfil em `31c27155`; [achado P2](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565#discussion_r4696399446). Há relato de correção posterior em outro ambiente, sem SHA remoto integrado comprovado nesta conferência. Localizar esse trabalho antes de refazê-lo e validar login, sugestão, bem correto e composição desktop/celular. |
+| Documentos D022 | Experiência com três PDFs reais concluída no alcance autorizado, sem importação ou escrita institucional. A incorporação à interface continua uma evolução distinta, não entrega já publicada. |
+| Desempenho D022 | Redução de CPU das projeções comprovada; ensaios completos mistos. Investigar render fiscal e atualização durante atividade com comparação controlada; não anunciar ganho global de Production. |
+| T6 e evidências | Reconciliar obrigações com as provas finais por SHA, preservando lacunas de perfil, compatibilidade e aceite que ainda não estejam demonstradas. Checkboxes históricos não são fila automática de repetição. |
+| Continuidade | Esta alteração reconcilia os roteadores e registra D023. Resultado dos verificadores, revisão e SHA remoto devem constar no PR da alteração documental. |
+
+**Próximo ato técnico:** localizar a correção do Inventário já relatada, comparar com a baseline publicada e completar sua jornada no frontend. A aprovação de D023 mantém as fronteiras de dados, capacidades e publicação já definidas; não concede autorização adicional para escrita institucional.
+
+## Arquivo histórico — preparação e homologação do PR #565 antes da publicação de 25/11
+
+Os parágrafos a seguir conservam o estado anterior ao merge e à ativação registrados acima. Expressões como candidata, flag OFF e migration somente descartável pertencem àquele momento e não descrevem a produção atual.
 
 **Produção publicada:** o [PR #564](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/564) foi integrado após a autorização expressa do proprietário, “Pode fazer merge em produção”. A versão publicada é `7523782bdc572a631783deeae2ea59be048dd725`, com a mesma árvore da candidata `4a14d63389da7f85e2594c1a3f3156238566a78a`. Foram aprovados 20/20 workflows da candidata e 10/10 do push em main. [Smoke de produção no SHA exato](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45560905562), [jornada pública](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45560905653) e [deployment Vercel](https://vercel.com/wilson-m-peixotos-projects/radarpdde-fix/32j4myukPALqLX5iCnZZ5sF5bDTH). A publicação não mudou o banco: continuam 68 migrations institucionais, conforme a última validação do #562. Não repetir backup ou migration 68 para registrar a conclusão do #564.
 

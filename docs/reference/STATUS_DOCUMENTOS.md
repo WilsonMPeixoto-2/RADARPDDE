@@ -5,6 +5,16 @@
 
 ## Precedência em 25/11/2026
 
+**T0–T5 publicados e T5 ativo.** O [PR #565](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565) foi integrado em `31c27155eb2169032a36cb050082ae080965053d`; a conferência de 25/11, cerca de 13h50 de Brasília, encontrou esse SHA no [manifesto oficial](https://radarpdde-fix.vercel.app/radar-build-manifest.json), cinco flags ativas e 69 migrations no Supabase institucional. A fonte de continuidade é o bloco de abertura do [CHECKPOINT](../continuity/prontuario-t0-t6/CHECKPOINT.md), com provas, limites e próximo ato. Os registros anteriores que dizem T5 candidato/OFF ou 68 migrations são fotografias superadas pela publicação.
+
+**Diretriz permanente D023:** [continuidade remota e usabilidade humana](../continuity/prontuario-t0-t6/D023_CONTINUIDADE_REMOTA_E_USABILIDADE.md), decisão aprovada com transcrição de origem, complementar a D020/D021. A [política transversal](DECISION_IMPACT_POLICY.md) governa o registro remoto; o [catálogo](PRODUCT_SURFACE_CATALOG.md), o [método](ENGINEERING_METHOD.md) e o [gate de frontend](FRONTEND_USER_VALIDATION_GATE.md) incorporam a experiência humana em paralelo à engenharia. O registro de origem não é manual concorrente nem prova de conformidade de todas as telas.
+
+**Continuidade pós-publicação:** sugestões do perfil Inventário ainda exigem integração comprovada; o experimento documental real está concluído no escopo de leitura, e o desempenho global continua sem ganho causal demonstrado. Estados antigos do mapa de obrigações devem ser reconciliados individualmente com as provas, preservando lacunas de T6 e aceite; não inferir ausência de release por um estado documental atrasado.
+
+## Arquivo histórico — preparação do PR #565 antes da publicação de 25/11
+
+O bloco a seguir conserva o estado pré-publicação. A precedência atual está na abertura acima.
+
 **T0–T4 e a revisão pós-T4 do PR #564 publicados; T5/D022 candidata no PR #565.** A publicação verificada corresponde a `7523782bdc572a631783deeae2ea59be048dd725`; o [smoke de produção](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45560905562) aprovou esse SHA após a autorização expressa do proprietário. O #564 publicou histórico legível, Guia do Controlador, análise agregada, protótipo documental sintético e helper preparatório T5, sem migration. As 68 migrations institucionais, o backup recuperável e o dry-run do #562 permanecem documentados no checkpoint.
 
 A frente atual está em `feat/t5-historico-granular-20261125`, [PR #565](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565): persistência e interface granular T5, orientação gerencial D022, pequena experiência documental real entregue privadamente e otimizações medidas. As oito obrigações de UI estão em candidatura, sem equivalência automática entre implementação, CI, aceite humano e publicação. A migration 69 só foi aplicada em Supabase descartável e a flag T5 permanece desligada por padrão. Reutilizar as provas do #562/#564 sem repetir operações institucionais concluídas; conferir o novo HEAD e os resultados no checkpoint.

@@ -276,6 +276,17 @@
       "ref": "feat/t5-historico-granular-20261125",
       "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/feat/t5-historico-granular-20261125/docs/continuity/prontuario-t0-t6/D022_INTELIGENCIA_DOCUMENTOS_DESEMPENHO.md",
       "note": "Transcrição da instrução na conversa de 25/11; sem permalink do chat. Fonte versionada nesta candidata."
+    },
+    {
+      "id": "S027",
+      "location": "release-branch",
+      "role": "diretriz-permanente-continuidade-remota-usabilidade-humana",
+      "path": "docs/continuity/prontuario-t0-t6/D023_CONTINUIDADE_REMOTA_E_USABILIDADE.md",
+      "contentSha": "8318560d12562e6a19259af30ae63e6ed7a84ed7",
+      "reviewStatus": "reviewed",
+      "ref": "docs/continuidade-usabilidade-20261125",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/docs/continuidade-usabilidade-20261125/docs/continuity/prontuario-t0-t6/D023_CONTINUIDADE_REMOTA_E_USABILIDADE.md",
+      "note": "Instrução expressa do proprietário na conversa de 25/11/2026 após a análise de T5; sem permalink verificável do chat. Transcrição fiel e interpretação operacional versionadas no documento; publicação remota desta fonte depende do commit/push deste lote."
     }
   ],
   "requirements": [
@@ -1542,7 +1553,7 @@
       "decisionIds": [
         "T0T6-D022"
       ],
-      "evidence": "Instrução expressa e incremento candidato no PR #565. Conclusões dependem das provas de cada superfície; não representa publicação.",
+      "evidence": "Orientação operacional incorporada e publicada no PR #565, main 31c27155eb2169032a36cb050082ae080965053d. Dashboard/Prontuário têm provas de navegação e composição por SHA, porém o review P2 do PR registra orientação inacessível ao perfil Inventário (discussion_r4696399446); correção posterior relatada ainda sem integração/publicação comprovada. A publicação não encerra a cobertura e o aceite de todas as superfícies. Fontes: https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565 e https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565#discussion_r4696399446.",
       "codePaths": [
         "src/domain/operational-guidance.js",
         "src/integration/operational-guidance.js",
@@ -1571,7 +1582,7 @@
       "decisionIds": [
         "T0T6-D022"
       ],
-      "evidence": "Instrução expressa e incremento candidato no PR #565. Conclusões dependem das provas de cada superfície; não representa publicação.",
+      "evidence": "Motor e consumidores de próximas ações incorporados e publicados no PR #565, main 31c27155eb2169032a36cb050082ae080965053d, com motivo, contexto e navegação sem mutação automática. A cobertura de Inventário permanece incompleta no Dashboard conforme o review P2; a fonte publicada não comprova a correção relatada em outro ambiente nem fecha todos os perfis. Fontes: https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565 e https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565#discussion_r4696399446.",
       "codePaths": [
         "src/domain/operational-guidance.js",
         "src/domain/operational-projection.js"
@@ -1593,7 +1604,7 @@
       "decisionIds": [
         "T0T6-D022"
       ],
-      "evidence": "Instrução expressa e incremento candidato no PR #565. Conclusões dependem das provas de cada superfície; não representa publicação.",
+      "evidence": "Piloto local executado com três PDFs reais autorizados e resultados identificáveis entregues privadamente; método, código e testes sintéticos incorporados no PR #565 em 31c27155eb2169032a36cb050082ae080965053d. Proveniência e revisão humana preservadas, sem escrita institucional. O piloto não oferece importação pela interface, OCR genérico ou conclusão administrativa; publicação do código não amplia o alcance da amostra. Fonte pública de escopo e evidências: https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565 e docs/evidence/2026-11-25-t5-inteligencia-documentos-desempenho.md.",
       "codePaths": [
         "ops/document-intelligence-poc/local-pdf-pilot/extract_pdf.py",
         "ops/document-intelligence-poc/local-pdf-pilot/analyze.mjs",
@@ -1615,7 +1626,7 @@
       "decisionIds": [
         "T0T6-D022"
       ],
-      "evidence": "Instrução expressa e incremento candidato no PR #565. Conclusões dependem das provas de cada superfície; não representa publicação.",
+      "evidence": "Otimizações de projeções incorporadas e publicadas no PR #565, main 31c27155eb2169032a36cb050082ae080965053d. Benchmark controlado de CPU em memória demonstrou equivalência integral em oito cenários e reduções de mediana de 72,8%, 62,9% e 73,0% nos recortes documentados. Ensaios autenticados tiveram resultados mistos, sem prova causal de aceleração global ou medição suficiente da experiência ponta a ponta. Fontes: https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565 e docs/evidence/2026-11-25-t5-performance/operational-projection-cpu.json.",
       "codePaths": [
         "scripts/benchmark-operational-projections.mjs"
       ],
@@ -1623,6 +1634,36 @@
         "tests/operational-projection.test.js",
         "tests/pendencias-view-model.test.js"
       ]
+    },
+    {
+      "id": "T0T6-R072",
+      "label": "Continuidade remota sistemática e retomada independente do agente",
+      "phase": "T0-T6",
+      "state": "contract-active",
+      "sourceIds": [
+        "S027"
+      ],
+      "decisionIds": [
+        "T0T6-D023"
+      ],
+      "evidence": "Diretriz aprovada pelo proprietário em 25/11/2026, complementar a D020. Exige registro remoto no mesmo ciclo material e antes de handoffs, com decisões, prioridades, regras, alterações, provas, falhas, limites, autorizações e próximo ato. A incorporação documental não certifica que todos os registros históricos foram recuperados; obrigação contínua em cada entrega.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R073",
+      "label": "Complexidade técnica traduzida em usabilidade humana permanente",
+      "phase": "T0-T6",
+      "state": "contract-active",
+      "sourceIds": [
+        "S027"
+      ],
+      "decisionIds": [
+        "T0T6-D023"
+      ],
+      "evidence": "Diretriz aprovada pelo proprietário em 25/11/2026, complementar a D021 e ao gate de frontend. Solução técnica e experiência humana devem ser concebidas e verificadas em paralelo, com linguagem, ações, confirmações, cores, tipografia, espaço, densidade e continuidade compreensíveis. Registro documental não equivale a aceite humano nem certificação global da interface; cumprimento contínuo conforme o impacto de cada entrega.",
+      "codePaths": [],
+      "testPaths": []
     }
   ],
   "gaps": [

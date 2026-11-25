@@ -2,10 +2,10 @@
 
 # Modelo canônico integrado do RADAR PDDE
 
-**Correções T0–T4 e continuidade:** o [contrato de correção](PRONTUARIO_CORRECAO_CONTRATO.md) distingue correção operacional de regularização documental. As seções abaixo incorporam a autoridade de prévia/confirmação transacional para correção, limpeza e exclusão causal; justificativa obrigatória ou bloqueio genérico por histórico não deve ser restaurado a partir de rotas legadas. O estado de publicação e as capacidades candidatas de T5 estão no [checkpoint](../continuity/prontuario-t0-t6/CHECKPOINT.md).
+**Correções T0–T5 e continuidade:** o [contrato de correção](PRONTUARIO_CORRECAO_CONTRATO.md) distingue correção operacional de regularização documental. As seções abaixo incorporam a autoridade de prévia/confirmação transacional para correção, limpeza e exclusão causal; justificativa obrigatória ou bloqueio genérico por histórico não deve ser restaurado a partir de rotas legadas. O estado de publicação e a disponibilidade por perfil/ambiente estão no [checkpoint](../continuity/prontuario-t0-t6/CHECKPOINT.md).
 
 **Classe documental:** Canônico — modelo funcional e arquitetural integrado  
-**Atualizado em:** 25 de novembro de 2026 (reconciliação das correções T0–T4)
+**Atualizado em:** 25 de novembro de 2026 (reconciliação T5 e diretriz permanente D023)
 **Finalidade:** leitura obrigatória antes de qualquer análise funcional, correção, implementação, refatoração ou auditoria do produto  
 **Estado mutável do projeto:** `docs/CURRENT_STAGE.md`
 
@@ -279,13 +279,13 @@ Duas telas podem mostrar o mesmo fato sob projeções diferentes, desde que a di
 
 Essas métricas não devem ser unificadas.
 
-### 8.1.1 Orientação operacional contextual — candidata D022
+### 8.1.1 Orientação operacional contextual — D022
 
 O incremento do PR #565 organiza sugestões de próxima ação no Dashboard e no Prontuário a partir dos registros já carregados. A indicação informa objeto, motivo, escola, competência e programa conhecidos e conduz ao fluxo existente; não decide análise nem grava um evento por conta própria. Reutiliza `operational-projection`, `invoice-document-analysis`, `fluxo-operacional`, competência canônica e capacidades reais.
 
 O recorte informa escolas e registros considerados. Contexto mensal ausente não é criado para gerar sugestão; campo de análise ausente não comprova falta de arquivo. Resultado histórico de bonificação com indicação explícita de consolidação pendente exige próximo passo de reconsolidação. Isso conserva a diferença entre resultado anterior e avaliações modificadas. A tela da escola começa compacta para preservar o acesso aos documentos; o operador pode expandir a orientação.
 
-A experiência documental autorizada em D022 é somente leitura, com fonte/página/hash e revisão humana. Fatos extraídos, compatibilidade entre documentos e registros existentes são camadas distintas; sugestão não é conclusão administrativa nem autorização automática para comandos institucionais. A ativação da candidata e as provas por SHA ficam no checkpoint.
+A experiência documental autorizada em D022 é somente leitura, com fonte/página/hash e revisão humana. Fatos extraídos, compatibilidade entre documentos e registros existentes são camadas distintas; sugestão não é conclusão administrativa nem autorização automática para comandos institucionais. A publicação, a cobertura por perfil e as provas por SHA ficam no checkpoint; o piloto local não equivale a importação documental pela interface.
 
 ### 8.2 Nota Fiscal
 
@@ -577,7 +577,7 @@ Texto/link não altera resultado. Data de disponibilização recalcula o atraso 
 
 Contatos gerais da escola têm identidade própria e não precisam de competência artificial. Corrigir/excluir um contato não resolve Pendência nem apaga mensagens externas. Desvinculação explícita preserva o contato escolar. A retificação manual mantém a origem manual, item/motivo/responsável necessários e observação opcional, inclusive vazia; editar rótulo não converte a ocorrência em documental.
 
-Disponibilidade efetiva é distinta da regra aprovada: a candidata usa a migration 69 e a flag `granularHistoryRelease`, OFF por padrão até publicação própria. Ver estado e provas no checkpoint.
+Disponibilidade efetiva é distinta da regra aprovada: o contrato usa a migration 69 e a flag `granularHistoryRelease`, desligada por padrão na configuração e habilitada mediante release. O valor padrão no código não demonstra o valor servido em Production. Ver estado e provas no checkpoint.
 
 ## 9.9 Capital e Inventário
 
@@ -599,7 +599,7 @@ Proteções atuais:
 - `registered_invoices_protect_inventoried_delete` preserva sua NF no caminho ordinário; a exclusão composta autorizada de T3/T4 é uma exceção transacional planejada, não um DELETE irrestrito. O plano identifica bem exclusivo, preserva bem compartilhado e serializa com alterações concorrentes;
 - edição posterior da NF vinculada deve preservar status, processo e metadados da inventariação.
 
-Nota permanente e bem derivado devem permanecer coerentes no mesmo contexto. A T5 acrescenta `correct_inventory` para corrigir status, processo, data, membro e observação, inclusive reverter uma conclusão digitada por engano. A reversão remove metadados de conclusão e recompõe apenas o encaminhamento derivado; não altera entregas fiscais nem o resultado da bonificação. `delete_asset` remove bem manual independente; um bem de NF oferece correção patrimonial ou exclusão causal da própria despesa, conforme capacidade, sem deixar NF órfã. Inventário opera seu domínio autorizado e não ganha exclusão fiscal. Nenhuma ação realiza baixa no SIGMA, SEI ou Processo.Rio. Disponibilidade da candidata depende da migration e da flag T5 registradas no checkpoint.
+Nota permanente e bem derivado devem permanecer coerentes no mesmo contexto. A T5 acrescenta `correct_inventory` para corrigir status, processo, data, membro e observação, inclusive reverter uma conclusão digitada por engano. A reversão remove metadados de conclusão e recompõe apenas o encaminhamento derivado; não altera entregas fiscais nem o resultado da bonificação. `delete_asset` remove bem manual independente; um bem de NF oferece correção patrimonial ou exclusão causal da própria despesa, conforme capacidade, sem deixar NF órfã. Inventário opera seu domínio autorizado e não ganha exclusão fiscal. Nenhuma ação realiza baixa no SIGMA, SEI ou Processo.Rio. Disponibilidade por ambiente depende da migration e da flag T5 registradas no checkpoint.
 
 `encampInventario` é derivado do conjunto de bens permanentes vinculados:
 
@@ -999,5 +999,6 @@ Se não for possível preencher essa cadeia, ainda não há contexto suficiente 
 9. Todo novo documento classificado como canônico deve atualizar, na mesma entrega, a rota de leitura em `AGENTS.md`, `docs/README.md` e `STATUS_DOCUMENTOS.md`.
 10. Documento que muda uma regra deste modelo deve atualizar este modelo na mesma entrega.
 11. Documento histórico não deve ser reescrito para parecer atual; deve ser reclassificado ou apontado por uma fonte canônica posterior.
+12. A [D023](../continuity/prontuario-t0-t6/D023_CONTINUIDADE_REMOTA_E_USABILIDADE.md) exige registro remoto sistemático dos avanços materiais e usabilidade humana em paralelo à engenharia, em todas as fases. Política, catálogo, método e gate mantêm suas responsabilidades; a decisão de método não cria autoridade de negócio nem certifica todas as telas.
 
 O objetivo é simples: **não criar mais documentação que precise ser descoberta por acaso**.

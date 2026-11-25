@@ -1,5 +1,7 @@
 > **Política geral de decisões entre chats, branches e componentes:** [propagação transversal](docs/reference/DECISION_IMPACT_POLICY.md). Antes de implementar, testar ou redesenhar qualquer fluxo do RADAR, verificar decisões aprovadas, regras supervenientes e obrigações de fases futuras. A primeira implementação rastreada desta política é T0–T6/D020; outras frentes conservam seus próprios contratos e não podem contradizer as ADRs vigentes.
 
+> **Diretriz permanente do proprietário — D023:** [continuidade remota sistemática e usabilidade humana](docs/continuity/prontuario-t0-t6/D023_CONTINUIDADE_REMOTA_E_USABILIDADE.md). Em cada avanço material, registrar no GitHub decisões, regras, prioridades, autorizações, alterações, testes favoráveis/desfavoráveis, limites e próximo ato; confirmar o registro remoto antes da passagem entre agentes, sem esperar o fim da cota. Projetar a experiência humana em paralelo à engenharia, desde a concepção e em todas as fases, inclusive para pessoas pouco experientes. Aplicar a política transversal, o catálogo de superfícies e o gate de frontend existentes; não criar outra fonte de regras.
+
 # AGENTS.md — RADAR PDDE 2026
 
 **DECISÕES COM EFEITO EM FASES FUTURAS (D020):** antes de qualquer alteração no Prontuário, Inventário, Pendências, relatórios, banco, testes ou layout derivado da frente T0–T6, ler [protocolo transversal](docs/continuity/prontuario-t0-t6/DECISION_IMPACT_PROTOCOL.md) e [mapa de obrigações](docs/continuity/prontuario-t0-t6/decision-impact.json). Executar `npm run decisions:impact -- --query --phase=T5 --surface=ui` ou filtros adequados à tarefa. Uma decisão anterior pode estar implementada em backend e **ainda ser obrigatória para uma UI futura**, mesmo se aprovada em outro chat. Toda decisão recebida em chat exige registro no GitHub com origem e desdobramentos; memória do assistente e conversas não sincronizam automaticamente. Não marcar a decisão inteira como concluída só por CI/SQL de uma fase.
@@ -20,9 +22,9 @@
 
 **REGRA DE CONHECIMENTO HISTÓRICO T0–T6:** consultar [genealogia por requisito](docs/continuity/prontuario-t0-t6/LINEAGE.md) e [fonte por SHA](docs/continuity/prontuario-t0-t6/lineage.json) antes de considerar qualquer ideia inédita, revogada ou implementada. Conferir evolução da mesma ideia entre especificações, novas decisões e código/testes do HEAD. A matriz distingue fontes ainda não examinadas integralmente e não deve ser rotulada de completa enquanto mantiver lacunas.
 
-## Frente vigente — T5 em implementação após a publicação T0–T4
+## Continuidade da frente T0–T6
 
-A evolução pós-T4 do PR #564 já foi publicada com autorização do proprietário. A instrução posterior “Siga para próxima etapa” inicia a implementação de T5 em branch própria: correção/exclusão granular de envios, reanálises, contatos e patrimônio, com retificação manual opcional. O estado por SHA e as provas ficam em `CURRENT_STAGE.md` e no checkpoint, evitando repetir releases concluídas. As oito obrigações de UI do mapa D020 não se encerram apenas com um helper ou teste unitário. Testes usam dados sintéticos e Supabase descartável; a ativação institucional da nova migration e da flag T5 exige publicação própria.
+T5 cobre correção/exclusão granular de envios, reanálises, contatos e patrimônio, com retificação manual opcional. O estado de implementação, integração, migration e ativação por ambiente fica em `CURRENT_STAGE.md` e no checkpoint, evitando repetir releases concluídas. Obrigações de UI não se encerram apenas com um helper ou teste unitário, nem uma publicação certifica automaticamente todas as jornadas e perfis. Testes de escrita usam dados sintéticos e Supabase descartável; autorizações e provas institucionais preservam seu alcance registrado.
 
 **Prioridade adicional expressa em 25/11 (D022):** no PR #565, transformar dados existentes em orientação gerencial na interface, sugerir próximas ações por escola, executar uma pequena experiência documental real autorizada e comprovar otimizações quantitativamente. Ler [D022](docs/continuity/prontuario-t0-t6/D022_INTELIGENCIA_DOCUMENTOS_DESEMPENHO.md). A amostra real é somente leitura e fica fora das fixtures e do repositório público; não autoriza lançamentos institucionais automáticos.
 
@@ -111,6 +113,8 @@ Antes de classificar um comportamento como defeito, verificar também:
 **Diferença entre duas projeções não é bug por si só.** Só existe inconsistência quando superfícies que deveriam responder à mesma pergunta apresentam fatos incompatíveis, ou quando uma projeção viola deliberadamente a finalidade confirmada da tela.
 
 ### Regra de julgamento humano e qualidade implícita
+
+Usabilidade e engenharia avançam em paralelo desde a concepção, em todas as fases, considerando também usuários pouco experientes. Aplicar os critérios permanentes de [clareza e facilidade de uso](docs/reference/PRODUCT_SURFACE_CATALOG.md#28-clareza-e-facilidade-de-uso-permanentes): linguagem, relação botão/efeito, confirmações proporcionais, cores semânticas, tipografia, respiro, densidade, acessibilidade e continuidade da tarefa.
 
 O pedido do usuário descreve o objetivo, as regras e as restrições conhecidas. Ele não precisa enumerar condições básicas de qualidade de uma interface. Para qualquer alteração percebida pelo usuário, é responsabilidade do agente preservar e avaliar também legibilidade, espaçamento, alinhamento, contraste, clipping, overflow, hierarquia, densidade, coerência, responsive, affordance, feedback e continuidade visual.
 
