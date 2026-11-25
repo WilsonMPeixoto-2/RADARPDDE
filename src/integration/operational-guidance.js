@@ -212,7 +212,7 @@
     function renderDashboard(root) {
         if (!root?.RadarOperationalGuidance || typeof root.getOperationalGuidanceInput !== 'function') return false;
         const input = root.getOperationalGuidanceInput();
-        if (input.view !== 'dashboard' || !input.capabilities.fiscal) return false;
+        if (input.view !== 'dashboard' || (!input.capabilities.fiscal && !input.capabilities.inventory)) return false;
         const main = root.document.getElementById('main-container');
         if (!main) return false;
         let panel = root.document.getElementById('cycle-b-action-queue') || root.document.getElementById('operational-work-guidance');

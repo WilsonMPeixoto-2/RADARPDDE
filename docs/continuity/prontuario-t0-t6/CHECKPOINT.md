@@ -1,5 +1,21 @@
 # Checkpoint único de continuidade operacional — RADAR T0–T6
 
+## 25/11/2026 — reparo focal do Inventário em validação
+
+**Direção do proprietário:** “Ok, continue, mas vamos tentar não ampliar demais os escopo definidos e continuar de forma objetiva”. Nesta execução: orientação patrimonial no Dashboard do Inventário, respeito ao filtro existente e abertura do bem correto. Não iniciar outras funcionalidades, reformulação visual, documentos, desempenho ou encerramento integral de T6.
+
+**Trabalho recuperado, contribuição C029:** foi localizado outro checkout com a branch local `fix/t6-orientacao-inventario-20261125`, HEAD `31c27155eb2169032a36cb050082ae080965053d`, e reparo ainda não commitado. Foram aproveitados somente `app.js`, `src/integration/operational-guidance.js` e seus unitários/E2E; os registros anteriores daquele checkout não sobrepõem D023. SHA-256 do diff desses quatro arquivos na recuperação: `8bbbf4d7e3f8a5ec68eda8a5826400d9cb777eeb16723a4b50cb123d9eb3589b`. Não existe SHA próprio da alteração original; a branch remota nova preserva o código recuperado e o complemento revisado.
+
+**Candidata:** `fix/orientacao-inventario-20261125`, baseada em `ac57c4a084453faeb55225a7aa94b5e36e1250ec`. O reparo liga o Dashboard à orientação, prepara seu universo e aceita a capacidade patrimonial. O complemento reutiliza `filteredBens` para limitar as sugestões ao filtro já escolhido; não replica regras de status. O recorte vazio continua vazio, é limpo pelos demais Dashboards e não limita o Prontuário. Textos, função de navegação, capacidades fiscais, RLS, comandos, CSS e migrations permanecem com seus contratos existentes.
+
+**Prova local:** os dois testes recuperados falharam na base publicada e passaram com o patch; o caso adicional de dois bens da mesma escola em estados diferentes revelou que o filtro “Aguardando” também mostrava o bem não encaminhado. Após o complemento, **29/29 focais e 1.604/1.604 unitários passaram**, sem falhas ou testes ignorados. Revisão independente de produto e unitários aprovada. O teste autenticado existente foi estendido, com login real `inventory`, filtro concluído/aguardando, reload, alvo e foco exatos, snapshots dos bens antes/depois e capturas/medidas em 1440×900 e 390×844. Esses resultados de navegador ainda precisam da execução e inspeção no CI; o ambiente local desta retomada não possui Docker.
+
+**Próximo ato:** consultar `Supabase readiness` do SHA remoto da candidata, inspecionar os anexos da orientação e registrar os resultados no PR. Usar Auth e dados sintéticos do Supabase descartável já configurado. Não criar fixture ou workflow novo nem disparar benchmark geral para esta correção. A prova é de Chromium responsivo, não de WebKit. Integrado, testado, inspecionado e publicado continuam estados distintos.
+
+**Fechamento anterior confirmado:** D023 foi integrada no [PR #567](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/567) e publicada em `ac57c4a0`, com cinco flags T0–T5 ativas. A suíte desktop que estava em execução concluiu com sucesso às 14h38min55s: 296 testes aprovados e 98 ignorados por escopo. Os cinco workflows da candidata documental terminaram com sucesso; [pré-production finalizada às 14h39](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45664682852).
+
+**Sinal separado, sem ampliação desta tarefa:** o monitor de integridade de Production [45678308704](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45678308704), sobre `ac57c4a0`, terminou com falha às 15h45. A causa não foi examinada nesta correção; não atribuir ao reparo nem tratar como prova de alteração dos dados. Preservar o sinal para triagem própria.
+
 ## 25/11/2026 — T5 ativo em produção; registro permanente D023
 
 ### Baseline funcional e prova de publicação

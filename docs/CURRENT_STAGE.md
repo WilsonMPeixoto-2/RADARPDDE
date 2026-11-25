@@ -9,7 +9,9 @@
 
 **Genealogia de decisões e requisitos desde 13/11:** [atlas de continuidade T0–T6](continuity/prontuario-t0-t6/LINEAGE.md) e [fonte estruturada](continuity/prontuario-t0-t6/lineage.json). Não basta reler plano original nem tratar 22 contribuições catalogadas como conhecimento exaustivo; seguir requisitos com origem por blob SHA e pendências históricas explícitas. O atlas não autoriza escrever no Supabase institucional.
 
-## Etapa vigente em 25/11/2026 — T5 publicado; continuidade e usabilidade permanentes
+## Etapa vigente em 25/11/2026 — reparo focal da orientação do Inventário
+
+**Escopo confirmado pelo proprietário:** continuar objetivamente, sem ampliar os escopos definidos. A execução atual limita-se à orientação do Dashboard do Inventário, ao filtro patrimonial já existente e à abertura do bem correto. O reparo anterior foi recuperado da branch local `fix/t6-orientacao-inventario-20261125`, base `31c27155`, e reaproveitado seletivamente na branch `fix/orientacao-inventario-20261125`, base publicada `ac57c4a0`. Passaram 29 testes focais e os 1.604 unitários; a jornada com Auth real e as capturas desktop/celular aguardam o CI descartável. Proveniência, limites e próximo ato estão no [checkpoint](continuity/prontuario-t0-t6/CHECKPOINT.md). O nome da branch de origem não inicia nem encerra T6 integralmente.
 
 **Baseline funcional conferida em 25/11, cerca de 13h50 de Brasília:** [PR #565 integrado](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565), merge `31c27155eb2169032a36cb050082ae080965053d` às 11h21. O [manifesto oficial](https://radarpdde-fix.vercel.app/radar-build-manifest.json) respondeu HTTP 200 no mesmo SHA, `production` / `supabase-production`, com as cinco liberações T0–T5 ativas. A Vercel registra o [deployment concluído às 11h35](https://vercel.com/wilson-m-peixotos-projects/radarpdde-fix/9bzP49Kxyn5yYq6gAK8csEEanhjY). Consulta direta ao Supabase confirmou `ACTIVE_HEALTHY` e 69 migrations, incluindo `20261125064516_t5_granular_history_inventory`. O bloqueio de ativação T5 foi superado. Esta fotografia não substitui nova leitura do ambiente quando o SHA atual for necessário.
 
@@ -21,13 +23,13 @@
 
 | Frente | Situação e próximo passo verificável |
 |---|---|
-| Orientação do Inventário | O painel próprio existe, mas as sugestões novas não são acionadas nesse perfil em `31c27155`; [achado P2](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565#discussion_r4696399446). Há relato de correção posterior em outro ambiente, sem SHA remoto integrado comprovado nesta conferência. Localizar esse trabalho antes de refazê-lo e validar login, sugestão, bem correto e composição desktop/celular. |
+| Orientação do Inventário | Reparo anterior recuperado e complementado para respeitar o filtro da fila. Candidata `fix/orientacao-inventario-20261125` com 29 testes focais e 1.604 unitários aprovados; completar a prova autenticada e inspecionar as capturas. O [achado P2](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565#discussion_r4696399446) só deve ser encerrado com evidência do candidato e registro da integração. |
 | Documentos D022 | Experiência com três PDFs reais concluída no alcance autorizado, sem importação ou escrita institucional. A incorporação à interface continua uma evolução distinta, não entrega já publicada. |
 | Desempenho D022 | Redução de CPU das projeções comprovada; ensaios completos mistos. Investigar render fiscal e atualização durante atividade com comparação controlada; não anunciar ganho global de Production. |
 | T6 e evidências | Reconciliar obrigações com as provas finais por SHA, preservando lacunas de perfil, compatibilidade e aceite que ainda não estejam demonstradas. Checkboxes históricos não são fila automática de repetição. |
-| Continuidade | Esta alteração reconcilia os roteadores e registra D023. Resultado dos verificadores, revisão e SHA remoto devem constar no PR da alteração documental. |
+| Continuidade | D023 integrada pelo [PR #567](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/567), em `ac57c4a0`; cinco workflows da candidata concluídos com sucesso. O ciclo corrente registra apenas o reparo focal e suas provas no mesmo checkpoint. |
 
-**Próximo ato técnico:** localizar a correção do Inventário já relatada, comparar com a baseline publicada e completar sua jornada no frontend. A aprovação de D023 mantém as fronteiras de dados, capacidades e publicação já definidas; não concede autorização adicional para escrita institucional.
+**Próximo ato técnico:** consultar o CI da candidata do Inventário, abrir as capturas e conferir login, filtro, navegação ao bem e composição nas duas larguras. Aproveitar resultados por SHA e corrigir somente falhas materiais dessa jornada. A aprovação de D023 mantém as fronteiras de dados, capacidades e publicação já definidas; não concede autorização adicional para escrita institucional.
 
 ## Arquivo histórico — preparação e homologação do PR #565 antes da publicação de 25/11
 

@@ -4211,6 +4211,7 @@ let currentProfile = 'controlador'; // controlador, assistente, sme, inventario
 let currentExercise = '2026';
 let currentView = 'dashboard'; // dashboard, escolas, competencias, pendencias, inventario, auditoria, sme-config
 let operationalGuidanceDashboardSchoolIds = [];
+let operationalGuidanceDashboardAssetIds = null;
 
 function getRadarAccessProfile() {
     return window.RadarAccessPolicy.resolveEffectiveProfile(
@@ -5653,8 +5654,9 @@ function handleGlobalSearch(e) {
 // 7. RENDER DA TELA: DASHBOARDS
 // ==========================================
 
-function setOperationalGuidanceDashboardSchools(schoolIds) {
+function setOperationalGuidanceDashboardSchools(schoolIds, assetIds = null) {
     operationalGuidanceDashboardSchoolIds = [...new Set((Array.isArray(schoolIds) ? schoolIds : []).map(String))];
+    operationalGuidanceDashboardAssetIds = Array.isArray(assetIds) ? new Set(assetIds.map(String)) : null;
 }
 
 function getOperationalGuidanceInput(schoolId = null) {
@@ -5668,6 +5670,8 @@ function getOperationalGuidanceInput(schoolId = null) {
     const role = window.RadarAccessPolicy.normalizeProfile(window.RadarAuthContext?.authorization?.role);
     const profile = getRadarAccessProfile();
     const fiscal = hasRadarCapability(window.RadarAccessPolicy.CAPABILITIES.OPEN_PENDENCY);
+    const assets = !schoolId && currentView === 'dashboard' && operationalGuidanceDashboardAssetIds !== null
+        ? bens.filter(asset => operationalGuidanceDashboardAssetIds.has(String(asset.id))) : bens;
     return {
         view: currentView,
         currentSchoolId: activeSchoolId,
@@ -5676,7 +5680,7 @@ function getOperationalGuidanceInput(schoolId = null) {
         now: new Date().toISOString(),
         schools: escolas.filter(school => selectedIds.has(String(school.id))),
         programs: programas, pendencies: pendencias, invoices: notasRegistradas, encodePendencyIdReference,
-        assets: bens, verifications: verificacoes,
+        assets, verifications: verificacoes,
         capabilities: { fiscal, inventory: role === 'inventario' || (!role && profile === 'inventario') }
     };
 }
@@ -5774,7 +5778,7 @@ function renderDashboard() {
     } else if (accessProfile === 'inventario') {
         renderDashboardInventario(container);
     }
-    if (['controlador', 'assistente'].includes(accessProfile)) {
+    if (['controlador', 'assistente', 'inventario'].includes(accessProfile)) {
         window.RadarOperationalGuidanceUi?.renderDashboard?.(window);
     }
 }
@@ -6861,6 +6865,11 @@ function renderDashboardInventario(container) {
     }
 
 
+
+    setOperationalGuidanceDashboardSchools(
+        hasBensData ? filteredBens.map(asset => asset.escolaId) : filteredEscolasInventario.map(school => school.id),
+        filteredBens.map(asset => asset.id)
+    );
 
     const filterLabel = activeInventarioSubFilter === 'naoEncamp'
 

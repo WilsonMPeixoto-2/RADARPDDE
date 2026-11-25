@@ -692,6 +692,22 @@
       ],
       "rationale": "Oito ações granulares, orientação operacional, projeções otimizadas e piloto documental foram incorporados pelo PR #565 e publicados em 31c27155, com migration 69 e flag T5 ativas conforme o registro de publicação. O alcance permanece limitado: sugestões para o perfil Inventário têm achado P2 aberto; o piloto lê três PDFs autorizados, sem importação pela interface; o ganho de CPU não demonstra aceleração global. As provas, o aceite humano de cada superfície e as pendências futuras continuam independentes.",
       "integratedRef": "https://github.com/WilsonMPeixoto-2/RADARPDDE/commit/31c27155eb2169032a36cb050082ae080965053d"
+    },
+    {
+      "id": "T0T6-C029",
+      "agent": "ChatGPT / reparo local recuperado e revisão independente",
+      "stage": "Pós-T5 / reparo focal D022",
+      "title": "Orientação patrimonial do Inventário com recorte da fila e navegação ao bem",
+      "status": "accepted-for-validation",
+      "originRef": "Branch local fix/t6-orientacao-inventario-20261125, base 31c27155eb2169032a36cb050082ae080965053d, alterações não commitadas; diff recuperado SHA-256 8bbbf4d7e3f8a5ec68eda8a5826400d9cb777eeb16723a4b50cb123d9eb3589b",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/tree/fix/orientacao-inventario-20261125",
+      "decisionIds": [
+        "T0T6-D020",
+        "T0T6-D021",
+        "T0T6-D022",
+        "T0T6-D023"
+      ],
+      "rationale": "Reaproveita os três pontos de integração e os testes do reparo anterior; complementa apenas o recorte dos bens conforme o filtro já aplicado à fila. Duas contraprovas reproduziram a falha original e uma terceira revelou o desvio do filtro; após a correção, 29 focais e 1.604 unitários aprovados. A jornada Auth inventory e as capturas desktop/celular estão no spec existente, aguardando CI e inspeção. Sem novas regras, capacidades, CSS, migrations, fixtures ou escrita institucional. A instrução corrente do proprietário limita esta execução à correção objetiva, sem iniciar T6 integral."
     }
   ],
   "previousRelease": {
