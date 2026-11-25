@@ -60,7 +60,8 @@ declare
  semantic_change boolean := p_action in ('delete_attempt','delete_review');
  preserve_projection boolean := false; ambiguous boolean := false;
  latest_time timestamptz; event_time timestamptz; state_time timestamptz;
- state_type text; analysis_time text; is_late boolean := false;
+ state_type text; state_event jsonb; analysis_time text; is_late boolean := false;
+ reopening_dominates boolean := false; remaining_time timestamptz;
  review_types text[] := array['reanalise_correta','reanalise_incorreta','arquivo_indisponivel'];
 begin
  select a into target_attempt from jsonb_array_elements(p_attempts) a where a->>'id'=p_target;
@@ -82,11 +83,13 @@ begin
      changed_attempt:=changed_attempt||jsonb_build_object('analyzed_at',(p_changes->>'analyzedAt')::timestamptz);
    end if;
    if p_changes ? 'errors' then changed_attempt:=changed_attempt||jsonb_build_object('errors',p_changes->'errors'); end if;
-   if changed_attempt->>'result'='correto' then changed_attempt:=changed_attempt||jsonb_build_object('errors','[]'::jsonb); end if;
-   if changed_attempt->>'result'='arquivo_indisponivel' then
+   if (p_changes ? 'result' or p_changes ? 'errors') and changed_attempt->>'result'='correto' then
+     changed_attempt:=changed_attempt||jsonb_build_object('errors','[]'::jsonb);
+   end if;
+   if (p_changes ? 'result' or p_changes ? 'errors') and changed_attempt->>'result'='arquivo_indisponivel' then
      changed_attempt:=changed_attempt||jsonb_build_object('errors',jsonb_build_array('Arquivo não localizado ou inacessível'));
    end if;
-   if changed_attempt->>'result'='incorreto'
+   if (p_changes ? 'result' or p_changes ? 'errors') and changed_attempt->>'result'='incorreto'
       and jsonb_array_length(coalesce(changed_attempt->'errors','[]'))=0 then
      raise exception 'VALIDATION_ERROR: reanálise incorreta exige ao menos um erro documental';
    end if;
@@ -172,7 +175,9 @@ begin
        begin event_time:=(event->>'dataHora')::timestamptz;
        exception when invalid_datetime_format or datetime_field_overflow then event_time:=null; end;
        if event_time is null or latest_time is null or event_time=latest_time then ambiguous:=true;
-       elsif state_time is null or event_time>state_time then state_time:=event_time; state_type:=event->>'tipo'; end if;
+       elsif state_time is null or event_time>state_time then
+         state_time:=event_time; state_type:=event->>'tipo'; state_event:=event;
+       end if;
      end loop;
      if state_time>latest_time then preserve_projection:=true; end if;
      status_value:=case radar_private.t5_attempt_status(latest_before)
@@ -194,6 +199,22 @@ begin
    select a into previous_review from jsonb_array_elements(next_attempts) a
      where radar_private.t5_attempt_status(a)='analisada'
      order by (a->>'attempt_number')::int desc limit 1;
+   remaining_time:=coalesce(latest_after->>'analyzed_at',latest_after->>'submitted_at')::timestamptz;
+   if state_time is not null and (latest_after is null or state_time>=remaining_time) then
+     if state_time=remaining_time or state_type is distinct from 'reabertura'
+        or jsonb_typeof(state_event->'erros') is distinct from 'array' then
+       return jsonb_build_object('ambiguity',jsonb_build_object('code','AMBIGUOUS_PENDENCY_HISTORY',
+         'message','Um evento independente permanece depois do último envio ou análise preservado. Escolha explicitamente o alcance da correção.'),
+         'affectedAnalysis',null);
+     end if;
+     if jsonb_array_length(state_event->'erros')=0 or exists(select 1 from jsonb_array_elements(state_event->'erros') e
+         where jsonb_typeof(e)<>'string' or btrim(e#>>'{}')='') then
+       return jsonb_build_object('ambiguity',jsonb_build_object('code','AMBIGUOUS_PENDENCY_HISTORY',
+         'message','A reabertura remanescente não identifica os apontamentos que devem continuar. Escolha explicitamente o alcance da correção.'),
+         'affectedAnalysis',null);
+     end if;
+     reopening_dominates:=true;
+   end if;
    if latest_after is null then status_value:='Aberta';
    elsif radar_private.t5_attempt_status(latest_after)='aguardando' then status_value:='Aguardando reanálise';
    else status_value:=case latest_after->>'result' when 'correto' then 'Resolvida' else 'Aberta' end; end if;
@@ -212,6 +233,7 @@ begin
      select e->'erros' into errors from jsonb_array_elements(next_history) e
        where e->>'tipo'='abertura' and jsonb_typeof(e->'erros')='array';
    end if;
+   if reopening_dominates then status_value:='Aberta'; errors:=state_event->'erros'; end if;
    analysis_time:=case when status_value='Resolvida' then latest_after->>'analyzed_at' end;
    next_pendency:=next_pendency||jsonb_build_object('status',status_value,
      'responsible_area',case status_value when 'Resolvida' then '' when 'Aguardando reanálise' then 'Controlador' else 'Escola' end,
@@ -522,8 +544,12 @@ begin
      for verification in select distinct v.* from public.verifications v
        join public.registered_invoices i on i.school_id=v.school_id and i.competence_id=v.competence_id
          and i.program_id=v.program_id and (i.verification_id is null or i.verification_id=v.id)
-       where i.linked_asset_id=asset.id and v.school_id=school
+       where i.linked_asset_id=asset.id and v.school_id=school order by v.id
      loop
+       records:=jsonb_set(records,'{verifications}',coalesce(records->'verifications','[]')||jsonb_build_array(
+         jsonb_build_object('id',verification.id,'schoolId',verification.school_id,
+           'competence',verification.competence_id,'programId',verification.program_id,
+           'programName',(select name from public.programs where id=verification.program_id))));
        versions:=jsonb_set(versions,'{verifications}',coalesce(versions->'verifications','{}')||jsonb_build_object(verification.id,verification.row_version));
        select coalesce(jsonb_object_agg(i.id,i.row_version),'{}') into map from radar_private.operational_correction_context_invoices(verification.id) i;
        versions:=jsonb_set(versions,'{registered_invoices}',coalesce(versions->'registered_invoices','{}')||map);
@@ -548,6 +574,12 @@ begin
            'field','analysis.encampInventario','before',verification.analysis->'encampInventario','after',inventory_analysis));
        end if;
      end loop;
+     if jsonb_array_length(coalesce(records->'verifications','[]'))>1 then
+       warnings:=warnings||jsonb_build_array(jsonb_build_object('code','MULTIPLE_INVENTORY_CONTEXTS',
+         'message','Este bem participa de mais de um contexto. O encaminhamento será conferido em todos: '||
+           (select string_agg(coalesce(v->>'programName',v->>'programId')||' ('||(v->>'competence')||')',', '
+             order by v->>'competence',v->>'programName') from jsonb_array_elements(records->'verifications') v)||'.'));
+     end if;
    end if;
    if asset.status='Inventariada' or changes->>'status'='Inventariada' then
      warnings:=warnings||jsonb_build_array(jsonb_build_object('code','INVENTORY_RECORD_ONLY',

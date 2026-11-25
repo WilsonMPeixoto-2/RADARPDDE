@@ -11,6 +11,7 @@ const {
     validateReadinessArtifacts,
     validateRemoteWorkflowContracts,
     validateRemoteVerificationSql,
+    validatePostApplyMigrationHistory,
     validateSupabaseApiSchemas,
     validateVercelBuildContract,
     validateRemoteBootstrapCommands
@@ -195,6 +196,21 @@ supabase db push --linked
 test('restringe a Data API ao schema public usado pelo RADAR', () => {
     assert.deepEqual(validateSupabaseApiSchemas('schemas = ["public"]'), []);
     assert.match(validateSupabaseApiSchemas('schemas = ["public", "graphql_public"]').join(' '), /somente o schema public/i);
+});
+
+test('contrato pós-aplicação acompanha a sequência completa do candidato antes de executar SQL', () => {
+    const files = ['20261124000100_extend_bonification_correction.sql', '20261125064516_t5_granular_history_inventory.sql'];
+    const before = "v_expected text[] := array['20261124000100'];";
+    const after = "v_expected text[] := array['20261124000100','20261125064516'];";
+    assert.deepEqual(validatePostApplyMigrationHistory(after, files), []);
+    assert.match(validatePostApplyMigrationHistory(before, files).join(' '), /exatamente as 2 migrations/);
+    assert.match(validatePostApplyMigrationHistory(after.replace('20261125064516', '20261124000100'), files).join(' '), /divergente/);
+    assert.match(validatePostApplyMigrationHistory("v_expected text[] := array['20261125064516','20261124000100'];", files).join(' '), /divergente/);
+});
+
+test('preflight continua separado do histórico pós-aplicação estrito', () => {
+    assert.match(validatePostApplyMigrationHistory('do $$ begin raise notice \'CAPABILITY_OK\'; end $$;', MIGRATIONS).join(' '),
+        /não declara o histórico/);
 });
 
 test('separa preflight não destrutivo de aplicação remota confirmada', () => {

@@ -39,6 +39,68 @@ function samplePendency() {
     };
 }
 
+test('editar somente observação mantém erros legados sem criar mudança de resultado', () => {
+    for (const [result, errors, status] of [
+        ['correto', ['Erro antigo ainda no espelho'], 'Resolvida'],
+        ['incorreto', [], 'Aberta']
+    ]) {
+        const pendency = samplePendency();
+        pendency.status = status;
+        Object.assign(pendency.tentativas[1], { resultado: result, errosEncontrados: errors });
+        const original = structuredClone(pendency);
+        const revised = rebuildPendencyAfterCorrection({
+            pendency, action: 'correct_review', targetId: 'T-2', changes: { observation: '' }
+        });
+        assert.equal(revised.ambiguity, null);
+        assert.equal(revised.affectedAnalysis, null);
+        assert.equal(revised.pendency.status, status);
+        assert.deepEqual(revised.attempts[1].errosEncontrados, errors);
+        assert.equal(revised.attempts[1].observacaoAnalise, '');
+        assert.deepEqual(pendency, original);
+    }
+});
+
+test('excluir A2 mantém reabertura entre A1 e A2 quando seus erros estão comprovados', () => {
+    const pendency = samplePendency();
+    Object.assign(pendency.tentativas[0], { resultado: 'correto', errosEncontrados: [] });
+    pendency.historico = [{
+        id: 'reabertura-independente', tipo: 'reabertura',
+        dataHora: '2026-10-11T12:00:00Z', erros: ['Comprovante complementar ausente']
+    }];
+    const result = rebuildPendencyAfterCorrection({ pendency, action: 'delete_attempt', targetId: 'T-2' });
+    assert.equal(result.ambiguity, null);
+    assert.equal(result.pendency.status, 'Aberta');
+    assert.equal(result.pendency.proximoAtor, 'Escola');
+    assert.equal(result.pendency.dataResolucao, null);
+    assert.equal(result.pendency.cancelamento, null);
+    assert.deepEqual(result.pendency.errosAtuais, ['Comprovante complementar ausente']);
+    assert.equal(result.pendency.motivo, 'Comprovante complementar ausente');
+    assert.equal(result.affectedAnalysis, 'Correto', 'a reabertura não inventa uma nova análise fiscal');
+    assert.equal(result.attempts.length, 1);
+    assert.deepEqual(result.pendency.historico, pendency.historico);
+});
+
+test('evento remanescente sem projeção comprovada não ressuscita resolução antiga', () => {
+    for (const [type, errors, at] of [
+        ['reabertura', undefined, '2026-10-11T12:00:00Z'],
+        ['reabertura', [], '2026-10-11T12:00:00Z'],
+        ['cancelamento', ['Motivo independente'], '2026-10-11T12:00:00Z'],
+        ['reabertura', ['Motivo independente'], '2026-10-11T00:00:00Z']
+    ]) {
+        const pendency = samplePendency();
+        Object.assign(pendency, { escolaId: 'S-1', competenciaOrigem: '2026-10' });
+        Object.assign(pendency.tentativas[0], { resultado: 'correto', errosEncontrados: [] });
+        pendency.historico = [{ tipo: type, dataHora: at, ...(errors ? { erros: errors } : {}) }];
+        const before = structuredClone(pendency);
+        const result = rebuildPendencyAfterCorrection({ pendency, action: 'delete_attempt', targetId: 'T-2' });
+        assert.equal(result.ambiguity?.code, 'AMBIGUOUS_PENDENCY_HISTORY');
+        assert.equal(result.ambiguity.alternatives[0].action, 'delete_pendency');
+        assert.deepEqual(result.pendency, before);
+        assert.deepEqual(result.attempts, before.tentativas);
+        assert.equal(result.affectedAnalysis, null);
+    }
+});
+
 test('delete_review reabre a tentativa para aguardando e devolve Pendência para Aguardando reanálise (Controlador)', () => {
     const result = rebuildPendencyAfterCorrection({
         pendency: samplePendency(),

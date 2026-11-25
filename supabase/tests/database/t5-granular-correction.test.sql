@@ -22,12 +22,14 @@ insert into public.schools(id,designation,denomination,cre,inep,cnpj,sici) value
 insert into public.competences(id,label,exercise,bonus_deadline)
  values('2045-03','Março 2045',2045,'2045-03-10');
 insert into public.programs(id,name) select 'T5B-'||x,'Programa sintético '||x
- from unnest(array['TEXT','DATE','REVIEW','DELETE','PREVIOUS','OLD','AMBIG','CANCEL','CONTACT','INV','OTHER']) x;
+ from unnest(array['TEXT','DATE','REVIEW','DELETE','PREVIOUS','OLD','AMBIG','CANCEL','CONTACT','INV','OTHER',
+  'TEXT-LEGACY-INC','TEXT-LEGACY-COR','REOPEN','REOPEN-AMBIG']) x;
 insert into public.verifications(id,school_id,competence_id,program_id,bonification,analysis,bonus_result)
  select 'T5B-V-'||x,'T5B-S','2045-03','T5B-'||x,
   '{"extCC":"Sim","notaFiscal":"Não","encampInventario":"Sim"}',
   '{"extCC":"Correto","extINV":"Correto","notaFiscal":"Incorreto","encampInventario":"Correto"}','apta'
- from unnest(array['TEXT','DATE','REVIEW','DELETE','PREVIOUS','OLD','AMBIG','CANCEL','CONTACT','INV','OTHER']) x;
+ from unnest(array['TEXT','DATE','REVIEW','DELETE','PREVIOUS','OLD','AMBIG','CANCEL','CONTACT','INV','OTHER',
+  'TEXT-LEGACY-INC','TEXT-LEGACY-COR','REOPEN','REOPEN-AMBIG']) x;
 insert into public.pendencies(id,school_id,competence_origin,program_id,document_key,status,resolved_at,canceled_at,payload)
  select 'T5B-P-'||x,'T5B-S','2045-03','T5B-'||x,'extCC',
   case when x in ('DELETE','AMBIG') then 'Aguardando reanálise' when x='CANCEL' then 'Cancelada' else 'Resolvida' end,
@@ -37,7 +39,8 @@ insert into public.pendencies(id,school_id,competence_origin,program_id,document
    'historico',jsonb_build_array(jsonb_build_object('id','T5B-OPEN-'||x,'tipo','abertura',
     'dataHora','2045-03-01T12:00:00Z','usuario','Autor original','perfil','Controlador',
     'erros',jsonb_build_array('Erro inicial'))))
- from unnest(array['TEXT','DATE','REVIEW','DELETE','PREVIOUS','OLD','AMBIG','CANCEL','CONTACT']) x;
+ from unnest(array['TEXT','DATE','REVIEW','DELETE','PREVIOUS','OLD','AMBIG','CANCEL','CONTACT',
+  'TEXT-LEGACY-INC','TEXT-LEGACY-COR','REOPEN','REOPEN-AMBIG']) x;
 
 create function pg_temp.t5b_attempt(p_case text,p_number int,p_result text,p_status text default null)
 returns void language plpgsql as $$
@@ -77,6 +80,23 @@ select pg_temp.t5b_attempt('OLD',2,'correto');
 select pg_temp.t5b_attempt('AMBIG',1,'incorreto');
 select pg_temp.t5b_attempt('AMBIG',2,null);
 select pg_temp.t5b_attempt('CANCEL',1,'incorreto');
+select pg_temp.t5b_attempt('TEXT-LEGACY-INC',1,'incorreto');
+select pg_temp.t5b_attempt('TEXT-LEGACY-COR',1,'correto');
+update public.pendency_attempts set errors='[]' where id='T5B-P-TEXT-LEGACY-INC-A1';
+update public.pendency_attempts set errors='["Erro legado independente"]' where id='T5B-P-TEXT-LEGACY-COR-A1';
+select pg_temp.t5b_attempt('REOPEN',1,'correto');
+select pg_temp.t5b_attempt('REOPEN',2,'correto');
+select pg_temp.t5b_attempt('REOPEN-AMBIG',1,'correto');
+select pg_temp.t5b_attempt('REOPEN-AMBIG',2,'correto');
+update public.pendency_attempts set submitted_at='2045-03-04T09:00:00Z',available_at='2045-03-04T00:00:00Z'
+ where id in ('T5B-P-REOPEN-A2','T5B-P-REOPEN-AMBIG-A2');
+update public.pendencies p set payload=jsonb_set(payload,'{historico}',
+ (select jsonb_agg(case when e->>'id'=p.id||'-A2-SEND' then e||'{"dataHora":"2045-03-04T09:00:00Z"}'::jsonb else e end order by n)
+  from jsonb_array_elements(payload->'historico') with ordinality as history(e,n))||
+ jsonb_build_array(jsonb_build_object('id',p.id||'-REOPEN','tipo','reabertura','dataHora','2045-03-03T18:00:00Z',
+  'usuario','Operador da reabertura','perfil','Controlador')||case when p.id='T5B-P-REOPEN'
+   then '{"erros":["Apontamento real da reabertura"]}'::jsonb else '{}'::jsonb end))
+ where p.id in ('T5B-P-REOPEN','T5B-P-REOPEN-AMBIG');
 update public.pendencies set payload=payload||jsonb_build_object('cancelamento',jsonb_build_object('dataHora',canceled_at),
  'historico',payload->'historico'||jsonb_build_array(jsonb_build_object('id','T5B-CANCEL-EVENT','tipo','cancelamento',
  'dataHora',canceled_at,'usuario','Outro operador','perfil','Controlador'))) where id='T5B-P-CANCEL';
@@ -146,6 +166,14 @@ select is((select e->>'detalhe' from public.pendencies p,jsonb_array_elements(p.
  'correção textual não reescreve detalhe independente do evento');
 select is((select payload->>'analisadoPor' from public.pendency_attempts where id='T5B-P-TEXT-A1'),
  'Revisor original','correção textual conserva autoria da revisão');
+select lives_ok($$select pg_temp.t5b_apply('correct_review','T5B-P-TEXT-LEGACY-INC-A1','{"observation":"Texto corrigido"}')$$,
+ 'texto de revisão incorreta legada sem lista de erros continua corrigível');
+select is((select errors from public.pendency_attempts where id='T5B-P-TEXT-LEGACY-INC-A1'),'[]'::jsonb,
+ 'correção textual não inventa erro ausente no legado');
+select lives_ok($$select pg_temp.t5b_apply('correct_review','T5B-P-TEXT-LEGACY-COR-A1','{"observation":"Texto corrigido"}')$$,
+ 'texto de revisão correta com metadados legados não normaliza outros fatos');
+select is((select errors from public.pendency_attempts where id='T5B-P-TEXT-LEGACY-COR-A1'),'["Erro legado independente"]'::jsonb,
+ 'correção textual preserva erros legados fora do campo escolhido');
 
 select lives_ok($$select pg_temp.t5b_apply('correct_attempt','T5B-P-DATE-A1','{"availableAt":"2045-03-11"}')$$,
  'data de disponibilização corrige classificação de atraso');
@@ -216,6 +244,19 @@ select is((select payload->'errosAtuais' from public.pendencies where id='T5B-P-
 select lives_ok($$select pg_temp.t5b_apply('delete_review','T5B-P-CANCEL-A1')$$,'cancelamento posterior não impede corrigir fato antigo independente');
 select is((select status from public.pendencies where id='T5B-P-CANCEL'),'Cancelada','cancelamento independente é preservado');
 select is((select canceled_at from public.pendencies where id='T5B-P-CANCEL'),'2045-03-06T12:00:00Z'::timestamptz,'data do cancelamento permanece');
+select lives_ok($$select pg_temp.t5b_apply('delete_attempt','T5B-P-REOPEN-A2')$$,
+ 'remover último envio respeita reabertura posterior à revisão anterior remanescente');
+select is((select status from public.pendencies where id='T5B-P-REOPEN'),'Aberta',
+ 'revisão anterior não resolve novamente a pendência que foi reaberta depois');
+select is((select payload->'errosAtuais' from public.pendencies where id='T5B-P-REOPEN'),'["Apontamento real da reabertura"]'::jsonb,
+ 'reabertura remanescente fornece seus erros comprovados');
+select ok((select resolved_at is null and canceled_at is null and next_actor='Escola' from public.pendencies where id='T5B-P-REOPEN'),
+ 'estado da reabertura conserva próxima ação e retira resolução dependente');
+select is((select result from public.pendency_attempts where id='T5B-P-REOPEN-A1'),'correto','revisão anterior continua sendo o fato original correto');
+select ok((public.preview_operational_change(pg_temp.t5b_request('delete_attempt','T5B-P-REOPEN-AMBIG-A2'))->'blockers')
+ @> '[{"code":"AMBIGUOUS_PENDENCY_HISTORY"}]','reabertura sem dados suficientes exige escolha de alcance');
+select throws_like($$select pg_temp.t5b_apply('delete_attempt','T5B-P-REOPEN-AMBIG-A2')$$,'PLAN_BLOCKED%',
+ 'falta de prova na reabertura nunca resolve automaticamente pela análise antiga');
 
 select lives_ok($$select pg_temp.t5b_apply('correct_contact','T5B-C-LINKED','{"description":"","pendencyId":null,"officialCharge":false}')$$,
  'contato pode limpar descrição e desvincular sem resolver a pendência');
@@ -276,6 +317,24 @@ set local role authenticated;
 select ok((public.preview_operational_change(pg_temp.t5b_request('delete_asset','T5B-ASSET-LINKED'))->'alternatives')
  @> '[{"action":"delete_invoice","target":{"id":"T5B-NF-LINKED"}}]','perfil fiscal vê alternativa com NF exata');
 reset role;
+insert into public.registered_invoices(id,school_id,competence_id,program_id,verification_id,source_context_key,
+ description,expense_type,invoice_number,amount,linked_asset_id,payload)
+ values('T5B-NF-SHARED','T5B-S','2045-03','T5B-OTHER','T5B-V-OTHER','2045-03_T5B-OTHER','Segunda despesa do mesmo bem',
+  'permanente','T5B-502',100,'T5B-ASSET-LINKED','{"analiseDocumentoFiscal":"Correto"}');
+set local role authenticated;
+insert into t5b_saved(key,request,plan) select 'shared-asset',req,public.preview_operational_change(req)
+ from (select pg_temp.t5b_request('correct_inventory','T5B-ASSET-LINKED','{"status":"Encaminhada"}') req) s;
+select is((select jsonb_array_length(plan #> '{affectedRecords,verifications}') from t5b_saved where key='shared-asset'),2,
+ 'bem compartilhado lista todos os contextos que serão conferidos');
+select ok((select plan #> '{affectedRecords,verifications}' @> '[{"id":"T5B-V-INV","programId":"T5B-INV","programName":"Programa sintético INV","competence":"2045-03"},{"id":"T5B-V-OTHER","programId":"T5B-OTHER","programName":"Programa sintético OTHER","competence":"2045-03"}]'
+ from t5b_saved where key='shared-asset'),'contextos incluem nomes de programas, mês e identidade exata para a prévia');
+select ok((select plan->'warnings' @> '[{"code":"MULTIPLE_INVENTORY_CONTEXTS"}]' from t5b_saved where key='shared-asset'),
+ 'a prévia declara alcance em mais de um programa antes de confirmar');
+select lives_ok($$select public.apply_operational_change(request,plan->>'planDigest',operation_key)
+ from t5b_saved where key='shared-asset'$$,'correção compartilhada aplica somente o alcance apresentado');
+reset role;
+select is((select count(*)::int from public.verifications where id in ('T5B-V-INV','T5B-V-OTHER') and bonification->>'encampInventario'='Sim'),2,
+ 'ambos os contextos patrimoniais refletem o mesmo bem corrigido');
 select is((select count(*)::int from radar_private.operational_change_ledger where operation_key=(select operation_key from t5b_saved where key='ambiguous')),0,
  'ambiguidade não deixa recibo applying nem committed');
 select ok(not has_function_privilege('authenticated','radar_private.t5_rebuild_pendency(jsonb,jsonb,text,text,jsonb,jsonb,date)','EXECUTE'),

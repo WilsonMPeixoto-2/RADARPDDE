@@ -306,6 +306,17 @@ function validateRemoteVerificationSql(preflightSource, postApplySource) {
     return findings;
 }
 
+function validatePostApplyMigrationHistory(postApplySql, migrationFiles) {
+    const declaration = String(postApplySql || '').match(/v_expected\s+text\[\]\s*:=\s*array\[([\s\S]*?)\]/i);
+    if (!declaration) return ['Contrato pós-aplicação não declara o histórico de migrations esperado.'];
+    const actual = [...declaration[1].matchAll(/'(\d{12,14})'/g)].map(match => match[1]);
+    const expected = [...migrationFiles].sort().map(file => file.split('_')[0]);
+    if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+        return [`Contrato pós-aplicação deve refletir exatamente as ${expected.length} migrations do candidato; sua lista contém ${actual.length} versões ou uma ordem divergente.`];
+    }
+    return [];
+}
+
 function validateVercelBuildContract(vercelSource, packageSource) {
     const findings = [];
     let vercelConfig;
@@ -404,6 +415,7 @@ function runReadinessChecks(rootDir = path.resolve(__dirname, '..')) {
     const preflightSqlSource = fs.existsSync(preflightSqlPath) ? fs.readFileSync(preflightSqlPath, 'utf8') : '';
     const postApplySqlSource = fs.existsSync(postApplySqlPath) ? fs.readFileSync(postApplySqlPath, 'utf8') : '';
     findings.push(...validateRemoteVerificationSql(preflightSqlSource, postApplySqlSource));
+    findings.push(...validatePostApplyMigrationHistory(postApplySqlSource, migrationFiles));
 
     const vercelConfigSource = fs.existsSync(vercelConfigPath) ? fs.readFileSync(vercelConfigPath, 'utf8') : '';
     const packageSource = fs.existsSync(packagePath) ? fs.readFileSync(packagePath, 'utf8') : '';
@@ -467,6 +479,7 @@ module.exports = Object.freeze({
     validateMigrationDocumentation,
     validateRemoteWorkflowContracts,
     validateRemoteVerificationSql,
+    validatePostApplyMigrationHistory,
     validateReadinessArtifacts,
     validateSupabaseApiSchemas,
     validateVercelBuildContract,

@@ -69,7 +69,8 @@ declare
         '20261121000200',
         '20261123000100',
         '20261123000200',
-        '20261124000100'
+        '20261124000100',
+        '20261125064516'
     ];
     v_actual text[];
     v_missing_extensions text[];
@@ -123,6 +124,32 @@ begin
        or has_function_privilege('anon', 'public.apply_operational_change(jsonb,text,uuid)', 'EXECUTE')
        or not has_function_privilege('authenticated', 'public.apply_operational_change(jsonb,text,uuid)', 'EXECUTE') then
         raise exception 'OPERATIONAL_CORRECTION_PRIVILEGES_INVALID';
+    end if;
+    if to_regprocedure('radar_private.t5_correction_capability(text,text)') is null
+       or to_regprocedure('radar_private.t5_rebuild_pendency(jsonb,jsonb,text,text,jsonb,jsonb,date)') is null
+       or to_regprocedure('radar_private.t5_lock_plan(jsonb)') is null then
+        raise exception 'GRANULAR_CORRECTION_CONTRACT_MISSING';
+    end if;
+    if has_function_privilege('authenticated', 'radar_private.t5_rebuild_pendency(jsonb,jsonb,text,text,jsonb,jsonb,date)', 'EXECUTE')
+       or has_function_privilege('authenticated', 'radar_private.t5_lock_plan(jsonb)', 'EXECUTE') then
+        raise exception 'GRANULAR_CORRECTION_PRIVATE_HELPER_EXPOSED';
+    end if;
+    if exists (
+        select 1 from (values
+            ('pendencies','pendencies_t5_lock'),
+            ('pendency_attempts','pendency_attempts_t5_lock'),
+            ('pendency_contacts','pendency_contacts_t5_lock'),
+            ('assets','assets_t5_lock'),
+            ('registered_invoices','registered_invoices_t5_asset_lock')
+        ) required(relation_name,trigger_name)
+        where not exists (
+            select 1 from pg_trigger t join pg_class c on c.oid=t.tgrelid
+              join pg_namespace n on n.oid=c.relnamespace
+             where n.nspname='public' and c.relname=required.relation_name
+               and t.tgname=required.trigger_name and not t.tgisinternal and t.tgenabled<>'D'
+        )
+    ) then
+        raise exception 'GRANULAR_CORRECTION_WRITER_LOCK_MISSING';
     end if;
     if to_regprocedure('public.read_operational_context(text,text[])') is null then
         raise exception 'OPERATIONAL_CONTEXT_READ_MISSING';

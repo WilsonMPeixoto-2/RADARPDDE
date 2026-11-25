@@ -206,6 +206,28 @@
         return text(pendency.status) === expectedStatus ? 'rebuild' : 'ambiguous';
     }
 
+    function remainingIndependentEvent(pendency, attempts) {
+        const events = (Array.isArray(pendency.historico) ? pendency.historico : [])
+            .filter(event => ['cancelamento', 'reabertura'].includes(text(event?.tipo)))
+            .sort((left, right) => Date.parse(right.dataHora) - Date.parse(left.dataHora));
+        if (!events.length) return { event: null, ambiguous: false };
+        const event = events[0];
+        const stateAt = Date.parse(event.dataHora);
+        const latest = activeAttemptsInOrder(attempts).at(-1);
+        const latestAt = latest ? Date.parse(latest.status === ATTEMPT_STATUS.REVIEWED
+            ? latest.dataAnalise : latest.dataRegistro || latest.dataDisponibilizacao) : null;
+        if (!Number.isFinite(stateAt) || (latest && !Number.isFinite(latestAt))) return { event: null, ambiguous: true };
+        if (latest && stateAt < latestAt) return { event: null, ambiguous: false };
+        // Remover A2 pode tornar dominante uma reabertura entre A1 e A2.
+        // A análise válida de A1 continua independente do estado reaberto.
+        if (stateAt === latestAt || event.tipo !== 'reabertura'
+            || !Array.isArray(event.erros) || !event.erros.length
+            || event.erros.some(error => typeof error !== 'string' || !error.trim())) {
+            return { event: null, ambiguous: true };
+        }
+        return { event, ambiguous: false };
+    }
+
     /**
      * Recompõe o estado da Pendência e da análise técnica vinculada a partir
      * do esquema real de `src/domain/pendencias.js` (`tentativas`) e da regra
@@ -284,18 +306,22 @@
                 throw new Error('Data de reanálise inválida.');
             }
             const errors = supplied(changes, ['errosEncontrados', 'errors']);
-            const nextErrors = nextResult === REVIEW_RESULTS.CORRECT
+            const errorsChanged = result.present || errors.present;
+            const nextErrors = !errorsChanged ? target.errosEncontrados : nextResult === REVIEW_RESULTS.CORRECT
                 ? [] : nextResult === REVIEW_RESULTS.UNAVAILABLE
                     ? ['Arquivo não localizado ou inacessível']
                     : normalizeErrors(errors.present ? errors.value : target.errosEncontrados);
+            if (errorsChanged && nextResult === REVIEW_RESULTS.INCORRECT && !nextErrors.length) {
+                throw new Error('Reanálise incorreta exige ao menos um erro documental.');
+            }
             changesProjection = nextResult !== text(target.resultado).toLowerCase()
                 || nextDate !== (text(target.dataAnalise) || null)
-                || JSON.stringify(nextErrors) !== JSON.stringify(normalizeErrors(target.errosEncontrados));
+                || JSON.stringify(nextErrors) !== JSON.stringify(target.errosEncontrados);
             target.resultado = nextResult;
             target.dataAnalise = nextDate;
             const observation = supplied(changes, ['observacaoAnalise', 'observation', 'note']);
             if (observation.present) target.observacaoAnalise = text(observation.value);
-            target.errosEncontrados = nextErrors;
+            if (errorsChanged) target.errosEncontrados = nextErrors;
         } else if (normalizedAction === 'delete_attempt') {
             if (targetIdx < 0) {
                 throw new Error('Nenhuma tentativa disponível para excluir envio.');
@@ -327,7 +353,8 @@
         }
 
         const scope = changesProjection ? projectionScope(nextPendency, sourceAttempts, targetId, normalizedAction, changes) : 'preserve';
-        if (scope === 'ambiguous') {
+        const independent = scope === 'rebuild' ? remainingIndependentEvent(nextPendency, attempts) : { event: null, ambiguous: false };
+        if (scope === 'ambiguous' || independent.ambiguous) {
             return {
                 pendency: nextPendency,
                 attempts: sourceAttempts,
@@ -386,6 +413,14 @@
                 nextPendency.errosAtuais = normalizeErrors(latest.errosEncontrados);
                 affectedAnalysis = 'Incorreto';
             }
+        }
+
+        if (independent.event) {
+            nextPendency.status = PENDENCY_STATUS.OPEN;
+            nextPendency.responsavel = ACTORS.SCHOOL;
+            nextPendency.proximoAtor = ACTORS.SCHOOL;
+            nextPendency.dataResolucao = null;
+            nextPendency.errosAtuais = normalizeErrors(independent.event.erros);
         }
 
         nextPendency.motivo = nextPendency.errosAtuais?.[0] || null;
