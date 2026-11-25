@@ -2,6 +2,8 @@
 
 **Base:** `6dd6a9f9f8147deb39c5813baad0b5521427b8bd` · **Branch de trabalho:** `feat/evolucao-integral-pos-t4-20261125`.
 
+**Candidata de revisão:** [PR #564](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/564), sem merge. O código funcional e as capturas desta primeira rodada correspondem a `16b9a5baf6c25b0da872c060a691898cabed4c63`; resultados posteriores devem identificar seu próprio SHA.
+
 Evidência da evolução após a publicação de #562. Estas mudanças ainda precisam de revisão, gates e publicação próprios; este documento não substitui o plano T5.
 
 ## Engenharia, integração e preparação T5 — Eixos 1, 3 e 7
@@ -37,7 +39,7 @@ node --check tests/e2e/school-timeline.spec.js
 git diff --check
 ```
 
-O E2E `tests/e2e/school-timeline.spec.js` foi atualizado e teve a sintaxe verificada. **Execução navegada/captura visual pendentes:** Chromium ausente; instalação tentada pelo coordenador retornou HTTP 403. O teste permanece nos workflows existentes.
+O E2E `tests/e2e/school-timeline.spec.js` foi atualizado e executado na CI. A projeção integral, o recorte SME e a recuperação de falha passaram. Duas jornadas adicionais falharam por usar `getByLabel` exato num rótulo que contém o `select` e suas opções, embora a árvore de acessibilidade mostrasse `combobox "Tipo de movimentação"`. O seletor foi corrigido para esse papel e nome acessível exatos, preservando as verificações de comportamento. A comprovação final depende da execução dessa correção; a instalação local de Chromium havia retornado HTTP 403.
 
 ### Obrigações T5 preservadas
 
@@ -83,6 +85,14 @@ A revisão preserva a composição aprovada do Prontuário e aprimora tarefas co
 
 Não foram alteradas RPCs, capacidades ou regras de negócio por essas melhorias. E2E nos workflows existentes deve provar busca, filtro, contexto, ausência de transbordamento e capturas dos viewports relevantes antes de declarar a nova interface homologada. As capturas da baseline já publicada são evidência de antes; não devem ser apresentadas como capturas da candidata atual.
 
+### Provas visuais efetivamente obtidas
+
+O [workflow de regressão visual 45550728981](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45550728981) aprovou **5/5 cenários** no SHA `16b9a5ba`. O artefato `14993179915` foi baixado e seu ZIP conferido pelo SHA-256 `ee8984e3ab2326ccd7c73a15a66e56e543bbbe30ffa2db1875e802ebc71ca699`. As imagens do contato em 1440 e 390 pixels e do histórico vazio em 1440 pixels foram examinadas: escola e código permanecem legíveis, campos e ações cabem no modal móvel, e o histórico explicita competência, filtros e a ação para consultar outro mês.
+
+A comparação anterior usa `6dd6a9f9`, [run 45547911799](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45547911799), artefato `14991858881`, ZIP SHA-256 `01ef49bc345b6df2f78f747a07a4a8fc51eb875739a23ba7c619c3145e2e465a`. Os dois pares antes/depois preservam o mesmo viewport de 1440 × 900 e os PNGs originais. São cenários com fixtures de teste; a comparação não registra operações sobre escolas reais.
+
+O projeto Vercel ignorou o deploy desta branch, conforme sua configuração vigente que constrói somente `main`. Um status de integração Vercel bem-sucedido não representa uma URL de preview publicada. Guia, demonstração documental e comparação visual são entregues também como HTMLs autossuficientes privados.
+
 ## Inteligência operacional e documentos — Eixos 4 e 5
 
 A consulta institucional foi somente leitura, com contagens agregadas, denominadores e ressalvas temporais. O relatório de resultados permanece fora do repositório público. As [consultas reproduzíveis](../../ops/document-intelligence-poc/operational-indicators.sql) e o [estudo de arquitetura](../research/2026-11-25-inteligencia-operacional-documental.md) preservam método, perguntas operacionais e critérios de qualidade sem publicar registros institucionais.
@@ -107,6 +117,19 @@ O guia foi reorganizado em oito tarefas: localizar escola/mês; escolher a corre
 Três capturas reais da homologação autenticada local do PR #562 substituem a sequência extensa de imagens antigas. A origem e os hashes constam em `assets/controller-guide/README.md`. Essas imagens documentam operações T0–T4 já publicadas; a revisão do layout do próprio guia exige suas capturas novas. A ajuda contextual pode abrir diretamente um tópico por `RadarControllerGuide.openTopic`, com busca limpa e foco no destino, sem fabricar uma rota paralela.
 
 ## Continuidade e limite desta entrega
+
+### Validação automatizada obtida
+
+- `npm run test:readiness`: aprovado, incluindo **1.524 testes unitários**, **8 de integração**, contratos, sintaxe, arquitetura, CSS, assets e verificações estáticas do Supabase. O lint apresentou avisos, sem erros; esse resultado não significa ausência de dívida técnica.
+- Motor documental sintético: **12/12** testes de comportamento aprovados. Contratos focais do guia: **3/3** aprovados depois da seleção final das três imagens públicas.
+- [Supabase readiness 45550728839](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45550728839), no SHA `16b9a5ba`: **3/3 jobs aprovados**, **906 asserções pgTAP em 46 arquivos** e **42 testes navegados autenticados** (17 + 4 + 21), sem instabilidade relatada. As massas são descartáveis; esses testes não gravam no banco institucional.
+- [Nomenclatura Painel 45550728920](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45550728920): o job de navegador aprovou os **7 testes do guia**. O contrato estático falhou por exigir a representação antiga `routeLabel: 'Abrir Painel'`. A correção verifica o botão efetivamente renderizado e o destino `dashboard`, preservando a exigência funcional; o E2E também passa a percorrer a navegação de ida e volta. O run original continua registrado como falha, não como aprovado.
+- [Desktop completo 45550728881](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45550728881), em `16b9a5ba`: **293 aprovados, 2 falhas, 1 instável que passou na repetição e 90 ignorados**, entre 386 casos. As duas falhas foram os seletores do histórico descritos acima. Os sete testes do guia e o teste da POC passaram diretamente. O teste preexistente de posição na edição apresentou deslocamento de 47 px na primeira tentativa, acima do limite de 4 px; a repetição passou. No [preprod 45550729074](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45550729074), foram 294 aprovados, as mesmas duas falhas, 90 ignorados e nenhuma repetição necessária; seus outros sete jobs passaram.
+- Artefato desktop `14993887231`, ZIP SHA-256 `18c3484df0961d09f92bfe6caea9bf065737a353f71efbed9c7f2bd6c6431f92`, baixado e conferido. A inspeção visual revelou sobreposição da busca fixa do guia sobre o cabeçalho global durante a rolagem, apesar de seus testes anteriores passarem. O ajuste de layout recebe nova captura; esse primeiro conjunto não certifica o layout final do guia.
+
+A suíte visual existente foi ampliada para os cinco testes do histórico, sete do guia e um da demonstração, mantendo os cinco cenários anteriores. A coleta confirmou **18 casos em cinco arquivos**; coleta não significa execução aprovada. Nenhum workflow paralelo novo foi criado.
+
+As contagens acima pertencem a suítes diferentes e podem conter cobertura repetida. Não foram somadas para fabricar um total de casos distintos. A homologação da nova ponta deve ser consultada no PR; capturas de uma ponta anterior só se aplicam à nova se os arquivos da interface permanecerem idênticos.
 
 O [checkpoint](../continuity/prontuario-t0-t6/CHECKPOINT.md) foi reconciliado com a publicação de #562, o backup recuperável, a migration 68 e o smoke de produção. Modelo canônico e catálogo de superfícies agora distinguem correção composta de rotas ordinárias legadas, limpeza de análise de exclusão de histórico e terminalidade ordinária de patrimônio de exclusão causal autorizada.
 

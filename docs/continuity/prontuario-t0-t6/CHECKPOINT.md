@@ -17,7 +17,7 @@
 
 **Estado da preparação T5:** helper puro reforçado e contraprovas, sem novo consumidor de produção, RPC, migration ou interface de mutação. As oito obrigações de UI continuam `planned`. [Evidências desta candidata](../../evidence/2026-11-25-evolucao-pos-t4.md) e [estudo documental](../../research/2026-11-25-inteligencia-operacional-documental.md) distinguem implementação, hipótese e trabalho futuro.
 
-**Próximo ato:** concluir revisão e testes proporcionais do novo SHA, publicar branch/PR para revisão, obter e examinar as capturas reais da nova interface pelos workflows existentes. Ausência de Chromium no ambiente local não constitui aprovação navegada. Não repetir backup, migration 68 ou homologação do PR #562 para validar alterações de guia e leitura de histórico.
+**Candidata em revisão:** [PR #564](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/564), com código funcional em `16b9a5baf6c25b0da872c060a691898cabed4c63`. Readiness local aprovado (1.524 unitários e 8 de integração); regressão visual e Supabase readiness aprovados na CI. Capturas reais de contato em desktop/celular e histórico foram baixadas e inspecionadas; origem, limites e resultados adicionais constam na evidência da candidata e no PR. A falha do contrato estático de nomenclatura foi isolada e sua correção deve receber resultado próprio da CI. Não confundir PR em revisão com nova publicação, nem ausência de Chromium local com aprovação navegada. Não repetir backup, migration 68 ou homologação do PR #562 para validar alterações de guia e leitura de histórico.
 
 ## Arquivo histórico — estados anteriores à publicação de #562
 

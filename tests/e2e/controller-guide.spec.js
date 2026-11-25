@@ -121,12 +121,23 @@ test.describe('Guia do Controlador', () => {
     await page.locator('#nav-guia-controlador').click();
     const guide = page.locator('#controller-guide-root');
     const table = guide.locator('.controller-guide-decision-table');
+    const chapterTitle = guide.locator('#guia-corrigir-title');
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.evaluate(() => document.fonts.ready);
     await testInfo.attach('guia-inicio-desktop', { body: await page.screenshot(), contentType: 'image/png' });
     for (const width of [1440, 960, 390]) {
       await page.setViewportSize({ width, height: 900 });
-      await table.scrollIntoViewIfNeeded();
+      await guide.locator('.controller-guide-toc').getByRole('button', { name: /Escolher a correção$/ }).click();
+      await expect(chapterTitle).toBeInViewport();
+      await expect.poll(() => guide.locator('#guia-corrigir').evaluate(element => (
+        Math.abs(element.getBoundingClientRect().top - parseFloat(getComputedStyle(element).scrollMarginTop))
+      ))).toBeLessThanOrEqual(1);
+      // A navegação pelo sumário deve deixar o título descoberto pelos cabeçalhos.
+      await expect.poll(() => chapterTitle.evaluate(element => {
+        const bounds = element.getBoundingClientRect();
+        const top = document.elementFromPoint(bounds.left + Math.min(20, bounds.width / 2), bounds.top + Math.min(10, bounds.height / 2));
+        return Boolean(top && element.contains(top));
+      })).toBe(true);
       const metrics = await table.evaluate(element => ({
         width: element.getBoundingClientRect().width,
         parentWidth: element.parentElement.getBoundingClientRect().width,
@@ -136,9 +147,9 @@ test.describe('Guia do Controlador', () => {
       expect(metrics.width).toBeLessThanOrEqual(metrics.parentWidth + 1);
       expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth + 1);
       await expect(table.getByText('Redefinir como não analisado', { exact: true })).toBeVisible();
-      await page.evaluate(() => document.querySelector('.controller-guide-decision-table').scrollIntoView({ block: 'start' }));
       for (const theme of ['claro', 'escuro']) {
         await page.evaluate(dark => document.body.classList.toggle('dark-theme', dark), theme === 'escuro');
+        await expect(chapterTitle).toBeInViewport();
         await testInfo.attach(`guia-correcoes-${width}-${theme}`, { body: await page.screenshot(), contentType: 'image/png' });
       }
       await page.evaluate(() => document.body.classList.remove('dark-theme'));
@@ -189,6 +200,12 @@ test.describe('Guia do Controlador', () => {
     await page.evaluate(() => switchProfile('controlador'));
     await page.locator('#nav-guia-controlador').click();
 
+    await page.getByRole('button', { name: 'Abrir Painel', exact: true }).click();
+    await expect(page.locator('#nav-dashboard')).toHaveClass(/active/);
+    await expect(page.locator('#main-container').getByRole('heading', { name: 'Painel do Controlador', exact: true })).toBeVisible();
+
+    await page.locator('#nav-guia-controlador').click();
+    await expect(page.locator('#controller-guide-root')).toBeVisible();
     await page.locator('#guia-pendencia [data-guide-view="pendencias"]').click();
     await expect(page.locator('#nav-pendencias')).toHaveClass(/active/);
     await expect(page.locator('#main-container')).toContainText('Pendências');

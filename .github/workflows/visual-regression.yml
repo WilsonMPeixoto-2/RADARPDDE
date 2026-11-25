@@ -10,6 +10,10 @@ on:
       - 'src/**'
       - 'tests/e2e/global-visual-polish.spec.js'
       - 'tests/e2e/unidentified-expense-visual.spec.js'
+      - 'tests/e2e/school-timeline.spec.js'
+      - 'tests/e2e/controller-guide.spec.js'
+      - 'tests/e2e/document-intelligence-poc.spec.js'
+      - 'ops/document-intelligence-poc/**'
       - 'tests/support/unidentified-expense-fixture.js'
       - 'tests/e2e/**-snapshots/**'
       - playwright.visual.config.js
@@ -25,6 +29,10 @@ on:
       - 'src/**'
       - 'tests/e2e/global-visual-polish.spec.js'
       - 'tests/e2e/unidentified-expense-visual.spec.js'
+      - 'tests/e2e/school-timeline.spec.js'
+      - 'tests/e2e/controller-guide.spec.js'
+      - 'tests/e2e/document-intelligence-poc.spec.js'
+      - 'ops/document-intelligence-poc/**'
       - 'tests/support/unidentified-expense-fixture.js'
       - 'tests/e2e/**-snapshots/**'
       - playwright.visual.config.js
@@ -42,7 +50,7 @@ concurrency:
 
 jobs:
   desktop:
-    name: Seis baselines críticos
+    name: Histórico, guia e fluxos essenciais
     runs-on: ubuntu-26.04
     timeout-minutes: 25
     steps:

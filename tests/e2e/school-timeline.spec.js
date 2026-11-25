@@ -182,7 +182,7 @@ test('busca e tipo localizam eventos sem perder contexto nem expor identificador
   await openTimeline(page);
 
   const search = page.getByRole('searchbox', { name: 'Buscar no histórico' });
-  const category = page.getByLabel('Tipo de movimentação', { exact: true });
+  const category = page.getByRole('combobox', { name: 'Tipo de movimentação', exact: true });
   const clear = page.getByRole('button', { name: 'Limpar filtros', exact: true });
   const items = page.locator('.school-timeline-item');
   const count = page.locator('#school-timeline-count');
@@ -226,7 +226,7 @@ test('histórico mantém filtros e leitura em desktop, largura intermediária, c
     const search = page.getByRole('searchbox', { name: 'Buscar no histórico' });
     await search.fill('documento');
     await expect(page.locator('#school-timeline-count')).toHaveText('3 de 10 eventos');
-    await expect(page.getByLabel('Tipo de movimentação', { exact: true })).toBeVisible();
+    await expect(page.getByRole('combobox', { name: 'Tipo de movimentação', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Limpar filtros', exact: true })).toBeEnabled();
     const overflow = await page.locator('.school-timeline-card').evaluate(element => ({
       card: element.scrollWidth - element.clientWidth,

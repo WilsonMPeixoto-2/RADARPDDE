@@ -37,9 +37,6 @@
 .controller-guide-hero-actions .btn-secondary { background: transparent; color: #fff; border-color: rgba(255, 255, 255, .6); }
 .controller-guide-hero-copy .controller-guide-print-help { font-size: .78rem; color: rgba(255, 255, 255, .82); }
 .controller-guide-toolbar {
-    position: sticky;
-    top: 8px;
-    z-index: 15;
     display: flex;
     align-items: center;
     gap: 14px;
@@ -50,6 +47,7 @@
     background: var(--guide-surface);
 }
 .controller-guide-search { display: flex; align-items: center; gap: 9px; flex: 1; min-width: 0; color: var(--guide-muted); }
+.controller-guide-search .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .controller-guide-search input { width: 100%; min-width: 0; border: 0; outline: 0; color: var(--guide-ink); background: transparent; font: inherit; }
 .controller-guide-toolbar:focus-within { outline: 2px solid var(--guide-primary); outline-offset: 2px; }
 #controller-guide-search-result { color: var(--guide-muted); font-size: .78rem; }
@@ -164,7 +162,7 @@
     body.controller-guide-printing .controller-guide-section,
     body.controller-guide-printing .controller-guide-section[hidden] { display: block !important; margin: 0 0 6mm; padding: 5mm 0 0; border: 0; border-top: 1px solid #bbb; border-radius: 0; box-shadow: none; background: #fff; }
     body.controller-guide-printing :is(h2, h3, .controller-guide-section-head) { break-after: avoid; }
-    body.controller-guide-printing :is(.controller-guide-step, .controller-guide-callout, .controller-guide-figure, .controller-guide-decision-table tr) { break-inside: avoid; }
+    body.controller-guide-printing :is(.controller-guide-section-head, .controller-guide-step, .controller-guide-callout, .controller-guide-figure, .controller-guide-decision-table tr) { break-inside: avoid; }
     body.controller-guide-printing .controller-guide-figure { max-width: 150mm; margin-top: 5mm; }
     body.controller-guide-printing .controller-guide-figure img { max-height: 65mm; object-fit: contain; }
     body.controller-guide-printing .controller-guide-figure small { display: none; }
