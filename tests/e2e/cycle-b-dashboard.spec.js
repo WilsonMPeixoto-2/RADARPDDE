@@ -111,6 +111,31 @@ test.describe('Ciclo B — Dashboard operacional do Controlador', () => {
     await expect(page.getByRole('complementary', { name: 'Detalhes da pendência' })).toContainText('Extrato Investimento');
   });
 
+  test('expõe reanálise histórica sem adulterar o cartão da competência atual', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Jornada desktop.');
+    await page.goto('/');
+    const seeded = await seedCycleBDashboard(page);
+
+    await page.evaluate(() => {
+      RadarCompetenceContext.select('2026-10', { source: 'historical-reanalysis-journey' });
+      switchView('dashboard');
+    });
+
+    const monthCard = page.getByRole('button', { name: /Aguardando reanálise/ });
+    await expect(monthCard).toContainText('0 Escolas');
+
+    const historic = page.getByRole('group', { name: 'Reanálises de outras competências' });
+    await expect(historic).toContainText('1 reanálise');
+    await expect(historic).toContainText(seeded.awaitingSchoolName);
+    await expect(historic).toContainText('Não incluídas nos indicadores mensais');
+    await historic.getByRole('button', { name: 'Abrir pendência' }).click();
+
+    await expect(page.getByRole('heading', { name: 'Pendências operacionais' })).toBeVisible();
+    await expect(page.getByRole('complementary', { name: 'Detalhes da pendência' }))
+      .toContainText('Extrato Investimento');
+    expect(await page.evaluate(() => RadarCompetenceContext.getState().activeKey)).toBe('2026-10');
+  });
+
   test('filtra a lista e as próximas ações no próprio Dashboard e desfaz no segundo clique', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário desktop.');
     await page.goto('/');
