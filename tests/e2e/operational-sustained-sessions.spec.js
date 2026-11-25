@@ -56,6 +56,23 @@ async function setDelivery(page, value) {
   await expect(row(page).getByRole('button', { name: value, exact: true }))
     .toHaveClass(value === 'Sim' ? /active-sim/ : /active-nao/);
 }
+// Snapshot da mesma avaliação nas duas sessões, sem requisição adicional.
+async function observedVerification(page) {
+  return page.evaluate(() => {
+    const verification = verificacoes?.['OPS-SESSION-1']?.['2026-08_BASIC'];
+    const version = verification?.rowVersion;
+    if (!Number.isSafeInteger(version) || version <= 0) {
+      throw new Error('Versão canônica da avaliação sintética não disponível na memória.');
+    }
+    const value = verification.bonificacao?.extCC;
+    const currentRow = document.querySelector(
+      '#prontuario-verif-rows tr[data-program-id="BASIC"][data-document-key="extCC"]'
+    );
+    const visibleValue = currentRow?.querySelector('.active-sim') ? 'Sim'
+      : currentRow?.querySelector('.active-nao') ? 'Não' : null;
+    return { version, visibleMatchesState: value === visibleValue };
+  });
+}
 async function remoteInvoice(page, number) {
   return page.evaluate(async invoiceNumber => {
     const result = await window.RadarSessionContext.service.client.from('registered_invoices')
@@ -116,6 +133,9 @@ test('seis sessões reais medem escrita, observação, edição e falha durante 
   const observations = [];
   const gestures = [0, 0, 0, 0, 0, 0];
   const fiscalTimings = [];
+  const freshnessEvery = Math.max(1, Math.floor(rounds / 40));
+  const freshnessSamples = [];
+  const sustainedFreshness = { sampleEvery: freshnessEvery, samples: freshnessSamples };
   const faults = { readLatencyMs: 0, failObserverRead: false, failuresInjected: 0 };
   const observerReads = createOperationalReadTracker();
   const reconnectProof = {};
@@ -210,10 +230,23 @@ test('seis sessões reais medem escrita, observação, edição e falha durante 
     await setDelivery(pages[0], 'Sim');
     gestures[0] += 1;
     stage = 'sustained-activity';
+    const activityStartedAt = performance.now();
     const writer = async (page, index) => {
       for (let n = 0; n < rounds; n += 1) {
         await setDelivery(page, n % 2 === 0 ? 'Não' : 'Sim');
         gestures[index] += 1;
+        // A única sessão que escreve OPS-SESSION-1 está parada nesta pequena
+        // amostragem. Não aguardamos convergência do observador nem consultamos
+        // o banco para produzir um resultado artificialmente fresco.
+        if (index === 0 && ((n + 1) % freshnessEvery === 0 || n + 1 === rounds)) {
+          const [writerState, observerState] = await Promise.all([
+            observedVerification(page), observedVerification(pages[3])
+          ]);
+          expect(observerState.version).toBeLessThanOrEqual(writerState.version);
+          freshnessSamples.push({ writeNumber: n + 1, elapsedMs: performance.now() - activityStartedAt,
+            writerVersion: writerState.version, observerVersion: observerState.version,
+            observerVisibleMatchesState: observerState.visibleMatchesState });
+        }
         // Pacing representa gestos humanos; a conclusão é aguardada por estado,
         // não por sleep usado para adivinhar a conclusão de uma gravação.
         await pause(300);
@@ -318,7 +351,7 @@ test('seis sessões reais medem escrita, observação, edição e falha durante 
     });
     expect(db.bonification.extCC).toBe(finalValue);
     const samples = await Promise.all(observations.map(observer => observer.snapshot()));
-    report = { samples, finalValue, gestures, fiscalTimings, faults: { ...faults } };
+    report = { samples, finalValue, gestures, fiscalTimings, sustainedFreshness, faults: { ...faults } };
     await pages[3].screenshot({ path: testInfo.outputPath('observer-before-reload.png'), fullPage: true });
     stage = 'reload';
     await pages[3].reload();
@@ -350,7 +383,7 @@ test('seis sessões reais medem escrita, observação, edição e falha durante 
   } finally {
     releaseOldResponse();
     releaseRecoveryResponse();
-    if (!report) report = { samples: await Promise.all(observations.map(observer => observer.snapshot().catch(() => null))), gestures, fiscalTimings, faults };
+    if (!report) report = { samples: await Promise.all(observations.map(observer => observer.snapshot().catch(() => null))), gestures, fiscalTimings, sustainedFreshness, faults };
     const serialized = JSON.stringify({ schemaVersion: 1, generatedAt: new Date().toISOString(),
       variant: process.env.RADAR_OPERATIONAL_VARIANT || 'candidate', stage, outcome, failure,
       rounds, ...report, limits: ['Massa sintética calibrada; não clone de Production.',
@@ -358,6 +391,7 @@ test('seis sessões reais medem escrita, observação, edição e falha durante 
         'Esta jornada mede avaliações e CRUD fiscal; não certifica patrimônio, Pendências, horas de uso ou staging.',
         'Tempos fiscais incluem auto-wait do Playwright, clique, RPC, settle e confirmação visual; excluem leitura remota diagnóstica posterior. Não medem paint, edição do formulário ou confirmação humana real.',
         'Tempos de funções síncronas são inclusivos e podem se sobrepor; guidanceSchoolEntry observa somente a entrada pública renderSchool, não todo trabalho interno de orientação.',
+        'Frescor durante atividade: amostragem da versão canônica na memória do escritor e observador escolar após gestos, sem esperar convergência nem fazer leituras adicionais. Defasagem em versões, não em milissegundos; o campo visual compara o valor exibido com o estado observado naquele instante.',
         'Latência e HTTP 500 são induzidos no transporte; dados e Realtime são reais.',
         'Um socket real é desconectado; snapshot SQL anterior é retido até recovery ser solicitado. UI só converge após a nova resposta global de recovery. A sonda antiga acrescenta uma leitura nas duas variantes.'] }, null, 2);
     expect(serialized).not.toContain(password);

@@ -502,3 +502,48 @@ test('install recupera falha inicial de setAuth quando a conexão volta sem exig
     assert.equal(root.RadarOperationalRealtimeInvalidationController.getStatus(), 'SUBSCRIBED');
     assert.equal(statuses.at(-1).detail.status, 'SUBSCRIBED');
 });
+
+test('rajada contínua respeita limite de três janelas sem introduzir polling', async t => {
+    t.mock.timers.enable({ apis: ['setTimeout', 'Date'], now: 1000 });
+    const harness = createHarness({ debounceMs: 2000 });
+    await harness.controller.start();
+    harness.emitStatus('SUBSCRIBED');
+    harness.emitBroadcast({ entity: 'verifications' });
+    for (const interval of [1500, 1500, 1500, 1499]) {
+        t.mock.timers.tick(interval);
+        harness.emitBroadcast({ entity: 'verifications' });
+    }
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(harness.refreshes.length, 0, 'janela trailing ainda não atingiu o limite');
+    t.mock.timers.tick(1);
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(harness.refreshes.length, 1, '6 s desde a primeira invalidação, embora a rajada continue');
+    assert.equal(harness.controller.getMetrics().refreshAttempts, 1);
+    assert.deepEqual(harness.refreshes[0], { reason: 'realtime', options: { force: true } });
+
+    harness.emitBroadcast({ entity: 'assets' });
+    t.mock.timers.tick(1999);
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(harness.refreshes.length, 1);
+    t.mock.timers.tick(1);
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(harness.refreshes.length, 2, 'novo lote preserva a janela trailing de 2 s');
+    t.mock.timers.tick(12000);
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(harness.refreshes.length, 2, 'sem eventos não há polling');
+    await harness.controller.stop();
+});
+
+test('encerrar o controller cancela a rajada ainda pendente', async t => {
+    t.mock.timers.enable({ apis: ['setTimeout', 'Date'], now: 1000 });
+    const harness = createHarness({ debounceMs: 2000 });
+    await harness.controller.start();
+    harness.emitStatus('SUBSCRIBED');
+    harness.emitBroadcast({ entity: 'verifications' });
+    t.mock.timers.tick(1500);
+    harness.emitBroadcast({ entity: 'assets' });
+    await harness.controller.stop();
+    t.mock.timers.tick(12000);
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(harness.refreshes.length, 0);
+});

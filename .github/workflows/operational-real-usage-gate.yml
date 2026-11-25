@@ -78,7 +78,10 @@ jobs:
           set -euo pipefail
           if [[ "$RADAR_OPERATIONAL_VARIANT" == baseline ]]; then
             runtime_root="${GITHUB_WORKSPACE}/.operational-baseline"
-            git worktree add --detach "$runtime_root" d9bf67f7d8a1ce2e468ec3c793ff992d8e10dfd6
+            # Corte experimental D022: mesma versão publicada imediatamente
+            # anterior ao ajuste do scheduler. Restaurar baseline histórico
+            # depois de concluir o A/B, antes de integrar este PR.
+            git worktree add --detach "$runtime_root" c5d890fb8cf7deda1a647cd94bf56699bd983a5e
             # Produto baseline conserva seu lockfile; o harness comparativo é
             # o mesmo candidato para ambas as variantes.
             npm ci --prefix "$runtime_root"

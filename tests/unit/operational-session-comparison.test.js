@@ -238,3 +238,28 @@ test('preserva compatibilidade histórica e resume os três gestos fiscais sem i
     inputs.candidate.report.fiscalTimings.pop();
     assert.throws(() => compareOperationalSessions(inputs), /every fiscal gesture/);
 });
+
+test('mede defasagem durante atividade e rejeita amostragem parcial ou versões regressivas', async () => {
+    const { compareOperationalSessions, renderComparisonMarkdown } = await modulePromise;
+    const inputs = pair();
+    assert.equal(compareOperationalSessions(inputs).baseline.sustainedFreshness.status, 'not-recorded');
+    for (const input of Object.values(inputs)) {
+        input.report.sustainedFreshness = { sampleEvery: 1, samples: [10, 10, 11, 13].map((observerVersion, i) => ({
+            writeNumber: i + 1, writerVersion: i + 10, observerVersion,
+            elapsedMs: (i + 1) * 100, observerVisibleMatchesState: i !== 2
+        })) };
+    }
+    const result = compareOperationalSessions(inputs);
+    assert.deepEqual(result.candidate.sustainedFreshness.lagVersions,
+        { samples: 4, p50: 0, p95: 1, p99: 1, max: 1 });
+    assert.equal(result.candidate.sustainedFreshness.currentSamples, 2);
+    assert.equal(result.candidate.sustainedFreshness.visibleMatchesStateSamples, 3);
+    assert.match(renderComparisonMarkdown(result), /Sustained freshness/);
+    inputs.candidate.report.sustainedFreshness.samples[2].observerVersion = 9;
+    assert.throws(() => compareOperationalSessions(inputs), /invalid or regressed version/);
+    inputs.candidate.report.sustainedFreshness.samples[2].observerVersion = 14;
+    assert.throws(() => compareOperationalSessions(inputs), /invalid or regressed version/);
+    inputs.candidate.report.sustainedFreshness.samples[2].observerVersion = 11;
+    inputs.candidate.report.sustainedFreshness.samples.pop();
+    assert.throws(() => compareOperationalSessions(inputs), /incomplete sustained freshness samples/);
+});

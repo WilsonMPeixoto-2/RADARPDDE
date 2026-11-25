@@ -22,6 +22,9 @@
     const TOPIC = 'radar:operational';
     const EVENT = 'operational-change';
     const DEFAULT_DEBOUNCE_MS = 2000;
+    // A rajada pode prolongar a janela trailing, mas não adiar a releitura
+    // indefinidamente. O limite é de agendamento, não de latência da RPC.
+    const MAX_DEBOUNCE_WINDOWS = 3;
     const SCHOOL_AGGREGATE_VIEWS = new Set(['dashboard', 'escolas', 'competencias']);
     const SCHOOL_SCOPED_ENTITIES = new Set([
         'verifications',
@@ -78,6 +81,7 @@
             : DEFAULT_DEBOUNCE_MS;
         let channel = null;
         let timer = null;
+        let scheduledSince = null;
         let scheduledSchoolId = '';
         let everSubscribed = false;
         let destroyed = false;
@@ -157,9 +161,9 @@
         }
 
         function clearScheduledRefresh() {
-            if (timer == null) return;
-            root.clearTimeout?.(timer);
+            if (timer != null) root.clearTimeout?.(timer);
             timer = null;
+            scheduledSince = null;
         }
 
         function scheduleRefresh(reason = 'realtime', options = {}) {
@@ -169,7 +173,13 @@
             // Global domina escola; duas escolas exigem a cobertura global.
             if (timer != null && scheduledSchoolId !== schoolId) schoolId = '';
             if (timer != null && /^realtime(?:-school)?$/.test(reason)) metrics.coalescedBroadcasts += 1;
+            const now = typeof root.performance?.now === 'function'
+                ? root.performance.now() : Date.now();
+            const burstStartedAt = scheduledSince ?? now;
+            const elapsed = Math.max(0, now - burstStartedAt);
+            const delay = Math.min(debounceMs, Math.max(0, debounceMs * MAX_DEBOUNCE_WINDOWS - elapsed));
             clearScheduledRefresh();
+            scheduledSince = burstStartedAt;
             scheduledSchoolId = schoolId;
             metrics.refreshesScheduled += 1;
             if (schoolId) metrics.schoolRefreshesScheduled += 1;
@@ -180,6 +190,7 @@
                 : setTimeout;
             timer = schedule(() => {
                 timer = null;
+                scheduledSince = null;
                 metrics.refreshAttempts += 1;
                 const dirtyAtAttempt = captureDirtySnapshot(schoolId);
                 beginReconciliation(dirtyAtAttempt);
@@ -212,7 +223,7 @@
                         }
                     })
                     .finally(() => endReconciliation(dirtyAtAttempt));
-            }, debounceMs);
+            }, delay);
             return true;
         }
 
