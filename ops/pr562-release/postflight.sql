@@ -1,4 +1,4 @@
--- One SELECT, executed with Management API read_only=true before and after apply.
+-- One SELECT, executed by CLI 3.2.0 in BEGIN READ ONLY / ROLLBACK via Session pooler.
 -- Only catalog metadata, aggregate integrity counts and opaque fingerprints leave the DB.
 with expected(signature) as (
   values
@@ -26,6 +26,7 @@ with expected(signature) as (
 select jsonb_build_object(
   'schemaVersion', 1,
   'database', current_database(),
+  'transactionReadOnly', current_setting('transaction_read_only') = 'on',
   'serverVersionNum', current_setting('server_version_num')::integer,
   'migrations', (
     select jsonb_agg(jsonb_build_object('version', version, 'name', name) order by version)

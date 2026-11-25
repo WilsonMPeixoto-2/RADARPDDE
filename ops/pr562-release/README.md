@@ -32,7 +32,11 @@ exatamente as 67 migrations anteriores e somente a migration 68 pendente.
    e a senha atual do banco, sem escrever plaintext. Uma rotação de senha entre o
    backup e a operação bloqueia a aplicação.
 4. Checkout fixo do candidato, Node 24, lockfile e CLI 3.2.0. Conferir SHA-256 exato
-   da migration. Consultar `postflight.sql` via Management API com `read_only=true`:
+   da migration. Consultar `postflight.sql` pela CLI 3.2.0 com URL explícita do
+   Session pooler e `--read-only`, que executa `BEGIN READ ONLY` e `ROLLBACK`.
+   Exigir `transactionReadOnly: true` no próprio resultado. O usuário já autorizado
+   preserva o acesso ao monitor institucional; não alterar ACLs para conceder
+   execução ao papel restrito da Management API. A URL permanece somente em memória:
    histórico de 67 migrations alinhado, quatro assinaturas e ACLs esperadas para o
    estado anterior, baseline de 20 controles com somente as três ocorrências
    conhecidas de `permanent_invoices_without_linked_asset`. Os hashes do conjunto

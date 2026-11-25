@@ -48,9 +48,19 @@ async function command(label, file, args, options = {}) {
       env: process.env, ...options
     });
     return result.stdout;
-  } catch {
+  } catch (error) {
     // CLI/API diagnostics may contain connection details; never forward raw stderr.
-    throw new Error(label);
+    const stderr = String(error.stderr ?? '');
+    throw Object.assign(new Error(label), {
+      safeReason: label,
+      diagnostic: {
+        exitCode: Number.isInteger(error.code) ? error.code : null,
+        timedOut: error.killed === true,
+        permissionDenied: /permission denied/i.test(stderr),
+        authenticationFailed: /password authentication failed/i.test(stderr),
+        sqlState: /SQLSTATE[ :]+([0-9A-Z]{5})\b/i.exec(stderr)?.[1] ?? null
+      }
+    });
   }
 }
 
@@ -167,6 +177,7 @@ async function candidateContract(directory) {
 export function verifyContract(contract, candidate, before) {
   assert.equal(contract.schemaVersion, 1, 'Unknown database contract');
   assert.equal(contract.database, 'postgres', 'Unexpected database');
+  assert.equal(contract.transactionReadOnly, true, 'Catalog query is not in a read-only transaction');
   assert.ok(contract.serverVersionNum >= 170000 && contract.serverVersionNum < 180000, 'Unexpected PostgreSQL major');
   assert.deepEqual(contract.migrations, before ? candidate.migrations : candidate.migrations.slice(0, -1), 'Remote migration history is not aligned');
   const integrity = contract.integrity;
@@ -216,17 +227,35 @@ export function verifyContract(contract, candidate, before) {
   return contract;
 }
 
-async function queryContract() {
+let sessionPoolerUrl;
+async function queryContract(candidate, evidenceFile) {
   assert.ok(process.env.SUPABASE_ACCESS_TOKEN, 'Supabase access token is unavailable');
-  const response = await fetch(`https://api.supabase.com/v1/projects/${PROJECT}/database/query`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${process.env.SUPABASE_ACCESS_TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query: await readFile(path.join(HERE, 'postflight.sql'), 'utf8'), read_only: true }),
-    signal: AbortSignal.timeout(60000)
-  });
-  assert.ok(response.ok, 'Read-only catalog query failed');
-  const rows = await response.json();
+  assert.ok(process.env.SUPABASE_DB_PASSWORD, 'Database password is unavailable');
+  if (!sessionPoolerUrl) {
+    const response = await fetch(`https://api.supabase.com/v1/projects/${PROJECT}/config/database/pooler`, {
+      headers: { Authorization: `Bearer ${process.env.SUPABASE_ACCESS_TOKEN}` },
+      signal: AbortSignal.timeout(30000)
+    });
+    assert.ok(response.ok, `Session pooler discovery failed (HTTP ${response.status})`);
+    const configurations = await response.json();
+    const config = configurations.find(item => item.database_type === 'PRIMARY' && item.db_host?.endsWith('.pooler.supabase.com'));
+    assert.ok(config, 'No recognized primary Supavisor endpoint');
+    const url = new URL(`postgresql://${config.db_host}:5432/postgres`);
+    url.username = `postgres.${PROJECT}`;
+    url.password = process.env.SUPABASE_DB_PASSWORD;
+    url.searchParams.set('sslmode', 'require');
+    sessionPoolerUrl = url.href;
+  }
+  // CLI 3.2.0 uses BEGIN READ ONLY / ROLLBACK for a direct URL. Keep the
+  // existing database role: the API read-only role cannot execute the monitor.
+  // The URL stays in memory; command() never logs arguments or raw diagnostics.
+  const output = await command('Read-only session catalog query failed', path.join(candidate.directory, 'node_modules/.bin/supabase'), [
+    'db', 'query', `--remote=${sessionPoolerUrl}`, '--read-only',
+    '--file', path.join(HERE, 'postflight.sql'), '--output', 'json', '--agent=no'
+  ], { cwd: candidate.directory, timeout: 90000 });
+  const rows = JSON.parse(output);
   assert.ok(Array.isArray(rows) && rows.length === 1 && rows[0].contract, 'Unexpected read-only contract response');
+  await record(evidenceFile, rows[0].contract);
   return rows[0].contract;
 }
 
@@ -284,8 +313,7 @@ async function main() {
       const cli = path.join(candidate.directory, 'node_modules/.bin/supabase');
       assert.equal((await command('CLI version check failed', cli, ['--version'], { cwd: candidate.directory })).trim(), '3.2.0');
       state.phase = 'read-only-preflight';
-      const before = verifyContract(await queryContract(), candidate);
-      await record('preflight.json', before);
+      const before = verifyContract(await queryContract(candidate, 'preflight.json'), candidate);
       state.phase = 'link-and-dry-run';
       await command('Explicit project link failed', cli, ['link', '--project-ref', PROJECT, '--password', process.env.SUPABASE_DB_PASSWORD], { cwd: candidate.directory });
       const linkedRef = (await readFile(path.join(candidate.directory, 'supabase/.temp/project-ref'), 'utf8')).trim();
@@ -296,7 +324,7 @@ async function main() {
       state.phase = 'last-pre-apply-gates';
       await gate('last-release-gate.json');
       await candidateContract(candidate.directory);
-      const immediate = verifyContract(await queryContract(), candidate);
+      const immediate = verifyContract(await queryContract(candidate, 'immediate-preflight.json'), candidate);
       assert.deepEqual(immediate, before, 'Database contract changed after dry-run');
       state.phase = 'migration-68-apply';
       state.applyStartedAt = new Date().toISOString();
@@ -305,8 +333,7 @@ async function main() {
       const applied = await command('Migration application failed', cli, [...pushArgs, '--yes'], { cwd: candidate.directory });
       await record('apply.json', verifyPushResult(JSON.parse(applied), false));
       state.phase = 'read-only-postflight';
-      const after = verifyContract(await queryContract(), candidate, before);
-      await record('postflight.json', after);
+      const after = verifyContract(await queryContract(candidate, 'postflight.json'), candidate, before);
       state.migrationVersion = '20261124000100';
       state.migrationSha256 = MIGRATION_SHA256;
       state.postflightVerified = true;
@@ -318,11 +345,16 @@ async function main() {
     state.completedAt = new Date().toISOString();
     await record(mode === 'apply' ? 'status.json' : `${mode}-status.json`, state);
     console.log(`PR562 ${mode}: verified successfully.`);
-  } catch {
+  } catch (error) {
     state.status = 'failed';
+    state.failure = {
+      reason: error.safeReason ?? (error.code === 'ERR_ASSERTION' && !error.generatedMessage
+        ? error.message.split('\n')[0].slice(0, 200) : 'Unexpected error; raw details withheld'),
+      ...(error.diagnostic ? { diagnostic: error.diagnostic } : {})
+    };
     state.completedAt = new Date().toISOString();
     await record(mode === 'apply' ? 'status.json' : `${mode}-status.json`, state).catch(() => {});
-    console.error(`PR562 blocked at ${state.phase}. See sanitized status; raw CLI/API diagnostics are withheld.`);
+    console.error(`PR562 blocked at ${state.phase}: ${state.failure.reason}. See sanitized status.`);
     process.exitCode = 1;
   }
 }
