@@ -319,6 +319,9 @@ test('T2 documental (correct_analysis e clear_analysis): RPC real, F5 e segunda 
     expect(afterClearDb.analysis?.extCC ?? null).toBeNull();
     expect(afterClearDb.bonus_result).toBe('apta');
 
+    // O historico da auditoria nao deve ser montado nas gravacoes fiscais
+    // enquanto a aba esta fechada; deve aparecer integral ao ser aberta.
+    await expect(page.locator('#tab-auditoria tbody tr')).toHaveCount(0);
     await page.getByRole('tab', { name: 'Registros Internos', exact: true }).click();
     const history = page.locator('#tab-auditoria tbody tr').filter({ hasText: 'Extrato Conta Corrente' });
     const corrected = history.filter({ hasText: 'Análise técnica corrigida' });

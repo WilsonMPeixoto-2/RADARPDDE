@@ -10257,17 +10257,7 @@ function renderProntuario(escolaId) {
                                         <th>Histórico de Alterações</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    ${logs.filter(l => l.detalhes.includes(esc.denominação) || l.detalhes.includes(esc.id)).length === 0 ? `
-                                        <tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:24px;">Nenhum registro interno para esta unidade.</td></tr>
-                                    ` : logs.filter(l => l.detalhes.includes(esc.denominação) || l.detalhes.includes(esc.id)).map(l => `
-                                        <tr>
-                                            <td>${new Date(l.dataHora).toLocaleString('pt-BR')}</td>
-                                            <td>${escapeHtml(l.usuario)} (${escapeHtml(l.perfil)})</td>
-                                            <td><strong>${escapeHtml(l.acao)}</strong></td>
-                                            <td>${escapeHtml(l.detalhes)}</td>
-                                        </tr>
-                                    `).join('')}
+                                <tbody data-school-audit-history>
                                 </tbody>
                             </table>
                         </div>
@@ -10411,6 +10401,29 @@ async function loadProntuarioContactHistory(panel) {
     }
 }
 
+// Auditoria interna e uma aba consultada sob demanda: nao reconstruir todas as
+// linhas historicas durante cada gravacao fiscal na aba de verificacoes.
+// O filtro, a ordem, o escaping e o HTML sao os mesmos da renderizacao anterior.
+function renderProntuarioAuditHistory(targetPanel, schoolId) {
+    const body = targetPanel?.querySelector('[data-school-audit-history]');
+    if (!body || body.dataset.auditLoaded === 'true') return false;
+    const esc = escolas.find(escola => escola.id === schoolId);
+    if (!esc) return false;
+    const schoolLogs = logs.filter(log => log.detalhes.includes(esc.denominação)
+        || log.detalhes.includes(esc.id));
+    body.innerHTML = `${schoolLogs.length === 0 ? `
+                                        <tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:24px;">Nenhum registro interno para esta unidade.</td></tr>
+                                    ` : schoolLogs.map(l => `
+                                        <tr>
+                                            <td>${new Date(l.dataHora).toLocaleString('pt-BR')}</td>
+                                            <td>${escapeHtml(l.usuario)} (${escapeHtml(l.perfil)})</td>
+                                            <td><strong>${escapeHtml(l.acao)}</strong></td>
+                                            <td>${escapeHtml(l.detalhes)}</td>
+                                        </tr>
+                                    `).join('')}`;
+    body.dataset.auditLoaded = 'true';
+    return true;
+}
 function activateProntuarioTab(tabId) {
     const allowedTabIds = new Set([
         'tab-verificacoes',
@@ -10454,6 +10467,7 @@ function activateProntuarioTab(tabId) {
         if (tabName) element.setAttribute('aria-labelledby', `prontuario-tab-${tabName}`);
     });
     if (tabId === 'tab-contatos') void loadProntuarioContactHistory(targetPanel);
+    if (tabId === 'tab-auditoria') renderProntuarioAuditHistory(targetPanel, activeSchoolId);
     return true;
 }
 
