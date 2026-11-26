@@ -1,5 +1,15 @@
 # Checkpoint único de continuidade operacional — RADAR T0–T6
 
+## 25/11/2026 — D024, integração #573 e retomada T6
+
+**Origem:** esclarecimento expresso do proprietário e “Ok continue”. D024 esclarece exclusivamente o alcance documental de D022: profissionalizar o fluxo agêntico existente SharePoint/OneDrive → análise cruzada → Pendências e registros autorizados no RADAR → conferência de cobertura e resultados. Não desenvolver extrator local, importador JSON, página independente ou módulo documental neste ciclo; experimentos são referências exploratórias. Evolução para usuários exige plano e aprovação prévios; planejamento agêntico posterior à consolidação T6. Sem novas permissões. [D024](D024_ESCOPO_AUDITORIA_AGENTICA.md), decisões e obrigações em `registry.json` e `decision-impact.json`. #574 fechado sem merge; [histórico exploratório](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/574), commit `8f74027f`. Não reabrir nem ampliar piloto local.
+
+**#573:** 17/17 workflows no HEAD `1eb4c4d32f99669cf971b244e7ee360a0d04e39e`, inclusive [carga operacional](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45726751955); merge confirmado `a5c506bf602ce65d68c2b74419f670061500677b`. Prova focal de 3/3 jornadas autenticadas e seis capturas inspecionadas pelo executor preservada; não equivale a aceite do proprietário, cobertura universal ou T6 integral. Publicação e gates pós-merge ainda não conferidos neste corte.
+
+**Reconciliação T6:** I006-01 (gates R1/R2/R3) continua gate-pending; I018-02 (cliente anterior/backend/fallback) continua gate-pending sem prova específica recuperada; I020-03 (regras, consumidores, UX, evidências) e I021-04 (linguagem, foco, acessibilidade e composição) continuam planned, com provas parciais existentes; I017-02 e I023-07 são invariantes permanentes. Não promover estados por CI agregado. A lacuna de pranchas originais e o aceite humano continuam explícitos. A regularização institucional #570 permanece separada.
+
+**Próximo ato:** comprovar produção #573 e gates pós-merge, identificar evidência existente de compatibilidade/fallback antes de criar teste focal, depois reconciliar matriz T6 sem repetir suites aprovadas no mesmo código. Nenhuma escrita institucional, migration ou mudança de flags. A seguir estão fotografias históricas; qualquer fila documental anterior foi superada por D024.
+
 ## 25/11/2026 — retomada dos PRs #572/#573 e prova móvel concluída
 
 **Origem:** proprietário solicitou «Continue de onde o outro agente parou», fornecendo os PRs #572/#573 e reafirmando que «Ok» significa continuar. Mantido o escopo objetivo D022/D023, sem nova autorização de mutação institucional.

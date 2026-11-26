@@ -30,6 +30,10 @@ Outro caso: o candidato Argon antigo continha `src/application/operational-corre
 | 15–20/11, testes e revisões paralelas | S007/S010–S024 | Seleções e reparos de Antigravity/Manus/Gemini, provas local Docker, contraprovas; fontes externas preservadas por commit SHA |
 | 20/11, releases sequenciais | S006 | R1=T0–T3, R2=T4, R3=T5; T6 aplicado a cada entrega com aceite e publicação independentes |
 
+## Esclarecimento posterior de 25/11 — D024
+
+S028 / R074: D024 esclarece exclusivamente o alcance documental de D022: profissionalizar o fluxo agêntico existente SharePoint/OneDrive → análise cruzada → Pendências e registros autorizados no RADAR → conferência de cobertura e resultados. Não desenvolver extrator local, importador JSON, página independente ou módulo documental neste ciclo; experimentos são referências exploratórias. Evolução para usuários exige plano e aprovação prévios; planejamento agêntico posterior à consolidação T6. Sem novas permissões. R070 preserva a evidência histórica do piloto; I022-03 foi substituída por I024-01. [Decisão](D024_ESCOPO_AUDITORIA_AGENTICA.md).
+
 ## Contradições e falsas redescobertas a evitar
 
 | Ideia de origem | Regra/decisão superveniente | O que fazer hoje |

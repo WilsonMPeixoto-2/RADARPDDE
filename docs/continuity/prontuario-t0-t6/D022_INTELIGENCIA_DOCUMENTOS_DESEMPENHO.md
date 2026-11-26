@@ -7,7 +7,11 @@
 > Integração documental: experimentação autorizada com uma pequena amostra real de documentos, em vez de trabalhar exclusivamente com dados sintéticos.
 > Desempenho: identificação quantitativa dos gargalos atuais do sistema e implementação de otimizações comprováveis. Inclua mais atenção a estes quesitos e continue.
 
-## Consequências para a entrega em andamento
+## Esclarecimento superveniente obrigatório — D024 (25/11/2026)
+
+D024 esclarece exclusivamente o alcance documental de D022: profissionalizar o fluxo agêntico existente SharePoint/OneDrive → análise cruzada → Pendências e registros autorizados no RADAR → conferência de cobertura e resultados. Não desenvolver extrator local, importador JSON, página independente ou módulo documental neste ciclo; experimentos são referências exploratórias. Evolução para usuários exige plano e aprovação prévios; planejamento agêntico posterior à consolidação T6. Sem novas permissões. Ver [D024](D024_ESCOPO_AUDITORIA_AGENTICA.md). O item 3 abaixo preserva a interpretação histórica e os limites do experimento realizado, não autoriza continuação de implementação. Os itens 1, 2 e 4 permanecem vigentes.
+
+## Consequências históricas para a entrega em andamento
 
 1. **Inteligência operacional:** implementar nas superfícies existentes do Dashboard e Prontuário orientações derivadas dos registros carregados, com universo, contexto e navegação para os itens que compõem cada indicação. Um estudo ou total sem acesso operacional não encerra esta obrigação.
 2. **Automação contextual:** explicar o motivo e o próximo passo conforme o estado real da escola. Reutilizar autoridades de competência, análise individual, Pendências e capacidades. Preservar a distinção entre espera da etapa e antiguidade histórica; não inventar prazo institucional, obrigação documental, avaliação fiscal ou ranking de pessoas.

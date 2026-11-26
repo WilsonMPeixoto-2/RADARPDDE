@@ -1118,7 +1118,7 @@
           "id": "T0T6-I022-03",
           "phase": "T5",
           "surface": "reports",
-          "status": "candidate",
+          "status": "superseded",
           "requirementIds": [
             "T0T6-R070"
           ],
@@ -1131,7 +1131,8 @@
           ],
           "evidenceRefs": [
             "docs/evidence/2026-11-25-t5-inteligencia-documentos-desempenho.md"
-          ]
+          ],
+          "replacedBy": "T0T6-I024-01"
         },
         {
           "id": "T0T6-I022-04",
@@ -1150,7 +1151,7 @@
           "evidenceRefs": []
         }
       ],
-      "reconciliationNote": "Implementação integrada e publicada em 31c27155 pelo PR #565. Os estados das obrigações permanecem candidate enquanto a evidência e o aceite de cada alcance são reconciliados: achado Inventário aberto, piloto documental de três PDFs sem importação pela UI e ganho de CPU sem comprovação de aceleração global. Não certificar todas as superfícies apenas pelo merge ou CI."
+      "reconciliationNote": "Implementação integrada e publicada em 31c27155 pelo PR #565. Os estados das obrigações permanecem candidate enquanto a evidência e o aceite de cada alcance são reconciliados: achado Inventário aberto, piloto documental de três PDFs sem importação pela UI e ganho de CPU sem comprovação de aceleração global. Não certificar todas as superfícies apenas pelo merge ou CI. D024 supera exclusivamente a obrigação I022-03 como fila de implementação; piloto exploratório preservado. #569/#572 integrados, #573 integrado com 17/17 gates do candidato; reconciliar provas e aceite."
     },
     {
       "decisionId": "T0T6-D023",
@@ -1288,6 +1289,32 @@
           "evidenceRefs": []
         }
       ]
+    },
+    {
+      "decisionId": "T0T6-D024",
+      "status": "approved",
+      "impactStatus": "scope-corrected-agentic-planning-deferred",
+      "supersededBy": null,
+      "obligations": [
+        {
+          "id": "T0T6-I024-01",
+          "phase": "T6",
+          "surface": "governance",
+          "status": "preserve",
+          "requirementIds": [
+            "T0T6-R074"
+          ],
+          "acceptance": "Preservar fronteira: auditoria agêntica existente é independente de T6; não implementar módulo, extrator, importador JSON ou tela documental; planejar profissionalização separadamente após consolidação T6 e discutir com proprietário. Nenhuma nova autorização institucional.",
+          "targetPaths": [
+            "docs/continuity/prontuario-t0-t6/D024_ESCOPO_AUDITORIA_AGENTICA.md",
+            "AGENTS.md",
+            "docs/continuity/prontuario-t0-t6/CHECKPOINT.md"
+          ],
+          "evidenceRefs": [
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/574"
+          ]
+        }
+      ]
     }
   ],
   "trackedObligationIds": [
@@ -1357,6 +1384,7 @@
     "T0T6-I023-04",
     "T0T6-I023-05",
     "T0T6-I023-06",
-    "T0T6-I023-07"
+    "T0T6-I023-07",
+    "T0T6-I024-01"
   ]
 }

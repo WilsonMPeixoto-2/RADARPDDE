@@ -31,7 +31,7 @@
       "https://radarpdde-fix.vercel.app/radar-build-manifest.json"
     ],
     "nextStage": "Pós-T5 / T6",
-    "nextStageStatus": "Concluir e comprovar a correção das sugestões do perfil Inventário; reconciliar obrigações por superfície, integração documental e desempenho percebido. A correção relatada em outro ambiente ainda não tem integração ou publicação comprovada."
+    "nextStageStatus": "T6: #569 e #572 integrados e publicação registrada anteriormente; #573 integrado a5c506bf, verificar publicação e gates pós-merge; reconciliar compatibilidade, UX, evidências e desempenho. D024 retira evolução documental do escopo corrente."
   },
   "decisions": [
     {
@@ -251,8 +251,8 @@
       "date": "2026-11-25",
       "stage": "T5-T6",
       "status": "approved",
-      "title": "Inteligência operacional utilizável, sugestões contextuais, piloto documental real e desempenho comprovado",
-      "decision": "Implementar orientação gerencial nas telas existentes, derivar próximas ações do estado real de cada escola, experimentar com pequena amostra documental real em modo somente leitura e otimizar gargalos medidos com equivalência demonstrada. Conservar proveniência, autoridades de domínio e separação entre resultado candidato e decisão administrativa.",
+      "title": "Inteligência operacional, sugestões contextuais e desempenho comprovado; alcance documental esclarecido em D024",
+      "decision": "Implementar orientação gerencial nas telas existentes, derivar próximas ações do estado real de cada escola, experimentar com pequena amostra documental real em modo somente leitura e otimizar gargalos medidos com equivalência demonstrada. Conservar proveniência, autoridades de domínio e separação entre resultado candidato e decisão administrativa. Esclarecimento superveniente D024: o recorte documental é histórico exploratório; a evolução pretendida é do fluxo agêntico existente, não de módulo documental do produto.",
       "sourcePath": "docs/continuity/prontuario-t0-t6/D022_INTELIGENCIA_DOCUMENTOS_DESEMPENHO.md",
       "supersedes": []
     },
@@ -264,6 +264,16 @@
       "title": "Continuidade remota sistemática e usabilidade humana em todas as fases",
       "decision": "Manter sistematicamente no GitHub decisões, mudanças de prioridades e regras, planos, alterações, testes e resultados favoráveis e desfavoráveis, evidências por SHA e próximo ato, permitindo retomada correta por outro agente. Desenvolver em paralelo a solução técnica e sua apresentação compreensível ao usuário humano, com linguagem natural, ações e confirmações claras, cores semanticamente consistentes, tipografia, espaçamento e densidade que facilitem a operação em todas as fases e evoluções do RADAR. Complementa D020/D021; cumprimento permanente, sem certificar globalmente a UI nem ampliar autorizações institucionais.",
       "sourcePath": "docs/continuity/prontuario-t0-t6/D023_CONTINUIDADE_REMOTA_E_USABILIDADE.md",
+      "supersedes": []
+    },
+    {
+      "id": "T0T6-D024",
+      "date": "2026-11-25",
+      "stage": "T5-T6",
+      "status": "approved",
+      "title": "Esclarecimento de D022: evolução da auditoria documental agêntica",
+      "decision": "D024 esclarece exclusivamente o alcance documental de D022: profissionalizar o fluxo agêntico existente SharePoint/OneDrive → análise cruzada → Pendências e registros autorizados no RADAR → conferência de cobertura e resultados. Não desenvolver extrator local, importador JSON, página independente ou módulo documental neste ciclo; experimentos são referências exploratórias. Evolução para usuários exige plano e aprovação prévios; planejamento agêntico posterior à consolidação T6. Sem novas permissões.",
+      "sourcePath": "docs/continuity/prontuario-t0-t6/D024_ESCOPO_AUDITORIA_AGENTICA.md",
       "supersedes": []
     }
   ],
@@ -725,6 +735,20 @@
       ],
       "rationale": "Implementação do agente anterior retomada sem reescrever produto: 17/17 workflows e 3/3 jornadas autenticadas aprovados. Seis capturas inspecionadas e preservadas em docs/evidence/2026-11-25-capital-mobile; linha de 320 px, ação 44 px, sem rolagem lateral no celular 390×844. Janela identifica bem/escola; cancelar preserva os assets. Desktop 1440×900 e temas claro/escuro conferidos. Não certifica dispositivo físico, WebKit, todos os perfis, correções T5 ativadas, aceite do proprietário ou publicação. Sem banco, permissões, flags ou escrita institucional. Fechar #572 separadamente antes da integração; conferir estado final no PR e checkpoint.",
       "integratedRef": "https://github.com/WilsonMPeixoto-2/RADARPDDE/commit/c1efcea48cc6d015d50da4f317d5888cb0398a16"
+    },
+    {
+      "id": "T0T6-C031",
+      "agent": "ChatGPT",
+      "stage": "Pós-T5 / experimento documental",
+      "title": "Conferência local de relatório JSON — experimento arquivado",
+      "status": "reference",
+      "originRef": "feat/conferencia-documental-privada-20261125@8f74027f9099d47b2e7fb92d342e778cab7124e5",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/574",
+      "decisionIds": [
+        "T0T6-D022",
+        "T0T6-D024"
+      ],
+      "rationale": "Encerrado sem merge por esclarecimento do proprietário. Preservar código, testes e branch como referência exploratória; não incorporar como produto, reabrir ou ampliar automaticamente."
     }
   ],
   "previousRelease": {
