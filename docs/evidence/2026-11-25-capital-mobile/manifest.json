@@ -1,0 +1,53 @@
+{
+  "productCommit": "c1efcea48cc6d015d50da4f317d5888cb0398a16",
+  "run": "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45721884398",
+  "reportArtifactId": 15072254056,
+  "reportArtifactDigest": "sha256:7f7e330440795dd4a3592057e2b89db51d5320b4e0ba748413f04a5d870f924e",
+  "environment": "Supabase descartável + Auth real + fixtures sintéticas; Chromium",
+  "test": {
+    "title": "Inventário recebe orientação no recorte patrimonial e abre o bem exato após reload no celular e desktop",
+    "projectName": "desktop-chromium",
+    "duration": 7277,
+    "outcome": "expected",
+    "ok": true
+  },
+  "result": {
+    "status": "passed",
+    "duration": 7277,
+    "retry": 0
+  },
+  "files": [
+    {
+      "path": "orientacao-inventario-dashboard-desktop.png",
+      "sha256": "f479f73f920ba408e2ea81c0f59e56646fd44f636967589d060aafa1c3c9deed"
+    },
+    {
+      "path": "orientacao-inventario-dashboard-celular.png",
+      "sha256": "b16744df7d0e3f50eaf4d83f7b1c52bed749b1b85832451d5b7c5bc226f9e43d"
+    },
+    {
+      "path": "orientacao-inventario-destino-celular-geometria.json",
+      "sha256": "8c513c79880bbf1837cc06f0669c06be134780ea67a0f2cfd7a318ec1a632a47"
+    },
+    {
+      "path": "orientacao-inventario-destino-celular.png",
+      "sha256": "a7bed93f2491c2fd06e600aade033d46293f0024952956ddfaacccfdef7b6cef"
+    },
+    {
+      "path": "orientacao-inventario-destino-desktop-geometria.json",
+      "sha256": "b1c5248f42a4b5d99ae3f5313d18bac6febdf5467db5e2b3c5df9f7d5d43cae2"
+    },
+    {
+      "path": "orientacao-inventario-destino-desktop.png",
+      "sha256": "4b3c9c6d4e5032daf218ad158842a4477cfb0aa93ed4f0730ba3d091ca4d7ee7"
+    },
+    {
+      "path": "orientacao-inventario-acao-celular-claro.png",
+      "sha256": "ba8a5e8e1d6a53018cd86775808d3586d23065a44e512323f11319a8207ffcf2"
+    },
+    {
+      "path": "orientacao-inventario-confirmacao-celular.png",
+      "sha256": "e76df087f9f42897feb57f665273f95910912c9fe6f0f0e475629c3d4149849e"
+    }
+  ]
+}
