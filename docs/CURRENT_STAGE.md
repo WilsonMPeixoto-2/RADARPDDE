@@ -9,7 +9,15 @@
 
 **Genealogia de decisões e requisitos desde 13/11:** [atlas de continuidade T0–T6](continuity/prontuario-t0-t6/LINEAGE.md) e [fonte estruturada](continuity/prontuario-t0-t6/lineage.json). Não basta reler plano original nem tratar 22 contribuições catalogadas como conhecimento exaustivo; seguir requisitos com origem por blob SHA e pendências históricas explícitas. O atlas não autoriza escrever no Supabase institucional.
 
-## Etapa vigente em 25/11/2026 — reparo focal da orientação do Inventário
+## Etapa vigente — fechamento de desempenho e usabilidade móvel (25/11/2026)
+
+**Retomada autorizada:** «Continue de onde o outro agente parou». O #572 conserva a candidata de 30 s e a restauração do baseline histórico, HEAD `de66e7a3`. A candidata passou no ensaio final; a referência histórica expirou durante o login, antes de qualquer gesto. Foi solicitada uma repetição apenas dos jobs reprovados. O [PR #572](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/572) registra o resultado posterior e deve fechar antes da integração de #573. O A/B controlado anterior mantém a redução P95 de 381 para 32 versões e o aumento de 13,3 para 27,8 MB; não é SLA nem redução global de custos.
+
+**Refinamento focal validado:** [PR #573](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/573), produto `c1efcea4`, 17/17 workflows aprovados e três jornadas de orientação sem retry. Registro de Capital com identidade e Inventariar dentro dos 320 px disponíveis no celular; tema claro/escuro, desktop e janela do bem correto inspecionados. Cancelamento sem alteração dos bens. As [capturas e geometrias](evidence/2026-11-25-capital-mobile/README.md) ficam versionadas; inspeção do agente não equivale a aceite humano, T6 integral ou publicação. Documentação posterior conserva o código validado.
+
+**Próximo ato:** conferir a repetição de #572 e os HEADs/checks finais, fechar os PRs em sequência e registrar integração/publicação separadamente. Em seguida, integração documental assistida e consolidação T6, sem importação automática nem ampliação da amostra real autorizada. O [checkpoint](continuity/prontuario-t0-t6/CHECKPOINT.md) concentra resultados, inclusive desfavoráveis, e limitações. #570 permanece uma questão institucional separada; T5, #569 e #571 não devem ser repetidos.
+
+## Etapa anterior em 25/11/2026 — reparo focal da orientação do Inventário
 
 **Escopo confirmado pelo proprietário:** continuar objetivamente, sem ampliar os escopos definidos. O [PR #569](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/569) limita-se à orientação do Dashboard do Inventário, ao filtro patrimonial já existente e à abertura do bem correto. O reparo anterior foi recuperado da branch local `fix/t6-orientacao-inventario-20261125`, base `31c27155`, e reaproveitado seletivamente sobre `ac57c4a0`. Passaram 29 testes focais, os 1.604 unitários e as três jornadas autenticadas de orientação no descartável; as quatro capturas foram inspecionadas e preservadas no GitHub. O código funcional validado é `d31b3f9c`; o SHA de integração e a publicação são conferidos no fechamento do PR. Proveniência, limites e próximo ato estão no [checkpoint](continuity/prontuario-t0-t6/CHECKPOINT.md). O nome da branch de origem não inicia nem encerra T6 integralmente.
 

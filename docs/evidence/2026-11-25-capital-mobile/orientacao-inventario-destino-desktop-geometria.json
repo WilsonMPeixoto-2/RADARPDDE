@@ -1,0 +1,37 @@
+{
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "documentWidth": 1440,
+  "focused": true,
+  "row": {
+    "x": 305.1875,
+    "y": 516.015625,
+    "width": 1088.8125,
+    "height": 74
+  },
+  "identity": {
+    "x": 321.1875,
+    "y": 544.84375,
+    "width": 191,
+    "height": 17.0625
+  },
+  "action": {
+    "x": 1252.375,
+    "y": 536.015625,
+    "width": 87,
+    "height": 34
+  },
+  "tableViewport": {
+    "x": 304.1875,
+    "y": 475.453125,
+    "width": 1090.8125,
+    "height": 115.5625
+  },
+  "tableScroll": {
+    "left": 0,
+    "width": 1089,
+    "visibleWidth": 1089
+  }
+}

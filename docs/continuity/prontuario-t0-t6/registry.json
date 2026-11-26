@@ -709,6 +709,22 @@
       ],
       "rationale": "Reparo original reaproveitado no commit funcional d31b3f9c e complementado somente com o recorte dos bens já filtrados na fila. Passaram 29 testes focais, 1.604 unitários e 3/3 jornadas de orientação no Supabase descartável (run45688491640), sem repetição. Quatro capturas foram inspecionadas pela raiz e por revisão independente e preservadas no repositório. Contribuição incorporada ao candidato e comprovada; o fechamento do PR #569 registra o SHA de integração e a publicação. Sem novas regras, capacidades, CSS, migrations, fixtures ou escrita institucional. A prova responsiva Chromium não homologa dispositivo físico, WebKit nem a ação de escrita à direita da tabela móvel. Mantido o escopo objetivo solicitado, sem encerrar T6 integralmente.",
       "integratedRef": "https://github.com/WilsonMPeixoto-2/RADARPDDE/commit/d31b3f9ca1f4e2a94f4b3fe2e67ce7e38be76f33"
+    },
+    {
+      "id": "T0T6-C030",
+      "agent": "ChatGPT / continuidade e revisão do executor",
+      "stage": "Pós-T5 / usabilidade focal D023",
+      "title": "Registro de Capital responsivo e ação Inventariar acessível no celular",
+      "status": "incorporated",
+      "originRef": "fix/prontuario-capital-mobile-20261125@c1efcea48cc6d015d50da4f317d5888cb0398a16, PR #573",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/573",
+      "decisionIds": [
+        "T0T6-D020",
+        "T0T6-D021",
+        "T0T6-D023"
+      ],
+      "rationale": "Implementação do agente anterior retomada sem reescrever produto: 17/17 workflows e 3/3 jornadas autenticadas aprovados. Seis capturas inspecionadas e preservadas em docs/evidence/2026-11-25-capital-mobile; linha de 320 px, ação 44 px, sem rolagem lateral no celular 390×844. Janela identifica bem/escola; cancelar preserva os assets. Desktop 1440×900 e temas claro/escuro conferidos. Não certifica dispositivo físico, WebKit, todos os perfis, correções T5 ativadas, aceite do proprietário ou publicação. Sem banco, permissões, flags ou escrita institucional. Fechar #572 separadamente antes da integração; conferir estado final no PR e checkpoint.",
+      "integratedRef": "https://github.com/WilsonMPeixoto-2/RADARPDDE/commit/c1efcea48cc6d015d50da4f317d5888cb0398a16"
     }
   ],
   "previousRelease": {
