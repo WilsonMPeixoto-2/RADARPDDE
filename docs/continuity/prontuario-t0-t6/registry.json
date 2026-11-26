@@ -30,8 +30,20 @@
       "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45654478619",
       "https://radarpdde-fix.vercel.app/radar-build-manifest.json"
     ],
-    "nextStage": "Pós-T5 / T6",
-    "nextStageStatus": "T6 em consolidação: #573/#575 integrados e status Vercel success; provas técnicas por release e logs recuperados em docs/evidence/2026-11-26-t6-consolidacao.md; novo gate histórico R2 contra schema atual aguardando CI. Manifesto atual e aceite humano ainda não comprovados neste corte. D024 exclui evolução documental."
+    "nextStage": "Pós-T6 — novo ciclo a definir",
+    "nextStageStatus": "Ciclo T0–T6 encerrado em 26/11/2026 por D025; aceite visual expresso, marco funcional 8e9033b2, 17/17 workflows #577 e manifesto Production confirmado. D024 e diretrizes permanentes preservadas; #570 independente; nova etapa depende de definição expressa.",
+    "cycleClosure": {
+      "status": "encerrado",
+      "date": "2026-11-26",
+      "decisionId": "T0T6-D025",
+      "productSha": "8e9033b2de55eec2048c8405917a69add2db53f6",
+      "sourcePath": "docs/continuity/prontuario-t0-t6/D025_ENCERRAMENTO_T0_T6.md",
+      "evidenceRefs": [
+        "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/577#issuecomment-7192549387",
+        "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45802029090",
+        "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45802028827/job/139847442559"
+      ]
+    }
   },
   "decisions": [
     {
@@ -274,6 +286,16 @@
       "title": "Esclarecimento de D022: evolução da auditoria documental agêntica",
       "decision": "D024 esclarece exclusivamente o alcance documental de D022: profissionalizar o fluxo agêntico existente SharePoint/OneDrive → análise cruzada → Pendências e registros autorizados no RADAR → conferência de cobertura e resultados. Não desenvolver extrator local, importador JSON, página independente ou módulo documental neste ciclo; experimentos são referências exploratórias. Evolução para usuários exige plano e aprovação prévios; planejamento agêntico posterior à consolidação T6. Sem novas permissões.",
       "sourcePath": "docs/continuity/prontuario-t0-t6/D024_ESCOPO_AUDITORIA_AGENTICA.md",
+      "supersedes": []
+    },
+    {
+      "id": "T0T6-D025",
+      "date": "2026-11-26",
+      "stage": "T6",
+      "status": "approved",
+      "title": "Aceite visual e encerramento do ciclo T0–T6",
+      "decision": "Encerrar o ciclo publicado e testado conforme aceite visual expresso do proprietário. Consolidar evidências e preservar limites, diretrizes permanentes e pendências institucionais independentes. Nova etapa exige definição expressa; não constitui autorização de escrita ou de novo desenvolvimento.",
+      "sourcePath": "docs/continuity/prontuario-t0-t6/D025_ENCERRAMENTO_T0_T6.md",
       "supersedes": []
     }
   ],
@@ -749,6 +771,22 @@
         "T0T6-D024"
       ],
       "rationale": "Encerrado sem merge por esclarecimento do proprietário. Preservar código, testes e branch como referência exploratória; não incorporar como produto, reabrir ou ampliar automaticamente."
+    },
+    {
+      "id": "T0T6-C032",
+      "agent": "ChatGPT / continuidade e revisão do executor",
+      "stage": "T6 / reparo focal",
+      "title": "Correção da ação de exclusão de programa",
+      "status": "incorporated",
+      "originRef": "PR #577 HEAD 3e12bdb37bc94aabeab2e8ce8600441ca39f1253",
+      "sourceUrl": "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/577",
+      "decisionIds": [
+        "T0T6-D021",
+        "T0T6-D023",
+        "T0T6-D025"
+      ],
+      "rationale": "Ícone 16 × 16 e rótulo contido; oito capturas e 28/28 jornadas. 17/17 workflows finais após repetição da falha histórica do baseline. Manifesto confirmou produção no merge. Aceite visual atual do proprietário D025; não certifica todas as combinações.",
+      "integratedRef": "https://github.com/WilsonMPeixoto-2/RADARPDDE/commit/8e9033b2de55eec2048c8405917a69add2db53f6"
     }
   ],
   "previousRelease": {

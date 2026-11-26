@@ -1,5 +1,8 @@
 # Continuidade verificável — Prontuário T0–T6
 
+**Encerramento vigente — 26/11/2026 (D025):** ciclo T0–T6 encerrado no escopo entregue e publicado, com aceite visual expresso do proprietário. Marco funcional `8e9033b2`, 17/17 workflows finais do #577, 28/28 jornadas autenticadas e manifesto Production confirmado. A consolidação não certifica todas as jornadas históricas, pranchas ausentes ou combinações de perfil/viewport. Não reabrir T0–T6 automaticamente. #570 é regularização institucional separada; D024 exige planejamento específico e aprovação antes de evolução agêntica. Nenhuma nova autorização de escrita ou desenvolvimento. [D025 — termo de encerramento](D025_ENCERRAMENTO_T0_T6.md). Este índice permanece como referência histórica e contrato de continuidade para futuras evoluções.
+
+
 **Classe:** índice operacional de rastreabilidade, não contrato funcional paralelo. **Primeira consolidação:** 20/11/2026. **Autoridade de execução:** ChatGPT. A branch, o PR e a etapa vigentes constam no [checkpoint](CHECKPOINT.md). Os agentes colaboradores podem escrever em suas próprias branches.
 
 ## Rota de retomada em um novo chat ou agente
