@@ -2020,7 +2020,27 @@ body.dark-theme #prontuario-verif-rows :is(.program-context-delete-button, .pron
     #prontuario-verif-rows [data-program-header] .program-context-header[data-col-count="4"] { grid-template-columns: 32% 22% 25% 21%; }
 }
 
-#prontuario-verif-rows .program-context-delete-button { display: inline-flex; align-items: center; gap: 5px; text-align: start; }
+/* A ação destrutiva fica subordinada à identidade do programa; nunca usar o
+   tamanho intrínseco padrão de um SVG sem dimensões em um botão flexível. */
+#prontuario-verif-rows .program-context-delete-button { display: inline-flex; align-items: center; gap: 6px; text-align: start; min-inline-size: 0; }
+#prontuario-verif-rows [data-program-header] .program-context-delete-button > svg {
+    display: block;
+    inline-size: 16px;
+    block-size: 16px;
+    min-inline-size: 16px;
+    max-inline-size: 16px;
+    flex: 0 0 16px;
+}
+#prontuario-verif-rows [data-program-header] .program-context-delete-label {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+@container prontuario-table (inline-size < 620px) {
+    #prontuario-verif-rows [data-program-header] .program-context-identity > .program-context-delete-button {
+        min-block-size: 44px;
+    }
+}
 #prontuario-verif-rows .program-consolidate-button { white-space: normal; line-height: 1.35; }
 #prontuario-verif-rows .verification-document-analysis-cell .select-analise { min-inline-size: 0; }
 #prontuario-verif-rows .contextual-bonus-edit { font-size: .72rem; }

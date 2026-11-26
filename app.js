@@ -10609,8 +10609,8 @@ function renderProntuarioVerificacoes(esc) {
                                                     data-program-name="${escapeHtml(progName)}"
                                                     data-competence-label="${escapeHtml(c.label)}"
                                                     onclick="openProgramContextDeletion(this)">
-                                                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M9 7V4.5h6V7M7 7l1 13h8l1-13M10 10v7M14 10v7"/></svg>
-                                                    Excluir lançamentos deste programa
+                                                    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M9 7V4.5h6V7M7 7l1 13h8l1-13M10 10v7M14 10v7"/></svg>
+                                                    <span class="program-context-delete-label">Excluir lançamentos deste programa</span>
                                                 </button>
                                     ` : ''}
                                 </div>
