@@ -1,0 +1,76 @@
+name: PR562 — aplicação institucional da migration 68
+run-name: PR562 migration 68 — ${{ github.sha }}
+
+on:
+  push:
+    branches: [ops/pr562-publicacao-controlada]
+    paths:
+      - .github/workflows/pr562-production-apply.yml
+      - ops/pr562-release/**
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+
+concurrency:
+  group: pr562-production-apply
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    if: github.repository == 'WilsonMPeixoto-2/RADARPDDE' && github.ref == 'refs/heads/ops/pr562-publicacao-controlada'
+    environment: Production
+    runs-on: ubuntu-26.04
+    timeout-minutes: 25
+    env:
+      SUPABASE_TELEMETRY_DISABLED: '1'
+    steps:
+      - name: Checkout das operações aprovadas
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: operations
+          persist-credentials: false
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - name: Exigir configuração completa do backup conferido
+        run: node operations/ops/pr562-release/release.mjs config
+      - name: Revalidar candidato, main, preflight e 21 workflows antes dos segredos Supabase
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GATE_OUTPUT_FILE: ${{ runner.temp }}/pr562-release-evidence/initial-release-gate.json
+        run: node operations/ops/pr562-backup/release-gate.mjs
+      - name: Baixar apenas o backup cifrado e conferir run, SHA e digest integral
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node operations/ops/pr562-release/release.mjs download
+      - name: Checkout do candidato homologado fixo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: 0b082bf49470d7bc549ed4865544203971168728
+          path: candidate
+          persist-credentials: false
+      - name: Instalar exatamente o lockfile do candidato, incluindo CLI 3.2.0
+        working-directory: candidate
+        run: npm ci
+      - name: Revalidar recuperação, preflight somente leitura, dry-run e aplicar somente a migration 68
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          CANDIDATE_DIR: ${{ github.workspace }}/candidate
+        run: node operations/ops/pr562-release/release.mjs apply
+      - name: Preservar somente metadados sanitizados da aplicação
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pr562-production-apply-evidence-${{ github.run_id }}
+          path: ${{ runner.temp }}/pr562-release-evidence/*.json
+          retention-days: 90
+          if-no-files-found: warn
+      - name: Remover cópia temporária do backup cifrado
+        if: always()
+        shell: bash
+        run: rm -rf -- "${RUNNER_TEMP}/pr562-release"

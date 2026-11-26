@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "configured": true,
+  "projectRef": "scnryinorqeucbfkioxo",
+  "candidateSha": "0b082bf49470d7bc549ed4865544203971168728",
+  "mainSha": "32245854763fe43d74223d6772826855f1bd4bd9",
+  "migration": {
+    "file": "20261124000100_extend_bonification_correction.sql",
+    "sha256": "4fcac2ce2ca94118d7670264aa12b1a727e58653083d5ab27aab894dd767a1b1"
+  },
+  "backup": {
+    "runId": "45546167245",
+    "opsSha": "ae92d592b00a1076f7bd6c10cb9bfe2f00dfacb5",
+    "artifactId": "14991439022",
+    "artifactSha256": "be3364661a2ebdd671c6b5b2217f79faf97107de8bfe27c1ee292c7d7604a5a3"
+  }
+}

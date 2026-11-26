@@ -125,6 +125,86 @@ function referenceExists(rootDir, reference, repositoryEntries) {
     return fs.existsSync(path.resolve(rootDir, normalized));
 }
 
+function extractCheckoutPaths(content) {
+    const lines = content.split(/\r?\n/);
+    const checkoutPaths = [];
+
+    for (let index = 0; index < lines.length; index += 1) {
+        const step = lines[index].match(/^([ \t]*)(?:-\s*)?uses:\s*['"]?actions\/checkout(?:@[^'"\s#]+)?['"]?\s*(?:#.*)?$/);
+        if (!step) continue;
+
+        const stepIndent = step[1].length;
+        let withIndent = null;
+        let checkoutPath = '';
+        let repository = '';
+        let ref = '';
+
+        for (let cursor = index + 1; cursor < lines.length; cursor += 1) {
+            const line = lines[cursor];
+            const nextStep = line.match(/^([ \t]*)-\s/);
+            if (nextStep && nextStep[1].length <= stepIndent) break;
+
+            if (withIndent === null) {
+                const withBlock = line.match(/^([ \t]*)with:\s*(?:#.*)?$/);
+                if (withBlock) withIndent = withBlock[1].length;
+                continue;
+            }
+
+            const indentation = line.match(/^[ \t]*/)[0].length;
+            if (line.trim() && indentation <= withIndent) {
+                withIndent = null;
+                continue;
+            }
+
+            const setting = line.match(/^\s*(path|repository|ref):\s*(.*?)\s*(?:#.*)?$/);
+            if (!setting) continue;
+
+            const value = stripQuotes(setting[2]);
+            if (setting[1] === 'path') checkoutPath = cleanReference(value);
+            if (setting[1] === 'repository') repository = value;
+            if (setting[1] === 'ref') ref = value;
+        }
+
+        if (
+            !checkoutPath
+            || checkoutPath === '.'
+            || checkoutPath.startsWith('../')
+            || path.posix.isAbsolute(checkoutPath)
+            || isDynamicReference(checkoutPath)
+        ) {
+            continue;
+        }
+
+        checkoutPaths.push({
+            path: checkoutPath.replace(/\/+$/, ''),
+            sameRepository: !repository || repository === '${{ github.repository }}',
+            sameRevision: !ref || ref === '${{ github.sha }}'
+        });
+    }
+
+    return checkoutPaths;
+}
+
+function referenceExistsInWorkflow(rootDir, reference, repositoryEntries, checkoutPaths, kind) {
+    const normalized = cleanReference(reference);
+    const checkout = [...checkoutPaths]
+        .sort((left, right) => right.path.length - left.path.length)
+        .find(item => normalized === item.path || normalized.startsWith(`${item.path}/`));
+
+    if (!checkout) return referenceExists(rootDir, normalized, repositoryEntries);
+    if (normalized === checkout.path) return kind === 'working-directory';
+
+    if (checkout.sameRepository && checkout.sameRevision) {
+        return referenceExists(
+            rootDir,
+            normalized.slice(checkout.path.length + 1),
+            repositoryEntries
+        );
+    }
+
+    return true;
+}
+
 function validateLocalActionReference(rootDir, reference) {
     const normalized = cleanReference(reference);
     const target = path.resolve(rootDir, normalized);
@@ -271,10 +351,12 @@ export function analyzeWorkflowReferences(rootDir = process.cwd()) {
         : {};
     const repositoryEntries = walkRepository(rootDir);
     const references = [];
+    const checkoutPathsByWorkflow = new Map();
 
     for (const workflowPath of listWorkflowFiles(rootDir)) {
         const workflow = toPosix(path.relative(rootDir, workflowPath));
         const content = fs.readFileSync(workflowPath, 'utf8');
+        checkoutPathsByWorkflow.set(workflow, extractCheckoutPaths(content));
         extractNodeReferences(workflow, content, references);
         extractNpmScriptReferences(workflow, content, references);
         extractPlaywrightReferences(workflow, content, references);
@@ -305,7 +387,8 @@ export function analyzeWorkflowReferences(rootDir = process.cwd()) {
                 : [{ ...item, code: 'UNPINNED_EXTERNAL_ACTION' }];
         }
 
-        return referenceExists(rootDir, item.reference, repositoryEntries)
+        const checkoutPaths = checkoutPathsByWorkflow.get(item.workflow) || [];
+        return referenceExistsInWorkflow(rootDir, item.reference, repositoryEntries, checkoutPaths, item.kind)
             ? []
             : [{ ...item, code: 'MISSING_LOCAL_REFERENCE' }];
     });

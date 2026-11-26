@@ -1,0 +1,101 @@
+name: PR562 — backup institucional cifrado
+run-name: PR562 backup somente leitura — ${{ github.sha }}
+
+on:
+  push:
+    branches: [ops/pr562-publicacao-controlada]
+    paths:
+      - .github/workflows/pr562-production-backup.yml
+      - ops/pr562-backup/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+
+concurrency:
+  group: pr562-production-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    if: github.repository == 'WilsonMPeixoto-2/RADARPDDE' && github.ref == 'refs/heads/ops/pr562-publicacao-controlada'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    env:
+      SUPABASE_TELEMETRY_DISABLED: '1'
+      PGCONNECT_TIMEOUT: '30'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Conferir candidato, main, dry-run institucional e os 21 workflows
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GATE_OUTPUT_FILE: ${{ runner.temp }}/pr562-release-gate.json
+        run: node ops/pr562-backup/release-gate.mjs
+      - name: Instalar CLI canônico sem upgrade
+        run: npm ci
+      - name: Testar snapshot, recuperação, adulteração e bloqueios de publicação
+        run: node --test ops/pr562-backup/*.test.mjs
+      - name: Reservar portas do PostgreSQL descartável
+        shell: bash
+        run: |
+          set -euo pipefail
+          current="$(sysctl -n net.ipv4.ip_local_reserved_ports)"
+          sudo sysctl -w "net.ipv4.ip_local_reserved_ports=${current:+$current,}54320-54323"
+      - name: Conferir a interface da CLI fixada
+        run: npx --no-install supabase start --help
+      - name: Iniciar apenas PostgreSQL descartável
+        run: npx --no-install supabase start --exclude gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+      - name: Gerar destinatário com chave privada cifrada
+        id: recovery
+        env:
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          BACKUP_OUTPUT_DIR: ${{ runner.temp }}/pr562-backup-sealed
+        run: |
+          node ops/pr562-backup/backup-key.mjs prepare
+          cp "${RUNNER_TEMP}/pr562-release-gate.json" "${BACKUP_OUTPUT_DIR}/release-gate.json"
+      - name: Criar snapshot somente leitura e provar restauração isolada
+        timeout-minutes: 35
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          BACKUP_PUBLIC_KEY: ${{ runner.temp }}/pr562-backup-sealed/recipient-public.pem
+          BACKUP_OUTPUT_DIR: ${{ runner.temp }}/pr562-backup-sealed
+          BACKUP_PRIVATE_DIR: ${{ runner.temp }}/pr562-backup-private
+        run: node ops/pr562-backup/backup-production.mjs
+      - name: Verificar decifragem autenticada e hash do arquivo
+        env:
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          BACKUP_OUTPUT_DIR: ${{ runner.temp }}/pr562-backup-sealed
+        run: node ops/pr562-backup/backup-key.mjs verify
+      - name: Preservar apenas arquivos cifrados e evidências sanitizadas
+        if: always() && steps.recovery.outcome == 'success'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pr562-production-backup-encrypted-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/pr562-backup-sealed/backup.tar.gz.enc
+            ${{ runner.temp }}/pr562-backup-sealed/envelope.json
+            ${{ runner.temp }}/pr562-backup-sealed/evidence.json
+            ${{ runner.temp }}/pr562-backup-sealed/release-gate.json
+            ${{ runner.temp }}/pr562-backup-sealed/recipient-public.pem
+            ${{ runner.temp }}/pr562-backup-sealed/recipient-private.encrypted.pem
+            ${{ runner.temp }}/pr562-backup-sealed/RECOVERY.txt
+          retention-days: 90
+          if-no-files-found: error
+      - name: Remover cópia em claro e PostgreSQL descartável
+        if: always()
+        timeout-minutes: 3
+        shell: bash
+        run: |
+          rm -rf -- "${RUNNER_TEMP}/pr562-backup-private"
+          if [ -x node_modules/.bin/supabase ]; then
+            npx --no-install supabase stop --no-backup
+          fi
