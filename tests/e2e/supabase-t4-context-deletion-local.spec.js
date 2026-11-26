@@ -49,7 +49,7 @@ async function openSchool(page) {
         { school: SCHOOL, competence: COMPETENCE }, { timeout: 20000 });
 }
 
-async function enablePilotAndOpen(page) {
+async function enablePilotAndOpen(page, beforeOpen) {
     const proof = await page.evaluate(async () => {
         await window.RadarProductExtensionsReady;
         window.RADAR_T4_CONTEXT_DELETION_PILOT = true;
@@ -103,6 +103,7 @@ async function enablePilotAndOpen(page) {
     const action = program.getByRole('button', { name: 'Excluir lançamentos deste programa', exact: true });
     await expect(action).toBeVisible();
     await expect(program.locator('details.program-context-options')).toHaveCount(0);
+    if (beforeOpen) await beforeOpen();
     await action.focus();
     await expect(action).toBeFocused();
     await page.keyboard.press('Enter');
@@ -134,10 +135,78 @@ async function snapshot(page) {
 }
 
 test('T4 real: prévia e cancelamento não alteram escola, NFs, Pendências ou patrimônio', async ({ page }, testInfo) => {
+    // Inclui oito capturas focalizadas no cabeçalho e seis da prévia.
+    test.setTimeout(60_000);
     await login(page, 'controller');
     await openSchool(page);
     const before = await snapshot(page);
-    const dialog = await enablePilotAndOpen(page);
+    const dialog = await enablePilotAndOpen(page, async () => {
+        const viewport = page.viewportSize();
+        const initialDark = await page.evaluate(() => document.body.classList.contains('dark-theme'));
+        try {
+            for (const width of [390, 716, 980, 1440]) {
+                await page.setViewportSize({ width, height: 900 });
+                for (const dark of [false, true]) {
+                    await page.evaluate(value => document.body.classList.toggle('dark-theme', value), dark);
+                    const actions = page.locator('#prontuario-verif-rows [data-program-header] .program-context-delete-button');
+                    await expect(actions).toHaveCount(2);
+                    const metrics = await actions.evaluateAll(buttons => {
+                        const contains = (outer, inner) => (
+                            inner.left >= outer.left - 1 && inner.right <= outer.right + 1
+                            && inner.top >= outer.top - 1 && inner.bottom <= outer.bottom + 1
+                        );
+                        const overlaps = (a, b) => a.left < b.right - 1 && a.right > b.left + 1
+                            && a.top < b.bottom - 1 && a.bottom > b.top + 1;
+                        return buttons.map(button => {
+                            const header = button.closest('.program-context-header');
+                            const identity = button.closest('.program-context-identity');
+                            const icon = button.querySelector('svg');
+                            const label = button.querySelector('.program-context-delete-label');
+                            const b = button.getBoundingClientRect();
+                            const i = icon.getBoundingClientRect();
+                            const l = label.getBoundingClientRect();
+                            const h = header.getBoundingClientRect();
+                            const table = header.closest('.prontuario-evaluation-table-wrap');
+                            const neighbors = [...header.querySelectorAll('.program-status-summary > div, .program-context-consolidate')]
+                                .map(el => el.getBoundingClientRect()).filter(rect => rect.width && rect.height);
+                            return {
+                                program: header.closest('[data-program-header]').dataset.programHeader,
+                                iconWidth: i.width, iconHeight: i.height, buttonHeight: b.height,
+                                headerHeight: h.height, availableWidth: table.clientWidth,
+                                labelText: label.textContent.trim(),
+                                labelFits: label.scrollWidth <= label.clientWidth + 1,
+                                iconAndLabelContained: contains(b, i) && contains(b, l),
+                                buttonContained: contains(identity.getBoundingClientRect(), b),
+                                noOverlap: !overlaps(i, l) && neighbors.every(rect => !overlaps(b, rect)),
+                                overflow: table.scrollWidth - table.clientWidth
+                            };
+                        });
+                    });
+                    expect(metrics.map(item => item.program).sort()).toEqual(['BASIC', 'CONECTADA']);
+                    for (const item of metrics) {
+                        expect(item, JSON.stringify({ width, dark, ...item })).toMatchObject({
+                            iconWidth: 16, iconHeight: 16,
+                            labelText: 'Excluir lançamentos deste programa',
+                            labelFits: true, iconAndLabelContained: true,
+                            buttonContained: true, noOverlap: true
+                        });
+                        expect(item.buttonHeight).toBeGreaterThanOrEqual(item.availableWidth < 620 ? 44 : 34);
+                        expect(item.buttonHeight).toBeLessThanOrEqual(88);
+                        if (item.availableWidth >= 620) expect(item.headerHeight).toBeLessThanOrEqual(140);
+                        expect(item.overflow).toBeLessThanOrEqual(2);
+                    }
+                    const header = page.locator('[data-program-header="BASIC"] .program-context-header');
+                    await header.scrollIntoViewIfNeeded();
+                    await testInfo.attach('t6-program-delete-' + width + '-' + (dark ? 'dark' : 'light'), {
+                        body: await header.screenshot({ animations: 'disabled' }), contentType: 'image/png'
+                    });
+                }
+            }
+        } finally {
+            if (viewport) await page.setViewportSize(viewport);
+            await page.evaluate(dark => document.body.classList.toggle('dark-theme', dark), initialDark);
+        }
+    });
     await expect(dialog).toBeVisible();
     await expect(dialog).toContainText('Escola Fictícia de Correção de Contexto');
     await expect(dialog).toContainText('Maio');
