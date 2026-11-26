@@ -102,7 +102,7 @@ function validate(value) {
   }) || !value.documents.length) return false;
   const ids = new Set(value.documents.map(d=>d.id));
   if (ids.size !== value.documents.length || !list(value.sourceSnapshots,12,s=>obj(s)&&ids.has(s.id)&&HASH.test(s.pdfSha256)&&HASH.test(s.textSha256)&&short(s.sourceVersion)&&short(s.extractorVersion)) || value.sourceSnapshots.length !== ids.size || new Set(value.sourceSnapshots.map(s=>s.id)).size !== ids.size) return false;
-  return list(value.pairs,144,p=>obj(p) && ids.has(p.leftDocumentId) && ids.has(p.rightDocumentId) && p.leftDocumentId !== p.rightDocumentId && Object.hasOwn(OUTCOMES,p.outcome) && p.purchaseCount === null && p.assetsCreated === 0 && p.requiresHumanReview === true && p.administrativeConclusion === null && integer(p.matchedItemPairs) && list(p.comparisons,300,c=>obj(c)&&integer(c.leftRow)&&Object.hasOwn(OUTCOMES,c.outcome)&&list(c.rightRows,300,integer)));
+  return list(value.pairs,144,p=>obj(p) && ids.has(p.leftDocumentId) && ids.has(p.rightDocumentId) && p.leftDocumentId !== p.rightDocumentId && Object.hasOwn(OUTCOMES,p.outcome) && p.purchaseCount === null && p.assetsCreated === 0 && p.requiresHumanReview === true && p.administrativeConclusion === null && integer(p.matchedItemPairs) && list(p.comparisons,300,c=>obj(c)&&integer(c.leftRow)&&Object.hasOwn(OUTCOMES,c.outcome)&&list(c.rightRows,300,integer)) && list(p.unpairedRightRows,300,integer));
 }
 function currency(cents) {
   if (!integer(cents)) return 'A conferir';
@@ -121,6 +121,7 @@ function showField(parent,label,value,format=v=>String(v)) {
   if (value.status==='ambiguous') for(const c of value.candidates) details(section,'Candidato: '+format(c.value),c.evidence);
   else details(section,'Ver trecho de origem',value.evidence);
 }
+function documentLabel(d) {return (report.documents.indexOf(d)+1)+'. '+TYPES[d.type];}
 function selected() {return report?.documents.find(d=>d.id===$('document').value);}
 function clear() {
   generation++; verification++; report=null;
@@ -163,7 +164,7 @@ function render() {
   if(!d.items.length) add($('items'),'p','Nenhum item candidato extraído neste documento.');
   else for(const i of d.items) {
     const r=add($('items'),'div',undefined,'record');
-    add(r,'h3',i.description);
+    add(r,'h3','Item '+i.row+' · '+i.description);
     add(r,'p','NF '+i.invoiceNumber+' · '+i.date+' · Quantidade: '+i.quantity,'muted');
     add(r,'p','Unitário: '+currency(i.unitCents)+' · Total: '+currency(i.totalCents),'value');
     if(!i.lineTotalConsistent) add(r,'p','Quantidade e valores precisam de conferência.','status');
@@ -182,11 +183,19 @@ function render() {
   const pairs=report.pairs.filter(p=>p.leftDocumentId===d.id||p.rightDocumentId===d.id);
   if(!pairs.length) add($('pairs'),'p','Nenhum par apoiado pelos campos extraídos neste relatório.');
   for(const p of pairs) {
-    const other=report.documents.find(doc=>doc.id===(p.leftDocumentId===d.id?p.rightDocumentId:p.leftDocumentId));
-    const r=add($('pairs'),'div',undefined,'record');add(r,'h3',TYPES[other.type]);
+    const left=report.documents.find(doc=>doc.id===p.leftDocumentId);
+    const right=report.documents.find(doc=>doc.id===p.rightDocumentId);
+    const other=d===left?right:left;
+    const r=add($('pairs'),'div',undefined,'record');add(r,'h3','Comparação com '+documentLabel(other));
     add(r,'p',OUTCOMES[p.outcome],'status');
     add(r,'p',p.matchedItemPairs+' par(es) de itens candidatos. Não é contagem de compras.');
-    for(const row of p.comparisons) add(r,'p','Linha candidata '+row.leftRow+': '+OUTCOMES[row.outcome]+(row.rightRows.length?' · linhas '+row.rightRows.join(', '):''),'muted');
+    for(const row of p.comparisons) {
+      const comparison=add(r,'div',undefined,'record');
+      add(comparison,'p',documentLabel(left)+' · item '+row.leftRow);
+      add(comparison,'p',documentLabel(right)+' · '+(row.rightRows.length?(row.rightRows.length===1?'item ':'itens ')+row.rightRows.join(', '):'sem item correspondente'));
+      add(comparison,'p',OUTCOMES[row.outcome],'status');
+    }
+    if(p.unpairedRightRows.length) add(r,'p',documentLabel(right)+' · itens sem correspondência na relação de bens: '+p.unpairedRightRows.join(', '),'status');
   }
   compare();
 }
@@ -199,7 +208,7 @@ $('report').addEventListener('change',async()=>{
     if(token!==generation)return;
     if(!validate(parsed))throw Error();
     report=parsed;
-    for(const [index,d] of report.documents.entries()) {const option=add($('document'),'option',(index+1)+'. '+TYPES[d.type]);option.value=d.id;}
+    for(const d of report.documents) {const option=add($('document'),'option',documentLabel(d));option.value=d.id;}
     $('workspace').hidden=false;render();
     $('load-status').textContent=report.documents.length+' documento(s) carregado(s) para revisão. Selecione um documento e confira a origem.';
   } catch {

@@ -64,7 +64,7 @@ test('conferência privada abre a saída real do motor com fixture sintética, v
   const institution = 'CEC DO/A ESCOLA SINTÉTICA DE REVISÃO';
   const texts = [
     `RELAÇÃO DE BENS ADQUIRIDOS OU PRODUZIDOS\nPDDE BÁSICO 2025\n${institution} 00.000.000/0000-00\nBLOCO 2 – IDENTIFICAÇÃO DOS BENS\nDANF SYN-901 09/08/2025 <img src=x onerror=alert(1)> 1 100,00 100,00\n0 0 00/01/1900 0 0 - -\n12 - TOTAL 100,00\n`,
-    `TERMO DE DOAÇÃO\nPelo presente instrumento o ${institution} do/a ESCOLA SINTÉTICA\nPDDE/BÁSICO/2025\nDESCRIÇÃO DO BEM QTDE. NOTA FISCAL DATA UNITÁRIO TOTAL\n1 <img src=x onerror=alert(1)> 1 SYN-901 09/08/2025 100,00 100,00\nTOTAL: 100,00\n`
+    `TERMO DE DOAÇÃO\nPelo presente instrumento o ${institution} do/a ESCOLA SINTÉTICA\nPDDE/BÁSICO/2025\nDESCRIÇÃO DO BEM QTDE. NOTA FISCAL DATA UNITÁRIO TOTAL\n1 <img src=x onerror=alert(1)> 1 SYN-901 09/08/2025 100,00 100,00\n2 BEM EXTRA SINTÉTICO 1 SYN-902 10/08/2025 50,00 50,00\nTOTAL: 150,00\n`
   ];
   const manifest = { schemaVersion: 1, synthetic: true, extractor: { version: 'synthetic/1' },
     documents: texts.map((text,index)=>({ id: 'synthetic-'+index,
@@ -87,6 +87,12 @@ test('conferência privada abre a saída real do motor com fixture sintética, v
   await expect(page.locator('#items img')).toHaveCount(0);
   await expect(page.locator('#items')).toContainText('1 linha(s) vazia(s)');
   await expect(page.locator('#pairs')).toContainText('Não é contagem de compras');
+  const checkPairOwnership = async () => {
+    await expect(page.locator('#pairs')).toContainText('1. Relação de bens · item 1');
+    await expect(page.locator('#pairs')).toContainText('2. Termo de doação · item 1');
+    await expect(page.locator('#pairs')).toContainText('2. Termo de doação · itens sem correspondência na relação de bens: 2');
+  };
+  await checkPairOwnership();
   await page.locator('#fields summary').first().click();
   await expect(page.locator('#fields blockquote').first()).toBeVisible();
   await page.getByLabel('PDF original deste documento').setInputFiles({name:'wrong.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF-1.4\nDIFERENTE')});
@@ -99,7 +105,9 @@ test('conferência privada abre a saída real do motor com fixture sintética, v
     await testInfo.attach('conferencia-privada-'+width+'.png',{body:await page.screenshot({fullPage:true}),contentType:'image/png'});
   }
   await page.getByLabel('Documento do relatório').selectOption('synthetic-1');
+  await checkPairOwnership();
   await expect(page.locator('#comparison')).toContainText('CNPJ do documento não identificado');
+  await expect(page.locator('#items')).toContainText('Item 2 · BEM EXTRA SINTÉTICO');
   await expect(page.locator('#source-status')).toHaveText('Original ainda não conferido.');
   await page.getByRole('button',{name:'Limpar conferência'}).click();
   await expect(page.locator('#workspace')).toBeHidden();

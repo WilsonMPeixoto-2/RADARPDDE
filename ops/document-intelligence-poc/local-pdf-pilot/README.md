@@ -139,6 +139,8 @@ regra `local-document-pilot/2` e navegador com Web Crypto. O teste usa apenas
 fontes sintéticas, incluindo bytes fictícios que exercitam a comparação de hash;
 não certifica parsing adicional ou assinaturas. Nenhum arquivo real entra no Git.
 
+Na comparação entre documentos, os itens são identificados com o número e o modelo do documento no seletor. A origem de cada item continua explícita ao trocar o documento em foco; itens do termo de doação sem correspondência na relação de bens ficam visíveis. O teste sintético cobre ambas as direções e um item adicional sem correspondência. Isso não muda a regra de extração ou de pareamento, nem confirma uma compra.
+
 Esta é uma etapa de revisão assistida do piloto privado, não uma superfície
 autenticada do produto nem conciliação direta com a base institucional. A
 integração de leitura com o contexto ativo do RADAR deverá ser avaliada em
