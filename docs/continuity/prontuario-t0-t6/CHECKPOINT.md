@@ -1,5 +1,12 @@
 # Checkpoint único de continuidade operacional — RADAR T0–T6
 
+## 26/11/2026 — encerramento autorizado D025
+
+**Encerramento vigente — 26/11/2026 (D025):** ciclo T0–T6 encerrado no escopo entregue e publicado, com aceite visual expresso do proprietário. Marco funcional `8e9033b2`, 17/17 workflows finais do #577, 28/28 jornadas autenticadas e manifesto Production confirmado. A consolidação não certifica todas as jornadas históricas, pranchas ausentes ou combinações de perfil/viewport. Não reabrir T0–T6 automaticamente. #570 é regularização institucional separada; D024 exige planejamento específico e aprovação antes de evolução agêntica. Nenhuma nova autorização de escrita ou desenvolvimento.
+
+[Decisão de encerramento](D025_ENCERRAMENTO_T0_T6.md) · [Evidências consolidadas](../../evidence/2026-11-26-t6-consolidacao.md) · `registry.json` / `decision-impact.json` / `lineage.json`. O PR #565 permanece a última release funcional numerada (R3); #576 e #577 complementaram T6. O #577 teve 16/17 inicialmente, com falha no baseline histórico; após repetição, 17/17 finais e comparador com 12 avisos diagnósticos, sem SLA. Aceite do proprietário: “Ok, a minha análise visual aprovou a resultado. Faça a atualização e consolidação documental para encerramos T6 e essa etapa do desenvolvimento”. Não implica execução de todas as jornadas. Apresentação de 28 slides entregue no chat, não anexada ao GitHub. Próximo ato: definir nova etapa com o proprietário; #570 continua aberta e independente. Todas as entradas abaixo são fotografias históricas; não reexecutar seus próximos atos já cumpridos.
+
+
 ## 26/11/2026 — retorno humano de produção: ícone destrutivo no cabeçalho do programa
 
 O proprietário apresentou três capturas reais de celular (modo desktop), com lixeira vermelha desproporcional nos programas PDDE Básico, Educação Conectada e Escola das Adolescências, texto colidindo com o resumo de bonificação e cabeçalho excessivamente alto. Regressão visual material, apesar dos gates técnicos do #576; a homologação humana T6 continua aberta. Não inserir as capturas institucionais no GitHub; o relato não contém identificadores escolares. Causa localizada: SVG do botão `program-context-delete-button` sem largura/altura próprias dentro de flex; a regra existente de apresentação do botão não limita o SVG.

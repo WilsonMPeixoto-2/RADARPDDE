@@ -1,5 +1,10 @@
 # T6 — consolidação por evidência e gate de compatibilidade
 
+## Resultado final — 26/11/2026
+
+[D025](../continuity/prontuario-t0-t6/D025_ENCERRAMENTO_T0_T6.md) registra o aceite visual expresso e encerramento do ciclo. #576 comprovou R2 real, G3 passou no retry; #577 comprovou ambos sem retry na suíte 28/28 ([readiness](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45802028827/job/139847442559)). 17/17 workflows finais no HEAD do #577, após repetir a falha histórica de baseline no [ensaio](https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45802029090); comparação concluída com 12 avisos e sem orçamento de custo estabelecido. O manifesto oficial retorna `8e9033b2de55eec2048c8405917a69add2db53f6` em Production, cinco flags verdadeiras. A inspeção focal e o aceite visual atual não substituem teste de cada combinação nem cotejo com pranchas originais. As seções abaixo preservam o corte anterior, não pendências de execução atuais. I006-01/I018-02 verificados no escopo comprovado; I020-03/I021-04 preservados como recorrentes. #570 independente e D024 vigente.
+
+
 **Corte auditado:** 26/11/2026. Baseline `abb9559a89479e95629cbebb2a5860c0b8c357d9` (merge #575, D024); produto do #573 `1eb4c4d32f99669cf971b244e7ee360a0d04e39e`. Ordem expressa: concluir T6; não iniciar profissionalização da auditoria agêntica nem desenvolvimento documental. Este registro não concede permissões e não substitui aceite humano.
 
 ## Reconciliação dos gates

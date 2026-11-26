@@ -4,7 +4,7 @@
   "workstream": "RADARPDDE/PRONTUARIO-T0-T6",
   "registryPath": "docs/continuity/prontuario-t0-t6/registry.json",
   "lineagePath": "docs/continuity/prontuario-t0-t6/lineage.json",
-  "completion": "Initial map only. Not a closed coverage audit; no code, UI acceptance or Production implied.",
+  "completion": "Ciclo de entregas T0–T6 encerrado por D025 no escopo publicado e aceito visualmente. Não equivale a censo histórico integral; estados de obrigações anteriores não reconciliadas individualmente permanecem como prova parcial, não fila automática.",
   "policy": {
     "inheritance": "Approved decisions remain binding across agents, chats and releases until explicitly superseded; obligations are independently tracked.",
     "closure": "One code commit or passed test does not close other obligations, especially future UI, reports and tests.",
@@ -288,7 +288,7 @@
           "id": "T0T6-I006-01",
           "phase": "T6",
           "surface": "release",
-          "status": "gate-pending",
+          "status": "verified",
           "requirementIds": [
             "T0T6-R049",
             "T0T6-R050"
@@ -301,8 +301,13 @@
             "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/537",
             "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/564",
             "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565",
-            "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45726751925"
-          ]
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45726751925",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/577",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45802028827/job/139847442559",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45802029090",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/577#issuecomment-7192549387"
+          ],
+          "closureNote": "D025: comprovado no alcance da etapa publicada; limites históricos preservados. Não implica certificação universal."
         },
         {
           "id": "T0T6-I006-02",
@@ -874,7 +879,7 @@
           "id": "T0T6-I018-02",
           "phase": "T6",
           "surface": "tests",
-          "status": "gate-pending",
+          "status": "verified",
           "requirementIds": [
             "T0T6-R051"
           ],
@@ -883,8 +888,13 @@
             "tests/e2e/supabase-operational-correction-local.spec.js"
           ],
           "evidenceRefs": [
-            "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45726751773"
-          ]
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45726751773",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/577",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45802028827/job/139847442559",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45802029090",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/577#issuecomment-7192549387"
+          ],
+          "closureNote": "D025: comprovado no alcance da etapa publicada; limites históricos preservados. Não implica certificação universal."
         }
       ]
     },
@@ -989,7 +999,7 @@
           "id": "T0T6-I020-03",
           "phase": "T6",
           "surface": "tests",
-          "status": "candidate",
+          "status": "preserve",
           "requirementIds": [
             "T0T6-R052",
             "T0T6-R067"
@@ -1001,8 +1011,13 @@
           "evidenceRefs": [
             "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/575",
             "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45726751773",
-            "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45726751925"
-          ]
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45726751925",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/577",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45802028827/job/139847442559",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45802029090",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/577#issuecomment-7192549387"
+          ],
+          "closureNote": "D025: comprovado no alcance da etapa publicada; limites históricos preservados. Obrigação recorrente nas releases futuras."
         }
       ]
     },
@@ -1071,7 +1086,7 @@
           "id": "T0T6-I021-04",
           "phase": "T6",
           "surface": "tests",
-          "status": "candidate",
+          "status": "preserve",
           "requirementIds": [
             "T0T6-R052"
           ],
@@ -1083,8 +1098,13 @@
           "evidenceRefs": [
             "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45726751760",
             "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45726751751",
-            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/573"
-          ]
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/573",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/577",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45802028827/job/139847442559",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45802029090",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/577#issuecomment-7192549387"
+          ],
+          "closureNote": "D025: comprovado no alcance da etapa publicada; limites históricos preservados. Obrigação recorrente nas releases futuras."
         }
       ]
     },
@@ -1330,6 +1350,35 @@
           ]
         }
       ]
+    },
+    {
+      "decisionId": "T0T6-D025",
+      "status": "approved",
+      "impactStatus": "cycle-closed-with-evidence-and-explicit-owner-visual-acceptance",
+      "supersededBy": null,
+      "obligations": [
+        {
+          "id": "T0T6-I025-01",
+          "phase": "T6",
+          "surface": "governance",
+          "status": "verified",
+          "requirementIds": [
+            "T0T6-R075"
+          ],
+          "acceptance": "Registrar aceite visual expresso, provas de produto publicado e encerramento no alcance entregue; preservar limites e não autorizar nova etapa automaticamente.",
+          "targetPaths": [
+            "docs/continuity/prontuario-t0-t6/D025_ENCERRAMENTO_T0_T6.md",
+            "docs/continuity/prontuario-t0-t6/CHECKPOINT.md",
+            "docs/CURRENT_STAGE.md"
+          ],
+          "evidenceRefs": [
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/577",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45802028827/job/139847442559",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45802029090",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/577#issuecomment-7192549387"
+          ]
+        }
+      ]
     }
   ],
   "trackedObligationIds": [
@@ -1400,6 +1449,7 @@
     "T0T6-I023-05",
     "T0T6-I023-06",
     "T0T6-I023-07",
-    "T0T6-I024-01"
+    "T0T6-I024-01",
+    "T0T6-I025-01"
   ]
 }

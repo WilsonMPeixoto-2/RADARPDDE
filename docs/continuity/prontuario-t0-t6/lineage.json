@@ -298,6 +298,17 @@
       "ref": "docs/d022-escopo-agentico-t6-20261125",
       "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/docs/d022-escopo-agentico-t6-20261125/docs/continuity/prontuario-t0-t6/D024_ESCOPO_AUDITORIA_AGENTICA.md",
       "note": "Instrução expressa do proprietário em 25/11/2026; sem permalink do chat."
+    },
+    {
+      "id": "S029",
+      "location": "release-branch",
+      "role": "aceite-visual-expresso-e-encerramento",
+      "path": "docs/continuity/prontuario-t0-t6/D025_ENCERRAMENTO_T0_T6.md",
+      "contentSha": "36da8f31f4d00f4427cf2f586b2e791c2edf2fac",
+      "reviewStatus": "reviewed",
+      "ref": "docs/encerramento-t6-20261126",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/docs/encerramento-t6-20261126/docs/continuity/prontuario-t0-t6/D025_ENCERRAMENTO_T0_T6.md",
+      "note": "Instrução expressa do proprietário em 26/11/2026, transcrita em D025; sem permalink do chat."
     }
   ],
   "requirements": [
@@ -1233,7 +1244,7 @@
       "decisionIds": [
         "T0T6-D006"
       ],
-      "evidence": "Plano de publicação conjunta substituído.",
+      "evidence": "Plano de publicação conjunta substituído. Adendo D025: Ciclo entregue encerrado; manter escopo de prova e obrigações futuras.",
       "codePaths": [],
       "testPaths": []
     },
@@ -1241,7 +1252,7 @@
       "id": "T0T6-R050",
       "label": "Compatibilidade cliente anterior, backup e deploy seguro",
       "phase": "T6",
-      "state": "open-verification",
+      "state": "candidate-tested",
       "sourceIds": [
         "S003",
         "S005",
@@ -1250,9 +1261,11 @@
       "decisionIds": [
         "T0T6-D006"
       ],
-      "evidence": "Sem aprovação de Production.",
+      "evidence": "Sem aprovação de Production. Adendo D025: Produção confirmada; compatibilidade R2 histórica e fallback aprovados em #577, backup/restauração descartáveis registrados.",
       "codePaths": [],
-      "testPaths": []
+      "testPaths": [
+        "tests/e2e/supabase-operational-correction-local.spec.js"
+      ]
     },
     {
       "id": "T0T6-R051",
@@ -1266,7 +1279,7 @@
       "decisionIds": [
         "T0T6-D018"
       ],
-      "evidence": "Regras de local e ambiente prod separadas.",
+      "evidence": "Regras de local e ambiente prod separadas. Adendo D025: Ciclo entregue encerrado; manter escopo de prova e obrigações futuras.",
       "codePaths": [
         "config.js"
       ],
@@ -1288,7 +1301,7 @@
         "T0T6-D020",
         "T0T6-D021"
       ],
-      "evidence": "Consistência não implica censo histórico exaustivo.",
+      "evidence": "Consistência não implica censo histórico exaustivo. Adendo D025: Ciclo entregue encerrado; manter escopo de prova e obrigações futuras.",
       "codePaths": [
         "scripts/check-prontuario-continuity.mjs"
       ],
@@ -1389,7 +1402,7 @@
       "decisionIds": [
         "T0T6-D013"
       ],
-      "evidence": "Falha Desktop homologado histórica, sem aceite.",
+      "evidence": "Falha Desktop homologado histórica, sem aceite. Adendo D025: Aceite visual atual expresso; não houve comparação do golden original nem autorização de alterá-lo.",
       "codePaths": [],
       "testPaths": []
     },
@@ -1549,7 +1562,7 @@
         "T0T6-D017",
         "T0T6-D020"
       ],
-      "evidence": "Fontes exclusivamente em branches e reconciliações anteriores são rastreadas por SHA; algumas ainda aguardam revisão integral.",
+      "evidence": "Fontes exclusivamente em branches e reconciliações anteriores são rastreadas por SHA; algumas ainda aguardam revisão integral. Adendo D025: Ciclo entregue encerrado; manter escopo de prova e obrigações futuras.",
       "codePaths": [],
       "testPaths": []
     },
@@ -1693,6 +1706,21 @@
       "evidence": "Esclarecimento explícito: priorizar T6 agora; profissionalizar posteriormente o fluxo agêntico SharePoint/OneDrive e RADAR existente, não construir módulo documental. PR #574 fechado sem merge. Não comprova implementação de novo fluxo ou autorização de escrita.",
       "codePaths": [],
       "testPaths": []
+    },
+    {
+      "id": "T0T6-R075",
+      "label": "Encerramento autorizado do ciclo publicado T0–T6",
+      "phase": "T6",
+      "state": "contract-active",
+      "sourceIds": [
+        "S029"
+      ],
+      "decisionIds": [
+        "T0T6-D025"
+      ],
+      "evidence": "D025: aceite visual expresso, 17/17 workflows finais, 28/28 jornadas e manifesto do marco funcional. Não prova cada combinação de jornada ou recuperação histórica.",
+      "codePaths": [],
+      "testPaths": []
     }
   ],
   "gaps": [
@@ -1749,8 +1777,8 @@
         "S003",
         "S006"
       ],
-      "description": "T1 não recebeu homologação humana e o golden difere.",
-      "nextStep": "Comparar telas reais em Supabase Docker com pranchas e contexto; preservar resultado no PR."
+      "description": "T1 não recebeu homologação humana e o golden difere. Adendo 26/11: proprietário aprovou o resultado visual atual; não há comprovação de cotejo com pranchas originais ou golden histórico.",
+      "nextStep": "Preservar como lacuna histórica; só recuperar comparação se materialmente necessária a nova tarefa. Não reabrir ciclo por rotina."
     }
   ]
 }

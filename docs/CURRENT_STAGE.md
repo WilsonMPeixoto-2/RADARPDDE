@@ -2,6 +2,11 @@
 
 # RADAR PDDE — estado atual e continuidade verificável
 
+## Etapa vigente — ciclo T0–T6 encerrado
+
+**Encerramento vigente — 26/11/2026 (D025):** ciclo T0–T6 encerrado no escopo entregue e publicado, com aceite visual expresso do proprietário. Marco funcional `8e9033b2`, 17/17 workflows finais do #577, 28/28 jornadas autenticadas e manifesto Production confirmado. A consolidação não certifica todas as jornadas históricas, pranchas ausentes ou combinações de perfil/viewport. Não reabrir T0–T6 automaticamente. #570 é regularização institucional separada; D024 exige planejamento específico e aprovação antes de evolução agêntica. Nenhuma nova autorização de escrita ou desenvolvimento. [Decisão e termo de encerramento](continuity/prontuario-t0-t6/D025_ENCERRAMENTO_T0_T6.md). Próximo ato: aguardar definição expressa da nova etapa; não iniciar a lista histórica abaixo.
+
+
 **Ponto único de continuidade entre chats:** [Protocolo e registro de decisões/contribuições](continuity/prontuario-t0-t6/README.md) e [CHECKPOINT vigente](continuity/prontuario-t0-t6/CHECKPOINT.md), mantidos na branch principal. Consultar ID de decisão e contribuição antes de repetir análise ou criar nova hipótese. A branch da release não inclui lançamentos reais de prestação de contas do PDDE. O HEAD, checks e ambientes registrados são fotografias por SHA, a revalidar ao vivo.
 
 
@@ -9,7 +14,7 @@
 
 **Genealogia de decisões e requisitos desde 13/11:** [atlas de continuidade T0–T6](continuity/prontuario-t0-t6/LINEAGE.md) e [fonte estruturada](continuity/prontuario-t0-t6/lineage.json). Não basta reler plano original nem tratar 22 contribuições catalogadas como conhecimento exaustivo; seguir requisitos com origem por blob SHA e pendências históricas explícitas. O atlas não autoriza escrever no Supabase institucional.
 
-## Etapa vigente — consolidação técnica T6 (26/11/2026)
+## Etapa anterior — consolidação técnica T6 (26/11/2026)
 
 [Provas T6, lacunas e gate de compatibilidade histórica](evidence/2026-11-26-t6-consolidacao.md). #573 e #575 integrados e status Vercel success; manifesto atual não recuperado nesta sessão. A nova candidata é teste e documentação, não alteração de produto: cliente R2 real fixado no SHA publicado, rodando sobre schema atualizado descartável com o cliente novo. O teste G3 anterior sem flag foi recuperado nos logs e permanece. Verificar novo CI, aceite humano e evidências em vez de repetir T5. #574 encerrado sem merge e D024 vigente. T6 integral não declarada concluída antes da prova.
 

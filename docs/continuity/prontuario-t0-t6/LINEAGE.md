@@ -1,5 +1,8 @@
 # RADAR PDDE — genealogia e cobertura de decisões T0–T6
 
+**Adendo de encerramento (26/11/2026):** [D025](D025_ENCERRAMENTO_T0_T6.md) registra aceite visual do resultado atual e fechamento do ciclo, não recuperação das seis pranchas originais nem revisão integral de todas as fontes. G001–G003 permanecem lacunas históricas; G004 tem aceite atual registrado, sem comprovar comparação histórica de golden/pranchas. As fotografias quantitativas e filas abaixo são históricas, não bloqueios automáticos à nova etapa.
+
+
 **Índice factual de proveniência — 20/11/2026.** [Registro estruturado](lineage.json) | [Decisões e colaborações](registry.json) | [Checkpoint](CHECKPOINT.md). Este documento **não substitui** o contrato funcional nem permite declarar o projeto integralmente conhecido.
 
 ## O problema diagnosticado
