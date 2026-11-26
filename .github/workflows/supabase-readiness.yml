@@ -440,9 +440,29 @@ jobs:
         shell: bash
         env:
           RADAR_E2E_OPERATIONAL_CORRECTION_LOCAL: '1'
+          RADAR_T6_LEGACY_CLIENT_REQUIRED: '1'
           PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report-operational-correction
         run: |
           set -euo pipefail
+          # R2 publicado: checkout separado e imutável; apenas a configuração local muda.
+          legacy_sha='7523782bdc572a631783deeae2ea59be048dd725'
+          legacy_root="$(mktemp -d "${RUNNER_TEMP}/radar-t6-r2.XXXXXX")"
+          git fetch --no-tags --depth=1 origin "$legacy_sha"
+          git worktree add --detach "$legacy_root" "$legacy_sha"
+          trap 'git worktree remove --force "$legacy_root"' EXIT
+          test "$(git -C "$legacy_root" rev-parse HEAD)" = "$legacy_sha"
+          RADAR_DATA_MODE=supabase-preview \
+          RADAR_ENVIRONMENT=test \
+          RADAR_SUPABASE_REPOSITORY_ENABLED=true \
+          RADAR_OPERATIONAL_CORRECTION_PREVIEW=false \
+          RADAR_OPERATIONAL_CORRECTION_RELEASE_ENABLED=false \
+          RADAR_BONIFICATION_CORRECTION_RELEASE_ENABLED=false \
+          RADAR_T4_CONTEXT_DELETION_RELEASE_ENABLED=false \
+          RADAR_T4_ITEM_HISTORY_RELEASE_ENABLED=false \
+          RADAR_SUPABASE_URL="${RADAR_SUPABASE_URL}" \
+          RADAR_SUPABASE_PUBLISHABLE_KEY="${RADAR_SUPABASE_PUBLISHABLE_KEY}" \
+          node "$legacy_root/scripts/generate-runtime-config.mjs"
+          export RADAR_T6_LEGACY_CLIENT_ROOT="$legacy_root"
           psql 'postgresql://postgres:postgres@127.0.0.1:54322/postgres' -X -1 -v ON_ERROR_STOP=1 -f tests/fixtures/operational-correction-local.sql
           RADAR_DATA_MODE=supabase-preview \
           RADAR_ENVIRONMENT=test \

@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const { execFileSync } = require('node:child_process');
 const path = require('node:path');
+const { pathToFileURL } = require('node:url');
 const { test, expect } = require('@playwright/test');
 const ExcelJS = require('exceljs');
 
@@ -974,15 +975,14 @@ test('T3 atualiza a escola no Dashboard, na Carteira e no Passivo de junho após
     }
 });
 
-test('G3 compatibilidade: cliente sem flag convive com schema atualizado e RPC rejeita prévia obsoleta', async ({ page, browser }, testInfo) => {
-    test.setTimeout(90000);
+async function exerciseClientCompatibility({ page, browser }, legacyBaseURL, simulateFallback) {
     const pageErrors = [];
     page.on('pageerror', error => pageErrors.push(error.message));
 
     const legacyNumber = `OCC-LEG-${Date.now()}`;
-    const legacyContext = await browser.newContext({ baseURL: testInfo.project.use.baseURL });
+    const legacyContext = await browser.newContext({ baseURL: legacyBaseURL });
     try {
-        await legacyContext.route('**/config.runtime.js', async route => {
+        if (simulateFallback) await legacyContext.route('**/config.runtime.js', async route => {
             const response = await route.fetch();
             const source = await response.text();
             const patched = source.replace(/"operationalCorrectionPilot"\s*:\s*true/g, '"operationalCorrectionPilot": false');
@@ -997,6 +997,18 @@ test('G3 compatibilidade: cliente sem flag convive com schema atualizado e RPC r
             }
         });
 
+        // Nunca autenticar a fixture antes de confirmar o endpoint descartável.
+        await legacyPage.goto('/');
+        await page.goto('/');
+        const runtimeOf = target => target.evaluate(() => ({
+            mode: window.RADAR_PDDE_CONFIG?.dataMode,
+            url: window.RADAR_PDDE_CONFIG?.supabase?.url
+        }));
+        const legacyRuntime = await runtimeOf(legacyPage);
+        const currentRuntime = await runtimeOf(page);
+        expect(legacyRuntime).toEqual(currentRuntime);
+        expect(legacyRuntime.mode).toBe('supabase-preview');
+        expect(['127.0.0.1', 'localhost']).toContain(new URL(legacyRuntime.url).hostname);
         await loginAs(legacyPage, 'controller');
         const legacyFlags = await legacyPage.evaluate(() => ({
             previewFlag: window.RADAR_OPERATIONAL_CORRECTION_PREVIEW === true,
@@ -1111,6 +1123,33 @@ test('G3 compatibilidade: cliente sem flag convive com schema atualizado e RPC r
     }
 
     expect(pageErrors).toEqual([]);
+}
+
+test('G3 compatibilidade: cliente sem flag convive com schema atualizado e RPC rejeita prévia obsoleta', async ({ page, browser }, testInfo) => {
+    test.setTimeout(90000);
+    await exerciseClientCompatibility({ page, browser }, testInfo.project.use.baseURL, true);
+});
+
+test('T6 compatibilidade: cliente R2 publicado e cliente atual compartilham banco atualizado sem escrita obsoleta', async ({ page, browser }) => {
+    test.setTimeout(90000);
+    const legacyRoot = process.env.RADAR_T6_LEGACY_CLIENT_ROOT;
+    if (process.env.RADAR_T6_LEGACY_CLIENT_REQUIRED === '1' && !legacyRoot) {
+        throw new Error('A execução obrigatória T6 não recebeu o checkout histórico.');
+    }
+    test.skip(!legacyRoot, 'Requer checkout histórico R2 preparado pelo gate Supabase readiness.');
+    const pinned = '7523782bdc572a631783deeae2ea59be048dd725';
+    const actual = execFileSync('git', ['-C', legacyRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+    expect(actual).toBe(pinned);
+    const trackedChanges = execFileSync('git', ['-C', legacyRoot, 'diff', 'HEAD', '--name-only'], { encoding: 'utf8' }).trim().split(/\r?\n/).filter(Boolean);
+    expect(trackedChanges.every(file => file === 'config.runtime.js')).toBe(true);
+    const { startRadarServer } = await import(pathToFileURL(path.join(legacyRoot, 'scripts/serve-radar.mjs')).href);
+    const server = await startRadarServer({ root: legacyRoot, port: 0, host: '127.0.0.1', log: false });
+    try {
+        const historicalURL = 'http://127.0.0.1:' + server.address().port;
+        await exerciseClientCompatibility({ page, browser }, historicalURL, false);
+    } finally {
+        await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+    }
 });
 
 test('T2 mantém o resumo antigo na nota única e permite a primeira análise de cada nota quando há duas', async ({ page }, testInfo) => {
