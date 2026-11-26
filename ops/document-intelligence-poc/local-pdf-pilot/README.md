@@ -116,3 +116,31 @@ monetária insuficiente, correspondências múltiplas, âncoras e `/Sig` sem tex
 As contraprovas também cobrem `/V null`, CNPJ ambíguo, ambiguidade nas duas
 direções entre documentos, limite de centavos e erros de CLI sem dados privados.
 Não inclui nenhuma conexão com as autoridades de persistência do RADAR.
+
+
+## Conferência privada no navegador
+
+Abra `review.html` diretamente como arquivo local (não publique relatórios ou
+PDFs em um servidor). Selecione o `document-analysis.json` produzido pelo CLI
+acima. A tela mostra candidatos, trechos de página/linha, ambiguidades, itens e
+pares, e permite comparar CNPJ/exercício com os dados **informados pelo
+analista** a partir do RADAR. Não consulta o cadastro. Selecione o PDF original
+para comparar seu SHA-256 com a referência no relatório; abra-o separadamente
+no leitor local para verificar o conteúdo. O hash não autentica o relatório nem
+a assinatura. Não há visualização/execução do PDF dentro desta página.
+
+A página é autossuficiente, sem dependências, requisições de rede, armazenamento
+persistente ou ações de negócio. Todos os campos do relatório são dados não
+confiáveis, exibidos como texto. Uma política CSP impede conexões e recursos
+externos. Limpar, trocar o relatório ou recarregar descarta o estado; mudar o
+documento exige conferir novamente o original. Limites do primeiro incremento:
+relatório de até 5 MB, 12 documentos e 300 itens por documento, PDF de até 25 MB,
+regra `local-document-pilot/2` e navegador com Web Crypto. O teste usa apenas
+fontes sintéticas, incluindo bytes fictícios que exercitam a comparação de hash;
+não certifica parsing adicional ou assinaturas. Nenhum arquivo real entra no Git.
+
+Esta é uma etapa de revisão assistida do piloto privado, não uma superfície
+autenticada do produto nem conciliação direta com a base institucional. A
+integração de leitura com o contexto ativo do RADAR deverá ser avaliada em
+incremento separado, sem ampliar as permissões. Não crie novos registros nem
+confirme uma decisão administrativa por esta página.

@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'">
+<title>RADAR · Conferência documental privada</title>
+<style>
+:root{color-scheme:light dark;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;--paper:#f4f5f9;--card:#fff;--ink:#242038;--muted:#626578;--line:#dcdde6;--accent:#6040a3;--warn:#805013;--warn-bg:#fff3df}
+@media(prefers-color-scheme:dark){:root{--paper:#181424;--card:#231d32;--ink:#f2edf8;--muted:#c5bfd2;--line:#49415d;--accent:#c8b5ff;--warn:#ffd49a;--warn-bg:#382b1b}}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);line-height:1.5}main{max-width:1120px;margin:auto;padding:28px 20px 40px}h1{font-size:clamp(1.65rem,3vw,2.3rem);line-height:1.2;margin:.35rem 0 .6rem}h2{font-size:1.16rem;margin:0 0 .75rem}h3{font-size:1rem;margin:0 0 .5rem}p{margin:.3rem 0 .8rem}.eyebrow{font-weight:700;color:var(--accent);font-size:.85rem}.muted{color:var(--muted);font-size:.88rem}.panel{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:18px;margin-top:16px;min-width:0}.notice{border-left:4px solid var(--warn);background:var(--warn-bg);color:var(--warn);padding:10px 14px;border-radius:4px;overflow-wrap:anywhere}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{min-width:0}label{display:block;font-size:.88rem;font-weight:650;margin-bottom:5px}input,select,button{font:inherit;min-height:44px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink);max-width:100%}input,select{width:100%;padding:8px}input[type=file]{font-size:.82rem}button{padding:8px 14px;color:var(--accent);font-weight:650;cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:3px}button:disabled{opacity:.5;cursor:default}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.record{border-top:1px solid var(--line);padding:12px 0;overflow-wrap:anywhere}.record:last-child{padding-bottom:0}.label{font-size:.84rem;color:var(--muted);font-weight:650}.value{font-size:1rem;font-weight:650;margin:3px 0}.status{font-size:.9rem;color:var(--warn);font-weight:650}details{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-top:8px;overflow-wrap:anywhere}summary{cursor:pointer;font-weight:650}blockquote{margin:8px 0;padding:8px 12px;border-left:2px solid var(--line);white-space:pre-wrap;overflow-wrap:anywhere;font-size:.88rem}.fingerprint{overflow-wrap:anywhere;font-size:.76rem;color:var(--muted)}ul{padding-left:22px}.result{font-weight:650;overflow-wrap:anywhere}[hidden]{display:none!important}@media(max-width:700px){main{padding:16px 12px 30px}.grid{grid-template-columns:1fr}.panel{padding:14px}}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">RADAR · Piloto de documentos reais</div>
+    <h1>Conferência documental privada</h1>
+    <p>Confira os campos extraídos, o documento de origem e o contexto informado do RADAR, antes de qualquer decisão.</p>
+    <p class="notice">Abra esta página localmente. Os arquivos selecionados ficam na memória desta página: não são enviados, gravados no RADAR nem usados para concluir uma análise. Abra o PDF original em seu leitor local para conferir a página indicada.</p>
+  </header>
+  <section class="panel" aria-labelledby="load-title">
+    <h2 id="load-title">1. Abrir relatório do piloto</h2>
+    <label for="report">Relatório privado de extração (.json)</label>
+    <input id="report" type="file" accept=".json,application/json">
+    <p class="muted">Use o resultado gerado pelo extrator local, versão 2. Não selecione o manifesto de texto nem um documento PDF neste campo.</p>
+    <div class="actions"><button id="clear" type="button">Limpar conferência</button></div>
+    <p id="load-status" role="status" aria-live="polite" class="result"></p>
+  </section>
+  <div id="workspace" hidden>
+    <section class="panel" aria-labelledby="context-title">
+      <h2 id="context-title">2. Conferir contexto</h2>
+      <label for="document">Documento do relatório</label>
+      <select id="document"></select>
+      <p id="report-context" class="muted"></p>
+      <div class="grid">
+        <div class="field"><label for="radar-cnpj">CNPJ da unidade no RADAR (informado por você)</label><input id="radar-cnpj" inputmode="numeric" maxlength="18" placeholder="00.000.000/0000-00" autocomplete="off"></div>
+        <div class="field"><label for="radar-exercise">Exercício no RADAR (informado por você)</label><input id="radar-exercise" inputmode="numeric" maxlength="4" placeholder="AAAA" autocomplete="off"></div>
+      </div>
+      <p id="comparison" class="result" aria-live="polite"></p>
+      <div id="fields"></div>
+    </section>
+    <section class="panel" aria-labelledby="source-title">
+      <h2 id="source-title">3. Conferir o documento original</h2>
+      <label for="original">PDF original deste documento</label>
+      <input id="original" type="file" accept=".pdf,application/pdf">
+      <p id="source-status" class="result" role="status" aria-live="polite">Original ainda não conferido.</p>
+      <p id="source-hash" class="fingerprint"></p>
+      <p class="muted">A conferência dos bytes compara o SHA-256 com o relatório local. Não comprova autenticidade, assinatura digital nem que o relatório foi editado ou não. Confira também cada trecho no leitor de PDF.</p>
+      <div id="signature"></div>
+    </section>
+    <section class="panel" aria-labelledby="items-title">
+      <h2 id="items-title">4. Itens e pontos a revisar</h2>
+      <div id="items"></div>
+      <div id="reasons"></div>
+      <div id="pairs"></div>
+    </section>
+  </div>
+  <p class="muted">Conferência somente leitura · nenhuma conexão automática com o cadastro institucional · nenhum parecer, importação, despesa, bem ou Pendência será criado por esta tela.</p>
+</main>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const HASH = /^[a-f0-9]{64}$/;
+const TYPES = {'bb-agil-commitment':'Termo de compromisso BB Gestão Ágil','asset-list':'Relação de bens','donation-term':'Termo de doação','ambiguous':'Modelo ambíguo','unrecognized':'Modelo não reconhecido'};
+const REASONS = {'document-type-not-resolved':'Modelo do documento não identificado com segurança.','content-exercise-differs-from-target':'Exercício do documento difere do exercício-alvo do relatório.','content-exercise-not-resolved':'Exercício não identificado no conteúdo.','institution-not-resolved':'Instituição não identificada com segurança.','cnpj-not-resolved-no-inheritance':'CNPJ ausente ou ambíguo; não copiar de outro documento.','period-not-resolved-or-invalid':'Período não identificado ou inválido.','table-rows-rejected':'Há linhas de itens não reconhecidas ou inválidas.','line-amount-mismatch':'Quantidade e valor de uma linha não coincidem.','item-total-sum-out-of-range':'Soma fora do limite de representação.','declared-total-out-of-range':'Total declarado fora do limite de representação.','declared-total-differs-from-items':'Total declarado difere da soma dos itens.','table-incomplete':'Tabela incompleta; não presumir os itens faltantes.'};
+const LABELS = {'extracted':'Extraído','not-found':'Não encontrado','ambiguous':'Ambíguo','invalid':'Inválido'};
+const OUTCOMES = {'compatible-fields-for-review':'Campos compatíveis — conferir','document-review-required':'Revisão documental necessária','ambiguous-document-pair':'Mais de um par possível','matching-fields-for-review':'Campos correspondentes — conferir','amount-mismatch':'Diferença de valores','no-supported-match':'Sem correspondência suficiente','ambiguous':'Correspondência ambígua'};
+let report = null, generation = 0, verification = 0;
+function add(parent,tag,text,cls) {
+  const element = document.createElement(tag);
+  if (text !== undefined) element.textContent = text;
+  if (cls) element.className = cls;
+  parent.append(element);
+  return element;
+}
+const obj = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+const integer = value => Number.isSafeInteger(value) && value >= 0;
+const short = value => typeof value === 'string' && value.length <= 8000;
+function list(value,max,check) {return Array.isArray(value) && value.length <= max && value.every(check);}
+function anchor(value,id) {return obj(value) && value.documentId === id && Number.isSafeInteger(value.page) && value.page > 0 && Number.isSafeInteger(value.line) && value.line > 0 && short(value.quote);}
+function field(value,id,check) {
+  if (!obj(value) || !Object.hasOwn(LABELS,value.status)) return false;
+  if (value.status === 'extracted') return check(value.value) && list(value.evidence,500,a=>anchor(a,id)) && value.evidence.length > 0;
+  if (value.value !== null) return false;
+  if (value.status === 'ambiguous') return list(value.candidates,100,c=>obj(c) && check(c.value) && list(c.evidence,500,a=>anchor(a,id)) && c.evidence.length > 0) && value.candidates.length > 1;
+  return list(value.evidence,500,a=>anchor(a,id));
+}
+const year = value => Number.isSafeInteger(value) && value >= 1000 && value <= 9999;
+const date = value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
+const cnpj = value => typeof value === 'string' && /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/.test(value);
+const period = value => obj(value) && typeof value.valid === 'boolean' && short(value.raw) && (value.start === null || date(value.start)) && (value.end === null || date(value.end));
+function validate(value) {
+  if (!obj(value) || value.schemaVersion !== 1 || value.private !== true || value.ruleVersion !== 'local-document-pilot/2' || !year(value.targetExercise) || value.requiresHumanReview !== true || value.administrativeConclusion !== null || value.persistedToRadar !== false || value.automaticImports !== 0 || value.assetsCreated !== 0) return false;
+  if (!list(value.documents,12,d=>{
+    if (!obj(d) || !short(d.id) || !d.id || !Object.hasOwn(TYPES,d.type) || !obj(d.context) || d.requiresHumanReview !== true || d.administrativeConclusion !== null || d.persistedToRadar !== false || d.assetsCreated !== 0) return false;
+    if (!field(d.context.institution,d.id,short) || !field(d.context.cnpj,d.id,cnpj) || !field(d.context.exercise,d.id,year) || !field(d.context.program,d.id,short) || !field(d.context.period,d.id,period) || !field(d.total,d.id,integer)) return false;
+    if (!list(d.items,300,i=>obj(i) && integer(i.row) && i.row > 0 && short(i.description) && short(i.invoiceNumber) && date(i.date) && integer(i.quantity) && i.quantity > 0 && integer(i.unitCents) && integer(i.totalCents) && typeof i.lineTotalConsistent === 'boolean' && anchor(i.evidence,d.id))) return false;
+    if (new Set(d.items.map(i=>i.row)).size !== d.items.length || !(d.sumItemTotalsCents === null || integer(d.sumItemTotalsCents))) return false;
+    if (!list(d.ignoredTemplateRows,1000,i=>obj(i)&&anchor(i.evidence,d.id)) || !list(d.rejectedRows,1000,i=>obj(i)&&short(i.reason)&&anchor(i.evidence,d.id))) return false;
+    return list(d.reviewReasons,100,r=>short(r)) && obj(d.signature) && obj(d.signature.fields) && typeof d.signature.fields.present === 'boolean' && typeof d.signature.textLayerMarkersPresent === 'boolean' && d.signature.cryptographicValidation === 'not-performed';
+  }) || !value.documents.length) return false;
+  const ids = new Set(value.documents.map(d=>d.id));
+  if (ids.size !== value.documents.length || !list(value.sourceSnapshots,12,s=>obj(s)&&ids.has(s.id)&&HASH.test(s.pdfSha256)&&HASH.test(s.textSha256)&&short(s.sourceVersion)&&short(s.extractorVersion)) || value.sourceSnapshots.length !== ids.size || new Set(value.sourceSnapshots.map(s=>s.id)).size !== ids.size) return false;
+  return list(value.pairs,144,p=>obj(p) && ids.has(p.leftDocumentId) && ids.has(p.rightDocumentId) && p.leftDocumentId !== p.rightDocumentId && Object.hasOwn(OUTCOMES,p.outcome) && p.purchaseCount === null && p.assetsCreated === 0 && p.requiresHumanReview === true && p.administrativeConclusion === null && integer(p.matchedItemPairs) && list(p.comparisons,300,c=>obj(c)&&integer(c.leftRow)&&Object.hasOwn(OUTCOMES,c.outcome)&&list(c.rightRows,300,integer)));
+}
+function currency(cents) {
+  if (!integer(cents)) return 'A conferir';
+  const exact = BigInt(cents);
+  return 'R$ '+(exact/100n).toLocaleString('pt-BR')+','+String(exact%100n).padStart(2,'0');
+}
+function details(parent,title,anchors) {
+  if (!anchors?.length) return;
+  const d=add(parent,'details'); add(d,'summary',title);
+  for(const a of anchors) {add(d,'p','Página '+a.page+' · linha '+a.line,'label');add(d,'blockquote',a.quote);}
+}
+function showField(parent,label,value,format=v=>String(v)) {
+  const section=add(parent,'div',undefined,'record');
+  add(section,'div',label,'label');
+  add(section,'div',value.status==='extracted'?format(value.value):LABELS[value.status],'value');
+  if (value.status==='ambiguous') for(const c of value.candidates) details(section,'Candidato: '+format(c.value),c.evidence);
+  else details(section,'Ver trecho de origem',value.evidence);
+}
+function selected() {return report?.documents.find(d=>d.id===$('document').value);}
+function clear() {
+  generation++; verification++; report=null;
+  $('report').value=''; $('original').value=''; $('document').replaceChildren();
+  $('radar-cnpj').value=''; $('radar-exercise').value='';
+  for(const id of ['fields','items','reasons','pairs','signature']) $(id).replaceChildren();
+  for(const id of ['load-status','comparison','source-status','source-hash','report-context']) $(id).textContent='';
+  $('workspace').hidden=true;
+}
+function compare() {
+  const d=selected(); if (!d) return;
+  const c=$('radar-cnpj').value.trim();
+  const digits=c.replace(/[.\/-]/g,'');
+  const y=$('radar-exercise').value.trim();
+  const messages=[];
+  if (!c) messages.push('Informe o CNPJ do RADAR para comparar.');
+  else if (!/^\d{14}$/.test(digits) || !(cnpj(c)||/^\d{14}$/.test(c))) messages.push('CNPJ informado inválido: confira os 14 dígitos.');
+  else if(d.context.cnpj.status!=='extracted') messages.push('CNPJ do documento não identificado com segurança.');
+  else messages.push(d.context.cnpj.value.replace(/\D/g,'')===digits?'CNPJ coincide com o informado.':'CNPJ diverge do informado.');
+  if (!y) messages.push('Informe o exercício do RADAR.');
+  else if (!/^\d{4}$/.test(y) || !year(Number(y))) messages.push('Exercício informado inválido.');
+  else if(d.context.exercise.status!=='extracted') messages.push('Exercício do documento não identificado.');
+  else messages.push(d.context.exercise.value===Number(y)?'Exercício coincide com o informado.':'Exercício diverge do informado.');
+  $('comparison').textContent=messages.join(' ')+' Confira a unidade no RADAR; esta tela não consulta seu cadastro.';
+}
+function render() {
+  const d=selected(); if (!d) return;
+  verification++; $('original').value=''; $('source-status').textContent='Original ainda não conferido.';
+  const source=report.sourceSnapshots.find(s=>s.id===d.id);
+  $('source-hash').textContent='SHA-256 esperado: '+source.pdfSha256;
+  $('report-context').textContent='Exercício-alvo do relatório: '+report.targetExercise+'. Selecione o exercício atual do RADAR para comparar.';
+  $('fields').replaceChildren();
+  showField($('fields'),'Instituição',d.context.institution);
+  showField($('fields'),'CNPJ',d.context.cnpj);
+  showField($('fields'),'Exercício no conteúdo',d.context.exercise);
+  showField($('fields'),'Programa',d.context.program);
+  showField($('fields'),'Período',d.context.period,v=>v.raw+(v.valid?'':' — data a conferir'));
+  $('signature').textContent=(d.signature.fields.present?'Campo de assinatura presente no relatório.':'Campo de assinatura não identificado no relatório.')+' '+(d.signature.textLayerMarkersPresent?'Marcador textual presente.':'Marcador textual não identificado.')+' Validação criptográfica não realizada.';
+  $('items').replaceChildren();
+  if(!d.items.length) add($('items'),'p','Nenhum item candidato extraído neste documento.');
+  else for(const i of d.items) {
+    const r=add($('items'),'div',undefined,'record');
+    add(r,'h3',i.description);
+    add(r,'p','NF '+i.invoiceNumber+' · '+i.date+' · Quantidade: '+i.quantity,'muted');
+    add(r,'p','Unitário: '+currency(i.unitCents)+' · Total: '+currency(i.totalCents),'value');
+    if(!i.lineTotalConsistent) add(r,'p','Quantidade e valores precisam de conferência.','status');
+    details(r,'Ver trecho de origem',[i.evidence]);
+  }
+  showField($('items'),'Total declarado',d.total,currency);
+  add($('items'),'p','Soma dos itens candidatos: '+currency(d.sumItemTotalsCents),'value');
+  add($('items'),'p',d.ignoredTemplateRows.length+' linha(s) vazia(s) do modelo ignorada(s); '+d.rejectedRows.length+' linha(s) rejeitada(s).','muted');
+  details($('items'),'Ver linhas vazias do modelo',d.ignoredTemplateRows.map(i=>i.evidence));
+  details($('items'),'Ver linhas rejeitadas',d.rejectedRows.map(i=>i.evidence));
+  $('reasons').replaceChildren();add($('reasons'),'h3','Pontos de revisão');
+  const reasons=add($('reasons'),'ul');
+  for(const reason of d.reviewReasons) add(reasons,'li',Object.hasOwn(REASONS,reason)?REASONS[reason]:'Outro ponto de revisão indicado no relatório.');
+  if(!d.reviewReasons.length) add(reasons,'li','Nenhum motivo específico indicado; a revisão humana continua necessária.');
+  $('pairs').replaceChildren();add($('pairs'),'h3','Comparação entre documentos');
+  const pairs=report.pairs.filter(p=>p.leftDocumentId===d.id||p.rightDocumentId===d.id);
+  if(!pairs.length) add($('pairs'),'p','Nenhum par apoiado pelos campos extraídos neste relatório.');
+  for(const p of pairs) {
+    const other=report.documents.find(doc=>doc.id===(p.leftDocumentId===d.id?p.rightDocumentId:p.leftDocumentId));
+    const r=add($('pairs'),'div',undefined,'record');add(r,'h3',TYPES[other.type]);
+    add(r,'p',OUTCOMES[p.outcome],'status');
+    add(r,'p',p.matchedItemPairs+' par(es) de itens candidatos. Não é contagem de compras.');
+    for(const row of p.comparisons) add(r,'p','Linha candidata '+row.leftRow+': '+OUTCOMES[row.outcome]+(row.rightRows.length?' · linhas '+row.rightRows.join(', '):''),'muted');
+  }
+  compare();
+}
+$('report').addEventListener('change',async()=>{
+  const file=$('report').files[0]; clear(); if(!file)return;
+  const token=generation;
+  try {
+    if(file.size>5*1024*1024)throw Error();
+    const parsed=JSON.parse(await file.text());
+    if(token!==generation)return;
+    if(!validate(parsed))throw Error();
+    report=parsed;
+    for(const [index,d] of report.documents.entries()) {const option=add($('document'),'option',(index+1)+'. '+TYPES[d.type]);option.value=d.id;}
+    $('workspace').hidden=false;render();
+    $('load-status').textContent=report.documents.length+' documento(s) carregado(s) para revisão. Selecione um documento e confira a origem.';
+  } catch {
+    if(token!==generation)return;
+    clear();$('load-status').textContent='Não foi possível abrir o relatório. Use o JSON privado da versão 2 do piloto (até 5 MB e 12 documentos). Nenhum dado foi carregado.';
+  }
+});
+$('original').addEventListener('change',async()=>{
+  const file=$('original').files[0],d=selected(),token=++verification;
+  $('source-status').textContent='Original ainda não conferido.';
+  if(!file||!d)return;
+  try {
+    if(file.size>25*1024*1024||!globalThis.crypto?.subtle)throw Error();
+    const bytes=await file.arrayBuffer();
+    if(new TextDecoder().decode(bytes.slice(0,5))!=='%PDF-')throw Error();
+    const digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),n=>n.toString(16).padStart(2,'0')).join('');
+    if(token!==verification)return;
+    const source=report.sourceSnapshots.find(s=>s.id===d.id);
+    $('source-status').textContent=digest===source.pdfSha256?'Bytes coincidem com o SHA-256 do relatório. Confira o conteúdo e a assinatura no leitor de PDF.':'PDF diferente do relatório. Gere uma nova extração antes de usar estes campos.';
+  }catch{
+    if(token===verification)$('source-status').textContent='Não foi possível conferir o PDF local (até 25 MB; navegador com Web Crypto).';
+  }
+});
+$('document').addEventListener('change',render);
+$('radar-cnpj').addEventListener('input',compare);
+$('radar-exercise').addEventListener('input',compare);
+$('clear').addEventListener('click',()=>{clear();$('report').focus();});
+</script>
+</body>
+</html>
