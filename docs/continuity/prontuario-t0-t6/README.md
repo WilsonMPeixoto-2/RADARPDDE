@@ -58,6 +58,8 @@ O registro mantém **decisão do produto** distinta de **estado de implementaç�
 
 ## Escopos segregados
 
+[D024 — esclarecimento de D022](D024_ESCOPO_AUDITORIA_AGENTICA.md): D024 esclarece exclusivamente o alcance documental de D022: profissionalizar o fluxo agêntico existente SharePoint/OneDrive → análise cruzada → Pendências e registros autorizados no RADAR → conferência de cobertura e resultados. Não desenvolver extrator local, importador JSON, página independente ou módulo documental neste ciclo; experimentos são referências exploratórias. Evolução para usuários exige plano e aprovação prévios; planejamento agêntico posterior à consolidação T6. Sem novas permissões.
+
 Esta frente cobre exclusivamente a evolução visual e flexibilização de regras **T0–T6**. Não absorve automaticamente PRs de upgrade de pacotes/Dependabot/CI nem a operação institucional de análise documental do PDDE (Drive, despesas, avaliações e Pendências reais lançadas no RADAR/Supabase). Tests T0–T6 usam ambiente **Docker Supabase isolado** com fixtures sintéticas; a operação institucional deve continuar normalmente.
 
 ## Validação

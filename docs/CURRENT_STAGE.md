@@ -9,7 +9,13 @@
 
 **Genealogia de decisões e requisitos desde 13/11:** [atlas de continuidade T0–T6](continuity/prontuario-t0-t6/LINEAGE.md) e [fonte estruturada](continuity/prontuario-t0-t6/lineage.json). Não basta reler plano original nem tratar 22 contribuições catalogadas como conhecimento exaustivo; seguir requisitos com origem por blob SHA e pendências históricas explícitas. O atlas não autoriza escrever no Supabase institucional.
 
-## Etapa vigente — fechamento de desempenho e usabilidade móvel (25/11/2026)
+## Etapa vigente — consolidação T6 e esclarecimento D024 (25/11/2026)
+
+**Direção vigente:** D024 esclarece exclusivamente o alcance documental de D022: profissionalizar o fluxo agêntico existente SharePoint/OneDrive → análise cruzada → Pendências e registros autorizados no RADAR → conferência de cobertura e resultados. Não desenvolver extrator local, importador JSON, página independente ou módulo documental neste ciclo; experimentos são referências exploratórias. Evolução para usuários exige plano e aprovação prévios; planejamento agêntico posterior à consolidação T6. Sem novas permissões. [D024](continuity/prontuario-t0-t6/D024_ESCOPO_AUDITORIA_AGENTICA.md).
+
+**#573 integrado:** GitHub confirmou merge `a5c506bf602ce65d68c2b74419f670061500677b`, após 17/17 workflows no HEAD `1eb4c4d3`. Publicação em Production ainda não conferida neste corte. #574 encerrado sem merge; branch e commit exploratório `8f74027f` preservados. Próximo ato: confirmar manifesto e gates pós-merge, depois reconciliar obrigações T6 por SHA, priorizando compatibilidade/fallback, estabilidade, desempenho e usabilidade. Não iniciar nova interface documental ou reabrir T5. Ver [checkpoint](continuity/prontuario-t0-t6/CHECKPOINT.md).
+
+## Fotografia histórica — fechamento de desempenho e usabilidade móvel (25/11/2026)
 
 **Retomada autorizada:** «Continue de onde o outro agente parou». O [PR #572](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/572) foi integrado em `105bde995a3816fa9f1d10d5cc1bbed5fe6966a9`, árvore idêntica à candidata `de66e7a3`, após 13/13 workflows aprovados. A referência histórica passou na repetição isolada após expirar na preparação das sessões; o comparador também passou. A falha inicial permanece registrada, sem causa interna isolada. A branch #573 incorpora esse merge e preserva o ajuste visual para verificação conjunta. Publicação conferida no manifesto oficial (HTTP 200): `105bde99`, Production/Supabase Production, cinco flags T0–T5 ativas. O A/B controlado anterior mantém a redução P95 de 381 para 32 versões e o aumento de 13,3 para 27,8 MB; não é SLA nem redução global de custos.
 

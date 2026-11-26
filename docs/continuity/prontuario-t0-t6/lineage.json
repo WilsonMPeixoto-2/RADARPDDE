@@ -271,11 +271,11 @@
       "location": "release-branch",
       "role": "direcionamento-expresso-inteligencia-documentos-desempenho",
       "path": "docs/continuity/prontuario-t0-t6/D022_INTELIGENCIA_DOCUMENTOS_DESEMPENHO.md",
-      "contentSha": "b1aa683eb028ad9fcbf9316038f39e6050e1a0c5",
+      "contentSha": "61bdb650e71b834ed112550e00485e902b1cdf12",
       "reviewStatus": "reviewed",
-      "ref": "feat/t5-historico-granular-20261125",
-      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/feat/t5-historico-granular-20261125/docs/continuity/prontuario-t0-t6/D022_INTELIGENCIA_DOCUMENTOS_DESEMPENHO.md",
-      "note": "Transcrição da instrução na conversa de 25/11; sem permalink do chat. Fonte versionada nesta candidata."
+      "ref": "docs/d022-escopo-agentico-t6-20261125",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/docs/d022-escopo-agentico-t6-20261125/docs/continuity/prontuario-t0-t6/D022_INTELIGENCIA_DOCUMENTOS_DESEMPENHO.md",
+      "note": "Transcrição da instrução na conversa de 25/11; sem permalink do chat. Fonte versionada nesta candidata. Esclarecimento parcial D024 inserido sem apagar formulação anterior."
     },
     {
       "id": "S027",
@@ -287,6 +287,17 @@
       "ref": "docs/continuidade-usabilidade-20261125",
       "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/docs/continuidade-usabilidade-20261125/docs/continuity/prontuario-t0-t6/D023_CONTINUIDADE_REMOTA_E_USABILIDADE.md",
       "note": "Instrução expressa do proprietário na conversa de 25/11/2026 após a análise de T5; sem permalink verificável do chat. Transcrição fiel e interpretação operacional versionadas no documento; publicação remota desta fonte depende do commit/push deste lote."
+    },
+    {
+      "id": "S028",
+      "location": "release-branch",
+      "role": "esclarecimento-expresso-escopo-auditoria-agentica",
+      "path": "docs/continuity/prontuario-t0-t6/D024_ESCOPO_AUDITORIA_AGENTICA.md",
+      "contentSha": "f69e46895d6cd29798c07148ba5ad82a3f780d7d",
+      "reviewStatus": "reviewed",
+      "ref": "docs/d022-escopo-agentico-t6-20261125",
+      "url": "https://github.com/WilsonMPeixoto-2/RADARPDDE/blob/docs/d022-escopo-agentico-t6-20261125/docs/continuity/prontuario-t0-t6/D024_ESCOPO_AUDITORIA_AGENTICA.md",
+      "note": "Instrução expressa do proprietário em 25/11/2026; sem permalink do chat."
     }
   ],
   "requirements": [
@@ -1599,14 +1610,15 @@
       "id": "T0T6-R070",
       "label": "Pequena amostra documental real e proveniência",
       "phase": "T5-T6",
-      "state": "candidate-partial",
+      "state": "historical-superseded",
       "sourceIds": [
-        "S026"
+        "S026",
+        "S028"
       ],
       "decisionIds": [
         "T0T6-D022"
       ],
-      "evidence": "Piloto local executado com três PDFs reais autorizados e resultados identificáveis entregues privadamente; método, código e testes sintéticos incorporados no PR #565 em 31c27155eb2169032a36cb050082ae080965053d. Proveniência e revisão humana preservadas, sem escrita institucional. O piloto não oferece importação pela interface, OCR genérico ou conclusão administrativa; publicação do código não amplia o alcance da amostra. Fonte pública de escopo e evidências: https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565 e docs/evidence/2026-11-25-t5-inteligencia-documentos-desempenho.md.",
+      "evidence": "Piloto local executado com três PDFs reais autorizados e resultados identificáveis entregues privadamente; método, código e testes sintéticos incorporados no PR #565 em 31c27155eb2169032a36cb050082ae080965053d. Proveniência e revisão humana preservadas, sem escrita institucional. O piloto não oferece importação pela interface, OCR genérico ou conclusão administrativa; publicação do código não amplia o alcance da amostra. Fonte pública de escopo e evidências: https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565 e docs/evidence/2026-11-25-t5-inteligencia-documentos-desempenho.md. D024: experimento preservado, não requisito de funcionalidade documental ou próxima implementação. PR #574 encerrado sem merge.",
       "codePaths": [
         "ops/document-intelligence-poc/local-pdf-pilot/extract_pdf.py",
         "ops/document-intelligence-poc/local-pdf-pilot/analyze.mjs",
@@ -1664,6 +1676,21 @@
         "T0T6-D023"
       ],
       "evidence": "Diretriz aprovada pelo proprietário em 25/11/2026, complementar a D021 e ao gate de frontend. Solução técnica e experiência humana devem ser concebidas e verificadas em paralelo, com linguagem, ações, confirmações, cores, tipografia, espaço, densidade e continuidade compreensíveis. Registro documental não equivale a aceite humano nem certificação global da interface; cumprimento contínuo conforme o impacto de cada entrega.",
+      "codePaths": [],
+      "testPaths": []
+    },
+    {
+      "id": "T0T6-R074",
+      "label": "Fronteira de escopo da auditoria agêntica e planejamento posterior",
+      "phase": "T5-T6",
+      "state": "contract-active",
+      "sourceIds": [
+        "S028"
+      ],
+      "decisionIds": [
+        "T0T6-D024"
+      ],
+      "evidence": "Esclarecimento explícito: priorizar T6 agora; profissionalizar posteriormente o fluxo agêntico SharePoint/OneDrive e RADAR existente, não construir módulo documental. PR #574 fechado sem merge. Não comprova implementação de novo fluxo ou autorização de escrita.",
       "codePaths": [],
       "testPaths": []
     }
