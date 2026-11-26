@@ -113,6 +113,40 @@ function summarizeFiscalTiming(report, label) {
     return { status: 'recorded', operations: Object.fromEntries(FISCAL_OPERATIONS.map(name => [name, percentiles(groups[name])])) };
 }
 
+function summarizeSustainedFreshness(report, label) {
+    const freshness = report.sustainedFreshness;
+    if (freshness === undefined) return { status: 'not-recorded', lagVersions: null };
+    const sampleEvery = Math.max(1, Math.floor(report.rounds / 40));
+    const expectedWrites = Array.from({ length: report.rounds }, (_, index) => index + 1)
+        .filter(write => write % sampleEvery === 0 || write === report.rounds);
+    requireCondition(freshness && freshness.sampleEvery === sampleEvery
+        && Array.isArray(freshness.samples) && freshness.samples.length === expectedWrites.length,
+    `${label}: incomplete sustained freshness samples`);
+    let previousWriter = 0;
+    let previousObserver = 0;
+    let previousElapsed = 0;
+    let visibleMatches = 0;
+    const lag = freshness.samples.map((sample, index) => {
+        const at = `${label}.sustainedFreshness.samples[${index}]`;
+        requireCondition(sample && sample.writeNumber === expectedWrites[index], `${at}: wrong sampled write`);
+        const writer = count(sample.writerVersion, `${at}.writerVersion`);
+        const observer = count(sample.observerVersion, `${at}.observerVersion`);
+        const elapsed = number(sample.elapsedMs, `${at}.elapsedMs`);
+        requireCondition(writer > previousWriter && observer >= Math.max(1, previousObserver)
+            && observer <= writer && elapsed >= previousElapsed, `${at}: invalid or regressed version/time`);
+        requireCondition(typeof sample.observerVisibleMatchesState === 'boolean', `${at}: missing visible state sample`);
+        if (sample.observerVisibleMatchesState) visibleMatches += 1;
+        previousWriter = writer;
+        previousObserver = observer;
+        previousElapsed = elapsed;
+        return writer - observer;
+    });
+    return { status: 'recorded', sampleEvery, lagVersions: percentiles(lag),
+        currentSamples: lag.filter(value => value === 0).length,
+        visibleMatchesStateSamples: visibleMatches,
+        note: 'Sampled writer minus observer row_version during activity. Not a duration or proof of paint; equality is a sampled state.' };
+}
+
 function writeTimingSummary(timing, label) {
     if (timing == null) return { status: 'unavailable', sampleCount: 0 };
     const sampleCount = count(timing.sampleCount, `${label}.sampleCount`);
@@ -273,9 +307,10 @@ function summarizeExperiment(input, variant) {
     return { generatedAt: report.generatedAt, rounds: report.rounds, gestures: report.gestures,
         finalValue: report.finalValue, faults: report.faults, totals, sessions, sql,
         fiscalTiming: summarizeFiscalTiming(report, variant),
+        sustainedFreshness: summarizeSustainedFreshness(report, variant),
         convergence: { status: 'asserted-by-passed-journey', finalValue: report.finalValue,
             reloadInitialCompetence: report.reloadInitialCompetence,
-            note: 'Passed journey asserts final database/UI/reload state and reconnect recovery; it does not measure freshness lag during continuous activity.' },
+            note: 'Passed journey asserts final database/UI/reload state and reconnect recovery. Sustained freshness, when recorded, separately samples version lag during activity, not elapsed latency.' },
         limits: report.limits };
 }
 
@@ -372,7 +407,16 @@ export function renderComparisonMarkdown(comparison) {
             lines.push(`| ${variant} | ${name} | ${item?.samples ?? 'n/a'} | ${format(item?.p50 ?? null)} | ${format(item?.p95 ?? null)} | ${format(item?.max ?? null)} |`);
         }
     }
-    lines.push('', '## Fiscal session render breakdown (inclusive, not additive)', '',
+    lines.push('', '## Sustained freshness (sampled canonical version lag)', '',
+        '| Variant | Samples | p50 versions | p95 versions | Max versions | Current at sample | Visible matches state |',
+        '|---|---:|---:|---:|---:|---:|---:|');
+    for (const variant of ['baseline', 'candidate']) {
+        const item = comparison[variant].sustainedFreshness;
+        const lag = item.lagVersions;
+        lines.push(`| ${variant} | ${lag?.samples ?? 'n/a'} | ${format(lag?.p50 ?? null)} | ${format(lag?.p95 ?? null)} | ${format(lag?.max ?? null)} | ${format(item.currentSamples ?? null)} | ${format(item.visibleMatchesStateSamples ?? null)} |`);
+    }
+    lines.push('', 'Version lag is not a time SLO. Samples are taken without waiting for observer convergence.', '',
+        '## Fiscal session render breakdown (inclusive, not additive)', '',
         'Synchronous function entry timings overlap; guidance entry covers only calls through the public renderSchool reference. Missing instrumentation is n/a.',
         '| Variant | Function | Count | Total ms | Max ms |', '|---|---|---:|---:|---:|');
     for (const variant of ['baseline', 'candidate']) {
@@ -441,7 +485,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
         for (const variant of ['baseline', 'candidate']) {
             const result = comparison[variant];
             process.stdout.write(`Fiscal diagnostic ${variant}: ${JSON.stringify({
-                timing: result.fiscalTiming, render: result.sessions[1]?.browserPerformance.renderBreakdown ?? null
+                timing: result.fiscalTiming, render: result.sessions[1]?.browserPerformance.renderBreakdown ?? null,
+                sustainedFreshness: result.sustainedFreshness,
+                readAttempts: result.totals.readAttempts, readAborts: result.totals.abortedReadAttempts,
+                payloadBytes: result.totals.payloadBytes
             })}\n`);
         }
     }).catch(error => { process.stderr.write(`${error.message}\n`); process.exitCode = 1; });
