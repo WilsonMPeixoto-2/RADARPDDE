@@ -297,7 +297,12 @@
           "targetPaths": [
             "docs/releases/2026-11-20-prontuario-t0-t3-release-1.md"
           ],
-          "evidenceRefs": []
+          "evidenceRefs": [
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/537",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/564",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/565",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45726751925"
+          ]
         },
         {
           "id": "T0T6-I006-02",
@@ -877,7 +882,9 @@
           "targetPaths": [
             "tests/e2e/supabase-operational-correction-local.spec.js"
           ],
-          "evidenceRefs": []
+          "evidenceRefs": [
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45726751773"
+          ]
         }
       ]
     },
@@ -982,7 +989,7 @@
           "id": "T0T6-I020-03",
           "phase": "T6",
           "surface": "tests",
-          "status": "planned",
+          "status": "candidate",
           "requirementIds": [
             "T0T6-R052",
             "T0T6-R067"
@@ -991,7 +998,11 @@
           "targetPaths": [
             "tests/unit/prontuario-decision-impact.test.js"
           ],
-          "evidenceRefs": []
+          "evidenceRefs": [
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/575",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45726751773",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45726751925"
+          ]
         }
       ]
     },
@@ -1060,7 +1071,7 @@
           "id": "T0T6-I021-04",
           "phase": "T6",
           "surface": "tests",
-          "status": "planned",
+          "status": "candidate",
           "requirementIds": [
             "T0T6-R052"
           ],
@@ -1069,7 +1080,11 @@
             "tests/e2e/supabase-operational-correction-local.spec.js",
             "tests/e2e/prontuario-correction-layout.spec.js"
           ],
-          "evidenceRefs": []
+          "evidenceRefs": [
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45726751760",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/actions/runs/45726751751",
+            "https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/573"
+          ]
         }
       ]
     },

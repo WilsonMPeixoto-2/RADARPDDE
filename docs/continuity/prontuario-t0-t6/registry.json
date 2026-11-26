@@ -31,7 +31,7 @@
       "https://radarpdde-fix.vercel.app/radar-build-manifest.json"
     ],
     "nextStage": "Pós-T5 / T6",
-    "nextStageStatus": "T6: #569 e #572 integrados e publicação registrada anteriormente; #573 integrado a5c506bf, verificar publicação e gates pós-merge; reconciliar compatibilidade, UX, evidências e desempenho. D024 retira evolução documental do escopo corrente."
+    "nextStageStatus": "T6 em consolidação: #573/#575 integrados e status Vercel success; provas técnicas por release e logs recuperados em docs/evidence/2026-11-26-t6-consolidacao.md; novo gate histórico R2 contra schema atual aguardando CI. Manifesto atual e aceite humano ainda não comprovados neste corte. D024 exclui evolução documental."
   },
   "decisions": [
     {

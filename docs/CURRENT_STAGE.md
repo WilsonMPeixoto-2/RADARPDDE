@@ -9,7 +9,11 @@
 
 **Genealogia de decisões e requisitos desde 13/11:** [atlas de continuidade T0–T6](continuity/prontuario-t0-t6/LINEAGE.md) e [fonte estruturada](continuity/prontuario-t0-t6/lineage.json). Não basta reler plano original nem tratar 22 contribuições catalogadas como conhecimento exaustivo; seguir requisitos com origem por blob SHA e pendências históricas explícitas. O atlas não autoriza escrever no Supabase institucional.
 
-## Etapa vigente — consolidação T6 e esclarecimento D024 (25/11/2026)
+## Etapa vigente — consolidação técnica T6 (26/11/2026)
+
+[Provas T6, lacunas e gate de compatibilidade histórica](evidence/2026-11-26-t6-consolidacao.md). #573 e #575 integrados e status Vercel success; manifesto atual não recuperado nesta sessão. A nova candidata é teste e documentação, não alteração de produto: cliente R2 real fixado no SHA publicado, rodando sobre schema atualizado descartável com o cliente novo. O teste G3 anterior sem flag foi recuperado nos logs e permanece. Verificar novo CI, aceite humano e evidências em vez de repetir T5. #574 encerrado sem merge e D024 vigente. T6 integral não declarada concluída antes da prova.
+
+## Fotografia anterior — consolidação T6 e esclarecimento D024 (25/11/2026)
 
 **Direção vigente:** D024 esclarece exclusivamente o alcance documental de D022: profissionalizar o fluxo agêntico existente SharePoint/OneDrive → análise cruzada → Pendências e registros autorizados no RADAR → conferência de cobertura e resultados. Não desenvolver extrator local, importador JSON, página independente ou módulo documental neste ciclo; experimentos são referências exploratórias. Evolução para usuários exige plano e aprovação prévios; planejamento agêntico posterior à consolidação T6. Sem novas permissões. [D024](continuity/prontuario-t0-t6/D024_ESCOPO_AUDITORIA_AGENTICA.md).
 
