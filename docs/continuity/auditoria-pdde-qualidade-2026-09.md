@@ -43,3 +43,11 @@ Textos simples, concisos e objetivos, com linha em branco entre parágrafos e de
 A retomada deve acessar os documentos institucionais originais, cruzar os achados acima, executar as correções fundamentadas pelas operações do RADAR, reler o resultado e fechar o grupo. Este registro de continuidade, deliberadamente sem identificadores de notas, fornecedores, processos ou valores individualizados por se tratar de repositório público, não substitui relatório de auditoria.
 
 Referência de escopo: [D024](prontuario-t0-t6/D024_ESCOPO_AUDITORIA_AGENTICA.md).
+
+## Verificação complementar de acesso e reaproveitamento de evidências — 27/11/2026
+
+A consulta à biblioteca recuperou os checkpoints do Básico de setembro e outubro, mas não os documentos originais do Qualidade. A revisão anterior de 20 despesas em cinco unidades pertence ao **Básico de outubro** (confirmado no checkpoint dessa competência), não ao Qualidade. Não aproveitar essas conclusões como auditoria do Qualidade.
+
+O relatório de setembro do Básico contém uma referência documental específica a pagamento pela conta Qualidade na posição 14 da lista. Preservar essa pista para a etapa correspondente: conferir o comprovante citado, vincular à ação correta e evitar duplicidade entre programas. Não constitui fechamento de escola nem avanço de grupo.
+
+Os perfis dos conectores SharePoint e Outlook foram conferidos: ambos estão associados à conta pessoal, não à institucional. A pasta original continua indisponível. Necessária sessão institucional autorizada ou disponibilização dos arquivos originais do grupo 1. Nenhuma alteração no RADAR nesta verificação; permanecem 0/5 auditorias documentais fechadas. Não refazer a triagem cadastral já registrada.
