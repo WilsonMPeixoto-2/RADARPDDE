@@ -51,3 +51,9 @@ A consulta à biblioteca recuperou os checkpoints do Básico de setembro e outub
 O relatório de setembro do Básico contém uma referência documental específica a pagamento pela conta Qualidade na posição 14 da lista. Preservar essa pista para a etapa correspondente: conferir o comprovante citado, vincular à ação correta e evitar duplicidade entre programas. Não constitui fechamento de escola nem avanço de grupo.
 
 Os perfis dos conectores SharePoint e Outlook foram conferidos: ambos estão associados à conta pessoal, não à institucional. A pasta original continua indisponível. Necessária sessão institucional autorizada ou disponibilização dos arquivos originais do grupo 1. Nenhuma alteração no RADAR nesta verificação; permanecem 0/5 auditorias documentais fechadas. Não refazer a triagem cadastral já registrada.
+
+## Fechamento da revisão cadastral — 27/11/2026
+
+O proprietário autorizou prosseguir com a metodologia preliminar até cobrir setembro e dispensou alterações no site RADAR. Entrega exclusiva ao proprietário em Word DOCX convencional para revisão. Concluída a leitura das 27 unidades, com 60 vínculos ativos, 53 avaliações, 26 registros de despesas, 25 pendências de origem setembro (21 abertas, 2 aguardando reanálise, 1 resolvida, 1 cancelada), 24 pendências anteriores ainda ativas e 28 movimentos provisórios. Os valores e ocorrências individualizados estão exclusivamente no documento entregue, sem publicação de dados institucionais no repositório.
+
+Relatório: `PDDE_Qualidade_Setembro_2026_Relatorio_27_Escolas.docx`. As seis etapas cadastrais foram consolidadas; a auditoria documental direta continua 0/27 por indisponibilidade dos originais institucionais. Não confundir conclusão da revisão cadastral com conciliação documental. Nenhuma alteração no RADAR. Outubro não analisado nesta rodada.
