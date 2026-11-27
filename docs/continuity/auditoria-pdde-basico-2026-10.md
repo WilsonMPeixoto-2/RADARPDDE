@@ -19,3 +19,11 @@ A documentação identificável, as referências por nota e a fila detalhada de 
 | Conciliação | Comparação dos comprovantes com extratos mensais e Demonstrativos onde as fontes estavam disponíveis. As lacunas de origem constam no registro restrito do grupo. |
 | RADAR | Registros e situações consultados. O site solicitou autenticação institucional. Nenhuma gravação desta rodada confirmada até o registro deste ponto de continuidade. |
 | Próximo ato | Restabelecer a sessão no RADAR, reler as pendências, registrar e verificar o resultado deste grupo. |
+
+### Releitura em produção · 27/11/2026
+
+Foram relidas cinco avaliações, vinte despesas e 32 pendências do grupo. A trilha de auditoria confirma três atualizações em pendências já existentes. As atualizações esclareceram a insuficiência de uma pesquisa de preços, os documentos necessários para uma consulta contábil e a documentação de duas aquisições permanentes. Os registros continuam abertos. O executor desta conferência verificou as três atualizações em leitura.
+
+Entre os achados ainda a registrar, há divergências de datas de pagamento, erros de transcrição de identificadores fiscais, uma omissão de comprovação fiscal e bancária já coberta por pendência e uma solicitação patrimonial que pode reconhecer os bens já discriminados na planilha. A observação autorizada sobre consulta contábil posterior ao pagamento continua na fila de lançamento. A correspondência de cada achado com a evidência e o registro existente fica no arquivo restrito da auditoria `RADAR_PDDE_Basico_Outubro_2026_Checkpoint.md`.
+
+**Fechamento em aberto.** O navegador apresentou a tela de acesso institucional. O fechamento exige gravar as correções ainda necessárias pela interface do RADAR e verificar o resultado, com atenção às versões já atualizadas por outras sessões. O grupo seguinte aguarda o fechamento deste.
