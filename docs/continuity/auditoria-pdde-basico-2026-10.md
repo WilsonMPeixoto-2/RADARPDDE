@@ -27,3 +27,9 @@ Foram relidas cinco avaliações, vinte despesas e 32 pendências do grupo. A tr
 Entre os achados ainda a registrar, há divergências de datas de pagamento, erros de transcrição de identificadores fiscais, uma omissão de comprovação fiscal e bancária já coberta por pendência e uma solicitação patrimonial que pode reconhecer os bens já discriminados na planilha. A observação autorizada sobre consulta contábil posterior ao pagamento continua na fila de lançamento. A correspondência de cada achado com a evidência e o registro existente fica no arquivo restrito da auditoria `RADAR_PDDE_Basico_Outubro_2026_Checkpoint.md`.
 
 **Fechamento em aberto.** O navegador apresentou a tela de acesso institucional. O fechamento exige gravar as correções ainda necessárias pela interface do RADAR e verificar o resultado, com atenção às versões já atualizadas por outras sessões. O grupo seguinte aguarda o fechamento deste.
+
+### Conferência posterior · 27/11/2026
+
+A leitura em produção encontrou oito atualizações posteriores nas pendências existentes. Uma delas pede corrigir um número de nota na planilha patrimonial para a numeração já cadastrada no RADAR. O DANFE e a consulta fiscal confirmam a numeração que está na planilha. A divergência deve ser corrigida no cadastro e na pendência vinculada, após confirmar o acesso institucional. O arquivo restrito registra o confronto e os documentos.
+
+O grupo permanece aberto. A autenticação ainda não está ativa para gravação e verificação pelo navegador.
