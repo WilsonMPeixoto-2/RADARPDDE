@@ -12,6 +12,14 @@ Fontes originais institucionais e cadastro atual; grupos de cinco; inspeção vi
 
 Escritas devem refletir somente fatos comprovados, preservar identificadores, histórico, registros resolvidos/cancelados, autoria e bonificação. Dúvidas normativas ou classificação sem evidência suficiente permanecem como necessidade de orientação. Não comunicar externamente às escolas por iniciativa própria.
 
+## Despesas a identificar
+
+Despesa a identificar é uma pendência de prestação de contas, independentemente de já estar vinculada a um programa ou ação. No PDDE Qualidade, quando o débito existe e a ação financiadora ainda é desconhecida, registrar a pendência no campo específico fora das ações integradas. A direção da escola deve enviar a documentação pertinente para comprovar e identificar a despesa quando os documentos exigidos não tiverem sido apresentados.
+
+Antes de solicitar complementação, conferir os documentos disponíveis, inclusive os apresentados depois da competência. Distinguir documentação efetivamente faltante de evidência que ainda não foi localizada, examinada ou acessada. Se um registro existente já representa a mesma operação, atualizar ou vincular esse registro conforme a evidência e preservar o histórico.
+
+Nos diagnósticos e relatórios, usar “pendência de identificação de despesa”, inclusive para registros abertos no campo específico do Qualidade. Na consolidação, conferir a sobreposição com despesas cadastradas e pendências já registradas para evitar contagem dupla de ocorrências e de valores.
+
 ## Bonificação encerrada — não alterar
 Decisão expressa do proprietário: esta tarefa abrange exclusivamente análise técnica documental e os registros operacionais correspondentes. A bonificação já foi encerrada e não deve ser alterada de forma alguma.
 
