@@ -25,3 +25,9 @@ Entregável: `PDDE_Qualidade_Outubro_2026_Relatorio_27_Escolas.docx`, 24 página
 **Limitação:** o conector Microsoft continua associado à conta pessoal, sem acesso aos originais institucionais. Os apontamentos e as regularizações documentais citados são registros existentes no RADAR; não constituem nova conferência dos originais. Não marcar a auditoria documental direta como concluída. Nenhuma escrita no RADAR.
 
 Referência: [revisão de setembro](auditoria-pdde-qualidade-2026-09.md).
+
+## Retomada da conferência dos originais · 28/11/2026
+
+A conexão institucional foi confirmada e a pasta da competência está acessível. A revisão permanece em modo de leitura. A consulta atual confirmou 27 unidades, 60 avaliações, 49 registros de despesas, 104 pendências de outubro e quatro movimentos provisórios. A contagem atual de pendências anteriores ativas é 85, sendo 61 de setembro. O histórico registra inserções e atualizações de ocorrências com origem em setembro após o fechamento anterior.
+
+Ponto de retomada: percorrer a pasta de cada unidade por grupo, abrir os arquivos originais e conciliar extratos, demonstrativos, comprovantes e registros do RADAR. A limitação temporária de requisições do SharePoint exige retomada escalonada. A conferência direta permanece em andamento. Documentos e detalhes individualizados ficam no relatório de uso restrito.
