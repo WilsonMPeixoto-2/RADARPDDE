@@ -54,3 +54,9 @@ A sessão institucional Rioeduca abriu a pasta compartilhada no navegador. O log
 Foram gravadas quatro observações pelo painel do RADAR, com referência à despesa correspondente e à conferência do Pix. A interface exibiu os quatro textos. A releitura no Supabase confirmou a gravação, a autoria e a mudança de versão dos quatro registros. A comparação das duas unidades antes e depois confirmou que os demais campos dos movimentos, as despesas, os bens, as pendências do módulo principal e as avaliações que guardam a bonificação foram preservados.
 
 A carteira inicial do painel mostra 25 escolas. Para o escopo da auditoria, usar a lista confirmada de 27 unidades. Na retomada, avançar com os demais registros documentais comprovados. Estes quatro casos ainda precisam de uma operação de vínculo à despesa existente para a baixa, com preservação do histórico e da bonificação.
+
+## Grupo 1 em execução · 28/11/2026
+
+Reconsultados cinco cadastros, com 11 registros de despesas e 22 pendências do Qualidade originadas em outubro. O lote inicial atualizou textos de duas pendências fiscais e uma patrimonial. Os textos fiscais agora orientam a corrigir ou esclarecer a data do recibo após confronto visual com o Pix. A pendência patrimonial delimita os itens de capital e preserva a parcela de custeio. A conferência no Supabase confirmou os três textos, três históricos, três logs administrativos e três eventos de auditoria. As três pendências permanecem abertas. As despesas e as avaliações das cinco unidades foram preservadas, incluindo a bonificação.
+
+Resta revisar os demais achados do grupo e conferir se houve envio posterior de originais para as lacunas já registradas. A revisão documental continua parcial. As quatro pendências de identificação previamente conciliadas permanecem aguardando vínculo à despesa existente.
