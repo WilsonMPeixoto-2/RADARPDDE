@@ -44,3 +44,11 @@ Os cinco textos editados no lote anterior permanecem gravados. O histórico conf
 O site do RADAR abriu na tela de acesso institucional. A projeção dos registros no painel aguarda sessão autenticada. O conector do SharePoint pesquisou no OneDrive pessoal e não retornou a pasta institucional PDDE 2026. O endereço institucional aberto no navegador solicitou login Microsoft. A conferência anterior de originais permanece registrada no fechamento parcial de outubro.
 
 Retomada pela interface autenticada de Pendências, Despesas, Movimentos provisórios e Inventário. Conferir a exibição dos cinco textos, revisar os vínculos candidatos das quatro pendências de identificação e avançar pelas lacunas documentais registradas na ordem de continuidade do relatório. Preservar a bonificação encerrada.
+
+## Retomada das quatro pendências de identificação · 28/11/2026
+
+Conferidos visualmente os extratos de outubro e os comprovantes das duas unidades, com confronto das linhas pertinentes dos demonstrativos e dos registros do Supabase. Confirmadas quatro correspondências com despesas já cadastradas, no total de R$ 4.010,58. Em uma operação, o nome do favorecido no Pix difere da razão social do documento fiscal, mas o CNPJ coincide. A diferença entre a data do Pix e a data informada na documentação dessa despesa é tratada na pendência fiscal existente.
+
+O campo específico ainda mostra os quatro registros abertos no Supabase. A operação de identificação disponível no banco exige o cadastro de documento fiscal novo. Os quatro documentos já têm registro, por isso não houve baixa nem lançamento duplicado. Preservar as notas, os vínculos patrimoniais e a pendência fiscal existente. Ponto de retomada: procurar no painel autenticado uma forma de associar a despesa existente e verificar se mantém o histórico e a bonificação. Se o painel reproduzir a exigência de nota nova, tratar a baixa desses registros como limitação do fluxo e resolver por operação que preserve histórico e autoria.
+
+A sessão institucional Rioeduca abriu a pasta compartilhada no navegador e está disponível para consulta aos originais. O painel do RADAR solicita autenticação. Nesta conferência, o Supabase foi consultado em leitura.
