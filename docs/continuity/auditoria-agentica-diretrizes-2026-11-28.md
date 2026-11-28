@@ -12,6 +12,18 @@ Fontes originais institucionais e cadastro atual; grupos de cinco; inspeção vi
 
 Escritas devem refletir somente fatos comprovados, preservar identificadores, histórico, registros resolvidos/cancelados, autoria e bonificação. Dúvidas normativas ou classificação sem evidência suficiente permanecem como necessidade de orientação. Não comunicar externamente às escolas por iniciativa própria.
 
+## Bonificação encerrada — não alterar
+Decisão expressa do proprietário: esta tarefa abrange exclusivamente análise técnica documental e os registros operacionais correspondentes. A bonificação já foi encerrada e não deve ser alterada de forma alguma.
+
+Não editar critérios de bonificação, prazos, resultados, consolidação, marcas de necessidade de reconsolidação nem seus históricos. Não recalcular, reabrir ou reconsolidar bonificação. A apresentação posterior de documento pode regularizar uma pendência técnica sem produzir qualquer efeito sobre a bonificação encerrada.
+
+Antes e depois de cada lote de escrita, comparar os dados de bonificação e seu resultado. A operação técnica deve preservar esses dados também contra efeitos indiretos. Se um comando produzir alteração automática da bonificação, não confirmar esse comando; usar uma operação técnica que preserve integralmente a bonificação, sem modificar regras do produto.
+
+## Redação e apresentação dos registros
+Todos os textos de pendências, observações e demais registros devem ser simples, objetivos, sucintos e naturais. Ir diretamente à ocorrência e à providência necessária; eliminar explicações desnecessárias, jargão, frases burocráticas e repetição.
+
+Usar separação de parágrafos, listas curtas, negrito, subtítulos e outros recursos tipográficos quando ajudarem a leitura e a localização da informação principal. Destacar número fiscal, valor e data apenas quando relevantes. Manter fontes e detalhes extensos na rastreabilidade do trabalho, sem sobrecarregar o texto operacional. Usar formatação compatível com a superfície do RADAR; não deixar marcação literal no lugar de negrito.
+
 ## Memória e entregas
 O Word é registro de apoio, memória e continuidade, não substituto dos lançamentos no RADAR. Registrar estado anterior, ação executada, evidência, resultado remoto e ponto de retomada. Não afirmar alteração persistida sem releitura do registro canônico. Conferir a projeção na interface quando houver acesso autenticado.
 
@@ -20,13 +32,13 @@ O proprietário esclareceu que repositório privado não é condição para exec
 ## Continuidade corrente
 Consultar `docs/continuity/auditoria-pdde-qualidade-2026-10-rodada-2026-11-28.md`. As anotações iniciais de proibição de escrita são históricas e ficam superadas por esta autorização expressa a partir da decisão. Não atribuir retroativamente escritas a consultas feitas antes da autorização.
 
-## Pausa solicitada e proposta de metodologia — aguarda confirmação de escopo
-O proprietário pediu fechar metodologia e escopo antes de novos lançamentos. Análises documentais e mutações institucionais ficam pausadas nesse marco; consultas de contexto e documentação do planejamento continuam. Antes da pausa, foram atualizados cinco textos de pendências existentes, sem alteração de situação, valores ou bonificação. Releitura remota confirmou os cinco históricos, cinco logs administrativos e cinco eventos de auditoria. Conferência visual dessas alterações na interface autenticada permanece pendente.
+## Alinhamento confirmado pelo proprietário
+O proprietário pediu fechar metodologia e escopo antes de novos lançamentos e, na mensagem seguinte, confirmou as demais interpretações, acrescentando a intangibilidade absoluta da bonificação e o padrão de redação abaixo. A metodologia e a fila propostas estão confirmadas com esses ajustes. Antes da pausa, foram atualizados cinco textos de pendências existentes, sem alteração de situação, valores ou bonificação. Releitura remota confirmou os cinco históricos, cinco logs administrativos e cinco eventos de auditoria. Conferência visual dessas alterações na interface autenticada permanece pendente.
 
 ### Base histórica recuperada
 Relatório do Básico de setembro descreve conferência documental, com propostas que não equivalem a execução no sistema. Relatórios anteriores do Qualidade de setembro e outubro descrevem revisão cadastral, sem inspeção direta dos originais naquela rodada. Não presumir que esses números representam o cadastro atual. Nesta rodada o acesso institucional aos originais foi confirmado e as consultas/cópias alcançaram os quatro primeiros grupos, com profundidades distintas de conferência.
 
-### Sequência proposta, ainda não aprovada
+### Sequência confirmada
 1. Mapear o que já foi analisado, lançado, resolvido e continua pendente nos trabalhos existentes.
 2. Concluir o lote Qualidade outubro/2026 das 27 escolas, aproveitando o trabalho corrente.
 3. Completar lacunas documentais e registros do Qualidade setembro/2026.
@@ -34,6 +46,6 @@ Relatório do Básico de setembro descreve conferência documental, com proposta
 5. Definir os próximos programas e competências com o proprietário.
 
 ### Ciclo por grupo
-Fixar escola/programa/ação/competência e ponto de retomada; consultar cadastro e histórico atual; obter originais e complementos; confrontar banco, demonstrativo, comprovantes e RADAR; decidir o encaminhamento com evidência; aplicar registros coerentes e sem duplicidade; reler persistência e verificar projeções no site; revisar totais, vínculos, patrimônio e bonificação; gerar Word do estágio real e checkpoint remoto antes do próximo grupo. Impedimento de uma unidade não paralisa tarefas independentes, mas sua etapa não pode ser marcada como executada.
+Fixar escola/programa/ação/competência e ponto de retomada; consultar cadastro e histórico atual; obter originais e complementos; confrontar banco, demonstrativo, comprovantes e RADAR; decidir o encaminhamento com evidência; aplicar registros coerentes e sem duplicidade; reler persistência e verificar projeções no site; revisar totais, vínculos e patrimônio e confirmar que a bonificação permaneceu integralmente inalterada; gerar Word do estágio real e checkpoint remoto antes do próximo grupo. Impedimento de uma unidade não paralisa tarefas independentes, mas sua etapa não pode ser marcada como executada.
 
-Estado: proposta em discussão. Não retomar execução institucional até a definição solicitada pelo proprietário.
+Estado: metodologia e sequência confirmadas. Próximo lote: concluir PDDE Qualidade de outubro/2026 das 27 unidades, com análise técnica e registros operacionais, sem qualquer alteração de bonificação. A confirmação das diretrizes não equivale à conclusão da auditoria ou dos lançamentos.
