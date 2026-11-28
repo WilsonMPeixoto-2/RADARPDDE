@@ -20,6 +20,14 @@ Antes de solicitar complementação, conferir os documentos disponíveis, inclus
 
 Nos diagnósticos e relatórios, usar “pendência de identificação de despesa”, inclusive para registros abertos no campo específico do Qualidade. Na consolidação, conferir a sobreposição com despesas cadastradas e pendências já registradas para evitar contagem dupla de ocorrências e de valores.
 
+## Divergências e situações atípicas
+
+Diferenças de valor ou data pedem conciliação. Confrontar a saída no extrato, o documento da despesa, o comprovante de pagamento, o demonstrativo, os registros no RADAR e eventuais créditos ou documentos complementares. Verificar a relação entre as operações, os valores e as datas, inclusive em competências posteriores.
+
+Exemplo ilustrativo. Um boleto de internet pago com juros pode ter um depósito posterior da direção, com recursos próprios, para ressarcir a conta do PDDE. Conferir o valor original, o valor pago, os juros, o crédito efetivo e a justificativa que vincula o depósito à despesa. Se a documentação comprovar a operação e o ressarcimento integral, registrar a explicação como observação quando for útil e tratar eventual pendência existente conforme a evidência. Se faltar comprovação, indicar o que precisa ser apresentado ou esclarecido.
+
+Examinar cada caso conforme suas evidências. Quando persistir dúvida relevante sobre a interpretação dos documentos ou o encaminhamento, consultar o responsável pela tarefa antes de decidir sobre a ocorrência.
+
 ## Bonificação encerrada — não alterar
 Decisão expressa do proprietário: esta tarefa abrange exclusivamente análise técnica documental e os registros operacionais correspondentes. A bonificação já foi encerrada e não deve ser alterada de forma alguma.
 
