@@ -31,3 +31,11 @@ Referência: [revisão de setembro](auditoria-pdde-qualidade-2026-09.md).
 A conexão institucional foi confirmada e a pasta da competência está acessível. A revisão permanece em modo de leitura. A consulta atual confirmou 27 unidades, 60 avaliações, 49 registros de despesas, 104 pendências de outubro e quatro movimentos provisórios. A contagem atual de pendências anteriores ativas é 85, sendo 61 de setembro. O histórico registra inserções e atualizações de ocorrências com origem em setembro após o fechamento anterior.
 
 Ponto de retomada: percorrer a pasta de cada unidade por grupo, abrir os arquivos originais e conciliar extratos, demonstrativos, comprovantes e registros do RADAR. A limitação temporária de requisições do SharePoint exige retomada escalonada. A conferência direta permanece em andamento. Documentos e detalhes individualizados ficam no relatório de uso restrito.
+
+## Fechamento parcial da auditoria documental · 28/11/2026
+
+A revisão cadastral foi concluída nas 27 unidades, com 60 avaliações em seis ações com vínculo no RADAR. A reconsulta em leitura confirmou 49 registros de despesas e 104 pendências de outubro, com 92 abertas, nenhuma aguardando reanálise, seis resolvidas e seis canceladas. As 85 pendências anteriores ainda ativas foram revisadas por competência de origem.
+
+A inspeção direta alcançou peças originais de 26 unidades. Houve correspondência financeira de 23 pagamentos nas quatro fontes. O relatório Word reúne as evidências e as providências propostas por unidade. A conferência documental integral permanece em aberto por lacunas nos extratos, nos comprovantes e na confirmação de registros patrimoniais. O RADAR e os documentos institucionais foram consultados exclusivamente em leitura.
+
+A próxima conferência começa pela seção “Ordem de continuidade” e pelos quadros por grupo do relatório. Essas seções indicam os extratos e comprovantes a completar, as operações que ainda exigem identificação e as pendências anteriores e patrimoniais que dependem de evidência adicional.
